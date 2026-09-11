@@ -33,11 +33,11 @@ Install the binary interaction fixture and the supplied native harness file firs
 
 ![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-1c4b2f24dc.svg){ .locator data-strip="illustrations/strip-54e1511b20.svg" }
 
-- Browser builds use `BROWSER_WEBGPU` only; native test builds use the primary backends. Both go through one function.
+- Browser builds use `BROWSER_WEBGPU` only, native test builds the primary backends; one function serves both.
 
 ![Diagram: BROWSER_WEBGPU adapter · DeviceSetup · device · queue · failure](illustrations/12-03.svg)
 
-- The browser picks the presentation-compatible adapter; `?gpu=high` asks for the high-performance one on a hybrid machine and falls back to the browser's choice when that adapter is refused.
+- The browser picks the presentation-compatible adapter; `?gpu=high` asks a hybrid machine for the high-performance one, falling back to the browser's choice if that adapter is refused.
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 
@@ -48,14 +48,16 @@ Install the binary interaction fixture and the supplied native harness file firs
 
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=84-116 -->
 
-- 256 MiB of storage binding where available, rather than the adapter maximum: the measured point-cloud scene needs 158 MB in one table. A device limited to the standard 128 MiB still starts, and an oversized scene then reports a GPU error instead of a silent driver fallback.
-- `failure` is where an uncaptured error or a device loss is remembered, because both arrive on a callback rather than at the call that caused them. `State::render` reads it and shows the reload panel instead of drawing garbage.
+- Ask for 256 MiB of storage binding where available, not the adapter maximum: the measured point-cloud scene needs 158 MB in one table.
+- A 128 MiB device still starts, and an oversized scene then reports a GPU error rather than a silent driver fallback.
+- `failure` remembers an uncaptured error or a device loss: both arrive on a callback, not at the call that caused them.
+- `State::render` reads it and shows the reload panel instead of drawing garbage.
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=117-162 -->
 
-- The surface's own capabilities decide the format: the first sRGB one if there is one, so colours are written in the space the browser will display.
+- The surface's capabilities decide the format: the first sRGB one if there is one, so colours are written in the space the browser displays.
 
 Native-only adapter naming and the error callbacks:
 
@@ -67,9 +69,9 @@ Native-only adapter naming and the error callbacks:
 
 ![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-1c4b2f24dc.svg){ .locator data-strip="illustrations/strip-54e1511b20.svg" }
 
-- `write_frame_uniforms` runs once per frame: camera matrices, then the inside-flag refresh that reads the eye just solved, then text placement.
+- `write_frame_uniforms` runs once per frame: camera matrices, the inside-flag refresh reading the eye just solved, then text placement.
 - `present` returns `None` when the surface had no texture; the caller asks for another frame instead of panicking.
-- `pick_frame` is the ID pass alone, against the depth the last presented frame left: a pick on a still scene costs no colour frame.
+- `pick_frame` is the ID pass alone, against the last presented frame's depth: a pick on a still scene costs no colour frame.
 
 ![Diagram: camera · eye · write_frame_uniforms · present · surface texture · pick_frame](illustrations/12-04.svg)
 
@@ -81,7 +83,7 @@ Native-only adapter naming and the error callbacks:
 
 <!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=69-85 -->
 
-The offscreen and benchmark paths used by native tools:
+Offscreen and benchmark paths for native tools:
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 
@@ -91,7 +93,7 @@ The offscreen and benchmark paths used by native tools:
 
 ![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-1c4b2f24dc.svg){ .locator data-strip="illustrations/strip-54e1511b20.svg" }
 
-- Pass order is the whole contract: physical surfaces write depth, the selection mask reads it, ink reads it, the ID pass repeats the same toggles.
+- Pass order is the contract: physical surfaces write depth; the selection mask and ink read it; the ID pass repeats the same toggles.
 - `encode_frame` knows nothing about a surface, so the same list renders headless.
 
 ![Diagram: encode_frame · face_list · depth · scene_list · ink · id_pass](illustrations/12-05.svg)
@@ -109,7 +111,7 @@ The offscreen and benchmark paths used by native tools:
 
 ![Where this step sits in the viewer: Input, with 10 of 11 zones built so far.](illustrations/locator-e98165b3e5.svg){ .locator data-strip="illustrations/strip-25545ebdc0.svg" }
 
-Every handler returns whether the frame must be redrawn; a click returns `false` because nothing changes until the GPU answers.
+Every handler returns whether a redraw is needed; a click returns `false` — nothing changes until the GPU answers.
 
 | Input | Action |
 |---|---|
@@ -136,13 +138,14 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=48-81 -->
 
-- `D` flips the headlight (`view.lit`, off by default: a face shows its flat row colour until you ask for shading). `P` flips x-ray; from lesson 18 on, a zero opacity turns every multi-face solid into its edges and vertices.
+- `D` flips the headlight (`view.lit`), off by default: a face shows its flat row colour until you ask for shading.
+- `P` flips x-ray; from lesson 18 on, zero opacity turns every multi-face solid into edges and vertices.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=82-168 -->
 
-- A press that moved more than `CLICK_SLOP` before release is a drag, so a camera gesture never selects on release.
+- A press that moved more than `CLICK_SLOP` before release is a drag: a camera gesture never selects on release.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
@@ -160,7 +163,8 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 - winit routes `pointerType == "touch"` to `WindowEvent::Touch` only, so fingers never reach the mouse arms.
 - Finger travel is divided by the device pixel ratio; otherwise one centimetre of glass orbits three times faster on a DPR 3 phone.
-- A finger that lifts within 12 px and 300 ms of where it landed is a tap, and asks for the same pick a click makes; a second tap within 320 ms and 40 px asks for a fit, which needs the scene bounds a layer up.
+- A lift within 12 px and 300 ms of the landing is a tap: it asks for the same pick a click makes.
+- A second tap within 320 ms and 40 px asks for a fit, which needs the scene bounds a layer up.
 
 ![Diagram: WindowEvent::Touch · Touch · orbit · pan · zoom · request_selection · fit](illustrations/12-07.svg)
 
@@ -172,7 +176,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/touch.rs type lines=69-138 -->
 
-- `Act` is what the gesture asked for rather than what was done: `Fit` needs the scene bounds and this file may know only the camera.
+- `Act` is what the gesture asked for, not what was done: `Fit` needs the scene bounds, and this file may know only the camera.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
@@ -183,7 +187,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 ![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-7ccf7d4f74.svg){ .locator data-strip="illustrations/strip-6f8f40e8fe.svg" }
 
 - `Scene` owns every kernel `Session` plus its placement; the GPU only holds rows. A pick returns a row, `Scene::resolve` returns the document and GUID.
-- `order` maps row → GUID and `guid_to_row` maps back; both survive an upload because the rows are forgotten only after `upload_to`.
+- `order` maps row → GUID, `guid_to_row` back; both survive an upload, since rows are forgotten only after `upload_to`.
 
 ![Diagram: Session documents · Scene · object rows](illustrations/12-08.svg)
 
@@ -195,13 +199,13 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=60-117 -->
 
-- A reload must not invalidate the `Scene` the whole application is holding, so the tables are emptied in place and the row bookkeeping starts again from zero.
+- A reload must not invalidate the `Scene` the application holds: the tables empty in place and row bookkeeping restarts at zero.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=118-176 -->
 
-- One object row per GUID in the kernel's canonical order; the row a GUID gets is the row it keeps within a revision.
+- One object row per GUID, in the kernel's canonical order; a GUID keeps its row for a whole revision.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -218,7 +222,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=265-326 -->
 
-- A streamed cloud grows: each slice appends to the same row range and uploads only the new points, so the scene never rebuilds what is already on the GPU.
+- A streamed cloud grows: each slice appends to the same row range and uploads only its new points, never rebuilding what is on the GPU.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -230,7 +234,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=342-405 -->
 
-- An edge answer goes back through the retained producer records, and an answer that cannot be named is refused rather than guessed.
+- An edge answer goes back through the retained producer records; one that cannot be named is refused, not guessed.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -260,13 +264,13 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-48 -->
 
-- Normals are read only when every point has one: a partly-normalled cloud would shade inconsistently and there is no per-point flag to say which.
+- Normals are read only when every point has one: a partly-normalled cloud shades inconsistently, and no per-point flag says which.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=49-81 -->
 
-- The octree the file carries is rewritten into this cloud's own row and node numbering, so one lane can hold many clouds without their node indices colliding.
+- The file's octree is rewritten into this cloud's own row and node numbering, so one lane holds many clouds without colliding node indices.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -276,7 +280,8 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=129-183 -->
 
-- A streamed cloud is only partly present, so its spacing is measured over the nodes that are actually complete within the points received. Sizing discs from a node that is still arriving would make them flicker as it fills.
+- A streamed cloud is only partly present: spacing is measured over the nodes complete within the points received.
+- Discs sized from a node still arriving would flicker as it fills.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -286,13 +291,13 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/walk/frames.rs type -->
 
-- A plane becomes a one-metre square and a box its twelve edges, both in the flat ribbon lane: a construction plane is drawn, not shaded.
+- A plane becomes a one-metre square, a box its twelve edges, both in the flat ribbon lane: a construction plane is drawn, not shaded.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/points.rs type -->
 
-- The smallest producer in the viewer: one dot, no topology, no facing cull. Worth reading as the shape every producer has.
+- The smallest producer in the viewer: one dot, no topology, no facing cull — the shape every producer has.
 
 ### Step 9 · Stream records, feedback, inspection and the fixture loader
 
@@ -313,7 +318,7 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/feedback.rs type -->
 
-- The text can come from a document or a server, and neither is allowed to write markup into the page.
+- Text can come from a document or a server; neither may write markup into the page.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -323,7 +328,7 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/loader.rs type -->
 
-- A local fixture loader, one file wide, so the shell has something to load; lesson 14 replaces it.
+- A one-file fixture loader, so the shell has something to load; lesson 14 replaces it.
 
 <!-- check: 12 -->
 
@@ -353,7 +358,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-59 -->
 
-- The tolerance is a circle in framebuffer pixels, at least one pixel wide: a click is a point, the user's intent is a neighbourhood, and that neighbourhood must be the same physical size on every display.
+- The tolerance is a circle in framebuffer pixels, at least one pixel wide: a click is a point, the intent a neighbourhood — the same physical size on every display.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -369,7 +374,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=145-203 -->
 
-- One function computes the window's bounds and both the scissor and the copy use it. Two computations that must agree are one computation used twice.
+- One function computes the window's bounds, used by both the scissor and the copy: two computations that must agree are one computation used twice.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -381,7 +386,8 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=223-309 -->
 
-- The ID pass gets the same gradient attachment the colour frame has, because ink decides its own visibility from it — without it, a stroke would be pickable exactly where it is invisible.
+- The ID pass gets the colour frame's gradient attachment: ink decides its own visibility from it.
+- Without it, a stroke would be pickable exactly where it is invisible.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -391,14 +397,14 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=351-395 -->
 
-- The native census captures the unchanged ID pass, which is how the hidden-line tests judge visibility against exact object numbers rather than against pixels.
+- The native census captures the unchanged ID pass: the hidden-line tests judge visibility against exact object numbers, not pixels.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=396-439 -->
 
 - `map` must run after the submit and only once per copy; `poll` reads the mapped bytes on a later frame.
-- Ink beats a face anywhere in the window; among equals the nearest to the cursor wins, so a curve lying across a face is still selectable.
+- Ink beats a face anywhere in the window; among equals the nearest to the cursor wins, so a curve across a face stays selectable.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -440,7 +446,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=1-74 -->
 
-- Coverage is allocated with the first selected row and released with the last, so an unselected scene pays nothing for a feature it is not using.
+- Coverage is allocated with the first selected row and released with the last: an unselected scene pays nothing.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -450,13 +456,13 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=99-165 -->
 
-- `prepare` also answers whether there is anything to draw at all: the cheapest version of this feature is the one that is switched off.
+- `prepare` also answers whether there is anything to draw: the cheapest version of this feature is the one switched off.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=166-229 -->
 
-- The compositing pipeline is built for the pass's own colour format and sample count, which is why it has to be rebuilt when the sample count flips rather than chosen once at start-up.
+- The compositing pipeline is built for the pass's own colour format and sample count, so a sample-count flip rebuilds it; it cannot be chosen once at start-up.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -498,19 +504,21 @@ binding 1: uniform [radius, 0, 0, 0]    ↔  @group(0) @binding(1) var<uniform> 
 
 <!-- file: 12 session_viewer/src/state.rs type lines=46-106 -->
 
-- Streamed clouds and sheets arrive in slices, so each has an add and an extend: the first makes the row, the rest only append. `State` is the only place that knows a slice belongs to a scene object already on screen.
+- Streamed clouds and sheets arrive in slices: an add makes the row, an extend appends.
+- `State` is the only place that knows a slice belongs to an object already on screen.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=107-161 -->
 
-- A resize is forwarded rather than handled: the camera needs the new aspect, the GPU needs new attachments, and doing both from one place is what keeps them from disagreeing for a frame.
+- A resize is forwarded, not handled: the camera needs the new aspect, the GPU new attachments.
+- Driving both from one place keeps them from disagreeing for a frame.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=162-188 -->
 
-- Each of these ends by telling the GPU and asking for a frame: `State` is the only place that knows both sides.
+- Each ends by telling the GPU and asking for a frame: `State` is the only place that knows both sides.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -579,7 +587,7 @@ Document titles and the selected name are derived labels; they have no source ro
 
 <!-- file: 12 session_viewer/src/app/mod.rs type -->
 
-- Append the dispatcher at the end of the walk module first, then replace its header with the lane-table borrow and the new declarations.
+- Append the dispatcher at the end of the walk module, then replace its header with the lane-table borrow and the new declarations.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -619,7 +627,8 @@ Document titles and the selected name are derived labels; they have no source ro
 
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=93-157 -->
 
-- The window handler keeps only redraw and resize. Keys and the mouse are handed to `Input`, which answers whether a frame is needed — so the shell never decides what a gesture means.
+- The window handler keeps only redraw and resize.
+- Keys and the mouse go to `Input`, which answers whether a frame is needed; the shell never decides what a gesture means.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -633,9 +642,11 @@ Document titles and the selected name are derived labels; they have no source ro
 
 ![Where this step sits in the viewer: Page, Shell, with 10 of 11 zones built so far.](illustrations/locator-51db8c1fc4.svg){ .locator data-strip="illustrations/strip-7794a17bda.svg" }
 
-- The page is one canvas, a status line and a hidden error panel; `touch-action: none` on the canvas hands every gesture to winit before the browser can claim it as a scroll.
-- `#viewer-docs` is the documentation corner: a black folded-corner triangle at the top right that opens `docs/` in a new tab, drawn from the borders of a zero-size anchor. Hover or keyboard focus grows it, so it reads as a page corner lifting; it covers nothing but its own triangle.
-- The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so the corner's link resolves in a served build. Nothing builds that site yet — lesson 14 adds the pre-build hook that does — and Trunk refuses a `copy-dir` whose source is missing, so create the directory once before you serve:
+- The page is one canvas, a status line and a hidden error panel; `touch-action: none` on the canvas hands every gesture to winit before the browser claims it as a scroll.
+- `#viewer-docs` is the documentation corner: a black folded triangle, top right, drawn from the borders of a zero-size anchor; it opens `docs/` in a new tab.
+- Hover or keyboard focus grows it, a page corner lifting; it covers nothing but itself.
+- The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so the corner resolves in a served build.
+- Nothing builds that site yet (lesson 14 adds the hook), and Trunk refuses a `copy-dir` whose source is missing — create the directory once before serving:
 
 ```sh
 mkdir -p "$COURSE_WORK/session_viewer/target/docs/site"
@@ -655,7 +666,8 @@ mkdir -p "$COURSE_WORK/session_viewer/target/docs/site"
 
 <!-- file: 12 session_viewer/src/fixture.rs -->
 
-- This is the first check that compiles the new modules: the two inside Parts A and B ran while they were still undeclared. `Tutorial` and the teaching fixture are gone.
+- The first check that compiles the new modules: the two inside Parts A and B ran while they were still undeclared.
+- `Tutorial` and the teaching fixture are gone.
 
 <!-- check: 12 -->
 
@@ -705,7 +717,7 @@ If an object highlights but the status names another GUID, the row → identity 
 
 **What is `generation` for, and what breaks without it?**
 
-*How to work it out.* The answer to a pick arrives some frames after the request. Ask what can happen in between: the camera can move, the scene can be replaced. Then ask what the answer means once it does — it describes a picture that no longer exists.
+*How to work it out.* A pick's answer arrives some frames after the request. In between the camera can move or the scene can be replaced, and the answer then describes a picture that no longer exists.
 
 *The answer.* `generation` counts requests and `submitted` records which generation the in-flight copy belongs to; a camera move bumps the counter, so a late answer is discarded. Without it, a click selects whatever was under that pixel before you orbited away. Every asynchronous answer in this viewer carries a generation for the same reason.
 

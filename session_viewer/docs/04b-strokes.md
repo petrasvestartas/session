@@ -17,7 +17,9 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 ## Starting point
 
 - Checkpoint 04a: one mesh drawn through the arena; the ink pass exists but draws nothing of its own.
-- A stroke is a camera-facing quad per segment. The vertex stage pulls six vertices by index from the segment table; the fragment stage computes exact pixel coverage of a capsule and asks the physical depth whether the axis is visible.
+- A stroke is a camera-facing quad per segment.
+- The vertex stage pulls six vertices by index from the segment table.
+- The fragment stage computes exact pixel coverage of a capsule, then asks the physical depth whether the axis is visible.
 
 <!-- step-status: start -->
 
@@ -31,7 +33,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 - `radius` 0 means the screen-constant pen; `facing` packs two face normals for the solid lane's back-edge cull.
 
-![Diagram: walk · segment endpoints · CylinderSegment\ a · b · radius · facing · segment table](illustrations/04b-02.svg)
+![Diagram: walk · segment endpoints · CylinderSegment\ p0 · p1 · radius · facing · segment table](illustrations/04b-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -59,7 +61,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=181-240 -->
 
-- The lane reports whether it holds any solid rows at all: 4x is spent only when hard edges exist on the GPU, and then only if the canvas fits the adapter's budget.
+- The lane reports whether it holds any solid rows: 4x is spent only when hard edges exist on the GPU, and only if the canvas fits the adapter's budget.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -104,7 +106,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=5-17 -->
 
-- Per-vertex outputs are flat: the half-width at each end goes down as two scalars and is resolved per pixel, because a per-vertex width is projective over a trapezoid.
+- Per-vertex outputs are flat: each end's half-width travels as its own scalar and resolves per pixel, because a per-vertex width is projective over a trapezoid.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -128,7 +130,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=138-187 -->
 
-- The ID entries write `(row + 1, segment + 1)`, and the segment half carries a tag bit so a picked ribbon can be told from a picked face in the same channel.
+- The ID entries write `(row + 1, segment + 1)`; a tag bit in the segment half tells a picked ribbon from a picked face in the same channel.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -174,7 +176,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- file: 04b session_viewer/src/lib.rs type -->
 
-- The shell's only change is the status line: every lane reports its own count, and that JSON is what the checkpoint test reads instead of a screenshot.
+- The shell's only change is the status line: every lane reports its own count, and the checkpoint test reads that JSON, not a screenshot.
 
 <span class="zone-mark" data-strip="illustrations/strip-a7bdebbf9f.svg" data-zone="Page"></span>
 
@@ -202,27 +204,27 @@ Expected:
 
 ## Try
 
-- Append `?thickness=4` to the URL: every stroke widens on screen while the geometry stays put, because the pen is applied in `ribbon.wgsl`, not in the vertex data.
+- Append `?thickness=4`: every stroke widens on screen while the geometry stays put — the pen is applied in `ribbon.wgsl`, not in the vertex data.
 - Zoom far out: the strokes keep their pixel width. A world-space width would vanish; a screen-space pen does not.
-- Set `?thickness=0.2`: the stroke thins to a hairline and keeps a floor of alpha rather than disappearing, because `band_area` integrates the pixel box exactly instead of ramping a distance. (`?aa=` feathers markers and dots, not ribbons — the ribbon shader never reads `line.feather`.)
+- Set `?thickness=0.2`: the stroke thins to a hairline and keeps an alpha floor instead of disappearing, because `band_area` integrates the pixel box exactly rather than ramping a distance. (`?aa=` feathers markers and dots, not ribbons — `ribbon.wgsl` never reads `line.feather`.)
 
 ## Questions and answers
 
 **The segment row ends in flat `f32`s instead of two `vec3`s. What would the `vec3`s cost?**
 
-*How to work it out.* Apply the alignment rule from lesson 03: a `vec3` aligns to 16 even though it holds 12 bytes. Lay the row out both ways and count — then ask what the `vec3` form actually buys, given that the shader reads the components individually anyway.
+*How to work it out.* Apply lesson 03's alignment rule: a `vec3` aligns to 16 even though it holds 12 bytes. Lay the row out both ways and count — then ask what the `vec3` form buys, given the shader reads the components individually anyway.
 
 *The answer.* Eight bytes a row, taking it from 40 to 48, for no benefit. Being able to predict this rather than discover it is the point: the same rule set `Instance` at 96 and will set the marker row at 48.
 
 **Strokes draw with `DepthMode::Always` and blending. Why not simply depth-test them?**
 
-*How to work it out.* Ask where a stroke usually sits: on the edge of the face it belongs to, at the same depth as that face. Now ask what a depth test does with two fragments at the same depth — it is a coin flip decided by float rounding, per pixel, and it changes as the camera moves.
+*How to work it out.* A stroke sits on the edge of the face it belongs to, at that face's depth. A depth test between two fragments at the same depth is a coin flip decided by float rounding, per pixel, and it changes as the camera moves.
 
-*The answer.* Hardware depth testing at equal depth produces stitching, so the shader decides visibility itself: `ink_visible` compares the scene depth at the pixel against the depth of the closest point on the stroke's axis, using the gradient the face pass wrote. Putting that rule in one shared file is what keeps every ink lane answering the question the same way.
+*The answer.* Hardware depth testing at equal depth produces stitching, so the shader decides visibility itself: `ink_visible` compares the scene depth at the pixel against the depth of the closest point on the stroke's axis, using the gradient the face pass wrote. One shared file keeps every ink lane answering the question the same way.
 
 **The half-width at each end travels as a flat scalar, resolved per pixel. What breaks if you interpolate a width per vertex instead?**
 
-*How to work it out.* Draw a stroke going away from the camera: on screen it is a trapezoid, wide at the near end, narrow at the far end. Interpolation across a trapezoid is perspective-correct for *positions*, but a width is not a position — it is a screen-space quantity derived from one.
+*How to work it out.* A stroke going away from the camera is a trapezoid on screen, wide at the near end, narrow at the far end. Interpolation across it is perspective-correct for *positions*, but a width is not a position — it is a screen-space quantity derived from one.
 
 *The answer.* The width comes out wrong in the middle and wobbles as the camera moves. Sending both ends flat and computing the width per pixel from them is exact, which is why the outputs are marked `@interpolate(flat)`.
 
@@ -234,7 +236,7 @@ Expected:
 
 **What you should be able to do now**
 
-Say in two sentences why a stroke keeps its pixel width when you zoom out, and where that decision is applied. Correct: the vertex stage expands the segment into a quad whose half-width is computed in *screen* space from `line.thickness`, so world distance never enters it — the pen is applied in `ribbon.wgsl`, not in the vertex data. Then predict the CPU alternative: you would have to rebuild and re-upload the geometry on every camera move.
+Say in two sentences why a stroke keeps its pixel width when you zoom out, and where that decision is applied. Correct: the vertex stage expands the segment into a quad whose half-width is computed in *screen* space from `line.thickness`, so world distance never enters it — the pen is applied in `ribbon.wgsl`, not in the vertex data. Then predict the CPU alternative: rebuilding and re-uploading the geometry on every camera move.
 
 ## Next
 

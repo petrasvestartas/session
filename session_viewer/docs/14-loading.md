@@ -19,9 +19,9 @@
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- A manifest lists files and where each sits (`at`, `xform`, or the auto-grid); the geometry stays in `.pb` files, so a placement edit never re-uploads geometry.
-- `parse` accepts YAML, JSON and TOML with one set of semantics and rejects non-finite or non-affine transforms before anything is fetched.
-- `TextItem` is a fixed world-plane label authored in the manifest; its frame must be unit and orthogonal, checked here rather than in a renderer.
+- A manifest lists files and where each sits (`at`, `xform`, auto-grid); geometry stays in the `.pb` files, so a placement edit re-uploads nothing.
+- `parse` accepts YAML, JSON and TOML with one set of semantics, rejecting non-finite or non-affine transforms before anything is fetched.
+- `TextItem` is a manifest-authored fixed world-plane label; its frame must be unit and orthogonal, checked here rather than in a renderer.
 
 ![Diagram: yaml · json · toml · Manifest · Item · at · xform · TextItem](illustrations/14-02.svg)
 
@@ -33,7 +33,8 @@
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=58-127 -->
 
-- Placement has a fallback: an item with no transform of its own takes its slot in the auto grid, so a manifest can list files and nothing else and still produce a readable scene.
+- Placement has a fallback: an item with no transform takes its slot in the auto grid.
+- So a manifest of nothing but file names still produces a readable scene.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -53,7 +54,7 @@ Parser unit tests, part of the file:
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- A hostile `cv_count` would make a kernel constructor allocate from a declared number; every count is checked against the actual storage length first.
+- A hostile `cv_count` makes a kernel constructor allocate from a declared number: every count is checked against the actual storage length first.
 - `session` walks a decoded protobuf; `retained` covers the JSON path, which has no protobuf constructors; `json` checks declared NURBS counts before serde builds objects.
 
 ![Diagram: decoded protobuf · counts ≤ storage · JSON document](illustrations/14-03.svg)
@@ -75,7 +76,7 @@ Parser unit tests, part of the file:
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- prost decodes the whole message in one call; converting objects into kernel types is the slow part, so `Pacer` yields to the browser every `CHUNK` objects through `next_tick`.
+- prost decodes the whole message in one call; conversion into kernel types is the slow part, so `Pacer` yields to the browser every `CHUNK` objects through `next_tick`.
 - The bytes are taken by value and dropped right after prost is done, before the conversion loop starts.
 
 ![Diagram: bytes · message · kernel objects](illustrations/14-04.svg)
@@ -88,13 +89,14 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/app/decode.rs type lines=61-149 -->
 
-- Decoding is `pb_loads` unrolled with awaits, so the browser gets a turn between chunks. A page that freezes for two seconds while a scene loads is a bug you cannot profile after the fact.
+- Decoding is `pb_loads` unrolled with awaits, so the browser gets a turn between chunks.
+- A two-second freeze while a scene loads is a bug you cannot profile after the fact.
 
 ## Step 4 · The URL decides the route
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- Three routes: a named scene (`?scene=` or the last path segment) from the bucket, the local manifest on a dev server, and no route at all on a deployed page, which hands over to the live source.
+- Three routes: a named scene (`?scene=` or the last path segment) from the bucket; the local manifest on a dev server; no route on a deployed page, which hands over to the live source.
 - `?data=` overrides where `.pb` files come from; `query_scene` refuses `..`, absolute paths and schemes so a manifest name stays inside one tree.
 
 ![Diagram: ?scene= · path · SceneRoute · bucket · local · live](illustrations/14-05.svg)
@@ -107,8 +109,8 @@ Parser unit tests, part of the file:
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- An idle poll must stay cheap: every file is re-read with `If-None-Match`, so an unchanged file answers `304` and is never downloaded or decoded again.
-- A relay message (`EventSource`) only raises a flag that says "look now"; the conditional reads still decide what changed.
+- An idle poll stays cheap: every file is re-read with `If-None-Match`, so an unchanged file answers `304` and is never downloaded or decoded again.
+- A relay message (`EventSource`) only raises a "look now" flag; the conditional reads decide what changed.
 - `Notify` owns its closure handle and detaches it in `Drop`; nothing is leaked with `forget()`.
 
 ![Diagram: EventSource · Notify flag · LiveSource::check · read: Changed · Same](illustrations/14-06.svg)
@@ -135,7 +137,7 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=117-174 -->
 
-- The status line is deduplicated by message, so a poll that keeps failing says so once instead of filling the page with the same sentence.
+- The status line is deduplicated by message, so a poll that keeps failing says so once instead of repeating.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -148,13 +150,14 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=191-256 -->
 
-- `check` is one tick: nothing happens unless the relay flagged or the poll interval is due; a replacement with any unreadable file returns `None` and the last valid scene stays.
+- `check` is one tick: nothing happens unless the relay flagged or the interval is due.
+- Any unreadable file in a replacement returns `None`; the last valid scene stays.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=257-333 -->
 
-- An empty file is forgotten rather than treated as an empty scene: a publisher writing a file in place is briefly zero bytes, and that moment must not clear what the viewer is showing.
+- An empty file is forgotten, not treated as an empty scene: a publisher writing in place is briefly zero bytes, and that moment must not clear the screen.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -177,10 +180,11 @@ Parser unit tests, part of the file:
 
 ![Two request generations in flight: the older one is dropped, the newer one is staged in manifest order and swapped in whole while the previous scene stays on screen.](illustrations/loading.svg)
 
-- A slow old response arriving last must not replace a newer scene, so every load carries a generation and `stale_load` is checked after each await.
+- A slow old response must not replace a newer scene: every load carries a generation, and `stale_load` is checked after each await.
 - Network responses finish in any order; `PendingDocument` keeps manifest order, and `clear_scene` runs only after every item succeeded.
-- Streaming clouds keep their budget: `stream_prefix` opens a large file by range and `stream_rest` continues a slice at a time until its scene is cleared.
-- Whole files have a budget: `?budget=<MB>`, else 16 MB per GB of `navigator.deviceMemory` and 64 MB when the browser says nothing, because a decoded file costs the wasm heap about five times its size. A HEAD gives each file's size first; one that would cross the budget is skipped, and the status line names it and the knob.
+- Streaming clouds keep their budget: `stream_prefix` opens a large file by range, `stream_rest` continues a slice at a time until the scene is cleared.
+- Whole files have a budget: `?budget=<MB>`, else 16 MB per GB of `navigator.deviceMemory`, 64 MB when the browser says nothing; a decoded file costs the wasm heap about five times its size.
+- A HEAD gives each file's size first; one that would cross the budget is skipped and the status line names it and the knob.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -203,7 +207,7 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/app/scene.rs type -->
 
-- One field: the manifest's authored text. It is kept beside the documents because a scene replacement has to forget both together, which is why `clear` gains a line too.
+- One field: the manifest's authored text, kept beside the documents because a scene replacement forgets both together — so `clear` gains a line too.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -215,8 +219,10 @@ Parser unit tests, part of the file:
 <!-- file: 14 session_viewer/src/state.rs type -->
 
 - Trunk watches the kernel next door and serves the index uncached, so a rebuilt bundle is never hidden behind a stale page.
-- A `pre_build` hook runs `docs/build_site.sh` before every bundle: it builds the documentation site into `target/docs/site`, which the page's `copy-dir` link publishes as `dist/docs`, so the black corner opens the course from the same `dist/` the viewer is served from.
-- The hook rebuilds only when a documentation source is newer than the built `index.html`; a checkout without the course sources or without `uvx` gets a placeholder page instead of a failed build.
+- A `pre_build` hook runs `docs/build_site.sh` before every bundle, building the site into `target/docs/site`.
+- The page's `copy-dir` link publishes that as `dist/docs`, so the black corner opens the course from the same `dist/` the viewer is served from.
+- The hook rebuilds only when a documentation source is newer than the built `index.html`.
+- A checkout without the course sources or `uvx` gets a placeholder page, not a failed build.
 
 ![Diagram: pre_build hook · target/docs/site · dist/docs · #viewer-docs corner](illustrations/14-08.svg)
 

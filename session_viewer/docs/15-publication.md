@@ -6,8 +6,8 @@
 
 ## Starting point
 
-- Checkpoint 14: a streamed cloud locates its arrays with one small range request per protobuf header and one per array body.
-- This lesson keeps the same parse and adds a bounded read-ahead window, so adjacent small fields share one request while large arrays are still skipped by length.
+- Checkpoint 14: a streamed cloud locates its arrays with one range request per protobuf header and one per array body.
+- This lesson adds a bounded read-ahead window over the same parse: adjacent small fields share one request; large arrays are still skipped by length.
 
 <!-- step-status: start -->
 
@@ -21,7 +21,8 @@
 
 ![The file is small fields between huge arrays; the window fetches the small fields once and skips the arrays by length.](illustrations/metadata-window.svg)
 
-- Skipped geometry fields never decide the window's size: `read_length` reads at least 64 KiB inside the file, larger only for an array that is itself larger, and never past `end`.
+- `read_length` reads at least 64 KiB, more only for an array that is itself larger, never past `end`.
+- A skipped geometry field never sets the window's size.
 - `slice` borrows an exact cached range, including a valid empty range at the window's end.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
@@ -32,7 +33,8 @@
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- `read` reuses the window when the requested range is inside it and replaces it under the same exposed revision otherwise; a changed ETag fails the read instead of mixing two revisions.
+- `read` reuses the window when the range is inside it, and refills under the same exposed revision otherwise.
+- A changed ETag fails the read rather than mixing two revisions.
 
 ![Diagram: read(at, length) · reuse cached bytes · refill · same ETag · fail the read](illustrations/15-02.svg)
 
@@ -44,7 +46,7 @@
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-The loop is unchanged: headers, skips and array bodies now borrow from `window` instead of issuing their own requests.
+The loop is unchanged: headers, skips and array bodies borrow from `window` instead of issuing their own requests.
 
 ![Diagram: LOD walk loop · window.read · borrowed bytes · parsed LOD fields](illustrations/15-03.svg)
 
@@ -60,7 +62,7 @@ A unit test of the range rules, part of the file:
 
 ## Step 4 · Publication helpers
 
-- Publishing writes the immutable geometry revision first, verifies it, then updates the alias and the mutable manifest, so a manifest never points at missing bytes.
+- Publishing writes the immutable geometry revision, verifies it, then updates the alias and the mutable manifest: a manifest never points at missing bytes.
 - Credentials stay in the local shell helpers; nothing in the browser bundle can write to the bucket.
 
 ![Diagram: geometry bytes · immutable revision · stable alias · mutable manifest](illustrations/15-04.svg)
@@ -89,17 +91,17 @@ Expected:
 
 ## Try
 
-- Open the browser's network panel while a streamed cloud loads and count the `Range` requests with and without the window: the header and node-table reads collapse into one window read.
-- Lower the 64 KiB minimum in `read_length` to 1 KiB: the walk still succeeds, but every small field past the first kilobyte refills the window and the request count climbs back.
-- Change the served file while the viewer is open so its ETag changes: the next read outside the window fails instead of mixing two revisions, and the status says so.
+- Count `Range` requests in the browser's network panel with and without the window: the header and node-table reads collapse into one.
+- Lower the 64 KiB minimum in `read_length` to 1 KiB: the walk still succeeds, but every field past the first kilobyte refills the window and the request count climbs back.
+- Change the served file while the viewer is open: the next read outside the window fails on the new ETag instead of mixing revisions, and the status says so.
 
 ## Questions and answers
 
 **The read window has a 64 KiB minimum, yet a large array is still skipped by its length. Why both rules?**
 
-*How to work it out.* Picture the file: small metadata fields separated by huge geometry arrays. Ask what each rule is for. Reading only what you asked for costs one round-trip per field — dozens of them. Reading generously costs nothing extra for small fields but would swallow a geometry array whole.
+*How to work it out.* The file is small metadata fields separated by huge geometry arrays. Reading only what you asked for costs one round-trip per field — dozens. Reading generously costs nothing extra for small fields but would swallow a geometry array whole.
 
-*The answer.* The minimum makes adjacent small fields share one request; skipping by length keeps the window from ever pulling an array it does not need. Lower the minimum and the request count climbs back, as the lesson's own experiment shows; drop the skip and you download the file you were trying to avoid.
+*The answer.* The minimum makes adjacent small fields share one request; skipping by length keeps the window from pulling an array it does not need. Lower the minimum and the request count climbs back, as the lesson's experiment shows; drop the skip and you download the file you were avoiding.
 
 **A changed ETag fails the read instead of refilling the window. Defend that.**
 
@@ -121,7 +123,7 @@ Expected:
 
 **What you should be able to do now**
 
-Say what the network panel shows with and without the window, and which number a user notices. Correct: without it, one range request per protobuf header and per small array — dozens of small requests; with it, the headers and node table collapse into a single window read, with the large arrays still fetched separately. The user never notices the count; they notice the *latency*, because dozens of sequential round-trips on a slow link is seconds of blank scene. For a local file the same optimisation is nearly worthless: a file read has no round-trip to amortise.
+Say what the network panel shows with and without the window, and which number a user notices. Correct: without it, one range request per protobuf header and per small array — dozens; with it, headers and node table collapse into a single window read, the large arrays still fetched separately. The user never notices the count, only the *latency*: dozens of sequential round-trips on a slow link is seconds of blank scene. For a local file the optimisation is nearly worthless — a file read has no round-trip to amortise.
 
 ## Next
 

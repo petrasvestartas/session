@@ -9,7 +9,7 @@
 ## Starting point
 
 - Checkpoint 00: Rust runs in the page, no GPU.
-- `src/lib.rs` is replaced in full during this lesson, in five appended pieces, one idea each.
+- `src/lib.rs` is replaced in full, in five appended pieces, one idea each.
 
 <!-- step-status: start -->
 
@@ -21,7 +21,7 @@
 
 ![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-a6eea7cc7f.svg){ .locator data-strip="illustrations/strip-d765e907c1.svg" }
 
-- `Tutorial` is the shell: one struct that owns the GPU objects and is exported to the page.
+- `Tutorial` is the shell: one struct owning the GPU objects, exported to the page.
 - `#[wasm_bindgen]` on the struct and its `impl` exports `create`, `render`, `drag`, `zoom` to JavaScript.
 - `drag` and `zoom` are exported with empty bodies, so the page wires all four methods at once.
 
@@ -36,7 +36,7 @@
 ![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-a6eea7cc7f.svg){ .locator data-strip="illustrations/strip-d765e907c1.svg" }
 
 - `Backends::BROWSER_WEBGPU`: only the browser's WebGPU, never WebGL.
-- The adapter must be `compatible_surface`; otherwise the device may not be able to present to this canvas.
+- The adapter must be `compatible_surface`, or the device may not present to this canvas.
 - `on_uncaptured_error` turns a shader validation failure into a visible panic instead of a silent black canvas.
 
 ![The instance picks the backend, the surface is the canvas you present to, the adapter is one physical GPU chosen to be compatible with that surface, and the device is the handle every later resource comes from.](illustrations/gpu-objects.svg)
@@ -50,7 +50,8 @@
 ![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-a6eea7cc7f.svg){ .locator data-strip="illustrations/strip-d765e907c1.svg" }
 
 - `width: 1, height: 1` marks "not configured yet"; `render_frame` resizes on first use.
-- A **uniform** is one small buffer every vertex reads. It holds an identity matrix, so clip position equals the shader's vertex position.
+- A **uniform** is one small buffer every vertex reads.
+- It holds identity here, so clip position equals the vertex position.
 
 ```text
 [f32; 16]  ──bytemuck::cast_slice──▶  wgpu::Buffer (UNIFORM | COPY_DST)
@@ -69,8 +70,8 @@
 
 ![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-a6eea7cc7f.svg){ .locator data-strip="illustrations/strip-d765e907c1.svg" }
 
-- `include_str!` bakes the WGSL into the binary; a missing shader file is a compile error, not a runtime one.
-- Entry-point names `vs_main`/`fs_main` and the color target `format` are the contract with the shader and the surface.
+- `include_str!` bakes the WGSL in: a missing shader file is a compile error, not a runtime one.
+- `vs_main`/`fs_main` and the color target `format` are the contract with the shader and the surface.
 - `buffers: &[]`: this triangle is generated from `vertex_index`, so no vertex buffer is bound.
 
 ![Diagram: first.wgsl · ShaderModule · BindGroupLayout · PipelineLayout · RenderPipeline](illustrations/01-04.svg)
@@ -143,7 +144,7 @@ Expected:
 
 ![Checkpoint 01: the first triangle, colors interpolated from the three vertices.](screenshots/01.png)
 
-If the background appears without the triangle, compare the entry-point names, `draw(0..3, ..)` and the uniform binding. If initialization fails, read the adapter/device error in the status text before touching shaders.
+Background but no triangle: compare the entry-point names, `draw(0..3, ..)` and the uniform binding. If initialization fails, read the adapter/device error in the status text before touching shaders.
 
 ## What changed
 
@@ -157,7 +158,7 @@ If the background appears without the triangle, compare the entry-point names, `
 ## Try
 
 - Change the clear color in `render_frame` and watch the background follow.
-- Swap two entries of the `points` array in `first.wgsl`: the triangle flips, because the vertex order is what the rasterizer sees.
+- Swap two entries of the `points` array in `first.wgsl`: the triangle flips — vertex order is what the rasterizer sees.
 - Change `draw(0..3, 0..1)` to `draw(0..2, 0..1)`: nothing is drawn, because two vertices make no triangle.
 
 ## Questions and answers
@@ -166,15 +167,15 @@ These four are the frame; the rest of the course assumes them.
 
 **Name every object between an empty page and a cleared canvas, in order.**
 
-*How to work it out.* Follow the dependencies: each object is made from one that already exists. No GPU without an entry point; no GPU that can draw to your canvas without the canvas; no buffers without an open connection to that GPU. Then separate what is made once from what one frame needs.
+*How to work it out.* Follow the dependencies: each object is made from one that already exists. No GPU without an entry point; none that can draw to your canvas without the canvas; no buffers without an open connection to it. Then separate what is made once from what one frame needs.
 
 *The answer.* Instance → surface (from the canvas) → adapter (requested with `compatible_surface`, or it may not be able to present here) → device + queue → surface configuration. Then, per frame: `get_current_texture` → a texture view → a command encoder → a render pass with its attachments → `encoder.finish()` → `queue.submit` → `present`.
 
 **Which of those happen once, and which happen every frame?**
 
-*How to work it out.* Ask what each object depends on. Anything that depends only on the GPU and your own code cannot change between frames, so it can be built once. Anything that depends on *this* frame's surface texture — which the browser hands out fresh each time — cannot be.
+*How to work it out.* Anything that depends only on the GPU and your own code cannot change between frames, so it can be built once. Anything that depends on *this* frame's surface texture — handed out fresh each time — cannot be.
 
-*The answer.* Once: instance, adapter, device, queue, shader module, pipeline layout, pipeline, bind group, buffers. Every frame: the surface texture, its view, the encoder, the pass, the submit. That split is the point of a pipeline — validation is paid once so each frame is cheap. Reconfiguring the surface is neither: it happens only when the size changes.
+*The answer.* Once: instance, adapter, device, queue, shader module, pipeline layout, pipeline, bind group, buffers. Every frame: the surface texture, its view, the encoder, the pass, the submit. That split is the point of a pipeline — validation paid once so each frame is cheap. Reconfiguring the surface is neither; it happens only when the size changes.
 
 **Three things Rust and WGSL must agree on here. What are they?**
 
@@ -184,7 +185,7 @@ These four are the frame; the rest of the course assumes them.
 
 **Why is `buffers: &[]` allowed when a triangle clearly has vertices?**
 
-*How to work it out.* Read `vs_main`: if it never reads an input attribute, nothing has to be fetched from memory, and a vertex buffer would be a slot nobody reads.
+*How to work it out.* Read `vs_main`: it never reads an input attribute, so nothing has to be fetched from memory and a vertex buffer would be a slot nobody reads.
 
 *The answer.* The three positions are computed inside the shader from `@builtin(vertex_index)`, so no buffer is bound. `draw(0..3, 0..1)` is what makes that builtin count 0, 1, 2.
 

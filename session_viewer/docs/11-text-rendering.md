@@ -19,7 +19,7 @@
 
 ## Step 1 · Supplied comparison page
 
-The same-font white-on-black comparison page and its WASM export are supplied. Install them first; `lib.rs` declares the module in the last step.
+Install the supplied same-font comparison page and its WASM export first; `lib.rs` declares the module in the last step.
 
 ![Diagram: text_quality.rs · WASM export · text-quality.html](illustrations/11-02.svg)
 
@@ -29,7 +29,7 @@ The same-font white-on-black comparison page and its WASM export are supplied. I
 
 ![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-2eab4d3d01.svg){ .locator data-strip="illustrations/strip-5c9e80c7f0.svg" }
 
-- A plate is six vertices in clip space plus the local offset, half size and corner radius the fragment shader needs for a rounded edge.
+- A plate is six clip-space vertices plus the local offset, half size and corner radius the fragment shader needs for a rounded edge.
 - Depth compare `Always`, no depth write: a plate is an overlay and never occludes geometry.
 
 ![Diagram: placed line box · Plates · PlateVertex · text_plate.wgsl · rounded SDF](illustrations/11-03.svg)
@@ -67,8 +67,8 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 ![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
 
-- A `WorldPlane` label keeps one coverage texture per label; the camera only rewrites six vertices.
-- The texture budget is a hard cap independent of the adapter, so one huge label cannot take the scene's memory.
+- A `WorldPlane` label keeps one coverage texture; a camera move rewrites only six vertices.
+- The texture budget is a hard cap independent of the adapter: one huge label cannot take the scene's memory.
 
 ![Diagram: WorldPlane label · CachedPlane · R8 texture · Planes · budget](illustrations/11-04.svg)
 
@@ -76,7 +76,7 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=1-33 -->
 
-- The lane borrows the viewer's device and target and owns only its coverage textures, so the budget lives in one place.
+- The lane borrows the viewer's device and target and owns only its coverage textures: the budget lives in one place.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -150,7 +150,7 @@ vertex_attr_array (stride 56)
 
 <!-- file: 11 session_viewer/src/shaders/text_plane.wgsl type -->
 
-A native GPU check for the plane path sits at the end of the file.
+A native GPU check for the plane path ends the file.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -160,7 +160,7 @@ A native GPU check for the plane path sits at the end of the file.
 
 ![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
 
-- `TextFrame` is everything placement needs from the frame: the rebased camera, the anchor origin, physical and logical sizes.
+- `TextFrame` is what placement needs from the frame: rebased camera, anchor origin, physical and logical sizes.
 - `logical` comes from the canvas CSS box, not `devicePixelRatio`; that is what makes browser zoom and DPR both work.
 
 ![Diagram: camera · rebase anchor · TextFrame · physical + logical size · TextStats](illustrations/11-07.svg)
@@ -193,7 +193,7 @@ A native GPU check for the plane path sits at the end of the file.
 ![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
 
 - The key `(document revision, font revision, frame)` skips the whole preparation when nothing moved.
-- Raster keys are bounded: past the budget the atlas and Swash cache are rebuilt together, so no prepared vertex can point at an evicted glyph.
+- Raster keys are bounded: past the budget the atlas and Swash cache rebuild together, so no prepared vertex points at an evicted glyph.
 
 ![Diagram: key · revision, font, frame · TextLane::prepare · PlacedText · atlas · raster keys · two draw lists](illustrations/11-09.svg)
 
@@ -205,7 +205,7 @@ A native GPU check for the plane path sits at the end of the file.
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=217-271 -->
 
-- Glyphon needs a callback to map each shaped run back to its label's clip depth: the atlas knows glyphs, not scenes, so depth has to be supplied from this side.
+- Glyphon needs a callback mapping each shaped run to its label's clip depth: the atlas knows glyphs, not scenes, so depth comes from this side.
 
 ## Step 9 · Draw order, reset, release
 
@@ -224,7 +224,7 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 ![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
 
 - `scale()` derives one isotropic raster scale from framebuffer ÷ CSS box and rejects a stretched canvas.
-- `place()` projects only the anchor; behind-camera and out-of-range anchors are culled instead of producing inverted text.
+- `place()` projects only the anchor; behind-camera and out-of-range anchors are culled, never drawn inverted.
 - A `Nameplate` is centred on the shaped line box and gets no depth: the annotation overlays the solid it names.
 
 ![The same nameplate at device scale 1 (left) and 2 (right), both magnified six times in CSS pixels: the plate and glyphs occupy the same CSS box, the second has four times the pixels.](screenshots/11-dpr.png)
@@ -235,7 +235,7 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=339-372 -->
 
-- Only the anchor is projected: text that follows a world point needs one clip position, then screen-space layout.
+- Only the anchor is projected: following a world point needs one clip position, then screen-space layout.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -245,7 +245,7 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=430-496 -->
 
-- Glyphon owns its own shaders; the lane's job is only to hand it a depth state.
+- Glyphon owns its own shaders; the lane only hands it a depth state.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -278,7 +278,7 @@ Three fixture labels: a nameplate above the model, a rounded centred nameplate, 
 
 <!-- file: 11 session_viewer/src/lib.rs type -->
 
-The supplied comparison page takes the place of the shaping reference page and its export.
+The supplied comparison page replaces the shaping reference page and its export.
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 

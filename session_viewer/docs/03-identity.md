@@ -23,8 +23,9 @@
 
 ![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-afd0463e4d.svg){ .locator data-strip="illustrations/strip-10d43625b6.svg" }
 
-- One 96-byte record per object, indexed by `instance_index` in every instance-reading shader. Flags are bits: selecting sets bit 0 and keeps the rest.
-- Here the placement sits in the translation column of `model`. From 04a on, production zeroes that column and moves the anchored translation to its own table (group 2, binding 1).
+- One 96-byte record per object, indexed by `instance_index` in every instance-reading shader.
+- Flags are bits: selecting sets bit 0 and leaves the rest.
+- Here the placement sits in `model`'s translation column. From 04a on, production zeroes that column and moves the anchored translation to its own table (group 2, binding 1).
 - The size assertion is compile-time: a wrong stride fails `cargo check`, not the picture.
 
 ![Diagram: Instance::placeholder · struct Instance\ 96 B · one object row · flags](illustrations/03-02.svg)
@@ -33,7 +34,7 @@
 
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
 
-The rest of the file is `#[cfg(test)]` only: it parses every lane shader with naga and checks that WGSL member offsets equal the Rust ones; the browser build never compiles this block.
+The rest is `#[cfg(test)]`: naga parses every lane shader and checks WGSL member offsets against the Rust ones. The browser build never compiles it.
 
 <span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
 
@@ -53,7 +54,7 @@ The rest of the file is `#[cfg(test)]` only: it parses every lane shader with na
 
 <!-- file: 03 session_viewer/src/engine/mod.rs type -->
 
-- One line per module: until a `mod` names a file, Rust does not compile it, so this is the moment the row you typed enters the build.
+- One line per module: Rust compiles a file only once a `mod` names it, so the row you typed enters the build here.
 
 ## Step 3 · Source identity is separate from the row
 
@@ -101,7 +102,7 @@ size                         96     array stride
 ![Where this step sits in the viewer: Page, Shell, with 7 of 11 zones built so far.](illustrations/locator-b32fcaf1b6.svg){ .locator data-strip="illustrations/strip-e2a9d1f0c8.svg" }
 
 - The layout gains binding 1; the bind group supplies the storage buffer; one draw per row.
-- `objects` stays on the CPU side of the shell, so the status can report a count that comes from source data rather than from the GPU.
+- `objects` stays on the CPU side of the shell, so the status counts source data, not GPU rows.
 
 ![Diagram: scene::objects() · STORAGE buffer · BindGroup · draw(0..3, row..row+1)](illustrations/03-06.svg)
 
@@ -148,7 +149,7 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 
 **`Instance` has a matrix, a colour, some flags and a spacing. Why does it occupy 96 bytes?**
 
-*How to work it out.* Add the fields: 64 for the matrix, 16 for the colour, 4 + 4 + 4 for the rest — 92. Then ask what rounds it up. A `mat4x4` requires 16-byte alignment, and an element of a storage array must start at a multiple of the struct's largest alignment, so the stride is rounded to the next multiple of 16.
+*How to work it out.* Add the fields: 64 for the matrix, 16 for the colour, 4 + 4 + 4 for the rest — 92. A `mat4x4` requires 16-byte alignment, and an element of a storage array must start at a multiple of the struct's largest alignment, so the stride rounds to the next multiple of 16.
 
 *The answer.* 96, because 92 rounds up to 96. The explicit padding field on the Rust side makes the round-up deliberate instead of accidental.
 
@@ -156,7 +157,7 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 
 *How to work it out.* Ask what each one survives. Rows are rebuilt and renumbered whenever the scene reloads. A guid is written in the document and must mean the same thing next week. Anything a user is told about has to be the second kind.
 
-*The answer.* A row is 96 bytes of drawing state at some index in a buffer; an identity is the guid and revision of a thing in the document. The GPU can only answer with a row, so `Scene` exists to turn that row back into something nameable. Collapse them into one and either your rows must never move, or your identities are not stable — both unacceptable.
+*The answer.* A row is 96 bytes of drawing state at an index in a buffer; an identity is the guid and revision of a thing in the document. The GPU can only answer with a row, so `Scene` turns that row back into something nameable. Collapse them and either your rows must never move or your identities are not stable — both unacceptable.
 
 **Which index reaches the shader's `instances[]`, and what sets it?**
 
@@ -166,7 +167,7 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 
 **What you should be able to do now**
 
-Write the `#[repr(C)]` row and its size assertion in an empty file without looking, then compare with `instance.rs`. Correct: `model: [f32; 16]`, `color: [f32; 4]`, `flags: u32`, a padding field, `spacing: f32`, `#[repr(C)]`, `Pod`/`Zeroable`, and `assert_eq!(size_of::<Instance>(), 96)`. If your field order differs, ask whether the shader would still work — and notice that `#[repr(C)]` is exactly what makes that question answerable, because without it Rust may reorder the fields.
+Write the `#[repr(C)]` row and its size assertion in an empty file without looking, then compare with `instance.rs`. Correct: `model: [f32; 16]`, `color: [f32; 4]`, `flags: u32`, a padding field, `spacing: f32`, `#[repr(C)]`, `Pod`/`Zeroable`, and `assert_eq!(size_of::<Instance>(), 96)`. If your field order differs, ask whether the shader would still work — `#[repr(C)]` is what makes that question answerable, because without it Rust may reorder the fields.
 
 ## Next
 

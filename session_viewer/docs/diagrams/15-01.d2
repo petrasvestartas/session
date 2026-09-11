@@ -14,7 +14,7 @@ L: "lod.set_field" { class: box }
 
 C -> W: "header read at `at`" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
 W -> P: "slice hit" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
-W -> W: "slice miss → source_range(at, ≥64 KiB)" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+W -> W: "slice miss → refill, 64 KiB or to end" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
 P -> S: "large geometry field" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
 P -> L: "small LOD array" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
 S -> P { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

@@ -2,7 +2,7 @@
 
 ## You are building
 
-A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was final the instant it happened. This lesson gives the kernel a history: edits are grouped into transactions, a removal's record is the tombstone that undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet; this is the ground the editing lesson will stand on.
+A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was final the instant it happened. This lesson gives the kernel a history: edits group into transactions, a removal's record is the tombstone undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet; this is the ground the editing lesson stands on.
 
 ![Diagram: begin(label) · add · replace · remove · set_xform · records: Add · Remove · Replace · Xform · commit() · undo() · redo() · pb_dump · file_json_dump…](illustrations/20-01.svg)
 
@@ -24,8 +24,9 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 ![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-aa8225000e.svg){ .locator data-strip="illustrations/strip-a1fbe46b03.svg" }
 
-- `clone` is a deep copy that keeps the guid: a snapshot must still name the object it stands for, which is why `duplicate`, which mints a fresh guid, is never used here.
-- A `Tombstone` is everything needed to put one object back into every live table. `Add` and `Remove` share it; `Replace` and `Xform` carry absolute before and after values, never deltas.
+- `clone` is a deep copy that keeps the guid: a snapshot must still name the object it stands for. `duplicate` mints a fresh guid and is never used here.
+- A `Tombstone` is everything needed to put one object back into every live table.
+- `Add` and `Remove` share it; `Replace` and `Xform` carry absolute before and after values, never deltas.
 
 ![A removal empties five live tables, and the tombstone records the slot the object held in each one: its position in the typed list, the guid lookup, the transform, the tree with its subtree, and every incident graph edge.](illustrations/tombstone.svg)
 - A `Transaction` groups the records of one gesture; `History` keeps the last 64 and drops the redo stack when a new one commits.
@@ -36,13 +37,13 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- file: 20 session_rust/src/history.rs type lines=1-59 -->
 
-- The tombstone is built while the tables are emptied, because that is the only moment when every position it must remember is still known.
+- The tombstone is built while the tables are emptied: the only moment when every position it must remember is still known.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/history.rs type lines=60-114 -->
 
-- A transform record is the same shape: the value before and the value after, absolute, so replaying it never depends on the state it is replayed into.
+- A transform record is the same shape — before and after, absolute — so replaying it never depends on the state it lands in.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -53,7 +54,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- file: 20 session_rust/src/history.rs type lines=128-182 -->
 
-- `Op` can print itself, which is what makes a transaction readable in a test failure: the history is a data structure someone has to debug.
+- `Op` prints itself, which makes a transaction readable in a test failure: the history is a data structure someone has to debug.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -63,7 +64,8 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 ![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-aa8225000e.svg){ .locator data-strip="illustrations/strip-a1fbe46b03.svg" }
 
-- `undo` pops a transaction, reverts its records last to first and pushes it onto the redo stack; `redo` applies them first to last. An add reverts by detaching, a remove by attaching, a replace by swapping the before clone in, a transform by placing the before value.
+- `undo` pops a transaction, reverts its records last to first and pushes it onto the redo stack; `redo` applies them first to last.
+- An add reverts by detaching, a remove by attaching, a replace by swapping the before clone in, a transform by placing the before value.
 - Both commit an open transaction first, so a half-typed gesture is never lost.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
@@ -88,12 +90,15 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 ![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-aa8225000e.svg){ .locator data-strip="illustrations/strip-a1fbe46b03.svg" }
 
-- Every `add_*` routes through `_add_object`, which pushes to the typed list, `lookup`, the graph and the tree exactly as before and, while a transaction is open, records an `Add`.
-- `replace(guid, obj)` is the edit history sees: it gives `obj` the guid, swaps it into the typed list and `lookup`, refreshes the graph attribute and records before and after. Mutating an object in place through `lookup` still works and is not recorded.
-- `remove_object` becomes `_detach` plus a record. `_detach` builds the tombstone while it empties every table; `_attach` puts everything back at the same positions, including the subtree and the edges whose other end still exists.
-- `set_xform` and `remove_xform` record absolute before and after transforms. `pb_dump`, `pb_dumps`, `file_json_dump` and `file_json_dumps` call `history.clear()` first.
+- Every `add_*` routes through `_add_object`: it pushes to the typed list, `lookup`, the graph and the tree exactly as before, and records an `Add` while a transaction is open.
+- `replace(guid, obj)` is the edit history sees: it gives `obj` the guid, swaps it into the typed list and `lookup`, refreshes the graph attribute and records before and after.
+- Mutating an object in place through `lookup` still works and is not recorded.
+- `remove_object` becomes `_detach` plus a record.
+- `_detach` builds the tombstone while it empties every table; `_attach` puts everything back at the same positions, including the subtree and the edges whose other end still exists.
+- `set_xform` and `remove_xform` record absolute before and after transforms.
+- `pb_dump`, `pb_dumps`, `file_json_dump` and `file_json_dumps` call `history.clear()` first.
 
-![Diagram: add_* → _add_object · replace → _swap · remove_object → _detach · set_xform → _place · M · history.record](illustrations/20-03.svg)
+![Diagram: mutators · add_* → _add_object · replace → _swap · remove_object → _detach · set_xform → _place · history.record](illustrations/20-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -143,7 +148,8 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 ## Part C · Three kernels, one behaviour
 
-- The Python and C++ kernels carry the same `History`, the same `replace`, `begin`, `commit`, `undo` and `redo`, the same records and the same test names, so a document behaves the same whichever language edits it. They are supplied here with their tests; the Rust tests below are the ones you type.
+- The Python and C++ kernels carry the same `History`, `replace`, `begin`, `commit`, `undo` and `redo`, the same records and the same test names, so a document behaves the same whichever language edits it.
+- They are supplied with their tests; the Rust tests below are the ones you type.
 
 <!-- supplied: 20 -->
 
@@ -159,7 +165,7 @@ Native tests:
 cd "$COURSE_WORK/session_viewer/../session_rust" && cargo test --lib minitest_suite -- --nocapture
 ```
 
-The cases you typed are `MINI_TEST!` blocks, not `#[test]` functions: they register themselves and the whole suite runs as one libtest case, so filtering by name would run nothing. Expected: the run ends `[rust-minitest] N/N passed` and `test mini_test::harness::minitest_suite ... ok`. A failure is the informative case — it prints `FAIL <group>::<name>  <file>:<line>` followed by the failing check, so `Undo Remove` or `History Purged On Save` names itself when it breaks. The viewer builds and runs unchanged: it loads documents and never edits them yet.
+The cases you typed are `MINI_TEST!` blocks, not `#[test]` functions: they register themselves and the whole suite runs as one libtest case, so filtering by name would run nothing. Expected: the run ends `[rust-minitest] N/N passed` and `test mini_test::harness::minitest_suite ... ok`. A failure prints `FAIL <group>::<name>  <file>:<line>` and the failing check, so `Undo Remove` or `History Purged On Save` names itself when it breaks. The viewer builds and runs unchanged: it loads documents and never edits them yet.
 
 ## Verify you reached production
 
@@ -204,7 +210,7 @@ Expected:
 
 **`Replace` and `Xform` carry absolute before and after values, never deltas. Argue for absolutes here.**
 
-*How to work it out.* Ask what a delta assumes: that it will be applied to exactly the state it was computed from. Then ask what could break that — a redo stack, a transaction reordered, floating-point rounding that makes inverse composition not quite the identity. Finally price the alternative: the buffer is 64 transactions, so size is not the constraint.
+*How to work it out.* A delta assumes it will be applied to exactly the state it was computed from. What breaks that: a redo stack, a reordered transaction, floating-point rounding that makes inverse composition not quite the identity. Then price the alternative: the buffer is 64 transactions, so size is not the constraint.
 
 *The answer.* Absolutes are bigger and completely unambiguous; deltas compose and drift. Reach for deltas when size is the binding constraint, and here it is not.
 

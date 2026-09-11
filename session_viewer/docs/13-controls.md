@@ -27,7 +27,7 @@ Streamed clouds display a bounded prefix, so a click must ask the source, not th
 
 ![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-7ccf7d4f74.svg){ .locator data-strip="illustrations/strip-6f8f40e8fe.svg" }
 
-- `ControlId` names a control within its parent's source geometry; the GPU slot it was uploaded to is temporary.
+- `ControlId` names a control inside its parent's source geometry; the GPU slot it landed in is temporary.
 - `enable_controls` is idempotent: pressing F10 on the same parent does nothing, so markers are never duplicated.
 
 ![Diagram: selected parent · Controls · ControlId](illustrations/13-03.svg)
@@ -36,7 +36,7 @@ Streamed clouds display a bounded prefix, so a click must ask the source, not th
 
 <!-- file: 13 session_viewer/src/app/selection.rs type hunks=1 -->
 
-- `Controls::from_geometry` reads real source data: mesh vertex keys, BRep vertices, curve and surface control nets with their links. Tessellation vertices are never substituted.
+- `Controls::from_geometry` reads source data: mesh vertex keys, BRep vertices, curve and surface control nets with links; never tessellation vertices.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -57,13 +57,14 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 <!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-38 -->
 
-- `get` treats any HTTP status as success and only a network failure as an error, so a 304 or a 404 is something the caller decides about. That is what lets the live source use the same function for a conditional read as the loader uses for a download.
+- `get` treats any HTTP status as success and only a network failure as an error: a 304 or a 404 is the caller's decision.
+- So one function serves the live source's conditional read and the loader's download.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/fetch.rs type lines=39-121 -->
 
-- `content_length` is a HEAD request: the size a whole file would download, before a byte of it is fetched, so a scene can refuse what the device cannot hold.
+- `content_length` is a HEAD request: a file's download size before a byte is fetched, so a scene can refuse what the device cannot hold.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -86,13 +87,13 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=53-92 -->
 
-- A cube whose projection is not finite cannot be excluded safely - the arithmetic that would reject it is the arithmetic that failed - so it is kept and tested the slow way.
+- A cube whose projection is not finite is kept and tested the slow way: the arithmetic that would reject it is the arithmetic that failed.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=93-124 -->
 
-- `eligible_ranges` walks every octree node, resident or not, and falls back to a full bounded scan when the node table does not cover all rows.
+- `eligible_ranges` walks every octree node, resident or not; when the node table misses rows it falls back to a full bounded scan.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -124,7 +125,7 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-The protobuf headers sit in the first few kilobytes and `coords` is packed, so the point count is known before a byte of payload is read. Mechanical, so copy it.
+The protobuf headers sit in the first few kilobytes and `coords` is packed, so the point count is known before any payload is read. Mechanical: copy it.
 
 ![Diagram: cloud .pb header · CloudFields · point count](illustrations/13-05.svg)
 
@@ -163,7 +164,8 @@ The protobuf headers sit in the first few kilobytes and `coords` is packed, so t
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=1-3 -->
 
-- Clearing, resizing, touching and selecting all reset controls; the marker size depends on the logical-to-physical scale, so a resize re-uploads them.
+- Clearing, resizing, touching and selecting all reset controls.
+- Marker size follows the logical-to-physical scale, so a resize re-uploads them.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -175,7 +177,7 @@ The protobuf headers sit in the first few kilobytes and `coords` is packed, so t
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=9-10 -->
 
-- While a source-query page owns the GPU readback, no colour frame is presented: the candidate page is an ID target, not a picture.
+- While a source-query page owns the GPU readback, no colour frame is presented: that page is an ID target, not a picture.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -221,13 +223,13 @@ The protobuf headers sit in the first few kilobytes and `coords` is packed, so t
 
 <!-- file: 13 session_viewer/src/lib.rs type -->
 
-- Adding a feature that talks to the network is exactly this shape: one more `Msg` the event loop routes.
+- A feature that talks to the network has this shape: one more `Msg` the event loop routes.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 13 session_viewer/src/app/mod.rs type -->
 
-- `fetch` is the first code in the viewer that talks to a server; loading itself is still local until lesson 14.
+- `fetch` is the viewer's first code that talks to a server; loading stays local until lesson 14.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -280,13 +282,13 @@ Expected:
 
 **A curve is drawn as hundreds of chords. Why can F10 not just show the vertices that were drawn?**
 
-*How to work it out.* Ask what a display vertex is: a sample chosen by the tessellator at this tolerance. Change the tolerance and there is a different set. Now ask what the user would do with a marker on one — drag it? It corresponds to nothing in the document.
+*How to work it out.* A display vertex is a sample the tessellator chose at this tolerance; change the tolerance and there is a different set. Now ask what the user would do with a marker on one — drag it? It corresponds to nothing in the document.
 
 *The answer.* Display vertices are an approximation artefact with no identity and no meaning under editing. `Controls::from_geometry` reads the real control net from the source — a handful of points with links. Same rule as the tessellation seam in lesson 06: never let the display invent an identity.
 
 **`fetch::get` refuses a `200` answer to a `Range` request. Why is that worth a check rather than a trusting read?**
 
-*How to work it out.* Ask what each status code means for the bytes you get back. `206` is the slice you asked for. `200` means the server ignored the range and is sending the whole file — possibly gigabytes to a device that asked for 64 KB. Nothing about that response is an error, so no other layer will object.
+*How to work it out.* `206` is the slice you asked for. `200` means the server ignored the range and is sending the whole file — possibly gigabytes to a device that asked for 64 KB. Nothing about that response is an error, so no other layer will object.
 
 *The answer.* The failure is silent until memory runs out, and the check is one comparison. When you ask for less than everything, verify that you got less than everything.
 

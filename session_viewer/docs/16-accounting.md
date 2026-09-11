@@ -7,7 +7,8 @@
 ## Starting point
 
 - Checkpoint 15: the inspection snapshot reports owned GPU buffer and texture bytes.
-- This lesson adds a known-payload figure for retained source documents, kept in a cache that cannot extend their lifetime, and declares the native tooling the production crate ships with.
+- This lesson adds a known-payload figure for retained source documents, held in a cache that cannot extend their lifetime.
+- It also declares the crate's native tooling.
 
 <!-- step-status: start -->
 
@@ -19,7 +20,7 @@
 
 ![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-010fb6361a.svg){ .locator data-strip="illustrations/strip-e6f4fee67c.svg" }
 
-Cargo discovers every file under `examples/` as a native example; their sources and the offscreen harness are supplied, not taught. Install them now, and give the manifest its native-only dependency.
+Cargo discovers every file under `examples/` as a native example. Their sources and the offscreen harness are supplied, not taught: install them, and give the manifest its native-only dependency.
 
 ![Diagram: supplied examples/ · tests/ · Cargo.toml\ native-only pollster · cargo xtest · examples build](illustrations/16-02.svg)
 
@@ -36,14 +37,15 @@ Cargo discovers every file under `examples/` as a native example; their sources 
 ![Scene owns documents through Rc; the cache keeps Weak identities and a payload figure, reuses it while the pointers match, walks once when a document is replaced, and never keeps a dropped document alive.](illustrations/source-cache.svg)
 
 - The number is a lower bound: exact `Vec`/`String` capacities, occupied map entries and exposed slice lengths, never allocator overhead or RSS.
-- Shared values are counted once: each `Rc` object is recorded by pointer in a `seen` set, so a document listed twice or a geometry in both a typed list and the lookup adds nothing twice.
+- Shared values count once: a `seen` set records each `Rc` object by pointer, so a document listed twice, or a geometry in both a typed list and the lookup, adds nothing twice.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=1-52 -->
 
-- A `Weak<Session>` recognizes a document without keeping it alive; if every `Rc` pointer matches the last snapshot, the cached payload is returned without a walk.
-- In-place editing of a document would make this cache stale; replacement and append change identity, which is what the cache keys on.
+- A `Weak<Session>` recognizes a document without keeping it alive.
+- When every `Rc` pointer matches the last snapshot, the cached payload is returned with no walk.
+- The cache keys on identity, which replacement and append change. Editing a document in place would leave it stale.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -71,7 +73,7 @@ Unit tests, part of the file:
 
 ![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-c00f8dcb64.svg){ .locator data-strip="illustrations/strip-56723afb3a.svg" }
 
-- The snapshot names its scope and exclusions in the JSON itself, so a reader of `?inspect=1` cannot mistake the payload for total heap.
+- The JSON carries its own scope and exclusions, so a reader of `?inspect=1` cannot mistake the payload for total heap.
 
 ![Diagram: known_bytes() · ?inspect=1 JSON\ source_cpu_known_payload · Gpu::allocated_bytes · scope + exclusions named](illustrations/16-03.svg)
 
@@ -89,7 +91,7 @@ Expected:
 - The canvas `data-viewer-inspection` attribute now carries `source_cpu_known_payload_bytes`, `source_cpu_known_payload`, `source_cpu_scope` and `source_cpu_exclusions`.
 - Reload the same scene: `scans` in the payload stays at one per document identity change, not one per frame.
 
-The accounting part of the snapshot for the local fixture, read from the canvas attribute in the browser console:
+The accounting part of the snapshot for the local fixture, from the canvas attribute in the browser console:
 
 ```js
 JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
@@ -122,16 +124,16 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 <!-- tree: 16 session_viewer/src/app -->
 
 - `SourceCache` (weak identities) → `Payload` (known bytes) → inspection snapshot.
-- Four separate measurements now sit side by side and mean different things: retained source payload, owned GPU buffers, estimated texture bytes, and whatever the browser reports for WASM memory.
+- Four measurements now sit side by side, meaning different things: retained source payload, owned GPU buffers, estimated texture bytes, and whatever the browser reports for WASM memory.
 
 **Production equivalent:** `src/app/inspection.rs`, `src/app/inspection/source_memory.rs`, `Cargo.toml`.
 
 ## Try
 
 - Read the snapshot twice a few seconds apart: `scans` stays at 1, because the document identities did not change.
-- Load a different manifest with `?scene=` and read it again: `unique_sessions` follows the document count, and `scans` has gone up once for each change of the document list a frame observed — the clear, then each document as it arrived.
+- Load a different manifest with `?scene=` and read it again: `unique_sessions` follows the document count, and `scans` rises once per change of the document list a frame observed — the clear, then each document as it arrived.
 - Compare `source_cpu_known_payload_bytes` with `gpu_buffer_capacity_bytes`: the GPU side is larger, because display data adds tessellation and instance rows to the retained source arrays.
-- Hold a second `Rc` to a document somewhere in `State` and replace the scene: the payload figure keeps counting it, which is the leak the Weak identities are there to expose.
+- Hold a second `Rc` to a document in `State` and replace the scene: the payload keeps counting it — the leak the Weak identities exist to expose.
 
 ## Questions and answers
 
@@ -139,13 +141,13 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 
 *How to work it out.* List what the walk can actually count: `Vec` and `String` capacities, occupied map entries, slice lengths. Then list what it cannot: allocator overhead, `Rc` headers, spare map slots, GPU-side memory, anything the browser holds outside the wasm heap. A name like "memory use" claims the second list too.
 
-*The answer.* The number is a lower bound over a defined set, so it is named after that set — and the snapshot carries its own scope and exclusions as JSON fields, so a reader cannot mistake one for the other. A measurement you cannot defend is worse than no measurement, because people quote it.
+*The answer.* The number is a lower bound over a defined set, so it is named after that set, and the snapshot carries its scope and exclusions as JSON fields. A measurement you cannot defend is worse than no measurement, because people quote it.
 
 **The cache holds `Weak<Session>`, not `Rc<Session>`. What breaks with `Rc`?**
 
 *How to work it out.* Ask what the cache is for: recognising documents it has already measured. Then ask what holding an `Rc` does: keeps them alive. A cache that never forgets, holding strong references, is a leak.
 
-*The answer.* Nothing would ever drop, the figure would grow forever, and the instrument would be causing the leak it is meant to measure. `Weak` recognises a document without extending its life, and when every pointer still matches the last snapshot the cached payload is returned with no walk at all.
+*The answer.* Nothing would ever drop, the figure would grow forever, and the instrument would cause the leak it measures. `Weak` recognises a document without extending its life, and when every pointer still matches the last snapshot the cached payload is returned with no walk.
 
 **The cache keys on identity, so in-place editing would make it stale. Why is that acceptable here?**
 
@@ -161,7 +163,7 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 
 **What you should be able to do now**
 
-Name something the viewer cannot measure about itself and say how you would find out anyway. Correct: it cannot measure its own resident set — allocator overhead, fragmentation and the browser's own structures are invisible from inside the wasm heap, and `WebAssembly.Memory` reports pages reserved, not bytes live. You find out with a different tool: the browser's memory profiler, or `performance.measureUserAgentSpecificMemory()`. Some questions are not answerable from inside the program, and recognising those saves you from writing code that pretends otherwise.
+Name something the viewer cannot measure about itself and say how you would find out anyway. Correct: it cannot measure its own resident set — allocator overhead, fragmentation and the browser's own structures are invisible from inside the wasm heap, and `WebAssembly.Memory` reports pages reserved, not bytes live. You find out with a different tool: the browser's memory profiler, or `performance.measureUserAgentSpecificMemory()`. Some questions are not answerable from inside the program; recognising those saves you writing code that pretends otherwise.
 
 ## Next
 

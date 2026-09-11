@@ -25,9 +25,9 @@ cd "$COURSE_WORK/session_viewer"
 
 ![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
-- `cdylib` is what wasm-bindgen turns into a browser module; `rlib` lets native tools link the same crate.
-- Every version here is pinned by `Cargo.lock` in step 4; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
-- The `[target.'cfg(not(wasm32))']` table stays at the end: a target table in the middle silently swallows every `[dependencies]` line after it.
+- wasm-bindgen turns `cdylib` into the browser module; `rlib` lets native tools link the same crate.
+- `Cargo.lock` in step 4 pins every version; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
+- Keep `[target.'cfg(not(wasm32))']` last: a target table mid-file silently swallows every `[dependencies]` line after it.
 
 ![Diagram: Cargo.toml · session_viewer crate · ../session_rust](illustrations/00-01.svg)
 
@@ -39,7 +39,7 @@ cd "$COURSE_WORK/session_viewer"
 
 ![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
-One line makes every `cargo` command build for the browser, so the code needs no `#[cfg(target_arch = "wasm32")]` gates. `xtest` is the native alias that runs the tests.
+One line points every `cargo` command at the browser: no `#[cfg(target_arch = "wasm32")]` gates anywhere. `xtest` is the native alias that runs the tests.
 
 ![Diagram: .cargo/config.toml · wasm32-unknown-unknown · native test target](illustrations/00-02.svg)
 
@@ -51,9 +51,9 @@ One line makes every `cargo` command build for the browser, so the code needs no
 
 ![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
-Release builds, no subresource hashes, relative asset URLs, and the dev server on 127.0.0.1:8770. Lesson 14 adds the watch list that reaches the kernel next door.
+Release builds, no subresource hashes, relative asset URLs, dev server on 127.0.0.1:8770. Lesson 14 adds the watch list reaching the kernel next door.
 
-![Diagram: Trunk.toml · dist/ · src · index.html · ../session_rust](illustrations/00-03.svg)
+![Diagram: Trunk.toml · dist/ · 127.0.0.1:8770 dev server](illustrations/00-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
 
@@ -61,7 +61,7 @@ Release builds, no subresource hashes, relative asset URLs, and the dev server o
 
 ## Step 4 · Pin the dependency graph
 
-Dependency data, not code. The course was verified against exactly these versions, so install the lockfile with the supplied-files command instead of typing it.
+Dependency data, not code. Verified against exactly these versions, so install the lockfile with the supplied-files command instead of typing it.
 
 ![Diagram: Cargo.lock · cargo --locked · reproducible build](illustrations/00-04.svg)
 
@@ -84,8 +84,9 @@ One element with `id="status"`; Rust looks it up by that name.
 ![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-a6eea7cc7f.svg){ .locator data-strip="illustrations/strip-d765e907c1.svg" }
 
 - `#[wasm_bindgen(start)]` runs this function when the browser finishes loading the module.
-- `web_sys` is the browser DOM seen from Rust; `expect` aborts with a readable message if an element is missing.
-- The `data-checkpoint` attribute is what the automatic checkpoint test reads, so a static HTML message cannot pass for Rust.
+- `web_sys` is the browser DOM from Rust.
+- `expect` aborts with a readable message when an element is missing.
+- The checkpoint test reads `data-checkpoint`, so a static HTML message cannot pass for Rust.
 
 ![Diagram: browser loads module · start() · #status](illustrations/00-06.svg)
 
@@ -126,21 +127,21 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 
 **Two crate types are declared. Who consumes each?**
 
-*How to work it out.* Ask who reads the build output: the browser, through wasm-bindgen and Trunk, and `cargo test` / `cargo run --example` on your own machine. A browser module and a Rust library are different artefacts, so both must be declared.
+*How to work it out.* Two consumers read the build output: the browser, through wasm-bindgen and Trunk, and `cargo test` / `cargo run --example` natively. A browser module and a Rust library are different artefacts, so both must be declared.
 
 *The answer.* `cdylib` is the dynamic library wasm-bindgen turns into a browser module — what Trunk bundles. `rlib` is the ordinary Rust library that native tools, tests and examples link against. Drop `rlib` and `cargo xtest` has nothing to link; drop `cdylib` and there is no page.
 
 **What does one line in `.cargo/config.toml` buy you?**
 
-*How to work it out.* Without it, `cargo build` targets your machine, so every browser-only item needs `#[cfg(target_arch = "wasm32")]` and every build command needs `--target wasm32-unknown-unknown`. Ask which case is the common one: in this crate, almost all the code is browser code.
+*How to work it out.* Without it, `cargo build` targets your machine: every browser-only item needs `#[cfg(target_arch = "wasm32")]` and every build command needs `--target wasm32-unknown-unknown`. Almost all of this crate is browser code, so that is the common case.
 
 *The answer.* `build.target = "wasm32-unknown-unknown"` makes the browser the default for every `cargo` command, so the source needs no per-item gates. The `xtest` alias is how the tests still run natively.
 
 **The page is stuck on *Loading WASM* and the console is empty. Name two candidates before you touch the Rust.**
 
-*How to work it out.* Split the chain into stages and ask which stage produced the symptom. "Loading WASM" is the HTML's own text, so the page loaded but the module never replaced it. That rules out everything after `start()` runs, and points at the two stages before it: was a module served at all, and was it rebuilt? An empty console is the clue — a Rust panic would have printed.
+*How to work it out.* "Loading WASM" is the HTML's own text, so the page loaded but the module never replaced it. That rules out everything after `start()` runs and points at the two stages before it: was a module served at all, and was it rebuilt? An empty console confirms it — a Rust panic would have printed.
 
-*The answer.* Either you opened the file from disk instead of the Trunk address, so nothing ever loaded the module, or the crate did not rebuild. An id typo is the third candidate and is easy to tell apart: it panics, and the console shows the `expect` message.
+*The answer.* Either you opened the file from disk instead of the Trunk address, so nothing loaded the module, or the crate did not rebuild. An id typo is a third candidate, easy to tell apart: it panics, and the console shows the `expect` message.
 
 **What you should be able to do now**
 

@@ -84,7 +84,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=116-151 -->
 
-- The size of a disc is decided here, on the CPU, and folded into the record, so the shader divides once per point instead of reasoning about spacing.
+- Disc size is decided here on the CPU and folded into the record, so the shader divides once per point instead of reasoning about spacing.
 
 ## Step 3 · The splat lane
 
@@ -121,7 +121,8 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=158-230 -->
 
-- Construction allocates the record buffer up front - 4096 records at 160 bytes, about 640 KB - and binds it over placeholder buffers. The point *targets* are what wait for the first cloud, and they are the part that scales with the framebuffer.
+- Construction allocates the record buffer up front - 4096 records at 160 bytes, about 640 KB - and binds it over placeholder buffers.
+- The point *targets* wait for the first cloud; they are the part that scales with the framebuffer.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -133,7 +134,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=279-344 -->
 
-- The ID pipeline draws the same quads and writes `(object row, point row)` instead of colour, so a point answers a pick with the identity of the point, not of the cloud.
+- The ID pipeline draws the same quads and writes `(object row, point row)` instead of colour, so a pick names the point, not the cloud.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -149,7 +150,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=444-501 -->
 
-- The resolve is one fullscreen triangle writing colour and `frag_depth`, which is what folds the private point pass back under the scene's own depth test.
+- The resolve is one fullscreen triangle writing colour and `frag_depth`, folding the private point pass back under the scene's own depth test.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -252,9 +253,9 @@ Expected:
 
 **Points draw into their own targets and are then resolved into the scene. Why not draw them with everything else?**
 
-*How to work it out.* List what a splat needs that a triangle does not. It needs to read the depth of *neighbouring* points to shade itself (Eye-Dome Lighting), and you cannot read the depth buffer you are writing. But it must still occlude and be occluded like a solid. Those two requirements conflict unless the points get a buffer of their own.
+*How to work it out.* A splat must read the depth of *neighbouring* points to shade itself (Eye-Dome Lighting), and you cannot read the depth buffer you are writing. But it must still occlude and be occluded like a solid. Those two requirements conflict unless the points get a buffer of their own.
 
-*The answer.* A private colour and depth pass first, then a fullscreen resolve that reads them, applies EDL and writes `frag_depth` under the scene's `Greater` test — which folds the result back into the shared depth as if it had been drawn there. The cost is one pass; the benefit is that no other lane has to know clouds exist.
+*The answer.* A private colour and depth pass first, then a fullscreen resolve that reads them, applies EDL and writes `frag_depth` under the scene's `Greater` test, folding the result back into the shared depth as if it had been drawn there. The cost is one pass; the benefit is that no other lane has to know clouds exist.
 
 **The point pass targets are created on the first frame that has points. What principle is that, and where else does it appear?**
 

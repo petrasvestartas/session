@@ -16,7 +16,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 - Checkpoint 17. The ink shader hides a stroke sample when the surface's depth plane, carried to the stroke axis through the stored gradient, lies in front of the axis.
 - That plane is infinite. A narrow strip beside a seam has a plane that crosses the seam ray outside the strip, so a seam disappears at teapot concavities and where solids touch.
-- This lesson finishes the renderer. Two lessons still change production: 19 adds drawing sheets and 20 gives the kernel its history, and lesson 20 is where the reconstruction is compared against production.
+- This lesson finishes the renderer. Two lessons still change production: 19 adds drawing sheets, 20 gives the kernel its history and compares the reconstruction against production.
 
 <!-- supplied: 18 -->
 
@@ -44,8 +44,10 @@ The same revision counter tells the silhouette when its masks are stale:
 <!-- file: 18 session_viewer/src/shaders/physical.wgsl type -->
 
 - `pull_triangle` numbers every triangle; `vs_triangle` is the plain physical draw, `vs_face` adds the source face on top.
-- `fs_masks` writes the solid coverage and the selected coverage to two attachments from one rasterization; the targets blend with MAX, so a written zero acts as a discard.
-- X-ray (`P`, `line.opacity` zero): `transform_vertex` marks a closed multi-face solid `xray` and every fragment entry `discard`s its fragments, so the solid writes no colour, no depth and no coverage, and the ink behind it is judged against what remains. A single face (`FLAG_SINGLE`, a sheet, print fill) has no inside to show and keeps its shading.
+- `fs_masks` writes solid and selected coverage to two attachments from one rasterization; the targets blend with MAX, so a written zero acts as a discard.
+- X-ray (`P`, `line.opacity` zero): `transform_vertex` marks a closed multi-face solid `xray`, and every fragment entry `discard`s its fragments.
+- The solid then writes no colour, no depth and no coverage, and the ink behind it is judged against what remains.
+- A single face (`FLAG_SINGLE`, a sheet, print fill) has no inside to show and keeps its shading.
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -61,7 +63,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/shaders/grid.wgsl type -->
 
-- The backdrop shaders widen their metadata output to four halves with a zero triangle address: they are not surfaces a tile list can describe.
+- The backdrop shaders widen to four halves with a zero triangle address: they are not surfaces a tile list can describe.
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -73,7 +75,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
-- And for the resolve, which is the pass that actually writes the scene's depth for a cloud.
+- And for the resolve, the pass that writes the scene's depth for a cloud.
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -133,7 +135,8 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=61-127 -->
 
-- The projection itself, used by the one compute pass that fills the record buffer. The arithmetic the binning passes and the ink query share is the smaller `projected_triangle.wgsl`, appended to both.
+- The projection itself, used by the one compute pass that fills the record buffer.
+- The arithmetic the binning passes and the ink query share is the smaller `projected_triangle.wgsl`, appended to both.
 
 ## Part C · A compact screen index
 
@@ -142,7 +145,8 @@ The same revision counter tells the silhouette when its masks are stale:
 ![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
 
 - One quad per projected triangle covers its tile bounds; `covered_tile` discards tiles the polygon cannot touch.
-- `fs_count` counts references per tile. `fs_fill` runs after the scan and writes `(primitive, nearest possible depth)` pairs into the tile's range; a cursor past the count sets the overflow flag instead of writing.
+- `fs_count` counts references per tile.
+- `fs_fill` runs after the scan and writes `(primitive, nearest possible depth)` pairs into the tile's range; a cursor past the count sets the overflow flag instead of writing.
 
 ![Diagram: quad per projected triangle · fs_count · tile counts · fs_fill\ (primitive, max depth) · overflow flag](illustrations/18-07.svg)
 
@@ -175,7 +179,8 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-57 -->
 
-- The pool is one flat array shared by every tile, not a quota each: a dense tile borrows space a sparse one never used, so the allocation follows the scene rather than the grid.
+- The pool is one flat array shared by every tile, not a quota each.
+- A dense tile borrows space a sparse one never used, so the allocation follows the scene rather than the grid.
 
 ![The scan reports what its lists needed, the number is read back a frame later, and a pool that was too small costs one frame of conservative ink and never a wrong pixel.](illustrations/tile-pool.svg)
 
@@ -199,7 +204,8 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=185-217 -->
 
-- `prepare` resizes storage for the triangle count, the framebuffer and the last report; beyond the device's storage binding limit it releases the tables and reports so the ink shader keeps the plane rule.
+- `prepare` resizes storage for the triangle count, the framebuffer and the last report.
+- Beyond the device's storage binding limit it releases the tables and reports, so the ink shader keeps the plane rule.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -231,7 +237,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=465-572 -->
 
-- Every preparation shader is compiled with the same projected-record and tile-grid arithmetic the ink shader uses, so the CPU, the raster passes and the ink query can never disagree about which tile a pixel is in.
+- Every preparation shader compiles the same projected-record and tile-grid arithmetic the ink shader uses, so the CPU, the raster passes and the ink query cannot disagree about which tile a pixel is in.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -255,8 +261,9 @@ Copy the rest of the file:
 
 - `ink_visible_plane` is the plane test. When it accepts, nothing else runs.
 - When it rejects: test the winning primitive at the axis, then the four sample-matched neighbours. A finite nearer hit confirms occlusion.
-- Otherwise walk the axis pixel's tile list: skip references whose nearest possible depth cannot beat the axis, skip triangles whose bounds miss the point, then run the finite test. An overflowing or incomplete list keeps the rejection.
-- The projected triangles and their tiles are in canvas pixels; a pick pass draws a window of the canvas into an attachment of its own, so the axis is offset by `line.origin` before the lookup.
+- Otherwise walk the axis pixel's tile list: skip references whose nearest possible depth cannot beat the axis, skip triangles whose bounds miss the point, then run the finite test.
+- An overflowing or incomplete list keeps the rejection.
+- Projected triangles and their tiles are in canvas pixels, while a pick pass draws into its own window-sized attachment, so the axis is offset by `line.origin` before the lookup.
 
 The blank lines separate the helpers; type them so the file matches production:
 
@@ -277,8 +284,9 @@ The blank lines separate the helpers; type them so the file matches production:
 
 ![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-50eec72a61.svg){ .locator data-strip="illustrations/strip-ccdfd9e2ff.svg" }
 
-- The physical and object-ID triangle pipelines move into `Faces`, so the primitive numbers written by the color pass are the same numbers the projection shader uses.
-- `revision` counts highlight changes, and `draw_masks` writes the highlighted face into both coverage masks of the combined pass: the silhouette's cache key reads the counter, and its one rasterization draws the face through this entry.
+- The physical and object-ID triangle pipelines move into `Faces`, so the color pass writes the primitive numbers the projection shader uses.
+- `revision` counts highlight changes; the silhouette's cache key reads it.
+- `draw_masks` writes the highlighted face into both coverage masks of the combined pass, so the one rasterization draws the face through this entry.
 
 ![Diagram: Faces\ draw_physical · draw_object_ids · color pass · projection shader · coverage masks](illustrations/18-11.svg)
 
@@ -286,7 +294,8 @@ The blank lines separate the helpers; type them so the file matches production:
 
 <!-- file: 18 session_viewer/src/engine/gpu/faces.rs type -->
 
-- The arena owns the `TriangleTiles`; `prepare_visibility` encodes them over the arena's exact buffers, and every append, reset or release invalidates them. `draw_masks` is the arena's side of the one-pass mask rasterization.
+- The arena owns the `TriangleTiles`: `prepare_visibility` encodes them over the arena's exact buffers, and every append, reset or release invalidates them.
+- `draw_masks` is the arena's side of the one-pass mask rasterization.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -326,7 +335,8 @@ The blank lines separate the helpers; type them so the file matches production:
 
 <!-- file: 18 session_viewer/src/engine/gpu/pick.rs type -->
 
-- The pick target follows the metadata: twenty bytes a texel instead of sixteen, `Rgba16Float` instead of `Rg16Float`. The tile lists themselves reach the ID pass through group 2, so nothing else here changes.
+- The pick target follows the metadata: twenty bytes a texel instead of sixteen, `Rgba16Float` instead of `Rg16Float`.
+- The tile lists reach the ID pass through group 2, so nothing else here changes.
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -351,8 +361,10 @@ The blank lines separate the helpers; type them so the file matches production:
 
 ![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-43ed20e7f8.svg){ .locator data-strip="illustrations/strip-187e4e26b4.svg" }
 
-- `MaskKey` is what a coverage mask depends on: the camera matrix, the geometry revision, the selection revision, the highlighted face's revision, the size, the sample count, and — because edges are part of the coverage — the edge toggle and the pen width. While none of them changes, the mask passes are skipped and the previous masks are composited again: a still view costs no rasterization.
-- When the key changes and both outlines are on, `begin_masks` opens one pass with both attachments, and the faces are rasterized once for both masks; a single outline keeps its own pass.
+- `MaskKey` is what a coverage mask depends on: camera matrix, geometry revision, selection revision, the highlighted face's revision, size, sample count, and — because edges are part of the coverage — the edge toggle and the pen width.
+- While none of them changes, the mask passes are skipped and the previous masks composited again: a still view costs no rasterization.
+- When the key changes and both outlines are on, `begin_masks` opens one pass with both attachments and rasterizes the faces once for both masks.
+- A single outline keeps its own pass.
 - `selection_revision` counts selection flag changes, so a selection change rebuilds the masks without touching the tile index.
 
 ![Diagram: MaskKey\ mvp · geometry · selection · faces\ size · samples · edges · pen · stale? · draw_combined · previous masks · begin_masks · one pass · both attachments · encode_pool · mark_valid](illustrations/18-14.svg)
@@ -363,7 +375,8 @@ The blank lines separate the helpers; type them so the file matches production:
 
 <!-- file: 18 session_viewer/src/engine/gpu/surface_outline.rs type -->
 
-- Edges join the silhouette. Four more segment pipelines rasterize every solid edge into the coverage masks (`fs_mask`, `fs_masks`, `ColorWrite::Max`), so the black outline hugs a cube's edges as tightly as its faces, at one thickness whether the object is selected or not.
+- Edges join the silhouette: four more segment pipelines rasterize every solid edge into the coverage masks (`fs_mask`, `fs_masks`, `ColorWrite::Max`).
+- The black outline then hugs a cube's edges as tightly as its faces, at one thickness whether the object is selected or not.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -424,7 +437,7 @@ The same source you just finished is what the repository publishes:
 
 ## Try
 
-- Orbit the teapot slowly around its foot and watch the bottom boundary: it stays continuous where the body's planes cross the stroke axis, which is exactly where the plane test alone would break it into dashes.
+- Orbit the teapot slowly around its foot: the bottom boundary stays continuous where the body's planes cross the stroke axis — exactly where the plane test alone would break it into dashes.
 - Set `?thickness=3` and repeat: the finite test is on the stroke axis, so a wider fringe changes the look, not the visibility decision.
 - Overflow a tile on purpose by loading a dense mesh and lowering the tile size in `triangle_tiles.rs`: overflowing lists keep the conservative rejection, and hidden edges never leak through.
 - Open `?outlines=1`, select the BRep and click another object: the masks are rebuilt because `selection_revision` moved, while the tile index, keyed on geometry only, is reused.
@@ -434,7 +447,7 @@ The same source you just finished is what the repository publishes:
 
 **The plane test is kept, and the tile walk only runs when the plane test rejects. Why is that ordering the whole design?**
 
-*How to work it out.* Price the two tests: the plane test is one `textureLoad` plus a dot product; the tile walk is a list traversal with a bounds test per entry. Then ask how often each is needed — the plane test is right everywhere except at concavities and where solids touch. Finally, check the *direction* of the cheap test's error: it extends a finite triangle's plane, so it can only over-occlude.
+*How to work it out.* Price them: the plane test is one `textureLoad` plus a dot product; the tile walk is a list traversal with a bounds test per entry. The plane test is right everywhere except at concavities and where solids touch. Then check the *direction* of its error: it extends a finite triangle's plane, so it can only over-occlude.
 
 *The answer.* Because the cheap test can only wrongly *hide*, never wrongly *show*, escalating on rejection can only restore ink — so running it first is free correctness, not a gamble. The expensive machinery then costs nothing on the overwhelming majority of fragments.
 

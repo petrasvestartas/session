@@ -25,7 +25,7 @@
 ## Starting point
 
 - Checkpoint 16: objects, edges and controls are selectable; text is an annotation without identity; the selected object's outline is drawn by `selection_outline.rs`.
-- Five independent parts share this checkpoint. Each part below is complete on its own; the frame order at the end wires them together.
+- Five independent parts share this checkpoint; each is complete on its own, and the frame order at the end wires them together.
 
 ## Part A · Select a source face
 
@@ -43,7 +43,7 @@
 
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=1-28 -->
 
-The bind group at group 3 borrows the arena's buffers and adds the face table and the selected-face uniform:
+Group 3 borrows the arena's buffers and adds the face table and the selected-face uniform:
 
 | Binding | Rust buffer | WGSL |
 |---|---|---|
@@ -86,7 +86,7 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 - `transform_vertex` is the old `vs_main` body; `vs_face` reaches the same code through storage buffers instead of vertex attributes.
 - `fs_id` writes `FACE_TAG | address` as the sub-ID; `fs_face_highlight` discards everything but the selected face.
 - `fs_solid_mask` writes plain coverage; part C reads it.
-- `LineUniform` lists `origin` and `frame`: the window origin and the canvas size, which every shader copy of the uniform declares in the same order.
+- `LineUniform` lists `origin` and `frame` — window origin, canvas size — in the order every shader copy declares.
 
 ![Diagram: storage · group 3 · vs_face · fs_id · FACE_TAG · fs_face_highlight · fs_solid_mask](illustrations/17-07.svg)
 
@@ -126,14 +126,15 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/app/walk/brep.rs type -->
 
-- `push_face` now records which source face it is tessellating, once per triangle it emits. That address is what makes a face pickable at all.
+- `push_face` records its source face once per triangle emitted; that address is what makes a face pickable.
 
 ### Step 5 · A third selection mode
 
 ![Where this step sits in the viewer: Scene + walk, Input, State, Lanes, with 10 of 11 zones built so far.](illustrations/locator-41ecb47b4d.svg){ .locator data-strip="illustrations/strip-0af69e52fd.svg" }
 
 - `SelectionMode::Face` carries parent and face, so Escape returns to the parent like edges do.
-- `PickMode::Component`: the pick sorter prefers a nearby edge, then a face. There is no object fallback — a component click that finds neither selects nothing, because narrowing to a component is a different intent from selecting the whole object.
+- `PickMode::Component`: the pick sorter prefers a nearby edge, then a face.
+- No object fallback — a component click that finds neither selects nothing: narrowing to a component is a different intent from selecting the whole object.
 
 ![Diagram: Ctrl+Shift click · PickMode::Component · SelectionMode::Face\ parent · face · face highlight](illustrations/17-10.svg)
 
@@ -141,7 +142,8 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/app/selection.rs type -->
 
-- The picker renders into the pick window plus a three-texel `PICK_HALO`, never the canvas; `view_for` falls back to the whole canvas for a full-frame capture.
+- The picker renders into the pick window plus a three-texel `PICK_HALO`, never the canvas.
+- `view_for` falls back to the whole canvas for a full-frame capture.
 
 ![A pick renders a 19 x 19 attachment: a 13 x 13 readback window inside a three-texel halo, with origin and frame carrying the canvas into it.](illustrations/pick-window.svg)
 
@@ -169,8 +171,8 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 ![Where this step sits in the viewer: Network, Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-a78e7c43d3.svg){ .locator data-strip="illustrations/strip-9b2d3ea953.svg" }
 
-- `TextObject { row, selected }` on a label means "this text is a scene object"; `None` means a derived annotation such as the selected-object name.
-- `ink_color` is black while the object is selected and the authored color otherwise; both text renderers read it, so the authored color is never touched.
+- `TextObject { row, selected }` marks a label as a scene object; `None` marks a derived annotation such as the selected-object name.
+- `ink_color` is black while the object is selected, the authored color otherwise; both text renderers read it, so the authored color is never touched.
 
 ![Diagram: TextLabel · TextObject\ row · selected · derived annotation · ink_color: black · manifest camera_facing](illustrations/17-12.svg)
 
@@ -217,13 +219,13 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/app/scene.rs type -->
 
-- `Scene` declares the text file as a sibling module: text rows and geometry rows are the same kind of thing and share one numbering.
+- `Scene` declares the text file as a sibling module: text rows and geometry rows are one kind of thing, sharing one numbering.
 
 ### Step 8 · State's companions: text presentation and streamed queries
 
 ![Where this step sits in the viewer: State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-a36ba7ebc5.svg){ .locator data-strip="illustrations/strip-2e217df3d4.svg" }
 
-- `update_label` submits the visible source texts plus the one derived name; the derived name has no row and cannot steal its parent's click.
+- `update_label` submits the visible source texts plus the one derived name, which has no row and cannot steal its parent's click.
 
 ![Diagram: visible_texts() · update_label · derived nameplate · TextLane labels · include_text_bounds · fit · selection name](illustrations/17-14.svg)
 
@@ -240,13 +242,13 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=55-112 -->
 
-- Fitting now includes authored text: a label's shaped extent in its own fixed frame is part of the scene's bounds, or pressing `F` would cut the text off.
+- Fitting includes authored text: a label's shaped extent in its own fixed frame joins the scene's bounds, or `F` would cut the text off.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=113-144 -->
 
-- The streamed F10 query is `State`'s second companion: `State` owns the query, and this file groups the page, answer and resolve workflow.
+- `State`'s second companion is the streamed F10 query: `State` owns it, and this file groups its page, answer and resolve workflow.
 
 ![Diagram: state.rs · state/cloud_query.rs\ page · answer · resolve · state/text.rs](illustrations/17-15.svg)
 
@@ -264,7 +266,7 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=102-159 -->
 
-- Each batch is stamped with the camera, scene and parent it was asked against; a callback from an older generation is dropped rather than answered.
+- Each batch is stamped with the camera, scene and parent it was asked against; an older generation's callback is dropped rather than answered.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -327,7 +329,7 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=2 -->
 
-- Each reported label gains its object row, its world height and its resolved ink colour, so the snapshot says not just what text exists but which of it is selected.
+- Each reported label gains its object row, world height and resolved ink colour, so the snapshot says which text is selected, not just what text exists.
 
 ## Part C · One black silhouette
 
@@ -336,8 +338,10 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 ![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-51de178268.svg){ .locator data-strip="illustrations/strip-aff484c5a8.svg" }
 
 - Ordinary outlines describe the union of all visible solids; touching or overlapping objects get no inner seam.
-- The selected mask is thicker. The compositor takes `max(ordinary, selected)`, so the overlap is never blended twice, and a selected interior suppresses the ordinary contour.
-- Each mask carries a coarse copy: the maximum of every `POOL` × `POOL` block. The compositor reads it first and skips the dilation loop wherever no covered texel is in reach, which is most of the frame.
+- The selected mask is thicker; the compositor takes `max(ordinary, selected)`, so the overlap never blends twice.
+- A selected interior suppresses the ordinary contour.
+- Each mask carries a coarse copy, the maximum of every `POOL` × `POOL` block.
+- The compositor reads it first and skips the dilation loop wherever no covered texel is in reach — most of the frame.
 
 ![The selected solid's yellow strokes are below the black silhouette; standalone selected curves are above it.](illustrations/frame.svg)
 
@@ -347,7 +351,7 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=1-33 -->
 
-Group 0 is the ordinary mask, group 1 the selected mask; the same layout serves both, and the pool layout holds one mask for the reduction:
+Group 0 is the ordinary mask, group 1 the selected; one layout serves both, and the pool layout holds one mask for the reduction:
 
 | Group · binding | Rust | WGSL |
 |---|---|---|
@@ -366,13 +370,16 @@ Group 0 is the ordinary mask, group 1 the selected mask; the same layout serves 
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=122-145 -->
 
-- `prepare` allocates coverage only while something is outlined; the coarse texture is `size / POOL` in each direction and binds beside the resolved mask. Lesson 18 settles on one radius for ordinary and selected solids.
+- `prepare` allocates coverage only while something is outlined.
+- The coarse texture is `size / POOL` in each direction, bound beside the resolved mask.
+- Lesson 18 settles on one radius for ordinary and selected solids.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=146-226 -->
 
-- The radius is the only thing written per frame: CSS pixels scaled to physical pixels and clamped, so the ring keeps its apparent weight at any device scale while the textures above are touched only when the size changes.
+- The radius is the only per-frame write: CSS pixels scaled to physical and clamped, so the ring keeps its apparent weight at any device scale.
+- The textures above are touched only when the size changes.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -406,7 +413,8 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=376-624 -->
 
-- The shader dilates coverage with a one-pixel smooth edge and returns black with that alpha; `near_any_coverage` returns zero without entering the loop when the pixel's coarse block and its eight neighbours are all empty.
+- The shader dilates coverage with a one-pixel smooth edge and returns black at that alpha.
+- `near_any_coverage` returns zero without entering the loop when the pixel's coarse block and its eight neighbours are all empty.
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -422,10 +430,12 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=3,9,12 -->
 
-- Silhouettes start **off**: the two coverage masks and the compositor are a full-screen pass per frame, which is slow on integrated GPUs. `O` turns them on; `?outlines=1` / `VIEWER_OUTLINES=1` starts with them on.
+- Silhouettes start **off**: two coverage masks and a compositor cost a full-screen pass per frame, slow on integrated GPUs.
+- `O` turns them on; `?outlines=1` / `VIEWER_OUTLINES=1` starts with them on.
 - The default pen is one CSS pixel; `?thickness=` / `VIEWER_THICKNESS` selects a heavier weight.
-- The headlight starts **off** (`D`, `?lit=1` / `VIEWER_LIT=1` turn it on) and so do back faces (`?backface=1` paints them red): a CAD drawing reads better flat, and a wrong normal is easier to see with shading as an explicit switch than as the default.
-- `device_pixel_ratio` is the capped ratio the canvas and the camera use: `?dpr=` lowers it for people who prefer memory over crispness, never above the browser's and never below 0.5.
+- The headlight starts **off** (`D`, `?lit=1` / `VIEWER_LIT=1` turn it on), and so do back faces (`?backface=1` paints them red).
+- A CAD drawing reads better flat, and a wrong normal shows more clearly when shading is a switch rather than the default.
+- `device_pixel_ratio` is the capped ratio the canvas and camera use; `?dpr=` lowers it to trade crispness for memory, never above the browser's and never below 0.5.
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -435,7 +445,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=4-4 -->
 
-- The module comment at the top of this file is the nearest thing to a user manual the viewer has, which is why the next step brings it up to date.
+- The module comment at the top of this file is the viewer's nearest thing to a user manual, so the next step brings it up to date.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -461,13 +471,14 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/app/walk/brep_edges.rs type -->
 
-- That range is what lets the join code know which segments are neighbours and which merely touch.
+- That range tells the join code which segments are neighbours and which merely touch.
 
 ### Step 13 · The GPU row gains neighbours
 
 ![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-43ed20e7f8.svg){ .locator data-strip="illustrations/strip-187e4e26b4.svg" }
 
-- `StrokeSegment` wraps the source row with `previous` and `next` GPU indices; `joined_rows` links consecutive chain members whose endpoints, instance, color and radius agree, and wraps a closed chain.
+- `StrokeSegment` wraps the source row with `previous` and `next` GPU indices.
+- `joined_rows` links consecutive chain members whose endpoints, instance, color and radius agree, and wraps a closed chain.
 
 ![Diagram: segment rows · StrokeSegment\ previous · next · draw_unselected · draw_selected](illustrations/17-19.svg)
 
@@ -519,7 +530,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 ### Step 14b · Install the supplied tooling
 
-The reference page and native fixtures for this checkpoint use the text-object field from Part B, so they are copied now:
+The reference page and native fixtures use the text-object field from Part B, so they are copied now:
 
 ![Diagram: supplied fixtures · reference page · workspace](illustrations/17-20.svg)
 
@@ -535,8 +546,10 @@ Three rules keep every pixel the same: the pick pass draws a window, antialiasin
 
 ![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
 
-- The pick pass sees the scene through the sub-frustum of the window about the cursor: `LineUniform` and `CloudUniform` carry the window `origin` and the canvas `frame`. In a colour frame `origin` is zero and `frame` is the canvas, so the same arithmetic serves both.
-- Splats project onto the canvas with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment; the grid only lists the new fields.
+- The pick pass sees the scene through the sub-frustum of the window about the cursor: `LineUniform` and `CloudUniform` carry the window `origin` and the canvas `frame`.
+- In a colour frame `origin` is zero and `frame` is the canvas, so the same arithmetic serves both.
+- Splats project with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment.
+- The grid lists only the new fields.
 
 ![Diagram: frame uniforms · pick uniforms\ mvp' · line' · cloud' · id_pass · window-sized attachment · splat.wgsl · frame − origin](illustrations/17-21.svg)
 
@@ -548,7 +561,8 @@ Three rules keep every pixel the same: the pick pass draws a window, antialiasin
 
 <!-- file: 17 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
-- The resolve's `CloudUniform` gains `origin` so its layout still matches the block the point pass writes. The offset itself is applied in `splat.wgsl`, where the footprint is computed.
+- The resolve's `CloudUniform` gains `origin` so its layout still matches the block the point pass writes.
+- The offset is applied in `splat.wgsl`, where the footprint is computed.
 
 ### Step 16 · Device scale and a lost device
 
@@ -557,13 +571,17 @@ Three rules keep every pixel the same: the pick pass draws a window, antialiasin
 ![The same strip of glass measured three ways: CSS pixels, device pixels at ratio 2, and the surface pixels a capped ?dpr= actually renders. winit reports the middle one, so every arriving position is multiplied by surface_per_physical.](illustrations/device-scale.svg)
 
 - Input and canvas sizing share the capped `device_pixel_ratio`, so a pointer position and a rendered pixel agree at any `?dpr=`.
-- `samples_for` returns 1x from two physical pixels per CSS pixel: the pixel density already halves the stair-steps, for a quarter of the attachment memory. `forced` still wins.
-- When the browser loses the device because video memory ran out, `recover_from_device_loss` reloads the page once at device scale 1 without antialiasing, keeping every other query; `recovered_notice` keeps the status line saying so on the reloaded page.
+- `samples_for` returns 1x from two physical pixels per CSS pixel: density already halves the stair-steps, at a quarter of the attachment memory. `forced` still wins.
+- On a lost device — video memory exhausted — `recover_from_device_loss` reloads the page once at device scale 1 without antialiasing, keeping every other query.
+- `recovered_notice` keeps the status line saying so on the reloaded page.
 
 ![Diagram: browser ratio · device_pixel_ratio · canvas size · pointer and touch input · samples_for: 1x · device lost…](illustrations/17-22.svg)
 
-- winit reports cursor and touch positions at the browser's ratio even when `?dpr=` renders the canvas below it. `surface_per_physical` is the cap over the ratio, 1 without a cap, and every pointer and touch position is multiplied by it on arrival, so picks, zooms and drags read against the surface that is actually drawn.
-- The input layer sets `State::interacting` while a button or finger drags. Frames during a drag come back to back, so their spacing is the cost of a frame: thirty in a row slower than 40 ms tell `reduce_for_slow_frames` to render at device scale 1 without antialiasing from then on, the same attachments a device loss reloads into, without waiting for the loss. The status line says so.
+- winit reports cursor and touch positions at the browser's ratio even when `?dpr=` renders the canvas below it.
+- `surface_per_physical` is the cap over that ratio, 1 without a cap; every arriving pointer and touch position is multiplied by it, so picks, zooms and drags read against the surface actually drawn.
+- The input layer sets `State::interacting` while a button or finger drags.
+- Drag frames come back to back, so their spacing is the cost of a frame.
+- Thirty in a row slower than 40 ms tell `reduce_for_slow_frames` to render at device scale 1 without antialiasing from then on — the attachments a device loss reloads into, without waiting for the loss. The status line says so.
 
 ![Diagram: winit position · browser ratio · surface pixels · pick · zoom · drag · 30 drag frames > 40 ms · reduce_for_slow_frames\ scale 1 · MSAA off](illustrations/17-23.svg)
 
@@ -610,8 +628,10 @@ Three rules keep every pixel the same: the pick pass draws a window, antialiasin
 ![Where this step sits in the viewer: GPU core, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-4b6ce6f9df.svg){ .locator data-strip="illustrations/strip-61978be411.svg" }
 
 - The old `selection_outline` lane goes away; two `SurfaceOutline` instances take its place, and `samples_for` receives the pixel scale.
-- Frame order: face highlight, print geometry, unselected strokes, selected **solid** strokes, the combined black silhouette, then selected **standalone** curves over coincident mesh ink. Each mask pass is followed by its pool pass.
-- `id_pass` computes the window's view, writes the pick uniforms, draws the whole attachment (halo included) and scissors the ink and source passes to the window inside it; authored text draws its IDs in every pick mode.
+- Frame order: face highlight, print geometry, unselected strokes, selected **solid** strokes, the combined black silhouette, then selected **standalone** curves over coincident mesh ink.
+- Each mask pass is followed by its pool pass.
+- `id_pass` computes the window's view, writes the pick uniforms, draws the whole attachment (halo included) and scissors the ink and source passes to the window inside it.
+- Authored text draws its IDs in every pick mode.
 
 ![Diagram: selection_outline lane · two SurfaceOutline · render.rs order\ solid strokes · silhouette · curves · id_pass · PickView · pick uniforms · scissor inside](illustrations/17-24.svg)
 
@@ -644,7 +664,8 @@ Expected:
 - Ctrl+Shift-click inside a mesh, BRep or surface: that source face turns yellow; the status reads `Face N selected`.
 - Ctrl+Shift-click on an edge: the edge wins over the face.
 - Click a solid, press **O** and orbit: one continuous black border of uniform width; press **O** again to hide it.
-- Click a manifest text or a document title: it selects like geometry with black letters on a yellow rounded backing; **H** hides it, **S** shows it; **T** still toggles only the derived selected-object name.
+- Click a manifest text or a document title: it selects like geometry, black letters on a yellow rounded backing.
+- **H** hides it, **S** shows it; **T** still toggles only the derived selected-object name.
 - A dense polyline and the same curve with few segments look the same at their joints: no darker dots, no gaps.
 - Source edges and lines draw with a one-pixel pen; `?thickness=1.5` selects a heavier weight.
 
@@ -667,9 +688,9 @@ Expected:
 
 ## Try
 
-- Ctrl + Shift + click on the surface and then on the BRep's top: `Face N selected` names a source face in each; on the BRep the number is a face of the solid, not a triangle.
-- Ctrl + Shift + click exactly on a mesh edge: the edge wins, because a nearby eligible edge is preferred over the face behind it.
-- Select the BRep and press O, then orbit: the black border is the union of the visible solids. Press O again: the yellow fringe of the strokes now defines the object's outline, and it is not uniform where strokes meet.
+- Ctrl + Shift + click the surface, then the BRep's top: `Face N selected` names a source face in each; on the BRep it is a face of the solid, not a triangle.
+- Ctrl + Shift + click exactly on a mesh edge: the edge wins — a nearby eligible edge beats the face behind it.
+- Select the BRep, press O and orbit: the black border is the union of the visible solids. Press O again and the strokes' yellow fringe defines the outline instead — not uniform where strokes meet.
 - Load a manifest with two `texts` entries and hide one with H: the other stays, and S brings the hidden one back.
 - Open `?thickness=6` and look at a corner of the polyline: no darker dot and no notch at the shared vertex, at any pen width.
 - On a high-density screen open `?dpr=1`: the canvas renders a quarter of the pixels, clicks still land where the pointer is, and the perf line reports the smaller attachments.
@@ -709,7 +730,7 @@ Expected:
 
 **What you should be able to do now**
 
-State the frame order and justify one adjacency. Correct order: face highlight, print geometry, unselected strokes, selected solid strokes, the combined black silhouette, then selected standalone curves. The adjacency to justify: a selected *solid's* strokes go under the silhouette because they belong to a body that has an outline, and drawing them over it would put yellow on top of the very contour that defines the shape; a standalone selected *curve* has no body and no silhouette of its own, so if it went under, the outline of whatever it crosses would cut it into pieces.
+State the frame order and justify one adjacency. Correct order: face highlight, print geometry, unselected strokes, selected solid strokes, the combined black silhouette, then selected standalone curves. A selected *solid's* strokes go under the silhouette because they belong to a body that has an outline, and drawing them over it would put yellow on the very contour that defines the shape. A standalone selected *curve* has no body and no silhouette of its own, so underneath it the outline of whatever it crosses would cut it into pieces.
 
 ## Next
 

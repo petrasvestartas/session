@@ -85,13 +85,13 @@ A stroke is a ribbon of fragments around its mathematical axis; the depth beside
                    z0            depth varies across the footprint
 ```
 
-Comparing `z0` with `d` directly hides ink on its own face. Instead the physical gradient carries the surface depth from the fragment to the axis point, and only that predicted depth is compared with the axis.
+Comparing `z0` with `d` directly hides ink on its own face. The physical gradient instead carries the surface depth from the fragment to the axis point, and only that prediction is compared.
 
 
 ### 4a · Bindings, tolerances and the axis record
 
 - `scene_gradient_*` are the new attachments from step 1; `SCENE_MSAA` picks the multisampled view.
-- Tolerances are expressed in float precision and rasterizer snapping, not in world units.
+- Tolerances are in float precision and rasterizer snapping, not world units.
 
 ![Diagram: scene_gradient_*\ @group(2) @binding(4/5) · ink_visibility.wgsl · DEPTH_REL_TOL · SLOPE_PX · KINK · InkAxis record](illustrations/05-05.svg)
 
@@ -134,7 +134,7 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 ### 4e · Corner fits and the fast path
 
 - `ink_disc_source_hidden` tries each quadrant so a face boundary cannot discard a valid fit.
-- `ink_visible` is the entry point strokes call: when the primitive's own gradient is valid, one `textureLoad` and a dot product decide; the neighbouring-pair fit is the fallback for gradients outside the attachment's range.
+- `ink_visible` is the entry point strokes call: with a valid own gradient, one `textureLoad` and a dot product decide; the neighbouring-pair fit is the fallback for gradients outside the attachment's range.
 - A neighbouring triangle is treated as an infinite plane: the fit extends its slope past its edges.
 
 ![Diagram: four quadrants · ink_disc_source_hidden · own gradient valid · ink_visible · ink_axis_visible fallback](illustrations/05-09.svg)
@@ -147,7 +147,9 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 ![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
-Every fragment that writes physical depth also returns its gradient. Face shaders return the real slope in the colour pass and the ID pass alike; the background, the grid, splats and imported lettering return zero, because they are not surfaces ink can be carried across.
+- Every fragment that writes physical depth also returns its gradient.
+- Face shaders return the real slope in both the colour and ID passes.
+- Background, grid, splats and imported lettering return zero: they are not surfaces ink can be carried across.
 
 ![Diagram: triangle.wgsl fs_main · PhysicalColor · splat · splat_resolve · text_outline.wgsl · PhysicalId](illustrations/05-10.svg)
 
@@ -164,7 +166,7 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 
 <!-- file: 05 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
-- The resolve is where a private pass rejoins the shared one: it reads the lane's own depth and colour, lights each point from its neighbours, and writes `frag_depth` so the scene's depth test does the rest.
+- The resolve is where a private pass rejoins the shared one: it reads the lane's own depth and colour, lights each point from its neighbours, and writes `frag_depth` for the scene's depth test.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -176,9 +178,10 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 
 ![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e63ed245a.svg){ .locator data-strip="illustrations/strip-203427a3dc.svg" }
 
-- `Rg16Float` gradient texture beside depth; single/multisampled views are swapped exactly like the depth views so bind groups stay valid at both sample counts.
+- `Rg16Float` gradient texture beside depth; its views swap like the depth views, so bind groups stay valid at both sample counts.
 - `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
-- `msaa_budget`/`samples_for` decide the sample count from the adapter type and pixel count; multisampling smooths hard face edges only, ribbons and discs antialias themselves.
+- `msaa_budget`/`samples_for` decide the sample count from the adapter type and pixel count.
+- Multisampling smooths hard face edges only; ribbons and discs antialias themselves.
 
 ![Two gates then a per-adapter pixel budget decide the sample count, and in a browser every adapter reports as Other, which is its own budget rather than a synonym for integrated.](illustrations/msaa-budget.svg)
 
@@ -236,7 +239,7 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 
 <!-- file: 05 session_viewer/src/engine/gpu/splat.rs type -->
 
-- `.physical()` on the ID pipeline and the resolve: the cloud now writes the same metadata as every other surface, which is what lets ink judge itself against a point cloud.
+- `.physical()` on the ID pipeline and the resolve: the cloud writes the same metadata as every other surface, so ink can judge itself against a point cloud.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -289,7 +292,7 @@ Expected:
 - `?fixture=floor`: magenta lines just under the sloping floor stay hidden; the red line on the floor stays visible.
 - `?top`, `?perspective`, `?distance=N` select the view for repeatable inspection.
 
-If every edge disappears, compare the depth clear and compare function against the table in step 1. If hidden edges show through, check that the face pipeline uses `.physical()` and that `fs_main` returns `physical_gradient(in.pos.z)`.
+Every edge disappears: compare the depth clear and compare function against the table in step 1. Hidden edges show through: check that the face pipeline uses `.physical()` and that `fs_main` returns `physical_gradient(in.pos.z)`.
 
 ![Checkpoint 05: hidden lines stay hidden while visible strokes and corners stay readable, over the grid and backdrop.](screenshots/05.png)
 
@@ -314,7 +317,7 @@ If every edge disappears, compare the depth clear and compare function against t
 
 **Why can a stroke fragment not simply compare its own depth with the depth buffer?**
 
-*How to work it out.* A stroke is a *ribbon* several pixels wide; an edge fragment reads the depth buffer at *its own* pixel, which is the surface under that pixel, not under the axis. On the stroke's own face the axis sits on the surface while the edge fragments sit over surface a little nearer or further.
+*How to work it out.* A stroke is a *ribbon* several pixels wide; an edge fragment reads the depth buffer at *its own* pixel — the surface under that pixel, not under the axis. On the stroke's own face the axis sits on the surface while the edge fragments sit over surface a little nearer or further.
 
 *The answer.* Half the ribbon loses the naive comparison and the line stitches. Carry the surface depth to the axis with the gradient the face pass stored, and compare only that prediction.
 
@@ -332,7 +335,7 @@ If every edge disappears, compare the depth clear and compare function against t
 
 **Multisampling is chosen from the adapter and the pixel count. Why does it never change the visibility decision?**
 
-*How to work it out.* Separate the two things MSAA affects. It changes how many samples a triangle covers within a pixel — a coverage question. The ink test asks whether the axis is behind a surface — a depth question. At 4x it runs once per sample against that sample's own depth and gradient; coverage never enters it.
+*How to work it out.* MSAA changes how many samples a triangle covers within a pixel — a coverage question. The ink test asks whether the axis is behind a surface — a depth question. At 4x it runs once per sample against that sample's own depth and gradient; coverage never enters it.
 
 *The answer.* Because visibility is decided from depth and gradient, not from coverage. MSAA smooths hard face edges; the ink test still asks the same question at the same place. `?msaa=4` against `?msaa=1` is the experiment that shows it: the fringe changes, the decision does not.
 

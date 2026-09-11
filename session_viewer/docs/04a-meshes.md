@@ -48,7 +48,8 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=40-99 -->
 
-- `reset` keeps the allocation, because a reload refills a buffer that is already the right size. `release` hands the buffer back, for a scene that is cleared and should hold no GPU memory at all.
+- `reset` keeps the allocation: a reload refills a buffer already the right size.
+- `release` hands the buffer back, for a cleared scene that should hold no GPU memory.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -59,7 +60,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=124-186 -->
 
-- One helper builds every bind group in this crate: buffers in binding order, no names to keep in sync. A layout mismatch then fails at one call site instead of eight.
+- One helper builds every bind group: buffers in binding order, no names to keep in sync. A layout mismatch then fails at one call site instead of eight.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -79,7 +80,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=1-52 -->
 
-- The ink layout adds the physical depth at bindings 2 and 3, one single-sampled and one multisampled view; the one not in use is a 1×1 placeholder.
+- The ink layout adds the physical depth at bindings 2 and 3 — one single-sampled view, one multisampled; the unused one is a 1×1 placeholder.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -101,19 +102,20 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=59-117 -->
 
-- The builders are what make one base description into a family: `with` renames and repoints the fragment entry, `vertex` swaps the vertex entry, `color` and `depth` set the two states that actually vary between the viewer's passes.
+- The builders turn one base description into a family: `with` renames and repoints the fragment entry, `vertex` swaps the vertex entry, `color` and `depth` set the two states that vary between passes.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=118-182 -->
 
-- `SCENE` is the scene contract every lane is compiled with; `INK` is the visibility rule only ink lanes need, so a lane names a constant instead of repeating an `include_str!`.
+- `SCENE` is the contract every lane compiles with; `INK` the visibility rule only ink lanes need. A lane names a constant instead of repeating an `include_str!`.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=183-205 -->
 
-- `module` appends `normals.wgsl` to every shader source, so one normal transform serves all lanes; `scene_module` also appends `scene.wgsl`, so the camera, the line block and the object rows are declared once for every lane.
+- `module` appends `normals.wgsl` to every shader source: one normal transform serves all lanes.
+- `scene_module` also appends `scene.wgsl`, declaring the camera, the line block and the object rows once for every lane.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -125,7 +127,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=236-285 -->
 
-- `scene.wgsl` is the scene contract: groups 0 to 2, the `Instance` row, the `LineUniform` block, the `FLAG_*` bits and `place`. A lane shader never declares them itself, so a row field changes in one place.
+- `scene.wgsl` is the scene contract: groups 0 to 2, the `Instance` row, the `LineUniform` block, the `FLAG_*` bits, `place`. No lane declares them itself, so a row field changes in one place.
 
 <span class="zone-mark" data-strip="illustrations/strip-9d7fcc8d70.svg" data-zone="Shaders"></span>
 
@@ -141,7 +143,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/shaders/normals.wgsl type -->
 
-- A teaching stage: rigid and uniform scales only. Lesson 09 replaces the body with the cofactor transform that survives a nonuniform scale, keeping the signature so no lane has to change.
+- A teaching stage: rigid and uniform scales only. Lesson 09 swaps in the cofactor transform that survives a nonuniform scale, same signature, so no lane changes.
 
 <!-- check: 04a -->
 
@@ -167,7 +169,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=136-165 -->
 
-- `TextureSpec` is the whole description of an attachment - size, format, samples, usage. Keeping it as data is what lets every attachment be rebuilt from one place when the sample count flips.
+- `TextureSpec` describes an attachment whole - size, format, samples, usage. As data, every attachment rebuilds from one place when the sample count flips.
 
 ## Step 5 · Frame uniforms
 
@@ -181,7 +183,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-44 -->
 
-`LineUniform` is 80 bytes, declared once in `scene.wgsl`, so there is one list of offsets to keep true:
+`LineUniform` is 80 bytes, declared once in `scene.wgsl` — one list of offsets to keep true:
 
 | Offset | Rust | WGSL |
 |---|---|---|
@@ -199,14 +201,17 @@ Bind groups every lane shares (`Layouts`):
 | 64 | `frame: [f32; 2]` | `frame: vec2<f32>` |
 | 72 | `opacity` | `opacity` |
 
-- `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected for and `origin` where the attachment's top-left sits in it. They differ only in the pick pass.
+- `vp_w`/`vp_h` are the pass's own attachment; `frame` the canvas the scene was projected for, `origin` the attachment's top-left within it.
+- They differ only in the pick pass.
 - `CloudUniform` is the point lane's 48-byte block with the same `origin` and `frame` pair.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=45-105 -->
 
-- `PickView` is a window of the canvas rendered into an attachment of its own size, so a pick costs the window, not the canvas. `clip_transform` maps the canvas projection onto the window's sub-frustum; `pick_transform_layout` is the one uniform the text ID pipelines bind, since the text lanes do not see `Layouts`.
+- `PickView` renders a window of the canvas into an attachment its own size: a pick costs the window, not the canvas.
+- `clip_transform` maps the canvas projection onto the window's sub-frustum.
+- `pick_transform_layout` is the one uniform the text ID pipelines bind, since text lanes never see `Layouts`.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -222,7 +227,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-253 -->
 
-- Construction makes the buffers and bind groups with no camera in them yet. A frame is a write into buffers that already exist and are already bound — allocating per frame is what this shape exists to avoid.
+- Construction makes the buffers and bind groups with no camera in them yet. A frame only writes into buffers that already exist and are already bound — no per-frame allocation.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -234,13 +239,17 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=330-347 -->
 
-- `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result. The pen is `thickness_px * pixel_scale`, so it keeps its CSS width at every device scale; `origin` is zero and `frame` is the framebuffer.
+- `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result.
+- The pen is `thickness_px * pixel_scale`, keeping its CSS width at every device scale.
+- `origin` is zero, `frame` the framebuffer.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=348-392 -->
 
-- `write_pick` runs after `write` and derives the pick blocks from the frame's own solved values: the camera premultiplied by the window's clip transform, `proj_y` multiplied and `ortho_h` divided by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
+- `write_pick` runs after `write`, deriving the pick blocks from the frame's own solved values.
+- The camera is premultiplied by the window's clip transform; `origin` becomes the window's top-left.
+- `proj_y` is multiplied and `ortho_h` divided by canvas height over attachment height, so a marker or pen is as wide in the window as on the canvas.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -271,7 +280,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/app/route.rs type -->
 
-- Enough of a query parser to read `?name=value`; the routing policy waits for lesson 14. A knob is read in one place, not wherever it is needed.
+- Enough query parser to read `?name=value`; routing policy waits for lesson 14. A knob is read in one place, not wherever it is needed.
 
 ## Step 7 · The object table
 
@@ -321,7 +330,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=361-416 -->
 
-- Flags are set one row at a time and written back one row at a time: selecting an object must not re-upload the table.
+- Flags are set and written back one row at a time: selecting an object must not re-upload the table.
 
 <span class="zone-mark" data-strip="illustrations/strip-62cf9167cc.svg" data-zone="GPU core"></span>
 
@@ -347,7 +356,9 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=24-61 -->
 
-- Shading is separate from the vertex stage because both fragment entries need it and neither should reimplement it: a camera headlight with wrapped diffuse, so the darkest visible face is still its own colour rather than black. Back faces paint red unless the object is print.
+- Shading sits apart from the vertex stage: both fragment entries need it, neither should reimplement it.
+- A camera headlight with wrapped diffuse keeps the darkest visible face its own colour, not black.
+- Back faces paint red unless the object is print.
 
 <span class="zone-mark" data-strip="illustrations/strip-dbc84dca37.svg" data-zone="Shaders"></span>
 
@@ -384,7 +395,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=161-226 -->
 
-- The outline lane borrows the arena's buffers and draws imported PDF lettering unlit; it exists because the arena's print and text runs call it.
+- The outline lane borrows the arena's buffers and draws imported PDF lettering unlit; the arena's print and text runs call it.
 
 <span class="zone-mark" data-strip="illustrations/strip-62db6ccc73.svg" data-zone="Shaders"></span>
 
@@ -470,7 +481,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/lib.rs type whole lines=53-95 -->
 
-- `render` is the frame: resize if needed, take one anchor for the whole frame, submit. Taking the anchor once is what stops two lanes disagreeing about where the world is.
+- `render` is the frame: resize if needed, take one anchor for the whole frame, submit. One anchor stops two lanes disagreeing about where the world is.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -513,30 +524,30 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 
 ## Try
 
-- Append `?lit=1` to the URL (or press `D` later): the face gains its headlight shading; without it every face is its flat row color, which is what a color-based probe needs.
+- Append `?lit=1` (or press `D` later): the face gains headlight shading. Without it every face is its flat row color, which is what a color-based probe needs.
 - Add a second `ObjectRow` in `fixture.rs` with a different `place`: the same vertex range draws twice, once per row.
-- `?msaa=` is parsed here but has no consumer yet: `Targets::new` is called with one sample and the comment says so. Lesson 05 gives the knob its meaning, and that is the checkpoint where `?msaa=4` changes the picture.
+- `?msaa=` is parsed here with no consumer yet: `Targets::new` takes one sample and the comment says so. Lesson 05 gives the knob its meaning; that checkpoint is where `?msaa=4` changes the picture.
 
 ## Questions and answers
 
 
 **`GrowBuf` returns `true` when it grew. Why does a caller have to care?**
 
-*How to work it out.* Ask what "grow" means on a GPU. There is no realloc: you create a *new*, larger buffer and copy the live prefix into it. Then ask what else in the system remembers the old buffer — a bind group holds a reference to a specific buffer, not to a name.
+*How to work it out.* There is no realloc on a GPU: growing creates a *new*, larger buffer and copies the live prefix into it. Then ask what else in the system remembers the old buffer — a bind group holds a reference to a specific buffer, not to a name.
 
-*The answer.* The old bind group now points at a buffer nobody writes to any more. The boolean is the signal to rebuild it. Ignore it and there is no validation error at all — the buffer it names is still perfectly valid, just not yours — so the symptom is stale geometry, which is failure 9 in [Reading failures](debugging.md).
+*The answer.* The old bind group now points at a buffer nobody writes to any more. The boolean is the signal to rebuild it. Ignore it and there is no validation error — the buffer it names is still perfectly valid, just not yours — so the symptom is stale geometry, failure 9 in [Reading failures](debugging.md).
 
 **Group 2 holds rows in one buffer and translations in another. What does the split buy?**
 
-*How to work it out.* Ask which of the two changes more often. The rows change when the scene changes; the translations change every time the anchor moves, which is while you are navigating. Then ask what each write costs per object: 96 bytes against 16.
+*How to work it out.* Ask which of the two changes more often. The rows change when the scene changes; the translations change every time the anchor moves, which is while you are navigating. Then price each write per object: 96 bytes against 16.
 
-*The answer.* A re-anchor rewrites only the translations — 16 bytes per object instead of 96. It is the write that happens during interaction, so it is the one worth making small. The general move: split a record when one half changes on a different clock than the other.
+*The answer.* A re-anchor rewrites only the translations — 16 bytes per object instead of 96 — and that is the write that happens during interaction, so it is the one worth making small. The general move: split a record when one half changes on a different clock.
 
 **`vp_w`/`vp_h` and `frame`/`origin` look like the same numbers. When do they differ, and why are both needed?**
 
-*How to work it out.* Find a case where the thing being drawn into is not the whole canvas. There is exactly one: the pick pass renders a small window around the cursor into its own small attachment. Now ask, for each piece of pixel arithmetic in the shaders, whether it means "in this attachment" or "on the canvas the scene was laid out for".
+*How to work it out.* Find a case where the thing being drawn into is not the whole canvas. There is exactly one: the pick pass renders a window around the cursor into its own attachment. Then ask of each piece of pixel arithmetic in the shaders whether it means "in this attachment" or "on the canvas the scene was laid out for".
 
-*The answer.* `vp_w`/`vp_h` are the attachment actually being drawn into; `frame` is the whole canvas the scene was projected for, and `origin` is where the window's top-left sits in it. Pixel arithmetic uses the attachment; anything laid out against the full canvas must be addressed through `origin`. Collapse them and picking drifts as soon as the window is not the canvas.
+*The answer.* `vp_w`/`vp_h` are the attachment being drawn into; `frame` is the whole canvas the scene was projected for, and `origin` is where the window's top-left sits in it. Pixel arithmetic uses the attachment; anything laid out against the full canvas goes through `origin`. Collapse them and picking drifts as soon as the window is not the canvas.
 
 **Why is a pipeline described by data (`PipelineDesc`) instead of a function per pipeline?**
 

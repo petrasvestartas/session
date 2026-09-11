@@ -57,7 +57,7 @@ cofactors (y×z, z×x, x×y)        =     inverse transpose · det
 sign(det)                        →     mirrored instances keep outward normals
 ```
 
-- A singular matrix has no unique normal: return the zero sentinel and let the fragment stage fall back to flat shading.
+- A singular matrix has no unique normal: return the zero sentinel and the fragment stage shades flat.
 - Normalize after the transform. The cofactor form never divides by a small determinant.
 
 ![Diagram: instances[row].model · transform_normal · cofactors · face_normal · triangle.wgsl fragment](illustrations/09-03.svg)
@@ -184,7 +184,7 @@ A subtle crease under one light is not proof that normals are separate; identica
 
 **Positions use `model`. Why can normals not?**
 
-*How to work it out.* Scale a sphere twice as wide in x. Every surface point moves by `model`; a normal on the flank, moved the same way, no longer stands perpendicular, because a nonuniform scale does not preserve perpendicularity. The matrix that does is the inverse transpose.
+*How to work it out.* Scale a sphere twice as wide in x. Every surface point moves by `model`; a flank normal moved the same way no longer stands perpendicular, because a nonuniform scale does not preserve perpendicularity. The matrix that does is the inverse transpose.
 
 *The answer.* Normals need `model`'s inverse transpose, built here as cofactors — the same matrix up to a positive scale, and it never divides by a small determinant as a literal inverse would.
 

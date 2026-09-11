@@ -22,7 +22,8 @@
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
-- Triangulating the full rectangle and drawing a hole curve on top does not make a hole. The fill must exclude the region, so the constrained mesh cached on the surface wins over a fresh grid.
+- A hole curve drawn over a full rectangle is not a hole: the fill must exclude the region.
+- So the constrained mesh cached on the surface wins over a fresh grid.
 - `first_pipe` remembers where this surface's pipes start so only those get boundary IDs.
 
 ![Diagram: NurbsSurface · m_mesh · walk_surface · from_u_v_q grid · map_surface_boundaries](illustrations/08-02.svg)
@@ -35,8 +36,10 @@
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
-- A natural boundary is a domain limit: `u == start`, `u == end`, `v == start`, `v == end`. A closed direction has no physical edge there, so a periodic seam never gets a boundary ID.
-- Two vertices of one pipe share exactly one boundary bit → that bit is the source ID. Interior creases and seams stay `u32::MAX`: unavailable, never invented from a triangulation index.
+- A natural boundary is a domain limit: `u == start`, `u == end`, `v == start`, `v == end`.
+- A closed direction has no physical edge, so a periodic seam never gets a boundary ID.
+- The one boundary bit two vertices of a pipe share is the source ID.
+- Interior creases and seams stay `u32::MAX`: unavailable, never invented from a triangulation index.
 - Keys are exact position bits; no weld tolerance enters.
 - Everything from `#[cfg(test)]` down is the module's unit tests: COPY.
 
@@ -52,7 +55,7 @@
 
 ![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-78232d7410.svg){ .locator data-strip="illustrations/strip-3bd0a898de.svg" }
 
-- The patch is a degree-2 surface with a square outer loop and a circular inner loop, meshed once by the constrained mesher and cached in `m_mesh`.
+- The patch: a degree-2 surface, square outer loop, circular inner loop, meshed once by the constrained mesher and cached in `m_mesh`.
 - The torus is periodic in both directions: same XYZ curve, two face uses, different UV.
 
 ![Diagram: trimmed_surface · square + hole · build · CadFixture · torus · periodic u, v](illustrations/08-04.svg)

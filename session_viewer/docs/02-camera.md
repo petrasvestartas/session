@@ -27,8 +27,8 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 ![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-3e7d0cf852.svg){ .locator data-strip="illustrations/strip-2150f410c0.svg" }
 
-- A placement is 16 column-major doubles: `index = col * 4 + row`. Every multiply here follows that rule, and so does the kernel's `Xform`.
-- The f64 → f32 edge is one function, `mat_to_f32`, so it is easy to find when a large model jitters.
+- A placement is 16 column-major doubles: `index = col * 4 + row`. Every multiply here and the kernel's `Xform` follow it.
+- `mat_to_f32` is the only f64 → f32 edge: one place to look when a large model jitters.
 
 ![Diagram: Mat4 · [f64; 16] · Mat4 · placed point · [f32; 16] for the GPU](illustrations/02-01.svg)
 
@@ -49,7 +49,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <!-- file: 02 session_viewer/src/math.rs type lines=72-123 -->
 
-- `placed` transforms all eight corners rather than the two extremes, because a rotation moves a corner that was not extreme into a position that is.
+- Eight corners, not the two extremes: a rotation moves a corner that was not extreme into one that is.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -59,7 +59,9 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 ![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-3e7d0cf852.svg){ .locator data-strip="illustrations/strip-2150f410c0.svg" }
 
-Draw lanes receive only the view-projection, never the camera. The eye is where clip x, y and w vanish together (one 3×3 solve); orthographic has no eye, so the fallback is the view direction pushed far back.
+- Draw lanes receive only the view-projection, never the camera.
+- The eye is where clip x, y and w vanish together: one 3×3 solve.
+- Orthographic has no eye; the fallback is the view direction pushed far back.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -82,7 +84,8 @@ Draw lanes receive only the view-projection, never the camera. The eye is where 
 ![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-3e7d0cf852.svg){ .locator data-strip="illustrations/strip-2150f410c0.svg" }
 
 - Orbit is yaw about `world_up`, then pitch about the current right axis; no Euler singularity.
-- `zoom_at` keeps the world point under the cursor fixed: the target moves toward it by the zoom factor. Cursor and viewport are physical pixels, the same space as the framebuffer.
+- `zoom_at` keeps the world point under the cursor fixed: the target moves toward it by the zoom factor.
+- Cursor and viewport are physical pixels, the framebuffer's own space.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -97,7 +100,7 @@ Draw lanes receive only the view-projection, never the camera. The eye is where 
 
 ![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-3e7d0cf852.svg){ .locator data-strip="illustrations/strip-2150f410c0.svg" }
 
-Orthographic shows content off-axis and nearer than the target plane; a naive flip to perspective would present sky. The framed toggle clips the bounds to the rectangle the orthographic view was showing and refits.
+Orthographic shows content off-axis and nearer than the target plane, so a naive flip to perspective presents sky. The framed toggle clips the bounds to the rectangle orthographic was showing, then refits.
 
 ![The projection and the divide by w land the frustum in a cube. With near and far swapped, distant points crowd into a thin band at zero, which is where float32 is densest.](illustrations/frustum.svg)
 
@@ -110,7 +113,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 ![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-3e7d0cf852.svg){ .locator data-strip="illustrations/strip-2150f410c0.svg" }
 
 - **Reversed depth:** near and far are swapped in `perspective(...)`, so near is 1 and far approaches 0. The depth pass clears to 0 and compares `Greater`; all three must agree.
-- **Anchor:** eye and target are expressed relative to a caller anchor in world units before any f32 exists, so a model far from the origin does not cancel to noise.
+- **Anchor:** eye and target go relative to a caller anchor in world units before any f32 exists, so a distant model does not cancel to noise.
 - Near is a ten-thousandth of the focus distance: the cut opens a millimetre ahead of the eye, not a beam's width.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
@@ -138,7 +141,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=299-347 -->
 
-- The far plane has a floor rather than a value. Geometry streams in after the first fit, so the camera keeps the widest extent it has ever been told about instead of refitting and cutting the scene it already showed.
+- The far plane has a floor, not a value: geometry streams in after the first fit, so the camera keeps the widest extent it has ever seen instead of refitting and cutting what it already showed.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -149,7 +152,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 ![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-3e7d0cf852.svg){ .locator data-strip="illustrations/strip-2150f410c0.svg" }
 
 - `zoom_distance` is exponential per detent and clamps a single event to ten detents, so coalesced wheel events compose and never cross zero.
-- The two `#[cfg(test)]` modules are native-only unit checks; they are not part of the browser build.
+- The two `#[cfg(test)]` modules are native-only; the browser build never compiles them.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -161,7 +164,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 
 ![Where this step sits in the viewer: Page, Shell, with 5 of 11 zones built so far.](illustrations/locator-c10711fc3a.svg){ .locator data-strip="illustrations/strip-8dfd0a40d7.svg" }
 
-- The uniform buffer is kept in the struct, and each frame writes a fresh matrix into it.
+- The uniform buffer lives in the struct; each frame writes a fresh matrix into it.
 - The anchor passed to `view_proj_anchored` is the world origin, where the triangle sits.
 - Gestures arrive in CSS pixels and are scaled by `self.scale` before the camera sees them.
 
@@ -185,7 +188,7 @@ Expected:
 - Drag orbits the triangle; Shift-drag pans; the wheel zooms toward the cursor and the point under it stays put.
 - Resize the page and repeat: no stretching, no jump.
 
-If dragging moves twice as far on a high-DPI display, look at the `self.scale` conversion, not at the camera speeds. If a large translated model jitters, look for an f64 → f32 conversion that happens before rebasing.
+Dragging twice as far on a high-DPI display: look at the `self.scale` conversion, not the camera speeds. A large translated model jitters: look for an f64 → f32 conversion before rebasing.
 
 ![Checkpoint 02: the same triangle seen from the production camera; drag to orbit, Shift-drag to pan, wheel to zoom at the cursor.](screenshots/02.png)
 
@@ -208,25 +211,25 @@ If dragging moves twice as far on a high-DPI display, look at the `self.scale` c
 
 **`index = col * 4 + row`. Why does the convention matter more than the formula?**
 
-*How to work it out.* Indexing the other way gives you the transpose — still a perfectly valid 4×4 matrix, so nothing errors. Then ask who else has an opinion: the kernel's `Xform`, this file, and WGSL's `m * v`. Three parties, one convention, no runtime check.
+*How to work it out.* Indexing the other way gives the transpose — still a valid 4×4 matrix, so nothing errors. Three parties have an opinion: the kernel's `Xform`, this file, and WGSL's `m * v`. One convention, no runtime check.
 
-*The answer.* The risk is that the wrong one is silent: a transposed matrix multiplies without complaint and produces a picture wrong in a plausible way — the object rotates about the wrong point, or translates when it should scale. `math.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
+*The answer.* The wrong one is silent: a transposed matrix multiplies without complaint and produces a picture wrong in a plausible way — the object rotates about the wrong point, or translates when it should scale. `math.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
 
 **Reverse-Z needs three things to agree. Which three?**
 
-*How to work it out.* Depth is a comparison, and a comparison has three inputs you control: what the projection produces, what the buffer starts at, and which direction counts as "closer". Change any one and the other two are now describing a different convention.
+*How to work it out.* Depth is a comparison with three inputs you control: what the projection produces, what the buffer starts at, and which direction counts as "closer". Change one and the other two describe a different convention.
 
 *The answer.* Near and far are swapped in the projection (near becomes 1, far approaches 0); the depth attachment clears to `0.0`; the compare is `Greater`. Two right out of three is the interesting failure: everything vanishes (nothing beats the clear) or nothing is ever occluded (everything beats it).
 
 **Where does f64 become f32, and why exactly there?**
 
-*How to work it out.* f32 has about seven significant digits. A model a kilometre from the origin, measured in millimetres, needs seven digits before the decimal point — so the conversion has to happen when the numbers are *small*. Ask what makes them small: subtracting an anchor near the camera.
+*How to work it out.* f32 has about seven significant digits. A model a kilometre from the origin, measured in millimetres, needs seven before the decimal point, so the conversion has to happen while the numbers are *small* — which is after subtracting an anchor near the camera.
 
-*The answer.* In `mat_to_f32`, after the anchor has been subtracted. Convert before rebasing and the low bits are gone, and the symptom is jitter you cannot debug from inside the shader because the shader was handed bad numbers. One function is the whole matrix f64 → f32 boundary, so there is one place to look when a placement jitters.
+*The answer.* In `mat_to_f32`, after the anchor is subtracted. Convert before rebasing and the low bits are gone; the symptom is jitter you cannot debug from inside the shader, because the shader was handed bad numbers. One function is the whole matrix f64 → f32 boundary, so a jittering placement has one place to look.
 
 **Why must `zoom_at` be given physical pixels rather than CSS pixels?**
 
-*How to work it out.* The function's job is to keep the world point under the cursor fixed. That means it has to agree with whatever drew that point — and the framebuffer is in physical pixels. Then ask when the two units differ: whenever `devicePixelRatio` is not 1.
+*How to work it out.* Its job is to keep the world point under the cursor fixed, so it must agree with whatever drew that point — and the framebuffer is in physical pixels. The two units differ whenever `devicePixelRatio` is not 1.
 
 *The answer.* Because the cursor position and the rendered pixel must be in the same space. On a 1× display the bug is invisible; on a 2× laptop every gesture moves twice as far. That is why the conversion happens once, at the input layer, rather than being remembered at each call site.
 

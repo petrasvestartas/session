@@ -60,7 +60,7 @@
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
 - `WalkCx`: where an object's rows land (vertex base, object row). `Row`: what the producer measured (local box, spacing, flags, and whether it drew faces).
-- The `mod.rs` also declares the modules you type in the following steps; nothing compiles them until `app/mod.rs` names `walk` in step 11.
+- `mod.rs` also declares the modules typed in the following steps; nothing compiles them until `app/mod.rs` names `walk` in step 11.
 
 ![Diagram: WalkCx\ vertex base · row · producer · Row\ bounds · spacing · flags](illustrations/06-04.svg)
 
@@ -142,7 +142,7 @@
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=193-250 -->
 
-- One entry point does both lanes in order — pipes, then markers unless `VIEWER_NO_DOTS` — so a caller cannot produce edges without the vertices that belong to them.
+- One entry point runs both lanes in order — pipes, then markers unless `VIEWER_NO_DOTS` — so a caller cannot produce edges without their vertices.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -157,7 +157,8 @@
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
 - Gates first: above `MESH_RAW_MIN` triangles a mesh is faces only; a print fill (single width 0) takes the sheet index runs.
-- `MeshOpts::SURFACE` marks a tessellation: `FLAG_SMOOTH` tells the marker lane its vertices are samples, and its seams are sampling rather than geometry. `OBJECT` and `ELEMENT` are the authored-mesh presets, which differ in whether an open mesh may be flagged open.
+- `MeshOpts::SURFACE` marks a tessellation: `FLAG_SMOOTH` tells the marker lane its vertices are samples and its seams are sampling, not geometry.
+- `OBJECT` and `ELEMENT` are the authored-mesh presets; they differ in whether an open mesh may be flagged open.
 
 ![Diagram: Mesh · walk_mesh · ArenaRows · Ink · Row](illustrations/06-08.svg)
 
@@ -200,7 +201,7 @@
 
 <!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=62-125 -->
 
-- A NURBS curve reaches the GPU as a polyline, sampled by its own turning rather than a fixed count, and then takes the polyline path. One sampling rule, used everywhere a curve is drawn.
+- A NURBS curve reaches the GPU as a polyline and then takes the polyline path. One sampling rule, used everywhere a curve is drawn.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -308,7 +309,7 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 
 ## Try
 
-- Append `?top=1` or `?perspective=1`: the fixture is viewed from a fixed camera, which makes a boundary that drifts off its face easy to spot.
+- Append `?top=1` or `?perspective=1`: a fixed camera, which makes a boundary drifting off its face easy to spot.
 - Append `?distance=3` and then `?distance=12`: the pipes keep their pixel width while the faces shrink; the boundary nodes move with the mesh because they are the mesh. (`parse_distance` accepts 1 to 16 and ignores anything else.)
 - Append `?thickness=3`: the boundary pipes widen on screen but stay glued to their faces, because their endpoints are face-mesh nodes, not a separately sampled curve.
 

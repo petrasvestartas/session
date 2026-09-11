@@ -59,13 +59,13 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=154-212 -->
 
-- Clearing keeps the capacity: a reload refills a buffer that is already the right size.
+- Clearing keeps the capacity: a reload refills a buffer already the right size.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=213-238 -->
 
-- `source_dot` is the pipeline for streamed source queries; it is declared with the others so the lane never grows a second pipeline set.
+- `source_dot` serves streamed source queries; declaring it with the others keeps the lane from growing a second pipeline set.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -79,7 +79,8 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 ![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
-- Same bindings as the ribbon shader; the row is `GlyphPoint`. `line` arrives from `scene.wgsl` as always; a sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
+- Same bindings as the ribbon shader, the row is `GlyphPoint`, `line` comes from `scene.wgsl` as always.
+- A sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
 
 ![Diagram: glyphs · @group(3) · keep or hide · template corner · quad around disc · antialiased disc](illustrations/04c-04.svg)
 
@@ -99,13 +100,13 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=4-16 -->
 
-- The facing cull is skipped when the eye is inside the object and when `line.opacity` is zero: in x-ray a vertex on the far side of a cube is exactly what you want to see.
+- The facing cull is skipped when the object is flagged inside or open, or when `line.opacity` is zero: in x-ray, a vertex on the far side of a cube is what you want to see.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-62 -->
 
-- The antialiasing ramp is clamped to the ink it feathers. A pen thinner than the ramp would otherwise be drawn entirely out of fade and disappear at distance.
+- The antialiasing ramp is clamped to the ink it feathers; a thinner pen would otherwise be drawn entirely out of fade and vanish at distance.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -123,7 +124,9 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-2 -->
 
-- A dot wider than the canvas is dropped before it is placed. The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment: a large dot survives when the pass renders only a window of the canvas, so it stays pickable.
+- A dot wider than the canvas is dropped before it is placed.
+- The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment.
+- A large dot then survives a window-sized pass and stays pickable.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -214,7 +217,7 @@ Expected:
 
 **A marker is a disc, but the pipeline draws a quad template. Why not draw a disc?**
 
-*How to work it out.* Ask what the hardware can fill: triangles, and nothing else. A disc has to be either many triangles approximating a circle, or a shape that covers the disc with a fragment test inside it. Then compare the costs: an N-gon costs N vertices and still has visible corners when zoomed; a quad costs four and is exact.
+*How to work it out.* Hardware fills triangles and nothing else. A disc is either many triangles approximating a circle, or a shape that covers the disc with a fragment test inside it. Price both: an N-gon costs N vertices and still has visible corners when zoomed; a quad costs four and is exact.
 
 *The answer.* The four template corners are pushed out in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc, and the fragment stage decides what is inside. Cover with a simple shape, resolve with the fragment stage — the same pattern as strokes and dots.
 
@@ -226,15 +229,15 @@ Expected:
 
 **The dot's too-big-to-draw test reads `frame`, while a sphere sizes itself against `vp_w`/`vp_h`. Why the difference?**
 
-*How to work it out.* For each test, ask which question it is answering. "Is this dot so large it is not worth drawing?" is a question about the picture the user is looking at. "How many pixels wide is this marker in the thing I am drawing into?" is a question about the attachment. In a colour frame those coincide; in the pick pass they do not.
+*How to work it out.* Ask which question each test answers. "Is this dot so large it is not worth drawing?" is about the picture the user is looking at. "How many pixels wide is this marker in the thing I am drawing into?" is about the attachment. In a colour frame those coincide; in the pick pass they do not.
 
 *The answer.* A dot judged against the small pick window would be dropped there and silently become unpickable, so it is judged against `frame`, the canvas. A sphere genuinely needs the attachment it is being sized into, so it uses `vp_w`/`vp_h`. Two similar-looking numbers, two different questions.
 
 **When is the facing cull skipped, and what would you see if it never were?**
 
-*How to work it out.* The cull hides a vertex whose incident faces all point away. Ask when that is the wrong thing to do: when there is no face in the way — because the eye is inside the object, or because the faces are not being drawn at all.
+*How to work it out.* The cull hides a vertex whose incident faces all point away. That is the wrong thing to do when no face is in the way — because the eye is inside the object, or because the faces are not being drawn at all.
 
-*The answer.* It is skipped when the eye is inside the object and when `line.opacity` is zero, which is x-ray. Without the skip, `P` would show back edges but no back vertices, because every far-side marker is culled by faces that are not even drawn. One line of condition; its absence is a bug you would struggle to describe.
+*The answer.* It is skipped on three conditions: the object is flagged inside, the object is flagged open, or `line.opacity` is zero, which is x-ray. Without the skip, `P` would show back edges but no back vertices, because every far-side marker is culled by faces that are not even drawn. One line of condition; its absence is a bug you would struggle to describe.
 
 **What you should be able to do now**
 

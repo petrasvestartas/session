@@ -535,7 +535,10 @@ def cad_contract():
 
 def shared_boundary():
     c = Canvas("Independent chords versus one shared boundary chain",
-               "Left: two faces sample their common edge independently and the ink samples it a third time, so three polylines approximate one curve and cross, separate or hide each other as the camera moves. Right: one canonical chain of samples is chosen for the edge, both face meshes are constrained to those exact points, and the ink is drawn from the same mesh nodes, so the seam is one curve everywhere.",
+               "Left: two faces and the ink sample one common edge independently, so three polylines approximate one "
+               "curve and cross, separate or hide each other as the camera moves. Right: one canonical chain is chosen, "
+               "both face meshes are constrained to those exact points and the ink reuses them, so the seam is one curve "
+               "everywhere.",
                1000, 470)
     navy, pink, green, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"]
     import math
@@ -640,7 +643,10 @@ def trims_seams():
 
 def normals():
     c = Canvas("Where a shading normal comes from, and how it moves",
-               "Left: inside a smooth face the normal is the normalized cross product of the surface derivatives; where that cross product vanishes, at a pole or apex, the fallback averages the incident triangle normals. Middle: at a C0 crease the same position carries two normals on two shading vertices, so the fold stays sharp; sharing one averaged normal smears it. Right: a nonuniform scale tilts a normal transformed like a position; the cofactor matrix keeps it perpendicular to the transformed surface.",
+               "Left: the normal is the normalized cross product of the surface derivatives; at a pole or apex that "
+               "product vanishes and incident triangle normals are averaged instead. Middle: a C0 crease needs two "
+               "normals at one position, or the fold smears. Right: under nonuniform scale only the cofactor matrix "
+               "keeps the normal perpendicular.",
                1250, 480)
     navy, pink, green, orange, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["orange"], PAL["grey"]
     def arrow(x1, y1, x2, y2, color, w=2):
@@ -727,7 +733,10 @@ def shaping():
 
 def text_placement():
     c = Canvas("Five placements, one shaped line",
-               "The same shaped runs are placed five ways: Screen at a fixed CSS position; Anchor at a world point with a screen offset; Nameplate centered on a world anchor with a rounded plate; WorldPlane inside a fixed plane with world-space height, so it foreshortens; WorldBillboard at a world point turning to face the camera. Rasterization happens per device scale, so a 14 CSS px label keeps its size on a DPR 2 screen and gets twice the pixels.",
+               "One shaped line placed five ways: Screen at a fixed CSS position; Anchor at a world point with a screen "
+               "offset; Nameplate on a rounded plate; WorldPlane in a fixed plane, so it foreshortens; WorldBillboard "
+               "turning to face the camera. Rasterization follows device scale: a 14 CSS px label keeps its size on a "
+               "DPR 2 screen and gets twice the pixels.",
                1100, 470)
     navy, pink, green, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"]
     c.text(28, 40, "Placement decides where; raster size decides how many pixels", "h")
@@ -767,7 +776,10 @@ def text_placement():
 
 def controls():
     c = Canvas("Display vertices are not controls",
-               "The screen shows a curve as many short chords and a surface as a tessellation grid. F10 asks the source geometry for its real controls: the few control points and the control polygon of the curve, the control net of the surface, the original vertices of a mesh. A picked marker answers with a ControlId into the source, never with the temporary marker slot.",
+               "The screen shows a curve as many short chords and a surface as a tessellation grid. F10 asks the source "
+               "geometry for its real controls: a curve's control points and polygon, a surface's control net, a mesh's "
+               "original vertices. A picked marker answers with a ControlId into the source, never the temporary marker "
+               "slot.",
                1180, 500)
     navy, pink, green, yellow, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
     c.text(28, 40, "What the screen draws versus what F10 shows", "h")
@@ -842,7 +854,9 @@ def loading():
 
 def metadata_window():
     c = Canvas("One window instead of one request per field",
-               "A streamed cloud file is a sequence of length-delimited protobuf fields: a few small fields (count, bounds, the LOD node table) between very large arrays (coordinates, colours, IDs). The LOD walk reads the small fields only. Checkpoint 14 issued one HTTP Range request per header and one per array body; the MetadataWindow reads at least 64 KiB once, serves every small field inside it from the cache, and skips a large array by its declared length without fetching it.",
+               "A streamed cloud file is small protobuf fields (count, bounds, the LOD node table) between very large "
+               "arrays. The LOD walk needs only the small ones. Checkpoint 14 spent one HTTP Range request per field; "
+               "MetadataWindow reads at least 64 KiB once and skips each large array by its declared length.",
                1180, 470)
     navy, pink, green, yellow, orange, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["orange"], PAL["grey"]
     c.text(28, 40, "The file on the server, and what the LOD walk touches", "h")
@@ -883,7 +897,9 @@ def metadata_window():
 
 def source_cache():
     c = Canvas("Measuring retained documents without retaining them",
-               "Scene owns each source document through an Rc. SourceCache remembers a Weak handle to the same allocation next to the payload figure it computed. On every snapshot it compares identities: the same pointers mean the cached figure is reused; a replaced document means one new walk. Because the cache holds only Weak handles, a document dropped by Scene is freed at once, and the cache reports the drop instead of keeping the bytes alive.",
+               "Scene owns each source document through an Rc; SourceCache keeps only a Weak handle beside the payload "
+               "figure it computed. Matching pointers reuse that figure, a replaced document costs one new walk, and a "
+               "document Scene drops is freed at once; the cache reports the drop instead of holding the bytes alive.",
                1180, 470)
     navy, pink, green, yellow, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
     c.text(28, 40, "Strong ownership in Scene, weak identity in the cache", "h")
@@ -916,7 +932,10 @@ def source_cache():
 
 def joins():
     c = Canvas("One join plane per shared vertex",
-               "A stroke is drawn as one ribbon per segment. Where two segments meet, two independent ribbons either overlap, which darkens the joint where coverage adds up, or leave a wedge open on the outer side of the bend. The joined lane gives every segment its neighbours and cuts both ribbons at the same join plane through the shared vertex, so a dense polyline and a coarse one look identical at their joints.",
+               "One ribbon per segment. Independent ribbons either overlap at a bend, darkening the joint where coverage "
+               "adds up, or leave a wedge open on the outer side. The joined lane gives each segment its neighbours and "
+               "cuts both ribbons at one join plane through the shared vertex, so a dense polyline and a coarse one join "
+               "alike.",
                1180, 470)
     navy, pink, green, yellow, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
     c.text(28, 40, "Two ribbons at a bend, before and after the join plane", "h")
@@ -1150,7 +1169,10 @@ def arena():
 
 def stages():
     c = Canvas("Three vertices in, thousands of fragments out",
-               "The two shaders you write never meet. vs_main runs once per vertex and its only required output is a clip position. Between the two stages sits the rasterizer, which you do not write: it works out which pixels the triangle covers and blends the vertex outputs across them. fs_main then runs once per covered pixel and never sees a vertex at all, only the blend.",
+               "The two shaders you write never meet. vs_main runs once per vertex; its only required output is a clip "
+               "position. Between them sits the rasterizer, which you do not write: it works out which pixels the "
+               "triangle covers and blends the vertex outputs across them. fs_main runs once per covered pixel and sees "
+               "only the blend.",
                1180, 540)
     navy, pink, green, grey, yellow = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"], PAL["yellow"]
     c.text(28, 40, "The two shaders never meet", "h")
@@ -1296,7 +1318,9 @@ def frustum():
 
 def camera_basis():
     c = Canvas("Three gestures, three fields",
-               "The camera keeps a target, a distance and an orientation, and every gesture changes exactly one of them. Orbit turns the orientation about the target; pan slides the target across the camera's own plane; the wheel scales the distance and never reaches zero. The view matrix is rebuilt from those three, so no gesture can put the camera in a state the others cannot undo.",
+               "Each gesture changes exactly one camera field: orbit turns the orientation about the target, pan slides "
+               "the target across the camera's own plane, the wheel scales the distance and never reaches zero. The view "
+               "matrix is rebuilt from the three, so no gesture can reach a state the others cannot undo.",
                1180, 420)
     navy, pink, green, grey, yellow = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"], PAL["yellow"]
     c.text(28, 40, "Each gesture moves one field", "h")
@@ -1427,7 +1451,9 @@ def device_scale():
 
 def section_plane():
     c = Canvas("Where the cut happens",
-               "A section plane can be applied in either shader stage, and the choice shows. A vertex-stage rejection can only remove whole triangles, so wherever the plane crosses a triangle the whole triangle goes and the cut face keeps a staircase of mesh edges. A fragment-stage discard cuts at pixel resolution, exactly on the plane - but discarding alone leaves a hollow shell, because what the opening reveals is the inside of the far wall. A cap is what makes it read as a solid.",
+               "Three cuts of one solid. Vertex-stage rejection drops whole triangles, so the cut edge is a staircase of "
+               "mesh edges. Fragment-stage discard cuts exactly on the plane, but leaves a hollow shell showing the "
+               "inside of the far wall. A cap makes it read as solid.",
                1180, 500)
     import math
     pink, green, yellow, grey = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
@@ -1533,7 +1559,9 @@ def three_declarations():
 
 def sheet_cost():
     c = Canvas("A sheet is one pen, not ten thousand objects",
-               "Loaded as objects, every line of a drawing pays for a GUID string, a name, a colour and four copies of itself between the file bytes and the GPU, so a 51 MB sheet lifts the wasm heap by 300 MiB. Published as one segment batch, a line is a few numbers and a small source id; the GUID, name and kind live in a side table read by byte range only when something is selected.",
+               "Loaded as objects, every line pays for a GUID string, a name, a colour and four copies of itself, so a "
+               "51 MB sheet lifts the wasm heap by 300 MiB. As one segment batch a line is a few numbers and a source "
+               "id; GUID, name and kind sit in a side table read by byte range only on selection.",
                1180, 480)
     pink, green, yellow, grey, navy = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"], PAL["navy"]
     c.text(28, 40, "What one line of a drawing costs", "h")
@@ -1759,7 +1787,10 @@ def loop():
 
 def tiles():
     c = Canvas("A screen index, one triangle at a time",
-               "Every triangle is projected once, and the screen is a grid of tiles. A quad covering the triangle's tile bounds is rasterized, covered_tile throws away the tiles inside those bounds that the polygon cannot actually touch, and what survives is counted, prefix-summed and written into one flat pool of references. An ink fragment then reads only its own tile's range instead of every triangle in the scene.",
+               "The screen is a grid of tiles. Each triangle is projected once and a quad over its tile bounds is "
+               "rasterized; covered_tile discards the tiles the polygon cannot actually touch, and the survivors are "
+               "counted, prefix-summed and written into one flat pool. An ink fragment reads only its own tile's range, "
+               "not every triangle in the scene.",
                1180, 510)
     pink, green, navy, yellow, grey = PAL["pink"], PAL["green"], PAL["navy"], PAL["yellow"], PAL["grey"]
     c.text(28, 40, "Only the tiles a triangle can touch", "h")
@@ -1823,7 +1854,10 @@ def tiles():
 
 def splat_resolve():
     c = Canvas("A point pass of its own, folded back into the scene",
-               "Points are not drawn in the face pass. They are rasterized as discs into a private pair of targets at one sample, where the disc radius comes from the spacing the LOD walk chose; a fullscreen resolve then runs inside the face pass, shades from neighbouring depths and writes frag_depth under the scene's Greater test. That is what lets a cloud occlude a wall and be occluded by it without ever entering the face pipeline.",
+               "Points are not drawn in the face pass. They rasterize as discs into a private pair of targets at one "
+               "sample, the radius coming from the spacing the LOD walk chose; a fullscreen resolve inside the face pass "
+               "shades from neighbouring depths and writes frag_depth under the scene's Greater test. That is how a "
+               "cloud occludes a wall and is occluded by it.",
                1180, 480)
     pink, green, navy, yellow, grey = PAL["pink"], PAL["green"], PAL["navy"], PAL["yellow"], PAL["grey"]
     c.text(28, 40, "Two passes, one depth buffer in the end", "h")
@@ -1862,10 +1896,10 @@ def splat_resolve():
 
 def pick_window():
     c = Canvas("A pick draws a window, not the canvas",
-               "One click renders a 19 x 19 attachment: a 13 x 13 readback window with a 3-cell halo around it, "
-               "because an edge texel fits its plane from its neighbours and cleared neighbours would make a "
-               "stroke pickable exactly where it is invisible. Two uniform fields carry the canvas into that "
-               "window: origin says where its top-left sits, frame says which canvas the tiles were binned for.",
+               "One click renders a 19 x 19 attachment: a 13 x 13 readback window plus a 3-cell halo, because an edge "
+               "texel fits its plane from its neighbours and cleared neighbours would make a stroke pickable where it is "
+               "invisible. Two uniforms carry the canvas in: origin is the window's top-left, frame names the canvas the "
+               "tiles were binned for.",
                1180, 616)
     lav, pnk, zer, yel = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"], PAL["yellow_light"]
     c.text(28, 40, "361 texels, not 1.6 million", "h")
@@ -1919,10 +1953,10 @@ def pick_window():
 
 def attachment_cost():
     c = Canvas("Where the video memory goes",
-               "Three attachments are kept for every physical pixel: colour in the surface format, depth as "
-               "Depth32Float, and the metadata target as Rg16Float. That is 12 bytes a pixel at one sample and "
-               "48 at four, so the sample count is a four-times decision on the largest allocation the viewer "
-               "makes. Every rule about picking, device scale and device loss is about the same 48 bytes.",
+               "Three attachments per physical pixel: colour in the surface format, depth as Depth32Float, "
+               "metadata as Rg16Float. That is 12 bytes a pixel at one sample and 48 at four, so the sample "
+               "count is a four-times decision on the largest allocation the viewer makes - and every rule "
+               "about picking, device scale and device loss is about those same bytes.",
                1180, 580)
     lav, pnk, zer = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"]
     c.text(28, 40, "Forty-eight bytes, times every pixel on the glass", "h")
@@ -1973,10 +2007,9 @@ def attachment_cost():
 
 def tile_pool():
     c = Canvas("The pool measures itself, one frame late",
-               "The scan writes down how many words its lists really needed. That number is copied out after "
-               "the submit and read on the next frame, so a pool that was too small grows one frame after the "
-               "frame that overflowed. The cost of being wrong is one frame of conservative ink - tiles that "
-               "overflowed keep rejecting the plane - and never a wrong pixel.",
+               "The scan records how many words its lists really needed. That number is copied out after the submit and "
+               "read next frame, so a pool that was too small grows one frame late. The cost is one frame of "
+               "conservative ink - overflowed tiles keep rejecting the plane - never a wrong pixel.",
                1180, 592)
     c.text(28, 40, "A pool too small costs one frame, never a wrong pixel", "h")
 
@@ -2019,10 +2052,9 @@ def tile_pool():
 
 def pick_modes():
     c = Canvas("What the ID pass draws in each pick mode",
-               "The ID pass repeats the colour list, opaque and at one sample, and each pick mode narrows it to "
-               "the lanes that mode is about. A lane draws its ids under the same toggle that hides it in the "
-               "colour frame - what a lane hides it cannot pick - with one deliberate exception: authored text "
-               "covers geometry in every mode, exactly as its visible plane does.",
+               "The ID pass repeats the colour list, opaque and at one sample; each pick mode narrows it to the lanes "
+               "that mode is about. A lane draws ids under the toggle that hides it in the colour frame - what a lane "
+               "hides it cannot pick - except authored text, which covers geometry in every mode.",
                1180, 588)
     lav, yel, zer = PAL["blue_band"], PAL["yellow_light"], PAL["zero_band"]
     c.text(28, 40, "One list, five answers", "h")

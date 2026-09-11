@@ -21,7 +21,7 @@
 
 ![Where this step sits in the viewer: Page, with 9 of 11 zones built so far.](illustrations/locator-5a35cbdd20.svg){ .locator data-strip="illustrations/strip-63a57b9919.svg" }
 
-- Fonts are compiled into the WASM with `include_bytes!`; the browser never scans system fonts, so every machine shapes identically.
+- Fonts are compiled into the WASM with `include_bytes!`: no system-font scan, so every machine shapes identically.
 - Install the three font files now; the shaping module cannot compile without them.
 
 ![Diagram: NotoSans · Symbols · Symbols2 · FONT_BYTES … FALLBACK_BYTES · bundled_fonts · FontSystem](illustrations/10-02.svg)
@@ -42,11 +42,12 @@ The fonts' licence and provenance travel with them.
 
 ![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-78232d7410.svg){ .locator data-strip="illustrations/strip-3bd0a898de.svg" }
 
-Shaping is timed and every frame is timed; both read the same `now_ms`. Native builds read the system clock so the same module compiles for tests.
+Shaping and every frame are timed, both from `now_ms`; native builds read the system clock, so the same module compiles for tests.
 
 ![Diagram: performance.now · browser · now_ms · SystemTime · native · Performance::frame](illustrations/10-03.svg)
 
-- `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict. Nothing reads it until lesson 17's `reduce_for_slow_frames` turns it into a lower device scale — measuring first and acting later keeps the number testable on its own.
+- `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict.
+- Nothing reads it until lesson 17's `reduce_for_slow_frames` lowers the device scale: measuring first and acting later keeps the number testable alone.
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 
@@ -56,7 +57,7 @@ Shaping is timed and every frame is timed; both read the same `now_ms`. Native b
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
-- The placement is intent, not pixels: a camera move changes where the text lands, never its string or its glyphs.
+- Placement is intent, not pixels: a camera move changes where text lands, never its string or its glyphs.
 - `Screen` is CSS pixels; `Anchor`/`Nameplate` follow a world point with screen-sized glyphs; `WorldBillboard` and `WorldPlane` have a world em height.
 
 ![Diagram: TextPlacement · Screen · CSS px · Anchor · Nameplate · WorldBillboard · WorldPlane](illustrations/10-04.svg)
@@ -71,7 +72,7 @@ Shaping is timed and every frame is timed; both read the same `now_ms`. Native b
 
 ![The pen moves by advances: a kerned pair, a space without ink, a two-character ligature and a zero-advance accent; clusters map glyphs back to characters.](illustrations/shaping.svg)
 
-- A `TextRun` keeps the source label next to its shaped `Buffer`, so editing and selection can map glyphs back to characters.
+- A `TextRun` keeps the source label beside its shaped `Buffer`: editing and selection map glyphs back to characters.
 - `TextDocument` owns the `FontSystem`; the GPU side borrows it and owns nothing here.
 
 ![Diagram: TextLabel · TextRun · Buffer · TextDocument · FontSystem](illustrations/10-05.svg)
@@ -97,7 +98,7 @@ Shaping is timed and every frame is timed; both read the same `now_ms`. Native b
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
-- Diagnostics export what the shaper decided: glyph id, source byte cluster, advance, offset, baseline. The reference page compares these to the browser.
+- Diagnostics export the shaper's decisions: glyph id, source byte cluster, advance, offset, baseline; the reference page compares them with the browser.
 - A cluster is a byte range into the source string: `ffi` may be one glyph, `e` + combining accent one cluster.
 
 ![Diagram: replace_fonts · clear · TextDocument · GlyphDiagnostic\ id · cluster · advance](illustrations/10-07.svg)
@@ -106,7 +107,7 @@ Shaping is timed and every frame is timed; both read the same `now_ms`. Native b
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=134-194 -->
 
-- The document owns the `FontSystem`, so nothing else in the crate has to know where fonts come from.
+- The document owns the `FontSystem`: nothing else in the crate knows where fonts come from.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -116,8 +117,8 @@ Shaping is timed and every frame is timed; both read the same `now_ms`. Native b
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
-- Non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion sees them.
-- `Shaping::Advanced` is what makes kerning, ligatures and font fallback happen once, at shape time.
+- Non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion.
+- `Shaping::Advanced` does kerning, ligatures and font fallback once, at shape time.
 
 ![Diagram: validate_label · valid_plane_axes · shape · Shaping::Advanced · Buffer](illustrations/10-08.svg)
 
@@ -153,7 +154,7 @@ Unit checks for the shaper live in the same file.
 ![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-4c1ae78629.svg){ .locator data-strip="illustrations/strip-460ff53e99.svg" }
 
 - The page loads the identical font bytes with `@font-face`, sets the same kerning and ligature options, and compares line widths with the shaper's `line_width`.
-- The WASM export shapes five sizes, then changes only colour and placement and asserts the shape count did not move.
+- The WASM export shapes five sizes, then changes only colour and placement and asserts the shape count held.
 
 ![Diagram: text_layout · WASM export · text-layout.html · @font-face · same bytes · textLayout.passed](illustrations/10-10.svg)
 
