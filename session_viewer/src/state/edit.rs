@@ -9,6 +9,9 @@
 //! makes one gesture one undo step.
 
 use crate::app::command::Command;
+use crate::app::cplane::CPlane;
+use crate::app::selection::ControlId;
+use crate::app::snap::{self, Snap, SnapKind};
 use crate::app::layers::{self, Layer};
 use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, HUB, Handle};
 use crate::app::walk::encode::FACING_UNKNOWN;
@@ -16,7 +19,7 @@ use crate::state::render_position;
 use crate::engine::gpu::glyphs::{GlyphPoint, GlyphRows};
 use crate::engine::gpu::segments::{CylinderSegment, SegRows};
 use crate::state::{SelectionMode, State};
-use session_rust::{Point, Xform};
+use session_rust::{Point, Vector, Xform};
 
 /// A drag in progress: the row, its transform when the drag started, and the handle.
 pub struct GizmoDrag {
@@ -446,3 +449,145 @@ impl State {
         self.touch();
     }
 }
+
+/// A control point being dragged: which row and which control, and the plane it moves in.
+pub struct ControlDrag {
+    parent: u32,
+    /// Index into `State.controls.points`, which is what the preview moves.
+    index: usize,
+    /// Which kernel control it is, which is what the commit moves.
+    id: ControlId,
+    plane: CPlane,
+}
+
+impl State {
+    /// Grab the selected control point, if the press is on it. A control drag is offered
+    /// before an object drag because the two gestures are the same press: in control mode the
+    /// object's own widget is not shown.
+    pub fn begin_control_drag(&mut self, x: f64, y: f64) -> bool {
+        let SelectionMode::Controls {
+            parent,
+            selected: Some(id),
+            ..
+        } = self.selection
+        else {
+            return false;
+        };
+        let Some(index) = self.controls.points.iter().position(|c| c.id == id) else {
+            return false;
+        };
+        let at = self.controls.points[index].position;
+        let Some((sx, sy)) = self.project(at) else {
+            return false;
+        };
+        let grab = GRAB_CSS * crate::engine::gpu::view::device_pixel_ratio();
+        if (sx - x).abs() > grab || (sy - y).abs() > grab {
+            return false;
+        }
+        let forward = self.camera.orientation.rotate_vector(Vector::y_axis());
+        self.control_drag = Some(ControlDrag {
+            parent,
+            index,
+            id,
+            plane: CPlane::facing(&forward),
+        });
+        true
+    }
+
+    /// Move the preview dot. The document is untouched until the drag ends, for the same
+    /// reason a gizmo drag does not touch it: one gesture is one undo step.
+    pub fn drag_control(&mut self, x: f64, y: f64) -> bool {
+        let Some(active) = self.control_drag.as_ref() else {
+            return false;
+        };
+        let Some(point) = self.control_target(active, x, y) else {
+            return false;
+        };
+        let index = active.index;
+        self.controls.points[index].position = [point[0], point[1], point[2]];
+        self.upload_controls();
+        self.touch();
+        true
+    }
+
+    /// Commit: the kernel replaces the geometry, and the rows are walked again because the
+    /// shape changed rather than its placement.
+    pub fn end_control_drag(&mut self, x: f64, y: f64) -> bool {
+        let Some(active) = self.control_drag.take() else {
+            return false;
+        };
+        let Some(point) = self.control_target(&active, x, y) else {
+            return false;
+        };
+        let index = match active.id {
+            ControlId::Curve { point, .. } => point,
+            ControlId::Vertex(index) => index,
+            _ => return false,
+        };
+        if !self.scene.set_control_point(active.parent, index, &point) {
+            self.status("This geometry's control points cannot be edited");
+            return false;
+        }
+        self.scene.rebuild(&mut self.gpu);
+        self.selection = SelectionMode::Object;
+        self.select(Some(active.parent));
+        self.enable_controls();
+        self.touch();
+        true
+    }
+
+    /// Where the pointer is, in the world: the construction plane the view is facing, with the
+    /// object's other control points offered as snaps.
+    fn control_target(&self, active: &ControlDrag, x: f64, y: f64) -> Option<Point> {
+        let (from, dir) = self.camera.ray((x, y), self.viewport())?;
+        let origin = {
+            let at = self.controls.points[active.index].position;
+            Point::new(at[0], at[1], at[2])
+        };
+        let free = active.plane.hit(&origin, &from, &dir)?;
+        let mut candidates = Vec::new();
+        for (i, control) in self.controls.points.iter().enumerate() {
+            if i == active.index {
+                continue;
+            }
+            candidates.push(Snap {
+                point: Point::new(
+                    control.position[0],
+                    control.position[1],
+                    control.position[2],
+                ),
+                kind: SnapKind::Vertex,
+                owner: active.parent,
+            });
+        }
+        // The ranking is in SCREEN space, so the aperture means pixels wherever the camera is.
+        let project = |p: &Point| self.project([p[0], p[1], p[2]]);
+        match snap::best(&candidates, (x, y), SNAP_APERTURE_PX, project) {
+            Some(hit) => Some(hit.point),
+            None => Some(free),
+        }
+    }
+
+    /// A world point in framebuffer pixels, or `None` when it is behind the eye.
+    fn project(&self, at: [f64; 3]) -> Option<(f64, f64)> {
+        let (w, h) = self.viewport();
+        let anchor = Point::new(at[0], at[1], at[2]);
+        let mvp = self.camera.view_proj_anchored(self.aspect(), &anchor);
+        let clip = [mvp.m[12], mvp.m[13], mvp.m[14], mvp.m[15]];
+        if clip[3] <= 0.0 {
+            return None;
+        }
+        Some((
+            (clip[0] / clip[3] * 0.5 + 0.5) * w,
+            (0.5 - clip[1] / clip[3] * 0.5) * h,
+        ))
+    }
+}
+
+/// How near the pointer must be to grab a control dot, in CSS pixels: the dot is drawn at
+/// 3.5 px, and a grab radius smaller than the thing it grabs is a gesture people miss.
+const GRAB_CSS: f64 = 10.0;
+
+/// How far a snap reaches, in screen pixels. Wide enough to catch what you meant, narrow
+/// enough that a point a centimetre away on screen is not "what you meant".
+const SNAP_APERTURE_PX: f64 = 12.0;

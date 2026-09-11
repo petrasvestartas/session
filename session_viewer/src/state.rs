@@ -61,6 +61,8 @@ pub struct State {
     pub gizmo: Option<crate::app::gizmo::Gizmo>,
     /// The drag in progress, holding what the gesture is measured FROM.
     dragging: Option<edit::GizmoDrag>,
+    /// A control point being dragged, which is a different gesture from a placement drag.
+    control_drag: Option<edit::ControlDrag>,
 }
 
 impl State {
@@ -91,6 +93,7 @@ impl State {
             sheet_generation: 0,
             gizmo: None,
             dragging: None,
+            control_drag: None,
         })
     }
 

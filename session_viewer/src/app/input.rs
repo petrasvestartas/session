@@ -28,6 +28,8 @@ pub struct Input {
     /// A gizmo handle is being dragged, so the pointer belongs to the widget and neither the
     /// camera nor the picker sees it until it is let go.
     gizmo_drag: bool,
+    /// A control point is being dragged: the same press, a different gesture.
+    control_drag: bool,
     last_cursor: (f64, f64),
     left_down: Option<(f64, f64)>,
     touch: Touches,
@@ -49,6 +51,7 @@ impl Input {
             ctrl: false,
             shift: false,
             gizmo_drag: false,
+            control_drag: false,
             last_cursor: (0.0, 0.0),
             left_down: None,
             touch: Touches::new(),
@@ -140,6 +143,10 @@ impl Input {
                 let scale = crate::engine::gpu::view::surface_per_physical();
                 let position =
                     winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
+                if self.control_drag {
+                    self.last_cursor = (position.x, position.y);
+                    return state.drag_control(position.x, position.y);
+                }
                 if self.gizmo_drag {
                     self.last_cursor = (position.x, position.y);
                     return state.drag_gizmo(position.x, position.y);
@@ -212,6 +219,7 @@ impl Input {
         self.ctrl = false;
         self.shift = false;
         self.gizmo_drag = false;
+        self.control_drag = false;
         self.left_down = None;
         self.touch = Touches::new();
     }
@@ -225,6 +233,10 @@ impl Input {
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
             ElementState::Pressed => {
+                if state.begin_control_drag(self.last_cursor.0, self.last_cursor.1) {
+                    self.control_drag = true;
+                    return false;
+                }
                 if state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
                     self.gizmo_drag = true;
                     return false;
@@ -233,8 +245,14 @@ impl Input {
                 false
             }
             ElementState::Released => {
+                if self.control_drag {
+                    self.control_drag = false;
+                    state.end_control_drag(self.last_cursor.0, self.last_cursor.1);
+                    return true;
+                }
                 if self.gizmo_drag {
                     self.gizmo_drag = false;
+        self.control_drag = false;
                     state.end_gizmo(self.last_cursor.0, self.last_cursor.1);
                     return true;
                 }

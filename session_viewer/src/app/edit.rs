@@ -14,7 +14,7 @@
 //!   which rows exist at all, and the only honest answer is to walk the documents again.
 
 use crate::app::scene::Scene;
-use session_rust::Xform;
+use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
 
 /// What an edit did, so the caller knows how much of the frame to redo.
@@ -130,6 +130,52 @@ impl Scene {
     }
 }
 
+impl Scene {
+    /// Move one control point of a row's source geometry, in one recorded transaction.
+    ///
+    /// Sub-element editing goes through `Session::replace`, which records the whole object
+    /// before and after: the kernel's own undo step for a change that is not a placement. A
+    /// geometry whose control points the kernel cannot set is refused rather than silently
+    /// left alone.
+    pub fn set_control_point(&mut self, row: u32, index: usize, to: &Point) -> bool {
+        let Some((doc, guid)) = self.writable(row) else {
+            return false;
+        };
+        let Some(file) = self.docs.get_mut(doc) else {
+            return false;
+        };
+        let session = Rc::make_mut(&mut file.session);
+        let Some(geometry) = session.lookup.get(guid.as_ref()).cloned() else {
+            return false;
+        };
+        let edited = match &geometry {
+            Geometry::Polyline(source) => {
+                let mut next = (**source).clone();
+                if index >= next.point_count() {
+                    return false;
+                }
+                next.set_point(index, to);
+                Geometry::Polyline(Rc::new(next))
+            }
+            Geometry::NurbsCurve(source) => {
+                let mut next = (**source).clone();
+                if !next.set_cv_point(index, to) {
+                    return false;
+                }
+                Geometry::NurbsCurve(Rc::new(next))
+            }
+            _ => return false,
+        };
+        session.begin("edit point");
+        let replaced = session.replace(&guid, edited);
+        session.commit();
+        if replaced {
+            self.last_edited = Some(doc);
+        }
+        replaced
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -201,6 +247,42 @@ mod tests {
         assert!(scene.redo());
         let again = scene.placement_of(0).expect("row 0 still exists");
         assert_eq!([again[12], again[13], again[14]], [5.0, 0.0, 0.0]);
+    }
+
+    /// A control-point edit is a replacement, so the whole object goes into the history and
+    /// undo puts the old one back - unlike a move, which records only the transform.
+    #[test]
+    fn a_control_point_moves_and_undoes() {
+        use session_rust::Polyline;
+        let mut source = Session::new("line");
+        source.add_polyline(
+            Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]),
+            None,
+        );
+        let mut scene = Scene::new();
+        scene.add_file(file("line", Rc::new(source)));
+
+        assert!(scene.set_control_point(0, 1, &Point::new(1.0, 5.0, 0.0)));
+        let moved = scene.docs[0].session.lookup.values().next().cloned();
+        let Some(session_rust::Geometry::Polyline(line)) = moved else {
+            panic!("still a polyline");
+        };
+        assert_eq!(line.get_point(1).expect("two points")[1], 5.0);
+
+        assert!(scene.undo());
+        let back = scene.docs[0].session.lookup.values().next().cloned();
+        let Some(session_rust::Geometry::Polyline(line)) = back else {
+            panic!("still a polyline");
+        };
+        assert_eq!(line.get_point(1).expect("two points")[1], 0.0);
+    }
+
+    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
+    /// a drag that appears to do nothing is a bug report waiting to happen.
+    #[test]
+    fn a_kind_with_no_control_points_is_refused() {
+        let mut scene = one_point_twice();
+        assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
     }
 
     /// A streamed source is a shell with no kernel object behind it: editing it would write
