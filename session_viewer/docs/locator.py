@@ -36,7 +36,7 @@ MARK = re.compile(r"^<span class=\"zone-mark\"[^>]*></span>\n\n?", re.M)
 # already built, and a fill barely above the page for what is still ahead.
 AHEAD_FILL, AHEAD_INK = "#1e1e22", "#6e6e76"
 BUILT_FILL, BUILT_INK = "#4a4a54", "#f4f4f6"
-LIT_FILL, LIT_INK = "#f0bcdb", "#111111"
+LIT_FILL, LIT_INK = "#fa9ebc", "#111111"
 
 # One zone per box on the map. Order is reading order within the row; the matchers are tried in
 # order, so a longer prefix must come before the directory that contains it.

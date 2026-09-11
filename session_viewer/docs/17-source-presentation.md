@@ -56,7 +56,7 @@ flowchart TB
 
 ### Step 1 · Face identities over the existing triangles
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-c9ec70b874.svg){ .locator data-strip="illustrations/strip-17c60e2c4a.svg" }
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-50eec72a61.svg){ .locator data-strip="illustrations/strip-ccdfd9e2ff.svg" }
 
 - One `FaceSource` per original face; every display triangle of that face stores the same address in `ids`.
 - Picking pulls the arena's existing vertices by index: no duplicate mesh, no per-face draw call.
@@ -67,10 +67,10 @@ flowchart LR
     T["display triangles"] -- "one address each" --> I["ids · source_faces"]
     I --> F["FaceSource<br/>parent · face"]
     P["FACE_TAG sub-ID"] --> F
-    style F fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=1-28 -->
 
@@ -84,35 +84,35 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 | 3 | `ids` | `source_faces: array<u32>` |
 | 4 | `selected` uniform | `selected_face: vec4<u32>` |
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=29-78 -->
 
 - `append` shifts upload-local face addresses by the scene's running count, so replacement never reuses an address.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=79-128 -->
 
 - `source` rejects a sub-ID whose parent row does not match: a stale address cannot select another object's face.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=129-166 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=167-204 -->
 
 - Three pipelines, one vertex entry `vs_face`: IDs into the pick target, the highlight over read-only equal depth, and a coverage mask for part C.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=205-243 -->
 
 ### Step 2 · The triangle shader learns vertex pulling
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-697b366147.svg){ .locator data-strip="illustrations/strip-c7c25a406a.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
 
 - `transform_vertex` is the old `vs_main` body; `vs_face` reaches the same code through storage buffers instead of vertex attributes.
 - `fs_id` writes `FACE_TAG | address` as the sub-ID; `fs_face_highlight` discards everything but the selected face.
@@ -125,10 +125,10 @@ flowchart LR
     V --> A["fs_id · FACE_TAG"]
     V --> B["fs_face_highlight"]
     V --> C["fs_solid_mask"]
-    style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/triangle.wgsl type -->
 
@@ -136,7 +136,7 @@ flowchart LR
 
 ### Step 3 · The arena owns a `Faces` lane
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-c9ec70b874.svg){ .locator data-strip="illustrations/strip-17c60e2c4a.svg" }
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-50eec72a61.svg){ .locator data-strip="illustrations/strip-ccdfd9e2ff.svg" }
 
 - Vertex, id and index buffers gain `STORAGE` usage so `vs_face` can read them.
 - `draw_component_ids` replaces the object-ID draw only in component pick mode.
@@ -145,16 +145,16 @@ flowchart LR
 flowchart TB
     B["vertex · id · index buffers"] -- "STORAGE usage" --> L["Faces lane"]
     L -- "component mode" --> D["draw_component_ids"]
-    style L fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style L fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=1,2,4,5,6,7,8,10,11 -->
 
 ### Step 4 · Producers emit one face address per triangle
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-72fe33d313.svg){ .locator data-strip="illustrations/strip-3b4c2d7a06.svg" }
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-7ccf7d4f74.svg){ .locator data-strip="illustrations/strip-6f8f40e8fe.svg" }
 
 - Meshes: sorted source face keys, cached triangulation or the fan the kernel would build; the assertion ties the address stream to the triangle stream.
 - BReps: `push_face` records the face index it is tessellating.
@@ -163,14 +163,14 @@ flowchart TB
 flowchart TB
     M["Mesh faces · BRep faces"] -- "push_face" --> A["append_face_ids"]
     A -- "one per triangle" --> R["ArenaRows · face ids"]
-    style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/walk/mesh.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/walk/brep.rs type -->
 
@@ -178,7 +178,7 @@ flowchart TB
 
 ### Step 5 · A third selection mode
 
-![Where this step sits in the viewer: Scene + walk, Input, State, Lanes, with 10 of 11 zones built so far.](illustrations/locator-b745822f94.svg){ .locator data-strip="illustrations/strip-2d40a6e601.svg" }
+![Where this step sits in the viewer: Scene + walk, Input, State, Lanes, with 10 of 11 zones built so far.](illustrations/locator-41ecb47b4d.svg){ .locator data-strip="illustrations/strip-0af69e52fd.svg" }
 
 - `SelectionMode::Face` carries parent and face, so Escape returns to the parent like edges do.
 - `PickMode::Component`: the pick sorter prefers a nearby edge, then a face. There is no object fallback — a component click that finds neither selects nothing, because narrowing to a component is a different intent from selecting the whole object.
@@ -188,10 +188,10 @@ flowchart TB
     K["Ctrl+Shift click"] --> P["PickMode::Component"]
     P -- "edge first, then face" --> S["SelectionMode::Face<br/>parent · face"]
     S -- "Faces::source" --> H["face highlight"]
-    style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/selection.rs type -->
 
@@ -202,22 +202,22 @@ flowchart TB
     W["Window about the cursor"] -- "+ PICK_HALO" --> V["PickView"]
     V --> T["IdTargets · view-sized"]
     T -- "copy_window" --> R["readback"]
-    style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/pick.rs type -->
 
 - Input tracks Shift; Ctrl+Shift requests a component pick.
 
-<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=2,3,8,9,10,11 -->
 
 - State maps the answer back through `Faces::source`, selects the parent, then narrows the highlight to the face.
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state.rs type hunks=7,8,11,12,15,16 -->
 
@@ -225,7 +225,7 @@ flowchart TB
 
 ### Step 6 · A text label can own a row
 
-![Where this step sits in the viewer: Network, Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-eed320cd45.svg){ .locator data-strip="illustrations/strip-48776ebe5d.svg" }
+![Where this step sits in the viewer: Network, Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-a78e7c43d3.svg){ .locator data-strip="illustrations/strip-9b2d3ea953.svg" }
 
 - `TextObject { row, selected }` on a label means "this text is a scene object"; `None` means a derived annotation such as the selected-object name.
 - `ink_color` is black while the object is selected and the authored color otherwise; both text renderers read it, so the authored color is never touched.
@@ -236,22 +236,22 @@ flowchart TB
     L -- "object: None" --> D["derived annotation"]
     O -- "selected" --> K["ink_color: black"]
     C["manifest camera_facing"] --> L
-    style O fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style O fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/engine/text.rs type -->
 
 - Manifest text may face the camera instead of lying in a fixed plane.
 
-<span class="zone-mark" data-strip="illustrations/strip-b20fdc3f58.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
 <!-- file: 17 session_viewer/src/app/manifest.rs type -->
 
 ### Step 7 · Scene registers text rows
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-72fe33d313.svg){ .locator data-strip="illustrations/strip-3b4c2d7a06.svg" }
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-7ccf7d4f74.svg){ .locator data-strip="illustrations/strip-6f8f40e8fe.svg" }
 
 - A key (`manifest-text/{index}`, `document-title/{doc}`) finds its previous row on reload, so hidden state survives replacement.
 - The row is an ordinary `ObjectRow`; hide, select and pick treat it like geometry.
@@ -261,32 +261,32 @@ flowchart TB
     M["manifest text · document title"] -- "key" --> S["SceneText row"]
     S -- "ObjectRow" --> G["hide · select · pick"]
     S -- "reload" --> K["same row, hidden kept"]
-    style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-15 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=16-67 -->
 
 - Authored text becomes a scene object here: a manifest label and a document title each get an ordinary object row, so hide, select and pick treat them like geometry.
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=68-85 -->
 
 - A stable key (`manifest-text/{i}`, `document-title/{doc}`) finds the row this text had before a reload, so a selected label stays selected across a scene replacement.
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=86-142 -->
 
 - Resolving text by row, and building the visible submission with the current selection flags. The derived selection name is the one label with no row - it must never intercept a click meant for its parent.
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/scene.rs type -->
 
@@ -294,7 +294,7 @@ flowchart TB
 
 ### Step 8 · State's companions: text presentation and streamed queries
 
-![Where this step sits in the viewer: State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-0fe0139510.svg){ .locator data-strip="illustrations/strip-835e7efc03.svg" }
+![Where this step sits in the viewer: State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-a36ba7ebc5.svg){ .locator data-strip="illustrations/strip-2e217df3d4.svg" }
 
 - `update_label` submits the visible source texts plus the one derived name; the derived name has no row and cannot steal its parent's click.
 - `include_text_bounds` records each text object's shaped world box so fitting and the selection name can use it.
@@ -305,26 +305,26 @@ flowchart LR
     N["derived nameplate"] --> U
     U --> T["TextLane labels"]
     B["include_text_bounds"] --> F["fit · selection name"]
-    style U fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style U fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=1-33 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=34-54 -->
 
 - Submission is where the derived name is added and marked as having no source row.
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=55-112 -->
 
 - Fitting now includes authored text: a label's shaped extent in its own fixed frame is part of the scene's bounds, or pressing `F` would cut the text off.
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=113-144 -->
 
@@ -334,36 +334,36 @@ flowchart LR
 flowchart LR
     S["state.rs"] -- "owns the query" --> Q["state/cloud_query.rs<br/>page · answer · resolve"]
     S -- "labels · bounds" --> X["state/text.rs"]
-    style Q fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style Q fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=1-38 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=39-101 -->
 
 - The page loop, one page per frame: fetch, test, accumulate, and resolve the winner only once every eligible page has answered.
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=102-159 -->
 
 - Each batch is stamped with the camera, scene and parent it was asked against; a callback from an older generation is dropped rather than answered.
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=160-212 -->
 
 - `state.rs` declares both modules and keeps only ownership; hide and show refresh labels.
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state.rs type hunks=1,3,4,5,6,9,10,17,18 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/objects.rs type -->
 
@@ -371,7 +371,7 @@ flowchart LR
 
 ### Step 9 · Plates and planes draw IDs
 
-![Where this step sits in the viewer: Shell, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-e927e51ee2.svg){ .locator data-strip="illustrations/strip-4fc09bb16d.svg" }
+![Where this step sits in the viewer: Shell, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-6ed25df691.svg){ .locator data-strip="illustrations/strip-97bd00abc7.svg" }
 
 - Camera-facing text: `Plates` gains a depth per rectangle, an object row and an ID pipeline; physical plates draw before glyphs, overlays after.
 - Every plate vertex carries `object` and a selection flag; the plate's signed distance defines coverage, the yellow backing and the pick footprint.
@@ -384,40 +384,40 @@ flowchart LR
     P --> I["fs_id · object row"]
     W["text_plane.rs"] --> I
     K["pick transform"] --> I
-    style P fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/text_plate.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/text_plate.wgsl type -->
 
 - Fixed-plane text: the same three attributes, an ID pipeline, and the whole rounded backing yellow while selected; the padding matches the selection-name plate.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/text_plane.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/text_plane.wgsl type -->
 
 - The text lane exposes `draw_ids`; `text_rectangle` serves nameplates and source labels alike, reserving a cap radius at each end of a rounded backing, and glyphs take their color from `ink_color`.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/text.rs type hunks=1-5 -->
 
 - Remaining label literals in this file gain the new field:
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/text.rs type hunks=6-17 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=2 -->
 
@@ -427,7 +427,7 @@ flowchart LR
 
 ### Step 10 · Two masks, one compositor
 
-![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-cfae4b4933.svg){ .locator data-strip="illustrations/strip-68b0a8c5e5.svg" }
+![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-51de178268.svg){ .locator data-strip="illustrations/strip-aff484c5a8.svg" }
 
 - Ordinary outlines describe the union of all visible solids; touching or overlapping objects get no inner seam.
 - The selected mask is thicker. The compositor takes `max(ordinary, selected)`, so the overlap is never blended twice, and a selected interior suppresses the ordinary contour.
@@ -437,7 +437,7 @@ flowchart LR
 
 ![Ordinary and selected ink each rasterize into an R8 coverage mask; the compositor takes the larger of the two, and a pooled copy of block maxima lets a fragment with no ink near it return zero without entering the search loop.](illustrations/masks.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=1-33 -->
 
@@ -451,74 +451,74 @@ Group 0 is the ordinary mask, group 1 the selected mask; the same layout serves 
 | 1 · 0 / 1 / 2 | the selected outline's mask, uniform and coarse copy | `selected_mask`, `selected_radius`, `selected_coarse` |
 | pool · 0 | the resolved mask being reduced | `mask` in `fs_pool` |
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=34-121 -->
 
 - Clearing the last selected row releases the coverage texture at once.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=122-145 -->
 
 - `prepare` allocates coverage only while something is outlined; the radius is CSS pixels scaled to physical pixels (lesson 18 settles on one radius for ordinary and selected solids). The coarse texture is `size / POOL` in each direction and binds beside the resolved mask.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=146-226 -->
 
 - The radius is the only thing written per frame: CSS pixels scaled to physical pixels and clamped, so the ring keeps its apparent weight at any device scale while the textures above are touched only when the size changes.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=227-250 -->
 
 - The mask pass tests the frame's immutable depth, so hidden surfaces cannot contribute coverage.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=251-287 -->
 
 - `encode_pool` runs after the mask pass: one full-screen triangle over the coarse texture, no depth, `fs_pool` as its fragment entry.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=288-314 -->
 
 - `draw_combined` composites both silhouettes once; `allocated_bytes` counts the coarse texture with the mask.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=315-343 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=344-375 -->
 
 Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, because silhouettes start off:
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=376-624 -->
 
 - The shader dilates coverage with a one-pixel smooth edge and returns black with that alpha. The dilation reads every texel within the radius, up to 27 × 27 per pixel; `near_any_coverage` checks the block under the pixel and its eight neighbours in the coarse texture and returns zero without the loop when all nine are empty. The kernel radius is clamped to 12 on the CPU, so those nine blocks always contain the whole kernel and the answer is the same to the bit.
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/surface_outline.wgsl type -->
 
 ### Step 11 · The arena draws the solid mask
 
-![Where this step sits in the viewer: Shell, Input, GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-aeaa186c75.svg){ .locator data-strip="illustrations/strip-543e7f20ed.svg" }
+![Where this step sits in the viewer: Shell, Input, GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-ad35b5b57e.svg){ .locator data-strip="illustrations/strip-fcd274b834.svg" }
 
 ```mermaid
 flowchart LR
     A["ArenaLane"] -- "draw_solid_mask" --> M["solid coverage mask"]
     K["O key · ?outlines=1"] -- "show_outlines" --> M
-    style M fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style M fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=3,9,12 -->
 
@@ -527,17 +527,17 @@ flowchart LR
 - The headlight starts **off** (`D`, `?lit=1` / `VIEWER_LIT=1` turn it on) and so do back faces (`?backface=1` paints them red): a CAD drawing reads better flat, and a wrong normal is easier to see with shading as an explicit switch than as the default.
 - `device_pixel_ratio` is the capped ratio the canvas and the camera use: `?dpr=` lowers it for people who prefer memory over crispness, never above the browser's and never below 0.5. Step 16 adds the second reader, `surface_per_physical`, which needs the *uncapped* browser ratio to convert pointer positions — those two are the only places the browser's ratio is read.
 
-<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/view.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=4-4 -->
 
 - One new arm: `O` toggles the silhouettes. The module comment at the top of this file is the nearest thing to a user manual the viewer has, which is why the next step brings it up to date.
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=1 -->
 
@@ -547,7 +547,7 @@ flowchart LR
 
 ### Step 12 · Producers mark chains
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-72fe33d313.svg){ .locator data-strip="illustrations/strip-3b4c2d7a06.svg" }
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-7ccf7d4f74.svg){ .locator data-strip="illustrations/strip-6f8f40e8fe.svg" }
 
 - A chain is one authored curve or one BRep edge; independent mesh wires never join just because endpoints coincide.
 
@@ -555,14 +555,14 @@ flowchart LR
 flowchart LR
     C["one curve · one BRep edge"] -- "push" --> R["ribbon_chains · pipe_chains<br/>Range&lt;u32&gt;"]
     W["separate mesh wires"] -- "no chain" --> E["own end caps"]
-    style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/walk/curves.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/walk/brep_edges.rs type -->
 
@@ -570,7 +570,7 @@ flowchart LR
 
 ### Step 13 · The GPU row gains neighbours
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-dc3ae44312.svg){ .locator data-strip="illustrations/strip-6d14c9dd52.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-43ed20e7f8.svg){ .locator data-strip="illustrations/strip-187e4e26b4.svg" }
 
 - `StrokeSegment` wraps the source row with `previous` and `next` GPU indices; `joined_rows` links consecutive chain members whose endpoints, instance, color and radius agree, and wraps a closed chain.
 
@@ -579,32 +579,32 @@ flowchart LR
     R["segment rows"] -- "joined_rows(chains)" --> S["StrokeSegment<br/>previous · next"]
     S --> U["draw_unselected"]
     S --> D["draw_selected"]
-    style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=1-6 -->
 
 - Two more pipelines split ordinary from selected strokes; `draw_selected` is skipped when nothing is selected.
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=7-14 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=15-17 -->
 
 - The layout test mirrors `StrokeSegment` and pins `origin` and `frame` in every shader copy of `LineUniform`: 80 bytes.
 
-<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/instance.rs type -->
 
 ### Step 14 · One join plane per shared vertex
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-697b366147.svg){ .locator data-strip="illustrations/strip-c7c25a406a.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
 
 ![Two independent ribbons overlap on the inner side of a bend and open a wedge on the outer side; cutting both at one join plane through the shared vertex gives uniform coverage.](illustrations/joins.svg)
 
@@ -612,19 +612,19 @@ flowchart LR
 - The start side keeps pixels on its side of the plane, the end side excludes them: exactly one segment owns each pixel of the shared cap.
 - `stroke_vertex(vid, layer)` culls the other layer's strokes, so the selected pass draws only selected ink.
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-2 -->
 
 - A selected stroke keeps an opaque yellow core at least `line.thickness` wide; CAD boundary samples never taper with density.
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=3-4 -->
 
 - Three vertex entries share `stroke_vertex`; `coverage` applies both join planes before the capsule distance.
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=5-6 -->
 
@@ -635,7 +635,7 @@ The reference page and native fixtures for this checkpoint use the text-object f
 ```mermaid
 flowchart LR
     S["supplied fixtures · reference page"] -- "use TextObject" --> W["workspace"]
-    style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
 <!-- supplied: 17 -->
@@ -646,7 +646,7 @@ Per-pixel attachments are where video memory goes. At 4x the colour, depth and m
 
 ### Step 15 · The pick window's uniforms
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-697b366147.svg){ .locator data-strip="illustrations/strip-c7c25a406a.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
 
 - The pick pass sees the scene through the sub-frustum of the window about the cursor. `LineUniform` and `CloudUniform` carry the window `origin` and the canvas `frame`; both are zero and the canvas size in a colour frame.
 - Splats project onto the canvas with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment; the grid only lists the new fields.
@@ -656,14 +656,14 @@ flowchart TB
     F["frame uniforms"] -- "write_pick(view)" --> P["pick uniforms<br/>mvp' · line' · cloud'"]
     P --> I["id_pass · window-sized attachment"]
     P --> S["splat.wgsl · frame − origin"]
-    style P fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/splat.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
@@ -671,7 +671,7 @@ flowchart TB
 
 ### Step 16 · Device scale and a lost device
 
-![Where this step sits in the viewer: Network, Shell, Input, State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-5479ca2ddd.svg){ .locator data-strip="illustrations/strip-815929e6b9.svg" }
+![Where this step sits in the viewer: Network, Shell, Input, State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-2d46c05b83.svg){ .locator data-strip="illustrations/strip-f097f329df.svg" }
 
 ![The same strip of glass measured three ways: CSS pixels, device pixels at ratio 2, and the surface pixels a capped ?dpr= actually renders. winit reports the middle one, so every arriving position is multiplied by surface_per_physical.](illustrations/device-scale.svg)
 
@@ -686,7 +686,7 @@ flowchart TB
     D --> N["pointer and touch input"]
     D -- "≥ 2" --> M["samples_for: 1x"]
     L["device lost"] -- "once" --> R["reload ?dpr=1&msaa=1&recovered=1"]
-    style D fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style D fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
 - winit reports cursor and touch positions at the browser's ratio even when `?dpr=` renders the canvas below it. `surface_per_physical` is the cap over the ratio, 1 without a cap, and every pointer and touch position is multiplied by it on arrival, so picks, zooms and drags read against the surface that is actually drawn.
@@ -697,38 +697,38 @@ flowchart TB
     W["winit position · browser ratio"] -- "× surface_per_physical" --> S["surface pixels"]
     S --> P["pick · zoom · drag"]
     I["30 drag frames > 40 ms"] --> R2["reduce_for_slow_frames<br/>scale 1 · MSAA off"]
-    style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=1,5,6,7,12 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 17 session_viewer/src/lib.rs type -->
 
 - One hunk, in `desired_canvas_size`: the `?dpr=` cap that lets someone trade crispness for memory.
 
-<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/targets.rs type -->
 
 - The sample-count policy, not the masks: past two physical pixels per CSS pixel the density has already done multisampling's job, so `samples_for` returns 1x and the attachments cost a quarter as much. The coverage masks live in `surface_outline.rs`.
 
-<span class="zone-mark" data-strip="illustrations/strip-b20fdc3f58.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
 <!-- file: 17 session_viewer/src/app/route.rs type -->
 
 - Device-loss recovery: the page reloads itself once at device scale 1 without antialiasing, keeping every other query, and says so on the reloaded page. A lost device is not an error to report but a smaller frame to ask for.
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 17 session_viewer/src/app/feedback.rs type -->
 
 - A device-loss failure returns before the error panel; every other failure still reports.
 
-<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
 <!-- file: 17 session_viewer/src/state.rs type hunks=2,13,14 -->
 
@@ -740,7 +740,7 @@ flowchart TB
 
 ## Step 17 · Wire the frame
 
-![Where this step sits in the viewer: GPU core, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-bd68f5f98d.svg){ .locator data-strip="illustrations/strip-a93a17303e.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-4b6ce6f9df.svg){ .locator data-strip="illustrations/strip-61978be411.svg" }
 
 - The old `selection_outline` lane goes away; two `SurfaceOutline` instances take its place, and `samples_for` receives the pixel scale.
 - Frame order: face highlight, print geometry, unselected strokes, selected **solid** strokes, the combined black silhouette, then selected **standalone** curves over coincident mesh ink. Each mask pass is followed by its pool pass.
@@ -751,24 +751,24 @@ flowchart TB
     X["selection_outline lane"] -- "deleted" --> Y["two SurfaceOutline"]
     Y --> F["render.rs order<br/>solid strokes · silhouette · curves"]
     W["id_pass · PickView"] --> G["pick uniforms · scissor inside"]
-    style Y fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style Y fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/selection_outline.rs -->
 
-<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 17 session_viewer/src/shaders/selection_outline.wgsl -->
 
-<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/mod.rs type -->
 
 - The two silhouette instances replace the old single outline, and `Gpu` grows the fields that hold them. Its lane list is what the frame walks, so this is where a new lane announces itself.
 
-<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/render.rs type -->
 

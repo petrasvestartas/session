@@ -66,30 +66,32 @@
    twenty-one navy-and-pink drawings read as two sites. Blue leads, pink is the second voice
    (hover, the thing you are on), grey does the quiet work. One language, page and picture. */
 :root {
-  --brg-navy: #1a1eb2;
-  --brg-navy-ink: #151790;
-  --brg-blue-band: #bdbfe8;
-  --brg-blue-wash: #ececf8;
-  --brg-pink: #ce4095;
-  --brg-pink-band: #f0bcdb;
-  --brg-grey: #b9b9bd;
-  --brg-grey-band: #e4e4e7;
-  --brg-slate: #455b6b;
+  /* The four colours of the palette card, used as given. */
+  --brg-navy: #0b1957;
+  --brg-pink: #fa9ebc;
+  --brg-blush: #ffdbd1;
+  --brg-cream: #f8f3ea;
+  /* two derived tints, for a wash that has to sit under body text */
+  --brg-navy-soft: #2b3a72;
+  --brg-blush-soft: #fdeee9;
 
   --md-primary-fg-color: var(--brg-navy);
-  --md-primary-fg-color--light: #4b4fd0;
-  --md-primary-fg-color--dark: var(--brg-navy-ink);
-  --md-accent-fg-color: var(--brg-pink);
-  --md-typeset-a-color: var(--brg-navy-ink);
-  --md-code-hl-color: var(--brg-blue-band);
-  /* the chrome the design system named, re-pointed at the drawing palette */
+  --md-primary-fg-color--light: var(--brg-navy-soft);
+  --md-primary-fg-color--dark: #060e33;
+  --md-accent-fg-color: var(--brg-navy-soft);
+  --md-typeset-a-color: var(--brg-navy);
+  --md-code-hl-color: var(--brg-blush);
   --ds-accent: var(--brg-navy);
-  --ds-accent-ink: var(--brg-navy-ink);
+  --ds-accent-ink: var(--brg-navy);
 }
 
-/* The section you are on, in the nav and in the table of contents: a blue bar at the side and
-   blue type, so the eye finds its place with the same colour the diagrams use for structure. */
-.md-nav__link--active, .md-nav__link--active code { color: var(--brg-navy-ink); font-weight: 600; }
+/* Cream ground, so the page is the palette's own paper rather than a neutral grey. */
+:root, [data-md-color-scheme="default"] { --md-default-bg-color: var(--brg-cream); }
+
+/* The section you are on, in the nav and in the table of contents: a navy bar at the side, navy
+   type, and the blush behind it. Pink is a field colour here, never small type - at this
+   lightness it cannot carry text. */
+.md-nav__link--active, .md-nav__link--active code { color: var(--brg-navy); font-weight: 600; }
 .md-nav--secondary .md-nav__link {
   border-left: 2px solid transparent;
   padding-left: .5rem;
@@ -97,13 +99,21 @@
 }
 .md-nav--secondary .md-nav__link--active {
   border-left-color: var(--brg-navy);
-  background: var(--brg-blue-wash);
+  background: var(--brg-blush);
 }
-.md-nav__link:hover, .md-nav__link:focus { color: var(--brg-pink); }
-.md-typeset a:hover { color: var(--brg-pink); }
-/* the header: the one large field of blue the page is built around */
+.md-nav--primary .md-nav__item--active > .md-nav__link {
+  border-left: 2px solid var(--brg-navy);
+  padding-left: .5rem;
+  background: var(--brg-blush);
+}
+.md-nav__link:hover, .md-nav__link:focus { color: var(--brg-navy); background: var(--brg-blush-soft); }
+.md-typeset a:hover { color: var(--brg-navy-soft); text-decoration: underline; }
 .md-header { background: var(--brg-navy); }
-.md-typeset mark { background: var(--brg-pink-band); }
+.md-typeset table:not([class]) th { background: var(--brg-blush); }
+.md-typeset kbd, .md-typeset code { background: var(--brg-blush-soft); }
+.md-typeset .highlight pre { border-color: #e6ddd2; }
+.md-typeset .md-button:hover { border-color: var(--brg-pink); color: var(--brg-navy); }
+.md-typeset mark { background: var(--brg-pink); }
 /* the same side bar in the course list, so "where am I" reads the same on both edges */
 .md-nav--primary .md-nav__item--active > .md-nav__link {
   border-left: 2px solid var(--brg-navy);
@@ -131,6 +141,44 @@
   --md-mermaid-label-fg-color: #111111;
 }
 .md-typeset .mermaid svg { font-size: 14px !important; }
+
+/* Mermaid drawn the way draw.py draws: the same black ground, the same 4px corner, no outline
+   on anything, and one type size for labels. A generated diagram and a hand-drawn one sit on the
+   same page constantly, and the only way they read as one language is if the geometry matches,
+   not just the palette. `rx`/`ry` as CSS properties are SVG2 and Chrome honours them; the
+   !important is needed because mermaid writes the radius as a presentation attribute. */
+.md-typeset .mermaid .node rect,
+.md-typeset .mermaid .node polygon,
+.md-typeset .mermaid .cluster rect,
+.md-typeset .mermaid .label-container {
+  rx: 4px !important;
+  ry: 4px !important;
+  stroke: none !important;
+  stroke-width: 0 !important;
+}
+.md-typeset .mermaid .node .label,
+.md-typeset .mermaid .nodeLabel,
+.md-typeset .mermaid .edgeLabel,
+.md-typeset .mermaid .cluster .label {
+  font-family: system-ui, sans-serif !important;
+  font-size: 13.5px !important;
+  line-height: 1.35 !important;
+}
+/* Edges: one weight, one colour, an arrowhead that matches the drawings' 1.6px rules. */
+.md-typeset .mermaid .edgePath .path,
+.md-typeset .mermaid .flowchart-link {
+  stroke: #f4f4f6 !important;
+  stroke-width: 1.6px !important;
+}
+.md-typeset .mermaid .arrowheadPath,
+.md-typeset .mermaid marker path { fill: #e4e4e7 !important; stroke: none !important; }
+/* An edge label sits on the ground, not in a white box. */
+.md-typeset .mermaid .edgeLabel rect,
+.md-typeset .mermaid .edgeLabel .labelBkg { fill: #111111 !important; opacity: 1 !important; }
+.md-typeset .mermaid .edgeLabel, .md-typeset .mermaid .edgeLabel p { color: #c9ccd6 !important; background: transparent !important; }
+/* A subgraph is a plate like any other figure: same ground, no rule around it. */
+.md-typeset .mermaid .cluster rect { fill: #1b1b1f !important; }
+.md-typeset .mermaid .cluster .nodeLabel { fill: #c9ccd6 !important; }
 .md-typeset details.note > summary { background: #bdbfe8; }
 .md-typeset details.example > summary { background: #f0bcdb; }
 
@@ -198,6 +246,6 @@
   content: ""; display: inline-block; width: .9rem; height: .62rem;
   border-radius: 2px; margin-right: .3rem; vertical-align: -1px;
 }
-.viewer-strip-key .chip-here::before  { background: #f0bcdb; }
+.viewer-strip-key .chip-here::before  { background: #fa9ebc; }
 .viewer-strip-key .chip-built::before { background: #4a4a54; }
 .viewer-strip-key .chip-ahead::before { background: #1e1e22; }

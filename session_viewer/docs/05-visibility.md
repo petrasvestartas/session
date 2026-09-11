@@ -28,7 +28,7 @@ flowchart TB
 
 ## Step 1 · The physical contract shared by every shader
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-10520d7895.svg){ .locator data-strip="illustrations/strip-49a1387961.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
 Two constants and two output structs, appended to every shader module. `physical_gradient` is the rasterizer's own depth slope of the winning primitive, scaled so `Rg16Float` keeps it.
 
@@ -43,17 +43,17 @@ Two constants and two output structs, appended to every shader module. `physical
 flowchart LR
     A["fs_main depth"] -- "physical_gradient" --> B["PhysicalColor<br/>color + gradient"]
     C["fs_id"] --> E["PhysicalId<br/>id + gradient"]
-    style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
-    style E fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
+    style E fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/physical.wgsl type -->
 
 ## Step 2 · Backdrop shaders
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-10520d7895.svg){ .locator data-strip="illustrations/strip-49a1387961.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
 - The background is one oversized triangle at `w = 1.0`, depth `Always`, so it never occludes.
 - The grid builds fifty vertices from `vertex_index` alone; it subtracts `line.anchor` because instance rows are rebased on the camera anchor.
@@ -64,15 +64,15 @@ flowchart LR
     V["vertex_index"] -- "CORNERS" --> B["background.wgsl<br/>depth Always"]
     V -- "FLOOR lines" --> G["grid.wgsl<br/>line.anchor"]
     B & G -- "zero gradient" --> P["PhysicalColor"]
-    style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
-    style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
+    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/background.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/grid.wgsl type -->
 
@@ -80,7 +80,7 @@ flowchart LR
 
 ## Step 3 · The backdrop lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-34088d3009.svg){ .locator data-strip="illustrations/strip-9cf9d05bd8.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-be21b3fc34.svg){ .locator data-strip="illustrations/strip-445a1edf20.svg" }
 
 - One owner for two pipelines; no buffers, no upload, `retarget` when the sample count changes.
 - `draw_grid` binds `mvp` and the `line` block, matching `@group(0)`/`@group(1)` in `grid.wgsl`.
@@ -91,10 +91,10 @@ flowchart LR
     S -- "build_grid" --> L
     L -- "draw_background" --> F["faces pass"]
     L -- "draw_grid · Binds" --> F
-    style L fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style L fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/backdrop.rs type -->
 
@@ -102,7 +102,7 @@ flowchart LR
 
 ## Step 4 · The ink visibility test
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-10520d7895.svg){ .locator data-strip="illustrations/strip-49a1387961.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
 A stroke is drawn as a ribbon of fragments around its mathematical axis. The physical depth at a fragment beside the axis belongs to whatever surface is there, not to the axis:
 
@@ -128,10 +128,10 @@ flowchart LR
     G["scene_gradient_*<br/>@group(2) @binding(4/5)"] --> K["ink_visibility.wgsl"]
     T["DEPTH_REL_TOL · SLOPE_PX · KINK"] --> K
     K --> X["InkAxis record"]
-    style X fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style X fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=1-43 -->
 
@@ -146,11 +146,11 @@ flowchart TB
     D --> T["ink_tolerance"]
     D -- "two texels" --> N["ink_pair_planar"]
     N -- "slopes within KINK" --> C["ink_carry_visible"]
-    style N fill:#f0bcdb,stroke:#f0bcdb,color:#111
-    style C fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style N fill:#fa9ebc,stroke:#fa9ebc,color:#111
+    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=44-101 -->
 
@@ -164,10 +164,10 @@ flowchart TB
     F["fragment texel"] -- "ink_step" --> N["neighbour texel"]
     F & N -- "fit plane" --> A["ink_axis_visible"]
     A -- "predicted depth" --> C["ink_carry_visible"]
-    style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=102-137 -->
 
@@ -180,11 +180,11 @@ flowchart LR
     C["disc centre + depth"] --> F["ink_disc_fragment_visible"]
     C -- "toward_eye" --> V["ink_disc_visible"]
     F --> V
-    style F fill:#f0bcdb,stroke:#f0bcdb,color:#111
-    style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
+    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=138-187 -->
 
@@ -200,16 +200,16 @@ flowchart LR
     G["own gradient valid"] -- "one textureLoad" --> V["ink_visible"]
     G -- "else" --> P["ink_axis_visible fallback"]
     P --> V
-    style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=188-236 -->
 
 ## Step 5 · Shaders emit the gradient
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-10520d7895.svg){ .locator data-strip="illustrations/strip-49a1387961.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
 Every fragment that writes physical depth also returns its gradient. Face shaders return the real slope; splats, sheets and ID passes return zero because they are not surfaces ink can be carried across.
 
@@ -218,27 +218,27 @@ flowchart LR
     T["triangle.wgsl fs_main"] -- "real slope" --> P["PhysicalColor"]
     S["splat · splat_resolve"] -- "zero gradient" --> P
     O["text_outline.wgsl"] -- "fs_physical_id" --> I["PhysicalId"]
-    style P fill:#f0bcdb,stroke:#f0bcdb,color:#111
-    style I fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
+    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/triangle.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/splat.wgsl type -->
 
 - The point shader gains the physical metadata output, so a splat writes a gradient like every other surface - a zero gradient, because a point is not a surface ink can be carried across.
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
 - The resolve is where a private pass rejoins the shared one: it reads the lane's own depth and colour, lights each point from its neighbours, and writes `frag_depth` so the scene's depth test does the rest.
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/text_outline.wgsl type -->
 
@@ -246,7 +246,7 @@ flowchart LR
 
 ## Step 6 · Targets: the gradient attachment and a sample budget
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-95f3ad5659.svg){ .locator data-strip="illustrations/strip-e6b7900f7c.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e63ed245a.svg){ .locator data-strip="illustrations/strip-203427a3dc.svg" }
 
 - `Rg16Float` gradient texture beside depth; single/multisampled views are swapped exactly like the depth views so bind groups stay valid at both sample counts.
 - `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
@@ -257,16 +257,16 @@ flowchart TB
     A["adapter type + pixels"] -- "msaa_budget" --> S["samples_for"]
     S --> T["Targets<br/>depth + Rg16Float gradient"]
     T -- "begin_faces clears" --> F["faces pass"]
-    style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/targets.rs type -->
 
 ## Step 7 · Pipelines: one flag adds the second color target
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-95f3ad5659.svg){ .locator data-strip="illustrations/strip-e6b7900f7c.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e63ed245a.svg){ .locator data-strip="illustrations/strip-203427a3dc.svg" }
 
 - `PipelineDesc::physical()` appends the `Rg16Float` target; `ReadOnlyEqual` pipelines keep the gradient their face already wrote by masking their writes.
 - `module` appends `physical.wgsl` after `normals.wgsl`, so every shader sees `PhysicalColor`.
@@ -276,21 +276,21 @@ flowchart LR
     D["PipelineDesc"] -- ".physical()" --> P["second target<br/>Rg16Float"]
     M["module()"] -- "append physical.wgsl" --> S["shader source"]
     L["scene_gradient entry"] --> B["ink bind group layout"]
-    style P fill:#f0bcdb,stroke:#f0bcdb,color:#111
-    style L fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
+    style L fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/pipelines/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/pipelines/layouts.rs type -->
 
 - Group 2 grows: the ink variant now carries the depth and gradient views. This is the binding change that makes the visibility test possible at all.
 
-<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/instance.rs type -->
 
@@ -298,7 +298,7 @@ flowchart LR
 
 ## Step 8 · Lanes read and write the gradient
 
-![Where this step sits in the viewer: GPU core, Lanes, with 8 of 11 zones built so far.](illustrations/locator-30b33ecf19.svg){ .locator data-strip="illustrations/strip-4af31d2ec8.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, with 8 of 11 zones built so far.](illustrations/locator-7cc87e5e20.svg){ .locator data-strip="illustrations/strip-5fb45cfc9e.svg" }
 
 - The ink bind group gains bindings 4 and 5: `@group(2) @binding(4/5)` in step 4a.
 - The arena, splats and outline text build their pipelines with `.physical()`; the arena also gains a selection-mask pipeline.
@@ -309,26 +309,26 @@ flowchart TB
     O --> A["arena · draw_selection_mask"]
     O --> S["splat"]
     O --> X["text_outline retarget"]
-    style O fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style O fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/objects.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/arena.rs type -->
 
 - Two changes: the face pipelines gain `.physical()`, which adds the gradient target, and a selection-mask pipeline appears for the coverage the outline pass will read.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/splat.rs type -->
 
 - `.physical()` on the ID pipeline and the resolve: the cloud now writes the same metadata as every other surface, which is what lets ink judge itself against a point cloud.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/text_outline.rs type -->
 
@@ -336,7 +336,7 @@ flowchart TB
 
 ## Step 9 · Wire the lane and the sample count
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-95f3ad5659.svg){ .locator data-strip="illustrations/strip-e6b7900f7c.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e63ed245a.svg){ .locator data-strip="illustrations/strip-203427a3dc.svg" }
 
 - `retarget` rebuilds targets, ink bind groups and every lane's pipelines when the sample count flips, and only then.
 - The backdrop draws first inside `begin_faces`, before any geometry.
@@ -346,16 +346,16 @@ flowchart LR
     R["resize"] -- "samples_for" --> T["retarget"]
     T --> P["targets · ink groups · lanes"]
     B["BackdropLane"] -- "first in begin_faces" --> F["frame"]
-    style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/mod.rs type -->
 
 ## Step 10 · The fixture and the page
 
-![Where this step sits in the viewer: Page, Shell, with 8 of 11 zones built so far.](illustrations/locator-50ea5d9e36.svg){ .locator data-strip="illustrations/strip-cab5d208fc.svg" }
+![Where this step sits in the viewer: Page, Shell, with 8 of 11 zones built so far.](illustrations/locator-c88f51e1ff.svg){ .locator data-strip="illustrations/strip-75e0f98df5.svg" }
 
 The grey box and the sloping floor are the shapes the visibility test is judged on.
 
@@ -364,20 +364,20 @@ flowchart LR
     X["fixture.rs<br/>grey_box · floor"] -- "scene()" --> U["Upload"]
     Q["?fixture · ?distance"] -- "parse_distance" --> L["lib.rs"]
     U --> L
-    style X fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style X fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-53596d9638.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6e964d1d1f.svg" data-zone="Shell"></span>
 
 <!-- file: 05 session_viewer/src/fixture.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-53596d9638.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6e964d1d1f.svg" data-zone="Shell"></span>
 
 <!-- file: 05 session_viewer/src/lib.rs type -->
 
 - Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it. That is the whole price of adding a lane to this facade.
 
-<span class="zone-mark" data-strip="illustrations/strip-01c9a26f23.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a7bdebbf9f.svg" data-zone="Page"></span>
 
 <!-- file: 05 session_viewer/index.html copy -->
 

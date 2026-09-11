@@ -39,7 +39,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 ## Step 1 · Cloud tables
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-34088d3009.svg){ .locator data-strip="illustrations/strip-9cf9d05bd8.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-be21b3fc34.svg){ .locator data-strip="illustrations/strip-445a1edf20.svg" }
 
 - A cloud's points arrive in chunks; `Chunk` maps cloud-local indices to lane rows.
 
@@ -48,30 +48,30 @@ flowchart TB
     CR["CloudRows<br/>positions · colors"] -- "append · Chunk" --> CL["CloudLane"]
     CL --> PB["PointBufs<br/>pos · col · nrm"]
     PB -- "moved? rebind" --> BG["points group"]
-    style CL fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style CL fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=1-57 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=58-114 -->
 
 - `append` returns whether a buffer moved; the point lane must then rebind its group.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=115-144 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=145-208 -->
 
 - Clouds arrive in chunks, so the lane keeps a chunk list: `append` grows the buffers, `extend` records which object row a chunk belongs to, and a chunk that does not continue the resident prefix is refused rather than silently misplaced.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=209-257 -->
 
@@ -79,7 +79,7 @@ flowchart TB
 
 ## Step 2 · The LOD walk
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-34088d3009.svg){ .locator data-strip="illustrations/strip-9cf9d05bd8.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-be21b3fc34.svg){ .locator data-strip="illustrations/strip-445a1edf20.svg" }
 
 - Pure CPU: which octree ranges to draw, given how wide each node's point spacing projects. Small clouds draw whole.
 
@@ -88,20 +88,20 @@ flowchart TB
     N["LodNode octree"] -- "projected_spacing" --> W["LodWalk::select"]
     C["camera · lod_px"] --> W
     W -- "ranges · finest spacing" --> R["records to draw"]
-    style W fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style W fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=1-48 -->
 
 - Each node owns its subsample, so descending only adds detail; the finest spacing found below a node travels back up to size its discs.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=49-115 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=116-151 -->
 
@@ -109,7 +109,7 @@ flowchart TB
 
 ## Step 3 · The splat lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-34088d3009.svg){ .locator data-strip="illustrations/strip-9cf9d05bd8.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-be21b3fc34.svg){ .locator data-strip="illustrations/strip-445a1edf20.svg" }
 
 `SplatRecord` is 160 bytes, read as raw words by the shader:
 
@@ -126,66 +126,66 @@ flowchart TB
     RC["RecordCx<br/>camera · clouds · nodes"] -- "prelude · key changed" --> SR["SplatRecord × N<br/>160 B"]
     SR -- "point pass" --> PT["1× depth + color targets"]
     PT -- "draw_resolve" --> FP["face pass"]
-    style SR fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style SR fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=1-68 -->
 
 - The point pass targets are made on the first frame that has points, so a scene without a cloud never pays for them.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=69-134 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=135-157 -->
 
 - The lane's own type: three pipelines - colour, id, resolve - and the record buffer that feeds them.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=158-230 -->
 
 - Construction allocates the record buffer up front - 4096 records at 160 bytes, about 640 KB - and binds it over placeholder buffers. The point *targets* are what wait for the first cloud, and they are the part that scales with the framebuffer.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=231-278 -->
 
 - `prelude` is skipped while the key (camera, knobs, point count) matches; otherwise it rebuilds records, writes them and draws the point pass.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=279-344 -->
 
 - The ID pipeline draws the same quads and writes `(object row, point row)` instead of colour, so a point answers a pick with the identity of the point, not of the cloud.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=345-359 -->
 
 - One record per visible cloud, or per selected octree node; a range straddling two chunks becomes two records.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=360-443 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=444-501 -->
 
 - The resolve is one fullscreen triangle writing colour and `frag_depth`, which is what folds the private point pass back under the scene's own depth test.
 
-<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=502-515 -->
 
 ## Step 4 · The point shaders
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-10520d7895.svg){ .locator data-strip="illustrations/strip-49a1387961.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
 - `record_of` finds the record whose cumulative range contains the vertex index; `project` folds one mat-vec per point.
 
@@ -194,26 +194,26 @@ flowchart TB
     V["vertex_index"] -- "record_of" --> R["SplatRecord"]
     R -- "project · vs_point" --> P["point disc · fs_point"]
     P -- "lane depth + color" --> S["splat_resolve<br/>EDL · frag_depth"]
-    style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-50 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=51-92 -->
 
 - `project` is the whole per-point cost: one mat-vec, a radius folded from the record, a depth. Everything computable per cloud was already computed on the CPU.
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=93-171 -->
 
 - The resolve reads the lane's depth and color, applies Eye-Dome Lighting from neighbouring depths, and writes `frag_depth` under the scene's `Greater` test.
 
-<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 04d session_viewer/src/shaders/splat_resolve.wgsl type -->
 
@@ -223,43 +223,43 @@ flowchart TB
 
 ## Step 5 · Wire the lane
 
-![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-5b5364c5dc.svg){ .locator data-strip="illustrations/strip-b895327b05.svg" }
+![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-771239ee6f.svg){ .locator data-strip="illustrations/strip-20ba8a8ce6.svg" }
 
 ```mermaid
 flowchart TB
     U["Upload.cloud"] -- "set_scene" --> G["Gpu.cloud · Gpu.splat"]
     G -- "prelude · before faces" --> PP["point pass"]
     PP -- "draw_resolve · face pass" --> F["scene depth"]
-    style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 04d session_viewer/src/engine/pipelines/layouts.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/upload.rs type -->
 
 - The prelude runs before the face pass on the same encoder; the resolve draws inside the face pass right after the solid faces.
 
-<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 04d session_viewer/src/engine/gpu/mod.rs type -->
 
 - A fourth row: a small grid of points with one `CloudDraw` and no octree.
 
-<span class="zone-mark" data-strip="illustrations/strip-53596d9638.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6e964d1d1f.svg" data-zone="Shell"></span>
 
 <!-- file: 04d session_viewer/src/fixture.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-53596d9638.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-6e964d1d1f.svg" data-zone="Shell"></span>
 
 <!-- file: 04d session_viewer/src/lib.rs type -->
 
 - Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it. That is the whole price of adding a lane to this facade.
 
-<span class="zone-mark" data-strip="illustrations/strip-01c9a26f23.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a7bdebbf9f.svg" data-zone="Page"></span>
 
 <!-- file: 04d session_viewer/index.html copy -->
 

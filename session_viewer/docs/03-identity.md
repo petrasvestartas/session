@@ -28,7 +28,7 @@ flowchart TB
 
 ## Step 1 · The object row
 
-![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-b458cb6878.svg){ .locator data-strip="illustrations/strip-cd3a6cfffd.svg" }
+![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-afd0463e4d.svg){ .locator data-strip="illustrations/strip-10d43625b6.svg" }
 
 - One 96-byte record per object, indexed by `instance_index` in every instance-reading shader. Flags are bits: selecting sets bit 0 and keeps the rest.
 - The translation column of `model` is zero; the anchored translation belongs to its own table (group 2, binding 1).
@@ -39,36 +39,36 @@ flowchart TB
     P["Instance::placeholder"] --> I["struct Instance<br/>96 B"]
     I -- "model · color" --> R["one object row"]
     I -- "FLAG_ bits" --> F["flags"]
-    style I fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-cd3a6cfffd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
 
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
 
 The rest of the file is `#[cfg(test)]` only: it parses every lane shader with naga and checks that WGSL member offsets equal the Rust ones; the browser build never compiles this block.
 
-<span class="zone-mark" data-strip="illustrations/strip-cd3a6cfffd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
 
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=58-236 -->
 
 ## Step 2 · Declare the engine module tree
 
-![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-b458cb6878.svg){ .locator data-strip="illustrations/strip-cd3a6cfffd.svg" }
+![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-afd0463e4d.svg){ .locator data-strip="illustrations/strip-10d43625b6.svg" }
 
 ```mermaid
 flowchart TB
     L["lib.rs"] -- "pub mod engine" --> E["engine/mod.rs"]
     E -- "pub mod gpu" --> G["engine/gpu/mod.rs"]
     G -- "pub mod instance" --> I["instance.rs"]
-    style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-cd3a6cfffd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
 
 <!-- file: 03 session_viewer/src/engine/gpu/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-cd3a6cfffd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
 
 <!-- file: 03 session_viewer/src/engine/mod.rs type -->
 
@@ -76,7 +76,7 @@ flowchart TB
 
 ## Step 3 · Source identity is separate from the row
 
-![Where this step sits in the viewer: Scene + walk, with 7 of 11 zones built so far.](illustrations/locator-3f80718d33.svg){ .locator data-strip="illustrations/strip-50a1a5a6e0.svg" }
+![Where this step sits in the viewer: Scene + walk, with 7 of 11 zones built so far.](illustrations/locator-f9a61bc664.svg){ .locator data-strip="illustrations/strip-3589a2f087.svg" }
 
 - A `guid` and `revision` identify what the object *is*; the row says how it is drawn this revision.
 - Picking returns a row; the scene maps it back. Never search for an object by matching triangle positions.
@@ -85,10 +85,10 @@ flowchart TB
 flowchart LR
     S["SourceObject · guid · revision"] -- "row" --> I["Instance"]
     O["scene::objects()"] -- "two placements" --> S
-    style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-50a1a5a6e0.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3589a2f087.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 03 session_viewer/src/scene.rs type -->
 
@@ -96,7 +96,7 @@ flowchart LR
 
 ## Step 4 · Rust layout ↔ WGSL layout
 
-![Where this step sits in the viewer: Shaders, with 7 of 11 zones built so far.](illustrations/locator-636d4e0c5b.svg){ .locator data-strip="illustrations/strip-f41a464e87.svg" }
+![Where this step sits in the viewer: Shaders, with 7 of 11 zones built so far.](illustrations/locator-1378bac81b.svg){ .locator data-strip="illustrations/strip-9d7fcc8d70.svg" }
 
 Same bytes on both sides, read through different type systems:
 
@@ -120,16 +120,16 @@ flowchart TB
     R["instance_index"] --> V["vs_main"]
     B --> V
     V -- "model × point · color" --> F["fs_main"]
-    style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-f41a464e87.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-9d7fcc8d70.svg" data-zone="Shaders"></span>
 
 <!-- file: 03 session_viewer/src/shaders/first.wgsl type -->
 
 ## Step 5 · Bind the rows and draw each one
 
-![Where this step sits in the viewer: Page, Shell, with 7 of 11 zones built so far.](illustrations/locator-6cba9c0f37.svg){ .locator data-strip="illustrations/strip-cc55f1c6a6.svg" }
+![Where this step sits in the viewer: Page, Shell, with 7 of 11 zones built so far.](illustrations/locator-b32fcaf1b6.svg){ .locator data-strip="illustrations/strip-e2a9d1f0c8.svg" }
 
 - The layout gains binding 1; the bind group supplies the storage buffer; one draw per row.
 - `objects` stays on the CPU side of the shell, so the status can report a count that comes from source data rather than from the GPU.
@@ -139,14 +139,14 @@ flowchart TB
     O["scene::objects()"] -- "cast_slice" --> S["STORAGE buffer"]
     S -- "binding 1" --> G["BindGroup"]
     G --> D["draw(0..3, row..row+1)"]
-    style D fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style D fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-67d545e2ed.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d2a8d385e.svg" data-zone="Shell"></span>
 
 <!-- file: 03 session_viewer/src/lib.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-ae118a890e.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-7b9fa61633.svg" data-zone="Page"></span>
 
 <!-- file: 03 session_viewer/index.html copy -->
 

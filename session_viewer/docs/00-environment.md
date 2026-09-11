@@ -23,7 +23,7 @@ cd "$COURSE_WORK/session_viewer"
 
 ## Step 1 · Declare the crate
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-2c9d4ace7b.svg){ .locator data-strip="illustrations/strip-877b36ea67.svg" }
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
 - `cdylib` is what wasm-bindgen turns into a browser module; `rlib` lets native tools link the same crate.
 - Every version here is pinned by `Cargo.lock` in step 4; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
@@ -34,16 +34,16 @@ flowchart LR
     T["Cargo.toml"] -- "cdylib + rlib" --> C["session_viewer crate"]
     T -- "path dep" --> K["../session_rust"]
     T -- "wgpu 29 · glyphon 0.11" --> C
-    style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-877b36ea67.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
 
 <!-- file: 00 session_viewer/Cargo.toml copy -->
 
 ## Step 2 · Make wasm32 the default target
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-2c9d4ace7b.svg){ .locator data-strip="illustrations/strip-877b36ea67.svg" }
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
 One line makes every `cargo` command build for the browser, so the code needs no `#[cfg(target_arch = "wasm32")]` gates. `xtest` is the native alias that runs the tests.
 
@@ -51,16 +51,16 @@ One line makes every `cargo` command build for the browser, so the code needs no
 flowchart LR
     G[".cargo/config.toml"] -- "build.target" --> W["wasm32-unknown-unknown"]
     G -- "alias xtest" --> N["native test target"]
-    style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-877b36ea67.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
 
 <!-- file: 00 session_viewer/.cargo/config.toml type -->
 
 ## Step 3 · Tell Trunk what to bundle
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-2c9d4ace7b.svg){ .locator data-strip="illustrations/strip-877b36ea67.svg" }
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
 Release builds, no subresource hashes, and a watch list that includes the kernel next door.
 
@@ -68,10 +68,10 @@ Release builds, no subresource hashes, and a watch list that includes the kernel
 flowchart LR
     T["Trunk.toml"] -- "release · public_url ./" --> D["dist/"]
     T -- "watch list" --> S["src · index.html · ../session_rust"]
-    style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-877b36ea67.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
 
 <!-- file: 00 session_viewer/Trunk.toml copy -->
 
@@ -83,14 +83,14 @@ Dependency data, not code. The course was verified against exactly these version
 flowchart LR
     L["Cargo.lock"] -- "pins every version" --> C["cargo --locked"]
     C --> B["reproducible build"]
-    style L fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style L fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
 <!-- supplied: 00 -->
 
 ## Step 5 · The page
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-2c9d4ace7b.svg){ .locator data-strip="illustrations/strip-877b36ea67.svg" }
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
 One element with `id="status"`; Rust looks it up by that name.
 
@@ -98,16 +98,16 @@ One element with `id="status"`; Rust looks it up by that name.
 flowchart LR
     H["index.html"] -- "data-trunk rel=rust" --> W[".wasm + JS glue"]
     H -- "output id=status" --> S["status element"]
-    style H fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style H fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-877b36ea67.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
 
 <!-- file: 00 session_viewer/index.html copy -->
 
 ## Step 6 · The first Rust function
 
-![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-00d6165f96.svg){ .locator data-strip="illustrations/strip-574bae1040.svg" }
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-a6eea7cc7f.svg){ .locator data-strip="illustrations/strip-d765e907c1.svg" }
 
 - `#[wasm_bindgen(start)]` runs this function when the browser finishes loading the module.
 - `web_sys` is the browser DOM seen from Rust; `expect` aborts with a readable message if an element is missing.
@@ -118,10 +118,10 @@ flowchart TB
     B["browser loads module"] -- "wasm_bindgen start" --> F["start()"]
     F -- "get_element_by_id" --> S["#status"]
     F -- "set_text_content" --> S
-    style F fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-574bae1040.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d765e907c1.svg" data-zone="Shell"></span>
 
 <!-- file: 00 session_viewer/src/lib.rs type -->
 

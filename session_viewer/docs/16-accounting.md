@@ -24,7 +24,7 @@ flowchart TB
 
 ## Step 1 · Native tooling the crate declares
 
-![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-3ba3d6236b.svg){ .locator data-strip="illustrations/strip-f4dd9f8e36.svg" }
+![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-010fb6361a.svg){ .locator data-strip="illustrations/strip-e6f4fee67c.svg" }
 
 Cargo discovers every file under `examples/` as a native example; their sources and the offscreen harness are supplied, not taught. Install them now, and give the manifest its native-only dependency.
 
@@ -32,48 +32,48 @@ Cargo discovers every file under `examples/` as a native example; their sources 
 flowchart LR
     S["supplied examples/ · tests/"] --> C["Cargo.toml<br/>native-only pollster"]
     C --> N["cargo xtest · examples build"]
-    style C fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
 <!-- supplied: 16 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-f4dd9f8e36.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e6f4fee67c.svg" data-zone="Page"></span>
 
 <!-- file: 16 session_viewer/Cargo.toml copy -->
 
 ## Step 2 · Count what is knowable, name what is not
 
-![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-f763d976cd.svg){ .locator data-strip="illustrations/strip-081a11a206.svg" }
+![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-c00f8dcb64.svg){ .locator data-strip="illustrations/strip-56723afb3a.svg" }
 
 ![Scene owns documents through Rc; the cache keeps Weak identities and a payload figure, reuses it while the pointers match, walks once when a document is replaced, and never keeps a dropped document alive.](illustrations/source-cache.svg)
 
 - The number is a lower bound: exact `Vec`/`String` capacities, occupied map entries and exposed slice lengths, never allocator overhead or RSS.
 - Shared values are counted once: each `Rc` object is recorded by pointer in a `seen` set, so a document listed twice or a geometry in both a typed list and the lookup adds nothing twice.
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=1-52 -->
 
 - A `Weak<Session>` recognizes a document without keeping it alive; if every `Rc` pointer matches the last snapshot, the cached payload is returned without a walk.
 - In-place editing of a document would make this cache stale; replacement and append change identity, which is what the cache keys on.
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=53-95 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-140 -->
 
 Per-type payload walks, one function per geometry kind:
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=141-363 -->
 
 Unit tests, part of the file:
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=364-487 -->
 
@@ -81,7 +81,7 @@ Unit tests, part of the file:
 
 ## Step 3 · Report it beside the GPU figures
 
-![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-f763d976cd.svg){ .locator data-strip="illustrations/strip-081a11a206.svg" }
+![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-c00f8dcb64.svg){ .locator data-strip="illustrations/strip-56723afb3a.svg" }
 
 - The snapshot names its scope and exclusions in the JSON itself, so a reader of `?inspect=1` cannot mistake the payload for total heap.
 
@@ -90,10 +90,10 @@ flowchart TB
     K["known_bytes()"] --> J["?inspect=1 JSON<br/>source_cpu_known_payload"]
     G["Gpu::allocated_bytes"] --> J
     J --> X["scope + exclusions named"]
-    style J fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style J fill:#fa9ebc,stroke:#fa9ebc,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection.rs type -->
 

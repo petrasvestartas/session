@@ -22,9 +22,9 @@ RADIUS = THEME["radius"]
 INK = "#111111"
 
 PAL = {
-    "navy": "#1a1eb2", "pink": "#ce4095", "green": "#3f9c20", "yellow": "#e8ac00",
+    "navy": "#0b1957", "pink": "#ce4095", "green": "#3f9c20", "yellow": "#e8ac00",
     "yellow_light": "#f9e08a", "orange": "#e07a26", "ghost": "#9ed4c9", "grey": "#aaaaaa",
-    "zero": "#b9b9bd", "pink_band": "#f0bcdb", "blue_band": "#bdbfe8", "zero_band": "#e4e4e7",
+    "zero": "#b9b9bd", "pink_band": "#fa9ebc", "blue_band": "#bdbfe8", "zero_band": "#e4e4e7",
     "black": INK, "text2": "#455b6b", "page": "#eef0f2", "white": "#ffffff",
 }
 # Box kinds: (fill, stroke). CPU/Rust = blue band, GPU/WGSL = pink band, note = zero band,
@@ -42,7 +42,7 @@ KIND = {
 # The page is black like the Mermaid diagrams; boxes are white with black text, free labels are
 # light. Colours named for the light palette are remapped when they would vanish on black.
 ON_BLACK = {
-    PAL["navy"]: "#bdbfe8", PAL["pink"]: "#f0bcdb", PAL["green"]: "#8fd36a", PAL["text2"]: "#c9ccd6",
+    PAL["navy"]: "#bdbfe8", PAL["pink"]: "#fa9ebc", PAL["green"]: "#8fd36a", PAL["text2"]: "#c9ccd6",
     PAL["black"]: "#f4f4f6", "#111": "#f4f4f6", PAL["grey"]: "#b9b9bd", PAL["zero"]: "#b9b9bd",
     PAL["white"]: INK,
 }
