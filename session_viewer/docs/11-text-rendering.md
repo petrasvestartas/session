@@ -213,7 +213,7 @@ A native GPU check for the plane path sits at the end of the file.
 
 Planes first (they are in the scene), then anchored glyphs, then plates, then overlay glyphs on top of their plates.
 
-![Diagram: TextLane::draw · planes · plates (physical range) · anchored glyphs · plates (overlay range) · overlay glyphs](illustrations/11-10.svg)
+![Diagram: TextLane::draw · planes · anchored glyphs · plates · overlay glyphs](illustrations/11-10.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 

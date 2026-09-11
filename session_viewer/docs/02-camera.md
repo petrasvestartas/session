@@ -124,6 +124,8 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 - `fit` measures the box along the camera's own axes with `tan`, not a bounding sphere with `sin`; elongated scenes no longer sit twice as far as needed.
 - Every mutation ends in `update_position`.
 
+- `grow_extent` widens only the far-plane floor when more geometry streams in.
+
 ![Diagram: set_view · Camera · fit(Aabb, aspect) · grow_extent · position · up](illustrations/02-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>

@@ -13,7 +13,7 @@ Vertex input of the marker pipeline (`pipelines::template_layout`):
 
 The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row.
 
-![A sphere is four template corners pushed out by the pixel radius plus the feather; a free dot is one equilateral triangle whose incircle is the disc.](illustrations/markers.svg)
+![A sphere is four template corners pushed out by the pixel radius plus half the feather; a free dot is one equilateral triangle whose incircle is the disc.](illustrations/markers.svg)
 
 ## Starting point
 

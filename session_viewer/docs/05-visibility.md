@@ -182,7 +182,7 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 
 ![Two gates then a per-adapter pixel budget decide the sample count, and in a browser every adapter reports as Other, which is its own budget rather than a synonym for integrated.](illustrations/msaa-budget.svg)
 
-![Diagram: adapter type + pixels · samples_for · Targets\ depth + Rgba16Float metadata · faces pass](illustrations/05-11.svg)
+![Diagram: adapter type + pixels · samples_for · Targets\ depth + Rg16Float gradient · faces pass](illustrations/05-11.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 

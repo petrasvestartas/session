@@ -33,7 +33,7 @@ They meet once: the walk's rows are uploaded, and the frame path reads only thos
 |---|---|---|
 | **Page** | `index.html`, `Trunk.toml`, `Cargo.toml` | The browser's side of the contract: what gets loaded before any Rust runs. |
 | **Network** | `fetch`, `manifest`, `validate`, `decode`, `stream`, `live`, `loader` | The only code that touches bytes you did not create. All validation happens here. |
-| **Kernel** | `session_rust` | Shared with the C++ and Python kernels: exact f64 geometry and identity, plus the one shared display type, `RenderVertex`. It links wgpu for that and decides nothing about how the viewer draws. |
+| **Kernel** | `session_rust` | Shared with the C++ and Python kernels: exact f64 geometry and identity, plus the one shared display type, `RenderVertex`. It links wgpu for that and for the GPU buffers a `Mesh` caches, and decides nothing about how the viewer draws. |
 | **Scene + walk** | `app/scene.rs`, `app/scene_text.rs`, `app/selection.rs`, `app/walk/*`, `engine/text.rs` | Turns one document into rows and names what can be selected. No producer in `walk/` knows about files, selection or the camera; `Scene` holds the documents and their placements and hands finished rows to the GPU. |
 | **Shell** | `lib.rs`, `app/mod.rs`, `app/feedback.rs`, `app/inspection*`, `engine/performance.rs` | The window, the event loop, the one place a redraw is asked for, and the measurements that observe a frame without changing it. |
 | **Input** | `app/input.rs`, `app/touch.rs` | Gestures become intentions. It never touches a buffer or names a wgpu type: scene changes go through `State`. It does flip the view knobs (`view.lit`, `show_outlines`) and read the device scale directly — per-frame view state, not scene state. |

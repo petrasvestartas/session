@@ -266,7 +266,7 @@ Expected:
 
 *How to work it out.* You want just enough points that the gaps between them are invisible. So the quantity to test is the node's point spacing *as projected on screen*, compared against a pixel threshold.
 
-*The answer.* "Does this node's spacing project wider than `lod_px`?" Every visited node draws its own subsample; a yes also pushes the eight children, so descending adds detail rather than replacing it. Because each node owns its own subsample, descending only ever adds detail, which is what makes this a single pass with no back-tracking.
+*The answer.* "Does this node's spacing project wider than `lod_px`?" Every visited node draws its own subsample; a yes also pushes the eight children, so descending only ever adds detail, which is what makes this a single pass with no back-tracking.
 
 **Group 0 of the point pipelines is the cloud uniform, not the camera. Where did the camera go?**
 

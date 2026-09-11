@@ -1913,24 +1913,24 @@ def pick_window():
     c.box(614, 470, ["Drop origin",
                      "the axis is looked up in tile (0, 0)'s list, and ink is",
                      "judged against triangles elsewhere on the screen"], "gpu", w=538)
-    c.text(28, 600, "20 bytes a texel: ids 8 · depth 4 · metadata 8. The window costs 7 KB; the same target at canvas size would cost 32 MB.", "s", fill=PAL["yellow"])
+    c.text(28, 600, "16 bytes a texel: ids 8 · depth 4 · metadata 4. The window costs 5.8 KB; the same target at canvas size would cost 26 MB.", "s", fill=PAL["yellow"])
     c.write("pick-window.svg")
 
 
 def attachment_cost():
     c = Canvas("Where the video memory goes",
                "Three attachments are kept for every physical pixel: colour in the surface format, depth as "
-               "Depth32Float, and the metadata target as Rgba16Float. That is 16 bytes a pixel at one sample and "
-               "64 at four, so the sample count is a four-times decision on the largest allocation the viewer "
-               "makes. Every rule about picking, device scale and device loss is about the same 64 bytes.",
+               "Depth32Float, and the metadata target as Rg16Float. That is 12 bytes a pixel at one sample and "
+               "48 at four, so the sample count is a four-times decision on the largest allocation the viewer "
+               "makes. Every rule about picking, device scale and device loss is about the same 48 bytes.",
                1180, 580)
     lav, pnk, zer = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"]
-    c.text(28, 40, "Sixty-four bytes, times every pixel on the glass", "h")
+    c.text(28, 40, "Forty-eight bytes, times every pixel on the glass", "h")
 
     x0, scale = 250.0, 12.5  # pixels per byte
     def bar(y, samples, label, inside):
         x = x0
-        for name, one, fill in (("colour", 4, lav), ("depth", 4, zer), ("metadata", 8, pnk)):
+        for name, one, fill in (("colour", 4, lav), ("depth", 4, zer), ("metadata", 4, pnk)):
             w = one * samples * scale
             c.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="46" rx="{RADIUS}" fill="{fill}"/>')
             if inside:
@@ -1938,9 +1938,9 @@ def attachment_cost():
                 c.text(x + 10, y + 38, f"{one} B × {samples} = {one * samples}", "m", fill=PAL["black"], keep=True)
             x += w + 4
         if not inside:
-            c.text(x + 14, y + 30, "the same three, one sample each: 4 + 4 + 8", "s")
+            c.text(x + 14, y + 30, "the same three, one sample each: 4 + 4 + 4", "s")
         c.text(28, y + 22, label, "l")
-        c.text(28, y + 44, f"{16 * samples} bytes a pixel", "s")
+        c.text(28, y + 44, f"{12 * samples} bytes a pixel", "s")
 
     bar(96, 4, "4 samples", True)
     bar(168, 1, "1 sample", False)
@@ -1948,17 +1948,17 @@ def attachment_cost():
 
     c.text(28, 268, "and the canvas multiplies it", "l")
     c.text(28, 300, "1600 × 1000  = 1.6 Mpx", "m")
-    c.text(300, 300, "26 MB at 1×", "m", fill=PAL["navy"])
-    c.text(460, 300, "102 MB at 4×", "m", fill=PAL["pink"])
+    c.text(300, 300, "19 MB at 1×", "m", fill=PAL["navy"])
+    c.text(460, 300, "77 MB at 4×", "m", fill=PAL["pink"])
     c.text(28, 324, "3840 × 2160  = 8.3 Mpx", "m")
-    c.text(300, 324, "133 MB at 1×", "m", fill=PAL["navy"])
-    c.text(460, 324, "531 MB at 4×", "m", fill=PAL["pink"])
+    c.text(300, 324, "100 MB at 1×", "m", fill=PAL["navy"])
+    c.text(460, 324, "398 MB at 4×", "m", fill=PAL["pink"])
 
     c.text(28, 372, "Three levers hold it down", "l")
     w = 364
     c.box(28, 390, ["the pick pass draws a window",
-                    "19 × 19 × 20 B = 7 KB, where a canvas-sized",
-                    "ID target would be 32 MB"], "note", w=w)
+                    "19 × 19 × 16 B = 5.8 KB, where a canvas-sized",
+                    "ID target would be 26 MB"], "note", w=w)
     c.box(28 + w + 20, 390, ["device scale spends the samples",
                              "`samples_for` returns 1× from 2 physical",
                              "pixels per CSS pixel: the density has",
@@ -2285,7 +2285,54 @@ def msaa_budget():
     c.write("msaa-budget.svg")
 
 
+def tombstone():
+    c = Canvas("What a removal has to remember",
+               "Undo is not 'remember the object', it is 'remember every slot the object was in'. One removal "
+               "empties five live tables, and the tombstone records the position it held in each: the typed "
+               "list, the guid lookup, the transform, the tree with its whole subtree, and every incident graph "
+               "edge. It can only be built while _detach is emptying them, because that is the last moment every "
+               "one of those positions is still known.",
+               1180, 574)
+    lav, pnk, zer = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"]
+    c.text(28, 40, "Remember every slot, not the object", "h")
+
+    tables = [
+        (["typed list", "the object at obj_index in its collection,", "so order() survives a round trip"], "guid · obj · collection · obj_index"),
+        (["lookup", "guid → object"], "guid"),
+        (["transforms", "the local xform, or none"], "xform"),
+        (["tree", "parent_guid, the index among the siblings,", "and the node with its whole subtree"], "parent_guid · index · node"),
+        (["graph", "the node attribute, and every incident edge", "as (other guid, attribute, forward)"], "attribute · edges"),
+    ]
+    y = 96
+    c.text(28, 82, "the five live tables, before the removal", "l")
+    c.text(470, 82, "what the tombstone keeps of each", "l")
+    for lines, fields in tables:
+        r = c.box(28, y, lines, "cpu", w=420)
+        c.arrow(452, y + r[3] / 2, 466, y + r[3] / 2)
+        c.parts.append(f'<rect x="470" y="{y:.1f}" width="330" height="{r[3]:.1f}" rx="{RADIUS}" fill="{pnk}"/>')
+        c.text(482, y + r[3] / 2 + 5, fields, "m", fill=PAL["black"], keep=True)
+        y += r[3] + 10
+
+    c.box(828, 96, ["_attach puts every one back",
+                    "the same list position, the same",
+                    "sibling index, the same subtree,",
+                    "and the edges whose other end",
+                    "still exists"], "cpu", w=324)
+    c.box(828, 256, ["clone, not duplicate",
+                     "a snapshot must still name the",
+                     "object it stands for, and duplicate",
+                     "mints a fresh guid"], "sel", w=324)
+    c.box(828, 392, ["absolute, never deltas",
+                     "Replace and Xform carry the before",
+                     "and after values, so replaying one",
+                     "cannot depend on the state it is",
+                     "replayed into"], "note", w=324)
+
+    c.text(28, 546, "The tombstone is built while _detach empties the tables: that is the only moment when every position it has to remember is still known.", "s", fill=PAL["yellow"])
+    c.write("tombstone.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')

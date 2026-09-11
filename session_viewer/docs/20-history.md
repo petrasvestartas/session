@@ -25,7 +25,9 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 ![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-aa8225000e.svg){ .locator data-strip="illustrations/strip-a1fbe46b03.svg" }
 
 - `clone` is a deep copy that keeps the guid: a snapshot must still name the object it stands for, which is why `duplicate`, which mints a fresh guid, is never used here.
-- A `Tombstone` is everything needed to put one object back into every live table: the object, its typed list and position in it, its local transform, its parent and position among the siblings, the detached subtree, the graph attribute and every incident edge. `Add` and `Remove` share it; `Replace` and `Xform` carry absolute before and after values, never deltas.
+- A `Tombstone` is everything needed to put one object back into every live table. `Add` and `Remove` share it; `Replace` and `Xform` carry absolute before and after values, never deltas.
+
+![A removal empties five live tables, and the tombstone records the slot the object held in each one: its position in the typed list, the guid lookup, the transform, the tree with its subtree, and every incident graph edge.](illustrations/tombstone.svg)
 - A `Transaction` groups the records of one gesture; `History` keeps the last 64 and drops the redo stack when a new one commits.
 
 ![Diagram: Tombstone · obj clone · collection · obj_index · xform · parent_guid · index · subtree node · attribute · edges](illustrations/20-02.svg)

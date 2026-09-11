@@ -529,13 +529,13 @@ The reference page and native fixtures for this checkpoint use the text-object f
 
 Three rules keep every pixel the same: the pick pass draws a window, antialiasing stops at device scale 2, and a lost device reloads once at the smallest settings.
 
-![Colour, depth and metadata cost 16 bytes per physical pixel at one sample and 64 at four; the canvas multiplies that, and three levers hold it down.](illustrations/attachment-cost.svg)
+![Colour, depth and metadata cost 12 bytes per physical pixel at one sample and 48 at four; the canvas multiplies that, and three levers hold it down.](illustrations/attachment-cost.svg)
 
 ### Step 15 · The pick window's uniforms
 
 ![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
 
-- In a colour frame `origin` is zero and `frame` is the canvas, so the same arithmetic serves both.
+- The pick pass sees the scene through the sub-frustum of the window about the cursor: `LineUniform` and `CloudUniform` carry the window `origin` and the canvas `frame`. In a colour frame `origin` is zero and `frame` is the canvas, so the same arithmetic serves both.
 - Splats project onto the canvas with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment; the grid only lists the new fields.
 
 ![Diagram: frame uniforms · pick uniforms\ mvp' · line' · cloud' · id_pass · window-sized attachment · splat.wgsl · frame − origin](illustrations/17-21.svg)

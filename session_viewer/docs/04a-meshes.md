@@ -36,7 +36,7 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-6656f81dc2.svg){ .locator data-strip="illustrations/strip-1d6ef8d27c.svg" }
 
-- `GrowBuf` returns `true` when the buffer moved, so the caller rebuilds its bind group.
+- `GrowBuf` grows by appending: capacity `max(need, cap * 3 / 2)`, the live prefix copied GPU-side, only new rows written. It returns `true` when the buffer moved, so the caller rebuilds its bind group.
 
 ![Diagram: new rows · GrowBuf\ cap · len · GpuCtx\ device · queue · bind group](illustrations/04a-02.svg)
 
@@ -173,7 +173,7 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-6656f81dc2.svg){ .locator data-strip="illustrations/strip-1d6ef8d27c.svg" }
 
-- `FrameCx` adds the knobs, the anchor and the framebuffer; `pixel_scale` is framebuffer pixels per CSS pixel.
+- `FrameInput` is what one frame needs from the caller; `FrameCx` adds the knobs, the anchor and the framebuffer, and `pixel_scale` is framebuffer pixels per CSS pixel. `Binds` sets groups 0, 1 and 2 before every lane draw.
 
 ![Diagram: FrameInput\ view_proj · clear · FrameUniforms\ mvp · line · cloud · every lane draw · pick blocks\ window-sized attachment](illustrations/04a-06.svg)
 

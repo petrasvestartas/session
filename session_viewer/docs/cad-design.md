@@ -23,5 +23,7 @@ Quality uses a normal-angle target in degrees and a chord factor relative to the
 
 ![Source geometry preparation and physical visibility have separate owners.](illustrations/ownership.svg)
 
+Text alternative: one shared tessellation supplies the visible surface and its edge chains; analytic normals and crease splits govern shading; instance normal transforms and shared physical depth keep both drawing paths aligned; retained source identity answers a pick.
+
 
 The same producer exists in Rust, C++ and Python; the Rust version is the one this viewer builds against, and the course installs the other two as supplied files.
