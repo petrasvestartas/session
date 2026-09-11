@@ -55,7 +55,10 @@ Parser unit tests, part of the file:
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
 - A hostile `cv_count` would make a kernel constructor allocate from a declared number; every count is checked against the actual storage length first.
-- `session` walks a decoded protobuf; `retained` covers the JSON path, which has no protobuf constructors; `json` checks declared NURBS counts before serde builds objects.
+- `session` is the single entry for a decoded protobuf: it walks every object of every kind and returns the first failure as a string, so a hostile file becomes a status line instead of a panic inside a kernel constructor. `retained` covers the JSON path, which has no protobuf constructors; `json` checks declared NURBS counts before serde builds anything.
+- `finite` and `triples` reject non-finite scalars and partial coordinate triples. One NaN in a bounding box makes every later fit meaningless.
+- `axis` checks `order` and `count` against the knot vector actually stored, and returns the stride the caller may then trust; `curve` and `surface` re-derive the addressed control count from that stride, so a declared count never sizes an allocation.
+- `mesh` and `mesh_indices` require every face and every cached triangle to address a vertex that exists; `cloud` requires the attribute arrays and the octree arrays to describe the same rows; `brep` checks the analytic geometry before a BRep constructor dereferences it.
 
 ![Diagram: decoded protobuf · counts ≤ storage · JSON document](illustrations/14-03.svg)
 
@@ -250,7 +253,7 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 
 ![Checkpoint 14: the same interaction fixture, now fetched through the manifest and protobuf path.](screenshots/14.png)
 
-![Left: a manifest that lists the same file twice, the second with `at: [0, 12, 0]`, plus a fixed-plane text item; one download, two placements. Right: a manifest naming a missing file, and the status names the stage that failed.](screenshots/14-manifest.png)
+![Left: a manifest that lists the same file twice, the second with `at: [0, 12, 0]`, plus a fixed-plane text item; one file, two placements. Right: a manifest naming a missing file, and the status names the stage that failed.](screenshots/14-manifest.png)
 
 ## What changed
 
@@ -264,7 +267,7 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 
 ## Try
 
-- Write `dist/scenes/two.yaml` listing `pb/interaction.pb` twice, the second entry with `at: [0, 12, 0]`, and open `?scene=two.yaml&data=off`: the file is fetched once and placed twice.
+- Write `dist/scenes/two.yaml` listing `pb/interaction.pb` twice, the second entry with `at: [0, 12, 0]`, and open `?scene=two.yaml&data=off`: one file on disk, two rows, two placements. The loader walks items, so it fetches the URL once per item and the browser cache answers the second.
 - Add a `texts` entry with `at`, `right`, `up` and `height`: the label sits in that world plane and foreshortens with the view.
 - Point an item at a file that does not exist: the status reads which stage failed and the previous scene stays on screen.
 - Give an item an `xform` whose last row is not `0 0 0 1`: `Manifest::parse` rejects it as not affine, before any file is fetched.

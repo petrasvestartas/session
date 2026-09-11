@@ -125,7 +125,12 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-The protobuf headers sit in the first few kilobytes and `coords` is packed, so the point count is known before any payload is read. Mechanical: copy it.
+- `varint` and `skip_scalar` read the protobuf wire format by hand. The viewer wants one array's byte offset, not the message: decoding the message is the thing streaming exists to avoid.
+- `descend_message` walks into the wanted field and requires every container to close exactly where its length says. A file that disagrees with itself is refused before a single range is requested.
+- `walk_to_coords` and `cloud_layout` return `coords`' absolute offset and length from the first few kilobytes, so the point count is known before a byte of payload is fetched.
+- `CloudLod::set_field` decodes one packed octree array per field number; `valid` then checks the whole table at once. After that the scene can index nodes and children without a bounds test per access.
+- `bounded_range`, `body_end` and `checked_positions` are the range guards: a slice must be whole coordinate triples, land inside the file, and stay inside the array it belongs to.
+- Long, and worth reading rather than typing: it is one wire-format reader and its guards, and nothing above this line in the course parses bytes.
 
 ![Diagram: cloud .pb header · CloudFields · point count](illustrations/13-05.svg)
 

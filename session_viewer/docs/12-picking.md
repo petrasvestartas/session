@@ -650,6 +650,7 @@ Document titles and the selected name are derived labels; they have no source ro
 - `#viewer-docs` is the documentation corner: a black folded triangle, top right, drawn from the borders of a zero-size anchor; it opens `docs/` in a new tab.
 - Hover or keyboard focus grows it, a page corner lifting; it covers nothing but itself.
 - The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so the corner resolves in a served build.
+- Trunk refuses to build when a `copy-dir` source is missing, and nothing has created that directory yet: run `mkdir -p target/docs/site` once before the Check. Lesson 14 adds the pre-build hook that fills it.
 - Nothing builds that site yet; lesson 14 adds the hook.
 - Trunk refuses a `copy-dir` whose source is missing, so create the directory once before serving:
 
@@ -708,7 +709,7 @@ If an object highlights but the status names another GUID, the row → identity 
 - Click the empty background: the selection clears, because the ID pass wrote 0 there.
 - Press the left button on the BRep, drag more than `CLICK_SLOP` (4 logical pixels) and release: nothing is selected, because a release outside the slop is a drag, not a click.
 - Raise `PICK_RADIUS` in `pick.rs` and click just beside the curve: the nearest ID inside the window wins, so the curve is selected from further away.
-- Hover the black corner at the top right: it grows; click it and the course opens in a new tab from `dist/docs`.
+- Hover the black corner at the top right: it grows. It opens `dist/docs`, which is empty until lesson 14 builds the course into it.
 - Make `Picker::poll` skip its `submitted != generation` comparison and orbit while a click is pending: a late answer selects against the new camera — the bug the check prevents.
 
 ## Questions and answers
