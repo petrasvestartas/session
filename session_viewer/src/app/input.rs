@@ -64,6 +64,11 @@ impl Input {
             Key::Named(NamedKey::Escape) => state.escape_selection(),
             Key::Named(NamedKey::F10) => state.enable_controls(),
             Key::Named(NamedKey::Delete) => state.delete_selected(),
+            // The colon opens the command box, the way a modal editor does. The box then holds
+            // the keyboard, so the letters typed into it never reach these bindings.
+            Key::Character(":") => {
+                crate::app::feedback::command_line(true);
+            }
             // Ctrl+Z back, Ctrl+Shift+Z or Ctrl+Y forward: the two spellings every editor takes.
             Key::Character("z" | "Z") if self.ctrl => {
                 if self.shift {
@@ -287,6 +292,54 @@ impl Drop for PointerCancellation {
             "pointercancel",
             self.callback.as_ref().unchecked_ref(),
         );
+    }
+}
+
+/// The command box's own key listener: winit never sees these, because the box has the focus
+/// while it is open, which is exactly what lets a `z` typed in it be a letter.
+#[cfg(target_arch = "wasm32")]
+pub struct CommandKeys {
+    input: web_sys::HtmlInputElement,
+    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::KeyboardEvent)>,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl CommandKeys {
+    /// Install once. Enter sends the line and closes the box; Escape closes it and throws the
+    /// line away. Nothing else is intercepted, so the box behaves like a text field.
+    pub fn new(
+        input: web_sys::HtmlInputElement,
+        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
+    ) -> Result<Self, wasm_bindgen::JsValue> {
+        use wasm_bindgen::JsCast;
+        let box_ = input.clone();
+        let callback = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
+            move |event: web_sys::KeyboardEvent| match event.key().as_str() {
+                "Enter" => {
+                    let line = box_.value();
+                    crate::app::feedback::command_line(false);
+                    if !line.trim().is_empty() {
+                        let _ = proxy.send_event(crate::Msg::Command(line));
+                    }
+                }
+                "Escape" => {
+                    crate::app::feedback::command_line(false);
+                }
+                _ => {}
+            },
+        );
+        input.add_event_listener_with_callback("keydown", callback.as_ref().unchecked_ref())?;
+        Ok(Self { input, callback })
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl Drop for CommandKeys {
+    fn drop(&mut self) {
+        use wasm_bindgen::JsCast;
+        let _ = self
+            .input
+            .remove_event_listener_with_callback("keydown", self.callback.as_ref().unchecked_ref());
     }
 }
 

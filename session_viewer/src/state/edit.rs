@@ -8,6 +8,7 @@
 //! two small writes, no document touched. It ENDS by writing the document once, which is what
 //! makes one gesture one undo step.
 
+use crate::app::command::Command;
 use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, HUB, Handle};
 use crate::app::walk::encode::FACING_UNKNOWN;
 use crate::state::render_position;
@@ -267,4 +268,108 @@ fn unpack_color(packed: u32) -> [f32; 4] {
         (packed & 0xff) as f32 / 255.0,
         ((packed >> 24) & 0xff) as f32 / 255.0,
     ]
+}
+
+impl State {
+    /// Run one typed line. The string that comes back is what to show the person who typed it:
+    /// what happened, or why nothing did.
+    ///
+    /// Every arm calls an action the viewer already has, so a command cannot drift from the
+    /// key that does the same thing.
+    pub fn run_command(&mut self, line: &str) -> Result<String, String> {
+        let command = crate::app::command::parse(line)?;
+        let needs_selection = matches!(
+            command,
+            Command::Move(_) | Command::Rotate { .. } | Command::Scale(_) | Command::Delete
+        );
+        if needs_selection && self.scene.selected.is_none() {
+            return Err("nothing is selected".into());
+        }
+        match command {
+            Command::Move(d) => self.apply(Xform::translation(d[0], d[1], d[2]), "move"),
+            Command::Rotate { axis, degrees } => {
+                let about = self.gizmo.as_ref().map(|g| g.origin.clone());
+                let turn = rotation_about(axis, degrees, about.as_ref());
+                self.apply(turn, "rotate")
+            }
+            Command::Scale(k) => {
+                let about = self.gizmo.as_ref().map(|g| g.origin.clone());
+                self.apply(scaling_about(k, about.as_ref()), "scale")
+            }
+            Command::Delete => {
+                self.delete_selected();
+                Ok("deleted".into())
+            }
+            Command::Undo => {
+                self.undo();
+                Ok("undone".into())
+            }
+            Command::Redo => {
+                self.redo();
+                Ok("redone".into())
+            }
+            Command::Hide => {
+                self.hide_selected();
+                Ok("hidden".into())
+            }
+            Command::ShowAll => {
+                self.show_all();
+                Ok("everything shown".into())
+            }
+            Command::Fit => {
+                self.fit_selected_or_all();
+                Ok("fitted".into())
+            }
+            Command::Escape => {
+                self.escape_selection();
+                Ok("selection cleared".into())
+            }
+        }
+    }
+
+    /// One recorded transform on the selection, with the row's placement written back.
+    fn apply(&mut self, delta: Xform, label: &str) -> Result<String, String> {
+        let Some(row) = self.scene.selected else {
+            return Err("nothing is selected".into());
+        };
+        let Some(place) = self.scene.transform_row(row, &delta, label) else {
+            return Err("this row cannot be edited".into());
+        };
+        self.gpu
+            .objects
+            .set_placement(&self.gpu.ctx, row, &place);
+        self.place_gizmo(Some(row));
+        self.touch();
+        Ok(label.into())
+    }
+}
+
+/// A turn about a point rather than about the world origin: translate the point to the origin,
+/// turn, translate back. Without the centring, `rotate z 90` would swing the object around the
+/// file's origin, which is rarely where it is.
+fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
+    let turn = match axis {
+        Axis::X => Xform::rotation_x(degrees, true),
+        Axis::Y => Xform::rotation_y(degrees, true),
+        Axis::Z => Xform::rotation_z(degrees, true),
+    };
+    centred(turn, about)
+}
+
+/// The same centring for a scale. The kernel already has the centred form, so this only has to
+/// choose a centre: the widget's origin, or the world origin when there is no widget.
+fn scaling_about(factor: f64, about: Option<&Point>) -> Xform {
+    match about {
+        Some(p) => Xform::scale_uniform(p, factor),
+        None => Xform::scale_xyz(factor, factor, factor),
+    }
+}
+
+fn centred(inner: Xform, about: Option<&Point>) -> Xform {
+    let Some(p) = about else {
+        return inner;
+    };
+    let to = Xform::translation(p[0], p[1], p[2]);
+    let back = Xform::translation(-p[0], -p[1], -p[2]);
+    &(&to * &inner) * &back
 }

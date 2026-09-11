@@ -52,6 +52,11 @@
   <canvas id="canvas" tabindex="0"></canvas>
   <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
+  <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
+       back the moment it closes, so typing `z` in here is a letter and not an undo. -->
+  <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
+         aria-label="Command line"
+         style="position:fixed;bottom:44px;left:12px;width:min(420px,60vw);color:#fff;background:#222d;border:0;border-radius:4px;font:14px/1.6 ui-monospace,monospace;padding:4px 8px;outline:1px solid #555">
   <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
   <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
   <!-- The built course site (docs/build_site.sh keeps it current before each build). -->

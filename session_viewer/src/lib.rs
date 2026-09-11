@@ -47,6 +47,8 @@ pub enum Msg {
     SheetChunk(SheetChunk),
     SheetEntity(app::sheet_query::Resolved),
     CancelPointer,
+    /// A line typed into the command box, sent when Enter was pressed in it.
+    Command(String),
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -69,6 +71,7 @@ pub struct App {
     proxy: Option<EventLoopProxy<Msg>>,
     input: Input,
     pointer_cancellation: Option<app::input::PointerCancellation>,
+    command_keys: Option<app::input::CommandKeys>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -82,6 +85,7 @@ impl App {
             state: None,
             input: Input::new(),
             pointer_cancellation: None,
+            command_keys: None,
         };
         event_loop.spawn_app(app);
         Ok(())
@@ -130,6 +134,12 @@ impl ApplicationHandler<Msg> for App {
                 Ok(listener) => self.pointer_cancellation = Some(listener),
                 Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
             }
+            if let Some(input) = app::feedback::command_line(false) {
+                match app::input::CommandKeys::new(input, proxy.clone()) {
+                    Ok(listener) => self.command_keys = Some(listener),
+                    Err(error) => log::warn!("Cannot register the command line: {error:?}"),
+                }
+            }
             wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
         }
     }
@@ -162,6 +172,13 @@ impl ApplicationHandler<Msg> for App {
                     from,
                     col_at,
                 });
+            }
+            Msg::Command(line) => {
+                let said = match state.run_command(&line) {
+                    Ok(done) => done,
+                    Err(why) => why,
+                };
+                app::feedback::status(&said);
             }
             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),

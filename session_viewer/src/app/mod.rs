@@ -3,6 +3,7 @@
 //! touch). Above the engine, below the shell in lib.rs. Never names a wgpu type.
 
 pub mod cloud_query;
+pub mod command;
 pub mod coords;
 pub mod cplane;
 pub mod edit;
