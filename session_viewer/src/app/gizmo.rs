@@ -16,13 +16,13 @@
 use session_rust::{Point, Vector};
 
 /// The one length everything else is a fraction of, in CSS pixels.
-const ARM: f64 = 72.0;
+pub const ARM: f64 = 72.0;
 /// Axis scale balls, on the same side as the arrows so pulling out always grows.
-const BALL_AT: f64 = ARM * 0.5;
+pub const BALL_AT: f64 = ARM * 0.5;
 /// Grab radius. Wider than the 6 px pick radius because a handle is grabbed, not aimed at.
 const GRAB: f64 = 8.0;
 /// Uniform-scale ball at the centre.
-const HUB: f64 = 6.0;
+pub const HUB: f64 = 6.0;
 /// Drag softening. A scale that follows the raw distance ratio doubles an object within a few
 /// pixels of the centre, where that ratio changes fastest. A square root flattens it without
 /// moving its fixed point: 1 is still 1, and any factor is still reachable, just further out.

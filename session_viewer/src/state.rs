@@ -16,6 +16,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
 mod cloud_query;
+pub mod edit;
 mod sheet_query;
 mod text;
 use std::sync::Arc;
@@ -56,6 +57,10 @@ pub struct State {
     query_generation: u64,
     sheet_query: Option<crate::app::sheet_query::Query>,
     sheet_generation: u64,
+    /// The move/rotate/scale widget, present only while a row with a box is selected.
+    pub gizmo: Option<crate::app::gizmo::Gizmo>,
+    /// The drag in progress, holding what the gesture is measured FROM.
+    dragging: Option<edit::GizmoDrag>,
 }
 
 impl State {
@@ -84,6 +89,8 @@ impl State {
             query_generation: 0,
             sheet_query: None,
             sheet_generation: 0,
+            gizmo: None,
+            dragging: None,
         })
     }
 
@@ -263,6 +270,7 @@ impl State {
             self.gpu.set_selected(r, true);
         }
         self.scene.selected = row;
+        self.place_gizmo(row);
         self.update_label();
         self.touch();
     }
@@ -695,6 +703,6 @@ impl State {
 }
 
 /// Convert a retained source position at the temporary GPU-control upload boundary.
-fn render_position(position: [f64; 3]) -> [f32; 3] {
+pub(crate) fn render_position(position: [f64; 3]) -> [f32; 3] {
     [position[0] as f32, position[1] as f32, position[2] as f32]
 }

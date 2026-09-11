@@ -125,6 +125,8 @@ pub struct InstanceTable {
     /// placement, so an edit that only moves the object recomputes the world box from here
     /// instead of walking the geometry again.
     local_bounds: Vec<Aabb>,
+    /// The identity row the widgets draw against, once something has asked for it.
+    widget: Option<u32>,
     bounded: Vec<BoundedRow>,
     /// Every row's world box, row order, so index = row; `Aabb::empty()` where not finite.
     world_bounds: Vec<Aabb>,
@@ -232,6 +234,7 @@ impl InstanceTable {
             rows: vec![Instance::placeholder()],
             translation: Vec::new(),
             local_bounds: Vec::new(),
+            widget: None,
             bounded: Vec::new(),
             world_bounds: Vec::new(),
             last_origin: None,
@@ -281,6 +284,7 @@ impl InstanceTable {
     /// send only the new rows. The next frame rebases the whole table.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &ObjectRows) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
+        self.widget = None;
         if self.translation.is_empty() {
             self.rows.clear();
             self.world_bounds.clear();
@@ -442,6 +446,31 @@ impl InstanceTable {
         }
     }
 
+    /// The index of an identity row the widgets draw against, appending one the first time.
+    ///
+    /// A gizmo's geometry is already in world coordinates, so it needs an instance whose model
+    /// is the identity and whose translation is zero. Row 0 is a real object as soon as the
+    /// scene has one, so the widget cannot borrow it: it gets a row of its own, after every
+    /// scene row, minted once and cleared with the table.
+    pub fn widget_row(&mut self, ctx: &GpuCtx, l: &Layouts) -> u32 {
+        if let Some(row) = self.widget {
+            return row;
+        }
+        let row = self.rows.len() as u32;
+        self.rows.push(Instance::placeholder());
+        self.translation.push([0.0; 3]);
+        self.local_bounds.push(Aabb::empty());
+        self.world_bounds.push(Aabb::empty());
+        // `append` is what grows the buffer; writing past the end would be a validation error.
+        let grew = self.buffer.append(ctx, std::slice::from_ref(&self.rows[row as usize]));
+        let grew_t = self.translations.append(ctx, std::slice::from_ref(&[0.0f32; 4]));
+        if grew || grew_t {
+            self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
+        }
+        self.widget = Some(row);
+        row
+    }
+
     /// Replace one row's placement and write back only that row.
     ///
     /// Two small writes - 96 B of instance and 16 B of anchored translation - so a drag frame
@@ -495,6 +524,7 @@ impl InstanceTable {
     /// Forget every row; the buffers keep their capacity.
     pub fn reset(&mut self) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
+        self.widget = None;
         self.rows.clear();
         self.translation.clear();
         self.local_bounds.clear();
@@ -614,6 +644,42 @@ mod tests {
         assert_eq!(translation, [10.0, 20.0, 30.0]);
         assert_eq!(world.min, [9.0, 19.0, 29.0]);
         assert_eq!(world.max, [11.0, 21.0, 31.0]);
+    }
+
+    /// The write a drag frame makes, on a real device: one row moves, its neighbour does not,
+    /// and the widget row the gizmo draws against lands after both.
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    #[ignore = "requires a native GPU adapter"]
+    fn one_row_moves_and_its_neighbour_does_not() {
+        use crate::engine::gpu::{Gpu, Upload};
+        let mut gpu = pollster::block_on(Gpu::new_headless(64, 64)).unwrap();
+        let mut upload = Upload::default();
+        for x in [0.0, 100.0] {
+            let mut row = ObjectRow::new(Xform::translation(x, 0.0, 0.0).m, 0);
+            row.bounds = Aabb {
+                min: [-1.0, -1.0, -1.0],
+                max: [1.0, 1.0, 1.0],
+            };
+            row.faces = true;
+            upload.obj.rows.push(row);
+        }
+        gpu.set_scene(&upload);
+        assert_eq!(gpu.objects.len(), 2);
+
+        let moved = Xform::translation(0.0, 50.0, 0.0).m;
+        assert!(gpu.objects.set_placement(&gpu.ctx, 0, &moved));
+
+        let first = gpu.objects.row_bounds(0).expect("row 0 has a box");
+        let second = gpu.objects.row_bounds(1).expect("row 1 has a box");
+        assert_eq!(first.min[1], 49.0);
+        assert_eq!(second.min[0], 99.0);
+        assert_eq!(second.min[1], -1.0, "the neighbour did not move");
+
+        // The widget row is minted once, after every scene row, and stays where it was put.
+        let widget = gpu.objects.widget_row(&gpu.ctx, &gpu.layouts);
+        assert_eq!(widget, 2);
+        assert_eq!(gpu.objects.widget_row(&gpu.ctx, &gpu.layouts), widget);
     }
 
     /// A row with no volume keeps an empty box rather than an infinite one, so the inside test

@@ -1,5 +1,7 @@
 //! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
-//! left click picks the object, Ctrl+click an edge and Ctrl+Shift+click a face;
+//! left click picks the object, Ctrl+click an edge and Ctrl+Shift+click a face, and a left
+//! drag on a gizmo handle moves the selection; Delete removes it, Ctrl+Z undoes and
+//! Ctrl+Shift+Z or Ctrl+Y redoes;
 //! 1-7 named views, Space projection, C reset, F fits the selection (or
 //! everything with none selected), Q/W/E lane toggles, O silhouettes, D face lighting,
 //! B the back-face flag,
@@ -23,6 +25,9 @@ pub struct Input {
     panning: bool,
     ctrl: bool,
     shift: bool,
+    /// A gizmo handle is being dragged, so the pointer belongs to the widget and neither the
+    /// camera nor the picker sees it until it is let go.
+    gizmo_drag: bool,
     last_cursor: (f64, f64),
     left_down: Option<(f64, f64)>,
     touch: Touches,
@@ -43,6 +48,7 @@ impl Input {
             panning: false,
             ctrl: false,
             shift: false,
+            gizmo_drag: false,
             last_cursor: (0.0, 0.0),
             left_down: None,
             touch: Touches::new(),
@@ -57,6 +63,16 @@ impl Input {
                 .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
             Key::Named(NamedKey::Escape) => state.escape_selection(),
             Key::Named(NamedKey::F10) => state.enable_controls(),
+            Key::Named(NamedKey::Delete) => state.delete_selected(),
+            // Ctrl+Z back, Ctrl+Shift+Z or Ctrl+Y forward: the two spellings every editor takes.
+            Key::Character("z" | "Z") if self.ctrl => {
+                if self.shift {
+                    state.redo()
+                } else {
+                    state.undo()
+                }
+            }
+            Key::Character("y" | "Y") if self.ctrl => state.redo(),
             Key::Character("1") => state.camera.set_view(View::Front),
             Key::Character("2") => state.camera.set_view(View::Back),
             Key::Character("3") => state.camera.set_view(View::Left),
@@ -118,6 +134,10 @@ impl Input {
                 let scale = crate::engine::gpu::view::surface_per_physical();
                 let position =
                     winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
+                if self.gizmo_drag {
+                    self.last_cursor = (position.x, position.y);
+                    return state.drag_gizmo(position.x, position.y);
+                }
                 let dragging = self.orbiting || self.panning;
                 if dragging {
                     let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
@@ -185,6 +205,7 @@ impl Input {
         self.panning = false;
         self.ctrl = false;
         self.shift = false;
+        self.gizmo_drag = false;
         self.left_down = None;
         self.touch = Touches::new();
     }
@@ -192,13 +213,25 @@ impl Input {
     /// The left button: a press remembers where; a release within the slop is a click and
     /// asks the GPU what is under it. The picture is unchanged until the answer lands, so a
     /// click never redraws by itself.
+    /// A left press is either a gizmo grab or the start of a click. The gizmo is asked first:
+    /// its handles sit over the object they move, so a click that lands on one is never also
+    /// a pick of what is behind it.
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
             ElementState::Pressed => {
+                if state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
+                    self.gizmo_drag = true;
+                    return false;
+                }
                 self.left_down = Some(self.last_cursor);
                 false
             }
             ElementState::Released => {
+                if self.gizmo_drag {
+                    self.gizmo_drag = false;
+                    state.end_gizmo(self.last_cursor.0, self.last_cursor.1);
+                    return true;
+                }
                 let Some(down) = self.left_down.take() else {
                     return false;
                 };

@@ -71,6 +71,11 @@ pub struct Gpu {
     pub glyphs: GlyphLane,
     pub controls: GlyphLane,
     pub control_net: SegmentLane,
+    /// The move/rotate/scale widget, drawn by the same two lane types the control net uses:
+    /// three arms and their balls are strokes and markers, so the widget costs no shader and
+    /// no pipeline of its own.
+    pub gizmo_arms: SegmentLane,
+    pub gizmo_dots: GlyphLane,
     pub text: text::TextLane,
     pub selection_outline: surface_outline::SurfaceOutline,
     pub solid_outline: surface_outline::SurfaceOutline,
@@ -103,6 +108,8 @@ impl Gpu {
             + self.glyphs.allocated_bytes()
             + self.controls.allocated_bytes()
             + self.control_net.allocated_bytes()
+            + self.gizmo_arms.allocated_bytes()
+            + self.gizmo_dots.allocated_bytes()
             + self.cloud.allocated_bytes()
             + self.objects.allocated_bytes()
             + self.frame.allocated_bytes()
@@ -178,6 +185,8 @@ impl Gpu {
         let glyphs = GlyphLane::new(&ctx, &layouts, target);
         let controls = GlyphLane::new(&ctx, &layouts, target);
         let control_net = SegmentLane::new(&ctx, &layouts, target);
+        let gizmo_arms = SegmentLane::new(&ctx, &layouts, target);
+        let gizmo_dots = GlyphLane::new(&ctx, &layouts, target);
         let text = text::TextLane::new(&ctx, target);
         let selection_outline = surface_outline::SurfaceOutline::new(
             &ctx,
@@ -213,6 +222,8 @@ impl Gpu {
             glyphs,
             controls,
             control_net,
+            gizmo_arms,
+            gizmo_dots,
             text,
             selection_outline,
             solid_outline,
@@ -298,6 +309,8 @@ impl Gpu {
             self.glyphs.retarget(&self.ctx, &self.layouts, target);
             self.controls.retarget(&self.ctx, &self.layouts, target);
             self.control_net.retarget(&self.ctx, &self.layouts, target);
+            self.gizmo_arms.retarget(&self.ctx, &self.layouts, target);
+            self.gizmo_dots.retarget(&self.ctx, &self.layouts, target);
             self.text.retarget(&self.ctx, target);
             self.selection_outline.retarget(&self.ctx, target);
             self.solid_outline.retarget(&self.ctx, target);
@@ -363,6 +376,8 @@ impl Gpu {
         self.glyphs.reset();
         self.controls.reset();
         self.control_net.reset();
+        self.gizmo_arms.reset();
+        self.gizmo_dots.reset();
         self.text.reset();
         self.selection_outline.reset();
         self.solid_outline.reset();
@@ -381,6 +396,8 @@ impl Gpu {
         self.glyphs.release(&self.ctx, &self.layouts);
         self.controls.release(&self.ctx, &self.layouts);
         self.control_net.release(&self.ctx, &self.layouts);
+        self.gizmo_arms.release(&self.ctx, &self.layouts);
+        self.gizmo_dots.release(&self.ctx, &self.layouts);
         self.text.release(&self.ctx);
         self.selection_outline.reset();
         self.solid_outline.reset();

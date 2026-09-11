@@ -194,6 +194,9 @@ impl Gpu {
         }
         draws += self.control_net.draw_ribbons(pass, &b);
         draws += self.controls.draw_dots(pass, &b);
+        // Last of the ink list, so the widget is drawn over the object it moves.
+        draws += self.gizmo_arms.draw_ribbons(pass, &b);
+        draws += self.gizmo_dots.draw_dots(pass, &b);
         draws += self.text.draw(pass);
         draws
     }
