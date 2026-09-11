@@ -359,6 +359,10 @@ flowchart TB
 
 <!-- file: 04a session_viewer/index.html copy -->
 
+- Now everything you typed is in the build. The two earlier checks only proved you had not broken checkpoint 03: an undeclared file is not compiled at all, and `engine/gpu/mod.rs` names the new modules only here. Read a compiler error now rather than a blank canvas in a moment.
+
+<!-- check: 04a -->
+
 ## Check
 
 <!-- checkpoint: 04a -->

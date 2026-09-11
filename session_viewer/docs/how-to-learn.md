@@ -17,6 +17,7 @@ flowchart LR
 - **Predict** before you type. Each step names its idea in one or two sentences before the code. Stop there and guess the shape of the code. A wrong guess is the useful kind: you now have a question, and the block answers it.
 - **Type** the blocks marked **TYPE THIS**. Typing is slow on purpose; it is the only part of the course where your hands learn the API. Blocks marked **COPY** are boilerplate, fixtures and lockfiles — copy those, you learn nothing by retyping a font table.
 - **Check** at every marker. `cargo check` is the cheapest feedback in the course, and the checkpoint build tells you what the screen should show. Never carry a broken state into the next lesson.
+    Know what a check proves, though: a Rust file enters the build only when a `mod` line names it, and the bigger lessons create files first and declare them at the end. A check before that wiring step proves you have not broken the *previous* checkpoint; the check after it is the one that compiles what you just typed. Both are worth running — the first is how you notice you deleted the wrong line.
 - **Recall** at the end. Each lesson closes with questions whose answers are hidden. Answer out loud or on paper *first*, then open the answer and compare. The comparison is the learning; reading the answer is not.
 
 ## Why the answers are hidden

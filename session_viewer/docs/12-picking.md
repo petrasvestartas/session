@@ -467,6 +467,10 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/fixture.rs -->
 
+- The whole production shell is in the build now. The two checks inside Parts A and B passed while the new modules were still undeclared, so this is the first one that compiles them; the teaching fixture and `Tutorial` are gone and `App` has taken their place.
+
+<!-- check: 12 -->
+
 ## Check
 
 <!-- checkpoint: 12 -->
