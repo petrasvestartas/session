@@ -105,8 +105,22 @@ def measure(path):
     return json.loads(m.group(1).replace("&quot;", '"').replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">"))
 
 
+def generated(path):
+    """True for a drawing a tool owns, which must stay byte-identical to what that tool writes.
+
+    Pinning one is not merely pointless - `diagrams.py --check` and `locator.py --check` compare
+    bytes, so a pinned diagram reports itself out of date for good. Only the hand-placed text of
+    draw.py needs a measured width written back.
+    """
+    name = Path(path).name
+    return (name == "map.svg" or name.startswith(("locator-", "strip-"))
+            or "data-d2-version" in Path(path).read_text(errors="ignore")[:400])
+
+
 def pin(path):
     """Write each label's measured width back as textLength, the way the node checker does."""
+    if generated(path):
+        return []
     data = measure(path)
     if data is None:
         return [f"{path}: could not measure"]
@@ -151,6 +165,7 @@ def check(path):
 
 def one(path, writing):
     return (pin(path) if writing else []) + check(path)
+
 
 
 if __name__ == "__main__":
