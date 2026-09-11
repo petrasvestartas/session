@@ -91,7 +91,7 @@ Every word the lessons use before they have room to explain it, with the lesson 
 ## House words
 
 - **row / instance** (03) — one object on the GPU: a 96-byte record (`Instance`: model matrix, colour, flags, spacing). A pick returns a row; `Scene` turns it into a source identity.
-- **lane** (04a) — one drawing family with its own buffers, pipelines and draw calls. The eleven the map names: `arena` (meshes), `segments` (strokes), `glyphs` (markers), `cloud` + `splat` + `lod` (points), `text*`, `surface_outline`, `backdrop` (05), `pick` (12), `triangle_tiles` (18). Lanes do not reach into each other's buffers, except where one lane owns another outright — the arena owns the outline-text lane and the tile pool. `Gpu` lists them by hand.
+- **lane** (04a) — one drawing family with its own buffers, pipelines and draw calls. The twelve the map names: `arena` (meshes), `faces` (17, source faces), `segments` (strokes), `glyphs` (markers), `cloud` + `splat` + `lod` (points), `text*`, `surface_outline`, `backdrop` (05), `pick` (12), `triangle_tiles` (18). Lanes do not reach into each other's buffers, except where one lane owns another outright — the arena owns the outline-text lane and the tile pool. `Gpu` lists them by hand.
 - **upload** (04a) — the typed rows one file produces, with no wgpu types in them; `Gpu::set_scene` appends them to the lanes, then the rows are dropped.
 - **walk / producer** (06) — the CPU code that turns one kernel geometry into rows; one producer per geometry family in `src/app/walk/`.
 - **face pass / physical** (04a, 05) — the first pass: solid faces write colour, depth and a depth-gradient. "Physical" means *this is what occludes*.

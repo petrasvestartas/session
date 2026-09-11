@@ -86,7 +86,7 @@ A stroke is a ribbon of fragments around its mathematical axis; the depth beside
                    z0            depth varies across the footprint
 ```
 
-Comparing `z0` with `d` directly hides ink on its own face. Comparing `z0` with `d` directly hides ink on its own face. The physical gradient instead carries the surface depth from the fragment to the axis point, and only that predicted depth is compared with the axis.
+Comparing `z0` with `d` directly hides ink on its own face. The physical gradient instead carries the surface depth from the fragment to the axis point, and only that predicted depth is compared with the axis.
 
 
 ### 4a · Bindings, tolerances and the axis record

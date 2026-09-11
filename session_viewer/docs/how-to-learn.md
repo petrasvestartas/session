@@ -38,7 +38,7 @@ Where a later lesson says less about something, an earlier one said it in full a
 
 ## What finishing means
 
-Not "I typed all twenty lessons." It means you can sit in front of an empty crate and, without this page open:
+Not "I typed all twenty-four lessons." It means you can sit in front of an empty crate and, without this page open:
 
 - name the objects between an empty `main` and a cleared canvas, in order;
 - say where any piece of data lives — CPU, GPU, or in transit — and who owns it;

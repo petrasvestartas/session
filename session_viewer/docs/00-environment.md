@@ -139,7 +139,7 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 
 **The page is stuck on *Loading WASM* and the console is empty. Name two candidates before you touch the Rust.**
 
-*How to work it out.* "Loading WASM" is the HTML's own text, so the page loaded but the module never replaced it. That rules out everything after `start()` runs and points at the two stages before it: was a module served at all, and was it rebuilt? *How to work it out.* "Loading WASM" is the HTML's own text, so the page loaded but the module never replaced it. That rules out everything after `start()` runs and points at the two stages before it: was a module served at all, and was it rebuilt? An empty console is the clue — a Rust panic would have printed.
+*How to work it out.* "Loading WASM" is the HTML's own text, so the page loaded but the module never replaced it. That rules out everything after `start()` runs and points at the two stages before it: was a module served at all, and was it rebuilt? An empty console is the clue — a Rust panic would have printed.
 
 *The answer.* Either you opened the file from disk instead of the Trunk address, so nothing loaded the module, or the crate did not rebuild. An id typo is a third candidate, easy to tell apart: it panics, and the console shows the `expect` message.
 

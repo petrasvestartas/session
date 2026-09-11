@@ -72,7 +72,7 @@ Native-only adapter naming and the error callbacks:
 
 - `write_frame_uniforms` runs once per frame: camera matrices, the inside-flag refresh reading the eye just solved, then text placement.
 - `present` returns `None` when the surface had no texture; the caller asks for another frame instead of panicking.
-- `pick_frame` is the cloud prelude and the ID pass, against the last presented frame's depth: a pick on a still scene costs no colour frame. (The source comment at present.rs:72 says "the id pass alone" too, and has the same gap.)
+- `pick_frame` is the cloud prelude and the ID pass, against the last presented frame's depth: a pick on a still scene costs no colour frame.
 
 ![Diagram: camera · eye · write_frame_uniforms · present · surface texture · pick_frame](illustrations/12-04.svg)
 
@@ -266,7 +266,7 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-48 -->
 
-- Normals are read only when every point has one: - Normals are read only when every point has one: a partly-normalled cloud would shade inconsistently, and no per-point flag says which.
+- Normals are read only when every point has one: a partly-normalled cloud would shade inconsistently, and no per-point flag says which.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 

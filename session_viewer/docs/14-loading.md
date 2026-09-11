@@ -19,7 +19,7 @@
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- A manifest lists files and where each sits (`at`, `xform`, auto-grid); - A manifest lists files and where each sits (`at`, `xform`, auto-grid); geometry stays in the `.pb` files, so a placement edit never re-uploads geometry.
+- A manifest lists files and where each sits (`at`, `xform`, auto-grid); geometry stays in the `.pb` files, so a placement edit never re-uploads geometry.
 - `parse` accepts YAML, JSON and TOML with one set of semantics, rejecting non-finite or non-affine transforms before anything is fetched.
 - `TextItem` is a manifest-authored fixed world-plane label; its frame must be unit and orthogonal, checked here rather than in a renderer.
 
@@ -140,7 +140,7 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=117-174 -->
 
-- The status line is deduplicated by message, so a poll that keeps failing says so once instead of repeating.
+- The console warning is deduplicated by message, so a poll that keeps failing logs once instead of repeating. It never reaches the status line.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 

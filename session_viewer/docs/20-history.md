@@ -226,4 +226,8 @@ Narrate a click from browser event to highlighted object, without looking. Corre
 
 ## Next
 
+[Capstone](capstone.md): add a section plane, with the requirements, the constraints and the full design worked through, and no step-by-step.
+
+[Extending the viewer](extend-roadmap.md): what it still cannot do, and how a gumball, a command line and layer panels would fit this architecture.
+
 [Architecture reference](../ARCHITECTURE.md): the finished module graph, frame lifecycle and Rust ↔ WGSL interfaces.

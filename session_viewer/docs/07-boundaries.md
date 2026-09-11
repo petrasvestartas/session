@@ -164,7 +164,7 @@
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
-- Face-use flags are never read: - Face-use flags are never read: two faces walking a shared edge in opposite directions agree, and a group enclosing negative volume is inside out.
+- Face-use flags are never read: two faces walking a shared edge in opposite directions agree, and a group enclosing negative volume is inside out.
 
 ![Diagram: EdgeChain · face_signs · face Mesh · outward normals](illustrations/07-08.svg)
 
