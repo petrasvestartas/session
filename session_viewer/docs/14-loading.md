@@ -267,7 +267,7 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 - Write `dist/scenes/two.yaml` listing `pb/interaction.pb` twice, the second entry with `at: [0, 12, 0]`, and open `?scene=two.yaml&data=off`: the file is fetched once and placed twice.
 - Add a `texts` entry with `at`, `right`, `up` and `height`: the label sits in that world plane and foreshortens with the view.
 - Point an item at a file that does not exist: the status reads which stage failed and the previous scene stays on screen.
-- Give an item a non-orthogonal `xform`: `Manifest::parse` rejects it before any file is fetched.
+- Give an item an `xform` whose last row is not `0 0 0 1`: `Manifest::parse` rejects it as not affine, before any file is fetched.
 - Touch a file under `docs/` and run `trunk serve` again: the hook rebuilds the site, and the black corner opens the fresh page from `dist/docs`.
 
 ## Questions and answers

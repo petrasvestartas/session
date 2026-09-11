@@ -402,7 +402,7 @@ Expected:
 
 - With the supplied teapot fixture (`assets/pb/view_mixed_teapot.pb`) or the local scene loaded: the concave foot boundary stays continuous while orbiting; edges where two solids touch stay visible.
 - A genuinely covered edge stays hidden; a visible seam does not break up as a neighbouring face moves over its stroke fringe.
-- Press **O**, select a solid and hold the camera still: the perf line shows the mask passes only on the frame after a change; orbit and they run again.
+- Press **O**, select a solid and hold the camera still: the encode time on the `?perf=1` line settles, because the masks are reused; orbit and it rises again while they are rebuilt.
 
 ![Checkpoint 18 with the supplied teapot: the rim and foot boundaries stay continuous from two camera positions, and the lid-to-body seams stay visible while a neighbouring face passes over their stroke fringe.](screenshots/18-teapot.png)
 

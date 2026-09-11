@@ -73,7 +73,7 @@ Bind groups every lane shares (`Layouts`):
 
 - Group 2 splits rows (96 B) from anchored translations (16 B) so a re-anchor rewrites 16 bytes per object.
 
-Give the drawing a four-row column between them — "ink instance layout (04a)": object rows, anchored translations, depth · single-sampled, depth · multisampled (1 x 1 placeholder) — or relabel the six-row column "ink instance layout (04a-05)" and mark the two gradient rows as the lesson-05 additions.
+The ink layout this lesson builds has four entries: object rows, anchored translations, and the scene depth at both sample counts. Lesson 05 adds the gradient pair and lesson 18 adds two more.
 
 ![Diagram: Layouts · group 0 · mvp · group 1 · line · group 2 · rows + translations · ink_instance](illustrations/04a-03.svg)
 

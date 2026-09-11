@@ -450,7 +450,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=4-4 -->
 
-- Drop the false half of the bullet: "- The module comment at the top of this file is the viewer's nearest thing to a user manual." (The underlying gap is in the code, not the lesson: production's input.rs header never gained the `O` binding.)
+- The module comment at the top of this file is the viewer's nearest thing to a user manual.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -703,7 +703,7 @@ Expected:
 - Select the BRep, press O and orbit: the black border is the union of the visible solids. Press O again and the strokes' yellow fringe defines the outline instead — not uniform where strokes meet.
 - Load a manifest with two `texts` entries and hide one with H: the other stays, and S brings the hidden one back.
 - Open `?thickness=6` and look at a corner of the polyline: no darker dot and no notch at the shared vertex, at any pen width.
-- On a high-density screen open `?dpr=1`: the canvas renders a quarter of the pixels, clicks still land where the pointer is, and the perf line reports the smaller attachments.
+- On a high-density screen open `?dpr=1`: the canvas renders a quarter of the pixels, clicks still land where the pointer is, and `data-viewer-inspection` reports the smaller `canvas` and `gpu_texture_estimate_bytes`. The perf line carries the frame counter, the gap, the encode time and the wasm capacity, and nothing about attachments.
 
 ## Questions and answers
 

@@ -224,8 +224,8 @@ Open <http://localhost:8780/?scene=view_sheets&inspect=1>. Two sheets stream in;
 ## Try
 
 - Publish a sheet of your own: `cargo run --example mk_sheet --target x86_64-unknown-linux-gnu -- in.pb out.pb` prints `out.pb: N segments, M entities, … B pb, … B meta, skipped [...]` beside the two files it wrote; upload the `.pb` and `.meta` side by side, name the `.pb` in a manifest, and the whole sheet draws as one object row.
-- Add `&segments=200000` and watch the second sheet stop at the budget; the status line names the sheet that stayed out.
-- Select an entity, then open the network panel: exactly two range requests against the `.meta` file, 16 bytes and the blob.
+- Add `&segments=200000` and watch the second sheet stop at the budget; the browser console names the sheet that stayed out.
+- Select an entity, then open the network panel: three range requests against the `.meta` file — the 8-byte head, a 16-byte record, the blob. Select a second entity on the same sheet and only two follow, because the head is cached per sheet.
 
 ## Questions and answers
 

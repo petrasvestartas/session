@@ -209,7 +209,7 @@ Expected:
 
 ## Try
 
-- Append `?nomarkers=1`: the vertex markers disappear, the strokes stay; markers are a separate lane with its own draw.
+- Append `?aa=3`: the antialiasing ramp widens and every disc edge softens, because the feather is a uniform the lane reads per frame.
 - Zoom out until the markers thin out: `spacing` in the object row lets the shader fade them once they would overlap.
 - Give one `GlyphPoint` a larger radius in `fixture.rs`: only that dot grows, because size travels per point.
 
@@ -219,7 +219,7 @@ Expected:
 
 *How to work it out.* Hardware fills triangles and nothing else. A disc is either many triangles approximating a circle, or a covering shape with a fragment test inside it. Price both: an N-gon costs N vertices and still shows corners when zoomed; a quad costs four and is exact.
 
-*The answer.* Replace the clause with "pushed out in clip space by the pixel radius plus half the feather". NOTE: this clause sits on the same line as rewrite docs/04c-markers.md:222 above, and my replacement text for that rewrite carries the clause forward verbatim — apply this correction to whichever version of line 222 ends up in the file., so the quad always contains the antialiased disc, and the fragment stage decides what is inside. Cover with a simple shape, resolve with the fragment stage — the same pattern as strokes and dots.
+*The answer.* The template corner is pushed out in clip space by the pixel radius plus half the feather, so the quad always contains the antialiased disc, and the fragment stage decides what is inside. Cover with a simple shape, resolve with the fragment stage — the same pattern as strokes and dots.
 
 **A free dot is one triangle, not a quad. What makes that enough?**
 

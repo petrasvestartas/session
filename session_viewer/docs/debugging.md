@@ -57,7 +57,7 @@ naga tells you the line. The traps that are not typos:
 - A `var` without an initializer is zero, not undefined — but a `let` used before assignment will not compile.
 - An entry point must return everything its `@location` declarations promise; a missing field is a compile error, a *wrongly typed* one is a confusing cast.
 
-`cargo xtest` parses every lane shader with naga." The same overstatement sits at docs/debugging.md:20 ("naga validates every shader in a unit test" → "every lane shader"). docs/references.md:23, "Parses every shader in the mirror tests", is already accurate and needs no change.
+Catch these without a browser: `cargo xtest` parses every lane shader with naga.
 
 ### 3 · Wrong vertex layout
 
