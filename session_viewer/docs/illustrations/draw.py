@@ -2073,7 +2073,168 @@ def pick_modes():
     c.write("pick-modes.svg")
 
 
+def cloud_pick():
+    c = Canvas("The display has a residency budget; a pick does not",
+               "A streamed cloud shows a bounded prefix, so a click cannot ask the screen: the nearest displayed "
+               "point at a coarse level of detail is a point the user never clicked. It asks the file instead. "
+               "Every octree node whose cube meets the click window is eligible, resident or not, and the answer "
+               "is accumulated one page at a time against the depth the frame already has.",
+               1180, 604)
+    lav, pnk, zer, dark = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"], "#55555e"
+    c.text(28, 40, "A click asks the file, not the screen", "h")
+
+    # Left: what is resident.
+    c.text(28, 92, "what is on screen", "l")
+    c.parts.append(f'<rect x="28" y="106" width="318" height="200" rx="{RADIUS}" fill="{zer}" fill-opacity="0.10"/>')
+    seed = 7
+    for i in range(150):
+        seed = (seed * 1103515245 + 12345) % 2147483648
+        x = 40 + (seed >> 7) % 294
+        seed = (seed * 1103515245 + 12345) % 2147483648
+        y = 118 + (seed >> 7) % 176
+        c.parts.append(f'<circle cx="{x}" cy="{y}" r="2" fill="{zer}" fill-opacity="0.55"/>')
+    c.parts.append(f'<rect x="150" y="186" width="40" height="40" fill="{pnk}" fill-opacity="0.42"/>')
+    c.text(200, 210, "the click, ± PICK_RADIUS", "s", fill=PAL["pink"])
+    c.text(28, 330, "a resident prefix: at most 2,000,000", "s")
+    c.text(28, 352, "of this cloud's 40,000,000 points", "s")
+    c.text(28, 382, "ask the screen and you get the nearest", "s", fill=PAL["pink"])
+    c.text(28, 404, "displayed point, which at a coarse level", "s", fill=PAL["pink"])
+    c.text(28, 426, "of detail is not the one that was clicked", "s", fill=PAL["pink"])
+
+    # Centre: which nodes are eligible.
+    c.text(400, 92, "what the click asks", "l")
+    cells = {(0, 0): lav, (1, 0): dark, (1, 1): lav, (2, 1): dark, (2, 2): lav, (3, 2): dark}
+    for (i, j), fill in cells.items():
+        c.parts.append(f'<rect x="{400 + i * 78:.1f}" y="{106 + j * 66:.1f}" width="72" height="60" rx="4" fill="{fill}"/>')
+    for i in range(4):
+        for j in range(3):
+            if (i, j) not in cells:
+                c.parts.append(f'<rect x="{400 + i * 78:.1f}" y="{106 + j * 66:.1f}" width="72" height="60" rx="4" fill="{zer}" fill-opacity="0.08"/>')
+    c.text(400, 330, "lavender · resident · dark · never downloaded", "s")
+    c.text(400, 352, "eligible_ranges walks both", "m")
+    c.text(400, 382, "kept, not rejected, when the answer is not sure:", "s")
+    c.text(400, 404, "a cube crossing the eye plane, and a cube whose", "s")
+    c.text(400, 426, "projection is not finite — the arithmetic that", "s")
+    c.text(400, 448, "would reject it is the arithmetic that failed", "s")
+
+    # Right: one page per frame.
+    c.text(772, 92, "one page per frame", "l")
+    c.box(772, 106, ["PAGE_POINTS = 65,536 points",
+                     "≈ 1.5 MiB · one HTTP Range"], "gpu", w=380)
+    c.box(772, 180, ["upload the page as ID targets"], "note", w=380)
+    c.box(772, 236, ["the ID pass runs against the frame's",
+                     "retained depth, so a candidate behind",
+                     "a wall loses"], "note", w=380)
+    c.box(772, 322, ["fold the nearest into the winner"], "note", w=380)
+    c.text(772, 404, "the first page clears the accumulated ids, later", "s")
+    c.text(772, 426, "pages load them; no colour frame is presented", "s")
+    c.text(772, 448, "while a page owns the readback", "s")
+
+    c.box(28, 486, ["QueryView freezes the click",
+                    "its matrix, canvas size, pixel and radius. Every page is tested against that one",
+                    "projection, never against the camera as it is now."], "note", w=560)
+    c.box(616, 486, ["Cancellation is ownership",
+                     "every page carries the query's generation, and dropping the Query flips its",
+                     "token — nothing has to remember to clear a flag."], "note", w=536)
+    c.text(28, 592, "When every eligible page has answered, one more range read brings the winner's original id and its exact position.", "s", fill=PAL["yellow"])
+    c.write("cloud-pick.svg")
+
+
+def group_two():
+    c = Canvas("Group 2 in three shapes",
+               "Group 2 is the same slot in three shapes: two bindings for a physical lane, six for ink once it "
+               "reads the scene's depth and gradient, eight once it also reads the projected triangles and the "
+               "tile lists. Both sample counts are always in the layout, so the pair this frame does not use is "
+               "a 1 x 1 placeholder - a bind group must satisfy every entry of its layout, read or not.",
+               1180, 570)
+    lav, zer, yel = PAL["blue_band"], PAL["zero_band"], PAL["yellow_light"]
+    c.text(28, 40, "One layout, both sample counts", "h")
+
+    cols = [
+        (28.0, "instance layout · every physical lane (04a)",
+         [("object rows · 96 B each", lav), ("anchored translations · 16 B each", lav)]),
+        (400.0, "ink instance layout (05)",
+         [("object rows", lav), ("anchored translations", lav),
+          ("depth · single-sampled", lav), ("depth · multisampled", zer),
+          ("gradient · single-sampled", lav), ("gradient · multisampled", zer)]),
+        (772.0, "ink instance layout (18)",
+         [("object rows", lav), ("anchored translations", lav),
+          ("depth · single-sampled", lav), ("depth · multisampled", zer),
+          ("gradient · single-sampled", lav), ("gradient · multisampled", zer),
+          ("projected triangles", lav), ("tile headers + pool", lav)]),
+    ]
+    w, rh, y0 = 380.0, 40.0, 140.0
+    for x, head, rows in cols:
+        c.text(x, 92, head, "l")
+        for i, (name, fill) in enumerate(rows):
+            y = y0 + i * rh
+            c.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{rh - 6:.1f}" rx="4" fill="{fill}"/>')
+            c.text(x + 10, y + 22, str(i), "m", fill=PAL["black"], keep=True)
+            c.text(x + 34, y + 22, name, "s", fill=PAL["black"], keep=True)
+            if fill is zer:
+                c.text(x + w - 10, y + 22, "1 × 1 placeholder", "s", anchor="end", fill=PAL["black"], keep=True)
+
+    c.text(28, 240, "split so a re-anchor rewrites", "s")
+    c.text(28, 262, "16 bytes an object, not 96", "s")
+    c.box(28, 300, ["This frame is at one sample",
+                    "so the multisampled views are",
+                    "1 × 1 textures nobody reads. At 4×",
+                    "the pair swaps: 2 and 4 become",
+                    "the placeholders instead."], "sel", w=340)
+
+    c.box(28, 474, ["A bind group must satisfy every entry of its layout, read or not.",
+                    "That is why the unused sample count is a placeholder and not an absent binding — and why",
+                    "flipping the sample count rebuilds bind groups rather than pipelines."], "note", w=1124)
+    c.write("group-two.svg")
+
+
+def side_table():
+    c = Canvas("Entity id is the record index",
+               "A sheet's side table is addressed by arithmetic rather than searched: record_at(id) is 8 + 16 x id, "
+               "so one identity costs a 16-byte read to find the blob and one more read to fetch it. The 15 MB "
+               "table is never downloaded.",
+               1180, 464)
+    lav, pnk, zer, yel = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"], PAL["yellow_light"]
+    c.text(28, 40, "Two small reads, never the 15 MB", "h")
+
+    bx, by, bh = 40.0, 150.0, 56.0
+    c.text(bx, 110, "sheet.meta · 15 MB, never downloaded whole", "l")
+    c.text(bx, 138, "head · 8 B", "s")
+    x = bx
+    for label, w, fill in (("SHM1", 44, zer), ("count", 44, zer)):
+        c.parts.append(f'<rect x="{x:.1f}" y="{by:.1f}" width="{w:.1f}" height="{bh:.1f}" fill="{fill}"/>')
+        c.text(x + w / 2, by + bh / 2 + 5, label, "m", anchor="middle", fill=PAL["black"], keep=True)
+        x += w + 2
+    c.text(bx, by + bh + 24, "HEAD_BYTES = 8, read once a sheet and cached with its ETag · RECORD_BYTES = 16", "s")
+    head_end = x + 10
+    x = head_end
+    for i in range(7):
+        fill = yel if i == 4 else lav
+        c.parts.append(f'<rect x="{x:.1f}" y="{by:.1f}" width="72" height="{bh:.1f}" fill="{fill}"/>')
+        c.text(x + 36, by + bh / 2 + 5, f"rec {i}", "m", anchor="middle", fill=PAL["black"], keep=True)
+        x += 74
+    rec_end = x
+    c.text(head_end, 138, "records · offset : u64 LE · length : u64 LE", "s")
+    c.parts.append(f'<rect x="{rec_end + 10:.1f}" y="{by:.1f}" width="{1140 - rec_end - 10:.1f}" height="{bh:.1f}" rx="4" fill="{pnk}" fill-opacity="0.5"/>')
+    c.text(rec_end + 24, by + bh / 2 + 5, "JSON blobs · guid · name · kind · width · colour", "s", fill=PAL["black"], keep=True)
+    c.text(rec_end + 10, 138, "record_at(count)", "m", fill=PAL["pink"])
+
+    c.box(28, 262, ["a picked ribbon names a sheet row and entity 4711"], "cpu", w=520)
+    c.text(28, 330, "read 16 B at  8 + 16 × 4711 = 75,384", "m", fill=PAL["yellow"])
+    c.text(28, 354, "then read  length  bytes at  offset", "m", fill=PAL["yellow"])
+    # The two reads, drawn: the record cell, then the blob the record points at.
+    c.arrow(300, 318, 468, 216)
+    c.arrow(522, 178, 676, 178)
+
+    c.box(596, 262, ["Three rules on those two reads",
+                     "both carry the sheet's revision: a table whose ETag moved is refused, not mixed",
+                     "a blob longer than 64 KiB is not one entity's record",
+                     "dropping the Query cancels its callback, exactly as a cloud page does"], "note", w=556)
+    c.text(28, 450, "One line of arithmetic is the whole design: the id is the index, so there is nothing to scan.", "s", fill=PAL["yellow"])
+    c.write("side-table.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')

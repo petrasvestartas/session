@@ -71,6 +71,8 @@ Bind groups every lane shares (`Layouts`):
 
 - Group 2 splits rows (96 B) from anchored translations (16 B) so a re-anchor rewrites 16 bytes per object.
 
+![Group 2 is two bindings for a physical lane, six once ink reads the scene depth and gradient, eight once it also reads the projected triangles and tile lists; the sample count the frame is not using is a 1 x 1 placeholder.](illustrations/group-two.svg)
+
 ![Diagram: Layouts · group 0 · mvp · group 1 · line · group 2 · rows + translations · ink_instance](illustrations/04a-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>

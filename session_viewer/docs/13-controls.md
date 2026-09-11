@@ -6,6 +6,8 @@
 
 Streamed clouds display a bounded prefix, so a click must ask the source, not the screen:
 
+![A resident prefix is a fraction of the cloud, so a click walks every intersecting octree node whether or not it was downloaded, and accumulates the answer one bounded page at a time against the depth the frame already has.](illustrations/cloud-pick.svg)
+
 ![Diagram: click · eligible source node ranges (octree ∩ click window) · fetch one bounded page (HTTP Range) · candidates within the window · GPU ID pass accumulates nearest visible point · range-read original fixed32 ID + exact position…](illustrations/13-02.svg)
 
 ![The screen draws a curve as chords and a surface as a grid; F10 shows the source controls, and a picked marker answers with a ControlId into the source.](illustrations/controls.svg)

@@ -28,6 +28,8 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 - `Objects.sheets` is field 17, the highest in `Objects`; a sheet file is a `Session` whose `Objects` holds exactly one `Sheet` and nothing else.
 - The side table is not protobuf: `SHM1`, a record count, then one `(offset, length)` pair per entity and the JSON blobs. Entity id is the record index, so reading an entity costs one 16-byte read and one blob read.
 
+![record_at(id) is 8 + 16 x id, so a picked entity is found by arithmetic: one 16-byte read for the offset and length, then one read of the blob itself, and the 15 MB table is never downloaded.](illustrations/side-table.svg)
+
 ![Diagram: Session.objects · Objects.sheets = 17 · Sheet · coords = 3\ 48 B per segment · colors = 4 · widths = 5\ 4 B per segment · source_ids = 15\ 4 B per segment, last](illustrations/19-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
