@@ -316,24 +316,37 @@ If every edge disappears, compare the depth clear and compare function against t
 - Orbit until a stroke passes behind the box: the covered span disappears cleanly, without a global depth offset.
 - Append `?msaa=4` and compare the stroke fringe with `msaa=1`: multisampling changes coverage, never the visibility decision.
 
-
-## Recall
+## Questions and answers
 
 This lesson is the conceptual centre of the viewer. If only one lesson is worth being able to reconstruct, it is this one.
 
-??? question "Why can a stroke fragment not simply compare its own depth with the depth buffer?"
-    Because a stroke is a *ribbon* of fragments around a mathematical axis, and a fragment beside the axis reads the depth of whatever surface is under *that* pixel — not under the axis. On a face the stroke lies on, half the ribbon would lose the comparison and the line would stitch. The gradient the face pass wrote is what carries the surface depth from the fragment to the axis, and only that predicted depth is compared.
+**Why can a stroke fragment not simply compare its own depth with the depth buffer?**
 
-??? question "What exactly is stored in the gradient attachment, and who writes zero into it?"
-    The winning primitive's own depth slope in screen space, scaled to survive `Rg16Float`. Surfaces write their real slope; the background, the grid, splats, sheets and every ID pass write zero, because they are not surfaces ink can be carried across. A zero gradient is not "flat" — it means "do not extrapolate me".
+*How to work it out.* Draw the situation in cross-section. A stroke is a *ribbon* several pixels wide around a mathematical axis. A fragment on the edge of that ribbon reads the depth buffer at *its own* pixel — which is the surface under that pixel, not the surface under the axis. Now put the stroke on the face it belongs to: the axis is exactly on the surface, but the edge fragments sit over a surface that is a fraction nearer or further.
 
-??? question "Reverse-Z needs three things to agree, and you have now seen all three in code. Name them."
-    The projection swaps near and far; the depth attachment clears to `0.0`; the compare is `Greater`. If every edge vanishes, one of the three is wrong — the lesson's own troubleshooting note says exactly this, and it is worth being able to derive rather than look up.
+*The answer.* Half the ribbon loses a naive comparison and the line stitches. The fix is to carry the surface depth from the fragment's pixel to the axis using the depth gradient the face pass stored, and compare only the predicted depth at the axis with the axis itself.
 
-??? question "Multisampling is chosen per frame from the adapter and the pixel count. Why does it never change the visibility decision?"
-    Because visibility is computed per fragment from depth and gradient, not from coverage. MSAA changes how much of a pixel a face covers — the smoothness of a hard edge — while the ink test still asks the same question at the same place. Two mechanisms that both affect edges, kept deliberately independent; `?msaa=4` versus `?msaa=1` is the experiment that proves it.
+**What exactly is stored in the gradient attachment, and who writes zero into it?**
 
-**Rebuild from memory:** draw the frame on paper — which pass writes depth, which reads it, which attachments exist, and where the backdrop sits. Then predict what a stroke on the *far* side of a box does at each stage. This is the mental model that lessons 12, 17 and 18 extend rather than replace.
+*How to work it out.* Ask what you need to travel from one pixel to another along a surface: the rate at which the surface's depth changes per pixel — its screen-space slope. Then ask which things on screen are not surfaces you can slide along.
+
+*The answer.* The winning primitive's own depth slope, scaled to survive `Rg16Float`. Surfaces write their real slope; the background, the grid, splats, sheets and every ID pass write zero, because extrapolating across them is meaningless. A zero gradient does not mean "flat" — it means "do not extrapolate me".
+
+**Reverse-Z needs three things to agree, and you have now seen all three in code. Name them.**
+
+*How to work it out.* Same reasoning as lesson 02, now with the code in front of you: the projection, the clear, the compare.
+
+*The answer.* Near and far swapped in the projection; the depth attachment cleared to `0.0`; the compare `Greater`. The lesson's own troubleshooting note says exactly this, and being able to derive it beats remembering it — if every edge disappears, one of the three is wrong.
+
+**Multisampling is chosen per frame from the adapter and the pixel count. Why does it never change the visibility decision?**
+
+*How to work it out.* Separate the two things MSAA affects. It changes how many samples a triangle covers within a pixel — a coverage question. The ink test asks whether the axis is behind a surface — a depth question, computed per fragment from values that do not depend on the sample count.
+
+*The answer.* Because visibility is decided from depth and gradient, not from coverage. MSAA smooths hard face edges; the ink test still asks the same question at the same place. `?msaa=4` against `?msaa=1` is the experiment that shows it: the fringe changes, the decision does not.
+
+**What you should be able to do now**
+
+Draw the frame on paper: which pass writes depth, which reads it, what attachments exist, where the backdrop sits. Correct: the face pass clears colour, depth and gradient and writes all three (the backdrop drawing first inside it); the ink pass loads colour, holds depth read-only and samples depth and gradient through group 2. Then predict a stroke on the far side of a box: its axis loses against the box's carried depth, so its fragments discard. Lessons 12, 17 and 18 extend this picture; they never replace it.
 
 ## Next
 

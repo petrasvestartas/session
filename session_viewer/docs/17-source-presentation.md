@@ -216,13 +216,13 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-17 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-16 -->
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=18-69 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=17-68 -->
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=70-105 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=69-95 -->
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=106-142 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=96-142 -->
 
 <!-- file: 17 session_viewer/src/app/scene.rs type -->
 
@@ -347,18 +347,17 @@ Group 0 is the ordinary mask, group 1 the selected mask; the same layout serves 
 
 - `encode_pool` runs after the mask pass: one full-screen triangle over the coarse texture, no depth, `fs_pool` as its fragment entry.
 
-
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=288-314 -->
 
 - `draw_combined` composites both silhouettes once; `allocated_bytes` counts the coarse texture with the mask.
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=315-343 -->
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=344-376 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=344-375 -->
 
 Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, because silhouettes start off:
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=377-624 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=376-624 -->
 
 - The shader dilates coverage with a one-pixel smooth edge and returns black with that alpha. The dilation reads every texel within the radius, up to 27 × 27 per pixel; `near_any_coverage` checks the block under the pixel and its eight neighbours in the coarse texture and returns zero without the loop when all nine are empty. The kernel radius is clamped to 12 on the CPU, so those nine blocks always contain the whole kernel and the answer is the same to the bit.
 
@@ -434,7 +433,6 @@ flowchart LR
 - Both segments at a shared vertex call `join_plane(before, after)` with the same ordered pair, so both compute the same bisector plane.
 - The start side keeps pixels on its side of the plane, the end side excludes them: exactly one segment owns each pixel of the shared cap.
 - `stroke_vertex(vid, layer)` culls the other layer's strokes, so the selected pass draws only selected ink.
-
 
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-2 -->
 
@@ -583,27 +581,43 @@ Expected:
 - Open `?thickness=6` and look at a corner of the polyline: no darker dot and no notch at the shared vertex, at any pen width.
 - On a high-density screen open `?dpr=1`: the canvas renders a quarter of the pixels, clicks still land where the pointer is, and the perf line reports the smaller attachments.
 
+## Questions and answers
 
-## Recall
+Five mechanisms in one checkpoint, and 18 assumes all five.
 
-Five mechanisms in one checkpoint. Answer these before the lesson closes, because 18 assumes all five.
+**Face picking pulls the arena's existing vertices by index rather than building a per-face mesh. What would the alternative cost?**
 
-??? question "Face picking pulls the arena's existing vertices by index rather than building a per-face mesh. What would the alternative cost?"
-    A duplicate of every mesh in memory, or one draw call per face — and a second copy of the geometry that can drift out of sync with the first. Vertex pulling means the face lane adds a table of addresses and a bind group, and the triangles stay exactly the triangles that were drawn. `transform_vertex` being shared between `vs_main` and `vs_face` is what makes the two paths provably identical.
+*How to work it out.* To pick a face you need the face's triangles. Two ways to have them: store a second copy grouped by face, or index the copy you already uploaded. Price both — a second copy doubles mesh memory and can drift out of sync; one draw call per face is thousands of draws.
 
-??? question "Why does the compositor take `max(ordinary, selected)` rather than drawing one mask over the other?"
-    Because overlapping coverage would be blended twice and the seam would darken, and a selected interior would grow an ordinary contour inside it. `max` makes the two masks idempotent where they meet: the thicker one simply wins. This is the same reason the mask attachments blend with `Max` rather than alpha.
+*The answer.* Vertex pulling: the face lane adds a table of face addresses and a bind group, and the triangles stay exactly the triangles that were drawn. `transform_vertex` shared between `vs_main` and `vs_face` is what makes the two paths provably identical rather than merely similar.
 
-??? question "The coarse pooled texture holds block maxima. Explain how it can make the compositor cheaper *without changing a single output pixel*."
-    Each pixel's dilation reads up to 27 × 27 texels. The pool holds the maximum of each `POOL` × `POOL` block; if the block under the pixel and its eight neighbours are all empty, no covered texel can be within the radius, so the answer is zero without the loop. The CPU clamps the kernel radius to 12 precisely so those nine blocks always contain the whole kernel — which is what makes the shortcut exact rather than approximate.
+**Why does the compositor take `max(ordinary, selected)` rather than drawing one mask over the other?**
 
-??? question "Two ribbons meeting at a bend overlap inside and leave a wedge outside. What makes the join fix work, and what would break it?"
-    Both segments compute the *same* bisector plane from the same ordered pair, and then one side keeps the pixels on its side while the other excludes them — so exactly one segment owns each pixel of the shared cap. It breaks the moment the two ends compute the plane from differently ordered inputs, because then neither or both would own a pixel: a seam or a double-blend.
+*How to work it out.* Consider a selected solid touching an unselected one. Both masks cover the contact region. Draw one over the other with alpha and the overlap is darkened twice; the seam appears. Ask for an operator that is idempotent where the two agree.
 
-??? question "The pick attachment is the window *plus a three-texel halo*. Why the halo?"
-    Because the ink visibility test fits planes from neighbouring texels, and a neighbour outside the attachment reads as cleared — so strokes at the window's edge would judge themselves against empty depth and appear or vanish wrongly. The halo makes those neighbours real occlusion samples. It is a small number with a precise reason, which is the kind worth being able to re-derive.
+*The answer.* `max` — the thicker coverage simply wins, overlap included, and a selected interior suppresses the ordinary contour inside it. It is the same reason the mask attachments blend with `Max` rather than alpha: a written zero then acts as a discard.
 
-**Rebuild from memory:** name the frame order this lesson establishes — face highlight, print geometry, unselected strokes, selected solid strokes, the silhouette, then selected curves — and justify *one* adjacency: why selected solid strokes go under the silhouette while standalone selected curves go over it.
+**Explain how the coarse pooled texture makes the compositor cheaper *without changing a single output pixel*.**
+
+*How to work it out.* The dilation reads every texel within the radius — up to 27 × 27 per pixel. Ask what could let you skip the loop: knowing in advance that there is no coverage anywhere in reach. A maximum over a block answers exactly that for the whole block.
+
+*The answer.* The pool holds the maximum of each `POOL` × `POOL` block. If the block under the pixel and its eight neighbours are all empty, no covered texel can be within the radius, so the answer is zero without looping. The CPU clamps the radius to 12 precisely so those nine blocks always contain the whole kernel — which makes the shortcut exact, not approximate.
+
+**Two ribbons meeting at a bend overlap inside and leave a wedge outside. What makes the join fix work, and what would break it?**
+
+*How to work it out.* At a shared vertex two quads overlap on one side and leave a gap on the other. You want each pixel of the shared region owned by exactly one of them, so you need a dividing surface both agree on — the bisector of the two directions — and opposite sides of it.
+
+*The answer.* Both segments call `join_plane` with the *same ordered pair*, so both compute the same plane; the start side keeps pixels on its side and the end side excludes them. Order the inputs differently at the two ends and the planes differ, so a pixel is owned by neither (a seam) or by both (a double blend).
+
+**The pick attachment is the window *plus a three-texel halo*. Why the halo?**
+
+*How to work it out.* Ask what the ink visibility test reads: the fragment's texel and a neighbour, to fit a plane. Now put a stroke at the very edge of the window — its neighbour texel lies outside the attachment and reads as cleared, which the test treats as "nothing there".
+
+*The answer.* Without the halo, strokes at the window's edge judge themselves against empty depth and appear or vanish wrongly, so a pick near an occluder disagrees with the picture. Three texels is the neighbourhood the fit actually reaches. A small number with a precise reason — the kind worth being able to re-derive.
+
+**What you should be able to do now**
+
+State the frame order and justify one adjacency. Correct order: face highlight, print geometry, unselected strokes, selected solid strokes, the combined black silhouette, then selected standalone curves. The adjacency to justify: a selected *solid's* strokes go under the silhouette because they belong to a body that has an outline, and drawing them over it would put yellow on top of the very contour that defines the shape; a standalone selected *curve* has no body and no silhouette of its own, so if it went under, the outline of whatever it crosses would cut it into pieces.
 
 ## Next
 

@@ -34,11 +34,11 @@ flowchart TB
     style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-59 -->
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-58 -->
 
 The rest of the file is `#[cfg(test)]` only: it parses every lane shader with naga and checks that WGSL member offsets equal the Rust ones; the browser build never compiles this block.
 
-<!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=60-236 -->
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=59-236 -->
 
 ## Step 2 · Declare the engine module tree
 
@@ -145,19 +145,29 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 - Set the same `model[12]` for both rows: they overlap exactly, proving the geometry buffer is shared.
 - Draw with `draw(0..3, 0..1)` only: the second row vanishes, because `instance_index` never reaches 1.
 
+## Questions and answers
 
-## Recall
+**`Instance` has a matrix, a colour, some flags and a spacing. Why does it occupy 96 bytes?**
 
-??? question "`Instance` has a matrix, a colour, some flags and a spacing. Why does it occupy 96 bytes?"
-    Alignment. A `mat4x4` needs 16-byte alignment and so does the struct in a storage array, so the stride rounds up to a multiple of 16; the padding field on the Rust side makes the two agree deliberately rather than by accident. The size assertion turns a stride mistake into a `cargo check` failure instead of a corrupt second object.
+*How to work it out.* Add the fields: 64 for the matrix, 16 for the colour, 4 + 4 + 4 for the rest — 92. Then ask what rounds it up. A `mat4x4` requires 16-byte alignment, and an element of a storage array must start at a multiple of the struct's largest alignment, so the stride is rounded to the next multiple of 16.
 
-??? question "A GPU row is not a source identity. What is the difference, and why keep both?"
-    A row is 96 bytes of drawing state at some index in a buffer; an identity is the guid and revision of a thing in the document. Rows are rebuilt whenever the scene reloads and their indices change; identities must not. Picking returns a row, and `Scene` is what turns it back into something a user can be told about.
+*The answer.* 96, because 92 rounds up to 96. The explicit padding field on the Rust side makes the round-up deliberate instead of accidental, and the size assertion turns a mistake into a `cargo check` failure rather than a correct first object and a corrupt second one.
 
-??? question "Which index reaches the shader's `instances[]`, and what sets it?"
-    `@builtin(instance_index)`, and the instance range of the draw call sets it: `draw(0..3, 1..2)` runs the vertex stage with `instance_index == 1`. Nothing is bound per object — one buffer, one index.
+**A GPU row is not a source identity. What is the difference, and why keep both?**
 
-**Rebuild from memory:** write the `#[repr(C)]` row and its size assertion again in an empty file, without looking at the field order. Then check it against `instance.rs`. If your field order differs, ask whether the shader would still work — and why `#[repr(C)]` is what makes that question answerable at all.
+*How to work it out.* Ask what each one survives. Rows are rebuilt and renumbered whenever the scene reloads. A guid is written in the document and must mean the same thing next week. Anything a user is told about has to be the second kind.
+
+*The answer.* A row is 96 bytes of drawing state at some index in a buffer; an identity is the guid and revision of a thing in the document. The GPU can only answer with a row, so `Scene` exists to turn that row back into something nameable. Collapse them into one and either your rows must never move, or your identities are not stable — both unacceptable.
+
+**Which index reaches the shader's `instances[]`, and what sets it?**
+
+*How to work it out.* Look at what the draw call takes: a vertex range and an instance range. The shader reads two builtins. One counts vertices; by elimination the other counts instances.
+
+*The answer.* `@builtin(instance_index)`, set by the instance range of the draw: `draw(0..3, 1..2)` runs the vertex stage with `instance_index == 1`. Nothing is bound per object — one buffer, one index — which is why drawing a thousand objects costs one bind and a thousand indices.
+
+**What you should be able to do now**
+
+Write the `#[repr(C)]` row and its size assertion in an empty file without looking, then compare with `instance.rs`. Correct: `model: [f32; 16]`, `color: [f32; 4]`, `flags: u32`, a padding field, `spacing: f32`, `#[repr(C)]`, `Pod`/`Zeroable`, and `assert_eq!(size_of::<Instance>(), 96)`. If your field order differs, ask whether the shader would still work — and notice that `#[repr(C)]` is exactly what makes that question answerable, because without it Rust may reorder the fields.
 
 ## Next
 

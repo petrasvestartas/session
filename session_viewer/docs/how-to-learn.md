@@ -1,41 +1,40 @@
 # How to use this course
 
-A smooth explanation is not evidence of learning. You can read this whole course, agree with every sentence, and still be unable to write `create_render_pipeline` from an empty file. The measure that matters is the one at the end of every lesson: **what can you now do with the page closed?**
+Nothing in this course is hidden. Every question is followed by its reasoning and then its answer, on the same page, always visible. You are never one click away from the thing you need.
 
-So the course is built to interrupt reading with work.
+That is deliberate. Being stuck with no way forward teaches nothing; being shown *how someone worked it out* teaches the move you can reuse next time.
 
 ## The loop
 
 ```mermaid
 flowchart LR
-    P["predict<br/>what must this do?"] --> T["type it<br/>the block, by hand"]
+    P["read the idea<br/>one or two sentences"] --> T["type it<br/>the block, by hand"]
     T --> C["check<br/>cargo check · the browser"]
-    C --> R["recall<br/>answer with the page closed"]
+    C --> R["read the reasoning<br/>why it is that way"]
     R --> P
 ```
 
-- **Predict** before you type. Each step names its idea in one or two sentences before the code. Stop there and guess the shape of the code. A wrong guess is the useful kind: you now have a question, and the block answers it.
-- **Type** the blocks marked **TYPE THIS**. Typing is slow on purpose; it is the only part of the course where your hands learn the API. Blocks marked **COPY** are boilerplate, fixtures and lockfiles — copy those, you learn nothing by retyping a font table.
+- **Read the idea.** Each step names what it adds before the code. If you want to guess the shape of the code first, guess — a wrong guess turns the block into an answer to a question you actually had. If you do not want to guess, read on; the block is right there.
+- **Type** the blocks marked **TYPE THIS**. Typing is slow on purpose; it is the part where your hands learn the API. Blocks marked **COPY** are boilerplate, fixtures and lockfiles — copy those, you learn nothing by retyping a font table.
 - **Check** at every marker. `cargo check` is the cheapest feedback in the course, and the checkpoint build tells you what the screen should show. Never carry a broken state into the next lesson.
     Know what a check proves, though: a Rust file enters the build only when a `mod` line names it, and the bigger lessons create files first and declare them at the end. A check before that wiring step proves you have not broken the *previous* checkpoint; the check after it is the one that compiles what you just typed. Both are worth running — the first is how you notice you deleted the wrong line.
-- **Recall** at the end. Each lesson closes with questions whose answers are hidden. Answer out loud or on paper *first*, then open the answer and compare. The comparison is the learning; reading the answer is not.
+- **Read the reasoning.** Every lesson ends in **Questions and answers**. Each entry has two parts: *how to work it out* — the chain of reasoning, starting from what you already know — and *the answer*. The reasoning is the part worth reading twice. The answers to the questions matter less than the way they were reached, because the next problem will be a different question.
 
-## Why the answers are hidden
+## Every lesson has the same shape
 
-Retrieving a fact strengthens it. Re-reading it does not. That is why every **Recall** answer is behind a click, and why the lessons never repeat an explanation you have already met — you are meant to reconstruct it, not look it up.
+- **You are building** — the mechanism this lesson adds, as one diagram.
+- **Starting point** — what the last checkpoint left you, and what is still wrong with it.
+- **Steps** — one idea each: a sentence or two, then the code, then why the important lines are there.
+- **Check** — `cargo check`, then the checkpoint build and exactly what you should see.
+- **What changed** — the data flow in one line, and the production files this maps to.
+- **Try** — small experiments with visible results; each one changes the picture.
+- **Questions and answers** — the reasoning, then the answers, then what you should be able to do now.
 
-The same goes for the assistant on your other screen. Ask it to *check* your reasoning, to explain an error message, to ask you a question back. If you ask it to write the step for you, you have bought the code and skipped the course.
+## The same depth all the way through
 
-## Fading assistance
+The last lessons are not thinner than the first. Lesson 18 explains the tile walk as completely as lesson 01 explains the adapter — the subjects get harder, the explanations do not get shorter. Where a later lesson says less about something, it is because an earlier lesson said it in full and names the lesson that did.
 
-The early lessons hold your hand: every line typed, every field explained.
-
-- **00–05** — 90% guidance. Everything is new: instance, adapter, device, surface, pipeline, depth.
-- **06–11** — 70%. You know the frame; now geometry, boundaries and text arrive. Recall questions start asking *why this design* rather than *what does this call do*.
-- **12–17** — 50%. Whole mechanisms (a pick round-trip, a coverage mask) are described and you are asked to predict the implementation before you see it.
-- **18–20 and the capstone** — you are given requirements and constraints, and you decide the implementation.
-
-The [capstone](capstone.md) has no line-by-line instructions at all. That is the exam, and it is the only honest one.
+The [capstone](capstone.md) is the one place you are asked to build something without a step-by-step, and even there nothing is withheld: the questions to answer are listed, the reasoning for each is worked through, and the full design is written out in the answer key. It asks you to try first because trying first is how the answer sticks — not because the answer is rationed.
 
 ## When you are stuck
 

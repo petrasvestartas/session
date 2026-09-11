@@ -68,9 +68,9 @@ flowchart LR
 
 - `content_length` is a HEAD request: the size a whole file would download, before a byte of it is fetched, so a scene can refuse what the device cannot hold.
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-192 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-210 -->
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=193-248 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=211-248 -->
 
 - `QueryView` freezes the click's projection; every page is tested against the same matrix and pixel window.
 - A cube crossing the eye plane cannot be excluded, so `intersects` returns true for it.
@@ -85,9 +85,9 @@ flowchart LR
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=196-270 -->
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-426 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-397 -->
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=427-556 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=398-556 -->
 
 <!-- check: 13 -->
 
@@ -220,22 +220,35 @@ Expected:
 - Serve a directory holding a large `cloud.pb` locally and open `?scene=stream-test.yaml&data=http://127.0.0.1:PORT`; select the cloud, press F10 and click a point: the status names an original fixed32 ID that the display prefix never loaded.
 - Clear the selection while a page loop is running (Escape twice): the query token is dropped and no late page selects anything.
 
+## Questions and answers
 
-## Recall
+**A curve is drawn as hundreds of chords. Why can F10 not just show the vertices that were drawn?**
 
-??? question "A curve is drawn as hundreds of chords. Why can F10 not just show the vertices that were drawn?"
-    Because those vertices are a display approximation: they change when the tessellation changes, they do not exist in the document, and moving one would mean nothing. `Controls::from_geometry` reads the real control net from the source — a handful of points with links. This is the same rule as the tessellation seam in lesson 06: never let the display invent an identity.
+*How to work it out.* Ask what a display vertex is: a sample chosen by the tessellator at this tolerance. Change the tolerance and there is a different set. Now ask what the user would do with a marker on one — drag it? It corresponds to nothing in the document.
 
-??? question "`fetch::get` refuses a `200` answer to a `Range` request. Why is that worth a check rather than a trusting read?"
-    Because `200` means the server ignored the range and is sending the *whole file* — possibly gigabytes onto a device that asked for 64 KB. The answer looks successful, so nothing else in the chain would object until memory ran out. When you ask for less than everything, verify you got less than everything.
+*The answer.* Display vertices are an approximation artefact with no identity and no meaning under editing. `Controls::from_geometry` reads the real control net from the source — a handful of points with links. Same rule as the tessellation seam in lesson 06: never let the display invent an identity.
 
-??? question "A streamed cloud displays a bounded prefix, so a click cannot be answered from the screen. What does the viewer do instead?"
-    Freezes the click's projection into a `QueryView` and pages through the source, testing every octree node against that same matrix and pixel window — resident or not — and accumulating point IDs across pages. Freezing matters: if each page used the current camera, pages fetched after you moved would answer a different question than the first.
+**`fetch::get` refuses a `200` answer to a `Range` request. Why is that worth a check rather than a trusting read?**
 
-??? question "`enable_controls` is idempotent. Name the bug that makes that worth stating explicitly."
-    Pressing F10 twice on the same parent would upload a second set of markers on top of the first: doubled ink, doubled pick answers, and a marker count that grows until you select something else. Idempotence is cheap here and the failure is silent, which is exactly when to write the invariant down.
+*How to work it out.* Ask what each status code means for the bytes you get back. `206` is the slice you asked for. `200` means the server ignored the range and is sending the whole file — possibly gigabytes to a device that asked for 64 KB. Nothing about that response is an error, so no other layer will object.
 
-**Rebuild from memory:** describe the cancellation story — who owns the token, who checks it, and what happens to a callback that comes back after the user clicked elsewhere. Then compare it with `generation` in lesson 12: two mechanisms for stale answers, and they are not interchangeable. Say why.
+*The answer.* The failure is silent until memory runs out, and the check is one comparison. When you ask for less than everything, verify that you got less than everything.
+
+**A streamed cloud displays a bounded prefix, so a click cannot be answered from the screen. What does the viewer do instead?**
+
+*How to work it out.* The points you want may never have been downloaded, so the answer has to come from the source. That means paging, which takes time, during which the camera may move. Ask which camera each page should be tested against.
+
+*The answer.* The click's projection is frozen into a `QueryView`, and every octree node — resident or not — is tested against that same matrix and pixel window while ids accumulate across pages. Freezing matters: with the live camera, later pages would be answering a different question than the first.
+
+**`enable_controls` is idempotent. Name the bug that makes that worth stating explicitly.**
+
+*How to work it out.* Ask what pressing F10 twice would do without it: run the upload again, adding a second set of markers on top of the first. Identical positions, so the screen looks almost the same.
+
+*The answer.* Doubled ink, doubled pick answers and a marker count that grows until you select something else — a failure that is nearly invisible. Idempotence is cheap here and the failure is silent, which is exactly when to write the invariant down.
+
+**What you should be able to do now**
+
+Describe the cancellation story and contrast it with lesson 12's generation counter. Correct: `Query` owns a cancellation token, superseding input drops the query, and every callback checks the token before posting — so a page that arrives after you clicked elsewhere is discarded at the callback. A generation *labels* answers so a stale one can be recognised; a token *cancels* work that is still in flight. You need both: generations cannot stop a fetch, and a token cannot label an answer already on its way back.
 
 ## Next
 

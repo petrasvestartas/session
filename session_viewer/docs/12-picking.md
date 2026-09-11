@@ -58,11 +58,11 @@ flowchart TB
 
 - The browser picks the presentation-compatible adapter; `?gpu=high` asks for the high-performance one on a hybrid machine and falls back to the browser's choice when that adapter is refused.
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-158 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-160 -->
 
 Native-only adapter naming and the error callbacks:
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=159-231 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=161-231 -->
 
 ### Step 2 · Presenting a frame
 
@@ -175,21 +175,21 @@ flowchart LR
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-77 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-68 -->
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=78-194 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=69-185 -->
 
 - One object row per GUID in the kernel's canonical order; the row a GUID gets is the row it keeps within a revision.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=195-284 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=186-274 -->
 
 - Streamed clouds have no kernel object; their slot records the absolute row point 0 landed on.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=285-363 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=275-352 -->
 
 - Row → identity in both directions; `edge_at` reads the segment sub-ID tag bit set by the ribbon shader.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=364-483 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=353-483 -->
 
 ### Step 7 · Selection mode
 
@@ -213,9 +213,9 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-130 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-129 -->
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=131-221 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=130-221 -->
 
 <!-- file: 12 session_viewer/src/app/walk/frames.rs type -->
 
@@ -360,30 +360,30 @@ flowchart TB
 
 <!-- file: 12 session_viewer/src/state.rs type lines=1-45 -->
 
-<!-- file: 12 session_viewer/src/state.rs type lines=46-185 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=46-196 -->
 
 - `toggle_xray` is a view change, not a scene change: `view.opacity` goes between `1.0` and `0.0` and `touch` schedules a frame; the shaders read the zero, no row is rewritten.
 - `select` clears controls and edge highlight before moving the flag, so no lane keeps a stale parent.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=186-240 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=197-251 -->
 
 - `apply_pick`: an edge answer needs `Scene::edge_at`; an object answer toggles the row.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=241-294 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=252-305 -->
 
 - `render` applies a returned pick first, so the same frame presents its highlight; a pick on a still scene runs alone through `pick_frame`.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=295-358 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=306-369 -->
 
 - `request_selection` configures the tolerance in CSS pixels times the actual logical-to-physical scale, then records the request.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=359-408 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=370-419 -->
 
 Document titles and the selected name are derived labels; they have no source row and cannot intercept a click.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=409-476 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=420-480 -->
 
-<!-- file: 12 session_viewer/src/state.rs copy lines=477-510 -->
+<!-- file: 12 session_viewer/src/state.rs copy lines=481-510 -->
 
 ### Step 14 · Gpu owns device, presentation and picking
 
@@ -506,24 +506,37 @@ If an object highlights but the status names another GUID, the row → identity 
 - Hover the black corner at the top right: it grows; click it and the course opens in a new tab from `dist/docs`.
 - Make `Picker::poll` skip its `submitted != generation` comparison and orbit while a click is pending: a late answer selects against the new camera, which is the bug the check prevents.
 
-
-## Recall
+## Questions and answers
 
 Halfway. From here the questions assume you can read the code and ask instead whether you would have *designed* it this way.
 
-??? question "Picking renders the scene again into an integer target instead of intersecting a ray with the geometry on the CPU. Argue for that choice."
-    Because the GPU already knows exactly what is on screen, including every rule the CPU would have to reimplement: the ink visibility test, hidden flags, x-ray discards, the finite-triangle test, text placement. A ray-caster would be a second, subtly different answer to "what is visible here" — and the day the two disagree, the user is the one who finds out. Rendering IDs means the picture and the pick cannot drift apart. The cost is a GPU round-trip, which is why the pass is scissored to a small window and read back asynchronously.
+**Picking renders the scene again into an integer target instead of intersecting a ray with the geometry on the CPU. Argue for that choice.**
 
-??? question "What is `generation` for, and what breaks without it?"
-    It counts pick requests; `submitted` records which generation the in-flight copy belongs to, and a camera move bumps the counter. Without it, an answer computed against an older camera lands after you have orbited away and selects whatever happened to be under that pixel then — an object that is no longer there. Every asynchronous answer in this viewer carries a generation for the same reason.
+*How to work it out.* Write down everything that decides whether a pixel shows an object: the depth test, the ink visibility rule, hidden flags, x-ray discards, the finite-triangle test, text placement, the LOD the cloud chose this frame. Now ask a CPU ray-caster to reproduce all of it. Every rule you forget is a place where the click disagrees with the picture.
 
-??? question "`needs_frame` and `dirty` sound like the same flag. Why are they two?"
-    `needs_frame` is "ask for another frame"; `dirty` is "the picture actually changed". A pick in flight needs a frame (to poll the readback) without the picture having changed, and drawing it again would be wasted work. Conflating them costs you either a hung pick or a permanently redrawing canvas.
+*The answer.* The GPU already knows what is on screen, so ask it. Rendering the same draws with `fs_id` instead of `fs_main` means the picture and the pick cannot drift apart by construction. The cost is a GPU round-trip, which is why the pass is scissored to a small window around the cursor and read back asynchronously.
 
-??? question "In the pick window, ink beats a face anywhere; among equals the nearest to the cursor wins. Why not simply take the nearest ID?"
-    Because a curve lying on a face covers a handful of pixels and the face covers thousands: nearest-wins would make edges nearly unclickable. The rule encodes what the user meant, not what the pixels said — and it is exactly the tolerance a CAD user expects. Note also that the tolerance is expressed in CSS pixels and scaled, so it feels the same on any display.
+**What is `generation` for, and what breaks without it?**
 
-**Rebuild from memory:** list the frame's passes in order and say, for each, what it reads and what it writes. Then explain why the ID pass must repeat *the same toggles* as the colour pass. If you can do both, you have the whole renderer; lessons 13 to 20 add features to this list rather than changing it.
+*How to work it out.* The answer to a pick arrives some frames after the request. Ask what can happen in between: the camera can move, the scene can be replaced. Then ask what the answer means once it does — it describes a picture that no longer exists.
+
+*The answer.* `generation` counts requests and `submitted` records which generation the in-flight copy belongs to; a camera move bumps the counter, so a late answer is discarded. Without it, a click selects whatever was under that pixel before you orbited away. Every asynchronous answer in this viewer carries a generation for the same reason.
+
+**`needs_frame` and `dirty` sound like the same flag. Why are they two?**
+
+*How to work it out.* Find a case where one is true and the other is not. A pick is in flight: you must render again to poll the readback, but nothing about the picture has changed. Now the converse: the scene changed but you are already going to draw.
+
+*The answer.* `needs_frame` means "ask for another frame"; `dirty` means "the picture changed". Conflating them gives you either a pick that never completes, or a canvas that redraws forever.
+
+**In the pick window, ink beats a face anywhere; among equals the nearest to the cursor wins. Why not simply take the nearest ID?**
+
+*How to work it out.* Count pixels. A curve lying on a face covers a few pixels in the window; the face covers nearly all of them. Nearest-wins therefore returns the face almost every time, and edges become nearly unclickable — which is not what the user meant by clicking on a line.
+
+*The answer.* The rule encodes intent rather than pixel counts, and it is the tolerance a CAD user expects. The window's size is expressed in CSS pixels and scaled, so the feel is the same on any display.
+
+**What you should be able to do now**
+
+List the frame's passes in order with what each reads and writes: backdrop and faces write colour, depth and gradient; the selection mask reads depth and writes coverage; ink reads depth and gradient and writes colour; the ID pass repeats the same draws and toggles into an integer target. Then say why the ID pass must repeat the same toggles — because what a lane hides it must also not pick, or the user can select something they cannot see. Lessons 13 to 20 add to this list; they do not change it.
 
 ## Next
 

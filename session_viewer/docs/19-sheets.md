@@ -117,9 +117,9 @@ flowchart TB
 
 <!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=1-101 -->
 
-<!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=102-187 -->
+<!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=102-158 -->
 
-<!-- file: 19 session_viewer/src/app/sheet_query.rs copy lines=188-244 -->
+<!-- file: 19 session_viewer/src/app/sheet_query.rs copy lines=159-244 -->
 
 <!-- file: 19 session_viewer/src/app/mod.rs type -->
 
@@ -163,22 +163,35 @@ Open <http://localhost:8780/?scene=view_sheets&inspect=1>. Two sheets stream in;
 - Add `&segments=200000` and watch the second sheet stop at the budget; the status line names the sheet that stayed out.
 - Select an entity, then open the network panel: exactly two range requests against the `.meta` file, 16 bytes and the blob.
 
+## Questions and answers
 
-## Recall
+**The same drawing costs 340 MiB as objects and 20 MiB as a sheet. Where did the memory actually go?**
 
-??? question "The same drawing costs 340 MiB as objects and 20 MiB as a sheet. Where did the memory actually go?"
-    Into per-object overhead, not geometry: a GUID string, a name, a colour and a kernel object per *line*, plus four copies of each line between the bytes and the GPU. The geometry itself was always small. When a format is 90 000 of something, the per-item cost *is* the cost — which is why a sheet is one object row with a source id per segment.
+*How to work it out.* Count per line, not per drawing. As an object each line carries a GUID string, a name, a colour, a kernel object, an entry in the lookup, a tree node, a graph node — and then a copy of itself at each stage between the decoded protobuf and the GPU. Multiply by 90 000 and compare with the geometry: six doubles per line.
 
-??? question "Metadata is fetched per entity, on selection, in two small reads. Why is the side table not protobuf?"
-    Because protobuf has to be parsed from the start to find anything, and the point is to read *one* record without reading the file. `SHM1` is a count, then fixed 16-byte `(offset, length)` pairs, so the entity id is an index: one 16-byte read at `8 + 16 · id`, then the blob. Choosing a format by the access pattern you need is the lesson, not the format.
+*The answer.* Into per-item overhead, not geometry. When a format is 90 000 of something, the per-item cost *is* the cost — which is why a sheet is one object row with a small source id per segment, and why the same file drops from 51 MB to 5.5 MB plus a side table nobody downloads whole.
 
-??? question "A selected entity highlights all its segments with no shader change. How?"
-    Because the ribbon shader already compares `source_edges` against the edge selection, and a sheet's segments carry their entity id in exactly that slot. The feature was free because an earlier lesson put the id in a general place rather than an edge-specific one. That is what a good abstraction pays out — later, and without being asked.
+**Metadata is fetched per entity, on selection, in two small reads. Why is the side table not protobuf?**
 
-??? question "`descend_message` requires the wanted field to close the message. Why insist on that?"
-    Because it proves the reader has located the real end of the array rather than a prefix that happens to parse: `source_ids` being the last field means a slice boundary can be trusted. A range read that guesses the end silently returns truncated data, and truncated geometry looks like geometry.
+*How to work it out.* Ask how you find record number 4 000 in each format. Protobuf is a stream of tag-length-value: you must walk from the start. Now design the minimum format that supports random access: a count, then fixed-size offset/length pairs, then the blobs.
 
-**Rebuild from memory:** the sheet path reuses the cloud path's generation discipline, budget, range reads and query cancellation almost unchanged. List what genuinely *had* to be new, and then judge whether a shared abstraction between clouds and sheets would be an improvement or a trap. There is a defensible answer either way; make yours and say why.
+*The answer.* `SHM1` makes the entity id an index — one 16-byte read at `8 + 16 · id`, then the blob. Choosing the format from the access pattern is the lesson, not the format itself; protobuf is the right choice for the geometry arrays in the same system.
+
+**A selected entity highlights all its segments with no shader change. How?**
+
+*How to work it out.* Ask what the ribbon shader already does with selection: it compares each segment's `source_edges` value against the edge selection. Then ask what a sheet puts in that slot.
+
+*The answer.* The entity id. The feature was free because an earlier lesson put "which source thing is this segment part of" in a general slot rather than an edge-specific one. That is what a good abstraction pays out — later, and without being asked.
+
+**`descend_message` requires the wanted field to close the message. Why insist on that?**
+
+*How to work it out.* You are locating arrays by scanning tags without decoding the payload. Ask how you know an array's length is the real one: only if the message it sits in is accounted for to its end. A prefix of a protobuf message is itself a parseable protobuf message.
+
+*The answer.* Requiring the field to close the message proves the reader found the real end rather than a prefix that happened to parse — so a slice boundary can be trusted. A range read that guesses the end returns truncated data, and truncated geometry looks like geometry.
+
+**What you should be able to do now**
+
+List what genuinely had to be new for sheets, then judge whether sharing code with clouds would help. New: the `Sheet` message and its field numbers, the `SHM1` side table, `walk_sheet_slice`, the `FLAG_SHEET` row and the resolve branch. Reused unchanged: generations, budgets, ranged reads, the metadata window, query cancellation, the segment lane. A defensible judgement either way — a shared "streamed batch" abstraction would remove real duplication in the paging loop, but clouds and sheets differ in what a slice *becomes* (splat records against ribbon segments) and in what a pick means, so the abstraction would end up with a branch at every interesting point. Make your call and be able to say why.
 
 ## Next
 

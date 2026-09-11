@@ -129,7 +129,6 @@ flowchart TB
 - Streaming clouds keep their budget: `stream_prefix` opens a large file by range and `stream_rest` continues a slice at a time until its scene is cleared.
 - Whole files have a budget too: `scene_budget_bytes` is `?budget=<MB>` or 16 MB per GB of `navigator.deviceMemory`, 64 MB when the browser says nothing, because a decoded file costs the wasm heap about five times its size. Each file's size is asked by HEAD first; one that would put the scene over the budget is skipped, and the status line names it and the knob instead of the page dying without a word.
 
-
 <!-- file: 14 session_viewer/src/app/loader.rs type -->
 
 ## Step 7 · Wire the modules and the text message
@@ -205,22 +204,35 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 - Give an item a non-orthogonal `xform`: `Manifest::parse` rejects it before any file is fetched.
 - Touch a file under `docs/` and run `trunk serve` again: the hook rebuilds the site, and the black corner opens the fresh page from `dist/docs`.
 
+## Questions and answers
 
-## Recall
+**The manifest holds placement and the `.pb` files hold geometry. What does that separation buy?**
 
-??? question "The manifest holds placement and the `.pb` files hold geometry. What does that separation buy?"
-    A placement edit re-reads a few kilobytes of YAML and rewrites one matrix; it never re-uploads geometry. It also means the same geometry file can appear twice in a scene at two placements, and that a manifest can be authored by hand. When you see a format split like this, ask what the *cheap* edit is — that is usually what the split is protecting.
+*How to work it out.* Ask which edit a user makes most often. Moving an object, adding a second copy, changing a scene's layout — all placement. Then ask what each edit would cost if placement lived inside the geometry file: rewriting and re-uploading megabytes to change sixteen numbers.
 
-??? question "A hostile `cv_count` is checked against the actual storage length before a kernel constructor sees it. What class of bug is that, and why is the viewer the right place to catch it?"
-    A declared count that does not match reality — a constructor allocating or indexing from a number an attacker chose. The viewer is the trust boundary: it is the first code that touches bytes from the network, and the kernel constructors are shared with tools that are given trusted input. Validate where untrusted data enters, not where it is used.
+*The answer.* A placement edit re-reads a few kilobytes of YAML and rewrites one matrix; geometry is never touched. It also lets the same geometry file appear twice at two placements, and lets a manifest be written by hand. When you meet a format split, ask what the cheap edit is — that is usually what the split protects.
 
-??? question "Every load carries a generation and `stale_load` is checked after each await. Predict the bug this prevents, concretely."
-    You load scene A, it is slow; you load scene B, it arrives; then A finally answers and replaces B. The user sees the scene they did not ask for, and nothing errors. Any `await` is a place where the world can change — and the check has to be *after each* one, not only at the end.
+**A hostile `cv_count` is checked against the actual storage length before a kernel constructor sees it. What class of bug is that, and why is the viewer the right place to catch it?**
 
-??? question "Files are skipped when they would exceed the scene budget, and the status line names the file and the knob. Why is naming the knob part of the design?"
-    Because the alternative is a page that silently shows less than the user asked for, or dies with an out-of-memory the user cannot act on. Telling them which file was skipped and which query parameter raises the limit turns a dead end into a decision. An error message that does not say what to do next is only half-written.
+*How to work it out.* Ask what a constructor does with a declared count: allocates from it, or indexes with it. Both are attacker-controlled if the number came off the network. Then ask where the trust boundary is — which code first touches bytes it did not produce.
 
-**Rebuild from memory:** the staged replacement keeps the previous scene on screen until every item of the new one has succeeded. Sketch the states involved, then argue the opposite design — swap in each document as it arrives — and say exactly what the user would see. Being able to argue both sides is how you know you understand the trade.
+*The answer.* It is the declared-length-versus-actual-length class. The viewer is the first code to see untrusted bytes, while the kernel constructors are shared with tools whose input is trusted. Validate where untrusted data enters, not where it is eventually used.
+
+**Every load carries a generation and `stale_load` is checked after each await. Predict the bug this prevents, concretely.**
+
+*How to work it out.* Walk two overlapping loads. You ask for scene A; it is slow. You ask for B; B arrives and is shown. Then A's response lands and continues its code path, which ends in "replace the scene". Nothing errors.
+
+*The answer.* The user sees the scene they did not ask for. The check has to be after *each* await rather than only at the end, because every await is a point where the world can change — and the later stages of the old load would otherwise keep running against a scene that has moved on.
+
+**Files are skipped when they would exceed the scene budget, and the status line names the file and the knob. Why is naming the knob part of the design?**
+
+*How to work it out.* Consider the alternatives from the user's seat. Silently showing less: they do not know anything is missing. Running out of memory: the tab dies with no explanation. Saying "scene too large": true, but they still cannot act.
+
+*The answer.* Naming the file and the query parameter that raises the limit turns a dead end into a decision the user can make. An error message that does not say what to do next is only half written.
+
+**What you should be able to do now**
+
+Sketch the staged replacement and argue the opposite design. Correct: documents are fetched and decoded into a pending list in manifest order; only when every item has succeeded is the old scene cleared and the new one swapped in whole. The alternative — swapping each document in as it arrives — shows the user a scene that is half old and half new for several seconds, and if one file fails they are left with a mixture that matches no manifest. Being able to argue both sides is how you know you understand the trade.
 
 ## Next
 

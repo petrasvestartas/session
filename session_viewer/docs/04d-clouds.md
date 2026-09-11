@@ -129,11 +129,11 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-53 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-50 -->
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=54-112 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=51-102 -->
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=113-171 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=103-171 -->
 
 - The resolve reads the lane's depth and color, applies Eye-Dome Lighting from neighbouring depths, and writes `frag_depth` under the scene's `Greater` test.
 
@@ -193,22 +193,35 @@ Expected:
 - Append `?edl=0`: the eye-dome lighting goes away and the cloud reads flat; it is a resolve-pass effect, not stored colour.
 - Append `?lod=64`: fewer octree nodes qualify and the cloud thins with distance; `LodWalk::select` is the only code that changed behaviour.
 
+## Questions and answers
 
-## Recall
+**Points draw into their own targets and are then resolved into the scene. Why not draw them with everything else?**
 
-??? question "Points draw into their own targets and are then resolved into the scene. Why not draw them with everything else?"
-    Because a splat is not a surface: it needs its own depth so neighbouring points can light each other (Eye-Dome Lighting reads the depths around a pixel), and it must still occlude and be occluded like a solid. The resolve writes `frag_depth` under the scene's `Greater` test, which is what folds a private pass back into the shared one. The cost is a pass; the benefit is that no other lane has to know clouds exist.
+*How to work it out.* List what a splat needs that a triangle does not. It needs to read the depth of *neighbouring* points to shade itself (Eye-Dome Lighting), and you cannot read the depth buffer you are writing. But it must still occlude and be occluded like a solid. Those two requirements conflict unless the points get a buffer of their own.
 
-??? question "The point pass targets are created on the first frame that has points. What principle is that, and where else in the viewer does it appear?"
-    Pay for a feature only when it is used. The coverage masks in the silhouette lane are allocated only while something is outlined, and released when nothing is; the tile pool is built only when finite visibility runs. In a browser, memory you do not allocate is the cheapest optimisation there is.
+*The answer.* A private colour and depth pass first, then a fullscreen resolve that reads them, applies EDL and writes `frag_depth` under the scene's `Greater` test — which folds the result back into the shared depth as if it had been drawn there. The cost is one pass; the benefit is that no other lane has to know clouds exist.
 
-??? question "The LOD walk is pure CPU and answers one question per node. What is the question?"
-    Does this node's point spacing project wider than `lod_px`? If yes, descend into its four children; if no, draw the node whole. Each node owns its own subsample, so descending only ever adds detail — which is what makes the walk a single pass with no back-tracking.
+**The point pass targets are created on the first frame that has points. What principle is that, and where else does it appear?**
 
-??? question "Group 0 of the point pipelines is the cloud uniform, not the camera. Where did the camera go?"
-    Folded into each `SplatRecord`. One mat-vec per point is done from a record the CPU wrote, so the cloud pass does not need the scene's camera group at all — and a record straddling two chunks simply becomes two records rather than a special case in the shader.
+*How to work it out.* Ask what a scene with no cloud should pay for cloud support. Then look for other features with the same shape: something expensive, allocated per-framebuffer, not always needed.
 
-**Rebuild from memory:** trace one point from a chunk in CPU memory to a lit pixel, naming every buffer and pass it passes through. Four checkpoints in, this is the first time you can do that for a whole lane without help — if it comes out fuzzy, the lane to re-read is `splat.rs`, not the shader.
+*The answer.* Pay for a feature only when it is used. The same rule allocates the coverage masks only while something is outlined and releases them when nothing is, and builds the tile pool only when finite visibility runs. In a browser, memory you never allocate is the cheapest optimisation available.
+
+**The LOD walk is pure CPU and answers one question per node. What is the question?**
+
+*How to work it out.* You want just enough points that the gaps between them are invisible. So the quantity to test is the node's point spacing *as projected on screen*, compared against a pixel threshold.
+
+*The answer.* "Does this node's spacing project wider than `lod_px`?" Yes: descend into the four children. No: draw the node whole. Because each node owns its own subsample, descending only ever adds detail, which is what makes this a single pass with no back-tracking.
+
+**Group 0 of the point pipelines is the cloud uniform, not the camera. Where did the camera go?**
+
+*How to work it out.* Ask what a splat record has to contain anyway: which range of points, at what size, from which cloud. Once a record exists per visible cloud, the camera can be premultiplied into it on the CPU at no per-point cost.
+
+*The answer.* Folded into each `SplatRecord`, so the shader does one mat-vec per point from a record the CPU wrote, and the point pass does not need the scene's camera group at all. It also makes a range straddling two chunks simply two records instead of a special case in the shader.
+
+**What you should be able to do now**
+
+Trace one point from a chunk in CPU memory to a lit pixel, naming every buffer and pass. Correct: `CloudRows` → the lane's point buffers → `LodWalk::select` picks ranges → `SplatRecord`s written per visible cloud → the point pass draws into private colour and depth → the resolve reads both, applies EDL and writes `frag_depth` into the face pass. Four checkpoints in, this is the first whole lane you can narrate.
 
 ## Next
 

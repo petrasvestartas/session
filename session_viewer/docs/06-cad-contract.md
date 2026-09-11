@@ -156,13 +156,13 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-80 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-79 -->
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=81-143 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=80-142 -->
 
 - Faces go into the arena with `vids = cx.row`; the ink pass runs only on decorated meshes with a topology.
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=144-236 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=143-236 -->
 
 ## Step 8 · Curves into the ribbon lane
 
@@ -176,12 +176,12 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-65 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-63 -->
 
 - A NURBS curve is sampled by turning angle of its control polygon, so a full circle gets the same chord count at any radius.
 - `render_position` is the single f64 → f32 boundary for every producer.
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=66-147 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=64-147 -->
 
 ## Step 9 · Edge records and the first BRep consumer
 
@@ -291,24 +291,37 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 - Append `?distance=3` then `?distance=0.3`: the pipes keep their pixel width while the faces grow; the boundary nodes move with the mesh because they are the mesh.
 - Append `?thickness=3`: the boundary pipes widen on screen but stay glued to their faces, because their endpoints are face-mesh nodes, not a separately sampled curve.
 
+## Questions and answers
 
-## Recall
+From here on the questions are less about "what does this call do" and more about "why is it built this way".
 
-From here on the questions are less about "what does this call do" and more about "why is it built this way". Answer with the page closed.
+**A producer reports a `Row` and is given a `WalkCx`. What is the boundary this draws, and why does it matter?**
 
-??? question "A producer reports a `Row` and is given a `WalkCx`. What is the boundary this draws, and why does it matter?"
-    `WalkCx` is *where* rows land — vertex base, object row. `Row` is *what the producer measured* — local box, spacing, flags. A producer therefore knows how to turn one geometry into rows and nothing else: not what file it came from, not whether the document is planar, not what is selected. That is why a sheet is detected after the walk from the object rows, and why adding a new geometry type later means writing one producer rather than editing the scene.
+*How to work it out.* Look at what is in each type. `WalkCx` carries positions in the output — vertex base, object row. `Row` carries measurements of the input — local box, spacing, flags. Now ask what is *absent* from both: the file, the document, the selection, the camera. That absence is the design.
 
-??? question "Face normals are computed with Newell's method rather than from the first three corners. What goes wrong with three corners?"
-    A reflex second corner inverts the cross product, so a flat polygon is reported as facing backwards — and downstream that becomes a crease in a surface that has none. Newell sums over all the edges, so a single awkward corner cannot flip the result. The general lesson: when the input is authored by a human, prefer the formula that averages over the one that samples.
+*The answer.* A producer knows how to turn one geometry into rows and nothing else. That is why a sheet is detected after the walk from the object rows rather than inside a producer, and why adding a new geometry type later means writing one producer instead of editing the scene. The boundary is what makes the walk layer extensible.
 
-??? question "`pipe_ids` stores the source edge index for an authored mesh but `u32::MAX` for a tessellation seam. Why not just number the seams?"
-    Because a pick has to return something a user can be told about, and a tessellation seam is not a thing in the document — it is an artefact of how finely the surface happened to be cut. Numbering it would make selection return an invented identity, and the user would be able to click on something that does not exist. Refusing to answer is the correct answer.
+**Face normals are computed with Newell's method rather than from the first three corners. What goes wrong with three corners?**
 
-??? question "Face keys are sorted before their normals are accumulated. What bug does the sort prevent?"
-    Float addition is not associative, so a different accumulation order gives a slightly different normal — and map iteration order is not stable. Without the sort, the *same* mesh could produce different bytes on different runs, which would break every hash the course verifies. Determinism is a feature you have to write down.
+*How to work it out.* Take a flat polygon and make its second corner reflex — push it inward so the interior angle exceeds 180°. The cross product of the first two edges now points the other way, while the polygon is unchanged. Ask how often authored geometry has a reflex corner: often.
 
-**Rebuild from memory:** name the four things every producer packs (pen → radius, colour → RGBA8, normal → oct16, two normals → one facing word) and say why each is packed rather than passed as-is. Then predict which of them a point cloud producer would not need.
+*The answer.* The face is reported as facing backwards, and downstream that becomes a crease in a surface that has none, or a back face painted red. Newell sums over every edge, so one awkward corner cannot flip the result. The general rule: for human-authored input, prefer the formula that averages over the one that samples.
+
+**`pipe_ids` stores the source edge index for an authored mesh but `u32::MAX` for a tessellation seam. Why not just number the seams?**
+
+*How to work it out.* Ask what happens after a pick returns that id: the viewer looks it up and tells the user what they selected. So the question becomes — is there anything in the document to name? A tessellation seam exists only because the surface was cut this finely; mesh it differently and it is gone.
+
+*The answer.* Numbering it would make selection return an invented identity, and the user could click on something that does not exist in their model. Refusing to answer is the correct answer, and it is the same refusal as lesson 08's periodic seams.
+
+**Face keys are sorted before their normals are accumulated. What bug does the sort prevent?**
+
+*How to work it out.* Float addition is not associative: `(a + b) + c` and `a + (b + c)` can differ in the last bits. Then ask what decides the order here — iteration over a hash map, which is not stable.
+
+*The answer.* Without the sort, the same mesh can produce different bytes on different runs, which breaks every hash the course verifies and makes bugs unreproducible. Determinism does not happen by itself; it is something you write down.
+
+**What you should be able to do now**
+
+Name the four things every producer packs and why each is packed rather than passed as-is: pen width → world radius (the GPU works in world units), colour → RGBA8 (four bytes instead of sixteen, and colour needs no more), unit normal → 16-bit octahedral code (two bytes, and a unit vector has only two degrees of freedom), two normals → one `facing` word (the marker and edge lanes need adjacency, not geometry). Then predict which a point-cloud producer skips: facing and normals — a point has no adjacency, which is why `FACING_UNKNOWN` exists.
 
 ## Next
 

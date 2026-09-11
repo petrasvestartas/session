@@ -134,22 +134,35 @@ Expected:
 - Remove a group with children and undo: the children return under the same parent at the same index.
 - Open the saved file in the Python or C++ kernel and run the same sequence: the same names do the same things.
 
+## Questions and answers
 
-## Recall
+**History lives in memory and never crosses pb or JSON. What does that buy, and what does it give up?**
 
-??? question "History lives in memory and never crosses pb or JSON. What does that buy, and what does it give up?"
-    An opened file always starts clean: no undo across sessions, no history in a file someone else reads, no format to version. It gives up cross-session undo — which, as Rhino also decided, is not what users expect from a CAD document. The rule is worth stating because the temptation to persist it is constant and the cost only appears later, in the file format.
+*How to work it out.* Ask what a persisted history would require: a version in the file format, a decision about what an undo means after someone else edited the file, and a guarantee that a tombstone's object still makes sense in a later schema. Then ask what users expect — open a file, and it is what it is.
 
-??? question "A tombstone stores the object, its list position, its transform, its parent and sibling index, its subtree, its graph attribute and its incident edges. Why so much for one deletion?"
-    Because undo has to put the object back into *every* live table at the same place — anything less is a restore that quietly loses a parent, a child order, or an edge. The reason the list was incomplete before is that each table's loss was invisible on its own. When you write an undo, enumerate the tables, not the operations.
+*The answer.* An opened file always starts clean: no format to version, no cross-session semantics to define, no history leaking to whoever you send the file to. It gives up cross-session undo, which is what Rhino also gives up. Worth stating because the temptation to persist it is constant and the cost only appears later, in the format.
 
-??? question "`Replace` and `Xform` carry absolute before and after values, never deltas. Argue for absolutes here."
-    Deltas compose and drift: two floating-point transforms that undo each other do not return the original bits, and a delta applied to a state it was not computed from is silently wrong. Absolutes are bigger and completely unambiguous, and the buffer is bounded at 64 anyway. Reach for deltas when size is the constraint, and here it is not.
+**A tombstone stores the object, its list position, its transform, its parent and sibling index, its subtree, its graph attribute and its incident edges. Why so much for one deletion?**
 
-??? question "A removal's clone keeps the guid rather than minting a new one. What would break with `duplicate`?"
-    The restored object would be a different object as far as every reference is concerned: links, selections and anything holding the guid would point at nothing. An undo has to restore *identity*, not merely equivalent content — which is why the four types that lacked `refresh_guid` had to gain it for `replace` to work at all.
+*How to work it out.* List the live tables a removal touches: the typed list, `lookup`, the transform map, the tree, the graph. For each, ask what undo needs to restore it *exactly* — not just presence but position, because index order is visible to the user.
 
-**Rebuild from memory:** you have finished the course. Without looking, describe the path a click takes from the browser event to a highlighted object — through input, state, the id pass, the readback, the generation check, `Scene::resolve`, the row flag and the next frame. That single path crosses almost every module you built. When you can narrate it, take the [capstone](capstone.md).
+*The answer.* Anything less is a restore that quietly loses a parent, a child order or an edge. The reason the list was incomplete before is that each table's loss is invisible on its own. When you write an undo, enumerate the tables, not the operations.
+
+**`Replace` and `Xform` carry absolute before and after values, never deltas. Argue for absolutes here.**
+
+*How to work it out.* Ask what a delta assumes: that it will be applied to exactly the state it was computed from. Then ask what could break that — a redo stack, a transaction reordered, floating-point rounding that makes inverse composition not quite the identity. Finally price the alternative: the buffer is 64 transactions, so size is not the constraint.
+
+*The answer.* Absolutes are bigger and completely unambiguous; deltas compose and drift. Reach for deltas when size is the binding constraint, and here it is not.
+
+**A removal's clone keeps the guid rather than minting a new one. What would break with `duplicate`?**
+
+*How to work it out.* Ask who refers to an object by guid: links, the graph, selections, anything the user saved. Now restore it under a new guid — the content is back, the references are not.
+
+*The answer.* An undo has to restore *identity*, not equivalent content. That is also why the four types lacking `refresh_guid` had to gain it: `replace` gives the replacement the original's guid, and a guid minted once cannot otherwise be reset.
+
+**What you should be able to do now**
+
+Narrate a click from browser event to highlighted object, without looking. Correct: winit delivers a pointer event → `input.rs` scales it by the device ratio and, on a release under `CLICK_SLOP`, asks `State` for a selection → `State::request_selection` records the request with a generation and the window size → the next frame runs `pick_frame`, drawing the ID pass into a window-sized integer target → `copy_texture_to_buffer` and `map_async` → a later frame polls the mapping, checks the generation, sorts the window (ink before faces, nearest to the cursor) → `Scene::resolve` turns the row and sub-id into a document identity → `set_selected` flips `FLAG_SELECTED` in the row → the next frame draws the yellow strokes and the silhouette. That path crosses almost every module you built. When you can narrate it, take the [capstone](capstone.md).
 
 ## Next
 

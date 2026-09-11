@@ -174,39 +174,39 @@ flowchart TB
     style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-75 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-77 -->
 
 - `PoolReport` reads the scan's first record back one frame later: the words every list needed. A pool that was too small keeps the conservative rejection for that one frame and is reallocated before the next projection.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=76-147 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=78-149 -->
 
 - `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=148-180 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=150-182 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=181-213 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=183-215 -->
 
 - `prepare` resizes storage for the triangle count, the framebuffer and the last report; beyond the device's storage binding limit it releases the tables and reports so the ink shader keeps the plane rule.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=214-295 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=216-297 -->
 
 - `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=296-402 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=298-404 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=403-434 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=405-436 -->
 
 - Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=435-460 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=437-462 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=461-560 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=463-572 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=561-590 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=573-585 -->
 
 Copy the rest of the file:
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=591-703 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=586-703 -->
 
 <!-- check: 18 -->
 
@@ -381,27 +381,43 @@ The same source you just finished is what the repository publishes:
 - Overflow a tile on purpose by loading a dense mesh and lowering the tile size in `triangle_tiles.rs`: overflowing lists keep the conservative rejection, and hidden edges never leak through.
 - Open `?outlines=1`, select the BRep and click another object: the masks are rebuilt because `selection_revision` moved, while the tile index, keyed on geometry only, is reused.
 
-
-## Recall
+## Questions and answers
 
 The last renderer lesson. These questions are the ones an interviewer would ask about this codebase.
 
-??? question "The plane test is kept, and the tile walk only runs when the plane test rejects. Why is that ordering the whole design?"
-    Because the plane test is one `textureLoad` and a dot product and it is right almost everywhere; the tile walk is a list traversal and it is needed at concavities and contacts. Running the cheap conservative test first and escalating only on a rejection means the expensive machinery costs nothing on the overwhelming majority of fragments. Note the direction of the conservatism: the plane test may wrongly *hide*, never wrongly *show*, so escalating on rejection can only ever restore ink.
+**The plane test is kept, and the tile walk only runs when the plane test rejects. Why is that ordering the whole design?**
 
-??? question "An overflowing or incomplete tile list keeps the rejection rather than accepting. Why is that the safe direction?"
-    Because the list is the evidence for "nothing finite occludes this"; without a complete list you have no evidence, and showing ink that should be hidden is the worse error — it draws lines through solids. Degrading to the previous, conservative answer is a failure mode the user can live with, and `PoolReport` makes it last exactly one frame before the pool is resized.
+*How to work it out.* Price the two tests: the plane test is one `textureLoad` plus a dot product; the tile walk is a list traversal with a bounds test per entry. Then ask how often each is needed — the plane test is right everywhere except at concavities and where solids touch. Finally, check the *direction* of the cheap test's error: it extends a finite triangle's plane, so it can only over-occlude.
 
-??? question "`ProjectionKey` is the camera matrix plus the geometry revision. Why is selection deliberately not in it?"
-    Because selecting an object changes no triangle's position, so the projection and its tiles are still valid — rebuilding them on every click would be pure waste during the most interactive thing a user does. The silhouette masks *are* keyed on selection, because their content genuinely changes. One revision counter per thing that can go stale, and each consumer keys on the ones that affect it.
+*The answer.* Because the cheap test can only wrongly *hide*, never wrongly *show*, escalating on rejection can only restore ink — so running it first is free correctness, not a gamble. The expensive machinery then costs nothing on the overwhelming majority of fragments.
 
-??? question "X-ray discards fragments instead of blending them. Give two reasons."
-    A blended face still writes depth, so it would hide the very edges and vertices `P` exists to show — transparency is not the same as absence. And a discarding face writes no coverage either, which is what keeps the silhouette from ringing a solid you asked to see through. `FLAG_SINGLE` marks the shapes with no inside to reveal, and they keep their shading; the flag exists because "a single face" is a geometric fact the producer knows and the shader cannot.
+**An overflowing or incomplete tile list keeps the rejection rather than accepting. Why is that the safe direction?**
 
-??? question "Sums saturate at the buffer capacity instead of wrapping. What is the failure this prevents?"
-    A wrapped prefix sum produces a small, *plausible* offset, and the fill pass would write triangle references over another tile's list. The result is not a crash but wrong visibility somewhere else on screen — the worst kind of bug to track down. Saturation turns it into the overflow flag, which is handled.
+*How to work it out.* The list is the evidence for "nothing finite occludes this axis". Ask what an incomplete list proves: nothing. Then compare the two errors — ink wrongly hidden (a seam missing at one contact) against ink wrongly shown (lines drawn through solids).
 
-**Rebuild from memory:** you have now built the entire renderer. Without the page, name the passes of one frame in order, with what each reads and writes, and say which two are skipped when nothing needs them. Then take the [capstone](capstone.md): the section plane touches every one of those passes, and nobody will tell you how.
+*The answer.* With no evidence you fall back to the conservative answer. Drawing through solids is the worse error and the more confusing one, and `PoolReport` makes the degradation last exactly one frame before the pool is resized.
+
+**`ProjectionKey` is the camera matrix plus the geometry revision. Why is selection deliberately not in it?**
+
+*How to work it out.* Ask what the projection contains: each triangle's screen position and depth. Then ask what selecting an object changes: a flag in a row, affecting colour. No triangle moves.
+
+*The answer.* The tiles are still valid, so rebuilding them on every click would be pure waste during the most interactive thing a user does. The silhouette masks *are* keyed on selection, because their content genuinely changes. One revision counter per thing that can go stale, and each consumer keys on the ones that affect it.
+
+**X-ray discards fragments instead of blending them. Give two reasons.**
+
+*How to work it out.* Ask what a blended face still does: it writes depth. Then ask what `P` is for: seeing the edges and vertices *behind* the face. Then check the mask pass, which rasterizes the same faces.
+
+*The answer.* A translucent face would still occlude everything behind it through the depth buffer, so transparency is not absence. And a discarding face writes no coverage either, which is what stops the silhouette from ringing a solid you asked to see through. `FLAG_SINGLE` marks shapes with no inside to reveal — a geometric fact the producer knows and the shader cannot work out for itself.
+
+**Sums saturate at the buffer capacity instead of wrapping. What is the failure this prevents?**
+
+*How to work it out.* Follow a wrapped prefix sum: it becomes a small number, which is a valid-looking offset into the pool. The fill pass then writes this tile's references into some other tile's range.
+
+*The answer.* Not a crash — wrong visibility somewhere else on screen, far from the dense geometry that caused it. Saturation turns a silent corruption into the overflow flag, which the ink query already handles.
+
+**What you should be able to do now**
+
+You have built the whole renderer: name one frame's passes in order, with what each reads and writes, and which two are skipped when not needed. Correct: project triangles and build tiles (skipped when the key still matches), the point prelude (skipped when there are no points), the face pass with backdrop, the coverage-mask passes and their pool reductions, the silhouette composite, the ink pass, the text pass, and the ID pass on demand. Then take the [capstone](capstone.md): the section plane touches every one of them.
 
 ## Next
 

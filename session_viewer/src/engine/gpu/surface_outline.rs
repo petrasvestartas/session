@@ -297,7 +297,7 @@ impl SurfaceOutline {
         }
         // One radius for every silhouette: an ordinary solid's outline is as heavy as a
         // selected one's, the selection differing by its yellow fill, not its border.
-        let css_radius = 3.375;
+        let css_radius = 1.6875;
         let radius = (css_radius * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 12.0) as f32;
         ctx.queue.write_buffer(
             &self.uniform,

@@ -108,22 +108,35 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 - Orbit around the torus seam with `?thickness=3`: the seam stays one line, drawn from one face use, although two parameter uses share it.
 - Append `?distance=0.5` near a natural boundary of the trimmed patch: the rim is still ink from the mesh nodes, so it cannot detach when you zoom.
 
+## Questions and answers
 
-## Recall
+**Why does drawing the hole's curve on top of a full rectangle not make a hole?**
 
-??? question "Why does drawing the hole's curve on top of a full rectangle not make a hole?"
-    Because the fill is still there: you have painted a circle on a solid face. The face behind it still writes depth, still occludes, still answers a pick, and still hides whatever is meant to show through. A hole is an absence in the *mesh*, which is why the constrained mesh cached on the surface has to win over a freshly triangulated grid.
+*How to work it out.* Ask what a hole has to do, beyond looking right from one angle. You must be able to see through it, it must not occlude, and clicking through it must hit whatever is behind. A painted circle fails all three, because the face is still there.
 
-??? question "A natural boundary gets a source ID; a periodic seam does not. What distinguishes them?"
-    A natural boundary is a limit of the domain — `u == start`, `v == end` — and it is a real edge of a real face. A closed direction has no physical edge at its seam: the surface continues through it. Giving the seam an ID would invent a CAD edge where the model has none, the same refusal you met for tessellation seams in lesson 06.
+*The answer.* The fill still writes depth, still occludes, still answers a pick. A hole is an absence in the *mesh*, which is why the constrained mesh cached on the surface has to win over a freshly triangulated grid.
 
-??? question "A seam and a shading crease sound alike. State the difference in one sentence each."
-    A seam is repeated *parameter* coordinates — the same XYZ reached at `u = 0` and `u = 1` — and it is a bookkeeping fact. A crease is a discontinuity in the *normal* — a genuine fold — and it is a lighting fact. A torus has seams and no creases; a folded plane has a crease and no seam.
+**A natural boundary gets a source ID; a periodic seam does not. What distinguishes them?**
 
-??? question "Boundary keys use exact position bits with no weld tolerance. Why is a tolerance the wrong tool here?"
-    Because the two faces were given the *same* points by construction (lesson 07), so equality is exact and any tolerance can only make it wrong — merging two boundaries that genuinely differ. A tolerance is for reconciling independent approximations; when you have arranged for the bits to be identical, use that.
+*How to work it out.* Ask, for each, whether the surface continues past it. At `u == start` the domain ends — there is nothing beyond, so there is a real edge. At a periodic seam the surface wraps and continues; the seam is where the parameterisation was cut, not where the shape stops.
 
-**Rebuild from memory:** predict what a user sees if `map_surface_boundaries` is given the wrong `first_pipe` — not what the code does, what the *user* sees. Being able to translate a bookkeeping mistake into a symptom is most of debugging.
+*The answer.* A natural boundary is a limit of the domain and a real edge of a real face. A seam is bookkeeping. Giving the seam an ID would invent a CAD edge, which is the same refusal as tessellation seams in lesson 06.
+
+**A seam and a shading crease sound alike. State the difference in one sentence each.**
+
+*How to work it out.* Ask which quantity is discontinuous. At a seam, the parameter jumps while position and normal are continuous. At a crease, the normal jumps while position is continuous.
+
+*The answer.* A seam is repeated parameter coordinates — the same XYZ reached at `u = 0` and `u = 1`. A crease is a discontinuity in the normal, a genuine fold. A torus has seams and no creases; a folded plane has a crease and no seam.
+
+**Boundary keys use exact position bits with no weld tolerance. Why is a tolerance the wrong tool here?**
+
+*How to work it out.* Ask where the two sets of points came from. Lesson 07 arranged for both faces to be *given* the same points, so equality is exact by construction. A tolerance can then only do damage: it can merge two boundaries that genuinely differ.
+
+*The answer.* A tolerance is for reconciling independent approximations. When you have arranged for the bits to be identical, compare the bits — and if they ever differ, that is a real bug you want to hear about rather than smooth over.
+
+**What you should be able to do now**
+
+Predict what a *user* sees if `map_surface_boundaries` gets the wrong `first_pipe`. Correct: boundary source IDs land on the wrong pipes — some of this surface's edges report no id and become unselectable, while pipes belonging to an earlier object get ids that are not theirs, so clicking one edge highlights a different one. Translating a bookkeeping mistake into a symptom is most of debugging.
 
 ## Next
 

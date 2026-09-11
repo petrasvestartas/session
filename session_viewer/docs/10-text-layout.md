@@ -197,22 +197,35 @@ If the status shows a width difference, compare font bytes, size and the kerning
 - Compare `é` with the decomposed `e` + combining accent that follows it: the first is one glyph, the second is two, and the accent glyph carries advance 0.
 - Change the sample string in `src/text_layout.rs` to `AVATAR AV AT`: the width of `AV` alone shows the kerning without the rest of the line.
 
+## Questions and answers
 
-## Recall
+**Nothing is drawn in this lesson. Why is that the right place to stop?**
 
-??? question "Nothing is drawn in this lesson. Why is that the right place to stop?"
-    Because shaping and drawing are separate problems and mixing them makes both unverifiable. Shaping answers "which glyphs, at which advances, from which bytes"; the browser can be asked the same question with the same font bytes, and the two answers compared numerically. Once pixels are involved, a disagreement could be shaping *or* rasterization *or* placement, and you would be guessing.
+*How to work it out.* Suppose text came out wrong on screen. List the stages that could be to blame: shaping (which glyphs, what advances), rasterization (coverage at this size), placement (where on screen). With all three in play you cannot tell which failed. Now ask whether any stage can be tested on its own — shaping can, because the browser will answer the same question with the same font.
 
-??? question "Fonts are compiled into the WASM instead of loaded from the system. What does that buy, and what does it cost?"
-    It buys identical shaping on every machine — a layout bug can be reproduced from a screenshot — and a comparison page that is meaningful. It costs binary size, which is why only the faces the viewer actually uses are bundled, and why unreferenced fonts were worth deleting.
+*The answer.* Shaping is the one stage with an independent oracle, so it is verified numerically before pixels exist. Once you can trust "these glyphs at these advances", a later disagreement must be raster or placement.
 
-??? question "A colour change does not reshape; a font-size change does. Which properties participate in shaping, and why those?"
-    `text`, `font_size` and `line_height`. They are the inputs that change *which glyphs at which advances*. Colour and placement change how the same glyphs are drawn, so the shaped buffer is reused by id. Knowing which edits are cheap is what lets a label follow the camera every frame without a shaper in the loop.
+**Fonts are compiled into the WASM instead of loaded from the system. What does that buy, and what does it cost?**
 
-??? question "What is a cluster, and why does the code carry it around?"
-    A byte range in the source string that one or more glyphs came from: `ffi` may be one glyph over three bytes, `e` plus a combining accent is one cluster of two glyphs. Without clusters you cannot map a click on a glyph back to a character, so editing and selection would be impossible — the data structure exists for a feature that arrives lessons later.
+*How to work it out.* Ask what varies if the font comes from the system: version, hinting, availability, fallback. Every one of those makes a layout bug unreproducible.
 
-**Rebuild from memory:** the replacement path validates the *whole* new document before touching the current runs. Say why, and name one other place in the course that takes the same all-or-nothing stance. (Lesson 07's empty mesh is one.)
+*The answer.* It buys identical shaping on every machine — a bug can be reproduced from a screenshot — and makes the comparison page meaningful, since both sides load the same bytes. It costs binary size, which is why only the faces the viewer actually uses are bundled and why unreferenced fonts were worth deleting.
+
+**A colour change does not reshape; a font-size change does. Which properties participate in shaping, and why those?**
+
+*How to work it out.* Ask which inputs could change *which glyph appears where*. Kerning and ligatures depend on the characters and the size; line breaking depends on the line height. Colour and position change how the same glyphs are painted.
+
+*The answer.* `text`, `font_size` and `line_height`. Everything else reuses the shaped buffer by id — which is what lets a label follow the camera every frame without a shaper in the loop.
+
+**What is a cluster, and why does the code carry it around?**
+
+*How to work it out.* Ask how you would map a click on a glyph back to a character. `ffi` can be one glyph from three bytes; `e` plus a combining accent is two glyphs for one grapheme. A glyph index alone cannot answer it.
+
+*The answer.* A cluster is the byte range in the source string that a glyph came from. Without clusters there is no editing and no text selection — the data structure exists for a feature that arrives lessons later, which is worth noticing: some structure is built early because removing it later would be impossible.
+
+**What you should be able to do now**
+
+Say why replacement validates the whole new document before touching the current runs, and name another place with the same stance. Correct: a partly-applied replacement leaves the document in a state that is neither the old one nor the new one, and there is no way back — so validate everything, then swap. Lesson 07's empty mesh and lesson 14's staged scene swap take the same all-or-nothing position.
 
 ## Next
 

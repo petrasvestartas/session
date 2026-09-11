@@ -231,22 +231,35 @@ If a boundary floats or doubles, compare the f64 chains of both faces first, the
 - Append `?thickness=4` and orbit: the pipes widen but never detach from the faces, which only holds because their endpoints are mesh nodes.
 - Zoom close to the hole rim with `?distance=0.4`: the rim stays attached to the inner face; a separately sampled circle would float above or sink below it.
 
+## Questions and answers
 
-## Recall
+**Two faces agree on an edge's endpoints. Why is that not enough?**
 
-??? question "Two faces agree on an edge's endpoints. Why is that not enough?"
-    Because agreeing on the ends says nothing about the middle: each face may chord the curve differently, so the seam z-fights and one face's coarse chord can be buried under the other's refinement. The fix is stronger than agreement — one canonical XYZ polygon, shared bit for bit, so there is nothing left to disagree about.
+*How to work it out.* Agreeing on the ends constrains two points. Ask what happens in between: each face chords the curve according to *its own* refinement, which depends on its own curvature and tolerance. Two different polylines with the same endpoints.
 
-??? question "Why is the ink drawn from mesh nodes rather than sampled from the CAD curve?"
-    Because a separately sampled curve is a *different* approximation of the same edge, and it will float above or sink below the tessellation it is meant to outline — visibly, as soon as you zoom in. Drawing from the nodes the boundary polygon became makes the line and the surface the same geometry by construction, not by tolerance.
+*The answer.* The seam z-fights where the two chordings cross, and one face's coarse chord can be buried under the other's finer surface. Agreement on endpoints is too weak a contract; the fix is stronger — one canonical XYZ polygon, shared bit for bit, so there is nothing left to disagree about.
 
-??? question "When the constraint fails, the kernel returns an empty mesh. Defend that choice against 'return the best mesh you can'."
-    A smeared crease or a manufactured face looks plausible and is wrong: it would be inked, picked, measured and trusted. An empty face is obviously broken, is reported, and cannot silently propagate into a drawing someone builds from. In a CAD kernel, a visible failure is cheaper than a quiet approximation.
+**Why is the ink drawn from mesh nodes rather than sampled from the CAD curve?**
 
-??? question "Face-use flags are never read when deciding which way is out. What is used instead, and why is that more robust?"
-    The tessellation itself: two faces that walk a shared edge in opposite directions agree, and a group enclosing negative volume is inside out. Flags are metadata that an upstream tool can get wrong; the geometry cannot lie about its own winding. Prefer the invariant you can compute over the one you were told.
+*How to work it out.* Ask what the ink is supposed to outline: the tessellation, which is what the user actually sees. A curve sampled independently is a second approximation of the same edge, accurate to its own tolerance — and two approximations of a curve differ by more than nothing.
 
-**Rebuild from memory:** explain, in three sentences and without the page, why this lesson's fix is *upstream* of the viewer at all — what would have to be true for the viewer to fix it alone, and why that is not true here. This is the first lesson where the right change was not in the renderer, and recognising that situation is a skill of its own.
+*The answer.* An independently sampled line floats above or sinks below the surface it is meant to outline, visibly, as soon as you zoom. Drawing from the nodes the shared boundary polygon became makes the line and the surface the same geometry by construction rather than by tolerance.
+
+**When the constraint fails, the kernel returns an empty mesh. Defend that choice against "return the best mesh you can".**
+
+*How to work it out.* Ask what happens to a slightly-wrong face downstream. It is inked, picked, measured, exported and trusted. Now ask what happens to an empty face: it is obviously broken, it is reported, and nothing is built on it.
+
+*The answer.* A smeared crease or a manufactured face looks plausible and is wrong; in a CAD kernel that is the expensive failure. A visible failure is cheaper than a quiet approximation — the same instinct as refusing a `200` answer to a range request in lesson 13.
+
+**Face-use flags are never read when deciding which way is out. What is used instead, and why is that more robust?**
+
+*How to work it out.* Ask where each candidate comes from. A flag was written by whichever tool produced the file and can be wrong or missing. The winding of the tessellation is something you compute from the geometry you are holding.
+
+*The answer.* Two faces that walk a shared edge in opposite directions agree, and a group enclosing negative volume is inside out — both derived from the mesh. Prefer the invariant you can compute over the one you were told; the second has no error bar you can see.
+
+**What you should be able to do now**
+
+Explain in three sentences why the fix for this problem is upstream of the viewer. Correct: the viewer receives two independently meshed faces and has no way to recover the curve they were both approximating, so any viewer-side fix would be a tolerance-based weld that guesses. The information needed — one canonical polygon and the provenance tags saying which node came from which boundary sample — only exists inside the mesher. Recognising "this cannot be fixed where I am standing" is a skill worth naming.
 
 ## Next
 

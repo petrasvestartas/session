@@ -1124,7 +1124,7 @@ index dcf9ee00fbb97f4c57ca056f56ca0107c923a689..1d714cbc4f904710d7dc7fcbc95829c6
  }
  
 diff --git a/session_viewer/src/engine/gpu/surface_outline.rs b/session_viewer/src/engine/gpu/surface_outline.rs
-index 80fb39e85090909fcf5748846fd192c2682a0efa..b0a0f29f66244a2196af897a9f4d66c25835ed39 100644
+index 80fb39e85090909fcf5748846fd192c2682a0efa..fd7012a871035c39e4210039ad6e662b5050d785 100644
 --- a/session_viewer/src/engine/gpu/surface_outline.rs
 +++ b/session_viewer/src/engine/gpu/surface_outline.rs
 @@ -24,6 +24,21 @@ struct Mask {
@@ -1241,7 +1241,7 @@ index 80fb39e85090909fcf5748846fd192c2682a0efa..b0a0f29f66244a2196af897a9f4d66c2
 -        };
 +        // One radius for every silhouette: an ordinary solid's outline is as heavy as a
 +        // selected one's, the selection differing by its yellow fill, not its border.
-+        let css_radius = 3.375;
++        let css_radius = 1.6875;
          let radius = (css_radius * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 12.0) as f32;
          ctx.queue.write_buffer(
              &self.uniform,

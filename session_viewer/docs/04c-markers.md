@@ -80,19 +80,19 @@ flowchart TB
     style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-16 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-3 -->
 
 - `screen_radius` and `to_px` turn a world or pen radius into pixels; `faces_front` decodes the packed normals.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-68 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=4-16 -->
 
 - The template corner is offset in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=69-124 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-62 -->
 
 - The facing cull is skipped when the eye is inside the object and when `line.opacity` is zero: in x-ray a vertex on the far side of a cube is exactly what you want to see.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=125-153 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=63-153 -->
 
 ## Step 4 · Free dots
 
@@ -106,15 +106,15 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-19 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-6 -->
 
 - A dot wider than the canvas is dropped before it is placed. The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment: a large dot survives when the pass renders only a window of the canvas, so it stays pickable.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=20-89 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=7-38 -->
 
 - The ramp never exceeds the ink it feathers; `vs_source` and `fs_source_id` serve source-cloud queries.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=90-138 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=39-138 -->
 
 <!-- check: 04c -->
 
@@ -172,22 +172,35 @@ Expected:
 - Zoom out until the markers thin out: `spacing` in the object row is what lets the shader fade them once they would overlap.
 - Give one `GlyphPoint` a larger radius in `fixture.rs`: only that dot grows, because size travels per point.
 
+## Questions and answers
 
-## Recall
+**A marker is a disc, but the pipeline draws a quad template. Why not draw a disc?**
 
-??? question "A marker is a disc, but the pipeline draws a quad template. Why not draw a disc?"
-    The rasterizer only fills triangles. The four template corners are pushed out in clip space by the pixel radius plus the feather, so the quad is guaranteed to contain the antialiased disc, and the fragment stage decides what is inside it. Trading a tight shape for a simple one and letting the fragment stage do the geometry is the pattern behind strokes, markers and dots alike.
+*How to work it out.* Ask what the hardware can fill: triangles, and nothing else. A disc has to be either many triangles approximating a circle, or a shape that covers the disc with a fragment test inside it. Then compare the costs: an N-gon costs N vertices and still has visible corners when zoomed; a quad costs four and is exact.
 
-??? question "A free dot is one triangle, not a quad. What makes that enough?"
-    Its incircle is the disc: an equilateral triangle's inscribed circle touches all three sides, so three vertices cover the whole disc with less area than a quad and no template buffer at all — the row comes from `@builtin(vertex_index) / 3`.
+*The answer.* The four template corners are pushed out in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc, and the fragment stage decides what is inside. Cover with a simple shape, resolve with the fragment stage — the same pattern as strokes and dots.
 
-??? question "The dot's too-big-to-draw test reads `frame`, while a sphere sizes itself against `vp_w`/`vp_h`. Why the difference?"
-    `frame` is the canvas the scene was projected for; `vp_w`/`vp_h` is the attachment actually being drawn. They are the same except in the pick pass, which renders a small window. A dot judged against the *window* would be dropped there and become unpickable, while a sphere genuinely needs the attachment it is being sized into. Two similar-looking numbers, two different questions.
+**A free dot is one triangle, not a quad. What makes that enough?**
 
-??? question "When is the facing cull skipped, and what would you see if it never were?"
-    When the eye is inside the object, and when `line.opacity` is zero — that is, in x-ray. Without the skip, `P` would show back edges but no back vertices, because every marker on the far side is culled by the faces pointing away from you. It is a one-line condition and its absence is a bug report you would struggle to phrase.
+*How to work it out.* Ask what the smallest triangle containing a given circle is. That is the equilateral triangle whose inscribed circle is the disc — its incircle touches all three sides. Three vertices instead of four, and no template buffer.
 
-**Rebuild from memory:** the marker row is 48 bytes for a centre, a radius and packed face normals. Say where the radius lives and why — then check. The answer is the same alignment rule as lessons 03 and 04b, and by now you should be able to predict it before looking.
+*The answer.* The incircle of an equilateral triangle is the disc, so three vertices cover it, and the row comes from `@builtin(vertex_index) / 3` with nothing bound. Slightly more wasted area per dot than a quad, far less per-vertex work — the right trade when there are millions of dots.
+
+**The dot's too-big-to-draw test reads `frame`, while a sphere sizes itself against `vp_w`/`vp_h`. Why the difference?**
+
+*How to work it out.* For each test, ask which question it is answering. "Is this dot so large it is not worth drawing?" is a question about the picture the user is looking at. "How many pixels wide is this marker in the thing I am drawing into?" is a question about the attachment. In a colour frame those coincide; in the pick pass they do not.
+
+*The answer.* A dot judged against the small pick window would be dropped there and silently become unpickable, so it is judged against `frame`, the canvas. A sphere genuinely needs the attachment it is being sized into, so it uses `vp_w`/`vp_h`. Two similar-looking numbers, two different questions.
+
+**When is the facing cull skipped, and what would you see if it never were?**
+
+*How to work it out.* The cull hides a vertex whose incident faces all point away. Ask when that is the wrong thing to do: when there is no face in the way — because the eye is inside the object, or because the faces are not being drawn at all.
+
+*The answer.* It is skipped when the eye is inside the object and when `line.opacity` is zero, which is x-ray. Without the skip, `P` would show back edges but no back vertices, because every far-side marker is culled by faces that are not even drawn. One line of condition; its absence is a bug you would struggle to describe.
+
+**What you should be able to do now**
+
+Predict where the radius sits in the 48-byte marker row before looking. Correct: `center` is a `vec3` so it aligns to 16 and leaves a 4-byte hole after it — the radius goes in that hole, which is why the row is 48 and not 52. This is the third time the same alignment rule has decided a layout; by now you should be able to work it out rather than read it.
 
 ## Next
 

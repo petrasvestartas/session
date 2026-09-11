@@ -90,19 +90,19 @@ flowchart TB
     style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-54 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-56 -->
 
 - `PipelineDesc` is one base per shader; `with`, `vertex`, `color`, `depth` derive the variants.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=55-177 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=57-191 -->
 
 - `module` appends `normals.wgsl` to every shader source, so one normal transform serves all lanes; `scene_module` also appends `scene.wgsl`, so the camera, the line block and the object rows are declared once for every lane.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=178-207 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=192-221 -->
 
 - `build` is the only place wgpu is asked for a render pipeline: `Depth32Float`, no cull, fill mode, the desc supplies the rest.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=208-285 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=222-285 -->
 
 - `scene.wgsl` is the scene contract: groups 0 to 2, the `Instance` row, the `LineUniform` block, the `FLAG_*` bits and `place`. A lane shader never declares them itself, so a row field changes in one place.
 
@@ -179,17 +179,17 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=177-205 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-311 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-329 -->
 
 - `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result. The pen is `thickness_px * pixel_scale`, so it keeps its CSS width at every device scale; `origin` is zero and `frame` is the framebuffer.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=312-356 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=330-374 -->
 
 - `write_pick` derives the pick blocks from the frame's after `write`: the camera premultiplied by the window's clip transform, `proj_y` and `ortho_h` scaled by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=357-392 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=375-410 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=393-417 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=411-417 -->
 
 ## Step 6 · Runtime knobs and the query string
 
@@ -225,29 +225,29 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-48 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-36 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=49-91 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=37-78 -->
 
 - Group 2 for ink binds the same two buffers plus the face pass's depth views.
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=92-143 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=79-130 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=144-214 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=131-201 -->
 
 - `append` converts each row to the 96-byte `Instance`, keeps the f64 translation aside, and records bounded rows for the inside test.
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=215-282 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=202-268 -->
 
 - `rebase_anchor` rewrites only the translation column when the camera target drifts a quarter of the view distance, throttled to one rebuild per interval.
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=283-340 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=269-326 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=341-388 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=327-374 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=389-444 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=375-430 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=445-469 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=431-469 -->
 
 <!-- check: 04a -->
 
@@ -257,15 +257,15 @@ flowchart TB
 
 ![vs_main runs once per vertex, the rasterizer works out which pixels the triangle covers and blends the vertex outputs across them, and fs_main runs once per covered pixel and never sees a vertex.](illustrations/stages.svg)
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-3 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-2 -->
 
 - A hidden row's triangle is parked outside the clip volume; the ID pass shares this vertex stage, so a hidden object is unpickable too.
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=4-61 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=3-22 -->
 
 - A camera headlight with wrapped diffuse: the darkest visible face is its silhouette, never black. Back faces paint red unless the object is print.
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=62-122 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=23-122 -->
 
 ## Step 9 · The mesh lane
 
@@ -392,24 +392,37 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 - Add a second `ObjectRow` in `fixture.rs` with a different `place`: the same vertex range draws twice, once per row.
 - Set `msaa=1` in the query string and look at the edge of the mesh against the background: the antialiasing budget is a knob, not a constant.
 
+## Questions and answers
 
-## Recall
+This is the longest lesson in the course and the one the rest is built on.
 
-This is the longest lesson in the course and the one the rest is built on. Answer with it closed.
+**`GrowBuf` returns `true` when it grew. Why does a caller have to care?**
 
-??? question "`GrowBuf` returns `true` when it grew. Why does a caller have to care?"
-    Because growing allocates a *new* buffer, and every bind group that referenced the old one is now pointing at the wrong memory. The boolean is the signal to rebuild the bind group. Ignore it and you get stale or garbage geometry with no validation error at all — the buffer it names is still perfectly valid, just not yours any more.
+*How to work it out.* Ask what "grow" means on a GPU. There is no realloc: you create a *new*, larger buffer and copy the live prefix into it. Then ask what else in the system remembers the old buffer — a bind group holds a reference to a specific buffer, not to a name.
 
-??? question "Group 2 holds rows in one buffer and translations in another. What does the split buy?"
-    A re-anchor rewrites only the translations: 16 bytes per object instead of 96. The anchor moves whenever the camera drifts far from it, so this is the write that happens while you are navigating, and it is the one worth making small.
+*The answer.* The old bind group now points at a buffer nobody writes to any more. The boolean is the signal to rebuild it. Ignore it and there is no validation error at all — the buffer it names is still perfectly valid, just not yours — so the symptom is stale geometry, which is failure 9 in [Reading failures](debugging.md).
 
-??? question "`vp_w`/`vp_h` and `frame`/`origin` look like the same numbers. When do they differ, and why are both needed?"
-    Only in the pick pass. `vp_w`/`vp_h` are the attachment actually being drawn into — a small window around the cursor. `frame` is the whole canvas the scene was projected for, and `origin` is where the window's top-left sits in it. Pixel arithmetic uses the attachment; anything laid out against the full canvas has to be addressed through `origin`. Collapse them into one pair and picking silently drifts as soon as the window is not the canvas.
+**Group 2 holds rows in one buffer and translations in another. What does the split buy?**
 
-??? question "Why is a pipeline described by data (`PipelineDesc`) instead of a function per pipeline?"
-    Because the viewer has one shader with many variants — a different fragment entry, a different colour mode, a different depth rule — and a function per variant duplicates the twenty fields they share. One base plus `with`/`vertex`/`color`/`depth` keeps the differences visible in one line each, and `build` stays the only place wgpu is asked for a pipeline, which is where a format or sample-count mistake can be caught once.
+*How to work it out.* Ask which of the two changes more often. The rows change when the scene changes; the translations change every time the anchor moves, which is while you are navigating. Then ask what each write costs per object: 96 bytes against 16.
 
-**Rebuild from memory:** name the three bind groups every lane shares and what each holds, then say which one the ink pass binds differently and what it adds. If you can do that, you can read any shader in this repository; if you cannot, re-read step 2 before lesson 04b, because every lane after this one assumes it.
+*The answer.* A re-anchor rewrites only the translations — 16 bytes per object instead of 96. It is the write that happens during interaction, so it is the one worth making small. The general move: split a record when one half changes on a different clock than the other.
+
+**`vp_w`/`vp_h` and `frame`/`origin` look like the same numbers. When do they differ, and why are both needed?**
+
+*How to work it out.* Find a case where the thing being drawn into is not the whole canvas. There is exactly one: the pick pass renders a small window around the cursor into its own small attachment. Now ask, for each piece of pixel arithmetic in the shaders, whether it means "in this attachment" or "on the canvas the scene was laid out for".
+
+*The answer.* `vp_w`/`vp_h` are the attachment actually being drawn into; `frame` is the whole canvas the scene was projected for, and `origin` is where the window's top-left sits in it. Pixel arithmetic uses the attachment; anything laid out against the full canvas must be addressed through `origin`. Collapse them and picking drifts as soon as the window is not the canvas.
+
+**Why is a pipeline described by data (`PipelineDesc`) instead of a function per pipeline?**
+
+*How to work it out.* Count the variants: one shader, several fragment entries, several colour modes, several depth rules. Then count the fields they share — around twenty. A function per variant duplicates the twenty and buries the one line that differs.
+
+*The answer.* One base per shader plus `with`/`vertex`/`color`/`depth` makes each variant a single readable line, and keeps `build` as the only place wgpu is asked for a pipeline — so a format or sample-count mistake is caught in one place instead of eight. This is the "small number of strong abstractions" rule: the desc reduces repetition without hiding what wgpu is doing.
+
+**What you should be able to do now**
+
+Name the three bind groups every lane shares and what each holds, and say what the ink pass binds differently. Correct: group 0 the camera matrix, group 1 the per-frame `LineUniform`, group 2 the object rows plus anchored translations — and the ink variant of group 2 adds the physical depth views, so ink can test its own visibility. If you can say that, you can read any shader in this repository.
 
 ## Next
 

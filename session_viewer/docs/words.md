@@ -122,21 +122,34 @@ flowchart LR
 - **let-else / let chains** (06) — `let Some(x) = y else { continue }` and `if let A = b && cond { }`: edition 2024 forms the kernel code uses.
 - **`OnceLock` knobs** (04a, `src/app/knobs.rs`) — a query-string or environment switch read once per process.
 
-## Check yourself
+## Questions and answers
 
-Answer each with the page closed, then open the answer.
+**Which of these is made per pipeline and which per buffer: a bind group layout, a bind group?**
 
-??? question "Which of these is made per pipeline and which per buffer: a bind group layout, a bind group?"
-    The layout is compiled into the pipeline (its shape). The bind group is made per set of real buffers or views and plugged in at draw time; the same pipeline draws with many bind groups.
+*How to work it out.* Ask what each one names. A layout names *kinds* of resources at slots — the shape the shader was compiled against. A bind group names *actual* buffers and views. A pipeline is compiled once; the buffers it draws from change.
 
-??? question "With reverse-Z, the depth buffer is cleared to 0 and faces compare `Greater`. What happens to a triangle if the clear value were 1?"
-    Nothing would ever pass: every fragment's depth is at most 1, and `Greater` than 1 is never true. The canvas keeps its clear colour. (Lesson 05 lists the four clear/compare combinations.)
+*The answer.* The layout is compiled into the pipeline; the bind group is made per set of real resources and plugged in at draw time. One pipeline draws with many bind groups.
 
-??? question "A vertex shader outputs `(3.0, 3.0, 0.5, 1.0)` for all three vertices. What reaches the fragment stage?"
-    Nothing. After the divide by w, x = y = 3 is outside −1..1, so the whole triangle is clipped; no fragment entry runs. That is how a hidden row disappears from the colour pass and the id pass at once.
+**With reverse-Z, the depth buffer is cleared to 0 and faces compare `Greater`. What happens if the clear value were 1?**
 
-??? question "Name the three things Rust and WGSL must agree on for one draw, and where each mismatch shows up."
-    The group/binding numbers (a validation error when the pipeline is created), the entry-point names (the same error), and the colour target format (the same). None is a Rust compile error: `cargo check` cannot see WGSL.
+*How to work it out.* Depth after the divide lies in 0..1, so the largest value any fragment can have is 1. Ask whether `1 > 1` is ever true.
 
-??? question "Where does the source identity of a face live: on the GPU, in `Scene`, or in the kernel?"
-    In the kernel (`Session`), retained by `Scene` through `Rc`. The GPU knows an object row and a face index; `Scene::face_at` maps them back. That is why picking never reads a vertex buffer.
+*The answer.* Nothing passes, ever: the canvas keeps its clear colour. This is the failure behind a black canvas when the depth convention is only half changed.
+
+**A vertex shader outputs `(3.0, 3.0, 0.5, 1.0)` for all three vertices. What reaches the fragment stage?**
+
+*How to work it out.* Divide by w: x = y = 3, outside the −1..1 the screen covers. All three vertices are outside the same side of the volume, so the whole triangle is clipped.
+
+*The answer.* Nothing — no fragment entry runs. That is exactly how `dead_vertex` makes a hidden row disappear from the colour pass and the id pass at once, with one branch in the vertex stage.
+
+**Name the three things Rust and WGSL must agree on for one draw, and where each mismatch shows up.**
+
+*How to work it out.* Walk the pipeline descriptor field by field and ask which ones restate something the shader also declares.
+
+*The answer.* Group and binding numbers, the entry-point names, and the colour target format. All three surface as a validation error when the pipeline is created, never as a Rust compile error — `cargo check` cannot see inside WGSL, which is why `cargo xtest` parses every shader with naga.
+
+**Where does the source identity of a face live: on the GPU, in `Scene`, or in the kernel?**
+
+*How to work it out.* Ask what each layer holds. The GPU has a row index and a face address — numbers. `Scene` has the mapping and the retained documents. The kernel `Session` has the face itself, with its guid.
+
+*The answer.* In the kernel, retained by `Scene` through `Rc`; the GPU knows only an object row and a face index, and `Scene::face_at` maps them back. That is why picking never reads a vertex buffer back from the GPU.

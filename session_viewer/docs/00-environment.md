@@ -132,21 +132,31 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 - Change the status text in `start()` and reload: Trunk rebuilds on save, and the page shows your text. That is the whole edit loop of the course.
 - Misspell the element id in `get_element_by_id("status")`: the page stays on "Loading WASM" and the browser console shows the `expect` message. Put it back.
 
+## Questions and answers
 
-## Recall
+Every question is worked through: first how to reason to the answer, then the answer itself. Nothing is hidden.
 
-Scroll the lesson away and answer these before opening them.
+**Two crate types are declared. Who consumes each?**
 
-??? question "Two crate types are declared. Who consumes each?"
-    `cdylib` is what wasm-bindgen turns into a browser module — it is the artefact Trunk bundles. `rlib` is the ordinary Rust library, so native tools, tests and examples can link the same crate. Drop `rlib` and `cargo xtest` has nothing to link.
+*How to work it out.* Ask who reads the build output. Two things read it: the browser, through wasm-bindgen and Trunk, and `cargo test`/`cargo run --example` on your own machine. A browser module and a Rust library are different artefacts, so if both consumers exist, both artefacts must be declared.
 
-??? question "What does one line in `.cargo/config.toml` buy you?"
-    `build.target = "wasm32-unknown-unknown"` makes the browser the default for every `cargo` command, so browser code needs no `#[cfg(target_arch = "wasm32")]` gate — the rule is "the default is the browser, native is the exception". The `xtest` alias is how tests still run natively.
+*The answer.* `cdylib` is the dynamic library wasm-bindgen turns into a browser module — what Trunk bundles. `rlib` is the ordinary Rust library that native tools, tests and examples link against. Drop `rlib` and `cargo xtest` has nothing to link; drop `cdylib` and there is no page.
 
-??? question "The page is stuck on *Loading WASM* and the console is empty. Name two candidates before you touch the Rust."
-    You opened the file from disk instead of the Trunk address (nothing ever loaded the module), or the crate did not rebuild. An id typo is the *third* candidate, and it is easy to tell apart: it panics, and the console shows the `expect` message.
+**What does one line in `.cargo/config.toml` buy you?**
 
-**Rebuild from memory:** delete `src/lib.rs` and write it again — the start attribute, the document lookup, the two writes — then `cargo check`. It is under ten lines, and typing it once from memory is the difference between having read the entry point and knowing it.
+*How to work it out.* Notice what the alternative looks like. Without it, `cargo build` targets your machine, so every browser-only item needs `#[cfg(target_arch = "wasm32")]` and every build command needs `--target wasm32-unknown-unknown`. Ask which case is the common one: in this crate, almost all the code is browser code.
+
+*The answer.* `build.target = "wasm32-unknown-unknown"` makes the browser the default for every `cargo` command, so the source needs no per-item gates — the rule becomes "the default is the browser, native is the exception". The `xtest` alias is how the tests still run natively when you want them to.
+
+**The page is stuck on *Loading WASM* and the console is empty. Name two candidates before you touch the Rust.**
+
+*How to work it out.* Split the chain into stages and ask which stage produced the symptom. "Loading WASM" is the HTML's own text, so the page loaded but the module never replaced it. That rules out everything after `start()` runs, and points at the two stages before it: was a module served at all, and was it rebuilt? An empty console is the clue — a Rust panic would have printed.
+
+*The answer.* Either you opened the file from disk instead of the Trunk address, so nothing ever loaded the module, or the crate did not rebuild. An id typo is the third candidate and is easy to tell apart: it panics, and the console shows the `expect` message.
+
+**What you should be able to do now**
+
+Delete `src/lib.rs` and write it again — the start attribute, the document lookup, the two writes — then `cargo check`. Correct looks like: `#[wasm_bindgen(start)]` on a `pub fn start()`, `web_sys::window().unwrap().document().unwrap()`, `get_element_by_id("status")` with an `expect`, and `set_text_content(Some(...))` plus the `data-checkpoint` attribute. Under ten lines, and typing them once from memory is the difference between having read the entry point and knowing it.
 
 ## Next
 

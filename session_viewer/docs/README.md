@@ -35,7 +35,7 @@ flowchart TB
     end
 ```
 
-Read [How to use this course](how-to-learn.md) first: it is short, and the course is built around a way of working that only pays off if you know it is there.
+Read [How to use this course](how-to-learn.md) first: it is short, and it says how a lesson is built. Nothing in this course is hidden — every lesson ends in **Questions and answers**, where each question is followed by the reasoning that gets you there and then the answer.
 
 Then read [Words before code](words.md) once: every term the lessons use before they have room to explain it, with the file where it first appears. Come back to it whenever a sentence stops making sense. When something breaks, [Reading failures](debugging.md) covers the errors this course actually produces.
 
@@ -78,7 +78,7 @@ Every block is cut from the verified patch of that checkpoint. A replay audit ty
 | [19 · Sheets](19-sheets.md) | Batched drawings, ranged slices, lazy entity metadata | |
 | [20 · The document](20-history.md) | Kernel history: transactions, tombstones, undo and redo, purge on save | **5 · Full viewer** |
 
-Then [the capstone](capstone.md): a section plane, with requirements, constraints, hints and a design answer key, and no line-by-line instructions at all.
+Then [the capstone](capstone.md): a section plane, with requirements, constraints, the reasoning for each decision worked through, and the full design written out — but no line-by-line instructions.
 
 Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06–09 change the shared kernel and only need 05. 10–11 need 04c. 12 builds the production shell and needs everything before it. 13–16 extend `State` and loading. 17–18 refine presentation and visibility on top of 12. 19 streams drawing sheets on top of 15 and 17. 20 changes the shared kernel only and needs 19 for the inventory.
 

@@ -1396,7 +1396,85 @@ def device_scale():
     c.write("device-scale.svg")
 
 
+def section_plane():
+    c = Canvas("Where the cut happens",
+               "A section plane can be applied in either shader stage, and the choice shows. A vertex-stage rejection can only remove whole triangles, so wherever the plane crosses a triangle the whole triangle goes and the cut face keeps a staircase of mesh edges. A fragment-stage discard cuts at pixel resolution, exactly on the plane - but discarding alone leaves a hollow shell, because what the opening reveals is the inside of the far wall. A cap is what makes it read as a solid.",
+               1180, 500)
+    import math
+    pink, green, yellow, grey = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
+    c.text(28, 40, "A plane, and three ways it looks", "h")
+
+    cols, rows, cell = 6, 5, 38.0
+    span, height = cols * cell, rows * cell
+    angle = math.radians(-14)
+    normal = (math.cos(angle), math.sin(angle))
+
+    def grid(ox, oy):
+        out = []
+        for i in range(cols):
+            for j in range(rows):
+                x, y = ox + i * cell, oy + j * cell
+                out.append([(x, y), (x + cell, y), (x, y + cell)])
+                out.append([(x + cell, y), (x + cell, y + cell), (x, y + cell)])
+        return out
+
+    def side(p, origin):
+        return (p[0] - origin[0]) * normal[0] + (p[1] - origin[1]) * normal[1]
+
+    def clip(pts, origin):
+        """Sutherland-Hodgman against the half-plane behind the section plane."""
+        out = []
+        for i in range(len(pts)):
+            a, b = pts[i], pts[(i + 1) % len(pts)]
+            da, db = side(a, origin), side(b, origin)
+            if da <= 0:
+                out.append(a)
+            if (da <= 0) != (db <= 0):
+                t = da / (da - db)
+                out.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
+        return out
+
+    def poly(pts, opacity, stroke, width=0.9):
+        if len(pts) < 3:
+            return
+        c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in pts) +
+              f'" fill="{grey}" fill-opacity="{opacity}" stroke="{stroke}" stroke-width="{width}"/>')
+
+    for ox, mode, colour, head in ((60, "vertex", pink, "vertex stage: a staircase"),
+                                   (460, "fragment", green, "fragment stage: an exact cut"),
+                                   (850, "capped", yellow, "and a cap, or you see inside")):
+        c.text(ox, 86, head, "l", fill=colour)
+        left, top = ox + 8.0, 150.0
+        origin = (left + span * 0.62, top + height / 2)
+        c.raw(f'<rect x="{left:.1f}" y="{top:.1f}" width="{span:.1f}" height="{height:.1f}" fill="none" stroke="{grey}" stroke-width="1" stroke-dasharray="3 5"/>')
+        for tri in grid(left, top):
+            if mode == "vertex":
+                if all(side(p, origin) <= 0 for p in tri):
+                    poly(tri, 0.34, "#111111")
+            else:
+                poly(clip(tri, origin), 0.34, "#111111")
+        along = (-normal[1], normal[0])
+        reach = height / 2 + 26
+        ax, ay = origin[0] - along[0] * reach, origin[1] - along[1] * reach
+        bx, by = origin[0] + along[0] * reach, origin[1] + along[1] * reach
+        if mode == "capped":
+            back = 7.0
+            c.raw(f'<polygon points="{ax:.1f},{ay:.1f} {bx:.1f},{by:.1f} {bx - normal[0] * back:.1f},{by - normal[1] * back:.1f} {ax - normal[0] * back:.1f},{ay - normal[1] * back:.1f}" fill="{yellow}"/>')
+        if mode != "vertex":
+            c.raw(f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" stroke="{green if mode == "fragment" else yellow}" stroke-width="3"/>')
+        c.raw(f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" stroke="{grey}" stroke-width="1.6" stroke-dasharray="7 5"/>')
+
+    c.text(60, 392, "the plane crosses a triangle, so the whole triangle goes:", "s")
+    c.text(60, 414, "the edge follows the mesh, not the plane", "s", fill=pink)
+    c.text(460, 392, "discard decides per pixel, so the edge is the plane", "s")
+    c.text(460, 414, "but the opening shows the inside of the far wall", "s", fill=green)
+    c.text(850, 392, "back faces painted flat already read as a solid cut", "s")
+    c.text(850, 414, "stencilling the cap properly is the stretch goal", "s", fill=yellow)
+    c.text(28, 468, "The dashed rectangle is the uncut solid. A discarding fragment shader gives up early depth testing, which is why the plane wants to compile out when it is off.", "s")
+    c.write("section-plane.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, section_plane):
         draw()
-    print("wrote 31 illustrations")
+    print("wrote 32 illustrations")

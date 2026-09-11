@@ -45,14 +45,13 @@ flowchart LR
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 02 session_viewer/src/math.rs type lines=72-162 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=72-158 -->
 
 ## Step 3 · Recover camera facts from the matrix
 
 Draw lanes receive only the view-projection, never the camera. The eye is where clip x, y and w vanish together (one 3×3 solve); orthographic has no eye, so the fallback is the view direction pushed far back.
 
-
-<!-- file: 02 session_viewer/src/math.rs type lines=163-220 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=159-220 -->
 
 ## Step 4 · Camera state
 
@@ -60,14 +59,12 @@ Draw lanes receive only the view-projection, never the camera. The eye is where 
 - Internal units are metres; `Unit` converts scene millimetres at the matrix edge.
 - `scene_extent` floors the far plane so zooming into one detail cannot clip the rest of the scene.
 
-
 <!-- file: 02 session_viewer/src/camera.rs type lines=1-52 -->
 
 ## Step 5 · Construction and gestures
 
 - Orbit is yaw about `world_up`, then pitch about the current right axis; no Euler singularity.
 - `zoom_at` keeps the world point under the cursor fixed: the target moves toward it by the zoom factor. Cursor and viewport are physical pixels, the same space as the framebuffer.
-
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=53-138 -->
 
@@ -77,7 +74,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 
 ![The projection and the divide by w land the frustum in a cube. With near and far swapped, distant points crowd into a thin band at zero, which is where float32 is densest.](illustrations/frustum.svg)
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=139-197 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=139-196 -->
 
 ## Step 7 · The view-projection
 
@@ -85,8 +82,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 - **Anchor:** eye and target are expressed relative to a caller anchor in world units before any f32 exists, so a model far from the origin does not cancel to noise.
 - Near is a ten-thousandth of the focus distance: the cut opens a millimetre ahead of the eye, not a beam's width.
 
-
-<!-- file: 02 session_viewer/src/camera.rs type lines=198-271 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=197-270 -->
 
 ## Step 8 · Named views, fit, extent
 
@@ -103,15 +99,14 @@ flowchart TB
     style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=272-400 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=271-399 -->
 
 ## Step 9 · Wheel response
 
 - `zoom_distance` is exponential per detent and clamps a single event to ten detents, so coalesced wheel events compose and never cross zero.
 - The two `#[cfg(test)]` modules are native-only unit checks; they are not part of the browser build.
 
-
-<!-- file: 02 session_viewer/src/camera.rs copy lines=401-512 -->
+<!-- file: 02 session_viewer/src/camera.rs copy lines=400-512 -->
 
 <!-- check: 02 -->
 
@@ -162,22 +157,35 @@ If dragging moves twice as far on a high-DPI display, look at the `self.scale` c
 - Set `perspective: false` in `Camera::new` and orbit: the far edge no longer shrinks, and zoom scales the whole picture instead of walking towards it.
 - Pan with Shift held and release far from the origin, then zoom with the wheel: the point under the cursor stays under the cursor.
 
+## Questions and answers
 
-## Recall
+**`index = col * 4 + row`. Why does the convention matter more than the formula?**
 
-??? question "`index = col * 4 + row`. Why does the convention matter more than the formula?"
-    Because a matrix built for the other convention is its transpose, and a transposed matrix still multiplies without an error: you get a picture that is wrong in a plausible way. The kernel's `Xform`, `math.rs` and WGSL's `m * v` all agree on column-major, so the rule is written once and never negotiated again.
+*How to work it out.* Ask what happens if you get it backwards. Indexing the other way gives you the transpose — and a transpose is still a perfectly valid 4×4 matrix, so nothing errors. Then ask who else has an opinion: the kernel's `Xform`, this file, and WGSL's `m * v`. Three parties, one convention, no runtime check.
 
-??? question "Reverse-Z needs three things to agree. Which three?"
-    Near and far are swapped in the projection (near becomes 1, far approaches 0); the depth attachment clears to `0.0`; the compare is `Greater`. Get two of three right and everything vanishes, or nothing is ever occluded.
+*The answer.* The formula is trivial; the risk is that the wrong one is silent. A transposed matrix multiplies without complaint and produces a picture that is wrong in a plausible way — the object rotates about the wrong point, or translates when it should scale. Because `math.rs`, the kernel and WGSL all agree on column-major, the rule is written once and never renegotiated.
 
-??? question "Where does f64 become f32, and why exactly there?"
-    In `mat_to_f32`, after the anchor has been subtracted. Positions near the camera are small numbers by then, so f32 has precision to spare. Convert before rebasing and a model a kilometre from the origin loses its low bits — the jitter you cannot debug from the shader.
+**Reverse-Z needs three things to agree. Which three?**
 
-??? question "Why must `zoom_at` be given physical pixels rather than CSS pixels?"
-    Because it has to land the cursor on the same world point the framebuffer drew there, and the framebuffer is in physical pixels. A missing `devicePixelRatio` is invisible on a 1× display and doubles every gesture on a laptop.
+*How to work it out.* Depth is a comparison, and a comparison has three inputs you control: what the projection produces, what the buffer starts at, and which direction counts as "closer". Change any one and the other two are now describing a different convention.
 
-**Rebuild from memory:** state the orbit gesture in one sentence — yaw about the world up axis, then pitch about the camera's current right axis — and say why doing it the other way around, or with Euler angles, eventually locks the camera.
+*The answer.* Near and far are swapped in the projection (near becomes 1, far approaches 0); the depth attachment clears to `0.0`; the compare is `Greater`. Two right out of three is the interesting failure: everything vanishes (nothing beats the clear) or nothing is ever occluded (everything beats it).
+
+**Where does f64 become f32, and why exactly there?**
+
+*How to work it out.* f32 has about seven significant digits. A model a kilometre from the origin, measured in millimetres, needs seven digits before the decimal point — so the conversion has to happen when the numbers are *small*. Ask what makes them small: subtracting an anchor near the camera.
+
+*The answer.* In `mat_to_f32`, after the anchor has been subtracted. Convert before rebasing and the low bits are gone, and the symptom is jitter you cannot debug from inside the shader because the shader was handed bad numbers. One function is the whole f64 → f32 boundary, so there is one place to look.
+
+**Why must `zoom_at` be given physical pixels rather than CSS pixels?**
+
+*How to work it out.* The function's job is to keep the world point under the cursor fixed. That means it has to agree with whatever drew that point — and the framebuffer is in physical pixels. Then ask when the two units differ: whenever `devicePixelRatio` is not 1.
+
+*The answer.* Because the cursor position and the rendered pixel must be in the same space. On a 1× display the bug is invisible; on a 2× laptop every gesture moves twice as far. That is why the conversion happens once, at the input layer, rather than being remembered at each call site.
+
+**What you should be able to do now**
+
+State the orbit gesture in one sentence and say why the alternatives fail. Correct: yaw about the world up axis, then pitch about the camera's *current* right axis. Doing it in the other order, or storing Euler angles, eventually lines two rotation axes up and the camera loses a degree of freedom — gimbal lock. The quaternion is the single source of truth here precisely so that cannot happen.
 
 ## Next
 

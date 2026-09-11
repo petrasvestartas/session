@@ -177,22 +177,35 @@ A subtle crease under one light is not proof that normals are separate; identica
 - Open `?cad=crease` and orbit until the light grazes the fold: one side goes dark while the other stays lit, because the two sides own different normals at the same positions.
 - Open `?cad=cylinder&affine=1`: the stretched copy shades like the original. Replace `transform_normal` in `normals.wgsl` with a plain `mat3x3(model) * n` and reload: the stretched copy's lighting tilts.
 
+## Questions and answers
 
-## Recall
+**Positions use `model`. Why can normals not?**
 
-??? question "Positions use `model`. Why can normals not?"
-    Because a normal is perpendicular to a surface, and perpendicularity does not survive a nonuniform scale: stretch a sphere into an ellipsoid and the old normals lean. The inverse transpose (built here as cofactors) is the transform that keeps a normal perpendicular. The cofactor form also never divides by a small determinant, which a literal inverse would.
+*How to work it out.* Take a sphere and scale it twice as wide in x. Every surface point moves by `model`. Now take a normal on the flank: transform it the same way and it no longer stands perpendicular to the stretched surface — because perpendicularity is not preserved by a nonuniform scale. Ask which matrix does preserve it: the inverse transpose.
 
-??? question "`normal_at` returns `+Z` at a pole. Why is that dangerous, and what saves it?"
-    Because `+Z` is finite and plausible — it will not trip any check — but it is not this face's normal, so a sphere's pole would shade as if it were flat and facing up. The zero-length derivative cross is the real signal, and it hands the decision to the incident-triangle fan. The pattern is worth keeping: a fallback value that *looks* valid is worse than one that is obviously a sentinel.
+*The answer.* Normals need `model`'s inverse transpose, built here as cofactors. The cofactor form is the same matrix up to a positive scale and never divides by a small determinant, which a literal inverse would.
 
-??? question "Edge culling reads geometric facet normals, never shading normals. What broke when it did not?"
-    A cone's apex has a smooth `+Z` fan, and averaging that into the seam's cull normal tilted it upward until the seam was culled and disappeared. Shading normals are an artistic decision about how a surface should look; visibility is a geometric fact about where the surface is. Mixing them lets an appearance choice delete geometry.
+**`normal_at` returns `+Z` at a pole. Why is that dangerous, and what saves it?**
 
-??? question "A singular matrix yields the zero normal sentinel instead of an error. Who handles it and how?"
-    The fragment stage, which falls back to flat shading from screen derivatives. The instance is degenerate — it has no unique normal — so the honest answer is "shade this without one" rather than "refuse to draw" or "make one up".
+*How to work it out.* Ask what a caller can check. `+Z` is finite, unit length and passes every sanity test — so a caller cannot tell it apart from a real normal. Then ask what the genuine signal of a pole is: the derivatives are parallel, so their cross product has zero length.
 
-**Rebuild from memory:** without the page, name the three cases where a normal cannot come from the analytic derivative, and what happens in each. Then explain why `?cad=crease` (identical XYZ, two normals) is a better test of this lesson than any picture of a smooth sphere.
+*The answer.* A plausible-looking fallback is worse than an obvious sentinel, because nothing downstream can detect it — a sphere's pole would shade as though flat and facing up. The zero-length cross is the real signal, and it hands the decision to the incident-triangle fan.
+
+**Edge culling reads geometric facet normals, never shading normals. What broke when it did not?**
+
+*How to work it out.* Ask what a shading normal is for: making a tessellated surface look smooth. It is an artistic average, deliberately different from the facet it sits on. Now use that average to decide whether an edge faces away — you are asking a question about geometry with a number that was smoothed on purpose.
+
+*The answer.* A cone's apex has a smooth `+Z` fan; averaging it into the seam's cull normal tilted the seam upward until it was culled and vanished. Appearance choices must not delete geometry, so the cull indexes each triangle's real normal by its exact edge.
+
+**A singular matrix yields the zero normal sentinel instead of an error. Who handles it and how?**
+
+*How to work it out.* Ask what a singular model matrix means: the instance has been flattened to a plane or a line, so there is genuinely no unique normal. The options are refuse to draw, invent one, or shade without one.
+
+*The answer.* The fragment stage falls back to flat shading from screen derivatives. The degenerate case gets the honest answer — shade this without a normal — rather than a crash or a fiction.
+
+**What you should be able to do now**
+
+Name the three cases where an analytic derivative gives no normal and what happens in each: a pole (zero-length cross → the incident-triangle fan decides), a C0 crease (two valid normals at one position → the vertex is split, same position and `u`/`v`, different normal), a singular instance matrix (no unique direction → the zero sentinel, flat shading). Then say why `?cad=crease` is the better test than a smooth sphere: identical XYZ carrying two different normals is proof the split happened, while a subtle shading difference under one light is not.
 
 ## Next
 

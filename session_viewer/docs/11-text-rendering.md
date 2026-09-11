@@ -287,22 +287,35 @@ If letters look blurred at one zoom level, check `TextFrame::scale`; if a plate 
 - Set the browser zoom to 200 percent: the raster key changes, glyphs stay sharp, and no plate clips its last letter.
 - On the comparison page, tick **Baselines, origins and raster bounds** and switch the raster scale: the raster box scales, the CSS box does not.
 
+## Questions and answers
 
-## Recall
+**`logical` comes from the canvas CSS box, not from `devicePixelRatio`. Why does that distinction matter here of all places?**
 
-??? question "`logical` comes from the canvas CSS box, not from `devicePixelRatio`. Why does that distinction matter here of all places?"
-    Because browser zoom and device pixel ratio both change the physical-to-CSS relationship, and only the CSS box reflects both. Derive the raster scale from `devicePixelRatio` alone and text is crisp at 100% zoom and blurry at 125%. The lane derives one isotropic scale from framebuffer ÷ CSS box and rejects a stretched canvas outright rather than rendering text at the wrong aspect.
+*How to work it out.* List what changes the ratio between CSS pixels and physical pixels: the display's device pixel ratio, *and* browser zoom. Ask which of the two `devicePixelRatio` reports — it moves with zoom on some browsers and not others, while the canvas's own measured box always reflects both.
 
-??? question "Raster resolution grows in power-of-two em buckets. What would continuous resolution cost?"
-    A re-rasterization on almost every frame while you zoom, because the projected em would change by a fraction constantly. Buckets mean small camera motion is free and only a real change in size pays. This is the same instinct as the mask `MaskKey` in lesson 17 and the prelude key in 04d: make the expensive work depend on a *quantised* key, not a continuous one.
+*The answer.* Deriving the raster scale from `devicePixelRatio` alone gives text that is crisp at 100% zoom and blurry at 125%. The lane derives one isotropic scale from framebuffer ÷ CSS box, and rejects a stretched canvas outright rather than rendering text at the wrong aspect.
 
-??? question "Two Glyphon renderers share one atlas, with different depth rules. Why two, and why one atlas?"
-    Two because anchored text lives in the scene and must be occluded by solids (`GreaterEqual` under reversed Z), while overlay text must never be (`Always`). One atlas because the glyphs are the same bytes either way, and a second atlas would double the texture memory and the eviction bookkeeping for no benefit.
+**Raster resolution grows in power-of-two em buckets. What would continuous resolution cost?**
 
-??? question "Raster keys are bounded, and passing the budget rebuilds the atlas and the Swash cache *together*. Why together?"
-    Because a prepared vertex points into the atlas. Evict from one and not the other and some already-built quad now samples an evicted glyph — text that renders as garbage with no error anywhere. Rebuilding both keeps the invariant "no prepared vertex points at anything that was evicted", which is the kind of rule worth writing in a comment.
+*How to work it out.* Imagine zooming smoothly. With a continuous scale the projected em changes every frame, so the "is my raster the right size?" test fails every frame, and re-rasterizing a label means Swash plus an atlas upload.
 
-**Rebuild from memory:** name the five placements and say, for each, what stays constant as the camera moves — the size on screen, the size in the world, or the position. Then predict which of the five can be hidden by a solid, and why that is a property of the placement rather than of the text.
+*The answer.* A re-raster on nearly every frame. Buckets make small camera motion free and charge only for a real change in size. The same instinct appears in `MaskKey` (lesson 17) and the splat prelude key (04d): make expensive work depend on a quantised key, never a continuous one.
+
+**Two Glyphon renderers share one atlas, with different depth rules. Why two, and why one atlas?**
+
+*How to work it out.* Ask what differs between a label in the scene and a label over it: only the depth rule. Ask what they share: the glyph images. A pipeline's depth state is fixed at creation, so a differing depth rule means a second renderer; identical glyph bytes mean no reason for a second atlas.
+
+*The answer.* Two renderers because anchored text must be occluded by solids (`GreaterEqual` under reversed Z) and overlay text must not (`Always`). One atlas because a second would double both texture memory and eviction bookkeeping for nothing.
+
+**Raster keys are bounded, and passing the budget rebuilds the atlas and the Swash cache *together*. Why together?**
+
+*How to work it out.* Ask what a prepared vertex contains: atlas coordinates. Now evict from the atlas alone — the vertex still points at that rectangle, which now holds a different glyph.
+
+*The answer.* Text renders as garbage with no error anywhere. Rebuilding both keeps the invariant "no prepared vertex points at anything evicted", which is exactly the kind of rule worth writing in a comment because the type system cannot express it.
+
+**What you should be able to do now**
+
+Name the five placements and what each keeps constant: `Screen` (a fixed CSS position), `Anchor` and `Nameplate` (follow a world point, glyphs stay screen-sized), `WorldBillboard` (a world em height, always facing you), `WorldPlane` (a world em height in a fixed plane). Then say which can be hidden by a solid: the ones drawn by the anchored renderer with a depth test — the fixed plane genuinely lives in the scene — while a nameplate is an annotation and gets no depth. Whether text is occluded is a property of the placement, not of the text.
 
 ## Next
 

@@ -63,9 +63,9 @@ flowchart LR
 
 - `DepthMode::Always` with blending: the shader decides visibility itself, so no hardware depth test can hide a stroke that lies on a surface.
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-283 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-279 -->
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=284-314 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=280-314 -->
 
 ## Step 3 · The shared visibility rule
 
@@ -87,23 +87,23 @@ flowchart LR
 
 ![A value handed from the vertex shader to the fragment shader is blended perspective-correctly; marked flat it is not blended at all, which is how a stroke's half-width travels.](illustrations/interpolate.svg)
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-20 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-7 -->
 
 - `band_area` integrates the pixel box against the capsule exactly, so coverage cannot beat with the line's subpixel phase the way a distance ramp does.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=21-82 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=8-30 -->
 
 - Per-vertex outputs are flat: the half-width at each end goes down as two scalars and is resolved per pixel, because a per-vertex width is projective over a trapezoid.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=83-129 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=31-77 -->
 
 - Clip against the near plane before any divide; a hand divide behind the eye mirrors the point through the screen centre.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=130-201 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=78-142 -->
 
 - The fragment: coverage times fade, then `ink_visible` at the closest axis point. `fs_id` and `fs_edge_id` write `(row + 1, segment + 1)` for picking.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=202-280 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=143-280 -->
 
 <!-- check: 04b -->
 
@@ -163,22 +163,35 @@ Expected:
 - Zoom far out: the strokes keep their pixel width. A world-space width would vanish; a screen-space pen does not.
 - Set `aa=0.5` and compare an edge-on stroke with `aa=2`: the antialiasing ramp is the only thing that changed.
 
+## Questions and answers
 
-## Recall
+**The segment row ends in flat `f32`s instead of two `vec3`s. What would the `vec3`s cost?**
 
-??? question "The segment row ends in flat `f32`s instead of two `vec3`s. What would the `vec3`s cost?"
-    Eight bytes a row. A `vec3` aligns to 16, so the row would pad from 40 to 48 — and it buys nothing, because the shader reads the components anyway. This is the same alignment rule that made `Instance` 96 bytes; it is worth being able to predict it rather than discover it.
+*How to work it out.* Apply the alignment rule from lesson 03: a `vec3` aligns to 16 even though it holds 12 bytes. Lay the row out both ways and count — then ask what the `vec3` form actually buys, given that the shader reads the components individually anyway.
 
-??? question "Strokes draw with `DepthMode::Always` and blending. Why not simply depth-test them?"
-    Because a stroke usually lies *exactly on* a surface — the edge of the face it belongs to — and a hardware depth test at the same depth is a coin flip that produces stitching. The shader decides visibility itself: `ink_visible` compares the scene depth at the pixel against the depth of the closest point on the stroke's axis, using the gradient the face pass wrote. The rule is one shared file so every ink lane answers the question the same way.
+*The answer.* Eight bytes a row, taking it from 40 to 48, for no benefit. Being able to predict this rather than discover it is the point: the same rule set `Instance` at 96 and will set the marker row at 48.
 
-??? question "The half-width at each end travels as a flat scalar, resolved per pixel. What breaks if you interpolate a width per vertex instead?"
-    A stroke going away from you is a trapezoid, and interpolating a width across it is not projectively correct: the width at the middle comes out wrong, and it wobbles as the camera moves. Sending both ends flat and resolving per pixel is exact.
+**Strokes draw with `DepthMode::Always` and blending. Why not simply depth-test them?**
 
-??? question "Why must the segment be clipped against the near plane before any divide?"
-    Dividing by a negative `w` mirrors the point through the screen centre, so a line crossing behind the eye would swing across the canvas instead of disappearing. Clip first, divide second — the one ordering rule that costs nothing and saves an afternoon.
+*How to work it out.* Ask where a stroke usually sits: on the edge of the face it belongs to, at the same depth as that face. Now ask what a depth test does with two fragments at the same depth — it is a coin flip decided by float rounding, per pixel, and it changes as the camera moves.
 
-**Rebuild from memory:** in two sentences, explain why a stroke keeps its pixel width when you zoom out, and where in the pipeline that decision is applied. Then predict what would change if the pen were applied to the geometry on the CPU instead.
+*The answer.* Hardware depth testing at equal depth produces stitching, so the shader decides visibility itself: `ink_visible` compares the scene depth at the pixel against the depth of the closest point on the stroke's axis, using the gradient the face pass wrote. Putting that rule in one shared file is what keeps every ink lane answering the question the same way.
+
+**The half-width at each end travels as a flat scalar, resolved per pixel. What breaks if you interpolate a width per vertex instead?**
+
+*How to work it out.* Draw a stroke going away from the camera: on screen it is a trapezoid, wide at the near end, narrow at the far end. Interpolation across a trapezoid is perspective-correct for *positions*, but a width is not a position — it is a screen-space quantity derived from one.
+
+*The answer.* The width comes out wrong in the middle and wobbles as the camera moves. Sending both ends flat and computing the width per pixel from them is exact, which is why the outputs are marked `@interpolate(flat)`.
+
+**Why must the segment be clipped against the near plane before any divide?**
+
+*How to work it out.* Write out the divide: `x/w`, `y/w`. Ask what happens when `w` is negative — both signs flip, so the point appears mirrored through the screen centre instead of being absent.
+
+*The answer.* A line crossing behind the eye would swing across the canvas rather than disappear. Clip first, divide second. It costs nothing and it is the difference between a correct viewer and one with a bizarre bug that appears only when you walk the camera into geometry.
+
+**What you should be able to do now**
+
+Say in two sentences why a stroke keeps its pixel width when you zoom out, and where that decision is applied. Correct: the vertex stage expands the segment into a quad whose half-width is computed in *screen* space from `line.thickness`, so world distance never enters it — the pen is applied in `ribbon.wgsl`, not in the vertex data. Then predict the CPU alternative: you would have to rebuild and re-upload the geometry on every camera move.
 
 ## Next
 

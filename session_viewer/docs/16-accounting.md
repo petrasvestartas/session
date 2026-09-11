@@ -38,24 +38,22 @@ flowchart LR
 - The number is a lower bound: exact `Vec`/`String` capacities, occupied map entries and exposed slice lengths, never allocator overhead or RSS.
 - Shared values are counted once: each `Rc` object is recorded by pointer in a `seen` set, so a document listed twice or a geometry in both a typed list and the lookup adds nothing twice.
 
-
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=1-52 -->
 
 - A `Weak<Session>` recognizes a document without keeping it alive; if every `Rc` pointer matches the last snapshot, the cached payload is returned without a walk.
 - In-place editing of a document would make this cache stale; replacement and append change identity, which is what the cache keys on.
 
-
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=53-95 -->
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-177 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-154 -->
 
 Per-type payload walks, one function per geometry kind:
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=178-409 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=155-386 -->
 
 Unit tests, part of the file:
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=410-487 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=387-487 -->
 
 <!-- check: 16 -->
 
@@ -127,22 +125,35 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 - Compare `source_cpu_known_payload_bytes` with `gpu_buffer_capacity_bytes`: the GPU side is larger, because display data adds tessellation and instance rows to the retained source arrays.
 - Hold a second `Rc` to a document somewhere in `State` and replace the scene: the payload figure keeps counting it, which is the leak the Weak identities are there to expose.
 
+## Questions and answers
 
-## Recall
+**The figure is called a *known payload*, not memory use. Why is the honesty in the name worth the words?**
 
-??? question "The figure is called a *known payload*, not memory use. Why is the honesty in the name worth the words?"
-    Because the number excludes allocator overhead, `Rc` and map bookkeeping, spare map slots and everything the browser holds outside the wasm heap — so calling it "memory" would invite exactly the wrong conclusion. The snapshot even carries its own scope and exclusions as JSON fields so a reader cannot mistake one for the other. A measurement you cannot defend is worse than no measurement.
+*How to work it out.* List what the walk can actually count: `Vec` and `String` capacities, occupied map entries, slice lengths. Then list what it cannot: allocator overhead, `Rc` headers, spare map slots, GPU-side memory, anything the browser holds outside the wasm heap. A name like "memory use" claims the second list too.
 
-??? question "The cache holds `Weak<Session>`, not `Rc<Session>`. What breaks with `Rc`?"
-    The cache would keep every document alive forever: nothing would ever drop, the figure would grow monotonically, and the very leak you are measuring would be caused by the instrument. `Weak` recognises a document without extending its life — and when every pointer still matches the last snapshot, the cached payload is returned with no walk at all.
+*The answer.* The number is a lower bound over a defined set, so it is named after that set — and the snapshot carries its own scope and exclusions as JSON fields, so a reader cannot mistake one for the other. A measurement you cannot defend is worse than no measurement, because people quote it.
 
-??? question "The cache keys on identity, so in-place editing would make it stale. Why is that acceptable here?"
-    Because documents are replaced and appended, never mutated in place — replacement changes identity, which is exactly what the cache watches. The invariant is real but unenforced by the type system, which is why it is written down. Recognising "this is safe only because of a convention elsewhere" and *saying so* is the difference between a comment worth reading and noise.
+**The cache holds `Weak<Session>`, not `Rc<Session>`. What breaks with `Rc`?**
 
-??? question "Four numbers now sit side by side: retained source payload, owned GPU buffer bytes, estimated texture bytes, and what the browser says about wasm memory. Why not add them up?"
-    Because they measure different things in different places, with different exactness: two are counted, one is estimated, and one is reported by another system entirely. A sum would be a number with no meaning that people would nonetheless quote. Keeping them separate forces the reader to ask which question they are actually asking.
+*How to work it out.* Ask what the cache is for: recognising documents it has already measured. Then ask what holding an `Rc` does: keeps them alive. A cache that never forgets, holding strong references, is a leak.
 
-**Rebuild from memory:** name one thing the viewer genuinely cannot measure about its own memory and explain why. Then propose how you would find out anyway — and notice that the answer involves a different tool, not more code.
+*The answer.* Nothing would ever drop, the figure would grow forever, and the instrument would be causing the leak it is meant to measure. `Weak` recognises a document without extending its life, and when every pointer still matches the last snapshot the cached payload is returned with no walk at all.
+
+**The cache keys on identity, so in-place editing would make it stale. Why is that acceptable here?**
+
+*How to work it out.* Ask how documents actually change in this system. They are replaced or appended to — both change the `Rc` identity, which is what the cache watches. Mutating through `lookup` is possible in principle and is not done.
+
+*The answer.* The invariant is real but unenforced by the type system, so it is written down. Recognising "this is only safe because of a convention elsewhere" and saying so is what separates a comment worth reading from noise.
+
+**Four numbers now sit side by side. Why not add them up?**
+
+*How to work it out.* Ask what each measures and how. Retained source payload: counted, CPU, exact over a defined set. GPU buffer bytes: counted, GPU, capacity not use. Texture bytes: estimated from formats and sizes. Wasm memory: reported by the browser, includes everything. Different places, different methods, different exactness.
+
+*The answer.* A sum would be a number with no meaning that people would nonetheless quote — and it would double-count, since the GPU buffers were built from the source arrays. Keeping them apart forces the reader to ask which question they are actually asking.
+
+**What you should be able to do now**
+
+Name something the viewer cannot measure about itself and say how you would find out anyway. Correct: it cannot measure its own resident set — allocator overhead, fragmentation and the browser's own structures are invisible from inside the wasm heap, and `WebAssembly.Memory` reports pages reserved, not bytes live. You find out with a different tool: the browser's memory profiler, or `performance.measureUserAgentSpecificMemory()`. Some questions are not answerable from inside the program, and recognising those saves you from writing code that pretends otherwise.
 
 ## Next
 
