@@ -50,7 +50,7 @@ Install the binary interaction fixture and the supplied native harness file firs
 
 ### Step 1 · Device negotiation
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-b604fab263.svg){ .locator data-strip="illustrations/strip-21f1420dc0.svg" }
+![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-0a273194f3.svg){ .locator data-strip="illustrations/strip-e18de18904.svg" }
 
 - Browser builds use `BROWSER_WEBGPU` only; native test builds use the primary backends. Both go through one function.
 - A storage-binding limit is requested explicitly, so a large cloud fails with a GPU error instead of a silent driver fallback.
@@ -66,20 +66,20 @@ flowchart TB
 
 - The browser picks the presentation-compatible adapter; `?gpu=high` asks for the high-performance one on a hybrid machine and falls back to the browser's choice when that adapter is refused.
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-83 -->
 
 - That is the chain as far as a chosen adapter. The next part asks it for a device, and the only unusual thing it asks for is a storage-binding limit.
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=84-116 -->
 
 - 256 MiB of storage binding where available, rather than the adapter maximum: the measured point-cloud scene needs 158 MB in one table. A device limited to the standard 128 MiB still starts, and an oversized scene then reports a GPU error instead of a silent driver fallback.
 - `failure` is where an uncaptured error or a device loss is remembered, because both arrive on a callback rather than at the call that caused them. `State::render` reads it and shows the reload panel instead of drawing garbage.
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=117-162 -->
 
@@ -87,13 +87,13 @@ flowchart TB
 
 Native-only adapter naming and the error callbacks:
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=163-231 -->
 
 ### Step 2 · Presenting a frame
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-b604fab263.svg){ .locator data-strip="illustrations/strip-21f1420dc0.svg" }
+![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-0a273194f3.svg){ .locator data-strip="illustrations/strip-e18de18904.svg" }
 
 - `write_frame_uniforms` runs once per frame: camera matrices, then the inside-flag refresh that reads the eye just solved, then text placement.
 - `present` returns `None` when the surface had no texture; the caller asks for another frame instead of panicking.
@@ -108,23 +108,23 @@ flowchart TB
     style P fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=1-68 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=69-85 -->
 
 The offscreen and benchmark paths used by native tools:
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/present.rs copy lines=86-183 -->
 
 ### Step 3 · The frame list
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-b604fab263.svg){ .locator data-strip="illustrations/strip-21f1420dc0.svg" }
+![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-0a273194f3.svg){ .locator data-strip="illustrations/strip-e18de18904.svg" }
 
 - Pass order is the whole contract: physical surfaces write depth, the selection mask reads it, ink reads it, the ID pass repeats the same toggles.
 - `encode_frame` knows nothing about a surface, so the same list renders headless.
@@ -135,11 +135,11 @@ flowchart LR
     style E fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=1-54 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=55-123 -->
 
@@ -147,7 +147,7 @@ flowchart LR
 
 ### Step 4 · Input bindings
 
-![Where this step sits in the viewer: Input, with 10 of 11 zones built so far.](illustrations/locator-fbfac5e32e.svg){ .locator data-strip="illustrations/strip-2f56a63527.svg" }
+![Where this step sits in the viewer: Input, with 10 of 11 zones built so far.](illustrations/locator-61508ee96b.svg){ .locator data-strip="illustrations/strip-ca2ef68b91.svg" }
 
 Every handler returns whether the frame must be redrawn; a click returns `false` because nothing changes until the GPU answers.
 
@@ -171,35 +171,35 @@ flowchart LR
     style I fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-2f56a63527.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=1-47 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2f56a63527.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=48-81 -->
 
 - Two view keys sit beside selection. `D` flips the headlight (`view.lit`, off by default: a face shows its flat row colour until you ask for shading). `P` flips x-ray through `toggle_xray`; from lesson 18 on, a zero opacity turns every multi-face solid into its edges and vertices.
 
-<span class="zone-mark" data-strip="illustrations/strip-2f56a63527.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=82-168 -->
 
 - A press that moved more than `CLICK_SLOP` before release is a drag, so a camera gesture never selects on release.
 
-<span class="zone-mark" data-strip="illustrations/strip-2f56a63527.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=169-196 -->
 
 - The owned `pointercancel` listener detaches on drop; a forgotten closure would outlive the canvas.
 
-<span class="zone-mark" data-strip="illustrations/strip-2f56a63527.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
 
 <!-- file: 12 session_viewer/src/app/input.rs copy lines=197-256 -->
 
 ### Step 5 · Touch
 
-![Where this step sits in the viewer: Input, with 10 of 11 zones built so far.](illustrations/locator-fbfac5e32e.svg){ .locator data-strip="illustrations/strip-2f56a63527.svg" }
+![Where this step sits in the viewer: Input, with 10 of 11 zones built so far.](illustrations/locator-61508ee96b.svg){ .locator data-strip="illustrations/strip-ca2ef68b91.svg" }
 
 - winit routes `pointerType == "touch"` to `WindowEvent::Touch` only, so fingers never reach the mouse arms.
 - Finger travel is divided by the device pixel ratio; otherwise one centimetre of glass orbits three times faster on a DPR 3 phone.
@@ -214,23 +214,23 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-2f56a63527.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
 
 <!-- file: 12 session_viewer/src/app/touch.rs copy lines=1-68 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2f56a63527.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
 
 <!-- file: 12 session_viewer/src/app/touch.rs type lines=69-138 -->
 
 - A finger's whole life, in physical pixels. `Act` is what the gesture asked for rather than what was done, because `Fit` needs the scene bounds and this file is allowed to know only the camera.
 
-<span class="zone-mark" data-strip="illustrations/strip-2f56a63527.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ca2ef68b91.svg" data-zone="Input"></span>
 
 <!-- file: 12 session_viewer/src/app/touch.rs copy lines=139-229 -->
 
 ### Step 6 · Scene: source documents and row bookkeeping
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-28cbcdf275.svg){ .locator data-strip="illustrations/strip-90f35de946.svg" }
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-72fe33d313.svg){ .locator data-strip="illustrations/strip-3b4c2d7a06.svg" }
 
 - `Scene` owns every kernel `Session` plus its placement; the GPU only holds rows. A pick returns a row, `Scene::resolve` returns the document and GUID.
 - `order` maps row → GUID and `guid_to_row` maps back; both survive an upload because the rows are forgotten only after `upload_to`.
@@ -242,59 +242,59 @@ flowchart LR
     style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=1-59 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=60-117 -->
 
 - Clearing keeps the scene usable rather than replacing it: a reload must not invalidate the `Scene` the whole application is holding, so the tables are emptied in place and the row bookkeeping starts again from zero.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=118-176 -->
 
 - One object row per GUID in the kernel's canonical order; the row a GUID gets is the row it keeps within a revision.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=177-199 -->
 
 - The walk is where a kernel document becomes rows: one object row per guid, in the kernel's canonical order, so the row a guid gets is the row it keeps for as long as that revision is loaded.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=200-264 -->
 
 - Streamed clouds have no kernel object; their slot records the absolute row point 0 landed on.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=265-326 -->
 
 - A streamed cloud grows: each slice appends to the same row range and uploads only the new points, so the scene never rebuilds what is already on the GPU.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=327-341 -->
 
 - Row → identity in both directions; `edge_at` reads the segment sub-ID tag bit set by the ribbon shader.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=342-405 -->
 
 - Resolving a pick is where a row becomes something a user can be told about: an edge answer goes back through the retained producer records, and an answer that cannot be named is refused rather than guessed.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=406-483 -->
 
 ### Step 7 · Selection mode
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-28cbcdf275.svg){ .locator data-strip="illustrations/strip-90f35de946.svg" }
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-72fe33d313.svg){ .locator data-strip="illustrations/strip-3b4c2d7a06.svg" }
 
 Exactly one parent owns a specialized selection; `escape` returns that parent so it stays highlighted.
 
@@ -304,13 +304,13 @@ flowchart LR
     style M fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/selection.rs type -->
 
 ### Step 8 · Producers for clouds, frames and points
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-28cbcdf275.svg){ .locator data-strip="illustrations/strip-90f35de946.svg" }
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-72fe33d313.svg){ .locator data-strip="illustrations/strip-3b4c2d7a06.svg" }
 
 The walk gains three producers so every kernel geometry type has a lane.
 
@@ -320,39 +320,39 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-48 -->
 
 - Positions, colours and normals come out of the kernel's flat arrays; normals only when every point has one, because a partly-normalled cloud would shade inconsistently and there is no per-point flag to say which.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=49-81 -->
 
 - The octree the file carries is rewritten into this cloud's own row and node numbering, so one lane can hold many clouds without their node indices colliding.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=82-128 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=129-183 -->
 
 - A streamed cloud is only partly present, so its spacing is measured over the nodes that are actually complete within the points received. Sizing discs from a node that is still arriving would make them flicker as it fills.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=184-221 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/frames.rs type -->
 
 - A plane becomes a one-metre square and a box its twelve edges, both in the flat ribbon lane: a construction plane is drawn, not shaded.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/points.rs type -->
 
@@ -360,7 +360,7 @@ flowchart LR
 
 ### Step 9 · Stream records, feedback, inspection and the fixture loader
 
-![Where this step sits in the viewer: Network, Shell, with 10 of 11 zones built so far.](illustrations/locator-b9d7ca2e2a.svg){ .locator data-strip="illustrations/strip-24706cfb15.svg" }
+![Where this step sits in the viewer: Network, Shell, with 10 of 11 zones built so far.](illustrations/locator-ae0626c6c5.svg){ .locator data-strip="illustrations/strip-a626607018.svg" }
 
 - `stream.rs` holds the wire-layout records of a streamed cloud.
 - `feedback` writes `textContent`, never HTML.
@@ -376,21 +376,21 @@ flowchart LR
     style I fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-b20fdc3f58.svg" data-zone="Network"></span>
 
 <!-- file: 12 session_viewer/src/app/stream.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
 
 <!-- file: 12 session_viewer/src/app/feedback.rs type -->
 
 - Status messages go through `textContent`, never HTML: the text can come from a document or a server, and neither is allowed to write markup into the page.
 
-<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
 
 <!-- file: 12 session_viewer/src/app/inspection.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-b20fdc3f58.svg" data-zone="Network"></span>
 
 <!-- file: 12 session_viewer/src/app/loader.rs type -->
 
@@ -404,7 +404,7 @@ The new modules are not declared yet, so the crate still builds unchanged.
 
 ### Step 10 · The ID target and the readback window
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-af23345fe2.svg){ .locator data-strip="illustrations/strip-57ee15e1f9.svg" }
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-c9ec70b874.svg){ .locator data-strip="illustrations/strip-17c60e2c4a.svg" }
 
 ```text
 Rust                                                    WGSL (already in the lanes)
@@ -427,74 +427,74 @@ flowchart TB
     style P fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-59 -->
 
 - The tolerance is a circle in framebuffer pixels, at least one pixel wide: the click is a point, but the user's intent is a small neighbourhood, and that neighbourhood has to be the same physical size on every display.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=60-82 -->
 
 - `generation` counts requests; `submitted` records which generation the in-flight copy belongs to. A camera move bumps `generation`, so the answer is discarded when it lands.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=83-144 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=145-203 -->
 
 - One function computes the window's bounds and both the scissor and the copy use it. Two computations that must agree are one computation used twice.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=204-222 -->
 
 - The ID targets are made on the first pick and kept until the canvas resizes. The gradient attachment gives ink the same visibility rule as the colour frame.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=223-309 -->
 
 - The ID pass gets the same gradient attachment the colour frame has, because ink decides its own visibility from it — without it, a stroke would be pickable exactly where it is invisible.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=310-350 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=351-395 -->
 
 - The native census captures the unchanged ID pass, which is how the hidden-line tests judge visibility against exact object numbers rather than against pixels.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=396-439 -->
 
 - `map` must run after the submit and only once per copy; `poll` reads the mapped bytes on a later frame.
 - Ink beats a face anywhere in the window; among equals the nearest to the cursor wins, so a curve lying across a face is still selectable.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=440-488 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=489-552 -->
 
 - `nearest_hit` is the rule that makes a hairline clickable: ink beats a face anywhere in the window, and among equals the nearest texel to the cursor wins.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs copy lines=553-632 -->
 
 ### Step 11 · The ID pass in the frame list
 
-![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-5557657f59.svg){ .locator data-strip="illustrations/strip-b139852359.svg" }
+![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-7a6c5bb712.svg){ .locator data-strip="illustrations/strip-a32aebabfe.svg" }
 
 - Same toggles, same order as the colour list: what a lane hides it cannot pick.
 - Edge mode draws only source-edge IDs; object mode draws faces, then ink with ink-first precedence.
@@ -505,13 +505,13 @@ flowchart LR
     style D fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=124-196 -->
 
 ### Step 12 · Selected-surface silhouette
 
-![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-81c7c725f6.svg){ .locator data-strip="illustrations/strip-543a89a998.svg" }
+![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-cfae4b4933.svg){ .locator data-strip="illustrations/strip-68b0a8c5e5.svg" }
 
 - A visible selected surface writes an R8 coverage mask against the frame's depth; a fullscreen pass darkens the ring just outside it.
 - Coverage is allocated only while a selection exists and released the moment it clears.
@@ -524,33 +524,33 @@ flowchart TB
     style O fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=1-74 -->
 
 - Coverage is allocated with the first selected row and released with the last, so an unselected scene pays nothing for a feature it is not using.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=75-98 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=99-165 -->
 
 - `prepare` allocates the coverage texture only while something is selected, and answers whether there is anything to draw at all - the cheapest version of this feature is the one that is switched off.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=166-229 -->
 
 - The compositing pipeline is built for the pass's own colour format and sample count, which is why it has to be rebuilt when the sample count flips rather than chosen once at start-up.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=230-244 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs copy lines=245-341 -->
 
@@ -560,7 +560,7 @@ binding 0: mask texture view (R8Unorm)  ↔  @group(0) @binding(0) var mask: tex
 binding 1: uniform [radius, 0, 0, 0]    ↔  @group(0) @binding(1) var<uniform> radius: vec4<f32>
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 12 session_viewer/src/shaders/selection_outline.wgsl type -->
 
@@ -572,7 +572,7 @@ Still undeclared modules; the check passes for the same reason as before.
 
 ### Step 13 · State
 
-![Where this step sits in the viewer: State, with 10 of 11 zones built so far.](illustrations/locator-b73eedcc16.svg){ .locator data-strip="illustrations/strip-61a540a7f7.svg" }
+![Where this step sits in the viewer: State, with 10 of 11 zones built so far.](illustrations/locator-00be038517.svg){ .locator data-strip="illustrations/strip-81277fb904.svg" }
 
 - `needs_frame` is the demand for a redraw; `dirty` says the picture changed. A pending pick sets the first without the second.
 - `touch` cancels any pick in flight: the camera or scene it was asked against no longer exists.
@@ -585,70 +585,70 @@ flowchart TB
     style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=1-45 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=46-106 -->
 
 - Streamed clouds and sheets arrive in slices, so each has an add and an extend: the first makes the row, the rest only append. `State` is the only place that knows a slice belongs to a scene object already on screen.
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=107-161 -->
 
 - A resize is forwarded rather than handled: the camera needs the new aspect, the GPU needs new attachments, and doing both from one place is what keeps them from disagreeing for a frame.
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=162-188 -->
 
 - Everything above changes what is in the scene: append a document, replace the manifest texts, start or extend a streamed cloud or sheet, clear. Each one ends by telling the GPU and asking for a frame — `State` is the only place that knows both sides.
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=189-207 -->
 
 - `toggle_xray` is a view change, not a scene change: `view.opacity` goes between `1.0` and `0.0` and `touch` schedules a frame; the shaders read the zero, no row is rewritten.
 - `select` clears controls and edge highlight before moving the flag, so no lane keeps a stale parent.
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=208-262 -->
 
 - `apply_pick`: an edge answer needs `Scene::edge_at`; an object answer toggles the row.
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=263-316 -->
 
 - `render` applies a returned pick first, so the same frame presents its highlight; a pick on a still scene runs alone through `pick_frame`.
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=317-380 -->
 
 - `request_selection` configures the tolerance in CSS pixels times the actual logical-to-physical scale, then records the request.
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=381-430 -->
 
 Document titles and the selected name are derived labels; they have no source row and cannot intercept a click.
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs type lines=431-484 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-81277fb904.svg" data-zone="State"></span>
 
 <!-- file: 12 session_viewer/src/state.rs copy lines=485-510 -->
 
 ### Step 14 · Gpu owns device, presentation and picking
 
-![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-5557657f59.svg){ .locator data-strip="illustrations/strip-b139852359.svg" }
+![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-7a6c5bb712.svg){ .locator data-strip="illustrations/strip-a32aebabfe.svg" }
 
 - The surface becomes optional so the same `Gpu` renders headless.
 - `controls` and `control_net` are second glyph and segment lanes for source control markers.
@@ -662,13 +662,13 @@ flowchart LR
     style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/mod.rs type -->
 
 ### Step 15 · Declare the modules
 
-![Where this step sits in the viewer: Network, Scene + walk, Shell, GPU core, with 10 of 11 zones built so far.](illustrations/locator-db27349c1f.svg){ .locator data-strip="illustrations/strip-5cfc7e311c.svg" }
+![Where this step sits in the viewer: Network, Scene + walk, Shell, GPU core, with 10 of 11 zones built so far.](illustrations/locator-3f1e5cb620.svg){ .locator data-strip="illustrations/strip-8021b6745a.svg" }
 
 ```mermaid
 flowchart LR
@@ -678,27 +678,27 @@ flowchart LR
     style E fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 12 session_viewer/src/engine/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
 
 <!-- file: 12 session_viewer/src/app/mod.rs type -->
 
 - Append the dispatcher at the end of the walk module first, then replace its header with the lane-table borrow and the new declarations.
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/mod.rs type hunks=2-2 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3b4c2d7a06.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 12 session_viewer/src/app/walk/mod.rs type hunks=1-1 -->
 
 - The dispatcher: one arm per kernel geometry type, each handed only the lane tables it writes. Nothing here knows what a file is.
 
-<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-b20fdc3f58.svg" data-zone="Network"></span>
 
 <!-- file: 12 session_viewer/src/app/route.rs type -->
 
@@ -706,7 +706,7 @@ flowchart LR
 
 ### Step 16 · The application shell
 
-![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-705df401ce.svg){ .locator data-strip="illustrations/strip-933a0a15e1.svg" }
+![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-f763d976cd.svg){ .locator data-strip="illustrations/strip-081a11a206.svg" }
 
 - `Msg` is every asynchronous message the loader can post; `Ready` carries the `State` built around an empty scene.
 - `request_if_needed` is the one place a frame is asked for.
@@ -718,33 +718,33 @@ flowchart LR
     style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
 
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=1-35 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
 
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=36-92 -->
 
 - `resumed` binds the `#canvas` element and spawns the loader; `user_event` and `window_event` end by asking for a frame only when something changed.
 
-<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
 
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=93-157 -->
 
 - The window handler keeps only redraw and resize. Keys and the mouse are handed to `Input`, which answers whether a frame is needed — so the shell never decides what a gesture means.
 
-<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
 
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=158-194 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
 
 <!-- file: 12 session_viewer/src/lib.rs copy whole lines=195-258 -->
 
 ### Step 17 · Page, manifest and the removed teaching fixture
 
-![Where this step sits in the viewer: Page, Shell, with 10 of 11 zones built so far.](illustrations/locator-8470757f4b.svg){ .locator data-strip="illustrations/strip-c6303e01e7.svg" }
+![Where this step sits in the viewer: Page, Shell, with 10 of 11 zones built so far.](illustrations/locator-a5779d7d17.svg){ .locator data-strip="illustrations/strip-82ecf06647.svg" }
 
 - The page is one canvas, a status line and a hidden error panel; `touch-action: none` on the canvas hands every gesture to winit before the browser can claim it as a scroll.
 - `#viewer-docs` is the documentation corner: a fixed 40 px black folded-corner triangle at the top right, drawn from the borders of a zero-size anchor, that opens `docs/` in a new tab. Hover or keyboard focus grows it to 52 px through a 250 ms eased transition, so it reads as a page corner lifting; it sits above the canvas and covers nothing but its own triangle.
@@ -764,15 +764,15 @@ flowchart LR
     style Y fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-4f8dd8a91e.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-f4dd9f8e36.svg" data-zone="Page"></span>
 
 <!-- file: 12 session_viewer/index.html copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-4f8dd8a91e.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-f4dd9f8e36.svg" data-zone="Page"></span>
 
 <!-- file: 12 session_viewer/assets/view_local.yaml copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-081a11a206.svg" data-zone="Shell"></span>
 
 <!-- file: 12 session_viewer/src/fixture.rs -->
 

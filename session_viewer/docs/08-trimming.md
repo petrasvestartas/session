@@ -26,7 +26,7 @@ flowchart TB
 
 ## Step 1 · Prefer the producer's cached trim mesh
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - Triangulating the full rectangle and drawing a hole curve on top does not make a hole. The fill must exclude the region, so the constrained mesh cached on the surface wins over a fresh grid.
 - `first_pipe` remembers where this surface's pipes start so only those get boundary IDs.
@@ -39,13 +39,13 @@ flowchart TB
     style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=1-1 -->
 
 ## Step 2 · Name natural boundaries from UV, not from triangle order
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - A natural boundary is a domain limit: `u == start`, `u == end`, `v == start`, `v == end`. A closed direction has no physical edge there, so a periodic seam never gets a boundary ID.
 - Two vertices of one pipe share exactly one boundary bit → that bit is the source ID. Interior creases and seams stay `u32::MAX`: unavailable, never invented from a triangulation index.
@@ -60,7 +60,7 @@ flowchart TB
     style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=2-2 -->
 
@@ -68,7 +68,7 @@ flowchart TB
 
 ## Step 3 · Fixture: a curved trimmed patch and a torus
 
-![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-84964bf508.svg){ .locator data-strip="illustrations/strip-f4676a764b.svg" }
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-c5bd45f090.svg){ .locator data-strip="illustrations/strip-49878ec1c0.svg" }
 
 - The patch is a degree-2 surface with a square outer loop and a circular inner loop, meshed once by the constrained mesher and cached in `m_mesh`.
 - The torus is periodic in both directions: same XYZ curve, two face uses, different UV.
@@ -80,13 +80,13 @@ flowchart LR
     style C fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 08 session_viewer/src/fixture.rs copy -->
 
 ## Step 4 · Stage bump
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-bead4729e6.svg){ .locator data-strip="illustrations/strip-80d0501ef5.svg" }
+![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-c01a33dd00.svg){ .locator data-strip="illustrations/strip-9c06b93bab.svg" }
 
 ```mermaid
 flowchart LR
@@ -94,11 +94,11 @@ flowchart LR
     style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 08 session_viewer/src/lib.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-8fd356bf70.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3edaab33ff.svg" data-zone="Page"></span>
 
 <!-- file: 08 session_viewer/index.html copy -->
 

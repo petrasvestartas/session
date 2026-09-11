@@ -30,7 +30,7 @@ flowchart TD
 
 ## Step 1 · Kernel: only a valid derivative cross is a normal
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-52e947d2ab.svg){ .locator data-strip="illustrations/strip-0e453c8477.svg" }
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-1f5cee898b.svg){ .locator data-strip="illustrations/strip-1dc2df6999.svg" }
 
 - `normal_at` returns `+Z` at a pole. Finite, but not this face's normal; it must not bypass the fan fallback.
 - Read the derivatives directly: a zero-length cross means "singular here", so the incident-triangle fan decides.
@@ -43,13 +43,13 @@ flowchart LR
     style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-0e453c8477.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-1dc2df6999.svg" data-zone="Kernel"></span>
 
 <!-- file: 09 session_rust/src/nurbssurface_trimmed.rs type -->
 
 Same rule for the grid remesher (U poles of spheres and cones):
 
-<span class="zone-mark" data-strip="illustrations/strip-0e453c8477.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-1dc2df6999.svg" data-zone="Kernel"></span>
 
 <!-- file: 09 session_rust/src/remesh_nurbssurface_grid.rs type -->
 
@@ -61,7 +61,7 @@ Kernel unit tests, the C++/Python parity ports and the teapot asset are supplied
 
 ## Step 2 · WGSL: transform a normal with the cofactor matrix
 
-![Where this step sits in the viewer: Shaders, with 9 of 11 zones built so far.](illustrations/locator-ce3f2a46c9.svg){ .locator data-strip="illustrations/strip-8912de45d7.svg" }
+![Where this step sits in the viewer: Shaders, with 9 of 11 zones built so far.](illustrations/locator-c9d050a835.svg){ .locator data-strip="illustrations/strip-27d9e6f174.svg" }
 
 Positions use `model`; normals need its inverse transpose, or a nonuniformly scaled instance tilts its normals off the surface.
 
@@ -84,7 +84,7 @@ flowchart TB
     style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-8912de45d7.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-27d9e6f174.svg" data-zone="Shaders"></span>
 
 <!-- file: 09 session_viewer/src/shaders/normals.wgsl type -->
 
@@ -99,13 +99,13 @@ inst_id  u32 (2nd buffer) ↔ @location(3) inst_id
 
 The vertex stage transforms the baked normal; `shade` normalizes `in.normal` because interpolation does not preserve unit length.
 
-<span class="zone-mark" data-strip="illustrations/strip-8912de45d7.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-27d9e6f174.svg" data-zone="Shaders"></span>
 
 <!-- file: 09 session_viewer/src/shaders/triangle.wgsl type -->
 
 ## Step 3 · Edge facing from physical facets, not shading normals
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - A cone apex has a smooth `+Z` fan; averaging it into the seam's cull normal tilted the seam upward and hid it.
 - Index every triangle's geometric normal by its exact edge (position bits, winding-free). A seam of one periodic face keeps both incident facets.
@@ -119,23 +119,23 @@ flowchart TB
     style C fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 09 session_viewer/src/app/walk/brep_edges.rs type hunks=1-4 -->
 
 Module unit tests: COPY.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 09 session_viewer/src/app/walk/brep_edges.rs copy hunks=5-8 -->
 
 The BRep walk builds the incidence once per upload:
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 09 session_viewer/src/app/walk/brep.rs type hunks=1-1 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 09 session_viewer/src/app/walk/brep.rs copy hunks=2-2 -->
 
@@ -143,7 +143,7 @@ The BRep walk builds the incidence once per upload:
 
 ## Step 4 · A fill-only view for inspecting lighting
 
-![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-f0e736ccb9.svg){ .locator data-strip="illustrations/strip-af616787a5.svg" }
+![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-debc1685af.svg){ .locator data-strip="illustrations/strip-cfc7417c93.svg" }
 
 Mesh edges and markers become toggles so shading can be judged without boundary ink.
 
@@ -154,11 +154,11 @@ flowchart LR
     style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 09 session_viewer/src/engine/gpu/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 09 session_viewer/src/lib.rs type -->
 
@@ -166,7 +166,7 @@ flowchart LR
 
 ## Step 5 · Fixture: one solid per URL, optionally under an affine placement
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-bead4729e6.svg){ .locator data-strip="illustrations/strip-80d0501ef5.svg" }
+![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-c01a33dd00.svg){ .locator data-strip="illustrations/strip-9c06b93bab.svg" }
 
 - The placement has a negative determinant and three distinct scales: the sign and cofactor paths are exercised.
 - The crease surface is degree one in U with a shared knot: two shading normals at identical XYZ.
@@ -179,11 +179,11 @@ flowchart LR
     style D fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 09 session_viewer/src/fixture.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-8fd356bf70.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3edaab33ff.svg" data-zone="Page"></span>
 
 <!-- file: 09 session_viewer/index.html copy -->
 

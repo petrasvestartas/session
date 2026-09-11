@@ -51,7 +51,7 @@ flowchart TB
 
 ### Step 1 · Metadata carries the primitive
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-293dc4f01c.svg){ .locator data-strip="illustrations/strip-6785d37980.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-697b366147.svg){ .locator data-strip="illustrations/strip-c7c25a406a.svg" }
 
 - The physical metadata target grows from two to four half floats: gradient in `xy`, a lossless triangle address in `zw`.
 - Each 14-bit half of the address skips exponent zero, so it survives `Rgba16Float` without NaNs or denormals.
@@ -63,7 +63,7 @@ flowchart LR
     style M fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/physical.wgsl type -->
 
@@ -71,35 +71,35 @@ flowchart LR
 - `fs_masks` writes the solid coverage and the selected coverage to two attachments from one rasterization; the targets blend with MAX, so a written zero acts as a discard.
 - X-ray (`P`, `line.opacity` zero): `transform_vertex` marks a closed multi-face solid `xray`, and every fragment entry `discard`s its fragments, so the solid writes no colour, no depth and no coverage, and the ink behind it (back edges, far vertices) is judged against what remains. A single face (`FLAG_SINGLE`, a sheet, print fill) has no inside to show and keeps its shading. Discarding, not blending: a translucent face would still write depth and hide everything behind it.
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/triangle.wgsl type -->
 
 - Every other physical writer widens its metadata to `vec4` with a zero address, keeping the conservative plane rule.
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/background.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/grid.wgsl type -->
 
 - The backdrop shaders widen their metadata output to four halves with a zero triangle address: they are not surfaces a tile list can describe.
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/splat.wgsl type -->
 
 - Same widening for points, same reason: a splat has no triangle to name.
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
 - And for the resolve, which is the pass that actually writes the scene's depth for a cloud.
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/text_outline.wgsl type -->
 
@@ -109,7 +109,7 @@ flowchart LR
 
 ### Step 2 · The projected record
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-293dc4f01c.svg){ .locator data-strip="illustrations/strip-6785d37980.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-697b366147.svg){ .locator data-strip="illustrations/strip-c7c25a406a.svg" }
 
 `ProjectedTriangle` is six `vec4<f32>`; the Rust mirror test asserts the same offsets and `PROJECTED_BYTES`:
 
@@ -132,13 +132,13 @@ flowchart LR
     style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/projected_triangle.wgsl type -->
 
 ### Step 3 · The projection shader
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-293dc4f01c.svg){ .locator data-strip="illustrations/strip-6785d37980.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-697b366147.svg){ .locator data-strip="illustrations/strip-c7c25a406a.svg" }
 
 - One compute invocation per triangle reads the arena's vertex, object and index columns through the same instance and translation rows the draw uses.
 - Near-plane clipping happens before the divide, so a triangle crossing the eye becomes a quad or vanishes, never a garbage projection.
@@ -160,11 +160,11 @@ flowchart TB
     style P fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=1-60 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=61-127 -->
 
@@ -174,7 +174,7 @@ flowchart TB
 
 ### Step 4 · Count and fill
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-293dc4f01c.svg){ .locator data-strip="illustrations/strip-6785d37980.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-697b366147.svg){ .locator data-strip="illustrations/strip-c7c25a406a.svg" }
 
 - One quad per projected triangle covers its tile bounds; `covered_tile` discards tiles the polygon cannot touch.
 - `fs_count` counts references per tile. `fs_fill` runs after the scan and writes `(primitive, nearest possible depth)` pairs into the tile's range; a cursor past the count sets the overflow flag instead of writing.
@@ -187,13 +187,13 @@ flowchart TB
     style F fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/triangle_tiles.wgsl type -->
 
 ### Step 5 · Prefix sums instead of a per-tile cap
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-293dc4f01c.svg){ .locator data-strip="illustrations/strip-6785d37980.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-697b366147.svg){ .locator data-strip="illustrations/strip-c7c25a406a.svg" }
 
 - Tile records are `count / offset / cursor / overflow`; block records are `sum / prefix`.
 - Sums saturate at the buffer capacity, so an oversubscribed pool can never wrap into a plausible offset.
@@ -206,13 +206,13 @@ flowchart TB
     style O fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/scan_triangle_tiles.wgsl type -->
 
 ### Step 6 · The owner
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-af23345fe2.svg){ .locator data-strip="illustrations/strip-57ee15e1f9.svg" }
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-c9ec70b874.svg){ .locator data-strip="illustrations/strip-17c60e2c4a.svg" }
 
 - `TileLayout` mirrors `visibility_tile_span`; the reference pool is sized for the scene, two references per tile plus eight per triangle, and never larger than `REFERENCES_PER_TILE` per tile overall. A dense tile borrows spare space anywhere in the pool.
 
@@ -226,73 +226,73 @@ flowchart TB
     style E fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-57 -->
 
 - The pool is one flat array of reference words shared by every tile, not a fixed quota each. A dense tile borrows space a sparse one never used, which is what keeps the allocation proportional to the scene rather than to the grid.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=58-79 -->
 
 - `PoolReport` reads the scan's first record back one frame later: the words every list needed. A pool that was too small keeps the conservative rejection for that one frame and is reallocated before the next projection.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=80-151 -->
 
 - `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=152-184 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=185-217 -->
 
 - `prepare` resizes storage for the triangle count, the framebuffer and the last report; beyond the device's storage binding limit it releases the tables and reports so the ink shader keeps the plane rule.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=218-299 -->
 
 - `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=300-370 -->
 
 - Coverage is rasterized twice: once to count how many references each tile needs, and again, after the scan has turned those counts into offsets, to write them. Counting first is what removes the per-tile cap.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=371-406 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=407-438 -->
 
 - Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=439-464 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=465-572 -->
 
 - Every preparation shader is compiled with the same projected-record and tile-grid arithmetic the ink shader uses, so the CPU, the raster passes and the ink query can never disagree about which tile a pixel is in.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=573-580 -->
 
 Copy the rest of the file:
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=581-703 -->
 
@@ -304,7 +304,7 @@ Copy the rest of the file:
 
 ### Step 7 · Refine the rejection, keep the cheap test
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-293dc4f01c.svg){ .locator data-strip="illustrations/strip-6785d37980.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-697b366147.svg){ .locator data-strip="illustrations/strip-c7c25a406a.svg" }
 
 - `ink_visible_plane` is the plane test. When it accepts, nothing else runs.
 - When it rejects: test the winning primitive at the axis, then the four sample-matched neighbours. A finite nearer hit confirms occlusion.
@@ -323,11 +323,11 @@ flowchart TB
     style W fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=1-11 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-6785d37980.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c7c25a406a.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=12,13 -->
 
@@ -337,7 +337,7 @@ flowchart TB
 
 ### Step 8 · Faces draws the physical pass
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-af23345fe2.svg){ .locator data-strip="illustrations/strip-57ee15e1f9.svg" }
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-c9ec70b874.svg){ .locator data-strip="illustrations/strip-17c60e2c4a.svg" }
 
 - The physical and object-ID triangle pipelines move into `Faces`, so the primitive numbers written by the color pass are the same numbers the projection shader uses.
 - `revision` counts highlight changes, and `draw_masks` writes the highlighted face into both coverage masks of the combined pass: the silhouette's cache key reads the counter, and its one rasterization draws the face through this entry.
@@ -350,19 +350,19 @@ flowchart LR
     style F fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/faces.rs type -->
 
 - The arena owns the `TriangleTiles`; `prepare_visibility` encodes them over the arena's exact buffers, and every append, reset or release invalidates them. `draw_masks` is the arena's side of the one-pass mask rasterization.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/arena.rs type -->
 
 ### Step 9 · Bindings 6 and 7
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-8e6443cb5e.svg){ .locator data-strip="illustrations/strip-1bf2a655a8.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-dc3ae44312.svg){ .locator data-strip="illustrations/strip-6d14c9dd52.svg" }
 
 - The ink instance group gains the projected table and the tile buffer; the mvp, line and instance layouts become visible to compute.
 
@@ -374,35 +374,35 @@ flowchart LR
     style I fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/pipelines/layouts.rs type -->
 
 - The ink module concatenates `projected_triangle.wgsl` after `ink_visibility.wgsl`; a desc marked `masks` targets two `R8Unorm` coverage attachments blended with MAX; the metadata attachment is `Rgba16Float`.
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/pipelines/mod.rs type -->
 
 - `geometry_revision` counts placement, rebase and hidden-state changes; selection flags do not bump it.
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/objects.rs type -->
 
 - Metadata textures and the pick copy widen to four channels; the readback row is 20 bytes per texel.
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/targets.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/pick.rs type -->
 
 - The pick target follows the metadata: twenty bytes a texel instead of sixteen, `Rgba16Float` instead of `Rg16Float`. The tile lists themselves reach the ID pass through group 2, so nothing else here changes.
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/instance.rs type -->
 
@@ -410,7 +410,7 @@ flowchart LR
 
 ### Step 10 · The tile pass runs before ink
 
-![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-5557657f59.svg){ .locator data-strip="illustrations/strip-b139852359.svg" }
+![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-7a6c5bb712.svg){ .locator data-strip="illustrations/strip-a32aebabfe.svg" }
 
 - `triangle_tile_pass` prepares storage, rebinds the ink group when a buffer was replaced, then encodes; both the color frame and an ID-only frame call it.
 - After every submit the picker maps its copy and the tiles map their report.
@@ -423,13 +423,13 @@ flowchart LR
     style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/present.rs type -->
 
 ### Step 11 · Masks rasterized once, reused while the view stands still
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-8e6443cb5e.svg){ .locator data-strip="illustrations/strip-1bf2a655a8.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-dc3ae44312.svg){ .locator data-strip="illustrations/strip-6d14c9dd52.svg" }
 
 - `MaskKey` is what a coverage mask depends on: the camera matrix, the geometry revision, the selection revision, the highlighted face's revision, the size, the sample count, and — because edges are part of the coverage — the edge toggle and the pen width. While none of them changes, the mask passes are skipped and the previous masks are composited again: a still view costs no rasterization.
 - When the key changes and both outlines are on, `begin_masks` opens one pass with both attachments, and the faces are rasterized once for both masks; a single outline keeps its own pass.
@@ -447,17 +447,17 @@ flowchart TB
 
 - One `css_radius` for ordinary and selected solids: a heavier ring on the selection read as a different object, and the yellow strokes already say which one is selected.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/surface_outline.rs type -->
 
 - Edges join the silhouette. Four more segment pipelines rasterize every solid edge into the coverage masks (`fs_mask`, `fs_masks`, `ColorWrite::Max`), so the black outline hugs a cube's edges as tightly as its faces, at one thickness whether the object is selected or not.
 
-<span class="zone-mark" data-strip="illustrations/strip-57ee15e1f9.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-17c60e2c4a.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/segments.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/render.rs type -->
 
@@ -465,7 +465,7 @@ flowchart TB
 
 - The `Gpu` accounts for the wider targets and the tile pool, binds the tiles into every ink scene, and bumps `selection_revision` in `set_selected`.
 
-<span class="zone-mark" data-strip="illustrations/strip-b139852359.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a32aebabfe.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/mod.rs type -->
 

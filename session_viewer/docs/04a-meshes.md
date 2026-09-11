@@ -44,7 +44,7 @@ Bind groups every lane shares (`Layouts`):
 
 ## Step 1 · The floor: device, growable buffers, helpers
 
-![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-b5e6fb949e.svg){ .locator data-strip="illustrations/strip-49036e779c.svg" }
+![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-d1ee866d71.svg){ .locator data-strip="illustrations/strip-22e4536687.svg" }
 
 - `GpuCtx` is the device/queue pair every lane is made with.
 - `GrowBuf` grows by appending: capacity `max(need, cap * 3 / 2)`, the live prefix copied GPU-side, only new rows written. It returns `true` when the buffer moved so the caller rebuilds its bind group.
@@ -57,35 +57,35 @@ flowchart LR
     style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=1-39 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=40-99 -->
 
 - Clearing keeps the allocation. A scene reload writes the same order of magnitude of rows again, so throwing the buffer away would only buy a second allocation of the same size.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=100-123 -->
 
 - `Template` is a unit mesh drawn N times, one instance per row.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=124-186 -->
 
 - One helper builds every bind group in this crate: buffers in binding order, no names to keep in sync. A layout mismatch then fails at one call site instead of eight.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=187-206 -->
 
 ## Step 2 · Bind-group layouts
 
-![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-b5e6fb949e.svg){ .locator data-strip="illustrations/strip-49036e779c.svg" }
+![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-d1ee866d71.svg){ .locator data-strip="illustrations/strip-22e4536687.svg" }
 
 - A layout is the shape of a bind group; the buffers live in the lanes.
 - Group 2 splits rows (96 B) from anchored translations (16 B) so a re-anchor rewrites 16 bytes per object.
@@ -99,19 +99,19 @@ flowchart LR
     style L fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=1-52 -->
 
 - The ink layout adds the physical depth at bindings 2 and 3, one single-sampled and one multisampled view; the one not in use is a 1×1 placeholder.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=53-106 -->
 
 ## Step 3 · Pipelines are data
 
-![Where this step sits in the viewer: GPU core, Shaders, with 7 of 11 zones built so far.](illustrations/locator-d8a513e4f6.svg){ .locator data-strip="illustrations/strip-af8a3ca596.svg" }
+![Where this step sits in the viewer: GPU core, Shaders, with 7 of 11 zones built so far.](illustrations/locator-20440018d6.svg){ .locator data-strip="illustrations/strip-05f8973a20.svg" }
 
 - `Target` is where a pipeline draws; `DepthMode` and `ColorWrite` name the only depth and blend states the viewer uses.
 - Every compare is reverse-Z: nearer is `Greater`.
@@ -124,53 +124,53 @@ flowchart TB
     style D fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-58 -->
 
 - `PipelineDesc` is one base per shader; `with`, `vertex`, `color`, `depth` derive the variants.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=59-117 -->
 
 - The builders are what make one base description into a family: `with` renames and repoints the fragment entry, `vertex` swaps the vertex entry, `color` and `depth` set the two states that actually vary between the viewer's passes.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=118-182 -->
 
 - Two shader constants sit beside them. `SCENE` is the scene contract every lane is compiled with; `INK` is the visibility rule only ink lanes need. Keeping them here means a lane names a constant rather than repeating an `include_str!`.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=183-205 -->
 
 - `module` appends `normals.wgsl` to every shader source, so one normal transform serves all lanes; `scene_module` also appends `scene.wgsl`, so the camera, the line block and the object rows are declared once for every lane.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=206-235 -->
 
 - `build` is the only place wgpu is asked for a render pipeline: `Depth32Float`, no cull, fill mode, the desc supplies the rest.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=236-285 -->
 
 - `scene.wgsl` is the scene contract: groups 0 to 2, the `Instance` row, the `LineUniform` block, the `FLAG_*` bits and `place`. A lane shader never declares them itself, so a row field changes in one place.
 
-<span class="zone-mark" data-strip="illustrations/strip-415288c504.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-f41a464e87.svg" data-zone="Shaders"></span>
 
 <!-- file: 04a session_viewer/src/shaders/scene.wgsl type -->
 
 - The mirror test reads that one declaration: the Rust field names against `SCENE`.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/instance.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-415288c504.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-f41a464e87.svg" data-zone="Shaders"></span>
 
 <!-- file: 04a session_viewer/src/shaders/normals.wgsl type -->
 
@@ -180,7 +180,7 @@ flowchart TB
 
 ## Step 4 · Targets and the two passes
 
-![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-b5e6fb949e.svg){ .locator data-strip="illustrations/strip-49036e779c.svg" }
+![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-d1ee866d71.svg){ .locator data-strip="illustrations/strip-22e4536687.svg" }
 
 - The face pass clears color and depth (to `0.0`, reverse-Z) and writes both.
 - The ink pass loads color, keeps depth read-only and samples it through group 2.
@@ -193,17 +193,17 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=1-70 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=71-135 -->
 
 - The two passes in one place. `begin_faces` establishes the depth every later fragment is judged against; `begin_ink` keeps that depth read-only and hands it to the shader instead.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=136-165 -->
 
@@ -211,7 +211,7 @@ flowchart TB
 
 ## Step 5 · Frame uniforms
 
-![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-b5e6fb949e.svg){ .locator data-strip="illustrations/strip-49036e779c.svg" }
+![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-d1ee866d71.svg){ .locator data-strip="illustrations/strip-22e4536687.svg" }
 
 - `FrameInput` is what one frame needs from the caller; `FrameCx` adds the knobs, the anchor and the framebuffer, with `pixel_scale` the framebuffer pixels per CSS pixel; `Binds` sets groups 0, 1, 2 before every lane draw.
 
@@ -223,7 +223,7 @@ flowchart TB
     style FU fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-44 -->
 
@@ -248,57 +248,57 @@ flowchart TB
 - `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected for and `origin` where the attachment's top-left sits in it. They differ only in the pick pass, which renders the window about the cursor into a window-sized target: pixel arithmetic stays in attachment coordinates, and only what was laid out for the whole canvas is addressed through `origin`.
 - `CloudUniform` is the point lane's 48-byte block with the same `origin` and `frame` pair.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=45-105 -->
 
 - `PickView` is a window of the canvas rendered into an attachment of its own size, so a pick costs the window, not the canvas. `clip_transform` maps the canvas projection onto the window's sub-frustum; `pick_transform_layout` is the one uniform the text ID pipelines bind, since the text lanes do not see `Layouts`.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=106-176 -->
 
 - `FrameUniforms` owns the three frame blocks, the same three for the pick pass plus the bare transform, and the frame's solved camera facts: `mvp_f32`, `ortho_h`, `eye`.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=177-205 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-253 -->
 
 - Construction makes the buffers and bind groups with no camera in them yet. A frame is a write into buffers that already exist and are already bound — allocating per frame is what this shape exists to avoid.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=254-329 -->
 
 - `FrameUniforms` owns all three blocks — camera, line, cloud — because they are written together from one solved camera and must never disagree about which frame they describe.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=330-347 -->
 
 - `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result. The pen is `thickness_px * pixel_scale`, so it keeps its CSS width at every device scale; `origin` is zero and `frame` is the framebuffer.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=348-392 -->
 
 - `write_pick` runs after `write` and derives the pick blocks from the frame's own solved values: the camera premultiplied by the window's clip transform, `proj_y` and `ortho_h` scaled by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=393-410 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-49036e779c.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-22e4536687.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=411-417 -->
 
 ## Step 6 · Runtime knobs and the query string
 
-![Where this step sits in the viewer: Network, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-cd5331d372.svg){ .locator data-strip="illustrations/strip-1265d9d2f6.svg" }
+![Where this step sits in the viewer: Network, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-12ab2b0cfc.svg){ .locator data-strip="illustrations/strip-442a1e5860.svg" }
 
 - `View` is read once from `?name=` on wasm or `ENV` natively and consulted every frame.
 
@@ -310,17 +310,17 @@ flowchart LR
     style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/view.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-4ff92d7f17.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-bde8c9e482.svg" data-zone="Shell"></span>
 
 <!-- file: 04a session_viewer/src/app/mod.rs type -->
 
 - The app layer begins with one file: a query reader. Everything else it will own - loading, input, the scene - arrives later, and this module list is how you watch it grow.
 
-<span class="zone-mark" data-strip="illustrations/strip-0bde509fa3.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-bd90389569.svg" data-zone="Network"></span>
 
 <!-- file: 04a session_viewer/src/app/route.rs type -->
 
@@ -328,7 +328,7 @@ flowchart LR
 
 ## Step 7 · The object table
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-004d0507a0.svg){ .locator data-strip="illustrations/strip-a6592cf3bd.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-c8dfc85e0f.svg){ .locator data-strip="illustrations/strip-56ead4dc76.svg" }
 
 - `ObjectRow` is one object as the producer reports it: f64 placement, tint, flags, local box, spacing.
 - `InstanceTable` owns the rows the GPU reads, the true f64 translations, and the two buffers behind group 2.
@@ -344,49 +344,49 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-26 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=27-65 -->
 
 - Group 2 for ink binds the same two buffers plus the face pass's depth views.
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=66-117 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=118-188 -->
 
 - `append` converts each row to the 96-byte `Instance`, keeps the f64 translation aside, and records bounded rows for the inside test.
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=189-255 -->
 
 - `rebase_anchor` rewrites only the translation column when the camera target drifts a quarter of the view distance, throttled to one rebuild per interval.
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=256-312 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=313-360 -->
 
 - Re-anchoring lives here: when the camera drifts far from the anchor the f64 translations are rewritten and the f32 rows stay small. `anchored_model` spells out on the CPU the composition a shader performs, so a test can check it.
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=361-416 -->
 
 - Flags are set one row at a time and written back one row at a time: selecting an object must not re-upload the table.
 
-<span class="zone-mark" data-strip="illustrations/strip-a6592cf3bd.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-56ead4dc76.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=417-469 -->
 
@@ -394,37 +394,37 @@ flowchart TB
 
 ## Step 8 · The mesh shader
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-1ac4be2cfe.svg){ .locator data-strip="illustrations/strip-e6133c3d58.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-b939cbf89f.svg){ .locator data-strip="illustrations/strip-2bb88680ac.svg" }
 
 - Groups 0, 1, 2 and the `LineUniform` mirror; `place` applies the row's rotation/scale and the anchored translation.
 
 ![vs_main runs once per vertex, the rasterizer works out which pixels the triangle covers and blends the vertex outputs across them, and fs_main runs once per covered pixel and never sees a vertex.](illustrations/stages.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-e6133c3d58.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-2bb88680ac.svg" data-zone="Shaders"></span>
 
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-23 -->
 
 - A hidden row's triangle is parked outside the clip volume; the ID pass shares this vertex stage, so a hidden object is unpickable too.
 
-<span class="zone-mark" data-strip="illustrations/strip-e6133c3d58.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-2bb88680ac.svg" data-zone="Shaders"></span>
 
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=24-61 -->
 
 - Shading is separate from the vertex stage because both fragment entries need it and neither should reimplement it: a camera headlight with wrapped diffuse, so the darkest visible face is still its own colour rather than black. Back faces paint red unless the object is print.
 
-<span class="zone-mark" data-strip="illustrations/strip-e6133c3d58.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-2bb88680ac.svg" data-zone="Shaders"></span>
 
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=62-113 -->
 
 - The two fragment entries end the file: `fs_id` writes the object row for picking, `fs_main` the shaded colour.
 
-<span class="zone-mark" data-strip="illustrations/strip-e6133c3d58.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-2bb88680ac.svg" data-zone="Shaders"></span>
 
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=114-122 -->
 
 ## Step 9 · The mesh lane
 
-![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-7e13cebb02.svg){ .locator data-strip="illustrations/strip-24184ed47f.svg" }
+![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-409d39a647.svg){ .locator data-strip="illustrations/strip-aa8b72a46a.svg" }
 
 - `ArenaRows` is one upload's delta; `ArenaLane` is five `GrowBuf`s under one growth policy and the pipelines over them.
 
@@ -437,53 +437,53 @@ flowchart TB
     style AL fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-4cf413b578.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-205e36d755.svg" data-zone="Lanes"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=1-63 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-4cf413b578.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-205e36d755.svg" data-zone="Lanes"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=64-114 -->
 
 - Three index runs share one vertex table: solid faces, sheet fills, lettering. The last two go through the unlit outline lane below.
 
-<span class="zone-mark" data-strip="illustrations/strip-4cf413b578.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-205e36d755.svg" data-zone="Lanes"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=115-160 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-4cf413b578.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-205e36d755.svg" data-zone="Lanes"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=161-226 -->
 
 - The outline lane borrows the arena's buffers and draws imported PDF lettering unlit; it exists because the arena's print and text runs call it.
 
-<span class="zone-mark" data-strip="illustrations/strip-8912de45d7.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-27d9e6f174.svg" data-zone="Shaders"></span>
 
 <!-- file: 04a session_viewer/src/shaders/text_outline.wgsl copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-4cf413b578.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-205e36d755.svg" data-zone="Lanes"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=1-55 -->
 
 - Imported outline text is geometry, not glyphs: it keeps exact object IDs and the sheet depth comparison, so it picks and occludes like the drawing it came from.
 
-<span class="zone-mark" data-strip="illustrations/strip-4cf413b578.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-205e36d755.svg" data-zone="Lanes"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=56-67 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-4cf413b578.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-205e36d755.svg" data-zone="Lanes"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=68-114 -->
 
 - Imported lettering borrows the arena's buffers rather than copying them: the glyphs are already geometry, and a second copy would be a second thing to keep in step.
 
-<span class="zone-mark" data-strip="illustrations/strip-4cf413b578.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-205e36d755.svg" data-zone="Lanes"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs copy lines=115-246 -->
 
 ## Step 10 · Upload and the fixture
 
-![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-f0e736ccb9.svg){ .locator data-strip="illustrations/strip-af616787a5.svg" }
+![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-debc1685af.svg){ .locator data-strip="illustrations/strip-cfc7417c93.svg" }
 
 - `Upload` carries every lane's rows for one file and nothing GPU-typed. Deleting a lane means deleting its field here.
 
@@ -495,19 +495,19 @@ flowchart LR
     style U fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/upload.rs type -->
 
 - One local mesh row: three vertices, one triangle, no loader.
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 04a session_viewer/src/fixture.rs copy -->
 
 ## Step 11 · Wire the coordinator
 
-![Where this step sits in the viewer: Page, Scene + walk, Shell, GPU core, Shaders, with 9 of 11 zones built so far.](illustrations/locator-6f37193d51.svg){ .locator data-strip="illustrations/strip-21a49b9ad0.svg" }
+![Where this step sits in the viewer: Page, Scene + walk, Shell, GPU core, Shaders, with 9 of 11 zones built so far.](illustrations/locator-d7d63abb80.svg){ .locator data-strip="illustrations/strip-1a8867d34a.svg" }
 
 - `Gpu` owns the surface, one device, the layouts, frame uniforms, targets, the object table and the lanes; the lanes never see each other.
 
@@ -520,53 +520,53 @@ flowchart TB
     style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=1-33 -->
 
 - `new` is the device setup, then every shared resource once.
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=34-96 -->
 
 - `set_scene` appends each lane's delta; `resize` rebuilds size-dependent targets and the ink bind group that samples them.
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=97-139 -->
 
 - The frame: write uniforms, face pass, ink pass, submit, present.
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=140-172 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e18de18904.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/mod.rs type -->
 
 - The shell keeps only the canvas, the camera and `Gpu`; the fixture upload is dropped after `set_scene`, so the GPU is its only holder.
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 04a session_viewer/src/lib.rs type whole lines=1-52 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 04a session_viewer/src/lib.rs type whole lines=53-95 -->
 
 - `render` is the frame: resize if needed, take one anchor for the whole frame, submit. Taking the anchor once is what stops two lanes disagreeing about where the world is.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 04a session_viewer/src/scene.rs -->
 
-<span class="zone-mark" data-strip="illustrations/strip-8912de45d7.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-27d9e6f174.svg" data-zone="Shaders"></span>
 
 <!-- file: 04a session_viewer/src/shaders/first.wgsl -->
 
-<span class="zone-mark" data-strip="illustrations/strip-8fd356bf70.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3edaab33ff.svg" data-zone="Page"></span>
 
 <!-- file: 04a session_viewer/index.html copy -->
 

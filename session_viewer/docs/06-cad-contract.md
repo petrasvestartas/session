@@ -30,7 +30,7 @@ flowchart TB
 
 ## Step 1 · Kernel: one-sided normals at a C0 knot
 
-![Where this step sits in the viewer: Kernel, with 8 of 11 zones built so far.](illustrations/locator-2d3301f7a8.svg){ .locator data-strip="illustrations/strip-2159d6d1e7.svg" }
+![Where this step sits in the viewer: Kernel, with 8 of 11 zones built so far.](illustrations/locator-a88826046f.svg){ .locator data-strip="illustrations/strip-4325a89e19.svg" }
 
 - A knot repeated `degree` times folds the surface; averaging normals across that fold makes a sharp edge look rounded.
 - The grid mesher splits a shading vertex on the crease side: same position and `u`/`v`, different normal, so the split never invents a CAD vertex.
@@ -43,13 +43,13 @@ flowchart TB
     style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-2159d6d1e7.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4325a89e19.svg" data-zone="Kernel"></span>
 
 <!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=1-4 -->
 
 `split_crease_normals` is `pub(crate)`: the trimmed mesher in `nurbssurface_trimmed.rs` shares it.
 
-<span class="zone-mark" data-strip="illustrations/strip-2159d6d1e7.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4325a89e19.svg" data-zone="Kernel"></span>
 
 <!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=5-5 -->
 
@@ -57,7 +57,7 @@ flowchart TB
 
 ## Step 2 · Row encodings
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - Every producer packs the same four things: pen width → world radius, colour → RGBA8, unit normal → 16-bit octahedral code, two normals → one `facing` word.
 - `FACING_UNKNOWN` is all ones and means "no adjacency, always draw"; `pack_facing` steps around that value.
@@ -72,13 +72,13 @@ flowchart LR
     style F fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/encode.rs type -->
 
 ## Step 3 · What a producer reports
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - `WalkCx`: where an object's rows land (vertex base, object row). `Row`: what the producer measured (local box, spacing, flags, thickness).
 - The `mod.rs` also declares the modules you type in the following steps; nothing compiles them until `app/mod.rs` names `walk` in step 11.
@@ -91,13 +91,13 @@ flowchart LR
     style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mod.rs type -->
 
 ## Step 4 · Per-file sweeps and thickness
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - A sheet (planar file) is detected after the walk from the object rows, so producers stay ignorant of documents.
 - Thickness is measured along the mesh's own dominant face normals, not the axis-aligned box: a rotated plate measures its plate thickness.
@@ -111,13 +111,13 @@ flowchart LR
     style K fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/bounds.rs type -->
 
 ## Step 5 · Fused mesh topology
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - One pass over the faces gives the ink lanes everything: unique edges with pen colours, the two faces at each edge, face normals, closedness.
 - Edges hang off their low vertex on an intrusive chain; a mesh with sparse vertex keys still indexes in O(1) through `SlotMap`.
@@ -129,25 +129,25 @@ flowchart LR
     style E fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=1-48 -->
 
 - Newell normals, not the first three corners: a reflex second corner would invert the normal and turn a flat region into a crease.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=49-95 -->
 
 - Faces are slotted by arrival, not by direction; `opposed` records a winding disagreement instead of declaring the solid open.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=96-173 -->
 
 ## Step 6 · Ink: pipes for edges, spheres for vertices
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - The ink pass reads the topology and the f32 positions by slot, and writes only `SegRows.pipes` and `GlyphRows.spheres`.
 - When a pair's winding disagrees, the second normal is negated: the facing test needs two outward normals.
@@ -161,46 +161,46 @@ flowchart LR
     style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-67 -->
 
 - The rest is the crease test: the cosine between two face normals decides whether a shared edge is a border, a crease, or an interior diagonal nobody should see.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=68-110 -->
 
 - A smooth tessellation inks only borders and creases; a coplanar diagonal is dropped unless `VIEWER_ALL_EDGES` asks for it.
 - `pipe_ids` gets the source edge index for an authored mesh and `u32::MAX` for a tessellation seam: selection must never return an invented edge.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=111-146 -->
 
 - Incidence is CSR over the edges: each vertex knows its widest visible edge and every incident edge, so a marker can carry up to six face normals.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=147-192 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=193-250 -->
 
 - One entry point does both lanes in order — pipes, then markers unless `VIEWER_NO_DOTS` — so a caller cannot produce edges without the vertices that belong to them.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=251-268 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs copy lines=269-373 -->
 
 ## Step 7 · One mesh into the tables
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - Gates first: above `MESH_RAW_MIN` triangles a mesh is faces only; a print fill (single width 0) takes the sheet index runs.
 - `MeshOpts::SURFACE` marks a tessellation: `FLAG_SMOOTH` tells the marker lane its vertices are samples, and its seams are sampling rather than geometry. `OBJECT` and `ELEMENT` are the authored-mesh presets, which differ in whether an open mesh may be flagged open.
@@ -214,29 +214,29 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-56 -->
 
 - `MeshOpts` names the three decisions a caller makes about a mesh: whether sheet lanes apply, whether an open mesh is allowed, and whether it is a tessellation. Named presets keep those decisions out of the producer bodies.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=57-78 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=79-141 -->
 
 - Faces go into the arena with `vids = cx.row`; the ink pass runs only on decorated meshes with a topology.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=142-236 -->
 
 ## Step 8 · Curves into the ribbon lane
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - Lines and polylines become one flat ribbon per span with `FACING_UNKNOWN`: free linework has no faces to cull against.
 
@@ -248,26 +248,26 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-61 -->
 
 - A NURBS curve is sampled by turning angle of its control polygon, so a full circle gets the same chord count at any radius.
 - `render_position` is the single f64 → f32 boundary for every producer.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=62-125 -->
 
 - A NURBS curve reaches the GPU as a polyline, sampled by its own size rather than a fixed count, and then takes the polyline path. One sampling rule, used everywhere a curve is drawn.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=126-147 -->
 
 ## Step 9 · Edge records and the first BRep consumer
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8b7654afec.svg){ .locator data-strip="illustrations/strip-200ee33bdf.svg" }
 
 - Topology records only: which edge, which face, which orientation. The records carry no geometry.
 
@@ -280,20 +280,20 @@ flowchart LR
     style E fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/brep_edges.rs type -->
 
 - Each BRep face keeps its own vertices and the kernel's normals; nothing is welded across faces, so a planar face never inherits a neighbour's normal.
 - `QUALITY` is a display decision: the viewer asks for finer sampling than the kernel default.
 
-<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-200ee33bdf.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/brep.rs type -->
 
 ## Step 10 · Launch-time knobs
 
-![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-84964bf508.svg){ .locator data-strip="illustrations/strip-f4676a764b.svg" }
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-c5bd45f090.svg){ .locator data-strip="illustrations/strip-49878ec1c0.svg" }
 
 Presence-only environment flags, read once per process; always false in the browser.
 
@@ -304,13 +304,13 @@ flowchart LR
     style K fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 06 session_viewer/src/app/knobs.rs copy -->
 
 ## Step 11 · Wire the producers
 
-![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-84964bf508.svg){ .locator data-strip="illustrations/strip-f4676a764b.svg" }
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-c5bd45f090.svg){ .locator data-strip="illustrations/strip-49878ec1c0.svg" }
 
 ```mermaid
 flowchart LR
@@ -319,7 +319,7 @@ flowchart LR
     style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 06 session_viewer/src/app/mod.rs type -->
 
@@ -327,7 +327,7 @@ flowchart LR
 
 ## Step 12 · The fixture becomes a source scene
 
-![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-84964bf508.svg){ .locator data-strip="illustrations/strip-f4676a764b.svg" }
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-c5bd45f090.svg){ .locator data-strip="illustrations/strip-49878ec1c0.svg" }
 
 - `CadFixture` retains the f64 source objects and a `SourceIdentity` per object row; the GPU only receives prepared tables.
 - The same `add` path serves BRep and surface sources, so a row maps back to a GUID without searching triangles.
@@ -340,11 +340,11 @@ flowchart LR
     style I fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 06 session_viewer/src/fixture.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49878ec1c0.svg" data-zone="Shell"></span>
 
 <!-- file: 06 session_viewer/src/lib.rs type -->
 
@@ -352,7 +352,7 @@ flowchart LR
 
 ## Step 13 · Flat preview shading
 
-![Where this step sits in the viewer: Page, Shaders, with 9 of 11 zones built so far.](illustrations/locator-7090582532.svg){ .locator data-strip="illustrations/strip-a6cb158f6c.svg" }
+![Where this step sits in the viewer: Page, Shaders, with 9 of 11 zones built so far.](illustrations/locator-eac39f3161.svg){ .locator data-strip="illustrations/strip-22c41a6dd5.svg" }
 
 The shader ignores vertex normals and shades from the finite face fallback, so a wrong normal contract cannot hide behind lighting.
 
@@ -364,11 +364,11 @@ flowchart LR
     style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-8912de45d7.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-27d9e6f174.svg" data-zone="Shaders"></span>
 
 <!-- file: 06 session_viewer/src/shaders/triangle.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-8fd356bf70.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3edaab33ff.svg" data-zone="Page"></span>
 
 <!-- file: 06 session_viewer/index.html copy -->
 

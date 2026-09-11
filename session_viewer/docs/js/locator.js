@@ -44,8 +44,17 @@
     img.alt = "Where you are in the viewer";
     var note = document.createElement("span");
     note.className = "viewer-strip-note";
+    var key = document.createElement("span");
+    key.className = "viewer-strip-key";
+    [["here", "this step"], ["built", "already built"], ["ahead", "still ahead"]].forEach(function (pair) {
+      var chip = document.createElement("span");
+      chip.className = "chip chip-" + pair[0];
+      chip.textContent = pair[1];
+      key.appendChild(chip);
+    });
     bar.appendChild(img);
     bar.appendChild(note);
+    bar.appendChild(key);
     var article = document.querySelector(".md-content__inner") || document.body;
     article.insertBefore(bar, article.firstChild);
 

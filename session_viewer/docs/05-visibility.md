@@ -28,7 +28,7 @@ flowchart TB
 
 ## Step 1 · The physical contract shared by every shader
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-1b8cad2a06.svg){ .locator data-strip="illustrations/strip-9396de91e8.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-10520d7895.svg){ .locator data-strip="illustrations/strip-49a1387961.svg" }
 
 Two constants and two output structs, appended to every shader module. `physical_gradient` is the rasterizer's own depth slope of the winning primitive, scaled so `Rg16Float` keeps it.
 
@@ -47,13 +47,13 @@ flowchart LR
     style E fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/physical.wgsl type -->
 
 ## Step 2 · Backdrop shaders
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-1b8cad2a06.svg){ .locator data-strip="illustrations/strip-9396de91e8.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-10520d7895.svg){ .locator data-strip="illustrations/strip-49a1387961.svg" }
 
 - The background is one oversized triangle at `w = 1.0`, depth `Always`, so it never occludes.
 - The grid builds fifty vertices from `vertex_index` alone; it subtracts `line.anchor` because instance rows are rebased on the camera anchor.
@@ -68,11 +68,11 @@ flowchart LR
     style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/background.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/grid.wgsl type -->
 
@@ -80,7 +80,7 @@ flowchart LR
 
 ## Step 3 · The backdrop lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-c699657f1d.svg){ .locator data-strip="illustrations/strip-2015313fb3.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-34088d3009.svg){ .locator data-strip="illustrations/strip-9cf9d05bd8.svg" }
 
 - One owner for two pipelines; no buffers, no upload, `retarget` when the sample count changes.
 - `draw_grid` binds `mvp` and the `line` block, matching `@group(0)`/`@group(1)` in `grid.wgsl`.
@@ -94,7 +94,7 @@ flowchart LR
     style L fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/backdrop.rs type -->
 
@@ -102,7 +102,7 @@ flowchart LR
 
 ## Step 4 · The ink visibility test
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-1b8cad2a06.svg){ .locator data-strip="illustrations/strip-9396de91e8.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-10520d7895.svg){ .locator data-strip="illustrations/strip-49a1387961.svg" }
 
 A stroke is drawn as a ribbon of fragments around its mathematical axis. The physical depth at a fragment beside the axis belongs to whatever surface is there, not to the axis:
 
@@ -131,7 +131,7 @@ flowchart LR
     style X fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=1-43 -->
 
@@ -150,7 +150,7 @@ flowchart TB
     style C fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=44-101 -->
 
@@ -167,7 +167,7 @@ flowchart TB
     style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=102-137 -->
 
@@ -184,7 +184,7 @@ flowchart LR
     style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=138-187 -->
 
@@ -203,13 +203,13 @@ flowchart LR
     style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=188-236 -->
 
 ## Step 5 · Shaders emit the gradient
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-1b8cad2a06.svg){ .locator data-strip="illustrations/strip-9396de91e8.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-10520d7895.svg){ .locator data-strip="illustrations/strip-49a1387961.svg" }
 
 Every fragment that writes physical depth also returns its gradient. Face shaders return the real slope; splats, sheets and ID passes return zero because they are not surfaces ink can be carried across.
 
@@ -222,23 +222,23 @@ flowchart LR
     style I fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/triangle.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/splat.wgsl type -->
 
 - The point shader gains the physical metadata output, so a splat writes a gradient like every other surface - a zero gradient, because a point is not a surface ink can be carried across.
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
 - The resolve is where a private pass rejoins the shared one: it reads the lane's own depth and colour, lights each point from its neighbours, and writes `frag_depth` so the scene's depth test does the rest.
 
-<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-49a1387961.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/text_outline.wgsl type -->
 
@@ -246,7 +246,7 @@ flowchart LR
 
 ## Step 6 · Targets: the gradient attachment and a sample budget
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e3b5ccc83.svg){ .locator data-strip="illustrations/strip-d8a2d049f6.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-95f3ad5659.svg){ .locator data-strip="illustrations/strip-e6b7900f7c.svg" }
 
 - `Rg16Float` gradient texture beside depth; single/multisampled views are swapped exactly like the depth views so bind groups stay valid at both sample counts.
 - `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
@@ -260,13 +260,13 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/targets.rs type -->
 
 ## Step 7 · Pipelines: one flag adds the second color target
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e3b5ccc83.svg){ .locator data-strip="illustrations/strip-d8a2d049f6.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-95f3ad5659.svg){ .locator data-strip="illustrations/strip-e6b7900f7c.svg" }
 
 - `PipelineDesc::physical()` appends the `Rg16Float` target; `ReadOnlyEqual` pipelines keep the gradient their face already wrote by masking their writes.
 - `module` appends `physical.wgsl` after `normals.wgsl`, so every shader sees `PhysicalColor`.
@@ -280,17 +280,17 @@ flowchart LR
     style L fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/pipelines/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/pipelines/layouts.rs type -->
 
 - Group 2 grows: the ink variant now carries the depth and gradient views. This is the binding change that makes the visibility test possible at all.
 
-<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/instance.rs type -->
 
@@ -298,7 +298,7 @@ flowchart LR
 
 ## Step 8 · Lanes read and write the gradient
 
-![Where this step sits in the viewer: GPU core, Lanes, with 8 of 11 zones built so far.](illustrations/locator-754e5dc8ce.svg){ .locator data-strip="illustrations/strip-e0a663698d.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, with 8 of 11 zones built so far.](illustrations/locator-30b33ecf19.svg){ .locator data-strip="illustrations/strip-4af31d2ec8.svg" }
 
 - The ink bind group gains bindings 4 and 5: `@group(2) @binding(4/5)` in step 4a.
 - The arena, splats and outline text build their pipelines with `.physical()`; the arena also gains a selection-mask pipeline.
@@ -312,23 +312,23 @@ flowchart TB
     style O fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/objects.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/arena.rs type -->
 
 - Two changes: the face pipelines gain `.physical()`, which adds the gradient target, and a selection-mask pipeline appears for the coverage the outline pass will read.
 
-<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/splat.rs type -->
 
 - `.physical()` on the ID pipeline and the resolve: the cloud now writes the same metadata as every other surface, which is what lets ink judge itself against a point cloud.
 
-<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-9cf9d05bd8.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/text_outline.rs type -->
 
@@ -336,7 +336,7 @@ flowchart TB
 
 ## Step 9 · Wire the lane and the sample count
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e3b5ccc83.svg){ .locator data-strip="illustrations/strip-d8a2d049f6.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-95f3ad5659.svg){ .locator data-strip="illustrations/strip-e6b7900f7c.svg" }
 
 - `retarget` rebuilds targets, ink bind groups and every lane's pipelines when the sample count flips, and only then.
 - The backdrop draws first inside `begin_faces`, before any geometry.
@@ -349,13 +349,13 @@ flowchart LR
     style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e6b7900f7c.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/mod.rs type -->
 
 ## Step 10 · The fixture and the page
 
-![Where this step sits in the viewer: Page, Shell, with 8 of 11 zones built so far.](illustrations/locator-acf2de7a86.svg){ .locator data-strip="illustrations/strip-83bdc236f4.svg" }
+![Where this step sits in the viewer: Page, Shell, with 8 of 11 zones built so far.](illustrations/locator-50ea5d9e36.svg){ .locator data-strip="illustrations/strip-cab5d208fc.svg" }
 
 The grey box and the sloping floor are the shapes the visibility test is judged on.
 
@@ -367,17 +367,17 @@ flowchart LR
     style X fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-14430b945f.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-53596d9638.svg" data-zone="Shell"></span>
 
 <!-- file: 05 session_viewer/src/fixture.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-14430b945f.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-53596d9638.svg" data-zone="Shell"></span>
 
 <!-- file: 05 session_viewer/src/lib.rs type -->
 
 - Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it. That is the whole price of adding a lane to this facade.
 
-<span class="zone-mark" data-strip="illustrations/strip-0d9ad8de3d.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-01c9a26f23.svg" data-zone="Page"></span>
 
 <!-- file: 05 session_viewer/index.html copy -->
 

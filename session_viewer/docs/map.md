@@ -6,7 +6,15 @@ Learn this one picture and the rest of the course has an address.
 
 Every step that touches a file opens with this same map, with one box filled pink: that is where the code on the page lives. (A step that only explains something has no file, so it has no map.)
 
-A compressed copy of it stays **pinned at the top of the page** while you read, and follows you from step to step, so the answer to "where am I" is never more than a glance away — you never have to scroll back to find it. A solid box is something you have already built. A dashed box is still ahead of you. Nothing else on the map ever moves, so after a lesson or two you stop reading it and start *seeing* it.
+A compressed copy of it stays **pinned at the top of the page** while you read, and follows you from step to step — it even follows you from one code block to the next inside a step — so the answer to "where am I" is never more than a glance away.
+
+Three fills, and nothing else on the map ever moves:
+
+- **pink** — the code on this page lives here
+- **light slate** — you have already built it
+- **near-black** — still ahead of you
+
+After a lesson or two you stop reading the map and start *seeing* it.
 
 ## The two paths
 

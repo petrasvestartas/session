@@ -32,8 +32,10 @@ MARK = re.compile(r"^<span class=\"zone-mark\"[^>]*></span>\n\n?", re.M)
 
 # Colours chosen for the black page directly: Canvas.raw() remaps light fills to dark so a
 # label stays readable on a white box, which is the wrong direction for boxes drawn ON the page.
-AHEAD_FILL, AHEAD_INK = "#26262b", "#77777e"
-BUILT_FILL, BUILT_INK = "#3a3a41", "#f4f4f6"
+# Three fills, far enough apart to read at a glance: pink here, a light slate for what you have
+# already built, and a fill barely above the page for what is still ahead.
+AHEAD_FILL, AHEAD_INK = "#1e1e22", "#6e6e76"
+BUILT_FILL, BUILT_INK = "#4a4a54", "#f4f4f6"
 LIT_FILL, LIT_INK = "#f0bcdb", "#111111"
 
 # One zone per box on the map. Order is reading order within the row; the matchers are tried in
@@ -137,7 +139,15 @@ def render(lit, built):
                    f'L{sx + sw - 26:.1f},{sy + sh + 2:.1f}" fill="none" stroke="{PAL["orange"]}" '
                    f'stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#a)"/>')
     c.text(up + 14, 177, "a pick answer travels back up", "s", fill=PAL["orange"])
-    c.text(28, 296, "documents come in along the top row; a frame is drawn along the bottom one", "s", fill="#c9ccd6")
+    # the key, so the map explains itself
+    kx = 28.0
+    for fill, ink, label in ((LIT_FILL, LIT_INK, "this step"), (BUILT_FILL, BUILT_INK, "already built"),
+                             (AHEAD_FILL, AHEAD_INK, "still ahead")):
+        c.parts.append(f'<rect x="{kx:.1f}" y="272" width="26" height="16" rx="3" fill="{fill}"/>')
+        c.text(kx + 34, 285, label, "s", fill="#c9ccd6", keep=True)
+        kx += 34 + width(label, "s") + 26
+    c.text(kx + 12, 285, "documents come in along the top row; a frame is drawn along the bottom one",
+           "s", fill="#c9ccd6", keep=True)
     body = "".join(c.parts)
     name = "locator-" + hashlib.sha1(body.encode()).hexdigest()[:10] + ".svg"
     c.write(name)

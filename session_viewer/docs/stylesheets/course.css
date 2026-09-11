@@ -139,7 +139,7 @@
 }
 .viewer-strip img { display: block; width: 100%; height: auto; }
 .viewer-strip-note {
-  display: block;
+  display: inline-block;
   margin-top: .25rem;
   font-size: .68rem;
   letter-spacing: .02em;
@@ -150,3 +150,13 @@
 .md-content h2[id], .md-content h3[id] { scroll-margin-top: 9rem; }
 /* Invisible anchors: one before each code block, so the pinned map can follow the file you reach. */
 .zone-mark { display: block; height: 0; overflow: hidden; }
+/* The pinned map's key: the three fills, named once, always on screen with the map. */
+.viewer-strip-key { float: right; margin-top: .25rem; line-height: 1.2; font-size: .68rem; color: var(--md-default-fg-color--light); }
+.viewer-strip-key .chip { margin-left: .9rem; white-space: nowrap; }
+.viewer-strip-key .chip::before {
+  content: ""; display: inline-block; width: .9rem; height: .62rem;
+  border-radius: 2px; margin-right: .3rem; vertical-align: -1px;
+}
+.viewer-strip-key .chip-here::before  { background: #f0bcdb; }
+.viewer-strip-key .chip-built::before { background: #4a4a54; }
+.viewer-strip-key .chip-ahead::before { background: #1e1e22; }
