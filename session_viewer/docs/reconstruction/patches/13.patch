@@ -815,10 +815,10 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +    controller.abort();
 +}
 diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
-index eafb80277a81f006fbb109714855465a31ecc644..da0938d501202a9f9a44357977dc96bd5bdfbe7f 100644
+index ecc8c8070550e64f76c1db5fcfcece5da65bdc5f..f63c1c022ddc743540191ba51433a6900641296b 100644
 --- a/session_viewer/src/app/input.rs
 +++ b/session_viewer/src/app/input.rs
-@@ -53,6 +53,7 @@ impl Input {
+@@ -54,6 +54,7 @@ impl Input {
                  .camera
                  .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
              Key::Named(NamedKey::Escape) => state.escape_selection(),
@@ -1272,10 +1272,10 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +    }
 +}
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 920f036f77b250d98108579b6788c6e8c8015378..645f6ae932848ae614d30871b672edeb0ee628d5 100644
+index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd5daff04a 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
-@@ -35,12 +35,597 @@ pub struct CloudLod {
+@@ -35,12 +35,602 @@ pub struct CloudLod {
  }
  
  impl CloudLod {
@@ -1441,7 +1441,9 @@ index 920f036f77b250d98108579b6788c6e8c8015378..645f6ae932848ae614d30871b672edeb
 +    Some((at, length))
 +}
 +
-+/// Read only header bytes with a usize cursor; message bounds remain u64 even on wasm32.
++/// The walk down `Session.3 -> Objects.8 -> PointCloud`: where `coords` (field 3) starts, how
++/// long it is, and where the cloud message ends - the same triple as `sheet_layout`. The
++/// cursor into the head bytes is a usize; the offsets it reports stay u64 even on wasm32.
 +fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
 +    let mut at = 0usize;
 +    let objects_end = descend_message(head, &mut at, None, 3)?;
@@ -1749,6 +1751,9 @@ index 920f036f77b250d98108579b6788c6e8c8015378..645f6ae932848ae614d30871b672edeb
 +        if at < fields.colors_at || at > end || count > fields.count {
 +            return None;
 +        }
++        // 8 B a colour is the WORST case, not the size: each of the four channels is a varint,
++        // and a channel of 128 or more takes two bytes. `colors_from` reports where it really
++        // stopped, and that is where the next slice starts.
 +        let length = (u64::from(count) * 8).min(end - at);
 +        if length == 0 {
 +            return None;
@@ -1876,10 +1881,10 @@ index 920f036f77b250d98108579b6788c6e8c8015378..645f6ae932848ae614d30871b672edeb
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
-index 22bf1c9c97b1112a7b108566f2dde6b65192882e..bdc917677152feb6ccaaa3b5fbd9352ca5b55b0b 100644
+index 7b04b7394e876d5c9944862e8a8f146e15d68572..91ab6de56dcbe177976b93e34dd43e586d344ee1 100644
 --- a/session_viewer/src/engine/gpu/pick.rs
 +++ b/session_viewer/src/engine/gpu/pick.rs
-@@ -39,6 +39,18 @@ pub enum PickMode {
+@@ -40,6 +40,18 @@ pub enum PickMode {
      #[default]
      Object,
      Edge,
@@ -1898,7 +1903,7 @@ index 22bf1c9c97b1112a7b108566f2dde6b65192882e..bdc917677152feb6ccaaa3b5fbd9352c
  }
  
  /// The readback window: a `PICK_RADIUS` square about the cursor, clamped into the target.
-@@ -96,6 +108,7 @@ pub struct Picker {
+@@ -97,6 +109,7 @@ pub struct Picker {
      submitted: u64,
      pub mode: PickMode,
      radius: u32,
@@ -1906,7 +1911,7 @@ index 22bf1c9c97b1112a7b108566f2dde6b65192882e..bdc917677152feb6ccaaa3b5fbd9352c
      readback: Option<wgpu::Buffer>,
      targets: Option<IdTargets>,
  }
-@@ -179,6 +192,7 @@ impl Picker {
+@@ -180,6 +193,7 @@ impl Picker {
              submitted: 0,
              mode: PickMode::Object,
              radius: PICK_RADIUS,
@@ -1914,7 +1919,7 @@ index 22bf1c9c97b1112a7b108566f2dde6b65192882e..bdc917677152feb6ccaaa3b5fbd9352c
              readback: None,
              targets: None,
          }
-@@ -200,10 +214,66 @@ impl Picker {
+@@ -201,10 +215,66 @@ impl Picker {
  
      /// Invalidate pending and mapped results on camera, viewport, scene or mode changes.
      pub fn cancel(&mut self) {

@@ -671,10 +671,10 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +    }
 +}
 diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
-index e90a21156f54d11731549f8ca97dc2aadc1a0602..3c63ac1346beec79b3db65467562bdaa267bfca4 100644
+index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dccd1008bf 100644
 --- a/session_viewer/src/app/loader.rs
 +++ b/session_viewer/src/app/loader.rs
-@@ -1,118 +1,417 @@
+@@ -1,118 +1,421 @@
 -//! Local tutorial fixture boundary; chapter14 installs production routing and reloads.
 +//! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
 +//! event loop as a `Msg` - whole files through `decode`, big clouds a slice at a time
@@ -892,7 +892,11 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..3c63ac1346beec79b3db65467562bdaa
 -/// Keep fixture decode failures visible while production validation is introduced later.
 -fn fixture_error(error: Box<dyn std::error::Error>) -> String {
 -    format!("Bundled interaction fixture: {error}")
-+/// Fetch a manifest and post every item, in manifest order, then a `Fit`.
++/// Fetch a manifest and post every item, in manifest order, then a `Fit`. `replacement` picks
++/// the mode: `None` is the first load, which posts each item the moment it arrives and books
++/// it against the live budget; `Some(generation)` is a reload, which STAGES every item, bails
++/// out the moment a newer request takes that generation, and only then clears the old scene
++/// and posts the lot - so a reload that fails halfway leaves the visible scene alone.
 +async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
 +    let generation = match replacement {
 +        Some(generation) => generation,
@@ -1163,7 +1167,7 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..3c63ac1346beec79b3db65467562bdaa
  pub struct StreamCursor {
      pub idx: usize,
      pub url: String,
-@@ -121,5 +420,82 @@ pub struct StreamCursor {
+@@ -121,5 +424,82 @@ pub struct StreamCursor {
      pub col_at: u64,
  }
  

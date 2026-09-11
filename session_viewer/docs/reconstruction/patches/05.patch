@@ -24,7 +24,7 @@ index db7adb7684a8e9f4aba1ecc82c375df06f6bf82f..c6c7e0dce3b12078b33d09694b8366df
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
-index 6fd6992f3591ef3ac17ab5aadea2d49aa16a2193..9a7e5fc9ce96d341675de5a08dbca434347f9815 100644
+index bb8aa2eaa4787818e87b936f52a5bceaa83c4ae0..096804484014decea87d240aaaf865b3888d904c 100644
 --- a/session_viewer/src/engine/gpu/arena.rs
 +++ b/session_viewer/src/engine/gpu/arena.rs
 @@ -47,6 +47,7 @@ impl ArenaRows {
@@ -56,7 +56,7 @@ index 6fd6992f3591ef3ac17ab5aadea2d49aa16a2193..9a7e5fc9ce96d341675de5a08dbca434
      }
  
      /// The id pass for the lettering, after the ink as in the colour pass.
-@@ -220,7 +226,21 @@ fn build_pipelines(
+@@ -222,7 +228,21 @@ fn build_pipelines(
      let dev = &ctx.device;
  
      ArenaPipelines {
@@ -699,13 +699,14 @@ index 3d17edab45bd9f67d3019b29a1f9b0877714ee60..64eed7ee628282b0370aff6d4daba222
  
  #[cfg(all(test, not(target_arch = "wasm32")))]
 diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
-index 88cc89d4850a4fe6b2e10ec2d9c7362c6413567f..8cf597917a47f742b5a284f2a1c65b789c7e8e00 100644
+index 88cc89d4850a4fe6b2e10ec2d9c7362c6413567f..7c8b86525a5f0a818c8e5daeb1df549c6ca03299 100644
 --- a/session_viewer/src/engine/pipelines/layouts.rs
 +++ b/session_viewer/src/engine/pipelines/layouts.rs
-@@ -64,6 +64,20 @@ fn scene_depth(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
+@@ -64,7 +64,25 @@ fn scene_depth(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
      }
  }
  
+-/// Ink keeps the instance rows and adds the immutable physical depth, single and multisampled.
 +/// The immutable raster gradient, sampled without filtering.
 +fn scene_gradient(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
 +    wgpu::BindGroupLayoutEntry {
@@ -720,10 +721,15 @@ index 88cc89d4850a4fe6b2e10ec2d9c7362c6413567f..8cf597917a47f742b5a284f2a1c65b78
 +    }
 +}
 +
- /// Ink keeps the instance rows and adds the immutable physical depth, single and multisampled.
++/// Ink keeps the instance rows (0 rows, 1 anchored translations) and adds everything a
++/// fragment needs to decide it is visible: physical depth at 2 single-sampled and 3
++/// multisampled, the gradient the face pass wrote at 4 and 5, and the finite-triangle pool at
++/// 6 (the projected triangles) and 7 (the per-tile lists). Only one of each sampled pair is
++/// real; the other is the 1x1 placeholder `Targets::new` makes at the unused sample count.
  fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
      device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-@@ -81,6 +95,8 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+         label: Some("ink.instance.layout"),
+@@ -81,6 +99,8 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
              ),
              scene_depth(2, false),
              scene_depth(3, true),
@@ -1095,10 +1101,10 @@ index 0000000000000000000000000000000000000000..6fa12413e6d467c92ca1e020d8f70b69
 +}
 diff --git a/session_viewer/src/shaders/grid.wgsl b/session_viewer/src/shaders/grid.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..75705095282ee7c95b3a4328edbf794e349bec7e
+index 0000000000000000000000000000000000000000..adefe8b083303a3a66eb6e7449fbbc0516eb4ea7
 --- /dev/null
 +++ b/session_viewer/src/shaders/grid.wgsl
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,56 @@
 +// The ground grid and axes: 50 vertices built from the vertex index, no buffer. Authored in
 +// world millimetres about the origin, minus the camera anchor the instance rows are rebased on.
 +
@@ -1139,6 +1145,8 @@ index 0000000000000000000000000000000000000000..75705095282ee7c95b3a4328edbf794e
 +            wp = vec3<f32>(0.0, select(0.0, HALF, far), 0.0);
 +            c = GREEN;
 +        } else {
++            // The up axis is a direction marker rather than part of the floor: it is drawn one
++            // cell long, not out to HALF like the two axes that lie in the grid.
 +            wp = vec3<f32>(0.0, 0.0, select(0.0, STEP, far));
 +            c = BLUE;
 +        }
@@ -1435,10 +1443,10 @@ index 0000000000000000000000000000000000000000..dcf68beaceb47e45b155eafef2d3267c
 +    return scaled;
 +}
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
-index 6caa7da25703fe5c067378925fd4144420bd52be..86ede97791f67e1ab8aef18a4c3f7d578c489804 100644
+index ee4233dfef777420a9c80fe852217ce13c9efe98..2118ca3afeb7ae069ec6eee83bb6375bf6c5e27e 100644
 --- a/session_viewer/src/shaders/splat.wgsl
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -164,9 +164,9 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
+@@ -167,9 +167,9 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
  
  // The id pass: (object row + 1, point row + 1).
  @fragment
@@ -1451,7 +1459,7 @@ index 6caa7da25703fe5c067378925fd4144420bd52be..86ede97791f67e1ab8aef18a4c3f7d57
 +    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec2<f32>(0.0));
  }
 diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
-index ad85aa08ccd23f6b05ed6046e9bd39cd8d278201..37349030595bf1b868533e5bc63f2bb1683fcaae 100644
+index 0b89a50c4448e87c927b748771206e52c9e9a431..d512da804122ea331e06f44b01cb61e809682ae4 100644
 --- a/session_viewer/src/shaders/splat_resolve.wgsl
 +++ b/session_viewer/src/shaders/splat_resolve.wgsl
 @@ -28,6 +28,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
@@ -1462,7 +1470,7 @@ index ad85aa08ccd23f6b05ed6046e9bd39cd8d278201..37349030595bf1b868533e5bc63f2bb1
      @builtin(frag_depth) depth: f32,
  };
  
-@@ -71,6 +72,7 @@ fn shade(in: VsOut) -> FsOut {
+@@ -70,6 +71,7 @@ fn shade(in: VsOut) -> FsOut {
  
      o.color = vec4<f32>(rgb, 1.0);
      o.depth = d;

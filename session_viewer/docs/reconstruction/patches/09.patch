@@ -363,10 +363,10 @@ index d4fae1cf80dcea5f994eb7c3acc444f95f758794..ae58248dd605dd88792f155e6164dc43
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index c960cec6e7f3a3c80fbf3153ce1c9a5b58e0825d..474f308cbf5c7fc879ab02708e5262c2b334110e 100644
+index cbe88261047e936c2303fcd038f4b473767194ea..32aef3cd66b7c2f08338cefd14e61c6d9b8e1f6b 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
-@@ -102,11 +102,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
+@@ -103,11 +103,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
              radius: encode_width(b.width),
              color: pack_rgba(Color::black().to_f32()),
          };
@@ -379,7 +379,7 @@ index c960cec6e7f3a3c80fbf3153ce1c9a5b58e0825d..474f308cbf5c7fc879ab02708e5262c2
          walk_brep_edges(ink, b, &chains, (&ep, &mut row.bounds));
      }
      row
-@@ -377,4 +373,59 @@ mod tests {
+@@ -381,4 +377,59 @@ mod tests {
              );
          }
      }
@@ -440,7 +440,7 @@ index c960cec6e7f3a3c80fbf3153ce1c9a5b58e0825d..474f308cbf5c7fc879ab02708e5262c2
 +    }
  }
 diff --git a/session_viewer/src/app/walk/brep_edges.rs b/session_viewer/src/app/walk/brep_edges.rs
-index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9fb6062e2 100644
+index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b48582091 100644
 --- a/session_viewer/src/app/walk/brep_edges.rs
 +++ b/session_viewer/src/app/walk/brep_edges.rs
 @@ -283,43 +283,130 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
@@ -600,7 +600,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
  }
  
  /// A normal turned outward by its face's sign.
-@@ -328,10 +415,8 @@ fn scaled_normal(normal: Option<[f64; 3]>, sign: f64) -> Option<[f64; 3]> {
+@@ -328,10 +415,10 @@ fn scaled_normal(normal: Option<[f64; 3]>, sign: f64) -> Option<[f64; 3]> {
      Some([n[0] * sign, n[1] * sign, n[2] * sign])
  }
  
@@ -610,10 +610,12 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
 -/// it faces away.
 +/// One pipe per source segment, culled only when both incident physical facets turn away.
 +/// Singular endpoint shading normals and nearest unrelated vertices cannot change this decision.
++/// Returns how many pipes reached the table: a segment that collapses or goes non-finite in
++/// f32 is dropped, so it can be fewer than `chain.keys.len() - 1`.
  pub fn push_edge_pipes(
      seg: &mut SegRows,
      chain: &EdgeChain,
-@@ -346,16 +431,6 @@ pub fn push_edge_pipes(
+@@ -346,16 +433,6 @@ pub fn push_edge_pipes(
          let (a, b) = (&fm.vertex[&w[0]], &fm.vertex[&w[1]]);
          let p0 = [a.x, a.y, a.z];
          let p1 = [b.x, b.y, b.z];
@@ -630,7 +632,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
          let p0f = super::curves::render_position(p0);
          let p1f = super::curves::render_position(p1);
          // A valid f64 edge may collapse or overflow during display conversion.
-@@ -370,7 +445,7 @@ pub fn push_edge_pipes(
+@@ -370,7 +447,7 @@ pub fn push_edge_pipes(
              p1: p1f,
              instance_id: ep.pen.row,
              color: ep.pen.color,
@@ -639,7 +641,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
          });
          seg.pipe_ids
              .push(u32::try_from(chain.edge).unwrap_or(u32::MAX));
-@@ -549,8 +624,67 @@ mod tests {
+@@ -549,8 +626,67 @@ mod tests {
          }
      }
  
@@ -708,7 +710,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
      #[test]
      fn pipes_face_both_adjacent_faces() {
          use crate::app::walk::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
-@@ -560,21 +694,25 @@ mod tests {
+@@ -560,21 +696,25 @@ mod tests {
          let fms = b.face_meshes_q(Some(QUALITY));
          let chains = edge_chains(&b, &fms);
          let signs = vec![1.0; fms.len()];
@@ -740,7 +742,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
              assert_ne!(p.facing & 0xffff, p.facing >> 16);
              assert_eq!(p.instance_id, 3);
          }
-@@ -582,13 +720,53 @@ mod tests {
+@@ -582,13 +722,53 @@ mod tests {
          let seam = push_edge_pipes(&mut seg, chains[2].as_ref().unwrap(), &ep, &mut bounds);
          assert_eq!(seam, 1);
          let p = &seg.pipes[before];
@@ -795,7 +797,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
      #[test]
      fn collapsed_display_segments_do_not_create_pick_targets() {
          let b = BRep::create_box(40.0, 30.0, 25.0);
-@@ -602,15 +780,15 @@ mod tests {
+@@ -602,15 +782,15 @@ mod tests {
              vertex.z = 1e20;
          }
          let signs = vec![1.0; fms.len()];

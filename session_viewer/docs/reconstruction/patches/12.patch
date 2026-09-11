@@ -292,12 +292,13 @@ index 0000000000000000000000000000000000000000..8e846d19d6fcef5720ef60d9e580cbe7
 +}
 diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..eafb80277a81f006fbb109714855465a31ecc644
+index 0000000000000000000000000000000000000000..ecc8c8070550e64f76c1db5fcfcece5da65bdc5f
 --- /dev/null
 +++ b/session_viewer/src/app/input.rs
-@@ -0,0 +1,257 @@
+@@ -0,0 +1,258 @@
 +//! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
-+//! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
++//! left click picks the object, Ctrl+click an edge and Ctrl+Shift+click a face;
++//! 1-7 named views, Space projection, C reset, F fits the selection (or
 +//! everything with none selected), Q/W/E lane toggles, O silhouettes, D face lighting,
 +//! B the back-face flag,
 +//! H hides the selection and S shows everything back, T toggles selected names,
@@ -1629,10 +1630,10 @@ index 0000000000000000000000000000000000000000..d5d7ca8a69de29f3428276801a3926f3
 +}
 diff --git a/session_viewer/src/app/walk/cloud.rs b/session_viewer/src/app/walk/cloud.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a9ffae9ab5a853daae45895be248799b9bd3bbf7
+index 0000000000000000000000000000000000000000..e5d838286d641c6aa9066abf0ff92edadef00d8a
 --- /dev/null
 +++ b/session_viewer/src/app/walk/cloud.rs
-@@ -0,0 +1,221 @@
+@@ -0,0 +1,224 @@
 +//! Point clouds into the cloud lane: a walked kernel `PointCloud` (points, optional normals,
 +//! the octree it carries, one draw), and the streamed form - a prefix or chunk of raw rows
 +//! that never became a kernel object, with the nodes those rows complete.
@@ -1809,6 +1810,9 @@ index 0000000000000000000000000000000000000000..a9ffae9ab5a853daae45895be248799b
 +        from: s.from,
 +        count,
 +        first,
++        // No node is complete yet, so there is no measured spacing to report: stand in the
++        // file's own point size, never below `DEFAULT_SPACING`, and read both as cloud-local
++        // units. A placeholder until the first whole node lands, not a measurement.
 +        spacing: resident_spacing(s.lod, s.to).unwrap_or(s.point_px.max(DEFAULT_SPACING)),
 +        node_first,
 +        node_count,
@@ -2895,10 +2899,10 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
  }
 diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..22bf1c9c97b1112a7b108566f2dde6b65192882e
+index 0000000000000000000000000000000000000000..7b04b7394e876d5c9944862e8a8f146e15d68572
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/pick.rs
-@@ -0,0 +1,635 @@
+@@ -0,0 +1,636 @@
 +//! Picking by id pass: on request the lanes redraw ONCE at 1x into an `Rg32Uint` target -
 +//! (object row + 1, sub-object id + 1) per pixel - scissored to a small window about the
 +//! cursor, which is copied out and mapped asynchronously. `poll` answers with the nearest
@@ -2912,7 +2916,8 @@ index 0000000000000000000000000000000000000000..22bf1c9c97b1112a7b108566f2dde6b6
 +
 +/// What a pixel answered: the object row, and a sub-object id that is a TAGGED union rather
 +/// than one number. 0 is the object itself; bit 31 set is a segment, the low bits its row;
-+/// the top three bits equal to `faces::FACE_TAG` is a source face address; a cloud answers
++/// the top three bits equal to `faces::FACE_TAG` is a source face address; top bits `01`
++/// (`DISC_ID_TAG` in `scene.wgsl`) is a control dot, its index in the low 30; a cloud answers
 +/// with its point row. The tags are disjoint so one channel carries every kind.
 +#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 +pub struct Pick {

@@ -51,10 +51,10 @@ index 0000000000000000000000000000000000000000..5680f6b8b3ff7a4e72f76d908b472bea
 +}
 diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..6fd6992f3591ef3ac17ab5aadea2d49aa16a2193
+index 0000000000000000000000000000000000000000..bb8aa2eaa4787818e87b936f52a5bceaa83c4ae0
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/arena.rs
-@@ -0,0 +1,226 @@
+@@ -0,0 +1,228 @@
 +//! The mesh lane: one vertex table every mesh, BRep and sheet fill shares, and the three
 +//! index runs drawn from it - solid faces, sheet fills (depth write off, document order) and
 +//! lettering (last of all). `ArenaRows` is one upload's delta; `ArenaLane` is the GPU side.
@@ -210,7 +210,9 @@ index 0000000000000000000000000000000000000000..6fd6992f3591ef3ac17ab5aadea2d49a
 +        }
 +    }
 +
-+    /// PDF vectors need coverage, including legacy imports that mix letters with fills.
++    /// Indices in the two SHEET runs, lettering and fills together - not a number of sheets.
++    /// The MSAA policy reads it: vector lettering needs coverage samples, so any sheet index
++    /// on the GPU counts as solid geometry for the sample-count decision.
 +    pub fn sheet_count(&self) -> u32 {
 +        self.text.len().saturating_add(self.print.len())
 +    }
@@ -495,10 +497,10 @@ index 0000000000000000000000000000000000000000..a6b436e4a08402b08ce39480e9d533ba
 +}
 diff --git a/session_viewer/src/engine/gpu/frame.rs b/session_viewer/src/engine/gpu/frame.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a24b52f72ea29b7e46c7d9dddce99c074d797dcc
+index 0000000000000000000000000000000000000000..0ec57e08da0cdf080dc8c1539064e64cae888206
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/frame.rs
-@@ -0,0 +1,420 @@
+@@ -0,0 +1,425 @@
 +//! The per-frame uniforms every shader reads: the camera matrix (group 0), the line/pen block
 +//! and the cloud block (group 1), written once per frame from a `FrameInput`. The eye and the
 +//! ortho half-height are solved here ONCE and read by the point records and the inside test.
@@ -581,11 +583,16 @@ index 0000000000000000000000000000000000000000..a24b52f72ea29b7e46c7d9dddce99c07
 +    assert!(std::mem::offset_of!(LineUniform, opacity) == 72);
 +};
 +
-+/// The cloud block (group 1 of the point lane), 16 B.
++/// The cloud block (group 0 of the point lane), 48 B.
 +#[repr(C)]
 +#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 +pub struct CloudUniform {
-+    pub size: f32, // global scale on per-cloud point sizes
++    /// The global scale on per-cloud point sizes, UNREAD BY THE SHADERS: neither `splat.wgsl`
++    /// nor `splat_resolve.wgsl` touches `cloud.size`. The scale is applied on the CPU, in
++    /// `splat.rs`'s record builder (`... else { 3.0 } * cx.cloud_size`), so the sizes reach the
++    /// GPU already scaled. Dropping the word would move `origin` and `frame` off the offsets
++    /// the assertion below pins and both shaders index.
++    pub size: f32,
 +    pub vp_w: f32,
 +    pub vp_h: f32,
 +    pub edl: f32, // Eye-Dome Lighting strength; 0 = off
@@ -822,7 +829,7 @@ index 0000000000000000000000000000000000000000..a24b52f72ea29b7e46c7d9dddce99c07
 +        let line = LineUniform {
 +            thickness: cx.view.thickness_px * cx.pixel_scale,
 +            feather: cx.view.feather_px,
-+            // cot(fovy/2) times millimetres-per-metre: the camera folds that same 0.001 into
++            // cot(fovy/2) times metres-per-millimetre: the camera folds that same 0.001 into
 +            // its projection, so a world-mm radius must carry it too before being divided by
 +            // the metres in clip.w. `ortho_h` below comes off the view-projection already scaled.
 +            proj_y: 1.0 / (FOVY_DEG as f32 * 0.5).to_radians().tan() * 0.001,

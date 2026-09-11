@@ -24,7 +24,7 @@ index ab40895e0d379a865fd2c4fc6005209ff0da1bb2..d4fae1cf80dcea5f994eb7c3acc444f9
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index c5bab475e0f312bf2402451bdd90ab437af36f55..c960cec6e7f3a3c80fbf3153ce1c9a5b58e0825d 100644
+index 928dd65c2bc2e48cb0407a7957d333814c4fd47c..cbe88261047e936c2303fcd038f4b473767194ea 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
 @@ -16,7 +16,7 @@ use crate::engine::gpu::Instance;
@@ -36,7 +36,7 @@ index c5bab475e0f312bf2402451bdd90ab437af36f55..c960cec6e7f3a3c80fbf3153ce1c9a5b
  
  /// How finely the VIEWER wants a surface tessellated: the normal may turn 5 degrees between
  /// samples and a chord may sag a thousandth of the object. The kernel's own default is 20
-@@ -157,21 +157,224 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut Aabb))
+@@ -158,21 +158,227 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut Aabb))
      push_polyline(ink.seg, &points, out.0, out.1);
  }
  
@@ -81,9 +81,12 @@ index c5bab475e0f312bf2402451bdd90ab437af36f55..c960cec6e7f3a3c80fbf3153ce1c9a5b
 +    row
 +}
 +
-+/// Name natural domain edges from the mesher's UV records: u-min, u-max, v-min, v-max.
-+/// Closed directions have no physical domain edge. Creases without source topology stay
-+/// unavailable for CAD edge picking; no triangulation index becomes a source edge ID.
++/// Name natural domain edges from the mesher's UV records: u-min, u-max, v-min, v-max. Those
++/// four are bits 0-3 of a per-position mask, and a pipe whose two ends share EXACTLY one bit
++/// takes that bit's index as its source edge id - so a surface's edge ids are 0, 1, 2, 3 and
++/// nothing else. Closed directions have no physical domain edge. Creases without source
++/// topology stay unavailable for CAD edge picking; no triangulation index becomes a source
++/// edge ID.
 +fn map_surface_boundaries(ink: &mut Ink, s: &NurbsSurface, mesh: &Mesh, first_pipe: usize) {
 +    let mut masks = std::collections::HashMap::<[u32; 3], u8>::new();
 +    for vertex in mesh.vertex.values() {

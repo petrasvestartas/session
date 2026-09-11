@@ -131,11 +131,11 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
-<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=1-60 -->
+<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=1-67 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
-<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=61-127 -->
+<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=68-138 -->
 
 - The projection itself, used by the one compute pass that fills the record buffer.
 - The binning passes and the ink query share the smaller `projected_triangle.wgsl`, appended to both.
@@ -198,62 +198,62 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=80-179 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=80-182 -->
 
 - `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=180-212 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=183-215 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=213-245 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=216-248 -->
 
 - `prepare` resizes storage for the triangle count, the framebuffer and the last report.
 - Beyond the device's storage binding limit it releases the tables and reports, so the ink shader keeps the plane rule.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=246-323 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=249-326 -->
 
 - `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=324-394 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=327-397 -->
 
 - Counting first removes the per-tile cap.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=395-430 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=398-433 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=431-462 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=434-465 -->
 
 - Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=463-488 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=466-491 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=489-596 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=492-599 -->
 
 - Every preparation shader compiles the same projected-record and tile-grid arithmetic the ink shader uses, so the CPU, the raster passes and the ink query cannot disagree about which tile a pixel is in.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=597-604 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=600-607 -->
 
 Copy the rest of the file:
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=605-786 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=608-796 -->
 
 <!-- check: 18 -->
 

@@ -887,10 +887,10 @@ index 736418dd99b9221fbf48dc3f2816dbf0d1366d46..fa764d67ce3f13229e43eec36526aecb
 +pub mod walk;
 diff --git a/session_viewer/src/app/walk/bounds.rs b/session_viewer/src/app/walk/bounds.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..7926bee56ca4155bc578f7bff2e7086db4866f41
+index 0000000000000000000000000000000000000000..69f07958f251595b0ac289aee9927f7421cbe24d
 --- /dev/null
 +++ b/session_viewer/src/app/walk/bounds.rs
-@@ -0,0 +1,69 @@
+@@ -0,0 +1,70 @@
 +//! The per-file sweeps after a walk, all over the object rows (every producer reports its
 +//! local box): the file's world extent, the planar test, and the sheet marking.
 +
@@ -943,7 +943,8 @@ index 0000000000000000000000000000000000000000..7926bee56ca4155bc578f7bff2e7086d
 +}
 +
 +/// Every row of a planar file is page content: `FLAG_SHEET` on its objects (the ink lanes
-+/// drop their lift) and every unset pen becomes a 0.5 mm world hairline, like a plotter pen.
++/// drop their lift) and every unset pen becomes a 1 mm wide world stroke, like a plotter pen -
++/// `radius` is a HALF width, so the 0.5 below is half of that millimetre.
 +pub fn mark_sheet(t: &mut Upload, from: &Baselines) {
 +    for o in t.obj.rows.iter_mut().skip(from.obj) {
 +        o.flags |= Instance::FLAG_SHEET;
@@ -1083,10 +1084,10 @@ index 0000000000000000000000000000000000000000..570ddf1bee56bcedaa45044e39c89bf1
 +}
 diff --git a/session_viewer/src/app/walk/curves.rs b/session_viewer/src/app/walk/curves.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a195218b29f9878d36673f5806e175b6f62226ef
+index 0000000000000000000000000000000000000000..2974cf34f80368916772df5ced6b9a8e4353aeb5
 --- /dev/null
 +++ b/session_viewer/src/app/walk/curves.rs
-@@ -0,0 +1,147 @@
+@@ -0,0 +1,145 @@
 +//! Lines, polylines and NURBS curves into the FLAT ribbon lane: one segment per span,
 +//! `FACING_UNKNOWN` because free linework has no topological facing cull.
 +
@@ -1147,9 +1148,7 @@ index 0000000000000000000000000000000000000000..a195218b29f9878d36673f5806e175b6
 +    };
 +    let mut bounds = Aabb::empty();
 +    push_polyline(seg, &pts, &pen, &mut bounds);
-+    Row {
-+        ..Row::thin(bounds)
-+    }
++    Row::thin(bounds)
 +}
 +
 +/// Degrees of turning one chord may hide. A chord across `a` degrees of arc sags by

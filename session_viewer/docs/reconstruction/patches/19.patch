@@ -389,7 +389,7 @@ index 7b2d9fce0e96b545651baa408d609c0b31554823..d59a2a4baca686a586f6913b0ce38560
  #[cfg(target_arch = "wasm32")]
  fn text_labels(state: &State) -> Vec<serde_json::Value> {
 diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
-index 3c63ac1346beec79b3db65467562bdaa267bfca4..41c249508ad36a8675109c0914540f86070a6c2a 100644
+index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146ba8323cfd 100644
 --- a/session_viewer/src/app/loader.rs
 +++ b/session_viewer/src/app/loader.rs
 @@ -1,6 +1,7 @@
@@ -475,7 +475,7 @@ index 3c63ac1346beec79b3db65467562bdaa267bfca4..41c249508ad36a8675109c0914540f86
  /// Start-up: the live source when the page has one, else the URL's route, then the empty
  /// canvas either way; then the poll loop.
  pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
-@@ -186,6 +219,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -190,6 +223,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
      let mut spent = 0u64;
      let mut skipped: Vec<String> = Vec::new();
      let mut staged_points = 0u32;
@@ -483,7 +483,7 @@ index 3c63ac1346beec79b3db65467562bdaa267bfca4..41c249508ad36a8675109c0914540f86
      let t0 = now_ms();
      let bytes = match fetch_manifest(route).await {
          Ok(b) => b,
-@@ -248,6 +282,28 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -252,6 +286,28 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                  }
                  continue;
              }
@@ -512,7 +512,7 @@ index 3c63ac1346beec79b3db65467562bdaa267bfca4..41c249508ad36a8675109c0914540f86
          }
          // A whole file is decoded into the wasm heap several times over; past the device's
          // budget the page would die without a word, so the file is skipped with one instead.
-@@ -322,6 +378,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -326,6 +382,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
          }
          clear_scene();
          budget_spend(staged_points);
@@ -520,7 +520,7 @@ index 3c63ac1346beec79b3db65467562bdaa267bfca4..41c249508ad36a8675109c0914540f86
          for document in pending {
              match document {
                  PendingDocument::Whole(doc) => {
-@@ -330,6 +387,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -334,6 +391,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                  PendingDocument::Streamed(stream) => {
                      post(Msg::StreamedCloud(stream));
                  }
@@ -530,7 +530,7 @@ index 3c63ac1346beec79b3db65467562bdaa267bfca4..41c249508ad36a8675109c0914540f86
              }
          }
      }
-@@ -344,10 +404,11 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -348,13 +408,15 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
      );
  }
  
@@ -542,8 +542,13 @@ index 3c63ac1346beec79b3db65467562bdaa267bfca4..41c249508ad36a8675109c0914540f86
 +    Sheet(Box<SheetInit>),
  }
  
- /// Where a streamed cloud goes: its document name, placement and point size.
-@@ -410,6 +471,102 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
+-/// Where a streamed cloud goes: its document name, placement and point size.
++/// Where a streamed document goes: its name, placement and point size. Sheets take one of
++/// these too and ignore `point_px`.
+ struct Placement {
+     name: String,
+     place: Xform,
+@@ -414,6 +476,102 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
      })
  }
  
@@ -1175,7 +1180,7 @@ index 0000000000000000000000000000000000000000..ab6a0f9e95625f17f7cecc2073a11512
 +    }
 +}
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468abceea1476 100644
+index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123bba700e08 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
 @@ -1,8 +1,9 @@
@@ -1303,7 +1308,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
  /// One cloud's LOD node table, read from the file's tail without touching a point.
  /// `first`/`count` index the cloud's rows, which are stored in octree order.
  #[derive(Clone, Default)]
-@@ -200,6 +304,21 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
+@@ -202,6 +306,21 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
      let mut at = 0usize;
      let objects_end = descend_message(head, &mut at, None, 3)?;
      let end = descend_message(head, &mut at, Some(objects_end), 8)?;
@@ -1325,7 +1330,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
      while (at as u64) < end {
          let (tag, used) = varint(head, at)?;
          at = at.checked_add(used)?;
-@@ -223,7 +342,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
+@@ -225,7 +344,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
          if field == 3 {
              return Some((at as u64, length, end));
          }
@@ -1334,7 +1339,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
              return None;
          }
          at = usize::try_from(next).ok()?;
-@@ -232,6 +351,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
+@@ -234,6 +353,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
  }
  
  /// Descend one length-delimited envelope, skipping only small names before its target field.
@@ -1342,7 +1347,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
  fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u32) -> Option<u64> {
      loop {
          let (tag, used) = varint(head, *at)?;
-@@ -249,7 +369,9 @@ fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u
+@@ -251,7 +371,9 @@ fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u
              return None;
          }
          if field == want {
@@ -1353,7 +1358,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
                  return None;
              }
              return Some(next);
-@@ -269,7 +391,13 @@ fn finite_float(value: f64) -> bool {
+@@ -271,7 +393,13 @@ fn finite_float(value: f64) -> bool {
  /// Exact packed triples only; truncated reads and nonrepresentable coordinates never upload.
  #[cfg(any(target_arch = "wasm32", test))]
  fn checked_positions(raw: &[u8], count: u32) -> Option<Vec<f32>> {
@@ -1368,7 +1373,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
          return None;
      }
      let mut out = Vec::with_capacity(raw.len() / 8);
-@@ -290,7 +418,6 @@ fn bounded_range(at: u64, length: u64) -> bool {
+@@ -292,7 +420,6 @@ fn bounded_range(at: u64, length: u64) -> bool {
  }
  
  /// Checked body bounds, shared by metadata, position and color ranges.
@@ -1376,7 +1381,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
  fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
      let next = at.checked_add(length)?;
      if next <= end { Some(next) } else { None }
-@@ -313,7 +440,7 @@ impl MetadataWindow {
+@@ -315,7 +442,7 @@ impl MetadataWindow {
          self.bytes.get(start..start.checked_add(length)?)
      }
  
@@ -1385,7 +1390,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
      fn read_length(at: u64, length: u64, end: u64) -> Option<u64> {
          if !bounded_range(at, length) {
              return None;
-@@ -344,6 +471,25 @@ pub fn packed_f64(raw: &[u8]) -> Vec<f64> {
+@@ -346,6 +473,25 @@ pub fn packed_f64(raw: &[u8]) -> Vec<f64> {
      out
  }
  
@@ -1411,7 +1416,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
  /// An already-fetched coords slice as f32 triples.
  pub fn positions_from(raw: &[u8]) -> Vec<f32> {
      let mut out = Vec::with_capacity(raw.len() / 8);
-@@ -378,6 +524,7 @@ pub use web::*;
+@@ -380,6 +526,7 @@ pub use web::*;
  mod web {
      use super::*;
      use crate::app::fetch::{GetOpts, fetch_range, get};
@@ -1419,7 +1424,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
  
      const POINT_BYTES: u64 = 24;
      const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
-@@ -389,12 +536,13 @@ mod web {
+@@ -391,12 +538,13 @@ mod web {
              url: &str,
              at: u64,
              length: u64,
@@ -1437,7 +1442,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
                  self.at = at;
              }
              self.slice(at, length)
-@@ -471,7 +619,13 @@ mod web {
+@@ -473,7 +621,13 @@ mod web {
          let mut window = MetadataWindow::default();
          while at < fields.end {
              let header = window
@@ -1452,7 +1457,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
                  .await?;
              let (tag, used) = varint(header, 0)?;
              let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
-@@ -497,7 +651,9 @@ mod web {
+@@ -499,7 +653,9 @@ mod web {
                  if table_bytes > MAX_TABLE_BYTES {
                      return None;
                  }
@@ -1463,7 +1468,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
                  if !lod.set_field(field, raw) {
                      return None;
                  }
-@@ -560,6 +716,105 @@ mod web {
+@@ -565,6 +721,107 @@ mod web {
          let (colors, used) = colors_from(&raw, count)?;
          Some((colors, body_end(at, used as u64, end)?))
      }
@@ -1553,6 +1558,8 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
 +        let coords = (fields.coords_at, fields.coords_len);
 +        let raw = sheet_array(url, fields, coords, from, to, SheetFields::SEGMENT_BYTES).await?;
 +        let positions = checked_doubles(&raw, u64::from(to - from) * 6)?;
++        // Every column after `coords` is one 4 B cell a segment: a fixed32 colour, a float
++        // width, a fixed32 entity id. Only `coords` is wider, at six doubles.
 +        let colors = (fields.colors_at, fields.colors_len);
 +        let colors = packed_u32(&sheet_array(url, fields, colors, from, to, 4).await?);
 +        let widths = (fields.widths_at, fields.widths_len);
@@ -1569,7 +1576,7 @@ index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468ab
  }
  
  #[cfg(test)]
-@@ -698,6 +953,116 @@ mod tests {
+@@ -703,6 +960,116 @@ mod tests {
          );
      }
  
@@ -1814,7 +1821,7 @@ index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc3142
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
-index 1d714cbc4f904710d7dc7fcbc95829c6d0096101..73ca5b92f05875aadb3f490fcc5769b323bea9cd 100644
+index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a626701c69a9b 100644
 --- a/session_viewer/src/engine/gpu/segments.rs
 +++ b/session_viewer/src/engine/gpu/segments.rs
 @@ -1,6 +1,8 @@
@@ -1996,7 +2003,7 @@ index 1d714cbc4f904710d7dc7fcbc95829c6d0096101..73ca5b92f05875aadb3f490fcc5769b3
      }
  
      /// Highlight one source edge without reuploading its tessellation or the parent geometry.
-@@ -362,6 +465,7 @@ impl SegmentLane {
+@@ -363,6 +466,7 @@ impl SegmentLane {
      pub fn reset(&mut self) {
          self.selected_rows.clear();
          self.selected_edge = false;
@@ -2004,7 +2011,7 @@ index 1d714cbc4f904710d7dc7fcbc95829c6d0096101..73ca5b92f05875aadb3f490fcc5769b3
          self.pipes.buf.reset();
          self.pipes.ids.reset();
          self.ribbons.buf.reset();
-@@ -372,6 +476,7 @@ impl SegmentLane {
+@@ -373,6 +477,7 @@ impl SegmentLane {
      pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
          self.selected_rows.clear();
          self.selected_edge = false;
@@ -2012,7 +2019,7 @@ index 1d714cbc4f904710d7dc7fcbc95829c6d0096101..73ca5b92f05875aadb3f490fcc5769b3
          self.pipes.buf.release(ctx);
          self.pipes.ids.release(ctx);
          self.ribbons.buf.release(ctx);
-@@ -508,4 +613,27 @@ mod tests {
+@@ -509,4 +614,27 @@ mod tests {
          assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
          assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
      }

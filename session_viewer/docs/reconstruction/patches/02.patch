@@ -25,10 +25,10 @@ index 545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca..276a260697ca16ec09a202c1a0688d02
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/camera.rs b/session_viewer/src/camera.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..91cccc706e5715347bd707c36057e668de4d04df
+index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f4111af5c39b
 --- /dev/null
 +++ b/session_viewer/src/camera.rs
-@@ -0,0 +1,515 @@
+@@ -0,0 +1,514 @@
 +//! Source-precision orbit camera, framed projection and a rebased reversed-depth view transform.
 +use crate::math::{Aabb, FOVY_DEG};
 +use session_rust::{Point, Quaternion, Vector, Xform};
@@ -383,7 +383,6 @@ index 0000000000000000000000000000000000000000..91cccc706e5715347bd707c36057e668
 +    }
 +
 +    /// The box's eight corners in metres, relative to the current target.
-+    /// The box's corners in metres, relative to the current target.
 +    fn offsets(&self, bounds: &Aabb) -> [[f64; 3]; 8] {
 +        let s = self.unit.to_meters();
 +        bounds.corners().map(|c| {
@@ -644,10 +643,10 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
  /// Keep initialization/render errors visible at the browser boundary.
 diff --git a/session_viewer/src/math.rs b/session_viewer/src/math.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..ade950abdfd451060b8c5d58db4741b1168ca0f9
+index 0000000000000000000000000000000000000000..4a9bcc3c75e765b10c4a3a2372a5eedd9892eb29
 --- /dev/null
 +++ b/session_viewer/src/math.rs
-@@ -0,0 +1,222 @@
+@@ -0,0 +1,223 @@
 +//! Small f64/f32 math shared by the app and the engine: the column-major `Mat4`, point
 +//! transforms, the f32 `Aabb` with empty semantics, and the two camera facts recovered from
 +//! a view-projection. Nothing here touches wgpu; the only kernel type named is `Xform`.
@@ -738,8 +737,9 @@ index 0000000000000000000000000000000000000000..ade950abdfd451060b8c5d58db4741b1
 +    }
 +
 +    /// True once at least one point went in: every bound finite AND min <= max. The name is
-+    /// only the first half; the `min <= max` test is what rejects `Aabb::empty()`, whose bounds
-+    /// are the two infinities. Read it as "has a box".
++    /// only the first half. `Aabb::empty()` is rejected by the finite test itself - its bounds
++    /// are the two infinities - and `min <= max` catches a box that was built wrong from
++    /// finite numbers. Read it as "has a box".
 +    pub fn is_finite(&self) -> bool {
 +        for value in self.min.iter().chain(self.max.iter()) {
 +            if !value.is_finite() {

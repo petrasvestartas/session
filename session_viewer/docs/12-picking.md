@@ -133,30 +133,30 @@ Every handler returns whether a redraw is needed; a click returns `false` — no
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=1-48 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=1-49 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=49-82 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=50-83 -->
 
 - `D` flips the headlight (`view.lit`), off by default: a face shows its flat row colour until you ask for shading.
 - `P` flips x-ray; from lesson 18 on, zero opacity turns every multi-face solid into edges and vertices.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=83-169 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=84-170 -->
 
 - A press that moved more than `CLICK_SLOP` before release is a drag: a camera gesture never selects on release.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=170-197 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=171-198 -->
 
 - The owned `pointercancel` listener detaches on drop; a forgotten closure would outlive the canvas.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs copy lines=198-257 -->
+<!-- file: 12 session_viewer/src/app/input.rs copy lines=199-258 -->
 
 ### Step 5 · Touch
 
@@ -280,14 +280,14 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=129-183 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=129-186 -->
 
 - A streamed cloud is only partly present: spacing is measured over the nodes complete within the points received.
 - Discs sized from a node still arriving would flicker as it fills.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=184-221 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=187-224 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -360,68 +360,68 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-62 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-63 -->
 
 - The tolerance is a circle in framebuffer pixels, at least one pixel wide: a click is a point, the intent a neighbourhood — the same physical size on every display.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=63-85 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=64-86 -->
 
 - `generation` counts requests; `submitted` records which generation the in-flight copy belongs to. A camera move bumps `generation`, so the answer is discarded when it lands.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=86-147 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=87-148 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=148-206 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=149-207 -->
 
 - One function computes the window's bounds, used by both the scissor and the copy: two computations that must agree are one computation used twice.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=207-225 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=208-226 -->
 
 - The ID targets are made on the first pick and kept until the canvas resizes.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=226-312 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=227-313 -->
 
 - The ID pass gets its own gradient attachment, cleared beside the ID and depth targets on every pick, so ink decides its own visibility from it.
 - Without it, a stroke would be pickable exactly where it is invisible.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=313-353 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=314-354 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=354-398 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=355-399 -->
 
 - The native census captures the unchanged ID pass: the hidden-line tests judge visibility against exact object numbers, not pixels.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=399-442 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=400-443 -->
 
 - `map` must run after the submit and only once per copy; `poll` reads the mapped bytes on a later frame.
 - Ink beats a face anywhere in the window; among equals the nearest to the cursor wins, so a curve across a face stays selectable.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=443-491 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=444-492 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=492-555 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=493-556 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs copy lines=556-635 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs copy lines=557-636 -->
 
 ### Step 11 · The ID pass in the frame list
 

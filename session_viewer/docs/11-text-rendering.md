@@ -182,13 +182,13 @@ A native GPU check for the plane path ends the file.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=62-119 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=62-121 -->
 
 - Replacement is all-or-nothing: an invalid submission leaves the previous document standing, so a bad label cannot empty the screen.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=120-142 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=122-144 -->
 
 ## Step 8 · Prepare: place, rasterize, build both draw lists
 
@@ -201,11 +201,11 @@ A native GPU check for the plane path ends the file.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=143-216 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=145-218 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=217-271 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=219-273 -->
 
 - Glyphon needs a callback mapping each shaped run to its label's clip depth: the atlas knows glyphs, not scenes, so depth comes from this side.
 
@@ -219,7 +219,7 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=272-338 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=274-340 -->
 
 ## Step 10 · CSS to physical, once
 
@@ -235,29 +235,29 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=339-372 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=341-374 -->
 
 - Only the anchor is projected: following a world point needs one clip position, then screen-space layout.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=373-429 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=375-431 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=430-496 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=432-498 -->
 
 - Glyphon owns its own shaders; the lane only hands it a depth state.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=497-546 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=499-548 -->
 
 Native checks for scale, depth, nameplates and cache eviction live in the same file.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs copy lines=547-947 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs copy lines=549-949 -->
 
 <!-- check: 11 -->
 

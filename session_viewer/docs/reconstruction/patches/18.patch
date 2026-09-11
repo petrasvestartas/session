@@ -98,7 +98,7 @@ index 0000000000000000000000000000000000000000..a5b4931c448dc4d21cb02dfac6ba0804
 +    Ok(())
 +}
 diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
-index 349f2efa7ce428f03ed63270ef4239d0bd0250ab..01e3203d9494422e7c5f73a6b5dce72a8d11289e 100644
+index d424903c4ff91b30abdeeafcad4bf7d52fd6d786..adbdf6dbd4e0ee5e32fba4876e88cfe8540e6f5f 100644
 --- a/session_viewer/src/engine/gpu/arena.rs
 +++ b/session_viewer/src/engine/gpu/arena.rs
 @@ -50,14 +50,14 @@ impl ArenaRows {
@@ -200,7 +200,7 @@ index 349f2efa7ce428f03ed63270ef4239d0bd0250ab..01e3203d9494422e7c5f73a6b5dce72a
      /// The id pass for the lettering, after the ink as in the colour pass.
      pub fn draw_text_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
          self.outline_text
-@@ -212,6 +241,7 @@ impl ArenaLane {
+@@ -214,6 +243,7 @@ impl ArenaLane {
  
      /// Forget every row; capacity stays.
      pub fn reset(&mut self, ctx: &GpuCtx) {
@@ -208,7 +208,7 @@ index 349f2efa7ce428f03ed63270ef4239d0bd0250ab..01e3203d9494422e7c5f73a6b5dce72a
          self.source_faces.reset(ctx);
          self.verts.reset();
          self.vids.reset();
-@@ -222,6 +252,7 @@ impl ArenaLane {
+@@ -224,6 +254,7 @@ impl ArenaLane {
  
      /// Hand every buffer back: five one-row tables again.
      pub fn release(&mut self, ctx: &GpuCtx) {
@@ -216,7 +216,7 @@ index 349f2efa7ce428f03ed63270ef4239d0bd0250ab..01e3203d9494422e7c5f73a6b5dce72a
          self.source_faces.release(ctx);
          self.verts.release(ctx);
          self.vids.release(ctx);
-@@ -254,12 +285,6 @@ fn build_pipelines(
+@@ -256,12 +287,6 @@ fn build_pipelines(
      let dev = &ctx.device;
  
      ArenaPipelines {
@@ -229,7 +229,7 @@ index 349f2efa7ce428f03ed63270ef4239d0bd0250ab..01e3203d9494422e7c5f73a6b5dce72a
          solid_mask: build(
              dev,
              Target {
-@@ -280,5 +305,16 @@ fn build_pipelines(
+@@ -282,5 +307,16 @@ fn build_pipelines(
                  .with("triangle.selection_mask", "fs_selection_mask")
                  .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual),
          ),
@@ -476,7 +476,7 @@ index 15a2414574069a3f6b807a5145af078c76083eb7..a39a74ff699f35cf8ccdeae4a3b120cc
                          vec![
                              offset_of!(GlyphPoint, center),
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index 6cd07bb546ec3b32103b07d15e0050f7423bafef..9e277a49e9c9b39df74efc833c84a63b6d924574 100644
+index 6cd07bb546ec3b32103b07d15e0050f7423bafef..a70daa1a6840537d54c89fc3536c52d924ba392f 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
 @@ -23,6 +23,7 @@ pub mod surface_outline;
@@ -496,12 +496,17 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..9e277a49e9c9b39df74efc833c84a63b
      pub logical_size: [f64; 2],
      pub cloud: CloudLane,
      pub splat: Splat,
-@@ -109,11 +112,12 @@ impl Gpu {
+@@ -109,11 +112,17 @@ impl Gpu {
              + outline_buffers;
          let pixels = u64::from(self.config.width) * u64::from(self.config.height);
          let samples = u64::from(self.targets.samples);
 -        let frame_textures =
 -            pixels * if samples > 1 { samples * 12 } else { 8 } + if samples > 1 { 8 } else { 32 };
++        // 16 B a sample is the three physical attachments together: 4 for the MSAA colour, 4
++        // for depth32, 8 for the Rgba16Float gradient. At 1x there IS no MSAA colour target -
++        // the pass draws into the swapchain, which this process does not own - so a pixel
++        // costs 12. The constant that follows is the 1x1 placeholder pair `Targets::new` makes
++        // at the OTHER sample count: 4 x 12 while we are at 1x, 12 while we are at 4x.
 +        let frame_textures = pixels * if samples > 1 { samples * 16 } else { 12 }
 +            + if samples > 1 { 12 } else { 48 };
          (
@@ -511,7 +516,7 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..9e277a49e9c9b39df74efc833c84a63b
                  + splat_textures
                  + pick_textures
                  + self.text.texture_bytes()
-@@ -156,7 +160,14 @@ impl Gpu {
+@@ -156,7 +165,14 @@ impl Gpu {
          let frame = FrameUniforms::new(&ctx, &layouts, size);
          let targets = Targets::new(&ctx, size, config.format, target.samples);
          let arena = ArenaLane::new(&ctx, &layouts, target);
@@ -527,7 +532,7 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..9e277a49e9c9b39df74efc833c84a63b
          let backdrop = BackdropLane::new(&ctx, &layouts, target);
          let segments = SegmentLane::new(&ctx, &layouts, target);
          let glyphs = GlyphLane::new(&ctx, &layouts, target);
-@@ -200,6 +211,7 @@ impl Gpu {
+@@ -200,6 +216,7 @@ impl Gpu {
              text,
              selection_outline,
              solid_outline,
@@ -535,7 +540,7 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..9e277a49e9c9b39df74efc833c84a63b
              logical_size: [size.0 as f64, size.1 as f64],
              cloud,
              splat,
-@@ -236,11 +248,17 @@ impl Gpu {
+@@ -236,11 +253,17 @@ impl Gpu {
              self.cloud.point_count
          );
          self.retarget(false);
@@ -553,7 +558,7 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..9e277a49e9c9b39df74efc833c84a63b
              },
          );
      }
-@@ -265,13 +283,7 @@ impl Gpu {
+@@ -265,13 +288,7 @@ impl Gpu {
                  self.config.format,
                  samples,
              );
@@ -568,7 +573,7 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..9e277a49e9c9b39df74efc833c84a63b
          }
          if flip {
              let target = self.target();
-@@ -375,17 +387,12 @@ impl Gpu {
+@@ -375,17 +392,12 @@ impl Gpu {
              .rebind(&self.ctx, &self.layouts, self.cloud.buffers());
          self.bounds = Aabb::empty();
          self.retarget(false);
@@ -895,10 +900,10 @@ index eb5f217fbd86b948e1b893422e43efa0f6e7846f..12cacbb2f62e98b5fc7e254fc79a2784
 +    }
  }
 diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
-index 56b751486ce8f3da26bbc66a861dd2a3e797b6bf..562d360ac01b9404ae024c1d56a30bd45ef19469 100644
+index efa696eba281adcf49ecd574c1efdfc868551850..0cbe40826712d15ca4e491f49c0b4945db8aafe6 100644
 --- a/session_viewer/src/engine/gpu/pick.rs
 +++ b/session_viewer/src/engine/gpu/pick.rs
-@@ -194,7 +194,7 @@ impl Picker {
+@@ -195,7 +195,7 @@ impl Picker {
              Some(target) => u64::from(target.size.0) * u64::from(target.size.1),
              None => 0,
          };
@@ -907,7 +912,7 @@ index 56b751486ce8f3da26bbc66a861dd2a3e797b6bf..562d360ac01b9404ae024c1d56a30bd4
      }
  
      /// Nothing requested, nothing allocated.
-@@ -366,7 +366,7 @@ impl Picker {
+@@ -367,7 +367,7 @@ impl Picker {
                  "pick.gradient",
                  &TextureSpec {
                      size,
@@ -1122,7 +1127,7 @@ index 604cd5054dc94c051d828b92dff0bce8eefe25d5..7261e761932da13f9a15289d9980fea1
              let mut pass = self.pick.begin_ink(encoder);
              if let Some((x, y, w, h)) = inner {
 diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
-index dcf9ee00fbb97f4c57ca056f56ca0107c923a689..1d714cbc4f904710d7dc7fcbc95829c6d0096101 100644
+index d60d01a1b0d3459e7d2cbd2946bee003fddb8cee..d27ed22d7542597d6005588f70fb90114cc7dfb6 100644
 --- a/session_viewer/src/engine/gpu/segments.rs
 +++ b/session_viewer/src/engine/gpu/segments.rs
 @@ -159,6 +159,12 @@ struct SegPipelines {
@@ -1138,7 +1143,7 @@ index dcf9ee00fbb97f4c57ca056f56ca0107c923a689..1d714cbc4f904710d7dc7fcbc95829c6
  }
  
  /// The segment lane on the GPU: two tables, the shader, the pipelines.
-@@ -289,6 +295,26 @@ impl SegmentLane {
+@@ -290,6 +296,26 @@ impl SegmentLane {
          draws
      }
  
@@ -1165,7 +1170,7 @@ index dcf9ee00fbb97f4c57ca056f56ca0107c923a689..1d714cbc4f904710d7dc7fcbc95829c6
      /// Mesh/BRep edges: camera-facing quads against physical depth.
      pub fn draw_pipes(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
          self.draw_table(pass, b, &self.gpu.ribbon, &self.pipes)
-@@ -376,6 +402,10 @@ fn build_pipelines(
+@@ -377,6 +403,10 @@ fn build_pipelines(
      let quad = PipelineDesc::new(shader, &groups, &[], TriangleList)
          .scene_samples(target.samples)
          .depth(DepthMode::Always);
@@ -1176,7 +1181,7 @@ index dcf9ee00fbb97f4c57ca056f56ca0107c923a689..1d714cbc4f904710d7dc7fcbc95829c6
      let dev = &ctx.device;
  
      SegPipelines {
-@@ -410,6 +440,38 @@ fn build_pipelines(
+@@ -411,6 +441,38 @@ fn build_pipelines(
              Target::ID,
              &quad.with("edge.id", "fs_edge_id").scene_samples(1),
          ),
@@ -1216,7 +1221,7 @@ index dcf9ee00fbb97f4c57ca056f56ca0107c923a689..1d714cbc4f904710d7dc7fcbc95829c6
  }
  
 diff --git a/session_viewer/src/engine/gpu/surface_outline.rs b/session_viewer/src/engine/gpu/surface_outline.rs
-index 80fb39e85090909fcf5748846fd192c2682a0efa..fd7012a871035c39e4210039ad6e662b5050d785 100644
+index 80fb39e85090909fcf5748846fd192c2682a0efa..e0a3b60e8c58554a04a528ff7d97a3cf103f2492 100644
 --- a/session_viewer/src/engine/gpu/surface_outline.rs
 +++ b/session_viewer/src/engine/gpu/surface_outline.rs
 @@ -24,6 +24,21 @@ struct Mask {
@@ -1320,7 +1325,7 @@ index 80fb39e85090909fcf5748846fd192c2682a0efa..fd7012a871035c39e4210039ad6e662b
              return false;
          }
          let changed = match &self.mask {
-@@ -223,12 +293,11 @@ impl SurfaceOutline {
+@@ -223,12 +293,15 @@ impl SurfaceOutline {
                  size,
                  samples,
              });
@@ -1334,10 +1339,14 @@ index 80fb39e85090909fcf5748846fd192c2682a0efa..fd7012a871035c39e4210039ad6e662b
 +        // One radius for every silhouette: an ordinary solid's outline is as heavy as a
 +        // selected one's, the selection differing by its yellow fill, not its border.
 +        let css_radius = 1.6875;
++        // The 12 px ceiling is bound to `POOL` above and may not be raised alone: the shader
++        // skips every pixel whose 3x3 block neighbourhood is empty, which is sound only while
++        // the kernel's reach, `ceil(radius + 0.5)`, fits inside one POOL-square block. At 12
++        // that is 13 of 16. Past POOL the dilation silently loses coverage at a silhouette.
          let radius = (css_radius * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 12.0) as f32;
          ctx.queue.write_buffer(
              &self.uniform,
-@@ -389,6 +458,7 @@ mod tests {
+@@ -389,6 +462,7 @@ mod tests {
          use std::rc::Rc;
  
          let mut gpu = pollster::block_on(Gpu::new_headless(480, 480)).unwrap();
@@ -1345,7 +1354,7 @@ index 80fb39e85090909fcf5748846fd192c2682a0efa..fd7012a871035c39e4210039ad6e662b
          gpu.view.show_grid = false;
          gpu.view.markers = false;
          for shape in [
-@@ -453,6 +523,7 @@ mod tests {
+@@ -453,6 +527,7 @@ mod tests {
      #[ignore = "requires a native GPU adapter"]
      fn touching_and_overlapping_solids_have_one_continuous_outline() {
          let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
@@ -1353,7 +1362,7 @@ index 80fb39e85090909fcf5748846fd192c2682a0efa..fd7012a871035c39e4210039ad6e662b
          gpu.view.show_grid = false;
          gpu.view.lit = false;
          let input = FrameInput {
-@@ -529,6 +600,7 @@ mod tests {
+@@ -529,6 +604,7 @@ mod tests {
      #[ignore = "requires a native GPU adapter"]
      fn selected_silhouette_is_black_visible_only_and_releases_coverage() {
          let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
@@ -1454,10 +1463,10 @@ index 661374764fa610f2bf183e436c680e9c5b312291..ec09ae12e0f442934794c23e330d6a70
              (gradient.clone(), empty_gradient)
 diff --git a/session_viewer/src/engine/gpu/triangle_tiles.rs b/session_viewer/src/engine/gpu/triangle_tiles.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..be4f689f36048bce3928cd82c882efc25aae2501
+index 0000000000000000000000000000000000000000..11f1aa8617ce3d0f98eb962f309c5126219d4d2d
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/triangle_tiles.rs
-@@ -0,0 +1,786 @@
+@@ -0,0 +1,796 @@
 +//! Finite triangle visibility for ink near curved surfaces and touching solids.
 +//!
 +//! A projected polygon table and conservative screen tiles include triangles that win no
@@ -1607,16 +1616,19 @@ index 0000000000000000000000000000000000000000..be4f689f36048bce3928cd82c882efc2
 +
 +/// The pool to ask for next, from the last report.
 +///
-+/// The scan's prefix sums saturate at the capacity of the buffer they were given, so that an
-+/// overflowing sum can never wrap into a plausible offset. That makes a report which REACHES
-+/// capacity a floor rather than a measurement: the lists needed at least this much and possibly
-+/// far more, and the true figure was never computed. There is nothing to size against, so the
-+/// pool doubles and the next report says whether that was enough. A report below capacity is a
-+/// real measurement of lists that fitted, so it asks for nothing.
++/// The report is an ABSOLUTE word index into the buffer - the last tile's end, header words
++/// included - so it is directly comparable with `pool_capacity`. The scan's prefix sums
++/// saturate at the buffer's own length so an overflowing sum can never wrap into a plausible
++/// offset, and the header words are added on top of that ceiling: a report from lists that did
++/// not fit therefore lands at or above capacity, and one from lists that did fit lands below.
 +///
-+/// This is why the guard is `>=` and not `>`. It used to be `>`, which a saturating report can
-+/// never satisfy, and the pool never grew at all: an oversubscribed scene kept the conservative
-+/// rejection for good instead of for one frame.
++/// A saturated report is a floor, not a measurement: the lists needed at least this much and
++/// possibly far more, and the true figure was never computed. There is nothing to size against,
++/// so the pool doubles and the next report says whether that was enough. Sizing to the report
++/// itself would be sizing to a number known to be too small.
++///
++/// The guard is `>=` rather than `>` for the boundary alone: lists that exactly fill the pool
++/// have also run out of room.
 +fn next_pool_words(
 +    current: u64,
 +    floor: u64,
@@ -2076,16 +2088,23 @@ index 0000000000000000000000000000000000000000..be4f689f36048bce3928cd82c882efc2
 +mod tests {
 +    use super::*;
 +
-+    /// The regression this function exists for. The scan saturates AT capacity, so a report can
-+    /// never exceed it: a `>` guard here means the pool never grows, which is how it shipped.
++    /// The three shapes a report arrives in. Lists that overflowed report past capacity,
++    /// because the saturated prefix sum is still carrying the header words on top of it;
++    /// lists that exactly filled the pool report capacity itself, which is the boundary the
++    /// `>=` guard is for; lists that fitted report below it and ask for nothing.
 +    #[test]
 +    fn a_saturated_report_grows_the_pool() {
 +        let capacity = 1_000;
 +        let pool = 800;
 +        assert_eq!(
++            next_pool_words(pool, 0, capacity, Some(capacity + 64), u64::MAX),
++            1_600,
++            "a report past capacity doubles"
++        );
++        assert_eq!(
 +            next_pool_words(pool, 0, capacity, Some(capacity), u64::MAX),
 +            1_600,
-+            "a report at capacity doubles"
++            "a pool exactly filled has also run out"
 +        );
 +        assert_eq!(
 +            next_pool_words(pool, 0, capacity, Some(capacity - 1), u64::MAX),
@@ -2245,7 +2264,7 @@ index 0000000000000000000000000000000000000000..be4f689f36048bce3928cd82c882efc2
 +    }
 +}
 diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
-index 8cf597917a47f742b5a284f2a1c65b789c7e8e00..19e2b8d3263e13213f8e897e60573caa712a3c50 100644
+index 7c8b86525a5f0a818c8e5daeb1df549c6ca03299..81ec20f8990c8330da35bb1c7605ca24a7415b3f 100644
 --- a/session_viewer/src/engine/pipelines/layouts.rs
 +++ b/session_viewer/src/engine/pipelines/layouts.rs
 @@ -46,7 +46,18 @@ fn uniform_layout(
@@ -2268,7 +2287,7 @@ index 8cf597917a47f742b5a284f2a1c65b789c7e8e00..19e2b8d3263e13213f8e897e60573caa
      })
  }
  
-@@ -97,6 +108,16 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+@@ -101,6 +112,16 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
              scene_depth(3, true),
              scene_gradient(4, false),
              scene_gradient(5, true),
@@ -2285,7 +2304,7 @@ index 8cf597917a47f742b5a284f2a1c65b789c7e8e00..19e2b8d3263e13213f8e897e60573caa
          ],
      })
  }
-@@ -187,8 +208,16 @@ impl Layouts {
+@@ -191,8 +212,16 @@ impl Layouts {
      /// Build every layout once; they outlive any pipeline or bind group made from them.
      pub fn new(device: &wgpu::Device) -> Self {
          Self {
@@ -2438,10 +2457,10 @@ index 6fa12413e6d467c92ca1e020d8f70b69b9a6afb7..75cb8b98b37c9751640c8b1ccdccf088
 +    return PhysicalColor(vec4<f32>(1.0, 1.0, 1.0, 1.0), vec4<f32>(0.0));
  }
 diff --git a/session_viewer/src/shaders/grid.wgsl b/session_viewer/src/shaders/grid.wgsl
-index 75705095282ee7c95b3a4328edbf794e349bec7e..55b1a48f1e79551579d77b7efcb79e02dc3a3dd1 100644
+index adefe8b083303a3a66eb6e7449fbbc0516eb4ea7..75677b8a15ad3ffd4b88acd9580d0a6d0fcd2e86 100644
 --- a/session_viewer/src/shaders/grid.wgsl
 +++ b/session_viewer/src/shaders/grid.wgsl
-@@ -50,5 +50,5 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+@@ -52,5 +52,5 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
  
  @fragment
  fn fs_main(in: VsOut) -> PhysicalColor {
@@ -2449,7 +2468,7 @@ index 75705095282ee7c95b3a4328edbf794e349bec7e..55b1a48f1e79551579d77b7efcb79e02
 +    return PhysicalColor(vec4<f32>(in.color, 1.0), vec4<f32>(0.0));
  }
 diff --git a/session_viewer/src/shaders/ink_visibility.wgsl b/session_viewer/src/shaders/ink_visibility.wgsl
-index 89690d89a160b0b419726b48372d979991b4b2ca..23334a43e09b9912ec67da332af02a11d003682e 100644
+index 89690d89a160b0b419726b48372d979991b4b2ca..572d1b512cb324276eeac599a4dd658c73015c5b 100644
 --- a/session_viewer/src/shaders/ink_visibility.wgsl
 +++ b/session_viewer/src/shaders/ink_visibility.wgsl
 @@ -34,6 +34,7 @@ struct InkColor {
@@ -2550,7 +2569,7 @@ index 89690d89a160b0b419726b48372d979991b4b2ca..23334a43e09b9912ec67da332af02a11
      let z = ink_depth(pixel, sample);
      if (z == 0.0) { return true; }
      var encoded = vec2<f32>(0.0);
-@@ -234,3 +246,85 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
+@@ -234,3 +246,87 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
      let predicted = z + dot(gradient, delta);
      return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(gradient.x)+abs(gradient.y), abs(delta.x)+abs(delta.y)));
  }
@@ -2606,7 +2625,9 @@ index 89690d89a160b0b419726b48372d979991b4b2ca..23334a43e09b9912ec67da332af02a11
 +    let size = vec2<u32>(ceil(line.frame/span));
 +    let cell = vec2<u32>(at/span);
 +    let head = triangle_tiles[1u+cell.y*size.x+cell.x];
-+    // An incomplete or overflowing list cannot prove that the axis is clear.
++    // The tile's record as four words: x = triangles covering it, y = where its list starts,
++    // z = how many were actually written, w = the overflow flag. An incomplete list (z != x)
++    // or an overflowing one cannot prove that the axis is clear.
 +    if (head.w!=0u || head.z!=head.x) {
 +        return false;
 +    }
@@ -2618,7 +2639,7 @@ index 89690d89a160b0b419726b48372d979991b4b2ca..23334a43e09b9912ec67da332af02a11
 +        }
 +        let primitive = triangle_tiles[offset/4u][offset%4u];
 +        let bounds = projected[primitive-1u].bounds;
-+        if (any(at<bounds.xy-0.00390625) || any(at>bounds.zw+0.00390625)) {
++        if (any(at<bounds.xy-SLOPE_PX) || any(at>bounds.zw+SLOPE_PX)) {
 +            continue;
 +        }
 +        let hit = projected_triangle_at(projected[primitive-1u], at);
@@ -2673,10 +2694,10 @@ index dcf68beaceb47e45b155eafef2d3267c11abac96..21660e08a6c0497fdfee11910b359a15
  }
 diff --git a/session_viewer/src/shaders/project_triangles.wgsl b/session_viewer/src/shaders/project_triangles.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..72f43f18609f375eca1ce6c6b7e55200447621ff
+index 0000000000000000000000000000000000000000..84ec2721e0b5086ebe0506671222ef4cd1d7724a
 --- /dev/null
 +++ b/session_viewer/src/shaders/project_triangles.wgsl
-@@ -0,0 +1,127 @@
+@@ -0,0 +1,138 @@
 +@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 +
 +struct ProjectLine {
@@ -2684,6 +2705,13 @@ index 0000000000000000000000000000000000000000..72f43f18609f375eca1ce6c6b7e55200
 +};
 +@group(1) @binding(0) var<uniform> line: ProjectLine;
 +
++// `Instance` (engine/gpu/instance.rs) under another name: the tile passes are compiled without
++// scene.wgsl — `triangle_tiles.rs::shader` appends only projected_triangle.wgsl — so the
++// `Instance` declared there is out of reach. The rename is also why `instance.rs`'s
++// `translations_mirror` test, which walks `lane_shaders()` and forbids a lane from redeclaring
++// `Instance` or `LineUniform`, never sees this copy, `ProjectLine` above it, or `TileLine` in
++// triangle_tiles.wgsl and `ScanLine` in scan_triangle_tiles.wgsl. The field ORDER here is the
++// contract with the Rust row: a field added or moved there must be added or moved in all four.
 +struct ProjectInstance {
 +    model: mat4x4<f32>, color: vec4<f32>, flags: u32, _pad0: f32, spacing: f32
 +};
@@ -2761,6 +2789,10 @@ index 0000000000000000000000000000000000000000..72f43f18609f375eca1ce6c6b7e55200
 +    }
 +    let base = (primitive-1u)*3u;
 +    let owner = physical_objects[physical_indices[base]];
++    // 2u is `Instance::FLAG_HIDDEN` (engine/gpu/instance.rs, named `FLAG_HIDDEN` in scene.wgsl),
++    // spelled out because this module is compiled alone — `triangle_tiles.rs::shader` appends
++    // only projected_triangle.wgsl — so the FLAG_* constants are not in scope. Change the bit
++    // there and change it here: a hidden object that still projects goes on occluding ink.
 +    if ((instances[owner].flags & 2u) != 0u) {
 +        return polygon;
 +    }
@@ -2806,10 +2838,10 @@ index 0000000000000000000000000000000000000000..72f43f18609f375eca1ce6c6b7e55200
 +}
 diff --git a/session_viewer/src/shaders/projected_triangle.wgsl b/session_viewer/src/shaders/projected_triangle.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..f7059dc66315d9b15b59ff7a332fcf8b9096ae88
+index 0000000000000000000000000000000000000000..9b230adb93a15745a1148f70f794366931b1ee09
 --- /dev/null
 +++ b/session_viewer/src/shaders/projected_triangle.wgsl
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,44 @@
 +struct ProjectedTriangle {
 +    edge0: vec4<f32>, // xyz = inward unit normal + constant; w = reference x
 +    edge1: vec4<f32>, // w = reference y
@@ -2823,6 +2855,10 @@ index 0000000000000000000000000000000000000000..f7059dc66315d9b15b59ff7a332fcf8b
 +    if (triangle.edge3.w<3.0) {
 +        return vec2<f32>(0.0);
 +    }
++    // The 0.00390625 slack here and on the edge distances below is the rasterizer's 1/256 px
++    // vertex snap - the quantity ink_visibility.wgsl names SLOPE_PX, spelled out because the tile
++    // modules compile this file without it. A point the rasterizer covered must never read as
++    // outside, or the ink it should hide survives.
 +    if (any(at<triangle.bounds.xy-0.00390625) || any(at>triangle.bounds.zw+0.00390625)) {
 +        return vec2<f32>(0.0);
 +    }
@@ -2953,10 +2989,10 @@ index 0000000000000000000000000000000000000000..bd6779f059616d306ba4b0748d85ede8
 +    }
 +}
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
-index fcde227ee91c241d038f0bb7492f4f21e3a34015..8538871b9c61b206176281137de3cdc125cf75f3 100644
+index f1269ecc370f459fecdf46adc8a446e95ff075b2..786610424376b1e3d7b2e27fc9a14f037627d985 100644
 --- a/session_viewer/src/shaders/splat.wgsl
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -174,5 +174,5 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
+@@ -177,5 +177,5 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
      if (outside(in)) {
          discard;
      }
@@ -2964,7 +3000,7 @@ index fcde227ee91c241d038f0bb7492f4f21e3a34015..8538871b9c61b206176281137de3cdc1
 +    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec4<f32>(0.0));
  }
 diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
-index b0d2f4d1507d5606878e50547c96c77a6ff1e88b..8b404ad12252864068e46dc0b2ead3c4f68d0a76 100644
+index 8f2d0220ef6b014d9d49288166130fb51dd28c36..7cddc89f0c8dd8370641ecd2040cd0a663dbc1d5 100644
 --- a/session_viewer/src/shaders/splat_resolve.wgsl
 +++ b/session_viewer/src/shaders/splat_resolve.wgsl
 @@ -32,7 +32,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
@@ -2976,7 +3012,7 @@ index b0d2f4d1507d5606878e50547c96c77a6ff1e88b..8b404ad12252864068e46dc0b2ead3c4
      @builtin(frag_depth) depth: f32,
  };
  
-@@ -76,7 +76,7 @@ fn shade(in: VsOut) -> FsOut {
+@@ -75,7 +75,7 @@ fn shade(in: VsOut) -> FsOut {
  
      o.color = vec4<f32>(rgb, 1.0);
      o.depth = d;
@@ -3128,10 +3164,10 @@ index fcd454583bf129800cb834b6699ef69b93aee1e7..e04931a3b5eb3c27b9af2e80d916d96b
 +}
 diff --git a/session_viewer/src/shaders/triangle_tiles.wgsl b/session_viewer/src/shaders/triangle_tiles.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..d283a279a4fe8d8ab25d8c1c457fcaff21dfae30
+index 0000000000000000000000000000000000000000..e079fbd179dbe20ef1e330e15aa6c743ac0b2803
 --- /dev/null
 +++ b/session_viewer/src/shaders/triangle_tiles.wgsl
-@@ -0,0 +1,92 @@
+@@ -0,0 +1,96 @@
 +@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 +
 +struct TileLine {
@@ -3140,6 +3176,10 @@ index 0000000000000000000000000000000000000000..d283a279a4fe8d8ab25d8c1c457fcaff
 +@group(1) @binding(0) var<uniform> line: TileLine;
 +@group(3) @binding(0) var<storage, read> projected: array<ProjectedTriangle>;
 +
++// One tile's record: 0 = how many triangles cover the tile, counted by fs_count; 1 = where its
++// list starts, written by the scan in scan_triangle_tiles.wgsl; 2 = the write cursor fs_fill
++// advances; 3 = the overflow flag. The same buffer is the pool past the last record, where a
++// list is (primitive, nearest depth bound) pairs.
 +struct TileRecord {
 +    values: array<atomic<u32>, 4>
 +};

@@ -335,10 +335,10 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
          output.present();
 diff --git a/session_viewer/src/engine/gpu/text.rs b/session_viewer/src/engine/gpu/text.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..dd18218a8296e79873f40b387f2c027cfc806503
+index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bcc2bf43fa
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/text.rs
-@@ -0,0 +1,947 @@
+@@ -0,0 +1,949 @@
 +//! Dedicated coverage-text lane, pinned to Glyphon 0.11 (wgpu 29).
 +//!
 +//! The maintained shader is `glyphon-0.11.0/src/shader.wgsl`: R8Unorm coverage,
@@ -416,6 +416,8 @@ index 0000000000000000000000000000000000000000..dd18218a8296e79873f40b387f2c027c
 +    atlas_font_revision: u64,
 +    prepared: Option<(u64, u64, TextFrame)>,
 +    raster_keys: HashSet<glyphon::CacheKey>,
++    /// 0 or 1, never a tally: whether `prepare` left this renderer anything to draw. `draw`
++    /// skips the render call when it did not.
 +    overlay_count: u32,
 +    anchored_count: u32,
 +}

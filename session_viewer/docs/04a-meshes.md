@@ -213,7 +213,7 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=45-105 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=45-110 -->
 
 - `PickView` renders a window of the canvas into an attachment its own size: a pick costs the window, not the canvas.
 - `clip_transform` maps the canvas projection onto the window's sub-frustum.
@@ -221,30 +221,30 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=106-176 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=111-181 -->
 
 - `FrameUniforms` owns the three frame blocks, the same three for the pick pass plus the bare transform, and the frame's solved camera facts: `mvp_f32`, `ortho_h`, `eye`.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=177-205 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=182-210 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-253 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=211-258 -->
 
 - Construction makes the buffers and bind groups, no camera in them yet.
 - A frame writes only into buffers already built and bound — no per-frame allocation.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=254-332 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=259-337 -->
 
 - The three blocks are written together from one solved camera, so they cannot disagree about which frame they describe.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=333-350 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=338-355 -->
 
 - `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result.
 - The pen is `thickness_px * pixel_scale`, keeping its CSS width at every device scale.
@@ -252,7 +252,7 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=351-395 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=356-400 -->
 
 - `write_pick` runs after `write`, deriving the pick blocks from the frame's own solved values.
 - The camera is premultiplied by the window's clip transform; `origin` becomes the window's top-left.
@@ -260,11 +260,11 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=396-413 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=401-418 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=414-420 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=419-425 -->
 
 ## Step 6 · Runtime knobs and the query string
 
@@ -396,11 +396,11 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=115-160 -->
+<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=115-162 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=161-226 -->
+<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=163-228 -->
 
 - The outline lane borrows the arena's buffers and draws imported PDF lettering unlit; the arena's print and text runs call it.
 

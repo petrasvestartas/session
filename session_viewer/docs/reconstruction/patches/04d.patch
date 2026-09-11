@@ -1281,10 +1281,10 @@ index 3b8ae641cd8f1948d586195561be4a903d3a7fbf..27c1006dcc6b33ffe54e9b36aecae135
  /// Read a monotonic frame time from the browser when available.
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..6caa7da25703fe5c067378925fd4144420bd52be
+index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce13c9efe98
 --- /dev/null
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -0,0 +1,172 @@
+@@ -0,0 +1,175 @@
 +// The point lane: one pixel-aligned quad per point, pulled by vertex index, into the lane's
 +// own 1x depth + colour targets. Group 0 = the cloud uniform, group 1 = records + tables.
 +
@@ -1392,6 +1392,9 @@ index 0000000000000000000000000000000000000000..6caa7da25703fe5c067378925fd41444
 +        let lambert = 0.25 + 0.75 * abs(dot(nw, light));
 +        rgba = vec4<f32>(rgba.rgb * lambert, rgba.a);
 +    }
++    // Word 38 is the object's flag word - bit 0 is FLAG_SELECTED, spelled out because this lane
++    // compiles without scene.wgsl - and word 39 is the highlighted point's row + 1. Either one
++    // paints the yellow the other lanes take from SELECT_COLOR.
 +    if ((table[base + 38u] & 1u) != 0u || table[base + 39u] == i + 1u) { rgba = vec4<f32>(1.0, 1.0, 0.0, 1.0); }
 +    s.color = pack4x8unorm(rgba);
 +    s.ok = true;
@@ -1459,10 +1462,10 @@ index 0000000000000000000000000000000000000000..6caa7da25703fe5c067378925fd41444
 +}
 diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..ad85aa08ccd23f6b05ed6046e9bd39cd8d278201
+index 0000000000000000000000000000000000000000..0b89a50c4448e87c927b748771206e52c9e9a431
 --- /dev/null
 +++ b/session_viewer/src/shaders/splat_resolve.wgsl
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,79 @@
 +// Composite the point pass into the scene: one fullscreen triangle looks up its pixel in the
 +// lane's depth + colour targets, discards empties, applies Eye-Dome Lighting from the four
 +// neighbouring depths, and exports the point's depth through frag_depth so points and solids
@@ -1527,7 +1530,6 @@ index 0000000000000000000000000000000000000000..ad85aa08ccd23f6b05ed6046e9bd39cd
 +            }
 +            sum += max(0.0, me - log_depth(nd));
 +        }
-+        // Floored at 0.25: an edge darkens, it never goes black.
 +        // 75 is the fixed exponent scale on the summed log-depth steps and `cloud.edl` the
 +        // 0..1 knob on top of it. Floored at 0.25: an edge darkens, it never goes black.
 +        let shade = max(exp(-sum * 75.0 * cloud.edl), 0.25);

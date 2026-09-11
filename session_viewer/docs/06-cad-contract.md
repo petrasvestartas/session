@@ -199,13 +199,13 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=62-125 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=62-123 -->
 
 - A NURBS curve reaches the GPU as a polyline and then takes the polyline path. One sampling rule, used everywhere a curve is drawn.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=126-147 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=124-145 -->
 
 ## Step 9 · Edge records and the first BRep consumer
 

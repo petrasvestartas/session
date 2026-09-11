@@ -603,10 +603,10 @@ index 0000000000000000000000000000000000000000..19d7c3d366cc58e4435e30cc5fd0d5d6
 +}
 diff --git a/session_viewer/src/shaders/ribbon.wgsl b/session_viewer/src/shaders/ribbon.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..5256d472f5ca98951af379caf3e4ea99636954ee
+index 0000000000000000000000000000000000000000..205513f31c9e7e0d549e3329eac428f705558e9f
 --- /dev/null
 +++ b/session_viewer/src/shaders/ribbon.wgsl
-@@ -0,0 +1,283 @@
+@@ -0,0 +1,293 @@
 +// Flat ink: one camera-facing quad per segment (6 verts pulled by index, no vertex buffer),
 +// a capsule SDF in the fragment, visibility from the physical depth. Draws the ribbon table
 +// (free linework) and the pipe table (mesh edges). Group 3 = the segment table. Which edges
@@ -874,12 +874,17 @@ index 0000000000000000000000000000000000000000..5256d472f5ca98951af379caf3e4ea99
 +    return MaskPair(vec4<f32>(alpha), vec4<f32>(alpha));
 +}
 +
++// The sub id a stroke answers with: bit 31, which pick.rs calls the segment tag and
++// tests/depth/_stroke_weight.py reads back as SEGMENT_BIT. It is clear of FACE_TAG and of
++// DISC_ID_TAG so one pick channel carries all three.
++const SEGMENT_BIT: u32 = 0x80000000u;
++
 +@fragment
 +fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
 +    if (coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
 +        discard;
 +    }
-+    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
++    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | SEGMENT_BIT);
 +}
 +
 +// Specialized edge picks exclude segments without a producer-provided source edge.
@@ -888,5 +893,10 @@ index 0000000000000000000000000000000000000000..5256d472f5ca98951af379caf3e4ea99
 +    if (in.source_edge == 0xffffffffu || coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
 +        discard;
 +    }
++    // Bit 31 is the STROKE tag of the pick-id union `Pick::sub` documents (engine/gpu/pick.rs):
++    // the low 31 bits are the segment row + 1. Unlike FACE_TAG (faces.rs and triangle.wgsl) and
++    // DISC_ID_TAG (scene.wgsl) this tag has no named constant anywhere, so moving it means
++    // editing this line, fs_edge_id below, app/scene.rs (`resolve` and `edge_at`, which also
++    // strip with 0x7fff_ffff), selftest.rs, selftest/lifecycle.rs and pick.rs by hand.
 +    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
 +}

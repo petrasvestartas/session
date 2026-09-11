@@ -3160,7 +3160,7 @@ index 58454b3c528ecd383b6c3bbb6fd8538bd37fef51..ab40895e0d379a865fd2c4fc6005209f
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index 2be0bdd074b3ab9af5bdbf35121efaf5a206b606..c5bab475e0f312bf2402451bdd90ab437af36f55 100644
+index 2be0bdd074b3ab9af5bdbf35121efaf5a206b606..928dd65c2bc2e48cb0407a7957d333814c4fd47c 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
 @@ -1,12 +1,22 @@
@@ -3188,7 +3188,7 @@ index 2be0bdd074b3ab9af5bdbf35121efaf5a206b606..c5bab475e0f312bf2402451bdd90ab43
  
  /// How finely the VIEWER wants a surface tessellated: the normal may turn 5 degrees between
  /// samples and a chord may sag a thousandth of the object. The kernel's own default is 20
-@@ -43,30 +53,108 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
+@@ -43,30 +53,109 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
      }
  }
  
@@ -3196,7 +3196,8 @@ index 2be0bdd074b3ab9af5bdbf35121efaf5a206b606..c5bab475e0f312bf2402451bdd90ab43
 -pub fn walk_brep(arena: &mut ArenaRows, _ink: &mut Ink, brep: &BRep, cx: &WalkCx) -> Row {
 +/// Tessellate a BRep face by face, upload each with its surface colour and normals, then ink
 +/// its edges. The row is one object; `FLAG_SMOOTH` tells the marker lane the vertices are
-+/// samples; `FLAG_OPEN` is the BRep's own `is_solid`, since an open shell shows its inside.
++/// samples; `FLAG_OPEN` goes on when the BRep's own `is_solid` is FALSE, since an open shell
++/// shows its inside; `FLAG_SINGLE` when the whole thing is one face, which x-ray leaves shaded.
 +pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) -> Row {
 +    let mut fms = b.face_meshes_q(Some(QUALITY));
 +    let chains = edge_chains(b, &fms);

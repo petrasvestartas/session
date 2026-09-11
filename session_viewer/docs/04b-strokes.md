@@ -136,7 +136,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=191-283 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=191-293 -->
 
 <!-- check: 04b -->
 

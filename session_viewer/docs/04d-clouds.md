@@ -176,7 +176,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=94-172 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=94-175 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>

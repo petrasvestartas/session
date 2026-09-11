@@ -716,7 +716,7 @@ index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc03
 +}
 diff --git a/session_viewer/src/shaders/sphere.wgsl b/session_viewer/src/shaders/sphere.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..4241c11cbf83f0f9f1ecce4bd707eab7fff028fc
+index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8c3fc4413
 --- /dev/null
 +++ b/session_viewer/src/shaders/sphere.wgsl
 @@ -0,0 +1,155 @@
@@ -809,7 +809,7 @@ index 0000000000000000000000000000000000000000..4241c11cbf83f0f9f1ecce4bd707eab7
 +        let sp_px = to_px(inst.spacing, clip.w);
 +        px = px * clamp(sp_px / max(MARKER_MIN_DIAMS * 2.0 * px, 1e-6), TAPER_MIN, 1.0);
 +    }
-+    if (px > max(line.vp_w, line.vp_h)) {
++    if (px > max(line.frame.x, line.frame.y)) {
 +        return dead_dot();
 +    }
 +    px = max(px, 0.5);

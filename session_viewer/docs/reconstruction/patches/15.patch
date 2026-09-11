@@ -419,10 +419,10 @@ index 0000000000000000000000000000000000000000..6e139ec068cc7a9dadfd34eaf2645927
 +echo
 +echo "  open:  ?scene=${stem}.yaml"
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 645f6ae932848ae614d30871b672edeb0ee628d5..88641ebf301949149e74f5665aef7fbc0ea46f4c 100644
+index 03632cab0fc33536ac8b5be10e7a48cd5daff04a..5e11937a3deaba4d7fddbabd574c2eaad53567e9 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
-@@ -296,6 +296,33 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
+@@ -298,6 +298,33 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
      if next <= end { Some(next) } else { None }
  }
  
@@ -456,7 +456,7 @@ index 645f6ae932848ae614d30871b672edeb0ee628d5..88641ebf301949149e74f5665aef7fbc
  /// A packed `int32` (varint) array in full.
  pub fn packed_i32(raw: &[u8]) -> Vec<i32> {
      let mut out = Vec::new();
-@@ -346,7 +373,7 @@ pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
+@@ -348,7 +375,7 @@ pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
  #[cfg(target_arch = "wasm32")]
  pub use web::*;
  
@@ -465,7 +465,7 @@ index 645f6ae932848ae614d30871b672edeb0ee628d5..88641ebf301949149e74f5665aef7fbc
  #[cfg(target_arch = "wasm32")]
  mod web {
      use super::*;
-@@ -355,6 +382,25 @@ mod web {
+@@ -357,6 +384,25 @@ mod web {
      const POINT_BYTES: u64 = 24;
      const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
  
@@ -491,7 +491,7 @@ index 645f6ae932848ae614d30871b672edeb0ee628d5..88641ebf301949149e74f5665aef7fbc
      /// Exact bounded 206 bodies, tied to the metadata's exposed source validator.
      async fn source_range(
          url: &str,
-@@ -422,9 +468,12 @@ mod web {
+@@ -424,9 +470,12 @@ mod web {
          let mut seen = [false; 7];
          let mut table_bytes = 0u64;
          let mut ids = None;
@@ -506,7 +506,7 @@ index 645f6ae932848ae614d30871b672edeb0ee628d5..88641ebf301949149e74f5665aef7fbc
              let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
              if field == 0 {
                  return None;
-@@ -433,11 +482,11 @@ mod web {
+@@ -435,11 +484,11 @@ mod web {
                  if (8..=15).contains(&field) {
                      return None;
                  }
@@ -520,7 +520,7 @@ index 645f6ae932848ae614d30871b672edeb0ee628d5..88641ebf301949149e74f5665aef7fbc
              let body = body_end(at, (used + extra) as u64, fields.end)?;
              let next = body_end(body, length, fields.end)?;
              if (8..=14).contains(&field) {
-@@ -448,8 +497,8 @@ mod web {
+@@ -450,8 +499,8 @@ mod web {
                  if table_bytes > MAX_TABLE_BYTES {
                      return None;
                  }
@@ -531,7 +531,7 @@ index 645f6ae932848ae614d30871b672edeb0ee628d5..88641ebf301949149e74f5665aef7fbc
                      return None;
                  }
                  seen[field - 8] = true;
-@@ -517,6 +566,35 @@ mod web {
+@@ -522,6 +571,35 @@ mod web {
  mod tests {
      use super::*;
  
