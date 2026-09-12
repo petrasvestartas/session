@@ -1,3 +1,9 @@
+---
+name: port
+description: Port a class from Python to Rust and/or C++ under the parity rules (same names, p[0] access, explicit loops, matched line count). Use when asked to port, translate or mirror a session class into another language.
+argument-hint: <class> [--rust|--cpp]
+---
+
 Port a class implementation from Python to Rust and/or C++.
 
 Usage: /port <class> [--rust|--cpp]  (default: both targets)
@@ -6,7 +12,7 @@ Usage: /port <class> [--rust|--cpp]  (default: both targets)
 - `session_py/src/session_py/$ARGUMENTS.py`
 - `session_py/src/session_py/$ARGUMENTS_minitest.py`
 - Existing Rust/C++ files if present (partial port detection)
-- `.claude/skills/` templates for target language patterns
+- `../new-class/basic/` and `../new-class/visual/` templates for target language patterns
 
 ## Porting rules (enforced)
 - Variable names, method names, test names: identical to Python

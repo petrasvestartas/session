@@ -1,3 +1,8 @@
+---
+name: test-rules
+description: Full minitest conventions - identical test names/logic/line counts across C++, Python and Rust, import placement, constructor test contents, JSON field order - with per-language templates under testing/. Use when writing or reviewing any *_minitest / *_test file.
+---
+
 Full minitest rules, conventions, and language-specific templates for this project.
 
 ## Core Rules

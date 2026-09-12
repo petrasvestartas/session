@@ -170,3 +170,8 @@ session_viewer/docs/_stages/*/assets/
 
 # per-plan scratch of the subagent-driven-development skill
 .superpowers/
+
+# Claude Code per-machine files
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+CLAUDE.local.md

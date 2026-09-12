@@ -1,3 +1,8 @@
+---
+name: docstrings
+description: C++ docstring style - /// lines only, no Doxygen @tags, when to document a param. Use when writing or editing comments in session_cpp headers.
+---
+
 # Docstring Style Guide (C++)
 
 ## Canonical style

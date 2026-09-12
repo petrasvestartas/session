@@ -1,3 +1,8 @@
+---
+name: decompile
+description: Reverse-engineering Rhino 8 DLLs (tl.dll, RhinoCore.dll, opennurbs.dll) with Ghidra to recover geometry algorithms. Use when asked how Rhino computes something, or to decompile / disassemble a Rhino function.
+---
+
 # Rhino DLL Decompilation Skill (Advanced)
 
 Complex task management and memory system for reverse engineering Rhino 8 geometry algorithms.
@@ -136,7 +141,7 @@ JAVA_HOME="/c/Program Files/Microsoft/jdk-21.0.9.10-hotspot" \
   /tmp/ghidra_rhino RhinoProject \
   -process tl.dll \
   -postScript ExtractTLFunctions.java \
-  -scriptPath "/c/rust/session/.claude/ghidra_scripts" \
+  -scriptPath "<session>/.claude/ghidra_scripts" \
   -noanalysis
 ```
 
@@ -223,4 +228,4 @@ ilspycmd "/c/Program Files/Rhino 8/System/RhinoCommon.dll" \
 
 ## Related Files
 - `SKILLS_RHINO_DECOMPILE.md` - Basic decompilation reference
-- `.claude/nurbscurve/` - NURBS curve investigation notes
+- `docs/plans/nurbscurve/` - NURBS curve investigation notes

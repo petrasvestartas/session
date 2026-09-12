@@ -1,3 +1,8 @@
+---
+name: nurbs
+description: NurbsCurve / NurbsSurface ground-truth API and test structure, with theory.md (Cox-de Boor, knots, evaluation), adaptive_meshing.md and trimmed_surface_nonplanar_mesh.md. Use when touching nurbscurve, nurbssurface, nurbsknot, remesh_nurbssurface_* or trimmed surfaces.
+---
+
 # NurbsCurve Skill
 
 ## Overview

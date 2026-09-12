@@ -1,3 +1,9 @@
+---
+name: new-class
+description: Create a new geometry class in all three kernels (C++, Python, Rust) with identical API and minitests. Use when adding a class, when asked to "add X to session", or when a class exists in one language but not the others. Carries the basic/visual templates and the field, method, operator, serialization and transformation references.
+argument-hint: <classname>
+---
+
 Create a new geometry class in all 3 languages (C++, Python, Rust) with full minitest coverage.
 
 ## Implementation files
@@ -25,6 +31,6 @@ constructor, guid/name fields, duplicate(), clone(), index [], ==, !=, str/repr,
 - Tests must be identical across all 3 languages
 - JSON fields alphabetically ordered
 
-## Reference: see .claude/skills/ for language-specific templates
+## Reference: templates in `basic/` and `visual/` (README + cpp/py/rust); field, method, operator, serialization and transformation notes in `reference/`
 
 Verify: run `./bash/minitest.sh` — all tests must pass in all 3 languages.

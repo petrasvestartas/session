@@ -1,4 +1,10 @@
-Add a new recipe to the Vue viewer CLI (`.claude/skills/web_recipes.md`).
+---
+name: recipe
+description: Add a three-language (C++, Python, Rust) recipe to web_recipes.md for the viewer CLI. Use when asked to add a recipe or a worked example of an operation like loft, offset or subdivide.
+argument-hint: <description>
+---
+
+Add a new recipe to the Vue viewer CLI (`web_recipes.md`, next to this file).
 
 Usage: /recipe <description>  — e.g. "loft through 3 curves", "offset a mesh face"
 
@@ -8,7 +14,7 @@ Usage: /recipe <description>  — e.g. "loft through 3 curves", "offset a mesh f
    - `session_rust/src/` — find Rust equivalents
    - `session_cpp/src/` — find C++ equivalents
 2. Write a minimal, working example in all 3 languages (5-10 lines each)
-3. Append a new `## Title` section to `.claude/skills/web_recipes.md` in this exact format:
+3. Append a new `## Title` section to `web_recipes.md` in this exact format:
 
 ```
 ## <Title>

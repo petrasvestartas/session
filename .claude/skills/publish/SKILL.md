@@ -1,3 +1,10 @@
+---
+name: publish
+description: Publish viewer geometry (.pb, scene .yaml) to the Cloudflare R2 bucket session-viewer-data with view_put.sh / view_live.sh. Use only when asked to publish, upload or change the live scene - never on your own initiative, the bucket keeps no history.
+argument-hint: <what>
+disable-model-invocation: true
+---
+
 Publish viewer geometry to the Cloudflare R2 bucket `session-viewer-data`.
 
 Usage: /publish <what> — e.g. "the new lion cloud", "out/scan.pb as the live scene", "scenes/view_pointclouds.yaml"

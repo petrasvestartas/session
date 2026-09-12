@@ -1,3 +1,8 @@
+---
+name: step-format
+description: STEP (ISO 10303) file format reference - entity attributes, reference parsers, NURBS and BRep mapping. Use when working on file_step.* readers/writers or debugging a STEP import.
+---
+
 # STEP File Format Reference
 
 ## Reference Repos

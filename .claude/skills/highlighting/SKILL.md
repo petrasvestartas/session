@@ -1,3 +1,8 @@
+---
+name: highlighting
+description: How syntax highlighting works in session_tests TestViewer.vue (tree-sitter layer plus context-aware tokenizer). Use when highlighting looks wrong in the test viewer or when adding a language token type.
+---
+
 # Test Viewer Syntax Highlighting
 
 ## Architecture: Hybrid Tree-Sitter + Context-Aware Tokenizer

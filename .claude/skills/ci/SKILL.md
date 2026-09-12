@@ -1,3 +1,8 @@
+---
+name: ci
+description: Triage recent GitHub Actions failures with gh run list / gh run view and report them as a Platform | Language | Class | Test | Error table. Use when asked why CI is red, after a push, or when a workflow failed.
+---
+
 Triage recent CI failures for this project.
 
 1. Run `gh run list --limit 5` — show recent workflow runs with status

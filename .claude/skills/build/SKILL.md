@@ -1,3 +1,9 @@
+---
+name: build
+description: Build and test command reference - minitest.sh, quicktest.sh, manual cmake/cargo/uv builds, viewer dev server - plus the build-performance guide in performance.md. Use when unsure how to run tests for one language, or when a build is slow.
+argument-hint: [class]
+---
+
 Build and test commands reference.
 
 ## Quick test (single language)

@@ -1,3 +1,9 @@
+---
+name: sync
+description: Audit cross-language parity for one class - read its six files and report every divergence in methods, test names, variable names, coordinate access, imports and line count. Use when asked whether a class is in sync, or before finishing a port.
+argument-hint: <class>
+---
+
 Audit cross-language parity for class $ARGUMENTS. Read all 6 files and report every divergence.
 
 ## Files to read

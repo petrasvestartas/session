@@ -30,6 +30,6 @@ Examples: Color, Xform, Tolerance, Knot
 
 ## See Templates
 
-- `cpp.md` - Complete C++ template
+- `cpp.md` - Complete C++ template (this directory)
 - `py.md` - Complete Python template
 - `rust.md` - Complete Rust template
