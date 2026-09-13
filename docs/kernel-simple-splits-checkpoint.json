@@ -2,27 +2,27 @@
   "branch": "codex/session-simple-splits-20260914",
   "scope": "Retain all regions when splitting curves, individual surfaces and faces inside joined BReps. No booleans or solid-volume splits.",
   "tests": {
-    "cpp": "787/787: new sources and minitests compiled against the hash-verified reviewed baseline objects, complete minitest executable passed",
-    "python": "3/3 new SimpleSplit API tests against the published foundations tree",
-    "rust": "732/732 complete debug minitest suite from isolated candidate, cargo run --locked --bin minitest --target x86_64-unknown-linux-gnu -j4"
+    "cpp": "789/789 complete exact-baseline minitests",
+    "python": "5/5 SimpleSplit public API tests against isolated checkpoint",
+    "rust": "734/734 complete isolated checkpoint minitests"
   },
   "baseline_rust_fix": "NurbsCurve::trim inserts only the missing multiplicity when using the baseline additive knot-insertion API; existing insert callers unchanged.",
   "sources": {
-    "session_cpp/src/simple_split.h": "50b169a215bcb35237622dbc9e63d11d6d8f894dcdab8912e32577287a3dfd9f",
-    "session_cpp/src/simple_split.cpp": "7fb20d78474f816d0233f6b5bc61b96db20adc69c7fccdd557a12e70f4f20c7a",
-    "session_cpp/src/simple_split_test.cpp": "3d0bde2e34ff0c98da566fbb3cd9776f262b89d1778dd289aa1be1bbaa5250e9",
+    "session_cpp/src/simple_split.h": "dc98229d07227c1a97e101ab9c39687f7beb42cab6f74a6f7fa435b8132752ef",
+    "session_cpp/src/simple_split.cpp": "3e1bd1aa1ae36c3696c6befcdfd0115031da9da8cf0e9653520cf4fefff0c7f6",
+    "session_cpp/src/simple_split_test.cpp": "1e871d8526f1a551325478990ef0672a42a4d81508eafbd69cf4637c3210894b",
     "session_cpp/CMakeLists.txt": "1f7c63225417f4638de0ed2c9f7f0777da937eb4f023ffbb4a3158142fc75c23",
-    "session_py/src/session_py/simple_split.py": "0417d8678ce43ad36d1f28e31a2176146e138c4cd28ff8dbccd1ca8ed625f0b6",
-    "session_py/src/session_py/simple_split_test.py": "21f4df4c72c6a78ecd7e31ee870275fbddde15e57f9a4acc60746e60094eed9a",
-    "session_rust/src/simple_split.rs": "641d6fc2a529710eefdcae205cdde5b74aa7c6cdfd7604499001986efd7b5476",
-    "session_rust/src/simple_split_test.rs": "c96ba80b36844a71dbeed160a1ce1ee5da5e7cb1b272bb763847f78907186155",
+    "session_py/src/session_py/simple_split.py": "b9a19c4a18eb368ad9f125fb4c0bcdc38dd7cd58f0193183c64db9ffb3019712",
+    "session_py/src/session_py/simple_split_test.py": "f3e0208d97ae656da58d56ea1f6913e85d4b5e2f4b3ac9bfa7d287ab2e9bae17",
+    "session_rust/src/simple_split.rs": "d94d02aba5f68fba2f566cdb2b5d5612d631402dde79572a5ac68d8fb9c82789",
+    "session_rust/src/simple_split_test.rs": "acd8fa4460825316937f3735229aeb4a29ee00df6b9cb08e70c873115012fe94",
     "session_rust/src/lib.rs": "bd5e3d3f1259b29dc309f153e787d710e66c9bcf370cdfed626373f691738f2e",
-    "session_rust/src/mini_test.rs": "9856c40943c7954950edda875aa18c3a0fd3f94f43607205e55214d4aee12bb6",
+    "session_rust/src/mini_test.rs": "cfc4f1bb84087d062d7380f8a157aba51214b404770cfe371f7618148e229422",
     "session_rust/src/nurbscurve.rs": "adfdf27cd01dbab458025bcec62d8c1738ab3c0070fa44af32227bf906cdff7f"
   },
   "commits": {
-    "session_cpp": "9cded7e2ccdbf380fb627b394d0e6a9231ad0538",
-    "session_py": "879539ce9cf4aacfc0bb6c1031fa6163541d55f8",
-    "session_rust": "42226ca122644877449c41abdee85dbb111cd4eb"
+    "session_cpp": "c4195b8dcd3f620bb8dee35eb8b54b0930320a00",
+    "session_py": "a55ba8aea7d8d0ac5b5e2c7c12471b69ab98eeb8",
+    "session_rust": "3318bdd1a3b67197005aa201fa6c99ae2150d69c"
   }
 }
