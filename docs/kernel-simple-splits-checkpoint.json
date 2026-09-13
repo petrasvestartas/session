@@ -10,19 +10,25 @@
   "sources": {
     "session_cpp/src/simple_split.h": "dc98229d07227c1a97e101ab9c39687f7beb42cab6f74a6f7fa435b8132752ef",
     "session_cpp/src/simple_split.cpp": "3e1bd1aa1ae36c3696c6befcdfd0115031da9da8cf0e9653520cf4fefff0c7f6",
-    "session_cpp/src/simple_split_test.cpp": "1e871d8526f1a551325478990ef0672a42a4d81508eafbd69cf4637c3210894b",
+    "session_cpp/src/simple_split_test.cpp": "4b99a7f77fc64c3860ab6a569618af880abfd9b4da6cdb51e607ea4ceb0f3d05",
     "session_cpp/CMakeLists.txt": "1f7c63225417f4638de0ed2c9f7f0777da937eb4f023ffbb4a3158142fc75c23",
     "session_py/src/session_py/simple_split.py": "b9a19c4a18eb368ad9f125fb4c0bcdc38dd7cd58f0193183c64db9ffb3019712",
-    "session_py/src/session_py/simple_split_test.py": "f3e0208d97ae656da58d56ea1f6913e85d4b5e2f4b3ac9bfa7d287ab2e9bae17",
+    "session_py/src/session_py/simple_split_test.py": "1b7c2977174234ef82c64595549da719dae35ae86b090080e22eeabda86340ca",
     "session_rust/src/simple_split.rs": "d94d02aba5f68fba2f566cdb2b5d5612d631402dde79572a5ac68d8fb9c82789",
-    "session_rust/src/simple_split_test.rs": "acd8fa4460825316937f3735229aeb4a29ee00df6b9cb08e70c873115012fe94",
+    "session_rust/src/simple_split_test.rs": "fb6ffdc1a64701118f5fd702b508cd317cd891ea8476c7b8fb9c283669610157",
     "session_rust/src/lib.rs": "bd5e3d3f1259b29dc309f153e787d710e66c9bcf370cdfed626373f691738f2e",
     "session_rust/src/mini_test.rs": "cfc4f1bb84087d062d7380f8a157aba51214b404770cfe371f7618148e229422",
-    "session_rust/src/nurbscurve.rs": "adfdf27cd01dbab458025bcec62d8c1738ab3c0070fa44af32227bf906cdff7f"
+    "session_rust/src/nurbscurve.rs": "adfdf27cd01dbab458025bcec62d8c1738ab3c0070fa44af32227bf906cdff7f",
+    "session_cpp/src/brep.cpp": "18b0679acef999eca7a2a7e6b432422181a4301dd6e9877a5a202d7ffbc1da83",
+    "session_py/src/session_py/brep.py": "8a2048ae7973634a3a598e7727181f37bbfc3b73c8ce292be6981bc1d56391aa",
+    "session_rust/src/brep.rs": "4197184b2a7b80ec6c76a4acb4b810e7b151dae7a615bdcaf342a7a933e10edd",
+    "session_rust/src/tree.rs": "995f0daaa125e48766e98d0a5c57100fe7280b70338db48295a22686752614e8"
   },
   "commits": {
-    "session_cpp": "c4195b8dcd3f620bb8dee35eb8b54b0930320a00",
-    "session_py": "a55ba8aea7d8d0ac5b5e2c7c12471b69ab98eeb8",
-    "session_rust": "3318bdd1a3b67197005aa201fa6c99ae2150d69c"
-  }
+    "session_cpp": "afdb4c01fd68a1375d6ee752cb8f8e49c1ac4000",
+    "session_py": "9d26cf82f6cb0be427f286425607d1dc81be09a8",
+    "session_rust": "e9f8e70773aa9d60a0a84435af8d8f76840f4066"
+  },
+  "meshing_fix": "Intermediate topological boundary vertices require constrained face meshing; retain direct grids for internal polyline controls. All resulting regions and unchanged neighbor areas are tested.",
+  "baseline_tree_fix": "Clone owns independent tree nodes for Session copy-on-write and undo snapshots."
 }

@@ -15,3 +15,5 @@ Cutters must lie on the selected surface; no implicit projection is performed. O
 These are face partitions, not volume divisions. There are no boolean operations, added caps, or implicit face extraction. Overlapping cutters, pole-edge splits, degenerate surface domains and unsupported seam configurations are rejected. Standalone closed/pole surface boundaries require a BRep with explicit seam topology. Work limits bound intersection subdivision and trim classification.
 
 The implementation is independent; OCCT is a reference only. The checkpoint deliberately excludes unfinished trim/extend wrappers and viewer split commands. See `kernel-simple-splits-checkpoint.json` for exact sources and validation.
+
+The split meshing regression verifies both half-face areas and unchanged neighboring face areas with quality-controlled tessellation. Faces with newly split boundary vertices use constrained meshing. The older Rust checkpoint also deep-copies tree nodes so source transactions and Undo cannot mutate another shared session.
