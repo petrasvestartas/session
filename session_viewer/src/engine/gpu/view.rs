@@ -98,13 +98,14 @@ pub fn device_pixel_ratio() -> f64 {
 
 static REDUCED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-/// Interaction frames stayed slow: from now on the canvas renders at device scale 1 without
-/// antialiasing, the same attachments a device loss reloads into, without the reload.
-pub fn reduce_for_slow_frames() {
+/// From now on the canvas renders at device scale 1 without antialiasing: after a run of slow
+/// interaction frames, or on the page a device loss reloaded into. In memory only, so a
+/// reload starts at full resolution again.
+pub fn reduce() {
     REDUCED.store(true, std::sync::atomic::Ordering::Relaxed);
 }
 
-/// Whether the slow-frame reduction is in force.
+/// Whether the reduction is in force.
 pub fn reduced() -> bool {
     REDUCED.load(std::sync::atomic::Ordering::Relaxed)
 }

@@ -49,6 +49,5 @@ impl Upload {
 
 /// Empty a table AND hand its allocation back; `clear()` alone keeps the capacity.
 pub fn drop_rows<T>(v: &mut Vec<T>) {
-    v.clear();
-    v.shrink_to_fit();
+    *v = Vec::new();
 }

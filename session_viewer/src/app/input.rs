@@ -162,7 +162,7 @@ impl Input {
                     }
                 }
                 self.last_cursor = (position.x, position.y);
-                dragging
+                dragging || state.hover_gizmo(position.x, position.y)
             }
             WindowEvent::MouseWheel { delta, .. } => {
                 let amount = match delta {
@@ -228,16 +228,17 @@ impl Input {
     /// as the start of a click: both widgets sit over the object they move, so a press that
     /// lands on one is never also a pick of what is behind it.
     ///
+    /// Ctrl reserves the press for sub-selection, even when a handle overlaps the source.
     /// A release within the slop is a click and asks the GPU what is under it. The picture is
     /// unchanged until the answer lands, so a click never redraws by itself.
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
             ElementState::Pressed => {
-                if state.begin_control_drag(self.last_cursor.0, self.last_cursor.1) {
+                if !self.ctrl && state.begin_control_drag(self.last_cursor.0, self.last_cursor.1) {
                     self.control_drag = true;
                     return false;
                 }
-                if state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
+                if !self.ctrl && state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
                     self.gizmo_drag = true;
                     return false;
                 }
@@ -310,118 +311,6 @@ impl Drop for PointerCancellation {
             "pointercancel",
             self.callback.as_ref().unchecked_ref(),
         );
-    }
-}
-
-/// The command box's own key listener: winit never sees these, because the box has the focus
-/// while it is open, which is exactly what lets a `z` typed in it be a letter.
-#[cfg(target_arch = "wasm32")]
-pub struct CommandKeys {
-    input: web_sys::HtmlInputElement,
-    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::KeyboardEvent)>,
-    blur: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
-}
-
-#[cfg(target_arch = "wasm32")]
-impl CommandKeys {
-    /// Install once. Enter sends the line and closes the box; Escape closes it and throws the
-    /// line away. Nothing else is intercepted, so the box behaves like a text field.
-    pub fn new(
-        input: web_sys::HtmlInputElement,
-        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
-    ) -> Result<Self, wasm_bindgen::JsValue> {
-        use wasm_bindgen::JsCast;
-        let box_ = input.clone();
-        let callback = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
-            move |event: web_sys::KeyboardEvent| match event.key().as_str() {
-                "Enter" => {
-                    let line = box_.value();
-                    crate::app::feedback::command_line(false);
-                    if !line.trim().is_empty() {
-                        let _ = proxy.send_event(crate::Msg::Command(line));
-                    }
-                }
-                "Escape" => {
-                    crate::app::feedback::command_line(false);
-                }
-                _ => {}
-            },
-        );
-        input.add_event_listener_with_callback("keydown", callback.as_ref().unchecked_ref())?;
-        // Clicking away closes it. Otherwise the box keeps the keyboard with no key that
-        // reaches it, and the viewer answers nothing until the canvas is clicked.
-        let shut = input.clone();
-        let blur = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
-            move |_: web_sys::Event| {
-                if !shut.hidden() {
-                    crate::app::feedback::command_line(false);
-                }
-            },
-        );
-        input.add_event_listener_with_callback("blur", blur.as_ref().unchecked_ref())?;
-        Ok(Self {
-            input,
-            callback,
-            blur,
-        })
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-impl Drop for CommandKeys {
-    fn drop(&mut self) {
-        use wasm_bindgen::JsCast;
-        let _ = self
-            .input
-            .remove_event_listener_with_callback("keydown", self.callback.as_ref().unchecked_ref());
-        let _ = self
-            .input
-            .remove_event_listener_with_callback("blur", self.blur.as_ref().unchecked_ref());
-    }
-}
-
-/// The layers panel's one click listener. One listener for the whole panel, not one a row:
-/// the rows are rebuilt on every scene change, and a closure a row would have to be dropped
-/// with it.
-#[cfg(target_arch = "wasm32")]
-pub struct LayerClicks {
-    panel: web_sys::Element,
-    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
-}
-
-#[cfg(target_arch = "wasm32")]
-impl LayerClicks {
-    pub fn new(
-        panel: web_sys::Element,
-        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
-    ) -> Result<Self, wasm_bindgen::JsValue> {
-        use wasm_bindgen::JsCast;
-        let callback =
-            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-                let Some(target) = event.target() else { return };
-                let Ok(element) = target.dyn_into::<web_sys::Element>() else {
-                    return;
-                };
-                let Some(key) = element.get_attribute("data-layer") else {
-                    return;
-                };
-                // A click in the panel takes the focus off the canvas, and every key binding
-                // with it - including the `L` that closes the panel being clicked.
-                crate::app::feedback::focus_canvas();
-                let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
-            });
-        panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;
-        Ok(Self { panel, callback })
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-impl Drop for LayerClicks {
-    fn drop(&mut self) {
-        use wasm_bindgen::JsCast;
-        let _ = self
-            .panel
-            .remove_event_listener_with_callback("click", self.callback.as_ref().unchecked_ref());
     }
 }
 

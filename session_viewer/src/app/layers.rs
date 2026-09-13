@@ -100,42 +100,53 @@ pub struct Row {
     pub hidden: bool,
 }
 
-/// The rows a panel would show: the documents in load order, then the kinds present.
+/// Count document and type buckets in one scene walk.
 pub fn rows(scene: &Scene) -> Vec<Row> {
-    let mut out = Vec::new();
-    for (index, doc) in scene.docs.iter().enumerate() {
-        let rows = of_layer(scene, Layer::Document(index));
-        if rows.is_empty() {
-            continue;
-        }
-        out.push(Row {
-            layer: Layer::Document(index),
-            label: doc.name.clone(),
-            count: rows.len(),
-            hidden: all_hidden(scene, &rows),
-        });
-    }
-    let mut kinds: Vec<Kind> = Vec::new();
+    let mut documents = vec![(0, 0); scene.docs.len()];
+    let mut kinds = [(0, 0); 6];
     for row in 0..scene.object_count() as u32 {
+        let Some(identity) = scene.identity_of(row) else {
+            continue;
+        };
+        let hidden = usize::from(scene.hidden.contains(&identity));
+        if let Some(count) = documents.get_mut(identity.0) {
+            count.0 += 1;
+            count.1 += hidden;
+        }
         if let Some(geometry) = scene.geometry(row) {
-            let kind = Kind::of(geometry);
-            if !kinds.contains(&kind) {
-                kinds.push(kind);
-            }
+            let count = &mut kinds[Kind::of(geometry) as usize];
+            count.0 += 1;
+            count.1 += hidden;
         }
     }
-    kinds.sort();
-    for kind in kinds {
-        let rows = of_layer(scene, Layer::Kind(kind));
-        if rows.is_empty() {
-            continue;
+    let mut out = Vec::new();
+    for (index, &(count, hidden)) in documents.iter().enumerate() {
+        if count > 0 {
+            out.push(Row {
+                layer: Layer::Document(index),
+                label: scene.docs[index].name.clone(),
+                count,
+                hidden: hidden == count,
+            });
         }
-        out.push(Row {
-            layer: Layer::Kind(kind),
-            label: kind.label().to_string(),
-            count: rows.len(),
-            hidden: all_hidden(scene, &rows),
-        });
+    }
+    for kind in [
+        Kind::Solids,
+        Kind::Surfaces,
+        Kind::Meshes,
+        Kind::Curves,
+        Kind::Points,
+        Kind::Clouds,
+    ] {
+        let (count, hidden) = kinds[kind as usize];
+        if count > 0 {
+            out.push(Row {
+                layer: Layer::Kind(kind),
+                label: kind.label().into(),
+                count,
+                hidden: hidden == count,
+            });
+        }
     }
     out
 }
@@ -153,15 +164,6 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
         }
     }
     rows
-}
-
-fn all_hidden(scene: &Scene, rows: &[u32]) -> bool {
-    !rows.is_empty()
-        && rows.iter().all(|&row| {
-            scene
-                .identity_of(row)
-                .is_some_and(|identity| scene.hidden.contains(&identity))
-        })
 }
 
 #[cfg(test)]
@@ -209,6 +211,21 @@ mod tests {
         assert_eq!(rows[3].count, 2, "one point in each file");
     }
 
+    #[test]
+    fn bucket_counts_match_membership_with_mixed_visibility() {
+        let mut scene = scene_with_two_files();
+        scene.hidden.insert(scene.identity_of(0).unwrap());
+        scene.hidden.insert(scene.identity_of(2).unwrap());
+        for row in rows(&scene) {
+            let members = of_layer(&scene, row.layer);
+            assert_eq!(row.count, members.len());
+            let hidden = members
+                .iter()
+                .all(|row| scene.hidden.contains(&scene.identity_of(*row).unwrap()));
+            assert_eq!(row.hidden, hidden);
+        }
+    }
+
     /// A layer is a filter over rows that already exist, so it can name rows from more than
     /// one document, and a document row names only its own.
     #[test]
@@ -223,7 +240,11 @@ mod tests {
     /// otherwise a click lands on a different row than the one under the pointer.
     #[test]
     fn a_row_key_survives_the_round_trip() {
-        for layer in [Layer::Document(0), Layer::Document(17), Layer::Kind(Kind::Clouds)] {
+        for layer in [
+            Layer::Document(0),
+            Layer::Document(17),
+            Layer::Kind(Kind::Clouds),
+        ] {
             assert_eq!(Layer::from_key(&layer.key()), Some(layer));
         }
         assert_eq!(Layer::from_key("kind:sandwiches"), None);

@@ -14,8 +14,16 @@ struct CachedPlane {
     em_pixels: u32,
     size: [u32; 2],
     extent: [f32; 4],
-    _texture: wgpu::Texture,
+    texture: wgpu::Texture,
     bind: wgpu::BindGroup,
+}
+
+impl Drop for CachedPlane {
+    /// A plane re-rasterized at a higher resolution, or dropped with its label, frees its
+    /// coverage at once rather than when the browser's garbage collector gets to it.
+    fn drop(&mut self) {
+        self.texture.destroy();
+    }
 }
 
 /// Application-owned fixed-plane resources; camera movement only updates quad vertices.
@@ -188,7 +196,7 @@ impl Planes {
                     em_pixels,
                     size,
                     extent,
-                    _texture: texture,
+                    texture,
                     bind,
                 };
                 match index {

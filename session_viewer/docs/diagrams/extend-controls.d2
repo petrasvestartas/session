@@ -1,0 +1,16 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box: { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+S: "CPU source: local control point\nretained Session document" { class: box }
+W: "CPU drag: world point\npointer ray meets fixed drag plane" { class: focus }
+L: "CPU preview: local target\ninverse placement × world target" { class: focus }
+G: "GPU: control marker preview\nno source edit during movement" { class: box }
+R: "Release: commit once + rebuild\nEscape: restore from source" { class: box }
+S -> W: "placement × local point" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+W -> L: "convert coordinates" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+L -> G: "upload preview" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+G -> R: "finish gesture" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

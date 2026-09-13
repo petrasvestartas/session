@@ -17,7 +17,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after step 14; steps 1–13 fail and build again at step 14.
+**Does it compile yet?** `cargo check` passes after steps 14–16; steps 1–13 fail and build again at step 14.
 
 <!-- step-status: end -->
 
@@ -298,7 +298,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
 
-<!-- file: 21 session_viewer/src/engine/gpu/mod.rs type -->
+<!-- file: 21 session_viewer/src/engine/gpu/mod.rs type hunks=1,2,3,4,5,7,8,9 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
 
@@ -458,11 +458,132 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-08d21ab222.svg" data-zone="Shell"></span>
 
-<!-- file: 21 session_viewer/src/lib.rs type -->
+<!-- file: 21 session_viewer/src/lib.rs type hunks=1,2,3,5,6,7 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-5b09b0fedb.svg" data-zone="State"></span>
 
-<!-- file: 21 session_viewer/src/state.rs type hunks=2,3,4,5,6,7,8,9,10,11,12 -->
+<!-- file: 21 session_viewer/src/state.rs type hunks=3,5,6,7,9,10,11,13,14,15,16 -->
+
+## Part D · What the browser never frees
+
+### Step 15 · Destroy what you replace
+
+![Where this step sits in the viewer: GPU core, Lanes, with 11 of 12 zones built so far.](illustrations/locator-78dbf0b09b.svg){ .locator data-strip="illustrations/strip-5abaec188e.svg" }
+
+- wgpu's WebGPU backend does nothing when a texture or buffer is dropped: the `GPUTexture`
+  behind it lives until the JavaScript garbage collector finds its wrapper, and nothing in a
+  wasm frame loop hurries that collector. Natively the same drop frees the memory at once,
+  which is why the harness never showed this.
+- Every resize made a new depth, gradient and (at 4x) colour target - 64 bytes a pixel - and
+  left the old ones to the collector. A window drag is one resize a frame: a quarter of a
+  gigabyte a frame on a 4 Mpx canvas, on a scene of twelve objects, until the device was lost.
+- `Attachment` owns the texture with its view and destroys it on drop; `Deref` keeps every
+  render pass reading a `TextureView` as before. `Targets` keeps its two 1x1 placeholders in
+  the struct so they go the same way, and destroys the old set BEFORE the new one is made, so
+  the peak during a resize is one set and not two.
+
+<span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/targets.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/mod.rs type hunks=6 -->
+
+- The picker's ID targets, the point pass, the outline masks and the tile raster target are
+  the other size-bound textures; each becomes an `Attachment` and changes nothing else.
+
+<span class="zone-mark" data-strip="illustrations/strip-499693ce6a.svg" data-zone="Lanes"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/pick.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-499693ce6a.svg" data-zone="Lanes"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/splat.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-499693ce6a.svg" data-zone="Lanes"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/surface_outline.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-499693ce6a.svg" data-zone="Lanes"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/triangle_tiles.rs type -->
+
+- A text plane re-rasterized at a higher resolution replaced its texture the same silent way.
+
+<span class="zone-mark" data-strip="illustrations/strip-499693ce6a.svg" data-zone="Lanes"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/text_plane.rs type -->
+
+- Buffers: `replace_buffer` destroys what a `GrowBuf` or the tile pool replaces. The copy that
+  moved the live rows was submitted already, and a destroy after a submit lets that work finish.
+
+<span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/buffers.rs type -->
+
+- The native harness draws every ID in one pass over the whole canvas; a pick left pending
+  would draw into window-sized targets in the same encoder and the whole-canvas pass would
+  destroy them before the submit.
+
+<span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/present.rs type -->
+
+- The browser fixture that compares text rendering owns one depth attachment of its own.
+
+<!-- supplied: 21 -->
+
+### Step 16 · One resize per hundred milliseconds, and an honest reload
+
+![Where this step sits in the viewer: Network, Shell, State, GPU core, with 11 of 12 zones built so far.](illustrations/locator-56ef8ea8ee.svg){ .locator data-strip="illustrations/strip-58eafde175.svg" }
+
+- `State::resize` now answers whether it applied: after one, the next waits 100 ms. The shell
+  holds the frame with it and asks again next frame; the last picture stretches over the
+  canvas meanwhile, which is what every desktop application does during a drag.
+- A lone resize - a window moved to the other screen - still applies at once.
+
+<span class="zone-mark" data-strip="illustrations/strip-5b09b0fedb.svg" data-zone="State"></span>
+
+<!-- file: 21 session_viewer/src/state.rs type hunks=2,4,8 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-08d21ab222.svg" data-zone="Shell"></span>
+
+<!-- file: 21 session_viewer/src/lib.rs type hunks=4,8 -->
+
+- The reduction is one flag, `reduce`, set by thirty slow drag frames or by the page a device
+  loss reloaded into - and only when there is something to give up: a ratio above 1, or the
+  samples. At device scale 1 the canvas keeps its size, so the targets are remade on the spot.
+  It wins over `?msaa=4`: a page that lost its device draws at 1x whatever it asked for.
+
+<span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/view.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-5b09b0fedb.svg" data-zone="State"></span>
+
+<!-- file: 21 session_viewer/src/state.rs type hunks=12 -->
+
+- A lost device is not always out of memory, and the old notice said it was. The reload now
+  carries the browser's reason in `?recovered=`; `adopt_recovery` on the reloaded page
+  reduces before anything reads the device pixel ratio, takes the parameter back out of the
+  address with `replaceState`, and hands the status line a notice that names the reason. A
+  reload, a bookmark or a shared link starts at full resolution again; a second loss on a
+  reduced page shows the error panel.
+- A still scene asks for no frame, and only a frame reads the failure: the device-lost
+  callback asks for one, so an idle page recovers too instead of waiting for the next click.
+
+<span class="zone-mark" data-strip="illustrations/strip-eef9963496.svg" data-zone="Network"></span>
+
+<!-- file: 21 session_viewer/src/app/route.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-08d21ab222.svg" data-zone="Shell"></span>
+
+<!-- file: 21 session_viewer/src/lib.rs type hunks=9 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
+
+<!-- file: 21 session_viewer/src/engine/gpu/device.rs type -->
 
 <!-- check: 21 -->
 
@@ -478,6 +599,10 @@ dragged on the plane the view is facing, snapped to its neighbours.
 - F10 on a polyline, click a control dot, drag it: the dot follows the pointer and snaps to the
   other control points within twelve pixels; the shape catches up when you let go, which is
   when the document is written.
+
+## What changed
+
+Gestures and typed commands call named `State` actions; kernel transactions commit document edits; existing GPU lanes draw the resulting rows. This checkpoint implements single-object editing and document/type visibility. Later tree/graph browsing and modeling commands are covered by the [optional extensions](extend-implementation.md).
 
 ## Try
 

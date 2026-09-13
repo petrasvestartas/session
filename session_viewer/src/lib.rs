@@ -47,10 +47,6 @@ pub enum Msg {
     SheetChunk(SheetChunk),
     SheetEntity(app::sheet_query::Resolved),
     CancelPointer,
-    /// A line typed into the command box, sent when Enter was pressed in it.
-    Command(String),
-    /// A layers-panel row was clicked, carrying its key.
-    ToggleLayer(String),
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -73,8 +69,7 @@ pub struct App {
     proxy: Option<EventLoopProxy<Msg>>,
     input: Input,
     pointer_cancellation: Option<app::input::PointerCancellation>,
-    command_keys: Option<app::input::CommandKeys>,
-    layer_clicks: Option<app::input::LayerClicks>,
+    ui: Option<app::ui::Ui>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -88,8 +83,7 @@ impl App {
             state: None,
             input: Input::new(),
             pointer_cancellation: None,
-            command_keys: None,
-            layer_clicks: None,
+            ui: None,
         };
         event_loop.spawn_app(app);
         Ok(())
@@ -98,8 +92,13 @@ impl App {
     /// `Ready`: adopt the State, size it to the canvas, draw.
     fn adopt(&mut self, mut state: State) {
         if let Some((w, h)) = desired_canvas_size() {
-            state.resize(w, h);
+            let _ = state.resize(w, h);
         }
+        self.ui = Some(app::ui::Ui::new(&state.window));
+        state.gpu.ui = Some(engine::gpu::ui::Ui::new(
+            &state.gpu.ctx,
+            state.gpu.config.format,
+        ));
         state.window.request_redraw();
         self.state = Some(state);
     }
@@ -138,18 +137,6 @@ impl ApplicationHandler<Msg> for App {
                 Ok(listener) => self.pointer_cancellation = Some(listener),
                 Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
             }
-            if let Some(input) = app::feedback::command_line(false) {
-                match app::input::CommandKeys::new(input, proxy.clone()) {
-                    Ok(listener) => self.command_keys = Some(listener),
-                    Err(error) => log::warn!("Cannot register the command line: {error:?}"),
-                }
-            }
-            if let Some(panel) = app::feedback::layers_visible(false) {
-                match app::input::LayerClicks::new(panel, proxy.clone()) {
-                    Ok(listener) => self.layer_clicks = Some(listener),
-                    Err(error) => log::warn!("Cannot register the layers panel: {error:?}"),
-                }
-            }
             wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
         }
     }
@@ -183,18 +170,6 @@ impl ApplicationHandler<Msg> for App {
                     col_at,
                 });
             }
-            Msg::Command(line) => {
-                let said = match state.run_command(&line) {
-                    Ok(done) => done,
-                    Err(why) => why,
-                };
-                app::feedback::status(&said);
-            }
-            Msg::ToggleLayer(key) => {
-                if let Some(layer) = app::layers::Layer::from_key(&key) {
-                    state.toggle_layer(layer);
-                }
-            }
             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
             Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
@@ -223,6 +198,31 @@ impl ApplicationHandler<Msg> for App {
     /// changed. A frame is requested only when something did.
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         let Some(state) = &mut self.state else { return };
+        if let Some(ui) = self.ui.as_mut() {
+            let (mut consumed, repaint) = ui.event(&state.window, &event);
+            if matches!(event, WindowEvent::KeyboardInput { .. })
+                && !app::ui::MODEL.with_borrow(|model| model.command_open)
+            {
+                consumed = false;
+            }
+            if repaint {
+                state.request_frame();
+            }
+            if consumed {
+                if matches!(
+                    event,
+                    WindowEvent::MouseInput {
+                        state: ElementState::Released,
+                        ..
+                    }
+                ) {
+                    self.input.cancel();
+                    state.cancel_gesture();
+                }
+                self.request_if_needed();
+                return;
+            }
+        }
         let changed = match event {
             WindowEvent::CloseRequested => {
                 event_loop.exit();
@@ -232,12 +232,23 @@ impl ApplicationHandler<Msg> for App {
                 if page_hidden() || desired_canvas_size().is_none() {
                     return;
                 }
-                if let Some((w, h)) = desired_canvas_size()
-                    && (w, h) != (state.gpu.config.width, state.gpu.config.height)
-                {
-                    state.resize(w, h);
+                // A size the targets may not follow yet holds the frame with it: `needs_frame`
+                // asks again next frame, and the last picture stays stretched until then.
+                let held = match desired_canvas_size() {
+                    Some((w, h)) if (w, h) != (state.gpu.config.width, state.gpu.config.height) => {
+                        !state.resize(w, h)
+                    }
+                    _ => false,
+                };
+                if held {
+                    state.needs_frame = true;
+                } else {
+                    let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state));
+                    state.render();
+                    if repaint {
+                        state.request_frame();
+                    }
                 }
-                state.render();
                 false
             }
             WindowEvent::Resized(_) => true,
@@ -314,6 +325,10 @@ pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
         && document.get_element_by_id("text-quality-canvas").is_some()
     {
         return Ok(());
+    }
+    // The page a device loss reloaded into draws reduced from its first frame and says why.
+    if let Some(notice) = app::route::adopt_recovery() {
+        app::feedback::status(notice);
     }
     if let Err(error) = App::run() {
         app::feedback::error(&format!("Cannot start the viewer: {error}"));

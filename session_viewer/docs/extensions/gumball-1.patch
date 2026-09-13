@@ -1,0 +1,1241 @@
+diff --git a/src/app/gizmo.rs b/src/app/gizmo.rs
+--- a/src/app/gizmo.rs
++++ b/src/app/gizmo.rs
+@@ -16,7 +16,7 @@
+ use session_rust::{Point, Vector};
+ 
+ /// The one length everything else is a fraction of, in CSS pixels.
+-pub const ARM: f64 = 72.0;
++pub const ARM: f64 = 96.0;
+ /// Axis scale balls, on the same side as the arrows so pulling out always grows.
+ pub const BALL_AT: f64 = ARM * 0.5;
+ /// Grab radius. Wider than the 6 px pick radius because a handle is grabbed, not aimed at.
+@@ -112,7 +112,11 @@
+ 
+ impl Gizmo {
+     pub fn new(origin: Point) -> Self {
+-        Self { origin, hovered: None, drag: None }
++        Self {
++            origin,
++            hovered: None,
++            drag: None,
++        }
+     }
+ 
+     /// Move the widget and forget any interaction: a new selection is not a continued drag.
+@@ -184,20 +188,36 @@
+             Handle::Rotate(axis) => Drag {
+                 handle,
+                 grabbed: self.origin.clone(),
+-                angle: angle_in_plane(&plane_hit(from, dir, &self.origin, &axis.unit())?, &self.origin, axis),
++                angle: angle_in_plane(
++                    &plane_hit(from, dir, &self.origin, &axis.unit())?,
++                    &self.origin,
++                    axis,
++                ),
+                 reach: 1.0,
+                 plane: axis.unit(),
+             },
+             Handle::Scale(axis) => {
+                 let p = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
+                 let reach = dot(&sub(&p, &self.origin), &axis.unit());
+-                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: axis.unit() }
++                Drag {
++                    handle,
++                    grabbed: p,
++                    angle: 0.0,
++                    reach: nonzero(reach),
++                    plane: axis.unit(),
++                }
+             }
+             Handle::ScaleUniform => {
+                 let normal = facing(dir);
+                 let p = plane_hit(from, dir, &self.origin, &normal)?;
+                 let reach = length(&sub(&p, &self.origin));
+-                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: normal }
++                Drag {
++                    handle,
++                    grabbed: p,
++                    angle: 0.0,
++                    reach: nonzero(reach),
++                    plane: normal,
++                }
+             }
+         };
+         self.drag = Some(drag.clone());
+@@ -294,7 +314,11 @@
+ }
+ 
+ fn nonzero(v: f64) -> f64 {
+-    if v.abs() < 1e-9 { 1e-9_f64.copysign(if v < 0.0 { -1.0 } else { 1.0 }) } else { v }
++    if v.abs() < 1e-9 {
++        1e-9_f64.copysign(if v < 0.0 { -1.0 } else { 1.0 })
++    } else {
++        v
++    }
+ }
+ 
+ /// The world axis a ray runs most along: the plane to measure a uniform scale in, chosen so the
+@@ -461,7 +485,11 @@
+         let (f, d) = down(-r, -r);
+         assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Rotate(Axis::Z)));
+         let (f, d) = down(ARM, 0.0);
+-        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Translate(Axis::X)), "the arm tip is not an arc");
++        assert_eq!(
++            g.hit(&f, &d, SCALE),
++            Some(Handle::Translate(Axis::X)),
++            "the arm tip is not an arc"
++        );
+         let (f, d) = down(ARM * 3.0, ARM * 3.0);
+         assert_eq!(g.hit(&f, &d, SCALE), None);
+     }
+@@ -498,7 +526,9 @@
+     fn a_translate_drag_moves_along_its_axis_only() {
+         let mut g = at_origin();
+         let (f0, d0) = down(30.0, 0.0);
+-        let drag = g.begin(Handle::Translate(Axis::X), &f0, &d0).expect("grabbed");
++        let drag = g
++            .begin(Handle::Translate(Axis::X), &f0, &d0)
++            .expect("grabbed");
+         let (f1, d1) = down(42.0, 0.0);
+         let m = g.update(&drag, &f1, &d1).expect("a transform");
+         assert!((m[12] - 12.0).abs() < 1e-9);
+@@ -540,7 +570,10 @@
+ 
+         let (f1, d1) = down(BALL_AT * 4.0, 0.0);
+         let grown = g.update(&drag, &f1, &d1).expect("a transform");
+-        assert!(grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0, "one axis only");
++        assert!(
++            grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0,
++            "one axis only"
++        );
+ 
+         let (f2, d2) = down(-BALL_AT * 4.0, 0.0);
+         let flipped = g.update(&drag, &f2, &d2).expect("a transform");
+diff --git a/src/app/input.rs b/src/app/input.rs
+--- a/src/app/input.rs
++++ b/src/app/input.rs
+@@ -162,7 +162,7 @@
+                     }
+                 }
+                 self.last_cursor = (position.x, position.y);
+-                dragging
++                dragging || state.hover_gizmo(position.x, position.y)
+             }
+             WindowEvent::MouseWheel { delta, .. } => {
+                 let amount = match delta {
+@@ -233,11 +233,11 @@
+     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
+         match btn {
+             ElementState::Pressed => {
+-                if state.begin_control_drag(self.last_cursor.0, self.last_cursor.1) {
++                if !self.ctrl && state.begin_control_drag(self.last_cursor.0, self.last_cursor.1) {
+                     self.control_drag = true;
+                     return false;
+                 }
+-                if state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
++                if !self.ctrl && state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
+                     self.gizmo_drag = true;
+                     return false;
+                 }
+@@ -396,8 +396,8 @@
+         proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
+     ) -> Result<Self, wasm_bindgen::JsValue> {
+         use wasm_bindgen::JsCast;
+-        let callback =
+-            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
++        let callback = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
++            move |event: web_sys::Event| {
+                 let Some(target) = event.target() else { return };
+                 let Ok(element) = target.dyn_into::<web_sys::Element>() else {
+                     return;
+@@ -409,7 +409,8 @@
+                 // with it - including the `L` that closes the panel being clicked.
+                 crate::app::feedback::focus_canvas();
+                 let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
+-            });
++            },
++        );
+         panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;
+         Ok(Self { panel, callback })
+     }
+diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
+--- a/src/engine/gpu/mod.rs
++++ b/src/engine/gpu/mod.rs
+@@ -26,6 +26,8 @@
+ mod triangle_tiles;
+ pub mod upload;
+ pub mod view;
++mod widget;
++mod widget_mesh;
+ 
+ use crate::engine::performance::Performance;
+ use crate::engine::pipelines::{Layouts, Target};
+@@ -71,11 +73,8 @@
+     pub glyphs: GlyphLane,
+     pub controls: GlyphLane,
+     pub control_net: SegmentLane,
+-    /// The move/rotate/scale widget, drawn by the same two lane types the control net uses:
+-    /// three arms and their balls are strokes and markers, so the widget costs no shader and
+-    /// no pipeline of its own.
+-    pub gizmo_arms: SegmentLane,
+-    pub gizmo_dots: GlyphLane,
++    /// A fixed mesh with independent depth for overlapping manipulation handles.
++    pub widget: widget::Widget,
+     pub text: text::TextLane,
+     pub selection_outline: surface_outline::SurfaceOutline,
+     pub solid_outline: surface_outline::SurfaceOutline,
+@@ -108,8 +107,7 @@
+             + self.glyphs.allocated_bytes()
+             + self.controls.allocated_bytes()
+             + self.control_net.allocated_bytes()
+-            + self.gizmo_arms.allocated_bytes()
+-            + self.gizmo_dots.allocated_bytes()
++            + self.widget.allocated_bytes().0
+             + self.cloud.allocated_bytes()
+             + self.objects.allocated_bytes()
+             + self.frame.allocated_bytes()
+@@ -129,6 +127,7 @@
+         (
+             buffers,
+             frame_textures
++                + self.widget.allocated_bytes().1
+                 + self.arena.tiles.allocated_bytes().1
+                 + splat_textures
+                 + pick_textures
+@@ -185,8 +184,7 @@
+         let glyphs = GlyphLane::new(&ctx, &layouts, target);
+         let controls = GlyphLane::new(&ctx, &layouts, target);
+         let control_net = SegmentLane::new(&ctx, &layouts, target);
+-        let gizmo_arms = SegmentLane::new(&ctx, &layouts, target);
+-        let gizmo_dots = GlyphLane::new(&ctx, &layouts, target);
++        let widget = widget::Widget::new(&ctx, target);
+         let text = text::TextLane::new(&ctx, target);
+         let selection_outline = surface_outline::SurfaceOutline::new(
+             &ctx,
+@@ -222,8 +220,7 @@
+             glyphs,
+             controls,
+             control_net,
+-            gizmo_arms,
+-            gizmo_dots,
++            widget,
+             text,
+             selection_outline,
+             solid_outline,
+@@ -267,21 +264,6 @@
+         self.rebind_ink();
+     }
+ 
+-    /// Fill the widget's two lanes, replacing whatever they held.
+-    ///
+-    /// The rows are built by the caller, which knows the camera; this owns the two lanes and
+-    /// the borrow of the device, so the widget's drawing is one call rather than four.
+-    pub fn set_widget_rows(
+-        &mut self,
+-        segments: &segments::SegRows,
+-        glyphs: &glyphs::GlyphRows,
+-    ) {
+-        self.gizmo_arms.reset();
+-        self.gizmo_dots.reset();
+-        self.gizmo_arms.append(&self.ctx, &self.layouts, segments);
+-        self.gizmo_dots.append(&self.ctx, &self.layouts, glyphs);
+-    }
+-
+     /// Grow the scene's bounds by a row that moved.
+     ///
+     /// `bounds` is the union every reader frames against - `fit`, and the far plane through
+@@ -293,19 +275,6 @@
+         if let Some(box_) = self.objects.row_bounds(row) {
+             self.bounds.union(&box_);
+         }
+-    }
+-
+-    /// The identity row the widgets draw against, minting it the first time.
+-    ///
+-    /// Minting it can grow the instance buffers, and group 2 for INK binds those same buffers,
+-    /// so the rebind happens here rather than at the call site: the gizmo lanes are ink lanes,
+-    /// and a caller that forgot would have them draw against a buffer nobody owns.
+-    pub fn widget_row(&mut self) -> u32 {
+-        let (row, grew) = self.objects.widget_row(&self.ctx, &self.layouts);
+-        if grew {
+-            self.rebind_ink();
+-        }
+-        row
+     }
+ 
+     /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
+@@ -351,8 +320,7 @@
+             self.glyphs.retarget(&self.ctx, &self.layouts, target);
+             self.controls.retarget(&self.ctx, &self.layouts, target);
+             self.control_net.retarget(&self.ctx, &self.layouts, target);
+-            self.gizmo_arms.retarget(&self.ctx, &self.layouts, target);
+-            self.gizmo_dots.retarget(&self.ctx, &self.layouts, target);
++            self.widget.retarget(&self.ctx, target);
+             self.text.retarget(&self.ctx, target);
+             self.selection_outline.retarget(&self.ctx, target);
+             self.solid_outline.retarget(&self.ctx, target);
+@@ -418,8 +386,7 @@
+         self.glyphs.reset();
+         self.controls.reset();
+         self.control_net.reset();
+-        self.gizmo_arms.reset();
+-        self.gizmo_dots.reset();
++        self.widget.clear();
+         self.text.reset();
+         self.selection_outline.reset();
+         self.solid_outline.reset();
+@@ -438,8 +405,7 @@
+         self.glyphs.release(&self.ctx, &self.layouts);
+         self.controls.release(&self.ctx, &self.layouts);
+         self.control_net.release(&self.ctx, &self.layouts);
+-        self.gizmo_arms.release(&self.ctx, &self.layouts);
+-        self.gizmo_dots.release(&self.ctx, &self.layouts);
++        self.widget.clear();
+         self.text.release(&self.ctx);
+         self.selection_outline.reset();
+         self.solid_outline.reset();
+diff --git a/src/engine/gpu/present.rs b/src/engine/gpu/present.rs
+--- a/src/engine/gpu/present.rs
++++ b/src/engine/gpu/present.rs
+@@ -18,6 +18,13 @@
+             pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
+         };
+         self.frame.write(&self.ctx, input, &cx);
++        self.widget.prepare(
++            &self.ctx,
++            &input.view_proj,
++            self.objects.anchor(),
++            self.frame.eye,
++            size,
++        );
+         self.objects
+             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
+         let frame = super::text::TextFrame {
+diff --git a/src/engine/gpu/render.rs b/src/engine/gpu/render.rs
+--- a/src/engine/gpu/render.rs
++++ b/src/engine/gpu/render.rs
+@@ -126,6 +126,7 @@
+         if let Some(at) = self.pick.take_pending() {
+             self.id_pass(encoder, Some(at));
+         }
++        draws += self.widget.draw(encoder, view, &self.targets);
+         (draws, self.objects.len())
+     }
+ 
+@@ -194,9 +195,7 @@
+         }
+         draws += self.control_net.draw_ribbons(pass, &b);
+         draws += self.controls.draw_dots(pass, &b);
+-        // Last of the ink list, so the widget is drawn over the object it moves.
+-        draws += self.gizmo_arms.draw_ribbons(pass, &b);
+-        draws += self.gizmo_dots.draw_dots(pass, &b);
++
+         draws += self.text.draw(pass);
+         draws
+     }
+diff --git a/src/engine/gpu/widget.rs b/src/engine/gpu/widget.rs
+new file mode 100644
+--- /dev/null
++++ b/src/engine/gpu/widget.rs
+@@ -0,0 +1,381 @@
++use super::buffers::{GpuCtx, bind_group, uniform_buffer};
++use super::targets::{Attachment, Targets, TextureSpec};
++use super::widget_mesh;
++use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
++use session_rust::Xform;
++use wgpu::util::DeviceExt;
++
++pub struct Widget {
++    vertices: wgpu::Buffer,
++    count: u32,
++    uniform: wgpu::Buffer,
++    group: wgpu::BindGroup,
++    layout: wgpu::BindGroupLayout,
++    pipeline: wgpu::RenderPipeline,
++    tile: Option<Tile>,
++    composite: wgpu::RenderPipeline,
++    format: wgpu::TextureFormat,
++    texture_layout: wgpu::BindGroupLayout,
++    visible: bool,
++    pub placement: Option<([f64; 3], f64)>,
++    pub active: f32,
++}
++
++impl Widget {
++    pub fn new(ctx: &GpuCtx, target: Target) -> Self {
++        let mesh = widget_mesh::vertices();
++        let vertices = ctx
++            .device
++            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
++                label: Some("widget mesh"),
++                contents: bytemuck::cast_slice(&mesh),
++                usage: wgpu::BufferUsages::VERTEX,
++            });
++        let layout = ctx
++            .device
++            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++                label: Some("widget uniform"),
++                entries: &[wgpu::BindGroupLayoutEntry {
++                    binding: 0,
++                    visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
++                    ty: wgpu::BindingType::Buffer {
++                        ty: wgpu::BufferBindingType::Uniform,
++                        has_dynamic_offset: false,
++                        min_binding_size: wgpu::BufferSize::new(96),
++                    },
++                    count: None,
++                }],
++            });
++        let uniform = uniform_buffer(&ctx.device, "widget placement", &[0.0_f32; 24]);
++        let group = bind_group(ctx, &layout, "widget", &[&uniform]);
++        let texture_layout = texture_layout(ctx);
++        let pipeline = pipeline(ctx, &layout, MESH_TARGET);
++        let composite = composite_pipeline(ctx, &layout, &texture_layout, target.format);
++        Self {
++            vertices,
++            count: mesh.len() as u32,
++            uniform,
++            group,
++            layout,
++            pipeline,
++            tile: None,
++            composite,
++            format: target.format,
++            texture_layout,
++            visible: false,
++            placement: None,
++            active: -1.0,
++        }
++    }
++
++    pub fn clear(&mut self) {
++        self.placement = None;
++        self.tile = None;
++        self.visible = false;
++        self.active = -1.0;
++    }
++
++    pub fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
++        if self.format != target.format {
++            self.composite =
++                composite_pipeline(ctx, &self.layout, &self.texture_layout, target.format);
++            self.format = target.format;
++        }
++    }
++
++    pub fn allocated_bytes(&self) -> (u64, u64) {
++        let textures = self.tile.as_ref().map_or(0, |tile| {
++            u64::from(tile.size.0) * u64::from(tile.size.1) * 36
++        });
++        (self.vertices.size() + self.uniform.size(), textures)
++    }
++
++    pub fn prepare(
++        &mut self,
++        ctx: &GpuCtx,
++        mvp: &Xform,
++        anchor: [f64; 3],
++        _eye: [f32; 3],
++        size: (u32, u32),
++    ) {
++        self.visible = false;
++        let Some((origin, scale)) = self.placement else {
++            return;
++        };
++        let position = std::array::from_fn::<_, 3, _>(|i| origin[i] - anchor[i]);
++        let model = &Xform::translation(position[0], position[1], position[2])
++            * &Xform::scale_xyz(scale, scale, scale);
++        let matrix = mvp * &model;
++        let Some(rect) = bounds(&matrix.m, size) else {
++            return;
++        };
++        let extent = ((rect[2] * 2.0).ceil() as u32, (rect[3] * 2.0).ceil() as u32);
++        let extent = (
++            extent.0.div_ceil(64).clamp(1, 16) * 64,
++            extent.1.div_ceil(64).clamp(1, 16) * 64,
++        );
++        if self.tile.as_ref().is_none_or(|tile| tile.size != extent) {
++            self.tile = None;
++            self.tile = Some(Tile::new(ctx, &self.texture_layout, extent));
++        }
++        let mut uniform = [0.0_f32; 24];
++        let [x, y, width, height] = rect;
++        let sx = size.0 as f64 / width;
++        let sy = size.1 as f64 / height;
++        let tx = (size.0 as f64 - 2.0 * x - width) / width;
++        let ty = (2.0 * y + height - size.1 as f64) / height;
++        for column in 0..4 {
++            let at = column * 4;
++            uniform[at] = (sx * matrix.m[at] + tx * matrix.m[at + 3]) as f32;
++            uniform[at + 1] = (sy * matrix.m[at + 1] + ty * matrix.m[at + 3]) as f32;
++            uniform[at + 2] = matrix.m[at + 2] as f32;
++            uniform[at + 3] = matrix.m[at + 3] as f32;
++        }
++        uniform[16] = (2.0 * x / size.0 as f64 - 1.0) as f32;
++        uniform[17] = (1.0 - 2.0 * y / size.1 as f64) as f32;
++        uniform[18] = (2.0 * width / size.0 as f64) as f32;
++        uniform[19] = (-2.0 * height / size.1 as f64) as f32;
++        uniform[20] = self.active;
++        ctx.queue
++            .write_buffer(&self.uniform, 0, bytemuck::bytes_of(&uniform));
++        self.visible = true;
++    }
++
++    pub fn draw(
++        &self,
++        encoder: &mut wgpu::CommandEncoder,
++        view: &wgpu::TextureView,
++        _targets: &Targets,
++    ) -> u32 {
++        let Some(tile) = self.tile.as_ref().filter(|_| self.visible) else {
++            return 0;
++        };
++        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
++            label: Some("widget overlay"),
++            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
++                view: &tile.color,
++                resolve_target: Some(&tile.resolved),
++                depth_slice: None,
++                ops: wgpu::Operations {
++                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
++                    store: wgpu::StoreOp::Store,
++                },
++            })],
++            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
++                view: &tile.depth,
++                depth_ops: Some(wgpu::Operations {
++                    load: wgpu::LoadOp::Clear(0.0),
++                    store: wgpu::StoreOp::Discard,
++                }),
++                stencil_ops: None,
++            }),
++            ..Default::default()
++        });
++        pass.set_pipeline(&self.pipeline);
++        pass.set_bind_group(0, &self.group, &[]);
++        pass.set_vertex_buffer(0, self.vertices.slice(..));
++        pass.draw(0..self.count, 0..1);
++        drop(pass);
++        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
++            label: Some("widget composite"),
++            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
++                view,
++                resolve_target: None,
++                depth_slice: None,
++                ops: wgpu::Operations {
++                    load: wgpu::LoadOp::Load,
++                    store: wgpu::StoreOp::Store,
++                },
++            })],
++            ..Default::default()
++        });
++        pass.set_pipeline(&self.composite);
++        pass.set_bind_group(0, &self.group, &[]);
++        pass.set_bind_group(1, &tile.group, &[]);
++        pass.draw(0..6, 0..1);
++        2
++    }
++}
++
++impl Drop for Widget {
++    fn drop(&mut self) {
++        self.vertices.destroy();
++        self.uniform.destroy();
++    }
++}
++
++fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgpu::RenderPipeline {
++    let shader = module(
++        &ctx.device,
++        "widget",
++        include_str!("../../shaders/widget.wgsl"),
++    );
++    let vertex = wgpu::VertexBufferLayout {
++        array_stride: std::mem::size_of::<widget_mesh::Vertex>() as u64,
++        step_mode: wgpu::VertexStepMode::Vertex,
++        attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Uint32, 2 => Uint32],
++    };
++    build(
++        &ctx.device,
++        target,
++        &PipelineDesc::new(
++            &shader,
++            &[layout],
++            &[vertex],
++            wgpu::PrimitiveTopology::TriangleList,
++        ),
++    )
++}
++
++const MESH_TARGET: Target = Target {
++    format: wgpu::TextureFormat::Rgba8Unorm,
++    samples: 4,
++};
++
++struct Tile {
++    size: (u32, u32),
++    color: Attachment,
++    depth: Attachment,
++    resolved: Attachment,
++    group: wgpu::BindGroup,
++}
++
++impl Tile {
++    fn new(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, size: (u32, u32)) -> Self {
++        let attachment = |label, format, samples, usage| {
++            Attachment::new(
++                ctx,
++                label,
++                &TextureSpec {
++                    size,
++                    format,
++                    samples,
++                    usage,
++                },
++            )
++        };
++        let color = attachment(
++            "widget color",
++            MESH_TARGET.format,
++            4,
++            wgpu::TextureUsages::RENDER_ATTACHMENT,
++        );
++        let depth = attachment(
++            "widget depth",
++            wgpu::TextureFormat::Depth32Float,
++            4,
++            wgpu::TextureUsages::RENDER_ATTACHMENT,
++        );
++        let resolved = attachment(
++            "widget resolved",
++            MESH_TARGET.format,
++            1,
++            wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
++        );
++        let sampler = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
++            mag_filter: wgpu::FilterMode::Linear,
++            min_filter: wgpu::FilterMode::Linear,
++            ..Default::default()
++        });
++        let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
++            label: Some("widget image"),
++            layout,
++            entries: &[
++                wgpu::BindGroupEntry {
++                    binding: 0,
++                    resource: wgpu::BindingResource::TextureView(&resolved),
++                },
++                wgpu::BindGroupEntry {
++                    binding: 1,
++                    resource: wgpu::BindingResource::Sampler(&sampler),
++                },
++            ],
++        });
++        Self {
++            size,
++            color,
++            depth,
++            resolved,
++            group,
++        }
++    }
++}
++
++fn texture_layout(ctx: &GpuCtx) -> wgpu::BindGroupLayout {
++    ctx.device
++        .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++            label: Some("widget image"),
++            entries: &[
++                wgpu::BindGroupLayoutEntry {
++                    binding: 0,
++                    visibility: wgpu::ShaderStages::FRAGMENT,
++                    count: None,
++                    ty: wgpu::BindingType::Texture {
++                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
++                        view_dimension: wgpu::TextureViewDimension::D2,
++                        multisampled: false,
++                    },
++                },
++                wgpu::BindGroupLayoutEntry {
++                    binding: 1,
++                    visibility: wgpu::ShaderStages::FRAGMENT,
++                    count: None,
++                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
++                },
++            ],
++        })
++}
++
++fn composite_pipeline(
++    ctx: &GpuCtx,
++    layout: &wgpu::BindGroupLayout,
++    texture: &wgpu::BindGroupLayout,
++    format: wgpu::TextureFormat,
++) -> wgpu::RenderPipeline {
++    let shader = module(
++        &ctx.device,
++        "widget composite",
++        include_str!("../../shaders/widget.wgsl"),
++    );
++    let groups = [layout, texture];
++    let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
++        .vertex("vs_composite")
++        .with("widget composite", "fs_composite")
++        .depth(DepthMode::Detached)
++        .color(ColorWrite::Blended);
++    build(&ctx.device, Target { format, samples: 1 }, &desc)
++}
++
++fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
++    let radius = crate::app::gizmo::ARM + 2.0;
++    let mut min = [f64::INFINITY; 2];
++    let mut max = [f64::NEG_INFINITY; 2];
++    for corner in 0..8 {
++        let p = std::array::from_fn::<_, 3, _>(|i| {
++            if corner & (1 << i) == 0 {
++                -radius
++            } else {
++                radius
++            }
++        });
++        let c = std::array::from_fn::<_, 4, _>(|i| {
++            m[i] * p[0] + m[4 + i] * p[1] + m[8 + i] * p[2] + m[12 + i]
++        });
++        if c[3] <= 0.0 {
++            return None;
++        }
++        let screen = [
++            (c[0] / c[3] * 0.5 + 0.5) * size.0 as f64,
++            (0.5 - c[1] / c[3] * 0.5) * size.1 as f64,
++        ];
++        for i in 0..2 {
++            min[i] = min[i].min(screen[i]);
++            max[i] = max[i].max(screen[i]);
++        }
++    }
++    let x = (min[0] - 2.0).floor().max(0.0);
++    let y = (min[1] - 2.0).floor().max(0.0);
++    let width = (max[0] + 2.0).ceil().min(size.0 as f64) - x;
++    let height = (max[1] + 2.0).ceil().min(size.1 as f64) - y;
++    (width > 0.0 && height > 0.0).then_some([x, y, width, height])
++}
+diff --git a/src/engine/gpu/widget_mesh.rs b/src/engine/gpu/widget_mesh.rs
+new file mode 100644
+--- /dev/null
++++ b/src/engine/gpu/widget_mesh.rs
+@@ -0,0 +1,117 @@
++use crate::app::gizmo::{ARM, BALL_AT, HUB};
++use std::f32::consts::{FRAC_PI_2, PI, TAU};
++
++#[repr(C)]
++#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
++pub struct Vertex {
++    position: [f32; 3],
++    color: u32,
++    handle: u32,
++}
++
++const COLORS: [u32; 3] = [0xff2424e8, 0xff30b820, 0xffef6628];
++const SIDES: usize = 24;
++const SHAFT: f32 = 2.2;
++const TIP: f32 = 14.0;
++
++/// One immutable mesh in CSS-pixel units, with ten independently highlighted handles.
++pub fn vertices() -> Vec<Vertex> {
++    let mut out = Vec::with_capacity(18_576);
++    for (axis, color) in COLORS.into_iter().enumerate() {
++        let arm = ARM as f32;
++        let shaft = [(HUB as f32, SHAFT), (arm - TIP, SHAFT)];
++        lathe(&mut out, axis, color, axis as u32, &shaft);
++        let cone = [(arm - TIP, 0.0), (arm - TIP, 5.5), (arm, 0.0)];
++        lathe(&mut out, axis, color, axis as u32, &cone);
++        sphere(&mut out, axis, BALL_AT as f32, 5.0, color, axis as u32 + 6);
++        surface(&mut out, 48, 12, color, axis as u32 + 3, |s, t| {
++            let angle = s * FRAC_PI_2;
++            let tube = t * TAU;
++            let radius = arm + 1.8 * tube.cos();
++            let position = [
++                1.8 * tube.sin(),
++                -angle.cos() * radius,
++                -angle.sin() * radius,
++            ];
++            orient(position, axis)
++        });
++    }
++    sphere(&mut out, 0, 0.0, HUB as f32, 0xffd8d8d8, 9);
++    out
++}
++
++fn orient(p: [f32; 3], axis: usize) -> [f32; 3] {
++    match axis {
++        0 => p,
++        1 => [p[2], p[0], p[1]],
++        _ => [p[1], p[2], p[0]],
++    }
++}
++
++fn lathe(out: &mut Vec<Vertex>, axis: usize, color: u32, handle: u32, profile: &[(f32, f32)]) {
++    for pair in profile.windows(2) {
++        let [(x0, r0), (x1, r1)] = [pair[0], pair[1]];
++        surface(out, 1, SIDES, color, handle, |s, t| {
++            let (sin, cos) = (t * TAU).sin_cos();
++            let r = r0 + (r1 - r0) * s;
++            let position = [x0 + (x1 - x0) * s, r * cos, r * sin];
++            orient(position, axis)
++        });
++    }
++}
++
++fn sphere(out: &mut Vec<Vertex>, axis: usize, at: f32, radius: f32, color: u32, handle: u32) {
++    surface(out, 12, SIDES, color, handle, |s, t| {
++        let (sin, cos) = (s * PI).sin_cos();
++        let (v, u) = (t * TAU).sin_cos();
++        let position = [at + radius * cos, radius * sin * u, radius * sin * v];
++        orient(position, axis)
++    });
++}
++
++fn surface(
++    out: &mut Vec<Vertex>,
++    rows: usize,
++    columns: usize,
++    color: u32,
++    handle: u32,
++    sample: impl Fn(f32, f32) -> [f32; 3],
++) {
++    for row in 0..rows {
++        for column in 0..columns {
++            for (i, j) in [(0, 0), (1, 0), (1, 1), (0, 0), (1, 1), (0, 1)] {
++                let position = sample(
++                    (row + i) as f32 / rows as f32,
++                    (column + j) as f32 / columns as f32,
++                );
++                out.push(Vertex {
++                    position,
++                    color,
++                    handle,
++                });
++            }
++        }
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn mesh_is_bounded_finite_and_covers_all_handles() {
++        let mesh = vertices();
++        assert!(mesh.len() < 20_000);
++        let mut handles = [false; 10];
++        for vertex in mesh {
++            handles[vertex.handle as usize] = true;
++            assert!(
++                vertex
++                    .position
++                    .iter()
++                    .all(|v| v.is_finite() && v.abs() <= ARM as f32 + 2.0)
++            );
++        }
++        assert!(handles.into_iter().all(|v| v));
++    }
++}
+diff --git a/src/shaders/widget.wgsl b/src/shaders/widget.wgsl
+new file mode 100644
+--- /dev/null
++++ b/src/shaders/widget.wgsl
+@@ -0,0 +1,47 @@
++struct Widget {
++    mvp: mat4x4<f32>,
++    rect: vec4<f32>,
++    settings: vec4<f32>,
++};
++@group(0) @binding(0) var<uniform> widget: Widget;
++@group(1) @binding(0) var picture: texture_2d<f32>;
++@group(1) @binding(1) var picture_sampler: sampler;
++
++struct Varying {
++    @builtin(position) position: vec4<f32>,
++    @location(0) color: vec3<f32>,
++};
++@vertex
++fn vs_main(@location(0) position: vec3<f32>, @location(1) color: u32,
++           @location(2) handle: u32) -> Varying {
++    var out: Varying;
++    out.position = widget.mvp * vec4<f32>(position, 1.0);
++    out.color = unpack4x8unorm(color).rgb;
++    if f32(handle) == widget.settings.x {
++        out.color = vec3<f32>(0.95, 0.65, 0.08);
++    }
++    return out;
++}
++@fragment
++fn fs_main(in: Varying) -> @location(0) vec4<f32> {
++    return vec4<f32>(in.color, 1.0);
++}
++
++struct Composite {
++    @builtin(position) position: vec4<f32>,
++    @location(0) uv: vec2<f32>,
++};
++@vertex
++fn vs_composite(@builtin(vertex_index) index: u32) -> Composite {
++    let corners = array<vec2<f32>, 6>(vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
++                                     vec2(0., 0.), vec2(1., 1.), vec2(0., 1.));
++    var out: Composite;
++    out.uv = corners[index];
++    out.position = vec4<f32>(widget.rect.xy + out.uv * widget.rect.zw, 0., 1.);
++    return out;
++}
++@fragment
++fn fs_composite(in: Composite) -> @location(0) vec4<f32> {
++    let pixel = textureSample(picture, picture_sampler, in.uv);
++    return vec4<f32>(pixel.rgb / max(pixel.a, 0.00001), pixel.a);
++}
+diff --git a/src/state.rs b/src/state.rs
+--- a/src/state.rs
++++ b/src/state.rs
+@@ -425,6 +425,7 @@
+     /// back is applied first, so the same frame presents its highlight; a pick requested on
+     /// a still scene runs alone, with no colour frame to wait behind.
+     pub fn render(&mut self) {
++        self.upload_gizmo();
+         let logical = self.logical_size();
+         if logical != self.gpu.logical_size {
+             self.gpu.logical_size = logical;
+diff --git a/src/state/edit.rs b/src/state/edit.rs
+--- a/src/state/edit.rs
++++ b/src/state/edit.rs
+@@ -10,14 +10,10 @@
+ 
+ use crate::app::command::Command;
+ use crate::app::cplane::CPlane;
++use crate::app::gizmo::{Axis, Drag, Gizmo, Handle};
++use crate::app::layers::{self, Layer};
+ use crate::app::selection::ControlId;
+ use crate::app::snap::{self, Snap, SnapKind};
+-use crate::app::layers::{self, Layer};
+-use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, HUB, Handle};
+-use crate::app::walk::encode::FACING_UNKNOWN;
+-use crate::state::render_position;
+-use crate::engine::gpu::glyphs::{GlyphPoint, GlyphRows};
+-use crate::engine::gpu::segments::{CylinderSegment, SegRows};
+ use crate::state::{SelectionMode, State};
+ use session_rust::{Point, Vector, Xform};
+ 
+@@ -229,6 +225,18 @@
+     /// is multiplied back up by the physical-per-CSS ratio. Without that the widget is half
+     /// size on a 2x display - drawn half size, and grabbable only within half the radius.
+     fn world_per_px(&self) -> f64 {
++        if let Some(gizmo) = self.gizmo.as_ref() {
++            let anchor = self.camera.origin();
++            let m = self.camera.view_proj_anchored(self.aspect(), &anchor).m;
++            let p = [
++                gizmo.origin[0] - anchor[0],
++                gizmo.origin[1] - anchor[1],
++                gizmo.origin[2] - anchor[2],
++            ];
++            let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
++            let vertical = (m[1] * m[1] + m[5] * m[5] + m[9] * m[9]).sqrt();
++            return 2.0 * w.abs() / (vertical * self.logical_size()[1]).max(1e-12);
++        }
+         world_per_css_px(
+             self.camera.distance_world(),
+             self.viewport().1,
+@@ -268,137 +276,47 @@
+     per_physical * physical_per_css
+ }
+ 
+-/// Segments in a rotation arc's quarter circle. Twelve is under half a degree of chord error
+-/// at the arm's radius, which is below the pen width that draws it.
+-const ARC_STEPS: u32 = 12;
+-
+-/// The two axes a rotation arc about `axis` is drawn in, in the same order `Axis::others`
+-/// gives them, so the drawn arc and the hit-tested one are the same quarter.
+-fn arc_axes(axis: Axis) -> ([f64; 3], [f64; 3]) {
+-    match axis {
+-        Axis::X => ([0.0, 1.0, 0.0], [0.0, 0.0, 1.0]),
+-        Axis::Y => ([0.0, 0.0, 1.0], [1.0, 0.0, 0.0]),
+-        Axis::Z => ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0]),
+-    }
+-}
+-
+-/// The axis balls' radius in CSS pixels, a little larger than a control dot's 3.5 so the two
+-/// are not mistaken for each other.
+-const BALL_PX: f64 = 5.0;
+-
+-/// The three axis colours every CAD tool agrees on, packed the way the lanes read them: low
+-/// byte red, so `0xff2222dd` is red, `0xff22bb22` green and `0xffdd4422` blue.
+-const AXIS_COLORS: [u32; 3] = [0xff2222dd, 0xff22bb22, 0xffdd4422];
+-
+ impl State {
+-    /// Rebuild the widget's rows. Three arms as strokes, three balls and a hub as markers,
+-    /// in the two lanes the control net already uses - so the widget adds no shader, no
+-    /// pipeline and no pass, only rows.
+-    ///
+-    /// The arms are sized in PIXELS, converted to world at the widget's own depth, so the
+-    /// gumball is the same size on screen wherever the camera is.
++    /// Update the fixed mesh placement without rebuilding its vertices.
+     pub fn upload_gizmo(&mut self) {
+         let Some(gizmo) = self.gizmo.as_ref() else {
+-            self.gpu.set_widget_rows(&SegRows::default(), &GlyphRows::default());
++            self.gpu.widget.clear();
+             return;
+         };
+-        let origin = gizmo.origin.clone();
++        self.gpu.widget.placement = Some((
++            [gizmo.origin[0], gizmo.origin[1], gizmo.origin[2]],
++            self.world_per_px(),
++        ));
++        let handle = self
++            .dragging
++            .as_ref()
++            .map(|drag| drag.drag.handle)
++            .or(gizmo.hovered);
++        self.gpu.widget.active = match handle {
++            Some(Handle::Translate(axis)) => axis as u32 as f32,
++            Some(Handle::Rotate(axis)) => axis as u32 as f32 + 3.0,
++            Some(Handle::Scale(axis)) => axis as u32 as f32 + 6.0,
++            Some(Handle::ScaleUniform) => 9.0,
++            None => -1.0,
++        };
++    }
++
++    pub fn hover_gizmo(&mut self, x: f64, y: f64) -> bool {
++        let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
++            return false;
++        };
+         let per_px = self.world_per_px();
+-        // The marker lane reads a negative radius as PHYSICAL pixels; the widget's sizes are in
+-        // CSS pixels, like every other size a person sees.
+-        let scale = self.pixel_scale();
+-        // World coordinates, so the rows draw against the identity row rather than an object's.
+-        let widget = self.gpu.widget_row();
+-        let (segments, glyphs) = widget_rows(&origin, per_px, scale, widget);
+-        self.gpu.set_widget_rows(&segments, &glyphs);
+-    }
+-}
+-
+-/// The widget's rows: three arms and three arcs as strokes, three balls and a hub as markers.
+-///
+-/// A free function of an origin and two scales, so what the gumball would draw can be checked
+-/// without a window, a camera or a device - which is the only reason the thing was ever
+-/// checkable at all on a machine whose browser renders it black.
+-fn widget_rows(
+-    origin: &Point,
+-    per_px: f64,
+-    pixel_scale: f64,
+-    widget: u32,
+-) -> (SegRows, GlyphRows) {
+-    let arm = ARM * per_px;
+-    let ball = BALL_AT * per_px;
+-    let mut segments = SegRows::default();
+-    let mut glyphs = GlyphRows::default();
+-    let stroke = |p0: [f64; 3], p1: [f64; 3], color: u32| CylinderSegment {
+-        p0: render_position(p0),
+-        p1: render_position(p1),
+-        radius: 0.0,
+-        color,
+-        instance_id: widget,
+-        facing: FACING_UNKNOWN,
+-    };
+-    for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
+-        let u = axis.unit();
+-        let at = |d: f64| {
+-            [
+-                origin[0] + u[0] * d,
+-                origin[1] + u[1] * d,
+-                origin[2] + u[2] * d,
+-            ]
+-        };
+-        segments
+-            .ribbons
+-            .push(stroke([origin[0], origin[1], origin[2]], at(arm), AXIS_COLORS[i]));
+-        glyphs.dots.push(GlyphPoint {
+-            center: render_position(at(ball)),
+-            radius: -(BALL_PX * pixel_scale) as f32,
+-            color: unpack_color(AXIS_COLORS[i]),
+-            instance_id: widget,
+-            facing: FACING_UNKNOWN,
+-            facing_ext: [FACING_UNKNOWN; 2],
+-        });
+-    }
+-    // The three rotation arcs, drawn where `Gizmo::hit` tests for them: a quarter circle at the
+-    // arm's radius, in the quadrant both arms avoid. An arc that is hit-tested and not drawn is
+-    // an invisible ring that swallows clicks.
+-    for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
+-        let (u, v) = arc_axes(axis);
+-        let mut previous: Option<[f64; 3]> = None;
+-        for step in 0..=ARC_STEPS {
+-            let t = std::f64::consts::FRAC_PI_2 * f64::from(step) / f64::from(ARC_STEPS);
+-            let (c, d) = (-t.cos() * arm, -t.sin() * arm);
+-            let at = [
+-                origin[0] + u[0] * c + v[0] * d,
+-                origin[1] + u[1] * c + v[1] * d,
+-                origin[2] + u[2] * c + v[2] * d,
+-            ];
+-            if let Some(from) = previous {
+-                segments.ribbons.push(stroke(from, at, AXIS_COLORS[i]));
+-            }
+-            previous = Some(at);
+-        }
+-    }
+-    glyphs.dots.push(GlyphPoint {
+-        center: render_position([origin[0], origin[1], origin[2]]),
+-        radius: -(HUB * pixel_scale) as f32,
+-        color: [1.0, 1.0, 1.0, 1.0],
+-        instance_id: widget,
+-        facing: FACING_UNKNOWN,
+-        facing_ext: [FACING_UNKNOWN; 2],
+-    });
+-    (segments, glyphs)
+-}
+-
+-/// A packed row colour as the four floats a marker wants. LOW byte red: that is what
+-/// `encode::pack_rgba` writes and what `unpack4x8unorm` reads in the stroke shader, so reading
+-/// it the other way round gave the arm and its own ball different colours.
+-fn unpack_color(packed: u32) -> [f32; 4] {
+-    [
+-        (packed & 0xff) as f32 / 255.0,
+-        ((packed >> 8) & 0xff) as f32 / 255.0,
+-        ((packed >> 16) & 0xff) as f32 / 255.0,
+-        ((packed >> 24) & 0xff) as f32 / 255.0,
+-    ]
++        let Some(gizmo) = self.gizmo.as_mut() else {
++            return false;
++        };
++        let hovered = gizmo.hit(&from, &dir, per_px);
++        if gizmo.hovered == hovered {
++            return false;
++        }
++        gizmo.hovered = hovered;
++        self.upload_gizmo();
++        true
++    }
+ }
+ 
+ impl State {
+@@ -690,7 +608,12 @@
+         }
+         // The ranking is in SCREEN space, so the aperture means pixels wherever the camera is.
+         let project = |p: &Point| self.project([p[0], p[1], p[2]]);
+-        match snap::best(&candidates, (x, y), SNAP_APERTURE_PX * self.pixel_scale(), project) {
++        match snap::best(
++            &candidates,
++            (x, y),
++            SNAP_APERTURE_PX * self.pixel_scale(),
++            project,
++        ) {
+             Some(hit) => Some(hit.point),
+             None => Some(free),
+         }
+@@ -723,41 +646,6 @@
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+-
+-    /// What the widget would draw, without a window or a device: the counts, where the arms
+-    /// end, and that every colour is what the lane will read. The gumball could not be seen on
+-    /// the machine it was written on, so this is the check that it is there at all.
+-    #[test]
+-    fn the_widget_draws_three_arms_three_arcs_and_four_balls() {
+-        let origin = Point::new(10.0, 20.0, 30.0);
+-        let (segments, glyphs) = widget_rows(&origin, 2.0, 1.0, 7);
+-
+-        assert_eq!(segments.ribbons.len(), 3 + 3 * ARC_STEPS as usize);
+-        assert_eq!(glyphs.dots.len(), 4);
+-        assert!(
+-            segments.ribbons.iter().all(|r| r.instance_id == 7)
+-                && glyphs.dots.iter().all(|d| d.instance_id == 7),
+-            "every row draws against the identity instance, not an object's"
+-        );
+-
+-        // The X arm runs ARM * per_px along +x from the origin.
+-        let x_arm = &segments.ribbons[0];
+-        assert_eq!(x_arm.p0, [10.0, 20.0, 30.0]);
+-        assert_eq!(x_arm.p1, [10.0 + (ARM * 2.0) as f32, 20.0, 30.0]);
+-
+-        // An arm and its own ball must be the same colour: the stroke lane reads the packed
+-        // word and the marker lane reads floats, and those two agreeing is not automatic.
+-        let unpacked = unpack_color(x_arm.color);
+-        assert_eq!(glyphs.dots[0].color, unpacked);
+-        assert!(
+-            unpacked[0] > 0.8 && unpacked[1] < 0.2 && unpacked[2] < 0.2,
+-            "X is red on both sides, {unpacked:?}"
+-        );
+-        assert_eq!(glyphs.dots[3].color, [1.0, 1.0, 1.0, 1.0], "the hub is white");
+-
+-        // The balls are screen-sized, which the lane reads as a NEGATIVE radius.
+-        assert!(glyphs.dots.iter().all(|d| d.radius < 0.0));
+-    }
+ 
+     /// The gumball, rendered. A headless device draws the same frame twice - once without the
+     /// widget and once with it - and the pixels that changed are the widget.
+@@ -792,10 +680,8 @@
+         };
+         let before = gpu.render_offscreen(&input);
+ 
+-        let widget = gpu.widget_row();
+-        // 72 CSS px of arm at 0.5 world units a pixel: 36 units, well inside a 200-unit view.
+-        let (segments, glyphs) = widget_rows(&Point::new(0.0, 0.0, 0.0), 0.5, 1.0, widget);
+-        gpu.set_widget_rows(&segments, &glyphs);
++        // 96 CSS px at 0.5 world units per pixel fits inside a 200-unit view.
++        gpu.widget.placement = Some(([0.0; 3], 0.5));
+         let after = gpu.render_offscreen(&input);
+ 
+         let (mut red, mut green, mut blue, mut changed) = (0, 0, 0, 0);
+@@ -823,26 +709,6 @@
+         );
+     }
+ 
+-    /// Every arc point is on the circle the hit test looks for, in the quadrant it looks in.
+-    #[test]
+-    fn the_arcs_are_where_the_hit_test_expects_them() {
+-        let origin = Point::new(0.0, 0.0, 0.0);
+-        let per_px = 1.0;
+-        let (segments, _) = widget_rows(&origin, per_px, 1.0, 0);
+-        // The Z arc is the last third; its plane is x/y, and `hit` accepts only the quadrant
+-        // where both in-plane coordinates are negative.
+-        let z_arc = &segments.ribbons[3 + 2 * ARC_STEPS as usize..];
+-        assert_eq!(z_arc.len(), ARC_STEPS as usize);
+-        for segment in z_arc {
+-            for p in [segment.p0, segment.p1] {
+-                let r = (f64::from(p[0]).powi(2) + f64::from(p[1]).powi(2)).sqrt();
+-                assert!((r - ARM * per_px).abs() < 0.5, "on the arm's circle: {r}");
+-                assert!(p[0] <= 1e-3 && p[1] <= 1e-3, "in the quadrant hit() tests: {p:?}");
+-                assert!(p[2].abs() < 1e-6, "in the plane normal to Z");
+-            }
+-        }
+-    }
+-
+     /// The conversion the widget's size depends on. A 2x display has twice the physical pixels
+     /// for the same CSS pixel, so one CSS pixel is twice as much world - and the arm that is
+     /// 72 CSS pixels long stays 72 CSS pixels long.
+@@ -850,7 +716,10 @@
+     fn a_css_pixel_is_worth_more_world_on_a_denser_display() {
+         let one_to_one = world_per_css_px(1000.0, 800.0, 1.0);
+         let retina = world_per_css_px(1000.0, 1600.0, 2.0);
+-        assert!((one_to_one - retina).abs() < 1e-9, "the same CSS pixel, either way");
++        assert!(
++            (one_to_one - retina).abs() < 1e-9,
++            "the same CSS pixel, either way"
++        );
+ 
+         let closer = world_per_css_px(500.0, 800.0, 1.0);
+         assert!(closer < one_to_one, "nearer camera, less world in a pixel");
+@@ -861,6 +730,10 @@
+                 < 1e-9,
+             "the answer scales with the distance, so the distance must be in world units"
+         );
+-        assert_eq!(world_per_css_px(1000.0, 0.0, 1.0), 1.0, "no surface, no answer");
+-    }
+-}
++        assert_eq!(
++            world_per_css_px(1000.0, 0.0, 1.0),
++            1.0,
++            "no surface, no answer"
++        );
++    }
++}

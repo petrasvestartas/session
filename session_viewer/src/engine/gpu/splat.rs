@@ -8,7 +8,7 @@ use super::cloud::{Cloud, LodNode, NO_NORMALS, PointBufs};
 use super::instance::Instance;
 use super::lod::{LodWalk, Projection, radius_factor};
 use super::objects::InstanceTable;
-use super::targets::{TextureSpec, texture_view};
+use super::targets::{Attachment, TextureSpec};
 use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
 use crate::math::{mat_mul_f32, mat_scale};
 use wgpu::PrimitiveTopology::TriangleList;
@@ -80,8 +80,8 @@ struct Key {
 /// Made on the first frame that has points and dropped on resize, so a scene without a
 /// cloud never pays 8 B/px for them.
 struct SplatTargets {
-    depth: wgpu::TextureView,
-    color: wgpu::TextureView,
+    depth: Attachment,
+    color: Attachment,
     size: (u32, u32),
     resolve_group: wgpu::BindGroup,
 }
@@ -90,7 +90,7 @@ impl SplatTargets {
     /// Depth (nearest point per pixel, 0 = empty) and its colour, both bindable.
     fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
-        let depth = texture_view(
+        let depth = Attachment::new(
             ctx,
             "splat.depth",
             &TextureSpec {
@@ -100,7 +100,7 @@ impl SplatTargets {
                 usage,
             },
         );
-        let color = texture_view(
+        let color = Attachment::new(
             ctx,
             "splat.color",
             &TextureSpec {

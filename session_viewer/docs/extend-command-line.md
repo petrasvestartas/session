@@ -1,5 +1,7 @@
 # Adding a command line
 
+Use the [screenshot walkthrough](command-line-walkthrough.md), [geometry-command code lesson](extend-modeling-tutorial.md), and [egui interface lesson](extend-ui-tutorial.md). The design below is historical; the maintained interface uses egui rather than DOM inputs.
+
 !!! note "Built in lesson 21"
     This was the design; `src/app/command.rs` parses and `State::run_command` dispatches, and
     [lesson 21](21-editing.md) teaches them. The parser ended up in `app/`, not `state/`, so

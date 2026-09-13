@@ -18,6 +18,13 @@ impl Gpu {
             pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
         };
         self.frame.write(&self.ctx, input, &cx);
+        self.widget.prepare(
+            &self.ctx,
+            &input.view_proj,
+            self.objects.anchor(),
+            self.frame.eye,
+            size,
+        );
         self.objects
             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
         let frame = super::text::TextFrame {
@@ -158,6 +165,9 @@ impl Gpu {
     /// Capture picking's object IDs against this exact frame's physical surfaces and camera.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn render_ids_offscreen(&mut self, input: &FrameInput) -> Vec<[u32; 2]> {
+        // A pick still pending would draw into window-sized targets inside this same encoder,
+        // and the whole-canvas pass below would destroy them before the submit.
+        self.pick.cancel();
         let size = (self.config.width, self.config.height);
         let texture = texture(
             &self.ctx,

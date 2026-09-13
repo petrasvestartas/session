@@ -96,6 +96,9 @@ impl Scene {
 
     /// Remove one row's object from its document. The rows change, so the caller rebuilds.
     pub fn delete_row(&mut self, row: u32) -> bool {
+        if !self.streamed.is_empty() || !self.sheets.is_empty() {
+            return false;
+        }
         let Some((doc, guid)) = self.writable(row) else {
             return false;
         };
@@ -134,11 +137,7 @@ impl Scene {
             return false;
         };
         let session = Rc::make_mut(&mut file.session);
-        if back {
-            session.undo()
-        } else {
-            session.redo()
-        }
+        if back { session.undo() } else { session.redo() }
     }
 }
 
@@ -150,6 +149,17 @@ impl Scene {
     /// geometry whose control points the kernel cannot set is refused rather than silently
     /// left alone.
     pub fn set_control_point(&mut self, row: u32, index: usize, to: &Point) -> bool {
+        if !self.streamed.is_empty() || !self.sheets.is_empty() {
+            return false;
+        }
+        let Some(back) = self
+            .placement_of(row)
+            .and_then(|m| Xform::from_matrix(m).inverse())
+        else {
+            return false;
+        };
+        let local = to.transformed(&back);
+        let to = &local;
         let Some((doc, guid)) = self.writable(row) else {
             return false;
         };
@@ -322,6 +332,43 @@ mod tests {
             panic!("still a polyline");
         };
         assert_eq!(line.get_point(1).expect("two points")[1], 0.0);
+    }
+
+    #[test]
+    fn control_edit_converts_world_to_local_under_file_placement() {
+        let mut source = Session::new("placed");
+        assert!(
+            source
+                .add_polyline(
+                    session_rust::Polyline::new(vec![
+                        Point::new(0.0, 0.0, 0.0),
+                        Point::new(1.0, 0.0, 0.0)
+                    ]),
+                    None
+                )
+                .is_some()
+        );
+        let shared = Rc::new(source);
+        let mut placed = file("placed", Rc::clone(&shared));
+        placed.place = &Xform::translation(100.0, 0.0, 0.0) * &Xform::scale_xyz(10.0, 10.0, 10.0);
+        let mut scene = Scene::new();
+        scene.add_file(placed);
+        scene.add_file(file("unmodified", shared));
+        assert!(scene.set_control_point(0, 1, &Point::new(120.0, 30.0, 0.0)));
+        let Geometry::Polyline(line) = scene.geometry(0).unwrap() else {
+            panic!()
+        };
+        assert_eq!(line.get_point(1).unwrap()[0], 2.0);
+        assert_eq!(line.get_point(1).unwrap()[1], 3.0);
+        let Geometry::Polyline(other) = scene.geometry(1).unwrap() else {
+            panic!()
+        };
+        assert_eq!(other.get_point(1).unwrap()[0], 1.0);
+        assert!(scene.undo());
+        let Geometry::Polyline(line) = scene.geometry(0).unwrap() else {
+            panic!()
+        };
+        assert_eq!(line.get_point(1).unwrap()[0], 1.0);
     }
 
     /// A geometry whose control points the kernel cannot set is refused, not silently ignored:

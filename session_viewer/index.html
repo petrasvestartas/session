@@ -36,6 +36,7 @@
                    filter: drop-shadow(-1px 1px 0 #ffffff99);
                    transition: border-top-width .25s cubic-bezier(.2,.8,.3,1.25), border-left-width .25s cubic-bezier(.2,.8,.3,1.25); }
     #viewer-docs:hover, #viewer-docs:focus-visible { border-top-width:52px; border-left-width:52px; outline:none; }
+    #viewer-status:empty { display: none; }
     #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
                  font:1rem system-ui; text-align:center; padding-top:40vh; }
   </style>
@@ -52,15 +53,6 @@
   <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Left click selects, right drag orbits, L opens the layers panel, colon opens the command line."></canvas>
   <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
-  <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
-       `L` opens and closes it; a click on a row hides or shows that layer. -->
-  <div id="viewer-layers" hidden role="group" aria-label="Layers"
-       style="position:fixed;top:12px;left:12px;min-width:180px;max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
-  <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
-       back the moment it closes, so typing `z` in here is a letter and not an undo. -->
-  <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
-         aria-label="Command line"
-         style="position:fixed;bottom:44px;left:12px;width:min(420px,60vw);color:#fff;background:#222d;border:0;border-radius:4px;font:14px/1.6 ui-monospace,monospace;padding:4px 8px;outline:1px solid #555">
   <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
   <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
   <!-- The built course site (docs/build_site.sh keeps it current before each build). -->

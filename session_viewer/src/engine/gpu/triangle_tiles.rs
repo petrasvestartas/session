@@ -3,8 +3,9 @@
 //! A projected polygon table and conservative screen tiles include triangles that win no
 //! depth sample. Each tile owns a contiguous list of (triangle, nearest possible depth)
 //! pairs. Projection, count, prefix scan and fill run only when their inputs change.
-use super::buffers::{GpuCtx, ROWS, bind_group, uniform_buffer, zeroed_buffer};
+use super::buffers::{GpuCtx, ROWS, bind_group, replace_buffer, uniform_buffer, zeroed_buffer};
 use super::frame::Binds;
+use super::targets::{Attachment, TextureSpec};
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, pipeline_layout,
 };
@@ -200,7 +201,7 @@ pub struct TriangleTiles {
     pub projected: wgpu::Buffer,
     requested_triangles: u32,
     layout: Option<TileLayout>,
-    target: Option<wgpu::TextureView>,
+    target: Option<Attachment>,
     live_count: wgpu::Buffer,
     key: Option<ProjectionKey>,
     pipes: TilePipelines,
@@ -270,11 +271,14 @@ impl TriangleTiles {
         );
         let grow = pool_words > self.pool_words;
         if triangles != self.requested_triangles || self.layout.is_none() {
-            self.projected = zeroed_buffer(
-                &ctx.device,
-                "triangle.projected",
-                triangles as u64 * PROJECTED_BYTES,
-                ROWS,
+            replace_buffer(
+                &mut self.projected,
+                zeroed_buffer(
+                    &ctx.device,
+                    "triangle.projected",
+                    triangles as u64 * PROJECTED_BYTES,
+                    ROWS,
+                ),
             );
             ctx.queue.write_buffer(
                 &self.live_count,
@@ -287,30 +291,25 @@ impl TriangleTiles {
         }
         if self.layout != Some(layout) || grow {
             self.pool_words = pool_words;
-            self.buffer = zeroed_buffer(
-                &ctx.device,
-                "triangle.tiles",
-                layout.buffer_bytes(pool_words).min(limit),
-                ROWS,
+            replace_buffer(
+                &mut self.buffer,
+                zeroed_buffer(
+                    &ctx.device,
+                    "triangle.tiles",
+                    layout.buffer_bytes(pool_words).min(limit),
+                    ROWS,
+                ),
             );
-            self.target = Some(
-                ctx.device
-                    .create_texture(&wgpu::TextureDescriptor {
-                        label: Some("triangle.tiles.target"),
-                        size: wgpu::Extent3d {
-                            width: layout.width,
-                            height: layout.height,
-                            depth_or_array_layers: 1,
-                        },
-                        mip_level_count: 1,
-                        sample_count: 1,
-                        dimension: wgpu::TextureDimension::D2,
-                        format: wgpu::TextureFormat::R8Unorm,
-                        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                        view_formats: &[],
-                    })
-                    .create_view(&Default::default()),
-            );
+            self.target = Some(Attachment::new(
+                ctx,
+                "triangle.tiles.target",
+                &TextureSpec {
+                    size: (layout.width, layout.height),
+                    format: wgpu::TextureFormat::R8Unorm,
+                    samples: 1,
+                    usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                },
+            ));
             self.layout = Some(layout);
             self.invalidate();
             changed = true;
@@ -431,8 +430,14 @@ impl TriangleTiles {
         if self.layout.take().is_none() {
             return false;
         }
-        self.buffer = zeroed_buffer(&ctx.device, "triangle.tiles", 16, ROWS);
-        self.projected = zeroed_buffer(&ctx.device, "triangle.projected", PROJECTED_BYTES, ROWS);
+        replace_buffer(
+            &mut self.buffer,
+            zeroed_buffer(&ctx.device, "triangle.tiles", 16, ROWS),
+        );
+        replace_buffer(
+            &mut self.projected,
+            zeroed_buffer(&ctx.device, "triangle.projected", PROJECTED_BYTES, ROWS),
+        );
         self.target = None;
         self.invalidate();
         true

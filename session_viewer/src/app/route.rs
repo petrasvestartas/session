@@ -153,13 +153,13 @@ pub fn scene_route() -> Option<SceneRoute> {
     }
 }
 
-/// After the GPU ran out of memory: reload once at device scale 1 without antialiasing, the
-/// smallest attachments the viewer can draw with, keeping every other query. `false` when
-/// this is already the reduced page (the message then stays on the error panel) or the
-/// failure is not a device loss.
+/// After a lost device: reload once with the smallest attachments the viewer can draw with -
+/// device scale 1, no antialiasing - keeping every other query and carrying the browser's
+/// reason so the reloaded page can say what happened. `false` when the failure is not a
+/// device loss, or this page is already reduced (the message then stays on the error panel).
 #[cfg(target_arch = "wasm32")]
 pub fn recover_from_device_loss(message: &str) -> bool {
-    if !message.contains("device lost") || query("recovered").is_some() {
+    if !message.contains("device lost") || crate::engine::gpu::view::reduced() {
         return false;
     }
     let Some(window) = web_sys::window() else {
@@ -169,22 +169,13 @@ pub fn recover_from_device_loss(message: &str) -> bool {
     let Ok(search) = location.search() else {
         return false;
     };
-    let kept: Vec<&str> = search
-        .strip_prefix('?')
-        .unwrap_or("")
-        .split('&')
-        .filter(|pair| {
-            !pair.is_empty()
-                && !["dpr", "msaa", "recovered"]
-                    .iter()
-                    .any(|name| pair.starts_with(&format!("{name}=")) || *pair == *name)
-        })
-        .collect();
-    let mut query = kept.join("&");
+    let mut query = query_without(&search, "recovered");
     if !query.is_empty() {
         query.push('&');
     }
-    query.push_str("dpr=1&msaa=1&recovered=1");
+    let reason: String = message.chars().take(200).collect();
+    query.push_str("recovered=");
+    query.push_str(&String::from(js_sys::encode_uri_component(&reason)));
     let Ok(hash) = location.hash() else {
         return false;
     };
@@ -195,10 +186,59 @@ pub fn recover_from_device_loss(message: &str) -> bool {
     location.replace(&format!("{path}?{query}{hash}")).is_ok()
 }
 
+/// `search` without its `?` and without the `name` pair.
+#[cfg(target_arch = "wasm32")]
+fn query_without(search: &str, name: &str) -> String {
+    let prefix = format!("{name}=");
+    let kept: Vec<&str> = search
+        .strip_prefix('?')
+        .unwrap_or("")
+        .split('&')
+        .filter(|pair| !pair.is_empty() && !pair.starts_with(&prefix) && *pair != name)
+        .collect();
+    kept.join("&")
+}
+
+#[cfg(target_arch = "wasm32")]
+static RECOVERED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
+/// On the page a device loss reloaded into: render reduced from the first frame, take
+/// `recovered=` back out of the address so a reload, a bookmark or a shared link starts at
+/// full resolution again, and return the line the status bar keeps showing. Called before
+/// anything reads the device pixel ratio.
+#[cfg(target_arch = "wasm32")]
+pub fn adopt_recovery() -> Option<&'static str> {
+    let reason = query("recovered")?;
+    crate::engine::gpu::view::reduce();
+    if let Some(window) = web_sys::window() {
+        let location = window.location();
+        if let (Ok(path), Ok(search), Ok(hash), Ok(history)) = (
+            location.pathname(),
+            location.search(),
+            location.hash(),
+            window.history(),
+        ) {
+            let query = query_without(&search, "recovered");
+            let url = if query.is_empty() {
+                format!("{path}{hash}")
+            } else {
+                format!("{path}?{query}{hash}")
+            };
+            let _ = history.replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(&url));
+        }
+    }
+    let reason = if reason.is_empty() {
+        "WebGPU device lost".to_string()
+    } else {
+        reason
+    };
+    let notice =
+        format!("{reason}; drawing at device scale 1 without antialiasing until the next reload");
+    Some(RECOVERED.get_or_init(|| notice).as_str())
+}
+
 /// What the status line says on the page a device loss reloaded into.
 #[cfg(target_arch = "wasm32")]
 pub fn recovered_notice() -> Option<&'static str> {
-    query("recovered").map(|_| {
-        "The GPU ran out of memory at full resolution: drawing at device scale 1 without antialiasing"
-    })
+    RECOVERED.get().map(String::as_str)
 }

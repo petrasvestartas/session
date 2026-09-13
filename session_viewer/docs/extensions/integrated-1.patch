@@ -1,0 +1,616 @@
+diff --git a/src/app/coords.rs b/src/app/coords.rs
+--- a/src/app/coords.rs
++++ b/src/app/coords.rs
+@@ -101,7 +101,11 @@
+         Typed::Distance(d) => {
+             let p = previous?;
+             let v = along?;
+-            Some(Point::new(p[0] + v[0] * d, p[1] + v[1] * d, p[2] + v[2] * d))
++            Some(Point::new(
++                p[0] + v[0] * d,
++                p[1] + v[1] * d,
++                p[2] + v[2] * d,
++            ))
+         }
+     }
+ }
+@@ -127,10 +131,37 @@
+ 
+     #[test]
+     fn the_four_forms_parse() {
+-        assert_eq!(parse("12,4,2"), Some(Typed::Absolute { x: 12.0, y: 4.0, z: Some(2.0) }));
+-        assert_eq!(parse(" 12 , 4 "), Some(Typed::Absolute { x: 12.0, y: 4.0, z: None }));
+-        assert_eq!(parse("@3,0"), Some(Typed::Relative { x: 3.0, y: 0.0, z: None }));
+-        assert_eq!(parse("@5<90"), Some(Typed::Polar { distance: 5.0, degrees: 90.0 }));
++        assert_eq!(
++            parse("12,4,2"),
++            Some(Typed::Absolute {
++                x: 12.0,
++                y: 4.0,
++                z: Some(2.0)
++            })
++        );
++        assert_eq!(
++            parse(" 12 , 4 "),
++            Some(Typed::Absolute {
++                x: 12.0,
++                y: 4.0,
++                z: None
++            })
++        );
++        assert_eq!(
++            parse("@3,0"),
++            Some(Typed::Relative {
++                x: 3.0,
++                y: 0.0,
++                z: None
++            })
++        );
++        assert_eq!(
++            parse("@5<90"),
++            Some(Typed::Polar {
++                distance: 5.0,
++                degrees: 90.0
++            })
++        );
+         assert_eq!(parse("7.5"), Some(Typed::Distance(7.5)));
+     }
+ 
+diff --git a/src/app/cplane.rs b/src/app/cplane.rs
+--- a/src/app/cplane.rs
++++ b/src/app/cplane.rs
+@@ -102,13 +102,21 @@
+         let origin = Point::new(0.0, 0.0, 0.0);
+         assert!(
+             CPlane::Xy
+-                .hit(&origin, &Point::new(0.0, 0.0, 4.0), &Vector::new(1.0, 0.0, 0.0))
++                .hit(
++                    &origin,
++                    &Point::new(0.0, 0.0, 4.0),
++                    &Vector::new(1.0, 0.0, 0.0)
++                )
+                 .is_none(),
+             "parallel"
+         );
+         assert!(
+             CPlane::Xy
+-                .hit(&origin, &Point::new(0.0, 0.0, 4.0), &Vector::new(0.0, 0.0, 1.0))
++                .hit(
++                    &origin,
++                    &Point::new(0.0, 0.0, 4.0),
++                    &Vector::new(0.0, 0.0, 1.0)
++                )
+                 .is_none(),
+             "pointing away"
+         );
+diff --git a/src/app/snap.rs b/src/app/snap.rs
+--- a/src/app/snap.rs
++++ b/src/app/snap.rs
+@@ -40,8 +40,16 @@
+     let last = points.len() - 1;
+     for (i, p) in points.iter().enumerate() {
+         let interior = i != 0 && i != last;
+-        let kind = if closed || interior { SnapKind::Vertex } else { SnapKind::End };
+-        out.push(Snap { point: p.clone(), kind, owner });
++        let kind = if closed || interior {
++            SnapKind::Vertex
++        } else {
++            SnapKind::End
++        };
++        out.push(Snap {
++            point: p.clone(),
++            kind,
++            owner,
++        });
+     }
+     let spans = if closed { points.len() } else { last };
+     for i in 0..spans {
+@@ -83,18 +91,15 @@
+ ///
+ /// `project` returns the screen position of a world point, or `None` when it is behind the eye
+ /// or otherwise off the frustum - a candidate that cannot be seen cannot be snapped to.
+-pub fn best<F>(
+-    candidates: &[Snap],
+-    cursor: (f64, f64),
+-    aperture: f64,
+-    project: F,
+-) -> Option<Snap>
++pub fn best<F>(candidates: &[Snap], cursor: (f64, f64), aperture: f64, project: F) -> Option<Snap>
+ where
+     F: Fn(&Point) -> Option<(f64, f64)>,
+ {
+     let mut winner: Option<(SnapKind, f64, &Snap)> = None;
+     for c in candidates {
+-        let Some((x, y)) = project(&c.point) else { continue };
++        let Some((x, y)) = project(&c.point) else {
++            continue;
++        };
+         let (dx, dy) = (x - cursor.0, y - cursor.1);
+         let d = (dx * dx + dy * dy).sqrt();
+         if d > aperture {
+@@ -129,7 +134,12 @@
+     #[test]
+     fn an_open_polyline_offers_ends_vertices_and_midpoints() {
+         let mut out = Vec::new();
+-        from_polyline(&[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)], false, 7, &mut out);
++        from_polyline(
++            &[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)],
++            false,
++            7,
++            &mut out,
++        );
+         let count = |k: SnapKind| out.iter().filter(|s| s.kind == k).count();
+         assert_eq!(count(SnapKind::End), 2);
+         assert_eq!(count(SnapKind::Vertex), 1);
+@@ -141,7 +151,12 @@
+     #[test]
+     fn a_closed_loop_has_no_ends() {
+         let mut out = Vec::new();
+-        from_polyline(&[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)], true, 0, &mut out);
++        from_polyline(
++            &[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)],
++            true,
++            0,
++            &mut out,
++        );
+         assert_eq!(out.iter().filter(|s| s.kind == SnapKind::End).count(), 0);
+         assert_eq!(out.iter().filter(|s| s.kind == SnapKind::Vertex).count(), 3);
+         assert_eq!(out.iter().filter(|s| s.kind == SnapKind::Mid).count(), 3);
+@@ -151,8 +166,16 @@
+     #[test]
+     fn kind_wins_before_distance() {
+         let candidates = vec![
+-            Snap { point: p(2.0, 0.0), kind: SnapKind::Near, owner: 0 },
+-            Snap { point: p(6.0, 0.0), kind: SnapKind::End, owner: 0 },
++            Snap {
++                point: p(2.0, 0.0),
++                kind: SnapKind::Near,
++                owner: 0,
++            },
++            Snap {
++                point: p(6.0, 0.0),
++                kind: SnapKind::End,
++                owner: 0,
++            },
+         ];
+         let best = best(&candidates, (0.0, 0.0), 12.0, flat).expect("a snap");
+         assert_eq!(best.kind, SnapKind::End);
+@@ -162,8 +185,16 @@
+     #[test]
+     fn distance_decides_within_a_kind() {
+         let candidates = vec![
+-            Snap { point: p(9.0, 0.0), kind: SnapKind::End, owner: 1 },
+-            Snap { point: p(3.0, 0.0), kind: SnapKind::End, owner: 2 },
++            Snap {
++                point: p(9.0, 0.0),
++                kind: SnapKind::End,
++                owner: 1,
++            },
++            Snap {
++                point: p(3.0, 0.0),
++                kind: SnapKind::End,
++                owner: 2,
++            },
+         ];
+         assert_eq!(best(&candidates, (0.0, 0.0), 12.0, flat).unwrap().owner, 2);
+     }
+@@ -171,10 +202,24 @@
+     /// Nothing outside the aperture, and nothing the projection cannot see.
+     #[test]
+     fn out_of_reach_and_out_of_sight_do_not_snap() {
+-        let candidates = vec![Snap { point: p(40.0, 0.0), kind: SnapKind::End, owner: 0 }];
+-        assert!(best(&candidates, (0.0, 0.0), 12.0, flat).is_none(), "too far");
+-        let near = vec![Snap { point: p(1.0, 0.0), kind: SnapKind::End, owner: 0 }];
+-        assert!(best(&near, (0.0, 0.0), 12.0, |_| None).is_none(), "not visible");
++        let candidates = vec![Snap {
++            point: p(40.0, 0.0),
++            kind: SnapKind::End,
++            owner: 0,
++        }];
++        assert!(
++            best(&candidates, (0.0, 0.0), 12.0, flat).is_none(),
++            "too far"
++        );
++        let near = vec![Snap {
++            point: p(1.0, 0.0),
++            kind: SnapKind::End,
++            owner: 0,
++        }];
++        assert!(
++            best(&near, (0.0, 0.0), 12.0, |_| None).is_none(),
++            "not visible"
++        );
+     }
+ 
+     /// The nearest point on a segment stays on it, at either end when the target is past it.
+diff --git a/src/camera.rs b/src/camera.rs
+--- a/src/camera.rs
++++ b/src/camera.rs
+@@ -559,118 +559,124 @@
+ 
+ #[cfg(test)]
+ mod wheel_tests {
+-#[cfg(test)]
+-mod ray_tests {
+-    use super::*;
+-
+-    fn viewport() -> (f64, f64) {
+-        (800.0, 400.0)
+-    }
+-
+-    /// The centre pixel looks straight down the view axis, in both projections.
+-    #[test]
+-    fn the_centre_ray_is_the_view_axis() {
+-        let mut cam = Camera::new();
+-        cam.update_position();
+-        for perspective in [true, false] {
+-            cam.perspective = perspective;
+-            let (_, dir) = cam.ray((400.0, 200.0), viewport()).expect("a ray");
++    #[cfg(test)]
++    mod ray_tests {
++        use super::*;
++
++        fn viewport() -> (f64, f64) {
++            (800.0, 400.0)
++        }
++
++        /// The centre pixel looks straight down the view axis, in both projections.
++        #[test]
++        fn the_centre_ray_is_the_view_axis() {
++            let mut cam = Camera::new();
++            cam.update_position();
++            for perspective in [true, false] {
++                cam.perspective = perspective;
++                let (_, dir) = cam.ray((400.0, 200.0), viewport()).expect("a ray");
++                let forward = cam.orientation.rotate_vector(Vector::y_axis());
++                for i in 0..3 {
++                    assert!((dir[i] - forward[i]).abs() < 1e-12, "{perspective}");
++                }
++            }
++        }
++
++        /// Every perspective ray leaves the eye; every orthographic ray is parallel to the axis
++        /// and starts somewhere else. That difference is the whole reason the two paths exist.
++        #[test]
++        fn perspective_rays_share_an_origin_and_ortho_rays_share_a_direction() {
++            let mut cam = Camera::new();
++            cam.update_position();
++
++            cam.perspective = true;
++            let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
++            let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
++            for i in 0..3 {
++                assert!((a[i] - b[i]).abs() < 1e-9, "one eye");
++            }
++            assert!(
++                (0..3).any(|i| (da[i] - db[i]).abs() > 1e-6),
++                "different directions"
++            );
++
++            cam.perspective = false;
++            let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
++            let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
++            for i in 0..3 {
++                assert!((da[i] - db[i]).abs() < 1e-12, "one direction");
++            }
++            assert!(
++                (0..3).any(|i| (a[i] - b[i]).abs() > 1e-6),
++                "different origins"
++            );
++        }
++
++        /// A ray through a pixel passes through the world point that pixel shows: walk the target
++        /// plane's own point back to the screen and the ray must come back to it.
++        #[test]
++        fn a_ray_hits_the_target_plane_where_the_cursor_is() {
++            let mut cam = Camera::new();
++            cam.update_position();
++            // WORLD units on both sides: the camera keeps metres internally, and a ray that
++            // answered in those would miss everything it is tested against by a factor of a
++            // thousand.
++            let target = cam.origin();
++            let half_h = cam.distance_world() * (FOVY_DEG * 0.5).to_radians().tan();
++            let half_w = half_h * (viewport().0 / viewport().1);
++            let right = cam.orientation.rotate_vector(Vector::x_axis());
+             let forward = cam.orientation.rotate_vector(Vector::y_axis());
+-            for i in 0..3 {
+-                assert!((dir[i] - forward[i]).abs() < 1e-12, "{perspective}");
++            // The world point a quarter right and a quarter up from the target.
++            let expected: Vec<f64> = (0..3)
++                .map(|i| target[i] + right[i] * 0.5 * half_w + cam.up[i] * 0.5 * half_h)
++                .collect();
++            for perspective in [true, false] {
++                cam.perspective = perspective;
++                let (origin, dir) = cam.ray((600.0, 100.0), viewport()).expect("a ray");
++                // Advance to the target plane, whose normal is the view axis.
++                let denom: f64 = (0..3).map(|i| dir[i] * forward[i]).sum();
++                let num: f64 = (0..3).map(|i| (target[i] - origin[i]) * forward[i]).sum();
++                let t = num / denom;
++                for i in 0..3 {
++                    let hit = origin[i] + dir[i] * t;
++                    assert!((hit - expected[i]).abs() < 1e-6, "{perspective} axis {i}");
++                }
+             }
+         }
+-    }
+-
+-    /// Every perspective ray leaves the eye; every orthographic ray is parallel to the axis
+-    /// and starts somewhere else. That difference is the whole reason the two paths exist.
+-    #[test]
+-    fn perspective_rays_share_an_origin_and_ortho_rays_share_a_direction() {
+-        let mut cam = Camera::new();
+-        cam.update_position();
+-
+-        cam.perspective = true;
+-        let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
+-        let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
+-        for i in 0..3 {
+-            assert!((a[i] - b[i]).abs() < 1e-9, "one eye");
+-        }
+-        assert!((0..3).any(|i| (da[i] - db[i]).abs() > 1e-6), "different directions");
+-
+-        cam.perspective = false;
+-        let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
+-        let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
+-        for i in 0..3 {
+-            assert!((da[i] - db[i]).abs() < 1e-12, "one direction");
+-        }
+-        assert!((0..3).any(|i| (a[i] - b[i]).abs() > 1e-6), "different origins");
+-    }
+-
+-    /// A ray through a pixel passes through the world point that pixel shows: walk the target
+-    /// plane's own point back to the screen and the ray must come back to it.
+-    #[test]
+-    fn a_ray_hits_the_target_plane_where_the_cursor_is() {
+-        let mut cam = Camera::new();
+-        cam.update_position();
+-        // WORLD units on both sides: the camera keeps metres internally, and a ray that
+-        // answered in those would miss everything it is tested against by a factor of a
+-        // thousand.
+-        let target = cam.origin();
+-        let half_h = cam.distance_world() * (FOVY_DEG * 0.5).to_radians().tan();
+-        let half_w = half_h * (viewport().0 / viewport().1);
+-        let right = cam.orientation.rotate_vector(Vector::x_axis());
+-        let forward = cam.orientation.rotate_vector(Vector::y_axis());
+-        // The world point a quarter right and a quarter up from the target.
+-        let expected: Vec<f64> = (0..3)
+-            .map(|i| target[i] + right[i] * 0.5 * half_w + cam.up[i] * 0.5 * half_h)
+-            .collect();
+-        for perspective in [true, false] {
+-            cam.perspective = perspective;
+-            let (origin, dir) = cam.ray((600.0, 100.0), viewport()).expect("a ray");
+-            // Advance to the target plane, whose normal is the view axis.
+-            let denom: f64 = (0..3).map(|i| dir[i] * forward[i]).sum();
+-            let num: f64 = (0..3).map(|i| (target[i] - origin[i]) * forward[i]).sum();
+-            let t = num / denom;
+-            for i in 0..3 {
+-                let hit = origin[i] + dir[i] * t;
+-                assert!((hit - expected[i]).abs() < 1e-6, "{perspective} axis {i}");
+-            }
+-        }
+-    }
+-
+-    /// The unit itself, pinned: the eye sits `distance_world` from the target in the file's own
+-    /// units. Read straight off `position` it would be a thousand times nearer in a millimetre
+-    /// scene, and every hit test built on the ray would miss.
+-    #[test]
+-    fn the_ray_is_in_world_units_not_the_camera_s_metres() {
+-        let mut cam = Camera::new();
+-        cam.update_position();
+-        // The centre pixel, so the ray points straight at the target and the projection below
+-        // is the whole distance rather than its cosine.
+-        let (origin, dir) = cam
+-            .ray((viewport().0 * 0.5, viewport().1 * 0.5), viewport())
+-            .expect("a ray");
+-        let target = cam.origin();
+-        let reach: f64 = (0..3).map(|i| (target[i] - origin[i]) * dir[i]).sum();
+-        assert!(
+-            (reach - cam.distance_world()).abs() < 1e-6,
+-            "the eye is distance_world from the target, in world units"
+-        );
+-        assert!(
+-            cam.distance_world() > cam.distance * 100.0,
+-            "the fixture is a millimetre scene, so the two really do differ"
+-        );
+-    }
+-
+-    /// A zero or non-finite viewport has no ray, rather than a NaN one.
+-    #[test]
+-    fn a_degenerate_viewport_has_no_ray() {
+-        let mut cam = Camera::new();
+-        cam.update_position();
+-        assert!(cam.ray((1.0, 1.0), (0.0, 400.0)).is_none());
+-        assert!(cam.ray((f64::NAN, 1.0), viewport()).is_none());
+-    }
+-}
++
++        /// The unit itself, pinned: the eye sits `distance_world` from the target in the file's own
++        /// units. Read straight off `position` it would be a thousand times nearer in a millimetre
++        /// scene, and every hit test built on the ray would miss.
++        #[test]
++        fn the_ray_is_in_world_units_not_the_camera_s_metres() {
++            let mut cam = Camera::new();
++            cam.update_position();
++            // The centre pixel, so the ray points straight at the target and the projection below
++            // is the whole distance rather than its cosine.
++            let (origin, dir) = cam
++                .ray((viewport().0 * 0.5, viewport().1 * 0.5), viewport())
++                .expect("a ray");
++            let target = cam.origin();
++            let reach: f64 = (0..3).map(|i| (target[i] - origin[i]) * dir[i]).sum();
++            assert!(
++                (reach - cam.distance_world()).abs() < 1e-6,
++                "the eye is distance_world from the target, in world units"
++            );
++            assert!(
++                cam.distance_world() > cam.distance * 100.0,
++                "the fixture is a millimetre scene, so the two really do differ"
++            );
++        }
++
++        /// A zero or non-finite viewport has no ray, rather than a NaN one.
++        #[test]
++        fn a_degenerate_viewport_has_no_ray() {
++            let mut cam = Camera::new();
++            cam.update_position();
++            assert!(cam.ray((1.0, 1.0), (0.0, 400.0)).is_none());
++            assert!(cam.ray((f64::NAN, 1.0), viewport()).is_none());
++        }
++    }
+     use super::*;
+     #[test]
+     fn coalesced_wheel_events_remain_positive_and_preserve_the_cursor_anchor() {
+diff --git a/src/engine/gpu/device.rs b/src/engine/gpu/device.rs
+--- a/src/engine/gpu/device.rs
++++ b/src/engine/gpu/device.rs
+@@ -186,10 +186,10 @@
+ }
+ 
+ /// Remember failure without unwinding through a browser callback.
+-#[cfg(target_arch = "wasm32")]
++#[cfg(any(target_arch = "wasm32", test))]
+ fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String) {
+     if let Ok(mut state) = failure.lock() {
+-        *state = Some(message);
++        state.get_or_insert(message);
+     }
+ }
+ 
+@@ -235,3 +235,15 @@
+         format!("WebGPU device lost ({reason:?}): {message}"),
+     );
+ }
++
++#[cfg(test)]
++#[test]
++fn first_gpu_error_survives_follow_on_submission_errors() {
++    let failure = std::sync::Mutex::new(None);
++    remember_failure(&failure, "texture allocation failed".into());
++    remember_failure(&failure, "invalid command buffer".into());
++    assert_eq!(
++        failure.lock().unwrap().as_deref(),
++        Some("texture allocation failed")
++    );
++}
+diff --git a/src/engine/gpu/objects.rs b/src/engine/gpu/objects.rs
+--- a/src/engine/gpu/objects.rs
++++ b/src/engine/gpu/objects.rs
+@@ -302,7 +302,11 @@
+             if keep > 0 {
+                 let rows: Vec<Instance> = self.rows.clone();
+                 let anchored_rows: Vec<[f32; 4]> = match &self.last_origin {
+-                    Some(origin) => self.translation.iter().map(|t| anchored(*t, origin)).collect(),
++                    Some(origin) => self
++                        .translation
++                        .iter()
++                        .map(|t| anchored(*t, origin))
++                        .collect(),
+                     None => vec![[0.0f32; 4]; keep],
+                 };
+                 let grew = self.buffer.append(ctx, &rows);
+@@ -505,7 +509,9 @@
+             None => [0.0; 4],
+         };
+         // `append` is what grows the buffer; writing past the end would be a validation error.
+-        let grew = self.buffer.append(ctx, std::slice::from_ref(&self.rows[row as usize]));
++        let grew = self
++            .buffer
++            .append(ctx, std::slice::from_ref(&self.rows[row as usize]));
+         let grew_t = self
+             .translations
+             .append(ctx, std::slice::from_ref(&translation));
+@@ -536,16 +542,26 @@
+         self.world_bounds[i] = world;
+         for b in &mut self.bounded {
+             if b.row == row {
+-                b.lo = [world.min[0] as f64, world.min[1] as f64, world.min[2] as f64];
+-                b.hi = [world.max[0] as f64, world.max[1] as f64, world.max[2] as f64];
++                b.lo = [
++                    world.min[0] as f64,
++                    world.min[1] as f64,
++                    world.min[2] as f64,
++                ];
++                b.hi = [
++                    world.max[0] as f64,
++                    world.max[1] as f64,
++                    world.max[2] as f64,
++                ];
+             }
+         }
+         self.geometry_revision = self.geometry_revision.wrapping_add(1);
+         let instance = *instance;
+-        self.buffer.write_at(ctx, row, std::slice::from_ref(&instance));
++        self.buffer
++            .write_at(ctx, row, std::slice::from_ref(&instance));
+         if let Some(origin) = &self.last_origin {
+             let t = anchored(self.translation[i], origin);
+-            self.translations.write_at(ctx, row, std::slice::from_ref(&t));
++            self.translations
++                .write_at(ctx, row, std::slice::from_ref(&t));
+         }
+         true
+     }
+diff --git a/src/engine/gpu/surface_outline.rs b/src/engine/gpu/surface_outline.rs
+--- a/src/engine/gpu/surface_outline.rs
++++ b/src/engine/gpu/surface_outline.rs
+@@ -498,15 +498,20 @@
+                             clear: wgpu::Color::WHITE,
+                             now_ms: 0.0,
+                         };
+-                        gpu.view.show_mesh_edges = false;
++                        gpu.view.show_mesh_edges = true;
++                        gpu.segments.set_selected(0, false);
+                         let silhouette = gpu.render_offscreen(&input);
+-                        gpu.view.show_mesh_edges = true;
++                        gpu.segments.set_selected(0, true);
+                         let edged = gpu.render_offscreen(&input);
+-                        let mut black = 0;
++                        let mut coverage = 0_u32;
+                         for (plain, inked) in silhouette.chunks_exact(4).zip(edged.chunks_exact(4))
+                         {
+-                            if plain[..3].iter().all(|channel| *channel < 8) {
+-                                black += 1;
++                            let lo = *plain[..3].iter().min().unwrap();
++                            let hi = *plain[..3].iter().max().unwrap();
++                            if hi - lo <= 2 {
++                                coverage += u32::from(255 - hi);
++                            }
++                            if hi < 8 {
+                                 assert!(
+                                     inked[..3].iter().all(|channel| *channel < 12),
+                                     "yellow CAD strokes must not narrow the black border: {plain:?} -> {inked:?}; samples={samples}, DPR={dpr}, orbit={orbit:?}"
+@@ -514,8 +519,8 @@
+                             }
+                         }
+                         assert!(
+-                            black > 500,
+-                            "the perspective silhouette must remain visible"
++                            coverage > gpu.config.height * 255 / 2,
++                            "visible silhouette includes fractional coverage: {coverage}"
+                         );
+                     }
+                 }
+@@ -675,9 +680,9 @@
+                 .chunks_exact(4)
+                 .filter(|p| p[..3].iter().all(|c| *c < 8))
+                 .count();
+-            assert!(
+-                plain_black > 0 && plain_black < black,
+-                "ordinary and selected outlines both stay visible"
++            assert_eq!(
++                plain_black, black,
++                "ordinary and selected outlines have the same width"
+             );
+             gpu.view.show_outlines = false;
+             let disabled = gpu.render_offscreen(&input);
+diff --git a/src/engine/gpu/upload.rs b/src/engine/gpu/upload.rs
+--- a/src/engine/gpu/upload.rs
++++ b/src/engine/gpu/upload.rs
+@@ -49,6 +49,5 @@
+ 
+ /// Empty a table AND hand its allocation back; `clear()` alone keeps the capacity.
+ pub fn drop_rows<T>(v: &mut Vec<T>) {
+-    v.clear();
+-    v.shrink_to_fit();
++    *v = Vec::new();
+ }

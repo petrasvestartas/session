@@ -16,6 +16,8 @@ pub fn status(message: &str) {
     {
         status.set_text_content(Some(message));
     }
+    #[cfg(target_arch = "wasm32")]
+    super::ui::MODEL.with_borrow_mut(|model| model.status = message.chars().take(256).collect());
     log::info!("{message}");
 }
 
@@ -34,29 +36,15 @@ pub fn error(message: &str) {
     log::error!("{message}");
 }
 
-/// Open or close the command line. Opening focuses it; closing hands the keyboard back to the
-/// canvas, or a letter typed next would reach the viewer's key bindings instead of the box.
 #[cfg(target_arch = "wasm32")]
-pub fn command_line(open: bool) -> Option<web_sys::HtmlInputElement> {
-    use wasm_bindgen::JsCast;
-    let document = web_sys::window()?.document()?;
-    let input: web_sys::HtmlInputElement = document
-        .get_element_by_id("viewer-command")?
-        .dyn_into()
-        .ok()?;
-    if open {
-        input.set_hidden(false);
-        input.set_value("");
-        let _ = input.focus();
-    } else {
-        input.set_hidden(true);
-        if let Some(canvas) = document.get_element_by_id("canvas")
-            && let Ok(canvas) = canvas.dyn_into::<web_sys::HtmlElement>()
-        {
-            let _ = canvas.focus();
+pub fn command_line(open: bool) {
+    super::ui::MODEL.with_borrow_mut(|model| {
+        model.command_open = open;
+        model.focus_command = open;
+        if open {
+            model.command.clear();
         }
-    }
-    Some(input)
+    });
 }
 
 /// Give the canvas the keyboard back. Every key binding is on the canvas, so anything that
@@ -76,23 +64,12 @@ pub fn focus_canvas() {
 #[cfg(not(target_arch = "wasm32"))]
 pub fn focus_canvas() {}
 
-/// The command line, when it is open.
-#[cfg(target_arch = "wasm32")]
-pub fn command_text() -> Option<String> {
-    use wasm_bindgen::JsCast;
-    let input: web_sys::HtmlInputElement = web_sys::window()?
-        .document()?
-        .get_element_by_id("viewer-command")?
-        .dyn_into()
-        .ok()?;
-    (!input.hidden()).then(|| input.value())
-}
-
 /// Native builds have no command box; the callers stay free of `cfg`.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn command_line(_open: bool) {}
 
 /// One row of the layers panel, as the panel needs it.
+#[derive(Clone)]
 pub struct LayerRow {
     pub key: String,
     pub label: String,
@@ -100,63 +77,24 @@ pub struct LayerRow {
     pub hidden: bool,
 }
 
-/// Fill the layers panel, or empty it. Every label goes in with `textContent`, so a document
-/// named after a tag cannot become markup.
 #[cfg(target_arch = "wasm32")]
 pub fn layers_panel(rows: &[LayerRow]) {
-    let Some(document) = web_sys::window().and_then(|w| w.document()) else {
-        return;
-    };
-    let Some(panel) = document.get_element_by_id("viewer-layers") else {
-        return;
-    };
-    panel.set_text_content(None);
-    for row in rows {
-        // A button, not a div: the panel is the viewer's only set of discrete controls, and a
-        // div is neither reachable by keyboard nor announced as something that can be pressed.
-        let Ok(line) = document.create_element("button") else {
-            continue;
-        };
-        let _ = line.set_attribute("type", "button");
-        let _ = line.set_attribute("aria-pressed", if row.hidden { "true" } else { "false" });
-        let _ = line.set_attribute("data-layer", &row.key);
-        let _ = line.set_attribute(
-            "style",
-            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:1",
-        );
-        if row.hidden {
-            let _ = line.set_attribute(
-                "style",
-                "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:0.45",
-            );
-        }
-        let mark = if row.hidden { "·" } else { "•" };
-        line.set_text_content(Some(&format!("{mark} {} ({})", row.label, row.count)));
-        let _ = panel.append_child(&line);
-    }
+    super::ui::MODEL.with_borrow_mut(|model| model.rows = rows.to_vec());
 }
 
-/// Show or hide the panel; returns it so a caller can attach its one listener.
 #[cfg(target_arch = "wasm32")]
-pub fn layers_visible(open: bool) -> Option<web_sys::Element> {
-    let panel = web_sys::window()?
-        .document()?
-        .get_element_by_id("viewer-layers")?;
-    let _ = if open {
-        panel.remove_attribute("hidden")
-    } else {
-        panel.set_attribute("hidden", "")
-    };
-    Some(panel)
+pub fn layers_visible(open: bool) {
+    super::ui::MODEL.with_borrow_mut(|model| {
+        model.layers_open = open;
+        if !open {
+            model.rows.clear();
+        }
+    });
 }
 
-/// Whether the panel is open, so a refresh can skip the work while it is not.
 #[cfg(target_arch = "wasm32")]
 pub fn layers_open() -> bool {
-    web_sys::window()
-        .and_then(|w| w.document())
-        .and_then(|d| d.get_element_by_id("viewer-layers"))
-        .is_some_and(|panel| !panel.has_attribute("hidden"))
+    super::ui::MODEL.with_borrow(|model| model.layers_open)
 }
 
 #[cfg(not(target_arch = "wasm32"))]

@@ -40,8 +40,16 @@ pub fn from_polyline(points: &[Point], closed: bool, owner: u32, out: &mut Vec<S
     let last = points.len() - 1;
     for (i, p) in points.iter().enumerate() {
         let interior = i != 0 && i != last;
-        let kind = if closed || interior { SnapKind::Vertex } else { SnapKind::End };
-        out.push(Snap { point: p.clone(), kind, owner });
+        let kind = if closed || interior {
+            SnapKind::Vertex
+        } else {
+            SnapKind::End
+        };
+        out.push(Snap {
+            point: p.clone(),
+            kind,
+            owner,
+        });
     }
     let spans = if closed { points.len() } else { last };
     for i in 0..spans {
@@ -83,18 +91,15 @@ pub fn nearest_on_segment(a: &Point, b: &Point, to: &Point, owner: u32) -> Snap 
 ///
 /// `project` returns the screen position of a world point, or `None` when it is behind the eye
 /// or otherwise off the frustum - a candidate that cannot be seen cannot be snapped to.
-pub fn best<F>(
-    candidates: &[Snap],
-    cursor: (f64, f64),
-    aperture: f64,
-    project: F,
-) -> Option<Snap>
+pub fn best<F>(candidates: &[Snap], cursor: (f64, f64), aperture: f64, project: F) -> Option<Snap>
 where
     F: Fn(&Point) -> Option<(f64, f64)>,
 {
     let mut winner: Option<(SnapKind, f64, &Snap)> = None;
     for c in candidates {
-        let Some((x, y)) = project(&c.point) else { continue };
+        let Some((x, y)) = project(&c.point) else {
+            continue;
+        };
         let (dx, dy) = (x - cursor.0, y - cursor.1);
         let d = (dx * dx + dy * dy).sqrt();
         if d > aperture {
@@ -129,7 +134,12 @@ mod tests {
     #[test]
     fn an_open_polyline_offers_ends_vertices_and_midpoints() {
         let mut out = Vec::new();
-        from_polyline(&[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)], false, 7, &mut out);
+        from_polyline(
+            &[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)],
+            false,
+            7,
+            &mut out,
+        );
         let count = |k: SnapKind| out.iter().filter(|s| s.kind == k).count();
         assert_eq!(count(SnapKind::End), 2);
         assert_eq!(count(SnapKind::Vertex), 1);
@@ -141,7 +151,12 @@ mod tests {
     #[test]
     fn a_closed_loop_has_no_ends() {
         let mut out = Vec::new();
-        from_polyline(&[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)], true, 0, &mut out);
+        from_polyline(
+            &[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)],
+            true,
+            0,
+            &mut out,
+        );
         assert_eq!(out.iter().filter(|s| s.kind == SnapKind::End).count(), 0);
         assert_eq!(out.iter().filter(|s| s.kind == SnapKind::Vertex).count(), 3);
         assert_eq!(out.iter().filter(|s| s.kind == SnapKind::Mid).count(), 3);
@@ -151,8 +166,16 @@ mod tests {
     #[test]
     fn kind_wins_before_distance() {
         let candidates = vec![
-            Snap { point: p(2.0, 0.0), kind: SnapKind::Near, owner: 0 },
-            Snap { point: p(6.0, 0.0), kind: SnapKind::End, owner: 0 },
+            Snap {
+                point: p(2.0, 0.0),
+                kind: SnapKind::Near,
+                owner: 0,
+            },
+            Snap {
+                point: p(6.0, 0.0),
+                kind: SnapKind::End,
+                owner: 0,
+            },
         ];
         let best = best(&candidates, (0.0, 0.0), 12.0, flat).expect("a snap");
         assert_eq!(best.kind, SnapKind::End);
@@ -162,8 +185,16 @@ mod tests {
     #[test]
     fn distance_decides_within_a_kind() {
         let candidates = vec![
-            Snap { point: p(9.0, 0.0), kind: SnapKind::End, owner: 1 },
-            Snap { point: p(3.0, 0.0), kind: SnapKind::End, owner: 2 },
+            Snap {
+                point: p(9.0, 0.0),
+                kind: SnapKind::End,
+                owner: 1,
+            },
+            Snap {
+                point: p(3.0, 0.0),
+                kind: SnapKind::End,
+                owner: 2,
+            },
         ];
         assert_eq!(best(&candidates, (0.0, 0.0), 12.0, flat).unwrap().owner, 2);
     }
@@ -171,10 +202,24 @@ mod tests {
     /// Nothing outside the aperture, and nothing the projection cannot see.
     #[test]
     fn out_of_reach_and_out_of_sight_do_not_snap() {
-        let candidates = vec![Snap { point: p(40.0, 0.0), kind: SnapKind::End, owner: 0 }];
-        assert!(best(&candidates, (0.0, 0.0), 12.0, flat).is_none(), "too far");
-        let near = vec![Snap { point: p(1.0, 0.0), kind: SnapKind::End, owner: 0 }];
-        assert!(best(&near, (0.0, 0.0), 12.0, |_| None).is_none(), "not visible");
+        let candidates = vec![Snap {
+            point: p(40.0, 0.0),
+            kind: SnapKind::End,
+            owner: 0,
+        }];
+        assert!(
+            best(&candidates, (0.0, 0.0), 12.0, flat).is_none(),
+            "too far"
+        );
+        let near = vec![Snap {
+            point: p(1.0, 0.0),
+            kind: SnapKind::End,
+            owner: 0,
+        }];
+        assert!(
+            best(&near, (0.0, 0.0), 12.0, |_| None).is_none(),
+            "not visible"
+        );
     }
 
     /// The nearest point on a segment stays on it, at either end when the target is past it.

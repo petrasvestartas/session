@@ -105,8 +105,14 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         let errors = failure.clone();
         device.on_uncaptured_error(Arc::new(move |error| remember_gpu_error(&errors, error)));
         let lost = failure.clone();
+        // A still scene asks for no frame, and only a frame reads the failure: a loss on an
+        // idle page would otherwise wait for the next input to be noticed and recovered from.
+        let redraw = window.clone();
         device.set_device_lost_callback(move |reason, message| {
-            remember_device_loss(&lost, reason, &message)
+            remember_device_loss(&lost, reason, &message);
+            if let Some(window) = &redraw {
+                window.request_redraw();
+            }
         });
     }
     #[cfg(not(target_arch = "wasm32"))]
@@ -180,10 +186,10 @@ async fn named_adapter(
 }
 
 /// Remember failure without unwinding through a browser callback.
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", test))]
 fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String) {
     if let Ok(mut state) = failure.lock() {
-        *state = Some(message);
+        state.get_or_insert(message);
     }
 }
 
@@ -227,5 +233,17 @@ fn remember_device_loss(
     remember_failure(
         failure,
         format!("WebGPU device lost ({reason:?}): {message}"),
+    );
+}
+
+#[cfg(test)]
+#[test]
+fn first_gpu_error_survives_follow_on_submission_errors() {
+    let failure = std::sync::Mutex::new(None);
+    remember_failure(&failure, "texture allocation failed".into());
+    remember_failure(&failure, "invalid command buffer".into());
+    assert_eq!(
+        failure.lock().unwrap().as_deref(),
+        Some("texture allocation failed")
     );
 }

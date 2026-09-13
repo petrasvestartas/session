@@ -9,10 +9,12 @@ pub mod cplane;
 pub mod edit;
 pub mod feedback;
 pub mod gizmo;
+pub mod hierarchy;
 pub mod input;
 pub mod knobs;
 pub mod layers;
 pub mod manifest;
+pub mod modeling;
 pub mod scene;
 pub mod selection;
 pub mod sheet_query;
@@ -35,3 +37,6 @@ pub mod route;
 
 #[cfg(any(target_arch = "wasm32", test))]
 pub mod inspection;
+
+#[cfg(target_arch = "wasm32")]
+pub mod ui;

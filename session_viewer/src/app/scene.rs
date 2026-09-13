@@ -26,11 +26,7 @@ use std::rc::Rc;
 pub struct FileDoc {
     pub name: String,
     pub place: Xform,
-    /// Shared with whoever decoded it (the live source keeps its current set), and shared
-    /// again between placements: a manifest listing one file twice hands both documents the
-    /// same `Rc`. Nothing mutates a session today. Anything that starts to must call
-    /// `Rc::make_mut` FIRST, or one placement's edit moves every other placement of that file
-    /// and the live source's cached copy with them.
+    /// Shared placements detach through Rc::make_mut before editing source geometry.
     pub session: Rc<Session>,
     pub point_px: f32,
     /// True only for a streamed source descriptor with an empty Session shell.
@@ -142,6 +138,8 @@ pub struct Scene {
     /// Which document the last edit touched. Undo is per document, because the history is the
     /// document's; this is the only thing that says which one a bare Ctrl+Z means.
     pub last_edited: Option<usize>,
+    pub(crate) created_doc: Option<usize>,
+    pub(crate) row_revision: u64,
 }
 
 impl Default for Scene {
@@ -169,12 +167,16 @@ impl Scene {
             guid_to_row: HashMap::new(),
             bases: Bases::default(),
             last_edited: None,
+            created_doc: None,
+            row_revision: 0,
         }
     }
 
     /// Drop every document and its GPU rows, keeping the scene usable: a scene can be
     /// REPLACED without tearing down `State` (camera, surface and pipelines survive).
     pub fn clear(&mut self, gpu: &mut Gpu) {
+        self.created_doc = None;
+        self.last_edited = None;
         self.docs.clear();
         self.texts.clear();
         self.hidden.clear();
@@ -184,6 +186,7 @@ impl Scene {
 
     /// Forget every row and its identity; the documents and the hidden set are the caller's.
     fn reset_rows(&mut self) {
+        self.row_revision = self.row_revision.wrapping_add(1);
         self.tables = Upload::default();
         self.streamed.clear();
         self.sheets.clear();
@@ -241,6 +244,7 @@ impl Scene {
     /// The next object row and its guid bookkeeping.
     /// One object row for `guid` owned by document `owner` (`usize::MAX` for a text object).
     pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Mat4, flags: u32) -> u32 {
+        self.row_revision = self.row_revision.wrapping_add(1);
         let row = self.bases.obj + self.tables.obj.rows.len() as u32;
         self.tables.obj.rows.push(ObjectRow::new(place, flags));
         let guid: Rc<str> = Rc::from(guid);
@@ -254,6 +258,7 @@ impl Scene {
     /// Walk one session into the tables: one object row per guid in the kernel's canonical
     /// order (the row a guid gets is the row it keeps), then the per-file sweeps.
     pub fn add_file(&mut self, doc: FileDoc) {
+        self.row_revision = self.row_revision.wrapping_add(1);
         let FileDoc {
             name,
             session,

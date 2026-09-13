@@ -1,0 +1,1520 @@
+{
+  "browser": "152.0.7977.82",
+  "headless": false,
+  "args": [
+    "--ozone-platform=x11",
+    "--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE"
+  ],
+  "gpuEnvironment": {
+    "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+  },
+  "captures": [
+    {
+      "file": "extensions-panels.png",
+      "operation": "Nested selected",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 4,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 72,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1028876,
+        "gpu_texture_estimate_bytes": 11520048,
+        "hidden_count": 0,
+        "identity": null,
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 0,
+        "model": null,
+        "mvp": [
+          0.005645633675158024,
+          0,
+          0,
+          0,
+          0,
+          0.008468450047075748,
+          -2.7422730441449187e-19,
+          0,
+          0,
+          2.011108713663691e-18,
+          0.0011547263711690903,
+          0,
+          0,
+          -5.21908559667633e-32,
+          0.2638240158557892,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          5,
+          45,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 4,
+        "samples": 1,
+        "selected": null,
+        "selected_group_count": 2,
+        "selection": "Object",
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 236,
+          "scans": 1,
+          "shared_value_bytes": 1384,
+          "string_capacity_bytes": 233,
+          "unique_geometry_values": 3,
+          "unique_sessions": 1,
+          "vector_capacity_bytes": 160
+        },
+        "source_cpu_known_payload_bytes": 2013,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 2949.599999964237,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 0,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 40,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 5,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 0,
+          "shaping_ms": 0,
+          "skipped_preparations": 67,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": null,
+        "widget_bytes": [
+          371616,
+          0
+        ],
+        "widget_highlight": -1
+      }
+    },
+    {
+      "file": "extensions-controls.png",
+      "operation": "Placed polyline control dragged",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 2,
+        "controls": [
+          {
+            "id": {
+              "Vertex": 0
+            },
+            "position": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": {
+              "Vertex": 1
+            },
+            "position": [
+              60,
+              0,
+              0
+            ]
+          },
+          {
+            "id": {
+              "Vertex": 2
+            },
+            "position": [
+              46.22337614802997,
+              69.84044431659262,
+              0
+            ]
+          }
+        ],
+        "draw_calls": 5,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 109,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1621352,
+        "gpu_texture_estimate_bytes": 11527268,
+        "hidden_count": 0,
+        "identity": [
+          0,
+          "b980527a-c6ba-44e4-83c3-96809a7ba033"
+        ],
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 3,
+        "model": [
+          1.5,
+          0,
+          0,
+          0,
+          0,
+          1.5,
+          0,
+          0,
+          0,
+          0,
+          1.5,
+          0,
+          15,
+          -45,
+          0,
+          1
+        ],
+        "mvp": [
+          0.005645633675158024,
+          0,
+          0,
+          0,
+          0,
+          0.008468450047075748,
+          -2.661402439088965e-19,
+          0,
+          0,
+          2.011108713663691e-18,
+          0.0011206731433048844,
+          0,
+          0,
+          -5.21908559667633e-32,
+          0.27078890800476074,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          5,
+          45,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 4,
+        "samples": 1,
+        "selected": 2,
+        "selected_group_count": 0,
+        "selection": {
+          "Controls": {
+            "cloud": false,
+            "parent": 2,
+            "selected": null
+          }
+        },
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 236,
+          "scans": 2,
+          "shared_value_bytes": 1384,
+          "string_capacity_bytes": 233,
+          "unique_geometry_values": 3,
+          "unique_sessions": 1,
+          "vector_capacity_bytes": 104
+        },
+        "source_cpu_known_payload_bytes": 1957,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 4265.800000011921,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 15,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 240,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 8,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 2,
+          "shaping_ms": 13,
+          "skipped_preparations": 101,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": null,
+        "widget_bytes": [
+          371616,
+          0
+        ],
+        "widget_highlight": -1
+      }
+    },
+    {
+      "file": "extensions-modeling.png",
+      "operation": "Created line trimmed to normalized interval 0.2–0.8",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 227,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1621568,
+        "gpu_texture_estimate_bytes": 18752612,
+        "hidden_count": 0,
+        "identity": [
+          1,
+          "9e9a7376-c734-452e-962e-9ea75a5a6f83"
+        ],
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -5,
+          -65,
+          0,
+          1
+        ],
+        "mvp": [
+          0.0066122449934482574,
+          0,
+          0,
+          0,
+          0,
+          0.009918367490172386,
+          -2.827337713400458e-19,
+          0,
+          0,
+          2.3646194444844063e-18,
+          0.0011859233491122723,
+          0,
+          0,
+          0,
+          0.2929014563560486,
+          1
+        ],
+        "objects": 4,
+        "origin": [
+          5,
+          65,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 5,
+        "samples": 1,
+        "selected": 3,
+        "selected_group_count": 0,
+        "selection": "Object",
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 256,
+          "scans": 4,
+          "shared_value_bytes": 2104,
+          "string_capacity_bytes": 298,
+          "unique_geometry_values": 4,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 120
+        },
+        "source_cpu_known_payload_bytes": 2778,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 7634.800000011921,
+        "text": {
+          "active_instance_bytes": 196,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 21,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 240,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0.09999996423721313,
+          "preparations": 15,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 7,
+          "shape_count": 5,
+          "shaping_ms": 13.399999916553497,
+          "skipped_preparations": 212,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [
+          {
+            "color": [
+              255,
+              255,
+              255,
+              255
+            ],
+            "font_size": 13.5,
+            "id": 0,
+            "line_box": [
+              48.42449951171875,
+              19.5
+            ],
+            "line_height": 19.5,
+            "object": null,
+            "padding": [
+              12.75,
+              3
+            ],
+            "placement": "nameplate",
+            "plane": null,
+            "rounded": true,
+            "text": "my_line",
+            "world": [
+              5,
+              130,
+              0
+            ],
+            "world_height": null
+          }
+        ],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": [
+          [
+            5,
+            130,
+            0
+          ],
+          0.25205761316872427
+        ],
+        "widget_bytes": [
+          371616,
+          7225344
+        ],
+        "widget_highlight": -1
+      }
+    },
+    {
+      "file": "extensions-gumball.png",
+      "operation": "Cylindrical gumball and cone tips in isometric view",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 6,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 241,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1621568,
+        "gpu_texture_estimate_bytes": 24798308,
+        "hidden_count": 0,
+        "identity": [
+          1,
+          "9e9a7376-c734-452e-962e-9ea75a5a6f83"
+        ],
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -5,
+          -65,
+          0,
+          1
+        ],
+        "mvp": [
+          0.005726371891796589,
+          0.0024795918725430965,
+          -0.0005135198589414358,
+          0,
+          -0.0033061224967241287,
+          0.004294779151678085,
+          -0.0008894425118342042,
+          0,
+          0,
+          0.00858955830335617,
+          0.0005929616745561361,
+          0,
+          0,
+          0,
+          0.2929014563560486,
+          1
+        ],
+        "objects": 4,
+        "origin": [
+          5,
+          65,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 5,
+        "samples": 1,
+        "selected": 3,
+        "selected_group_count": 0,
+        "selection": "Object",
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 256,
+          "scans": 4,
+          "shared_value_bytes": 2104,
+          "string_capacity_bytes": 298,
+          "unique_geometry_values": 4,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 120
+        },
+        "source_cpu_known_payload_bytes": 2778,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 8384.899999976158,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 22,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 240,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 17,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 5,
+          "shaping_ms": 13.399999916553497,
+          "skipped_preparations": 224,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": [
+          [
+            5,
+            130,
+            0
+          ],
+          0.25205761316872427
+        ],
+        "widget_bytes": [
+          371616,
+          13271040
+        ],
+        "widget_highlight": -1
+      }
+    },
+    {
+      "file": "extensions-command-interface.png",
+      "operation": "Type a complete line command in egui",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 3,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 39,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1028876,
+        "gpu_texture_estimate_bytes": 11520048,
+        "hidden_count": 0,
+        "identity": null,
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 0,
+        "model": null,
+        "mvp": [
+          0.0069412123411893845,
+          0,
+          0,
+          0,
+          0,
+          0.010411818511784077,
+          -2.641124364866169e-19,
+          0,
+          0,
+          2.171464913237455e-18,
+          0.001266375882551074,
+          0,
+          0,
+          0,
+          0.28933292627334595,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          5,
+          45,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 4,
+        "samples": 1,
+        "selected": null,
+        "selected_group_count": 0,
+        "selection": "Object",
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 236,
+          "scans": 1,
+          "shared_value_bytes": 1384,
+          "string_capacity_bytes": 233,
+          "unique_geometry_values": 3,
+          "unique_sessions": 1,
+          "vector_capacity_bytes": 160
+        },
+        "source_cpu_known_payload_bytes": 2013,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 1865.7999999523163,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 0,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 40,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 3,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 0,
+          "shaping_ms": 0,
+          "skipped_preparations": 36,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": null,
+        "widget_bytes": [
+          371616,
+          0
+        ],
+        "widget_highlight": -1
+      },
+      "ui": {
+        "command": "line 0,130,0 100,130,0",
+        "command_open": true,
+        "controls": [
+          {
+            "key": "command/input",
+            "label": "Command",
+            "rect": [
+              19,
+              740.6875,
+              499,
+              759.6875
+            ]
+          },
+          {
+            "key": "command/run",
+            "label": "Run",
+            "rect": [
+              19,
+              762.6875,
+              49.8125,
+              780.6875
+            ]
+          },
+          {
+            "key": "command/close",
+            "label": "Close",
+            "rect": [
+              57.8125,
+              762.6875,
+              127.09375,
+              780.6875
+            ]
+          }
+        ],
+        "framework": "egui 0.34.3",
+        "history": [],
+        "layers_open": false
+      }
+    },
+    {
+      "file": "extensions-command-create.png",
+      "operation": "Enter creates the line and displays feedback",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 3,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 68,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1029092,
+        "gpu_texture_estimate_bytes": 11520048,
+        "hidden_count": 0,
+        "identity": null,
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 0,
+        "model": null,
+        "mvp": [
+          0.0069412123411893845,
+          0,
+          0,
+          0,
+          0,
+          0.010411818511784077,
+          -2.388761382746014e-19,
+          0,
+          0,
+          2.171464913237455e-18,
+          0.0011453719343990088,
+          0,
+          0,
+          0,
+          0.30946245789527893,
+          1
+        ],
+        "objects": 4,
+        "origin": [
+          5,
+          45,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 5,
+        "samples": 1,
+        "selected": null,
+        "selected_group_count": 0,
+        "selection": "Object",
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 256,
+          "scans": 2,
+          "shared_value_bytes": 2104,
+          "string_capacity_bytes": 298,
+          "unique_geometry_values": 4,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 176
+        },
+        "source_cpu_known_payload_bytes": 2834,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 2714.7999999523163,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 0,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 40,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 4,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 0,
+          "shaping_ms": 0,
+          "skipped_preparations": 64,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": null,
+        "widget_bytes": [
+          371616,
+          0
+        ],
+        "widget_highlight": -1
+      },
+      "ui": {
+        "command": "",
+        "command_open": true,
+        "controls": [
+          {
+            "key": "command/input",
+            "label": "Command",
+            "rect": [
+              19,
+              722.6875,
+              499,
+              741.6875
+            ]
+          },
+          {
+            "key": "command/run",
+            "label": "Run",
+            "rect": [
+              19,
+              744.6875,
+              49.8125,
+              762.6875
+            ]
+          },
+          {
+            "key": "command/close",
+            "label": "Close",
+            "rect": [
+              57.8125,
+              744.6875,
+              127.09375,
+              762.6875
+            ]
+          }
+        ],
+        "framework": "egui 0.34.3",
+        "history": [
+          "> line 0,130,0 100,130,0\ngeometry updated"
+        ],
+        "layers_open": false
+      }
+    },
+    {
+      "file": "extensions-command-trim.png",
+      "operation": "Select the line before entering trim",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 110,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1621420,
+        "gpu_texture_estimate_bytes": 16688228,
+        "hidden_count": 0,
+        "identity": [
+          1,
+          "91fdd106-a004-4630-bd90-cc696f4bbc1f"
+        ],
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -5,
+          -45,
+          0,
+          1
+        ],
+        "mvp": [
+          0.00907029490917921,
+          0,
+          0,
+          0,
+          0,
+          0.013605441898107529,
+          -2.912506814208332e-19,
+          0,
+          0,
+          2.966299041526903e-18,
+          0.0013358714058995247,
+          0,
+          0,
+          -0.27210885286331177,
+          0.3299359083175659,
+          1
+        ],
+        "objects": 4,
+        "origin": [
+          5,
+          45,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 5,
+        "samples": 1,
+        "selected": 3,
+        "selected_group_count": 0,
+        "selection": "Object",
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 256,
+          "scans": 2,
+          "shared_value_bytes": 2104,
+          "string_capacity_bytes": 298,
+          "unique_geometry_values": 4,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 176
+        },
+        "source_cpu_known_payload_bytes": 2834,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 4116.699999988079,
+        "text": {
+          "active_instance_bytes": 196,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 7,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 240,
+          "new_raster_images": 0,
+          "new_raster_keys": 7,
+          "preparation_ms": 0.5,
+          "preparations": 6,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 7,
+          "shape_count": 1,
+          "shaping_ms": 0.20000004768371582,
+          "skipped_preparations": 104,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [
+          {
+            "color": [
+              255,
+              255,
+              255,
+              255
+            ],
+            "font_size": 13.5,
+            "id": 0,
+            "line_box": [
+              48.42449951171875,
+              19.5
+            ],
+            "line_height": 19.5,
+            "object": null,
+            "padding": [
+              12.75,
+              3
+            ],
+            "placement": "nameplate",
+            "plane": null,
+            "rounded": true,
+            "text": "my_line",
+            "world": [
+              50,
+              130,
+              0
+            ],
+            "world_height": null
+          }
+        ],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": [
+          [
+            50,
+            130,
+            0
+          ],
+          0.18375000000000002
+        ],
+        "widget_bytes": [
+          371616,
+          5160960
+        ],
+        "widget_highlight": -1
+      },
+      "ui": {
+        "command": "trim 0.2 0.8",
+        "command_open": true,
+        "controls": [
+          {
+            "key": "command/input",
+            "label": "Command",
+            "rect": [
+              19,
+              722.6875,
+              499,
+              741.6875
+            ]
+          },
+          {
+            "key": "command/run",
+            "label": "Run",
+            "rect": [
+              19,
+              744.6875,
+              49.8125,
+              762.6875
+            ]
+          },
+          {
+            "key": "command/close",
+            "label": "Close",
+            "rect": [
+              57.8125,
+              744.6875,
+              127.09375,
+              762.6875
+            ]
+          }
+        ],
+        "framework": "egui 0.34.3",
+        "history": [
+          "> line 0,130,0 100,130,0\ngeometry updated"
+        ],
+        "layers_open": false
+      }
+    },
+    {
+      "file": "extensions-command-extend.png",
+      "operation": "Extend the selected trimmed line",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 3,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 175,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1621420,
+        "gpu_texture_estimate_bytes": 11527268,
+        "hidden_count": 0,
+        "identity": null,
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 0,
+        "model": null,
+        "mvp": [
+          0.00907029490917921,
+          0,
+          0,
+          0,
+          0,
+          0.013605441898107529,
+          -2.912506814208332e-19,
+          0,
+          0,
+          2.966299041526903e-18,
+          0.0013358714058995247,
+          0,
+          0,
+          0,
+          0.3299359083175659,
+          1
+        ],
+        "objects": 4,
+        "origin": [
+          5,
+          65,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 5,
+        "samples": 1,
+        "selected": null,
+        "selected_group_count": 0,
+        "selection": "Object",
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 256,
+          "scans": 4,
+          "shared_value_bytes": 2104,
+          "string_capacity_bytes": 298,
+          "unique_geometry_values": 4,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 176
+        },
+        "source_cpu_known_payload_bytes": 2834,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 6017.299999952316,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 7,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 240,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 9,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 2,
+          "shaping_ms": 0.30000007152557373,
+          "skipped_preparations": 166,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": null,
+        "widget_bytes": [
+          371616,
+          0
+        ],
+        "widget_highlight": -1
+      },
+      "ui": {
+        "command": "",
+        "command_open": true,
+        "controls": [
+          {
+            "key": "command/input",
+            "label": "Command",
+            "rect": [
+              19,
+              722.6875,
+              499,
+              741.6875
+            ]
+          },
+          {
+            "key": "command/run",
+            "label": "Run",
+            "rect": [
+              19,
+              744.6875,
+              49.8125,
+              762.6875
+            ]
+          },
+          {
+            "key": "command/close",
+            "label": "Close",
+            "rect": [
+              57.8125,
+              744.6875,
+              127.09375,
+              762.6875
+            ]
+          }
+        ],
+        "framework": "egui 0.34.3",
+        "history": [
+          "> line 0,130,0 100,130,0\ngeometry updated",
+          "> trim 0.2 0.8\ngeometry updated",
+          "> extend -0.2 1.2\ngeometry updated"
+        ],
+        "layers_open": false
+      }
+    },
+    {
+      "file": "extensions-command-explode.png",
+      "operation": "Explode the selected polyline into two lines",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 3,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 269,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1621800,
+        "gpu_texture_estimate_bytes": 11527268,
+        "hidden_count": 0,
+        "identity": null,
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 0,
+        "model": null,
+        "mvp": [
+          0.005521048791706562,
+          0,
+          0,
+          0,
+          0,
+          0.00828157365322113,
+          -1.911899643674407e-19,
+          0,
+          0,
+          1.648566928312698e-18,
+          0.0009604425285942852,
+          0,
+          0,
+          0,
+          0.29912811517715454,
+          1
+        ],
+        "objects": 6,
+        "origin": [
+          5,
+          115,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 7,
+        "samples": 1,
+        "selected": null,
+        "selected_group_count": 0,
+        "selection": "Object",
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 648,
+          "scans": 6,
+          "shared_value_bytes": 2392,
+          "string_capacity_bytes": 466,
+          "unique_geometry_values": 6,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 192
+        },
+        "source_cpu_known_payload_bytes": 3698,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 8669.599999964237,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 17,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 240,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 13,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 3,
+          "shaping_ms": 0.40000009536743164,
+          "skipped_preparations": 256,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": null,
+        "widget_bytes": [
+          371616,
+          0
+        ],
+        "widget_highlight": -1
+      },
+      "ui": {
+        "command": "",
+        "command_open": true,
+        "controls": [
+          {
+            "key": "command/input",
+            "label": "Command",
+            "rect": [
+              19,
+              722.6875,
+              499,
+              741.6875
+            ]
+          },
+          {
+            "key": "command/run",
+            "label": "Run",
+            "rect": [
+              19,
+              744.6875,
+              49.8125,
+              762.6875
+            ]
+          },
+          {
+            "key": "command/close",
+            "label": "Close",
+            "rect": [
+              57.8125,
+              744.6875,
+              127.09375,
+              762.6875
+            ]
+          }
+        ],
+        "framework": "egui 0.34.3",
+        "history": [
+          "> line 0,130,0 100,130,0\ngeometry updated",
+          "> trim 0.2 0.8\ngeometry updated",
+          "> extend -0.2 1.2\ngeometry updated",
+          "> polyline 0,180,0 100,180,0 100,230,0\ngeometry updated",
+          "> explode\ngeometry updated"
+        ],
+        "layers_open": false
+      }
+    },
+    {
+      "file": "extensions-command-undo.png",
+      "operation": "Undo restores the polyline",
+      "state": {
+        "canvas": [
+          1200,
+          800
+        ],
+        "cloud_points": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 3,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 286,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 1621800,
+        "gpu_texture_estimate_bytes": 11527268,
+        "hidden_count": 0,
+        "identity": null,
+        "logical_canvas": [
+          1200,
+          800
+        ],
+        "markers": 0,
+        "model": null,
+        "mvp": [
+          0.005521048791706562,
+          0,
+          0,
+          0,
+          0,
+          0.00828157365322113,
+          -1.911899643674407e-19,
+          0,
+          0,
+          1.648566928312698e-18,
+          0.0009604425285942852,
+          0,
+          0,
+          0,
+          0.29912811517715454,
+          1
+        ],
+        "objects": 5,
+        "origin": [
+          5,
+          115,
+          0
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 0,
+        "ribbons": 7,
+        "samples": 1,
+        "selected": null,
+        "selected_group_count": 0,
+        "selection": "Object",
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 276,
+          "scans": 7,
+          "shared_value_bytes": 2624,
+          "string_capacity_bytes": 362,
+          "unique_geometry_values": 5,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 264
+        },
+        "source_cpu_known_payload_bytes": 3526,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "submitted_at_ms": 9219.699999988079,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 17,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 240,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 14,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 3,
+          "shaping_ms": 0.40000009536743164,
+          "skipped_preparations": 272,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 0,
+        "wasm_capacity_bytes": 8519680,
+        "widget": null,
+        "widget_bytes": [
+          371616,
+          0
+        ],
+        "widget_highlight": -1
+      },
+      "ui": {
+        "command": "",
+        "command_open": true,
+        "controls": [
+          {
+            "key": "command/input",
+            "label": "Command",
+            "rect": [
+              19,
+              722.6875,
+              499,
+              741.6875
+            ]
+          },
+          {
+            "key": "command/run",
+            "label": "Run",
+            "rect": [
+              19,
+              744.6875,
+              49.8125,
+              762.6875
+            ]
+          },
+          {
+            "key": "command/close",
+            "label": "Close",
+            "rect": [
+              57.8125,
+              744.6875,
+              127.09375,
+              762.6875
+            ]
+          }
+        ],
+        "framework": "egui 0.34.3",
+        "history": [
+          "> line 0,130,0 100,130,0\ngeometry updated",
+          "> trim 0.2 0.8\ngeometry updated",
+          "> extend -0.2 1.2\ngeometry updated",
+          "> polyline 0,180,0 100,180,0 100,230,0\ngeometry updated",
+          "> explode\ngeometry updated",
+          "> undo\nundone"
+        ],
+        "layers_open": false
+      }
+    }
+  ]
+}

@@ -83,7 +83,7 @@ impl GrowBuf {
             enc.copy_buffer_to_buffer(&self.buf, 0, &nb, 0, self.len as u64 * self.stride);
             ctx.queue.submit([enc.finish()]);
         }
-        self.buf = nb;
+        replace_buffer(&mut self.buf, nb);
         self.cap = new_cap;
     }
 
@@ -105,7 +105,10 @@ impl GrowBuf {
     /// Forget the rows AND the buffer: back to one zeroed row, so a cleared scene holds no
     /// GPU memory. The caller rebuilds any bind group over it.
     pub fn release(&mut self, ctx: &GpuCtx) {
-        self.buf = zeroed_buffer(&ctx.device, self.label, self.stride, self.usage);
+        replace_buffer(
+            &mut self.buf,
+            zeroed_buffer(&ctx.device, self.label, self.stride, self.usage),
+        );
         self.len = 0;
         self.cap = 1;
     }
@@ -173,6 +176,14 @@ pub fn zeroed_buffer(
         usage,
         mapped_at_creation: false,
     })
+}
+
+/// Put `fresh` in `slot` and destroy what was there. On the web a dropped buffer is not freed
+/// until the JavaScript garbage collector finds it, so a table that grew, or a pool that was
+/// resized, would keep its old bytes on the GPU indefinitely. The copy that moved the live rows
+/// was submitted already; a destroy after a submit lets that work finish.
+pub fn replace_buffer(slot: &mut wgpu::Buffer, fresh: wgpu::Buffer) {
+    std::mem::replace(slot, fresh).destroy();
 }
 
 /// A uniform buffer holding one `T`, writable every frame.

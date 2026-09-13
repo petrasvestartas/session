@@ -1,6 +1,8 @@
-# What this viewer does not do yet
+# Extension roadmap and historical designs
 
-It reads, draws, picks, streams, and since lesson 21 moves, deletes and edits. It does not CREATE. `session_viewer_archive` (~11,000 lines of `src/`) created too, in a different architecture.
+Current implementation and independent teaching steps: [Editing extensions](extend-implementation.md). The designs below are historical; use the supplement’s status table for supported operations and limits.
+
+The frozen lesson-21 viewer reads, draws, picks, streams, moves, deletes and edits. The maintained viewer also creates points, lines and polylines through typed commands. `session_viewer_archive` (~11,000 lines of `src/`) created too, in a different architecture.
 
 ## Three rules every design below obeys
 
@@ -12,7 +14,7 @@ It reads, draws, picks, streams, and since lesson 21 moves, deletes and edits. I
 
 - **Gumball**, **Command line** and **Tree** were the designs; [lesson 21](21-editing.md) is the
   code they became. They are kept as the reasoning behind it, not as instructions to follow.
-- **This page** is what is still missing.
+- **This page** preserves the original gap analysis; the linked implementation table records what remains.
 
 ## Built, in lesson 21
 
@@ -31,7 +33,7 @@ here would drift from it.
 | no text entry anywhere on the page | the command line, opened with `:` |
 | no panel of rows beside the scene | the layers panel, opened with `L` |
 
-### 5 · Nothing can be created
+### 5 · Interactive drawing remains
 - Click or typed coordinate adds a point, Enter finishes, `c` closes, `u` drops the last, Esc cancels, rubber band follows. Needs (1)–(4) plus a transient segment-lane region.
 - ~400 lines against 564 (`tool_state.rs` 77, `state_tool.rs` 487): the preview is a lane write, the commit four kernel calls rather than four plus GPU add plus undo push plus label rebuild. (command line for verbs, this page for the loop)
 

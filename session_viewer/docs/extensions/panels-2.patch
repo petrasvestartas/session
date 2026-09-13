@@ -1,0 +1,326 @@
+diff --git a/src/state.rs b/src/state.rs
+--- a/src/state.rs
++++ b/src/state.rs
+@@ -17,6 +17,7 @@
+ use crate::engine::performance::{heap_mb, now_ms};
+ mod cloud_query;
+ pub mod edit;
++mod panel;
+ mod sheet_query;
+ mod text;
+ use std::sync::Arc;
+@@ -49,6 +50,7 @@
+     /// When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
+     last_resize_ms: f64,
+     pub selection: SelectionMode,
++    hierarchy: crate::app::hierarchy::Hierarchy,
+     controls: Controls,
+     requested: PickMode,
+     pub selection_radius_css: f64,
+@@ -85,6 +87,7 @@
+             last_frame_ms: 0.0,
+             last_resize_ms: f64::NEG_INFINITY,
+             selection: SelectionMode::Object,
++            hierarchy: Default::default(),
+             controls: Controls::default(),
+             requested: PickMode::Object,
+             selection_radius_css: 6.0,
+@@ -180,6 +183,8 @@
+ 
+     /// Drop every document; the canvas, device and camera stay.
+     pub fn clear(&mut self) {
++        self.cancel_gesture();
++        self.hierarchy = Default::default();
+         self.selection = SelectionMode::Object;
+         self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+@@ -278,6 +283,10 @@
+ 
+     /// Make `row` the selection (or none), moving the highlight.
+     pub fn select(&mut self, row: Option<u32>) {
++        self.cancel_gesture();
++        for old in self.hierarchy.selected.drain(..) {
++            self.gpu.set_selected(old, false);
++        }
+         self.selection = SelectionMode::Object;
+         self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+@@ -309,6 +318,14 @@
+     /// a `rebuild` (an edit commit) re-applies it when the rows come back. A live reload
+     /// takes the `clear` path instead and starts a fresh scene with nothing hidden.
+     pub fn hide_selected(&mut self) {
++        if !self.hierarchy.selected.is_empty() {
++            let rows = std::mem::take(&mut self.hierarchy.selected);
++            for row in &rows {
++                self.gpu.set_selected(*row, false);
++            }
++            self.set_rows_hidden(&rows, true);
++            return;
++        }
+         let Some(row) = self.scene.selected else {
+             return;
+         };
+diff --git a/src/state/edit.rs b/src/state/edit.rs
+--- a/src/state/edit.rs
++++ b/src/state/edit.rs
+@@ -186,14 +186,10 @@
+             return;
+         };
+         if !self.scene.delete_row(row) {
++            self.status("This object cannot be deleted; streamed scenes cannot be rebuilt");
+             return;
+         }
+-        self.select(None);
+-        self.scene.rebuild(&mut self.gpu);
+-        self.place_gizmo(None);
+-        self.refresh_layers();
+-        self.update_label();
+-        self.touch();
++        self.after_history();
+     }
+ 
+     /// Undo the last edit in the document that was edited last - Ctrl+Z.
+@@ -213,6 +209,8 @@
+     /// An undo can bring an object back or take one away, so the rows are rebuilt rather than
+     /// patched. The selection is dropped because the row it named may not exist any more.
+     fn after_history(&mut self) {
++        self.hierarchy.open.clear();
++        self.hierarchy.page = 0;
+         self.selection = SelectionMode::Object;
+         self.select(None);
+         self.scene.rebuild(&mut self.gpu);
+@@ -514,35 +512,12 @@
+         if rows.is_empty() {
+             return;
+         }
+-        let hidden: Vec<bool> = rows
+-            .iter()
+-            .map(|&row| {
+-                self.scene
+-                    .identity_of(row)
+-                    .is_some_and(|id| self.scene.hidden.contains(&id))
+-            })
+-            .collect();
+-        let hide = !hidden.iter().all(|&h| h);
+-        for (&row, was) in rows.iter().zip(&hidden) {
+-            if *was == hide {
+-                continue;
+-            }
+-            let Some(identity) = self.scene.identity_of(row) else {
+-                continue;
+-            };
+-            if hide {
+-                self.scene.hidden.insert(identity);
+-            } else {
+-                self.scene.hidden.remove(&identity);
+-            }
+-            self.gpu.set_hidden(row, hide);
+-        }
+-        if self.scene.selected.is_some_and(|row| rows.contains(&row)) && hide {
+-            self.select(None);
+-        }
+-        self.refresh_layers();
+-        self.update_label();
+-        self.touch();
++        let hide = rows.iter().any(|&row| {
++            self.scene
++                .identity_of(row)
++                .is_some_and(|id| !self.scene.hidden.contains(&id))
++        });
++        self.set_rows_hidden(&rows, hide);
+     }
+ 
+     /// Redraw the panel from the scene, when it is open.
+@@ -550,7 +525,8 @@
+         if !crate::app::feedback::layers_open() {
+             return;
+         }
+-        let rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
++        self.hierarchy.refresh(&self.scene);
++        let mut rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
+             .into_iter()
+             .map(|row| crate::app::feedback::LayerRow {
+                 key: row.layer.key(),
+@@ -559,6 +535,7 @@
+                 hidden: row.hidden,
+             })
+             .collect();
++        self.hierarchy_labels(&mut rows);
+         crate::app::feedback::layers_panel(&rows);
+     }
+ }
+diff --git a/src/state/panel.rs b/src/state/panel.rs
+new file mode 100644
+--- /dev/null
++++ b/src/state/panel.rs
+@@ -0,0 +1,170 @@
++use crate::app::layers::Layer;
++use crate::state::State;
++
++impl State {
++    pub fn selected_group_count(&self) -> usize {
++        self.hierarchy.selected.len()
++    }
++
++    pub fn panel_action(&mut self, key: &str) {
++        if let Some(layer) = Layer::from_key(key) {
++            self.toggle_layer(layer);
++            return;
++        }
++        let Some((action, index)) = key.split_once('/') else {
++            return;
++        };
++        let Ok(index) = index.parse::<usize>() else {
++            return;
++        };
++        if action == "page" {
++            self.hierarchy.page = index;
++        } else if index < self.hierarchy.nodes.len() {
++            match action {
++                "open" => {
++                    if !self.hierarchy.open.remove(&index) {
++                        self.hierarchy.open.insert(index);
++                    }
++                }
++                "select" => {
++                    let rows = self.hierarchy.targets(index);
++                    self.select(None);
++                    for row in rows {
++                        if self
++                            .scene
++                            .identity_of(row)
++                            .is_some_and(|id| !self.scene.hidden.contains(&id))
++                        {
++                            self.gpu.set_selected(row, true);
++                            self.hierarchy.selected.push(row);
++                        }
++                    }
++                    if self.hierarchy.selected.len() == 1 {
++                        let row = self.hierarchy.selected[0];
++                        self.select(Some(row));
++                    }
++                }
++                "hide" => {
++                    let rows = self.hierarchy.targets(index);
++                    let hide = rows.iter().any(|row| {
++                        self.scene
++                            .identity_of(*row)
++                            .is_some_and(|id| !self.scene.hidden.contains(&id))
++                    });
++                    self.set_rows_hidden(&rows, hide);
++                    return;
++                }
++                _ => return,
++            }
++        }
++        self.refresh_layers();
++        self.touch();
++    }
++
++    /// Apply visibility to sorted object rows while preserving unrelated selection.
++    pub(super) fn set_rows_hidden(&mut self, rows: &[u32], hide: bool) {
++        if hide
++            && (self
++                .scene
++                .selected
++                .is_some_and(|row| rows.binary_search(&row).is_ok())
++                || self
++                    .hierarchy
++                    .selected
++                    .iter()
++                    .any(|row| rows.binary_search(row).is_ok()))
++        {
++            self.select(None);
++        }
++        for row in rows {
++            let Some(id) = self.scene.identity_of(*row) else {
++                continue;
++            };
++            let changed = if hide {
++                self.scene.hidden.insert(id)
++            } else {
++                self.scene.hidden.remove(&id)
++            };
++            if changed {
++                self.gpu.set_hidden(*row, hide);
++            }
++        }
++        self.refresh_layers();
++        self.update_label();
++        self.touch();
++    }
++
++    pub(super) fn hierarchy_labels(&mut self, rows: &mut Vec<crate::app::feedback::LayerRow>) {
++        use crate::app::feedback::LayerRow;
++        use crate::app::hierarchy::PAGE_SIZE;
++        let visible = self.hierarchy.visible();
++        self.hierarchy.page = self
++            .hierarchy
++            .page
++            .min(visible.len().saturating_sub(1) / PAGE_SIZE);
++        let first = self.hierarchy.page * PAGE_SIZE;
++        for &index in visible.iter().skip(first).take(PAGE_SIZE) {
++            let node = &self.hierarchy.nodes[index];
++            let count = node.rows.len();
++            let hidden = self.hierarchy.rows[node.rows.clone()].iter().all(|row| {
++                self.scene
++                    .identity_of(*row)
++                    .is_some_and(|id| self.scene.hidden.contains(&id))
++            });
++            let indent = "  ".repeat(node.depth.min(16));
++            if node.end > index + 1 {
++                let mark = if self.hierarchy.open.contains(&index) {
++                    "▾"
++                } else {
++                    "▸"
++                };
++                rows.push(LayerRow {
++                    key: format!("open/{index}"),
++                    label: format!("{indent}{mark} {}", node.label),
++                    count,
++                    hidden,
++                });
++            }
++            rows.push(LayerRow {
++                key: format!("select/{index}"),
++                label: format!("{indent}Select {}", node.label),
++                count,
++                hidden,
++            });
++            rows.push(LayerRow {
++                key: format!("hide/{index}"),
++                label: format!(
++                    "{indent}{} {}",
++                    if hidden { "Show" } else { "Hide" },
++                    node.label
++                ),
++                count,
++                hidden,
++            });
++        }
++        for (label, page) in [
++            ("Previous", self.hierarchy.page.checked_sub(1)),
++            (
++                "Next",
++                (first + PAGE_SIZE < visible.len()).then_some(self.hierarchy.page + 1),
++            ),
++        ] {
++            if let Some(page) = page {
++                rows.push(LayerRow {
++                    key: format!("page/{page}"),
++                    label: label.into(),
++                    count: visible.len(),
++                    hidden: false,
++                });
++            }
++        }
++        if self.hierarchy.truncated {
++            rows.push(LayerRow {
++                key: String::new(),
++                label: "Tree exceeds panel capacity".into(),
++                count: 0,
++                hidden: false,
++            });
++        }
++    }
++}

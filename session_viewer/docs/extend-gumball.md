@@ -1,5 +1,7 @@
 # Adding a gumball
 
+Start here: [Implement a solid gumball, step by step](extend-gumball-tutorial.md). It includes every code edit, the mesh shader and a real screenshot. The designs below are historical; use the supplement’s status table for supported operations and limits.
+
 !!! note "Built in lesson 21"
     This was the design; `src/app/gizmo.rs` and `src/state/edit.rs` are what it became, and
     [lesson 21](21-editing.md) teaches them. Two decisions went the other way in the end: the

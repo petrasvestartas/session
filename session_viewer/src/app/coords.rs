@@ -101,7 +101,11 @@ pub fn resolve(
         Typed::Distance(d) => {
             let p = previous?;
             let v = along?;
-            Some(Point::new(p[0] + v[0] * d, p[1] + v[1] * d, p[2] + v[2] * d))
+            Some(Point::new(
+                p[0] + v[0] * d,
+                p[1] + v[1] * d,
+                p[2] + v[2] * d,
+            ))
         }
     }
 }
@@ -127,10 +131,37 @@ mod tests {
 
     #[test]
     fn the_four_forms_parse() {
-        assert_eq!(parse("12,4,2"), Some(Typed::Absolute { x: 12.0, y: 4.0, z: Some(2.0) }));
-        assert_eq!(parse(" 12 , 4 "), Some(Typed::Absolute { x: 12.0, y: 4.0, z: None }));
-        assert_eq!(parse("@3,0"), Some(Typed::Relative { x: 3.0, y: 0.0, z: None }));
-        assert_eq!(parse("@5<90"), Some(Typed::Polar { distance: 5.0, degrees: 90.0 }));
+        assert_eq!(
+            parse("12,4,2"),
+            Some(Typed::Absolute {
+                x: 12.0,
+                y: 4.0,
+                z: Some(2.0)
+            })
+        );
+        assert_eq!(
+            parse(" 12 , 4 "),
+            Some(Typed::Absolute {
+                x: 12.0,
+                y: 4.0,
+                z: None
+            })
+        );
+        assert_eq!(
+            parse("@3,0"),
+            Some(Typed::Relative {
+                x: 3.0,
+                y: 0.0,
+                z: None
+            })
+        );
+        assert_eq!(
+            parse("@5<90"),
+            Some(Typed::Polar {
+                distance: 5.0,
+                degrees: 90.0
+            })
+        );
         assert_eq!(parse("7.5"), Some(Typed::Distance(7.5)));
     }
 

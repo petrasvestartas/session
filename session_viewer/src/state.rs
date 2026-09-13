@@ -17,6 +17,7 @@ use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
 mod cloud_query;
 pub mod edit;
+mod panel;
 mod sheet_query;
 mod text;
 use std::sync::Arc;
@@ -46,7 +47,10 @@ pub struct State {
     /// The picture changed: the redraw presents a colour frame. A pending pick alone does not.
     dirty: bool,
     last_frame_ms: f64,
+    /// When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
+    last_resize_ms: f64,
     pub selection: SelectionMode,
+    hierarchy: crate::app::hierarchy::Hierarchy,
     controls: Controls,
     requested: PickMode,
     pub selection_radius_css: f64,
@@ -81,7 +85,9 @@ impl State {
             interacting: false,
             dirty: true,
             last_frame_ms: 0.0,
+            last_resize_ms: f64::NEG_INFINITY,
             selection: SelectionMode::Object,
+            hierarchy: Default::default(),
             controls: Controls::default(),
             requested: PickMode::Object,
             selection_radius_css: 6.0,
@@ -177,6 +183,8 @@ impl State {
 
     /// Drop every document; the canvas, device and camera stay.
     pub fn clear(&mut self) {
+        self.cancel_gesture();
+        self.hierarchy = Default::default();
         self.selection = SelectionMode::Object;
         self.sheet_query = None;
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
@@ -222,12 +230,25 @@ impl State {
         self.touch();
     }
 
-    /// Forward a canvas resize to the GPU layer.
-    pub fn resize(&mut self, width: u32, height: u32) {
+    /// The least time between two remakes of the attachments while a window is being resized.
+    const RESIZE_HOLD_MS: f64 = 100.0;
+
+    /// Forward a canvas resize to the GPU layer. A window drag brings a new size every frame
+    /// and each one remakes every attachment, so once the targets have followed a size the
+    /// next follows no sooner than `RESIZE_HOLD_MS` later: `false` says this one is still
+    /// waiting, the caller asks again next frame, and the last picture stretches over the
+    /// canvas meanwhile. A lone resize - a window moved to another screen - applies at once.
+    pub fn resize(&mut self, width: u32, height: u32) -> bool {
+        let now = now_ms();
+        if now - self.last_resize_ms < Self::RESIZE_HOLD_MS {
+            return false;
+        }
+        self.last_resize_ms = now;
         self.gpu.resize(width, height);
         self.gpu.logical_size = self.logical_size();
         self.upload_controls();
         self.touch();
+        true
     }
 
     /// The global cloud point-size scale, clamped.
@@ -253,6 +274,12 @@ impl State {
     }
 
     /// The picture changed: the next redraw presents it.
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn request_frame(&mut self) {
+        self.dirty = true;
+        self.needs_frame = true;
+    }
+
     pub fn touch(&mut self) {
         self.cancel_cloud_query();
         self.gpu.pick.cancel();
@@ -262,6 +289,10 @@ impl State {
 
     /// Make `row` the selection (or none), moving the highlight.
     pub fn select(&mut self, row: Option<u32>) {
+        self.cancel_gesture();
+        for old in self.hierarchy.selected.drain(..) {
+            self.gpu.set_selected(old, false);
+        }
         self.selection = SelectionMode::Object;
         self.sheet_query = None;
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
@@ -293,6 +324,14 @@ impl State {
     /// a `rebuild` (an edit commit) re-applies it when the rows come back. A live reload
     /// takes the `clear` path instead and starts a fresh scene with nothing hidden.
     pub fn hide_selected(&mut self) {
+        if !self.hierarchy.selected.is_empty() {
+            let rows = std::mem::take(&mut self.hierarchy.selected);
+            for row in &rows {
+                self.gpu.set_selected(*row, false);
+            }
+            self.set_rows_hidden(&rows, true);
+            return;
+        }
         let Some(row) = self.scene.selected else {
             return;
         };
@@ -409,6 +448,7 @@ impl State {
     /// back is applied first, so the same frame presents its highlight; a pick requested on
     /// a still scene runs alone, with no colour frame to wait behind.
     pub fn render(&mut self) {
+        self.upload_gizmo();
         let logical = self.logical_size();
         if logical != self.gpu.logical_size {
             self.gpu.logical_size = logical;
@@ -466,10 +506,15 @@ impl State {
             self.last_frame_ms = now_ms;
             self.gpu.performance.interacting = self.interacting;
             let drawn = self.gpu.present(&input);
+            // Only when there is something to give up: a ratio above 1, or the samples. At
+            // device scale 1 the canvas keeps its size, so the targets are remade here.
             if self.gpu.performance.take_slow_interaction()
-                && crate::engine::gpu::view::device_pixel_ratio() > 1.0
+                && (crate::engine::gpu::view::device_pixel_ratio() > 1.0
+                    || self.gpu.targets.samples > 1)
             {
-                crate::engine::gpu::view::reduce_for_slow_frames();
+                crate::engine::gpu::view::reduce();
+                self.gpu
+                    .resize(self.gpu.config.width, self.gpu.config.height);
                 log::warn!(
                     "slow interaction frames; rendering at device scale 1 without antialiasing"
                 );

@@ -1,0 +1,96 @@
+diff --git a/src/state/edit.rs b/src/state/edit.rs
+--- a/src/state/edit.rs
++++ b/src/state/edit.rs
+@@ -584,6 +584,7 @@
+     /// Which kernel control it is, which is what the commit moves.
+     id: ControlId,
+     plane: CPlane,
++    origin: Point,
+ }
+ 
+ impl State {
+@@ -603,7 +604,11 @@
+             return false;
+         };
+         let at = self.controls.points[index].position;
+-        let Some((sx, sy)) = self.project(at) else {
++        let Some(place) = self.scene.placement_of(parent) else {
++            return false;
++        };
++        let origin = Point::new(at[0], at[1], at[2]).transformed(&Xform::from_matrix(place));
++        let Some((sx, sy)) = self.project([origin[0], origin[1], origin[2]]) else {
+             return false;
+         };
+         // `project` answers in physical pixels, so a CSS radius is converted the same way the
+@@ -618,6 +623,7 @@
+             index,
+             id,
+             plane: CPlane::facing(&forward),
++            origin,
+         });
+         true
+     }
+@@ -631,6 +637,14 @@
+         let Some(point) = self.control_target(active, x, y) else {
+             return false;
+         };
++        let Some(back) = self
++            .scene
++            .placement_of(active.parent)
++            .and_then(|m| Xform::from_matrix(m).inverse())
++        else {
++            return false;
++        };
++        let point = point.transformed(&back);
+         let index = active.index;
+         self.controls.points[index].position = [point[0], point[1], point[2]];
+         self.upload_controls();
+@@ -644,6 +658,11 @@
+         let Some(active) = self.control_drag.take() else {
+             return false;
+         };
++        if let Some(geometry) = self.scene.geometry(active.parent) {
++            self.controls = crate::app::selection::Controls::from_geometry(geometry);
++        }
++        self.upload_controls();
++        self.touch();
+         let Some(point) = self.control_target(&active, x, y) else {
+             return false;
+         };
+@@ -668,11 +687,8 @@
+     /// object's other control points offered as snaps.
+     fn control_target(&self, active: &ControlDrag, x: f64, y: f64) -> Option<Point> {
+         let (from, dir) = self.camera.ray((x, y), self.viewport())?;
+-        let origin = {
+-            let at = self.controls.points[active.index].position;
+-            Point::new(at[0], at[1], at[2])
+-        };
+-        let free = active.plane.hit(&origin, &from, &dir)?;
++        let free = active.plane.hit(&active.origin, &from, &dir)?;
++        let place = Xform::from_matrix(self.scene.placement_of(active.parent)?);
+         let mut candidates = Vec::new();
+         for (i, control) in self.controls.points.iter().enumerate() {
+             if i == active.index {
+@@ -683,14 +699,20 @@
+                     control.position[0],
+                     control.position[1],
+                     control.position[2],
+-                ),
++                )
++                .transformed(&place),
+                 kind: SnapKind::Vertex,
+                 owner: active.parent,
+             });
+         }
+         // The ranking is in SCREEN space, so the aperture means pixels wherever the camera is.
+         let project = |p: &Point| self.project([p[0], p[1], p[2]]);
+-        match snap::best(&candidates, (x, y), SNAP_APERTURE_PX * self.pixel_scale(), project) {
++        match snap::best(
++            &candidates,
++            (x, y),
++            SNAP_APERTURE_PX * self.pixel_scale(),
++            project,
++        ) {
+             Some(hit) => Some(hit.point),
+             None => Some(free),
+         }

@@ -1,0 +1,48 @@
+diff --git a/src/state.rs b/src/state.rs
+--- a/src/state.rs
++++ b/src/state.rs
+@@ -180,6 +180,7 @@
+ 
+     /// Drop every document; the canvas, device and camera stay.
+     pub fn clear(&mut self) {
++        self.cancel_gesture();
+         self.selection = SelectionMode::Object;
+         self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+@@ -278,6 +279,7 @@
+ 
+     /// Make `row` the selection (or none), moving the highlight.
+     pub fn select(&mut self, row: Option<u32>) {
++        self.cancel_gesture();
+         self.selection = SelectionMode::Object;
+         self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+diff --git a/src/state/edit.rs b/src/state/edit.rs
+--- a/src/state/edit.rs
++++ b/src/state/edit.rs
+@@ -120,6 +120,11 @@
+         let Some(active) = self.dragging.take() else {
+             return false;
+         };
++        self.gpu
++            .objects
++            .set_placement(&self.gpu.ctx, active.row, &active.base_place);
++        self.gpu.grew_bounds(active.row);
++        self.touch();
+         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
+             return false;
+         };
+@@ -172,9 +177,10 @@
+             self.place_gizmo(Some(active.row));
+             self.touch();
+         }
+-        if self.control_drag.take().is_some() {
+-            // The control preview is a dot in a temporary lane; re-uploading from the source
+-            // puts it back.
++        if let Some(active) = self.control_drag.take() {
++            if let Some(geometry) = self.scene.geometry(active.parent) {
++                self.controls = crate::app::selection::Controls::from_geometry(geometry);
++            }
+             self.upload_controls();
+             self.touch();
+         }

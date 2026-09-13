@@ -1,8 +1,8 @@
-# Capstone · Build a feature nobody wrote for you
+# Optional design reference · Section plane
 
-Everything until now had a next line waiting for you. This does not.
+This proposed feature is not implemented in the current viewer. This page gives its design answers and acceptance criteria, not a code tutorial. For complete runnable code, follow [the current-viewer sequence](extend-integrated-tutorial.md).
 
-Add a **section plane** to the viewer: a movable plane that cuts the scene, so faces, edges, markers and text on the far side disappear and a solid's interior becomes visible.
+The proposal is a **section plane**: a movable plane that cuts the scene, so faces, edges, markers and text on the far side disappear and a solid's interior becomes visible.
 
 
 ![Diagram: keyboard · pointer\ which plane, where · state\ the plane as data · uniform\ plane reaches the GPU · every shader that draws\ faces · ink · markers · text · pixels\ cut away or kept · picking\ does a cut object still answer?](illustrations/capstone-01.svg)
@@ -25,9 +25,9 @@ Respect these and the feature will fit; break them and you will feel the frictio
 - A view switch is a *view* change: no row is rewritten, no buffer is rebuilt, no geometry is walked again.
 - The id pass and the visible pass must see the same world, or picking lies.
 
-## Before you write anything
+## Design questions
 
-Answer these on paper. The code is the easy half.
+The answers are written out directly below. No question must be solved to continue the course.
 
 1. Where does the plane live — in `Scene`, in `View`, in a lane? Which one survives a scene reload, and should it?
 2. How does it reach the GPU? Which existing uniform block already goes everywhere, and what does adding four floats to it cost?
@@ -83,9 +83,9 @@ Two ways, not equivalent. A uniform branch is predictable and uniform — cheap,
 
 What is *not* in this design: no new lane, no new pipeline family, no trait, no per-object clipping state. A feature that fits the architecture adds one field and one function. If yours needed a new module, ask which constraint pushed you there.
 
-## Checking yourself without a reference patch
+## Acceptance criteria for the proposed feature
 
-No solution branch to diff against, on purpose. Check it the way you would check your own work:
+This is a design reference for a future section plane, not a runnable implementation lesson. The current viewer does not implement it. Complete [the current-viewer sequence](extend-integrated-tutorial.md) for the full supported implementation; no section-plane code is needed to finish that sequence. A future implementation must satisfy these checks:
 
 - **It compiles at every step.** Add the field and the assertion first, and check. Then the contract function, unused, and check. Then one lane. Then the rest.
 - **It fails visibly when wrong.** Set the plane to cut through the middle of the fixture and orbit. A plane that moves with the camera means you tested in view space instead of world space.
@@ -95,6 +95,6 @@ No solution branch to diff against, on purpose. Check it the way you would check
 
 ## If you want more
 
-- **A second plane.** Two planes are not twice the work — but what is the right way to say "one, two, six"? An array in the uniform, a count, and a loop. Does the branch still stay uniform?
-- **A dimension primitive.** A leader line, an arrowhead and a label that keeps its size on screen. Now you *do* need a new lane: its rows, buffers, pipeline, shader and pick answer are yours to decide — lesson 04b for strokes, with nobody typing it for you.
+- **More planes.** Store a fixed-size plane array and an active count in the uniform. Test each active plane in a bounded loop. The count is shared by the draw, so loop iterations remain uniform; per-fragment discard results differ.
+- **A dimension primitive.** Reuse stroke rows for the leader and arrow strokes, text placement for its label, and one source identity for their picks. Add a lane only if those existing representations cannot express the required drawing behavior.
 - **Contribute it.** A clean section plane belongs in the viewer. Read `ARCHITECTURE.md`: changing source the course teaches means refolding the course.

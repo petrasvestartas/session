@@ -126,6 +126,10 @@ impl Gpu {
         if let Some(at) = self.pick.take_pending() {
             self.id_pass(encoder, Some(at));
         }
+        draws += self.widget.draw(encoder, view, &self.targets);
+        if let Some(ui) = self.ui.as_ref() {
+            ui.draw(encoder, view);
+        }
         (draws, self.objects.len())
     }
 
@@ -194,9 +198,7 @@ impl Gpu {
         }
         draws += self.control_net.draw_ribbons(pass, &b);
         draws += self.controls.draw_dots(pass, &b);
-        // Last of the ink list, so the widget is drawn over the object it moves.
-        draws += self.gizmo_arms.draw_ribbons(pass, &b);
-        draws += self.gizmo_dots.draw_dots(pass, &b);
+
         draws += self.text.draw(pass);
         draws
     }

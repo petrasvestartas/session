@@ -1,9 +1,12 @@
 # Adding panels: tree, types and graph
 
+Current implementation and independent teaching steps: [Editing extensions](extend-implementation.md). The designs below are historical; use the supplement’s status table for supported operations and limits.
+
 !!! note "Built in lesson 21, in part"
     The types panel is `src/app/layers.rs` and `L` opens it; [lesson 21](21-editing.md) teaches
-    it. The tree and graph filters described below are not built: they need multi-selection
-    first.
+    it. That frozen checkpoint has flat layers. The maintained viewer adds nested and graph
+    selection/visibility through [the panel extension](extend-panels-tutorial.md), with the
+    [egui interface](extend-ui-tutorial.md).
 
 ## One visibility set, three filters
 

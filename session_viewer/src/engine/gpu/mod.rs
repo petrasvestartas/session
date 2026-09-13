@@ -24,8 +24,11 @@ pub mod targets;
 pub mod text;
 pub mod text_outline;
 mod triangle_tiles;
+pub mod ui;
 pub mod upload;
 pub mod view;
+mod widget;
+mod widget_mesh;
 
 use crate::engine::performance::Performance;
 use crate::engine::pipelines::{Layouts, Target};
@@ -71,11 +74,9 @@ pub struct Gpu {
     pub glyphs: GlyphLane,
     pub controls: GlyphLane,
     pub control_net: SegmentLane,
-    /// The move/rotate/scale widget, drawn by the same two lane types the control net uses:
-    /// three arms and their balls are strokes and markers, so the widget costs no shader and
-    /// no pipeline of its own.
-    pub gizmo_arms: SegmentLane,
-    pub gizmo_dots: GlyphLane,
+    /// A fixed mesh with independent depth for overlapping manipulation handles.
+    pub widget: widget::Widget,
+    pub ui: Option<ui::Ui>,
     pub text: text::TextLane,
     pub selection_outline: surface_outline::SurfaceOutline,
     pub solid_outline: surface_outline::SurfaceOutline,
@@ -95,7 +96,7 @@ pub struct Gpu {
 
 impl Gpu {
     /// Owned buffers and framebuffer texture arithmetic, not a physical VRAM measurement.
-    /// Glyphon's private atlas/instance capacities and browser swapchain allocations are separate.
+    /// Glyphon/egui private capacities and browser swapchain allocations are separate.
     pub fn allocated_bytes(&self) -> (u64, u64) {
         let (splat_buffers, splat_textures) = self.splat.allocated_bytes();
         let (pick_buffers, pick_textures) = self.pick.allocated_bytes();
@@ -108,8 +109,7 @@ impl Gpu {
             + self.glyphs.allocated_bytes()
             + self.controls.allocated_bytes()
             + self.control_net.allocated_bytes()
-            + self.gizmo_arms.allocated_bytes()
-            + self.gizmo_dots.allocated_bytes()
+            + self.widget.allocated_bytes().0
             + self.cloud.allocated_bytes()
             + self.objects.allocated_bytes()
             + self.frame.allocated_bytes()
@@ -129,6 +129,7 @@ impl Gpu {
         (
             buffers,
             frame_textures
+                + self.widget.allocated_bytes().1
                 + self.arena.tiles.allocated_bytes().1
                 + splat_textures
                 + pick_textures
@@ -185,8 +186,7 @@ impl Gpu {
         let glyphs = GlyphLane::new(&ctx, &layouts, target);
         let controls = GlyphLane::new(&ctx, &layouts, target);
         let control_net = SegmentLane::new(&ctx, &layouts, target);
-        let gizmo_arms = SegmentLane::new(&ctx, &layouts, target);
-        let gizmo_dots = GlyphLane::new(&ctx, &layouts, target);
+        let widget = widget::Widget::new(&ctx, target);
         let text = text::TextLane::new(&ctx, target);
         let selection_outline = surface_outline::SurfaceOutline::new(
             &ctx,
@@ -222,8 +222,8 @@ impl Gpu {
             glyphs,
             controls,
             control_net,
-            gizmo_arms,
-            gizmo_dots,
+            widget,
+            ui: None,
             text,
             selection_outline,
             solid_outline,
@@ -267,21 +267,6 @@ impl Gpu {
         self.rebind_ink();
     }
 
-    /// Fill the widget's two lanes, replacing whatever they held.
-    ///
-    /// The rows are built by the caller, which knows the camera; this owns the two lanes and
-    /// the borrow of the device, so the widget's drawing is one call rather than four.
-    pub fn set_widget_rows(
-        &mut self,
-        segments: &segments::SegRows,
-        glyphs: &glyphs::GlyphRows,
-    ) {
-        self.gizmo_arms.reset();
-        self.gizmo_dots.reset();
-        self.gizmo_arms.append(&self.ctx, &self.layouts, segments);
-        self.gizmo_dots.append(&self.ctx, &self.layouts, glyphs);
-    }
-
     /// Grow the scene's bounds by a row that moved.
     ///
     /// `bounds` is the union every reader frames against - `fit`, and the far plane through
@@ -293,19 +278,6 @@ impl Gpu {
         if let Some(box_) = self.objects.row_bounds(row) {
             self.bounds.union(&box_);
         }
-    }
-
-    /// The identity row the widgets draw against, minting it the first time.
-    ///
-    /// Minting it can grow the instance buffers, and group 2 for INK binds those same buffers,
-    /// so the rebind happens here rather than at the call site: the gizmo lanes are ink lanes,
-    /// and a caller that forgot would have them draw against a buffer nobody owns.
-    pub fn widget_row(&mut self) -> u32 {
-        let (row, grew) = self.objects.widget_row(&self.ctx, &self.layouts);
-        if grew {
-            self.rebind_ink();
-        }
-        row
     }
 
     /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
@@ -334,6 +306,7 @@ impl Gpu {
         let samples = self.msaa_now();
         let flip = samples != self.targets.samples;
         if flip || resized {
+            self.targets.destroy();
             self.targets = Targets::new(
                 &self.ctx,
                 (self.config.width, self.config.height),
@@ -350,8 +323,7 @@ impl Gpu {
             self.glyphs.retarget(&self.ctx, &self.layouts, target);
             self.controls.retarget(&self.ctx, &self.layouts, target);
             self.control_net.retarget(&self.ctx, &self.layouts, target);
-            self.gizmo_arms.retarget(&self.ctx, &self.layouts, target);
-            self.gizmo_dots.retarget(&self.ctx, &self.layouts, target);
+            self.widget.retarget(&self.ctx, target);
             self.text.retarget(&self.ctx, target);
             self.selection_outline.retarget(&self.ctx, target);
             self.solid_outline.retarget(&self.ctx, target);
@@ -417,8 +389,7 @@ impl Gpu {
         self.glyphs.reset();
         self.controls.reset();
         self.control_net.reset();
-        self.gizmo_arms.reset();
-        self.gizmo_dots.reset();
+        self.widget.clear();
         self.text.reset();
         self.selection_outline.reset();
         self.solid_outline.reset();
@@ -437,8 +408,7 @@ impl Gpu {
         self.glyphs.release(&self.ctx, &self.layouts);
         self.controls.release(&self.ctx, &self.layouts);
         self.control_net.release(&self.ctx, &self.layouts);
-        self.gizmo_arms.release(&self.ctx, &self.layouts);
-        self.gizmo_dots.release(&self.ctx, &self.layouts);
+        self.widget.clear();
         self.text.release(&self.ctx);
         self.selection_outline.reset();
         self.solid_outline.reset();

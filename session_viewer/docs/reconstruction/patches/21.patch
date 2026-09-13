@@ -1,17 +1,3 @@
-diff --git a/session_viewer/Cargo.toml b/session_viewer/Cargo.toml
-index 74cd5472d8e9d9a5345c49d3ea6556eb5c360fca..aff2ac8568fd5c2c04a37cac69c7c8ebddb70dca 100644
---- a/session_viewer/Cargo.toml
-+++ b/session_viewer/Cargo.toml
-@@ -26,6 +26,9 @@ web-sys = { version = "0.3", features = [
-     "Window",
-     "Element",
-     "HtmlCanvasElement",
-+    "HtmlElement",
-+    "HtmlInputElement",
-+    "KeyboardEvent",
-     "EventTarget",
-     "Event",
-     "Location",
 diff --git a/session_viewer/src/app/coords.rs b/session_viewer/src/app/coords.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..83ec22f340576daaeb4c1049afff5d2d2330b22d
@@ -2280,203 +2266,6 @@ index 12cacbb2f62e98b5fc7e254fc79a2784d20485d7..968c2fc5ea1a0a1928e62187db6788f8
      /// The anchored value is a pure function of the f64 base and the anchor, so a placement
      /// change written anywhere else is erased by the next re-anchor. An edit writes
      /// `translation`; it never adds its delta to the f32 the GPU was given.
-diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 369099b5865eefb80a97b7d4c1a88cf08d7a1334..a6fca66085a455250a4f93e2578aec62c1716feb 100644
---- a/session_viewer/src/lib.rs
-+++ b/session_viewer/src/lib.rs
-@@ -47,6 +47,10 @@ pub enum Msg {
-     SheetChunk(SheetChunk),
-     SheetEntity(app::sheet_query::Resolved),
-     CancelPointer,
-+    /// A line typed into the command box, sent when Enter was pressed in it.
-+    Command(String),
-+    /// A layers-panel row was clicked, carrying its key.
-+    ToggleLayer(String),
- }
- 
- #[cfg(target_arch = "wasm32")]
-@@ -69,6 +73,8 @@ pub struct App {
-     proxy: Option<EventLoopProxy<Msg>>,
-     input: Input,
-     pointer_cancellation: Option<app::input::PointerCancellation>,
-+    command_keys: Option<app::input::CommandKeys>,
-+    layer_clicks: Option<app::input::LayerClicks>,
- }
- 
- #[cfg(target_arch = "wasm32")]
-@@ -82,6 +88,8 @@ impl App {
-             state: None,
-             input: Input::new(),
-             pointer_cancellation: None,
-+            command_keys: None,
-+            layer_clicks: None,
-         };
-         event_loop.spawn_app(app);
-         Ok(())
-@@ -130,6 +138,18 @@ impl ApplicationHandler<Msg> for App {
-                 Ok(listener) => self.pointer_cancellation = Some(listener),
-                 Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
-             }
-+            if let Some(input) = app::feedback::command_line(false) {
-+                match app::input::CommandKeys::new(input, proxy.clone()) {
-+                    Ok(listener) => self.command_keys = Some(listener),
-+                    Err(error) => log::warn!("Cannot register the command line: {error:?}"),
-+                }
-+            }
-+            if let Some(panel) = app::feedback::layers_visible(false) {
-+                match app::input::LayerClicks::new(panel, proxy.clone()) {
-+                    Ok(listener) => self.layer_clicks = Some(listener),
-+                    Err(error) => log::warn!("Cannot register the layers panel: {error:?}"),
-+                }
-+            }
-             wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
-         }
-     }
-@@ -163,6 +183,18 @@ impl ApplicationHandler<Msg> for App {
-                     col_at,
-                 });
-             }
-+            Msg::Command(line) => {
-+                let said = match state.run_command(&line) {
-+                    Ok(done) => done,
-+                    Err(why) => why,
-+                };
-+                app::feedback::status(&said);
-+            }
-+            Msg::ToggleLayer(key) => {
-+                if let Some(layer) = app::layers::Layer::from_key(&key) {
-+                    state.toggle_layer(layer);
-+                }
-+            }
-             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
-             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
-             Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
-@@ -179,6 +211,7 @@ impl ApplicationHandler<Msg> for App {
-             Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
-             Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
-             Msg::CancelPointer => {
-+                state.cancel_gesture();
-                 self.input.cancel();
-                 state.touch();
-             }
-diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index a70daa1a6840537d54c89fc3536c52d924ba392f..0c4cd9f366c1657f3c9a83a0ea89393b6599209f 100644
---- a/session_viewer/src/engine/gpu/mod.rs
-+++ b/session_viewer/src/engine/gpu/mod.rs
-@@ -71,6 +71,11 @@ pub struct Gpu {
-     pub glyphs: GlyphLane,
-     pub controls: GlyphLane,
-     pub control_net: SegmentLane,
-+    /// The move/rotate/scale widget, drawn by the same two lane types the control net uses:
-+    /// three arms and their balls are strokes and markers, so the widget costs no shader and
-+    /// no pipeline of its own.
-+    pub gizmo_arms: SegmentLane,
-+    pub gizmo_dots: GlyphLane,
-     pub text: text::TextLane,
-     pub selection_outline: surface_outline::SurfaceOutline,
-     pub solid_outline: surface_outline::SurfaceOutline,
-@@ -103,6 +108,8 @@ impl Gpu {
-             + self.glyphs.allocated_bytes()
-             + self.controls.allocated_bytes()
-             + self.control_net.allocated_bytes()
-+            + self.gizmo_arms.allocated_bytes()
-+            + self.gizmo_dots.allocated_bytes()
-             + self.cloud.allocated_bytes()
-             + self.objects.allocated_bytes()
-             + self.frame.allocated_bytes()
-@@ -178,6 +185,8 @@ impl Gpu {
-         let glyphs = GlyphLane::new(&ctx, &layouts, target);
-         let controls = GlyphLane::new(&ctx, &layouts, target);
-         let control_net = SegmentLane::new(&ctx, &layouts, target);
-+        let gizmo_arms = SegmentLane::new(&ctx, &layouts, target);
-+        let gizmo_dots = GlyphLane::new(&ctx, &layouts, target);
-         let text = text::TextLane::new(&ctx, target);
-         let selection_outline = surface_outline::SurfaceOutline::new(
-             &ctx,
-@@ -213,6 +222,8 @@ impl Gpu {
-             glyphs,
-             controls,
-             control_net,
-+            gizmo_arms,
-+            gizmo_dots,
-             text,
-             selection_outline,
-             solid_outline,
-@@ -256,6 +267,47 @@ impl Gpu {
-         self.rebind_ink();
-     }
- 
-+    /// Fill the widget's two lanes, replacing whatever they held.
-+    ///
-+    /// The rows are built by the caller, which knows the camera; this owns the two lanes and
-+    /// the borrow of the device, so the widget's drawing is one call rather than four.
-+    pub fn set_widget_rows(
-+        &mut self,
-+        segments: &segments::SegRows,
-+        glyphs: &glyphs::GlyphRows,
-+    ) {
-+        self.gizmo_arms.reset();
-+        self.gizmo_dots.reset();
-+        self.gizmo_arms.append(&self.ctx, &self.layouts, segments);
-+        self.gizmo_dots.append(&self.ctx, &self.layouts, glyphs);
-+    }
-+
-+    /// Grow the scene's bounds by a row that moved.
-+    ///
-+    /// `bounds` is the union every reader frames against - `fit`, and the far plane through
-+    /// `grow_extent`. It is built by `set_scene` and nothing else touched it, so an object
-+    /// dragged past the old extent used to fall outside what a fit would frame and, far
-+    /// enough out, outside the far plane. Growing is enough: an edit that SHRINKS the scene
-+    /// leaves the union generous, which costs depth precision and never correctness.
-+    pub fn grew_bounds(&mut self, row: u32) {
-+        if let Some(box_) = self.objects.row_bounds(row) {
-+            self.bounds.union(&box_);
-+        }
-+    }
-+
-+    /// The identity row the widgets draw against, minting it the first time.
-+    ///
-+    /// Minting it can grow the instance buffers, and group 2 for INK binds those same buffers,
-+    /// so the rebind happens here rather than at the call site: the gizmo lanes are ink lanes,
-+    /// and a caller that forgot would have them draw against a buffer nobody owns.
-+    pub fn widget_row(&mut self) -> u32 {
-+        let (row, grew) = self.objects.widget_row(&self.ctx, &self.layouts);
-+        if grew {
-+            self.rebind_ink();
-+        }
-+        row
-+    }
-+
-     /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
-     fn rebind_ink(&mut self) {
-         self.objects.rebind_ink(
-@@ -298,6 +350,8 @@ impl Gpu {
-             self.glyphs.retarget(&self.ctx, &self.layouts, target);
-             self.controls.retarget(&self.ctx, &self.layouts, target);
-             self.control_net.retarget(&self.ctx, &self.layouts, target);
-+            self.gizmo_arms.retarget(&self.ctx, &self.layouts, target);
-+            self.gizmo_dots.retarget(&self.ctx, &self.layouts, target);
-             self.text.retarget(&self.ctx, target);
-             self.selection_outline.retarget(&self.ctx, target);
-             self.solid_outline.retarget(&self.ctx, target);
-@@ -363,6 +417,8 @@ impl Gpu {
-         self.glyphs.reset();
-         self.controls.reset();
-         self.control_net.reset();
-+        self.gizmo_arms.reset();
-+        self.gizmo_dots.reset();
-         self.text.reset();
-         self.selection_outline.reset();
-         self.solid_outline.reset();
-@@ -381,6 +437,8 @@ impl Gpu {
-         self.glyphs.release(&self.ctx, &self.layouts);
-         self.controls.release(&self.ctx, &self.layouts);
-         self.control_net.release(&self.ctx, &self.layouts);
-+        self.gizmo_arms.release(&self.ctx, &self.layouts);
-+        self.gizmo_dots.release(&self.ctx, &self.layouts);
-         self.text.release(&self.ctx);
-         self.selection_outline.reset();
-         self.solid_outline.reset();
 diff --git a/session_viewer/src/app/gizmo.rs b/session_viewer/src/app/gizmo.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..086bd49a47a1d124cde06002b439306bb33bbf7c
@@ -3061,119 +2850,6 @@ index 0000000000000000000000000000000000000000..086bd49a47a1d124cde06002b439306b
 +        assert!(z[0] >= MIN_SCALE && z[5] >= MIN_SCALE && z[10] >= MIN_SCALE);
 +    }
 +}
-diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index c52a717d28f6a156b6b683595c59a7f4a07553f9..25573cc7b69d994145f30f6253765534909ce9bc 100644
---- a/session_viewer/src/state.rs
-+++ b/session_viewer/src/state.rs
-@@ -16,6 +16,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
- use crate::engine::gpu::{FrameInput, Gpu, Pick};
- use crate::engine::performance::{heap_mb, now_ms};
- mod cloud_query;
-+pub mod edit;
- mod sheet_query;
- mod text;
- use std::sync::Arc;
-@@ -56,6 +57,12 @@ pub struct State {
-     query_generation: u64,
-     sheet_query: Option<crate::app::sheet_query::Query>,
-     sheet_generation: u64,
-+    /// The move/rotate/scale widget, present only while a row with a box is selected.
-+    pub gizmo: Option<crate::app::gizmo::Gizmo>,
-+    /// The drag in progress, holding what the gesture is measured FROM.
-+    dragging: Option<edit::GizmoDrag>,
-+    /// A control point being dragged, which is a different gesture from a placement drag.
-+    control_drag: Option<edit::ControlDrag>,
- }
- 
- impl State {
-@@ -84,6 +91,9 @@ impl State {
-             query_generation: 0,
-             sheet_query: None,
-             sheet_generation: 0,
-+            gizmo: None,
-+            dragging: None,
-+            control_drag: None,
-         })
-     }
- 
-@@ -106,6 +116,8 @@ impl State {
-         self.scene.upload_to(&mut self.gpu);
-         self.camera.grow_extent(&self.gpu.bounds);
-         self.annotate_document(first_row);
-+        // An open panel is a view of the scene, and the scene just changed under it.
-+        self.refresh_layers();
-         self.update_label();
-         log::info!(
-             "appended: walk {:.0} ms, upload {:.0} ms | {} docs | memory observation {:.0} MiB",
-@@ -170,6 +182,8 @@ impl State {
-         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-         self.controls = Controls::default();
-         self.scene.clear(&mut self.gpu);
-+        self.place_gizmo(None);
-+        self.refresh_layers();
-         self.touch();
-     }
- 
-@@ -263,6 +277,7 @@ impl State {
-             self.gpu.set_selected(r, true);
-         }
-         self.scene.selected = row;
-+        self.place_gizmo(row);
-         self.update_label();
-         self.touch();
-     }
-@@ -287,6 +302,7 @@ impl State {
-         self.select(None);
-         self.scene.hidden.insert(guid);
-         self.gpu.set_hidden(row, true);
-+        self.refresh_layers();
-         self.update_label();
-         self.touch();
-     }
-@@ -297,6 +313,7 @@ impl State {
-             self.gpu.set_hidden(row, false);
-         }
-         self.scene.hidden.clear();
-+        self.refresh_layers();
-         self.update_label();
-         self.touch();
-     }
-@@ -477,7 +494,7 @@ impl State {
-     }
- 
-     /// CSS dimensions come from the actual canvas; native harness dimensions are physical.
--    fn logical_size(&self) -> [f64; 2] {
-+    pub(crate) fn logical_size(&self) -> [f64; 2] {
-         #[cfg(target_arch = "wasm32")]
-         if let Some(window) = web_sys::window()
-             && let Some(document) = window.document()
-@@ -552,6 +569,9 @@ impl State {
-             self.status("This object has no selectable source controls");
-             return;
-         }
-+        // The widget and the control net compete for the same clicks and the same space, so
-+        // control mode takes the widget away.
-+        self.place_gizmo(None);
-         self.selection.enable_controls(Some(parent), controls.cloud);
-         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-         self.gpu.segments.set_edge(&self.gpu.ctx, None);
-@@ -574,7 +594,7 @@ impl State {
-     }
- 
-     /// Upload only temporary source controls; repeated F10 never appends duplicate markers.
--    fn upload_controls(&mut self) {
-+    pub(crate) fn upload_controls(&mut self) {
-         self.gpu.controls.reset();
-         self.gpu.control_net.reset();
-         let SelectionMode::Controls {
-@@ -695,6 +715,6 @@ impl State {
- }
- 
- /// Convert a retained source position at the temporary GPU-control upload boundary.
--fn render_position(position: [f64; 3]) -> [f32; 3] {
-+pub(crate) fn render_position(position: [f64; 3]) -> [f32; 3] {
-     [position[0] as f32, position[1] as f32, position[2] as f32]
- }
 diff --git a/session_viewer/src/state/edit.rs b/session_viewer/src/state/edit.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..ed128cccb52cb8d3ee683240cfff48d321b70825
@@ -4046,3 +3722,1204 @@ index 0000000000000000000000000000000000000000..ed128cccb52cb8d3ee683240cfff48d3
 +        assert_eq!(world_per_css_px(1000.0, 0.0, 1.0), 1.0, "no surface, no answer");
 +    }
 +}
+diff --git a/session_viewer/Cargo.toml b/session_viewer/Cargo.toml
+index 74cd5472d8e9d9a5345c49d3ea6556eb5c360fca..e9450d6f6ac6c67674d27e2a83053429e6734b7a 100644
+--- a/session_viewer/Cargo.toml
++++ b/session_viewer/Cargo.toml
+@@ -26,9 +26,13 @@ web-sys = { version = "0.3", features = [
+     "Window",
+     "Element",
+     "HtmlCanvasElement",
++    "HtmlElement",
++    "HtmlInputElement",
++    "KeyboardEvent",
+     "EventTarget",
+     "Event",
+     "Location",
++    "History",
+     "Performance",
+     "EventSource",
+     "MessageEvent",
+diff --git a/session_viewer/src/app/route.rs b/session_viewer/src/app/route.rs
+index 1e31eada48e5e255ae68b0cee0bca02c3474070d..dada49e6648c5ae38c0b8ecb74c2dc22123fc8b5 100644
+--- a/session_viewer/src/app/route.rs
++++ b/session_viewer/src/app/route.rs
+@@ -153,13 +153,13 @@ pub fn scene_route() -> Option<SceneRoute> {
+     }
+ }
+ 
+-/// After the GPU ran out of memory: reload once at device scale 1 without antialiasing, the
+-/// smallest attachments the viewer can draw with, keeping every other query. `false` when
+-/// this is already the reduced page (the message then stays on the error panel) or the
+-/// failure is not a device loss.
++/// After a lost device: reload once with the smallest attachments the viewer can draw with -
++/// device scale 1, no antialiasing - keeping every other query and carrying the browser's
++/// reason so the reloaded page can say what happened. `false` when the failure is not a
++/// device loss, or this page is already reduced (the message then stays on the error panel).
+ #[cfg(target_arch = "wasm32")]
+ pub fn recover_from_device_loss(message: &str) -> bool {
+-    if !message.contains("device lost") || query("recovered").is_some() {
++    if !message.contains("device lost") || crate::engine::gpu::view::reduced() {
+         return false;
+     }
+     let Some(window) = web_sys::window() else {
+@@ -169,22 +169,13 @@ pub fn recover_from_device_loss(message: &str) -> bool {
+     let Ok(search) = location.search() else {
+         return false;
+     };
+-    let kept: Vec<&str> = search
+-        .strip_prefix('?')
+-        .unwrap_or("")
+-        .split('&')
+-        .filter(|pair| {
+-            !pair.is_empty()
+-                && !["dpr", "msaa", "recovered"]
+-                    .iter()
+-                    .any(|name| pair.starts_with(&format!("{name}=")) || *pair == *name)
+-        })
+-        .collect();
+-    let mut query = kept.join("&");
++    let mut query = query_without(&search, "recovered");
+     if !query.is_empty() {
+         query.push('&');
+     }
+-    query.push_str("dpr=1&msaa=1&recovered=1");
++    let reason: String = message.chars().take(200).collect();
++    query.push_str("recovered=");
++    query.push_str(&String::from(js_sys::encode_uri_component(&reason)));
+     let Ok(hash) = location.hash() else {
+         return false;
+     };
+@@ -195,10 +186,59 @@ pub fn recover_from_device_loss(message: &str) -> bool {
+     location.replace(&format!("{path}?{query}{hash}")).is_ok()
+ }
+ 
++/// `search` without its `?` and without the `name` pair.
++#[cfg(target_arch = "wasm32")]
++fn query_without(search: &str, name: &str) -> String {
++    let prefix = format!("{name}=");
++    let kept: Vec<&str> = search
++        .strip_prefix('?')
++        .unwrap_or("")
++        .split('&')
++        .filter(|pair| !pair.is_empty() && !pair.starts_with(&prefix) && *pair != name)
++        .collect();
++    kept.join("&")
++}
++
++#[cfg(target_arch = "wasm32")]
++static RECOVERED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
++
++/// On the page a device loss reloaded into: render reduced from the first frame, take
++/// `recovered=` back out of the address so a reload, a bookmark or a shared link starts at
++/// full resolution again, and return the line the status bar keeps showing. Called before
++/// anything reads the device pixel ratio.
++#[cfg(target_arch = "wasm32")]
++pub fn adopt_recovery() -> Option<&'static str> {
++    let reason = query("recovered")?;
++    crate::engine::gpu::view::reduce();
++    if let Some(window) = web_sys::window() {
++        let location = window.location();
++        if let (Ok(path), Ok(search), Ok(hash), Ok(history)) = (
++            location.pathname(),
++            location.search(),
++            location.hash(),
++            window.history(),
++        ) {
++            let query = query_without(&search, "recovered");
++            let url = if query.is_empty() {
++                format!("{path}{hash}")
++            } else {
++                format!("{path}?{query}{hash}")
++            };
++            let _ = history.replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(&url));
++        }
++    }
++    let reason = if reason.is_empty() {
++        "WebGPU device lost".to_string()
++    } else {
++        reason
++    };
++    let notice =
++        format!("{reason}; drawing at device scale 1 without antialiasing until the next reload");
++    Some(RECOVERED.get_or_init(|| notice).as_str())
++}
++
+ /// What the status line says on the page a device loss reloaded into.
+ #[cfg(target_arch = "wasm32")]
+ pub fn recovered_notice() -> Option<&'static str> {
+-    query("recovered").map(|_| {
+-        "The GPU ran out of memory at full resolution: drawing at device scale 1 without antialiasing"
+-    })
++    RECOVERED.get().map(String::as_str)
+ }
+diff --git a/session_viewer/src/engine/gpu/buffers.rs b/session_viewer/src/engine/gpu/buffers.rs
+index a6b436e4a08402b08ce39480e9d533baf4e50178..b17f43d7f50d5fe69860dbfbdfc4b82da840261d 100644
+--- a/session_viewer/src/engine/gpu/buffers.rs
++++ b/session_viewer/src/engine/gpu/buffers.rs
+@@ -83,7 +83,7 @@ impl GrowBuf {
+             enc.copy_buffer_to_buffer(&self.buf, 0, &nb, 0, self.len as u64 * self.stride);
+             ctx.queue.submit([enc.finish()]);
+         }
+-        self.buf = nb;
++        replace_buffer(&mut self.buf, nb);
+         self.cap = new_cap;
+     }
+ 
+@@ -105,7 +105,10 @@ impl GrowBuf {
+     /// Forget the rows AND the buffer: back to one zeroed row, so a cleared scene holds no
+     /// GPU memory. The caller rebuilds any bind group over it.
+     pub fn release(&mut self, ctx: &GpuCtx) {
+-        self.buf = zeroed_buffer(&ctx.device, self.label, self.stride, self.usage);
++        replace_buffer(
++            &mut self.buf,
++            zeroed_buffer(&ctx.device, self.label, self.stride, self.usage),
++        );
+         self.len = 0;
+         self.cap = 1;
+     }
+@@ -175,6 +178,14 @@ pub fn zeroed_buffer(
+     })
+ }
+ 
++/// Put `fresh` in `slot` and destroy what was there. On the web a dropped buffer is not freed
++/// until the JavaScript garbage collector finds it, so a table that grew, or a pool that was
++/// resized, would keep its old bytes on the GPU indefinitely. The copy that moved the live rows
++/// was submitted already; a destroy after a submit lets that work finish.
++pub fn replace_buffer(slot: &mut wgpu::Buffer, fresh: wgpu::Buffer) {
++    std::mem::replace(slot, fresh).destroy();
++}
++
+ /// A uniform buffer holding one `T`, writable every frame.
+ pub fn uniform_buffer<T: Pod>(device: &wgpu::Device, label: &str, value: &T) -> wgpu::Buffer {
+     device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+diff --git a/session_viewer/src/engine/gpu/device.rs b/session_viewer/src/engine/gpu/device.rs
+index 5d8a99d79318e6043acc7b690ed23251a6dcc84f..00b52a70096b8aab76ff969e0054a01c6f37c14e 100644
+--- a/session_viewer/src/engine/gpu/device.rs
++++ b/session_viewer/src/engine/gpu/device.rs
+@@ -105,8 +105,14 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
+         let errors = failure.clone();
+         device.on_uncaptured_error(Arc::new(move |error| remember_gpu_error(&errors, error)));
+         let lost = failure.clone();
++        // A still scene asks for no frame, and only a frame reads the failure: a loss on an
++        // idle page would otherwise wait for the next input to be noticed and recovered from.
++        let redraw = window.clone();
+         device.set_device_lost_callback(move |reason, message| {
+-            remember_device_loss(&lost, reason, &message)
++            remember_device_loss(&lost, reason, &message);
++            if let Some(window) = &redraw {
++                window.request_redraw();
++            }
+         });
+     }
+     #[cfg(not(target_arch = "wasm32"))]
+diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
+index a70daa1a6840537d54c89fc3536c52d924ba392f..84319e4b87b11142410b9857b740382b609d5207 100644
+--- a/session_viewer/src/engine/gpu/mod.rs
++++ b/session_viewer/src/engine/gpu/mod.rs
+@@ -71,6 +71,11 @@ pub struct Gpu {
+     pub glyphs: GlyphLane,
+     pub controls: GlyphLane,
+     pub control_net: SegmentLane,
++    /// The move/rotate/scale widget, drawn by the same two lane types the control net uses:
++    /// three arms and their balls are strokes and markers, so the widget costs no shader and
++    /// no pipeline of its own.
++    pub gizmo_arms: SegmentLane,
++    pub gizmo_dots: GlyphLane,
+     pub text: text::TextLane,
+     pub selection_outline: surface_outline::SurfaceOutline,
+     pub solid_outline: surface_outline::SurfaceOutline,
+@@ -103,6 +108,8 @@ impl Gpu {
+             + self.glyphs.allocated_bytes()
+             + self.controls.allocated_bytes()
+             + self.control_net.allocated_bytes()
++            + self.gizmo_arms.allocated_bytes()
++            + self.gizmo_dots.allocated_bytes()
+             + self.cloud.allocated_bytes()
+             + self.objects.allocated_bytes()
+             + self.frame.allocated_bytes()
+@@ -178,6 +185,8 @@ impl Gpu {
+         let glyphs = GlyphLane::new(&ctx, &layouts, target);
+         let controls = GlyphLane::new(&ctx, &layouts, target);
+         let control_net = SegmentLane::new(&ctx, &layouts, target);
++        let gizmo_arms = SegmentLane::new(&ctx, &layouts, target);
++        let gizmo_dots = GlyphLane::new(&ctx, &layouts, target);
+         let text = text::TextLane::new(&ctx, target);
+         let selection_outline = surface_outline::SurfaceOutline::new(
+             &ctx,
+@@ -213,6 +222,8 @@ impl Gpu {
+             glyphs,
+             controls,
+             control_net,
++            gizmo_arms,
++            gizmo_dots,
+             text,
+             selection_outline,
+             solid_outline,
+@@ -256,6 +267,47 @@ impl Gpu {
+         self.rebind_ink();
+     }
+ 
++    /// Fill the widget's two lanes, replacing whatever they held.
++    ///
++    /// The rows are built by the caller, which knows the camera; this owns the two lanes and
++    /// the borrow of the device, so the widget's drawing is one call rather than four.
++    pub fn set_widget_rows(
++        &mut self,
++        segments: &segments::SegRows,
++        glyphs: &glyphs::GlyphRows,
++    ) {
++        self.gizmo_arms.reset();
++        self.gizmo_dots.reset();
++        self.gizmo_arms.append(&self.ctx, &self.layouts, segments);
++        self.gizmo_dots.append(&self.ctx, &self.layouts, glyphs);
++    }
++
++    /// Grow the scene's bounds by a row that moved.
++    ///
++    /// `bounds` is the union every reader frames against - `fit`, and the far plane through
++    /// `grow_extent`. It is built by `set_scene` and nothing else touched it, so an object
++    /// dragged past the old extent used to fall outside what a fit would frame and, far
++    /// enough out, outside the far plane. Growing is enough: an edit that SHRINKS the scene
++    /// leaves the union generous, which costs depth precision and never correctness.
++    pub fn grew_bounds(&mut self, row: u32) {
++        if let Some(box_) = self.objects.row_bounds(row) {
++            self.bounds.union(&box_);
++        }
++    }
++
++    /// The identity row the widgets draw against, minting it the first time.
++    ///
++    /// Minting it can grow the instance buffers, and group 2 for INK binds those same buffers,
++    /// so the rebind happens here rather than at the call site: the gizmo lanes are ink lanes,
++    /// and a caller that forgot would have them draw against a buffer nobody owns.
++    pub fn widget_row(&mut self) -> u32 {
++        let (row, grew) = self.objects.widget_row(&self.ctx, &self.layouts);
++        if grew {
++            self.rebind_ink();
++        }
++        row
++    }
++
+     /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
+     fn rebind_ink(&mut self) {
+         self.objects.rebind_ink(
+@@ -282,6 +334,7 @@ impl Gpu {
+         let samples = self.msaa_now();
+         let flip = samples != self.targets.samples;
+         if flip || resized {
++            self.targets.destroy();
+             self.targets = Targets::new(
+                 &self.ctx,
+                 (self.config.width, self.config.height),
+@@ -298,6 +351,8 @@ impl Gpu {
+             self.glyphs.retarget(&self.ctx, &self.layouts, target);
+             self.controls.retarget(&self.ctx, &self.layouts, target);
+             self.control_net.retarget(&self.ctx, &self.layouts, target);
++            self.gizmo_arms.retarget(&self.ctx, &self.layouts, target);
++            self.gizmo_dots.retarget(&self.ctx, &self.layouts, target);
+             self.text.retarget(&self.ctx, target);
+             self.selection_outline.retarget(&self.ctx, target);
+             self.solid_outline.retarget(&self.ctx, target);
+@@ -363,6 +418,8 @@ impl Gpu {
+         self.glyphs.reset();
+         self.controls.reset();
+         self.control_net.reset();
++        self.gizmo_arms.reset();
++        self.gizmo_dots.reset();
+         self.text.reset();
+         self.selection_outline.reset();
+         self.solid_outline.reset();
+@@ -381,6 +438,8 @@ impl Gpu {
+         self.glyphs.release(&self.ctx, &self.layouts);
+         self.controls.release(&self.ctx, &self.layouts);
+         self.control_net.release(&self.ctx, &self.layouts);
++        self.gizmo_arms.release(&self.ctx, &self.layouts);
++        self.gizmo_dots.release(&self.ctx, &self.layouts);
+         self.text.release(&self.ctx);
+         self.selection_outline.reset();
+         self.solid_outline.reset();
+diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
+index 0cbe40826712d15ca4e491f49c0b4945db8aafe6..82020ecd82553d043b0769f360e3aaa530206b86 100644
+--- a/session_viewer/src/engine/gpu/pick.rs
++++ b/session_viewer/src/engine/gpu/pick.rs
+@@ -6,7 +6,7 @@
+ 
+ use super::buffers::GpuCtx;
+ use super::frame::PickView;
+-use super::targets::{TextureSpec, texture, texture_view};
++use super::targets::{Attachment, TextureSpec};
+ use std::sync::Arc;
+ use std::sync::atomic::{AtomicU8, Ordering};
+ 
+@@ -24,10 +24,9 @@ pub struct Pick {
+ /// The id pass's attachments: the size of the pick window plus its halo, not the canvas,
+ /// made on the first pick and kept while the window keeps that size.
+ struct IdTargets {
+-    id: wgpu::Texture,
+-    id_view: wgpu::TextureView,
+-    depth: wgpu::TextureView,
+-    gradient: wgpu::TextureView,
++    id: Attachment,
++    depth: Attachment,
++    gradient: Attachment,
+     size: (u32, u32),
+ }
+ 
+@@ -275,7 +274,7 @@ impl Picker {
+         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+             label: Some("source points"),
+             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+-                view: &target.id_view,
++                view: &target.id,
+                 resolve_target: None,
+                 depth_slice: None,
+                 ops: wgpu::Operations {
+@@ -340,7 +339,7 @@ impl Picker {
+         self.view = view;
+         if !matches!(&self.targets, Some(targets) if targets.size == size) {
+             let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC;
+-            let id = texture(
++            let id = Attachment::new(
+                 ctx,
+                 "pick.id",
+                 &TextureSpec {
+@@ -350,8 +349,7 @@ impl Picker {
+                     usage,
+                 },
+             );
+-            let id_view = id.create_view(&wgpu::TextureViewDescriptor::default());
+-            let depth = texture_view(
++            let depth = Attachment::new(
+                 ctx,
+                 "pick.depth",
+                 &TextureSpec {
+@@ -362,7 +360,7 @@ impl Picker {
+                         | wgpu::TextureUsages::TEXTURE_BINDING,
+                 },
+             );
+-            let gradient = texture_view(
++            let gradient = Attachment::new(
+                 ctx,
+                 "pick.gradient",
+                 &TextureSpec {
+@@ -375,7 +373,6 @@ impl Picker {
+             );
+             self.targets = Some(IdTargets {
+                 id,
+-                id_view,
+                 depth,
+                 gradient,
+                 size,
+@@ -386,7 +383,7 @@ impl Picker {
+             label: Some("pick pass"),
+             color_attachments: &[
+                 Some(wgpu::RenderPassColorAttachment {
+-                    view: &t.id_view,
++                    view: &t.id,
+                     resolve_target: None,
+                     depth_slice: None,
+                     ops: wgpu::Operations {
+@@ -440,7 +437,7 @@ impl Picker {
+         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+             label: Some("pick ink"),
+             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+-                view: &targets.id_view,
++                view: &targets.id,
+                 resolve_target: None,
+                 depth_slice: None,
+                 ops: wgpu::Operations {
+@@ -476,7 +473,7 @@ impl Picker {
+         let buf = self.readback.as_ref().expect("readback initialized above");
+         encoder.copy_texture_to_buffer(
+             wgpu::TexelCopyTextureInfo {
+-                texture: &t.id,
++                texture: t.id.texture(),
+                 mip_level: 0,
+                 origin: wgpu::Origin3d {
+                     x: win.x.saturating_sub(self.view.x),
+@@ -522,7 +519,7 @@ impl Picker {
+         });
+         encoder.copy_texture_to_buffer(
+             wgpu::TexelCopyTextureInfo {
+-                texture: &target.id,
++                texture: target.id.texture(),
+                 mip_level: 0,
+                 origin: wgpu::Origin3d::ZERO,
+                 aspect: wgpu::TextureAspect::All,
+diff --git a/session_viewer/src/engine/gpu/present.rs b/session_viewer/src/engine/gpu/present.rs
+index b545c3b07c22222bf4847712bd70bb57349c9301..3066d363aba1e25585b9456c7191691689711e31 100644
+--- a/session_viewer/src/engine/gpu/present.rs
++++ b/session_viewer/src/engine/gpu/present.rs
+@@ -158,6 +158,9 @@ impl Gpu {
+     /// Capture picking's object IDs against this exact frame's physical surfaces and camera.
+     #[cfg(not(target_arch = "wasm32"))]
+     pub fn render_ids_offscreen(&mut self, input: &FrameInput) -> Vec<[u32; 2]> {
++        // A pick still pending would draw into window-sized targets inside this same encoder,
++        // and the whole-canvas pass below would destroy them before the submit.
++        self.pick.cancel();
+         let size = (self.config.width, self.config.height);
+         let texture = texture(
+             &self.ctx,
+diff --git a/session_viewer/src/engine/gpu/splat.rs b/session_viewer/src/engine/gpu/splat.rs
+index d9470ccde81ddf36c8d589ff6577cf763e743ae8..0dc9ad289ab9963e8e7a6621720291afdf531401 100644
+--- a/session_viewer/src/engine/gpu/splat.rs
++++ b/session_viewer/src/engine/gpu/splat.rs
+@@ -8,7 +8,7 @@ use super::cloud::{Cloud, LodNode, NO_NORMALS, PointBufs};
+ use super::instance::Instance;
+ use super::lod::{LodWalk, Projection, radius_factor};
+ use super::objects::InstanceTable;
+-use super::targets::{TextureSpec, texture_view};
++use super::targets::{Attachment, TextureSpec};
+ use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
+ use crate::math::{mat_mul_f32, mat_scale};
+ use wgpu::PrimitiveTopology::TriangleList;
+@@ -80,8 +80,8 @@ struct Key {
+ /// Made on the first frame that has points and dropped on resize, so a scene without a
+ /// cloud never pays 8 B/px for them.
+ struct SplatTargets {
+-    depth: wgpu::TextureView,
+-    color: wgpu::TextureView,
++    depth: Attachment,
++    color: Attachment,
+     size: (u32, u32),
+     resolve_group: wgpu::BindGroup,
+ }
+@@ -90,7 +90,7 @@ impl SplatTargets {
+     /// Depth (nearest point per pixel, 0 = empty) and its colour, both bindable.
+     fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
+         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
+-        let depth = texture_view(
++        let depth = Attachment::new(
+             ctx,
+             "splat.depth",
+             &TextureSpec {
+@@ -100,7 +100,7 @@ impl SplatTargets {
+                 usage,
+             },
+         );
+-        let color = texture_view(
++        let color = Attachment::new(
+             ctx,
+             "splat.color",
+             &TextureSpec {
+diff --git a/session_viewer/src/engine/gpu/surface_outline.rs b/session_viewer/src/engine/gpu/surface_outline.rs
+index e0a3b60e8c58554a04a528ff7d97a3cf103f2492..e4bbcab8aef14ce6c638f87beddde3901a78d23c 100644
+--- a/session_viewer/src/engine/gpu/surface_outline.rs
++++ b/session_viewer/src/engine/gpu/surface_outline.rs
+@@ -5,16 +5,16 @@
+ use std::collections::HashSet;
+ 
+ use super::buffers::GpuCtx;
+-use super::targets::{Targets, TextureSpec, texture_view};
++use super::targets::{Attachment, Targets, TextureSpec};
+ use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
+ 
+ struct Mask {
+-    resolved: wgpu::TextureView,
+-    multisampled: Option<wgpu::TextureView>,
++    resolved: Attachment,
++    multisampled: Option<Attachment>,
+     group: wgpu::BindGroup,
+     /// The maximum of each `POOL`-square block of `resolved`: the compositor skips every
+     /// pixel whose neighbourhood of blocks is empty, which is most of the frame.
+-    coarse: wgpu::TextureView,
++    coarse: Attachment,
+     coarse_size: (u32, u32),
+     pool_group: wgpu::BindGroup,
+     size: (u32, u32),
+@@ -238,9 +238,9 @@ impl SurfaceOutline {
+                 samples: 1,
+                 usage,
+             };
+-            let resolved = texture_view(ctx, "selection coverage", &spec);
++            let resolved = Attachment::new(ctx, "selection coverage", &spec);
+             let multisampled = if samples > 1 {
+-                Some(texture_view(
++                Some(Attachment::new(
+                     ctx,
+                     "selection coverage MSAA",
+                     &TextureSpec { samples, ..spec },
+@@ -249,7 +249,7 @@ impl SurfaceOutline {
+                 None
+             };
+             let coarse_size = (size.0.div_ceil(POOL).max(1), size.1.div_ceil(POOL).max(1));
+-            let coarse = texture_view(
++            let coarse = Attachment::new(
+                 ctx,
+                 "selection coverage coarse",
+                 &TextureSpec {
+diff --git a/session_viewer/src/engine/gpu/targets.rs b/session_viewer/src/engine/gpu/targets.rs
+index ec09ae12e0f442934794c23e330d6a701128b075..a2cbb51140c4425886298c877e81050e6f35a81e 100644
+--- a/session_viewer/src/engine/gpu/targets.rs
++++ b/session_viewer/src/engine/gpu/targets.rs
+@@ -27,16 +27,17 @@ const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
+ 
+ /// The attachments of the frame's render pass and the sample count they were made at.
+ /// `msaa` exists only at 4x. The ink layout binds a single-sampled AND a multisampled depth
+-/// view, so the one not in use is a 1x1 placeholder.
++/// view, so the one not in use is a 1x1 placeholder, kept here so it is destroyed with the rest.
+ pub struct Targets {
+-    pub depth: wgpu::TextureView,
+-    pub msaa: Option<wgpu::TextureView>,
++    pub depth: Attachment,
++    pub msaa: Option<Attachment>,
+     pub depth_single: wgpu::TextureView,
+     pub depth_msaa: wgpu::TextureView,
+     pub samples: u32,
+-    pub gradient: wgpu::TextureView,
++    pub gradient: Attachment,
+     pub gradient_single: wgpu::TextureView,
+     pub gradient_msaa: wgpu::TextureView,
++    _placeholders: [Attachment; 2],
+ }
+ 
+ impl Targets {
+@@ -44,7 +45,7 @@ impl Targets {
+     pub fn new(ctx: &GpuCtx, size: (u32, u32), format: wgpu::TextureFormat, samples: u32) -> Self {
+         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
+         let attachment = |label, size, format, samples| {
+-            texture_view(
++            Attachment::new(
+                 ctx,
+                 label,
+                 &TextureSpec {
+@@ -68,9 +69,9 @@ impl Targets {
+             other_samples,
+         );
+         let (depth_single, depth_msaa) = if samples == 1 {
+-            (depth.clone(), empty_depth)
++            (depth.view.clone(), empty_depth.view.clone())
+         } else {
+-            (empty_depth, depth.clone())
++            (empty_depth.view.clone(), depth.view.clone())
+         };
+         let gradient = attachment(
+             "physical.gradient",
+@@ -85,9 +86,9 @@ impl Targets {
+             other_samples,
+         );
+         let (gradient_single, gradient_msaa) = if samples == 1 {
+-            (gradient.clone(), empty_gradient)
++            (gradient.view.clone(), empty_gradient.view.clone())
+         } else {
+-            (empty_gradient, gradient.clone())
++            (empty_gradient.view.clone(), gradient.view.clone())
+         };
+         Self {
+             gradient,
+@@ -98,6 +99,20 @@ impl Targets {
+             depth_single,
+             depth_msaa,
+             samples,
++            _placeholders: [empty_depth, empty_gradient],
++        }
++    }
++
++    /// Destroy every attachment ahead of the set that replaces this one, so the peak during
++    /// a resize is one set and not two - at 4x on a 4 Mpx canvas the difference is 265 MB.
++    pub fn destroy(&self) {
++        self.depth.destroy();
++        self.gradient.destroy();
++        if let Some(msaa) = &self.msaa {
++            msaa.destroy();
++        }
++        for placeholder in &self._placeholders {
++            placeholder.destroy();
+         }
+     }
+ 
+@@ -120,7 +135,8 @@ impl Targets {
+     /// the GPU AND the canvas is within this adapter's `budget` AND the canvas is below two
+     /// physical pixels per CSS pixel, else 1x. Hard edges are the only thing MSAA smooths;
+     /// ribbons, dots and splats antialias themselves, and at device scale 2 the pixel density
+-    /// already halves the stair-steps, for a quarter of the attachment memory. `forced` wins.
++    /// already halves the stair-steps, for a quarter of the attachment memory. `forced` wins,
++    /// except over the reduction: a page that lost its device draws at 1x whatever it asked.
+     pub fn samples_for(
+         solid: bool,
+         pixels: u32,
+@@ -128,10 +144,13 @@ impl Targets {
+         budget: Option<u32>,
+         pixel_scale: f32,
+     ) -> u32 {
++        if super::view::reduced() {
++            return 1;
++        }
+         if let Some(s) = forced {
+             return if s == 4 { 4 } else { 1 };
+         }
+-        if super::view::reduced() || pixel_scale >= MSAA_MAX_PIXEL_SCALE {
++        if pixel_scale >= MSAA_MAX_PIXEL_SCALE {
+             return 1;
+         }
+         match budget {
+@@ -148,7 +167,7 @@ impl Targets {
+         view: &'a wgpu::TextureView,
+         clear: wgpu::Color,
+     ) -> wgpu::RenderPass<'a> {
+-        let target = self.msaa.as_ref().unwrap_or(view);
++        let target = self.msaa.as_deref().unwrap_or(view);
+         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+             label: Some("physical face pass"),
+             color_attachments: &[
+@@ -190,7 +209,7 @@ impl Targets {
+         encoder: &'a mut wgpu::CommandEncoder,
+         view: &'a wgpu::TextureView,
+     ) -> wgpu::RenderPass<'a> {
+-        let (target, resolve) = match &self.msaa {
++        let (target, resolve) = match self.msaa.as_deref() {
+             Some(msaa) => (msaa, Some(view)),
+             None => (view, None),
+         };
+@@ -243,9 +262,48 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
+     })
+ }
+ 
+-/// A 2D texture's default view, the texture itself dropped (wgpu keeps it alive).
+-pub fn texture_view(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::TextureView {
+-    texture(ctx, label, spec).create_view(&wgpu::TextureViewDescriptor::default())
++/// A texture the viewer owns, with its default view. Dropping it DESTROYS the texture: on the
++/// web wgpu's drop is a no-op and the memory would wait for the JavaScript garbage collector,
++/// which nothing in a wasm frame loop hurries - a window drag remade the frame's attachments
++/// every frame, a quarter of a gigabyte each at 4x on a 4 Mpx canvas, until the device was
++/// lost. Destroying after the last submit that used it is safe: queued work still completes.
++pub struct Attachment {
++    texture: wgpu::Texture,
++    pub view: wgpu::TextureView,
++}
++
++impl Attachment {
++    /// A 2D texture to `spec` and its default view.
++    pub fn new(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> Self {
++        let texture = texture(ctx, label, spec);
++        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
++        Self { texture, view }
++    }
++
++    /// The texture, for a copy out of it.
++    pub fn texture(&self) -> &wgpu::Texture {
++        &self.texture
++    }
++
++    /// Give the memory back now rather than on drop: a caller about to make the replacement
++    /// keeps one set alive instead of two. Destroying twice is allowed, so the drop stays.
++    pub fn destroy(&self) {
++        self.texture.destroy();
++    }
++}
++
++impl std::ops::Deref for Attachment {
++    type Target = wgpu::TextureView;
++
++    fn deref(&self) -> &wgpu::TextureView {
++        &self.view
++    }
++}
++
++impl Drop for Attachment {
++    fn drop(&mut self) {
++        self.texture.destroy();
++    }
+ }
+ 
+ #[cfg(test)]
+diff --git a/session_viewer/src/engine/gpu/text_plane.rs b/session_viewer/src/engine/gpu/text_plane.rs
+index 3a2fd6955b3010d0b27224c4a641c40abbda81ab..b1334def281ff1f7cfecad48c43077180472b0b1 100644
+--- a/session_viewer/src/engine/gpu/text_plane.rs
++++ b/session_viewer/src/engine/gpu/text_plane.rs
+@@ -14,10 +14,18 @@ struct CachedPlane {
+     em_pixels: u32,
+     size: [u32; 2],
+     extent: [f32; 4],
+-    _texture: wgpu::Texture,
++    texture: wgpu::Texture,
+     bind: wgpu::BindGroup,
+ }
+ 
++impl Drop for CachedPlane {
++    /// A plane re-rasterized at a higher resolution, or dropped with its label, frees its
++    /// coverage at once rather than when the browser's garbage collector gets to it.
++    fn drop(&mut self) {
++        self.texture.destroy();
++    }
++}
++
+ /// Application-owned fixed-plane resources; camera movement only updates quad vertices.
+ pub(super) struct Planes {
+     cached: Vec<CachedPlane>,
+@@ -188,7 +196,7 @@ impl Planes {
+                     em_pixels,
+                     size,
+                     extent,
+-                    _texture: texture,
++                    texture,
+                     bind,
+                 };
+                 match index {
+diff --git a/session_viewer/src/engine/gpu/triangle_tiles.rs b/session_viewer/src/engine/gpu/triangle_tiles.rs
+index 11f1aa8617ce3d0f98eb962f309c5126219d4d2d..bdb836a5e4ad154bedbfa126e0648f68f467529a 100644
+--- a/session_viewer/src/engine/gpu/triangle_tiles.rs
++++ b/session_viewer/src/engine/gpu/triangle_tiles.rs
+@@ -3,8 +3,9 @@
+ //! A projected polygon table and conservative screen tiles include triangles that win no
+ //! depth sample. Each tile owns a contiguous list of (triangle, nearest possible depth)
+ //! pairs. Projection, count, prefix scan and fill run only when their inputs change.
+-use super::buffers::{GpuCtx, ROWS, bind_group, uniform_buffer, zeroed_buffer};
++use super::buffers::{GpuCtx, ROWS, bind_group, replace_buffer, uniform_buffer, zeroed_buffer};
+ use super::frame::Binds;
++use super::targets::{Attachment, TextureSpec};
+ use crate::engine::pipelines::{
+     ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, pipeline_layout,
+ };
+@@ -200,7 +201,7 @@ pub struct TriangleTiles {
+     pub projected: wgpu::Buffer,
+     requested_triangles: u32,
+     layout: Option<TileLayout>,
+-    target: Option<wgpu::TextureView>,
++    target: Option<Attachment>,
+     live_count: wgpu::Buffer,
+     key: Option<ProjectionKey>,
+     pipes: TilePipelines,
+@@ -270,11 +271,14 @@ impl TriangleTiles {
+         );
+         let grow = pool_words > self.pool_words;
+         if triangles != self.requested_triangles || self.layout.is_none() {
+-            self.projected = zeroed_buffer(
+-                &ctx.device,
+-                "triangle.projected",
+-                triangles as u64 * PROJECTED_BYTES,
+-                ROWS,
++            replace_buffer(
++                &mut self.projected,
++                zeroed_buffer(
++                    &ctx.device,
++                    "triangle.projected",
++                    triangles as u64 * PROJECTED_BYTES,
++                    ROWS,
++                ),
+             );
+             ctx.queue.write_buffer(
+                 &self.live_count,
+@@ -287,30 +291,25 @@ impl TriangleTiles {
+         }
+         if self.layout != Some(layout) || grow {
+             self.pool_words = pool_words;
+-            self.buffer = zeroed_buffer(
+-                &ctx.device,
+-                "triangle.tiles",
+-                layout.buffer_bytes(pool_words).min(limit),
+-                ROWS,
+-            );
+-            self.target = Some(
+-                ctx.device
+-                    .create_texture(&wgpu::TextureDescriptor {
+-                        label: Some("triangle.tiles.target"),
+-                        size: wgpu::Extent3d {
+-                            width: layout.width,
+-                            height: layout.height,
+-                            depth_or_array_layers: 1,
+-                        },
+-                        mip_level_count: 1,
+-                        sample_count: 1,
+-                        dimension: wgpu::TextureDimension::D2,
+-                        format: wgpu::TextureFormat::R8Unorm,
+-                        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+-                        view_formats: &[],
+-                    })
+-                    .create_view(&Default::default()),
++            replace_buffer(
++                &mut self.buffer,
++                zeroed_buffer(
++                    &ctx.device,
++                    "triangle.tiles",
++                    layout.buffer_bytes(pool_words).min(limit),
++                    ROWS,
++                ),
+             );
++            self.target = Some(Attachment::new(
++                ctx,
++                "triangle.tiles.target",
++                &TextureSpec {
++                    size: (layout.width, layout.height),
++                    format: wgpu::TextureFormat::R8Unorm,
++                    samples: 1,
++                    usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
++                },
++            ));
+             self.layout = Some(layout);
+             self.invalidate();
+             changed = true;
+@@ -431,8 +430,14 @@ impl TriangleTiles {
+         if self.layout.take().is_none() {
+             return false;
+         }
+-        self.buffer = zeroed_buffer(&ctx.device, "triangle.tiles", 16, ROWS);
+-        self.projected = zeroed_buffer(&ctx.device, "triangle.projected", PROJECTED_BYTES, ROWS);
++        replace_buffer(
++            &mut self.buffer,
++            zeroed_buffer(&ctx.device, "triangle.tiles", 16, ROWS),
++        );
++        replace_buffer(
++            &mut self.projected,
++            zeroed_buffer(&ctx.device, "triangle.projected", PROJECTED_BYTES, ROWS),
++        );
+         self.target = None;
+         self.invalidate();
+         true
+diff --git a/session_viewer/src/engine/gpu/view.rs b/session_viewer/src/engine/gpu/view.rs
+index fb6298f84512cc2cbe1ebda312c76e8b782e2fbc..e2872a3c9bce8c1ea6032fb2a973e1a516fc8eca 100644
+--- a/session_viewer/src/engine/gpu/view.rs
++++ b/session_viewer/src/engine/gpu/view.rs
+@@ -98,13 +98,14 @@ pub fn device_pixel_ratio() -> f64 {
+ 
+ static REDUCED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+ 
+-/// Interaction frames stayed slow: from now on the canvas renders at device scale 1 without
+-/// antialiasing, the same attachments a device loss reloads into, without the reload.
+-pub fn reduce_for_slow_frames() {
++/// From now on the canvas renders at device scale 1 without antialiasing: after a run of slow
++/// interaction frames, or on the page a device loss reloaded into. In memory only, so a
++/// reload starts at full resolution again.
++pub fn reduce() {
+     REDUCED.store(true, std::sync::atomic::Ordering::Relaxed);
+ }
+ 
+-/// Whether the slow-frame reduction is in force.
++/// Whether the reduction is in force.
+ pub fn reduced() -> bool {
+     REDUCED.load(std::sync::atomic::Ordering::Relaxed)
+ }
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index 369099b5865eefb80a97b7d4c1a88cf08d7a1334..9d0ccd66cac38ab53f54aabf0d2e35ccecad8316 100644
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -47,6 +47,10 @@ pub enum Msg {
+     SheetChunk(SheetChunk),
+     SheetEntity(app::sheet_query::Resolved),
+     CancelPointer,
++    /// A line typed into the command box, sent when Enter was pressed in it.
++    Command(String),
++    /// A layers-panel row was clicked, carrying its key.
++    ToggleLayer(String),
+ }
+ 
+ #[cfg(target_arch = "wasm32")]
+@@ -69,6 +73,8 @@ pub struct App {
+     proxy: Option<EventLoopProxy<Msg>>,
+     input: Input,
+     pointer_cancellation: Option<app::input::PointerCancellation>,
++    command_keys: Option<app::input::CommandKeys>,
++    layer_clicks: Option<app::input::LayerClicks>,
+ }
+ 
+ #[cfg(target_arch = "wasm32")]
+@@ -82,6 +88,8 @@ impl App {
+             state: None,
+             input: Input::new(),
+             pointer_cancellation: None,
++            command_keys: None,
++            layer_clicks: None,
+         };
+         event_loop.spawn_app(app);
+         Ok(())
+@@ -90,7 +98,7 @@ impl App {
+     /// `Ready`: adopt the State, size it to the canvas, draw.
+     fn adopt(&mut self, mut state: State) {
+         if let Some((w, h)) = desired_canvas_size() {
+-            state.resize(w, h);
++            let _ = state.resize(w, h);
+         }
+         state.window.request_redraw();
+         self.state = Some(state);
+@@ -130,6 +138,18 @@ impl ApplicationHandler<Msg> for App {
+                 Ok(listener) => self.pointer_cancellation = Some(listener),
+                 Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
+             }
++            if let Some(input) = app::feedback::command_line(false) {
++                match app::input::CommandKeys::new(input, proxy.clone()) {
++                    Ok(listener) => self.command_keys = Some(listener),
++                    Err(error) => log::warn!("Cannot register the command line: {error:?}"),
++                }
++            }
++            if let Some(panel) = app::feedback::layers_visible(false) {
++                match app::input::LayerClicks::new(panel, proxy.clone()) {
++                    Ok(listener) => self.layer_clicks = Some(listener),
++                    Err(error) => log::warn!("Cannot register the layers panel: {error:?}"),
++                }
++            }
+             wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
+         }
+     }
+@@ -163,6 +183,18 @@ impl ApplicationHandler<Msg> for App {
+                     col_at,
+                 });
+             }
++            Msg::Command(line) => {
++                let said = match state.run_command(&line) {
++                    Ok(done) => done,
++                    Err(why) => why,
++                };
++                app::feedback::status(&said);
++            }
++            Msg::ToggleLayer(key) => {
++                if let Some(layer) = app::layers::Layer::from_key(&key) {
++                    state.toggle_layer(layer);
++                }
++            }
+             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
+             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
+             Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
+@@ -179,6 +211,7 @@ impl ApplicationHandler<Msg> for App {
+             Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
+             Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
+             Msg::CancelPointer => {
++                state.cancel_gesture();
+                 self.input.cancel();
+                 state.touch();
+             }
+@@ -199,12 +232,19 @@ impl ApplicationHandler<Msg> for App {
+                 if page_hidden() || desired_canvas_size().is_none() {
+                     return;
+                 }
+-                if let Some((w, h)) = desired_canvas_size()
+-                    && (w, h) != (state.gpu.config.width, state.gpu.config.height)
+-                {
+-                    state.resize(w, h);
++                // A size the targets may not follow yet holds the frame with it: `needs_frame`
++                // asks again next frame, and the last picture stays stretched until then.
++                let held = match desired_canvas_size() {
++                    Some((w, h)) if (w, h) != (state.gpu.config.width, state.gpu.config.height) => {
++                        !state.resize(w, h)
++                    }
++                    _ => false,
++                };
++                if held {
++                    state.needs_frame = true;
++                } else {
++                    state.render();
+                 }
+-                state.render();
+                 false
+             }
+             WindowEvent::Resized(_) => true,
+@@ -282,6 +322,10 @@ pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
+     {
+         return Ok(());
+     }
++    // The page a device loss reloaded into draws reduced from its first frame and says why.
++    if let Some(notice) = app::route::adopt_recovery() {
++        app::feedback::status(notice);
++    }
+     if let Err(error) = App::run() {
+         app::feedback::error(&format!("Cannot start the viewer: {error}"));
+     }
+diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
+index c52a717d28f6a156b6b683595c59a7f4a07553f9..0ed19c14303b860f8d223e93269c07e5a59b0c04 100644
+--- a/session_viewer/src/state.rs
++++ b/session_viewer/src/state.rs
+@@ -16,6 +16,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
+ use crate::engine::gpu::{FrameInput, Gpu, Pick};
+ use crate::engine::performance::{heap_mb, now_ms};
+ mod cloud_query;
++pub mod edit;
+ mod sheet_query;
+ mod text;
+ use std::sync::Arc;
+@@ -45,6 +46,8 @@ pub struct State {
+     /// The picture changed: the redraw presents a colour frame. A pending pick alone does not.
+     dirty: bool,
+     last_frame_ms: f64,
++    /// When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
++    last_resize_ms: f64,
+     pub selection: SelectionMode,
+     controls: Controls,
+     requested: PickMode,
+@@ -56,6 +59,12 @@ pub struct State {
+     query_generation: u64,
+     sheet_query: Option<crate::app::sheet_query::Query>,
+     sheet_generation: u64,
++    /// The move/rotate/scale widget, present only while a row with a box is selected.
++    pub gizmo: Option<crate::app::gizmo::Gizmo>,
++    /// The drag in progress, holding what the gesture is measured FROM.
++    dragging: Option<edit::GizmoDrag>,
++    /// A control point being dragged, which is a different gesture from a placement drag.
++    control_drag: Option<edit::ControlDrag>,
+ }
+ 
+ impl State {
+@@ -74,6 +83,7 @@ impl State {
+             interacting: false,
+             dirty: true,
+             last_frame_ms: 0.0,
++            last_resize_ms: f64::NEG_INFINITY,
+             selection: SelectionMode::Object,
+             controls: Controls::default(),
+             requested: PickMode::Object,
+@@ -84,6 +94,9 @@ impl State {
+             query_generation: 0,
+             sheet_query: None,
+             sheet_generation: 0,
++            gizmo: None,
++            dragging: None,
++            control_drag: None,
+         })
+     }
+ 
+@@ -106,6 +119,8 @@ impl State {
+         self.scene.upload_to(&mut self.gpu);
+         self.camera.grow_extent(&self.gpu.bounds);
+         self.annotate_document(first_row);
++        // An open panel is a view of the scene, and the scene just changed under it.
++        self.refresh_layers();
+         self.update_label();
+         log::info!(
+             "appended: walk {:.0} ms, upload {:.0} ms | {} docs | memory observation {:.0} MiB",
+@@ -170,6 +185,8 @@ impl State {
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+         self.controls = Controls::default();
+         self.scene.clear(&mut self.gpu);
++        self.place_gizmo(None);
++        self.refresh_layers();
+         self.touch();
+     }
+ 
+@@ -208,12 +225,25 @@ impl State {
+         self.touch();
+     }
+ 
+-    /// Forward a canvas resize to the GPU layer.
+-    pub fn resize(&mut self, width: u32, height: u32) {
++    /// The least time between two remakes of the attachments while a window is being resized.
++    const RESIZE_HOLD_MS: f64 = 100.0;
++
++    /// Forward a canvas resize to the GPU layer. A window drag brings a new size every frame
++    /// and each one remakes every attachment, so once the targets have followed a size the
++    /// next follows no sooner than `RESIZE_HOLD_MS` later: `false` says this one is still
++    /// waiting, the caller asks again next frame, and the last picture stretches over the
++    /// canvas meanwhile. A lone resize - a window moved to another screen - applies at once.
++    pub fn resize(&mut self, width: u32, height: u32) -> bool {
++        let now = now_ms();
++        if now - self.last_resize_ms < Self::RESIZE_HOLD_MS {
++            return false;
++        }
++        self.last_resize_ms = now;
+         self.gpu.resize(width, height);
+         self.gpu.logical_size = self.logical_size();
+         self.upload_controls();
+         self.touch();
++        true
+     }
+ 
+     /// The global cloud point-size scale, clamped.
+@@ -263,6 +293,7 @@ impl State {
+             self.gpu.set_selected(r, true);
+         }
+         self.scene.selected = row;
++        self.place_gizmo(row);
+         self.update_label();
+         self.touch();
+     }
+@@ -287,6 +318,7 @@ impl State {
+         self.select(None);
+         self.scene.hidden.insert(guid);
+         self.gpu.set_hidden(row, true);
++        self.refresh_layers();
+         self.update_label();
+         self.touch();
+     }
+@@ -297,6 +329,7 @@ impl State {
+             self.gpu.set_hidden(row, false);
+         }
+         self.scene.hidden.clear();
++        self.refresh_layers();
+         self.update_label();
+         self.touch();
+     }
+@@ -449,10 +482,15 @@ impl State {
+             self.last_frame_ms = now_ms;
+             self.gpu.performance.interacting = self.interacting;
+             let drawn = self.gpu.present(&input);
++            // Only when there is something to give up: a ratio above 1, or the samples. At
++            // device scale 1 the canvas keeps its size, so the targets are remade here.
+             if self.gpu.performance.take_slow_interaction()
+-                && crate::engine::gpu::view::device_pixel_ratio() > 1.0
++                && (crate::engine::gpu::view::device_pixel_ratio() > 1.0
++                    || self.gpu.targets.samples > 1)
+             {
+-                crate::engine::gpu::view::reduce_for_slow_frames();
++                crate::engine::gpu::view::reduce();
++                self.gpu
++                    .resize(self.gpu.config.width, self.gpu.config.height);
+                 log::warn!(
+                     "slow interaction frames; rendering at device scale 1 without antialiasing"
+                 );
+@@ -477,7 +515,7 @@ impl State {
+     }
+ 
+     /// CSS dimensions come from the actual canvas; native harness dimensions are physical.
+-    fn logical_size(&self) -> [f64; 2] {
++    pub(crate) fn logical_size(&self) -> [f64; 2] {
+         #[cfg(target_arch = "wasm32")]
+         if let Some(window) = web_sys::window()
+             && let Some(document) = window.document()
+@@ -552,6 +590,9 @@ impl State {
+             self.status("This object has no selectable source controls");
+             return;
+         }
++        // The widget and the control net compete for the same clicks and the same space, so
++        // control mode takes the widget away.
++        self.place_gizmo(None);
+         self.selection.enable_controls(Some(parent), controls.cloud);
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+         self.gpu.segments.set_edge(&self.gpu.ctx, None);
+@@ -574,7 +615,7 @@ impl State {
+     }
+ 
+     /// Upload only temporary source controls; repeated F10 never appends duplicate markers.
+-    fn upload_controls(&mut self) {
++    pub(crate) fn upload_controls(&mut self) {
+         self.gpu.controls.reset();
+         self.gpu.control_net.reset();
+         let SelectionMode::Controls {
+@@ -695,6 +736,6 @@ impl State {
+ }
+ 
+ /// Convert a retained source position at the temporary GPU-control upload boundary.
+-fn render_position(position: [f64; 3]) -> [f32; 3] {
++pub(crate) fn render_position(position: [f64; 3]) -> [f32; 3] {
+     [position[0] as f32, position[1] as f32, position[2] as f32]
+ }
+diff --git a/session_viewer/src/text_quality.rs b/session_viewer/src/text_quality.rs
+index e14717b4bfb4291c60ef8233da71262903d42ccf..0e7d2543996dddd96030291bde223ddfb8acf013 100644
+--- a/session_viewer/src/text_quality.rs
++++ b/session_viewer/src/text_quality.rs
+@@ -3,7 +3,7 @@
+ 
+ use crate::engine::gpu::{
+     buffers::GpuCtx,
+-    targets::{TextureSpec, texture_view},
++    targets::{Attachment, TextureSpec},
+     text::{TextFrame, TextLane},
+ };
+ use crate::engine::pipelines::Target;
+@@ -34,7 +34,7 @@ pub struct TextQuality {
+     ctx: GpuCtx,
+     config: wgpu::SurfaceConfiguration,
+     lane: TextLane,
+-    depth: wgpu::TextureView,
++    depth: Attachment,
+     adapter: String,
+ }
+ 
+@@ -323,8 +323,8 @@ fn fixture_labels(selected: bool) -> Vec<TextLabel> {
+ }
+ 
+ /// A real read/write depth attachment makes fixture pipeline validation match production.
+-fn fixture_depth(ctx: &GpuCtx, size: [u32; 2]) -> wgpu::TextureView {
+-    texture_view(
++fn fixture_depth(ctx: &GpuCtx, size: [u32; 2]) -> Attachment {
++    Attachment::new(
+         ctx,
+         "text-quality.depth",
+         &TextureSpec {

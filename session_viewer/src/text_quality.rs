@@ -3,7 +3,7 @@
 
 use crate::engine::gpu::{
     buffers::GpuCtx,
-    targets::{TextureSpec, texture_view},
+    targets::{Attachment, TextureSpec},
     text::{TextFrame, TextLane},
 };
 use crate::engine::pipelines::Target;
@@ -34,7 +34,7 @@ pub struct TextQuality {
     ctx: GpuCtx,
     config: wgpu::SurfaceConfiguration,
     lane: TextLane,
-    depth: wgpu::TextureView,
+    depth: Attachment,
     adapter: String,
 }
 
@@ -323,8 +323,8 @@ fn fixture_labels(selected: bool) -> Vec<TextLabel> {
 }
 
 /// A real read/write depth attachment makes fixture pipeline validation match production.
-fn fixture_depth(ctx: &GpuCtx, size: [u32; 2]) -> wgpu::TextureView {
-    texture_view(
+fn fixture_depth(ctx: &GpuCtx, size: [u32; 2]) -> Attachment {
+    Attachment::new(
         ctx,
         "text-quality.depth",
         &TextureSpec {

@@ -5,16 +5,16 @@
 use std::collections::HashSet;
 
 use super::buffers::GpuCtx;
-use super::targets::{Targets, TextureSpec, texture_view};
+use super::targets::{Attachment, Targets, TextureSpec};
 use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
 
 struct Mask {
-    resolved: wgpu::TextureView,
-    multisampled: Option<wgpu::TextureView>,
+    resolved: Attachment,
+    multisampled: Option<Attachment>,
     group: wgpu::BindGroup,
     /// The maximum of each `POOL`-square block of `resolved`: the compositor skips every
     /// pixel whose neighbourhood of blocks is empty, which is most of the frame.
-    coarse: wgpu::TextureView,
+    coarse: Attachment,
     coarse_size: (u32, u32),
     pool_group: wgpu::BindGroup,
     size: (u32, u32),
@@ -238,9 +238,9 @@ impl SurfaceOutline {
                 samples: 1,
                 usage,
             };
-            let resolved = texture_view(ctx, "selection coverage", &spec);
+            let resolved = Attachment::new(ctx, "selection coverage", &spec);
             let multisampled = if samples > 1 {
-                Some(texture_view(
+                Some(Attachment::new(
                     ctx,
                     "selection coverage MSAA",
                     &TextureSpec { samples, ..spec },
@@ -249,7 +249,7 @@ impl SurfaceOutline {
                 None
             };
             let coarse_size = (size.0.div_ceil(POOL).max(1), size.1.div_ceil(POOL).max(1));
-            let coarse = texture_view(
+            let coarse = Attachment::new(
                 ctx,
                 "selection coverage coarse",
                 &TextureSpec {
@@ -498,15 +498,20 @@ mod tests {
                             clear: wgpu::Color::WHITE,
                             now_ms: 0.0,
                         };
-                        gpu.view.show_mesh_edges = false;
-                        let silhouette = gpu.render_offscreen(&input);
                         gpu.view.show_mesh_edges = true;
+                        gpu.segments.set_selected(0, false);
+                        let silhouette = gpu.render_offscreen(&input);
+                        gpu.segments.set_selected(0, true);
                         let edged = gpu.render_offscreen(&input);
-                        let mut black = 0;
+                        let mut coverage = 0_u32;
                         for (plain, inked) in silhouette.chunks_exact(4).zip(edged.chunks_exact(4))
                         {
-                            if plain[..3].iter().all(|channel| *channel < 8) {
-                                black += 1;
+                            let lo = *plain[..3].iter().min().unwrap();
+                            let hi = *plain[..3].iter().max().unwrap();
+                            if hi - lo <= 2 {
+                                coverage += u32::from(255 - hi);
+                            }
+                            if hi < 8 {
                                 assert!(
                                     inked[..3].iter().all(|channel| *channel < 12),
                                     "yellow CAD strokes must not narrow the black border: {plain:?} -> {inked:?}; samples={samples}, DPR={dpr}, orbit={orbit:?}"
@@ -514,8 +519,8 @@ mod tests {
                             }
                         }
                         assert!(
-                            black > 500,
-                            "the perspective silhouette must remain visible"
+                            coverage > gpu.config.height * 255 / 2,
+                            "visible silhouette includes fractional coverage: {coverage}"
                         );
                     }
                 }
@@ -675,9 +680,9 @@ mod tests {
                 .chunks_exact(4)
                 .filter(|p| p[..3].iter().all(|c| *c < 8))
                 .count();
-            assert!(
-                plain_black > 0 && plain_black < black,
-                "ordinary and selected outlines both stay visible"
+            assert_eq!(
+                plain_black, black,
+                "ordinary and selected outlines have the same width"
             );
             gpu.view.show_outlines = false;
             let disabled = gpu.render_offscreen(&input);

@@ -6,7 +6,7 @@
 
 use super::buffers::GpuCtx;
 use super::frame::PickView;
-use super::targets::{TextureSpec, texture, texture_view};
+use super::targets::{Attachment, TextureSpec};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
 
@@ -24,10 +24,9 @@ pub struct Pick {
 /// The id pass's attachments: the size of the pick window plus its halo, not the canvas,
 /// made on the first pick and kept while the window keeps that size.
 struct IdTargets {
-    id: wgpu::Texture,
-    id_view: wgpu::TextureView,
-    depth: wgpu::TextureView,
-    gradient: wgpu::TextureView,
+    id: Attachment,
+    depth: Attachment,
+    gradient: Attachment,
     size: (u32, u32),
 }
 
@@ -275,7 +274,7 @@ impl Picker {
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("source points"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &target.id_view,
+                view: &target.id,
                 resolve_target: None,
                 depth_slice: None,
                 ops: wgpu::Operations {
@@ -340,7 +339,7 @@ impl Picker {
         self.view = view;
         if !matches!(&self.targets, Some(targets) if targets.size == size) {
             let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC;
-            let id = texture(
+            let id = Attachment::new(
                 ctx,
                 "pick.id",
                 &TextureSpec {
@@ -350,8 +349,7 @@ impl Picker {
                     usage,
                 },
             );
-            let id_view = id.create_view(&wgpu::TextureViewDescriptor::default());
-            let depth = texture_view(
+            let depth = Attachment::new(
                 ctx,
                 "pick.depth",
                 &TextureSpec {
@@ -362,7 +360,7 @@ impl Picker {
                         | wgpu::TextureUsages::TEXTURE_BINDING,
                 },
             );
-            let gradient = texture_view(
+            let gradient = Attachment::new(
                 ctx,
                 "pick.gradient",
                 &TextureSpec {
@@ -375,7 +373,6 @@ impl Picker {
             );
             self.targets = Some(IdTargets {
                 id,
-                id_view,
                 depth,
                 gradient,
                 size,
@@ -386,7 +383,7 @@ impl Picker {
             label: Some("pick pass"),
             color_attachments: &[
                 Some(wgpu::RenderPassColorAttachment {
-                    view: &t.id_view,
+                    view: &t.id,
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
@@ -440,7 +437,7 @@ impl Picker {
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("pick ink"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &targets.id_view,
+                view: &targets.id,
                 resolve_target: None,
                 depth_slice: None,
                 ops: wgpu::Operations {
@@ -476,7 +473,7 @@ impl Picker {
         let buf = self.readback.as_ref().expect("readback initialized above");
         encoder.copy_texture_to_buffer(
             wgpu::TexelCopyTextureInfo {
-                texture: &t.id,
+                texture: t.id.texture(),
                 mip_level: 0,
                 origin: wgpu::Origin3d {
                     x: win.x.saturating_sub(self.view.x),
@@ -522,7 +519,7 @@ impl Picker {
         });
         encoder.copy_texture_to_buffer(
             wgpu::TexelCopyTextureInfo {
-                texture: &target.id,
+                texture: target.id.texture(),
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,

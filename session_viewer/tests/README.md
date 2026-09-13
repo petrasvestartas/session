@@ -238,3 +238,7 @@ canonical boundary refinement. Integer picking and visible lines consume matchin
 depth-gradient attachments. The interaction fixture uses T to expose short selected strokes
 and accepts their antialiased yellow coverage; the separate nameplate fixture verifies
 the default centered white/black label and T persistence.
+
+`node tests/editing-extensions.cjs` runs five configurations against the supplied nested fixture: desktop, smaller viewport, perspective, 2× DPI and resize. Each checks tree/graph selection and hide/show, creation, trim/extend, explode/undo, all four gumball gestures, control commit/cancel and widget memory release. It writes `docs/extensions/rounds.json`; a browser without an adapter fails the run.
+
+`node docs/extensions/capture.cjs` records real tutorial screenshots and their inspection state in `docs/extensions/screenshots.json`. Both scripts use `CHROME_BIN`, `VIEWER_URL` and JSON `VIEWER_CHROME_ARGS`. They inherit GPU environment variables from the shell and close their own browser contexts.

@@ -1,0 +1,171 @@
+{
+  "base": "21",
+  "lessons": [
+    {
+      "id": "modeling",
+      "title": "Create, trim, extend and explode",
+      "intro": "Type world coordinates, change exact kernel geometry, and keep each command as one undo step. No new shader is needed: the point and line lanes already draw these objects.",
+      "steps": [
+        {
+          "title": "Build the document operations",
+          "why": "Create the file below, register it, and add the document slot. Read the enum first, then Scene::model: validation precedes mutation. create_geometry owns the Created document. edit_geometry uses replace for trims and one remove/add transaction for explosion. The tests at the end are included, not left as an exercise. Nothing new appears on screen until step 2.",
+          "patch": "modeling-1.patch"
+        },
+        {
+          "title": "Connect the command line to the operations",
+          "why": "The parser owns the input syntax; State owns the action. Command loses Copy because a polyline contains a Vec. The Model arm commits source geometry and calls after_history, which clears stale row selection and uploads the rebuilt scene. All other verbs retain their existing actions.",
+          "patch": "modeling-2.patch"
+        }
+      ],
+      "test": "app::modeling",
+      "shot": "extensions-modeling.png",
+      "try": "Open `:` and enter `line 0,0,0 100,0,0`. Press F, select the line, then enter `trim 0.2 0.8`. Undo; enter `extend -0.2 1.2`. Create `polyline 0,0,0 100,0,0 100,100,0`, select it and enter `explode`. Undo restores one polyline.",
+      "limits": "Creation uses world coordinates. Trim/extend accept lines and NURBS curves with normalized parameters, not cutting objects. Explode accepts polylines only. Commands reject streamed scenes that cannot survive a geometry rebuild."
+    },
+    {
+      "id": "panels",
+      "title": "Build the nested session and graph panel",
+      "intro": "Browse nested groups, select their visible objects, and hide or show their descendants. Graph attribute rows control vertices or both endpoints of matching edges. The panel is DOM; only highlights and visibility flags go to wgpu.",
+      "steps": [
+        {
+          "title": "Index source identity and subtree ranges",
+          "why": "Add the pure index and its revision counter. A node points into one shared row vector, so each parent does not copy its descendants. The stack closes ranges on exit; the visited set stops cycles. The graph maps borrow GUID strings during lookup. This step compiles and tests without a panel or device.",
+          "patch": "panels-1.patch"
+        },
+        {
+          "title": "Connect selection, visibility and cleanup",
+          "why": "The panel action converts a button key into a row range. The shared visibility writer changes Scene.hidden and only changed GPU flags. select clears old group highlights; clear drops the index; after_history discards expansion state before rows change. Those cleanup paths are part of the implementation. The panel rows are now drawn, but their new buttons become active in step 3.",
+          "patch": "panels-2.patch"
+        },
+        {
+          "title": "Wire the buttons and bound the visible page",
+          "why": "Reuse the existing delegated listener: change its message handler, not the listener count. textContent keeps file names as text; preformatted whitespace preserves indentation. The index displays 128 entries per page. Count document/type buckets in one scene walk. The inspection fields make selection and hiding observable in browser checks.",
+          "patch": "panels-3.patch"
+        }
+      ],
+      "test": "app::hierarchy",
+      "shot": "extensions-panels.png",
+      "try": "Load the supplied nested fixture below. Press L. Open the document, Assembly and Nested group. Select Nested: both member lines highlight. Hide Nested: both disappear. Show it again. Select an edge-attribute row: both endpoint objects highlight. Select a leaf to recover single-object gumball editing.",
+      "limits": "Group selection supports highlighting and hiding; transform/delete/F10 remain single-object operations. Visibility is one shared hide set, not intersecting persistent filters. Tree/graph editing and reparenting are not part of this lesson."
+    },
+    {
+      "id": "controls",
+      "title": "Make control dragging respect object placement",
+      "intro": "Drag polyline and NURBS controls on placed objects without a release jump. Keep source coordinates local, pointer rays in world coordinates, and previews outside kernel history.",
+      "steps": [
+        {
+          "title": "Convert a world target back into source coordinates",
+          "why": "The stored control point is local. Invert its full placement (file, ancestors and object) before Session::replace. A singular transform is refused. The regression test uses a translated and scaled file and confirms that a shared second placement remains unchanged.",
+          "patch": "controls-1.patch"
+        },
+        {
+          "title": "Keep hit tests in world space and previews local",
+          "why": "At grab, project the transformed control and freeze the world-space plane origin. During movement, intersect the world ray with that plane and rank transformed neighbour controls as snaps. Convert the resulting world target back to local coordinates only for the GPU preview. On release, commit once through set_control_point.",
+          "patch": "controls-2.patch"
+        },
+        {
+          "title": "Restore previews on cancellation and failure",
+          "why": "Re-uploading the modified preview cannot cancel it. Reconstruct controls from source, and restore the saved object placement before a failed gumball release can return. Cancel an active gesture before changing selection or clearing the scene. The existing gesture listener and GPU lanes remain unchanged.",
+          "patch": "controls-3.patch"
+        }
+      ],
+      "test": "app::edit",
+      "shot": "extensions-controls.png",
+      "try": "Load the supplied fixture. Select the placed polyline, press F10, click a control, then drag it. Release must not jump. Ctrl+Z restores the previous control. Drag again and press Escape before releasing: the source and dot return to their original positions.",
+      "limits": "Only polyline and NURBS curve controls are editable. Mesh vertices and surface controls remain read-only. The construction plane is fixed at the grab position. Streamed scenes refuse commits that would discard streamed rows."
+    },
+    {
+      "id": "ui",
+      "title": "Build the egui panel and command interface",
+      "intro": "Use the same egui 0.34 framework as the archived viewer. egui-winit translates input; egui builds widgets; egui-wgpu uploads fonts and draws the interface after the scene. The archive is a framework reference, not copied implementation.",
+      "steps": [
+        {
+          "title": "Connect input, UI actions and the final render pass",
+          "why": "Create the two UI modules. Select the Light theme before customizing its white backgrounds and black text; otherwise the initial system-theme event can switch to an uncustomized style. The app module owns widget state and collects actions; it applies them after egui finishes building the frame. The GPU module owns tessellated shapes and font textures, updates buffers, and renders a final single-sample overlay. Texture frees happen after the previous frame; Drop frees the remaining font textures. The 2048-character input and eight-entry history bound retained command text. Replace DOM controls with feedback data, then route winit events to egui before the scene. Consumed mouse releases cancel active gestures. request_frame redraws the interface without cancelling scene queries. The small panel_action adapter supports checkpoint 21 flat layers; the nested-panel extension supplies its richer dispatcher in the maintained viewer.",
+          "patch": "ui-1.patch"
+        }
+      ],
+      "test": "app::command",
+      "shot": "extensions-command-interface.png",
+      "try": "Press colon to open Command line. Type move 10,0,0 after selecting an object; press Enter. Read the result in the window. Click Close or press Escape before using viewer shortcuts. Press L to open the egui layers window. With the modeling extension installed, use the creation/trim/extend/explode walkthrough.",
+      "limits": "This independent lesson keeps checkpoint 21 modeling commands and flat layers. Nested groups and typed creation are separate extensions. The maintained viewer includes all of them. The interface needs no new document geometry or background animation loop."
+    },
+    {
+      "id": "integrated",
+      "title": "Combine the extensions into the current viewer",
+      "intro": "Continue from checkpoint 21 through the maintained viewer. This sequence resolves shared wiring explicitly; the individual feature lessons remain independent alternatives.",
+      "steps": [
+        {
+          "title": "Refresh diagnostics and resource checks",
+          "why": "Bring the frozen runtime helpers to their maintained state before adding optional features. Existing rendering remains usable.",
+          "patch": "integrated-1.patch",
+          "answers": "**What changed?** Resource counters and failure handling now match the maintained runtime. Formatting changes do not add rendering work.\n\n**Who owns memory?** `Scene` owns source documents. `Gpu` owns buffers and textures. A geometry rebuild may reuse capacity; scene replacement releases scene-sized storage. The inspection counters exclude browser overhead, undo history and renderer-private allocations.",
+          "expected": "You see the empty grid and can orbit, pan and zoom. This checkpoint adds no editing button."
+        },
+        {
+          "title": "Create, trim, extend and explode",
+          "why": "Type world coordinates, change exact kernel geometry, and keep each command as one undo step. No new shader is needed: the point and line lanes already draw these objects. Apply this step after the preceding integrated step; these edits include its shared wiring.",
+          "patch": "integrated-2.patch",
+          "answers": "**Why no new shader?** Points and curves already have GPU draw paths. A command changes the CPU document; `Scene::rebuild` converts it into their existing upload rows.\n\n**When does undo record?** Once per successful command. Validation runs before mutation. A polyline explosion removes one polyline and adds its lines inside one transaction.\n\n**What does `trim 0.2 0.8` mean?** Keep 20% through 80% of the current curve. For a line from x=0 to x=100, the result is x=20 to x=80.",
+          "expected": "Press **:**, enter `line 0,0,0 100,0,0`, then **Enter**. Press **F**, click the line, reopen **:** and run `trim 0.2 0.8`. The middle 60% remains. Run `undo`: the full line returns. This checkpoint still has the original DOM command field."
+        },
+        {
+          "title": "Make control dragging respect object placement",
+          "why": "Drag polyline and NURBS controls on placed objects without a release jump. Keep source coordinates local, pointer rays in world coordinates, and previews outside kernel history. Apply this step after the preceding integrated step; these edits include its shared wiring.",
+          "patch": "integrated-3.patch",
+          "answers": "**Why convert coordinates?** A source control is local to its object. The pointer ray and drag plane are world-space. Multiply by placement to draw a control; multiply the world target by inverse placement to store it.\n\n**What changes during a drag?** Only preview GPU rows. Release commits one source edit. Escape restores the source-derived preview without recording an edit. An uninvertible placement refuses the edit.",
+          "expected": "Run `polyline 0,0,0 100,0,0 100,100,0`, press **F**, select it and press **F10**. Select a control, drag and release: it stays at the release point. **Ctrl+Z** restores it. Drag again and press **Escape** before release: the control returns without a new undo step."
+        },
+        {
+          "title": "Draw a solid, readable gumball",
+          "why": "Replace the flat strokes with actual triangle meshes: cylindrical shafts, cone tips, round rotation tubes and flat-color spheres. Build vertices once and render an antialiased, bounded tile independently of the scene sample count. Apply this step after the preceding integrated step; these edits include its shared wiring.",
+          "patch": "integrated-4.patch",
+          "answers": "**What is a mesh here?** A fixed list of triangles forming cylinders, cones, spheres and rotation tubes. The CPU builds it once; a GPU vertex buffer retains it.\n\n**Why is there no shading?** The fragment shader outputs the handle color directly. It has no light or normal calculation.\n\n**Why are edges smooth?** Draw into a tile at twice the display resolution with four samples per pixel, then blend its coverage over the scene. Deselect destroys that tile; the fixed mesh stays reusable. The tile is capped at 1024\u00d71024.\n\n**How do I pick a face under a handle?** Hold Ctrl for edges or Ctrl+Shift for faces. The input handler bypasses control and gumball grabs while Ctrl is held.",
+          "expected": "Create and select a line. Press **7** for isometric view. Cone tips and cylindrical shafts have flat colors and smooth edges. Drag a shaft to move, a colored sphere to scale an axis, a ring to rotate, or the center sphere to scale uniformly. Undo each operation. Deselect: handles disappear and their temporary tile is released."
+        },
+        {
+          "title": "Build the nested session and graph panel",
+          "why": "Browse nested groups, select their visible objects, and hide or show their descendants. Graph attribute rows control vertices or both endpoints of matching edges. The panel is DOM; only highlights and visibility flags go to wgpu. Apply this step after the preceding integrated step; these edits include its shared wiring.",
+          "patch": "integrated-5.patch",
+          "answers": "**Does the panel copy geometry?** No. It caches row references and subtree ranges. A parent selects or hides its descendants by range. A revision change rebuilds the index.\n\n**What does a graph edge select?** The objects at both matching endpoints. Groups support selection and visibility; transforms still require one selected object.\n\n**What bounds the work?** At most 200,000 index nodes and 1,000,000 row references, with 128 visible rows per page. An oversized document shows a capacity message instead of an incomplete group.",
+          "expected": "Create two lines. Press **L** and expand **Created**. Select its group: both lines highlight. Hide the group: both disappear. Show it: both return. This checkpoint uses DOM buttons; the next one replaces their presentation with egui."
+        },
+        {
+          "title": "Build the egui panel and command interface",
+          "why": "Use the same egui 0.34 framework as the archived viewer. egui-winit translates input; egui builds widgets; egui-wgpu uploads fonts and draws the interface after the scene. The archive is a framework reference, not copied implementation. Apply this step after the preceding integrated step; these edits include its shared wiring.",
+          "patch": "integrated-6.patch",
+          "answers": "**Which part is egui?** `app/ui.rs` builds windows and collects actions on the CPU. `engine/gpu/ui.rs` uploads fonts and draws the resulting triangles after the scene. egui-winit translates browser input between them.\n\n**Why set Light first?** A system-theme event can otherwise replace the custom style. Select Light, then assign white backgrounds and black text.\n\n**Who receives keys?** The command window receives typing while open. After Close or Escape, scene shortcuts work again. Actions run after UI building so they do not mutate borrowed UI state.\n\n**What remains in memory?** Reusable UI buffers and font textures, bounded input and history. Requested texture frees are processed between frames; renderer destruction frees the remaining font textures.",
+          "expected": "Press **:**. A white command window with black text appears. Type `point 0,0,0`, click **Run**, and read the result above the field. Click **Close (Esc)**, then press **L**. The nested panel now uses the same white egui appearance."
+        },
+        {
+          "title": "Match the maintained source exactly",
+          "why": "Finish the shared ownership comments, event routing and formatting. No feature is omitted from this final checkpoint.",
+          "patch": "integrated-7.patch",
+          "answers": "**What is now complete?** All runtime source files, Cargo dependencies and the browser entry point match the maintained viewer. The independent lessons are alternatives; do not apply their patches over this completed sequence.\n\n**What edits are supported?** Create points/lines/polylines; trim or extend lines/NURBS by normalized parameters; explode polylines; drag polyline/NURBS controls. Mesh vertices and surface controls remain read-only. Streamed scenes refuse commits that their rebuild path cannot preserve.\n\n**Where do I continue?** Use the command walkthrough below. It shows complete commands and their expected geometry. Return to any chapter to see its full implementation and answers.",
+          "expected": "The command window, nested panel, solid gumball and control editing work together. Use the supplied fixture instructions above to reproduce the screenshots. The next page walks through create, trim, extend, explode and undo."
+        }
+      ],
+      "test": "",
+      "shot": "extensions-command-interface.png",
+      "try": "Use the command walkthrough, tree selection and gumball controls. Every feature is present.",
+      "limits": "This sequence combines the supported implementations; unsupported geometry edits retain the limits in the feature inventory.",
+      "chapters": true
+    },
+    {
+      "id": "gumball",
+      "title": "Draw a solid, readable gumball",
+      "intro": "Replace the flat strokes with actual triangle meshes: cylindrical shafts, cone tips, round rotation tubes and flat-color spheres. Build vertices once and render an antialiased, bounded tile independently of the scene sample count.",
+      "steps": [
+        {
+          "title": "Build the mesh, smooth its edges and connect its lifetime",
+          "why": "Read widget_mesh.rs first: surface samples a bounded grid; lathe makes the cylinders and cones; the same grid makes spheres and quarter tori. Widget owns one immutable vertex buffer, one 96-byte uniform and a tile that exists only while selected. The mesh shader emits flat colors. Four MSAA samples and a 2\u00d7 tile smooth the edges; the composite unpremultiplies resolved coverage before alpha blending. The tile is capped at 1024\u00d71024. State supplies placement and hover; render refreshes screen scale on zoom and resize. The overlay runs after scene ink and never writes scene depth. Apply all edits in this step before compiling. Ctrl bypasses handle grabs so source edge and face picking still works beneath the overlay.",
+          "patch": "gumball-1.patch"
+        }
+      ],
+      "test": "widget",
+      "shot": "extensions-gumball.png",
+      "try": "Select an object. Read the three cone tips in isometric view (7). Drag a shaft to move, a colored sphere to scale one axis, a quarter ring to rotate, or the gray center sphere to scale uniformly. Hover turns a handle amber. Zoom and change projection with Space: handle thickness should stay the same. Deselect: the temporary tile is released.",
+      "limits": "The mesh changes appearance and hover feedback; it keeps checkpoint 21 hit-test geometry and single-object transforms. It needs two additional draws and a bounded color/depth tile. The scene keeps its existing sample count. It does not require the panel, modeling or control-edit extensions."
+    }
+  ]
+}

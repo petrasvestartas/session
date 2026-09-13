@@ -1,0 +1,86 @@
+{
+  "browser": "152.0.7977.82",
+  "rounds": [
+    {
+      "config": {
+        "id": 1,
+        "viewport": {
+          "width": 1200,
+          "height": 800
+        }
+      },
+      "objects": 4,
+      "widgetBytes": [
+        371616,
+        13271040
+      ],
+      "errors": []
+    },
+    {
+      "config": {
+        "id": 2,
+        "viewport": {
+          "width": 960,
+          "height": 720
+        }
+      },
+      "objects": 4,
+      "widgetBytes": [
+        371616,
+        13271040
+      ],
+      "errors": []
+    },
+    {
+      "config": {
+        "id": 3,
+        "viewport": {
+          "width": 1200,
+          "height": 800
+        },
+        "perspective": true
+      },
+      "objects": 4,
+      "widgetBytes": [
+        371616,
+        13271040
+      ],
+      "errors": []
+    },
+    {
+      "config": {
+        "id": 4,
+        "viewport": {
+          "width": 1000,
+          "height": 750
+        },
+        "dpr": 2
+      },
+      "objects": 4,
+      "widgetBytes": [
+        371616,
+        37748736
+      ],
+      "errors": []
+    },
+    {
+      "config": {
+        "id": 5,
+        "viewport": {
+          "width": 1200,
+          "height": 800
+        },
+        "resize": {
+          "width": 900,
+          "height": 700
+        }
+      },
+      "objects": 4,
+      "widgetBytes": [
+        371616,
+        13271040
+      ],
+      "errors": []
+    }
+  ]
+}

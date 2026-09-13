@@ -1,6 +1,10 @@
 # Build the Session Viewer
 
-A code-first course: from an empty Rust crate to the current production viewer, byte for byte. Type what is worth understanding, copy the boilerplate, compile after every step.
+The black triangle in the **top-right corner** switches between the viewer and these docs. In the viewer it opens the course; in the course the matching triangle returns to the viewer. Hover or focus it to see the destination.
+
+A code-first course: from an empty Rust crate to a frozen production checkpoint, byte for byte. The [seven-step continuation](extend-integrated-tutorial.md) then reaches the current viewer. Individual extension guides offer separate feature implementations. Type what is worth understanding, copy the boilerplate, compile after every step.
+
+Try the [command-line walkthrough](command-line-walkthrough.md) for creating, trimming, extending and exploding objects in the maintained viewer.
 
 ## What you build
 
@@ -59,7 +63,7 @@ Every block is cut from that checkpoint's verified patch, a replay audit proves 
 | [20 · The document](20-history.md) | Kernel history: transactions, tombstones, undo and redo, purge on save | **5 · Full viewer** |
 | [21 · Editing](21-editing.md) | The gumball, snapping, the construction plane, the command line, the layers panel | |
 
-Then [the capstone](capstone.md): a section plane — requirements, constraints, the reasoning for each decision and the full design, but no line-by-line instructions.
+Continue with [the current-viewer sequence](extend-integrated-tutorial.md), then [use its command line](command-line-walkthrough.md). The [section-plane design](capstone.md) is optional reference for a future feature; it is not a required implementation step.
 
 Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06, 07 and 09 change the shared kernel; 08 is viewer-only. All four need only 05. 10–11 need 04c. 12 needs everything before it. 13–16 extend `State` and loading. 17–18 build on 12. 19 needs 15 and 17. 20 changes the kernel only and needs 19. 21 edits documents and needs 12, 13 and 20.
 
@@ -130,3 +134,7 @@ Flowcharts are D2: edit `docs/diagrams/<lesson>-<n>.d2`, then `python3 docs/diag
 Illustrations are generated: `python3 docs/illustrations/draw.py` sizes every box from its text, and `node docs/check_illustrations.cjs --write` measures every label in Chrome, fails on overflow or collision, and pins the measured width so other fonts cannot overflow either. The palette is BRG Equilibrium (navy, pink, green, yellow, pale bands), shared with the D2 diagrams: a reader carries those colours from a diagram to the running viewer, so no theme replaces them.
 
 Everything around them — ground, plates, rules, type, radius, density, the accent — comes from a Claude Design system, and the link runs both ways. `theme.json` is the project exported from claude.ai/design; `theme.py` renders it into `theme.css`; `fonts/fetch.sh` refetches the named faces against their recorded sha256; `check_site.py` fails the build if the three disagree. `course.css` is the only consumer, so switching systems is one export. `python3 docs/design_cards.py` pushes the palette, the figure plate and every illustration into `target/docs/cards/` to review as one set.
+
+- [Independent editing extensions](extend-implementation.md): five independent code lessons with exact edits, compile checkpoints, real screenshots and resource limits.
+
+- [Small code, bounded work](performance-patterns.md): reusable source and tutorial patterns, review findings and verification scope.

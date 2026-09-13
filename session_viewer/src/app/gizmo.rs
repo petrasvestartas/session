@@ -16,7 +16,7 @@
 use session_rust::{Point, Vector};
 
 /// The one length everything else is a fraction of, in CSS pixels.
-pub const ARM: f64 = 72.0;
+pub const ARM: f64 = 96.0;
 /// Axis scale balls, on the same side as the arrows so pulling out always grows.
 pub const BALL_AT: f64 = ARM * 0.5;
 /// Grab radius. Wider than the 6 px pick radius because a handle is grabbed, not aimed at.
@@ -112,7 +112,11 @@ pub struct Gizmo {
 
 impl Gizmo {
     pub fn new(origin: Point) -> Self {
-        Self { origin, hovered: None, drag: None }
+        Self {
+            origin,
+            hovered: None,
+            drag: None,
+        }
     }
 
     /// Move the widget and forget any interaction: a new selection is not a continued drag.
@@ -184,20 +188,36 @@ impl Gizmo {
             Handle::Rotate(axis) => Drag {
                 handle,
                 grabbed: self.origin.clone(),
-                angle: angle_in_plane(&plane_hit(from, dir, &self.origin, &axis.unit())?, &self.origin, axis),
+                angle: angle_in_plane(
+                    &plane_hit(from, dir, &self.origin, &axis.unit())?,
+                    &self.origin,
+                    axis,
+                ),
                 reach: 1.0,
                 plane: axis.unit(),
             },
             Handle::Scale(axis) => {
                 let p = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
                 let reach = dot(&sub(&p, &self.origin), &axis.unit());
-                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: axis.unit() }
+                Drag {
+                    handle,
+                    grabbed: p,
+                    angle: 0.0,
+                    reach: nonzero(reach),
+                    plane: axis.unit(),
+                }
             }
             Handle::ScaleUniform => {
                 let normal = facing(dir);
                 let p = plane_hit(from, dir, &self.origin, &normal)?;
                 let reach = length(&sub(&p, &self.origin));
-                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: normal }
+                Drag {
+                    handle,
+                    grabbed: p,
+                    angle: 0.0,
+                    reach: nonzero(reach),
+                    plane: normal,
+                }
             }
         };
         self.drag = Some(drag.clone());
@@ -294,7 +314,11 @@ fn softened(ratio: f64) -> f64 {
 }
 
 fn nonzero(v: f64) -> f64 {
-    if v.abs() < 1e-9 { 1e-9_f64.copysign(if v < 0.0 { -1.0 } else { 1.0 }) } else { v }
+    if v.abs() < 1e-9 {
+        1e-9_f64.copysign(if v < 0.0 { -1.0 } else { 1.0 })
+    } else {
+        v
+    }
 }
 
 /// The world axis a ray runs most along: the plane to measure a uniform scale in, chosen so the
@@ -461,7 +485,11 @@ mod tests {
         let (f, d) = down(-r, -r);
         assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Rotate(Axis::Z)));
         let (f, d) = down(ARM, 0.0);
-        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Translate(Axis::X)), "the arm tip is not an arc");
+        assert_eq!(
+            g.hit(&f, &d, SCALE),
+            Some(Handle::Translate(Axis::X)),
+            "the arm tip is not an arc"
+        );
         let (f, d) = down(ARM * 3.0, ARM * 3.0);
         assert_eq!(g.hit(&f, &d, SCALE), None);
     }
@@ -498,7 +526,9 @@ mod tests {
     fn a_translate_drag_moves_along_its_axis_only() {
         let mut g = at_origin();
         let (f0, d0) = down(30.0, 0.0);
-        let drag = g.begin(Handle::Translate(Axis::X), &f0, &d0).expect("grabbed");
+        let drag = g
+            .begin(Handle::Translate(Axis::X), &f0, &d0)
+            .expect("grabbed");
         let (f1, d1) = down(42.0, 0.0);
         let m = g.update(&drag, &f1, &d1).expect("a transform");
         assert!((m[12] - 12.0).abs() < 1e-9);
@@ -540,7 +570,10 @@ mod tests {
 
         let (f1, d1) = down(BALL_AT * 4.0, 0.0);
         let grown = g.update(&drag, &f1, &d1).expect("a transform");
-        assert!(grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0, "one axis only");
+        assert!(
+            grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0,
+            "one axis only"
+        );
 
         let (f2, d2) = down(-BALL_AT * 4.0, 0.0);
         let flipped = g.update(&drag, &f2, &d2).expect("a transform");

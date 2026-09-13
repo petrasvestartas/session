@@ -302,7 +302,11 @@ impl InstanceTable {
             if keep > 0 {
                 let rows: Vec<Instance> = self.rows.clone();
                 let anchored_rows: Vec<[f32; 4]> = match &self.last_origin {
-                    Some(origin) => self.translation.iter().map(|t| anchored(*t, origin)).collect(),
+                    Some(origin) => self
+                        .translation
+                        .iter()
+                        .map(|t| anchored(*t, origin))
+                        .collect(),
                     None => vec![[0.0f32; 4]; keep],
                 };
                 let grew = self.buffer.append(ctx, &rows);
@@ -505,7 +509,9 @@ impl InstanceTable {
             None => [0.0; 4],
         };
         // `append` is what grows the buffer; writing past the end would be a validation error.
-        let grew = self.buffer.append(ctx, std::slice::from_ref(&self.rows[row as usize]));
+        let grew = self
+            .buffer
+            .append(ctx, std::slice::from_ref(&self.rows[row as usize]));
         let grew_t = self
             .translations
             .append(ctx, std::slice::from_ref(&translation));
@@ -536,16 +542,26 @@ impl InstanceTable {
         self.world_bounds[i] = world;
         for b in &mut self.bounded {
             if b.row == row {
-                b.lo = [world.min[0] as f64, world.min[1] as f64, world.min[2] as f64];
-                b.hi = [world.max[0] as f64, world.max[1] as f64, world.max[2] as f64];
+                b.lo = [
+                    world.min[0] as f64,
+                    world.min[1] as f64,
+                    world.min[2] as f64,
+                ];
+                b.hi = [
+                    world.max[0] as f64,
+                    world.max[1] as f64,
+                    world.max[2] as f64,
+                ];
             }
         }
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
         let instance = *instance;
-        self.buffer.write_at(ctx, row, std::slice::from_ref(&instance));
+        self.buffer
+            .write_at(ctx, row, std::slice::from_ref(&instance));
         if let Some(origin) = &self.last_origin {
             let t = anchored(self.translation[i], origin);
-            self.translations.write_at(ctx, row, std::slice::from_ref(&t));
+            self.translations
+                .write_at(ctx, row, std::slice::from_ref(&t));
         }
         true
     }

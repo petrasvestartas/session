@@ -1,0 +1,198 @@
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -55,7 +55,7 @@
+   <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
+        `L` opens and closes it; a click on a row hides or shows that layer. -->
+   <div id="viewer-layers" hidden role="group" aria-label="Layers"
+-       style="position:fixed;top:12px;left:12px;min-width:180px;max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
++       style="position:fixed;top:12px;left:12px;width:min(320px,80vw);max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
+   <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
+        back the moment it closes, so typing `z` in here is a letter and not an undo. -->
+   <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
+diff --git a/src/app/feedback.rs b/src/app/feedback.rs
+--- a/src/app/feedback.rs
++++ b/src/app/feedback.rs
+@@ -122,12 +122,12 @@
+         let _ = line.set_attribute("data-layer", &row.key);
+         let _ = line.set_attribute(
+             "style",
+-            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:1",
++            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:1",
+         );
+         if row.hidden {
+             let _ = line.set_attribute(
+                 "style",
+-                "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:0.45",
++                "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:0.45",
+             );
+         }
+         let mark = if row.hidden { "·" } else { "•" };
+diff --git a/src/app/inspection.rs b/src/app/inspection.rs
+--- a/src/app/inspection.rs
++++ b/src/app/inspection.rs
+@@ -36,6 +36,8 @@
+         "frames": state.gpu.performance.frames,
+         "draw_calls": state.gpu.performance.draws,
+         "selected": parent,
++        "selected_group_count": state.selected_group_count(),
++        "hidden_count": state.scene.hidden.len(),
+         "identity": identity,
+         "selection": state.selection,
+         "controls": state.inspected_controls(),
+diff --git a/src/app/layers.rs b/src/app/layers.rs
+--- a/src/app/layers.rs
++++ b/src/app/layers.rs
+@@ -100,42 +100,53 @@
+     pub hidden: bool,
+ }
+ 
+-/// The rows a panel would show: the documents in load order, then the kinds present.
++/// Count document and type buckets in one scene walk.
+ pub fn rows(scene: &Scene) -> Vec<Row> {
++    let mut documents = vec![(0, 0); scene.docs.len()];
++    let mut kinds = [(0, 0); 6];
++    for row in 0..scene.object_count() as u32 {
++        let Some(identity) = scene.identity_of(row) else {
++            continue;
++        };
++        let hidden = usize::from(scene.hidden.contains(&identity));
++        if let Some(count) = documents.get_mut(identity.0) {
++            count.0 += 1;
++            count.1 += hidden;
++        }
++        if let Some(geometry) = scene.geometry(row) {
++            let count = &mut kinds[Kind::of(geometry) as usize];
++            count.0 += 1;
++            count.1 += hidden;
++        }
++    }
+     let mut out = Vec::new();
+-    for (index, doc) in scene.docs.iter().enumerate() {
+-        let rows = of_layer(scene, Layer::Document(index));
+-        if rows.is_empty() {
+-            continue;
+-        }
+-        out.push(Row {
+-            layer: Layer::Document(index),
+-            label: doc.name.clone(),
+-            count: rows.len(),
+-            hidden: all_hidden(scene, &rows),
+-        });
+-    }
+-    let mut kinds: Vec<Kind> = Vec::new();
+-    for row in 0..scene.object_count() as u32 {
+-        if let Some(geometry) = scene.geometry(row) {
+-            let kind = Kind::of(geometry);
+-            if !kinds.contains(&kind) {
+-                kinds.push(kind);
+-            }
+-        }
+-    }
+-    kinds.sort();
+-    for kind in kinds {
+-        let rows = of_layer(scene, Layer::Kind(kind));
+-        if rows.is_empty() {
+-            continue;
+-        }
+-        out.push(Row {
+-            layer: Layer::Kind(kind),
+-            label: kind.label().to_string(),
+-            count: rows.len(),
+-            hidden: all_hidden(scene, &rows),
+-        });
++    for (index, &(count, hidden)) in documents.iter().enumerate() {
++        if count > 0 {
++            out.push(Row {
++                layer: Layer::Document(index),
++                label: scene.docs[index].name.clone(),
++                count,
++                hidden: hidden == count,
++            });
++        }
++    }
++    for kind in [
++        Kind::Solids,
++        Kind::Surfaces,
++        Kind::Meshes,
++        Kind::Curves,
++        Kind::Points,
++        Kind::Clouds,
++    ] {
++        let (count, hidden) = kinds[kind as usize];
++        if count > 0 {
++            out.push(Row {
++                layer: Layer::Kind(kind),
++                label: kind.label().into(),
++                count,
++                hidden: hidden == count,
++            });
++        }
+     }
+     out
+ }
+@@ -153,15 +164,6 @@
+         }
+     }
+     rows
+-}
+-
+-fn all_hidden(scene: &Scene, rows: &[u32]) -> bool {
+-    !rows.is_empty()
+-        && rows.iter().all(|&row| {
+-            scene
+-                .identity_of(row)
+-                .is_some_and(|identity| scene.hidden.contains(&identity))
+-        })
+ }
+ 
+ #[cfg(test)]
+@@ -209,6 +211,21 @@
+         assert_eq!(rows[3].count, 2, "one point in each file");
+     }
+ 
++    #[test]
++    fn bucket_counts_match_membership_with_mixed_visibility() {
++        let mut scene = scene_with_two_files();
++        scene.hidden.insert(scene.identity_of(0).unwrap());
++        scene.hidden.insert(scene.identity_of(2).unwrap());
++        for row in rows(&scene) {
++            let members = of_layer(&scene, row.layer);
++            assert_eq!(row.count, members.len());
++            let hidden = members
++                .iter()
++                .all(|row| scene.hidden.contains(&scene.identity_of(*row).unwrap()));
++            assert_eq!(row.hidden, hidden);
++        }
++    }
++
+     /// A layer is a filter over rows that already exist, so it can name rows from more than
+     /// one document, and a document row names only its own.
+     #[test]
+@@ -223,7 +240,11 @@
+     /// otherwise a click lands on a different row than the one under the pointer.
+     #[test]
+     fn a_row_key_survives_the_round_trip() {
+-        for layer in [Layer::Document(0), Layer::Document(17), Layer::Kind(Kind::Clouds)] {
++        for layer in [
++            Layer::Document(0),
++            Layer::Document(17),
++            Layer::Kind(Kind::Clouds),
++        ] {
+             assert_eq!(Layer::from_key(&layer.key()), Some(layer));
+         }
+         assert_eq!(Layer::from_key("kind:sandwiches"), None);
+diff --git a/src/lib.rs b/src/lib.rs
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -191,9 +191,7 @@
+                 app::feedback::status(&said);
+             }
+             Msg::ToggleLayer(key) => {
+-                if let Some(layer) = app::layers::Layer::from_key(&key) {
+-                    state.toggle_layer(layer);
+-                }
++                state.panel_action(&key);
+             }
+             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
+             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),

@@ -1,0 +1,183 @@
+diff --git a/src/app/edit.rs b/src/app/edit.rs
+--- a/src/app/edit.rs
++++ b/src/app/edit.rs
+@@ -96,6 +96,9 @@
+ 
+     /// Remove one row's object from its document. The rows change, so the caller rebuilds.
+     pub fn delete_row(&mut self, row: u32) -> bool {
++        if !self.streamed.is_empty() || !self.sheets.is_empty() {
++            return false;
++        }
+         let Some((doc, guid)) = self.writable(row) else {
+             return false;
+         };
+@@ -134,11 +137,7 @@
+             return false;
+         };
+         let session = Rc::make_mut(&mut file.session);
+-        if back {
+-            session.undo()
+-        } else {
+-            session.redo()
+-        }
++        if back { session.undo() } else { session.redo() }
+     }
+ }
+ 
+@@ -335,26 +334,6 @@
+         assert_eq!(line.get_point(1).expect("two points")[1], 0.0);
+     }
+ 
+-    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
+-    /// a drag that appears to do nothing is a bug report waiting to happen.
+-    #[test]
+-    fn a_kind_with_no_control_points_is_refused() {
+-        let mut scene = one_point_twice();
+-        assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
+-    }
+-
+-    /// A streamed source is a shell with no kernel object behind it: editing it would write
+-    /// into an empty session and silently lose the edit, so it is refused.
+-    #[test]
+-    fn a_display_only_document_refuses_the_edit() {
+-        let mut scene = one_point_twice();
+-        scene.docs[0].display_only = true;
+-        assert!(
+-            scene
+-                .transform_row(0, &Xform::translation(1.0, 0.0, 0.0), "move")
+-                .is_none()
+-        );
+-    }
+     #[test]
+     fn control_edit_converts_world_to_local_under_file_placement() {
+         let mut source = Session::new("placed");
+@@ -392,4 +371,24 @@
+         assert_eq!(line.get_point(1).unwrap()[0], 1.0);
+     }
+ 
++    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
++    /// a drag that appears to do nothing is a bug report waiting to happen.
++    #[test]
++    fn a_kind_with_no_control_points_is_refused() {
++        let mut scene = one_point_twice();
++        assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
++    }
++
++    /// A streamed source is a shell with no kernel object behind it: editing it would write
++    /// into an empty session and silently lose the edit, so it is refused.
++    #[test]
++    fn a_display_only_document_refuses_the_edit() {
++        let mut scene = one_point_twice();
++        scene.docs[0].display_only = true;
++        assert!(
++            scene
++                .transform_row(0, &Xform::translation(1.0, 0.0, 0.0), "move")
++                .is_none()
++        );
++    }
+ }
+diff --git a/src/app/inspection.rs b/src/app/inspection.rs
+--- a/src/app/inspection.rs
++++ b/src/app/inspection.rs
+@@ -35,6 +35,9 @@
+         "submitted_at_ms": crate::engine::performance::now_ms(),
+         "frames": state.gpu.performance.frames,
+         "draw_calls": state.gpu.performance.draws,
++        "widget": state.gpu.widget.placement,
++        "widget_highlight": state.gpu.widget.active,
++        "widget_bytes": state.gpu.widget.allocated_bytes(),
+         "selected": parent,
+         "selected_group_count": state.selected_group_count(),
+         "hidden_count": state.scene.hidden.len(),
+@@ -65,6 +68,7 @@
+         "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+         "gpu_buffer_capacity_bytes": buffers,
+         "gpu_texture_estimate_bytes": textures,
++        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+         "text": state.gpu.text.stats,
+         "text_labels": text_labels(state),
+diff --git a/src/app/mod.rs b/src/app/mod.rs
+--- a/src/app/mod.rs
++++ b/src/app/mod.rs
+@@ -21,8 +21,6 @@
+ pub mod snap;
+ pub mod stream;
+ pub mod touch;
+-#[cfg(target_arch = "wasm32")]
+-pub mod ui;
+ pub mod validate;
+ pub mod walk;
+ 
+@@ -39,3 +37,6 @@
+ 
+ #[cfg(any(target_arch = "wasm32", test))]
+ pub mod inspection;
++
++#[cfg(target_arch = "wasm32")]
++pub mod ui;
+diff --git a/src/app/scene.rs b/src/app/scene.rs
+--- a/src/app/scene.rs
++++ b/src/app/scene.rs
+@@ -26,11 +26,7 @@
+ pub struct FileDoc {
+     pub name: String,
+     pub place: Xform,
+-    /// Shared with whoever decoded it (the live source keeps its current set), and shared
+-    /// again between placements: a manifest listing one file twice hands both documents the
+-    /// same `Rc`. Nothing mutates a session today. Anything that starts to must call
+-    /// `Rc::make_mut` FIRST, or one placement's edit moves every other placement of that file
+-    /// and the live source's cached copy with them.
++    /// Shared placements detach through Rc::make_mut before editing source geometry.
+     pub session: Rc<Session>,
+     pub point_px: f32,
+     /// True only for a streamed source descriptor with an empty Session shell.
+diff --git a/src/state/edit.rs b/src/state/edit.rs
+--- a/src/state/edit.rs
++++ b/src/state/edit.rs
+@@ -196,6 +196,10 @@
+ 
+     /// Undo the last edit in the document that was edited last - Ctrl+Z.
+     pub fn undo(&mut self) {
++        if !self.scene.streamed.is_empty() || !self.scene.sheets.is_empty() {
++            self.status("Undo requires a scene without streamed sources");
++            return;
++        }
+         if self.scene.undo() {
+             self.after_history();
+         }
+@@ -203,6 +207,10 @@
+ 
+     /// Redo it - Ctrl+Y, or Ctrl+Shift+Z.
+     pub fn redo(&mut self) {
++        if !self.scene.streamed.is_empty() || !self.scene.sheets.is_empty() {
++            self.status("Redo requires a scene without streamed sources");
++            return;
++        }
+         if self.scene.redo() {
+             self.after_history();
+         }
+@@ -668,13 +676,7 @@
+ mod tests {
+     use super::*;
+ 
+-    /// The gumball, rendered. A headless device draws the same frame twice - once without the
+-    /// widget and once with it - and the pixels that changed are the widget.
+-    ///
+-    /// Differencing rather than looking for colours on a fixed background is what makes this
+-    /// independent of the backdrop, the grid and the lighting. It is the check the browser
+-    /// could not give: on the machine this was written on, the page renders black through a
+-    /// software path.
++    /// GPU pixels contain all three axes and the widget owns no scene rows.
+     #[cfg(not(target_arch = "wasm32"))]
+     #[test]
+     #[ignore = "requires a native GPU adapter"]
+@@ -732,7 +734,7 @@
+ 
+     /// The conversion the widget's size depends on. A 2x display has twice the physical pixels
+     /// for the same CSS pixel, so one CSS pixel is twice as much world - and the arm that is
+-    /// 72 CSS pixels long stays 72 CSS pixels long.
++    /// 96 CSS pixels long stays 96 CSS pixels long.
+     #[test]
+     fn a_css_pixel_is_worth_more_world_on_a_denser_display() {
+         let one_to_one = world_per_css_px(1000.0, 800.0, 1.0);

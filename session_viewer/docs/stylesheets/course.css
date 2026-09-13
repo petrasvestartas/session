@@ -193,8 +193,20 @@
    never blown up to the column width, which was making a 489px drawing 970px wide. */
 .md-typeset img[src*="illustrations/0"], .md-typeset img[src*="illustrations/1"],
 .md-typeset img[src*="illustrations/2"], .md-typeset img[src*="illustrations/README"],
+.md-typeset img[src*="illustrations/extend-"],
 .md-typeset img[src*="illustrations/capstone"], .md-typeset img[src*="illustrations/debugging"] {
   max-width: 100%;
   height: auto;
   margin-inline: auto;
+}
+
+#docs-viewer {
+  position: fixed; top: 0; right: 0; z-index: 100;
+  width: 0; height: 0; display: block;
+  border-top: 40px solid #111; border-left: 40px solid transparent;
+  filter: drop-shadow(-1px 1px 0 #ffffff99);
+  transition: border-top-width .25s cubic-bezier(.2,.8,.3,1.25), border-left-width .25s cubic-bezier(.2,.8,.3,1.25);
+}
+#docs-viewer:hover, #docs-viewer:focus-visible {
+  border-top-width: 52px; border-left-width: 52px; outline: none;
 }

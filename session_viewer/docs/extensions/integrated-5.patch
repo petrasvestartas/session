@@ -1,0 +1,879 @@
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -55,7 +55,7 @@
+   <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
+        `L` opens and closes it; a click on a row hides or shows that layer. -->
+   <div id="viewer-layers" hidden role="group" aria-label="Layers"
+-       style="position:fixed;top:12px;left:12px;min-width:180px;max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
++       style="position:fixed;top:12px;left:12px;width:min(320px,80vw);max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
+   <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
+        back the moment it closes, so typing `z` in here is a letter and not an undo. -->
+   <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
+diff --git a/src/app/feedback.rs b/src/app/feedback.rs
+--- a/src/app/feedback.rs
++++ b/src/app/feedback.rs
+@@ -122,12 +122,12 @@
+         let _ = line.set_attribute("data-layer", &row.key);
+         let _ = line.set_attribute(
+             "style",
+-            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:1",
++            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:1",
+         );
+         if row.hidden {
+             let _ = line.set_attribute(
+                 "style",
+-                "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:0.45",
++                "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:0.45",
+             );
+         }
+         let mark = if row.hidden { "·" } else { "•" };
+diff --git a/src/app/hierarchy.rs b/src/app/hierarchy.rs
+new file mode 100644
+--- /dev/null
++++ b/src/app/hierarchy.rs
+@@ -0,0 +1,298 @@
++use crate::app::scene::Scene;
++use session_rust::Session;
++use std::collections::BTreeMap;
++use std::collections::HashMap;
++use std::collections::HashSet;
++use std::ops::Range;
++use std::rc::Rc;
++
++const MAX_NODES: usize = 200_000;
++const MAX_ROWS: usize = 1_000_000;
++pub const PAGE_SIZE: usize = 128;
++type Lookup = HashMap<usize, HashMap<Rc<str>, u32>>;
++
++pub struct Node {
++    pub label: String,
++    pub depth: usize,
++    pub end: usize,
++    pub rows: Range<usize>,
++}
++
++#[derive(Default)]
++pub struct Hierarchy {
++    pub nodes: Vec<Node>,
++    pub rows: Vec<u32>,
++    pub open: HashSet<usize>,
++    pub page: usize,
++    pub selected: Vec<u32>,
++    pub truncated: bool,
++    revision: Option<u64>,
++}
++
++impl Hierarchy {
++    pub fn refresh(&mut self, scene: &Scene) {
++        if self.revision != Some(scene.row_revision) {
++            self.rebuild(scene);
++        }
++    }
++
++    /// Index tree subtrees and graph attributes without copying geometry.
++    pub fn rebuild(&mut self, scene: &Scene) {
++        self.revision = Some(scene.row_revision);
++        self.nodes.clear();
++        self.rows.clear();
++        self.truncated = scene.object_count() > MAX_NODES;
++        if self.truncated {
++            return;
++        }
++        let mut lookup = Lookup::new();
++        for row in 0..scene.object_count() as u32 {
++            if let Some(identity) = scene.identity_of(row) {
++                lookup
++                    .entry(identity.0)
++                    .or_default()
++                    .insert(identity.1, row);
++            }
++        }
++        for (doc, file) in scene.docs.iter().enumerate() {
++            let start = self.nodes.len();
++            let rows = self.rows.len();
++            if !self.tree(scene, doc, &lookup)
++                || !self.graph(&file.session, doc, &file.name, &lookup)
++            {
++                self.nodes.truncate(start);
++                self.rows.truncate(rows);
++                self.truncated = true;
++                break;
++            }
++        }
++        self.open.retain(|index| *index < self.nodes.len());
++    }
++
++    fn tree(&mut self, scene: &Scene, doc: usize, lookup: &Lookup) -> bool {
++        let file = &scene.docs[doc];
++        let start = self.nodes.len();
++        if !self.push(&file.name, 0) {
++            return false;
++        }
++        let mut seen = HashSet::new();
++        let mut stack = Vec::new();
++        if let Some(root) = file.session.tree.root() {
++            stack.push((root, 1, None));
++        }
++        for _ in 0..MAX_NODES * 2 {
++            let Some((node, depth, exit)) = stack.pop() else {
++                break;
++            };
++            if let Some(index) = exit {
++                self.finish(index);
++                continue;
++            }
++            if !seen.insert(Rc::as_ptr(&node)) {
++                continue;
++            }
++            let borrowed = node.borrow();
++            let row = row_of(lookup, doc, &borrowed.name);
++            let label = row.map(|r| scene.object_name(r)).unwrap_or(&borrowed.name);
++            let index = self.nodes.len();
++            if !self.push(label, depth) {
++                return false;
++            }
++            if let Some(row) = row {
++                self.rows.push(row);
++            }
++            stack.push((Rc::clone(&node), depth, Some(index)));
++            let children = borrowed.children();
++            if stack.len() + children.len() > MAX_NODES {
++                return false;
++            }
++            for child in children.into_iter().rev() {
++                stack.push((child, depth + 1, None));
++            }
++        }
++        if !stack.is_empty() {
++            return false;
++        }
++        if self.rows.len() == self.nodes[start].rows.start {
++            for row in 0..scene.object_count() as u32 {
++                if scene
++                    .identity_of(row)
++                    .is_some_and(|(owner, _)| owner == doc)
++                {
++                    self.rows.push(row);
++                }
++            }
++        }
++        self.finish(start);
++        self.rows.len() <= MAX_ROWS
++    }
++
++    fn graph(&mut self, session: &Session, doc: usize, name: &str, lookup: &Lookup) -> bool {
++        let vertices = session.graph.number_of_vertices();
++        let edges: usize = session.graph.edges.values().map(|edges| edges.len()).sum();
++        let remaining = MAX_ROWS.saturating_sub(self.rows.len());
++        if vertices > MAX_NODES || vertices > remaining || edges > remaining - vertices {
++            return false;
++        }
++        let mut groups: BTreeMap<String, Vec<u32>> = BTreeMap::new();
++        for vertex in session.graph.get_vertices() {
++            if let Some(row) = row_of(lookup, doc, &vertex.name) {
++                groups
++                    .entry(format!("vertex: {}", vertex.attribute))
++                    .or_default()
++                    .push(row);
++            }
++        }
++        for (from, edges) in &session.graph.edges {
++            for (to, edge) in edges {
++                if from > to {
++                    continue;
++                }
++                let rows = groups
++                    .entry(format!("edge: {}", edge.attribute))
++                    .or_default();
++                for guid in [from, to] {
++                    if let Some(row) = row_of(lookup, doc, guid) {
++                        rows.push(row);
++                    }
++                    if from == to {
++                        break;
++                    }
++                }
++            }
++        }
++        for (label, mut rows) in groups {
++            rows.sort_unstable();
++            rows.dedup();
++            let index = self.nodes.len();
++            if !self.push(&format!("{name} / {label}"), 0) {
++                return false;
++            }
++            self.rows.extend(rows);
++            self.finish(index);
++        }
++        true
++    }
++
++    fn push(&mut self, label: &str, depth: usize) -> bool {
++        if self.nodes.len() >= MAX_NODES {
++            return false;
++        }
++        let start = self.rows.len();
++        let label = label.chars().take(160).collect();
++        self.nodes.push(Node {
++            label,
++            depth,
++            end: 0,
++            rows: start..start,
++        });
++        true
++    }
++
++    fn finish(&mut self, index: usize) {
++        self.nodes[index].end = self.nodes.len();
++        self.nodes[index].rows.end = self.rows.len();
++    }
++
++    pub fn visible(&self) -> Vec<usize> {
++        let mut result = Vec::new();
++        let mut index = 0;
++        for _ in 0..self.nodes.len() {
++            let Some(node) = self.nodes.get(index) else {
++                break;
++            };
++            result.push(index);
++            index = if self.open.contains(&index) {
++                index + 1
++            } else {
++                node.end
++            };
++        }
++        result
++    }
++
++    pub fn targets(&self, index: usize) -> Vec<u32> {
++        let Some(node) = self.nodes.get(index) else {
++            return Vec::new();
++        };
++        let mut rows = self.rows[node.rows.clone()].to_vec();
++        rows.sort_unstable();
++        rows.dedup();
++        rows
++    }
++}
++
++fn row_of(lookup: &Lookup, doc: usize, guid: &str) -> Option<u32> {
++    lookup.get(&doc)?.get(guid).copied()
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::app::scene::FileDoc;
++    use session_rust::Point;
++    use session_rust::Session;
++    use session_rust::Xform;
++
++    #[test]
++    fn graph_refuses_vertex_overflow_before_allocating_groups() {
++        let mut session = Session::new("budget");
++        session.add_point(Point::new(0.0, 0.0, 0.0), None);
++        session.add_point(Point::new(1.0, 0.0, 0.0), None);
++        let mut index = Hierarchy::default();
++        index.rows.resize(MAX_ROWS - 1, 0);
++        assert!(!index.graph(&session, 0, "budget", &Lookup::new()));
++        assert_eq!(index.rows.len(), MAX_ROWS - 1);
++        assert!(index.nodes.is_empty());
++    }
++
++    #[test]
++    fn nested_groups_and_graph_endpoints_are_document_scoped() {
++        let mut session = Session::new("test");
++        let parent = session.add_group("parent");
++        let child = session_rust::TreeNode::new("child");
++        session.add(&child, Some(&parent));
++        let a = session.add_point(Point::new(0.0, 0.0, 0.0), Some(&child));
++        let b = session.add_point(Point::new(1.0, 0.0, 0.0), Some(&parent));
++        session.add_edge(&a.borrow().name, &b.borrow().name, "joint");
++        let shared = Rc::new(session);
++        let mut scene = Scene::new();
++        for name in ["first", "second"] {
++            scene.add_file(FileDoc {
++                name: name.into(),
++                session: Rc::clone(&shared),
++                place: Xform::identity(),
++                point_px: 0.0,
++                display_only: false,
++            });
++        }
++        let mut index = Hierarchy::default();
++        index.rebuild(&scene);
++        let parent = index
++            .nodes
++            .iter()
++            .position(|node| node.label == "parent")
++            .unwrap();
++        let child = index
++            .nodes
++            .iter()
++            .position(|node| node.label == "child")
++            .unwrap();
++        assert_eq!(index.targets(parent), vec![0, 1]);
++        assert_eq!(index.targets(child), vec![0]);
++        let edge = index
++            .nodes
++            .iter()
++            .position(|node| node.label == "first / edge: joint")
++            .unwrap();
++        assert_eq!(index.targets(edge), vec![0, 1]);
++        assert!(!index.visible().contains(&child));
++        let count = index.rows.len();
++        index.rebuild(&scene);
++        assert_eq!(index.rows.len(), count);
++        scene = Scene::new();
++        index.rebuild(&scene);
++        assert!(index.rows.is_empty());
++        assert!(index.nodes.is_empty());
++    }
++}
+diff --git a/src/app/inspection.rs b/src/app/inspection.rs
+--- a/src/app/inspection.rs
++++ b/src/app/inspection.rs
+@@ -36,6 +36,8 @@
+         "frames": state.gpu.performance.frames,
+         "draw_calls": state.gpu.performance.draws,
+         "selected": parent,
++        "selected_group_count": state.selected_group_count(),
++        "hidden_count": state.scene.hidden.len(),
+         "identity": identity,
+         "selection": state.selection,
+         "controls": state.inspected_controls(),
+diff --git a/src/app/layers.rs b/src/app/layers.rs
+--- a/src/app/layers.rs
++++ b/src/app/layers.rs
+@@ -100,42 +100,53 @@
+     pub hidden: bool,
+ }
+ 
+-/// The rows a panel would show: the documents in load order, then the kinds present.
++/// Count document and type buckets in one scene walk.
+ pub fn rows(scene: &Scene) -> Vec<Row> {
++    let mut documents = vec![(0, 0); scene.docs.len()];
++    let mut kinds = [(0, 0); 6];
++    for row in 0..scene.object_count() as u32 {
++        let Some(identity) = scene.identity_of(row) else {
++            continue;
++        };
++        let hidden = usize::from(scene.hidden.contains(&identity));
++        if let Some(count) = documents.get_mut(identity.0) {
++            count.0 += 1;
++            count.1 += hidden;
++        }
++        if let Some(geometry) = scene.geometry(row) {
++            let count = &mut kinds[Kind::of(geometry) as usize];
++            count.0 += 1;
++            count.1 += hidden;
++        }
++    }
+     let mut out = Vec::new();
+-    for (index, doc) in scene.docs.iter().enumerate() {
+-        let rows = of_layer(scene, Layer::Document(index));
+-        if rows.is_empty() {
+-            continue;
+-        }
+-        out.push(Row {
+-            layer: Layer::Document(index),
+-            label: doc.name.clone(),
+-            count: rows.len(),
+-            hidden: all_hidden(scene, &rows),
+-        });
+-    }
+-    let mut kinds: Vec<Kind> = Vec::new();
+-    for row in 0..scene.object_count() as u32 {
+-        if let Some(geometry) = scene.geometry(row) {
+-            let kind = Kind::of(geometry);
+-            if !kinds.contains(&kind) {
+-                kinds.push(kind);
+-            }
+-        }
+-    }
+-    kinds.sort();
+-    for kind in kinds {
+-        let rows = of_layer(scene, Layer::Kind(kind));
+-        if rows.is_empty() {
+-            continue;
+-        }
+-        out.push(Row {
+-            layer: Layer::Kind(kind),
+-            label: kind.label().to_string(),
+-            count: rows.len(),
+-            hidden: all_hidden(scene, &rows),
+-        });
++    for (index, &(count, hidden)) in documents.iter().enumerate() {
++        if count > 0 {
++            out.push(Row {
++                layer: Layer::Document(index),
++                label: scene.docs[index].name.clone(),
++                count,
++                hidden: hidden == count,
++            });
++        }
++    }
++    for kind in [
++        Kind::Solids,
++        Kind::Surfaces,
++        Kind::Meshes,
++        Kind::Curves,
++        Kind::Points,
++        Kind::Clouds,
++    ] {
++        let (count, hidden) = kinds[kind as usize];
++        if count > 0 {
++            out.push(Row {
++                layer: Layer::Kind(kind),
++                label: kind.label().into(),
++                count,
++                hidden: hidden == count,
++            });
++        }
+     }
+     out
+ }
+@@ -153,15 +164,6 @@
+         }
+     }
+     rows
+-}
+-
+-fn all_hidden(scene: &Scene, rows: &[u32]) -> bool {
+-    !rows.is_empty()
+-        && rows.iter().all(|&row| {
+-            scene
+-                .identity_of(row)
+-                .is_some_and(|identity| scene.hidden.contains(&identity))
+-        })
+ }
+ 
+ #[cfg(test)]
+@@ -209,6 +211,21 @@
+         assert_eq!(rows[3].count, 2, "one point in each file");
+     }
+ 
++    #[test]
++    fn bucket_counts_match_membership_with_mixed_visibility() {
++        let mut scene = scene_with_two_files();
++        scene.hidden.insert(scene.identity_of(0).unwrap());
++        scene.hidden.insert(scene.identity_of(2).unwrap());
++        for row in rows(&scene) {
++            let members = of_layer(&scene, row.layer);
++            assert_eq!(row.count, members.len());
++            let hidden = members
++                .iter()
++                .all(|row| scene.hidden.contains(&scene.identity_of(*row).unwrap()));
++            assert_eq!(row.hidden, hidden);
++        }
++    }
++
+     /// A layer is a filter over rows that already exist, so it can name rows from more than
+     /// one document, and a document row names only its own.
+     #[test]
+@@ -223,7 +240,11 @@
+     /// otherwise a click lands on a different row than the one under the pointer.
+     #[test]
+     fn a_row_key_survives_the_round_trip() {
+-        for layer in [Layer::Document(0), Layer::Document(17), Layer::Kind(Kind::Clouds)] {
++        for layer in [
++            Layer::Document(0),
++            Layer::Document(17),
++            Layer::Kind(Kind::Clouds),
++        ] {
+             assert_eq!(Layer::from_key(&layer.key()), Some(layer));
+         }
+         assert_eq!(Layer::from_key("kind:sandwiches"), None);
+diff --git a/src/app/mod.rs b/src/app/mod.rs
+--- a/src/app/mod.rs
++++ b/src/app/mod.rs
+@@ -9,6 +9,7 @@
+ pub mod edit;
+ pub mod feedback;
+ pub mod gizmo;
++pub mod hierarchy;
+ pub mod input;
+ pub mod knobs;
+ pub mod layers;
+diff --git a/src/app/scene.rs b/src/app/scene.rs
+--- a/src/app/scene.rs
++++ b/src/app/scene.rs
+@@ -143,6 +143,7 @@
+     /// document's; this is the only thing that says which one a bare Ctrl+Z means.
+     pub last_edited: Option<usize>,
+     pub(crate) created_doc: Option<usize>,
++    pub(crate) row_revision: u64,
+ }
+ 
+ impl Default for Scene {
+@@ -171,6 +172,7 @@
+             bases: Bases::default(),
+             last_edited: None,
+             created_doc: None,
++            row_revision: 0,
+         }
+     }
+ 
+@@ -188,6 +190,7 @@
+ 
+     /// Forget every row and its identity; the documents and the hidden set are the caller's.
+     fn reset_rows(&mut self) {
++        self.row_revision = self.row_revision.wrapping_add(1);
+         self.tables = Upload::default();
+         self.streamed.clear();
+         self.sheets.clear();
+@@ -245,6 +248,7 @@
+     /// The next object row and its guid bookkeeping.
+     /// One object row for `guid` owned by document `owner` (`usize::MAX` for a text object).
+     pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Mat4, flags: u32) -> u32 {
++        self.row_revision = self.row_revision.wrapping_add(1);
+         let row = self.bases.obj + self.tables.obj.rows.len() as u32;
+         self.tables.obj.rows.push(ObjectRow::new(place, flags));
+         let guid: Rc<str> = Rc::from(guid);
+@@ -258,6 +262,7 @@
+     /// Walk one session into the tables: one object row per guid in the kernel's canonical
+     /// order (the row a guid gets is the row it keeps), then the per-file sweeps.
+     pub fn add_file(&mut self, doc: FileDoc) {
++        self.row_revision = self.row_revision.wrapping_add(1);
+         let FileDoc {
+             name,
+             session,
+diff --git a/src/lib.rs b/src/lib.rs
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -191,9 +191,7 @@
+                 app::feedback::status(&said);
+             }
+             Msg::ToggleLayer(key) => {
+-                if let Some(layer) = app::layers::Layer::from_key(&key) {
+-                    state.toggle_layer(layer);
+-                }
++                state.panel_action(&key);
+             }
+             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
+             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
+diff --git a/src/state.rs b/src/state.rs
+--- a/src/state.rs
++++ b/src/state.rs
+@@ -17,6 +17,7 @@
+ use crate::engine::performance::{heap_mb, now_ms};
+ mod cloud_query;
+ pub mod edit;
++mod panel;
+ mod sheet_query;
+ mod text;
+ use std::sync::Arc;
+@@ -49,6 +50,7 @@
+     /// When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
+     last_resize_ms: f64,
+     pub selection: SelectionMode,
++    hierarchy: crate::app::hierarchy::Hierarchy,
+     controls: Controls,
+     requested: PickMode,
+     pub selection_radius_css: f64,
+@@ -85,6 +87,7 @@
+             last_frame_ms: 0.0,
+             last_resize_ms: f64::NEG_INFINITY,
+             selection: SelectionMode::Object,
++            hierarchy: Default::default(),
+             controls: Controls::default(),
+             requested: PickMode::Object,
+             selection_radius_css: 6.0,
+@@ -181,6 +184,7 @@
+     /// Drop every document; the canvas, device and camera stay.
+     pub fn clear(&mut self) {
+         self.cancel_gesture();
++        self.hierarchy = Default::default();
+         self.selection = SelectionMode::Object;
+         self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+@@ -280,6 +284,9 @@
+     /// Make `row` the selection (or none), moving the highlight.
+     pub fn select(&mut self, row: Option<u32>) {
+         self.cancel_gesture();
++        for old in self.hierarchy.selected.drain(..) {
++            self.gpu.set_selected(old, false);
++        }
+         self.selection = SelectionMode::Object;
+         self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+@@ -311,6 +318,14 @@
+     /// a `rebuild` (an edit commit) re-applies it when the rows come back. A live reload
+     /// takes the `clear` path instead and starts a fresh scene with nothing hidden.
+     pub fn hide_selected(&mut self) {
++        if !self.hierarchy.selected.is_empty() {
++            let rows = std::mem::take(&mut self.hierarchy.selected);
++            for row in &rows {
++                self.gpu.set_selected(*row, false);
++            }
++            self.set_rows_hidden(&rows, true);
++            return;
++        }
+         let Some(row) = self.scene.selected else {
+             return;
+         };
+diff --git a/src/state/edit.rs b/src/state/edit.rs
+--- a/src/state/edit.rs
++++ b/src/state/edit.rs
+@@ -188,14 +188,10 @@
+             return;
+         };
+         if !self.scene.delete_row(row) {
++            self.status("This object cannot be deleted; streamed scenes cannot be rebuilt");
+             return;
+         }
+-        self.select(None);
+-        self.scene.rebuild(&mut self.gpu);
+-        self.place_gizmo(None);
+-        self.refresh_layers();
+-        self.update_label();
+-        self.touch();
++        self.after_history();
+     }
+ 
+     /// Undo the last edit in the document that was edited last - Ctrl+Z.
+@@ -215,6 +211,8 @@
+     /// An undo can bring an object back or take one away, so the rows are rebuilt rather than
+     /// patched. The selection is dropped because the row it named may not exist any more.
+     fn after_history(&mut self) {
++        self.hierarchy.open.clear();
++        self.hierarchy.page = 0;
+         self.selection = SelectionMode::Object;
+         self.select(None);
+         self.scene.rebuild(&mut self.gpu);
+@@ -459,35 +457,12 @@
+         if rows.is_empty() {
+             return;
+         }
+-        let hidden: Vec<bool> = rows
+-            .iter()
+-            .map(|&row| {
+-                self.scene
+-                    .identity_of(row)
+-                    .is_some_and(|id| self.scene.hidden.contains(&id))
+-            })
+-            .collect();
+-        let hide = !hidden.iter().all(|&h| h);
+-        for (&row, was) in rows.iter().zip(&hidden) {
+-            if *was == hide {
+-                continue;
+-            }
+-            let Some(identity) = self.scene.identity_of(row) else {
+-                continue;
+-            };
+-            if hide {
+-                self.scene.hidden.insert(identity);
+-            } else {
+-                self.scene.hidden.remove(&identity);
+-            }
+-            self.gpu.set_hidden(row, hide);
+-        }
+-        if self.scene.selected.is_some_and(|row| rows.contains(&row)) && hide {
+-            self.select(None);
+-        }
+-        self.refresh_layers();
+-        self.update_label();
+-        self.touch();
++        let hide = rows.iter().any(|&row| {
++            self.scene
++                .identity_of(row)
++                .is_some_and(|id| !self.scene.hidden.contains(&id))
++        });
++        self.set_rows_hidden(&rows, hide);
+     }
+ 
+     /// Redraw the panel from the scene, when it is open.
+@@ -495,7 +470,8 @@
+         if !crate::app::feedback::layers_open() {
+             return;
+         }
+-        let rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
++        self.hierarchy.refresh(&self.scene);
++        let mut rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
+             .into_iter()
+             .map(|row| crate::app::feedback::LayerRow {
+                 key: row.layer.key(),
+@@ -504,6 +480,7 @@
+                 hidden: row.hidden,
+             })
+             .collect();
++        self.hierarchy_labels(&mut rows);
+         crate::app::feedback::layers_panel(&rows);
+     }
+ }
+diff --git a/src/state/panel.rs b/src/state/panel.rs
+new file mode 100644
+--- /dev/null
++++ b/src/state/panel.rs
+@@ -0,0 +1,170 @@
++use crate::app::layers::Layer;
++use crate::state::State;
++
++impl State {
++    pub fn selected_group_count(&self) -> usize {
++        self.hierarchy.selected.len()
++    }
++
++    pub fn panel_action(&mut self, key: &str) {
++        if let Some(layer) = Layer::from_key(key) {
++            self.toggle_layer(layer);
++            return;
++        }
++        let Some((action, index)) = key.split_once('/') else {
++            return;
++        };
++        let Ok(index) = index.parse::<usize>() else {
++            return;
++        };
++        if action == "page" {
++            self.hierarchy.page = index;
++        } else if index < self.hierarchy.nodes.len() {
++            match action {
++                "open" => {
++                    if !self.hierarchy.open.remove(&index) {
++                        self.hierarchy.open.insert(index);
++                    }
++                }
++                "select" => {
++                    let rows = self.hierarchy.targets(index);
++                    self.select(None);
++                    for row in rows {
++                        if self
++                            .scene
++                            .identity_of(row)
++                            .is_some_and(|id| !self.scene.hidden.contains(&id))
++                        {
++                            self.gpu.set_selected(row, true);
++                            self.hierarchy.selected.push(row);
++                        }
++                    }
++                    if self.hierarchy.selected.len() == 1 {
++                        let row = self.hierarchy.selected[0];
++                        self.select(Some(row));
++                    }
++                }
++                "hide" => {
++                    let rows = self.hierarchy.targets(index);
++                    let hide = rows.iter().any(|row| {
++                        self.scene
++                            .identity_of(*row)
++                            .is_some_and(|id| !self.scene.hidden.contains(&id))
++                    });
++                    self.set_rows_hidden(&rows, hide);
++                    return;
++                }
++                _ => return,
++            }
++        }
++        self.refresh_layers();
++        self.touch();
++    }
++
++    /// Apply visibility to sorted object rows while preserving unrelated selection.
++    pub(super) fn set_rows_hidden(&mut self, rows: &[u32], hide: bool) {
++        if hide
++            && (self
++                .scene
++                .selected
++                .is_some_and(|row| rows.binary_search(&row).is_ok())
++                || self
++                    .hierarchy
++                    .selected
++                    .iter()
++                    .any(|row| rows.binary_search(row).is_ok()))
++        {
++            self.select(None);
++        }
++        for row in rows {
++            let Some(id) = self.scene.identity_of(*row) else {
++                continue;
++            };
++            let changed = if hide {
++                self.scene.hidden.insert(id)
++            } else {
++                self.scene.hidden.remove(&id)
++            };
++            if changed {
++                self.gpu.set_hidden(*row, hide);
++            }
++        }
++        self.refresh_layers();
++        self.update_label();
++        self.touch();
++    }
++
++    pub(super) fn hierarchy_labels(&mut self, rows: &mut Vec<crate::app::feedback::LayerRow>) {
++        use crate::app::feedback::LayerRow;
++        use crate::app::hierarchy::PAGE_SIZE;
++        let visible = self.hierarchy.visible();
++        self.hierarchy.page = self
++            .hierarchy
++            .page
++            .min(visible.len().saturating_sub(1) / PAGE_SIZE);
++        let first = self.hierarchy.page * PAGE_SIZE;
++        for &index in visible.iter().skip(first).take(PAGE_SIZE) {
++            let node = &self.hierarchy.nodes[index];
++            let count = node.rows.len();
++            let hidden = self.hierarchy.rows[node.rows.clone()].iter().all(|row| {
++                self.scene
++                    .identity_of(*row)
++                    .is_some_and(|id| self.scene.hidden.contains(&id))
++            });
++            let indent = "  ".repeat(node.depth.min(16));
++            if node.end > index + 1 {
++                let mark = if self.hierarchy.open.contains(&index) {
++                    "▾"
++                } else {
++                    "▸"
++                };
++                rows.push(LayerRow {
++                    key: format!("open/{index}"),
++                    label: format!("{indent}{mark} {}", node.label),
++                    count,
++                    hidden,
++                });
++            }
++            rows.push(LayerRow {
++                key: format!("select/{index}"),
++                label: format!("{indent}Select {}", node.label),
++                count,
++                hidden,
++            });
++            rows.push(LayerRow {
++                key: format!("hide/{index}"),
++                label: format!(
++                    "{indent}{} {}",
++                    if hidden { "Show" } else { "Hide" },
++                    node.label
++                ),
++                count,
++                hidden,
++            });
++        }
++        for (label, page) in [
++            ("Previous", self.hierarchy.page.checked_sub(1)),
++            (
++                "Next",
++                (first + PAGE_SIZE < visible.len()).then_some(self.hierarchy.page + 1),
++            ),
++        ] {
++            if let Some(page) = page {
++                rows.push(LayerRow {
++                    key: format!("page/{page}"),
++                    label: label.into(),
++                    count: visible.len(),
++                    hidden: false,
++                });
++            }
++        }
++        if self.hierarchy.truncated {
++            rows.push(LayerRow {
++                key: String::new(),
++                label: "Tree exceeds panel capacity".into(),
++                count: 0,
++                hidden: false,
++            });
++        }
++    }
++}

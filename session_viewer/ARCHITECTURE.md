@@ -41,6 +41,10 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | `app/scene.rs::Scene` | Retained `Rc<Session>` documents, placements, row → source maps |
 | `app/scene_text.rs` | Stable rows for authored text and document titles |
 | `app/selection.rs` | `SelectionMode`, `ControlId`, `Controls` |
+| `app/modeling.rs`, `app/edit.rs` | Validated source transactions and placed control edits |
+| `app/hierarchy.rs`, `state/panel.rs` | Bounded tree/graph index and shared select/hide actions |
+| `app/ui.rs`, `gpu/ui.rs` | egui input/widget state, then GPU buffers and font textures |
+| `app/gizmo.rs`, `gpu/widget.rs` | Handle hit tests and one reusable unlit mesh with a temporary antialiasing tile |
 | `app/walk/` | Source geometry → typed `Upload` rows with source identity and bounds |
 | `engine/gpu/mod.rs::Gpu` | One device and queue, layouts, frame uniforms, targets, every lane |
 | `gpu/arena.rs` | Mesh vertex, index and object columns; `faces.rs` source-face rows; `triangle_tiles.rs` finite-visibility cache |
@@ -81,11 +85,13 @@ flowchart TD
 
 Order matters twice in the ink pass: selected solid strokes go below the silhouette so their yellow fringe cannot narrow its black border, and selected standalone curves go above it so a coincident mesh edge cannot erase them. Both obey physical occlusion.
 
+The gumball tile is rendered and composited after scene ink; egui draws the final interface. Both overlays use their own layouts and avoid writing scene depth. Their sample counts do not depend on scene MSAA.
+
 ![Physical surfaces, readable source ink, one black silhouette, then foreground annotations.](docs/illustrations/frame.svg)
 
 ## Memory
 
-Per-pixel attachments dominate: at 4x MSAA the colour, depth and `Rgba16Float` metadata targets cost 64 bytes per physical pixel, at 1x 12. `Targets::samples_for` chooses 4x only for solid geometry, inside the adapter's pixel budget (9 Mpx discrete, 2.5 Mpx integrated, 4.2 Mpx unknown), and below two physical pixels per CSS pixel, where the pixel density already halves the stair-steps; `?msaa=4` and `?msaa=1` force it. `?dpr=1.5` caps the device pixel ratio the canvas is rendered at, for people who prefer memory over crispness; nothing caps it by default. When the browser reports a lost device (out of video memory), the page reloads itself once with `dpr=1&msaa=1`, the status line says so, and a second loss shows the error panel. `?inspect=1` publishes `gpu_texture_estimate_bytes` and `gpu_buffer_capacity_bytes`, which match the GPU process's real allocation to within the browser's own swapchain.
+Per-pixel attachments dominate: at 4x MSAA the colour, depth and `Rgba16Float` metadata targets cost 64 bytes per physical pixel, at 1x 12. `Targets::samples_for` chooses 4x only for solid geometry, inside the adapter's pixel budget (9 Mpx discrete, 2.5 Mpx integrated, 4.2 Mpx unknown), and below two physical pixels per CSS pixel, where the pixel density already halves the stair-steps; `?msaa=4` and `?msaa=1` force it. `?dpr=1.5` caps the device pixel ratio the canvas is rendered at, for people who prefer memory over crispness; nothing caps it by default. Every size-bound texture is an `Attachment`, whose drop calls `destroy()`: wgpu's WebGPU backend frees nothing on drop, so the old attachments of every resize would otherwise wait for the JavaScript garbage collector - a window drag (one resize a frame, 64 bytes per pixel each at 4x) lost the device on a scene of twelve objects. `replace_buffer` does the same for a table that grew or a pool that was resized, and `State::resize` applies at most one resize per 100 ms while a drag lasts. Thirty slow drag frames in a row, or the page a device loss reloaded into, set `view::reduce`: device scale 1, no antialiasing, in memory only. On a lost device the page reloads itself once with the browser's reason in `?recovered=`; `adopt_recovery` on the reloaded page reduces, takes the parameter back out of the address, and the status line names the reason; a second loss shows the error panel. `?inspect=1` publishes `gpu_texture_estimate_bytes` and `gpu_buffer_capacity_bytes`; these estimates exclude browser overhead and renderer-private allocations.
 
 ## Depth and visible ink
 
@@ -121,7 +127,7 @@ Meshes are vertex-pulled: `triangle.wgsl` reads `face_vertices`, `face_objects`,
 
 **Picking.** Pointer up without a drag → `State::request_selection` records mode, generation, camera → `id_pass` renders IDs into an attachment the size of the window around the cursor plus a three-texel halo, not the canvas: the pick pass sees the scene through the sub-frustum of that window (`PickView::clip_transform`), with the projection factors scaled so pens and markers keep their pixel size, and the visibility test addresses the canvas-wide tiles through `LineUniform::origin` → `Picker` maps a bounded copy asynchronously → row and sub-ID → `Scene::object_at / edge_at / face_at` → `SelectionMode` → `Instance::FLAG_SELECTED` uploaded → redraw. A camera, scene or mode change retires answers from an older generation. The ID, depth and metadata targets therefore cost a few kilobytes instead of 20 bytes per canvas pixel.
 
-**Document history.** The kernel `Session` keeps a `History` of transactions: a removal's record is the tombstone undo restores from, `replace` is the recorded edit, and every save purges the buffer. The viewer only reads documents today; an edit commit will go through `Scene::rebuild`.
+**Document history.** The kernel `Session` keeps a `History` of transactions: a removal's record is the tombstone undo restores from, `replace` is the recorded edit, and every save purges the buffer. The viewer commits modeling operations through `Session` transactions and rebuilds display rows through `Scene::rebuild`; pointer movement previews GPU rows and commits once on release.
 
 **Sheets.** A drawing publishes as one `Sheet` message (`Objects.sheets`, field 17): packed fixed-width `coords`, `colors`, `widths` and `source_ids`, so `stream.rs` locates the arrays from the first kilobytes and the loader streams segments by byte range under a segment budget. The whole sheet is one object row and one ribbon draw; every segment carries its entity id through `SegRows.ribbon_ids`. A pick resolves row plus segment to the entity, and `sheet_query.rs` reads its GUID, name and kind from the `.meta` side table in two ranged reads, cached per sheet with the table's ETag. The kernel never decodes a sheet.
 
@@ -144,11 +150,22 @@ Meshes are vertex-pulled: `triangle.wgsl` reads `face_vertices`, `face_objects`,
 
 `reset` keeps capacity for an edit rebuild; `release` returns scene-sized storage on replacement. `SourceCache` (`app/inspection/source_memory.rs`) holds `Weak<Session>` identities, so measuring retained source payload never extends a document's lifetime.
 
+| Retained data | Invalidate or release |
+|---|---|
+| Hierarchy row index | `row_revision` changes or scene clears; at most 200,000 nodes / 1,000,000 row references |
+| Gumball mesh and uniform | Fixed 371,616 bytes until renderer destruction |
+| Gumball tile | Replaced on tile-size change; destroyed on deselect; at most 36 MiB |
+| egui command state | 2,048 input characters, eight history entries; no source geometry |
+| egui fonts and draw buffers | Process texture frees between frames; remaining textures free with renderer; private capacity is outside inspection counters |
+| Source history | Kernel transactions retain undo data; no whole-document memory cap is claimed |
+
+Loader routing state, live polling and the small UI model have one-page lifetimes. The application does not offer repeated mount/unmount in one page. Releasing allocations also does not shrink WebAssembly linear memory back to the operating system. Resource counters measure named allocations, not total browser memory.
+
 ## Input
 
 | Input | Result |
 |---|---|
-| Left drag / right drag / middle drag / wheel | Orbit / pan / pan / zoom toward the cursor |
+| Left drag on handle / right drag / middle drag / wheel | Edit / orbit / pan / zoom toward the cursor |
 | Left click | Select or toggle one source object |
 | Ctrl + left click | Select an original mesh, BRep or NURBS edge |
 | Ctrl + Shift + left click | Select an original face; a nearby eligible edge wins |
@@ -157,8 +174,14 @@ Meshes are vertex-pulled: `triangle.wgsl` reads `face_vertices`, `face_objects`,
 | Q, W, E, O, P, D, B | Points, lines, mesh edges, silhouettes, x-ray, lighting, back faces |
 | H / S / T | Hide selection / show all / toggle selected names |
 
+## Editing overlays
+
+`app/ui.rs` owns the egui context and translates winit input into panel actions and commands. `engine/gpu/ui.rs` owns its renderer and font textures and draws after the scene. Text input takes keyboard focus while the command window is open; scene shortcuts resume after closing it. The white/black visuals follow the archive customization. The old DOM command and layer listeners are removed.
+
+The gumball owns one fixed mesh and 96-byte uniform, plus a selected-only antialiasing tile capped at 1024×1024. Its shader uses unlit colors; the tile uses 4× MSAA and 2× resolution before compositing. Deselect destroys the tile. Neither overlay owns document geometry. UI hit-box snapshots are opt-in with `?inspect=1`.
+
 ## Adding a feature
 
-For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs; one line in `render.rs`; then exercise select, hide, replace and release. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and any future undo.
+For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs; one line in `render.rs`; then exercise select, hide, replace and release. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and undo.
 
 The CAD geometry contract (shared boundaries, trims, pcurves, provenance) is in the [CAD design record](docs/cad-design.md).

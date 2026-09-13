@@ -21,9 +21,9 @@ Every file serves one of two journeys.
 
 **Documents come in along the top row.** A file arrives over the network, decodes into kernel documents holding exact f64 geometry, and the walk turns those into rows — plain arrays with no wgpu types. It runs when a scene loads, then stops.
 
-**A frame is drawn along the bottom row.** The browser asks → the shell routes → input may have moved the camera → state decides what shows → the GPU core writes the per-frame uniforms and hands each lane its turn → lanes record draw calls → shaders make pixels. Sixty times a second, touching no document.
+**A frame is drawn along the bottom row.** The browser asks → the shell routes → input may have moved the camera → state decides what shows → the GPU core writes the per-frame uniforms and hands each lane its turn → lanes record draw calls → shaders make pixels. On demand, without tessellating source geometry again.
 
-They meet once: the walk's rows are uploaded, and the frame path reads only those. That single junction is why a large model still draws quickly — drawing never re-reads the documents.
+They meet once: the walk's rows are uploaded, and the frame path reads only those. That junction keeps the frame path separate from geometry reconstruction; changing a camera does not re-walk the source.
 
 **One arrow goes backwards.** A pick: the lanes draw object ids into a small offscreen window, the answer is read back, and `Scene` turns a row number into the document object it came from. Two flows go further than the arrow shows — picking a streamed cloud point or a sheet entity continues left into the network, because the identity was never on this machine; and the tile pool reads its own size report back a frame later, never reaching the scene. Everything else points downward.
 
@@ -32,7 +32,7 @@ They meet once: the walk's rows are uploaded, and the frame path reads only thos
 | Zone | What lives there | Why it is separate |
 |---|---|---|
 | **Page** | `index.html`, `Trunk.toml`, `Cargo.toml` | The browser's side of the contract: what gets loaded before any Rust runs. |
-| **Network** | `fetch`, `manifest`, `validate`, `decode`, `stream`, `live`, `route`, `loader`, `cloud_query`, `sheet_query` | The only code that touches bytes you did not create. All validation happens here. |
+| **Network** | `fetch`, `manifest`, `validate`, `decode`, `stream`, `live`, `route`, `loader`, `cloud_query`, `sheet_query` | The only code that touches bytes you did not create. Incoming file and manifest validation happens here. |
 | **Kernel** | `session_rust` | Shared with the C++ and Python kernels: exact f64 geometry and identity, plus the one shared display type, `RenderVertex`. It links wgpu for that and for the GPU buffers a `Mesh` caches, and decides nothing about how the viewer draws. |
 | **Scene + walk** | `app/scene.rs`, `app/scene_text.rs`, `app/selection.rs`, `app/walk/*`, `engine/text.rs` | Turns one document into rows and names what can be selected. No producer in `walk/` knows about files, selection or the camera; `Scene` holds the documents and their placements and hands finished rows to the GPU. |
 | **Shell** | `lib.rs`, `app/mod.rs`, `app/feedback.rs`, `app/inspection*`, `app/knobs.rs`, `selftest*`, `text_quality.rs`, `engine/performance.rs` | The window, the event loop, the one place a redraw is asked for, and the measurements that observe a frame without changing it. |

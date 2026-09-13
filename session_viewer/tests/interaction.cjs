@@ -48,6 +48,7 @@ async function run(browser,dpr,bytes,cases,output){
     const parents=new Set();
     for(const spec of cases){
       await key(page,'Escape');
+      await key(page,'f');
       let state=await snapshot(page);
       await click(page,project(state,spec.pick));
       state=await snapshot(page);
@@ -55,6 +56,8 @@ async function run(browser,dpr,bytes,cases,output){
       const parent=state.selected;parents.add(parent);
       assert.equal(state.identity[1],spec.guid,'source GUID survives object picking');
       assert.equal(state.selection,'Object');
+      // Fit the selected specimen so a fixed-size gumball cannot cover its entire short line.
+      await key(page,'f');state=await snapshot(page);
       await visibleYellow(page,output,`${spec.kind}-object-dpr-${dpr}`);
       if(['mesh','surface','brep'].includes(spec.kind)){
         await page.keyboard.down('Shift');
@@ -119,7 +122,7 @@ async function run(browser,dpr,bytes,cases,output){
     assert.equal(parents.size,cases.length,'each disjoint specimen must resolve its own parent');
     // A thin source mesh border: CSS tolerance must behave the same at both device scales.
     const line=findKind(cases,'brep');
-    await key(page,'Escape');let state=await snapshot(page),at=project(state,line.edge);
+    await key(page,'Escape');await key(page,'f');let state=await snapshot(page),at=project(state,line.edge);
     await click(page,[at[0],at[1]+5],true);state=await snapshot(page);
     assert(state.selection.Edge,'five CSS pixels from source edge must hit');
     await key(page,'Escape');await click(page,[at[0],at[1]+10],true);
@@ -139,8 +142,8 @@ async function run(browser,dpr,bytes,cases,output){
 }
 /** Retrieve the last submitted read-only state for assertions. */
 async function snapshot(page){return page.evaluate(readSnapshot);}
-/** Wait for a new submitted observation and completed picking, never a stale idle snapshot. */
-async function settled(page,after){await page.waitForFunction(pickFinished,after);}
+/** Let input enter the frame loop before testing completion; an egui hover frame can arrive first. */
+async function settled(page,after){await page.waitForTimeout(150);await page.waitForFunction(pickFinished,after);}
 /** Send a canvas-focused keyboard action and await its resulting state. */
 async function key(page,value){const before=(await snapshot(page)).submitted_at_ms;await page.keyboard.press(value);await settled(page,before);}
 /** Send one ordinary or Ctrl click without duplicating application selection logic. */

@@ -27,16 +27,17 @@ const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
 
 /// The attachments of the frame's render pass and the sample count they were made at.
 /// `msaa` exists only at 4x. The ink layout binds a single-sampled AND a multisampled depth
-/// view, so the one not in use is a 1x1 placeholder.
+/// view, so the one not in use is a 1x1 placeholder, kept here so it is destroyed with the rest.
 pub struct Targets {
-    pub depth: wgpu::TextureView,
-    pub msaa: Option<wgpu::TextureView>,
+    pub depth: Attachment,
+    pub msaa: Option<Attachment>,
     pub depth_single: wgpu::TextureView,
     pub depth_msaa: wgpu::TextureView,
     pub samples: u32,
-    pub gradient: wgpu::TextureView,
+    pub gradient: Attachment,
     pub gradient_single: wgpu::TextureView,
     pub gradient_msaa: wgpu::TextureView,
+    _placeholders: [Attachment; 2],
 }
 
 impl Targets {
@@ -44,7 +45,7 @@ impl Targets {
     pub fn new(ctx: &GpuCtx, size: (u32, u32), format: wgpu::TextureFormat, samples: u32) -> Self {
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
         let attachment = |label, size, format, samples| {
-            texture_view(
+            Attachment::new(
                 ctx,
                 label,
                 &TextureSpec {
@@ -68,9 +69,9 @@ impl Targets {
             other_samples,
         );
         let (depth_single, depth_msaa) = if samples == 1 {
-            (depth.clone(), empty_depth)
+            (depth.view.clone(), empty_depth.view.clone())
         } else {
-            (empty_depth, depth.clone())
+            (empty_depth.view.clone(), depth.view.clone())
         };
         let gradient = attachment(
             "physical.gradient",
@@ -85,9 +86,9 @@ impl Targets {
             other_samples,
         );
         let (gradient_single, gradient_msaa) = if samples == 1 {
-            (gradient.clone(), empty_gradient)
+            (gradient.view.clone(), empty_gradient.view.clone())
         } else {
-            (empty_gradient, gradient.clone())
+            (empty_gradient.view.clone(), gradient.view.clone())
         };
         Self {
             gradient,
@@ -98,6 +99,20 @@ impl Targets {
             depth_single,
             depth_msaa,
             samples,
+            _placeholders: [empty_depth, empty_gradient],
+        }
+    }
+
+    /// Destroy every attachment ahead of the set that replaces this one, so the peak during
+    /// a resize is one set and not two - at 4x on a 4 Mpx canvas the difference is 265 MB.
+    pub fn destroy(&self) {
+        self.depth.destroy();
+        self.gradient.destroy();
+        if let Some(msaa) = &self.msaa {
+            msaa.destroy();
+        }
+        for placeholder in &self._placeholders {
+            placeholder.destroy();
         }
     }
 
@@ -120,7 +135,8 @@ impl Targets {
     /// the GPU AND the canvas is within this adapter's `budget` AND the canvas is below two
     /// physical pixels per CSS pixel, else 1x. Hard edges are the only thing MSAA smooths;
     /// ribbons, dots and splats antialias themselves, and at device scale 2 the pixel density
-    /// already halves the stair-steps, for a quarter of the attachment memory. `forced` wins.
+    /// already halves the stair-steps, for a quarter of the attachment memory. `forced` wins,
+    /// except over the reduction: a page that lost its device draws at 1x whatever it asked.
     pub fn samples_for(
         solid: bool,
         pixels: u32,
@@ -128,10 +144,13 @@ impl Targets {
         budget: Option<u32>,
         pixel_scale: f32,
     ) -> u32 {
+        if super::view::reduced() {
+            return 1;
+        }
         if let Some(s) = forced {
             return if s == 4 { 4 } else { 1 };
         }
-        if super::view::reduced() || pixel_scale >= MSAA_MAX_PIXEL_SCALE {
+        if pixel_scale >= MSAA_MAX_PIXEL_SCALE {
             return 1;
         }
         match budget {
@@ -148,7 +167,7 @@ impl Targets {
         view: &'a wgpu::TextureView,
         clear: wgpu::Color,
     ) -> wgpu::RenderPass<'a> {
-        let target = self.msaa.as_ref().unwrap_or(view);
+        let target = self.msaa.as_deref().unwrap_or(view);
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("physical face pass"),
             color_attachments: &[
@@ -190,7 +209,7 @@ impl Targets {
         encoder: &'a mut wgpu::CommandEncoder,
         view: &'a wgpu::TextureView,
     ) -> wgpu::RenderPass<'a> {
-        let (target, resolve) = match &self.msaa {
+        let (target, resolve) = match self.msaa.as_deref() {
             Some(msaa) => (msaa, Some(view)),
             None => (view, None),
         };
@@ -243,9 +262,48 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
     })
 }
 
-/// A 2D texture's default view, the texture itself dropped (wgpu keeps it alive).
-pub fn texture_view(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::TextureView {
-    texture(ctx, label, spec).create_view(&wgpu::TextureViewDescriptor::default())
+/// A texture the viewer owns, with its default view. Dropping it DESTROYS the texture: on the
+/// web wgpu's drop is a no-op and the memory would wait for the JavaScript garbage collector,
+/// which nothing in a wasm frame loop hurries - a window drag remade the frame's attachments
+/// every frame, a quarter of a gigabyte each at 4x on a 4 Mpx canvas, until the device was
+/// lost. Destroying after the last submit that used it is safe: queued work still completes.
+pub struct Attachment {
+    texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
+}
+
+impl Attachment {
+    /// A 2D texture to `spec` and its default view.
+    pub fn new(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> Self {
+        let texture = texture(ctx, label, spec);
+        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        Self { texture, view }
+    }
+
+    /// The texture, for a copy out of it.
+    pub fn texture(&self) -> &wgpu::Texture {
+        &self.texture
+    }
+
+    /// Give the memory back now rather than on drop: a caller about to make the replacement
+    /// keeps one set alive instead of two. Destroying twice is allowed, so the drop stays.
+    pub fn destroy(&self) {
+        self.texture.destroy();
+    }
+}
+
+impl std::ops::Deref for Attachment {
+    type Target = wgpu::TextureView;
+
+    fn deref(&self) -> &wgpu::TextureView {
+        &self.view
+    }
+}
+
+impl Drop for Attachment {
+    fn drop(&mut self) {
+        self.texture.destroy();
+    }
 }
 
 #[cfg(test)]

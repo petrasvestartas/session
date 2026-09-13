@@ -1,23 +1,17 @@
-//! The command line: one typed line becomes one named action.
-//!
-//! Parsing is here and doing is in `State`, so what a line MEANS can be tested without a
-//! window, a device or a scene. A verb the viewer does not have is an error with the line
-//! quoted back, never a silent no-op: a command line that ignores what you typed is worse
-//! than one that refuses it.
-//!
-//! Every verb is an action the viewer already has. The command line is a second way to reach
-//! them, not a second implementation of them.
-
 use crate::app::coords;
 use crate::app::gizmo::Axis;
 
 /// What a line asked for.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Command {
+    Model(crate::app::modeling::Modeling),
     /// Move the selection by a world offset, in millimetres.
     Move([f64; 3]),
     /// Turn the selection about one axis through its own centre, in degrees.
-    Rotate { axis: Axis, degrees: f64 },
+    Rotate {
+        axis: Axis,
+        degrees: f64,
+    },
     /// Scale the selection about its own centre.
     Scale(f64),
     Delete,
@@ -32,6 +26,9 @@ pub enum Command {
 
 /// Parse one line. `Err` carries what to show the person who typed it.
 pub fn parse(line: &str) -> Result<Command, String> {
+    if line.len() > 65536 {
+        return Err("command exceeds 64 KiB".into());
+    }
     let line = line.trim();
     if line.is_empty() {
         return Err("nothing typed".into());
@@ -39,7 +36,19 @@ pub fn parse(line: &str) -> Result<Command, String> {
     let mut words = line.split_whitespace();
     let verb = words.next().unwrap_or_default().to_ascii_lowercase();
     let rest: Vec<&str> = words.collect();
+    let expected = match verb.as_str() {
+        "scale" | "s" => Some(1),
+        "rotate" | "rot" => Some(2),
+        "delete" | "del" | "undo" | "redo" | "hide" | "show" | "fit" | "escape" | "esc" => Some(0),
+        _ => None,
+    };
+    if expected.is_some_and(|count| rest.len() != count) {
+        return Err(format!("wrong number of arguments for `{verb}`"));
+    }
     match verb.as_str() {
+        "point" | "line" | "polyline" | "trim" | "extend" | "explode" => {
+            model(&verb, &rest).map(Command::Model)
+        }
         "move" | "m" => offset(&rest).map(Command::Move),
         "rotate" | "rot" => {
             let (axis, degrees) = axis_and_number(&rest, "rotate x 90")?;
@@ -141,10 +150,38 @@ mod tests {
     fn a_line_it_cannot_do_says_so() {
         assert_eq!(parse("fly 3"), Err("no command `fly`".into()));
         assert_eq!(parse(""), Err("nothing typed".into()));
-        assert!(parse("scale 0").is_err(), "a zero scale collapses the object");
+        assert!(
+            parse("scale 0").is_err(),
+            "a zero scale collapses the object"
+        );
         assert!(parse("rotate 90").is_err(), "no axis");
         assert!(parse("rotate x").is_err(), "no angle");
         assert!(parse("move sideways").is_err());
+    }
+
+    #[test]
+    fn modeling_commands_validate_arity_and_coordinates() {
+        use crate::app::modeling::Modeling;
+        assert_eq!(
+            parse("point 1,2,3"),
+            Ok(Command::Model(Modeling::Point([1.0, 2.0, 3.0])))
+        );
+        assert_eq!(
+            parse("trim 0.2 0.8"),
+            Ok(Command::Model(Modeling::Trim(0.2, 0.8)))
+        );
+        assert_eq!(parse("explode"), Ok(Command::Model(Modeling::Explode)));
+        for line in [
+            "point @1,2,3",
+            "line 0,0,0",
+            "trim 0 1 extra",
+            "explode extra",
+            "scale 2 extra",
+            "delete extra",
+        ] {
+            assert!(parse(line).is_err(), "{line}");
+        }
+        assert!(parse(&"x".repeat(65537)).is_err());
     }
 
     #[test]
@@ -156,5 +193,40 @@ mod tests {
                 degrees: 45.0
             })
         );
+    }
+}
+
+fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, String> {
+    use crate::app::modeling::Modeling;
+    match verb {
+        "explode" if words.is_empty() => Ok(Modeling::Explode),
+        "trim" | "extend" if words.len() == 2 => {
+            let a = number(words.first().copied(), "trim 0.2 0.8")?;
+            let b = number(words.get(1).copied(), "trim 0.2 0.8")?;
+            Ok(if verb == "trim" {
+                Modeling::Trim(a, b)
+            } else {
+                Modeling::Extend(a, b)
+            })
+        }
+        "point" | "line" | "polyline" => {
+            let mut points = Vec::new();
+            if words.len() > crate::app::modeling::MAX_POINTS {
+                return Err("too many points".into());
+            }
+            for word in words {
+                let Some(coords::Typed::Absolute { x, y, z }) = coords::parse(word) else {
+                    return Err("use world coordinates x,y,z separated by spaces".into());
+                };
+                points.push([x, y, z.unwrap_or(0.0)]);
+            }
+            match (verb, points.len()) {
+                ("point", 1) => Ok(Modeling::Point(points[0])),
+                ("line", 2) => Ok(Modeling::Line(points[0], points[1])),
+                ("polyline", 2..) => Ok(Modeling::Polyline(points)),
+                _ => Err("point needs one coordinate; line two; polyline at least two".into()),
+            }
+        }
+        _ => Err("try trim 0.2 0.8, extend -0.2 1.2, or explode".into()),
     }
 }

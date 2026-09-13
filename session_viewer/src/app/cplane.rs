@@ -102,13 +102,21 @@ mod tests {
         let origin = Point::new(0.0, 0.0, 0.0);
         assert!(
             CPlane::Xy
-                .hit(&origin, &Point::new(0.0, 0.0, 4.0), &Vector::new(1.0, 0.0, 0.0))
+                .hit(
+                    &origin,
+                    &Point::new(0.0, 0.0, 4.0),
+                    &Vector::new(1.0, 0.0, 0.0)
+                )
                 .is_none(),
             "parallel"
         );
         assert!(
             CPlane::Xy
-                .hit(&origin, &Point::new(0.0, 0.0, 4.0), &Vector::new(0.0, 0.0, 1.0))
+                .hit(
+                    &origin,
+                    &Point::new(0.0, 0.0, 4.0),
+                    &Vector::new(0.0, 0.0, 1.0)
+                )
                 .is_none(),
             "pointing away"
         );

@@ -550,7 +550,9 @@
       "Step 11 \u00b7 The command line",
       "Step 12 \u00b7 The layers panel",
       "Step 13 \u00b7 Control points",
-      "Step 14 \u00b7 Wire the page and the keys"
+      "Step 14 \u00b7 Wire the page and the keys",
+      "Step 15 \u00b7 Destroy what you replace",
+      "Step 16 \u00b7 One resize per hundred milliseconds, and an honest reload"
     ],
     "results": {
       "Step 1 \u00b7 Name the modules first": "fail",
@@ -559,6 +561,8 @@
       "Step 12 \u00b7 The layers panel": "fail",
       "Step 13 \u00b7 Control points": "fail",
       "Step 14 \u00b7 Wire the page and the keys": "ok",
+      "Step 15 \u00b7 Destroy what you replace": "ok",
+      "Step 16 \u00b7 One resize per hundred milliseconds, and an honest reload": "ok",
       "Step 2 \u00b7 The construction plane": "fail",
       "Step 3 \u00b7 Typed coordinates": "fail",
       "Step 4 \u00b7 A ray from the cursor": "fail",
