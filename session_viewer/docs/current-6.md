@@ -1593,6 +1593,12 @@ trunk serve --port 8780
 
 Expected compiler result: `Finished` with no errors. Open <http://localhost:8780/?data=off&inspect=1>. Press **:**. A white command window with black text appears. Type `point 0,0,0`, click **Run**, and read the result above the field. Click **Close (Esc)**, then press **L**. The nested panel now uses the same white egui appearance.
 
-Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Match the maintained source exactly](current-7.md) and apply its blocks in order.
+Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Finish the shared editing wiring](current-7.md) and apply its blocks in order.
 
 [Previous](current-5.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-7.md)
+
+## Expected viewer result
+
+The white egui command area shows a completed line command and its feedback, with the created geometry visible in the full viewer. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md). The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for current 6](screenshots/extensions-command-create.png)](screenshots/extensions-command-create.png)

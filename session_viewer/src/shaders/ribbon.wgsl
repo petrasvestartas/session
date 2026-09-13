@@ -233,7 +233,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
-    var color = unpack4x8unorm(seg.color) * inst.color;
+    var color = object_color(unpack4x8unorm(seg.color), inst);
     if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
     }

@@ -31,7 +31,7 @@ pub fn publish(state: &State) {
         None => None,
     };
     let identity = selected_identity(state);
-    let snapshot = serde_json::json!({
+    let mut snapshot = serde_json::json!({
         "submitted_at_ms": crate::engine::performance::now_ms(),
         "frames": state.gpu.performance.frames,
         "draw_calls": state.gpu.performance.draws,
@@ -74,6 +74,10 @@ pub fn publish(state: &State) {
         "text_labels": text_labels(state),
         "wasm_capacity_bytes": crate::engine::performance::heap_mb() * 1_048_576.0,
     });
+    snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
+    snapshot["color_count"] = serde_json::json!(state.scene.colors.len());
+    snapshot["scene_revision"] = serde_json::json!(state.scene.row_revision);
+    snapshot["preview_cache_bytes"] = serde_json::json!(state.scene.preview_cache_bytes());
     let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string());
 }
 

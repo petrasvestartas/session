@@ -69,8 +69,7 @@ async function main() {
     await page.mouse.move(600,400);
     await page.mouse.wheel(0,450);
     await page.waitForTimeout(200);
-    await key(page, 'l');
-    await button(page, 'open', 'Editing lessons');
+    if (!(await browserUi.ui(page)).layers_open) await key(page, 'l');
     await button(page, 'open', 'Editing lessons');
     await button(page, 'open', 'Assembly');
     await button(page, 'open', 'Nested');

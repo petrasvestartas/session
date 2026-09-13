@@ -282,3 +282,9 @@ Trace one point from a chunk in CPU memory to a lit pixel, naming every buffer a
 ## Next
 
 [05 · Depth and visible ink](05-visibility.md): the physical pass, the surface-carry visibility rule, and multisampling.
+
+## Expected viewer result
+
+Checkpoint 04d: a point cloud through the splat prelude and resolve, beside the mesh, stroke and marker lanes.
+
+[![Full viewer result for 04d clouds](screenshots/04d.png)](screenshots/04d.png)

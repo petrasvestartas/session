@@ -1,0 +1,2396 @@
+# 8 · Dock the workspace, edit source geometry and save
+
+[Previous](current-7.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-9.md)
+
+Continue in the same checkpoint workspace. Complete the edits below before compiling.
+
+![Ownership and data flow](illustrations/extend-ui.svg)
+
+Build a command area across the entire bottom, a layers panel on the right and a toolbar on the left. Keep egui layout and hit rectangles in CSS pixels, and apply device scale once when rendering. Route a pointer from its current position and retain gesture ownership until release. A source-subobject edit transforms original mesh vertices or NURBS controls, keeps object placement unchanged and records one geometry replacement on release. Shared BRep controls move together; an edit that separates a trim from its incident surface is refused. Serialize all retained documents, their placements, hidden identities and source text into one portable .session file; validate every document before replacing the scene when opening it.
+
+### `src/app/command.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    Scale(f64),
+```
+
+**ADD BELOW**
+
+```rust
+    Save,
+    Open,
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        "rotate" | "rot" => Some(2),
+        "delete" | "del" | "undo" | "redo" | "hide" | "show" | "fit" | "escape" | "esc" => Some(0),
+        _ => None,
+```
+
+**REPLACE WITH**
+
+```rust
+        "rotate" | "rot" => Some(2),
+        "save" | "open" | "delete" | "del" | "undo" | "redo" | "hide" | "show" | "fit"
+        | "escape" | "esc" => Some(0),
+        _ => None,
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        "delete" | "del" => Ok(Command::Delete),
+```
+
+**ADD ABOVE**
+
+```rust
+        "save" => Ok(Command::Save),
+        "open" => Ok(Command::Open),
+```
+
+### `src/app/deform.rs`
+
+**NEW FILE · TYPE THIS**
+
+```rust
+//! Source-subobject transforms. Display triangles are never the edited geometry.
+use super::selection::{ControlId, Controls, SelectionMode};
+use session_rust::{Geometry, Mesh, NurbsSurface, Point, Xform};
+use std::collections::HashSet;
+use std::rc::Rc;
+
+#[derive(Clone, Copy, Debug)]
+pub enum Target {
+    Control(ControlId),
+    Edge(u32),
+    Face(usize),
+}
+impl Target {
+    pub fn selected(mode: &SelectionMode) -> Option<Self> {
+        match *mode {
+            SelectionMode::Controls {
+                selected: Some(id), ..
+            } => Some(Self::Control(id)),
+            SelectionMode::Edge { edge, .. } => Some(Self::Edge(edge)),
+            SelectionMode::Face { face, .. } => Some(Self::Face(face)),
+            _ => None,
+        }
+    }
+}
+
+fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
+    match target {
+        Target::Control(ControlId::Vertex(key)) if mesh.vertex.contains_key(&key) => Ok(vec![key]),
+        Target::Face(key) => {
+            let mut keys = mesh.face.get(&key).ok_or("Unknown mesh face")?.clone();
+            if let Some(holes) = mesh.face_holes.get(&key) {
+                keys.extend(holes.iter().flatten());
+            }
+            keys.sort_unstable();
+            keys.dedup();
+            Ok(keys)
+        }
+        Target::Edge(index) => {
+            // Match the producer's source-edge numbering: first occurrence while walking sorted faces.
+            let mut seen = HashSet::new();
+            let mut at = 0;
+            for face in mesh.faces() {
+                let keys = &mesh.face[&face];
+                for i in 0..keys.len() {
+                    let (a, b) = (keys[i], keys[(i + 1) % keys.len()]);
+                    let pair = (a.min(b), a.max(b));
+                    if seen.insert(pair) {
+                        if at == index {
+                            return Ok(vec![pair.0, pair.1]);
+                        }
+                        at += 1;
+                    }
+                }
+            }
+            Err("Unknown mesh edge".into())
+        }
+        _ => Err("Select a mesh vertex, edge or face".into()),
+    }
+}
+fn surface_keys(surface: &NurbsSurface, target: Target) -> Result<Vec<(usize, usize)>, String> {
+    let [nu, nv] = surface.m_cv_count;
+    let all = || (0..nu).flat_map(|u| (0..nv).map(move |v| (u, v))).collect();
+    match target {
+        Target::Control(ControlId::Surface { surface: 0, u, v }) if u < nu && v < nv => {
+            Ok(vec![(u, v)])
+        }
+        Target::Face(0) => Ok(all()),
+        Target::Edge(edge) if edge < 4 => Ok((0..nu)
+            .flat_map(|u| (0..nv).map(move |v| (u, v)))
+            .filter(|&(u, v)| match edge {
+                0 => u == 0,
+                1 => u + 1 == nu,
+                2 => v == 0,
+                _ => v + 1 == nv,
+            })
+            .collect()),
+        _ => Err("Unknown surface control, boundary or face".into()),
+    }
+}
+
+pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String> {
+    match geometry {
+        Geometry::Mesh(mesh) => mesh_keys(mesh, target)?
+            .into_iter()
+            .map(|k| mesh.vertex_point(k).ok_or("Missing mesh vertex".into()))
+            .collect(),
+        Geometry::NurbsSurface(surface) => surface_keys(surface, target)?
+            .into_iter()
+            .map(|(u, v)| surface.get_cv(u, v).ok_or("Missing surface control".into()))
+            .collect(),
+        Geometry::BRep(brep) => match target {
+            Target::Face(face) => {
+                let face = brep.m_faces.get(face).ok_or("Unknown BRep face")?;
+                let surface = brep
+                    .m_surfaces
+                    .get(face.surface_index as usize)
+                    .ok_or("Missing face surface")?;
+                Ok((0..surface.m_cv_count[0])
+                    .flat_map(|u| {
+                        (0..surface.m_cv_count[1]).filter_map(move |v| surface.get_cv(u, v))
+                    })
+                    .collect())
+            }
+            Target::Edge(edge) => {
+                let edge = brep.m_edges.get(edge as usize).ok_or("Unknown BRep edge")?;
+                let curve = brep
+                    .m_curves_3d
+                    .get(edge.curve_3d_index as usize)
+                    .ok_or("Degenerate edge has no movable curve")?;
+                Ok((0..curve.cv_count())
+                    .filter_map(|i| curve.get_cv(i))
+                    .collect())
+            }
+            Target::Control(id) => control_point(geometry, id).map(|p| vec![p]),
+        },
+        Geometry::Element(element) => match element.geometry() {
+            session_rust::element::ElementGeometry::Mesh(mesh) => {
+                points(&Geometry::Mesh(Rc::new(mesh.clone())), target)
+            }
+            session_rust::element::ElementGeometry::BRep(brep) => {
+                points(&Geometry::BRep(Rc::new(brep.clone())), target)
+            }
+            _ => Err("Element has no source geometry".into()),
+        },
+        _ => match target {
+            Target::Control(id) => control_point(geometry, id).map(|p| vec![p]),
+            _ => Err("This source has no editable faces or edges".into()),
+        },
+    }
+}
+fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
+    Controls::from_geometry(geometry)
+        .points
+        .into_iter()
+        .find(|p| p.id == id)
+        .map(|p| Point::new(p.position[0], p.position[1], p.position[2]))
+        .ok_or("Unknown source control".into())
+}
+
+pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<Geometry, String> {
+    if !delta.m.iter().all(|v| v.is_finite()) {
+        return Err("Transform must be finite".into());
+    }
+    let edited = match geometry {
+        Geometry::Mesh(source) => {
+            let mut mesh = (**source).clone();
+            for key in mesh_keys(&mesh, target)? {
+                let point = mesh
+                    .vertex_point(key)
+                    .ok_or("Missing vertex")?
+                    .transformed(delta);
+                mesh.vertex
+                    .get_mut(&key)
+                    .ok_or("Missing vertex")?
+                    .set_position(point);
+            }
+            mesh.triangulation.clear();
+            // The identity transform invalidates kernel render/BVH caches in both the frozen
+            // course kernel and the maintained kernel without changing the edited positions.
+            mesh.transform(&Xform::identity());
+            Geometry::Mesh(Rc::new(mesh))
+        }
+        Geometry::NurbsSurface(source) => {
+            let mut surface = (**source).clone();
+            for (u, v) in surface_keys(&surface, target)? {
+                let p = surface
+                    .get_cv(u, v)
+                    .ok_or("Missing surface control")?
+                    .transformed(delta);
+                if !surface.set_cv(u, v, &p) {
+                    return Err("Cannot set surface control".into());
+                }
+            }
+            surface.m_mesh = None;
+            Geometry::NurbsSurface(Rc::new(surface))
+        }
+        Geometry::Polyline(source) => {
+            let Target::Control(ControlId::Vertex(i)) = target else {
+                return Err("Select a polyline vertex".into());
+            };
+            let p = source
+                .get_point(i)
+                .ok_or("Unknown polyline vertex")?
+                .transformed(delta);
+            let mut next = (**source).clone();
+            next.set_point(i, &p);
+            Geometry::Polyline(Rc::new(next))
+        }
+        Geometry::NurbsCurve(source) => {
+            let Target::Control(ControlId::Curve { curve: 0, point }) = target else {
+                return Err("Select a curve control point".into());
+            };
+            let p = source
+                .get_cv(point)
+                .ok_or("Unknown curve control")?
+                .transformed(delta);
+            let mut next = (**source).clone();
+            if !next.set_cv_point(point, &p) {
+                return Err("Cannot set curve control".into());
+            }
+            Geometry::NurbsCurve(Rc::new(next))
+        }
+        Geometry::Line(source) => {
+            let Target::Control(ControlId::Vertex(i @ 0..=1)) = target else {
+                return Err("Select a line endpoint".into());
+            };
+            let mut ends = [source.start(), source.end()];
+            ends[i] = ends[i].transformed(delta);
+            let mut next = session_rust::Line::from_points(&ends[0], &ends[1]);
+            next.set_guid(source.guid().to_string());
+            next.name = source.name.clone();
+            next.width = source.width;
+            next.dash = source.dash.clone();
+            next.linecolor = source.linecolor.clone();
+            Geometry::Line(Rc::new(next))
+        }
+        Geometry::Point(source) => {
+            let Target::Control(ControlId::Vertex(0)) = target else {
+                return Err("Unknown point".into());
+            };
+            Geometry::Point(Rc::new(source.transformed(delta)))
+        }
+        Geometry::BRep(source) => {
+            let selected = points(geometry, target)?;
+            let mut next = (**source).clone();
+            // Shared source positions move together across topology, edge curves and surface nets.
+            // This exactly preserves the boundary of compatible untrimmed NURBS patches.
+            let matches = |p: &Point| {
+                selected
+                    .iter()
+                    .any(|s| (0..3).all(|i| (s[i] - p[i]).abs() <= 1e-8))
+            };
+            for vertex in &mut next.m_vertices {
+                if matches(&vertex.point) {
+                    vertex.point = vertex.point.transformed(delta);
+                }
+            }
+            for curve in &mut next.m_curves_3d {
+                for i in 0..curve.cv_count() {
+                    if let Some(p) = curve.get_cv(i)
+                        && matches(&p)
+                    {
+                        curve.set_cv_point(i, &p.transformed(delta));
+                    }
+                }
+            }
+            for surface in &mut next.m_surfaces {
+                for u in 0..surface.m_cv_count[0] {
+                    for v in 0..surface.m_cv_count[1] {
+                        if let Some(p) = surface.get_cv(u, v)
+                            && matches(&p)
+                        {
+                            surface.set_cv(u, v, &p.transformed(delta));
+                        }
+                    }
+                }
+                surface.m_mesh = None;
+            }
+            validate_boundaries(&next)?;
+            Geometry::BRep(Rc::new(next))
+        }
+        Geometry::Element(source) => {
+            let mut next = (**source).clone();
+            match source.geometry() {
+                session_rust::element::ElementGeometry::Mesh(mesh) => {
+                    let Geometry::Mesh(mesh) =
+                        transform(&Geometry::Mesh(Rc::new(mesh.clone())), target, delta)?
+                    else {
+                        unreachable!()
+                    };
+                    next.set_geometry((*mesh).clone());
+                }
+                session_rust::element::ElementGeometry::BRep(brep) => {
+                    let Geometry::BRep(brep) =
+                        transform(&Geometry::BRep(Rc::new(brep.clone())), target, delta)?
+                    else {
+                        unreachable!()
+                    };
+                    next.set_brep_geometry((*brep).clone());
+                }
+                _ => return Err("Element has no source geometry".into()),
+            }
+            Geometry::Element(Rc::new(next))
+        }
+        _ => return Err("This source control cannot be transformed".into()),
+    };
+    Ok(edited)
+}
+
+/// Keep the topological edge curve on every incident surface. Unsupported trim changes refuse
+/// atomically instead of leaving a solid whose render mesh disagrees with its source geometry.
+fn validate_boundaries(brep: &session_rust::BRep) -> Result<(), String> {
+    if !brep.is_valid() {
+        return Err("Edit would invalidate BRep topology".into());
+    }
+    for edge in &brep.m_edges {
+        if edge.degenerated {
+            continue;
+        }
+        let curve = &brep.m_curves_3d[edge.curve_3d_index as usize];
+        let (a, b) = curve.domain();
+        for pc in &edge.pcurves {
+            let surface = &brep.m_surfaces[pc.surface_index as usize];
+            for ci in [pc.curve_2d_index, pc.curve_2d_index_2] {
+                if ci < 0 {
+                    continue;
+                }
+                let uv = &brep.m_curves_2d[ci as usize];
+                let (u0, u1) = uv.domain();
+                for sample in 0..=16 {
+                    let t = sample as f64 / 16.0;
+                    let p = curve.point_at(a + (b - a) * t);
+                    let q = uv.point_at(u0 + (u1 - u0) * t);
+                    let actual = surface
+                        .point_at(q[0], q[1])
+                        .ok_or("Cannot evaluate incident surface")?;
+                    let tolerance = edge.tolerance.max(1e-6) * 10.0;
+                    if (0..3).any(|i| (p[i] - actual[i]).abs() > tolerance) {
+                        return Err("This BRep edit requires rebuilding adjacent trims; the original solid was preserved".into());
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn mesh() -> Geometry {
+        let mut mesh = Mesh::new();
+        for (key, p) in [
+            (10, [0., 0., 0.]),
+            (20, [10., 0., 0.]),
+            (30, [10., 10., 0.]),
+            (40, [0., 10., 0.]),
+            (90, [0., 0., 10.]),
+        ] {
+            mesh.add_vertex(Point::new(p[0], p[1], p[2]), Some(key));
+        }
+        mesh.add_face(vec![10, 20, 30, 40], Some(7));
+        mesh.add_face(vec![10, 90, 20], Some(19));
+        Geometry::Mesh(Rc::new(mesh))
+    }
+    #[test]
+    fn mesh_face_moves_shared_source_vertices_not_unrelated_vertices() {
+        let source = mesh();
+        let Geometry::Mesh(next) =
+            transform(&source, Target::Face(7), &Xform::translation(0., 0., 3.)).unwrap()
+        else {
+            panic!()
+        };
+        for key in [10, 20, 30, 40] {
+            assert_eq!(next.vertex[&key].z, 3.);
+        }
+        assert_eq!(next.vertex[&90].z, 10.);
+        assert_eq!(next.face[&19], vec![10, 90, 20]);
+        let Geometry::Mesh(original) = source else {
+            panic!()
+        };
+        assert_eq!(original.vertex[&10].z, 0.);
+    }
+    #[test]
+    fn edge_ids_match_the_display_producer_even_with_sparse_keys() {
+        let Geometry::Mesh(mesh) = mesh() else {
+            panic!()
+        };
+        let keys = mesh.vertices();
+        let positions: Vec<_> = keys
+            .iter()
+            .map(|k| {
+                let p = mesh.vertex_point(*k).unwrap();
+                [p[0], p[1], p[2]]
+            })
+            .collect();
+        let slots = super::super::walk::mesh_topology::SlotMap::new(&keys);
+        let topo =
+            super::super::walk::mesh_topology::mesh_topology(&mesh, &keys, &positions, &slots);
+        for (i, &(a, b, _)) in topo.edges.iter().enumerate() {
+            assert_eq!(
+                mesh_keys(&mesh, Target::Edge(i as u32)).unwrap(),
+                vec![a, b]
+            );
+        }
+    }
+    #[test]
+    fn surface_boundary_preserves_weights_and_the_opposite_boundary() {
+        let mut surface = NurbsSurface::create(
+            false,
+            false,
+            1,
+            1,
+            2,
+            2,
+            &[
+                Point::new(0., 0., 0.),
+                Point::new(1., 0., 0.),
+                Point::new(0., 1., 0.),
+                Point::new(1., 1., 0.),
+            ],
+        )
+        .unwrap();
+        assert!(surface.make_rational());
+        for u in 0..2 {
+            for v in 0..2 {
+                surface.set_cv_4d(u, v, u as f64 * 2., v as f64 * 2., 0., 2.);
+            }
+        }
+        let Geometry::NurbsSurface(next) = transform(
+            &Geometry::NurbsSurface(Rc::new(surface)),
+            Target::Edge(0),
+            &Xform::translation(0., 0., 5.),
+        )
+        .unwrap() else {
+            panic!()
+        };
+        assert_eq!(next.get_cv(0, 0).unwrap()[2], 5.);
+        assert_eq!(next.get_cv(1, 0).unwrap()[2], 0.);
+        assert!(next.m_is_rat);
+        assert_eq!(next.weight(0, 0), 2.);
+        assert_eq!(next.weight(1, 1), 2.);
+    }
+    #[test]
+    fn moving_box_face_keeps_edges_on_incident_surfaces() {
+        let source = Geometry::BRep(Rc::new(session_rust::BRep::create_box(10., 20., 30.)));
+        let Geometry::BRep(next) =
+            transform(&source, Target::Face(0), &Xform::translation(0., 0., 2.)).unwrap()
+        else {
+            panic!()
+        };
+        assert!(next.is_valid());
+        assert!(next.is_closed(0));
+        validate_boundaries(&next).unwrap();
+    }
+}
+```
+
+### `src/app/edit.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        );
+    }
+}
+```
+
+**ADD BELOW**
+
+```rust
+
+impl Scene {
+    pub fn edit_subobject(
+        &mut self,
+        row: u32,
+        target: super::deform::Target,
+        delta: &Xform,
+        label: &str,
+    ) -> Result<(), String> {
+        let place = Xform::from_matrix(
+            self.placement_of(row)
+                .ok_or("Source placement unavailable")?,
+        );
+        let back = place.inverse().ok_or("Source placement is singular")?;
+        let local = &(&back * delta) * &place;
+        let geometry = self.geometry(row).ok_or("Source geometry unavailable")?;
+        let edited = super::deform::transform(geometry, target, &local)?;
+        self.commit_geometry(row, edited, label)
+    }
+
+    pub fn commit_geometry(
+        &mut self,
+        row: u32,
+        geometry: Geometry,
+        label: &str,
+    ) -> Result<(), String> {
+        if !self.streamed.is_empty() || !self.sheets.is_empty() {
+            return Err("Source edits require complete documents without streamed sources".into());
+        }
+        let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
+        let session = Rc::make_mut(&mut self.docs[doc].session);
+        session.begin(label);
+        let changed = session.replace(&guid, geometry);
+        session.commit();
+        if !changed {
+            return Err("Cannot replace source geometry".into());
+        }
+        self.last_edited = Some(doc);
+        Ok(())
+    }
+
+    pub fn set_source_control(
+        &mut self,
+        row: u32,
+        id: super::selection::ControlId,
+        to: &Point,
+    ) -> Result<(), String> {
+        let geometry = self.geometry(row).ok_or("Source geometry unavailable")?;
+        let target = super::deform::Target::Control(id);
+        let point = super::deform::points(geometry, target)?
+            .into_iter()
+            .next()
+            .ok_or("Source control unavailable")?;
+        let place = Xform::from_matrix(
+            self.placement_of(row)
+                .ok_or("Source placement unavailable")?,
+        );
+        let point = point.transformed(&place);
+        self.edit_subobject(
+            row,
+            target,
+            &Xform::translation(to[0] - point[0], to[1] - point[1], to[2] - point[2]),
+            "edit control",
+        )
+    }
+
+    /// Only the render upload sees the preview. Retained source and undo history stay unchanged.
+    pub fn preview_geometry(
+        &mut self,
+        row: u32,
+        geometry: Geometry,
+        gpu: &mut crate::engine::gpu::Gpu,
+    ) -> Result<(), String> {
+        if !self.streamed.is_empty() || !self.sheets.is_empty() {
+            return Err("Source edits require complete documents without streamed sources".into());
+        }
+        let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
+        let original = Rc::make_mut(&mut self.docs[doc].session)
+            .lookup
+            .insert(guid.to_string(), geometry)
+            .ok_or("Source geometry unavailable")?;
+        self.rebuild(gpu);
+        Rc::make_mut(&mut self.docs[doc].session)
+            .lookup
+            .insert(guid.to_string(), original);
+        self.selected = Some(row);
+        Ok(())
+    }
+}
+```
+
+### `src/app/gizmo.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    pub fn hit(&self, from: &Point, dir: &Vector, world_per_px: f64) -> Option<Handle> {
+        let s = world_per_px;
+        if within(from, dir, &self.origin, HUB * s) {
+```
+
+**REPLACE WITH**
+
+```rust
+    pub fn hit(&self, from: &Point, dir: &Vector, world_per_px: f64) -> Option<Handle> {
+        self.hit_with_radius(from, dir, world_per_px, GRAB)
+    }
+
+    /// Touch widens the hit tolerance without changing the visible handle positions.
+    pub fn hit_with_radius(
+        &self,
+        from: &Point,
+        dir: &Vector,
+        world_per_px: f64,
+        radius: f64,
+    ) -> Option<Handle> {
+        let s = world_per_px;
+        let grab = radius.max(GRAB);
+        if within(from, dir, &self.origin, HUB * s) {
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+            let at = along(&self.origin, &axis.unit(), BALL_AT * s);
+            if within(from, dir, &at, GRAB * s) {
+                return Some(Handle::Scale(axis));
+```
+
+**REPLACE WITH**
+
+```rust
+            let at = along(&self.origin, &axis.unit(), BALL_AT * s);
+            if within(from, dir, &at, grab * s) {
+                return Some(Handle::Scale(axis));
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+                // overlap, and whichever was tested first would win a click aimed at the centre.
+                if (HUB * s..=ARM * s).contains(&t) && within(from, dir, &p, GRAB * s) {
+                    return Some(Handle::Translate(axis));
+```
+
+**REPLACE WITH**
+
+```rust
+                // overlap, and whichever was tested first would win a click aimed at the centre.
+                if (HUB * s..=ARM * s).contains(&t) && within(from, dir, &p, grab * s) {
+                    return Some(Handle::Translate(axis));
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+                // aims for one of them.
+                if dot(&d, &u) < 0.0 && dot(&d, &v) < 0.0 && (length(&d) - ARM * s).abs() < GRAB * s
+                {
+```
+
+**REPLACE WITH**
+
+```rust
+                // aims for one of them.
+                if dot(&d, &u) < 0.0 && dot(&d, &v) < 0.0 && (length(&d) - ARM * s).abs() < grab * s
+                {
+```
+
+### `src/app/input.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    touch: Touches,
+```
+
+**ADD BELOW**
+
+```rust
+    touch_edit: Option<u64>,
+    fingers: std::collections::HashSet<u64>,
+    touch_cancelled: bool,
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+            touch: Touches::new(),
+```
+
+**ADD BELOW**
+
+```rust
+            touch_edit: None,
+            fingers: std::collections::HashSet::new(),
+            touch_cancelled: false,
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+                state.interacting = matches!(t.phase, TouchPhase::Started | TouchPhase::Moved);
+```
+
+**ADD ABOVE**
+
+```rust
+                if t.phase == TouchPhase::Started {
+                    self.fingers.insert(t.id);
+                }
+                if self.touch_edit.is_some()
+                    && t.phase == TouchPhase::Started
+                    && self.fingers.len() > 1
+                {
+                    state.cancel_gesture();
+                    self.touch_edit = None;
+                    self.gizmo_drag = false;
+                    self.control_drag = false;
+                    self.touch_cancelled = true;
+                }
+                if self.touch_cancelled {
+                    if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                        self.fingers.remove(&t.id);
+                    }
+                    if self.fingers.is_empty() {
+                        self.touch_cancelled = false;
+                        self.touch = Touches::new();
+                    }
+                    state.interacting = false;
+                    return true;
+                }
+                if t.phase == TouchPhase::Started && self.fingers.len() == 1 {
+                    self.last_cursor = (t.location.x, t.location.y);
+                    self.control_drag = state.begin_control_drag(t.location.x, t.location.y);
+                    self.gizmo_drag =
+                        !self.control_drag && state.begin_gizmo_touch(t.location.x, t.location.y);
+                    if self.control_drag || self.gizmo_drag {
+                        self.touch_edit = Some(t.id);
+                    }
+                }
+                if self.touch_edit == Some(t.id) {
+                    self.last_cursor = (t.location.x, t.location.y);
+                    match t.phase {
+                        TouchPhase::Moved => {
+                            if self.control_drag {
+                                state.drag_control(t.location.x, t.location.y);
+                            } else {
+                                state.drag_gizmo(t.location.x, t.location.y);
+                            }
+                        }
+                        TouchPhase::Ended => {
+                            if self.control_drag {
+                                state.end_control_drag(t.location.x, t.location.y);
+                            } else {
+                                state.end_gizmo(t.location.x, t.location.y);
+                            }
+                        }
+                        TouchPhase::Cancelled => state.cancel_gesture(),
+                        TouchPhase::Started => {}
+                    }
+                    if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                        self.fingers.remove(&t.id);
+                        self.touch_edit = None;
+                        self.control_drag = false;
+                        self.gizmo_drag = false;
+                        self.touch = Touches::new();
+                    }
+                    state.interacting = self.touch_edit.is_some();
+                    return true;
+                }
+                if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                    self.fingers.remove(&t.id);
+                }
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        self.touch = Touches::new();
+    }
+```
+
+**REPLACE WITH**
+
+```rust
+        self.touch = Touches::new();
+        self.touch_edit = None;
+        self.fingers.clear();
+        self.touch_cancelled = false;
+    }
+```
+
+### `src/app/loader.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    )
+}
+```
+
+**ADD BELOW**
+
+```rust
+
+/// Replace only after the complete saved session has decoded successfully.
+pub(super) fn install_saved_scene(scene: super::scene::Scene) {
+    LOAD_GENERATION.set(LOAD_GENERATION.get().wrapping_add(1));
+    GENERATION.set(GENERATION.get().wrapping_add(1));
+    RESIDENT.set(0);
+    SHEET_RESIDENT.set(0);
+    post(Msg::SavedScene(Box::new(scene)));
+}
+```
+
+### `src/app/mod.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+pub mod cplane;
+```
+
+**ADD BELOW**
+
+```rust
+pub mod deform;
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+pub mod selection;
+```
+
+**ADD BELOW**
+
+```rust
+pub mod session_io;
+```
+
+### `src/app/scene_text.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    pub row: u32,
+    pub(super) key: String,
+    pub(super) active: bool,
+}
+```
+
+**REPLACE WITH**
+
+```rust
+    pub row: u32,
+    pub(crate) key: String,
+    pub(crate) active: bool,
+}
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    /// Reuse the row for this source key, or append one ordinary identity/instance pair.
+    pub(super) fn register_text(&mut self, key: String, mut label: TextLabel, active: bool) {
+        for text in &mut self.texts {
+```
+
+**REPLACE WITH**
+
+```rust
+    /// Reuse the row for this source key, or append one ordinary identity/instance pair.
+    pub(crate) fn register_text(&mut self, key: String, mut label: TextLabel, active: bool) {
+        for text in &mut self.texts {
+```
+
+### `src/app/selection.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        assert_eq!(controls.links, [[0, 1]]);
+    }
+}
+```
+
+**ADD BELOW**
+
+```rust
+
+/// Persistent selection mode for toolbar and touch users without modifier keys.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum SelectionTool {
+    #[default]
+    Object,
+    Edge,
+    Face,
+}
+```
+
+### `src/app/session_io.rs`
+
+**NEW FILE · TYPE THIS**
+
+```rust
+//! A single portable file containing every retained source document and its placement.
+use super::scene::{FileDoc, Scene};
+use crate::engine::text::TextLabel;
+use prost::Message;
+use serde::{Deserialize, Serialize};
+use session_rust::{Session, Xform};
+use std::rc::Rc;
+
+const MAGIC: &[u8] = b"SESSION-VIEWER\x01\n";
+const LIMIT: usize = 512 * 1024 * 1024;
+
+#[derive(Clone, PartialEq, Message)]
+struct Archive {
+    #[prost(bytes = "vec", repeated, tag = "1")]
+    documents: Vec<Vec<u8>>,
+    #[prost(bytes = "vec", tag = "2")]
+    metadata: Vec<u8>,
+}
+#[derive(Serialize, Deserialize)]
+struct Metadata {
+    documents: Vec<Document>,
+    hidden: Vec<(usize, String)>,
+    texts: Vec<(String, TextLabel, bool)>,
+}
+#[derive(Serialize, Deserialize)]
+struct Document {
+    name: String,
+    place: [f64; 16],
+    point_px: f32,
+}
+
+pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
+    if !scene.streamed.is_empty() || !scene.sheets.is_empty() {
+        return Err("This scene contains streamed sources. Open complete source documents before saving an editable session.".into());
+    }
+    let mut documents = Vec::new();
+    let mut size = 0usize;
+    for file in &scene.docs {
+        if file.display_only {
+            return Err(
+                "A source document is not retained; the complete session cannot be saved.".into(),
+            );
+        }
+        // Serialize a snapshot: saving must not clear the live document's undo history.
+        let bytes = (*file.session).clone().pb_dumps();
+        size = size.saturating_add(bytes.len());
+        if size > LIMIT {
+            return Err("Session exceeds the 512 MiB file limit".into());
+        }
+        documents.push(bytes);
+    }
+    let mut hidden: Vec<_> = scene
+        .hidden
+        .iter()
+        .map(|(doc, id)| (*doc, id.to_string()))
+        .collect();
+    hidden.sort();
+    let metadata = Metadata {
+        documents: scene
+            .docs
+            .iter()
+            .map(|f| Document {
+                name: f.name.clone(),
+                place: f.place.m,
+                point_px: f.point_px,
+            })
+            .collect(),
+        hidden,
+        texts: scene
+            .texts
+            .iter()
+            .map(|t| (t.key.clone(), t.label.clone(), t.active))
+            .collect(),
+    };
+    let archive = Archive {
+        documents,
+        metadata: serde_json::to_vec(&metadata).map_err(|e| e.to_string())?,
+    };
+    if archive.encoded_len() + MAGIC.len() > LIMIT {
+        return Err("Session exceeds the 512 MiB file limit".into());
+    }
+    let mut bytes = MAGIC.to_vec();
+    archive.encode(&mut bytes).map_err(|e| e.to_string())?;
+    Ok(bytes)
+}
+
+/// Validate every document before returning a replacement scene. Failure preserves the live scene.
+pub fn open(bytes: &[u8]) -> Result<Scene, String> {
+    if bytes.len() > LIMIT {
+        return Err("Session exceeds the 512 MiB file limit".into());
+    }
+    let payload = bytes
+        .strip_prefix(MAGIC)
+        .ok_or("Not a Session Viewer file")?;
+    let archive = Archive::decode(payload).map_err(|e| e.to_string())?;
+    let metadata: Metadata =
+        serde_json::from_slice(&archive.metadata).map_err(|e| e.to_string())?;
+    if metadata.documents.len() != archive.documents.len() {
+        return Err("Document inventory does not match".into());
+    }
+    let mut scene = Scene::new();
+    for (meta, bytes) in metadata.documents.into_iter().zip(archive.documents) {
+        if !meta.place.into_iter().all(f64::is_finite) || !meta.point_px.is_finite() {
+            return Err("Non-finite document placement".into());
+        }
+        let proto =
+            session_rust::proto::Session::decode(bytes.as_slice()).map_err(|e| e.to_string())?;
+        super::validate::session(&proto)?;
+        let session = Session::pb_loads(&bytes).map_err(|e| e.to_string())?;
+        super::validate::retained(&session)?;
+        scene.add_file(FileDoc {
+            name: meta.name,
+            place: Xform::from_matrix(meta.place),
+            point_px: meta.point_px,
+            display_only: false,
+            session: Rc::new(session),
+        });
+    }
+    for (key, label, active) in metadata.texts {
+        scene.register_text(key, label, active);
+    }
+    scene.hidden = metadata
+        .hidden
+        .into_iter()
+        .map(|(doc, id)| (doc, Rc::from(id)))
+        .collect();
+    Ok(scene)
+}
+
+#[cfg(target_arch = "wasm32")]
+mod browser {
+    use wasm_bindgen::prelude::*;
+    #[wasm_bindgen(inline_js = r#"
+export function downloadSession(bytes) {
+    const url = URL.createObjectURL(new Blob([bytes], {type:'application/octet-stream'}));
+    const a = document.createElement('a'); a.href=url; a.download='session.session';
+    document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+export function chooseSession() {
+    return new Promise((resolve,reject)=> {
+        const input=document.createElement('input'); input.type='file'; input.accept='.session';
+        input.oncancel=()=>resolve(null);
+        input.onchange=async()=>{try {const file=input.files[0]; if(!file){resolve(null);return;}
+            if(file.size>512*1024*1024)throw Error('Session exceeds the 512 MiB file limit');
+            resolve(new Uint8Array(await file.arrayBuffer()));}catch(e){reject(e);}};
+        input.click();
+    });
+}
+"#)]
+    extern "C" {
+        #[wasm_bindgen(catch, js_name=downloadSession)]
+        pub fn download(bytes: &[u8]) -> Result<(), JsValue>;
+        #[wasm_bindgen(js_name=chooseSession)]
+        fn choose() -> js_sys::Promise;
+    }
+    pub fn pick() {
+        let promise = choose();
+        wasm_bindgen_futures::spawn_local(async move {
+            let result = wasm_bindgen_futures::JsFuture::from(promise).await;
+            match result {
+                Ok(value) if value.is_null() => {}
+                Ok(value) => match super::open(&js_sys::Uint8Array::new(&value).to_vec()) {
+                    Ok(scene) => super::super::loader::install_saved_scene(scene),
+                    Err(error) => super::super::feedback::status(&error),
+                },
+                Err(error) => {
+                    super::super::feedback::status(&format!("Cannot open session: {error:?}"))
+                }
+            }
+        });
+    }
+}
+#[cfg(target_arch = "wasm32")]
+pub use browser::{download, pick};
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::app::deform::Target;
+    use session_rust::{Geometry, Mesh, Point};
+    #[test]
+    fn edited_documents_placements_hidden_state_and_history_survive_save() {
+        let mut source = Session::new("source");
+        let mesh = Mesh::from_vertices_and_faces(
+            vec![
+                Point::new(0., 0., 0.),
+                Point::new(10., 0., 0.),
+                Point::new(0., 10., 0.),
+            ],
+            vec![vec![0, 1, 2]],
+        );
+        source.add_mesh(mesh, None);
+        let shared = Rc::new(source);
+        let mut scene = Scene::new();
+        for x in [100., 200.] {
+            scene.add_file(FileDoc {
+                name: format!("placement {x}"),
+                place: Xform::translation(x, 0., 0.),
+                session: Rc::clone(&shared),
+                point_px: 3.,
+                display_only: false,
+            });
+        }
+        scene
+            .edit_subobject(
+                0,
+                Target::Face(0),
+                &Xform::translation(0., 0., 7.),
+                "move face",
+            )
+            .unwrap();
+        scene.hidden.insert(scene.identity_of(1).unwrap());
+        let bytes = save(&scene).unwrap();
+        assert!(scene.undo(), "saving leaves live undo available");
+        let restored = open(&bytes).unwrap();
+        assert_eq!(restored.docs.len(), 2);
+        assert_eq!(restored.hidden.len(), 1);
+        assert_eq!(restored.docs[0].place.m[12], 100.);
+        assert_eq!(restored.docs[1].place.m[12], 200.);
+        let Geometry::Mesh(first) = restored.geometry(0).unwrap() else {
+            panic!()
+        };
+        let Geometry::Mesh(second) = restored.geometry(1).unwrap() else {
+            panic!()
+        };
+        assert_eq!(first.vertex[&0].z, 7.);
+        assert_eq!(second.vertex[&0].z, 0.);
+        assert_eq!(first.face[&0], vec![0, 1, 2]);
+    }
+    #[test]
+    fn incomplete_or_foreign_files_are_rejected() {
+        assert!(open(b"not a session").is_err());
+        let bytes = save(&Scene::new()).unwrap();
+        assert!(open(&bytes[..bytes.len() - 1]).is_err());
+    }
+}
+```
+
+### `src/app/ui.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+
+#[derive(Default)]
+pub struct Model {
+```
+
+**REPLACE WITH**
+
+```rust
+
+pub struct Model {
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+thread_local! { pub static MODEL: RefCell<Model> = RefCell::default(); }
+```
+
+**ADD ABOVE**
+
+```rust
+impl Default for Model {
+    fn default() -> Self {
+        Self {
+            layers_open: true,
+            rows: Vec::new(),
+            command_open: false,
+            command: String::new(),
+            focus_command: false,
+            status: String::new(),
+            history: VecDeque::new(),
+        }
+    }
+}
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    controls: Option<Vec<Control>>,
+}
+
+impl Ui {
+    pub fn new(window: &Window) -> Self {
+        let context = egui::Context::default();
+```
+
+**REPLACE WITH**
+
+```rust
+    controls: Option<Vec<Control>>,
+    scene_rect: egui::Rect,
+    pointer: egui::Pos2,
+    ui_drag: bool,
+    touches: std::collections::HashSet<u64>,
+}
+
+impl Ui {
+    pub fn new(window: &Window, logical_width: f64) -> Self {
+        MODEL.with_borrow_mut(|model| {
+            model.layers_open = logical_width >= 700.0;
+        });
+        let context = egui::Context::default();
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+            controls: (super::route::query("inspect").as_deref() == Some("1")).then(Vec::new),
+```
+
+**ADD BELOW**
+
+```rust
+            scene_rect: egui::Rect::EVERYTHING,
+            pointer: egui::Pos2::ZERO,
+            ui_drag: false,
+            touches: std::collections::HashSet::new(),
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+            && MODEL.with_borrow(|model| model.command_open);
+        (response.consumed || escape, response.repaint || escape)
+    }
+
+    pub fn frame(&mut self, state: &mut State) -> bool {
+        let input = self.input.take_egui_input(&state.window);
+        if let Some(controls) = self.controls.as_mut() {
+            controls.clear();
+        }
+        let mut action = None;
+        let mut command = None;
+        let mut output = self.context.run_ui(input, |root| {
+            let context = root.ctx();
+            MODEL.with_borrow_mut(|model| {
+                layers(context, model, &mut self.controls, &mut action);
+                commands(context, model, &mut self.controls, &mut command);
+            });
+        });
+        self.input
+            .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
+        let changed = action.is_some() || command.is_some();
+        if let Some(key) = action {
+```
+
+**REPLACE WITH**
+
+```rust
+            && MODEL.with_borrow(|model| model.command_open);
+        // Route the current pointer position, not egui's previous-frame hover. A quick tap
+        // from a toolbar to the scene must reach the picker on the very first attempt.
+        use winit::event::{ElementState, TouchPhase, WindowEvent};
+        let ratio = window.scale_factor() as f32;
+        let mut consumed = response.consumed;
+        match event {
+            WindowEvent::CursorMoved { position, .. } => {
+                self.pointer = egui::pos2(position.x as f32 / ratio, position.y as f32 / ratio);
+                consumed = self.ui_drag || !self.scene_rect.contains(self.pointer);
+            }
+            WindowEvent::MouseInput { state, .. } => {
+                if *state == ElementState::Pressed {
+                    self.ui_drag = !self.scene_rect.contains(self.pointer);
+                }
+                consumed = self.ui_drag;
+                if *state == ElementState::Released {
+                    self.ui_drag = false;
+                }
+            }
+            WindowEvent::MouseWheel { .. } => consumed = !self.scene_rect.contains(self.pointer),
+            WindowEvent::Touch(touch) => {
+                self.pointer = egui::pos2(
+                    touch.location.x as f32 / ratio,
+                    touch.location.y as f32 / ratio,
+                );
+                if touch.phase == TouchPhase::Started {
+                    if self.touches.is_empty() {
+                        self.ui_drag = !self.scene_rect.contains(self.pointer);
+                    }
+                    self.touches.insert(touch.id);
+                }
+                consumed = self.ui_drag;
+                if matches!(touch.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                    self.touches.remove(&touch.id);
+                    if self.touches.is_empty() {
+                        self.ui_drag = false;
+                    }
+                }
+            }
+            WindowEvent::Focused(false) => {
+                self.ui_drag = false;
+                self.touches.clear();
+            }
+            _ => {}
+        }
+        (consumed || escape, response.repaint || escape)
+    }
+
+    pub fn frame(&mut self, state: &mut State) -> bool {
+        let mut input = self.input.take_egui_input(&state.window);
+        // Winit's web window size may describe the CSS canvas rather than its backing store.
+        // Layout and hit rectangles stay in CSS pixels; the renderer applies DPR exactly once.
+        let logical = state.logical_size();
+        input.screen_rect = Some(egui::Rect::from_min_size(
+            egui::Pos2::ZERO,
+            egui::vec2(logical[0] as f32, logical[1] as f32),
+        ));
+        if let Some(controls) = self.controls.as_mut() {
+            controls.clear();
+        }
+        let mut action = None;
+        let mut command = None;
+        let mut tool = None;
+        let mut output = self.context.run_ui(input, |root| {
+            MODEL.with_borrow_mut(|model| {
+                commands(root, model, &mut self.controls, &mut command);
+                toolbar(root, model, &mut self.controls, &mut tool);
+                layers(root, model, &mut self.controls, &mut action);
+            });
+            self.scene_rect = root.available_rect_before_wrap();
+        });
+        self.input
+            .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
+        let changed = action.is_some() || command.is_some() || tool.is_some();
+        if let Some(tool) = tool {
+            match tool {
+                "layers" => state.toggle_layers_panel(),
+                "controls" => {
+                    state.selection_tool = crate::app::selection::SelectionTool::Object;
+                    state.enable_controls();
+                }
+                "object" | "edge" | "face" => {
+                    state.escape_selection();
+                    state.selection_tool = match tool {
+                        "edge" => crate::app::selection::SelectionTool::Edge,
+                        "face" => crate::app::selection::SelectionTool::Face,
+                        _ => crate::app::selection::SelectionTool::Object,
+                    };
+                }
+                _ => command = Some(tool.to_string()),
+            }
+            state.touch();
+        }
+        if let Some(key) = action {
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        let repaint = changed || self.context.has_requested_repaint();
+        output.pixels_per_point *=
+            state.gpu.config.width as f32 / state.window.inner_size().width.max(1) as f32;
+        if let Some(ui) = state.gpu.ui.as_mut() {
+```
+
+**REPLACE WITH**
+
+```rust
+        let repaint = changed || self.context.has_requested_repaint();
+        output.pixels_per_point = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
+        if let Some(ui) = state.gpu.ui.as_mut() {
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        {
+            let hidden = MODEL.with_borrow(|model| model.command_open);
+            if hidden {
+                let _ = status.set_attribute("hidden", "");
+            } else {
+                let _ = status.remove_attribute("hidden");
+            }
+        }
+```
+
+**REPLACE WITH**
+
+```rust
+        {
+            let _ = status.set_attribute("hidden", "");
+        }
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    visuals.window_fill = egui::Color32::WHITE;
+    visuals.panel_fill = egui::Color32::WHITE;
+    visuals.extreme_bg_color = egui::Color32::WHITE;
+```
+
+**REPLACE WITH**
+
+```rust
+    visuals.window_fill = egui::Color32::WHITE;
+    visuals.panel_fill = egui::Color32::from_gray(247);
+    visuals.extreme_bg_color = egui::Color32::WHITE;
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+fn layers(
+    context: &egui::Context,
+    model: &mut Model,
+```
+
+**REPLACE WITH**
+
+```rust
+fn layers(
+    root: &mut egui::Ui,
+    model: &mut Model,
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    }
+    egui::Window::new("Session layers")
+        .default_pos([12.0, 12.0])
+        .default_width(310.0)
+        .resizable(false)
+        .collapsible(false)
+        .open(&mut model.layers_open)
+        .show(context, |ui| {
+            egui::ScrollArea::vertical()
+                .max_height(context.content_rect().height() * 0.65)
+                .show(ui, |ui| {
+```
+
+**REPLACE WITH**
+
+```rust
+    }
+    let width = (root.available_width() * 0.25).clamp(180.0, 310.0);
+    egui::Panel::right("session-layers")
+        .default_size(width)
+        .size_range(160.0..=360.0)
+        .resizable(true)
+        .show_inside(root, |ui| {
+            ui.horizontal(|ui| {
+                ui.strong("Layers");
+                let close = ui.button("Close");
+                record(controls, "layers/close", "Close layers", &close);
+                if close.clicked() {
+                    model.layers_open = false;
+                }
+            });
+            ui.separator();
+            egui::ScrollArea::vertical()
+                .auto_shrink([false, false])
+                .show(ui, |ui| {
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    if row.key.starts_with("open/") {
+        let (rect, response) = ui.allocate_exact_size(egui::vec2(12.0, 18.0), egui::Sense::click());
+        let c = rect.center();
+```
+
+**REPLACE WITH**
+
+```rust
+    if row.key.starts_with("open/") {
+        let (rect, response) = ui.allocate_exact_size(egui::vec2(20.0, 28.0), egui::Sense::click());
+        let c = rect.center();
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    };
+    ui.button(text).on_hover_text(label)
+}
+
+fn commands(
+    context: &egui::Context,
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
+    command: &mut Option<String>,
+) {
+    if !model.command_open {
+        return;
+    }
+    let mut open = model.command_open;
+    egui::Window::new("Command line")
+        .anchor(egui::Align2::LEFT_BOTTOM, [12.0, -12.0])
+        .default_width(480.0)
+        .resizable(false)
+        .collapsible(false)
+        .open(&mut open)
+        .show(context, |ui| {
+            for text in &model.history {
+                ui.label(text);
+            }
+            ui.label("World coordinates: x,y,z. Select a curve before trim, extend or explode.");
+            let response = ui.add(
+                egui::TextEdit::singleline(&mut model.command)
+                    .char_limit(2048)
+                    .hint_text(
+                        egui::RichText::new("line 0,0,0 100,0,0").color(egui::Color32::BLACK),
+                    )
+                    .desired_width(f32::INFINITY),
+            );
+            record(controls, "command/input", "Command", &response);
+            if model.focus_command {
+                response.request_focus();
+                model.focus_command = false;
+            }
+            let enter =
+                response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter));
+            ui.horizontal(|ui| {
+                let run = ui.button("Run");
+                record(controls, "command/run", "Run", &run);
+                if (enter || run.clicked()) && !model.command.trim().is_empty() {
+                    *command = Some(std::mem::take(&mut model.command));
+                }
+                let close = ui.button("Close (Esc)");
+                record(controls, "command/close", "Close", &close);
+                if close.clicked() || ui.input(|input| input.key_pressed(egui::Key::Escape)) {
+                    model.command_open = false;
+                }
+                ui.label("point · line · polyline · trim · extend · explode · undo");
+            });
+            if !model.status.is_empty() {
+                ui.label(&model.status);
+            }
+        });
+    model.command_open &= open;
+}
+```
+
+**REPLACE WITH**
+
+```rust
+    };
+    let width = if row.key.starts_with("hide/") {
+        44.0
+    } else {
+        (ui.available_width()
+            - if row.key.starts_with("select/") {
+                52.0
+            } else {
+                0.0
+            })
+        .max(40.0)
+    };
+    ui.add_sized([width, 28.0], egui::Button::new(text).truncate())
+        .on_hover_text(label)
+}
+
+fn commands(
+    root: &mut egui::Ui,
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
+    command: &mut Option<String>,
+) {
+    let height = if model.command_open { 160.0 } else { 76.0 };
+    egui::Panel::bottom("command-line")
+        .default_size(height)
+        .size_range(76.0..=260.0)
+        .resizable(true)
+        .show_inside(root, |ui| {
+            egui::ScrollArea::vertical()
+                .id_salt("command-history")
+                .stick_to_bottom(true)
+                .max_height((ui.available_height() - 40.0).max(20.0))
+                .show(ui, |ui| {
+                    for text in &model.history {
+                        ui.label(text);
+                    }
+                    if !model.status.is_empty() {
+                        ui.label(&model.status);
+                    }
+                });
+            ui.separator();
+            ui.horizontal(|ui| {
+                ui.strong("Command:");
+                let width = (ui.available_width() - 100.0).max(40.0);
+                let response = ui.add_sized(
+                    [width, 28.0],
+                    egui::TextEdit::singleline(&mut model.command)
+                        .char_limit(2048)
+                        .hint_text("Type a command"),
+                );
+                record(controls, "command/input", "Command", &response);
+                if model.focus_command {
+                    response.request_focus();
+                    model.focus_command = false;
+                }
+                if response.gained_focus() {
+                    model.command_open = true;
+                }
+                let enter =
+                    response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter));
+                let run = ui.add_sized([40.0, 28.0], egui::Button::new("Run"));
+                record(controls, "command/run", "Run", &run);
+                if (enter || run.clicked()) && !model.command.trim().is_empty() {
+                    *command = Some(std::mem::take(&mut model.command));
+                    model.focus_command = true;
+                }
+                let close = ui.add_sized([40.0, 28.0], egui::Button::new("Esc"));
+                record(controls, "command/close", "Close", &close);
+                if close.clicked() || ui.input(|input| input.key_pressed(egui::Key::Escape)) {
+                    model.command_open = false;
+                    response.surrender_focus();
+                    crate::app::feedback::focus_canvas();
+                }
+            });
+        });
+}
+
+/// Add a button by adding its label, tooltip and command to this table.
+const TOOLBAR: &[(&str, &str, &str)] = &[
+    ("Obj", "Select objects", "object"),
+    (
+        "Vtx",
+        "Show and edit source vertices / control points",
+        "controls",
+    ),
+    ("Edge", "Select source edges", "edge"),
+    ("Face", "Select source faces", "face"),
+    ("Fit", "Fit selection or scene", "fit"),
+    ("Layer", "Show or hide layers", "layers"),
+    ("+Pt", "Create a point", "point 0,0,0"),
+    ("+Ln", "Create a line", "line 0,0,0 100,0,0"),
+    (
+        "+Poly",
+        "Create a polyline",
+        "polyline 0,0,0 100,0,0 100,100,0",
+    ),
+    ("Undo", "Undo the last edit", "undo"),
+    ("Redo", "Redo the last edit", "redo"),
+    ("Save", "Save the whole session", "save"),
+    ("Open", "Open a saved session", "open"),
+];
+
+fn toolbar(
+    root: &mut egui::Ui,
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
+    action: &mut Option<&'static str>,
+) {
+    egui::Panel::left("tools")
+        .exact_size(58.0)
+        .resizable(false)
+        .show_inside(root, |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                for &(label, help, command) in TOOLBAR {
+                    let response = ui
+                        .add_sized([44.0, 44.0], egui::Button::new(label))
+                        .on_hover_text(help);
+                    record(controls, &format!("toolbar/{label}"), help, &response);
+                    if response.clicked() {
+                        if command.contains(' ') {
+                            model.command = command.to_string();
+                            model.command_open = true;
+                            model.focus_command = true;
+                        } else {
+                            *action = Some(command);
+                        }
+                    }
+                }
+            });
+        });
+}
+```
+
+### `src/engine/gpu/faces.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    /// Switch the highlighted source face without editing geometry or normals.
+```
+
+**ADD ABOVE**
+
+```rust
+    /// Find the uploaded address of a retained source face after a geometry rebuild.
+    pub fn address(&self, parent: u32, face: usize) -> Option<u32> {
+        self.sources
+            .iter()
+            .position(|source| source.parent == parent && source.face == face)
+            .map(|i| i as u32)
+    }
+```
+
+### `src/engine/text.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+/// Text origin, orientation and size policy; physical labels use scene depth.
+#[derive(Clone, Debug, PartialEq)]
+pub enum TextPlacement {
+```
+
+**REPLACE WITH**
+
+```rust
+/// Text origin, orientation and size policy; physical labels use scene depth.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum TextPlacement {
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+/// Authored text participates in ordinary object selection; annotations have no owner.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TextObject {
+    pub row: u32,
+    pub selected: bool,
+}
+
+/// One source label. Sizes, line height, offsets and optional clipping use CSS pixels.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TextLabel {
+```
+
+**REPLACE WITH**
+
+```rust
+/// Authored text participates in ordinary object selection; annotations have no owner.
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TextObject {
+    pub row: u32,
+    pub selected: bool,
+}
+
+/// One source label. Sizes, line height, offsets and optional clipping use CSS pixels.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TextLabel {
+```
+
+### `src/lib.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    CancelPointer,
+```
+
+**ADD BELOW**
+
+```rust
+    SavedScene(Box<app::scene::Scene>),
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        }
+        self.ui = Some(app::ui::Ui::new(&state.window));
+        state.gpu.ui = Some(engine::gpu::ui::Ui::new(
+```
+
+**REPLACE WITH**
+
+```rust
+        }
+        self.ui = Some(app::ui::Ui::new(&state.window, state.logical_size()[0]));
+        state.gpu.ui = Some(engine::gpu::ui::Ui::new(
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+            Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
+```
+
+**ADD BELOW**
+
+```rust
+            Msg::SavedScene(scene) => {
+                state.clear();
+                state.scene = *scene;
+                state.scene.rebuild(&mut state.gpu);
+                state.fit_all();
+                state.refresh_layers();
+                state.touch();
+                app::feedback::status("Session opened");
+            }
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+                        ..
+                    }
+                ) {
+```
+
+**REPLACE WITH**
+
+```rust
+                        ..
+                    } | WindowEvent::Touch(winit::event::Touch {
+                        phase: winit::event::TouchPhase::Ended
+                            | winit::event::TouchPhase::Cancelled,
+                        ..
+                    })
+                ) {
+```
+
+### `src/state.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    pub selection: SelectionMode,
+```
+
+**ADD BELOW**
+
+```rust
+    pub selection_tool: crate::app::selection::SelectionTool,
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+            selection: SelectionMode::Object,
+```
+
+**ADD BELOW**
+
+```rust
+            selection_tool: crate::app::selection::SelectionTool::default(),
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+                        .set_edge(&self.gpu.ctx, Some((pick.row, edge)));
+```
+
+**ADD BELOW**
+
+```rust
+                    self.place_gizmo(Some(pick.row));
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+                        .select(&self.gpu.ctx, Some(address));
+```
+
+**ADD BELOW**
+
+```rust
+                    self.place_gizmo(Some(source.parent));
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
+```
+
+**ADD BELOW**
+
+```rust
+        let face = face || self.selection_tool == crate::app::selection::SelectionTool::Face;
+        let edge = edge || self.selection_tool == crate::app::selection::SelectionTool::Edge;
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        self.status(&format!("Selected {id:?}"));
+```
+
+**ADD ABOVE**
+
+```rust
+        self.place_gizmo(Some(parent));
+```
+
+### `src/state/edit.rs`
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    drag: Drag,
+```
+
+**ADD BELOW**
+
+```rust
+    target: Option<crate::app::deform::Target>,
+    source: Option<session_rust::Geometry>,
+    origin: Point,
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        };
+        let origin = Point::new(
+            f64::from(box_.min[0] + box_.max[0]) * 0.5,
+            f64::from(box_.min[1] + box_.max[1]) * 0.5,
+            f64::from(box_.min[2] + box_.max[2]) * 0.5,
+        );
+        match self.gizmo.as_mut() {
+```
+
+**REPLACE WITH**
+
+```rust
+        };
+        let mut origin = Point::new(
+            f64::from(box_.min[0] + box_.max[0]) * 0.5,
+            f64::from(box_.min[1] + box_.max[1]) * 0.5,
+            f64::from(box_.min[2] + box_.max[2]) * 0.5,
+        );
+        if let Some(row) = row
+            && let Some(target) = crate::app::deform::Target::selected(&self.selection)
+            && let Some(geometry) = self.scene.geometry(row)
+            && let Ok(points) = crate::app::deform::points(geometry, target)
+            && !points.is_empty()
+            && let Some(place) = self.scene.placement_of(row)
+        {
+            let n = points.len() as f64;
+            origin = Point::new(
+                points.iter().map(|p| p[0]).sum::<f64>() / n,
+                points.iter().map(|p| p[1]).sum::<f64>() / n,
+                points.iter().map(|p| p[2]).sum::<f64>() / n,
+            )
+            .transformed(&Xform::from_matrix(place));
+        }
+        match self.gizmo.as_mut() {
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+    pub fn begin_gizmo(&mut self, x: f64, y: f64) -> bool {
+```
+
+**ADD BELOW**
+
+```rust
+        self.begin_gizmo_with_radius(x, y, 8.0)
+    }
+
+    pub fn begin_gizmo_touch(&mut self, x: f64, y: f64) -> bool {
+        self.begin_gizmo_with_radius(x, y, 18.0)
+    }
+
+    fn begin_gizmo_with_radius(&mut self, x: f64, y: f64, radius: f64) -> bool {
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        };
+        let Some(handle) = gizmo.hit(&from, &dir, per_px) else {
+            return false;
+```
+
+**REPLACE WITH**
+
+```rust
+        };
+        let Some(handle) = gizmo.hit_with_radius(&from, &dir, per_px, radius) else {
+            return false;
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+            drag,
+```
+
+**ADD BELOW**
+
+```rust
+            target: crate::app::deform::Target::selected(&self.selection),
+            source: self.scene.geometry(row).cloned(),
+            origin: gizmo.origin.clone(),
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        };
+        let Some(gizmo) = self.gizmo.as_ref() else {
+            return false;
+        };
+        let Some(delta) = gizmo.update(&active.drag, &from, &dir) else {
+            return false;
+        };
+        let place = crate::math::mat_mul(&delta, &active.base_place);
+```
+
+**REPLACE WITH**
+
+```rust
+        };
+        let Some(delta) = Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir)
+        else {
+            return false;
+        };
+        if let (Some(target), Some(source)) = (active.target, active.source.as_ref()) {
+            let row = active.row;
+            let place = Xform::from_matrix(active.base_place);
+            let Some(back) = place.inverse() else {
+                return false;
+            };
+            let local = &(&back * &Xform::from_matrix(delta)) * &place;
+            let edited = match crate::app::deform::transform(source, target, &local) {
+                Ok(value) => value,
+                Err(error) => {
+                    self.status(&error);
+                    return false;
+                }
+            };
+            let origin = active.origin.transformed(&Xform::from_matrix(delta));
+            if let Err(error) = self.scene.preview_geometry(row, edited, &mut self.gpu) {
+                self.status(&error);
+                return false;
+            }
+            if let Some(gizmo) = self.gizmo.as_mut() {
+                gizmo.origin = origin;
+            }
+            self.upload_gizmo();
+            self.touch();
+            return true;
+        }
+        let place = crate::math::mat_mul(&delta, &active.base_place);
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+            return false;
+        };
+        self.gpu
+```
+
+**REPLACE WITH**
+
+```rust
+            return false;
+        };
+        if active.target.is_some() {
+            self.scene.rebuild(&mut self.gpu);
+            self.restore_edit_selection(active.row);
+        }
+        self.gpu
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        gizmo.drag = None;
+        let Some(delta) = gizmo.update(&active.drag, &from, &dir) else {
+            return false;
+        };
+        // The delta is a WORLD matrix and the session stores a LOCAL one: the same conjugation
+```
+
+**REPLACE WITH**
+
+```rust
+        gizmo.drag = None;
+        let Some(delta) = Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir)
+        else {
+            return false;
+        };
+        if let Some(target) = active.target {
+            let result = self.scene.edit_subobject(
+                active.row,
+                target,
+                &Xform::from_matrix(delta),
+                "transform subobject",
+            );
+            self.scene.rebuild(&mut self.gpu);
+            self.restore_edit_selection(active.row);
+            if let Err(error) = result {
+                self.status(&error);
+                return false;
+            }
+            self.refresh_layers();
+            self.touch();
+            return true;
+        }
+        // The delta is a WORLD matrix and the session stores a LOCAL one: the same conjugation
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        if let Some(active) = self.dragging.take() {
+```
+
+**ADD BELOW**
+
+```rust
+            if active.target.is_some() {
+                self.scene.rebuild(&mut self.gpu);
+                self.restore_edit_selection(active.row);
+            }
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        match command {
+```
+
+**ADD BELOW**
+
+```rust
+            Command::Save => {
+                let bytes = crate::app::session_io::save(&self.scene)?;
+                #[cfg(target_arch = "wasm32")]
+                crate::app::session_io::download(&bytes)
+                    .map_err(|e| format!("Save failed: {e:?}"))?;
+                Ok(format!("Saved complete session ({} bytes)", bytes.len()))
+            }
+            Command::Open => {
+                #[cfg(target_arch = "wasm32")]
+                crate::app::session_io::pick();
+                Ok("Choose a .session file".into())
+            }
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        let Some(place) = self.scene.transform_row(row, &delta, label) else {
+```
+
+**ADD ABOVE**
+
+```rust
+        if let Some(target) = crate::app::deform::Target::selected(&self.selection) {
+            self.scene.edit_subobject(row, target, &delta, label)?;
+            self.scene.rebuild(&mut self.gpu);
+            self.restore_edit_selection(row);
+            self.touch();
+            return Ok(label.into());
+        }
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        };
+        let index = match active.id {
+            ControlId::Curve { point, .. } => point,
+            ControlId::Vertex(index) => index,
+            _ => return false,
+        };
+        if !self.scene.set_control_point(active.parent, index, &point) {
+            self.status("This geometry's control points cannot be edited");
+            return false;
+```
+
+**REPLACE WITH**
+
+```rust
+        };
+        if let Err(error) = self
+            .scene
+            .set_source_control(active.parent, active.id, &point)
+        {
+            self.status(&error);
+            return false;
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        );
+    }
+}
+```
+
+**ADD BELOW**
+
+```rust
+
+impl State {
+    /// Rebuilds keep source identities while GPU addresses and highlighting are refreshed.
+    fn restore_edit_selection(&mut self, row: u32) {
+        let selection = self.selection.clone();
+        self.select(Some(row));
+        self.selection = selection;
+        match self.selection {
+            SelectionMode::Controls { .. } => {
+                self.gpu.set_selected(row, false);
+                if let Some(geometry) = self.scene.geometry(row) {
+                    self.controls = crate::app::selection::Controls::from_geometry(geometry);
+                }
+                self.upload_controls();
+            }
+            SelectionMode::Face { face, .. } => {
+                self.gpu.set_selected(row, false);
+                let address = self.gpu.arena.source_faces.address(row, face);
+                self.gpu.arena.source_faces.select(&self.gpu.ctx, address);
+            }
+            SelectionMode::Edge { edge, .. } => {
+                self.gpu.set_selected(row, false);
+                self.gpu.segments.set_edge(&self.gpu.ctx, Some((row, edge)));
+            }
+            SelectionMode::Object => {}
+        }
+        self.place_gizmo(Some(row));
+        self.refresh_layers();
+        self.touch();
+    }
+}
+```
+
+### Check step 8
+
+**Verified:** the complete step compiles for WebAssembly.
+
+```bash
+cargo check -j4 --lib
+```
+
+
+## Answers and next action
+
+**How do I add a toolbar button?** Add `(label, tooltip, command)` to `TOOLBAR` in `src/app/ui.rs`. For example, `("Move", "Move the selection", "move 10 0 0")` opens a complete editable command. Commands with arguments populate the bottom field; commands without arguments run immediately. Add a new verb to `Command`, `parse` and `State::run_command` when the button needs a new operation.
+
+**How do I select without Ctrl on a phone?** Tap **Obj**, **Edge** or **Face** on the left. **Vtx** shows the selected object's source vertices and controls. Tap a control, then drag it directly or use its gumball. One finger on a handle edits; a second finger cancels that edit. Ordinary touch camera gestures remain available off the handles. The layers panel starts closed on a narrow screen; **Layer** opens it on the right.
+
+**Which source edits work?** Mesh vertices, original edges and faces; line/polyline vertices; NURBS curve controls; NURBS surface controls, natural boundaries and faces; compatible BRep controls, edges and faces, including the box fixture. Mesh-face movement changes shared source vertices, not separate render triangles. Rational surface weights remain unchanged. General trimmed-BRep edits that require rebuilding adjacent trim curves are not implemented: the operation reports the limit and preserves the original solid.
+
+**What does Save contain?** Every retained source Session as protobuf, each document's placement and point size, hidden identities and authored text. The single `.session` file reopens through **Open**. Serialization uses snapshots so the live undo history survives saving. Sources loaded only as streamed prefixes cannot be exported as a complete editable session; Save refuses instead of silently omitting them. The browser tests exercise actual downloads and reopening.
+
+**What reaches the GPU during a subobject drag?** A temporary source replacement is walked into the render buffers, then the retained source is restored immediately. Release records one replacement; cancellation rebuilds from the untouched source. This rebuild path prioritizes correct source geometry and is more expensive than a whole-object transform.
+
+**Run now**, in the same learning workspace:
+
+```bash
+cargo check -j4 --lib
+trunk serve --port 8780
+```
+
+Expected compiler result: `Finished` with no errors. Open <http://localhost:8780/?data=off&inspect=1>. The command area spans the bottom at all times; Esc returns keyboard focus to the scene. Layers dock on the right, tools form a left stripe, and phone controls keep their CSS size at high DPI. Select a mesh face and run `move 0 0 1`: only its source vertices move. Save, reopen the file and verify the updated geometry. Undo works before and after a save in the same live session.
+
+Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Keep source dragging live and build one layer tree](current-9.md) and apply its blocks in order.
+
+[Previous](current-7.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-9.md)
+
+## Expected viewer result
+
+The completed workspace: a command area across the entire bottom, a right-hand Layers panel, a left toolbar and a selected object with its solid gumball. Commands operate on source geometry; Save writes the complete retained session to one .session file. See the [phone capture](screenshots/extensions-workspace-phone.png) for the narrow-screen layout.
+
+[![Full viewer result for current 8](screenshots/extensions-workspace-desktop.png)](screenshots/extensions-workspace-desktop.png)

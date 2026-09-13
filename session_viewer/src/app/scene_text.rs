@@ -11,8 +11,8 @@ use session_rust::Xform;
 pub struct SceneText {
     pub label: TextLabel,
     pub row: u32,
-    pub(super) key: String,
-    pub(super) active: bool,
+    pub(crate) key: String,
+    pub(crate) active: bool,
 }
 
 impl Scene {
@@ -68,7 +68,7 @@ impl Scene {
     }
 
     /// Reuse the row for this source key, or append one ordinary identity/instance pair.
-    pub(super) fn register_text(&mut self, key: String, mut label: TextLabel, active: bool) {
+    pub(crate) fn register_text(&mut self, key: String, mut label: TextLabel, active: bool) {
         for text in &mut self.texts {
             if text.key == key {
                 label.id = text.row + 1;

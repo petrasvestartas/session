@@ -744,3 +744,9 @@ State the frame order and justify one adjacency. Correct order: face highlight, 
 ## Next
 
 [18 · Finite-triangle visibility](18-finite-visibility.md): why a neighbouring triangle's plane can hide a visible seam, and the tile index that fixes it.
+
+## Expected viewer result
+
+The full interaction fixture after adding source-face selection, authored text and silhouettes. Use the selection examples above to check each new interaction.
+
+[![Full viewer result for 17 source presentation](screenshots/17.png)](screenshots/17.png)

@@ -33,6 +33,7 @@ pub struct ArenaRows {
     /// One upload-local original face address per solid triangle.
     pub face_ids: Vec<u32>,
     pub face_sources: Vec<super::faces::FaceSource>,
+    pub surface_samples: Vec<crate::app::surface_preview::Sample>,
 }
 
 impl ArenaRows {
@@ -45,6 +46,7 @@ impl ArenaRows {
         drop_rows(&mut self.idx_text);
         drop_rows(&mut self.face_ids);
         drop_rows(&mut self.face_sources);
+        drop_rows(&mut self.surface_samples);
     }
 }
 
@@ -148,6 +150,22 @@ impl ArenaLane {
         self.text.append(ctx, &up.idx_text);
         self.source_faces
             .append(ctx, up, [&self.verts.buf, &self.vids.buf, &self.faces.buf]);
+    }
+
+    pub(crate) fn patch_vertices(&mut self, ctx: &GpuCtx, first: u32, vertices: &[RenderVertex]) {
+        self.tiles.invalidate();
+        self.verts.write_at(ctx, first, vertices);
+    }
+
+    /// Replace an existing object's fixed-size ranges; unrelated buffers remain untouched.
+    pub(crate) fn patch(&mut self, ctx: &GpuCtx, at: super::patch::Counts, up: &ArenaRows) {
+        self.tiles.invalidate();
+        self.verts.write_at(ctx, at.verts, &up.verts);
+        self.vids.write_at(ctx, at.verts, &up.vids);
+        self.faces.write_at(ctx, at.faces, &up.idx);
+        self.print.write_at(ctx, at.print, &up.idx_print);
+        self.text.write_at(ctx, at.text, &up.idx_text);
+        self.source_faces.patch(ctx, at, up);
     }
 
     /// The solid faces, one indexed draw: the physical depth every ink fragment reads.

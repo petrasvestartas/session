@@ -12,7 +12,7 @@ These are **code lessons**, starting from checkpoint 21. Choose one. Each shows 
 
 For using the maintained viewer, follow the [command-line walkthrough with screenshots](command-line-walkthrough.md). Its interface uses egui, like the archive. The independent modeling and panel lessons retain checkpoint 21's DOM interface; the optional egui lesson replaces it.
 
-For all features together, use the [seven sequential checkpoints](extend-integrated-tutorial.md). Their shared wiring is resolved explicitly and their final source is checked against the maintained viewer.
+For all features together, use the [nine sequential checkpoints](extend-integrated-tutorial.md). Their shared wiring is resolved explicitly and their final source is checked against the maintained viewer.
 
 ## Start one lesson
 
@@ -43,8 +43,14 @@ The pictures in the lessons are captures of the running viewer using the supplie
 - Trim/extend: normalized parameter intervals on lines and NURBS curves; no cutting-object intersections.
 - Explode: polylines into individual lines; no BRep or mesh explosion.
 - Panel: nested group and graph-attribute selection/hiding; no reparenting or group transforms.
-- Controls: polyline and NURBS control dragging; no mesh vertex or surface-control writes.
+- Independent controls lesson: polyline and NURBS control dragging. [Checkpoint 8](current-8.md) adds mesh vertices/edges/faces, NURBS surface controls/boundaries and compatible BRep edits, plus docked UI, touch interaction and Save/Open.
 
 Commands are bounded; panel indexes use bounded row vectors and do not own geometry. Undo retains source snapshots, so these limits are not a whole-browser memory guarantee. Geometry commits refuse streamed scenes that the existing rebuild path cannot preserve.
 
 For the solid mesh gumball, follow [its code lesson](extend-gumball-tutorial.md). [Lesson 21](21-editing.md) remains the frozen starting point. The older gumball, command-line and panel design pages are background reading, not the implementation instructions.
+
+## Expected viewer result
+
+The completed viewer: a command dock across the bottom with syntax hints, one right-hand layer tree with bulbs, selection locks and color swatches, and a left toolbar. The selected source object has its solid gumball. Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
+
+[![Full viewer result for extend implementation](screenshots/extensions-workspace-current-desktop.png)](screenshots/extensions-workspace-current-desktop.png)

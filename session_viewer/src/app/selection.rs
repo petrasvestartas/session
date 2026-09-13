@@ -248,3 +248,12 @@ mod tests {
         assert_eq!(controls.links, [[0, 1]]);
     }
 }
+
+/// Persistent selection mode for toolbar and touch users without modifier keys.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum SelectionTool {
+    #[default]
+    Object,
+    Edge,
+    Face,
+}

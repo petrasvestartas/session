@@ -350,3 +350,9 @@ Draw the frame on paper. Correct: the face pass clears colour, depth and gradien
 ## Next
 
 [06 · CAD face contract](06-cad-contract.md): BRep faces, surfaces and boundary records flow from the shared kernel into display data.
+
+## Expected viewer result
+
+Checkpoint 05: hidden lines stay hidden while visible strokes and corners stay readable, over the white backdrop.
+
+[![Full viewer result for 05 visibility](screenshots/05.png)](screenshots/05.png)

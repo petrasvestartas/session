@@ -231,3 +231,9 @@ Narrate a click from browser event to highlighted object, without looking. Corre
 [Extending the viewer](extend-roadmap.md): what it still cannot do, and how a gumball, a command line and layer panels would fit this architecture.
 
 [Architecture reference](../ARCHITECTURE.md): the finished module graph, frame lifecycle and Rust ↔ WGSL interfaces.
+
+## Expected viewer result
+
+The viewer appearance is unchanged from checkpoint 19: the same two sheets still draw in top view. This lesson adds kernel history, with no new viewer controls; the undo, redo and save checks above verify the new behavior. The image is a maintained-viewer reference of the same sheet scene.
+
+[![Full viewer result for 20 history](screenshots/19-sheets-overview.png)](screenshots/19-sheets-overview.png)

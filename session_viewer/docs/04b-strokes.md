@@ -243,3 +243,9 @@ Say in two sentences why a stroke keeps its pixel width when you zoom out, and w
 ## Next
 
 [04c · Markers](04c-markers.md): vertex markers on a quad template and free dots as SDF triangles.
+
+## Expected viewer result
+
+Checkpoint 04b: strokes expanded on the GPU into screen-space ribbons beside the mesh.
+
+[![Full viewer result for 04b strokes](screenshots/04b.png)](screenshots/04b.png)

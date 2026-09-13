@@ -242,3 +242,31 @@ the default centered white/black label and T persistence.
 `node tests/editing-extensions.cjs` runs five configurations against the supplied nested fixture: desktop, smaller viewport, perspective, 2× DPI and resize. Each checks tree/graph selection and hide/show, creation, trim/extend, explode/undo, all four gumball gestures, control commit/cancel and widget memory release. It writes `docs/extensions/rounds.json`; a browser without an adapter fails the run.
 
 `node docs/extensions/capture.cjs` records real tutorial screenshots and their inspection state in `docs/extensions/screenshots.json`. Both scripts use `CHROME_BIN`, `VIEWER_URL` and JSON `VIEWER_CHROME_ARGS`. They inherit GPU environment variables from the shell and close their own browser contexts.
+
+## Docked workspace and source edits
+
+`node tests/docked-workspace.cjs` checks the bottom command area, left toolbar and
+right Layers panel at desktop DPR 1/2 and a 390×844 phone viewport. It uses real
+browser touch events for gumball commit, cancellation and second-finger cancellation,
+and downloads then reopens a complete `.session` file. Captures and saved files go
+to `/tmp/viewer-docked-workspace` (`VIEWER_TEST_OUTPUT` overrides it).
+
+`node tests/source-editing.cjs` checks mesh, NURBS surface and BRep face/edge edits,
+then moves an original mesh vertex with the touch gumball and undoes the change.
+Every subobject edit preserves its parent placement. Generate its fixture first:
+
+```sh
+REGEN_PROTO=0 cargo run --target x86_64-unknown-linux-gnu --example interaction_fixture -- /tmp/viewer-interaction.pb
+node tests/source-editing.cjs
+```
+
+Both checks use the Chrome and environment settings described above. Mobile coverage
+uses Chrome touch emulation; physical iOS/Android devices have not been tested.
+Native `app::deform` and `app::session_io` tests cover sparse source mesh IDs,
+rational weights, joined BRep box boundaries, snapshot serialization and live undo.
+General BRep edits requiring trim reconstruction and exporting partially streamed
+scenes remain unsupported and return an error.
+
+`node tests/live-shell-editing.cjs` checks real Ctrl+Shift shell dragging and release, retained source edits, undo, and visible Point creation hints. `VIEWER_STRESS=1` also loads the bunny mesh and 342,000-point cloud to catch full-scene rebuilds during an edit.
+
+`node tests/layer-workspace.cjs` checks a single expandable layer tree, descendant visibility, selection locks and color changes, then saves/reopens the session and unlocks the same objects. Its full-viewer capture is written to `/tmp/viewer-layer-workspace/layers.png`.

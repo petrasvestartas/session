@@ -1158,3 +1158,9 @@ Load the supplied nested fixture below. Press L. Open the document, Assembly and
 **Why clear row selection after rebuilding?** Row numbers are upload addresses, not permanent identities. A rebuild can assign the same number to a different object.
 
 **Where is the exact patch?** [step 1](extensions/panels-1.patch), [step 2](extensions/panels-2.patch), [step 3](extensions/panels-3.patch). The patch and these visible instructions are generated from the same changes.
+
+## Expected viewer result
+
+The expanded Session layers panel shows Assembly → Nested; selecting Nested highlights its two beams together. This maintained-viewer capture uses egui styling; the independent panel lesson uses DOM buttons with the same hierarchy and selection behavior. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md). The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for extend panels tutorial](screenshots/extensions-panels.png)](screenshots/extensions-panels.png)

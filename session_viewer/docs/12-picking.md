@@ -745,3 +745,9 @@ List the frame's passes in order with what each reads and writes: backdrop and f
 ## Next
 
 [13 · Source controls](13-controls.md): F10 shows original vertices and control points, and streamed clouds answer from every source page.
+
+## Expected viewer result
+
+Checkpoint 12: the seven-object interaction fixture in the production shell, nothing selected.
+
+[![Full viewer result for 12 picking](screenshots/12.png)](screenshots/12.png)

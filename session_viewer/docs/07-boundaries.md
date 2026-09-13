@@ -301,3 +301,9 @@ Explain why the fix is upstream of the viewer. Correct: the viewer receives two 
 ## Next
 
 [08 · Trims and seams](08-trimming.md): holes, natural boundaries and repeated seam uses keep correct geometry and source IDs.
+
+## Expected viewer result
+
+Checkpoint 07: a cylinder and a block with a hole; every CAD edge is ink drawn from the shared face-mesh nodes.
+
+[![Full viewer result for 07 boundaries](screenshots/07.png)](screenshots/07.png)

@@ -111,7 +111,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
 
     var o: VsOut;
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
-    var color = g.color * inst.color;
+    var color = object_color(g.color, inst);
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = vec4<f32>(SELECT_COLOR, color.a);
     }

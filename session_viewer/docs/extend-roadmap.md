@@ -184,3 +184,9 @@ lesson 21; what follows is what is left.
 - **12–13.** F10, drag, release: the object deforms, the outline follows, a click picks the deformed surface.
 - **14.** Drag an edit point on a circle: it follows exactly, and the circle is still a circle.
 - **15.** Drag a surface control point across another object's silhouette: the two stay correctly ordered throughout the drag, not only after release.
+
+## Expected viewer result
+
+The completed viewer: a command dock across the bottom with syntax hints, one right-hand layer tree with bulbs, selection locks and color swatches, and a left toolbar. The selected source object has its solid gumball. Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
+
+[![Full viewer result for extend roadmap](screenshots/extensions-workspace-current-desktop.png)](screenshots/extensions-workspace-current-desktop.png)

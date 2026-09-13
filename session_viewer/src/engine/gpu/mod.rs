@@ -14,6 +14,7 @@ pub mod glyphs;
 pub mod instance;
 pub mod lod;
 pub mod objects;
+pub(crate) mod patch;
 pub mod pick;
 pub mod present;
 pub mod render;
@@ -430,6 +431,11 @@ impl Gpu {
         self.selection_outline.set_selected(row, on);
         self.objects
             .set_flag(&self.ctx, row, Instance::FLAG_SELECTED, on);
+        self.splat.invalidate();
+    }
+
+    pub fn set_object_color(&mut self, row: u32, color: [u8; 3]) {
+        self.objects.set_color(&self.ctx, row, color);
         self.splat.invalidate();
     }
 

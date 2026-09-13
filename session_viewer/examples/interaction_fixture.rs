@@ -46,8 +46,7 @@ fn main() {
         Some([2.5, 3.5, 0.0]),
         3,
     ));
-    let mut curve =
-        NurbsCurve::create_clamped_uniform(3, 3, &[p(8.0, 3.0), p(9.0, 4.0), p(10.0, 3.0)], 1.0);
+    let mut curve = NurbsCurve::create(false, 2, &[p(8.0, 3.0), p(9.0, 4.0), p(10.0, 3.0)]);
     curve.name = "interaction curve".into();
     curve.width = 0.02;
     let guid = curve.guid().to_string();
@@ -59,7 +58,16 @@ fn main() {
         Some([9.0, 3.5, 0.0]),
         3,
     ));
-    let mut surface = NurbsSurface::create_simple(3, false, 2, 2, 2, 2).unwrap();
+    let mut surface = NurbsSurface::create(
+        false,
+        false,
+        1,
+        1,
+        2,
+        2,
+        &[p(0., 0.), p(1., 0.), p(0., 1.), p(1., 1.)],
+    )
+    .unwrap();
     for u in 0..2 {
         for v in 0..2 {
             surface.set_cv(u, v, &p(-10.0 + 2.0 * u as f64, -4.0 + 2.0 * v as f64));

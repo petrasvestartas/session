@@ -50,6 +50,7 @@ pub struct State {
     /// When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
     last_resize_ms: f64,
     pub selection: SelectionMode,
+    pub selection_tool: crate::app::selection::SelectionTool,
     hierarchy: crate::app::hierarchy::Hierarchy,
     controls: Controls,
     requested: PickMode,
@@ -87,6 +88,7 @@ impl State {
             last_frame_ms: 0.0,
             last_resize_ms: f64::NEG_INFINITY,
             selection: SelectionMode::Object,
+            selection_tool: crate::app::selection::SelectionTool::default(),
             hierarchy: Default::default(),
             controls: Controls::default(),
             requested: PickMode::Object,
@@ -289,6 +291,7 @@ impl State {
 
     /// Make `row` the selection (or none), moving the highlight.
     pub fn select(&mut self, row: Option<u32>) {
+        let row = row.filter(|row| self.scene.selectable(*row));
         self.cancel_gesture();
         for old in self.hierarchy.selected.drain(..) {
             self.gpu.set_selected(old, false);
@@ -359,6 +362,7 @@ impl State {
 
     /// A pick came back: log what it hit and select it (clicking the selection clears it).
     fn apply_pick(&mut self, pick: Option<Pick>) {
+        let pick = pick.filter(|pick| self.scene.selectable(pick.row));
         #[cfg(target_arch = "wasm32")]
         if self.cloud_query_awaiting_gpu() {
             self.apply_cloud_query_pick(pick);
@@ -375,6 +379,7 @@ impl State {
                     self.gpu
                         .segments
                         .set_edge(&self.gpu.ctx, Some((pick.row, edge)));
+                    self.place_gizmo(Some(pick.row));
                     self.status(&format!("Edge {edge} selected"));
                 } else if self.requested == PickMode::Component
                     && let Some(pick) = pick
@@ -392,6 +397,7 @@ impl State {
                         .arena
                         .source_faces
                         .select(&self.gpu.ctx, Some(address));
+                    self.place_gizmo(Some(source.parent));
                     self.status(&format!("Face {} selected", source.face));
                 }
                 return;
@@ -561,6 +567,8 @@ impl State {
     /// with edges still winning. Both false is the ordinary object pass, or the control-point
     /// pass while F10 controls are up. Ctrl never also performs ordinary selection.
     pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
+        let face = face || self.selection_tool == crate::app::selection::SelectionTool::Face;
+        let edge = edge || self.selection_tool == crate::app::selection::SelectionTool::Edge;
         self.cancel_cloud_query();
         self.gpu.pick.cancel();
         #[cfg(target_arch = "wasm32")]
@@ -722,6 +730,7 @@ impl State {
             cloud,
         };
         self.upload_controls();
+        self.place_gizmo(Some(parent));
         self.status(&format!("Selected {id:?}"));
         self.touch();
     }

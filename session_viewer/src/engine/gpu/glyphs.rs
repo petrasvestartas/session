@@ -100,6 +100,11 @@ pub struct GlyphLane {
 }
 
 impl GlyphLane {
+    pub(crate) fn patch(&mut self, ctx: &GpuCtx, at: super::patch::Counts, up: &GlyphRows) {
+        self.spheres.buf.write_at(ctx, at.spheres, &up.spheres);
+        self.dots.buf.write_at(ctx, at.dots, &up.dots);
+    }
+
     /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
     pub fn allocated_bytes(&self) -> u64 {
         self.spheres.buf.buf.size()

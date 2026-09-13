@@ -26,6 +26,9 @@ pub struct GizmoDrag {
     /// The full placement at the grab, for the same reason, on the GPU side.
     base_place: [f64; 16],
     drag: Drag,
+    target: Option<crate::app::deform::Target>,
+    source: Option<session_rust::Geometry>,
+    origin: Point,
 }
 
 impl State {
@@ -41,11 +44,26 @@ impl State {
             self.upload_gizmo();
             return;
         };
-        let origin = Point::new(
+        let mut origin = Point::new(
             f64::from(box_.min[0] + box_.max[0]) * 0.5,
             f64::from(box_.min[1] + box_.max[1]) * 0.5,
             f64::from(box_.min[2] + box_.max[2]) * 0.5,
         );
+        if let Some(row) = row
+            && let Some(target) = crate::app::deform::Target::selected(&self.selection)
+            && let Some(geometry) = self.scene.geometry(row)
+            && let Ok(points) = crate::app::deform::points(geometry, target)
+            && !points.is_empty()
+            && let Some(place) = self.scene.placement_of(row)
+        {
+            let n = points.len() as f64;
+            origin = Point::new(
+                points.iter().map(|p| p[0]).sum::<f64>() / n,
+                points.iter().map(|p| p[1]).sum::<f64>() / n,
+                points.iter().map(|p| p[2]).sum::<f64>() / n,
+            )
+            .transformed(&Xform::from_matrix(place));
+        }
         match self.gizmo.as_mut() {
             Some(gizmo) => gizmo.set_origin(origin),
             None => self.gizmo = Some(Gizmo::new(origin)),
@@ -56,6 +74,14 @@ impl State {
     /// Try to grab a gizmo handle under the cursor. False means the click was not on the
     /// widget and the caller should go on to pick.
     pub fn begin_gizmo(&mut self, x: f64, y: f64) -> bool {
+        self.begin_gizmo_with_radius(x, y, 8.0)
+    }
+
+    pub fn begin_gizmo_touch(&mut self, x: f64, y: f64) -> bool {
+        self.begin_gizmo_with_radius(x, y, 18.0)
+    }
+
+    fn begin_gizmo_with_radius(&mut self, x: f64, y: f64, radius: f64) -> bool {
         let Some(row) = self.scene.selected else {
             return false;
         };
@@ -66,7 +92,7 @@ impl State {
         let Some(gizmo) = self.gizmo.as_mut() else {
             return false;
         };
-        let Some(handle) = gizmo.hit(&from, &dir, per_px) else {
+        let Some(handle) = gizmo.hit_with_radius(&from, &dir, per_px, radius) else {
             return false;
         };
         let Some(drag) = gizmo.begin(handle, &from, &dir) else {
@@ -83,6 +109,9 @@ impl State {
             base_local,
             base_place,
             drag,
+            target: crate::app::deform::Target::selected(&self.selection),
+            source: self.scene.geometry(row).cloned(),
+            origin: gizmo.origin.clone(),
         });
         true
     }
@@ -95,12 +124,36 @@ impl State {
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
             return false;
         };
-        let Some(gizmo) = self.gizmo.as_ref() else {
+        let Some(delta) = Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir)
+        else {
             return false;
         };
-        let Some(delta) = gizmo.update(&active.drag, &from, &dir) else {
-            return false;
-        };
+        if let (Some(target), Some(source)) = (active.target, active.source.as_ref()) {
+            let row = active.row;
+            let place = Xform::from_matrix(active.base_place);
+            let Some(back) = place.inverse() else {
+                return false;
+            };
+            let local = &(&back * &Xform::from_matrix(delta)) * &place;
+            let edited = match crate::app::deform::transform(source, target, &local) {
+                Ok(value) => value,
+                Err(error) => {
+                    self.status(&error);
+                    return false;
+                }
+            };
+            let origin = active.origin.transformed(&Xform::from_matrix(delta));
+            if let Err(error) = self.scene.preview_geometry(row, edited, &mut self.gpu) {
+                self.status(&error);
+                return false;
+            }
+            if let Some(gizmo) = self.gizmo.as_mut() {
+                gizmo.origin = origin;
+            }
+            self.upload_gizmo();
+            self.touch();
+            return true;
+        }
         let place = crate::math::mat_mul(&delta, &active.base_place);
         self.gpu
             .objects
@@ -128,9 +181,27 @@ impl State {
             return false;
         };
         gizmo.drag = None;
-        let Some(delta) = gizmo.update(&active.drag, &from, &dir) else {
+        let Some(delta) = Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir)
+        else {
             return false;
         };
+        if let Some(target) = active.target {
+            let result = self.scene.edit_subobject(
+                active.row,
+                target,
+                &Xform::from_matrix(delta),
+                "transform subobject",
+            );
+            self.restore_source_render(active.row);
+            self.restore_edit_selection(active.row);
+            if let Err(error) = result {
+                self.status(&error);
+                return false;
+            }
+            self.refresh_layers();
+            self.touch();
+            return true;
+        }
         // The delta is a WORLD matrix and the session stores a LOCAL one: the same conjugation
         // the command line goes through, or the object jumps to a different place than the last
         // preview frame drew it.
@@ -164,6 +235,10 @@ impl State {
     /// no key reaches that state.
     pub fn cancel_gesture(&mut self) {
         if let Some(active) = self.dragging.take() {
+            if active.target.is_some() {
+                self.restore_source_render(active.row);
+                self.restore_edit_selection(active.row);
+            }
             self.gpu
                 .objects
                 .set_placement(&self.gpu.ctx, active.row, &active.base_place);
@@ -353,10 +428,44 @@ impl State {
             return Err("nothing is selected".into());
         }
         match command {
+            Command::Save => {
+                let bytes = crate::app::session_io::save(&self.scene)?;
+                #[cfg(target_arch = "wasm32")]
+                crate::app::session_io::download(&bytes)
+                    .map_err(|e| format!("Save failed: {e:?}"))?;
+                Ok(format!("Saved complete session ({} bytes)", bytes.len()))
+            }
+            Command::Open => {
+                #[cfg(target_arch = "wasm32")]
+                crate::app::session_io::pick();
+                Ok("Choose a .session file".into())
+            }
             Command::Model(command) => {
+                use crate::app::modeling::Modeling;
+                let created = matches!(
+                    command,
+                    Modeling::Point(_) | Modeling::Line(..) | Modeling::Polyline(_)
+                );
                 self.scene.model(&command)?;
                 self.after_history();
-                Ok("geometry updated".into())
+                if created {
+                    if let Some(doc) = self.scene.created_doc {
+                        let row = (0..self.gpu.objects.len())
+                            .rev()
+                            .find(|&row| self.scene.identity_of(row).is_some_and(|id| id.0 == doc));
+                        self.select(row);
+                    }
+                    let name = match command {
+                        Modeling::Point(_) => "point",
+                        Modeling::Line(..) => "line",
+                        _ => "polyline",
+                    };
+                    Ok(format!(
+                        "Created and selected {name}. Type Fit to locate it; Undo to remove it."
+                    ))
+                } else {
+                    Ok("geometry updated".into())
+                }
             }
             Command::Move(d) => self.apply(Xform::translation(d[0], d[1], d[2]), "move"),
             Command::Rotate { axis, degrees } => {
@@ -414,6 +523,13 @@ impl State {
         let Some(row) = self.scene.selected else {
             return Err("nothing is selected".into());
         };
+        if let Some(target) = crate::app::deform::Target::selected(&self.selection) {
+            self.scene.edit_subobject(row, target, &delta, label)?;
+            self.scene.rebuild(&mut self.gpu);
+            self.restore_edit_selection(row);
+            self.touch();
+            return Ok(label.into());
+        }
         let Some(place) = self.scene.transform_row(row, &delta, label) else {
             return Err("this row cannot be edited".into());
         };
@@ -479,15 +595,7 @@ impl State {
             return;
         }
         self.hierarchy.refresh(&self.scene);
-        let mut rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
-            .into_iter()
-            .map(|row| crate::app::feedback::LayerRow {
-                key: row.layer.key(),
-                label: row.label,
-                count: row.count,
-                hidden: row.hidden,
-            })
-            .collect();
+        let mut rows = Vec::new();
         self.hierarchy_labels(&mut rows);
         crate::app::feedback::layers_panel(&rows);
     }
@@ -596,13 +704,11 @@ impl State {
         let Some(point) = self.control_target(&active, x, y) else {
             return false;
         };
-        let index = match active.id {
-            ControlId::Curve { point, .. } => point,
-            ControlId::Vertex(index) => index,
-            _ => return false,
-        };
-        if !self.scene.set_control_point(active.parent, index, &point) {
-            self.status("This geometry's control points cannot be edited");
+        if let Err(error) = self
+            .scene
+            .set_source_control(active.parent, active.id, &point)
+        {
+            self.status(&error);
             return false;
         }
         self.scene.rebuild(&mut self.gpu);
@@ -758,5 +864,46 @@ mod tests {
             1.0,
             "no surface, no answer"
         );
+    }
+}
+
+impl State {
+    /// Rebuilds keep source identities while GPU addresses and highlighting are refreshed.
+    fn restore_edit_selection(&mut self, row: u32) {
+        let selection = self.selection.clone();
+        self.select(Some(row));
+        self.selection = selection;
+        match self.selection {
+            SelectionMode::Controls { .. } => {
+                self.gpu.set_selected(row, false);
+                if let Some(geometry) = self.scene.geometry(row) {
+                    self.controls = crate::app::selection::Controls::from_geometry(geometry);
+                }
+                self.upload_controls();
+            }
+            SelectionMode::Face { face, .. } => {
+                self.gpu.set_selected(row, false);
+                let address = self.gpu.arena.source_faces.address(row, face);
+                self.gpu.arena.source_faces.select(&self.gpu.ctx, address);
+            }
+            SelectionMode::Edge { edge, .. } => {
+                self.gpu.set_selected(row, false);
+                self.gpu.segments.set_edge(&self.gpu.ctx, Some((row, edge)));
+            }
+            SelectionMode::Object => {}
+        }
+        self.place_gizmo(Some(row));
+        self.refresh_layers();
+        self.touch();
+    }
+}
+
+impl State {
+    fn restore_source_render(&mut self, row: u32) {
+        let geometry = self.scene.geometry(row).cloned();
+        if !geometry.is_some_and(|geometry| self.scene.patch_preview(row, &geometry, &mut self.gpu))
+        {
+            self.scene.rebuild(&mut self.gpu);
+        }
     }
 }

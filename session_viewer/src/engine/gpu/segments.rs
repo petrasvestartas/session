@@ -327,6 +327,24 @@ impl SegmentLane {
         }
     }
 
+    pub(crate) fn patch_pipes(&mut self, ctx: &GpuCtx, first: u32, up: &SegRows) {
+        let pipes = joined_rows(&up.pipes, &up.pipe_chains, first);
+        self.pipes.buf.write_at(ctx, first, &pipes);
+    }
+
+    pub(crate) fn patch(&mut self, ctx: &GpuCtx, at: super::patch::Counts, up: &SegRows) {
+        let pipes = joined_rows(&up.pipes, &up.pipe_chains, at.pipes);
+        self.pipes.buf.write_at(ctx, at.pipes, &pipes);
+        let mut ids = up.pipe_ids.clone();
+        ids.resize(up.pipes.len(), u32::MAX);
+        self.pipes.ids.write_at(ctx, at.pipes, &ids);
+        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, at.ribbons);
+        self.ribbons.buf.write_at(ctx, at.ribbons, &ribbons);
+        let mut ids = up.ribbon_ids.clone();
+        ids.resize(up.ribbons.len(), u32::MAX);
+        self.ribbons.ids.write_at(ctx, at.ribbons, &ids);
+    }
+
     /// Which sheet a global ribbon row belongs to: (object row, segment index within it).
     pub fn row_of(&self, row: u32) -> Option<(u32, u32)> {
         let (index, local) = sheet_of(&self.sheets, row)?;

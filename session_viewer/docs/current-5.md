@@ -1099,3 +1099,9 @@ Expected compiler result: `Finished` with no errors. Open <http://localhost:8780
 Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Build the egui panel and command interface](current-6.md) and apply its blocks in order.
 
 [Previous](current-4.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-6.md)
+
+## Expected viewer result
+
+The expanded Session layers panel shows Assembly → Nested; selecting Nested highlights its two beams together. This maintained-viewer capture uses egui styling; this checkpoint uses DOM buttons with the same hierarchy and selection behavior. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md). The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for current 5](screenshots/extensions-panels.png)](screenshots/extensions-panels.png)

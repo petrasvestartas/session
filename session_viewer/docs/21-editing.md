@@ -649,3 +649,9 @@ takes the projection as an argument, so it stays free of the camera.
 ## Next
 
 - The course's last checkpoint. `docs/capstone.md` walks the whole viewer once more.
+
+## Expected viewer result
+
+Actual checkpoint 21 with the [nested fixture](extensions/nested.pb): select the placed polyline, press **7** for isometric view, **L** for layers and **:** for the command field. The selected object has stroke-based move, rotate and scale handles. The dark command field contains `move 10 0 0`, ready to run; the surrounding geometry and layer controls remain visible.
+
+[![Full viewer result for 21 editing](screenshots/21-editing-overview.png)](screenshots/21-editing-overview.png)

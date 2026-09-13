@@ -364,3 +364,9 @@ Name the five placements and what each keeps constant: `Screen` (a fixed CSS pos
 ## Next
 
 [12 · Production shell and picking](12-picking.md): the winit application, `State`, and GPU picking with an integer ID pass.
+
+## Expected viewer result
+
+Checkpoint 11: two nameplates above the sphere, one rounded, and a fixed-plane label foreshortened on its own plane.
+
+[![Full viewer result for 11 text rendering](screenshots/11.png)](screenshots/11.png)

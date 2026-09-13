@@ -489,3 +489,9 @@ You have built the whole renderer: name one frame's passes in order, with what e
 ## Next
 
 [19 · Sheets](19-sheets.md): drawings as one segment batch with lazy metadata.
+
+## Expected viewer result
+
+The full interaction fixture after the finite-triangle visibility changes. Use the teapot examples above to check the rim, foot and lid seams.
+
+[![Full viewer result for 18 finite visibility](screenshots/18.png)](screenshots/18.png)

@@ -347,3 +347,9 @@ Name the four things every producer packs and why: pen width → world radius (t
 ## Next
 
 [07 · Shared boundaries](07-boundaries.md): one canonical chain per BRep edge, constrained into every incident face, drawn from the exact mesh nodes.
+
+## Expected viewer result
+
+Checkpoint 06: the CAD fixture shaded flat, boundaries drawn as pipes from the face mesh nodes.
+
+[![Full viewer result for 06 cad contract](screenshots/06.png)](screenshots/06.png)

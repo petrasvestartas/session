@@ -140,3 +140,9 @@ Predict what a *user* sees if `map_surface_boundaries` gets the wrong `first_pip
 ## Next
 
 [09 · Normals and shading](09-normals.md): analytic normals, singular fallbacks, C0 splits and the affine normal transform.
+
+## Expected viewer result
+
+Checkpoint 08: a trimmed patch with its hole left empty and a torus whose seams are drawn once.
+
+[![Full viewer result for 08 trimming](screenshots/08.png)](screenshots/08.png)

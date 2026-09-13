@@ -245,3 +245,9 @@ Predict where the radius sits in the 48-byte marker row before looking. Correct:
 ## Next
 
 [04d · Point clouds](04d-clouds.md): the cloud tables, the LOD walk, and the splat prelude that resolves into the face pass.
+
+## Expected viewer result
+
+Checkpoint 04c: vertex markers and free dots drawn from the glyph lane.
+
+[![Full viewer result for 04c markers](screenshots/04c.png)](screenshots/04c.png)

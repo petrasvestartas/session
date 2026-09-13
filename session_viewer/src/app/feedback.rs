@@ -69,12 +69,16 @@ pub fn focus_canvas() {}
 pub fn command_line(_open: bool) {}
 
 /// One row of the layers panel, as the panel needs it.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct LayerRow {
     pub key: String,
     pub label: String,
     pub count: usize,
     pub hidden: bool,
+    pub locked: bool,
+    pub color: Option<[u8; 3]>,
+    pub depth: usize,
+    pub expanded: Option<bool>,
 }
 
 #[cfg(target_arch = "wasm32")]

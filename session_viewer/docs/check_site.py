@@ -9,6 +9,8 @@ from pathlib import Path
 import re
 from urllib.parse import unquote, urlsplit
 
+import tutorial_results
+
 HERE = Path(__file__).resolve().parent
 THEME = importlib.util.spec_from_file_location("theme", HERE / "stylesheets/theme.py")
 
@@ -40,10 +42,13 @@ class Page(HTMLParser):
     def __init__(self, path):
         super().__init__(convert_charrefs=True)
         self.links, self.ids, self.languages = [], set(), set()
+        self.images = []
         self.feed(path.read_text())
 
     def handle_starttag(self, tag, attributes):
         values = dict(attributes)
+        if tag == "img" and "src" in values:
+            self.images.append(values["src"])
         if "id" in values:
             self.ids.add(values["id"])
         for name in ("href", "src"):
@@ -55,10 +60,17 @@ class Page(HTMLParser):
 
 
 def check(site):
+    tutorial_results.check()
     series = json.loads((HERE / "reconstruction/series.json").read_text())
     pages = {path.resolve(): Page(path) for path in site.rglob("*.html") if path.is_file()}
     errors, languages, downloads = [], set(), 0
     check_theme(errors)
+    for name, result in tutorial_results.RESULTS.items():
+        path = (site / "docs" / Path(name).stem / "index.html").resolve()
+        page = pages.get(path)
+        if (page is None or "expected-viewer-result" not in page.ids
+                or not page.images or Path(urlsplit(page.images[-1]).path).name != result["image"]):
+            errors.append(f'{name}: built tutorial must end with its expected viewer screenshot')
     for step in series["steps"]:
         raw = site / "lessons" / step["id"] / "raw"
         for path in raw.glob("*.txt"):

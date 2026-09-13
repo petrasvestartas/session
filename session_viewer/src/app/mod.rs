@@ -6,6 +6,7 @@ pub mod cloud_query;
 pub mod command;
 pub mod coords;
 pub mod cplane;
+pub mod deform;
 pub mod edit;
 pub mod feedback;
 pub mod gizmo;
@@ -17,6 +18,7 @@ pub mod manifest;
 pub mod modeling;
 pub mod scene;
 pub mod selection;
+pub mod session_io;
 pub mod sheet_query;
 pub mod snap;
 pub mod stream;
@@ -40,3 +42,5 @@ pub mod inspection;
 
 #[cfg(target_arch = "wasm32")]
 pub mod ui;
+
+pub mod surface_preview;

@@ -261,3 +261,9 @@ List what genuinely had to be new for sheets, then judge whether sharing code wi
 ## Next
 
 [20 · The document](20-history.md): undo, redo and save in the kernel.
+
+## Expected viewer result
+
+Open `?scene=view_sheets&inspect=1`, press **5** for top view and **F** to fit both drawings. The sheet linework should remain readable across the full viewer. This reference was captured in the maintained viewer; entity lookup and streamed reads are checked above.
+
+[![Full viewer result for 19 sheets](screenshots/19-sheets-overview.png)](screenshots/19-sheets-overview.png)

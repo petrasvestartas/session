@@ -44,6 +44,11 @@ const FLAG_OPEN: u32 = 16u;
 const FLAG_SHEET: u32 = 32u;
 const FLAG_SMOOTH: u32 = 64u;
 const FLAG_SINGLE: u32 = 128u;
+const FLAG_COLOR: u32 = 256u;
+
+fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
+    return select(authored * inst.color, vec4<f32>(inst.color.rgb, authored.a), (inst.flags & FLAG_COLOR) != 0u);
+}
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
 // The sub id a marker answers: ink, not a face, to the pick window; no row behind it.

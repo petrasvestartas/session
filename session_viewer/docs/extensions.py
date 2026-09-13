@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 
 import course_pages as course
+import tutorial_results
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
@@ -84,6 +85,8 @@ def render(lesson):
         '## What changed\n\n'+lesson['limits']+'\n',
         '## Try\n\n'+lesson['try']+'\n',
         '## Questions and answers\n\n**What goes to the GPU?** Modeling rebuilds existing geometry lanes; panels change object flags; controls upload a small preview. The solid gumball owns a fixed mesh, an unlit shader and a bounded antialiasing tile.\n\n**Why clear row selection after rebuilding?** Row numbers are upload addresses, not permanent identities. A rebuild can assign the same number to a different object.\n\n**Where is the exact patch?** '+', '.join(f'[step {i}](extensions/{step["patch"]})' for i,step in enumerate(lesson['steps'],1))+'. The patch and these visible instructions are generated from the same changes.\n'])
+    if not lesson.get('chapters'):
+        parts.append(tutorial_results.render(f'extend-{key}-tutorial.md'))
     return '\n'.join(parts)
 
 
@@ -97,7 +100,7 @@ def chapters(lesson):
         previous = 'extend-integrated-tutorial.md' if number == '1' else f'current-{int(number)-1}.md'
         following = f'current-{int(number)+1}.md' if int(number) < len(lesson['steps']) else 'command-line-walkthrough.md'
         step = lesson['steps'][int(number)-1]
-        visual = {1: '16-01.svg', 2: '20-03.svg', 3: 'extend-controls.svg', 4: 'extend-gumball.svg', 5: 'README-01.svg', 6: 'extend-ui.svg', 7: 'README-02.svg'}[int(number)]
+        visual = {1: '16-01.svg', 2: '20-03.svg', 3: 'extend-controls.svg', 4: 'extend-gumball.svg', 5: 'README-01.svg', 6: 'extend-ui.svg', 7: 'README-02.svg', 8: 'extend-ui.svg', 9: 'extend-ui.svg'}[int(number)]
         picture = f'\n![Ownership and data flow](illustrations/{visual})\n'
         if number == '4': picture += '\n![Unlit cylindrical gumball in the maintained viewer](screenshots/extensions-gumball.png)\n'
         if number == '6': picture += '\n![The white command window and black text](screenshots/extensions-command-interface.png)\n'
@@ -107,9 +110,10 @@ def chapters(lesson):
         content += '\nExpected compiler result: `Finished` with no errors. Open <http://localhost:8780/?data=off&inspect=1>. ' + step['expected'] + '\n\nStop the server with **Ctrl+C** before editing the next checkpoint. '
         content += f'Then open [{lesson["steps"][int(number)]["title"]}]({following}) and apply its blocks in order.\n' if int(number) < len(lesson['steps']) else f'Then follow [Use the command line]({following}) to exercise the finished interface.\n'
         navigation = f'[Previous]({previous}) · [Sequence](extend-integrated-tutorial.md) · [Next]({following})'
-        pages[f'current-{number}.md'] = f'# {number} · {title}\n\n{navigation}\n\nContinue in the same checkpoint workspace. Complete the edits below before compiling.\n' + content + f'\n{navigation}\n'
+        pages[f'current-{number}.md'] = f'# {number} · {title}\n\n{navigation}\n\nContinue in the same checkpoint workspace. Complete the edits below before compiling.\n' + content + f'\n{navigation}\n\n' + tutorial_results.render(f'current-{number}.md')
         links.append(f'{number}. [{title}](current-{number}.md)')
     pages['extend-integrated-tutorial.md'] = sections[0] + '## Follow these checkpoints in order\n\n' + '\n'.join(links) + '\n\nThe final check compares every runtime source file, Cargo manifest, lockfile and browser entry point with the maintained viewer. Each checkpoint compiles for WebAssembly; the final one runs native library tests.\n'
+    pages['extend-integrated-tutorial.md'] += '\n' + tutorial_results.render('extend-integrated-tutorial.md')
     return pages
 
 

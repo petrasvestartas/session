@@ -1,5 +1,7 @@
 use crate::app::scene::Scene;
+#[cfg(test)]
 use session_rust::Session;
+#[cfg(test)]
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -54,12 +56,10 @@ impl Hierarchy {
                     .insert(identity.1, row);
             }
         }
-        for (doc, file) in scene.docs.iter().enumerate() {
+        for doc in 0..scene.docs.len() {
             let start = self.nodes.len();
             let rows = self.rows.len();
-            if !self.tree(scene, doc, &lookup)
-                || !self.graph(&file.session, doc, &file.name, &lookup)
-            {
+            if !self.tree(scene, doc, &lookup) {
                 self.nodes.truncate(start);
                 self.rows.truncate(rows);
                 self.truncated = true;
@@ -76,9 +76,17 @@ impl Hierarchy {
             return false;
         }
         let mut seen = HashSet::new();
+        let mut seen_rows = HashSet::new();
         let mut stack = Vec::new();
         if let Some(root) = file.session.tree.root() {
-            stack.push((root, 1, None));
+            if root.borrow().name == file.name {
+                // The document row already represents this root and its descendants.
+                for child in root.borrow().children().into_iter().rev() {
+                    stack.push((child, 1, None));
+                }
+            } else {
+                stack.push((root, 1, None));
+            }
         }
         for _ in 0..MAX_NODES * 2 {
             let Some((node, depth, exit)) = stack.pop() else {
@@ -98,7 +106,9 @@ impl Hierarchy {
             if !self.push(label, depth) {
                 return false;
             }
-            if let Some(row) = row {
+            if let Some(row) = row
+                && seen_rows.insert(row)
+            {
                 self.rows.push(row);
             }
             stack.push((Rc::clone(&node), depth, Some(index)));
@@ -113,20 +123,25 @@ impl Hierarchy {
         if !stack.is_empty() {
             return false;
         }
-        if self.rows.len() == self.nodes[start].rows.start {
-            for row in 0..scene.object_count() as u32 {
-                if scene
-                    .identity_of(row)
-                    .is_some_and(|(owner, _)| owner == doc)
-                {
-                    self.rows.push(row);
+        for row in 0..scene.object_count() as u32 {
+            if scene
+                .identity_of(row)
+                .is_some_and(|(owner, _)| owner == doc)
+                && seen_rows.insert(row)
+            {
+                let index = self.nodes.len();
+                if !self.push(scene.object_name(row), 1) {
+                    return false;
                 }
+                self.rows.push(row);
+                self.finish(index);
             }
         }
         self.finish(start);
         self.rows.len() <= MAX_ROWS
     }
 
+    #[cfg(test)]
     fn graph(&mut self, session: &Session, doc: usize, name: &str, lookup: &Lookup) -> bool {
         let vertices = session.graph.number_of_vertices();
         let edges: usize = session.graph.edges.values().map(|edges| edges.len()).sum();
@@ -231,6 +246,7 @@ mod tests {
     use super::*;
     use crate::app::scene::FileDoc;
     use session_rust::Point;
+    #[cfg(test)]
     use session_rust::Session;
     use session_rust::Xform;
 
@@ -280,6 +296,13 @@ mod tests {
             .unwrap();
         assert_eq!(index.targets(parent), vec![0, 1]);
         assert_eq!(index.targets(child), vec![0]);
+        let tree_count = index.rows.len();
+        let mut lookup = Lookup::new();
+        for row in 0..scene.object_count() as u32 {
+            let (doc, id) = scene.identity_of(row).unwrap();
+            lookup.entry(doc).or_default().insert(id, row);
+        }
+        assert!(index.graph(&shared, 0, "first", &lookup));
         let edge = index
             .nodes
             .iter()
@@ -287,9 +310,8 @@ mod tests {
             .unwrap();
         assert_eq!(index.targets(edge), vec![0, 1]);
         assert!(!index.visible().contains(&child));
-        let count = index.rows.len();
         index.rebuild(&scene);
-        assert_eq!(index.rows.len(), count);
+        assert_eq!(index.rows.len(), tree_count);
         scene = Scene::new();
         index.rebuild(&scene);
         assert!(index.rows.is_empty());

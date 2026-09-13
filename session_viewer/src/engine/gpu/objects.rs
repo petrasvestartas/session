@@ -566,6 +566,34 @@ impl InstanceTable {
         true
     }
 
+    /// Refresh the local box after source geometry changed, keeping its placement and identity.
+    pub(crate) fn set_geometry_bounds(
+        &mut self,
+        ctx: &GpuCtx,
+        row: u32,
+        bounds: Aabb,
+        spacing: f32,
+        place: &Mat4,
+    ) {
+        self.local_bounds[row as usize] = bounds;
+        self.rows[row as usize].spacing = spacing;
+        self.set_placement(ctx, row, place);
+    }
+
+    /// Change display color without rebuilding geometry or placement.
+    pub fn set_color(&mut self, ctx: &GpuCtx, row: u32, color: [u8; 3]) {
+        if let Some(r) = self.rows.get_mut(row as usize) {
+            r.color = [
+                color[0] as f32 / 255.,
+                color[1] as f32 / 255.,
+                color[2] as f32 / 255.,
+                1.,
+            ];
+            r.flags |= Instance::FLAG_COLOR;
+            self.buffer.write_at(ctx, row, std::slice::from_ref(r));
+        }
+    }
+
     /// Set or clear one flag bit on one row and write that row back.
     pub fn set_flag(&mut self, ctx: &GpuCtx, row: u32, bit: u32, on: bool) {
         let Some(r) = self.rows.get_mut(row as usize) else {

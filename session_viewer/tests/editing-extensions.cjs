@@ -64,15 +64,20 @@ async function round(browser, config) {
     await page.locator('canvas').focus();
     await key(page, '5');
     if (config.perspective) await key(page, 'Space');
-    await key(page, 'l');
-    for (const label of ['Editing lessons','Editing lessons','Assembly','Nested']) await action(page,'open',label);
+    if (!(await browserUi.ui(page)).layers_open) await key(page, 'l');
+    for (const label of ['Editing lessons','Assembly','Nested']) await action(page,'open',label);
     await action(page, 'select', 'Select Nested');
     await wait(page,s=>s.selected_group_count===2);
     await action(page, 'hide', 'Hide Nested');
     await wait(page,s=>s.hidden_count===2);
     await action(page, 'hide', 'Show Nested');
     await wait(page,s=>s.hidden_count===0);
-    await action(page, 'select', 'edge: joint');
+    await action(page, 'lock', 'Lock Nested');
+    await wait(page,s=>s.locked_count===2 && s.selected===null && s.selected_group_count===0);
+    await action(page, 'select', 'Select Nested');
+    assert.equal((await state(page)).selected_group_count,0,'locked children cannot be selected');
+    await action(page, 'lock', 'Unlock Nested');
+    await action(page, 'select', 'Select Nested');
     await wait(page,s=>s.selected_group_count===2);
     await key(page, 'l');
     await key(page, 'Escape');
@@ -178,7 +183,7 @@ async function round(browser, config) {
     await page.mouse.move(30,30);
     await page.screenshot({path:path.join(root,`docs/screenshots/extensions-round-${config.id}.png`)});
     assert.deepEqual(errors,[]);
-    console.log(`PASS round ${config.id}: nested/graph visibility, point/line/trim/extend/explode/undo, gumball drag, control commit/cancel, bounded resources`);
+    console.log(`PASS round ${config.id}: hierarchy visibility/selection locks, point/line/trim/extend/explode/undo, gumball drag, control commit/cancel, bounded resources`);
     return {config, objects:snapshot.objects, widgetBytes:snapshot.widget_bytes, errors};
   } finally { await context.close(); }
 }

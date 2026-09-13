@@ -11,6 +11,23 @@ impl State {
             self.toggle_layer(layer);
             return;
         }
+        if let Some(value) = key.strip_prefix("color/") {
+            if let Some((index, hex)) = value.split_once('/')
+                && let (Ok(index), Ok(rgb)) = (index.parse::<usize>(), u32::from_str_radix(hex, 16))
+                && index < self.hierarchy.nodes.len()
+            {
+                let color = [(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8];
+                for row in self.hierarchy.targets(index) {
+                    if let Some(id) = self.scene.identity_of(row) {
+                        self.scene.colors.insert(id, color);
+                        self.gpu.set_object_color(row, color);
+                    }
+                }
+                self.refresh_layers();
+                self.touch();
+            }
+            return;
+        }
         let Some((action, index)) = key.split_once('/') else {
             return;
         };
@@ -30,11 +47,9 @@ impl State {
                     let rows = self.hierarchy.targets(index);
                     self.select(None);
                     for row in rows {
-                        if self
-                            .scene
-                            .identity_of(row)
-                            .is_some_and(|id| !self.scene.hidden.contains(&id))
-                        {
+                        if self.scene.identity_of(row).is_some_and(|id| {
+                            !self.scene.hidden.contains(&id) && !self.scene.locked.contains(&id)
+                        }) {
                             self.gpu.set_selected(row, true);
                             self.hierarchy.selected.push(row);
                         }
@@ -42,6 +57,32 @@ impl State {
                     if self.hierarchy.selected.len() == 1 {
                         let row = self.hierarchy.selected[0];
                         self.select(Some(row));
+                    }
+                }
+                "lock" => {
+                    let rows = self.hierarchy.targets(index);
+                    let lock = rows.iter().any(|row| self.scene.selectable(*row));
+                    if lock
+                        && (self
+                            .scene
+                            .selected
+                            .is_some_and(|row| rows.binary_search(&row).is_ok())
+                            || self
+                                .hierarchy
+                                .selected
+                                .iter()
+                                .any(|row| rows.binary_search(row).is_ok()))
+                    {
+                        self.select(None);
+                    }
+                    for row in rows {
+                        if let Some(id) = self.scene.identity_of(row) {
+                            if lock {
+                                self.scene.locked.insert(id);
+                            } else {
+                                self.scene.locked.remove(&id);
+                            }
+                        }
                     }
                 }
                 "hide" => {
@@ -111,35 +152,28 @@ impl State {
                     .identity_of(*row)
                     .is_some_and(|id| self.scene.hidden.contains(&id))
             });
-            let indent = "  ".repeat(node.depth.min(16));
-            if node.end > index + 1 {
-                let mark = if self.hierarchy.open.contains(&index) {
-                    "▾"
-                } else {
-                    "▸"
-                };
-                rows.push(LayerRow {
-                    key: format!("open/{index}"),
-                    label: format!("{indent}{mark} {}", node.label),
-                    count,
-                    hidden,
-                });
-            }
-            rows.push(LayerRow {
-                key: format!("select/{index}"),
-                label: format!("{indent}Select {}", node.label),
-                count,
-                hidden,
+            let targets = &self.hierarchy.rows[node.rows.clone()];
+            let locked = targets.iter().all(|row| !self.scene.selectable(*row));
+            let first_color = targets
+                .first()
+                .and_then(|row| self.scene.identity_of(*row))
+                .and_then(|id| self.scene.colors.get(&id).copied());
+            let color = first_color.filter(|first| {
+                targets.iter().all(|row| {
+                    self.scene
+                        .identity_of(*row)
+                        .is_some_and(|id| self.scene.colors.get(&id) == Some(first))
+                })
             });
             rows.push(LayerRow {
-                key: format!("hide/{index}"),
-                label: format!(
-                    "{indent}{} {}",
-                    if hidden { "Show" } else { "Hide" },
-                    node.label
-                ),
+                key: format!("select/{index}"),
+                label: node.label.clone(),
                 count,
                 hidden,
+                locked,
+                color,
+                depth: node.depth,
+                expanded: (node.end > index + 1).then(|| self.hierarchy.open.contains(&index)),
             });
         }
         for (label, page) in [
@@ -155,6 +189,7 @@ impl State {
                     label: label.into(),
                     count: visible.len(),
                     hidden: false,
+                    ..Default::default()
                 });
             }
         }
@@ -164,6 +199,7 @@ impl State {
                 label: "Tree exceeds panel capacity".into(),
                 count: 0,
                 hidden: false,
+                ..Default::default()
             });
         }
     }
