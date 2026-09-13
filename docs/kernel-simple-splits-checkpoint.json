@@ -1,0 +1,28 @@
+{
+  "branch": "codex/session-simple-splits-20260914",
+  "scope": "Retain all regions when splitting curves, individual surfaces and faces inside joined BReps. No booleans or solid-volume splits.",
+  "tests": {
+    "cpp": "787/787: new sources and minitests compiled against the hash-verified reviewed baseline objects, complete minitest executable passed",
+    "python": "3/3 new SimpleSplit API tests against the published foundations tree",
+    "rust": "732/732 complete debug minitest suite from isolated candidate, cargo run --locked --bin minitest --target x86_64-unknown-linux-gnu -j4"
+  },
+  "baseline_rust_fix": "NurbsCurve::trim inserts only the missing multiplicity when using the baseline additive knot-insertion API; existing insert callers unchanged.",
+  "sources": {
+    "session_cpp/src/simple_split.h": "50b169a215bcb35237622dbc9e63d11d6d8f894dcdab8912e32577287a3dfd9f",
+    "session_cpp/src/simple_split.cpp": "7fb20d78474f816d0233f6b5bc61b96db20adc69c7fccdd557a12e70f4f20c7a",
+    "session_cpp/src/simple_split_test.cpp": "3d0bde2e34ff0c98da566fbb3cd9776f262b89d1778dd289aa1be1bbaa5250e9",
+    "session_cpp/CMakeLists.txt": "1f7c63225417f4638de0ed2c9f7f0777da937eb4f023ffbb4a3158142fc75c23",
+    "session_py/src/session_py/simple_split.py": "0417d8678ce43ad36d1f28e31a2176146e138c4cd28ff8dbccd1ca8ed625f0b6",
+    "session_py/src/session_py/simple_split_test.py": "21f4df4c72c6a78ecd7e31ee870275fbddde15e57f9a4acc60746e60094eed9a",
+    "session_rust/src/simple_split.rs": "641d6fc2a529710eefdcae205cdde5b74aa7c6cdfd7604499001986efd7b5476",
+    "session_rust/src/simple_split_test.rs": "c96ba80b36844a71dbeed160a1ce1ee5da5e7cb1b272bb763847f78907186155",
+    "session_rust/src/lib.rs": "bd5e3d3f1259b29dc309f153e787d710e66c9bcf370cdfed626373f691738f2e",
+    "session_rust/src/mini_test.rs": "9856c40943c7954950edda875aa18c3a0fd3f94f43607205e55214d4aee12bb6",
+    "session_rust/src/nurbscurve.rs": "adfdf27cd01dbab458025bcec62d8c1738ab3c0070fa44af32227bf906cdff7f"
+  },
+  "commits": {
+    "session_cpp": "9cded7e2ccdbf380fb627b394d0e6a9231ad0538",
+    "session_py": "879539ce9cf4aacfc0bb6c1031fa6163541d55f8",
+    "session_rust": "42226ca122644877449c41abdee85dbb111cd4eb"
+  }
+}
