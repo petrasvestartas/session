@@ -85,8 +85,9 @@ def add_spaces_after_commas_in_ctors(line, lang):
         paren_start = line.index('(', m.start())
         paren_end = find_matching_close(line, paren_start)
         if paren_end == -1:
-            result.append(line[m.start():])
-            break
+            result.append(line[m.start():paren_start + 1])
+            i = paren_start + 1
+            continue
 
         # extract the full constructor including parens
         ctor_prefix = line[m.start():paren_start + 1]
@@ -285,7 +286,8 @@ def join_continuation_lines(lines, lang):
         line = lines[i]
 
         stripped = line.strip()
-        if not stripped or stripped.startswith('//') or stripped.startswith('#'):
+        if (not stripped or stripped.startswith('//') or stripped.startswith('#')
+                or '__SESSION_FORMAT_NONCODE_' in line):
             result.append(line)
             i += 1
             continue
@@ -302,6 +304,8 @@ def join_continuation_lines(lines, lang):
             j = i + 1
             while j < len(lines) and depth > 0:
                 next_line = lines[j].strip()
+                if '__SESSION_FORMAT_NONCODE_' in next_line:
+                    break
                 if joined and not joined.endswith(' '):
                     joined += ' '
                 joined += next_line
@@ -309,6 +313,10 @@ def join_continuation_lines(lines, lang):
                 closes_j = sum(1 for c in next_line if c in ')]}')
                 depth += opens_j - closes_j
                 j += 1
+            if depth > 0:
+                result.append(line)
+                i += 1
+                continue
             # collapse internal multiple spaces, preserve leading indent
             content = joined.lstrip()
             content = re.sub(r'  +', ' ', content)
@@ -321,12 +329,18 @@ def join_continuation_lines(lines, lang):
             has_continuation_geo = False
             while j < len(lines) and depth > 0:
                 next_stripped = lines[j].strip()
+                if '__SESSION_FORMAT_NONCODE_' in next_stripped:
+                    break
                 if count_geo_ctors(next_stripped, lang) >= 1:
                     has_continuation_geo = True
                 opens_j = sum(1 for c in next_stripped if c in '([{')
                 closes_j = sum(1 for c in next_stripped if c in ')]}')
                 depth += opens_j - closes_j
                 j += 1
+            if depth > 0:
+                result.append(line)
+                i += 1
+                continue
             if has_continuation_geo:
                 # join them
                 line_indent = line[:len(line) - len(line.lstrip())]
@@ -373,7 +387,8 @@ def format_file(filepath, dry_run=False):
     with open(filepath, 'r', encoding='utf-8') as f:
         original = f.read()
 
-    lines = original.split('\n')
+    protected, literals = protect_noncode(original, lang)
+    lines = protected.split('\n')
 
     # Rule 1: spaces after commas in constructors
     lines = [add_spaces_after_commas_in_ctors(l, lang) for l in lines]
@@ -395,6 +410,10 @@ def format_file(filepath, dry_run=False):
     lines = [l.rstrip() for l in lines]
 
     result = '\n'.join(lines)
+    for marker, literal in literals:
+        if result.count(marker) != 1:
+            raise ValueError(f"Formatting lost protected text in {filepath}")
+        result = result.replace(marker, literal)
 
     if result != original:
         if dry_run:
@@ -416,6 +435,91 @@ def format_file(filepath, dry_run=False):
             print(f"  FIXED: {filepath.relative_to(ROOT)}")
         return True
     return False
+
+
+def protect_noncode(source, lang):
+    """Hide literals/comments so geometry-shaped text is never reformatted.
+
+    Mask whole tokens, including multiline/raw strings, before applying the
+    line-based rules. Rust lifetimes and C++ digit separators remain code.
+    """
+    prefix = '__SESSION_FORMAT_NONCODE_'
+    while prefix in source:
+        prefix += '_'
+    parts = []
+    literals = []
+    start = 0
+    i = 0
+    size = len(source)
+    while i < size:
+        end = None
+        if lang == 'py' and source[i] == '#':
+            end = source.find('\n', i)
+        elif lang != 'py' and source.startswith('//', i):
+            end = source.find('\n', i)
+            # C++ splices escaped newlines before recognizing line comments.
+            while lang == 'cpp' and end >= 0 and source[i:end].rstrip().endswith('\\'):
+                end = source.find('\n', end + 1)
+        elif lang != 'py' and source.startswith('/*', i):
+            depth = 1
+            end = i + 2
+            while end < size and depth:
+                if lang == 'rust' and source.startswith('/*', end):
+                    depth += 1
+                    end += 2
+                elif source.startswith('*/', end):
+                    depth -= 1
+                    end += 2
+                else:
+                    end += 1
+        elif lang == 'cpp' and source.startswith('R"', i):
+            raw = re.match(r'R"([^ ()\\\t\r\n]{0,16})\(', source[i:])
+            if raw:
+                close = ')' + raw.group(1) + '"'
+                found = source.find(close, i + raw.end())
+                end = size if found < 0 else found + len(close)
+        elif lang == 'rust' and source[i] == 'r':
+            raw = re.match(r'r(#+)?"', source[i:])
+            if raw:
+                close = '"' + (raw.group(1) or '')
+                found = source.find(close, i + raw.end())
+                end = size if found < 0 else found + len(close)
+
+        if end is None and source[i] in '\"\'':
+            quote = source[i]
+            if lang == 'rust' and quote == "'":
+                char = re.match(r"'(?:\\(?:u\{[0-9a-fA-F_]+\}|x[0-9a-fA-F]{2}|[^\n])|[^'\\\n])'", source[i:])
+                if not char:
+                    i += 1
+                    continue
+                end = i + char.end()
+            elif lang == 'cpp' and quote == "'" and i and source[i - 1].isdigit():
+                i += 1
+                continue
+            else:
+                delimiter = quote * 3 if lang == 'py' and source.startswith(quote * 3, i) else quote
+                end = i + len(delimiter)
+                while end < size:
+                    if source[end] == '\\':
+                        end += 2
+                    elif source.startswith(delimiter, end):
+                        end += len(delimiter)
+                        break
+                    else:
+                        end += 1
+        if end is None:
+            i += 1
+            continue
+        if end < 0:
+            end = size
+        end = min(end, size)
+        marker = f'{prefix}{len(literals)}__'
+        parts.extend((source[start:i], marker))
+        literals.append((marker, source[i:end]))
+        start = end
+        i = end
+    parts.append(source[start:])
+    return ''.join(parts), literals
 
 
 def collect_files(lang):
@@ -441,6 +545,17 @@ def collect_files(lang):
 
 def main():
     args = sys.argv[1:]
+    if '--help' in args or '-h' in args:
+        print(__doc__)
+        return
+
+    options = {'--dry-run', '--py', '--python', '--cpp', '--rust'}
+    for arg in args:
+        if arg not in options and not os.path.isfile(arg):
+            print(f"Unknown option or missing file: {arg}", file=sys.stderr)
+            print("Use --help for usage.", file=sys.stderr)
+            raise SystemExit(2)
+
     dry_run = '--dry-run' in args
     args = [a for a in args if a != '--dry-run']
 
