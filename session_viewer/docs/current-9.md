@@ -1,6 +1,6 @@
 # 9 · Keep source dragging live and build one layer tree
 
-[Previous](current-8.md) · [Sequence](extend-integrated-tutorial.md) · [Next](command-line-walkthrough.md)
+[Previous](current-8.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-10.md)
 
 Continue in the same checkpoint workspace. Complete the edits below before compiling.
 
@@ -2454,41 +2454,6 @@ impl State {
 cargo check -j4 --lib
 ```
 
-## Check
-
-```bash
-cargo xtest -j4 --lib
-trunk serve --port 8780
-```
-
-Open <http://localhost:8780/?data=off&inspect=1>. Stop the server with **Ctrl+C**.
-
-### Reproduce the screenshots
-
-The screenshots use the small [nested fixture](extensions/nested.pb) and [manifest](extensions/nested.yaml), not private project files. Save both into your workspace:
-
-```bash
-cp "$COURSE_REPO/docs/extensions/nested.pb" assets/extension-nested.pb
-cp "$COURSE_REPO/docs/extensions/nested.yaml" assets/extension-nested.yaml
-```
-
-Open <http://localhost:8780/?scene=extension-nested.yaml&data=off&inspect=1>.
-
-## What changed
-
-The docked workspace supports source mesh, curve, surface and compatible BRep subobject edits. Unsupported BRep trim reconstructions and incomplete streamed-source exports fail without discarding the retained scene.
-
-## Try
-
-Use the command walkthrough, tree selection and gumball controls. Every feature is present.
-
-## Questions and answers
-
-**What goes to the GPU?** Modeling rebuilds existing geometry lanes; panels change object flags; controls upload a small preview. The solid gumball owns a fixed mesh, an unlit shader and a bounded antialiasing tile.
-
-**Why clear row selection after rebuilding?** Row numbers are upload addresses, not permanent identities. A rebuild can assign the same number to a different object.
-
-**Where is the exact patch?** [step 1](extensions/integrated-1.patch), [step 2](extensions/integrated-2.patch), [step 3](extensions/integrated-3.patch), [step 4](extensions/integrated-4.patch), [step 5](extensions/integrated-5.patch), [step 6](extensions/integrated-6.patch), [step 7](extensions/integrated-7.patch), [step 8](extensions/integrated-8.patch), [step 9](extensions/integrated-9.patch). The patch and these visible instructions are generated from the same changes.
 
 ## Answers and next action
 
@@ -2507,9 +2472,9 @@ trunk serve --port 8780
 
 Expected compiler result: `Finished` with no errors. Open <http://localhost:8780/?data=off&inspect=1>. Create a point and use Fit. Expand Layers: each object appears once, with a bulb, a selection lock and a color swatch. Hide, lock and recolor a group, save and reopen the session, then unlock it. On a shell, Ctrl+Shift-select a face and drag the gumball: the shell updates throughout the drag and release records one undo step.
 
-Stop the server with **Ctrl+C** before editing the next checkpoint. Then follow [Use the command line](command-line-walkthrough.md) to exercise the finished interface.
+Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Split curves and faces while keeping the shell joined](current-10.md) and apply its blocks in order.
 
-[Previous](current-8.md) · [Sequence](extend-integrated-tutorial.md) · [Next](command-line-walkthrough.md)
+[Previous](current-8.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-10.md)
 
 ## Expected viewer result
 

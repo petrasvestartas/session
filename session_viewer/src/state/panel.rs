@@ -45,6 +45,12 @@ impl State {
                 }
                 "select" => {
                     let rows = self.hierarchy.targets(index);
+                    if self.pending_split.is_some() {
+                        for row in rows {
+                            self.pick_split_cutter(row);
+                        }
+                        return;
+                    }
                     self.select(None);
                     for row in rows {
                         if self.scene.identity_of(row).is_some_and(|id| {

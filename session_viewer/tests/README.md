@@ -270,3 +270,5 @@ scenes remain unsupported and return an error.
 `node tests/live-shell-editing.cjs` checks real Ctrl+Shift shell dragging and release, retained source edits, undo, and visible Point creation hints. `VIEWER_STRESS=1` also loads the bunny mesh and 342,000-point cloud to catch full-scene rebuilds during an edit.
 
 `node tests/layer-workspace.cjs` checks a single expandable layer tree, descendant visibility, selection locks and color changes, then saves/reopens the session and unlocks the same objects. Its full-viewer capture is written to `/tmp/viewer-layer-workspace/layers.png`.
+
+Run `node tests/splitting.cjs` with the same Playwright/Chrome environment for curve creation and Split, joined-face topology, touch confirmation, cancellation and Save/Open.

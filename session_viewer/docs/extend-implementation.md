@@ -12,7 +12,7 @@ These are **code lessons**, starting from checkpoint 21. Choose one. Each shows 
 
 For using the maintained viewer, follow the [command-line walkthrough with screenshots](command-line-walkthrough.md). Its interface uses egui, like the archive. The independent modeling and panel lessons retain checkpoint 21's DOM interface; the optional egui lesson replaces it.
 
-For all features together, use the [nine sequential checkpoints](extend-integrated-tutorial.md). Their shared wiring is resolved explicitly and their final source is checked against the maintained viewer.
+For all features together, use the [ten sequential checkpoints](extend-integrated-tutorial.md). Their shared wiring is resolved explicitly and their final source is checked against the maintained viewer.
 
 ## Start one lesson
 
@@ -51,6 +51,6 @@ For the solid mesh gumball, follow [its code lesson](extend-gumball-tutorial.md)
 
 ## Expected viewer result
 
-The completed viewer: a command dock across the bottom with syntax hints, one right-hand layer tree with bulbs, selection locks and color swatches, and a left toolbar. The selected source object has its solid gumball. Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
+The completed viewer has a command dock across the bottom, one right-hand layer tree with bulbs, selection locks and color swatches, and a left toolbar. Split keeps both face regions in the joined shell. The selected region has its gumball; Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
 
 [![Full viewer result for extend implementation](screenshots/extensions-workspace-current-desktop.png)](screenshots/extensions-workspace-current-desktop.png)

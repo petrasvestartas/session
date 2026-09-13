@@ -3464,18 +3464,588 @@
       "date": "2026-09-14"
     },
     {
+      "file": "extensions-split-face.png",
+      "operation": "Real joined BRep face split; original source has seven faces; visible cutter; selected half-face and full viewer UI",
+      "sha256": "12822e2887536b1438a37265d7d65b82bca5933e7f8aec7dd44bbb9d5c9cc9cb",
+      "served_build": "/tmp/viewer-splits-dist",
+      "date": "2026-09-14",
+      "state": {
+        "canvas": [
+          1400,
+          900
+        ],
+        "cloud_points": 0,
+        "color_count": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 200,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 4151624,
+        "gpu_texture_estimate_bytes": 93997022,
+        "hidden_count": 1,
+        "identity": [
+          0,
+          "a8d37658-c035-48e4-a875-7edaeedb110c"
+        ],
+        "locked_count": 0,
+        "logical_canvas": [
+          1400,
+          900
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -8.209877014160156,
+          12.314814567565918,
+          -20,
+          1
+        ],
+        "mvp": [
+          0.0026090536266565323,
+          0.0011715961154550314,
+          -0.00028169635334052145,
+          0,
+          -0.0015063377795740962,
+          0.0020292638801038265,
+          -0.00048791238805279136,
+          0,
+          -1.6723708857458954e-19,
+          0.004058527760207653,
+          0.00032527491566725075,
+          0,
+          0.0012559940805658698,
+          0.1561325341463089,
+          0.2697632610797882,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          8.20987654320988,
+          -12.314814814814817,
+          19.999999999999996
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 15,
+        "preview_cache_bytes": 304,
+        "ribbons": 5,
+        "samples": 4,
+        "scene_revision": 15,
+        "selected": 0,
+        "selected_group_count": 0,
+        "selection": {
+          "Face": {
+            "face": 1,
+            "parent": 0
+          }
+        },
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 40,
+          "scans": 3,
+          "shared_value_bytes": 1488,
+          "string_capacity_bytes": 1093,
+          "unique_geometry_values": 2,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 21536
+        },
+        "source_cpu_known_payload_bytes": 24157,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "source_faces": 7,
+        "split": null,
+        "submitted_at_ms": 6734.099999964237,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 43,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 480,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 14,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 5,
+          "shaping_ms": 11.800000011920929,
+          "skipped_preparations": 186,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 30,
+        "wasm_capacity_bytes": 9175040,
+        "widget": [
+          [
+            0,
+            0,
+            20
+          ],
+          0.47418693202361906
+        ],
+        "widget_bytes": [
+          371616,
+          13271040
+        ],
+        "widget_highlight": -1
+      }
+    },
+    {
       "file": "extensions-workspace-current-desktop.png",
-      "operation": "Desktop DPR2: source line edited by touch, saved/reopened, gumball selected, Point syntax hint; tests/docked-workspace.cjs",
-      "sha256": "9d68db8a80d23238484906f565cec3c462f17305f908ba811ace6f8464ae8d65",
-      "served_build": "/tmp/viewer-layers-dist",
-      "date": "2026-09-14"
+      "operation": "Real joined BRep face split; original source has seven faces; visible cutter; selected half-face and full viewer UI",
+      "sha256": "12822e2887536b1438a37265d7d65b82bca5933e7f8aec7dd44bbb9d5c9cc9cb",
+      "served_build": "/tmp/viewer-splits-dist",
+      "date": "2026-09-14",
+      "state": {
+        "canvas": [
+          1400,
+          900
+        ],
+        "cloud_points": 0,
+        "color_count": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 200,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 4151624,
+        "gpu_texture_estimate_bytes": 93997022,
+        "hidden_count": 1,
+        "identity": [
+          0,
+          "a8d37658-c035-48e4-a875-7edaeedb110c"
+        ],
+        "locked_count": 0,
+        "logical_canvas": [
+          1400,
+          900
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -8.209877014160156,
+          12.314814567565918,
+          -20,
+          1
+        ],
+        "mvp": [
+          0.0026090536266565323,
+          0.0011715961154550314,
+          -0.00028169635334052145,
+          0,
+          -0.0015063377795740962,
+          0.0020292638801038265,
+          -0.00048791238805279136,
+          0,
+          -1.6723708857458954e-19,
+          0.004058527760207653,
+          0.00032527491566725075,
+          0,
+          0.0012559940805658698,
+          0.1561325341463089,
+          0.2697632610797882,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          8.20987654320988,
+          -12.314814814814817,
+          19.999999999999996
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 15,
+        "preview_cache_bytes": 304,
+        "ribbons": 5,
+        "samples": 4,
+        "scene_revision": 15,
+        "selected": 0,
+        "selected_group_count": 0,
+        "selection": {
+          "Face": {
+            "face": 1,
+            "parent": 0
+          }
+        },
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 40,
+          "scans": 3,
+          "shared_value_bytes": 1488,
+          "string_capacity_bytes": 1093,
+          "unique_geometry_values": 2,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 21536
+        },
+        "source_cpu_known_payload_bytes": 24157,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "source_faces": 7,
+        "split": null,
+        "submitted_at_ms": 6734.099999964237,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 43,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 480,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 14,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 5,
+          "shaping_ms": 11.800000011920929,
+          "skipped_preparations": 186,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 30,
+        "wasm_capacity_bytes": 9175040,
+        "widget": [
+          [
+            0,
+            0,
+            20
+          ],
+          0.47418693202361906
+        ],
+        "widget_bytes": [
+          371616,
+          13271040
+        ],
+        "widget_highlight": -1
+      }
+    },
+    {
+      "file": "extensions-split-phone.png",
+      "operation": "Real joined BRep face split; original source has seven faces; visible cutter; selected half-face and full viewer UI",
+      "sha256": "a7c0c6421ead3ab3df2dafd006a6b52a2dfabcb8b7717ceb53b7f7e1442a5b7d",
+      "served_build": "/tmp/viewer-splits-dist",
+      "date": "2026-09-14",
+      "state": {
+        "canvas": [
+          780,
+          1688
+        ],
+        "cloud_points": 0,
+        "color_count": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 176,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 4265128,
+        "gpu_texture_estimate_bytes": 53649974,
+        "hidden_count": 1,
+        "identity": [
+          0,
+          "a8d37658-c035-48e4-a875-7edaeedb110c"
+        ],
+        "locked_count": 0,
+        "logical_canvas": [
+          390,
+          844
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          3.064112663269043,
+          10.680621147155762,
+          -20,
+          1
+        ],
+        "mvp": [
+          0.0040701329708099365,
+          0.0005429253214970231,
+          -0.00017910274618770927,
+          0,
+          -0.0023498921655118465,
+          0.0009403742733411491,
+          -0.00031021505128592253,
+          0,
+          0,
+          0.0018807485466822982,
+          0.00020681004389189184,
+          0,
+          0.06126799061894417,
+          0.10425357520580292,
+          0.17811360955238342,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          -3.0641126908899423,
+          -10.680621379673513,
+          19.999999999999996
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 15,
+        "preview_cache_bytes": 304,
+        "ribbons": 5,
+        "samples": 1,
+        "scene_revision": 15,
+        "selected": 0,
+        "selected_group_count": 0,
+        "selection": {
+          "Face": {
+            "face": 1,
+            "parent": 0
+          }
+        },
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 40,
+          "scans": 3,
+          "shared_value_bytes": 1488,
+          "string_capacity_bytes": 1093,
+          "unique_geometry_values": 2,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 21536
+        },
+        "source_cpu_known_payload_bytes": 24157,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "source_faces": 7,
+        "split": null,
+        "submitted_at_ms": 5390.899999976158,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 47,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 480,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 14,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 5,
+          "shaping_ms": 11.300000071525574,
+          "skipped_preparations": 162,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 30,
+        "wasm_capacity_bytes": 9175040,
+        "widget": [
+          [
+            0,
+            0,
+            20
+          ],
+          1.0911575124525714
+        ],
+        "widget_bytes": [
+          371616,
+          37748736
+        ],
+        "widget_highlight": -1
+      }
     },
     {
       "file": "extensions-workspace-current-phone.png",
-      "operation": "390x844 phone viewport: source line edited by touch, saved/reopened; tests/docked-workspace.cjs",
-      "sha256": "7bc550ee505e0f716f2608c39c391eb0d21e03a040a1b07ead7815dc084a1872",
-      "served_build": "/tmp/viewer-layers-dist",
-      "date": "2026-09-14"
+      "operation": "Real joined BRep face split; original source has seven faces; visible cutter; selected half-face and full viewer UI",
+      "sha256": "a7c0c6421ead3ab3df2dafd006a6b52a2dfabcb8b7717ceb53b7f7e1442a5b7d",
+      "served_build": "/tmp/viewer-splits-dist",
+      "date": "2026-09-14",
+      "state": {
+        "canvas": [
+          780,
+          1688
+        ],
+        "cloud_points": 0,
+        "color_count": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 176,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 4265128,
+        "gpu_texture_estimate_bytes": 53649974,
+        "hidden_count": 1,
+        "identity": [
+          0,
+          "a8d37658-c035-48e4-a875-7edaeedb110c"
+        ],
+        "locked_count": 0,
+        "logical_canvas": [
+          390,
+          844
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          3.064112663269043,
+          10.680621147155762,
+          -20,
+          1
+        ],
+        "mvp": [
+          0.0040701329708099365,
+          0.0005429253214970231,
+          -0.00017910274618770927,
+          0,
+          -0.0023498921655118465,
+          0.0009403742733411491,
+          -0.00031021505128592253,
+          0,
+          0,
+          0.0018807485466822982,
+          0.00020681004389189184,
+          0,
+          0.06126799061894417,
+          0.10425357520580292,
+          0.17811360955238342,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          -3.0641126908899423,
+          -10.680621379673513,
+          19.999999999999996
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 15,
+        "preview_cache_bytes": 304,
+        "ribbons": 5,
+        "samples": 1,
+        "scene_revision": 15,
+        "selected": 0,
+        "selected_group_count": 0,
+        "selection": {
+          "Face": {
+            "face": 1,
+            "parent": 0
+          }
+        },
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 40,
+          "scans": 3,
+          "shared_value_bytes": 1488,
+          "string_capacity_bytes": 1093,
+          "unique_geometry_values": 2,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 21536
+        },
+        "source_cpu_known_payload_bytes": 24157,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "source_faces": 7,
+        "split": null,
+        "submitted_at_ms": 5390.899999976158,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 47,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 480,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 14,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 5,
+          "shaping_ms": 11.300000071525574,
+          "skipped_preparations": 162,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 30,
+        "wasm_capacity_bytes": 9175040,
+        "widget": [
+          [
+            0,
+            0,
+            20
+          ],
+          1.0911575124525714
+        ],
+        "widget_bytes": [
+          371616,
+          37748736
+        ],
+        "widget_highlight": -1
+      }
     }
   ]
 }

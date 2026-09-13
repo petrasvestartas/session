@@ -1,6 +1,6 @@
 # Use the command line
 
-The black triangle at the top right returns to the viewer. These pictures show the maintained viewer with the white, black-text egui interface. To build this complete interface yourself, follow [the nine current-viewer checkpoints](extend-integrated-tutorial.md). To learn one feature separately, choose an [independent code lesson](extend-implementation.md).
+The black triangle at the top right returns to the viewer. These pictures show the maintained viewer with the white, black-text egui interface. To build this complete interface yourself, follow [the ten current-viewer checkpoints](extend-integrated-tutorial.md). To learn one feature separately, choose an [independent code lesson](extend-implementation.md).
 
 ## 1. Focus and type
 
@@ -81,8 +81,18 @@ The left toolbar provides **Obj**, **Vtx**, **Edge** and **Face** selection tool
 
 Expand the right-hand tree to see objects and their children. Click a bulb to hide or show that subtree, a lock to prevent or allow selection, and a color swatch to choose a palette color or edit its RGB values. Save/Open retains all three settings. [Checkpoint 9](current-9.md) implements these controls and the live shell preview.
 
+## Split with cutter curves
+
+Create a `Line`, `Polyline`, or `Curve` using world coordinates; `Curve` uses the supplied points as NURBS control points, with degree up to three. Created curves use a screen-space pen so they remain visible when zoomed out.
+
+Select a target curve, standalone surface, or one BRep face. Use **Ctrl+Shift** or the **Face** toolbar for face selection. Press **Split**, select one or more cutter curves in the viewport or layer tree, then press **Enter** or tap **Split** again. **Esc** cancels. The command dock reports the selected cutter count and explains invalid input.
+
+Curve splits keep all pieces. Face splits preserve existing holes and retain every region inside the owning BRep, updating shared boundaries so the shell stays joined. Cutters must intersect curves in 3D or lie on the selected surface within tolerance. Ambiguous overlaps and unsupported seam cases are rejected. This operation does not perform booleans, project cutters, cap holes or divide a solid into separate volumes.
+
+Use **Undo**, **Redo**, and **Save/Open** to verify the retained source. [Checkpoint 10](current-10.md) includes the kernel implementation and viewer wiring.
+
 ## Expected viewer result
 
-The completed viewer: a command dock across the bottom with syntax hints, one right-hand layer tree with bulbs, selection locks and color swatches, and a left toolbar. The selected source object has its solid gumball. Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
+The completed viewer has a command dock across the bottom, one right-hand layer tree with bulbs, selection locks and color swatches, and a left toolbar. Split keeps both face regions in the joined shell. The selected region has its gumball; Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
 
 [![Full viewer result for command line walkthrough](screenshots/extensions-workspace-current-desktop.png)](screenshots/extensions-workspace-current-desktop.png)

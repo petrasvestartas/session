@@ -18,6 +18,8 @@ struct Archive {
 }
 #[derive(Serialize, Deserialize)]
 struct Metadata {
+    #[serde(default)]
+    created_doc: Option<usize>,
     documents: Vec<Document>,
     hidden: Vec<(usize, String)>,
     #[serde(default)]
@@ -72,6 +74,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
         .collect();
     colors.sort();
     let metadata = Metadata {
+        created_doc: scene.created_doc,
         documents: scene
             .docs
             .iter()
@@ -116,7 +119,14 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
     if metadata.documents.len() != archive.documents.len() {
         return Err("Document inventory does not match".into());
     }
+    if metadata
+        .created_doc
+        .is_some_and(|index| index >= metadata.documents.len())
+    {
+        return Err("Created document index is outside the inventory".into());
+    }
     let mut scene = Scene::new();
+    scene.created_doc = metadata.created_doc;
     for (meta, bytes) in metadata.documents.into_iter().zip(archive.documents) {
         if !meta.place.into_iter().all(f64::is_finite) || !meta.point_px.is_finite() {
             return Err("Non-finite document placement".into());
@@ -206,6 +216,25 @@ mod tests {
     use super::*;
     use crate::app::deform::Target;
     use session_rust::{Geometry, Mesh, Point};
+    #[test]
+    fn created_curves_keep_visible_screen_pens_after_open() {
+        let mut scene = Scene::new();
+        scene
+            .model(&crate::app::modeling::Modeling::Line(
+                [-3000., -5000., 200.],
+                [-3000., -1000., 200.],
+            ))
+            .unwrap();
+        let restored = open(&save(&scene).unwrap()).unwrap();
+        assert_eq!(restored.created_doc, Some(0));
+        assert_eq!(restored.tables.seg.ribbons.len(), 1);
+        assert_eq!(restored.tables.seg.ribbons[0].radius, 0.);
+        assert_eq!(
+            restored.tables.obj.rows[0].flags & crate::engine::gpu::Instance::FLAG_SHEET,
+            0
+        );
+    }
+
     #[test]
     fn edited_documents_placements_hidden_state_and_history_survive_save() {
         let mut source = Session::new("source");

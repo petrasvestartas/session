@@ -71,6 +71,7 @@ impl Input {
                 .camera
                 .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
             Key::Named(NamedKey::Escape) => state.escape_selection(),
+            Key::Named(NamedKey::Enter) => state.confirm_split(),
             Key::Named(NamedKey::F10) => state.enable_controls(),
             Key::Named(NamedKey::Delete) => state.delete_selected(),
             // The colon opens the command box, the way a modal editor does. The box then holds

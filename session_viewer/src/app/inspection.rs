@@ -76,6 +76,16 @@ pub fn publish(state: &State) {
     });
     snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
     snapshot["color_count"] = serde_json::json!(state.scene.colors.len());
+    snapshot["split"] = serde_json::json!(state.split_status());
+    snapshot["source_faces"] =
+        serde_json::json!(parent.and_then(|row| match state.scene.geometry(row)? {
+            session_rust::Geometry::BRep(brep) => Some(brep.face_count()),
+            session_rust::Geometry::Element(element) => match element.geometry() {
+                session_rust::element::ElementGeometry::BRep(brep) => Some(brep.face_count()),
+                _ => None,
+            },
+            _ => None,
+        }));
     snapshot["scene_revision"] = serde_json::json!(state.scene.row_revision);
     snapshot["preview_cache_bytes"] = serde_json::json!(state.scene.preview_cache_bytes());
     let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string());

@@ -293,7 +293,7 @@ impl State {
 
     /// An undo can bring an object back or take one away, so the rows are rebuilt rather than
     /// patched. The selection is dropped because the row it named may not exist any more.
-    fn after_history(&mut self) {
+    pub(super) fn after_history(&mut self) {
         self.hierarchy.open.clear();
         self.hierarchy.page = 0;
         self.selection = SelectionMode::Object;
@@ -415,6 +415,9 @@ impl State {
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
         self.cancel_gesture();
         let command = crate::app::command::parse(line)?;
+        if command != Command::Split {
+            self.cancel_split();
+        }
         if matches!(command, Command::Delete | Command::Undo | Command::Redo)
             && (!self.scene.streamed.is_empty() || !self.scene.sheets.is_empty())
         {
@@ -428,6 +431,7 @@ impl State {
             return Err("nothing is selected".into());
         }
         match command {
+            Command::Split => self.split_command(),
             Command::Save => {
                 let bytes = crate::app::session_io::save(&self.scene)?;
                 #[cfg(target_arch = "wasm32")]
@@ -444,7 +448,10 @@ impl State {
                 use crate::app::modeling::Modeling;
                 let created = matches!(
                     command,
-                    Modeling::Point(_) | Modeling::Line(..) | Modeling::Polyline(_)
+                    Modeling::Point(_)
+                        | Modeling::Line(..)
+                        | Modeling::Polyline(_)
+                        | Modeling::Curve(_)
                 );
                 self.scene.model(&command)?;
                 self.after_history();
@@ -458,6 +465,7 @@ impl State {
                     let name = match command {
                         Modeling::Point(_) => "point",
                         Modeling::Line(..) => "line",
+                        Modeling::Curve(_) => "NURBS curve",
                         _ => "polyline",
                     };
                     Ok(format!(

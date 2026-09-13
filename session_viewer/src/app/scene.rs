@@ -369,7 +369,8 @@ impl Scene {
 
         let extent = file_extent(&self.tables, &from);
         self.tables.bounds.union(&extent);
-        if is_planar(&self.tables, &from, &place.m) {
+        // Typed modeling geometry stays in the 3D workspace even when all its points are coplanar.
+        if self.created_doc != Some(self.docs.len()) && is_planar(&self.tables, &from, &place.m) {
             mark_sheet(&mut self.tables, &from);
         }
         lap.mark("sweeps");

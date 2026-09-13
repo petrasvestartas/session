@@ -1,6 +1,6 @@
 # Editing lesson evidence
 
-Start with [the implementation lessons](../extend-implementation.md). Each starts from frozen checkpoint 21 and includes exact code edits. Their patches are alternatives against that starting point; do not blindly stack them. For their combined implementation, follow [nine sequential checkpoints](../extend-integrated-tutorial.md). Every checkpoint compiles and the final visible edits reproduce all 118 maintained runtime/build files.
+Start with [the implementation lessons](../extend-implementation.md). Each starts from frozen checkpoint 21 and includes exact code edits. Their patches are alternatives against that starting point; do not blindly stack them. For their combined implementation, follow [ten sequential checkpoints](../extend-integrated-tutorial.md). Every checkpoint compiles and the final visible edits reproduce all 120 maintained runtime/build files.
 
 ## Five browser rounds
 
@@ -60,3 +60,7 @@ and annotations. Live undo remains available after saving; opening starts a new 
 Partially streamed scenes and BRep edits needing trim reconstruction are not supported.
 
 [Checkpoint 9](../current-9.md) removes duplicate layer summaries, adds child visibility/selection locks/colors, and patches cached BRep samples during dragging. The `tests/live-shell-editing.cjs` browser regression checks that scene rows are not rebuilt during a drag or on release; `tests/layer-workspace.cjs` checks layer state through Save/Open.
+
+[Checkpoint 10](../current-10.md) adds the split kernel and curve/face workflow. `tests/splitting.cjs` exercises retained regions, cutter selection, cancellation, Undo/Redo, touch confirmation and Save/Open. Its kernel prerequisite patch is applied in the sibling `session_rust` directory; the verifier copies the frozen kernel before applying it.
+
+The final desktop and phone images use the downloadable `split.pb` fixture and `split.yaml` manifest. `node docs/extensions/capture-split.cjs` reproduces them; set `VIEWER_PHONE=1` for the phone layout. The capture hides the document title and selected-name label to keep the split boundary visible. It asserts seven retained source faces after the real Split workflow.

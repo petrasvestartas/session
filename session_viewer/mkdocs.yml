@@ -91,6 +91,7 @@ nav:
     - 7 · Shared editing wiring: docs/current-7.md
     - 8 · Docked workspace, touch and save: docs/current-8.md
     - 9 · Live editing and layer controls: docs/current-9.md
+    - 10 · Split curves and joined faces: docs/current-10.md
   - Capstone: docs/capstone.md
   - Extending the viewer:
     - Small code, bounded work: docs/performance-patterns.md

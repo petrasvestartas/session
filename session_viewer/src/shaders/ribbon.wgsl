@@ -346,8 +346,9 @@ fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair 
 const SEGMENT_BIT: u32 = 0x80000000u;
 
 @fragment
+// Keep visible hairlines pickable even when their coverage is shared across adjacent pixels.
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
+    if (coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
         discard;
     }
     return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | SEGMENT_BIT);
@@ -356,7 +357,7 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
 // Specialized edge picks exclude segments without a producer-provided source edge.
 @fragment
 fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (in.source_edge == 0xffffffffu || coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
+    if (in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
         discard;
     }
     // Bit 31 is the STROKE tag of the pick-id union `Pick::sub` documents (engine/gpu/pick.rs):

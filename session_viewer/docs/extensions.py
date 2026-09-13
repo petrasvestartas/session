@@ -25,14 +25,14 @@ def run(command, cwd, log):
         raise RuntimeError(f"{command} failed; see {log}\n{log.read_text()[-4000:]}")
 
 
-def prepare(output, isolated=False):
+def prepare(output, isolated=False, copy_kernel=False):
     if output.exists():
         raise ValueError(f"choose a new directory: {output}")
     if not BASE.exists():
         raise ValueError("run docs/serve.sh build first to populate the verified checkpoint cache")
     output.mkdir(parents=True)
     shutil.copytree(BASE / "session_viewer", output / "session_viewer")
-    if isolated:
+    if isolated and not copy_kernel:
         manifest = output / "session_viewer/Cargo.toml"
         manifest.write_text(manifest.read_text().replace('path = "../session_rust"', f'path = "{BASE / "session_rust"}"'))
     else:
@@ -41,7 +41,10 @@ def prepare(output, isolated=False):
 
 
 def instructions(step, working):
-    changes = course.parse_patch((DATA / step["patch"]).read_text())
+    changes = {}
+    if step.get("kernel_patch"):
+        changes.update({"../session_rust/" + name: change for name, change in course.parse_patch((DATA / step["kernel_patch"]).read_text()).items()})
+    changes.update(course.parse_patch((DATA / step["patch"]).read_text()))
     parts = []
     for name, change in changes.items():
         old = working.get(name)
@@ -62,6 +65,13 @@ def instructions(step, working):
     return "\n".join(parts)
 
 
+def step_hash(step):
+    payload = (DATA/step["patch"]).read_bytes()
+    if step.get("kernel_patch"):
+        payload += (DATA/step["kernel_patch"]).read_bytes()
+    return hashlib.sha256(payload).hexdigest()
+
+
 def render(lesson):
     key = lesson["id"]
     parts = [f'# {lesson["title"]}\n\n## You are building\n\n{lesson["intro"]}\n',
@@ -77,7 +87,7 @@ def render(lesson):
     for number, step in enumerate(lesson["steps"], 1):
         parts.append(f'## Step {number} · {step["title"]}\n\n{step["why"]}\n')
         parts.append(instructions(step, working))
-        status = "**Verified:** the complete step compiles for WebAssembly." if checks.get('steps', {}).get(str(number)) == hashlib.sha256((DATA/step['patch']).read_bytes()).hexdigest() else "**Verification pending:** run the check below before continuing."
+        status = "**Verified:** the complete step compiles for WebAssembly." if checks.get('steps', {}).get(str(number)) == step_hash(step) else "**Verification pending:** run the check below before continuing."
         parts.append(f'### Check step {number}\n\n{status}\n\n'+course.fence('check.sh','cargo check -j4 --lib\n'))
     parts.extend(['## Check\n\n'+course.fence('check.sh', 'cargo xtest -j4 --lib' + (' ' + lesson['test'] if lesson['test'] else '') + '\ntrunk serve --port 8780\n'),
         'Open <http://localhost:8780/?data=off&inspect=1>. Stop the server with **Ctrl+C**.\n',
@@ -100,7 +110,7 @@ def chapters(lesson):
         previous = 'extend-integrated-tutorial.md' if number == '1' else f'current-{int(number)-1}.md'
         following = f'current-{int(number)+1}.md' if int(number) < len(lesson['steps']) else 'command-line-walkthrough.md'
         step = lesson['steps'][int(number)-1]
-        visual = {1: '16-01.svg', 2: '20-03.svg', 3: 'extend-controls.svg', 4: 'extend-gumball.svg', 5: 'README-01.svg', 6: 'extend-ui.svg', 7: 'README-02.svg', 8: 'extend-ui.svg', 9: 'extend-ui.svg'}[int(number)]
+        visual = {1: '16-01.svg', 2: '20-03.svg', 3: 'extend-controls.svg', 4: 'extend-gumball.svg', 5: 'README-01.svg', 6: 'extend-ui.svg', 7: 'README-02.svg', 8: 'extend-ui.svg', 9: 'extend-ui.svg', 10: '16-01.svg'}[int(number)]
         picture = f'\n![Ownership and data flow](illustrations/{visual})\n'
         if number == '4': picture += '\n![Unlit cylindrical gumball in the maintained viewer](screenshots/extensions-gumball.png)\n'
         if number == '6': picture += '\n![The white command window and black text](screenshots/extensions-command-interface.png)\n'
@@ -132,7 +142,10 @@ def check_current(lesson):
         actual = working.get(name, (BASE/'session_viewer'/name).read_text() if (BASE/'session_viewer'/name).exists() else None)
         if actual != source:
             raise ValueError(f'integrated lessons differ from maintained source: {name}')
-    extra = set(working) - set(expected)
+    for name, source in working.items():
+        if name == '../session_rust/src/simple_split.rs' and source != (REPO/name).read_text():
+            raise ValueError('tutorial split kernel differs from maintained implementation')
+    extra = set(working) - set(expected) - {'../session_rust/src/simple_split.rs', '../session_rust/src/lib.rs', '../session_rust/src/nurbscurve.rs', '../session_rust/src/tree.rs', '../session_rust/src/brep.rs'}
     if extra:
         raise ValueError(f'integrated lessons contain extra runtime files: {sorted(extra)}')
     print(f'PASS integrated lessons match {len(expected)} maintained runtime/build files')
@@ -145,11 +158,14 @@ def verify(lessons):
     with tempfile.TemporaryDirectory(prefix="viewer-extension-check-") as temp:
         for lesson in lessons:
             key = lesson['id']
-            viewer = prepare(Path(temp) / key, isolated=True)
+            copy_kernel = any(step.get("kernel_patch") for step in lesson["steps"])
+            viewer = prepare(Path(temp) / key, isolated=True, copy_kernel=copy_kernel)
             working = {}
             result = {'steps': {}, 'kernel': 'frozen checkpoint 21'}
             for number, step in enumerate(lesson['steps'],1):
                 instructions(step, working)
+                if step.get('kernel_patch'):
+                    run(['git','apply',str(DATA/step['kernel_patch'])],viewer.parent/'session_rust',logs/f'{key}-{number}-kernel-apply.log')
                 run(['git','apply',str(DATA/step['patch'])],viewer,logs/f'{key}-{number}-apply.log')
                 for name, source in working.items():
                     actual = (viewer/name).read_text()
@@ -158,7 +174,7 @@ def verify(lessons):
                     if actual != source:
                         raise ValueError(f'visible instructions differ from applied patch: {key}/{number}/{name}')
                 run(['cargo','check','--locked','--lib','--target','wasm32-unknown-unknown','-j4'],viewer,logs/f'{key}-{number}-check.log')
-                result['steps'][str(number)] = hashlib.sha256((DATA/step['patch']).read_bytes()).hexdigest()
+                result['steps'][str(number)] = step_hash(step)
                 print(f'PASS {key} step {number}: visible snippets match patch; WASM check',flush=True)
             run(['cargo','test','--locked','--lib','--target','x86_64-unknown-linux-gnu','-j4'],viewer,logs/f'{key}-tests.log')
             result['tests'] = 'passed'

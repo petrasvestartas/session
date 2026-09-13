@@ -44,3 +44,5 @@ pub mod inspection;
 pub mod ui;
 
 pub mod surface_preview;
+
+pub mod splitting;

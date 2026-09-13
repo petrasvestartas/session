@@ -19,6 +19,7 @@ mod cloud_query;
 pub mod edit;
 mod panel;
 mod sheet_query;
+mod splitting;
 mod text;
 use std::sync::Arc;
 use winit::window::Window;
@@ -52,6 +53,7 @@ pub struct State {
     pub selection: SelectionMode,
     pub selection_tool: crate::app::selection::SelectionTool,
     hierarchy: crate::app::hierarchy::Hierarchy,
+    pending_split: Option<splitting::Pending>,
     controls: Controls,
     requested: PickMode,
     pub selection_radius_css: f64,
@@ -90,6 +92,7 @@ impl State {
             selection: SelectionMode::Object,
             selection_tool: crate::app::selection::SelectionTool::default(),
             hierarchy: Default::default(),
+            pending_split: None,
             controls: Controls::default(),
             requested: PickMode::Object,
             selection_radius_css: 6.0,
@@ -185,6 +188,7 @@ impl State {
 
     /// Drop every document; the canvas, device and camera stay.
     pub fn clear(&mut self) {
+        self.cancel_split();
         self.cancel_gesture();
         self.hierarchy = Default::default();
         self.selection = SelectionMode::Object;
@@ -291,6 +295,7 @@ impl State {
 
     /// Make `row` the selection (or none), moving the highlight.
     pub fn select(&mut self, row: Option<u32>) {
+        self.cancel_split();
         let row = row.filter(|row| self.scene.selectable(*row));
         self.cancel_gesture();
         for old in self.hierarchy.selected.drain(..) {
@@ -362,6 +367,12 @@ impl State {
 
     /// A pick came back: log what it hit and select it (clicking the selection clears it).
     fn apply_pick(&mut self, pick: Option<Pick>) {
+        if self.pending_split.is_some() {
+            if let Some(pick) = pick {
+                self.pick_split_cutter(pick.row);
+            }
+            return;
+        }
         let pick = pick.filter(|pick| self.scene.selectable(pick.row));
         #[cfg(target_arch = "wasm32")]
         if self.cloud_query_awaiting_gpu() {
@@ -567,15 +578,20 @@ impl State {
     /// with edges still winning. Both false is the ordinary object pass, or the control-point
     /// pass while F10 controls are up. Ctrl never also performs ordinary selection.
     pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
-        let face = face || self.selection_tool == crate::app::selection::SelectionTool::Face;
-        let edge = edge || self.selection_tool == crate::app::selection::SelectionTool::Edge;
+        let splitting = self.pending_split.is_some();
+        let face = !splitting
+            && (face || self.selection_tool == crate::app::selection::SelectionTool::Face);
+        let edge = !splitting
+            && (edge || self.selection_tool == crate::app::selection::SelectionTool::Edge);
         self.cancel_cloud_query();
         self.gpu.pick.cancel();
         #[cfg(target_arch = "wasm32")]
-        if !edge && self.start_cloud_query(x, y) {
+        if !splitting && !edge && self.start_cloud_query(x, y) {
             return;
         }
-        let mode = if face {
+        let mode = if splitting {
+            PickMode::Object
+        } else if face {
             PickMode::Component
         } else if edge {
             PickMode::Edge

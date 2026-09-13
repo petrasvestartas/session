@@ -560,7 +560,9 @@ fn commands(
                 record(controls, "command/close", "Close", &close);
                 if close.clicked() || ui.input(|input| input.key_pressed(egui::Key::Escape)) {
                     model.command_open = false;
+                    model.focus_command = false;
                     response.surrender_focus();
+                    close.surrender_focus();
                     crate::app::feedback::focus_canvas();
                 }
             });
@@ -586,6 +588,11 @@ const TOOLBAR: &[(&str, &str, &str)] = &[
         "Create a polyline",
         "polyline 0,0,0 100,0,0 100,100,0",
     ),
+    (
+        "Split",
+        "Split selected curve or face with cutter curves",
+        "split",
+    ),
     ("Undo", "Undo the last edit", "undo"),
     ("Redo", "Redo the last edit", "redo"),
     ("Save", "Save the whole session", "save"),
@@ -609,6 +616,7 @@ fn toolbar(
                         .on_hover_text(help);
                     record(controls, &format!("toolbar/{label}"), help, &response);
                     if response.clicked() {
+                        response.surrender_focus();
                         if command.contains(' ') {
                             model.command = command.to_string();
                             model.command_open = true;
