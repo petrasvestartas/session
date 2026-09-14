@@ -851,3 +851,9 @@ Expected compiler result: `Finished` with no errors. Open <http://localhost:8780
 Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Create, trim, extend and explode](current-2.md) and apply its blocks in order.
 
 [Previous](extend-integrated-tutorial.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-2.md)
+
+## Expected viewer result
+
+With an empty scene, the viewer shows the grid and world axes. Orbit, pan and zoom should work. Runtime diagnostics add no visible editing control. Captured in the maintained viewer with an empty manifest and no object selected.
+
+[![Full viewer result for current 1](screenshots/current-empty.png)](screenshots/current-empty.png)

@@ -353,3 +353,9 @@ Each step builds on its own.
 - **Step 11** — move, undo, redo five times: the object lands in exactly the same two positions each time, and the widget follows.
 - **Step 12** — type a number into a handle: it moves by exactly that. Type `abc`: the status line says so, nothing moves. Type `0` into a scale: no collapse.
 - **Throughout** — with `?inspect=1`, `data-viewer-inspection` carries `gizmo` and the `model` of the moved row, and `pick_busy` is false while the cursor moves without a drag.
+
+## Expected viewer result
+
+Reference result from the supported [implementation tutorials](extend-implementation.md). Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md).
+
+[![Full viewer result for extend gumball](screenshots/extensions-gumball-overview.png)](screenshots/extensions-gumball-overview.png)

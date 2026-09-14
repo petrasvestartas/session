@@ -569,3 +569,9 @@ Name the three bind groups every lane shares, what each holds, and what the ink 
 ## Next
 
 [04b · Strokes](04b-strokes.md): the segment lane, `ribbon.wgsl`, and the shared ink visibility rule.
+
+## Expected viewer result
+
+Checkpoint 04a: the first mesh drawn from arena buffers through the object table.
+
+[![Full viewer result for 04a meshes](screenshots/04a.png)](screenshots/04a.png)

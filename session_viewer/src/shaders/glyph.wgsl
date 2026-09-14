@@ -74,7 +74,7 @@ fn glyph_vertex(vid: u32) -> VsOut {
 
     var o: VsOut;
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
-    var color = g.color * inst.color;
+    var color = edge_color(g.color, inst);
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = vec4<f32>(SELECT_COLOR, color.a);
     }

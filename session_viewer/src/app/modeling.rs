@@ -15,6 +15,7 @@ pub enum Modeling {
     Point([f64; 3]),
     Line([f64; 3], [f64; 3]),
     Polyline(Vec<[f64; 3]>),
+    Curve(Vec<[f64; 3]>),
     Trim(f64, f64),
     Extend(f64, f64),
     Explode,
@@ -44,6 +45,18 @@ impl Scene {
                     .map(|p| point(*p))
                     .collect::<Result<Vec<_>, _>>()?;
                 self.create_geometry(Geometry::Polyline(Rc::new(Polyline::new(points))))
+            }
+            Modeling::Curve(points) => {
+                if !(2..=MAX_POINTS).contains(&points.len()) {
+                    return Err(format!("curve needs 2–{MAX_POINTS} control points"));
+                }
+                let points = points
+                    .iter()
+                    .map(|p| point(*p))
+                    .collect::<Result<Vec<_>, _>>()?;
+                let curve =
+                    session_rust::NurbsCurve::create(false, (points.len() - 1).min(3), &points);
+                self.create_geometry(Geometry::NurbsCurve(Rc::new(curve)))
             }
             _ => self.edit_geometry(command),
         }
@@ -77,6 +90,9 @@ impl Scene {
             Geometry::Polyline(line) => {
                 let added = session.add_polyline((*line).clone(), None);
                 debug_assert!(added.is_some());
+            }
+            Geometry::NurbsCurve(curve) => {
+                session.add_nurbscurve((*curve).clone(), None);
             }
             _ => unreachable!(),
         }

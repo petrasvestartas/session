@@ -44,6 +44,10 @@ impl Instance {
     /// One face only (a NURBS surface, a one-face mesh or BRep): x-ray leaves it shaded, since
     /// it has no interior to look into.
     pub const FLAG_SINGLE: u32 = 1 << 7;
+    /// Replace authored colors with the layer color.
+    pub const FLAG_COLOR: u32 = 1 << 8;
+    pub const FLAG_EDGE_COLOR: u32 = 1 << 9;
+    pub const FLAG_HAS_FACES: u32 = 1 << 10;
 
     /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
     pub fn placeholder() -> Self {
@@ -193,7 +197,7 @@ mod tests {
     /// The scene contract declares `Instance` with the Rust fields, in order.
     #[test]
     fn instance_mirror() {
-        let rust = ["model", "color", "flags", "_pad0", "spacing"];
+        let rust = ["model", "color", "flags", "_pad0", "spacing", "edge_color"];
         assert_eq!(wgsl_fields(SCENE, "Instance"), rust, "Instance fields");
     }
 

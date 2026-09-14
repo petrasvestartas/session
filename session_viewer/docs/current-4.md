@@ -1572,3 +1572,9 @@ Expected compiler result: `Finished` with no errors. Open <http://localhost:8780
 Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Build the nested session and graph panel](current-5.md) and apply its blocks in order.
 
 [Previous](current-3.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-5.md)
+
+## Expected viewer result
+
+Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md). The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for current 4](screenshots/extensions-gumball-overview.png)](screenshots/extensions-gumball-overview.png)

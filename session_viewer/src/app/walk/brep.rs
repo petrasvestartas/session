@@ -92,6 +92,8 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
                 triangle.swap(1, 2);
             }
         }
+        let surface_index = b.m_faces[fi].surface_index as usize;
+        cache_samples(arena, fm, &rm, &b.m_surfaces[surface_index], surface_index);
         push_face(arena, &rm, cx, &mut solid, fi);
     }
     let mut flags = Instance::FLAG_SMOOTH;
@@ -441,5 +443,37 @@ mod tests {
                 );
             }
         }
+    }
+}
+
+/// Store only parameter provenance for live edits, without retaining mesh topology maps.
+fn cache_samples(
+    arena: &mut ArenaRows,
+    mesh: &Mesh,
+    render: &RenderMesh,
+    surface: &NurbsSurface,
+    index: usize,
+) {
+    let mut rows: Vec<_> = mesh.vertex.iter().collect();
+    rows.sort_unstable_by_key(|&(key, _)| *key);
+    if rows.len() != render.vertices.len() {
+        return;
+    }
+    for (offset, ((_, vertex), rendered)) in rows.into_iter().zip(&render.vertices).enumerate() {
+        let (Some(&u), Some(&v)) = (vertex.attributes.get("u"), vertex.attributes.get("v")) else {
+            continue;
+        };
+        let normal = surface.normal_at(u, v);
+        let dot = (0..3)
+            .map(|d| normal[d] * rendered.normal[d] as f64)
+            .sum::<f64>();
+        arena
+            .surface_samples
+            .push(crate::app::surface_preview::Sample {
+                index: arena.verts.len() as u32 + offset as u32,
+                surface: index as u32,
+                uv: [u, v],
+                sign: if dot < 0.0 { -1.0 } else { 1.0 },
+            });
     }
 }

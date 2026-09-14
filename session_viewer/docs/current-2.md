@@ -682,3 +682,9 @@ Expected compiler result: `Finished` with no errors. Open <http://localhost:8780
 Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Make control dragging respect object placement](current-3.md) and apply its blocks in order.
 
 [Previous](current-1.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-3.md)
+
+## Expected viewer result
+
+A newly created line has been trimmed to its middle 60% and selected. Compare its shortened extent with the other geometry in the full viewer. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md). At this checkpoint the command field still uses the original DOM interface, and the handles are drawn with strokes. The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for current 2](screenshots/extensions-modeling.png)](screenshots/extensions-modeling.png)

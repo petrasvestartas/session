@@ -24,7 +24,7 @@
         "controls": [],
         "draw_calls": 4,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 72,
+        "frames": 66,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1028876,
         "gpu_texture_estimate_bytes": 11520048,
@@ -82,7 +82,7 @@
         },
         "source_cpu_known_payload_bytes": 2013,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 2949.599999964237,
+        "submitted_at_ms": 2818.899999976158,
         "text": {
           "active_instance_bytes": 0,
           "atlas_resets": 0,
@@ -98,7 +98,7 @@
           "requested_glyphs": 0,
           "shape_count": 0,
           "shaping_ms": 0,
-          "skipped_preparations": 67,
+          "skipped_preparations": 61,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -153,14 +153,14 @@
             },
             "position": [
               46.22337614802997,
-              69.84044431659262,
+              69.84044431659264,
               0
             ]
           }
         ],
         "draw_calls": 5,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 109,
+        "frames": 102,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1621352,
         "gpu_texture_estimate_bytes": 11527268,
@@ -244,7 +244,7 @@
         },
         "source_cpu_known_payload_bytes": 1957,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 4265.800000011921,
+        "submitted_at_ms": 4137,
         "text": {
           "active_instance_bytes": 0,
           "atlas_resets": 0,
@@ -259,8 +259,8 @@
           "raster_images": 0,
           "requested_glyphs": 0,
           "shape_count": 2,
-          "shaping_ms": 13,
-          "skipped_preparations": 101,
+          "shaping_ms": 11.599999964237213,
+          "skipped_preparations": 94,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -269,7 +269,7 @@
         "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
         "text_labels": [],
         "vertices": 0,
-        "wasm_capacity_bytes": 8519680,
+        "wasm_capacity_bytes": 9175040,
         "widget": null,
         "widget_bytes": [
           371616,
@@ -280,7 +280,7 @@
     },
     {
       "file": "extensions-modeling.png",
-      "operation": "Created line trimmed to normalized interval 0.2–0.8",
+      "operation": "Created line trimmed to normalized interval 0.2\u20130.8",
       "state": {
         "canvas": [
           1200,
@@ -291,14 +291,14 @@
         "controls": [],
         "draw_calls": 8,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 227,
+        "frames": 221,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1621568,
         "gpu_texture_estimate_bytes": 18752612,
         "hidden_count": 0,
         "identity": [
           1,
-          "9e9a7376-c734-452e-962e-9ea75a5a6f83"
+          "2169091b-8900-4227-9780-16d3a2efad76"
         ],
         "logical_canvas": [
           1200,
@@ -369,7 +369,7 @@
         },
         "source_cpu_known_payload_bytes": 2778,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 7634.800000011921,
+        "submitted_at_ms": 7556,
         "text": {
           "active_instance_bytes": 196,
           "atlas_resets": 0,
@@ -384,8 +384,8 @@
           "raster_images": 0,
           "requested_glyphs": 7,
           "shape_count": 5,
-          "shaping_ms": 13.399999916553497,
-          "skipped_preparations": 212,
+          "shaping_ms": 12.199999988079071,
+          "skipped_preparations": 206,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -425,7 +425,7 @@
           }
         ],
         "vertices": 0,
-        "wasm_capacity_bytes": 8519680,
+        "wasm_capacity_bytes": 9175040,
         "widget": [
           [
             5,
@@ -454,14 +454,14 @@
         "controls": [],
         "draw_calls": 6,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 241,
+        "frames": 232,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1621568,
         "gpu_texture_estimate_bytes": 24798308,
         "hidden_count": 0,
         "identity": [
           1,
-          "9e9a7376-c734-452e-962e-9ea75a5a6f83"
+          "2169091b-8900-4227-9780-16d3a2efad76"
         ],
         "logical_canvas": [
           1200,
@@ -532,7 +532,7 @@
         },
         "source_cpu_known_payload_bytes": 2778,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 8384.899999976158,
+        "submitted_at_ms": 8106.099999964237,
         "text": {
           "active_instance_bytes": 0,
           "atlas_resets": 0,
@@ -547,8 +547,8 @@
           "raster_images": 0,
           "requested_glyphs": 0,
           "shape_count": 5,
-          "shaping_ms": 13.399999916553497,
-          "skipped_preparations": 224,
+          "shaping_ms": 12.199999988079071,
+          "skipped_preparations": 215,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -557,7 +557,7 @@
         "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
         "text_labels": [],
         "vertices": 0,
-        "wasm_capacity_bytes": 8519680,
+        "wasm_capacity_bytes": 9175040,
         "widget": [
           [
             5,
@@ -586,7 +586,7 @@
         "controls": [],
         "draw_calls": 3,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 39,
+        "frames": 36,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1028876,
         "gpu_texture_estimate_bytes": 11520048,
@@ -644,7 +644,7 @@
         },
         "source_cpu_known_payload_bytes": 2013,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 1865.7999999523163,
+        "submitted_at_ms": 1932.3999999761581,
         "text": {
           "active_instance_bytes": 0,
           "atlas_resets": 0,
@@ -660,7 +660,7 @@
           "requested_glyphs": 0,
           "shape_count": 0,
           "shaping_ms": 0,
-          "skipped_preparations": 36,
+          "skipped_preparations": 33,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -685,36 +685,306 @@
             "key": "command/input",
             "label": "Command",
             "rect": [
-              19,
-              740.6875,
-              499,
-              759.6875
+              78.71875,
+              738,
+              1092,
+              766
             ]
           },
           {
             "key": "command/run",
             "label": "Run",
             "rect": [
-              19,
-              762.6875,
-              49.8125,
-              780.6875
+              1100,
+              738,
+              1140,
+              766
             ]
           },
           {
             "key": "command/close",
             "label": "Close",
             "rect": [
-              57.8125,
-              762.6875,
-              127.09375,
-              780.6875
+              1148,
+              738,
+              1188,
+              766
+            ]
+          },
+          {
+            "key": "toolbar/Obj",
+            "label": "Select objects",
+            "rect": [
+              8,
+              2,
+              52,
+              46
+            ]
+          },
+          {
+            "key": "toolbar/Vtx",
+            "label": "Show and edit source vertices / control points",
+            "rect": [
+              8,
+              49,
+              52,
+              93
+            ]
+          },
+          {
+            "key": "toolbar/Edge",
+            "label": "Select source edges",
+            "rect": [
+              8,
+              96,
+              52,
+              140
+            ]
+          },
+          {
+            "key": "toolbar/Face",
+            "label": "Select source faces",
+            "rect": [
+              8,
+              143,
+              52,
+              187
+            ]
+          },
+          {
+            "key": "toolbar/Fit",
+            "label": "Fit selection or scene",
+            "rect": [
+              8,
+              190,
+              52,
+              234
+            ]
+          },
+          {
+            "key": "toolbar/Layer",
+            "label": "Show or hide layers",
+            "rect": [
+              8,
+              237,
+              52,
+              281
+            ]
+          },
+          {
+            "key": "toolbar/+Pt",
+            "label": "Create a point",
+            "rect": [
+              8,
+              284,
+              52,
+              328
+            ]
+          },
+          {
+            "key": "toolbar/+Ln",
+            "label": "Create a line",
+            "rect": [
+              8,
+              331,
+              52,
+              375
+            ]
+          },
+          {
+            "key": "toolbar/+Poly",
+            "label": "Create a polyline",
+            "rect": [
+              8,
+              378,
+              52,
+              422
+            ]
+          },
+          {
+            "key": "toolbar/Undo",
+            "label": "Undo the last edit",
+            "rect": [
+              8,
+              425,
+              52,
+              469
+            ]
+          },
+          {
+            "key": "toolbar/Redo",
+            "label": "Redo the last edit",
+            "rect": [
+              8,
+              472,
+              52,
+              516
+            ]
+          },
+          {
+            "key": "toolbar/Save",
+            "label": "Save the whole session",
+            "rect": [
+              8,
+              519,
+              52,
+              563
+            ]
+          },
+          {
+            "key": "toolbar/Open",
+            "label": "Open a saved session",
+            "rect": [
+              8,
+              566,
+              52,
+              610
+            ]
+          },
+          {
+            "key": "layers/close",
+            "label": "Close layers",
+            "rect": [
+              967.84375,
+              2,
+              1007.34375,
+              20
+            ]
+          },
+          {
+            "key": "doc:0",
+            "label": "Editing lessons",
+            "rect": [
+              923,
+              32,
+              1192,
+              60
+            ]
+          },
+          {
+            "key": "kind:curves",
+            "label": "curves",
+            "rect": [
+              923,
+              63,
+              1192,
+              91
+            ]
+          },
+          {
+            "key": "open/0",
+            "label": "\u25b8 Editing lessons",
+            "rect": [
+              923,
+              94,
+              943,
+              122
+            ]
+          },
+          {
+            "key": "select/0",
+            "label": "Select Editing lessons",
+            "rect": [
+              951,
+              94,
+              1140,
+              122
+            ]
+          },
+          {
+            "key": "hide/0",
+            "label": "Hide Editing lessons",
+            "rect": [
+              1148,
+              94,
+              1192,
+              122
+            ]
+          },
+          {
+            "key": "select/7",
+            "label": "Select Editing lessons / edge: joint",
+            "rect": [
+              923,
+              125,
+              1140,
+              153
+            ]
+          },
+          {
+            "key": "hide/7",
+            "label": "Hide Editing lessons / edge: joint",
+            "rect": [
+              1148,
+              125,
+              1192,
+              153
+            ]
+          },
+          {
+            "key": "select/8",
+            "label": "Select Editing lessons / vertex: line_Beam A",
+            "rect": [
+              923,
+              156,
+              1140,
+              184
+            ]
+          },
+          {
+            "key": "hide/8",
+            "label": "Hide Editing lessons / vertex: line_Beam A",
+            "rect": [
+              1148,
+              156,
+              1192,
+              184
+            ]
+          },
+          {
+            "key": "select/9",
+            "label": "Select Editing lessons / vertex: line_Beam B",
+            "rect": [
+              923,
+              187,
+              1140,
+              215
+            ]
+          },
+          {
+            "key": "hide/9",
+            "label": "Hide Editing lessons / vertex: line_Beam B",
+            "rect": [
+              1148,
+              187,
+              1192,
+              215
+            ]
+          },
+          {
+            "key": "select/10",
+            "label": "Select Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              923,
+              218,
+              1140,
+              246
+            ]
+          },
+          {
+            "key": "hide/10",
+            "label": "Hide Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              1148,
+              218,
+              1192,
+              246
             ]
           }
         ],
         "framework": "egui 0.34.3",
         "history": [],
-        "layers_open": false
+        "layers_open": true
       }
     },
     {
@@ -730,7 +1000,7 @@
         "controls": [],
         "draw_calls": 3,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 68,
+        "frames": 65,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1029092,
         "gpu_texture_estimate_bytes": 11520048,
@@ -788,7 +1058,7 @@
         },
         "source_cpu_known_payload_bytes": 2834,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 2714.7999999523163,
+        "submitted_at_ms": 2817.199999988079,
         "text": {
           "active_instance_bytes": 0,
           "atlas_resets": 0,
@@ -804,7 +1074,7 @@
           "requested_glyphs": 0,
           "shape_count": 0,
           "shaping_ms": 0,
-          "skipped_preparations": 64,
+          "skipped_preparations": 61,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -829,30 +1099,360 @@
             "key": "command/input",
             "label": "Command",
             "rect": [
-              19,
-              722.6875,
-              499,
-              741.6875
+              78.71875,
+              770,
+              1092,
+              798
             ]
           },
           {
             "key": "command/run",
             "label": "Run",
             "rect": [
-              19,
-              744.6875,
-              49.8125,
-              762.6875
+              1100,
+              770,
+              1140,
+              798
             ]
           },
           {
             "key": "command/close",
             "label": "Close",
             "rect": [
-              57.8125,
-              744.6875,
-              127.09375,
-              762.6875
+              1148,
+              770,
+              1188,
+              798
+            ]
+          },
+          {
+            "key": "toolbar/Obj",
+            "label": "Select objects",
+            "rect": [
+              8,
+              2,
+              52,
+              46
+            ]
+          },
+          {
+            "key": "toolbar/Vtx",
+            "label": "Show and edit source vertices / control points",
+            "rect": [
+              8,
+              49,
+              52,
+              93
+            ]
+          },
+          {
+            "key": "toolbar/Edge",
+            "label": "Select source edges",
+            "rect": [
+              8,
+              96,
+              52,
+              140
+            ]
+          },
+          {
+            "key": "toolbar/Face",
+            "label": "Select source faces",
+            "rect": [
+              8,
+              143,
+              52,
+              187
+            ]
+          },
+          {
+            "key": "toolbar/Fit",
+            "label": "Fit selection or scene",
+            "rect": [
+              8,
+              190,
+              52,
+              234
+            ]
+          },
+          {
+            "key": "toolbar/Layer",
+            "label": "Show or hide layers",
+            "rect": [
+              8,
+              237,
+              52,
+              281
+            ]
+          },
+          {
+            "key": "toolbar/+Pt",
+            "label": "Create a point",
+            "rect": [
+              8,
+              284,
+              52,
+              328
+            ]
+          },
+          {
+            "key": "toolbar/+Ln",
+            "label": "Create a line",
+            "rect": [
+              8,
+              331,
+              52,
+              375
+            ]
+          },
+          {
+            "key": "toolbar/+Poly",
+            "label": "Create a polyline",
+            "rect": [
+              8,
+              378,
+              52,
+              422
+            ]
+          },
+          {
+            "key": "toolbar/Undo",
+            "label": "Undo the last edit",
+            "rect": [
+              8,
+              425,
+              52,
+              469
+            ]
+          },
+          {
+            "key": "toolbar/Redo",
+            "label": "Redo the last edit",
+            "rect": [
+              8,
+              472,
+              52,
+              516
+            ]
+          },
+          {
+            "key": "toolbar/Save",
+            "label": "Save the whole session",
+            "rect": [
+              8,
+              519,
+              52,
+              563
+            ]
+          },
+          {
+            "key": "toolbar/Open",
+            "label": "Open a saved session",
+            "rect": [
+              8,
+              566,
+              52,
+              610
+            ]
+          },
+          {
+            "key": "layers/close",
+            "label": "Close layers",
+            "rect": [
+              967.84375,
+              2,
+              1007.34375,
+              20
+            ]
+          },
+          {
+            "key": "doc:0",
+            "label": "Editing lessons",
+            "rect": [
+              923,
+              32,
+              1192,
+              60
+            ]
+          },
+          {
+            "key": "doc:1",
+            "label": "Created",
+            "rect": [
+              923,
+              63,
+              1192,
+              91
+            ]
+          },
+          {
+            "key": "kind:curves",
+            "label": "curves",
+            "rect": [
+              923,
+              94,
+              1192,
+              122
+            ]
+          },
+          {
+            "key": "open/0",
+            "label": "\u25b8 Editing lessons",
+            "rect": [
+              923,
+              125,
+              943,
+              153
+            ]
+          },
+          {
+            "key": "select/0",
+            "label": "Select Editing lessons",
+            "rect": [
+              951,
+              125,
+              1140,
+              153
+            ]
+          },
+          {
+            "key": "hide/0",
+            "label": "Hide Editing lessons",
+            "rect": [
+              1148,
+              125,
+              1192,
+              153
+            ]
+          },
+          {
+            "key": "select/7",
+            "label": "Select Editing lessons / edge: joint",
+            "rect": [
+              923,
+              156,
+              1140,
+              184
+            ]
+          },
+          {
+            "key": "hide/7",
+            "label": "Hide Editing lessons / edge: joint",
+            "rect": [
+              1148,
+              156,
+              1192,
+              184
+            ]
+          },
+          {
+            "key": "select/8",
+            "label": "Select Editing lessons / vertex: line_Beam A",
+            "rect": [
+              923,
+              187,
+              1140,
+              215
+            ]
+          },
+          {
+            "key": "hide/8",
+            "label": "Hide Editing lessons / vertex: line_Beam A",
+            "rect": [
+              1148,
+              187,
+              1192,
+              215
+            ]
+          },
+          {
+            "key": "select/9",
+            "label": "Select Editing lessons / vertex: line_Beam B",
+            "rect": [
+              923,
+              218,
+              1140,
+              246
+            ]
+          },
+          {
+            "key": "hide/9",
+            "label": "Hide Editing lessons / vertex: line_Beam B",
+            "rect": [
+              1148,
+              218,
+              1192,
+              246
+            ]
+          },
+          {
+            "key": "select/10",
+            "label": "Select Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              923,
+              249,
+              1140,
+              277
+            ]
+          },
+          {
+            "key": "hide/10",
+            "label": "Hide Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              1148,
+              249,
+              1192,
+              277
+            ]
+          },
+          {
+            "key": "open/11",
+            "label": "\u25b8 Created",
+            "rect": [
+              923,
+              280,
+              943,
+              308
+            ]
+          },
+          {
+            "key": "select/11",
+            "label": "Select Created",
+            "rect": [
+              951,
+              280,
+              1140,
+              308
+            ]
+          },
+          {
+            "key": "hide/11",
+            "label": "Hide Created",
+            "rect": [
+              1148,
+              280,
+              1192,
+              308
+            ]
+          },
+          {
+            "key": "select/13",
+            "label": "Select Created / vertex: line_my_line",
+            "rect": [
+              923,
+              311,
+              1140,
+              339
+            ]
+          },
+          {
+            "key": "hide/13",
+            "label": "Hide Created / vertex: line_my_line",
+            "rect": [
+              1148,
+              311,
+              1192,
+              339
             ]
           }
         ],
@@ -860,7 +1460,7 @@
         "history": [
           "> line 0,130,0 100,130,0\ngeometry updated"
         ],
-        "layers_open": false
+        "layers_open": true
       }
     },
     {
@@ -876,14 +1476,14 @@
         "controls": [],
         "draw_calls": 8,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 110,
+        "frames": 103,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1621420,
         "gpu_texture_estimate_bytes": 16688228,
         "hidden_count": 0,
         "identity": [
           1,
-          "91fdd106-a004-4630-bd90-cc696f4bbc1f"
+          "43af64c2-2983-427b-9201-e8af29d973e3"
         ],
         "logical_canvas": [
           1200,
@@ -954,7 +1554,7 @@
         },
         "source_cpu_known_payload_bytes": 2834,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 4116.699999988079,
+        "submitted_at_ms": 4251,
         "text": {
           "active_instance_bytes": 196,
           "atlas_resets": 0,
@@ -963,14 +1563,14 @@
           "nameplate_capacity_bytes": 240,
           "new_raster_images": 0,
           "new_raster_keys": 7,
-          "preparation_ms": 0.5,
+          "preparation_ms": 1,
           "preparations": 6,
           "raster_image_capacity_bytes": 0,
           "raster_images": 0,
           "requested_glyphs": 7,
           "shape_count": 1,
-          "shaping_ms": 0.20000004768371582,
-          "skipped_preparations": 104,
+          "shaping_ms": 0.40000003576278687,
+          "skipped_preparations": 97,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -1010,7 +1610,7 @@
           }
         ],
         "vertices": 0,
-        "wasm_capacity_bytes": 8519680,
+        "wasm_capacity_bytes": 9175040,
         "widget": [
           [
             50,
@@ -1033,30 +1633,360 @@
             "key": "command/input",
             "label": "Command",
             "rect": [
-              19,
-              722.6875,
-              499,
-              741.6875
+              78.71875,
+              770,
+              1092,
+              798
             ]
           },
           {
             "key": "command/run",
             "label": "Run",
             "rect": [
-              19,
-              744.6875,
-              49.8125,
-              762.6875
+              1100,
+              770,
+              1140,
+              798
             ]
           },
           {
             "key": "command/close",
             "label": "Close",
             "rect": [
-              57.8125,
-              744.6875,
-              127.09375,
-              762.6875
+              1148,
+              770,
+              1188,
+              798
+            ]
+          },
+          {
+            "key": "toolbar/Obj",
+            "label": "Select objects",
+            "rect": [
+              8,
+              2,
+              52,
+              46
+            ]
+          },
+          {
+            "key": "toolbar/Vtx",
+            "label": "Show and edit source vertices / control points",
+            "rect": [
+              8,
+              49,
+              52,
+              93
+            ]
+          },
+          {
+            "key": "toolbar/Edge",
+            "label": "Select source edges",
+            "rect": [
+              8,
+              96,
+              52,
+              140
+            ]
+          },
+          {
+            "key": "toolbar/Face",
+            "label": "Select source faces",
+            "rect": [
+              8,
+              143,
+              52,
+              187
+            ]
+          },
+          {
+            "key": "toolbar/Fit",
+            "label": "Fit selection or scene",
+            "rect": [
+              8,
+              190,
+              52,
+              234
+            ]
+          },
+          {
+            "key": "toolbar/Layer",
+            "label": "Show or hide layers",
+            "rect": [
+              8,
+              237,
+              52,
+              281
+            ]
+          },
+          {
+            "key": "toolbar/+Pt",
+            "label": "Create a point",
+            "rect": [
+              8,
+              284,
+              52,
+              328
+            ]
+          },
+          {
+            "key": "toolbar/+Ln",
+            "label": "Create a line",
+            "rect": [
+              8,
+              331,
+              52,
+              375
+            ]
+          },
+          {
+            "key": "toolbar/+Poly",
+            "label": "Create a polyline",
+            "rect": [
+              8,
+              378,
+              52,
+              422
+            ]
+          },
+          {
+            "key": "toolbar/Undo",
+            "label": "Undo the last edit",
+            "rect": [
+              8,
+              425,
+              52,
+              469
+            ]
+          },
+          {
+            "key": "toolbar/Redo",
+            "label": "Redo the last edit",
+            "rect": [
+              8,
+              472,
+              52,
+              516
+            ]
+          },
+          {
+            "key": "toolbar/Save",
+            "label": "Save the whole session",
+            "rect": [
+              8,
+              519,
+              52,
+              563
+            ]
+          },
+          {
+            "key": "toolbar/Open",
+            "label": "Open a saved session",
+            "rect": [
+              8,
+              566,
+              52,
+              610
+            ]
+          },
+          {
+            "key": "layers/close",
+            "label": "Close layers",
+            "rect": [
+              967.84375,
+              2,
+              1007.34375,
+              20
+            ]
+          },
+          {
+            "key": "doc:0",
+            "label": "Editing lessons",
+            "rect": [
+              923,
+              32,
+              1192,
+              60
+            ]
+          },
+          {
+            "key": "doc:1",
+            "label": "Created",
+            "rect": [
+              923,
+              63,
+              1192,
+              91
+            ]
+          },
+          {
+            "key": "kind:curves",
+            "label": "curves",
+            "rect": [
+              923,
+              94,
+              1192,
+              122
+            ]
+          },
+          {
+            "key": "open/0",
+            "label": "\u25b8 Editing lessons",
+            "rect": [
+              923,
+              125,
+              943,
+              153
+            ]
+          },
+          {
+            "key": "select/0",
+            "label": "Select Editing lessons",
+            "rect": [
+              951,
+              125,
+              1140,
+              153
+            ]
+          },
+          {
+            "key": "hide/0",
+            "label": "Hide Editing lessons",
+            "rect": [
+              1148,
+              125,
+              1192,
+              153
+            ]
+          },
+          {
+            "key": "select/7",
+            "label": "Select Editing lessons / edge: joint",
+            "rect": [
+              923,
+              156,
+              1140,
+              184
+            ]
+          },
+          {
+            "key": "hide/7",
+            "label": "Hide Editing lessons / edge: joint",
+            "rect": [
+              1148,
+              156,
+              1192,
+              184
+            ]
+          },
+          {
+            "key": "select/8",
+            "label": "Select Editing lessons / vertex: line_Beam A",
+            "rect": [
+              923,
+              187,
+              1140,
+              215
+            ]
+          },
+          {
+            "key": "hide/8",
+            "label": "Hide Editing lessons / vertex: line_Beam A",
+            "rect": [
+              1148,
+              187,
+              1192,
+              215
+            ]
+          },
+          {
+            "key": "select/9",
+            "label": "Select Editing lessons / vertex: line_Beam B",
+            "rect": [
+              923,
+              218,
+              1140,
+              246
+            ]
+          },
+          {
+            "key": "hide/9",
+            "label": "Hide Editing lessons / vertex: line_Beam B",
+            "rect": [
+              1148,
+              218,
+              1192,
+              246
+            ]
+          },
+          {
+            "key": "select/10",
+            "label": "Select Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              923,
+              249,
+              1140,
+              277
+            ]
+          },
+          {
+            "key": "hide/10",
+            "label": "Hide Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              1148,
+              249,
+              1192,
+              277
+            ]
+          },
+          {
+            "key": "open/11",
+            "label": "\u25b8 Created",
+            "rect": [
+              923,
+              280,
+              943,
+              308
+            ]
+          },
+          {
+            "key": "select/11",
+            "label": "Select Created",
+            "rect": [
+              951,
+              280,
+              1140,
+              308
+            ]
+          },
+          {
+            "key": "hide/11",
+            "label": "Hide Created",
+            "rect": [
+              1148,
+              280,
+              1192,
+              308
+            ]
+          },
+          {
+            "key": "select/13",
+            "label": "Select Created / vertex: line_my_line",
+            "rect": [
+              923,
+              311,
+              1140,
+              339
+            ]
+          },
+          {
+            "key": "hide/13",
+            "label": "Hide Created / vertex: line_my_line",
+            "rect": [
+              1148,
+              311,
+              1192,
+              339
             ]
           }
         ],
@@ -1064,7 +1994,7 @@
         "history": [
           "> line 0,130,0 100,130,0\ngeometry updated"
         ],
-        "layers_open": false
+        "layers_open": true
       }
     },
     {
@@ -1080,7 +2010,7 @@
         "controls": [],
         "draw_calls": 3,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 175,
+        "frames": 164,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1621420,
         "gpu_texture_estimate_bytes": 11527268,
@@ -1138,7 +2068,7 @@
         },
         "source_cpu_known_payload_bytes": 2834,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 6017.299999952316,
+        "submitted_at_ms": 6183.600000023842,
         "text": {
           "active_instance_bytes": 0,
           "atlas_resets": 0,
@@ -1153,8 +2083,8 @@
           "raster_images": 0,
           "requested_glyphs": 0,
           "shape_count": 2,
-          "shaping_ms": 0.30000007152557373,
-          "skipped_preparations": 166,
+          "shaping_ms": 0.5000000596046448,
+          "skipped_preparations": 155,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -1163,7 +2093,7 @@
         "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
         "text_labels": [],
         "vertices": 0,
-        "wasm_capacity_bytes": 8519680,
+        "wasm_capacity_bytes": 9175040,
         "widget": null,
         "widget_bytes": [
           371616,
@@ -1179,30 +2109,360 @@
             "key": "command/input",
             "label": "Command",
             "rect": [
-              19,
-              722.6875,
-              499,
-              741.6875
+              78.71875,
+              770,
+              1092,
+              798
             ]
           },
           {
             "key": "command/run",
             "label": "Run",
             "rect": [
-              19,
-              744.6875,
-              49.8125,
-              762.6875
+              1100,
+              770,
+              1140,
+              798
             ]
           },
           {
             "key": "command/close",
             "label": "Close",
             "rect": [
-              57.8125,
-              744.6875,
-              127.09375,
-              762.6875
+              1148,
+              770,
+              1188,
+              798
+            ]
+          },
+          {
+            "key": "toolbar/Obj",
+            "label": "Select objects",
+            "rect": [
+              8,
+              2,
+              52,
+              46
+            ]
+          },
+          {
+            "key": "toolbar/Vtx",
+            "label": "Show and edit source vertices / control points",
+            "rect": [
+              8,
+              49,
+              52,
+              93
+            ]
+          },
+          {
+            "key": "toolbar/Edge",
+            "label": "Select source edges",
+            "rect": [
+              8,
+              96,
+              52,
+              140
+            ]
+          },
+          {
+            "key": "toolbar/Face",
+            "label": "Select source faces",
+            "rect": [
+              8,
+              143,
+              52,
+              187
+            ]
+          },
+          {
+            "key": "toolbar/Fit",
+            "label": "Fit selection or scene",
+            "rect": [
+              8,
+              190,
+              52,
+              234
+            ]
+          },
+          {
+            "key": "toolbar/Layer",
+            "label": "Show or hide layers",
+            "rect": [
+              8,
+              237,
+              52,
+              281
+            ]
+          },
+          {
+            "key": "toolbar/+Pt",
+            "label": "Create a point",
+            "rect": [
+              8,
+              284,
+              52,
+              328
+            ]
+          },
+          {
+            "key": "toolbar/+Ln",
+            "label": "Create a line",
+            "rect": [
+              8,
+              331,
+              52,
+              375
+            ]
+          },
+          {
+            "key": "toolbar/+Poly",
+            "label": "Create a polyline",
+            "rect": [
+              8,
+              378,
+              52,
+              422
+            ]
+          },
+          {
+            "key": "toolbar/Undo",
+            "label": "Undo the last edit",
+            "rect": [
+              8,
+              425,
+              52,
+              469
+            ]
+          },
+          {
+            "key": "toolbar/Redo",
+            "label": "Redo the last edit",
+            "rect": [
+              8,
+              472,
+              52,
+              516
+            ]
+          },
+          {
+            "key": "toolbar/Save",
+            "label": "Save the whole session",
+            "rect": [
+              8,
+              519,
+              52,
+              563
+            ]
+          },
+          {
+            "key": "toolbar/Open",
+            "label": "Open a saved session",
+            "rect": [
+              8,
+              566,
+              52,
+              610
+            ]
+          },
+          {
+            "key": "layers/close",
+            "label": "Close layers",
+            "rect": [
+              967.84375,
+              2,
+              1007.34375,
+              20
+            ]
+          },
+          {
+            "key": "doc:0",
+            "label": "Editing lessons",
+            "rect": [
+              923,
+              32,
+              1192,
+              60
+            ]
+          },
+          {
+            "key": "doc:1",
+            "label": "Created",
+            "rect": [
+              923,
+              63,
+              1192,
+              91
+            ]
+          },
+          {
+            "key": "kind:curves",
+            "label": "curves",
+            "rect": [
+              923,
+              94,
+              1192,
+              122
+            ]
+          },
+          {
+            "key": "open/0",
+            "label": "\u25b8 Editing lessons",
+            "rect": [
+              923,
+              125,
+              943,
+              153
+            ]
+          },
+          {
+            "key": "select/0",
+            "label": "Select Editing lessons",
+            "rect": [
+              951,
+              125,
+              1140,
+              153
+            ]
+          },
+          {
+            "key": "hide/0",
+            "label": "Hide Editing lessons",
+            "rect": [
+              1148,
+              125,
+              1192,
+              153
+            ]
+          },
+          {
+            "key": "select/7",
+            "label": "Select Editing lessons / edge: joint",
+            "rect": [
+              923,
+              156,
+              1140,
+              184
+            ]
+          },
+          {
+            "key": "hide/7",
+            "label": "Hide Editing lessons / edge: joint",
+            "rect": [
+              1148,
+              156,
+              1192,
+              184
+            ]
+          },
+          {
+            "key": "select/8",
+            "label": "Select Editing lessons / vertex: line_Beam A",
+            "rect": [
+              923,
+              187,
+              1140,
+              215
+            ]
+          },
+          {
+            "key": "hide/8",
+            "label": "Hide Editing lessons / vertex: line_Beam A",
+            "rect": [
+              1148,
+              187,
+              1192,
+              215
+            ]
+          },
+          {
+            "key": "select/9",
+            "label": "Select Editing lessons / vertex: line_Beam B",
+            "rect": [
+              923,
+              218,
+              1140,
+              246
+            ]
+          },
+          {
+            "key": "hide/9",
+            "label": "Hide Editing lessons / vertex: line_Beam B",
+            "rect": [
+              1148,
+              218,
+              1192,
+              246
+            ]
+          },
+          {
+            "key": "select/10",
+            "label": "Select Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              923,
+              249,
+              1140,
+              277
+            ]
+          },
+          {
+            "key": "hide/10",
+            "label": "Hide Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              1148,
+              249,
+              1192,
+              277
+            ]
+          },
+          {
+            "key": "open/11",
+            "label": "\u25b8 Created",
+            "rect": [
+              923,
+              280,
+              943,
+              308
+            ]
+          },
+          {
+            "key": "select/11",
+            "label": "Select Created",
+            "rect": [
+              951,
+              280,
+              1140,
+              308
+            ]
+          },
+          {
+            "key": "hide/11",
+            "label": "Hide Created",
+            "rect": [
+              1148,
+              280,
+              1192,
+              308
+            ]
+          },
+          {
+            "key": "select/13",
+            "label": "Select Created / vertex: line_my_line",
+            "rect": [
+              923,
+              311,
+              1140,
+              339
+            ]
+          },
+          {
+            "key": "hide/13",
+            "label": "Hide Created / vertex: line_my_line",
+            "rect": [
+              1148,
+              311,
+              1192,
+              339
             ]
           }
         ],
@@ -1212,7 +2472,7 @@
           "> trim 0.2 0.8\ngeometry updated",
           "> extend -0.2 1.2\ngeometry updated"
         ],
-        "layers_open": false
+        "layers_open": true
       }
     },
     {
@@ -1228,7 +2488,7 @@
         "controls": [],
         "draw_calls": 3,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 269,
+        "frames": 250,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1621800,
         "gpu_texture_estimate_bytes": 11527268,
@@ -1286,7 +2546,7 @@
         },
         "source_cpu_known_payload_bytes": 3698,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 8669.599999964237,
+        "submitted_at_ms": 8886.199999988079,
         "text": {
           "active_instance_bytes": 0,
           "atlas_resets": 0,
@@ -1301,8 +2561,8 @@
           "raster_images": 0,
           "requested_glyphs": 0,
           "shape_count": 3,
-          "shaping_ms": 0.40000009536743164,
-          "skipped_preparations": 256,
+          "shaping_ms": 0.6000000834465027,
+          "skipped_preparations": 237,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -1311,7 +2571,7 @@
         "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
         "text_labels": [],
         "vertices": 0,
-        "wasm_capacity_bytes": 8519680,
+        "wasm_capacity_bytes": 9175040,
         "widget": null,
         "widget_bytes": [
           371616,
@@ -1327,30 +2587,360 @@
             "key": "command/input",
             "label": "Command",
             "rect": [
-              19,
-              722.6875,
-              499,
-              741.6875
+              78.71875,
+              770,
+              1092,
+              798
             ]
           },
           {
             "key": "command/run",
             "label": "Run",
             "rect": [
-              19,
-              744.6875,
-              49.8125,
-              762.6875
+              1100,
+              770,
+              1140,
+              798
             ]
           },
           {
             "key": "command/close",
             "label": "Close",
             "rect": [
-              57.8125,
-              744.6875,
-              127.09375,
-              762.6875
+              1148,
+              770,
+              1188,
+              798
+            ]
+          },
+          {
+            "key": "toolbar/Obj",
+            "label": "Select objects",
+            "rect": [
+              8,
+              2,
+              52,
+              46
+            ]
+          },
+          {
+            "key": "toolbar/Vtx",
+            "label": "Show and edit source vertices / control points",
+            "rect": [
+              8,
+              49,
+              52,
+              93
+            ]
+          },
+          {
+            "key": "toolbar/Edge",
+            "label": "Select source edges",
+            "rect": [
+              8,
+              96,
+              52,
+              140
+            ]
+          },
+          {
+            "key": "toolbar/Face",
+            "label": "Select source faces",
+            "rect": [
+              8,
+              143,
+              52,
+              187
+            ]
+          },
+          {
+            "key": "toolbar/Fit",
+            "label": "Fit selection or scene",
+            "rect": [
+              8,
+              190,
+              52,
+              234
+            ]
+          },
+          {
+            "key": "toolbar/Layer",
+            "label": "Show or hide layers",
+            "rect": [
+              8,
+              237,
+              52,
+              281
+            ]
+          },
+          {
+            "key": "toolbar/+Pt",
+            "label": "Create a point",
+            "rect": [
+              8,
+              284,
+              52,
+              328
+            ]
+          },
+          {
+            "key": "toolbar/+Ln",
+            "label": "Create a line",
+            "rect": [
+              8,
+              331,
+              52,
+              375
+            ]
+          },
+          {
+            "key": "toolbar/+Poly",
+            "label": "Create a polyline",
+            "rect": [
+              8,
+              378,
+              52,
+              422
+            ]
+          },
+          {
+            "key": "toolbar/Undo",
+            "label": "Undo the last edit",
+            "rect": [
+              8,
+              425,
+              52,
+              469
+            ]
+          },
+          {
+            "key": "toolbar/Redo",
+            "label": "Redo the last edit",
+            "rect": [
+              8,
+              472,
+              52,
+              516
+            ]
+          },
+          {
+            "key": "toolbar/Save",
+            "label": "Save the whole session",
+            "rect": [
+              8,
+              519,
+              52,
+              563
+            ]
+          },
+          {
+            "key": "toolbar/Open",
+            "label": "Open a saved session",
+            "rect": [
+              8,
+              566,
+              52,
+              610
+            ]
+          },
+          {
+            "key": "layers/close",
+            "label": "Close layers",
+            "rect": [
+              967.84375,
+              2,
+              1007.34375,
+              20
+            ]
+          },
+          {
+            "key": "doc:0",
+            "label": "Editing lessons",
+            "rect": [
+              923,
+              32,
+              1192,
+              60
+            ]
+          },
+          {
+            "key": "doc:1",
+            "label": "Created",
+            "rect": [
+              923,
+              63,
+              1192,
+              91
+            ]
+          },
+          {
+            "key": "kind:curves",
+            "label": "curves",
+            "rect": [
+              923,
+              94,
+              1192,
+              122
+            ]
+          },
+          {
+            "key": "open/0",
+            "label": "\u25b8 Editing lessons",
+            "rect": [
+              923,
+              125,
+              943,
+              153
+            ]
+          },
+          {
+            "key": "select/0",
+            "label": "Select Editing lessons",
+            "rect": [
+              951,
+              125,
+              1140,
+              153
+            ]
+          },
+          {
+            "key": "hide/0",
+            "label": "Hide Editing lessons",
+            "rect": [
+              1148,
+              125,
+              1192,
+              153
+            ]
+          },
+          {
+            "key": "select/7",
+            "label": "Select Editing lessons / edge: joint",
+            "rect": [
+              923,
+              156,
+              1140,
+              184
+            ]
+          },
+          {
+            "key": "hide/7",
+            "label": "Hide Editing lessons / edge: joint",
+            "rect": [
+              1148,
+              156,
+              1192,
+              184
+            ]
+          },
+          {
+            "key": "select/8",
+            "label": "Select Editing lessons / vertex: line_Beam A",
+            "rect": [
+              923,
+              187,
+              1140,
+              215
+            ]
+          },
+          {
+            "key": "hide/8",
+            "label": "Hide Editing lessons / vertex: line_Beam A",
+            "rect": [
+              1148,
+              187,
+              1192,
+              215
+            ]
+          },
+          {
+            "key": "select/9",
+            "label": "Select Editing lessons / vertex: line_Beam B",
+            "rect": [
+              923,
+              218,
+              1140,
+              246
+            ]
+          },
+          {
+            "key": "hide/9",
+            "label": "Hide Editing lessons / vertex: line_Beam B",
+            "rect": [
+              1148,
+              218,
+              1192,
+              246
+            ]
+          },
+          {
+            "key": "select/10",
+            "label": "Select Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              923,
+              249,
+              1140,
+              277
+            ]
+          },
+          {
+            "key": "hide/10",
+            "label": "Hide Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              1148,
+              249,
+              1192,
+              277
+            ]
+          },
+          {
+            "key": "open/11",
+            "label": "\u25b8 Created",
+            "rect": [
+              923,
+              280,
+              943,
+              308
+            ]
+          },
+          {
+            "key": "select/11",
+            "label": "Select Created",
+            "rect": [
+              951,
+              280,
+              1140,
+              308
+            ]
+          },
+          {
+            "key": "hide/11",
+            "label": "Hide Created",
+            "rect": [
+              1148,
+              280,
+              1192,
+              308
+            ]
+          },
+          {
+            "key": "select/13",
+            "label": "Select Created / vertex: line_my_line",
+            "rect": [
+              923,
+              311,
+              1140,
+              339
+            ]
+          },
+          {
+            "key": "hide/13",
+            "label": "Hide Created / vertex: line_my_line",
+            "rect": [
+              1148,
+              311,
+              1192,
+              339
             ]
           }
         ],
@@ -1362,7 +2952,7 @@
           "> polyline 0,180,0 100,180,0 100,230,0\ngeometry updated",
           "> explode\ngeometry updated"
         ],
-        "layers_open": false
+        "layers_open": true
       }
     },
     {
@@ -1378,7 +2968,7 @@
         "controls": [],
         "draw_calls": 3,
         "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-        "frames": 286,
+        "frames": 266,
         "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
         "gpu_buffer_capacity_bytes": 1621800,
         "gpu_texture_estimate_bytes": 11527268,
@@ -1436,7 +3026,7 @@
         },
         "source_cpu_known_payload_bytes": 3526,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
-        "submitted_at_ms": 9219.699999988079,
+        "submitted_at_ms": 9503.399999976158,
         "text": {
           "active_instance_bytes": 0,
           "atlas_resets": 0,
@@ -1451,8 +3041,8 @@
           "raster_images": 0,
           "requested_glyphs": 0,
           "shape_count": 3,
-          "shaping_ms": 0.40000009536743164,
-          "skipped_preparations": 272,
+          "shaping_ms": 0.6000000834465027,
+          "skipped_preparations": 252,
           "world_plane_buffer_bytes": 64,
           "world_plane_rasterizations": 0,
           "world_plane_texture_bytes": 0
@@ -1461,7 +3051,7 @@
         "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
         "text_labels": [],
         "vertices": 0,
-        "wasm_capacity_bytes": 8519680,
+        "wasm_capacity_bytes": 9175040,
         "widget": null,
         "widget_bytes": [
           371616,
@@ -1477,30 +3067,380 @@
             "key": "command/input",
             "label": "Command",
             "rect": [
-              19,
-              722.6875,
-              499,
-              741.6875
+              78.71875,
+              770,
+              1092,
+              798
             ]
           },
           {
             "key": "command/run",
             "label": "Run",
             "rect": [
-              19,
-              744.6875,
-              49.8125,
-              762.6875
+              1100,
+              770,
+              1140,
+              798
             ]
           },
           {
             "key": "command/close",
             "label": "Close",
             "rect": [
-              57.8125,
-              744.6875,
-              127.09375,
-              762.6875
+              1148,
+              770,
+              1188,
+              798
+            ]
+          },
+          {
+            "key": "toolbar/Obj",
+            "label": "Select objects",
+            "rect": [
+              8,
+              2,
+              52,
+              46
+            ]
+          },
+          {
+            "key": "toolbar/Vtx",
+            "label": "Show and edit source vertices / control points",
+            "rect": [
+              8,
+              49,
+              52,
+              93
+            ]
+          },
+          {
+            "key": "toolbar/Edge",
+            "label": "Select source edges",
+            "rect": [
+              8,
+              96,
+              52,
+              140
+            ]
+          },
+          {
+            "key": "toolbar/Face",
+            "label": "Select source faces",
+            "rect": [
+              8,
+              143,
+              52,
+              187
+            ]
+          },
+          {
+            "key": "toolbar/Fit",
+            "label": "Fit selection or scene",
+            "rect": [
+              8,
+              190,
+              52,
+              234
+            ]
+          },
+          {
+            "key": "toolbar/Layer",
+            "label": "Show or hide layers",
+            "rect": [
+              8,
+              237,
+              52,
+              281
+            ]
+          },
+          {
+            "key": "toolbar/+Pt",
+            "label": "Create a point",
+            "rect": [
+              8,
+              284,
+              52,
+              328
+            ]
+          },
+          {
+            "key": "toolbar/+Ln",
+            "label": "Create a line",
+            "rect": [
+              8,
+              331,
+              52,
+              375
+            ]
+          },
+          {
+            "key": "toolbar/+Poly",
+            "label": "Create a polyline",
+            "rect": [
+              8,
+              378,
+              52,
+              422
+            ]
+          },
+          {
+            "key": "toolbar/Undo",
+            "label": "Undo the last edit",
+            "rect": [
+              8,
+              425,
+              52,
+              469
+            ]
+          },
+          {
+            "key": "toolbar/Redo",
+            "label": "Redo the last edit",
+            "rect": [
+              8,
+              472,
+              52,
+              516
+            ]
+          },
+          {
+            "key": "toolbar/Save",
+            "label": "Save the whole session",
+            "rect": [
+              8,
+              519,
+              52,
+              563
+            ]
+          },
+          {
+            "key": "toolbar/Open",
+            "label": "Open a saved session",
+            "rect": [
+              8,
+              566,
+              52,
+              610
+            ]
+          },
+          {
+            "key": "layers/close",
+            "label": "Close layers",
+            "rect": [
+              967.84375,
+              2,
+              1007.34375,
+              20
+            ]
+          },
+          {
+            "key": "doc:0",
+            "label": "Editing lessons",
+            "rect": [
+              923,
+              32,
+              1192,
+              60
+            ]
+          },
+          {
+            "key": "doc:1",
+            "label": "Created",
+            "rect": [
+              923,
+              63,
+              1192,
+              91
+            ]
+          },
+          {
+            "key": "kind:curves",
+            "label": "curves",
+            "rect": [
+              923,
+              94,
+              1192,
+              122
+            ]
+          },
+          {
+            "key": "open/0",
+            "label": "\u25b8 Editing lessons",
+            "rect": [
+              923,
+              125,
+              943,
+              153
+            ]
+          },
+          {
+            "key": "select/0",
+            "label": "Select Editing lessons",
+            "rect": [
+              951,
+              125,
+              1140,
+              153
+            ]
+          },
+          {
+            "key": "hide/0",
+            "label": "Hide Editing lessons",
+            "rect": [
+              1148,
+              125,
+              1192,
+              153
+            ]
+          },
+          {
+            "key": "select/7",
+            "label": "Select Editing lessons / edge: joint",
+            "rect": [
+              923,
+              156,
+              1140,
+              184
+            ]
+          },
+          {
+            "key": "hide/7",
+            "label": "Hide Editing lessons / edge: joint",
+            "rect": [
+              1148,
+              156,
+              1192,
+              184
+            ]
+          },
+          {
+            "key": "select/8",
+            "label": "Select Editing lessons / vertex: line_Beam A",
+            "rect": [
+              923,
+              187,
+              1140,
+              215
+            ]
+          },
+          {
+            "key": "hide/8",
+            "label": "Hide Editing lessons / vertex: line_Beam A",
+            "rect": [
+              1148,
+              187,
+              1192,
+              215
+            ]
+          },
+          {
+            "key": "select/9",
+            "label": "Select Editing lessons / vertex: line_Beam B",
+            "rect": [
+              923,
+              218,
+              1140,
+              246
+            ]
+          },
+          {
+            "key": "hide/9",
+            "label": "Hide Editing lessons / vertex: line_Beam B",
+            "rect": [
+              1148,
+              218,
+              1192,
+              246
+            ]
+          },
+          {
+            "key": "select/10",
+            "label": "Select Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              923,
+              249,
+              1140,
+              277
+            ]
+          },
+          {
+            "key": "hide/10",
+            "label": "Hide Editing lessons / vertex: polyline_Placed polyline",
+            "rect": [
+              1148,
+              249,
+              1192,
+              277
+            ]
+          },
+          {
+            "key": "open/11",
+            "label": "\u25b8 Created",
+            "rect": [
+              923,
+              280,
+              943,
+              308
+            ]
+          },
+          {
+            "key": "select/11",
+            "label": "Select Created",
+            "rect": [
+              951,
+              280,
+              1140,
+              308
+            ]
+          },
+          {
+            "key": "hide/11",
+            "label": "Hide Created",
+            "rect": [
+              1148,
+              280,
+              1192,
+              308
+            ]
+          },
+          {
+            "key": "select/13",
+            "label": "Select Created / vertex: line_my_line",
+            "rect": [
+              923,
+              311,
+              1140,
+              339
+            ]
+          },
+          {
+            "key": "hide/13",
+            "label": "Hide Created / vertex: line_my_line",
+            "rect": [
+              1148,
+              311,
+              1192,
+              339
+            ]
+          },
+          {
+            "key": "select/14",
+            "label": "Select Created / vertex: polyline_my_polyline",
+            "rect": [
+              923,
+              342,
+              1140,
+              370
+            ]
+          },
+          {
+            "key": "hide/14",
+            "label": "Hide Created / vertex: polyline_my_polyline",
+            "rect": [
+              1148,
+              342,
+              1192,
+              370
             ]
           }
         ],
@@ -1513,7 +3453,598 @@
           "> explode\ngeometry updated",
           "> undo\nundone"
         ],
-        "layers_open": false
+        "layers_open": true
+      }
+    },
+    {
+      "file": "extensions-layers-desktop.png",
+      "operation": "Single expanded layer tree: two green locked children, selected placed polyline, visibility bulbs and color swatches; tests/layer-workspace.cjs",
+      "sha256": "bf9bc6a112de7497230e973c7b60e395645978cb539e74a03f7bbdc0670f6235",
+      "served_build": "/tmp/viewer-layers-dist",
+      "date": "2026-09-14"
+    },
+    {
+      "file": "extensions-split-face.png",
+      "operation": "Real joined BRep face split; original source has seven faces; visible cutter; selected half-face and full viewer UI",
+      "sha256": "12822e2887536b1438a37265d7d65b82bca5933e7f8aec7dd44bbb9d5c9cc9cb",
+      "served_build": "/tmp/viewer-splits-dist",
+      "date": "2026-09-14",
+      "state": {
+        "canvas": [
+          1400,
+          900
+        ],
+        "cloud_points": 0,
+        "color_count": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 200,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 4151624,
+        "gpu_texture_estimate_bytes": 93997022,
+        "hidden_count": 1,
+        "identity": [
+          0,
+          "a8d37658-c035-48e4-a875-7edaeedb110c"
+        ],
+        "locked_count": 0,
+        "logical_canvas": [
+          1400,
+          900
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -8.209877014160156,
+          12.314814567565918,
+          -20,
+          1
+        ],
+        "mvp": [
+          0.0026090536266565323,
+          0.0011715961154550314,
+          -0.00028169635334052145,
+          0,
+          -0.0015063377795740962,
+          0.0020292638801038265,
+          -0.00048791238805279136,
+          0,
+          -1.6723708857458954e-19,
+          0.004058527760207653,
+          0.00032527491566725075,
+          0,
+          0.0012559940805658698,
+          0.1561325341463089,
+          0.2697632610797882,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          8.20987654320988,
+          -12.314814814814817,
+          19.999999999999996
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 15,
+        "preview_cache_bytes": 304,
+        "ribbons": 5,
+        "samples": 4,
+        "scene_revision": 15,
+        "selected": 0,
+        "selected_group_count": 0,
+        "selection": {
+          "Face": {
+            "face": 1,
+            "parent": 0
+          }
+        },
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 40,
+          "scans": 3,
+          "shared_value_bytes": 1488,
+          "string_capacity_bytes": 1093,
+          "unique_geometry_values": 2,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 21536
+        },
+        "source_cpu_known_payload_bytes": 24157,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "source_faces": 7,
+        "split": null,
+        "submitted_at_ms": 6734.099999964237,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 43,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 480,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 14,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 5,
+          "shaping_ms": 11.800000011920929,
+          "skipped_preparations": 186,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 30,
+        "wasm_capacity_bytes": 9175040,
+        "widget": [
+          [
+            0,
+            0,
+            20
+          ],
+          0.47418693202361906
+        ],
+        "widget_bytes": [
+          371616,
+          13271040
+        ],
+        "widget_highlight": -1
+      }
+    },
+    {
+      "file": "extensions-workspace-current-desktop.png",
+      "operation": "Real joined BRep face split; original source has seven faces; visible cutter; selected half-face and full viewer UI",
+      "sha256": "12822e2887536b1438a37265d7d65b82bca5933e7f8aec7dd44bbb9d5c9cc9cb",
+      "served_build": "/tmp/viewer-splits-dist",
+      "date": "2026-09-14",
+      "state": {
+        "canvas": [
+          1400,
+          900
+        ],
+        "cloud_points": 0,
+        "color_count": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 200,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 4151624,
+        "gpu_texture_estimate_bytes": 93997022,
+        "hidden_count": 1,
+        "identity": [
+          0,
+          "a8d37658-c035-48e4-a875-7edaeedb110c"
+        ],
+        "locked_count": 0,
+        "logical_canvas": [
+          1400,
+          900
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -8.209877014160156,
+          12.314814567565918,
+          -20,
+          1
+        ],
+        "mvp": [
+          0.0026090536266565323,
+          0.0011715961154550314,
+          -0.00028169635334052145,
+          0,
+          -0.0015063377795740962,
+          0.0020292638801038265,
+          -0.00048791238805279136,
+          0,
+          -1.6723708857458954e-19,
+          0.004058527760207653,
+          0.00032527491566725075,
+          0,
+          0.0012559940805658698,
+          0.1561325341463089,
+          0.2697632610797882,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          8.20987654320988,
+          -12.314814814814817,
+          19.999999999999996
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 15,
+        "preview_cache_bytes": 304,
+        "ribbons": 5,
+        "samples": 4,
+        "scene_revision": 15,
+        "selected": 0,
+        "selected_group_count": 0,
+        "selection": {
+          "Face": {
+            "face": 1,
+            "parent": 0
+          }
+        },
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 40,
+          "scans": 3,
+          "shared_value_bytes": 1488,
+          "string_capacity_bytes": 1093,
+          "unique_geometry_values": 2,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 21536
+        },
+        "source_cpu_known_payload_bytes": 24157,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "source_faces": 7,
+        "split": null,
+        "submitted_at_ms": 6734.099999964237,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 43,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 480,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 14,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 5,
+          "shaping_ms": 11.800000011920929,
+          "skipped_preparations": 186,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 30,
+        "wasm_capacity_bytes": 9175040,
+        "widget": [
+          [
+            0,
+            0,
+            20
+          ],
+          0.47418693202361906
+        ],
+        "widget_bytes": [
+          371616,
+          13271040
+        ],
+        "widget_highlight": -1
+      }
+    },
+    {
+      "file": "extensions-split-phone.png",
+      "operation": "Real joined BRep face split; original source has seven faces; visible cutter; selected half-face and full viewer UI",
+      "sha256": "a7c0c6421ead3ab3df2dafd006a6b52a2dfabcb8b7717ceb53b7f7e1442a5b7d",
+      "served_build": "/tmp/viewer-splits-dist",
+      "date": "2026-09-14",
+      "state": {
+        "canvas": [
+          780,
+          1688
+        ],
+        "cloud_points": 0,
+        "color_count": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 176,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 4265128,
+        "gpu_texture_estimate_bytes": 53649974,
+        "hidden_count": 1,
+        "identity": [
+          0,
+          "a8d37658-c035-48e4-a875-7edaeedb110c"
+        ],
+        "locked_count": 0,
+        "logical_canvas": [
+          390,
+          844
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          3.064112663269043,
+          10.680621147155762,
+          -20,
+          1
+        ],
+        "mvp": [
+          0.0040701329708099365,
+          0.0005429253214970231,
+          -0.00017910274618770927,
+          0,
+          -0.0023498921655118465,
+          0.0009403742733411491,
+          -0.00031021505128592253,
+          0,
+          0,
+          0.0018807485466822982,
+          0.00020681004389189184,
+          0,
+          0.06126799061894417,
+          0.10425357520580292,
+          0.17811360955238342,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          -3.0641126908899423,
+          -10.680621379673513,
+          19.999999999999996
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 15,
+        "preview_cache_bytes": 304,
+        "ribbons": 5,
+        "samples": 1,
+        "scene_revision": 15,
+        "selected": 0,
+        "selected_group_count": 0,
+        "selection": {
+          "Face": {
+            "face": 1,
+            "parent": 0
+          }
+        },
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 40,
+          "scans": 3,
+          "shared_value_bytes": 1488,
+          "string_capacity_bytes": 1093,
+          "unique_geometry_values": 2,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 21536
+        },
+        "source_cpu_known_payload_bytes": 24157,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "source_faces": 7,
+        "split": null,
+        "submitted_at_ms": 5390.899999976158,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 47,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 480,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 14,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 5,
+          "shaping_ms": 11.300000071525574,
+          "skipped_preparations": 162,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 30,
+        "wasm_capacity_bytes": 9175040,
+        "widget": [
+          [
+            0,
+            0,
+            20
+          ],
+          1.0911575124525714
+        ],
+        "widget_bytes": [
+          371616,
+          37748736
+        ],
+        "widget_highlight": -1
+      }
+    },
+    {
+      "file": "extensions-workspace-current-phone.png",
+      "operation": "Real joined BRep face split; original source has seven faces; visible cutter; selected half-face and full viewer UI",
+      "sha256": "a7c0c6421ead3ab3df2dafd006a6b52a2dfabcb8b7717ceb53b7f7e1442a5b7d",
+      "served_build": "/tmp/viewer-splits-dist",
+      "date": "2026-09-14",
+      "state": {
+        "canvas": [
+          780,
+          1688
+        ],
+        "cloud_points": 0,
+        "color_count": 0,
+        "control_segments": 0,
+        "controls": [],
+        "draw_calls": 8,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "frames": 176,
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "gpu_buffer_capacity_bytes": 4265128,
+        "gpu_texture_estimate_bytes": 53649974,
+        "hidden_count": 1,
+        "identity": [
+          0,
+          "a8d37658-c035-48e4-a875-7edaeedb110c"
+        ],
+        "locked_count": 0,
+        "logical_canvas": [
+          390,
+          844
+        ],
+        "markers": 0,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          3.064112663269043,
+          10.680621147155762,
+          -20,
+          1
+        ],
+        "mvp": [
+          0.0040701329708099365,
+          0.0005429253214970231,
+          -0.00017910274618770927,
+          0,
+          -0.0023498921655118465,
+          0.0009403742733411491,
+          -0.00031021505128592253,
+          0,
+          0,
+          0.0018807485466822982,
+          0.00020681004389189184,
+          0,
+          0.06126799061894417,
+          0.10425357520580292,
+          0.17811360955238342,
+          1
+        ],
+        "objects": 3,
+        "origin": [
+          -3.0641126908899423,
+          -10.680621379673513,
+          19.999999999999996
+        ],
+        "outlines": false,
+        "pick_busy": false,
+        "pipes": 15,
+        "preview_cache_bytes": 304,
+        "ribbons": 5,
+        "samples": 1,
+        "scene_revision": 15,
+        "selected": 0,
+        "selected_group_count": 0,
+        "selection": {
+          "Face": {
+            "face": 1,
+            "parent": 0
+          }
+        },
+        "sheet_entity": null,
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+        "source_cpu_known_payload": {
+          "exposed_slice_bytes": 0,
+          "occupied_map_entry_bytes": 40,
+          "scans": 3,
+          "shared_value_bytes": 1488,
+          "string_capacity_bytes": 1093,
+          "unique_geometry_values": 2,
+          "unique_sessions": 2,
+          "vector_capacity_bytes": 21536
+        },
+        "source_cpu_known_payload_bytes": 24157,
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+        "source_faces": 7,
+        "split": null,
+        "submitted_at_ms": 5390.899999976158,
+        "text": {
+          "active_instance_bytes": 0,
+          "atlas_resets": 0,
+          "distinct_raster_keys": 47,
+          "missing_glyphs": 0,
+          "nameplate_capacity_bytes": 480,
+          "new_raster_images": 0,
+          "new_raster_keys": 0,
+          "preparation_ms": 0,
+          "preparations": 14,
+          "raster_image_capacity_bytes": 0,
+          "raster_images": 0,
+          "requested_glyphs": 0,
+          "shape_count": 5,
+          "shaping_ms": 11.300000071525574,
+          "skipped_preparations": 162,
+          "world_plane_buffer_bytes": 64,
+          "world_plane_rasterizations": 0,
+          "world_plane_texture_bytes": 0
+        },
+        "text_cpu_raster_image_capacity_bytes": 0,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "text_labels": [],
+        "vertices": 30,
+        "wasm_capacity_bytes": 9175040,
+        "widget": [
+          [
+            0,
+            0,
+            20
+          ],
+          1.0911575124525714
+        ],
+        "widget_bytes": [
+          371616,
+          37748736
+        ],
+        "widget_highlight": -1
       }
     }
   ]

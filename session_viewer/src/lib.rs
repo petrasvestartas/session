@@ -47,6 +47,7 @@ pub enum Msg {
     SheetChunk(SheetChunk),
     SheetEntity(app::sheet_query::Resolved),
     CancelPointer,
+    SavedScene(Box<app::scene::Scene>),
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -94,7 +95,7 @@ impl App {
         if let Some((w, h)) = desired_canvas_size() {
             let _ = state.resize(w, h);
         }
-        self.ui = Some(app::ui::Ui::new(&state.window));
+        self.ui = Some(app::ui::Ui::new(&state.window, state.logical_size()[0]));
         state.gpu.ui = Some(engine::gpu::ui::Ui::new(
             &state.gpu.ctx,
             state.gpu.config.format,
@@ -185,6 +186,15 @@ impl ApplicationHandler<Msg> for App {
             }
             Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
             Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
+            Msg::SavedScene(scene) => {
+                state.clear();
+                state.scene = *scene;
+                state.scene.rebuild(&mut state.gpu);
+                state.fit_all();
+                state.refresh_layers();
+                state.touch();
+                app::feedback::status("Session opened");
+            }
             Msg::CancelPointer => {
                 state.cancel_gesture();
                 self.input.cancel();
@@ -214,7 +224,11 @@ impl ApplicationHandler<Msg> for App {
                     WindowEvent::MouseInput {
                         state: ElementState::Released,
                         ..
-                    }
+                    } | WindowEvent::Touch(winit::event::Touch {
+                        phase: winit::event::TouchPhase::Ended
+                            | winit::event::TouchPhase::Cancelled,
+                        ..
+                    })
                 ) {
                     self.input.cancel();
                     state.cancel_gesture();

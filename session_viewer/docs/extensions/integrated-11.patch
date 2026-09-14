@@ -1,0 +1,1085 @@
+diff --git a/src/app/deform.rs b/src/app/deform.rs
+--- a/src/app/deform.rs
++++ b/src/app/deform.rs
+@@ -23,7 +23,7 @@
+     }
+ }
+ 
+-fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
++pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
+     match target {
+         Target::Control(ControlId::Vertex(key)) if mesh.vertex.contains_key(&key) => Ok(vec![key]),
+         Target::Face(key) => {
+@@ -154,10 +154,8 @@
+                     .ok_or("Missing vertex")?
+                     .set_position(point);
+             }
+-            mesh.triangulation.clear();
+-            // The identity transform invalidates kernel render/BVH caches in both the frozen
+-            // course kernel and the maintained kernel without changing the edited positions.
+-            mesh.transform(&Xform::identity());
++            // A subobject move preserves connectivity, including authored hole triangulations.
++            mesh.clear_triangle_bvh();
+             Geometry::Mesh(Rc::new(mesh))
+         }
+         Geometry::NurbsSurface(source) => {
+diff --git a/src/app/feedback.rs b/src/app/feedback.rs
+--- a/src/app/feedback.rs
++++ b/src/app/feedback.rs
+@@ -77,6 +77,8 @@
+     pub hidden: bool,
+     pub locked: bool,
+     pub color: Option<[u8; 3]>,
++    pub edge_color: Option<[u8; 3]>,
++    pub has_faces: bool,
+     pub depth: usize,
+     pub expanded: Option<bool>,
+ }
+diff --git a/src/app/inspection.rs b/src/app/inspection.rs
+--- a/src/app/inspection.rs
++++ b/src/app/inspection.rs
+@@ -76,6 +76,7 @@
+     });
+     snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
+     snapshot["color_count"] = serde_json::json!(state.scene.colors.len());
++    snapshot["edge_color_count"] = serde_json::json!(state.scene.edge_colors.len());
+     snapshot["split"] = serde_json::json!(state.split_status());
+     snapshot["source_faces"] =
+         serde_json::json!(parent.and_then(|row| match state.scene.geometry(row)? {
+diff --git a/src/app/mesh_preview.rs b/src/app/mesh_preview.rs
+new file mode 100644
+--- /dev/null
++++ b/src/app/mesh_preview.rs
+@@ -0,0 +1,284 @@
++//! Sparse render-only mesh gestures. Source replacement happens once on release.
++use super::deform::{Target, mesh_keys};
++use crate::engine::gpu::glyphs::GlyphPoint;
++use crate::engine::gpu::patch::{Counts, Span};
++use crate::engine::gpu::segments::{CylinderSegment, SegRows};
++use crate::engine::gpu::{Gpu, Upload};
++use session_rust::{Geometry, Mesh, RenderVertex, Xform};
++use std::collections::{HashMap, HashSet};
++
++pub struct MeshPreview {
++    vertices: Vec<(usize, RenderVertex)>,
++    pipes: Vec<([usize; 2], CylinderSegment)>,
++    spheres: Vec<(usize, GlyphPoint)>,
++    dots: Vec<(usize, GlyphPoint)>,
++    span: Span,
++}
++pub struct Gesture {
++    vertices: Vec<(u32, RenderVertex, bool)>,
++    pipes: Vec<(u32, CylinderSegment, [bool; 2])>,
++    spheres: Vec<(u32, GlyphPoint, bool)>,
++    dots: Vec<(u32, GlyphPoint, bool)>,
++}
++pub fn mesh(geometry: &Geometry) -> Option<&Mesh> {
++    match geometry {
++        Geometry::Mesh(mesh) => Some(mesh),
++        Geometry::Element(element) => match element.geometry() {
++            session_rust::element::ElementGeometry::Mesh(mesh) => Some(mesh),
++            _ => None,
++        },
++        _ => None,
++    }
++}
++impl MeshPreview {
++    pub(crate) fn capture(
++        up: &Upload,
++        span: Span,
++        local: Counts,
++        geometry: &Geometry,
++    ) -> Option<Self> {
++        let mesh = mesh(geometry)?;
++        if span.count.ribbons != 0 {
++            return None;
++        }
++        let mut keys = mesh.vertices();
++        if mesh.color_mode == session_rust::mesh::ColorMode::FACECOLORS
++            && mesh.get_facecolors().len() == mesh.face.len()
++        {
++            keys.clear();
++            for face in mesh.faces() {
++                let ring = &mesh.face[&face];
++                let triangles = mesh
++                    .triangulation
++                    .get(&face)
++                    .filter(|t| !t.is_empty())
++                    .cloned()
++                    .unwrap_or_else(|| {
++                        (1..ring.len().saturating_sub(1))
++                            .map(|i| [ring[0], ring[i], ring[i + 1]])
++                            .collect()
++                    });
++                for triangle in triangles {
++                    if triangle.iter().all(|key| mesh.vertex.contains_key(key)) {
++                        keys.extend(triangle);
++                    }
++                }
++            }
++        }
++        if keys.len() != span.count.verts as usize {
++            return None;
++        }
++        let vertices = keys
++            .into_iter()
++            .zip(
++                up.arena.verts[local.verts as usize..(local.verts + span.count.verts) as usize]
++                    .iter()
++                    .copied(),
++            )
++            .collect();
++        let mut seen = HashSet::new();
++        let mut edges = Vec::new();
++        for face in mesh.faces() {
++            let ring = &mesh.face[&face];
++            for i in 0..ring.len() {
++                let pair = [
++                    ring[i].min(ring[(i + 1) % ring.len()]),
++                    ring[i].max(ring[(i + 1) % ring.len()]),
++                ];
++                if seen.insert(pair) {
++                    edges.push(pair);
++                }
++            }
++        }
++        let pipes = (local.pipes..local.pipes + span.count.pipes)
++            .map(|i| {
++                Some((
++                    *edges.get(*up.seg.pipe_ids.get(i as usize)? as usize)?,
++                    up.seg.pipes[i as usize],
++                ))
++            })
++            .collect::<Option<Vec<_>>>()?;
++        // Marker provenance is accepted only when source positions are unambiguous.
++        let mut positions = HashMap::new();
++        for (&key, v) in &mesh.vertex {
++            let p = [v.x as f32, v.y as f32, v.z as f32].map(f32::to_bits);
++            positions
++                .entry(p)
++                .and_modify(|value| *value = None)
++                .or_insert(Some(key));
++        }
++        let markers = |items: &[GlyphPoint]| {
++            items
++                .iter()
++                .map(|g| Some(((*positions.get(&g.center.map(f32::to_bits))?)?, *g)))
++                .collect::<Option<Vec<_>>>()
++        };
++        Some(Self {
++            vertices,
++            pipes,
++            spheres: markers(
++                &up.glyph.spheres
++                    [local.spheres as usize..(local.spheres + span.count.spheres) as usize],
++            )?,
++            dots: markers(
++                &up.glyph.dots[local.dots as usize..(local.dots + span.count.dots) as usize],
++            )?,
++            span,
++        })
++    }
++    pub fn begin(&self, geometry: &Geometry, target: Target) -> Option<Gesture> {
++        let mesh = mesh(geometry)?;
++        let selected: HashSet<_> = mesh_keys(mesh, target).ok()?.into_iter().collect();
++        let mut affected = selected.clone();
++        for ring in mesh.face.values() {
++            if ring.iter().any(|k| selected.contains(k)) {
++                affected.extend(ring);
++            }
++        }
++        let vertices = self
++            .vertices
++            .iter()
++            .enumerate()
++            .filter(|(_, (k, _))| affected.contains(k))
++            .map(|(i, (k, v))| (self.span.start.verts + i as u32, *v, selected.contains(k)))
++            .collect();
++        let pipes = self
++            .pipes
++            .iter()
++            .enumerate()
++            .filter(|(_, (keys, _))| keys.iter().any(|k| affected.contains(k)))
++            .map(|(i, (keys, p))| {
++                (
++                    self.span.start.pipes + i as u32,
++                    *p,
++                    keys.map(|k| selected.contains(&k)),
++                )
++            })
++            .collect();
++        let markers = |items: &[(usize, GlyphPoint)], start| {
++            items
++                .iter()
++                .enumerate()
++                .filter(|(_, (k, _))| affected.contains(k))
++                .map(|(i, (k, g))| (start + i as u32, *g, selected.contains(k)))
++                .collect()
++        };
++        Some(Gesture {
++            vertices,
++            pipes,
++            spheres: markers(&self.spheres, self.span.start.spheres),
++            dots: markers(&self.dots, self.span.start.dots),
++        })
++    }
++    pub fn allocated_bytes(&self) -> usize {
++        self.vertices.capacity() * std::mem::size_of::<(usize, RenderVertex)>()
++            + self.pipes.capacity() * std::mem::size_of::<([usize; 2], CylinderSegment)>()
++            + (self.spheres.capacity() + self.dots.capacity())
++                * std::mem::size_of::<(usize, GlyphPoint)>()
++    }
++}
++impl Gesture {
++    pub fn apply(&self, gpu: &mut Gpu, delta: &Xform, restore: bool) {
++        let position = |p: [f32; 3]| {
++            let m = &delta.m;
++            std::array::from_fn(|r| {
++                (m[r] * p[0] as f64 + m[4 + r] * p[1] as f64 + m[8 + r] * p[2] as f64 + m[12 + r])
++                    as f32
++            })
++        };
++        for &(index, mut v, moved) in &self.vertices {
++            if !restore {
++                if moved {
++                    v.position = position(v.position);
++                }
++                v.normal = [0.; 3];
++            }
++            gpu.arena.patch_vertices(&gpu.ctx, index, &[v]);
++        }
++        for &(index, mut p, moved) in &self.pipes {
++            if !restore {
++                if moved[0] {
++                    p.p0 = position(p.p0);
++                }
++                if moved[1] {
++                    p.p1 = position(p.p1);
++                }
++                // During a gesture, finite triangle visibility supplies the occlusion test.
++                p.facing = u32::MAX;
++            }
++            gpu.segments.patch_pipes(
++                &gpu.ctx,
++                index,
++                &SegRows {
++                    pipes: vec![p],
++                    ..Default::default()
++                },
++            );
++        }
++        for (items, sphere) in [(&self.spheres, true), (&self.dots, false)] {
++            for &(index, mut g, moved) in items {
++                if !restore {
++                    if moved {
++                        g.center = position(g.center);
++                    }
++                    g.facing = u32::MAX;
++                    g.facing_ext = [u32::MAX; 2];
++                }
++                gpu.glyphs.patch_marker(&gpu.ctx, index, sphere, g);
++            }
++        }
++        gpu.objects.geometry_changed();
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::app::walk::{Walk, WalkCx, walk_geometry};
++    use session_rust::Point;
++    use std::rc::Rc;
++    #[test]
++    fn large_mesh_gesture_only_patches_local_neighborhood() {
++        let mut mesh = Mesh::new();
++        for y in 0..101 {
++            for x in 0..101 {
++                mesh.add_vertex(Point::new(x as f64, y as f64, 0.), Some(y * 101 + x));
++            }
++        }
++        for y in 0..100 {
++            for x in 0..100 {
++                let a = y * 101 + x;
++                mesh.add_face(vec![a, a + 1, a + 102], None);
++                mesh.add_face(vec![a, a + 102, a + 101], None);
++            }
++        }
++        let geometry = Geometry::Mesh(Rc::new(mesh));
++        let mut up = Upload::default();
++        walk_geometry(
++            &mut Walk::of(&mut up),
++            &WalkCx {
++                vert_base: 0,
++                cloud_px: 0.,
++                row: 0,
++            },
++            &geometry,
++        );
++        let span = Span {
++            start: Counts::default(),
++            count: Counts::of(&up),
++        };
++        let preview = MeshPreview::capture(&up, span, Counts::default(), &geometry).unwrap();
++        let gesture = preview.begin(&geometry, Target::Face(10000)).unwrap();
++        assert!(
++            gesture.vertices.len() < 30,
++            "drag cost follows adjacency, not the 10,201-vertex mesh"
++        );
++        assert_eq!(gesture.vertices.iter().filter(|v| v.2).count(), 3);
++        assert!(gesture.pipes.len() < 100);
++        assert_eq!(
++            super::mesh(&geometry).unwrap().vertex[&0].z,
++            0.,
++            "preview does not mutate source"
++        );
++    }
++}
+diff --git a/src/app/mod.rs b/src/app/mod.rs
+--- a/src/app/mod.rs
++++ b/src/app/mod.rs
+@@ -15,6 +15,7 @@
+ pub mod knobs;
+ pub mod layers;
+ pub mod manifest;
++pub mod mesh_preview;
+ pub mod modeling;
+ pub mod scene;
+ pub mod selection;
+diff --git a/src/app/scene.rs b/src/app/scene.rs
+--- a/src/app/scene.rs
++++ b/src/app/scene.rs
+@@ -129,6 +129,7 @@
+     pub hidden: HashSet<(usize, Rc<str>)>,
+     pub locked: HashSet<(usize, Rc<str>)>,
+     pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,
++    pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>,
+     pub selected: Option<u32>,
+     order: Vec<Rc<str>>,
+     owners: Vec<usize>,
+@@ -139,6 +140,7 @@
+     bases: Bases,
+     uploaded: crate::engine::gpu::patch::Counts,
+     surface_previews: Vec<Option<crate::app::surface_preview::SurfacePreview>>,
++    pub(crate) mesh_previews: Vec<Option<crate::app::mesh_preview::MeshPreview>>,
+     pub(super) preview_spans: Vec<Option<crate::engine::gpu::patch::Span>>,
+     /// Which document the last edit touched. Undo is per document, because the history is the
+     /// document's; this is the only thing that says which one a bare Ctrl+Z means.
+@@ -172,6 +174,7 @@
+             hidden: HashSet::new(),
+             locked: HashSet::new(),
+             colors: HashMap::new(),
++            edge_colors: HashMap::new(),
+             selected: None,
+             order: Vec::new(),
+             owners: Vec::new(),
+@@ -182,6 +185,7 @@
+             uploaded: Default::default(),
+             preview_spans: Vec::new(),
+             surface_previews: Vec::new(),
++            mesh_previews: Vec::new(),
+             last_edited: None,
+             created_doc: None,
+             row_revision: 0,
+@@ -198,6 +202,7 @@
+         self.hidden.clear();
+         self.locked.clear();
+         self.colors.clear();
++        self.edge_colors.clear();
+         self.reset_rows();
+         gpu.release();
+     }
+@@ -218,6 +223,7 @@
+         self.uploaded = Default::default();
+         self.preview_spans.clear();
+         self.surface_previews.clear();
++        self.mesh_previews.clear();
+     }
+ 
+     /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch - the
+@@ -282,6 +288,11 @@
+             object.flags |= Instance::FLAG_COLOR;
+         }
+ 
++        if let Some(color) = self.edge_colors.get(&(owner, Rc::from(guid))) {
++            let object = self.tables.obj.rows.last_mut().expect("row just appended");
++            object.edge_color = u32::from_le_bytes([color[0], color[1], color[2], 255]);
++            object.flags |= Instance::FLAG_EDGE_COLOR;
++        }
+         let guid: Rc<str> = Rc::from(guid);
+         self.guid_to_row.insert((owner, Rc::clone(&guid)), row);
+         self.order.push(guid);
+@@ -289,6 +300,7 @@
+         self.ribbon_ranges.push(None);
+         self.preview_spans.push(None);
+         self.surface_previews.push(None);
++        self.mesh_previews.push(None);
+         row
+     }
+ 
+@@ -353,11 +365,20 @@
+                     start.minus(self.uploaded),
+                     geom,
+                 );
++            self.mesh_previews[row as usize] = crate::app::mesh_preview::MeshPreview::capture(
++                &self.tables,
++                span,
++                start.minus(self.uploaded),
++                geom,
++            );
+             let o = self.tables.obj.rows.last_mut().unwrap();
+             o.flags |= r.flags;
+             o.bounds = r.bounds;
+             o.spacing = r.spacing;
+             o.faces = r.faces;
++            if r.faces {
++                o.flags |= Instance::FLAG_HAS_FACES;
++            }
+             let ribbon_end = self.tables.seg.ribbons.len();
+             if ribbon_start != ribbon_end {
+                 self.ribbon_ranges[row as usize] = Some(
+@@ -817,6 +838,8 @@
+         if Counts::of(&up) != span.count {
+             return false;
+         }
++        self.mesh_previews[row as usize] =
++            crate::app::mesh_preview::MeshPreview::capture(&up, span, Counts::default(), geometry);
+         gpu.arena.patch(&gpu.ctx, span.start, &up.arena);
+         gpu.segments.patch(&gpu.ctx, span.start, &up.seg);
+         gpu.glyphs.patch(&gpu.ctx, span.start, &up.glyph);
+@@ -840,6 +863,12 @@
+             .flatten()
+             .map(|p| p.allocated_bytes())
+             .sum::<usize>()
++            + self
++                .mesh_previews
++                .iter()
++                .flatten()
++                .map(|p| p.allocated_bytes())
++                .sum::<usize>()
+             + self.preview_spans.capacity()
+                 * std::mem::size_of::<Option<crate::engine::gpu::patch::Span>>()
+     }
+diff --git a/src/app/session_io.rs b/src/app/session_io.rs
+--- a/src/app/session_io.rs
++++ b/src/app/session_io.rs
+@@ -26,6 +26,8 @@
+     locked: Vec<(usize, String)>,
+     #[serde(default)]
+     colors: Vec<(usize, String, [u8; 3])>,
++    #[serde(default)]
++    edge_colors: Option<Vec<(usize, String, [u8; 3])>>,
+     texts: Vec<(String, TextLabel, bool)>,
+ }
+ #[derive(Serialize, Deserialize)]
+@@ -87,6 +89,15 @@
+         hidden,
+         locked,
+         colors,
++        edge_colors: Some({
++            let mut colors: Vec<_> = scene
++                .edge_colors
++                .iter()
++                .map(|((doc, id), color)| (*doc, id.to_string(), *color))
++                .collect();
++            colors.sort();
++            colors
++        }),
+         texts: scene
+             .texts
+             .iter()
+@@ -156,6 +167,13 @@
+         .locked
+         .into_iter()
+         .map(|(doc, id)| (doc, Rc::from(id)))
++        .collect();
++    // Older archives applied their single color to faces and edges alike.
++    scene.edge_colors = metadata
++        .edge_colors
++        .unwrap_or_else(|| metadata.colors.clone())
++        .into_iter()
++        .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
+         .collect();
+     scene.colors = metadata
+         .colors
+@@ -271,6 +289,9 @@
+         scene
+             .colors
+             .insert(scene.identity_of(1).unwrap(), [240, 80, 30]);
++        scene
++            .edge_colors
++            .insert(scene.identity_of(1).unwrap(), [30, 80, 240]);
+         let bytes = save(&scene).unwrap();
+         assert!(scene.undo(), "saving leaves live undo available");
+         let restored = open(&bytes).unwrap();
+@@ -278,6 +299,18 @@
+         assert_eq!(restored.hidden.len(), 1);
+         assert_eq!(restored.locked, scene.locked);
+         assert_eq!(restored.colors, scene.colors);
++        assert_eq!(restored.edge_colors, scene.edge_colors);
++        let mut archive = Archive::decode(&bytes[MAGIC.len()..]).unwrap();
++        let mut old: serde_json::Value = serde_json::from_slice(&archive.metadata).unwrap();
++        old.as_object_mut().unwrap().remove("edge_colors");
++        archive.metadata = serde_json::to_vec(&old).unwrap();
++        let mut legacy = MAGIC.to_vec();
++        archive.encode(&mut legacy).unwrap();
++        let legacy = open(&legacy).unwrap();
++        assert_eq!(
++            legacy.edge_colors, legacy.colors,
++            "legacy overrides still color both channels"
++        );
+         assert!(!restored.selectable(0));
+         assert!(restored.selectable(1));
+         assert_eq!(restored.docs[0].place.m[12], 100.);
+diff --git a/src/app/splitting.rs b/src/app/splitting.rs
+--- a/src/app/splitting.rs
++++ b/src/app/splitting.rs
+@@ -162,6 +162,7 @@
+             .map(|node| node.borrow().name.clone());
+         let place = file.session.xform(&guid);
+         let color = self.colors.get(&(doc, Rc::clone(&guid))).copied();
++        let edge_color = self.edge_colors.get(&(doc, Rc::clone(&guid))).copied();
+         if pieces.len() > 1 {
+             let name = source.name();
+             for (index, piece) in pieces.iter_mut().enumerate() {
+@@ -196,7 +197,10 @@
+             let id = node.borrow().name.clone();
+             session.set_xform(&id, place.clone());
+             if let Some(color) = color {
+-                self.colors.insert((doc, Rc::from(id)), color);
++                self.colors.insert((doc, Rc::from(id.as_str())), color);
++            }
++            if let Some(color) = edge_color {
++                self.edge_colors.insert((doc, Rc::from(id.as_str())), color);
+             }
+         }
+         session.commit();
+diff --git a/src/app/ui.rs b/src/app/ui.rs
+--- a/src/app/ui.rs
++++ b/src/app/ui.rs
+@@ -437,66 +437,106 @@
+     action: &mut Option<String>,
+ ) {
+     let mut color = row.color.unwrap_or([180, 180, 180]);
+-    let response = ui
+-        .menu_button(
+-            egui::RichText::new("■").color(egui::Color32::from_rgb(color[0], color[1], color[2])),
+-            |ui| {
+-                ui.label("Object and child colors");
+-                for colors in [
+-                    [
+-                        ("Red", [230, 65, 55]),
+-                        ("Orange", [240, 145, 45]),
+-                        ("Yellow", [240, 210, 60]),
+-                    ],
+-                    [
+-                        ("Green", [60, 170, 100]),
+-                        ("Blue", [65, 130, 225]),
+-                        ("Violet", [160, 85, 210]),
+-                    ],
+-                    [
+-                        ("White", [245, 245, 245]),
+-                        ("Gray", [150, 150, 150]),
+-                        ("Black", [35, 35, 35]),
+-                    ],
+-                ] {
+-                    ui.horizontal(|ui| {
+-                        for (name, rgb) in colors {
+-                            let response = ui
+-                                .add_sized(
+-                                    [48., 28.],
+-                                    egui::Button::new(
+-                                        egui::RichText::new("■")
+-                                            .color(egui::Color32::from_rgb(rgb[0], rgb[1], rgb[2])),
+-                                    ),
+-                                )
+-                                .on_hover_text(name);
+-                            let key =
+-                                format!("color/{index}/{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]);
+-                            record(controls, &key, name, &response);
+-                            if response.clicked() {
+-                                *action = Some(key);
+-                                ui.close();
+-                            }
+-                        }
+-                    });
+-                }
+-                ui.separator();
+-                let mut changed = false;
+-                for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
+-                    changed |= ui
+-                        .add(egui::Slider::new(value, 0..=255).text(channel))
+-                        .changed();
+-                }
+-                if changed {
+-                    *action = Some(format!(
+-                        "color/{index}/{:02x}{:02x}{:02x}",
+-                        color[0], color[1], color[2]
+-                    ));
+-                }
+-            },
+-        )
+-        .response
+-        .on_hover_text("Change object and child colors");
++    let response = egui::containers::menu::MenuButton::new(
++        egui::RichText::new("■").color(egui::Color32::from_rgb(color[0], color[1], color[2])),
++    )
++    .config(
++        egui::containers::menu::MenuConfig::default()
++            .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside),
++    )
++    .ui(ui, |ui| {
++        let channel_id = egui::Id::new(("layer-color-channel", index));
++        let mut edge = ui
++            .ctx()
++            .data_mut(|data| data.get_temp::<bool>(channel_id).unwrap_or(false))
++            && row.has_faces;
++        if row.has_faces {
++            ui.horizontal(|ui| {
++                for (label, value) in [("Faces", false), ("Edges", true)] {
++                    let response = ui.selectable_label(edge == value, label);
++                    record(
++                        controls,
++                        &format!("color-channel/{index}/{label}"),
++                        label,
++                        &response,
++                    );
++                    if response.clicked() {
++                        edge = value;
++                    }
++                }
++            });
++        } else {
++            ui.label("Object and child colors");
++        }
++        ui.ctx().data_mut(|data| data.insert_temp(channel_id, edge));
++        let channel = if edge { "edge" } else { "face" };
++        color = if edge { row.edge_color } else { row.color }.unwrap_or([180; 3]);
++        let response = ui
++            .button("Original")
++            .on_hover_text("Restore the source colors for this channel and its children");
++        let key = format!("color/{index}/{channel}/original");
++        record(controls, &key, "Original", &response);
++        if response.clicked() {
++            *action = Some(key);
++            ui.close();
++        }
++        ui.separator();
++        for colors in [
++            [
++                ("Red", [230, 65, 55]),
++                ("Orange", [240, 145, 45]),
++                ("Yellow", [240, 210, 60]),
++            ],
++            [
++                ("Green", [60, 170, 100]),
++                ("Blue", [65, 130, 225]),
++                ("Violet", [160, 85, 210]),
++            ],
++            [
++                ("White", [245, 245, 245]),
++                ("Gray", [150, 150, 150]),
++                ("Black", [35, 35, 35]),
++            ],
++        ] {
++            ui.horizontal(|ui| {
++                for (name, rgb) in colors {
++                    let response = ui
++                        .add_sized(
++                            [48., 28.],
++                            egui::Button::new(
++                                egui::RichText::new("■")
++                                    .color(egui::Color32::from_rgb(rgb[0], rgb[1], rgb[2])),
++                            ),
++                        )
++                        .on_hover_text(name);
++                    let key = format!(
++                        "color/{index}/{channel}/{:02x}{:02x}{:02x}",
++                        rgb[0], rgb[1], rgb[2]
++                    );
++                    record(controls, &key, name, &response);
++                    if response.clicked() {
++                        *action = Some(key);
++                        ui.close();
++                    }
++                }
++            });
++        }
++        ui.separator();
++        let mut changed = false;
++        for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
++            changed |= ui
++                .add(egui::Slider::new(value, 0..=255).text(channel))
++                .changed();
++        }
++        if changed {
++            *action = Some(format!(
++                "color/{index}/{channel}/{:02x}{:02x}{:02x}",
++                color[0], color[1], color[2]
++            ));
++        }
++    })
++    .0
++    .on_hover_text("Change object and child colors");
+     record(
+         controls,
+         &format!("color/{index}"),
+diff --git a/src/engine/gpu/glyphs.rs b/src/engine/gpu/glyphs.rs
+--- a/src/engine/gpu/glyphs.rs
++++ b/src/engine/gpu/glyphs.rs
+@@ -100,6 +100,21 @@
+ }
+ 
+ impl GlyphLane {
++    pub(crate) fn patch_marker(
++        &mut self,
++        ctx: &GpuCtx,
++        index: u32,
++        sphere: bool,
++        glyph: GlyphPoint,
++    ) {
++        let table = if sphere {
++            &mut self.spheres
++        } else {
++            &mut self.dots
++        };
++        table.buf.write_at(ctx, index, &[glyph]);
++    }
++
+     pub(crate) fn patch(&mut self, ctx: &GpuCtx, at: super::patch::Counts, up: &GlyphRows) {
+         self.spheres.buf.write_at(ctx, at.spheres, &up.spheres);
+         self.dots.buf.write_at(ctx, at.dots, &up.dots);
+diff --git a/src/engine/gpu/instance.rs b/src/engine/gpu/instance.rs
+--- a/src/engine/gpu/instance.rs
++++ b/src/engine/gpu/instance.rs
+@@ -46,6 +46,8 @@
+     pub const FLAG_SINGLE: u32 = 1 << 7;
+     /// Replace authored colors with the layer color.
+     pub const FLAG_COLOR: u32 = 1 << 8;
++    pub const FLAG_EDGE_COLOR: u32 = 1 << 9;
++    pub const FLAG_HAS_FACES: u32 = 1 << 10;
+ 
+     /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
+     pub fn placeholder() -> Self {
+@@ -195,7 +197,7 @@
+     /// The scene contract declares `Instance` with the Rust fields, in order.
+     #[test]
+     fn instance_mirror() {
+-        let rust = ["model", "color", "flags", "_pad0", "spacing"];
++        let rust = ["model", "color", "flags", "_pad0", "spacing", "edge_color"];
+         assert_eq!(wgsl_fields(SCENE, "Instance"), rust, "Instance fields");
+     }
+ 
+diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
+--- a/src/engine/gpu/mod.rs
++++ b/src/engine/gpu/mod.rs
+@@ -434,8 +434,8 @@
+         self.splat.invalidate();
+     }
+ 
+-    pub fn set_object_color(&mut self, row: u32, color: [u8; 3]) {
+-        self.objects.set_color(&self.ctx, row, color);
++    pub fn set_object_color(&mut self, row: u32, edge: bool, color: Option<[u8; 3]>) {
++        self.objects.set_color(&self.ctx, row, edge, color);
+         self.splat.invalidate();
+     }
+ 
+diff --git a/src/engine/gpu/objects.rs b/src/engine/gpu/objects.rs
+--- a/src/engine/gpu/objects.rs
++++ b/src/engine/gpu/objects.rs
+@@ -24,6 +24,7 @@
+ pub struct ObjectRow {
+     pub place: Mat4,
+     pub color: [f32; 4],
++    pub edge_color: u32,
+     pub flags: u32,
+     pub bounds: Aabb,
+     /// Meshes: the local vertex spacing; clouds: the point size in px. Read as a pen hint.
+@@ -38,6 +39,7 @@
+         Self {
+             place,
+             color: [1.0; 4],
++            edge_color: 0,
+             flags,
+             bounds: Aabb::empty(),
+             spacing: 0.0,
+@@ -364,7 +366,7 @@
+                 flags: r.flags,
+                 _pad0: 0.0,
+                 spacing: r.spacing,
+-                _pad: 0,
++                _pad: r.edge_color,
+             });
+         }
+         if self.rows.is_empty() {
+@@ -581,15 +583,33 @@
+     }
+ 
+     /// Change display color without rebuilding geometry or placement.
+-    pub fn set_color(&mut self, ctx: &GpuCtx, row: u32, color: [u8; 3]) {
++    pub fn set_color(&mut self, ctx: &GpuCtx, row: u32, edge: bool, color: Option<[u8; 3]>) {
+         if let Some(r) = self.rows.get_mut(row as usize) {
+-            r.color = [
+-                color[0] as f32 / 255.,
+-                color[1] as f32 / 255.,
+-                color[2] as f32 / 255.,
+-                1.,
+-            ];
+-            r.flags |= Instance::FLAG_COLOR;
++            let flag = if edge {
++                Instance::FLAG_EDGE_COLOR
++            } else {
++                Instance::FLAG_COLOR
++            };
++            r.flags &= !flag;
++            if color.is_some() {
++                r.flags |= flag;
++            }
++            if edge {
++                r._pad = color
++                    .map(|c| u32::from_le_bytes([c[0], c[1], c[2], 255]))
++                    .unwrap_or(0);
++            } else {
++                r.color = color
++                    .map(|c| {
++                        [
++                            c[0] as f32 / 255.,
++                            c[1] as f32 / 255.,
++                            c[2] as f32 / 255.,
++                            1.,
++                        ]
++                    })
++                    .unwrap_or([1.; 4]);
++            }
+             self.buffer.write_at(ctx, row, std::slice::from_ref(r));
+         }
+     }
+@@ -608,6 +628,10 @@
+             self.geometry_revision = self.geometry_revision.wrapping_add(1);
+         }
+         self.buffer.write_at(ctx, row, std::slice::from_ref(r));
++    }
++
++    pub(crate) fn geometry_changed(&mut self) {
++        self.geometry_revision = self.geometry_revision.wrapping_add(1);
+     }
+ 
+     /// Forget every row; the buffers keep their capacity.
+diff --git a/src/engine/gpu/splat.rs b/src/engine/gpu/splat.rs
+--- a/src/engine/gpu/splat.rs
++++ b/src/engine/gpu/splat.rs
+@@ -74,6 +74,7 @@
+     cloud_size: f32,
+     lod_px: f32,
+     point_count: u32,
++    geometry: u64,
+ }
+ 
+ /// The two point-pass targets, 1x, sized to the surface, and the resolve group over them.
+@@ -295,6 +296,7 @@
+             cloud_size: cx.cloud_size,
+             lod_px: cx.lod_px,
+             point_count,
++            geometry: cx.objects.geometry_revision(),
+         };
+         if self.key.as_ref() == Some(&key) {
+             return;
+diff --git a/src/shaders/glyph.wgsl b/src/shaders/glyph.wgsl
+--- a/src/shaders/glyph.wgsl
++++ b/src/shaders/glyph.wgsl
+@@ -74,7 +74,7 @@
+ 
+     var o: VsOut;
+     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
+-    var color = object_color(g.color, inst);
++    var color = edge_color(g.color, inst);
+     if ((inst.flags & FLAG_SELECTED) != 0u) {
+         color = vec4<f32>(SELECT_COLOR, color.a);
+     }
+diff --git a/src/shaders/ribbon.wgsl b/src/shaders/ribbon.wgsl
+--- a/src/shaders/ribbon.wgsl
++++ b/src/shaders/ribbon.wgsl
+@@ -233,7 +233,7 @@
+     var o: VsOut;
+     let ndc = (p / vp - 0.5) * 2.0;
+     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
+-    var color = object_color(unpack4x8unorm(seg.color), inst);
++    var color = edge_color(unpack4x8unorm(seg.color), inst);
+     if (selected) {
+         color = vec4<f32>(SELECT_COLOR, color.a);
+     }
+diff --git a/src/shaders/scene.wgsl b/src/shaders/scene.wgsl
+--- a/src/shaders/scene.wgsl
++++ b/src/shaders/scene.wgsl
+@@ -12,6 +12,7 @@
+     flags: u32,
+     _pad0: f32,
+     spacing: f32,
++    edge_color: u32,
+ };
+ @group(2) @binding(0) var<storage, read> instances: array<Instance>;
+ @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
+@@ -50,6 +51,14 @@
+     return select(authored * inst.color, vec4<f32>(inst.color.rgb, authored.a), (inst.flags & FLAG_COLOR) != 0u);
+ }
+ 
++fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
++    if ((inst.flags & 1024u) == 0u) { return object_color(authored, inst); }
++    if ((inst.flags & 512u) != 0u) {
++        return vec4<f32>(unpack4x8unorm(inst.edge_color).rgb, authored.a);
++    }
++    return authored;
++}
++
+ const FACING_UNKNOWN: u32 = 0xffffffffu;
+ // The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
+ const DISC_ID_TAG: u32 = 0x40000000u;
+diff --git a/src/shaders/sphere.wgsl b/src/shaders/sphere.wgsl
+--- a/src/shaders/sphere.wgsl
++++ b/src/shaders/sphere.wgsl
+@@ -111,7 +111,7 @@
+ 
+     var o: VsOut;
+     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
+-    var color = object_color(g.color, inst);
++    var color = edge_color(g.color, inst);
+     if ((inst.flags & FLAG_SELECTED) != 0u) {
+         color = vec4<f32>(SELECT_COLOR, color.a);
+     }
+diff --git a/src/state/edit.rs b/src/state/edit.rs
+--- a/src/state/edit.rs
++++ b/src/state/edit.rs
+@@ -29,6 +29,7 @@
+     target: Option<crate::app::deform::Target>,
+     source: Option<session_rust::Geometry>,
+     origin: Point,
++    mesh_preview: Option<crate::app::mesh_preview::Gesture>,
+ }
+ 
+ impl State {
+@@ -104,6 +105,14 @@
+         let Some(base_place) = self.scene.placement_of(row) else {
+             return false;
+         };
++        let target = crate::app::deform::Target::selected(&self.selection);
++        let mesh_preview = target.and_then(|target| {
++            self.scene
++                .mesh_previews
++                .get(row as usize)?
++                .as_ref()?
++                .begin(self.scene.geometry(row)?, target)
++        });
+         self.dragging = Some(GizmoDrag {
+             row,
+             base_local,
+@@ -112,6 +121,7 @@
+             target: crate::app::deform::Target::selected(&self.selection),
+             source: self.scene.geometry(row).cloned(),
+             origin: gizmo.origin.clone(),
++            mesh_preview,
+         });
+         true
+     }
+@@ -135,6 +145,17 @@
+                 return false;
+             };
+             let local = &(&back * &Xform::from_matrix(delta)) * &place;
++            if let Some(preview) = active.mesh_preview.as_ref() {
++                preview.apply(&mut self.gpu, &local, false);
++                let origin = active.origin.transformed(&Xform::from_matrix(delta));
++                self.gpu.bounds.grow(origin.to_f32());
++                if let Some(gizmo) = self.gizmo.as_mut() {
++                    gizmo.origin = origin;
++                }
++                self.upload_gizmo();
++                self.touch();
++                return true;
++            }
+             let edited = match crate::app::deform::transform(source, target, &local) {
+                 Ok(value) => value,
+                 Err(error) => {
+@@ -235,7 +256,10 @@
+     /// no key reaches that state.
+     pub fn cancel_gesture(&mut self) {
+         if let Some(active) = self.dragging.take() {
+-            if active.target.is_some() {
++            if let Some(preview) = active.mesh_preview.as_ref() {
++                preview.apply(&mut self.gpu, &Xform::identity(), true);
++                self.restore_edit_selection(active.row);
++            } else if active.target.is_some() {
+                 self.restore_source_render(active.row);
+                 self.restore_edit_selection(active.row);
+             }
+diff --git a/src/state/panel.rs b/src/state/panel.rs
+--- a/src/state/panel.rs
++++ b/src/state/panel.rs
+@@ -12,15 +12,41 @@
+             return;
+         }
+         if let Some(value) = key.strip_prefix("color/") {
+-            if let Some((index, hex)) = value.split_once('/')
+-                && let (Ok(index), Ok(rgb)) = (index.parse::<usize>(), u32::from_str_radix(hex, 16))
++            let parts: Vec<_> = value.split('/').collect();
++            if parts.len() == 3
++                && let Ok(index) = parts[0].parse::<usize>()
+                 && index < self.hierarchy.nodes.len()
++                && matches!(parts[1], "face" | "edge")
+             {
+-                let color = [(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8];
++                let edge = parts[1] == "edge";
++                let color = if parts[2] == "original" {
++                    None
++                } else {
++                    let Ok(rgb) = u32::from_str_radix(parts[2], 16) else {
++                        return;
++                    };
++                    Some([(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8])
++                };
+                 for row in self.hierarchy.targets(index) {
++                    if edge
++                        && !self.gpu.objects.row(row).is_some_and(|r| {
++                            r.flags & crate::engine::gpu::Instance::FLAG_HAS_FACES != 0
++                        })
++                    {
++                        continue;
++                    }
+                     if let Some(id) = self.scene.identity_of(row) {
+-                        self.scene.colors.insert(id, color);
+-                        self.gpu.set_object_color(row, color);
++                        let colors = if edge {
++                            &mut self.scene.edge_colors
++                        } else {
++                            &mut self.scene.colors
++                        };
++                        if let Some(color) = color {
++                            colors.insert(id, color);
++                        } else {
++                            colors.remove(&id);
++                        }
++                        self.gpu.set_object_color(row, edge, color);
+                     }
+                 }
+                 self.refresh_layers();
+@@ -178,6 +204,22 @@
+                 hidden,
+                 locked,
+                 color,
++                edge_color: targets
++                    .first()
++                    .and_then(|row| self.scene.identity_of(*row))
++                    .and_then(|id| self.scene.edge_colors.get(&id).copied())
++                    .filter(|first| {
++                        targets.iter().all(|row| {
++                            self.scene
++                                .identity_of(*row)
++                                .is_some_and(|id| self.scene.edge_colors.get(&id) == Some(first))
++                        })
++                    }),
++                has_faces: targets.iter().any(|row| {
++                    self.gpu.objects.row(*row).is_some_and(|r| {
++                        r.flags & crate::engine::gpu::Instance::FLAG_HAS_FACES != 0
++                    })
++                }),
+                 depth: node.depth,
+                 expanded: (node.end > index + 1).then(|| self.hierarchy.open.contains(&index)),
+             });

@@ -132,7 +132,19 @@ impl Gizmo {
     /// three arms all overlap, so they are tested outward from the centre and the first hit
     /// wins. `world_per_px` converts the CSS-pixel sizes above into world units at this depth.
     pub fn hit(&self, from: &Point, dir: &Vector, world_per_px: f64) -> Option<Handle> {
+        self.hit_with_radius(from, dir, world_per_px, GRAB)
+    }
+
+    /// Touch widens the hit tolerance without changing the visible handle positions.
+    pub fn hit_with_radius(
+        &self,
+        from: &Point,
+        dir: &Vector,
+        world_per_px: f64,
+        radius: f64,
+    ) -> Option<Handle> {
         let s = world_per_px;
+        let grab = radius.max(GRAB);
         if within(from, dir, &self.origin, HUB * s) {
             return Some(Handle::ScaleUniform);
         }
@@ -141,7 +153,7 @@ impl Gizmo {
                 continue;
             }
             let at = along(&self.origin, &axis.unit(), BALL_AT * s);
-            if within(from, dir, &at, GRAB * s) {
+            if within(from, dir, &at, grab * s) {
                 return Some(Handle::Scale(axis));
             }
         }
@@ -153,7 +165,7 @@ impl Gizmo {
                 let t = dot(&sub(&p, &self.origin), &axis.unit());
                 // The arm's grabbable run starts where the hub ends: inside it all three arms
                 // overlap, and whichever was tested first would win a click aimed at the centre.
-                if (HUB * s..=ARM * s).contains(&t) && within(from, dir, &p, GRAB * s) {
+                if (HUB * s..=ARM * s).contains(&t) && within(from, dir, &p, grab * s) {
                     return Some(Handle::Translate(axis));
                 }
             }
@@ -165,7 +177,7 @@ impl Gizmo {
                 // A quarter arc, in the quadrant the arms and balls do not occupy. Sharing a
                 // radius with the arm tip would make the two ambiguous exactly where a reader
                 // aims for one of them.
-                if dot(&d, &u) < 0.0 && dot(&d, &v) < 0.0 && (length(&d) - ARM * s).abs() < GRAB * s
+                if dot(&d, &u) < 0.0 && dot(&d, &v) < 0.0 && (length(&d) - ARM * s).abs() < grab * s
                 {
                     return Some(Handle::Rotate(axis));
                 }

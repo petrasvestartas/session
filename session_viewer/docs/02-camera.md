@@ -240,3 +240,9 @@ State the orbit gesture in one sentence and say why the alternatives fail. Corre
 ## Next
 
 [03 · Object rows and identity](03-identity.md): a storage buffer of per-object rows, and why a GPU row is not a source identity.
+
+## Expected viewer result
+
+Checkpoint 02: the same triangle seen from the production camera; drag to orbit, Shift-drag to pan, wheel to zoom at the cursor.
+
+[![Full viewer result for 02 camera](screenshots/02.png)](screenshots/02.png)

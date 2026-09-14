@@ -128,3 +128,9 @@ Say what the network panel shows with and without the window, and which number a
 ## Next
 
 [16 · Resource accounting](16-accounting.md): what the viewer can and cannot measure about its own memory.
+
+## Expected viewer result
+
+Checkpoint 15: the local scene is unchanged; the difference is in the network panel of a streamed cloud, where the header reads collapse into one window request.
+
+[![Full viewer result for 15 publication](screenshots/15.png)](screenshots/15.png)

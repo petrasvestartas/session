@@ -33,6 +33,9 @@ pub struct Input {
     last_cursor: (f64, f64),
     left_down: Option<(f64, f64)>,
     touch: Touches,
+    touch_edit: Option<u64>,
+    fingers: std::collections::HashSet<u64>,
+    touch_cancelled: bool,
 }
 
 impl Default for Input {
@@ -55,6 +58,9 @@ impl Input {
             last_cursor: (0.0, 0.0),
             left_down: None,
             touch: Touches::new(),
+            touch_edit: None,
+            fingers: std::collections::HashSet::new(),
+            touch_cancelled: false,
         }
     }
 
@@ -65,6 +71,7 @@ impl Input {
                 .camera
                 .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
             Key::Named(NamedKey::Escape) => state.escape_selection(),
+            Key::Named(NamedKey::Enter) => state.confirm_split(),
             Key::Named(NamedKey::F10) => state.enable_controls(),
             Key::Named(NamedKey::Delete) => state.delete_selected(),
             // The colon opens the command box, the way a modal editor does. The box then holds
@@ -191,6 +198,72 @@ impl Input {
                     ),
                     ..*t
                 };
+                if t.phase == TouchPhase::Started {
+                    self.fingers.insert(t.id);
+                }
+                if self.touch_edit.is_some()
+                    && t.phase == TouchPhase::Started
+                    && self.fingers.len() > 1
+                {
+                    state.cancel_gesture();
+                    self.touch_edit = None;
+                    self.gizmo_drag = false;
+                    self.control_drag = false;
+                    self.touch_cancelled = true;
+                }
+                if self.touch_cancelled {
+                    if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                        self.fingers.remove(&t.id);
+                    }
+                    if self.fingers.is_empty() {
+                        self.touch_cancelled = false;
+                        self.touch = Touches::new();
+                    }
+                    state.interacting = false;
+                    return true;
+                }
+                if t.phase == TouchPhase::Started && self.fingers.len() == 1 {
+                    self.last_cursor = (t.location.x, t.location.y);
+                    self.control_drag = state.begin_control_drag(t.location.x, t.location.y);
+                    self.gizmo_drag =
+                        !self.control_drag && state.begin_gizmo_touch(t.location.x, t.location.y);
+                    if self.control_drag || self.gizmo_drag {
+                        self.touch_edit = Some(t.id);
+                    }
+                }
+                if self.touch_edit == Some(t.id) {
+                    self.last_cursor = (t.location.x, t.location.y);
+                    match t.phase {
+                        TouchPhase::Moved => {
+                            if self.control_drag {
+                                state.drag_control(t.location.x, t.location.y);
+                            } else {
+                                state.drag_gizmo(t.location.x, t.location.y);
+                            }
+                        }
+                        TouchPhase::Ended => {
+                            if self.control_drag {
+                                state.end_control_drag(t.location.x, t.location.y);
+                            } else {
+                                state.end_gizmo(t.location.x, t.location.y);
+                            }
+                        }
+                        TouchPhase::Cancelled => state.cancel_gesture(),
+                        TouchPhase::Started => {}
+                    }
+                    if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                        self.fingers.remove(&t.id);
+                        self.touch_edit = None;
+                        self.control_drag = false;
+                        self.gizmo_drag = false;
+                        self.touch = Touches::new();
+                    }
+                    state.interacting = self.touch_edit.is_some();
+                    return true;
+                }
+                if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                    self.fingers.remove(&t.id);
+                }
                 state.interacting = matches!(t.phase, TouchPhase::Started | TouchPhase::Moved);
                 match self
                     .touch
@@ -222,6 +295,9 @@ impl Input {
         self.control_drag = false;
         self.left_down = None;
         self.touch = Touches::new();
+        self.touch_edit = None;
+        self.fingers.clear();
+        self.touch_cancelled = false;
     }
 
     /// The left button. A press is offered to the control drag, then to the gizmo, then kept

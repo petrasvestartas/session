@@ -241,3 +241,9 @@ Say why replacement validates the whole new document before touching the current
 ## Next
 
 [11 · Text rendering](11-text-rendering.md): placement, raster scale, coverage atlas and the black plates.
+
+## Expected viewer result
+
+Checkpoint 10: the canvas itself is unchanged.
+
+[![Full viewer result for 10 text layout](screenshots/10.png)](screenshots/10.png)

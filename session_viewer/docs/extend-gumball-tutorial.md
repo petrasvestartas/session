@@ -1630,3 +1630,9 @@ Select an object. Read the three cone tips in isometric view (7). Drag a shaft t
 **Why clear row selection after rebuilding?** Row numbers are upload addresses, not permanent identities. A rebuild can assign the same number to a different object.
 
 **Where is the exact patch?** [step 1](extensions/gumball-1.patch). The patch and these visible instructions are generated from the same changes.
+
+## Expected viewer result
+
+Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md). The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for extend gumball tutorial](screenshots/extensions-gumball-overview.png)](screenshots/extensions-gumball-overview.png)

@@ -12,6 +12,7 @@ struct Instance {
     flags: u32,
     _pad0: f32,
     spacing: f32,
+    edge_color: u32,
 };
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;
 @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
@@ -44,6 +45,19 @@ const FLAG_OPEN: u32 = 16u;
 const FLAG_SHEET: u32 = 32u;
 const FLAG_SMOOTH: u32 = 64u;
 const FLAG_SINGLE: u32 = 128u;
+const FLAG_COLOR: u32 = 256u;
+
+fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
+    return select(authored * inst.color, vec4<f32>(inst.color.rgb, authored.a), (inst.flags & FLAG_COLOR) != 0u);
+}
+
+fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
+    if ((inst.flags & 1024u) == 0u) { return object_color(authored, inst); }
+    if ((inst.flags & 512u) != 0u) {
+        return vec4<f32>(unpack4x8unorm(inst.edge_color).rgb, authored.a);
+    }
+    return authored;
+}
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
 // The sub id a marker answers: ink, not a face, to the pick window; no row behind it.

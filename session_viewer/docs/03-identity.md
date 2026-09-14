@@ -172,3 +172,9 @@ Write the `#[repr(C)]` row and its size assertion in an empty file without looki
 ## Next
 
 [04a · Meshes on the GPU](04a-meshes.md): vertex and index buffers, the mesh arena, and the first real drawing module.
+
+## Expected viewer result
+
+Checkpoint 03: one triangle geometry drawn twice through two object rows, each with its own placement and tint.
+
+[![Full viewer result for 03 identity](screenshots/03.png)](screenshots/03.png)

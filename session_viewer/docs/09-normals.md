@@ -213,3 +213,9 @@ Name the three cases where an analytic derivative gives no normal: a pole (zero-
 ## Next
 
 [10 · Text shaping](10-text-layout.md): fonts, glyph advances and clusters before any pixel is drawn.
+
+## Expected viewer result
+
+Checkpoint 09 at `?cad=sphere&lit=1`: the sphere's interior shades smoothly, with no facet pattern.
+
+[![Full viewer result for 09 normals](screenshots/09.png)](screenshots/09.png)

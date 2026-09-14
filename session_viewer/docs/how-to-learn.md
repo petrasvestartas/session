@@ -32,7 +32,7 @@ By lesson 05 the pink box alone should tell you whether this step is about getti
 - **Try** — small experiments with visible results; each one changes the picture.
 - **Questions and answers** — the reasoning, then the answers, then what you should be able to do now.
 
-Where a later lesson says less about something, an earlier one said it in full and is named. Every required answer is written out; no answer is collapsed or withheld. The [capstone](capstone.md) is optional design practice. After checkpoint 21, follow the [seven current-viewer checkpoints](extend-integrated-tutorial.md): every code edit is shown, every checkpoint compiles, and the final code matches the maintained source. The [independent lessons](extend-implementation.md) teach one optional feature per fresh workspace. [Small code, bounded work](performance-patterns.md) explains the patterns to reuse.
+Where a later lesson says less about something, an earlier one said it in full and is named. Every required answer is written out; no answer is collapsed or withheld. The [capstone](capstone.md) is optional design practice. After checkpoint 21, follow the [nine current-viewer checkpoints](extend-integrated-tutorial.md): every code edit is shown, every checkpoint compiles, and the final code matches the maintained source. The [independent lessons](extend-implementation.md) teach one optional feature per fresh workspace. [Small code, bounded work](performance-patterns.md) explains the patterns to reuse.
 
 ## When you are stuck
 

@@ -12,7 +12,7 @@ pub const FALLBACK_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymb
 const MAX_TEXT_BYTES: usize = 256 * 1024;
 
 /// Text origin, orientation and size policy; physical labels use scene depth.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum TextPlacement {
     Screen {
         left: f32,
@@ -46,14 +46,14 @@ pub enum TextPlacement {
 }
 
 /// Authored text participates in ordinary object selection; annotations have no owner.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TextObject {
     pub row: u32,
     pub selected: bool,
 }
 
 /// One source label. Sizes, line height, offsets and optional clipping use CSS pixels.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TextLabel {
     pub id: u32,
     pub object: Option<TextObject>,

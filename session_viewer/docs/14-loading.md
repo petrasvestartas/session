@@ -312,3 +312,9 @@ Sketch the staged replacement and argue the opposite design. Correct: documents 
 ## Next
 
 [15 · Publication and streamed reads](15-publication.md): bounded metadata windows for streamed clouds, and the publication helpers.
+
+## Expected viewer result
+
+Checkpoint 14: the same interaction fixture, now fetched through the manifest and protobuf path.
+
+[![Full viewer result for 14 loading](screenshots/14.png)](screenshots/14.png)

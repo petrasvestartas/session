@@ -4,7 +4,7 @@
 
 Continue from checkpoint 21 through the maintained viewer. This sequence resolves shared wiring explicitly; the individual feature lessons remain independent alternatives.
 
-![Running viewer: Combine the extensions into the current viewer.](screenshots/extensions-command-interface.png)
+![Running viewer: Combine the extensions into the current viewer.](screenshots/extensions-color-channels.png)
 
 Actual maintained viewer output. [Capture setup and five browser rounds](extensions/README.md).
 
@@ -35,6 +35,16 @@ For **CURRENT → REPLACE WITH**, find the complete CURRENT block in the named f
 4. [Draw a solid, readable gumball](current-4.md)
 5. [Build the nested session and graph panel](current-5.md)
 6. [Build the egui panel and command interface](current-6.md)
-7. [Match the maintained source exactly](current-7.md)
+7. [Finish the shared editing wiring](current-7.md)
+8. [Dock the workspace, edit source geometry and save](current-8.md)
+9. [Keep source dragging live and build one layer tree](current-9.md)
+10. [Split curves and faces while keeping the shell joined](current-10.md)
+11. [Separate face and edge colors and keep large-object dragging live](current-11.md)
 
 The final check compares every runtime source file, Cargo manifest, lockfile and browser entry point with the maintained viewer. Each checkpoint compiles for WebAssembly; the final one runs native library tests.
+
+## Expected viewer result
+
+The completed viewer has a command dock across the bottom, one right-hand layer tree with bulbs, selection locks and color swatches, and a left toolbar. Split keeps both face regions in the joined shell. The selected region has its gumball; Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
+
+[![Full viewer result for extend integrated tutorial](screenshots/extensions-workspace-current-desktop.png)](screenshots/extensions-workspace-current-desktop.png)

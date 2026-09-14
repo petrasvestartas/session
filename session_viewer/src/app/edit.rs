@@ -392,3 +392,95 @@ mod tests {
         );
     }
 }
+
+impl Scene {
+    pub fn edit_subobject(
+        &mut self,
+        row: u32,
+        target: super::deform::Target,
+        delta: &Xform,
+        label: &str,
+    ) -> Result<(), String> {
+        let place = Xform::from_matrix(
+            self.placement_of(row)
+                .ok_or("Source placement unavailable")?,
+        );
+        let back = place.inverse().ok_or("Source placement is singular")?;
+        let local = &(&back * delta) * &place;
+        let geometry = self.geometry(row).ok_or("Source geometry unavailable")?;
+        let edited = super::deform::transform(geometry, target, &local)?;
+        self.commit_geometry(row, edited, label)
+    }
+
+    pub fn commit_geometry(
+        &mut self,
+        row: u32,
+        geometry: Geometry,
+        label: &str,
+    ) -> Result<(), String> {
+        if !self.streamed.is_empty() || !self.sheets.is_empty() {
+            return Err("Source edits require complete documents without streamed sources".into());
+        }
+        let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
+        let session = Rc::make_mut(&mut self.docs[doc].session);
+        session.begin(label);
+        let changed = session.replace(&guid, geometry);
+        session.commit();
+        if !changed {
+            return Err("Cannot replace source geometry".into());
+        }
+        self.last_edited = Some(doc);
+        Ok(())
+    }
+
+    pub fn set_source_control(
+        &mut self,
+        row: u32,
+        id: super::selection::ControlId,
+        to: &Point,
+    ) -> Result<(), String> {
+        let geometry = self.geometry(row).ok_or("Source geometry unavailable")?;
+        let target = super::deform::Target::Control(id);
+        let point = super::deform::points(geometry, target)?
+            .into_iter()
+            .next()
+            .ok_or("Source control unavailable")?;
+        let place = Xform::from_matrix(
+            self.placement_of(row)
+                .ok_or("Source placement unavailable")?,
+        );
+        let point = point.transformed(&place);
+        self.edit_subobject(
+            row,
+            target,
+            &Xform::translation(to[0] - point[0], to[1] - point[1], to[2] - point[2]),
+            "edit control",
+        )
+    }
+
+    /// Only the render upload sees the preview. Retained source and undo history stay unchanged.
+    pub fn preview_geometry(
+        &mut self,
+        row: u32,
+        geometry: Geometry,
+        gpu: &mut crate::engine::gpu::Gpu,
+    ) -> Result<(), String> {
+        if !self.streamed.is_empty() || !self.sheets.is_empty() {
+            return Err("Source edits require complete documents without streamed sources".into());
+        }
+        let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
+        if self.patch_preview(row, &geometry, gpu) {
+            return Ok(());
+        }
+        let original = Rc::make_mut(&mut self.docs[doc].session)
+            .lookup
+            .insert(guid.to_string(), geometry)
+            .ok_or("Source geometry unavailable")?;
+        self.rebuild(gpu);
+        Rc::make_mut(&mut self.docs[doc].session)
+            .lookup
+            .insert(guid.to_string(), original);
+        self.selected = Some(row);
+        Ok(())
+    }
+}

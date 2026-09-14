@@ -11,4 +11,9 @@ cat > "$viewer_docs_root/target/docs/source/index.html" <<'HTML'
 HTML
 ln -sfn "$viewer_docs_root/docs" "$viewer_docs_root/target/docs/source/docs"
 ln -sfn "$viewer_docs_root/ARCHITECTURE.md" "$viewer_docs_root/target/docs/source/ARCHITECTURE.md"
+# Trunk and the documentation watcher may request the same build together.
+if [ "$viewer_docs_mode" = build ]; then
+    exec 9>"$viewer_docs_root/target/docs/site-build.lock"
+    flock 9
+fi
 exec uvx --with mkdocs-material==9.7.4 --with pygments==2.19.2 mkdocs==1.6.1 "$viewer_docs_mode" --config-file "$viewer_docs_root/mkdocs.yml" "$@"

@@ -173,3 +173,9 @@ Name something the viewer cannot measure about itself and say how you would find
 ## Next
 
 [17 · Faces, text objects and silhouettes](17-source-presentation.md): source-face selection, selectable authored text and one black outline.
+
+## Expected viewer result
+
+Checkpoint 16: the scene is unchanged; the new figures live in the inspection snapshot above.
+
+[![Full viewer result for 16 accounting](screenshots/16.png)](screenshots/16.png)

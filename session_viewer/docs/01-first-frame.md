@@ -196,3 +196,9 @@ Write `render_frame` on paper — acquire, view, encoder, pass, set pipeline, se
 ## Next
 
 [02 · Camera](02-camera.md): the production camera and math, wired to orbit, pan and zoom.
+
+## Expected viewer result
+
+Checkpoint 01: the first triangle, colors interpolated from the three vertices.
+
+[![Full viewer result for 01 first frame](screenshots/01.png)](screenshots/01.png)

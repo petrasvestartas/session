@@ -454,3 +454,9 @@ pub fn set_place(&mut self, ctx: &GpuCtx, row: u32, place: &Mat4, translate_only
 - **Step 10.** The marker follows the cursor onto endpoints and midpoints within ~8 px, never a streamed cloud or sheet, and the log said why the first time.
 - **Step 11.** `line`, click, `@100,0`: the second point lands 100 mm along the plane's x-axis and commits. Escape mid-tool leaves nothing; clicking the rubber band picks what is behind it; during `move` the original stays snappable until the second click.
 - **Step 12.** `tests/command.cjs` types a line, reads `command_log`, `tool`, `history_depth` from `?inspect=1`, passes headless.
+
+## Expected viewer result
+
+Reference result from the supported [implementation tutorials](extend-implementation.md). The white egui command area shows a completed line command and its feedback, with the created geometry visible in the full viewer. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md).
+
+[![Full viewer result for extend command line](screenshots/extensions-command-create.png)](screenshots/extensions-command-create.png)

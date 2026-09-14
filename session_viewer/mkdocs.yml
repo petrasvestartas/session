@@ -88,7 +88,11 @@ nav:
     - 4 · Unlit gumball: docs/current-4.md
     - 5 · Nested panel: docs/current-5.md
     - 6 · White egui interface: docs/current-6.md
-    - 7 · Complete current source: docs/current-7.md
+    - 7 · Shared editing wiring: docs/current-7.md
+    - 8 · Docked workspace, touch and save: docs/current-8.md
+    - 9 · Live editing and layer controls: docs/current-9.md
+    - 10 · Split curves and joined faces: docs/current-10.md
+    - 11 · Colors and large-object dragging: docs/current-11.md
   - Capstone: docs/capstone.md
   - Extending the viewer:
     - Small code, bounded work: docs/performance-patterns.md

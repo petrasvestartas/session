@@ -150,3 +150,9 @@ Delete `src/lib.rs` and write it again — the start attribute, the document loo
 ## Next
 
 [01 · First WebGPU frame](01-first-frame.md): adapter, device, surface, one pipeline, one triangle.
+
+## Expected viewer result
+
+Checkpoint 00 in Chrome: the status line written by Rust.
+
+[![Full viewer result for 00 environment](screenshots/00.png)](screenshots/00.png)

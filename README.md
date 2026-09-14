@@ -47,7 +47,7 @@ One file = one class, or one tightly-coupled group (`tree` contains `Tree` + `Tr
 contains `Graph` + `Vertex` + `Edge`).
 
 Status is computed from the latest test run: a class is ticked when all three languages
-emit the **same set of test names**. Currently **31 of 47** classes are at full parity.
+emit the **same set of test names**. Currently **33 of 47** classes are at full parity.
 
 - [x] `aabb`
 - [x] `boolean_polyline`
@@ -58,7 +58,7 @@ emit the **same set of test names**. Currently **31 of 47** classes are at full 
 - [x] `element`
 - [x] `file_encoders`
 - [x] `file_obj`
-- [ ] `file_step` — only C++
+- [x] `file_step`
 - [x] `graph`
 - [x] `history`
 - [x] `instance_ref`
@@ -66,7 +66,7 @@ emit the **same set of test names**. Currently **31 of 47** classes are at full 
 - [ ] `io` — Python missing 1; C++ missing 1 ("Read Colors"); "Import Minimal" (PDF) is Rust-only behind `--features pdf`
 - [x] `line`
 - [x] `matrix`
-- [ ] `mesh` — Python missing 5; Rust missing 31; C++ missing 1
+- [x] `mesh`
 - [x] `mesh_offset`
 - [ ] `nurbscurve` — Python missing 1; Rust missing 3
 - [x] `nurbsknot`
@@ -97,8 +97,7 @@ emit the **same set of test names**. Currently **31 of 47** classes are at full 
 Regenerate this status with `./bash/minitest.sh` — it rewrites the per-class JSON under
 `session_tests/<language>/` that the table above is derived from.
 
-Modules with no cross-language test set: `mesh_boolean`, `render_mesh` and `guid_serde` are Rust
-only.
+Modules with no cross-language test set: `render_mesh` and `guid_serde` are Rust only.
 
 `vector`'s divergence is not a C++ gap. `Polyline::interpolate_points` exists and is tested under
 `Polyline` in all three languages. Python and Rust additionally keep a *second* copy of it as a

@@ -341,3 +341,9 @@ Expected compiler result: `Finished` with no errors. Open <http://localhost:8780
 Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Draw a solid, readable gumball](current-4.md) and apply its blocks in order.
 
 [Previous](current-2.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-4.md)
+
+## Expected viewer result
+
+The placed polyline remains in the scene with its source controls visible after a control has been dragged. Check the released control position and control polygon against the surrounding geometry. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md). At this checkpoint the gumball still uses strokes; the next chapter adds solid handles. The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for current 3](screenshots/extensions-controls.png)](screenshots/extensions-controls.png)

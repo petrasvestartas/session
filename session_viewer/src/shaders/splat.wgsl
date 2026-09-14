@@ -98,6 +98,7 @@ fn project(gid: u32) -> Splat {
 
     let tint = vec4<f32>(rec_f(base, 16u), rec_f(base, 17u), rec_f(base, 18u), 1.0);
     var rgba = unpack4x8unorm(colors[i]) * tint;
+    if ((table[base + 38u] & 256u) != 0u) { rgba = vec4<f32>(tint.rgb, rgba.a); }
     let nrm_first = table[base + 36u];
     if (nrm_first != NO_NORMALS) {
         let packed_n = normals[nrm_first + offset];

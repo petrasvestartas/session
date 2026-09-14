@@ -322,3 +322,9 @@ Describe the cancellation story and contrast it with lesson 12's generation coun
 ## Next
 
 [14 · Loading scenes](14-loading.md): manifests, protobuf documents, validation and safe replacement through the real loader.
+
+## Expected viewer result
+
+The full interaction fixture after adding source-control inspection. Select a curve or surface and press **F10**; compare the control points and control polygon with the detailed examples above.
+
+[![Full viewer result for 13 controls](screenshots/13.png)](screenshots/13.png)

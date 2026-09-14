@@ -74,6 +74,7 @@ struct Key {
     cloud_size: f32,
     lod_px: f32,
     point_count: u32,
+    geometry: u64,
 }
 
 /// The two point-pass targets, 1x, sized to the surface, and the resolve group over them.
@@ -295,6 +296,7 @@ impl Splat {
             cloud_size: cx.cloud_size,
             lod_px: cx.lod_px,
             point_count,
+            geometry: cx.objects.geometry_revision(),
         };
         if self.key.as_ref() == Some(&key) {
             return;

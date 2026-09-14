@@ -134,6 +134,24 @@ impl Faces {
         }));
     }
 
+    pub(crate) fn patch(
+        &mut self,
+        ctx: &GpuCtx,
+        at: super::patch::Counts,
+        up: &super::arena::ArenaRows,
+    ) {
+        let first = at.sources as usize;
+        self.sources[first..first + up.face_sources.len()].copy_from_slice(&up.face_sources);
+        let ids: Vec<u32> = (0..up.idx.len() / 3)
+            .map(|i| match up.face_ids.get(i) {
+                Some(&id) if id != u32::MAX => at.sources + id,
+                _ => u32::MAX,
+            })
+            .collect();
+        self.ids.write_at(ctx, at.faces / 3, &ids);
+        self.revision = self.revision.wrapping_add(1);
+    }
+
     /// Resolve a GPU face address back to its original parent and source key.
     pub fn source(&self, row: u32, sub: u32) -> Option<(u32, FaceSource)> {
         if sub & 0xe000_0000 != FACE_TAG {
@@ -142,6 +160,14 @@ impl Faces {
         let address = sub & !FACE_TAG;
         let source = *self.sources.get(address as usize)?;
         (source.parent == row).then_some((address, source))
+    }
+
+    /// Find the uploaded address of a retained source face after a geometry rebuild.
+    pub fn address(&self, parent: u32, face: usize) -> Option<u32> {
+        self.sources
+            .iter()
+            .position(|source| source.parent == parent && source.face == face)
+            .map(|i| i as u32)
     }
 
     /// Switch the highlighted source face without editing geometry or normals.

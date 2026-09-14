@@ -127,6 +127,9 @@ pub struct Scene {
     pub streamed: Vec<StreamedCloud>,
     pub sheets: Vec<SheetBatch>,
     pub hidden: HashSet<(usize, Rc<str>)>,
+    pub locked: HashSet<(usize, Rc<str>)>,
+    pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,
+    pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>,
     pub selected: Option<u32>,
     order: Vec<Rc<str>>,
     owners: Vec<usize>,
@@ -135,6 +138,10 @@ pub struct Scene {
     ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,
     guid_to_row: HashMap<(usize, Rc<str>), u32>,
     bases: Bases,
+    uploaded: crate::engine::gpu::patch::Counts,
+    surface_previews: Vec<Option<crate::app::surface_preview::SurfacePreview>>,
+    pub(crate) mesh_previews: Vec<Option<crate::app::mesh_preview::MeshPreview>>,
+    pub(super) preview_spans: Vec<Option<crate::engine::gpu::patch::Span>>,
     /// Which document the last edit touched. Undo is per document, because the history is the
     /// document's; this is the only thing that says which one a bare Ctrl+Z means.
     pub last_edited: Option<usize>,
@@ -150,6 +157,12 @@ impl Default for Scene {
 }
 
 impl Scene {
+    /// Selection locks follow source identity across uploads and undo.
+    pub fn selectable(&self, row: u32) -> bool {
+        self.identity_of(row)
+            .is_some_and(|id| !self.locked.contains(&id))
+    }
+
     /// Empty: no documents, no rows.
     pub fn new() -> Self {
         Self {
@@ -159,6 +172,9 @@ impl Scene {
             streamed: Vec::new(),
             sheets: Vec::new(),
             hidden: HashSet::new(),
+            locked: HashSet::new(),
+            colors: HashMap::new(),
+            edge_colors: HashMap::new(),
             selected: None,
             order: Vec::new(),
             owners: Vec::new(),
@@ -166,6 +182,10 @@ impl Scene {
             ribbon_ranges: Vec::new(),
             guid_to_row: HashMap::new(),
             bases: Bases::default(),
+            uploaded: Default::default(),
+            preview_spans: Vec::new(),
+            surface_previews: Vec::new(),
+            mesh_previews: Vec::new(),
             last_edited: None,
             created_doc: None,
             row_revision: 0,
@@ -180,6 +200,9 @@ impl Scene {
         self.docs.clear();
         self.texts.clear();
         self.hidden.clear();
+        self.locked.clear();
+        self.colors.clear();
+        self.edge_colors.clear();
         self.reset_rows();
         gpu.release();
     }
@@ -197,6 +220,10 @@ impl Scene {
         self.guid_to_row.clear();
         self.selected = None;
         self.bases = Bases::default();
+        self.uploaded = Default::default();
+        self.preview_spans.clear();
+        self.surface_previews.clear();
+        self.mesh_previews.clear();
     }
 
     /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch - the
@@ -238,6 +265,9 @@ impl Scene {
         self.bases.vert += self.tables.arena.verts.len() as u32;
         self.bases.obj += self.tables.obj.rows.len() as u32;
         self.bases.ribbon += self.tables.seg.ribbons.len() as u32;
+        self.uploaded = self
+            .uploaded
+            .plus(crate::engine::gpu::patch::Counts::of(&self.tables));
         self.tables.drop_uploaded();
     }
 
@@ -247,11 +277,30 @@ impl Scene {
         self.row_revision = self.row_revision.wrapping_add(1);
         let row = self.bases.obj + self.tables.obj.rows.len() as u32;
         self.tables.obj.rows.push(ObjectRow::new(place, flags));
+        if let Some(color) = self.colors.get(&(owner, Rc::from(guid))) {
+            let object = self.tables.obj.rows.last_mut().expect("row just appended");
+            object.color = [
+                color[0] as f32 / 255.,
+                color[1] as f32 / 255.,
+                color[2] as f32 / 255.,
+                1.,
+            ];
+            object.flags |= Instance::FLAG_COLOR;
+        }
+
+        if let Some(color) = self.edge_colors.get(&(owner, Rc::from(guid))) {
+            let object = self.tables.obj.rows.last_mut().expect("row just appended");
+            object.edge_color = u32::from_le_bytes([color[0], color[1], color[2], 255]);
+            object.flags |= Instance::FLAG_EDGE_COLOR;
+        }
         let guid: Rc<str> = Rc::from(guid);
         self.guid_to_row.insert((owner, Rc::clone(&guid)), row);
         self.order.push(guid);
         self.owners.push(owner);
         self.ribbon_ranges.push(None);
+        self.preview_spans.push(None);
+        self.surface_previews.push(None);
+        self.mesh_previews.push(None);
         row
     }
 
@@ -297,12 +346,39 @@ impl Scene {
                 cloud_px: point_px,
                 row,
             };
+            let start = self
+                .uploaded
+                .plus(crate::engine::gpu::patch::Counts::of(&self.tables));
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
+            let end = self
+                .uploaded
+                .plus(crate::engine::gpu::patch::Counts::of(&self.tables));
+            let span = crate::engine::gpu::patch::Span {
+                start,
+                count: end.minus(start),
+            };
+            self.preview_spans[row as usize] = Some(span);
+            self.surface_previews[row as usize] =
+                crate::app::surface_preview::SurfacePreview::capture(
+                    &self.tables,
+                    span,
+                    start.minus(self.uploaded),
+                    geom,
+                );
+            self.mesh_previews[row as usize] = crate::app::mesh_preview::MeshPreview::capture(
+                &self.tables,
+                span,
+                start.minus(self.uploaded),
+                geom,
+            );
             let o = self.tables.obj.rows.last_mut().unwrap();
             o.flags |= r.flags;
             o.bounds = r.bounds;
             o.spacing = r.spacing;
             o.faces = r.faces;
+            if r.faces {
+                o.flags |= Instance::FLAG_HAS_FACES;
+            }
             let ribbon_end = self.tables.seg.ribbons.len();
             if ribbon_start != ribbon_end {
                 self.ribbon_ranges[row as usize] = Some(
@@ -314,7 +390,8 @@ impl Scene {
 
         let extent = file_extent(&self.tables, &from);
         self.tables.bounds.union(&extent);
-        if is_planar(&self.tables, &from, &place.m) {
+        // Typed modeling geometry stays in the 3D workspace even when all its points are coplanar.
+        if self.created_doc != Some(self.docs.len()) && is_planar(&self.tables, &from, &place.m) {
             mark_sheet(&mut self.tables, &from);
         }
         lap.mark("sweeps");
@@ -720,5 +797,79 @@ mod tests {
         let controls = Controls::from_geometry(scene.geometry(0).unwrap());
         assert!(controls.points.len() >= 8);
         assert!(!scene.tables.arena.idx.is_empty());
+    }
+}
+
+impl Scene {
+    /// Rewalk only the edited object and overwrite its existing GPU ranges when they fit.
+    /// Topology/count changes use the normal rebuild path without partially writing buffers.
+    pub(crate) fn patch_preview(&mut self, row: u32, geometry: &Geometry, gpu: &mut Gpu) -> bool {
+        use crate::engine::gpu::patch::Counts;
+        if matches!(geometry, Geometry::PointCloud(_)) {
+            return false;
+        }
+        let Some(span) = self.preview_spans.get(row as usize).copied().flatten() else {
+            return false;
+        };
+        let Some(place) = self.placement_of(row) else {
+            return false;
+        };
+        if let Some(preview) = self
+            .surface_previews
+            .get(row as usize)
+            .and_then(Option::as_ref)
+            && let Some((vertices, pipes, bounds)) = preview.evaluate(geometry)
+        {
+            gpu.arena
+                .patch_vertices(&gpu.ctx, span.start.verts, &vertices);
+            gpu.segments.patch_pipes(&gpu.ctx, span.start.pipes, &pipes);
+            gpu.objects
+                .set_geometry_bounds(&gpu.ctx, row, bounds, 0.0, &place);
+            gpu.grew_bounds(row);
+            return true;
+        }
+        let mut up = Upload::default();
+        let cx = WalkCx {
+            vert_base: span.start.verts,
+            cloud_px: 0.0,
+            row,
+        };
+        let result = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
+        if Counts::of(&up) != span.count {
+            return false;
+        }
+        self.mesh_previews[row as usize] =
+            crate::app::mesh_preview::MeshPreview::capture(&up, span, Counts::default(), geometry);
+        gpu.arena.patch(&gpu.ctx, span.start, &up.arena);
+        gpu.segments.patch(&gpu.ctx, span.start, &up.seg);
+        gpu.glyphs.patch(&gpu.ctx, span.start, &up.glyph);
+        gpu.objects
+            .set_geometry_bounds(&gpu.ctx, row, result.bounds, result.spacing, &place);
+        for (i, pipe) in up.seg.pipes.iter().enumerate() {
+            self.edge_sources[span.start.pipes as usize + i] = (
+                pipe.instance_id,
+                up.seg.pipe_ids.get(i).copied().unwrap_or(u32::MAX),
+            );
+        }
+        gpu.grew_bounds(row);
+        true
+    }
+}
+
+impl Scene {
+    pub fn preview_cache_bytes(&self) -> usize {
+        self.surface_previews
+            .iter()
+            .flatten()
+            .map(|p| p.allocated_bytes())
+            .sum::<usize>()
+            + self
+                .mesh_previews
+                .iter()
+                .flatten()
+                .map(|p| p.allocated_bytes())
+                .sum::<usize>()
+            + self.preview_spans.capacity()
+                * std::mem::size_of::<Option<crate::engine::gpu::patch::Span>>()
     }
 }

@@ -1630,3 +1630,9 @@ Press colon to open Command line. Type move 10,0,0 after selecting an object; pr
 **Why clear row selection after rebuilding?** Row numbers are upload addresses, not permanent identities. A rebuild can assign the same number to a different object.
 
 **Where is the exact patch?** [step 1](extensions/ui-1.patch). The patch and these visible instructions are generated from the same changes.
+
+## Expected viewer result
+
+The white egui command area shows a completed line command and its feedback, with the created geometry visible in the full viewer. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md). The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for extend ui tutorial](screenshots/extensions-command-create.png)](screenshots/extensions-command-create.png)

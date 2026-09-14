@@ -731,3 +731,9 @@ Open `:` and enter `line 0,0,0 100,0,0`. Press F, select the line, then enter `t
 **Why clear row selection after rebuilding?** Row numbers are upload addresses, not permanent identities. A rebuild can assign the same number to a different object.
 
 **Where is the exact patch?** [step 1](extensions/modeling-1.patch), [step 2](extensions/modeling-2.patch). The patch and these visible instructions are generated from the same changes.
+
+## Expected viewer result
+
+A newly created line has been trimmed to its middle 60% and selected. Compare its shortened extent with the other geometry in the full viewer. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md). The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for extend modeling tutorial](screenshots/extensions-modeling.png)](screenshots/extensions-modeling.png)

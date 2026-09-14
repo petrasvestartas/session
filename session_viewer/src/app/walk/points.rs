@@ -10,9 +10,11 @@ use session_rust::Point;
 /// One SDF dot.
 pub fn walk_point(glyph: &mut GlyphRows, p: &Point, row: u32) -> Row {
     let center = p.to_f32();
+    let radius = encode_width(p.width);
     glyph.dots.push(GlyphPoint {
         center,
-        radius: encode_width(p.width),
+        // A standalone point needs a visible marker, independent of the line pen.
+        radius: if radius == 0.0 { -3.0 } else { radius },
         color: p.pointcolor.to_f32(),
         instance_id: row,
         facing: FACING_UNKNOWN,

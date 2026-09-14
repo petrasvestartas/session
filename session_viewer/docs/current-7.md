@@ -1,12 +1,12 @@
-# 7 · Match the maintained source exactly
+# 7 · Finish the shared editing wiring
 
-[Previous](current-6.md) · [Sequence](extend-integrated-tutorial.md) · [Next](command-line-walkthrough.md)
+[Previous](current-6.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-8.md)
 
 Continue in the same checkpoint workspace. Complete the edits below before compiling.
 
 ![Ownership and data flow](illustrations/README-02.svg)
 
-Finish the shared ownership comments, event routing and formatting. No feature is omitted from this final checkpoint.
+Finish the shared ownership comments, event routing and formatting. The next checkpoint adds the docked workspace, touch editing and portable session files.
 
 ### `src/app/edit.rs`
 
@@ -300,49 +300,12 @@ pub mod ui;
 cargo check -j4 --lib
 ```
 
-## Check
-
-```bash
-cargo xtest -j4 --lib
-trunk serve --port 8780
-```
-
-Open <http://localhost:8780/?data=off&inspect=1>. Stop the server with **Ctrl+C**.
-
-### Reproduce the screenshots
-
-The screenshots use the small [nested fixture](extensions/nested.pb) and [manifest](extensions/nested.yaml), not private project files. Save both into your workspace:
-
-```bash
-cp "$COURSE_REPO/docs/extensions/nested.pb" assets/extension-nested.pb
-cp "$COURSE_REPO/docs/extensions/nested.yaml" assets/extension-nested.yaml
-```
-
-Open <http://localhost:8780/?scene=extension-nested.yaml&data=off&inspect=1>.
-
-## What changed
-
-This sequence combines the supported implementations; unsupported geometry edits retain the limits in the feature inventory.
-
-## Try
-
-Use the command walkthrough, tree selection and gumball controls. Every feature is present.
-
-## Questions and answers
-
-**What goes to the GPU?** Modeling rebuilds existing geometry lanes; panels change object flags; controls upload a small preview. The solid gumball owns a fixed mesh, an unlit shader and a bounded antialiasing tile.
-
-**Why clear row selection after rebuilding?** Row numbers are upload addresses, not permanent identities. A rebuild can assign the same number to a different object.
-
-**Where is the exact patch?** [step 1](extensions/integrated-1.patch), [step 2](extensions/integrated-2.patch), [step 3](extensions/integrated-3.patch), [step 4](extensions/integrated-4.patch), [step 5](extensions/integrated-5.patch), [step 6](extensions/integrated-6.patch), [step 7](extensions/integrated-7.patch). The patch and these visible instructions are generated from the same changes.
 
 ## Answers and next action
 
-**What is now complete?** All runtime source files, Cargo dependencies and the browser entry point match the maintained viewer. The independent lessons are alternatives; do not apply their patches over this completed sequence.
+**What is complete here?** The original floating-window viewer and its shared editing wiring. The next checkpoint extends source editing and replaces the floating windows with docked panels.
 
-**What edits are supported?** Create points/lines/polylines; trim or extend lines/NURBS by normalized parameters; explode polylines; drag polyline/NURBS controls. Mesh vertices and surface controls remain read-only. Streamed scenes refuse commits that their rebuild path cannot preserve.
-
-**Where do I continue?** Use the command walkthrough below. It shows complete commands and their expected geometry. Return to any chapter to see its full implementation and answers.
+**Why keep this checkpoint?** It is the exact starting state for the next set of edits; do not mix independent extension patches into this sequence.
 
 **Run now**, in the same learning workspace:
 
@@ -351,8 +314,14 @@ cargo check -j4 --lib
 trunk serve --port 8780
 ```
 
-Expected compiler result: `Finished` with no errors. Open <http://localhost:8780/?data=off&inspect=1>. The command window, nested panel, solid gumball and control editing work together. Use the supplied fixture instructions above to reproduce the screenshots. The next page walks through create, trim, extend, explode and undo.
+Expected compiler result: `Finished` with no errors. Open <http://localhost:8780/?data=off&inspect=1>. The original egui windows, nested panel, solid gumball and polyline/NURBS control editing work together. Continue to checkpoint 8 for the docked workspace and additional source edits.
 
-Stop the server with **Ctrl+C** before editing the next checkpoint. Then follow [Use the command line](command-line-walkthrough.md) to exercise the finished interface.
+Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Dock the workspace, edit source geometry and save](current-8.md) and apply its blocks in order.
 
-[Previous](current-6.md) · [Sequence](extend-integrated-tutorial.md) · [Next](command-line-walkthrough.md)
+[Previous](current-6.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-8.md)
+
+## Expected viewer result
+
+Checkpoint 7 completes the original floating-window interface. The next chapter adds the docked workspace, source subobject edits, touch gumball and Save/Open. This is a maintained-viewer reference; its bottom command dock and toolbar are added in [checkpoint 8](current-8.md).
+
+[![Full viewer result for current 7](screenshots/extensions-command-create.png)](screenshots/extensions-command-create.png)

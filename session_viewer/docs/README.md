@@ -2,7 +2,7 @@
 
 The black triangle in the **top-right corner** switches between the viewer and these docs. In the viewer it opens the course; in the course the matching triangle returns to the viewer. Hover or focus it to see the destination.
 
-A code-first course: from an empty Rust crate to a frozen production checkpoint, byte for byte. The [seven-step continuation](extend-integrated-tutorial.md) then reaches the current viewer. Individual extension guides offer separate feature implementations. Type what is worth understanding, copy the boilerplate, compile after every step.
+A code-first course: from an empty Rust crate to a frozen production checkpoint, byte for byte. The [eleven-step continuation](extend-integrated-tutorial.md) then reaches the current viewer. Individual extension guides offer separate feature implementations. Type what is worth understanding, copy the boilerplate, compile after every step.
 
 Try the [command-line walkthrough](command-line-walkthrough.md) for creating, trimming, extending and exploding objects in the maintained viewer.
 

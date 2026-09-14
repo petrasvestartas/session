@@ -46,7 +46,7 @@ fn transform_vertex(in: VsIn) -> VsOut {
     let clip = mvp * vec4<f32>(world, 1.0);
     var o: VsOut;
     o.pos = clip;
-    var color = in.color.rgb * inst.color.rgb;
+    var color = object_color(vec4<f32>(in.color.rgb, 1.0), inst).rgb;
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = SELECT_COLOR;
     }

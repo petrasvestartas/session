@@ -1,0 +1,15 @@
+diff --git a/src/mesh.rs b/src/mesh.rs
+--- a/src/mesh.rs
++++ b/src/mesh.rs
+@@ -4021,6 +4021,11 @@
+         self.ensure_triangle_bvh();
+     }
+ 
++    /// Maintained name for dropping geometry-derived caches.
++    pub fn clear_triangle_bvh(&mut self) {
++        self.invalidate_triangle_bvh();
++    }
++
+     pub fn invalidate_triangle_bvh(&mut self) {
+         self.tri_bvh = None;
+         self.tri_tris.clear();

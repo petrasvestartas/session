@@ -14,6 +14,9 @@ pub enum Command {
     },
     /// Scale the selection about its own centre.
     Scale(f64),
+    Split,
+    Save,
+    Open,
     Delete,
     Undo,
     Redo,
@@ -22,6 +25,35 @@ pub enum Command {
     Fit,
     /// Clear the selection.
     Escape,
+}
+
+/// Contextual syntax shown while typing, including immediately usable examples.
+pub fn hint(line: &str) -> &'static str {
+    match line
+        .split_whitespace()
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "point" => "Point x,y,z · Example: Point 0,0,0 · Enter creates the point",
+        "line" => "Line start end · Example: Line 0,0,0 100,0,0",
+        "curve" => "Curve control points… · Example: Curve 0,0,0 50,100,0 100,0,0",
+        "polyline" => "Polyline points… · Example: Polyline 0,0,0 100,0,0 100,100,0",
+        "move" | "m" => "Select an object, then Move dx,dy,dz · Example: Move 10,0,0",
+        "rotate" | "rot" => "Select an object, then Rotate axis degrees · Example: Rotate z 45",
+        "scale" | "s" => "Select an object, then Scale factor · Example: Scale 2",
+        "trim" => "Select a line or curve · Trim 0.2 0.8 keeps that part of its length/domain",
+        "extend" => "Select a line or curve · Extend -0.2 1.2 extends its domain at both ends",
+        "explode" => "Select a polyline · Explode creates its individual line segments",
+        "split" => {
+            "Select a curve or face · Split · choose cutter curves · Enter confirms · Esc cancels"
+        }
+        "save" => "Save downloads the complete editable scene as a .session file",
+        "open" => "Open restores a saved .session file",
+        "fit" => "Fit zooms to the selection, or the whole scene when nothing is selected",
+        _ => "Try Point 0,0,0 · Line 0,0,0 100,0,0 · Fit · Undo · Save · Enter or Run executes",
+    }
 }
 
 /// Parse one line. `Err` carries what to show the person who typed it.
@@ -39,14 +71,15 @@ pub fn parse(line: &str) -> Result<Command, String> {
     let expected = match verb.as_str() {
         "scale" | "s" => Some(1),
         "rotate" | "rot" => Some(2),
-        "delete" | "del" | "undo" | "redo" | "hide" | "show" | "fit" | "escape" | "esc" => Some(0),
+        "split" | "save" | "open" | "delete" | "del" | "undo" | "redo" | "hide" | "show"
+        | "fit" | "escape" | "esc" => Some(0),
         _ => None,
     };
     if expected.is_some_and(|count| rest.len() != count) {
         return Err(format!("wrong number of arguments for `{verb}`"));
     }
     match verb.as_str() {
-        "point" | "line" | "polyline" | "trim" | "extend" | "explode" => {
+        "point" | "line" | "polyline" | "curve" | "trim" | "extend" | "explode" => {
             model(&verb, &rest).map(Command::Model)
         }
         "move" | "m" => offset(&rest).map(Command::Move),
@@ -61,6 +94,9 @@ pub fn parse(line: &str) -> Result<Command, String> {
             }
             Ok(Command::Scale(k))
         }
+        "split" => Ok(Command::Split),
+        "save" => Ok(Command::Save),
+        "open" => Ok(Command::Open),
         "delete" | "del" => Ok(Command::Delete),
         "undo" => Ok(Command::Undo),
         "redo" => Ok(Command::Redo),
@@ -209,7 +245,7 @@ fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, S
                 Modeling::Extend(a, b)
             })
         }
-        "point" | "line" | "polyline" => {
+        "point" | "line" | "polyline" | "curve" => {
             let mut points = Vec::new();
             if words.len() > crate::app::modeling::MAX_POINTS {
                 return Err("too many points".into());
@@ -224,7 +260,10 @@ fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, S
                 ("point", 1) => Ok(Modeling::Point(points[0])),
                 ("line", 2) => Ok(Modeling::Line(points[0], points[1])),
                 ("polyline", 2..) => Ok(Modeling::Polyline(points)),
-                _ => Err("point needs one coordinate; line two; polyline at least two".into()),
+                ("curve", 2..) => Ok(Modeling::Curve(points)),
+                _ => {
+                    Err("point needs one coordinate; line two; polyline/curve at least two".into())
+                }
             }
         }
         _ => Err("try trim 0.2 0.8, extend -0.2 1.2, or explode".into()),

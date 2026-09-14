@@ -89,6 +89,9 @@ impl GrowBuf {
 
     /// Overwrite rows `[at, at + data.len())`, which must already exist.
     pub fn write_at<T: Pod>(&self, ctx: &GpuCtx, at: u32, data: &[T]) {
+        if data.is_empty() {
+            return;
+        }
         debug_assert!(at as u64 + data.len() as u64 <= self.cap);
         ctx.queue.write_buffer(
             &self.buf,

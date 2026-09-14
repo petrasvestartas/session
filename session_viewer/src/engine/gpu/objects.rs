@@ -24,6 +24,7 @@ const REANCHOR_THROTTLE_MS: f64 = 200.0;
 pub struct ObjectRow {
     pub place: Mat4,
     pub color: [f32; 4],
+    pub edge_color: u32,
     pub flags: u32,
     pub bounds: Aabb,
     /// Meshes: the local vertex spacing; clouds: the point size in px. Read as a pen hint.
@@ -38,6 +39,7 @@ impl ObjectRow {
         Self {
             place,
             color: [1.0; 4],
+            edge_color: 0,
             flags,
             bounds: Aabb::empty(),
             spacing: 0.0,
@@ -364,7 +366,7 @@ impl InstanceTable {
                 flags: r.flags,
                 _pad0: 0.0,
                 spacing: r.spacing,
-                _pad: 0,
+                _pad: r.edge_color,
             });
         }
         if self.rows.is_empty() {
@@ -566,6 +568,52 @@ impl InstanceTable {
         true
     }
 
+    /// Refresh the local box after source geometry changed, keeping its placement and identity.
+    pub(crate) fn set_geometry_bounds(
+        &mut self,
+        ctx: &GpuCtx,
+        row: u32,
+        bounds: Aabb,
+        spacing: f32,
+        place: &Mat4,
+    ) {
+        self.local_bounds[row as usize] = bounds;
+        self.rows[row as usize].spacing = spacing;
+        self.set_placement(ctx, row, place);
+    }
+
+    /// Change display color without rebuilding geometry or placement.
+    pub fn set_color(&mut self, ctx: &GpuCtx, row: u32, edge: bool, color: Option<[u8; 3]>) {
+        if let Some(r) = self.rows.get_mut(row as usize) {
+            let flag = if edge {
+                Instance::FLAG_EDGE_COLOR
+            } else {
+                Instance::FLAG_COLOR
+            };
+            r.flags &= !flag;
+            if color.is_some() {
+                r.flags |= flag;
+            }
+            if edge {
+                r._pad = color
+                    .map(|c| u32::from_le_bytes([c[0], c[1], c[2], 255]))
+                    .unwrap_or(0);
+            } else {
+                r.color = color
+                    .map(|c| {
+                        [
+                            c[0] as f32 / 255.,
+                            c[1] as f32 / 255.,
+                            c[2] as f32 / 255.,
+                            1.,
+                        ]
+                    })
+                    .unwrap_or([1.; 4]);
+            }
+            self.buffer.write_at(ctx, row, std::slice::from_ref(r));
+        }
+    }
+
     /// Set or clear one flag bit on one row and write that row back.
     pub fn set_flag(&mut self, ctx: &GpuCtx, row: u32, bit: u32, on: bool) {
         let Some(r) = self.rows.get_mut(row as usize) else {
@@ -580,6 +628,10 @@ impl InstanceTable {
             self.geometry_revision = self.geometry_revision.wrapping_add(1);
         }
         self.buffer.write_at(ctx, row, std::slice::from_ref(r));
+    }
+
+    pub(crate) fn geometry_changed(&mut self) {
+        self.geometry_revision = self.geometry_revision.wrapping_add(1);
     }
 
     /// Forget every row; the buffers keep their capacity.

@@ -245,3 +245,9 @@ impl Gpu { pub fn set_hidden_rows(&mut self, runs: &[Range<u32>], on: bool) }
 - Step 10: `l` toggles the panel; hover highlights only that row; a leaf click selects that object and shows its nameplate; clicks inside the panel never change the 3D selection; clicks outside still pick.
 - Step 11: picking an object opens its groups and scrolls its row into view exactly once, landing on the first matching row.
 - Step 12: a type bucket on querschnitt removes exactly that bucket's objects; the graph attribute row removes the same set; both on, then one off, leaves the other's rows hidden.
+
+## Expected viewer result
+
+Reference result from the supported [implementation tutorials](extend-implementation.md). The expanded Session layers panel shows Assembly → Nested; selecting Nested highlights its two beams together. This maintained-viewer capture uses egui styling; the independent panel lesson uses DOM buttons with the same hierarchy and selection behavior. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md).
+
+[![Full viewer result for extend panels](screenshots/extensions-panels.png)](screenshots/extensions-panels.png)
