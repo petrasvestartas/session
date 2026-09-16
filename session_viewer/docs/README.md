@@ -1,11 +1,5 @@
 # Build the Session Viewer
 
-The black triangle in the **top-right corner** switches between the viewer and these docs. In the viewer it opens the course; in the course the matching triangle returns to the viewer. Hover or focus it to see the destination.
-
-A code-first course: from an empty Rust crate to a frozen production checkpoint, byte for byte. The [eleven-step continuation](extend-integrated-tutorial.md) then reaches the current viewer. Individual extension guides offer separate feature implementations. Type what is worth understanding, copy the boilerplate, compile after every step.
-
-Try the [command-line walkthrough](command-line-walkthrough.md) for creating, trimming, extending and exploding objects in the maintained viewer.
-
 ## What you build
 
 App side, from the window to the upload rows:
@@ -18,20 +12,18 @@ GPU side, from `Gpu` to its passes:
 
 Read these four first:
 
-- [How to use this course](how-to-learn.md) — how a lesson is built. Nothing is hidden: every lesson ends in **Questions and answers**, each question followed by its reasoning and then the answer.
-- [The map](map.md) — one picture of the whole viewer; every step reopens it with your position lit.
-- [Words before code](words.md) — every term the lessons use before they have room to explain it, with the file where it first appears.
+- [How to use this course](how-to-learn.md) — how a lesson is built.
+- [The map](map.md) — one picture of the whole viewer structures shows you the global code view.
+- [Words before code](words.md) — every term the lessons use.
 - [Reading failures](debugging.md) — the errors this course actually produces.
 
 ## How a lesson reads
 
-- **You are building**: the mechanism this lesson adds, as one diagram.
-- **Step k**: one idea, then the code. Every code block names its file and one of five actions: **NEW FILE**, **CURRENT → REPLACE WITH**, **CURRENT → ADD BELOW**, **CURRENT → ADD ABOVE**, **DELETE**. The two anchored inserts differ only in which side of the quoted line the new code goes.
+- **You are building**: the viewer focusing on CAD applications.
+- **Step k**: one idea, then the code. Every code block names its file and one of five actions: **NEW FILE**, **CURRENT → REPLACE WITH**, **CURRENT → ADD BELOW**, **CURRENT → ADD ABOVE**, **DELETE**.
 - **TYPE THIS** marks code worth writing by hand. **COPY** marks boilerplate, pages, lockfiles, fixtures. **READ ONLY** marks a complete file shown for orientation.
-- **Supplied files** are tooling (native examples, fixtures, parity ports) installed by one command; the course does not teach them.
+- **Supplied files** are tooling (native examples, fixtures, parity ports) installed by one command.
 - **Check**: `cargo check` where it is known to pass, then the checkpoint build and what you should see.
-
-Every block is cut from that checkpoint's verified patch, a replay audit proves that typing the lesson reproduces it, and every `cargo check` marker was measured on the typed state.
 
 ## Course
 
@@ -62,8 +54,6 @@ Every block is cut from that checkpoint's verified patch, a replay audit proves 
 | [19 · Sheets](19-sheets.md) | Batched drawings, ranged slices, lazy entity metadata | |
 | [20 · The document](20-history.md) | Kernel history: transactions, tombstones, undo and redo, purge on save | **5 · Full viewer** |
 | [21 · Editing](21-editing.md) | The gumball, snapping, the construction plane, the command line, the layers panel | |
-
-Continue with [the current-viewer sequence](extend-integrated-tutorial.md), then [use its command line](command-line-walkthrough.md). The [section-plane design](capstone.md) is optional reference for a future feature; it is not a required implementation step.
 
 Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06, 07 and 09 change the shared kernel; 08 is viewer-only. All four need only 05. 10–11 need 04c. 12 needs everything before it. 13–16 extend `State` and loading. 17–18 build on 12. 19 needs 15 and 17. 20 changes the kernel only and needs 19. 21 edits documents and needs 12, 13 and 20.
 
