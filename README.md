@@ -63,7 +63,7 @@ emit the **same set of test names**. Currently **33 of 47** classes are at full 
 - [x] `history`
 - [x] `instance_ref`
 - [ ] `intersection` — Python missing 1; C++ missing 1
-- [ ] `io` — Python missing 1; C++ missing 1 ("Read Colors"); "Import Minimal" (PDF) is Rust-only behind `--features pdf`
+- [ ] `io_xyz` — Python missing 1; C++ missing 1 ("Read Colors"); "Import Minimal" (PDF) is Rust-only behind `--features pdf`
 - [x] `line`
 - [x] `matrix`
 - [x] `mesh`
