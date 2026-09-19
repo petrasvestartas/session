@@ -1,20 +1,10 @@
-//! The side panel's model: what rows it shows and which objects each one controls.
-//!
-//! A panel row is a FILTER over the rows that already exist, never a second copy of the scene.
-//! It owns no visibility of its own either: hiding a layer puts the same guids in the same
-//! `Scene.hidden` set that `H` uses, so a rebuild re-applies it and the two cannot disagree.
-//!
-//! Pure, so what the panel would show is testable without a browser.
-
 use crate::app::scene::Scene;
 
 /// What a row stands for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Layer {
-    /// One loaded file, by its index in `Scene.docs`.
-    Document(usize),
-    /// Every object of one kernel type, whichever file it came from.
-    Kind(Kind),
+    Document(usize), // One loaded file, by its index in `Scene.docs`.
+    Kind(Kind),      // Every object of one kernel type, whichever file it came from.
 }
 
 /// The geometry kinds the panel groups by: the viewer's lanes, named as a person would.
@@ -47,6 +37,7 @@ impl Kind {
     /// falling into an "other" row nobody would notice was wrong.
     fn of(geometry: &session_rust::Geometry) -> Self {
         use session_rust::Geometry as G;
+
         match geometry {
             G::BRep(_) | G::OBB(_) | G::Element(_) => Kind::Solids,
             G::NurbsSurface(_) | G::Plane(_) => Kind::Surfaces,
@@ -73,7 +64,9 @@ impl Layer {
         if let Some(index) = key.strip_prefix("doc:") {
             return index.parse().ok().map(Layer::Document);
         }
+
         let label = key.strip_prefix("kind:")?;
+
         for kind in [
             Kind::Solids,
             Kind::Surfaces,
@@ -86,6 +79,7 @@ impl Layer {
                 return Some(Layer::Kind(kind));
             }
         }
+
         None
     }
 }
@@ -94,32 +88,35 @@ impl Layer {
 pub struct Row {
     pub layer: Layer,
     pub label: String,
-    /// How many object rows it controls. A row that controls none is not shown at all.
-    pub count: usize,
-    /// Every one of them is hidden.
-    pub hidden: bool,
+    pub count: usize, // How many object rows it controls. A row that controls none is not shown at all.
+    pub hidden: bool, // Every one of them is hidden.
 }
 
 /// Count document and type buckets in one scene walk.
 pub fn rows(scene: &Scene) -> Vec<Row> {
     let mut documents = vec![(0, 0); scene.docs.len()];
     let mut kinds = [(0, 0); 6];
+
     for row in 0..scene.object_count() as u32 {
         let Some(identity) = scene.identity_of(row) else {
             continue;
         };
         let hidden = usize::from(scene.hidden.contains(&identity));
+
         if let Some(count) = documents.get_mut(identity.0) {
             count.0 += 1;
             count.1 += hidden;
         }
+
         if let Some(geometry) = scene.geometry(row) {
             let count = &mut kinds[Kind::of(geometry) as usize];
             count.0 += 1;
             count.1 += hidden;
         }
     }
+
     let mut out = Vec::new();
+
     for (index, &(count, hidden)) in documents.iter().enumerate() {
         if count > 0 {
             out.push(Row {
@@ -130,6 +127,7 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
             });
         }
     }
+
     for kind in [
         Kind::Solids,
         Kind::Surfaces,
@@ -139,6 +137,7 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
         Kind::Clouds,
     ] {
         let (count, hidden) = kinds[kind as usize];
+
         if count > 0 {
             out.push(Row {
                 layer: Layer::Kind(kind),
@@ -148,21 +147,25 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
             });
         }
     }
+
     out
 }
 
 /// The object rows one layer controls.
 pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
     let mut rows = Vec::new();
+
     for row in 0..scene.object_count() as u32 {
         let matches = match layer {
             Layer::Document(index) => scene.identity_of(row).map(|(doc, _)| doc) == Some(index),
             Layer::Kind(kind) => scene.geometry(row).map(Kind::of) == Some(kind),
         };
+
         if matches {
             rows.push(row);
         }
     }
+
     rows
 }
 
@@ -187,6 +190,7 @@ mod tests {
         let mut right = Session::new("right");
         right.add_point(Point::new(5.0, 0.0, 0.0), None);
         let mut scene = Scene::new();
+
         for (name, session) in [("left", left), ("right", right)] {
             scene.add_file(FileDoc {
                 name: name.into(),
@@ -196,6 +200,7 @@ mod tests {
                 display_only: false,
             });
         }
+
         scene
     }
 
@@ -216,6 +221,7 @@ mod tests {
         let mut scene = scene_with_two_files();
         scene.hidden.insert(scene.identity_of(0).unwrap());
         scene.hidden.insert(scene.identity_of(2).unwrap());
+
         for row in rows(&scene) {
             let members = of_layer(&scene, row.layer);
             assert_eq!(row.count, members.len());
@@ -247,6 +253,7 @@ mod tests {
         ] {
             assert_eq!(Layer::from_key(&layer.key()), Some(layer));
         }
+
         assert_eq!(Layer::from_key("kind:sandwiches"), None);
         assert_eq!(Layer::from_key("nonsense"), None);
     }

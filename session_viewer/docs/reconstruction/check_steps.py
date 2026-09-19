@@ -27,7 +27,7 @@ def main():
     if not tree.exists():
         subprocess.run(["git", "worktree", "add", "-q", "--detach", str(tree), args.ref], cwd=repo, check=True)
     env = dict(os.environ, REGEN_PROTO="0", NO_COLOR="true", CARGO_TARGET_DIR=str(args.target_dir.resolve()),
-               CARGO_BUILD_JOBS="8")
+               CARGO_BUILD_JOBS="4")
     failed = []
     started = args.from_step is None
     for commit, step_id in steps(repo, args.ref):

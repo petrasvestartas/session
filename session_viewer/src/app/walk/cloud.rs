@@ -1,13 +1,9 @@
-//! Point clouds into the cloud lane: a walked kernel `PointCloud` (points, optional normals,
-//! the octree it carries, one draw), and the streamed form - a prefix or chunk of raw rows
-//! that never became a kernel object, with the nodes those rows complete.
-
 use super::encode::oct16;
 use super::{Row, WalkCx};
 use crate::app::stream::CloudLod;
 use crate::engine::gpu::cloud::CloudRows;
 use crate::engine::gpu::{CloudDraw, LodNode, NO_NORMALS};
-use crate::math::Aabb;
+use session_rust::AABB;
 use session_rust::PointCloud;
 
 /// Spacing reported when a cloud is too small to measure.
@@ -48,7 +44,7 @@ pub fn walk_cloud(c: &mut CloudRows, pc: &PointCloud, cx: &WalkCx) -> Row {
 }
 
 /// Positions, colours and (when every point has one) normals, from the kernel's flat arrays.
-fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> Aabb {
+fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> AABB {
     let coords = pc.coords();
     let colors = pc.colors();
     let normals = pc.normals();
@@ -56,14 +52,15 @@ fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> Aabb {
     let has_normals = normals.len() >= n * 3;
     rows.pos.reserve(n * 3);
     rows.col.reserve(n);
-    let mut bounds = Aabb::empty();
+    let mut bounds = AABB::empty();
+
     for i in 0..n {
         let p = [
             coords[i * 3] as f32,
             coords[i * 3 + 1] as f32,
             coords[i * 3 + 2] as f32,
         ];
-        bounds.grow(p);
+        bounds.union_with_point(p[0] as f64, p[1] as f64, p[2] as f64);
         rows.pos.extend_from_slice(&p);
         let c = i * 4;
         rows.col.push(if c + 3 < colors.len() {
@@ -71,12 +68,14 @@ fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> Aabb {
         } else {
             0xff00_0000
         });
+
         if has_normals {
             rows.nrm.push(
                 oct16(&[normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]]).unwrap_or(0),
             );
         }
     }
+
     bounds
 }
 
@@ -86,9 +85,11 @@ fn push_nodes(rows: &mut CloudRows, pc: &PointCloud) {
         let (c, size) = pc.lod_cube(k);
         let (nf, nc) = pc.lod_range(k);
         let mut children = [-1i32; 8];
+
         for (slot, v) in pc.lod_children(k).into_iter().enumerate().take(8) {
             children[slot] = v;
         }
+
         rows.nodes.push(LodNode {
             center: [c[0] as f32, c[1] as f32, c[2] as f32],
             size: size as f32,
@@ -110,21 +111,25 @@ fn pack_color(c: &[i32]) -> u32 {
 
 /// The cloud's point spacing from its density: `sqrt(area / n)` over the two longest box
 /// edges - a scan samples a surface. Invariant to point order.
-fn cloud_spacing(pc: &PointCloud, bounds: &Aabb) -> f32 {
+fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
     let n = pc.len();
-    if n < 2 || !bounds.is_finite() {
+
+    if n < 2 || !bounds.is_valid() {
         return DEFAULT_SPACING;
     }
+
     let mut e = [
-        bounds.max[0] - bounds.min[0],
-        bounds.max[1] - bounds.min[1],
-        bounds.max[2] - bounds.min[2],
+        (2.0 * bounds.hx) as f32,
+        (2.0 * bounds.hy) as f32,
+        (2.0 * bounds.hz) as f32,
     ];
     e.sort_by(descending_extent);
     let area = e[0] as f64 * e[1] as f64;
+
     if area <= 0.0 || !area.is_finite() {
         return DEFAULT_SPACING;
     }
+
     (area / n as f64).sqrt() as f32
 }
 
@@ -149,21 +154,25 @@ pub struct StreamSlice<'a> {
 /// Append one streamed slice; returns the slice's local box (the first slice's box is the
 /// prefix's, which spreads over the whole cloud since the octree stores coarse levels first).
 /// A short colour run is padded with opaque black so the colour table stays one word a point.
-pub fn walk_stream_slice(c: &mut CloudRows, s: &StreamSlice) -> Aabb {
+pub fn walk_stream_slice(c: &mut CloudRows, s: &StreamSlice) -> AABB {
     let first = c.point_count();
     let node_first = c.nodes.len() as u32;
     let mut node_count = 0u32;
+
     if s.from == 0 {
         for k in 0..s.lod.len() {
             c.nodes.push(lod_node(s.lod, k));
         }
+
         node_count = s.lod.len() as u32;
     }
 
-    let mut bounds = Aabb::empty();
+    let mut bounds = AABB::empty();
+
     for p in s.rows.positions.chunks_exact(3) {
-        bounds.grow([p[0], p[1], p[2]]);
+        bounds.union_with_point(p[0] as f64, p[1] as f64, p[2] as f64);
     }
+
     let count = (s.rows.positions.len() / 3) as u32;
     let colors = &s.rows.colors[..s.rows.colors.len().min(count as usize)];
     c.col.extend_from_slice(colors);
@@ -188,21 +197,26 @@ pub fn walk_stream_slice(c: &mut CloudRows, s: &StreamSlice) -> Aabb {
 /// The finest node spacing among the nodes complete within the first `to` points.
 fn resident_spacing(lod: &CloudLod, to: u32) -> Option<f32> {
     let mut spacing = f64::INFINITY;
+
     for k in 0..lod.len() {
         let (f, n) = (lod.first[k], lod.count[k]);
+
         if f >= 0 && n >= 0 && (f + n) as u32 <= to {
             spacing = spacing.min(lod.spacing[k]);
         }
     }
+
     spacing.is_finite().then_some(spacing as f32)
 }
 
 /// One node of a streamed cloud's LOD table.
 fn lod_node(lod: &CloudLod, k: usize) -> LodNode {
     let mut children = [-1i32; 8];
+
     for (slot, v) in lod.children[k * 8..k * 8 + 8].iter().enumerate() {
         children[slot] = *v;
     }
+
     let half = lod.size[k] as f32 * 0.5;
     LodNode {
         center: [

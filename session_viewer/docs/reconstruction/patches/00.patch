@@ -3461,20 +3461,29 @@ index 0000000000000000000000000000000000000000..5da3d919df1278843f9d07e90ab8c533
 +addresses = ["127.0.0.1"]
 diff --git a/session_viewer/index.html b/session_viewer/index.html
 new file mode 100644
-index 0000000000000000000000000000000000000000..75d8b3a9f642e3c02a1abf045a035d36d4d7aa6f
+index 0000000000000000000000000000000000000000..7632d00a8ad4ee15193766b562cda2551cc239f3
 --- /dev/null
 +++ b/session_viewer/index.html
-@@ -0,0 +1 @@
-+<!doctype html><html><head><meta charset="utf-8"><title>Session checkpoint 00</title><link data-trunk rel="rust" data-wasm-opt="0"></head><body><output id="status">Loading WASM</output></body></html>
-\ No newline at end of file
+@@ -0,0 +1,11 @@
++<!doctype html>
++<html>
++  <head>
++    <meta charset="utf-8">
++    <title>Session checkpoint 00</title>
++    <link data-trunk rel="rust" data-wasm-opt="0">
++  </head>
++  <body>
++    <output id="status">Loading WASM</output>
++  </body>
++</html>
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..5854c47378298ce7c7c5d7a6b8d6b2206e6e5ed7
+index 0000000000000000000000000000000000000000..7e7057d2789f247445c07730ac0085d761201016
 --- /dev/null
 +++ b/session_viewer/src/lib.rs
 @@ -0,0 +1,18 @@
-+//! First browser entry: report that the pinned Rust/WASM toolchain is running.
 +use wasm_bindgen::prelude::*;
++
 +/// Mark successful WASM initialization without requesting a GPU yet.
 +#[wasm_bindgen(start)]
 +pub fn start() {

@@ -1,6 +1,3 @@
-// The ground grid and axes: 50 vertices built from the vertex index, no buffer. Authored in
-// world millimetres about the origin, minus the camera anchor the instance rows are rebased on.
-
 const STEP: f32 = 1000.0;   // mm per cell
 const HALF: f32 = 5000.0;   // +-5 m floor
 const N: u32 = 5u;          // cells per side of the centre
@@ -22,6 +19,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let far = (vid % 2u) == 1u;
     var wp: vec3<f32>;
     var c: vec3<f32>;
+
     if (vid < FLOOR) {
         let dir = vid / PER_DIR;
         let k = (vid % PER_DIR) / 2u;
@@ -31,6 +29,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
         c = GREY;
     } else {
         let axis = (vid - FLOOR) / 2u;
+
         if (axis == 0u) {
             wp = vec3<f32>(select(0.0, HALF, far), 0.0, 0.0);
             c = RED;
@@ -44,6 +43,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
             c = BLUE;
         }
     }
+
     var o: VsOut;
     o.pos = mvp * vec4<f32>(wp - line.anchor, 1.0);
     o.color = c;

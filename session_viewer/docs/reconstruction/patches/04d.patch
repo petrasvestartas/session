@@ -1,40 +1,40 @@
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index 916b554e3a81d47dd7c25468eb20d57fcab8901f..db7adb7684a8e9f4aba1ecc82c375df06f6bf82f 100644
+index 38659c0065ea42a266a92486c908f34e67c87504..f497d64add2585fe87271534c69dcd7d97e48ae3 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
-@@ -1,9 +1,9 @@
- <!doctype html>
- <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 04c</title>
-+<title>Session checkpoint 04</title>
- <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
- <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
--</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04c</output>
-+</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04</output>
- <script>
- let tutorial;
- let pointer;
-@@ -21,7 +21,7 @@ function render() {
-     const canvas = document.getElementById('canvas');
-     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-     canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 04c · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-+    document.getElementById('status').textContent = 'Checkpoint 04 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
- }
- /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
- function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+-    <title>Session checkpoint 04c</title>
++    <title>Session checkpoint 04</title>
+     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+     <style>
+       html, body {
+@@ -32,7 +32,7 @@
+   </head>
+   <body>
+     <canvas id="canvas" tabindex="0"></canvas>
+-    <output id="status">Starting checkpoint 04c</output>
++    <output id="status">Starting checkpoint 04</output>
+     <script>
+       let tutorial;
+       let pointer;
+@@ -59,7 +59,7 @@
+         const canvas = document.getElementById('canvas');
+         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+         canvas.dataset.tutorialInspection = JSON.stringify(state);
+-        document.getElementById('status').textContent = 'Checkpoint 04c · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++        document.getElementById('status').textContent = 'Checkpoint 04 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+       }
+ 
+       /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
 diff --git a/session_viewer/src/engine/gpu/cloud.rs b/session_viewer/src/engine/gpu/cloud.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843ce98ddfd
+index 0000000000000000000000000000000000000000..33a08fe0d8203bfa10e55f42fbb22131487b8598
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/cloud.rs
-@@ -0,0 +1,257 @@
-+//! The cloud lane's tables: positions, colours, optional normals, the octree nodes, and one
-+//! `Cloud` record per cloud. A cloud's points arrive in CHUNKS (a whole file is one chunk; a
-+//! streamed file is a prefix and then slices, interleaved with other files' rows), so a
-+//! cloud maps its own point index to lane rows through its chunk list. `CloudRows` is one
-+//! upload's delta; `CloudLane` is the GPU side.
-+
+@@ -0,0 +1,258 @@
 +use super::buffers::{GpuCtx, GrowBuf, ROWS};
 +use super::upload::drop_rows;
 +
@@ -49,13 +49,10 @@ index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843
 +    pub from: u32,
 +    pub count: u32,
 +    pub first: u32,
-+    /// Measured point spacing, cloud-local units (drives the splat radius).
-+    pub spacing: f32,
-+    /// This cloud's slice of the upload's node table; `node_count` 0 = no octree.
-+    pub node_first: u32,
++    pub spacing: f32, // Measured point spacing, cloud-local units (drives the splat radius).
++    pub node_first: u32, // This cloud's slice of the upload's node table; `node_count` 0 = no octree.
 +    pub node_count: u32,
-+    /// Upload-local first row in the normals table, or `NO_NORMALS`.
-+    pub nrm_first: u32,
++    pub nrm_first: u32, // Upload-local first row in the normals table, or `NO_NORMALS`.
 +}
 +
 +/// One octree node, read off the file: `first`/`count` are RELATIVE to the cloud's point 0
@@ -105,6 +102,7 @@ index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843
 +                return Some(chunk.row_of(i));
 +            }
 +        }
++
 +        None
 +    }
 +}
@@ -191,10 +189,12 @@ index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843
 +                to: d.from + d.count,
 +                row: point_base + d.first,
 +            };
++
 +            if d.from > 0 {
 +                self.extend(d.instance, chunk);
 +                continue;
 +            }
++
 +            let nrm_first = if d.nrm_first == NO_NORMALS {
 +                NO_NORMALS
 +            } else {
@@ -210,6 +210,7 @@ index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843
 +                chunks: vec![chunk],
 +            });
 +        }
++
 +        moved
 +    }
 +
@@ -220,6 +221,7 @@ index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843
 +            if cloud.instance != instance {
 +                continue;
 +            }
++
 +            if chunk.from != cloud.resident {
 +                log::warn!(
 +                    "cloud chunk [{}, {}) does not continue the {} resident points; dropped",
@@ -229,10 +231,12 @@ index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843
 +                );
 +                return;
 +            }
++
 +            cloud.resident = chunk.to;
 +            cloud.chunks.push(chunk);
 +            return;
 +        }
++
 +        log::warn!("cloud chunk for row {instance} arrived before its cloud; dropped");
 +    }
 +
@@ -245,6 +249,7 @@ index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843
 +                }
 +            }
 +        }
++
 +        None
 +    }
 +
@@ -260,9 +265,11 @@ index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843
 +    /// Points resident across every cloud.
 +    pub fn resident(&self) -> u32 {
 +        let mut resident = 0;
++
 +        for cloud in &self.clouds {
 +            resident += cloud.resident;
 +        }
++
 +        resident
 +    }
 +
@@ -288,16 +295,12 @@ index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843
 +}
 diff --git a/session_viewer/src/engine/gpu/lod.rs b/session_viewer/src/engine/gpu/lod.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..c73ec80a6a9f76ecc7d85accd5a281b2c3c5f1ad
+index 0000000000000000000000000000000000000000..4d4b9f14190e34d7c01ffd75e2df21e607391cb6
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/lod.rs
-@@ -0,0 +1,151 @@
-+//! The level-of-detail walk over one cloud's octree: which node ranges to draw this frame,
-+//! given how wide each node's point spacing projects on screen. Pure CPU; the point lane
-+//! turns the ranges into records.
-+
+@@ -0,0 +1,155 @@
 +use super::cloud::{Cloud, LodNode};
-+use crate::math::mat_scale;
++use session_rust::Xform;
 +
 +/// Clouds smaller than this draw WHOLE whatever the LOD cutoff says: nothing to save, and a
 +/// node drawn at its own coarser spacing is fatter than the whole cloud.
@@ -325,8 +328,7 @@ index 0000000000000000000000000000000000000000..c73ec80a6a9f76ecc7d85accd5a281b2
 +/// cutoff in pixels, and the lane's node table.
 +pub struct Projection<'a> {
 +    pub eye: [f32; 3],
-+    /// Ortho half-height in world mm; 0 in perspective.
-+    pub ortho_h: f32,
++    pub ortho_h: f32, // Ortho half-height in world mm; 0 in perspective.
 +    pub height_px: u32,
 +    pub lod_px: f32,
 +    pub nodes: &'a [LodNode],
@@ -347,6 +349,7 @@ index 0000000000000000000000000000000000000000..c73ec80a6a9f76ecc7d85accd5a281b2
 +    /// it and clipped to the points resident so far.
 +    pub fn select(&mut self, p: &Projection, c: &Cloud, model: &[f32; 16]) {
 +        self.ranges.clear();
++
 +        if c.node_count == 0 || p.lod_px <= 0.0 || c.resident < LOD_MIN_POINTS {
 +            self.ranges.push(Range {
 +                first: 0,
@@ -358,17 +361,20 @@ index 0000000000000000000000000000000000000000..c73ec80a6a9f76ecc7d85accd5a281b2
 +        }
 +
 +        let base = c.node_first as usize;
-+        let scale = mat_scale(model);
++        let scale = Xform::from_matrix(model.map(f64::from)).uniform_scale();
 +        self.stack.clear();
 +        self.visits.clear();
 +        self.stack.push((0, usize::MAX));
++
 +        while let Some((n, parent)) = self.stack.pop() {
 +            let Some(node) = p.nodes.get(base + n) else {
 +                continue;
 +            };
++
 +            if node.first >= c.resident {
 +                continue;
 +            }
++
 +            let count = node.count.min(c.resident - node.first);
 +            let slot = self.visits.len();
 +            self.visits.push(Visit {
@@ -377,6 +383,7 @@ index 0000000000000000000000000000000000000000..c73ec80a6a9f76ecc7d85accd5a281b2
 +                spacing: node.spacing,
 +                parent,
 +            });
++
 +            if projected_spacing(p, node, model, scale) > p.lod_px as f64 {
 +                for &child in &node.children {
 +                    if child >= 0 {
@@ -388,10 +395,12 @@ index 0000000000000000000000000000000000000000..c73ec80a6a9f76ecc7d85accd5a281b2
 +
 +        for i in (0..self.visits.len()).rev() {
 +            let (fine, parent) = (self.visits[i].spacing, self.visits[i].parent);
++
 +            if parent != usize::MAX && fine < self.visits[parent].spacing {
 +                self.visits[parent].spacing = fine;
 +            }
 +        }
++
 +        for v in &self.visits {
 +            if v.count > 0 {
 +                self.ranges.push(Range {
@@ -433,9 +442,11 @@ index 0000000000000000000000000000000000000000..c73ec80a6a9f76ecc7d85accd5a281b2
 +/// `ortho_h` is in world mm, the radius in metres.
 +pub fn radius_factor(r: &Range, px: f32, scale: f64, ortho_h: f32) -> f32 {
 +    let mut world_r = (r.spacing as f64).max(1.0e-9) * scale * 0.001 * (px as f64) / 6.0;
++
 +    if r.tile {
 +        world_r = world_r.max(r.spacing as f64 * scale * 0.001 * 0.5);
 +    }
++
 +    let k = if ortho_h > 0.0 {
 +        world_r / (2.0 * ortho_h as f64 * 0.001)
 +    } else {
@@ -444,11 +455,11 @@ index 0000000000000000000000000000000000000000..c73ec80a6a9f76ecc7d85accd5a281b2
 +    k as f32
 +}
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index 26518f03a28887e94ae44b83eca59d02c997dbe7..82cadb28703147f7a4de933c9bd845bf9eeb5b9d 100644
+index 0d7f23838c04f26259e16dec015e140caec8de5e..e566f6626c60a7f40263161d96fd689d27b2f574 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
 @@ -1,17 +1,21 @@
- //! Teaching coordinator: independent production lanes, before backdrop, text and picking.
+ use session_rust::AABB;
  pub mod arena;
  pub mod buffers;
 +pub mod cloud;
@@ -469,16 +480,16 @@ index 26518f03a28887e94ae44b83eca59d02c997dbe7..82cadb28703147f7a4de933c9bd845bf
  pub use frame::FrameInput;
  pub use glyphs::GlyphPoint;
  pub use instance::Instance;
-@@ -32,6 +36,8 @@ pub struct Gpu {
+@@ -33,6 +37,8 @@ pub struct Gpu {
      pub arena: arena::ArenaLane,
      pub segments: segments::SegmentLane,
      pub glyphs: glyphs::GlyphLane,
 +    pub cloud: cloud::CloudLane,
 +    pub splat: splat::Splat,
-     pub bounds: crate::math::Aabb,
+     pub bounds: AABB,
      pub logical_size: [f64; 2],
      pub device_type: wgpu::DeviceType,
-@@ -81,6 +87,8 @@ impl Gpu {
+@@ -83,6 +89,8 @@ impl Gpu {
          let arena = arena::ArenaLane::new(&ctx, &layouts, target);
          let segments = segments::SegmentLane::new(&ctx, &layouts, target);
          let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
@@ -487,17 +498,18 @@ index 26518f03a28887e94ae44b83eca59d02c997dbe7..82cadb28703147f7a4de933c9bd845bf
          Ok(Self {
              surface,
              ctx,
-@@ -93,17 +101,24 @@ impl Gpu {
+@@ -95,18 +103,27 @@ impl Gpu {
              arena,
              segments,
              glyphs,
 +            cloud,
 +            splat,
-             bounds: crate::math::Aabb::empty(),
+             bounds: AABB::empty(),
              logical_size: [1.0; 2],
              device_type,
          })
      }
+ 
 -    /// Append each upload delta once; every lane keeps its own rows.
 +    /// Append each upload delta once; only moved cloud buffers require a point-lane rebind.
      pub fn set_scene(&mut self, up: &Upload) {
@@ -505,45 +517,49 @@ index 26518f03a28887e94ae44b83eca59d02c997dbe7..82cadb28703147f7a4de933c9bd845bf
          self.arena.append(&self.ctx, &up.arena);
          self.segments.append(&self.ctx, &self.layouts, &up.seg);
          self.glyphs.append(&self.ctx, &self.layouts, &up.glyph);
++
 +        if self.cloud.append(&self.ctx, &up.cloud) {
 +            self.splat
 +                .rebind(&self.ctx, &self.layouts, self.cloud.buffers());
 +        }
++
 +        self.splat.invalidate();
-         self.bounds.union(&up.bounds);
+         self.bounds.union_with(&up.bounds);
      }
-     /// Recreate size-dependent targets and groups; chapter05 adds budgeted multisampling.
-@@ -124,6 +139,7 @@ impl Gpu {
+ 
+@@ -128,6 +145,7 @@ impl Gpu {
                  targets: &self.targets,
              },
          );
 +        self.splat.resize();
      }
+ 
      /// Preserve source precision by rebuilding f32 translations around a shared f64 anchor.
-     pub fn rebase_anchor(
-@@ -132,7 +148,11 @@ impl Gpu {
+@@ -137,7 +155,13 @@ impl Gpu {
          distance: f64,
          now: f64,
      ) -> Rebase {
 -        self.objects.rebase_anchor(&self.ctx, origin, distance, now)
 +        let result = self.objects.rebase_anchor(&self.ctx, origin, distance, now);
++
 +        if result.moved {
 +            self.splat.invalidate();
 +        }
++
 +        result
      }
+ 
      /// Write the camera and CSS-to-physical pen scale once for every lane in this frame.
-     pub fn write_frame_uniforms(&mut self, input: &FrameInput) {
-@@ -149,7 +169,7 @@ impl Gpu {
-         self.objects
+@@ -156,7 +180,7 @@ impl Gpu {
              .update_inside(&self.ctx, self.frame.eye, &self.bounds);
      }
+ 
 -    /// Encode physical mesh faces, then the ink pass over their depth.
 +    /// Encode cloud depth first, then physical mesh faces, then analytic ink.
      pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
          self.write_frame_uniforms(input);
          let output = match self.surface.get_current_texture() {
-@@ -159,6 +179,24 @@ impl Gpu {
+@@ -166,6 +190,24 @@ impl Gpu {
          };
          let target = output.texture.create_view(&Default::default());
          let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
@@ -568,7 +584,7 @@ index 26518f03a28887e94ae44b83eca59d02c997dbe7..82cadb28703147f7a4de933c9bd845bf
          let basic = frame::Binds {
              mvp: &self.frame.mvp_group,
              line: &self.frame.line_group,
-@@ -167,6 +205,7 @@ impl Gpu {
+@@ -174,6 +216,7 @@ impl Gpu {
          {
              let mut pass = self.targets.begin_faces(&mut encoder, &target, input.clear);
              self.arena.draw_faces(&mut pass, &basic);
@@ -578,15 +594,10 @@ index 26518f03a28887e94ae44b83eca59d02c997dbe7..82cadb28703147f7a4de933c9bd845bf
              let mut pass = self.targets.begin_ink(&mut encoder, &target);
 diff --git a/session_viewer/src/engine/gpu/splat.rs b/session_viewer/src/engine/gpu/splat.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d73121975a5f53e9
+index 0000000000000000000000000000000000000000..574c264aaeabd8426b53cf8189c473eb1fd1b557
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/splat.rs
-@@ -0,0 +1,519 @@
-+//! The point lane's renderer: one pixel-aligned quad per point into the lane's OWN 1x depth +
-+//! colour targets (the hardware depth test keeps the nearest point), then a fullscreen resolve
-+//! into the scene pass with EDL and `frag_depth`. A record per visible cloud (or octree node)
-+//! folds camera x placement, tint and radius; the point pass is skipped while nothing changed.
-+
+@@ -0,0 +1,523 @@
 +use super::buffers::{GpuCtx, bind_group, zeroed_buffer};
 +use super::cloud::{Cloud, LodNode, NO_NORMALS, PointBufs};
 +use super::instance::Instance;
@@ -594,7 +605,7 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +use super::objects::InstanceTable;
 +use super::targets::{TextureSpec, texture_view};
 +use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
-+use crate::math::{mat_mul_f32, mat_scale};
++use session_rust::Xform;
 +use wgpu::PrimitiveTopology::TriangleList;
 +
 +/// Records the lane can hold in one frame: one per cloud, or one per selected octree node.
@@ -613,26 +624,17 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +#[repr(C)]
 +#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 +pub struct SplatRecord {
-+    /// mvp x anchored model: one mat-vec per point.
-+    pub mvp_model: [f32; 16],
-+    /// Instance tint; `.a` = the minimum radius in px.
-+    pub tint: [f32; 4],
++    pub mvp_model: [f32; 16], // mvp x anchored model: one mat-vec per point.
++    pub tint: [f32; 4],       // Instance tint; `.a` = the minimum radius in px.
 +    pub first: u32,
 +    pub count: u32,
-+    /// Points before this record: the vertex index minus `cum` is the offset into the range.
-+    pub cum: u32,
-+    /// Radius factor: screen radius = k * vp_h / clip.w (perspective) or k * vp_h (ortho).
-+    pub k: f32,
-+    /// The model's rotation columns (translation-free), three vec4 slots, for the normals.
-+    pub rot: [f32; 12],
-+    /// First row in the normals table, or `NO_NORMALS`.
-+    pub nrm_first: u32,
-+    /// The object row, written by the id pass.
-+    pub instance: u32,
++    pub cum: u32, // Points before this record: the vertex index minus `cum` is the offset into the range.
++    pub k: f32, // Radius factor: screen radius = k * vp_h / clip.w (perspective) or k * vp_h (ortho).
++    pub rot: [f32; 12], // The model's rotation columns (translation-free), three vec4 slots, for the normals.
++    pub nrm_first: u32, // First row in the normals table, or `NO_NORMALS`.
++    pub instance: u32,  // The object row, written by the id pass.
 +    pub flags: u32,
-+    /// Not padding: the highlighted source point's row + 1, or 0. `splat.wgsl` reads it as
-+    /// word 39 and paints that one point yellow.
-+    pub selected_point: u32,
++    pub selected_point: u32, // Not padding: the highlighted source point's row + 1, or 0. `splat.wgsl` reads it as word 39 and paints that one point yellow.
 +}
 +
 +const _: () = assert!(std::mem::size_of::<SplatRecord>() == 160);
@@ -871,23 +873,29 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +        cloud_group: &wgpu::BindGroup,
 +    ) {
 +        let mut point_count = 0u32;
++
 +        for c in cx.clouds {
 +            point_count += c.resident;
 +        }
++
 +        let key = Key {
 +            mvp: *cx.mvp,
 +            cloud_size: cx.cloud_size,
 +            lod_px: cx.lod_px,
 +            point_count,
 +        };
++
 +        if self.key.as_ref() == Some(&key) {
 +            return;
 +        }
++
 +        self.key = Some(key);
 +        self.build_records(cx);
++
 +        if self.total == 0 {
 +            return;
 +        }
++
 +        if !matches!(&self.targets, Some(targets) if targets.size == cx.size) {
 +            self.targets = Some(SplatTargets::new(ctx, l, cx.size));
 +        }
@@ -918,9 +926,11 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +        let Some(targets) = &self.targets else {
 +            return 0;
 +        };
++
 +        if self.total == 0 {
 +            return 0;
 +        }
++
 +        pass.set_pipeline(&self.resolve_pipeline);
 +        pass.set_bind_group(0, cloud_group, &[]);
 +        pass.set_bind_group(1, &targets.resolve_group, &[]);
@@ -933,6 +943,7 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +        if self.total == 0 {
 +            return 0;
 +        }
++
 +        pass.set_pipeline(&self.id_pipeline);
 +        pass.set_bind_group(0, cloud_group, &[]);
 +        pass.set_bind_group(1, &self.points_group, &[]);
@@ -952,13 +963,16 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +            nodes: cx.nodes,
 +        };
 +        let mut cum = 0u32;
++
 +        for c in cx.clouds {
 +            let Some(row) = cx.objects.row(c.instance) else {
 +                continue;
 +            };
++
 +            if row.flags & Instance::FLAG_HIDDEN != 0 {
 +                continue;
 +            }
++
 +            let Some(model) = cx.objects.anchored_model(c.instance) else {
 +                continue;
 +            };
@@ -972,12 +986,14 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +                cx.lod_px
 +            };
 +            self.walk.select(&p, c, &model);
-+            let m = mat_mul_f32(cx.mvp, &model);
++            let m = (&Xform::from_matrix(cx.mvp.map(f64::from))
++                * &Xform::from_matrix(model.map(f64::from)))
++                .to_f32();
 +            let rot = [
 +                model[0], model[1], model[2], 0.0, model[4], model[5], model[6], 0.0, model[8],
 +                model[9], model[10], 0.0,
 +            ];
-+            let scale = mat_scale(&model);
++            let scale = Xform::from_matrix(model.map(f64::from)).uniform_scale();
 +            let selected = row.flags & Instance::FLAG_SELECTED != 0;
 +            let tint = if selected {
 +                [1.0, 1.0, 0.0, (px * 0.5).max(0.5)]
@@ -992,12 +1008,15 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +
 +            for r in &self.walk.ranges {
 +                let k = radius_factor(r, px, scale, cx.ortho_h);
++
 +                for chunk in &c.chunks {
 +                    let a = r.first.max(chunk.from);
 +                    let b = (r.first + r.count).min(chunk.to);
++
 +                    if a >= b || self.records.len() >= MAX_RECORDS {
 +                        continue;
 +                    }
++
 +                    let nrm_first = if c.nrm_first == NO_NORMALS {
 +                        NO_NORMALS
 +                    } else {
@@ -1023,6 +1042,7 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +                }
 +            }
 +        }
++
 +        self.total = cum;
 +    }
 +}
@@ -1102,46 +1122,44 @@ index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d7312197
 +    build(&ctx.device, target, &desc)
 +}
 diff --git a/session_viewer/src/engine/gpu/upload.rs b/session_viewer/src/engine/gpu/upload.rs
-index 5f4266bef87d488f7e3bd0ad91362766851c20ee..8ed85bebd968111288e6da8631b9e2e856c216a7 100644
+index 42d1fc53a27bea27de46774fdb4107c5287ba559..a7cbcac9bf62aa75b9434bb2eafb2b0ad44762a6 100644
 --- a/session_viewer/src/engine/gpu/upload.rs
 +++ b/session_viewer/src/engine/gpu/upload.rs
-@@ -3,6 +3,7 @@
- //! `Gpu::set_scene`, then emptied. No wgpu type and no kernel type here.
- 
+@@ -1,4 +1,5 @@
  use super::arena::ArenaRows;
 +use super::cloud::CloudRows;
  use super::glyphs::GlyphRows;
  use super::objects::ObjectRows;
  use super::segments::SegRows;
-@@ -15,6 +16,7 @@ pub struct Upload {
+@@ -11,6 +12,7 @@ pub struct Upload {
      pub arena: ArenaRows,
      pub seg: SegRows,
      pub glyph: GlyphRows,
 +    pub cloud: CloudRows,
-     /// The world box of this upload's rows; `Gpu::set_scene` unions it into the scene box.
-     pub bounds: Aabb,
+     pub bounds: AABB, // The world box of this upload's rows; `Gpu::set_scene` unions it into the scene box.
  }
-@@ -27,6 +29,7 @@ impl Default for Upload {
+ 
+@@ -22,6 +24,7 @@ impl Default for Upload {
              arena: ArenaRows::default(),
              seg: SegRows::default(),
              glyph: GlyphRows::default(),
 +            cloud: CloudRows::default(),
-             bounds: Aabb::empty(),
+             bounds: AABB::empty(),
          }
      }
-@@ -39,6 +42,7 @@ impl Upload {
+@@ -34,6 +37,7 @@ impl Upload {
          self.arena.drop_rows();
          self.seg.drop_rows();
          self.glyph.drop_rows();
 +        self.cloud.drop_rows();
-         self.bounds = Aabb::empty();
+         self.bounds = AABB::empty();
      }
  }
 diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
-index d021d4ac68c4066eecf029892f2e87de4c89d438..88cc89d4850a4fe6b2e10ec2d9c7362c6413567f 100644
+index 2da01920de708be7ba489a0c3b90a75213d0cbb4..cedab8abef6bcdda2195eb7fbec6f4c26fd115bf 100644
 --- a/session_viewer/src/engine/pipelines/layouts.rs
 +++ b/session_viewer/src/engine/pipelines/layouts.rs
-@@ -113,6 +113,48 @@ fn segment_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+@@ -109,6 +109,48 @@ fn segment_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
      })
  }
  
@@ -1190,7 +1208,7 @@ index d021d4ac68c4066eecf029892f2e87de4c89d438..88cc89d4850a4fe6b2e10ec2d9c7362c
  /// The bind-group layouts every lane shares.
  pub struct Layouts {
      pub mvp: wgpu::BindGroupLayout,
-@@ -121,6 +163,8 @@ pub struct Layouts {
+@@ -117,6 +159,8 @@ pub struct Layouts {
      pub ink_instance: wgpu::BindGroupLayout,
      pub ink_rows: wgpu::BindGroupLayout,
      pub segment_rows: wgpu::BindGroupLayout,
@@ -1199,7 +1217,7 @@ index d021d4ac68c4066eecf029892f2e87de4c89d438..88cc89d4850a4fe6b2e10ec2d9c7362c
  }
  
  impl Layouts {
-@@ -133,6 +177,8 @@ impl Layouts {
+@@ -129,6 +173,8 @@ impl Layouts {
              ink_instance: ink_instance_layout(device),
              ink_rows: ink_rows_layout(device),
              segment_rows: segment_rows_layout(device),
@@ -1209,32 +1227,31 @@ index d021d4ac68c4066eecf029892f2e87de4c89d438..88cc89d4850a4fe6b2e10ec2d9c7362c
      }
  }
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index 2b0c588afa11f74b70222fb43791eeeac983e868..57b37fe15901891af2e7c8fb6575fe0ed8c19bca 100644
+index ed1a908081d9bb9e0a8f750c084958eee8e18bc7..d7576c5ed964cd28f139b957e202a4d76b0fbf27 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
-@@ -1,5 +1,7 @@
--//! Independent source rows exercise each drawing lane as it arrives: mesh, polyline, dot.
+@@ -1,4 +1,6 @@
 -use crate::engine::gpu::{CylinderSegment, GlyphPoint, Instance, ObjectRow, Upload};
-+//! Four independent source rows exercise the mesh, segment, dot and point-cloud lanes.
 +use crate::engine::gpu::{
 +    CloudDraw, CylinderSegment, GlyphPoint, Instance, NO_NORMALS, ObjectRow, Upload,
 +};
+ use session_rust::AABB;
+ use session_rust::Point;
  use session_rust::{RenderVertex, Xform};
- /// Build small deterministic local data; no network, private bucket or geometry decoder.
- pub fn scene() -> Upload {
-@@ -8,7 +10,7 @@ pub fn scene() -> Upload {
-         min: [-2.0, -1.3, -0.1],
-         max: [2.0, 1.3, 0.1],
-     };
+@@ -11,7 +13,7 @@ pub fn scene() -> Upload {
+         0.0,
+     );
+ 
 -    for _ in 0..3 {
 +    for _ in 0..4 {
          upload
              .obj
              .rows
-@@ -49,5 +51,25 @@ pub fn scene() -> Upload {
+@@ -57,5 +59,27 @@ pub fn scene() -> Upload {
          facing: 0xffffffff,
          facing_ext: [0xffffffff; 2],
      });
++
 +    for y in 0..9 {
 +        for x in 0..13 {
 +            upload
@@ -1244,6 +1261,7 @@ index 2b0c588afa11f74b70222fb43791eeeac983e868..57b37fe15901891af2e7c8fb6575fe0e
 +            upload.cloud.col.push(0xffffaa55);
 +        }
 +    }
++
 +    upload.cloud.draws.push(CloudDraw {
 +        instance: 3,
 +        from: 0,
@@ -1258,11 +1276,11 @@ index 2b0c588afa11f74b70222fb43791eeeac983e868..57b37fe15901891af2e7c8fb6575fe0e
      upload
  }
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 3b8ae641cd8f1948d586195561be4a903d3a7fbf..27c1006dcc6b33ffe54e9b36aecae135a1a6c906 100644
+index cd035ae3e026664811bfb03e15b9f3da57324ab9..b5ee4ad4e90af0a1f761cab1d1942282f8f67d57 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
 @@ -16,7 +16,7 @@ pub struct Tutorial {
- }
+ 
  #[wasm_bindgen]
  impl Tutorial {
 -    /// Build the lanes assembled so far and upload the local source objects once.
@@ -1270,7 +1288,7 @@ index 3b8ae641cd8f1948d586195561be4a903d3a7fbf..27c1006dcc6b33ffe54e9b36aecae135
      pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
          console_error_panic_hook::set_once();
          let mut gpu = Gpu::new(canvas.clone()).await.map_err(js_error)?;
-@@ -82,7 +82,7 @@ impl Tutorial {
+@@ -88,7 +88,7 @@ impl Tutorial {
          };
          self.gpu.render(&input).map_err(js_error)?;
          Ok(serde_json::json!({"stage":4,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,
@@ -1278,22 +1296,20 @@ index 3b8ae641cd8f1948d586195561be4a903d3a7fbf..27c1006dcc6b33ffe54e9b36aecae135
 +            "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
      }
  }
- /// Read a monotonic frame time from the browser when available.
+ 
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce13c9efe98
+index 0000000000000000000000000000000000000000..c55c64a407cba2d8b247017b485dbfdf03325ffd
 --- /dev/null
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -0,0 +1,175 @@
-+// The point lane: one pixel-aligned quad per point, pulled by vertex index, into the lane's
-+// own 1x depth + colour targets. Group 0 = the cloud uniform, group 1 = records + tables.
-+
+@@ -0,0 +1,192 @@
 +struct CloudUniform {
 +    size: f32,
 +    vp_w: f32,
 +    vp_h: f32,
 +    edl: f32,
 +};
++
 +@group(0) @binding(0) var<uniform> cloud: CloudUniform;
 +
 +// The record table as raw words: a 4-word header {n, total, 0, 0}, then REC_WORDS per record:
@@ -1327,14 +1343,17 @@ index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce1
 +    let n = table[0];
 +    var lo = 0u;
 +    var hi = n;
++
 +    while (hi - lo > 1u) {
 +        let mid = (lo + hi) / 2u;
++
 +        if (table[4u + mid * REC_WORDS + 22u] <= gid) {
 +            lo = mid;
 +        } else {
 +            hi = mid;
 +        }
 +    }
++
 +    return lo;
 +}
 +
@@ -1342,9 +1361,11 @@ index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce1
 +fn project(gid: u32) -> Splat {
 +    var s: Splat;
 +    s.ok = false;
++
 +    if (gid >= table[1]) {
 +        return s;
 +    }
++
 +    let base = 4u + record_of(gid) * REC_WORDS;
 +    let offset = gid - table[base + 22u];
 +    let i = table[base + 20u] + offset;
@@ -1357,10 +1378,13 @@ index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce1
 +    s.row = i;
 +    s.instance = table[base + 37u];
 +    let clip = m * vec4<f32>(positions[i * 3u], positions[i * 3u + 1u], positions[i * 3u + 2u], 1.0);
++
 +    if (clip.w <= 0.0) {
 +        return s;
 +    }
++
 +    let ndc = clip.xyz / clip.w;
++
 +    if (ndc.z < 0.0 || ndc.z > 1.0) {
 +        return s;
 +    }
@@ -1371,15 +1395,18 @@ index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce1
 +    s.r = clamp(bitcast<f32>(table[base + 23u]) * cloud.vp_h / clip.w, r_min, 8.0);
 +    let x = (ndc.x * 0.5 + 0.5) * cloud.vp_w;
 +    let y = (0.5 - ndc.y * 0.5) * cloud.vp_h;
++
 +    if (x < -s.r || y < -s.r || x >= cloud.vp_w + s.r || y >= cloud.vp_h + s.r) {
 +        return s;
 +    }
++
 +    s.px = vec2<i32>(i32(x), i32(y));
 +    s.z = ndc.z;
 +
 +    let tint = vec4<f32>(rec_f(base, 16u), rec_f(base, 17u), rec_f(base, 18u), 1.0);
 +    var rgba = unpack4x8unorm(colors[i]) * tint;
 +    let nrm_first = table[base + 36u];
++
 +    if (nrm_first != NO_NORMALS) {
 +        let packed_n = normals[nrm_first + offset];
 +        let rot = mat3x3<f32>(
@@ -1392,10 +1419,14 @@ index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce1
 +        let lambert = 0.25 + 0.75 * abs(dot(nw, light));
 +        rgba = vec4<f32>(rgba.rgb * lambert, rgba.a);
 +    }
++
 +    // Word 38 is the object's flag word - bit 0 is FLAG_SELECTED, spelled out because this lane
 +    // compiles without scene.wgsl - and word 39 is the highlighted point's row + 1. Either one
 +    // paints the yellow the other lanes take from SELECT_COLOR.
-+    if ((table[base + 38u] & 1u) != 0u || table[base + 39u] == i + 1u) { rgba = vec4<f32>(1.0, 1.0, 0.0, 1.0); }
++    if ((table[base + 38u] & 1u) != 0u || table[base + 39u] == i + 1u) {
++        rgba = vec4<f32>(1.0, 1.0, 0.0, 1.0);
++    }
++
 +    s.color = pack4x8unorm(rgba);
 +    s.ok = true;
 +    return s;
@@ -1416,10 +1447,12 @@ index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce1
 +fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
 +    var o: PointOut;
 +    let s = project(vid / 6u);
++
 +    if (!s.ok) {
 +        o.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
 +        return o;
 +    }
++
 +    let ir = i32(ceil(s.r - 0.5));
 +    let corner_rr = 2.0 * f32(ir * ir) - 0.001;
 +    let lo = vec2<f32>(f32(s.px.x - ir), f32(s.px.y - ir));
@@ -1449,6 +1482,7 @@ index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce1
 +    if (outside(in)) {
 +        discard;
 +    }
++
 +    return in.color;
 +}
 +
@@ -1458,25 +1492,22 @@ index 0000000000000000000000000000000000000000..ee4233dfef777420a9c80fe852217ce1
 +    if (outside(in)) {
 +        discard;
 +    }
++
 +    return vec2<u32>(in.instance + 1u, in.row + 1u);
 +}
 diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..0b89a50c4448e87c927b748771206e52c9e9a431
+index 0000000000000000000000000000000000000000..ced21baf3bf6e2e9b6a5b0c47ada45388c5c8cb4
 --- /dev/null
 +++ b/session_viewer/src/shaders/splat_resolve.wgsl
-@@ -0,0 +1,79 @@
-+// Composite the point pass into the scene: one fullscreen triangle looks up its pixel in the
-+// lane's depth + colour targets, discards empties, applies Eye-Dome Lighting from the four
-+// neighbouring depths, and exports the point's depth through frag_depth so points and solids
-+// occlude each other exactly.
-+
+@@ -0,0 +1,83 @@
 +struct CloudUniform {
 +    size: f32,
 +    vp_w: f32,
 +    vp_h: f32,
 +    edl: f32,
 +};
++
 +@group(0) @binding(0) var<uniform> cloud: CloudUniform;
 +@group(1) @binding(0) var sdepth: texture_depth_2d;
 +@group(1) @binding(1) var scolor: texture_2d<f32>;
@@ -1507,9 +1538,11 @@ index 0000000000000000000000000000000000000000..0b89a50c4448e87c927b748771206e52
 +fn shade(in: VsOut) -> FsOut {
 +    let pix = vec2<i32>(in.pos.xy);
 +    let d = textureLoad(sdepth, pix, 0);
++
 +    if (d == 0.0) {
 +        discard;
 +    }
++
 +    var o: FsOut;
 +    var rgb = textureLoad(scolor, pix, 0).rgb;
 +
@@ -1519,17 +1552,23 @@ index 0000000000000000000000000000000000000000..0b89a50c4448e87c927b748771206e52
 +        let me = log_depth(d);
 +        var sum = 0.0;
 +        var taps = array<vec2<i32>, 4>(vec2<i32>(-1, 0), vec2<i32>(1, 0), vec2<i32>(0, -1), vec2<i32>(0, 1));
++
 +        for (var k = 0; k < 4; k++) {
 +            let q = pix + taps[k];
++
 +            if (q.x < 0 || q.y < 0 || q.x >= w || q.y >= h) {
 +                continue;
 +            }
++
 +            let nd = textureLoad(sdepth, q, 0);
++
 +            if (nd == 0.0) {
 +                continue;
 +            }
++
 +            sum += max(0.0, me - log_depth(nd));
 +        }
++
 +        // 75 is the fixed exponent scale on the summed log-depth steps and `cloud.edl` the
 +        // 0..1 knob on top of it. Floored at 0.25: an edge darkens, it never goes black.
 +        let shade = max(exp(-sum * 75.0 * cloud.edl), 0.25);

@@ -36,7 +36,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=1-57 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=1-49 -->
 
 ## Step 2 · The lane
 
@@ -48,32 +48,32 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=58-101 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=50-93 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=102-154 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=94-147 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=155-213 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=148-208 -->
 
 - Clearing keeps the capacity: a reload refills a buffer already the right size.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=214-239 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=209-234 -->
 
 - `source_dot` serves streamed source queries; declaring it with the others keeps the lane from growing a second pipeline set.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=240-295 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=235-290 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs copy lines=296-322 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs copy lines=291-319 -->
 
 ## Step 3 · Vertex markers
 
@@ -86,14 +86,14 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-3 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-0 -->
 
 - `to_px` turns a world length into pixels; `pen_world_radius` inverts it, giving the world radius that projects to the global pen.
 - `faces_front` decodes the packed normals.
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=4-16 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-14 -->
 
 - The corner is offset by the pixel radius plus half the feather, so the quad always contains the disc.
 
@@ -101,7 +101,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-64 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=15-69 -->
 
 - The ramp is clamped to the ink it feathers; an unclamped one never reaches full opacity, and a thin pen fades out at distance.
 
@@ -109,7 +109,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=65-155 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=70-174 -->
 
 ## Step 4 · Free dots
 
@@ -121,7 +121,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-2 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-0 -->
 
 - A dot wider than the canvas is dropped before it is placed.
 - The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment.
@@ -129,19 +129,19 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=3-13 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-11 -->
 
 - `vs_source` and `fs_source_id` serve source-cloud queries.
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=14-45 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=12-45 -->
 
 - The fragment half is the same shape as the ribbon's: coverage first, then the shared visibility test.
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=46-140 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=46-153 -->
 
 <!-- check: 04c -->
 

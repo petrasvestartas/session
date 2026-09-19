@@ -33,7 +33,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 21 session_viewer/src/state.rs type hunks=1 -->
+<!-- file: 21 session_viewer/src/state.rs type hunks=1-1 -->
 
 - Eight modules named before any of them exists. The crate stops building here and starts
   again once the last of them is written, and that is the point: from here on, "does it
@@ -46,13 +46,13 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/cplane.rs type lines=1-16 -->
+<!-- file: 21 session_viewer/src/app/cplane.rs type lines=1-10 -->
 
 - Three world planes, named by the pair of axes they span. The third axis is the normal.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/cplane.rs type lines=17-69 -->
+<!-- file: 21 session_viewer/src/app/cplane.rs type lines=11-68 -->
 
 - `facing` picks the plane the camera is most nearly looking AT, not along: the world axis the
   view runs most along becomes the normal.
@@ -63,7 +63,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/cplane.rs type lines=70-132 -->
+<!-- file: 21 session_viewer/src/app/cplane.rs type lines=69-139 -->
 
 - A view that is exactly diagonal has to choose, and `facing` breaks toward Z and then Y, so a
   forty-five-degree view draws on the ground.
@@ -74,14 +74,14 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/coords.rs type lines=1-32 -->
+<!-- file: 21 session_viewer/src/app/coords.rs type lines=1-13 -->
 
 - Four forms, in f64: absolute, relative to the last point, polar, and a distance along a
   direction the caller already has.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/coords.rs type lines=33-72 -->
+<!-- file: 21 session_viewer/src/app/coords.rs type lines=14-58 -->
 
 - `parse` returns `None` for anything that is not a coordinate, which is how a command line
   tells a verb from a point.
@@ -90,14 +90,14 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/coords.rs type lines=73-115 -->
+<!-- file: 21 session_viewer/src/app/coords.rs type lines=59-106 -->
 
 - `resolve` takes the plane and what the caller already knows. A form needing something the
   caller does not have resolves to `None` rather than to a guess.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/coords.rs type lines=116-190 -->
+<!-- file: 21 session_viewer/src/app/coords.rs type lines=107-208 -->
 
 - NaN and infinity are rejected at the parser, so nothing downstream has to test for them.
 
@@ -107,7 +107,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-5b09b0fedb.svg" data-zone="State"></span>
 
-<!-- file: 21 session_viewer/src/camera.rs type hunks=1 -->
+<!-- file: 21 session_viewer/src/camera.rs type hunks=1-1 -->
 
 - The same frustum half-extents `zoom_at` uses, at the target plane.
 - Under perspective every ray starts at the eye; under orthographic they are parallel, so the
@@ -117,7 +117,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-5b09b0fedb.svg" data-zone="State"></span>
 
-<!-- file: 21 session_viewer/src/camera.rs type hunks=2 -->
+<!-- file: 21 session_viewer/src/camera.rs type hunks=2-2 -->
 
 - The tests pin the centre ray, that a perspective ray leaves the eye while the orthographic
   ones stay parallel, that a ray comes back to the world point its pixel shows, that it is in
@@ -129,7 +129,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=1-49 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=1-40 -->
 
 - Sizes are in CSS pixels, so the widget is the same size on screen wherever the camera is.
 - `GRAB` is wider than the 6 px pick radius: a handle is grabbed, not aimed at.
@@ -139,18 +139,18 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=50-112 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=41-94 -->
 
 - An axis knows its unit vector and the two axes spanning the plane it is normal to.
 - `Drag` remembers where the grab was, not where the pointer was last frame.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=113-129 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=95-115 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=130-174 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=116-170 -->
 
 - `hit` tests OUTWARD from the centre: the uniform-scale ball first, then the axis balls, then
   the arms, then the rotation arcs. A handle nearer the hub can never be shadowed by one
@@ -160,14 +160,14 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=175-210 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=171-222 -->
 
 - `begin` answers `None` when the ray cannot resolve against the handle — sighting straight
   down a translate axis has no answer, so there is no drag.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=211-271 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=223-284 -->
 
 - Every drag is measured from its grab, never accumulated: a drag that adds a delta per frame
   drifts, and a dropped frame changes the result.
@@ -175,7 +175,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=272-432 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=285-387 -->
 
 - The arithmetic is f64 and free of the camera, the GPU and wgpu.
 - `closest_on_axis` is the point on the axis nearest the ray, which is what a translate drag
@@ -183,7 +183,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=433-578 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=388-542 -->
 
 - The tests fix the two properties that matter: the handles do not shadow each other, and the
   widget's grab radius is constant in pixels rather than in world units.
@@ -194,7 +194,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/snap.rs type lines=1-35 -->
+<!-- file: 21 session_viewer/src/app/snap.rs type lines=1-24 -->
 
 - The kinds are ordered, and the order is the tie-break: an endpoint beats a point-on-edge.
 - A user reaching for an end and getting "somewhere along it" has to undo; the reverse is a
@@ -202,14 +202,14 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/snap.rs type lines=36-65 -->
+<!-- file: 21 session_viewer/src/app/snap.rs type lines=25-66 -->
 
 - A two-point line has one midpoint and two ends and no interior vertex; a closed loop has no
   ends at all, which is why the caller says whether it is closed.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/snap.rs type lines=66-113 -->
+<!-- file: 21 session_viewer/src/app/snap.rs type lines=67-116 -->
 
 - `best` ranks in SCREEN space through a projection the caller supplies. Two candidates a metre
   apart in the world can be one pixel apart on screen, and it is the pixel distance the user is
@@ -218,7 +218,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/snap.rs type lines=114-191 -->
+<!-- file: 21 session_viewer/src/app/snap.rs type lines=117-234 -->
 
 ## Part B · An edit reaches the document
 
@@ -228,14 +228,14 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/edit.rs type lines=1-19 -->
+<!-- file: 21 session_viewer/src/app/edit.rs type lines=1-4 -->
 
 - A manifest listing one file twice hands both placements the same `Rc<Session>`, and the live
   source keeps a third. The module header is the two rules the rest of it holds.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/edit.rs type lines=20-144 -->
+<!-- file: 21 session_viewer/src/app/edit.rs type lines=5-130 -->
 
 - `writable` calls `Rc::make_mut` BEFORE anything is written, and only for the document being
   edited: the other placements keep the session they were sharing.
@@ -247,7 +247,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/edit.rs type lines=145-190 -->
+<!-- file: 21 session_viewer/src/app/edit.rs type lines=131-182 -->
 
 - A control-point edit is a `Session::replace`, which records the whole object before and
   after: the kernel's own undo step for a change that is not a placement.
@@ -255,7 +255,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/edit.rs type lines=191-347 -->
+<!-- file: 21 session_viewer/src/app/edit.rs type lines=183-342 -->
 
 - The first test is the rule the module exists for: move one placement, and assert the other
   stayed.
@@ -272,7 +272,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
 
-<!-- file: 21 session_viewer/src/engine/gpu/objects.rs type hunks=1,2,3,4,5,6 -->
+<!-- file: 21 session_viewer/src/engine/gpu/objects.rs type hunks=1-6 -->
 
 - Each row keeps its own box now, so a move recomputes the world box without walking the
   geometry again.
@@ -282,7 +282,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
 
-<!-- file: 21 session_viewer/src/engine/gpu/objects.rs type hunks=7,8,9,10 -->
+<!-- file: 21 session_viewer/src/engine/gpu/objects.rs type hunks=7-10 -->
 
 - `set_placement` writes 96 B of instance and 16 B of translation for one row, whatever the
   scene holds; the only part that grows with the scene is the scan for the row's entry in the
@@ -318,13 +318,13 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/state/edit.rs type lines=1-41 -->
+<!-- file: 21 session_viewer/src/state/edit.rs type lines=1-28 -->
 
 - A drag is three moments, and the struct is what the middle one is measured from.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/state/edit.rs type lines=42-118 -->
+<!-- file: 21 session_viewer/src/state/edit.rs type lines=29-103 -->
 
 - The widget sits on the selected row's box centre. A row whose box is empty — a streamed cloud
   before its first slice, a sheet row — gets no widget rather than one at the world origin.
@@ -333,7 +333,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/state/edit.rs type lines=119-199 -->
+<!-- file: 21 session_viewer/src/state/edit.rs type lines=104-190 -->
 
 - Letting go writes the document once, so one gesture is one undo step.
 - An undo can bring an object back or take one away, so the rows are rebuilt rather than
@@ -341,7 +341,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/state/edit.rs type lines=200-401 -->
+<!-- file: 21 session_viewer/src/state/edit.rs type lines=191-399 -->
 
 - The arms are sized in pixels and converted to world at the widget's own depth.
 
@@ -351,14 +351,14 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/command.rs type lines=1-33 -->
+<!-- file: 21 session_viewer/src/app/command.rs type lines=1-19 -->
 
 - Parsing is here and doing is in `State`, so what a line MEANS is testable without a window, a
   device or a scene.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/command.rs type lines=34-115 -->
+<!-- file: 21 session_viewer/src/app/command.rs type lines=20-108 -->
 
 - A verb the viewer does not have is an error with the word quoted back, never a silent no-op.
 - `move` reads the coordinate parser's own syntax; spaces between the numbers become commas
@@ -366,11 +366,11 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/command.rs type lines=116-160 -->
+<!-- file: 21 session_viewer/src/app/command.rs type lines=109-156 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/state/edit.rs type lines=402-504 -->
+<!-- file: 21 session_viewer/src/state/edit.rs type lines=400-504 -->
 
 - Every arm calls an action the viewer already has, so a command cannot drift from the key that
   does the same thing.
@@ -383,7 +383,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/layers.rs type lines=1-59 -->
+<!-- file: 21 session_viewer/src/app/layers.rs type lines=1-50 -->
 
 - A panel row is a filter over rows that already exist, never a second copy of the scene.
 - The buckets are matched exhaustively, with no wildcard: a type added to the kernel stops the
@@ -391,25 +391,25 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/layers.rs type lines=60-102 -->
+<!-- file: 21 session_viewer/src/app/layers.rs type lines=51-94 -->
 
 - A row carries its layer as text, because the rows are rebuilt on every scene change and a
   closure per row would have to be dropped with it.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/layers.rs type lines=103-166 -->
+<!-- file: 21 session_viewer/src/app/layers.rs type lines=95-172 -->
 
 - Documents in load order, then the kinds actually present — never a row for a kind nothing in
   the scene has.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/layers.rs type lines=167-245 -->
+<!-- file: 21 session_viewer/src/app/layers.rs type lines=173-258 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/state/edit.rs type lines=505-577 -->
+<!-- file: 21 session_viewer/src/state/edit.rs type lines=505-588 -->
 
 - Hiding a layer puts the same guids in the same `Scene.hidden` set that `H` writes, so a
   rebuild re-applies it and the two cannot disagree.
@@ -422,7 +422,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/state/edit.rs type lines=578-866 -->
+<!-- file: 21 session_viewer/src/state/edit.rs type lines=589-909 -->
 
 - The pointer resolves through the construction plane, and the object's other control points
   are offered as snaps.
@@ -488,7 +488,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
 
-<!-- file: 21 session_viewer/src/engine/gpu/mod.rs type hunks=6 -->
+<!-- file: 21 session_viewer/src/engine/gpu/mod.rs type hunks=6-6 -->
 
 - The picker's ID targets, the point pass, the outline masks and the tile raster target are
   the other size-bound textures; each becomes an `Attachment` and changes nothing else.
@@ -562,7 +562,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-5b09b0fedb.svg" data-zone="State"></span>
 
-<!-- file: 21 session_viewer/src/state.rs type hunks=12 -->
+<!-- file: 21 session_viewer/src/state.rs type hunks=12-12 -->
 
 - A lost device is not always out of memory, and the old notice said it was. The reload now
   carries the browser's reason in `?recovered=`; `adopt_recovery` on the reloaded page
@@ -579,7 +579,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-08d21ab222.svg" data-zone="Shell"></span>
 
-<!-- file: 21 session_viewer/src/lib.rs type hunks=9 -->
+<!-- file: 21 session_viewer/src/lib.rs type hunks=9-9 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-472924b1e5.svg" data-zone="GPU core"></span>
 

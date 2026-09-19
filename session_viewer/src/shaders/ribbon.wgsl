@@ -1,18 +1,18 @@
-// Flat ink: one camera-facing quad per segment (6 verts pulled by index, no vertex buffer),
-// a capsule SDF in the fragment, visibility from the physical depth. Draws the ribbon table
-// (free linework) and the pipe table (mesh edges). Group 3 = the segment table. Which edges
-// of a tessellation are ink at all is settled in the walk, on the exact normals.
-
 struct StrokeSegment {
-    p0x: f32, p0y: f32, p0z: f32,
+    p0x: f32,
+    p0y: f32,
+    p0z: f32,
     radius: f32,
-    p1x: f32, p1y: f32, p1z: f32,
+    p1x: f32,
+    p1y: f32,
+    p1z: f32,
     instance_id: u32,
     color: u32,
     facing: u32,
     previous: u32,
     next: u32,
 }
+
 @group(3) @binding(0) var<storage, read> segments: array<StrokeSegment>;
 @group(3) @binding(1) var<storage, read> source_edges: array<u32>;
 @group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
@@ -26,6 +26,7 @@ fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32
     if (facing == FACING_UNKNOWN) {
         return true;
     }
+
     return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
 }
 
@@ -35,8 +36,10 @@ fn half_width_px(radius: f32, w: f32) -> f32 {
         if (line.ortho_h > 0.0) {
             return radius * line.vp_h * 0.5 / line.ortho_h;
         }
+
         return radius * line.proj_y * line.vp_h * 0.5 / w;
     }
+
     return line.thickness * 0.5;
 }
 
@@ -82,6 +85,7 @@ fn hairline_fade(px: f32) -> f32 {
     if (px < 0.5) {
         return max(px / 0.5, HAIRLINE_MIN_ALPHA);
     }
+
     return 1.0;
 }
 
@@ -115,6 +119,7 @@ fn density_taper(facing: u32, len_px: f32, px: f32) -> f32 {
     if (facing == FACING_UNKNOWN) {
         return 1.0;
     }
+
     let room = WIRE_MIN_PENS * 2.0 * max(px, 1e-6);
     return clamp(len_px / room, TAPER_MIN, 1.0);
 }
@@ -127,17 +132,33 @@ fn dead_vertex() -> VsOut {
 
 // Which quad corner vertex `k` of 6 is: 0 = e0-, 1 = e0+, 2 = e1-, 3 = e1+.
 fn corner_of(k: u32) -> u32 {
-    if (k == 0u) { return 0u; }
-    if (k == 1u) { return 1u; }
-    if (k == 2u || k == 3u) { return 2u; }
-    if (k == 4u) { return 1u; }
+    if (k == 0u) {
+        return 0u;
+    }
+
+    if (k == 1u) {
+        return 1u;
+    }
+
+    if (k == 2u || k == 3u) {
+        return 2u;
+    }
+
+    if (k == 4u) {
+        return 1u;
+    }
+
     return 3u;
 }
 
 // A connected neighbor contributes only while its own physical facets can face the eye.
 fn neighbor_visible(seg: StrokeSegment) -> bool {
     let inst = instances[seg.instance_id];
-    if ((inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || seg.facing == FACING_UNKNOWN || line.opacity <= 0.0) { return true; }
+
+    if ((inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || seg.facing == FACING_UNKNOWN || line.opacity <= 0.0) {
+        return true;
+    }
+
     let p0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
     let p1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
     let n0 = face_normal(inst.model, oct16_decode(seg.facing & 0xffffu));
@@ -150,24 +171,43 @@ fn neighbor_visible(seg: StrokeSegment) -> bool {
 // partition watertight, including pixels exactly on the angle bisector.
 // Zero disables a join at a clipped, reversed or invisible neighbor.
 fn join_plane(before: u32, after: u32) -> vec4<f32> {
-    if (before == 0xffffffffu || after == 0xffffffffu || before >= arrayLength(&segments) || after >= arrayLength(&segments)) { return vec4<f32>(0.0); }
+    if (before == 0xffffffffu || after == 0xffffffffu || before >= arrayLength(&segments) || after >= arrayLength(&segments)) {
+        return vec4<f32>(0.0);
+    }
+
     let a = segments[before];
     let b = segments[after];
-    if (!neighbor_visible(a) || !neighbor_visible(b)) { return vec4<f32>(0.0); }
-    let c0 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p0x,a.p0y,a.p0z)),1.0);
-    let c1 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p1x,a.p1y,a.p1z)),1.0);
-    let c2 = mvp * vec4<f32>(place(b.instance_id, vec3<f32>(b.p1x,b.p1y,b.p1z)),1.0);
-    if (c0.w <= 0.0 || c1.w <= 0.0 || c2.w <= 0.0 || c0.z > c0.w || c1.z > c1.w || c2.z > c2.w) { return vec4<f32>(0.0); }
-    let vp = vec2<f32>(line.vp_w,line.vp_h);
+
+    if (!neighbor_visible(a) || !neighbor_visible(b)) {
+        return vec4<f32>(0.0);
+    }
+
+    let c0 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p0x, a.p0y, a.p0z)), 1.0);
+    let c1 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p1x, a.p1y, a.p1z)), 1.0);
+    let c2 = mvp * vec4<f32>(place(b.instance_id, vec3<f32>(b.p1x, b.p1y, b.p1z)), 1.0);
+
+    if (c0.w <= 0.0 || c1.w <= 0.0 || c2.w <= 0.0 || c0.z > c0.w || c1.z > c1.w || c2.z > c2.w) {
+        return vec4<f32>(0.0);
+    }
+
+    let vp = vec2<f32>(line.vp_w, line.vp_h);
     let p0 = (c0.xy/c0.w*0.5+0.5)*vp;
     let p1 = (c1.xy/c1.w*0.5+0.5)*vp;
     let p2 = (c2.xy/c2.w*0.5+0.5)*vp;
     let d0 = p1-p0;
     let d1 = p2-p1;
-    if (dot(d0,d0) < 1e-8 || dot(d1,d1) < 1e-8) { return vec4<f32>(0.0); }
+
+    if (dot(d0, d0) < 1e-8 || dot(d1, d1) < 1e-8) {
+        return vec4<f32>(0.0);
+    }
+
     let normal = normalize(d0)+normalize(d1);
-    if (dot(normal,normal) < 1e-8) { return vec4<f32>(0.0); }
-    return vec4<f32>(normalize(normal),p1);
+
+    if (dot(normal, normal) < 1e-8) {
+        return vec4<f32>(0.0);
+    }
+
+    return vec4<f32>(normalize(normal), p1);
 }
 
 // 0 includes all strokes (picking/control nets), 1 excludes selection, 2 is its final pass.
@@ -179,15 +219,19 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let selected = (inst.flags & FLAG_SELECTED) != 0u ||
         (edge_selection.x == seg.instance_id && edge_selection.y != 0xffffffffu &&
          edge_selection.y == source_edges[iid]);
+
     if ((layer == 1u && selected) || (layer == 2u && !selected)) {
         return dead_vertex();
     }
+
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
         return dead_vertex();
     }
+
     if (!neighbor_visible(seg)) {
         return dead_vertex();
     }
+
     let model = inst.model;
 
     let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
@@ -202,9 +246,11 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     // behind the eye mirrors the point through the screen centre.
     let f0 = c0.z - c0.w;
     let f1 = c1.z - c1.w;
+
     if (f0 > 0.0 && f1 > 0.0) {
         return dead_vertex();
     }
+
     let e0 = select(c0, mix(c0, c1, f0 / (f0 - f1)), f0 > 0.0);
     let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
     let clip = select(e0, e1, at_end1);
@@ -234,9 +280,11 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let ndc = (p / vp - 0.5) * 2.0;
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = edge_color(unpack4x8unorm(seg.color), inst);
+
     if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
     }
+
     o.color = color;
     o.p = p;
     o.a = s0;
@@ -272,12 +320,19 @@ fn vs_selected(@builtin(vertex_index) vid: u32) -> VsOut {
 // gradient is the unit vector from its axis, which straightens the cap arc inside one pixel.
 fn coverage(in: VsOut) -> f32 {
     let pixel = vec2<f32>(in.pos.x, line.vp_h-in.pos.y);
+
     // The two halves of the join partition are half-open, `< 0` here and `>= 0` below, so a
     // pixel on the plane belongs to exactly one segment. A disabled join is a ZERO plane and
     // scores exactly 0: that already passes `< 0`, but it would satisfy `>= 0` and reject
     // every fragment, which is why only the end test carries a guard. Not a missing one.
-    if (dot(pixel-in.start_join.zw, in.start_join.xy) < 0.0) { return 0.0; }
-    if (any(in.end_join.xy != vec2<f32>(0.0)) && dot(pixel-in.end_join.zw, in.end_join.xy) >= 0.0) { return 0.0; }
+    if (dot(pixel-in.start_join.zw, in.start_join.xy) < 0.0) {
+        return 0.0;
+    }
+
+    if (any(in.end_join.xy != vec2<f32>(0.0)) && dot(pixel-in.end_join.zw, in.end_join.xy) >= 0.0) {
+        return 0.0;
+    }
+
     let pa = in.p - in.a;
     let ba = in.b - in.a;
     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
@@ -304,9 +359,11 @@ fn ink_axis(in: VsOut) -> InkAxis {
 @fragment
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
     let alpha = coverage(in);
+
     if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
         discard;
     }
+
     return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
 }
 
@@ -315,7 +372,11 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
 @fragment
 fn fs_mask(in: VsOut, @builtin(sample_index) sample: u32) -> @location(0) vec4<f32> {
     let alpha = coverage(in);
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) { discard; }
+
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
+        discard;
+    }
+
     return vec4<f32>(alpha);
 }
 
@@ -329,14 +390,22 @@ struct MaskPair {
 @fragment
 fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
     let alpha = coverage(in);
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) { discard; }
+
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
+        discard;
+    }
+
     return MaskPair(vec4<f32>(alpha), vec4<f32>(0.0));
 }
 
 @fragment
 fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
     let alpha = coverage(in);
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) { discard; }
+
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
+        discard;
+    }
+
     return MaskPair(vec4<f32>(alpha), vec4<f32>(alpha));
 }
 
@@ -351,6 +420,7 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     if (coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
         discard;
     }
+
     return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | SEGMENT_BIT);
 }
 
@@ -360,6 +430,7 @@ fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
     if (in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
         discard;
     }
+
     // Bit 31 is the STROKE tag of the pick-id union `Pick::sub` documents (engine/gpu/pick.rs):
     // the low 31 bits are the segment row + 1. Unlike FACE_TAG (faces.rs and triangle.wgsl) and
     // DISC_ID_TAG (scene.wgsl) this tag has no named constant anywhere, so moving it means

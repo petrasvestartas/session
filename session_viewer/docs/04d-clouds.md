@@ -38,27 +38,27 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=1-57 -->
+<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=1-48 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=58-114 -->
+<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=49-106 -->
 
 - `append` returns whether a buffer moved; the point lane must then rebind its group.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=115-144 -->
+<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=107-136 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=145-208 -->
+<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=137-206 -->
 
 - `extend` records which object row a chunk belongs to, and a chunk that does not continue the resident prefix is refused rather than silently misplaced.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=209-257 -->
+<!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=207-258 -->
 
 - `row_of` is the inverse the picker needs: a global point row back to its cloud and its index within it. Without it a picked point could not be named.
 
@@ -72,17 +72,17 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=1-48 -->
+<!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=1-43 -->
 
 - Each node owns its subsample, so descending only adds detail; the finest spacing found below a node travels back up to size its discs.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=49-115 -->
+<!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=44-117 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=116-151 -->
+<!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=118-155 -->
 
 - Disc size is decided here on the CPU and folded into the record, so the shader divides once per point instead of reasoning about spacing.
 
@@ -104,57 +104,57 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=1-70 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=1-56 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=71-136 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=57-122 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=137-159 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=123-145 -->
 
 - The lane's own type: three pipelines - colour, id, resolve - and the record buffer that feeds them.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=160-232 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=146-218 -->
 
 - Construction allocates the record buffer up front - 4096 records at 160 bytes, about 640 KB - and binds it over placeholder buffers.
 - The point *targets* wait for the first cloud: they scale with the framebuffer.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=233-280 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=219-266 -->
 
 - `prelude` is skipped while the key (camera, knobs, point count) matches; otherwise it rebuilds records, writes them and draws the point pass.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=281-346 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=267-340 -->
 
 - The ID pipeline draws the same quads and writes `(object row, point row)` instead of colour, so a pick names the point, not the cloud.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=347-361 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=341-356 -->
 
 - One record per visible cloud, or per selected octree node; a range straddling two chunks becomes two records.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=362-447 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=357-451 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=448-505 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=452-509 -->
 
 - The resolve is one fullscreen triangle writing colour and `frag_depth`, folding the private point pass back under the scene's own depth test.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=506-519 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=510-523 -->
 
 ## Step 4 · The point shaders
 
@@ -166,17 +166,17 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-51 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-52 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=52-93 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=53-101 -->
 
 - `project` is the whole per-point cost: one mat-vec, a radius folded from the record, a depth. Everything computable per cloud was already computed on the CPU.
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=94-175 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=102-192 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>

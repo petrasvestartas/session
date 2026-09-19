@@ -1,17 +1,15 @@
 diff --git a/src/app/edit.rs b/src/app/edit.rs
 --- a/src/app/edit.rs
 +++ b/src/app/edit.rs
-@@ -150,6 +150,17 @@
+@@ -136,6 +136,15 @@ impl Scene {
      /// geometry whose control points the kernel cannot set is refused rather than silently
      /// left alone.
      pub fn set_control_point(&mut self, row: u32, index: usize, to: &Point) -> bool {
 +        if !self.streamed.is_empty() || !self.sheets.is_empty() {
 +            return false;
 +        }
-+        let Some(back) = self
-+            .placement_of(row)
-+            .and_then(|m| Xform::from_matrix(m).inverse())
-+        else {
++
++        let Some(back) = self.placement_of(row).and_then(|place| place.inverse()) else {
 +            return false;
 +        };
 +        let local = to.transformed(&back);
@@ -19,10 +17,11 @@ diff --git a/src/app/edit.rs b/src/app/edit.rs
          let Some((doc, guid)) = self.writable(row) else {
              return false;
          };
-@@ -344,4 +355,41 @@
+@@ -339,4 +348,41 @@ mod tests {
                  .is_none()
          );
      }
++
 +    #[test]
 +    fn control_edit_converts_world_to_local_under_file_placement() {
 +        let mut source = Session::new("placed");
@@ -59,5 +58,4 @@ diff --git a/src/app/edit.rs b/src/app/edit.rs
 +        };
 +        assert_eq!(line.get_point(1).unwrap()[0], 1.0);
 +    }
-+
  }

@@ -1,7 +1,3 @@
-//! Device negotiation: instance -> surface -> adapter -> device + queue -> surface format.
-//! Produces one `DeviceSetup` and owns nothing afterwards. Headless callers pass no window
-//! and get no surface.
-
 use std::sync::Arc;
 use winit::window::Window;
 
@@ -75,6 +71,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         info.device_type,
         info.backend
     );
+
     if info.device_type == wgpu::DeviceType::Cpu {
         log::warn!("software adapter - rendering on the CPU will be slow");
     }
@@ -110,6 +107,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         let redraw = window.clone();
         device.set_device_lost_callback(move |reason, message| {
             remember_device_loss(&lost, reason, &message);
+
             if let Some(window) = &redraw {
                 window.request_redraw();
             }
@@ -122,12 +120,14 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         Some(s) => {
             let caps = s.get_capabilities(&adapter);
             let mut f = caps.formats[0];
+
             for format in &caps.formats {
                 if format.is_srgb() {
                     f = *format;
                     break;
                 }
             }
+
             (f, caps.present_modes[0], caps.alpha_modes[0])
         }
         None => (
@@ -146,6 +146,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         view_formats: vec![],
         desired_maximum_frame_latency: 2,
     };
+
     if let Some(s) = &surface {
         s.configure(&device, &config);
     }
@@ -175,12 +176,14 @@ async fn named_adapter(
     {
         let want = std::env::var("VIEWER_ADAPTER").ok()?.to_lowercase();
         let mut selected = None;
+
         for adapter in instance.enumerate_adapters(backends).await {
             if adapter.get_info().name.to_lowercase().contains(&want) {
                 selected = Some(adapter);
                 break;
             }
         }
+
         selected
     }
 }

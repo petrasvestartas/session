@@ -1,4 +1,3 @@
-//! Source-subobject transforms. Display triangles are never the edited geometry.
 use super::selection::{ControlId, Controls, SelectionMode};
 use session_rust::{Geometry, Mesh, NurbsSurface, Point, Xform};
 use std::collections::HashSet;
@@ -10,6 +9,7 @@ pub enum Target {
     Edge(u32),
     Face(usize),
 }
+
 impl Target {
     pub fn selected(mode: &SelectionMode) -> Option<Self> {
         match *mode {
@@ -28,9 +28,11 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
         Target::Control(ControlId::Vertex(key)) if mesh.vertex.contains_key(&key) => Ok(vec![key]),
         Target::Face(key) => {
             let mut keys = mesh.face.get(&key).ok_or("Unknown mesh face")?.clone();
+
             if let Some(holes) = mesh.face_holes.get(&key) {
                 keys.extend(holes.iter().flatten());
             }
+
             keys.sort_unstable();
             keys.dedup();
             Ok(keys)
@@ -39,27 +41,34 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
             // Match the producer's source-edge numbering: first occurrence while walking sorted faces.
             let mut seen = HashSet::new();
             let mut at = 0;
+
             for face in mesh.faces() {
                 let keys = &mesh.face[&face];
+
                 for i in 0..keys.len() {
                     let (a, b) = (keys[i], keys[(i + 1) % keys.len()]);
                     let pair = (a.min(b), a.max(b));
+
                     if seen.insert(pair) {
                         if at == index {
                             return Ok(vec![pair.0, pair.1]);
                         }
+
                         at += 1;
                     }
                 }
             }
+
             Err("Unknown mesh edge".into())
         }
         _ => Err("Select a mesh vertex, edge or face".into()),
     }
 }
+
 fn surface_keys(surface: &NurbsSurface, target: Target) -> Result<Vec<(usize, usize)>, String> {
     let [nu, nv] = surface.m_cv_count;
     let all = || (0..nu).flat_map(|u| (0..nv).map(move |v| (u, v))).collect();
+
     match target {
         Target::Control(ControlId::Surface { surface: 0, u, v }) if u < nu && v < nv => {
             Ok(vec![(u, v)])
@@ -128,6 +137,7 @@ pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String>
         },
     }
 }
+
 fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
     Controls::from_geometry(geometry)
         .points
@@ -141,9 +151,11 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
     if !delta.m.iter().all(|v| v.is_finite()) {
         return Err("Transform must be finite".into());
     }
+
     let edited = match geometry {
         Geometry::Mesh(source) => {
             let mut mesh = (**source).clone();
+
             for key in mesh_keys(&mesh, target)? {
                 let point = mesh
                     .vertex_point(key)
@@ -154,21 +166,25 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     .ok_or("Missing vertex")?
                     .set_position(point);
             }
+
             // A subobject move preserves connectivity, including authored hole triangulations.
             mesh.clear_triangle_bvh();
             Geometry::Mesh(Rc::new(mesh))
         }
         Geometry::NurbsSurface(source) => {
             let mut surface = (**source).clone();
+
             for (u, v) in surface_keys(&surface, target)? {
                 let p = surface
                     .get_cv(u, v)
                     .ok_or("Missing surface control")?
                     .transformed(delta);
+
                 if !surface.set_cv(u, v, &p) {
                     return Err("Cannot set surface control".into());
                 }
             }
+
             surface.m_mesh = None;
             Geometry::NurbsSurface(Rc::new(surface))
         }
@@ -193,9 +209,11 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                 .ok_or("Unknown curve control")?
                 .transformed(delta);
             let mut next = (**source).clone();
+
             if !next.set_cv_point(point, &p) {
                 return Err("Cannot set curve control".into());
             }
+
             Geometry::NurbsCurve(Rc::new(next))
         }
         Geometry::Line(source) => {
@@ -228,13 +246,16 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     .iter()
                     .any(|s| (0..3).all(|i| (s[i] - p[i]).abs() <= 1e-8))
             };
+
             for vertex in &mut next.m_vertices {
                 if matches(&vertex.point) {
                     vertex.point = vertex.point.transformed(delta);
                 }
             }
+
             let mut changed_curves = HashSet::new();
             let mut changed_surfaces = HashSet::new();
+
             for (curve_index, curve) in next.m_curves_3d.iter_mut().enumerate() {
                 for i in 0..curve.cv_count() {
                     if let Some(p) = curve.get_cv(i)
@@ -245,6 +266,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     }
                 }
             }
+
             for (surface_index, surface) in next.m_surfaces.iter_mut().enumerate() {
                 for u in 0..surface.m_cv_count[0] {
                     for v in 0..surface.m_cv_count[1] {
@@ -256,15 +278,18 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                         }
                     }
                 }
+
                 if changed_surfaces.contains(&surface_index) {
                     surface.m_mesh = None;
                 }
             }
+
             validate_boundaries(&next, &changed_curves, &changed_surfaces)?;
             Geometry::BRep(Rc::new(next))
         }
         Geometry::Element(source) => {
             let mut next = (**source).clone();
+
             match source.geometry() {
                 session_rust::element::ElementGeometry::Mesh(mesh) => {
                     let Geometry::Mesh(mesh) =
@@ -284,6 +309,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                 }
                 _ => return Err("Element has no source geometry".into()),
             }
+
             Geometry::Element(Rc::new(next))
         }
         _ => return Err("This source control cannot be transformed".into()),
@@ -301,6 +327,7 @@ fn validate_boundaries(
     if !brep.is_valid() {
         return Err("Edit would invalidate BRep topology".into());
     }
+
     for edge in &brep.m_edges {
         if edge.degenerated
             || (!changed_curves.contains(&(edge.curve_3d_index as usize))
@@ -311,16 +338,21 @@ fn validate_boundaries(
         {
             continue;
         }
+
         let curve = &brep.m_curves_3d[edge.curve_3d_index as usize];
         let (a, b) = curve.domain();
+
         for pc in &edge.pcurves {
             let surface = &brep.m_surfaces[pc.surface_index as usize];
+
             for ci in [pc.curve_2d_index, pc.curve_2d_index_2] {
                 if ci < 0 {
                     continue;
                 }
+
                 let uv = &brep.m_curves_2d[ci as usize];
                 let (u0, u1) = uv.domain();
+
                 for sample in 0..=16 {
                     let t = sample as f64 / 16.0;
                     let p = curve.point_at(a + (b - a) * t);
@@ -329,6 +361,7 @@ fn validate_boundaries(
                         .point_at(q[0], q[1])
                         .ok_or("Cannot evaluate incident surface")?;
                     let tolerance = edge.tolerance.max(1e-6) * 10.0;
+
                     if (0..3).any(|i| (p[i] - actual[i]).abs() > tolerance) {
                         return Err("This BRep edit requires rebuilding adjacent trims; the original solid was preserved".into());
                     }
@@ -336,14 +369,17 @@ fn validate_boundaries(
             }
         }
     }
+
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     fn mesh() -> Geometry {
         let mut mesh = Mesh::new();
+
         for (key, p) in [
             (10, [0., 0., 0.]),
             (20, [10., 0., 0.]),
@@ -353,10 +389,12 @@ mod tests {
         ] {
             mesh.add_vertex(Point::new(p[0], p[1], p[2]), Some(key));
         }
+
         mesh.add_face(vec![10, 20, 30, 40], Some(7));
         mesh.add_face(vec![10, 90, 20], Some(19));
         Geometry::Mesh(Rc::new(mesh))
     }
+
     #[test]
     fn mesh_face_moves_shared_source_vertices_not_unrelated_vertices() {
         let source = mesh();
@@ -365,9 +403,11 @@ mod tests {
         else {
             panic!()
         };
+
         for key in [10, 20, 30, 40] {
             assert_eq!(next.vertex[&key].z, 3.);
         }
+
         assert_eq!(next.vertex[&90].z, 10.);
         assert_eq!(next.face[&19], vec![10, 90, 20]);
         let Geometry::Mesh(original) = source else {
@@ -375,6 +415,7 @@ mod tests {
         };
         assert_eq!(original.vertex[&10].z, 0.);
     }
+
     #[test]
     fn edge_ids_match_the_display_producer_even_with_sparse_keys() {
         let Geometry::Mesh(mesh) = mesh() else {
@@ -391,6 +432,7 @@ mod tests {
         let slots = super::super::walk::mesh_topology::SlotMap::new(&keys);
         let topo =
             super::super::walk::mesh_topology::mesh_topology(&mesh, &keys, &positions, &slots);
+
         for (i, &(a, b, _)) in topo.edges.iter().enumerate() {
             assert_eq!(
                 mesh_keys(&mesh, Target::Edge(i as u32)).unwrap(),
@@ -398,6 +440,7 @@ mod tests {
             );
         }
     }
+
     #[test]
     fn surface_boundary_preserves_weights_and_the_opposite_boundary() {
         let mut surface = NurbsSurface::create(
@@ -416,11 +459,13 @@ mod tests {
         )
         .unwrap();
         assert!(surface.make_rational());
+
         for u in 0..2 {
             for v in 0..2 {
                 surface.set_cv_4d(u, v, u as f64 * 2., v as f64 * 2., 0., 2.);
             }
         }
+
         let Geometry::NurbsSurface(next) = transform(
             &Geometry::NurbsSurface(Rc::new(surface)),
             Target::Edge(0),
@@ -435,6 +480,7 @@ mod tests {
         assert_eq!(next.weight(0, 0), 2.);
         assert_eq!(next.weight(1, 1), 2.);
     }
+
     #[test]
     fn moving_box_face_keeps_edges_on_incident_surfaces() {
         let source = Geometry::BRep(Rc::new(session_rust::BRep::create_box(10., 20., 30.)));

@@ -46,7 +46,6 @@ checksum = "366ffbaa4442f4684d91e2cd7c5ea7c4ed8add41959a31447066e279e432b618"
 **ADD BELOW**
 
 ```toml
-
 [[package]]
 name = "accesskit"
 version = "0.24.1"
@@ -63,13 +62,12 @@ dependencies = [
 
 ```toml
  "unicode-width",
+]
 ```
 
 **ADD BELOW**
 
 ```toml
-]
-
 [[package]]
 name = "color"
 version = "0.3.3"
@@ -77,6 +75,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ec7c5eb7a16992b1904d76c517d170ab353b0e0b3d5a0c81a8a0cd1037893cf"
 dependencies = [
  "bytemuck",
+]
 ```
 
 **COPY**
@@ -84,6 +83,7 @@ dependencies = [
 **CURRENT**
 
 ```toml
+
 [[package]]
 name = "either"
 version = "1.18.0"
@@ -91,12 +91,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "252afb9ae5eaa683babdc6a068b3f5726eb19e05070c731f9b2a23a7c3e8ed34"
 
 [[package]]
-name = "equivalent"
 ```
 
 **REPLACE WITH**
 
 ```toml
+
 [[package]]
 name = "ecolor"
 version = "0.34.3"
@@ -204,7 +204,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8970033a4282a7bcf899b38b5ed3a58b732fe093d03785d58648515d8d309da"
 
 [[package]]
-name = "equivalent"
 ```
 
 **COPY**
@@ -218,7 +217,6 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 **ADD BELOW**
 
 ```toml
-
 [[package]]
 name = "fearless_simd"
 version = "0.3.0"
@@ -240,7 +238,6 @@ checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 **ADD BELOW**
 
 ```toml
-
 [[package]]
 name = "kurbo"
 version = "0.13.1"
@@ -259,18 +256,18 @@ dependencies = [
 **CURRENT**
 
 ```toml
-name = "num-traits"
+ "jni-sys 0.3.1",
+]
 ```
 
-**ADD ABOVE**
+**ADD BELOW**
 
 ```toml
+[[package]]
 name = "nohash-hasher"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
-
-[[package]]
 ```
 
 **COPY**
@@ -278,12 +275,14 @@ checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 **CURRENT**
 
 ```toml
-name = "objc2-uniform-type-identifiers"
+ "objc2-user-notifications",
+]
 ```
 
-**ADD ABOVE**
+**ADD BELOW**
 
 ```toml
+[[package]]
 name = "objc2-ui-kit"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -294,8 +293,6 @@ dependencies = [
  "objc2-core-foundation",
  "objc2-foundation 0.3.2",
 ]
-
-[[package]]
 ```
 
 **COPY**
@@ -303,15 +300,13 @@ dependencies = [
 **CURRENT**
 
 ```toml
- "smallvec",
- "windows-link",
+[[package]]
+name = "percent-encoding"
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```toml
-]
-
 [[package]]
 name = "peniko"
 version = "0.6.1"
@@ -323,6 +318,7 @@ dependencies = [
  "kurbo",
  "linebender_resource_handle",
  "smallvec",
+]
 ```
 
 **COPY**
@@ -336,7 +332,6 @@ checksum = "2f3a9f18d041e6d0e102a0a46750538147e5e8992d3b4873aaafee2520b00ce3"
 **ADD BELOW**
 
 ```toml
-
 [[package]]
 name = "polycool"
 version = "0.4.0"
@@ -368,12 +363,14 @@ dependencies = [
 **CURRENT**
 
 ```toml
-name = "unicode-bidi"
+ "core_maths",
+]
 ```
 
-**ADD ABOVE**
+**ADD BELOW**
 
 ```toml
+[[package]]
 name = "type-map"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -381,8 +378,6 @@ checksum = "cb30dbbd9036155e74adad6812e9898d03ec374946234fbcebd5dfc7b9187b90"
 dependencies = [
  "rustc-hash 2.1.3",
 ]
-
-[[package]]
 ```
 
 **COPY**
@@ -390,15 +385,13 @@ dependencies = [
 **CURRENT**
 
 ```toml
- "serde_core",
- "wasm-bindgen",
+[[package]]
+name = "version_check"
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```toml
-]
-
 [[package]]
 name = "vello_common"
 version = "0.0.6"
@@ -423,6 +416,7 @@ dependencies = [
  "bytemuck",
  "hashbrown 0.16.1",
  "vello_common",
+]
 ```
 
 **COPY**
@@ -486,13 +480,15 @@ egui-winit = { version = "=0.34.3", default-features = false }
 **CURRENT**
 
 ```html
-    #viewer-docs:hover, #viewer-docs:focus-visible { border-top-width:52px; border-left-width:52px; outline:none; }
+      #no-webgpu {
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```html
-    #viewer-status:empty { display: none; }
+      #viewer-status:empty {
+        display: none;
+      }
 ```
 
 **TYPE THIS**
@@ -500,24 +496,24 @@ egui-winit = { version = "=0.34.3", default-features = false }
 **CURRENT**
 
 ```html
-  <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
-  <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
-       `L` opens and closes it; a click on a row hides or shows that layer. -->
-  <div id="viewer-layers" hidden role="group" aria-label="Layers"
-       style="position:fixed;top:12px;left:12px;min-width:180px;max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
-  <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
-       back the moment it closes, so typing `z` in here is a letter and not an undo. -->
-  <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
+    <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
+    <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
+    `L` opens and closes it; a click on a row hides or shows that layer. -->
+    <div id="viewer-layers" hidden role="group" aria-label="Layers"
+       style="position: fixed; top: 12px; left: 12px; min-width: 180px; max-height: 70vh; overflow: auto; color: #fff; background: #222d; font: 13px/1.7 system-ui; padding: 6px 0; border-radius: 4px; outline: 1px solid #555;"></div>
+    <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
+    back the moment it closes, so typing `z` in here is a letter and not an undo. -->
+    <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
          aria-label="Command line"
-         style="position:fixed;bottom:44px;left:12px;width:min(420px,60vw);color:#fff;background:#222d;border:0;border-radius:4px;font:14px/1.6 ui-monospace,monospace;padding:4px 8px;outline:1px solid #555">
-  <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
+         style="position: fixed; bottom: 44px; left: 12px; width: min(420px,60vw); color: #fff; background: #222d; border: 0; border-radius: 4px; font: 14px/1.6 ui-monospace,monospace; padding: 4px 8px; outline: 1px solid #555;">
+    <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
 ```
 
 **REPLACE WITH**
 
 ```html
-  <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
-  <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
+    <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
+    <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
 ```
 
 ### `src/app/feedback.rs`
@@ -553,18 +549,21 @@ pub fn command_line(open: bool) -> Option<web_sys::HtmlInputElement> {
         .get_element_by_id("viewer-command")?
         .dyn_into()
         .ok()?;
+
     if open {
         input.set_hidden(false);
         input.set_value("");
         let _ = input.focus();
     } else {
         input.set_hidden(true);
+
         if let Some(canvas) = document.get_element_by_id("canvas")
             && let Ok(canvas) = canvas.dyn_into::<web_sys::HtmlElement>()
         {
             let _ = canvas.focus();
         }
     }
+
     Some(input)
 }
 ```
@@ -578,6 +577,7 @@ pub fn command_line(open: bool) {
     super::ui::MODEL.with_borrow_mut(|model| {
         model.command_open = open;
         model.focus_command = open;
+
         if open {
             model.command.clear();
         }
@@ -641,6 +641,7 @@ pub fn layers_panel(rows: &[LayerRow]) {
         return;
     };
     panel.set_text_content(None);
+
     for row in rows {
         // A button, not a div: the panel is the viewer's only set of discrete controls, and a
         // div is neither reachable by keyboard nor announced as something that can be pressed.
@@ -654,12 +655,14 @@ pub fn layers_panel(rows: &[LayerRow]) {
             "style",
             "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:1",
         );
+
         if row.hidden {
             let _ = line.set_attribute(
                 "style",
                 "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:0.45",
             );
         }
+
         let mark = if row.hidden { "·" } else { "•" };
         line.set_text_content(Some(&format!("{mark} {} ({})", row.label, row.count)));
         let _ = panel.append_child(&line);
@@ -703,6 +706,7 @@ pub fn layers_panel(rows: &[LayerRow]) {
 pub fn layers_visible(open: bool) {
     super::ui::MODEL.with_borrow_mut(|model| {
         model.layers_open = open;
+
         if !open {
             model.rows.clear();
         }
@@ -747,6 +751,7 @@ impl CommandKeys {
                 "Enter" => {
                     let line = box_.value();
                     crate::app::feedback::command_line(false);
+
                     if !line.trim().is_empty() {
                         let _ = proxy.send_event(crate::Msg::Command(line));
                     }
@@ -806,8 +811,8 @@ impl LayerClicks {
         proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
     ) -> Result<Self, wasm_bindgen::JsValue> {
         use wasm_bindgen::JsCast;
-        let callback =
-            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        let callback = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
+            move |event: web_sys::Event| {
                 let Some(target) = event.target() else { return };
                 let Ok(element) = target.dyn_into::<web_sys::Element>() else {
                     return;
@@ -819,7 +824,8 @@ impl LayerClicks {
                 // with it - including the `L` that closes the panel being clicked.
                 crate::app::feedback::focus_canvas();
                 let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
-            });
+            },
+        );
         panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;
         Ok(Self { panel, callback })
     }
@@ -929,9 +935,11 @@ impl Ui {
 
     pub fn frame(&mut self, state: &mut State) -> bool {
         let input = self.input.take_egui_input(&state.window);
+
         if let Some(controls) = self.controls.as_mut() {
             controls.clear();
         }
+
         let mut action = None;
         let mut command = None;
         let mut output = self.context.run_ui(input, |root| {
@@ -944,9 +952,11 @@ impl Ui {
         self.input
             .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
         let changed = action.is_some() || command.is_some();
+
         if let Some(key) = action {
             state.panel_action(&key);
         }
+
         if let Some(text) = command {
             let message = state.run_command(&text).unwrap_or_else(|error| error);
             crate::app::feedback::status(&message);
@@ -954,14 +964,17 @@ impl Ui {
                 if model.history.len() == 8 {
                     model.history.pop_front();
                 }
+
                 model.history.push_back(format!("> {text}\n{message}"));
             });
             state.touch();
         }
+
         self.publish();
         let repaint = changed || self.context.has_requested_repaint();
         output.pixels_per_point *=
             state.gpu.config.width as f32 / state.window.inner_size().width.max(1) as f32;
+
         if let Some(ui) = state.gpu.ui.as_mut() {
             ui.prepare(
                 &state.gpu.ctx,
@@ -970,8 +983,10 @@ impl Ui {
                 [state.gpu.config.width, state.gpu.config.height],
             );
         }
+
         repaint
     }
+
     fn publish(&self) {
         if self.controls.is_some()
             && let Some(canvas) = web_sys::window()
@@ -981,11 +996,13 @@ impl Ui {
             let snapshot = MODEL.with_borrow(|model| serde_json::json!({"framework": "egui 0.34.3", "controls": self.controls, "command_open": model.command_open, "layers_open": model.layers_open, "command": model.command, "history": model.history}));
             let _ = canvas.set_attribute("data-viewer-ui", &snapshot.to_string());
         }
+
         if let Some(status) = web_sys::window()
             .and_then(|w| w.document())
             .and_then(|d| d.get_element_by_id("viewer-status"))
         {
             let hidden = MODEL.with_borrow(|model| model.command_open);
+
             if hidden {
                 let _ = status.set_attribute("hidden", "");
             } else {
@@ -1004,6 +1021,7 @@ fn visuals() -> egui::Visuals {
     visuals.selection.bg_fill = egui::Color32::BLACK;
     visuals.selection.stroke = egui::Stroke::new(1.0_f32, egui::Color32::WHITE);
     visuals.indent_has_left_vline = false;
+
     for widget in [
         &mut visuals.widgets.noninteractive,
         &mut visuals.widgets.inactive,
@@ -1015,6 +1033,7 @@ fn visuals() -> egui::Visuals {
         widget.weak_bg_fill = egui::Color32::WHITE;
         widget.fg_stroke.color = egui::Color32::BLACK;
     }
+
     visuals
 }
 
@@ -1039,6 +1058,7 @@ fn layers(
     if !model.layers_open {
         return;
     }
+
     egui::Window::new("Session layers")
         .default_pos([12.0, 12.0])
         .default_width(310.0)
@@ -1050,10 +1070,12 @@ fn layers(
                 .max_height(context.content_rect().height() * 0.65)
                 .show(ui, |ui| {
                     let mut at = 0;
+
                     while at < model.rows.len() {
                         let start = at;
                         let id = model.rows[at].key.split_once('/').map(|(_, id)| id);
                         at += 1;
+
                         if id.is_some() {
                             while at < model.rows.len()
                                 && model.rows[at].key.split_once('/').map(|(_, id)| id) == id
@@ -1061,13 +1083,16 @@ fn layers(
                                 at += 1;
                             }
                         }
+
                         ui.horizontal(|ui| {
                             let first = &model.rows[start];
                             let indent = first.label.len() - first.label.trim_start().len();
                             ui.add_space(indent as f32 * 4.0);
+
                             for row in &model.rows[start..at] {
                                 let response = layer_button(ui, row);
                                 record(controls, &row.key, &row.label, &response);
+
                                 if response.clicked() {
                                     *action = Some(row.key.clone());
                                 }
@@ -1080,6 +1105,7 @@ fn layers(
 
 fn layer_button(ui: &mut egui::Ui, row: &LayerRow) -> egui::Response {
     let label = row.label.trim_start();
+
     if row.key.starts_with("open/") {
         let (rect, response) = ui.allocate_exact_size(egui::vec2(12.0, 18.0), egui::Sense::click());
         let c = rect.center();
@@ -1103,6 +1129,7 @@ fn layer_button(ui: &mut egui::Ui, row: &LayerRow) -> egui::Response {
         ));
         return response;
     }
+
     let label: String = label.chars().take(160).collect();
     let text = if row.key.starts_with("hide/") {
         if row.hidden {
@@ -1125,6 +1152,7 @@ fn commands(
     if !model.command_open {
         return;
     }
+
     let mut open = model.command_open;
     egui::Window::new("Command line")
         .anchor(egui::Align2::LEFT_BOTTOM, [12.0, -12.0])
@@ -1136,6 +1164,7 @@ fn commands(
             for text in &model.history {
                 ui.label(text);
             }
+
             ui.label("World coordinates: x,y,z. Select a curve before trim, extend or explode.");
             let response = ui.add(
                 egui::TextEdit::singleline(&mut model.command)
@@ -1146,25 +1175,32 @@ fn commands(
                     .desired_width(f32::INFINITY),
             );
             record(controls, "command/input", "Command", &response);
+
             if model.focus_command {
                 response.request_focus();
                 model.focus_command = false;
             }
+
             let enter =
                 response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter));
             ui.horizontal(|ui| {
                 let run = ui.button("Run");
                 record(controls, "command/run", "Run", &run);
+
                 if (enter || run.clicked()) && !model.command.trim().is_empty() {
                     *command = Some(std::mem::take(&mut model.command));
                 }
+
                 let close = ui.button("Close (Esc)");
                 record(controls, "command/close", "Close", &close);
+
                 if close.clicked() || ui.input(|input| input.key_pressed(egui::Key::Escape)) {
                     model.command_open = false;
                 }
+
                 ui.label("point · line · polyline · trim · extend · explode · undo");
             });
+
             if !model.status.is_empty() {
                 ui.label(&model.status);
             }
@@ -1223,28 +1259,6 @@ pub mod ui;
 
 ```rust
             ui: None,
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-    /// the borrow of the device, so the widget's drawing is one call rather than four.
-    pub fn set_widget_rows(
-        &mut self,
-        segments: &segments::SegRows,
-        glyphs: &glyphs::GlyphRows,
-    ) {
-        self.gizmo_arms.reset();
-```
-
-**REPLACE WITH**
-
-```rust
-    /// the borrow of the device, so the widget's drawing is one call rather than four.
-    pub fn set_widget_rows(&mut self, segments: &segments::SegRows, glyphs: &glyphs::GlyphRows) {
-        self.gizmo_arms.reset();
 ```
 
 ### `src/engine/gpu/render.rs`
@@ -1309,16 +1323,20 @@ impl Ui {
             self.renderer.free_texture(&id);
             self.textures.remove(&id);
         }
+
         for (id, delta) in &output.textures_delta.set {
             self.textures.insert(*id);
             self.renderer
                 .update_texture(&ctx.device, &ctx.queue, *id, delta);
         }
+
         self.free = output.textures_delta.free;
         self.jobs = context.tessellate(output.shapes, output.pixels_per_point);
+
         if self.jobs.is_empty() {
             return;
         }
+
         self.screen = egui_wgpu::ScreenDescriptor {
             size_in_pixels: size,
             pixels_per_point: output.pixels_per_point,
@@ -1343,6 +1361,7 @@ impl Ui {
         if self.jobs.is_empty() {
             return;
         }
+
         let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("egui"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -1378,10 +1397,8 @@ impl Drop for Ui {
 
 ```rust
     CancelPointer,
-    /// A line typed into the command box, sent when Enter was pressed in it.
-    Command(String),
-    /// A layers-panel row was clicked, carrying its key.
-    ToggleLayer(String),
+    Command(String), // A line typed into the command box, sent when Enter was pressed in it.
+    ToggleLayer(String), // A layers-panel row was clicked, carrying its key.
 }
 ```
 
@@ -1435,14 +1452,14 @@ impl Drop for Ui {
 **CURRENT**
 
 ```rust
-        }
+
         state.window.request_redraw();
 ```
 
 **REPLACE WITH**
 
 ```rust
-        }
+
         self.ui = Some(app::ui::Ui::new(&state.window));
         state.gpu.ui = Some(engine::gpu::ui::Ui::new(
             &state.gpu.ctx,
@@ -1456,27 +1473,29 @@ impl Drop for Ui {
 **CURRENT**
 
 ```rust
-                Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
-            }
+
             if let Some(input) = app::feedback::command_line(false) {
                 match app::input::CommandKeys::new(input, proxy.clone()) {
                     Ok(listener) => self.command_keys = Some(listener),
                     Err(error) => log::warn!("Cannot register the command line: {error:?}"),
                 }
             }
+
             if let Some(panel) = app::feedback::layers_visible(false) {
                 match app::input::LayerClicks::new(panel, proxy.clone()) {
                     Ok(listener) => self.layer_clicks = Some(listener),
                     Err(error) => log::warn!("Cannot register the layers panel: {error:?}"),
                 }
             }
+
+            wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
 ```
 
 **REPLACE WITH**
 
 ```rust
-                Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
-            }
+
+            wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
 ```
 
 **TYPE THIS**
@@ -1518,16 +1537,20 @@ impl Drop for Ui {
 **ADD ABOVE**
 
 ```rust
+
         if let Some(ui) = self.ui.as_mut() {
             let (mut consumed, repaint) = ui.event(&state.window, &event);
+
             if matches!(event, WindowEvent::KeyboardInput { .. })
                 && !app::ui::MODEL.with_borrow(|model| model.command_open)
             {
                 consumed = false;
             }
+
             if repaint {
                 state.request_frame();
             }
+
             if consumed {
                 if matches!(
                     event,
@@ -1539,6 +1562,7 @@ impl Drop for Ui {
                     self.input.cancel();
                     state.cancel_gesture();
                 }
+
                 self.request_if_needed();
                 return;
             }
@@ -1561,6 +1585,7 @@ impl Drop for Ui {
                 } else {
                     let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state));
                     state.render();
+
                     if repaint {
                         state.request_frame();
                     }

@@ -1,42 +1,48 @@
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index ab40895e0d379a865fd2c4fc6005209ff0da1bb2..d4fae1cf80dcea5f994eb7c3acc444f95f758794 100644
+index 499431935f8dc47766337526221ce8d4ec0d3b87..1e784a03ae6ed15b3a1214a065effb65e58ab7f3 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
-@@ -1,9 +1,9 @@
- <!doctype html>
- <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 07</title>
-+<title>Session checkpoint 08</title>
- <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
- <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
--</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 07</output>
-+</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 08</output>
- <script>
- let tutorial;
- let pointer;
-@@ -21,7 +21,7 @@ function render() {
-     const canvas = document.getElementById('canvas');
-     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-     canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 07 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-+    document.getElementById('status').textContent = 'Checkpoint 08 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
- }
- /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
- function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+-    <title>Session checkpoint 07</title>
++    <title>Session checkpoint 08</title>
+     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+     <style>
+       html, body {
+@@ -32,7 +32,7 @@
+   </head>
+   <body>
+     <canvas id="canvas" tabindex="0"></canvas>
+-    <output id="status">Starting checkpoint 07</output>
++    <output id="status">Starting checkpoint 08</output>
+     <script>
+       let tutorial;
+       let pointer;
+@@ -59,7 +59,7 @@
+         const canvas = document.getElementById('canvas');
+         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+         canvas.dataset.tutorialInspection = JSON.stringify(state);
+-        document.getElementById('status').textContent = 'Checkpoint 07 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++        document.getElementById('status').textContent = 'Checkpoint 08 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+       }
+ 
+       /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index 928dd65c2bc2e48cb0407a7957d333814c4fd47c..cbe88261047e936c2303fcd038f4b473767194ea 100644
+index 2daa3574b0c8a301bdc06b92a5624e57d55f4a76..ca0397d19f1f329f3c5d5cd592e36b02b17bca8c 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
-@@ -16,7 +16,7 @@ use crate::engine::gpu::Instance;
+@@ -10,7 +10,7 @@ use crate::engine::gpu::Instance;
  use crate::engine::gpu::arena::ArenaRows;
- use crate::math::Aabb;
+ use session_rust::AABB;
  use session_rust::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
 -use session_rust::{BRep, Color, NurbsSurface, RenderMesh};
 +use session_rust::{BRep, Color, Mesh, NurbsSurface, RenderMesh};
  
  /// How finely the VIEWER wants a surface tessellated: the normal may turn 5 degrees between
  /// samples and a chord may sag a thousandth of the object. The kernel's own default is 20
-@@ -158,21 +158,227 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut Aabb))
+@@ -175,23 +175,248 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB))
      push_polyline(ink.seg, &points, out.0, out.1);
  }
  
@@ -48,24 +54,26 @@ index 928dd65c2bc2e48cb0407a7957d333814c4fd47c..cbe88261047e936c2303fcd038f4b473
 -    cx: &WalkCx,
 -) -> Row {
 -    let mut mesh = RemeshNurbsSurfaceGrid::from_u_v_q(surface.clone(), 0, 0, QUALITY.0, QUALITY.1);
--    if let Some(color) = surface.facecolors.first() {
--        mesh.set_objectcolor(color.clone());
--    }
--    let options = MeshOpts {
--        sheet_lanes: false,
--        allow_open: true,
--        smooth: true,
 +/// Tessellate a surface with UV provenance, including planar patches with curved boundaries.
 +pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
 +    let mut sm = if let Some(mesh) = &s.m_mesh {
 +        mesh.clone()
 +    } else {
 +        RemeshNurbsSurfaceGrid::from_u_v_q(s.clone(), 0, 0, QUALITY.0, QUALITY.1)
-     };
--    walk_mesh(arena, ink, &mesh, &MeshCx { cx, opts: &options })
++    };
+ 
+-    if let Some(color) = surface.facecolors.first() {
+-        mesh.set_objectcolor(color.clone());
 +    if let Some(c) = s.facecolors.first() {
 +        sm.set_objectcolor(c.clone());
-+    }
+     }
+ 
+-    let options = MeshOpts {
+-        sheet_lanes: false,
+-        allow_open: true,
+-        smooth: true,
+-    };
+-    walk_mesh(arena, ink, &mesh, &MeshCx { cx, opts: &options })
 +    let first_pipe = ink.seg.pipes.len();
 +    let mut row = walk_mesh(
 +        arena,
@@ -89,28 +97,36 @@ index 928dd65c2bc2e48cb0407a7957d333814c4fd47c..cbe88261047e936c2303fcd038f4b473
 +/// edge ID.
 +fn map_surface_boundaries(ink: &mut Ink, s: &NurbsSurface, mesh: &Mesh, first_pipe: usize) {
 +    let mut masks = std::collections::HashMap::<[u32; 3], u8>::new();
++
 +    for vertex in mesh.vertex.values() {
 +        let mut mask = 0u8;
++
 +        for (direction, name) in [(0, "u"), (1, "v")] {
 +            if s.is_closed(direction) {
 +                continue;
 +            }
++
 +            let (Some(&parameter), Some((start, end))) =
 +                (vertex.attributes.get(name), s.domain(direction))
 +            else {
 +                continue;
 +            };
++
 +            if parameter == start {
 +                mask |= 1 << (direction * 2);
 +            }
++
 +            if parameter == end {
 +                mask |= 1 << (direction * 2 + 1);
 +            }
 +        }
++
 +        let position = [vertex.x as f32, vertex.y as f32, vertex.z as f32];
 +        *masks.entry(position.map(f32::to_bits)).or_insert(0) |= mask;
 +    }
++
 +    ink.seg.pipe_ids.resize(ink.seg.pipes.len(), u32::MAX);
++
 +    for index in first_pipe..ink.seg.pipes.len() {
 +        let pipe = &ink.seg.pipes[index];
 +        let a = masks.get(&pipe.p0.map(f32::to_bits)).copied().unwrap_or(0);
@@ -177,11 +193,13 @@ index 928dd65c2bc2e48cb0407a7957d333814c4fd47c..cbe88261047e936c2303fcd038f4b473
 +                .iter()
 +                .all(|&i| i >= 100 && i < 100 + verts as u32)
 +        );
++
 +        for v in &arena.verts {
 +            let n = v.normal;
 +            let l = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
 +            assert!((l - 1.0).abs() < 1e-3, "normal {n:?}");
 +        }
++
 +        assert_eq!(seg.pipes.len(), segments);
 +        assert!(seg.ribbons.is_empty());
 +        assert!(glyph.spheres.is_empty());
@@ -205,16 +223,21 @@ index 928dd65c2bc2e48cb0407a7957d333814c4fd47c..cbe88261047e936c2303fcd038f4b473
 +    fn reversed_solid_uses_repair_faces_and_boundaries_together() {
 +        let b = BRep::create_cylinder(150.0, 400.0);
 +        let mut reversed = b.clone();
++
 +        for face in reversed.m_shells[0].faces.iter_mut().take(2) {
 +            face.orientation = session_rust::brep::brep_reverse(face.orientation);
 +        }
++
 +        let (expected, _, _, _) = walked(&b);
 +        let (actual, _, _, _) = walked(&reversed);
 +        assert_eq!(actual.idx.len(), expected.idx.len());
++
 +        for (a, b) in actual.idx.chunks_exact(3).zip(expected.idx.chunks_exact(3)) {
 +            assert!(a == b || a == [b[1], b[2], b[0]] || a == [b[2], b[0], b[1]]);
 +        }
++
 +        assert_eq!(actual.verts.len(), expected.verts.len());
++
 +        for (a, b) in actual.verts.iter().zip(&expected.verts) {
 +            assert_eq!(a.position, b.position);
 +            assert_eq!(a.normal, b.normal);
@@ -253,6 +276,7 @@ index 928dd65c2bc2e48cb0407a7957d333814c4fd47c..cbe88261047e936c2303fcd038f4b473
 +            BRep::create_box(40.0, 30.0, 25.0),
 +        ] {
 +            let (arena, seg, _, _) = walked(&b);
++
 +            for vertex in &arena.verts {
 +                let [x, y, z] = vertex.normal;
 +                assert!(
@@ -263,11 +287,14 @@ index 928dd65c2bc2e48cb0407a7957d333814c4fd47c..cbe88261047e936c2303fcd038f4b473
 +                );
 +                assert!(vertex.position.iter().all(|value| value.is_finite()));
 +            }
++
 +            for pipe in &seg.pipes {
 +                assert_ne!(pipe.p0, pipe.p1);
 +            }
 +        }
++
 +        let (arena, _, _, _) = walked(&BRep::create_box(40.0, 30.0, 25.0));
++
 +        for vertex in &arena.verts {
 +            assert_eq!(
 +                vertex
@@ -281,10 +308,10 @@ index 928dd65c2bc2e48cb0407a7957d333814c4fd47c..cbe88261047e936c2303fcd038f4b473
 +    }
  }
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index f59c6930e0ed6ce954115c674cb0d4c890f1e7ec..cd869ec316bddd890bf90b374a3889ac15490473 100644
+index 8fbbff68c862ae5788cee4cbe2f3c064369844fb..898bf745f8917839264be58b9a2fd6e43c96d31b 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
-@@ -4,7 +4,7 @@ use crate::app::walk::mesh_ink::Ink;
+@@ -3,7 +3,7 @@ use crate::app::walk::mesh_ink::Ink;
  use crate::app::walk::{Row, WalkCx};
  use crate::engine::gpu::Upload;
  use crate::engine::gpu::objects::ObjectRow;
@@ -293,7 +320,7 @@ index f59c6930e0ed6ce954115c674cb0d4c890f1e7ec..cd869ec316bddd890bf90b374a3889ac
  use std::rc::Rc;
  
  /// Retain original f64 source objects independently from their GPU row addresses.
-@@ -82,20 +82,80 @@ impl CadFixture {
+@@ -83,20 +83,88 @@ impl CadFixture {
      }
  }
  
@@ -314,6 +341,7 @@ index f59c6930e0ed6ce954115c674cb0d4c890f1e7ec..cd869ec316bddd890bf90b374a3889ac
 +    trimmed.m_surface = surface;
 +    let mut loops = TrimLoops::default();
 +    let mut outer = Vec::new();
++
 +    for edge in 0..4 {
 +        for sample in 0..24 {
 +            let t = sample as f64 / 24.0;
@@ -326,7 +354,9 @@ index f59c6930e0ed6ce954115c674cb0d4c890f1e7ec..cd869ec316bddd890bf90b374a3889ac
 +            outer.push(Point::new(u, v, 0.0));
 +        }
 +    }
++
 +    let mut hole = Vec::new();
++
 +    for sample in 0..48 {
 +        let angle = sample as f64 / 48.0 * std::f64::consts::TAU;
 +        hole.push(Point::new(
@@ -335,9 +365,12 @@ index f59c6930e0ed6ce954115c674cb0d4c890f1e7ec..cd869ec316bddd890bf90b374a3889ac
 +            0.0,
 +        ));
 +    }
++
 +    loops.uv = vec![outer, hole];
++
 +    for ring in &loops.uv {
 +        let mut positions = Vec::with_capacity(ring.len());
++
 +        for uv in ring {
 +            positions.push(
 +                trimmed
@@ -346,8 +379,10 @@ index f59c6930e0ed6ce954115c674cb0d4c890f1e7ec..cd869ec316bddd890bf90b374a3889ac
 +                    .expect("fixture UV lies in the source domain"),
 +            );
 +        }
++
 +        loops.xyz.push(positions);
 +    }
++
 +    let mesh = trimmed.mesh_loops(&loops, 20.0, 0.005);
 +    assert!(
 +        !mesh.face.is_empty(),
@@ -384,10 +419,10 @@ index f59c6930e0ed6ce954115c674cb0d4c890f1e7ec..cd869ec316bddd890bf90b374a3889ac
      scene
  }
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index ebafd4c14b1e8477d21538f1598634539a4a31b4..53544ae931ae9c15dfd24d4d625925b3de7eb2ef 100644
+index 4507a492a6de3635c1a5fe0570bd841d23158ab2..8d7e6704b520de6bbcf4eb2382c0b271e15ba7a6 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -92,7 +92,7 @@ impl Tutorial {
+@@ -102,7 +102,7 @@ impl Tutorial {
              now_ms: now,
          };
          self.gpu.render(&input).map_err(js_error)?;

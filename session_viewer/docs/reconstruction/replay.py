@@ -80,9 +80,10 @@ def apply_step(workspace, step, env, evidence):
     patch = HERE / step["patch"]
     if digest(patch) != step["patch_sha256"]:
         raise ValueError(f"patch checksum failed: {step['id']}")
-    run(["git", "apply", "--check", str(patch)], workspace, env,
-        evidence / "patch-check.log")
-    run(["git", "apply", str(patch)], workspace, env, evidence / "patch-apply.log")
+    if patch.stat().st_size:
+        run(["git", "apply", "--check", str(patch)], workspace, env,
+            evidence / "patch-check.log")
+        run(["git", "apply", str(patch)], workspace, env, evidence / "patch-apply.log")
     copy_assets(workspace, step)
     check_files(workspace, step["files"])
     (workspace / ".reconstruction-state.json").write_text(json.dumps({

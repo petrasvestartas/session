@@ -1,6 +1,3 @@
-//! Sheet entity selection: a ribbon pick on a sheet row highlights every segment of that
-//! entity through the edge-selection uniform, then one bounded side-table read names it.
-
 use super::State;
 use crate::app::selection::SelectionMode;
 use crate::app::sheet_query::{Query, Resolved};
@@ -11,6 +8,7 @@ impl State {
         let Some(slot) = self.scene.sheet_slot(row) else {
             return;
         };
+
         if self.selection
             == (SelectionMode::Edge {
                 parent: row,
@@ -21,6 +19,7 @@ impl State {
             self.status("");
             return;
         }
+
         self.select(Some(row));
         self.gpu.set_selected(row, false);
         self.selection.select_edge(row, entity);
@@ -30,6 +29,7 @@ impl State {
         self.scene.sheets[slot].resolved = None;
         self.sheet_generation = self.sheet_generation.wrapping_add(1);
         let query = Query::new(self.sheet_generation, row, entity);
+
         match self.scene.sheets[slot].meta_url.clone() {
             None => self.status(&format!("Selected entity {entity}")),
             Some(url) => {
@@ -45,6 +45,7 @@ impl State {
                 let _ = url;
             }
         }
+
         self.sheet_query = Some(query);
         self.touch();
     }
@@ -54,13 +55,16 @@ impl State {
         let Some(query) = self.sheet_query.as_ref() else {
             return;
         };
+
         if query.id != resolved.query || query.cancelled.get() {
             return;
         }
+
         let query = self.sheet_query.take().unwrap();
         let Some(slot) = self.scene.sheet_slot(query.row) else {
             return;
         };
+
         match resolved.result {
             Ok((meta, table)) => {
                 self.status(&format!(

@@ -1,33 +1,39 @@
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index db7adb7684a8e9f4aba1ecc82c375df06f6bf82f..c6c7e0dce3b12078b33d09694b8366df2b762614 100644
+index f497d64add2585fe87271534c69dcd7d97e48ae3..1492e7c093004786e878a3baff7c5883a7ffd3f8 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
-@@ -1,9 +1,9 @@
- <!doctype html>
- <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 04</title>
-+<title>Session checkpoint 05</title>
- <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
- <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
--</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04</output>
-+</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 05</output>
- <script>
- let tutorial;
- let pointer;
-@@ -21,7 +21,7 @@ function render() {
-     const canvas = document.getElementById('canvas');
-     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-     canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 04 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-+    document.getElementById('status').textContent = 'Checkpoint 05 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
- }
- /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
- function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+-    <title>Session checkpoint 04</title>
++    <title>Session checkpoint 05</title>
+     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+     <style>
+       html, body {
+@@ -32,7 +32,7 @@
+   </head>
+   <body>
+     <canvas id="canvas" tabindex="0"></canvas>
+-    <output id="status">Starting checkpoint 04</output>
++    <output id="status">Starting checkpoint 05</output>
+     <script>
+       let tutorial;
+       let pointer;
+@@ -59,7 +59,7 @@
+         const canvas = document.getElementById('canvas');
+         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+         canvas.dataset.tutorialInspection = JSON.stringify(state);
+-        document.getElementById('status').textContent = 'Checkpoint 04 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++        document.getElementById('status').textContent = 'Checkpoint 05 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+       }
+ 
+       /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
 diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
-index bb8aa2eaa4787818e87b936f52a5bceaa83c4ae0..096804484014decea87d240aaaf865b3888d904c 100644
+index a1a658c2fa970cfefb62094c1167645d8d30d02c..86f114e0403258d3769aeed345ba78fd19cbab38 100644
 --- a/session_viewer/src/engine/gpu/arena.rs
 +++ b/session_viewer/src/engine/gpu/arena.rs
-@@ -47,6 +47,7 @@ impl ArenaRows {
+@@ -43,6 +43,7 @@ impl ArenaRows {
  struct ArenaPipelines {
      faces: wgpu::RenderPipeline,
      id_faces: wgpu::RenderPipeline,
@@ -35,7 +41,7 @@ index bb8aa2eaa4787818e87b936f52a5bceaa83c4ae0..096804484014decea87d240aaaf865b3
  }
  
  /// The arena on the GPU: five `GrowBuf`s under the one growth policy.
-@@ -117,6 +118,11 @@ impl ArenaLane {
+@@ -113,6 +114,11 @@ impl ArenaLane {
          self.draw_run(pass, b, &self.pipes.faces, &self.faces)
      }
  
@@ -47,7 +53,7 @@ index bb8aa2eaa4787818e87b936f52a5bceaa83c4ae0..096804484014decea87d240aaaf865b3
      /// Sheet fills: same vertex table, depth write off, so a page's exactly coplanar regions
      /// composite in document order. 3D geometry in front still occludes them.
      pub fn draw_print(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-@@ -135,7 +141,7 @@ impl ArenaLane {
+@@ -131,7 +137,7 @@ impl ArenaLane {
          self.draw_run(pass, b, &self.pipes.id_faces, &self.faces)
              + self
                  .outline_text
@@ -56,7 +62,7 @@ index bb8aa2eaa4787818e87b936f52a5bceaa83c4ae0..096804484014decea87d240aaaf865b3
      }
  
      /// The id pass for the lettering, after the ink as in the colour pass.
-@@ -222,7 +228,21 @@ fn build_pipelines(
+@@ -219,7 +225,21 @@ fn build_pipelines(
      let dev = &ctx.device;
  
      ArenaPipelines {
@@ -82,13 +88,10 @@ index bb8aa2eaa4787818e87b936f52a5bceaa83c4ae0..096804484014decea87d240aaaf865b3
  }
 diff --git a/session_viewer/src/engine/gpu/backdrop.rs b/session_viewer/src/engine/gpu/backdrop.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..2bbbe9bbc21b9a8b75fee4bc605e95a8c74a39d6
+index 0000000000000000000000000000000000000000..db869fff57abd4db4aa5c50a2adf1208a5f68e7c
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/backdrop.rs
-@@ -0,0 +1,114 @@
-+//! The backdrop lane: the fullscreen background triangle and the vertexless 50-vertex grid.
-+//! No table, no upload; two pipelines and two draws that open every frame.
-+
+@@ -0,0 +1,111 @@
 +use super::buffers::GpuCtx;
 +use super::frame::Binds;
 +use crate::engine::pipelines::{
@@ -201,10 +204,10 @@ index 0000000000000000000000000000000000000000..2bbbe9bbc21b9a8b75fee4bc605e95a8
 +    )
 +}
 diff --git a/session_viewer/src/engine/gpu/instance.rs b/session_viewer/src/engine/gpu/instance.rs
-index ee7c50b82c473cf99b258cf20f628f2a9aa5c568..3d3554a855f2654a3bbe0b0034e2a6b1d015e8be 100644
+index 58614defb8a0605bb6d8b0587dfbcf6f77de255d..600e1c919d8ce0f690ce4df53ab379529609e814 100644
 --- a/session_viewer/src/engine/gpu/instance.rs
 +++ b/session_viewer/src/engine/gpu/instance.rs
-@@ -100,7 +100,11 @@ mod tests {
+@@ -102,7 +102,11 @@ mod tests {
              } else {
                  source.to_string()
              };
@@ -218,11 +221,11 @@ index ee7c50b82c473cf99b258cf20f628f2a9aa5c568..3d3554a855f2654a3bbe0b0034e2a6b1
                  .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
              naga::valid::Validator::new(
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f1514d8c1 100644
+index e566f6626c60a7f40263161d96fd689d27b2f574..4a88ae6d3844edb82e55a0fdfd8deb5d11e2f5fd 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
 @@ -1,5 +1,6 @@
- //! Teaching coordinator: independent production lanes, before backdrop, text and picking.
+ use session_rust::AABB;
  pub mod arena;
 +pub mod backdrop;
  pub mod buffers;
@@ -234,9 +237,9 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
  pub use segments::CylinderSegment;
 +use targets::Targets;
  pub use upload::Upload;
+ 
  /// Each lane owns its buffers/pipelines; the coordinator owns pass order and shared resources.
- pub struct Gpu {
-@@ -33,6 +35,7 @@ pub struct Gpu {
+@@ -34,6 +36,7 @@ pub struct Gpu {
      pub targets: targets::Targets,
      pub view: view::View,
      pub objects: objects::InstanceTable,
@@ -244,7 +247,7 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
      pub arena: arena::ArenaLane,
      pub segments: segments::SegmentLane,
      pub glyphs: glyphs::GlyphLane,
-@@ -84,6 +87,7 @@ impl Gpu {
+@@ -86,6 +89,7 @@ impl Gpu {
          let frame = frame::FrameUniforms::new(&ctx, &layouts, (1, 1));
          let targets = targets::Targets::new(&ctx, (1, 1), config.format, 1);
          let objects = objects::InstanceTable::new(&ctx, &layouts, &InkScene { targets: &targets });
@@ -252,7 +255,7 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
          let arena = arena::ArenaLane::new(&ctx, &layouts, target);
          let segments = segments::SegmentLane::new(&ctx, &layouts, target);
          let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
-@@ -98,6 +102,7 @@ impl Gpu {
+@@ -100,6 +104,7 @@ impl Gpu {
              targets,
              view: view::View::from_env(),
              objects,
@@ -260,14 +263,15 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
              arena,
              segments,
              glyphs,
-@@ -120,27 +125,73 @@ impl Gpu {
-         }
+@@ -125,6 +130,7 @@ impl Gpu {
+ 
          self.splat.invalidate();
-         self.bounds.union(&up.bounds);
+         self.bounds.union_with(&up.bounds);
 +        self.retarget(false);
      }
+ 
      /// Recreate size-dependent targets and groups; chapter05 adds budgeted multisampling.
-     pub fn resize(&mut self, width: u32, height: u32) {
+@@ -132,22 +138,69 @@ impl Gpu {
          self.config.width = width.max(1);
          self.config.height = height.max(1);
          self.surface.configure(&self.ctx.device, &self.config);
@@ -287,6 +291,7 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
 +        self.retarget(true);
          self.splat.resize();
      }
+ 
 +    /// Keep sample counts, target attachments and lane pipelines coherent.
 +    fn target(&self) -> Target {
 +        Target {
@@ -299,6 +304,7 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
 +    fn retarget(&mut self, resized: bool) {
 +        let samples = self.msaa_now();
 +        let flip = samples != self.targets.samples;
++
 +        if flip || resized {
 +            self.targets = Targets::new(
 +                &self.ctx,
@@ -314,6 +320,7 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
 +                },
 +            );
 +        }
++
 +        if flip {
 +            let target = self.target();
 +            self.backdrop.retarget(&self.ctx, &self.layouts, target);
@@ -347,22 +354,24 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
      /// Preserve source precision by rebuilding f32 translations around a shared f64 anchor.
      pub fn rebase_anchor(
          &mut self,
-@@ -204,6 +255,10 @@ impl Gpu {
+@@ -215,6 +268,12 @@ impl Gpu {
          };
          {
              let mut pass = self.targets.begin_faces(&mut encoder, &target, input.clear);
 +            self.backdrop.draw_background(&mut pass);
++
 +            if self.view.show_grid {
 +                self.backdrop.draw_grid(&mut pass, &basic);
 +            }
++
              self.arena.draw_faces(&mut pass, &basic);
              self.splat.draw_resolve(&mut pass, &self.frame.cloud_group);
          }
 diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
-index c984024b435312719e67722f4f3a9c509f47dc67..4c93f8c013b03e66b1170a334d4db9e1aa72f383 100644
+index a581c1a8f80bab89d52da72eef0153bbdda1fe78..a5026fa4a46025b56d71ae619a07c03acb561f01 100644
 --- a/session_viewer/src/engine/gpu/objects.rs
 +++ b/session_viewer/src/engine/gpu/objects.rs
-@@ -137,6 +137,14 @@ fn ink_instance_group(
+@@ -128,6 +128,14 @@ fn ink_instance_group(
                  binding: 3,
                  resource: wgpu::BindingResource::TextureView(&targets.depth_msaa),
              },
@@ -377,7 +386,7 @@ index c984024b435312719e67722f4f3a9c509f47dc67..4c93f8c013b03e66b1170a334d4db9e1
          ],
      })
  }
-@@ -185,6 +193,7 @@ impl InstanceTable {
+@@ -176,6 +184,7 @@ impl InstanceTable {
          ctx: &GpuCtx,
          layouts: &Layouts,
          depths: [&wgpu::TextureView; 2],
@@ -385,7 +394,7 @@ index c984024b435312719e67722f4f3a9c509f47dc67..4c93f8c013b03e66b1170a334d4db9e1
      ) -> wgpu::BindGroup {
          ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
              label: Some("pick.instances"),
-@@ -206,6 +215,14 @@ impl InstanceTable {
+@@ -197,6 +206,14 @@ impl InstanceTable {
                      binding: 3,
                      resource: wgpu::BindingResource::TextureView(depths[1]),
                  },
@@ -401,10 +410,10 @@ index c984024b435312719e67722f4f3a9c509f47dc67..4c93f8c013b03e66b1170a334d4db9e1
          })
      }
 diff --git a/session_viewer/src/engine/gpu/splat.rs b/session_viewer/src/engine/gpu/splat.rs
-index de5233fabfac8f69cde1f744d73121975a5f53e9..d9470ccde81ddf36c8d589ff6577cf763e743ae8 100644
+index 574c264aaeabd8426b53cf8189c473eb1fd1b557..3945cbb4613af43555f9f4227c36bf9c4de28531 100644
 --- a/session_viewer/src/engine/gpu/splat.rs
 +++ b/session_viewer/src/engine/gpu/splat.rs
-@@ -500,6 +500,11 @@ fn build_point(
+@@ -504,6 +504,11 @@ fn build_point(
      let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
          .with(v.label, v.fs)
          .vertex("vs_point");
@@ -416,7 +425,7 @@ index de5233fabfac8f69cde1f744d73121975a5f53e9..d9470ccde81ddf36c8d589ff6577cf76
      build(&ctx.device, v.target, &desc)
  }
  
-@@ -514,6 +519,7 @@ fn build_resolve(
+@@ -518,6 +523,7 @@ fn build_resolve(
      let groups = [&l.line, &l.resolve];
      let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
          .with("splat.resolve", "fs_main")
@@ -425,11 +434,10 @@ index de5233fabfac8f69cde1f744d73121975a5f53e9..d9470ccde81ddf36c8d589ff6577cf76
      build(&ctx.device, target, &desc)
  }
 diff --git a/session_viewer/src/engine/gpu/targets.rs b/session_viewer/src/engine/gpu/targets.rs
-index 0e020b1e3041bb5f57d715e1ceba30f215770178..2b0ade67e467948ec2ea39c01ed544253fb8a564 100644
+index 987cfc36df955a8f121373d3a2192a3dcf3e0b80..29ef4531d258d802c282ea3dbc04a6afda5fbc0b 100644
 --- a/session_viewer/src/engine/gpu/targets.rs
 +++ b/session_viewer/src/engine/gpu/targets.rs
-@@ -3,6 +3,26 @@
- 
+@@ -1,5 +1,25 @@
  use super::buffers::GpuCtx;
  
 +/// How many pixels a discrete GPU carries at 4x: 3840x2160 and change. Measured on
@@ -455,7 +463,7 @@ index 0e020b1e3041bb5f57d715e1ceba30f215770178..2b0ade67e467948ec2ea39c01ed54425
  /// The attachments of the frame's render pass and the sample count they were made at.
  /// `msaa` exists only at 4x. The ink layout binds a single-sampled AND a multisampled depth
  /// view, so the one not in use is a 1x1 placeholder.
-@@ -12,6 +32,9 @@ pub struct Targets {
+@@ -9,6 +29,9 @@ pub struct Targets {
      pub depth_single: wgpu::TextureView,
      pub depth_msaa: wgpu::TextureView,
      pub samples: u32,
@@ -465,7 +473,7 @@ index 0e020b1e3041bb5f57d715e1ceba30f215770178..2b0ade67e467948ec2ea39c01ed54425
  }
  
  impl Targets {
-@@ -59,7 +82,35 @@ impl Targets {
+@@ -56,7 +79,35 @@ impl Targets {
          } else {
              (empty_depth, depth.clone())
          };
@@ -501,7 +509,7 @@ index 0e020b1e3041bb5f57d715e1ceba30f215770178..2b0ade67e467948ec2ea39c01ed54425
              depth,
              msaa,
              depth_single,
-@@ -68,7 +119,36 @@ impl Targets {
+@@ -65,7 +116,37 @@ impl Targets {
          }
      }
  
@@ -528,6 +536,7 @@ index 0e020b1e3041bb5f57d715e1ceba30f215770178..2b0ade67e467948ec2ea39c01ed54425
 +        if let Some(s) = forced {
 +            return if s == 4 { 4 } else { 1 };
 +        }
++
 +        match budget {
 +            Some(max) if solid && pixels <= max => 4,
 +            _ => 1,
@@ -539,7 +548,7 @@ index 0e020b1e3041bb5f57d715e1ceba30f215770178..2b0ade67e467948ec2ea39c01ed54425
      pub fn begin_faces<'a>(
          &'a self,
          encoder: &'a mut wgpu::CommandEncoder,
-@@ -78,15 +158,26 @@ impl Targets {
+@@ -75,15 +156,26 @@ impl Targets {
          let target = self.msaa.as_ref().unwrap_or(view);
          encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
              label: Some("physical face pass"),
@@ -575,7 +584,7 @@ index 0e020b1e3041bb5f57d715e1ceba30f215770178..2b0ade67e467948ec2ea39c01ed54425
              depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                  view: &self.depth,
                  depth_ops: Some(wgpu::Operations {
-@@ -163,3 +254,40 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
+@@ -161,3 +253,40 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
  pub fn texture_view(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::TextureView {
      texture(ctx, label, spec).create_view(&wgpu::TextureViewDescriptor::default())
  }
@@ -617,10 +626,10 @@ index 0e020b1e3041bb5f57d715e1ceba30f215770178..2b0ade67e467948ec2ea39c01ed54425
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/text_outline.rs b/session_viewer/src/engine/gpu/text_outline.rs
-index 3d17edab45bd9f67d3019b29a1f9b0877714ee60..64eed7ee628282b0370aff6d4daba222b61973ca 100644
+index 85d107200e8907a13d023045b2f6338b548c7c41..587b8224c39f3a5c2ba95c0e150e55c2d9fbf6b6 100644
 --- a/session_viewer/src/engine/gpu/text_outline.rs
 +++ b/session_viewer/src/engine/gpu/text_outline.rs
-@@ -23,6 +23,7 @@ pub struct OutlineTextLane {
+@@ -17,6 +17,7 @@ pub struct OutlineTextLane {
      shader: wgpu::ShaderModule,
      color: wgpu::RenderPipeline,
      id: wgpu::RenderPipeline,
@@ -628,7 +637,7 @@ index 3d17edab45bd9f67d3019b29a1f9b0877714ee60..64eed7ee628282b0370aff6d4daba222
  }
  
  impl OutlineTextLane {
-@@ -33,13 +34,18 @@ impl OutlineTextLane {
+@@ -27,13 +28,18 @@ impl OutlineTextLane {
              "text-outline.shader",
              include_str!("../../shaders/text_outline.wgsl"),
          );
@@ -650,7 +659,7 @@ index 3d17edab45bd9f67d3019b29a1f9b0877714ee60..64eed7ee628282b0370aff6d4daba222
      }
  
      /// Draw imported glyph coverage after page fills and linework; depth remains read-only.
-@@ -53,6 +59,17 @@ impl OutlineTextLane {
+@@ -47,6 +53,17 @@ impl OutlineTextLane {
          draw(pass, binds, buffers)
      }
  
@@ -668,7 +677,7 @@ index 3d17edab45bd9f67d3019b29a1f9b0877714ee60..64eed7ee628282b0370aff6d4daba222
      /// Preserve the existing exact object IDs and sheet depth comparison in the picking pass.
      pub fn draw_ids(
          &self,
-@@ -85,7 +102,11 @@ fn pipelines(
+@@ -80,7 +97,11 @@ fn pipelines(
      layouts: &Layouts,
      shader: &wgpu::ShaderModule,
      target: Target,
@@ -681,7 +690,7 @@ index 3d17edab45bd9f67d3019b29a1f9b0877714ee60..64eed7ee628282b0370aff6d4daba222
      let groups = [&layouts.mvp, &layouts.line, &layouts.instance];
      let vertices = [vertex_layout(), instance_id_layout()];
      let base = PipelineDesc::new(
-@@ -109,7 +130,15 @@ fn pipelines(
+@@ -104,7 +125,15 @@ fn pipelines(
              .with("text-outline.id", "fs_id")
              .depth(DepthMode::ReadOnlyEqual),
      );
@@ -699,10 +708,10 @@ index 3d17edab45bd9f67d3019b29a1f9b0877714ee60..64eed7ee628282b0370aff6d4daba222
  
  #[cfg(all(test, not(target_arch = "wasm32")))]
 diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
-index 88cc89d4850a4fe6b2e10ec2d9c7362c6413567f..7c8b86525a5f0a818c8e5daeb1df549c6ca03299 100644
+index cedab8abef6bcdda2195eb7fbec6f4c26fd115bf..ec7cee6d6ae4cdb3707a01216f0289b80d53d02a 100644
 --- a/session_viewer/src/engine/pipelines/layouts.rs
 +++ b/session_viewer/src/engine/pipelines/layouts.rs
-@@ -64,7 +64,25 @@ fn scene_depth(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
+@@ -60,7 +60,25 @@ fn scene_depth(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
      }
  }
  
@@ -729,7 +738,7 @@ index 88cc89d4850a4fe6b2e10ec2d9c7362c6413567f..7c8b86525a5f0a818c8e5daeb1df549c
  fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
      device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
          label: Some("ink.instance.layout"),
-@@ -81,6 +99,8 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+@@ -77,6 +95,8 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
              ),
              scene_depth(2, false),
              scene_depth(3, true),
@@ -739,10 +748,10 @@ index 88cc89d4850a4fe6b2e10ec2d9c7362c6413567f..7c8b86525a5f0a818c8e5daeb1df549c
      })
  }
 diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
-index 220c041fd882b10d135d8640ab571f8737f595ce..c4a52504e821c681650f7f02d69f460472875fe1 100644
+index 6ef032b4b1f1204b30651645c83202da1bc99d22..e4cc90e726491211bb7cc3fc2b18fe93169d4e6b 100644
 --- a/session_viewer/src/engine/pipelines/mod.rs
 +++ b/session_viewer/src/engine/pipelines/mod.rs
-@@ -108,6 +108,7 @@ pub struct PipelineDesc<'a> {
+@@ -94,6 +94,7 @@ pub struct PipelineDesc<'a> {
      pub color: ColorWrite,
      pub depth: DepthMode,
      pub scene_samples: Option<u32>,
@@ -750,7 +759,7 @@ index 220c041fd882b10d135d8640ab571f8737f595ce..c4a52504e821c681650f7f02d69f4604
  }
  
  impl<'a> PipelineDesc<'a> {
-@@ -130,6 +131,7 @@ impl<'a> PipelineDesc<'a> {
+@@ -116,6 +117,7 @@ impl<'a> PipelineDesc<'a> {
              color: ColorWrite::Opaque,
              depth: DepthMode::Opaque,
              scene_samples: None,
@@ -758,7 +767,7 @@ index 220c041fd882b10d135d8640ab571f8737f595ce..c4a52504e821c681650f7f02d69f4604
          }
      }
  
-@@ -159,6 +161,12 @@ impl<'a> PipelineDesc<'a> {
+@@ -145,6 +147,12 @@ impl<'a> PipelineDesc<'a> {
          self
      }
  
@@ -771,7 +780,7 @@ index 220c041fd882b10d135d8640ab571f8737f595ce..c4a52504e821c681650f7f02d69f4604
      /// The same desc with another depth mode.
      pub fn depth(mut self, depth: DepthMode) -> Self {
          self.depth = depth;
-@@ -212,7 +220,12 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
+@@ -198,7 +206,12 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
  
  /// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
  pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
@@ -785,7 +794,7 @@ index 220c041fd882b10d135d8640ab571f8737f595ce..c4a52504e821c681650f7f02d69f4604
      device.create_shader_module(wgpu::ShaderModuleDescriptor {
          label: Some(label),
          source: wgpu::ShaderSource::Wgsl(source.into()),
-@@ -253,11 +266,22 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
+@@ -241,11 +254,24 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
      let layout = pipeline_layout(device, desc.label, desc.groups);
      let (depth_write, depth_compare) = desc.depth.state();
      let (blend, write_mask) = desc.color.state();
@@ -795,6 +804,7 @@ index 220c041fd882b10d135d8640ab571f8737f595ce..c4a52504e821c681650f7f02d69f4604
          blend,
          write_mask,
      })];
++
 +    if desc.physical {
 +        targets.push(Some(wgpu::ColorTargetState {
 +            format: wgpu::TextureFormat::Rg16Float,
@@ -806,24 +816,24 @@ index 220c041fd882b10d135d8640ab571f8737f595ce..c4a52504e821c681650f7f02d69f4604
 +            },
 +        }));
 +    }
++
      let mut constants = Vec::new();
+ 
      if let Some(samples) = desc.scene_samples {
-         constants.push(("SCENE_MSAA", f64::from(samples > 1)));
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb02f02479 100644
+index d7576c5ed964cd28f139b957e202a4d76b0fbf27..467a476a9ec5b2043e5764da2cd390943a719277 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
-@@ -1,75 +1,150 @@
--//! Four independent source rows exercise the mesh, segment, dot and point-cloud lanes.
+@@ -1,85 +1,160 @@
 -use crate::engine::gpu::{
 -    CloudDraw, CylinderSegment, GlyphPoint, Instance, NO_NORMALS, ObjectRow, Upload,
 -};
-+//! Deterministic grey box and floor depth fixtures in metre units.
 +use crate::engine::gpu::{CylinderSegment, GlyphPoint, ObjectRow, Upload};
-+use crate::math::Aabb;
+ use session_rust::AABB;
+ use session_rust::Point;
  use session_rust::{RenderVertex, Xform};
+ 
 -/// Build small deterministic local data; no network, private bucket or geometry decoder.
-+
 +/// Select a local fixture without fetching a manifest or decoding geometry.
  pub fn scene() -> Upload {
 +    if crate::app::route::query("fixture").as_deref() == Some("floor") {
@@ -846,10 +856,10 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 +        [0.5, 0.5, 0.5],
 +        [-0.5, 0.5, 0.5],
 +    ];
-+    upload.bounds = Aabb {
-+        min: [-0.5; 3],
-+        max: [0.5; 3],
-+    };
++    upload.bounds = AABB::from_points(
++        &[Point::new(-0.5, -0.5, -0.5), Point::new(0.5, 0.5, 0.5)],
++        0.0,
++    );
 +    row(&mut upload, true);
 +    let faces = [
 +        ([0, 3, 2, 1], [0., 0., -1.]),
@@ -859,13 +869,17 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 +        ([0, 4, 7, 3], [-1., 0., 0.]),
 +        ([1, 2, 6, 5], [1., 0., 0.]),
 +    ];
++
 +    for (corners, normal) in faces {
 +        let mut positions = [[0.0; 3]; 4];
++
 +        for (slot, corner) in corners.into_iter().enumerate() {
 +            positions[slot] = points[corner];
 +        }
++
 +        quad(&mut upload, 0, positions, normal);
 +    }
++
 +    for [first, last] in [
 +        [0, 1],
 +        [1, 2],
@@ -882,27 +896,22 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 +    ] {
 +        stroke(&mut upload, 0, points[first], points[last], 0xff0000ff);
 +    }
++
 +    for point in points {
 +        marker(&mut upload, 0, point, [0., 0., 0., 1.]);
 +    }
++
 +    upload
 +}
 +
 +/// Four millimetres separate hidden magenta ink from a physical sloping floor.
 +fn floor() -> Upload {
      let mut upload = Upload::default();
--    upload.bounds = crate::math::Aabb {
--        min: [-2.0, -1.3, -0.1],
--        max: [2.0, 1.3, 0.1],
-+    upload.bounds = Aabb {
-+        min: [-2.0, -1.5, -0.504],
-+        max: [2.0, 1.5, 0.5],
-     };
--    for _ in 0..4 {
--        upload
--            .obj
--            .rows
--            .push(ObjectRow::new(Xform::identity().m, Instance::FLAG_OPEN));
+     upload.bounds = AABB::from_points(
+-        &[Point::new(-2.0, -1.3, -0.1), Point::new(2.0, 1.3, 0.1)],
++        &[Point::new(-2.0, -1.5, -0.504), Point::new(2.0, 1.5, 0.5)],
+         0.0,
+     );
 +    row(&mut upload, true);
 +    row(&mut upload, false);
 +    quad(
@@ -916,13 +925,19 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 +        ],
 +        [-0.24253562, 0., 0.9701425],
 +    );
+ 
+-    for _ in 0..4 {
+-        upload
+-            .obj
+-            .rows
+-            .push(ObjectRow::new(Xform::identity(), Instance::FLAG_OPEN));
 +    for y in [-0.6, 0.0, 0.6] {
 +        stroke(&mut upload, 1, [-1., y, -0.254], [1., y, 0.246], 0xffff00ff);
 +        marker(&mut upload, 1, [0., y, -0.004], [1., 0., 1., 1.]);
      }
+ 
 -    upload.obj.rows[0].faces = true;
 -    upload.obj.rows[0].bounds = upload.bounds;
--    for position in [[-1.7, 0.1, 0.0], [-0.3, 0.1, 0.0], [-1.0, 1.1, 0.0]] {
 +    stroke(
 +        &mut upload,
 +        0,
@@ -935,15 +950,17 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 +
 +/// Describe each source object once; table indices remain its rendering address.
 +fn row(upload: &mut Upload, faces: bool) {
-+    let mut row = ObjectRow::new(Xform::identity().m, 0);
++    let mut row = ObjectRow::new(Xform::identity(), 0);
 +    row.bounds = upload.bounds;
 +    row.faces = faces;
 +    upload.obj.rows.push(row);
 +}
-+
+ 
+-    for position in [[-1.7, 0.1, 0.0], [-0.3, 0.1, 0.0], [-1.0, 1.1, 0.0]] {
 +/// Append two triangles using the same four positions as their boundary strokes.
 +fn quad(upload: &mut Upload, row: u32, points: [[f32; 3]; 4], normal: [f32; 3]) {
 +    let first = upload.arena.verts.len() as u32;
++
 +    for position in points {
          upload.arena.verts.push(RenderVertex {
              position,
@@ -955,6 +972,7 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 -        upload.arena.vids.push(0);
 +        upload.arena.vids.push(row);
      }
+ 
 -    upload.arena.idx.extend([0, 1, 2]);
 -    let chain = [
 -        [0.3, 0.2, 0.0],
@@ -962,6 +980,7 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 -        [1.2, 0.4, 0.0],
 -        [1.7, 1.0, 0.0],
 -    ];
+-
 -    for pair in chain.windows(2) {
 -        upload.seg.ribbons.push(CylinderSegment {
 -            p0: pair[0],
@@ -974,6 +993,8 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 +    for index in [0, 1, 2, 0, 2, 3] {
 +        upload.arena.idx.push(first + index);
      }
++}
+ 
 -    upload.glyph.dots.push(GlyphPoint {
 -        center: [-1.0, -0.7, 0.0],
 -        radius: 0.09,
@@ -981,8 +1002,6 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 -        instance_id: 2,
 -        facing: 0xffffffff,
 -        facing_ext: [0xffffffff; 2],
-+}
-+
 +/// Screen-space ribbon extrusion consumes unchanged source endpoints.
 +fn stroke(upload: &mut Upload, row: u32, p0: [f32; 3], p1: [f32; 3], color: u32) {
 +    upload.seg.ribbons.push(CylinderSegment {
@@ -993,6 +1012,8 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 +        color,
 +        facing: u32::MAX,
      });
++}
+ 
 -    for y in 0..9 {
 -        for x in 0..13 {
 -            upload
@@ -1002,6 +1023,7 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 -            upload.cloud.col.push(0xffffaa55);
 -        }
 -    }
+-
 -    upload.cloud.draws.push(CloudDraw {
 -        instance: 3,
 -        from: 0,
@@ -1011,8 +1033,6 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 -        node_first: 0,
 -        node_count: 0,
 -        nrm_first: NO_NORMALS,
-+}
-+
 +/// Source-centred markers use the same physical scene depth as the strokes.
 +fn marker(upload: &mut Upload, row: u32, center: [f32; 3], color: [f32; 4]) {
 +    upload.glyph.dots.push(GlyphPoint {
@@ -1027,29 +1047,33 @@ index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb
 -    upload
  }
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 27c1006dcc6b33ffe54e9b36aecae135a1a6c906..f2fb7e08d09946d58166992f8a0da14b03e95cc1 100644
+index b5ee4ad4e90af0a1f761cab1d1942282f8f67d57..23d9bbc8c67e665973f90957c055b13889bd7415 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -25,8 +25,17 @@ impl Tutorial {
+@@ -25,8 +25,21 @@ impl Tutorial {
          upload.drop_uploaded();
          let mut camera = camera::Camera::new();
          camera.unit = camera::Unit::Meters;
 -        camera.set_view(camera::View::Top);
 +        camera.set_view(camera::View::Iso);
          camera.fit(&gpu.bounds, 1.5);
++
 +        if app::route::query("top").is_some() {
 +            camera.set_view(camera::View::Top);
 +        }
++
 +        camera.perspective = app::route::query("perspective").is_some();
++
 +        if let Some(distance) = app::route::query("distance").and_then(parse_distance) {
 +            camera.distance *= distance;
 +            camera.update_position();
 +        }
++
 +        gpu.view.show_grid = false;
          Ok(Self {
              canvas,
              gpu,
-@@ -81,7 +90,7 @@ impl Tutorial {
+@@ -87,7 +100,7 @@ impl Tutorial {
              now_ms: now,
          };
          self.gpu.render(&input).map_err(js_error)?;
@@ -1058,7 +1082,7 @@ index 27c1006dcc6b33ffe54e9b36aecae135a1a6c906..f2fb7e08d09946d58166992f8a0da14b
              "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
      }
  }
-@@ -93,3 +102,9 @@ fn window_time(window: web_sys::Window) -> Option<f64> {
+@@ -101,3 +114,9 @@ fn window_time(window: web_sys::Window) -> Option<f64> {
  fn js_error(error: impl std::fmt::Display) -> JsValue {
      JsValue::from_str(&error.to_string())
  }
@@ -1070,14 +1094,10 @@ index 27c1006dcc6b33ffe54e9b36aecae135a1a6c906..f2fb7e08d09946d58166992f8a0da14b
 +}
 diff --git a/session_viewer/src/shaders/background.wgsl b/session_viewer/src/shaders/background.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..6fa12413e6d467c92ca1e020d8f70b69b9a6afb7
+index 0000000000000000000000000000000000000000..b5674a5eeb96823a69e4ee20f1768a0f978b4e20
 --- /dev/null
 +++ b/session_viewer/src/shaders/background.wgsl
-@@ -0,0 +1,25 @@
-+// The background: one fullscreen triangle, flat white. Its pipeline is DepthMode::Always -
-+// no test and no write - so the depth it emits never competes; under this viewer's reverse-Z
-+// the far plane is 0, not the 1 written here.
-+
+@@ -0,0 +1,21 @@
 +struct VsOut {
 +    @builtin(position) pos: vec4<f32>,
 +}
@@ -1101,13 +1121,10 @@ index 0000000000000000000000000000000000000000..6fa12413e6d467c92ca1e020d8f70b69
 +}
 diff --git a/session_viewer/src/shaders/grid.wgsl b/session_viewer/src/shaders/grid.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..adefe8b083303a3a66eb6e7449fbbc0516eb4ea7
+index 0000000000000000000000000000000000000000..620b4ee22991c1468a0894b029f47ac16d1f3df9
 --- /dev/null
 +++ b/session_viewer/src/shaders/grid.wgsl
 @@ -0,0 +1,56 @@
-+// The ground grid and axes: 50 vertices built from the vertex index, no buffer. Authored in
-+// world millimetres about the origin, minus the camera anchor the instance rows are rebased on.
-+
 +const STEP: f32 = 1000.0;   // mm per cell
 +const HALF: f32 = 5000.0;   // +-5 m floor
 +const N: u32 = 5u;          // cells per side of the centre
@@ -1129,6 +1146,7 @@ index 0000000000000000000000000000000000000000..adefe8b083303a3a66eb6e7449fbbc05
 +    let far = (vid % 2u) == 1u;
 +    var wp: vec3<f32>;
 +    var c: vec3<f32>;
++
 +    if (vid < FLOOR) {
 +        let dir = vid / PER_DIR;
 +        let k = (vid % PER_DIR) / 2u;
@@ -1138,6 +1156,7 @@ index 0000000000000000000000000000000000000000..adefe8b083303a3a66eb6e7449fbbc05
 +        c = GREY;
 +    } else {
 +        let axis = (vid - FLOOR) / 2u;
++
 +        if (axis == 0u) {
 +            wp = vec3<f32>(select(0.0, HALF, far), 0.0, 0.0);
 +            c = RED;
@@ -1151,6 +1170,7 @@ index 0000000000000000000000000000000000000000..adefe8b083303a3a66eb6e7449fbbc05
 +            c = BLUE;
 +        }
 +    }
++
 +    var o: VsOut;
 +    o.pos = mvp * vec4<f32>(wp - line.anchor, 1.0);
 +    o.color = c;
@@ -1162,35 +1182,26 @@ index 0000000000000000000000000000000000000000..adefe8b083303a3a66eb6e7449fbbc05
 +    return PhysicalColor(vec4<f32>(in.color, 1.0), vec2<f32>(0.0));
 +}
 diff --git a/session_viewer/src/shaders/ink_visibility.wgsl b/session_viewer/src/shaders/ink_visibility.wgsl
-index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d979991b4b2ca 100644
+index c9864f3fc29bd2001263371aa1879bb332c83841..fd04e4fe5aef65af0fb76b65cb617b1f7201e294 100644
 --- a/session_viewer/src/shaders/ink_visibility.wgsl
 +++ b/session_viewer/src/shaders/ink_visibility.wgsl
-@@ -1,29 +1,236 @@
--// Initial pixel-center visibility; chapter05 replaces this with the tested surface-carry rule.
-+// Ink compares its axis with the physical primitive depth carried by that primitive's
-+// raster gradient. This retains subpixel and grazing facets without relaxing occlusion.
-+// A bounded neighboring-plane fit handles gradients outside the attachment's range.
-+// Reverse-Z: nearer is greater, 0 is cleared. Pixels are framebuffer coordinates, y down.
+@@ -1,47 +1,193 @@
  @group(2) @binding(2) var scene_depth_single: texture_depth_2d;
  @group(2) @binding(3) var scene_depth_msaa: texture_depth_multisampled_2d;
 +
  override SCENE_MSAA: bool = false;
--struct InkColor { @location(0) color: vec4<f32> };
--struct InkAxis { at:vec2<f32>, depth:f32, along:vec2<f32>, slope:f32 };
--fn ink_depth(pixel:vec2<f32>, sample:u32) -> f32 {
--    if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w,line.vp_h))) { return 0.0; }
--    if (SCENE_MSAA) { return textureLoad(scene_depth_msaa,vec2<i32>(pixel),i32(sample)); }
--    return textureLoad(scene_depth_single,vec2<i32>(pixel),0);
 +@group(2) @binding(4) var scene_gradient_single: texture_2d<f32>;
 +@group(2) @binding(5) var scene_gradient_msaa: texture_multisampled_2d<f32>;
 +
 +// 2^-19: about 16 ULPs of a float, relative to the depth.
 +const DEPTH_REL_TOL: f32 = 1.9073486e-6;
++
 +// The rasterizer snaps vertices to 1/256 px, so a fitted plane's depth is off by its slope
 +// times that; 2^-8 is exactly that quantisation, with the headroom measured away: the close-up
 +// holds at 242720 non-background pixels and the probe matrix at 54 cases with its nine
 +// distance-1 counts unchanged, while the floor census residual falls from 29 to 13 samples.
 +const SLOPE_PX: f32 = 0.00390625;
++
 +// How much of the two slopes a KINK may differ by and still count as one surface. A tessellation
 +// is piecewise planar and turns at every facet boundary, so a curved BRep's edge curve runs along
 +// kinks and loses half its width when the guard reads one as a surface jump; a real jump changes
@@ -1202,40 +1213,52 @@ index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d9799
 +// incidence is about 0.09 of the slope. The rest of a sphere's meridian waits for edge and face
 +// discretisation to match, which is phase 2.
 +const KINK: f32 = 0.03125;
-+
-+struct InkColor {
-+    @location(0) color: vec4<f32>,
+ 
+ struct InkColor {
+     @location(0) color: vec4<f32>,
+-}
 +};
-+
+ 
 +// The stroke as one fragment sees it: the closest axis point, its depth, the unit screen
 +// direction of the stroke and the axis's depth change per pixel along it.
-+struct InkAxis {
+ struct InkAxis {
+-    at:vec2<f32>,
+-    depth:f32,
+-    along:vec2<f32>,
+-    slope:f32,
+-}
 +    at: vec2<f32>,
 +    depth: f32,
 +    along: vec2<f32>,
 +    slope: f32,
 +};
-+
+ 
+-fn ink_depth(pixel:vec2<f32>, sample:u32) -> f32 {
 +// A texel's physical depth at one sample; outside the viewport counts as cleared.
 +fn ink_depth(pixel: vec2<f32>, sample: u32) -> f32 {
-+    if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w, line.vp_h))) {
-+        return 0.0;
-+    }
+     if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w, line.vp_h))) {
+         return 0.0;
+     }
+ 
 +    let at = vec2<i32>(pixel);
-+    if (SCENE_MSAA) {
++
+     if (SCENE_MSAA) {
+-        return textureLoad(scene_depth_msaa, vec2<i32>(pixel), i32(sample));
 +        return textureLoad(scene_depth_msaa, at, i32(sample));
-+    }
+     }
+ 
+-    return textureLoad(scene_depth_single, vec2<i32>(pixel), 0);
 +    return textureLoad(scene_depth_single, at, 0);
- }
--fn ink_visible(pixel:vec2<f32>, axis:InkAxis, sample:u32) -> bool {
--    return ink_depth(pixel,sample) <= axis.depth;
++}
 +
 +// How far a fitted plane may miss: float precision plus the slope's snapping error over the
 +// lever arm it was extrapolated across.
 +fn ink_tolerance(depth: f32, slope: f32, lever: f32) -> f32 {
 +    return abs(depth) * DEPTH_REL_TOL + abs(slope) * SLOPE_PX * (1.0 + lever);
-+}
-+
+ }
+ 
+-fn ink_visible(pixel:vec2<f32>, axis:InkAxis, sample:u32) -> bool {
+-    return ink_depth(pixel, sample) <= axis.depth;
 +// Whether the fragment and its neighbour one texel along `dir` lie on one surface, so that
 +// pair may be fitted: on a plane the next texel out extends the slope, bent only by the
 +// rasterizer's vertex snapping and by whatever kink a tessellation has there, while a step from
@@ -1243,18 +1266,24 @@ index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d9799
 +// beyond it means the surface ends there and the pair is all there is to fit.
 +fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> bool {
 +    let z_side = ink_depth(pixel + dir, sample);
++
 +    if (z_side == 0.0) {
 +        return false;
 +    }
++
 +    let z_far = ink_depth(pixel + dir * 2.0, sample);
++
 +    if (z_far == 0.0) {
 +        return true;
 +    }
++
 +    let g = z_side - z;
 +    let g_far = z_far - z_side;
 +    return abs(g_far - g) <= abs(z) * DEPTH_REL_TOL + KINK * (abs(g) + abs(g_far));
-+}
-+
+ }
+ 
+-fn ink_disc_fragment_visible(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
+-    return ink_depth(pixel, sample) <= depth;
 +// The carry's verdict, shared by strokes and discs. A texel already nearer than the axis is
 +// ink only when its surface passes THROUGH the axis, so a plane fitted in front of the axis
 +// that lands behind it cannot uncover a covered stroke; a farther texel keeps the one-sided
@@ -1263,24 +1292,27 @@ index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d9799
 +    if (z > depth + abs(depth) * DEPTH_REL_TOL) {
 +        return abs(predicted - depth) <= tolerance;
 +    }
++
 +    return predicted <= depth + tolerance;
  }
--fn ink_disc_fragment_visible(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
--    return ink_depth(pixel,sample) <= depth;
-+
+ 
+-fn ink_disc_visible(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
+-    return ink_disc_fragment_visible(pixel, centre, depth, sample);
 +// The unit texel step away from the stroke on this fragment's side, along the dominant
 +// component of the perpendicular, so both texels of the fit lie on the fragment's surface.
 +fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
 +    let perp = vec2<f32>(-axis.along.y, axis.along.x);
 +    var step = vec2<f32>(sign(perp.x), 0.0);
++
 +    if (abs(perp.y) > abs(perp.x)) {
 +        step = vec2<f32>(0.0, sign(perp.y));
 +    }
++
 +    return select(step, -step, dot(pixel - axis.at, step) < 0.0);
  }
--fn ink_disc_visible(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
--    return ink_disc_fragment_visible(pixel,centre,depth,sample);
-+
+ 
+-fn ink_disc_source_hidden(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
+-    return ink_depth(pixel, sample) > depth;
 +// A stroke fragment: the surface under it, fitted from its own texel and the next one away
 +// from the stroke, carried to the axis, must not be nearer than the axis. On its own face
 +// or a touching neighbour the carry lands on the axis; a nearer occluder carries nearer and
@@ -1288,9 +1320,11 @@ index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d9799
 +// farther surface beyond a silhouette carries farther and the stroke overhangs it.
 +fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
 +    let z = ink_depth(pixel, sample);
++
 +    if (z == 0.0) {
 +        return true;
 +    }
++
 +    let step = ink_step(pixel, axis);
 +    // Three outcomes, in this order. The pair away from the stroke is written and planar, so it
 +    // holds the fragment's own surface and carries it. Else the pair toward the stroke is, and
@@ -1300,12 +1334,15 @@ index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d9799
 +    // compare, and that is the end of the line: a texel whose neighbours disagree with each
 +    // other has no surface to carry to the axis, so only its own depth can decide.
 +    var side = step;
++
 +    if (!ink_pair_planar(pixel, side, z, sample)) {
 +        side = -step;
++
 +        if (!ink_pair_planar(pixel, side, z, sample)) {
 +            return z <= axis.depth + abs(axis.depth) * DEPTH_REL_TOL;
 +        }
 +    }
++
 +    let z_side = ink_depth(pixel + side, sample);
 +    // The displacement to the axis as a * along + b * side; the two are never parallel.
 +    let e = axis.at - pixel;
@@ -1316,9 +1353,8 @@ index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d9799
 +    let predicted = z + a * axis.slope + b * g;
 +    return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b)));
  }
--fn ink_disc_source_hidden(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
--    return ink_depth(pixel,sample) > depth;
-+
+ 
+-// The rigid teaching fixture uses the same ray convention as the retained camera.
 +// A disc fragment: the surface under it, fitted along both axes away from the centre and
 +// carried back to the centre by that plane, is not in front of the disc. A disc is a
 +// camera-facing billboard, so the whole of it stands or falls with its centre; comparing at
@@ -1326,40 +1362,45 @@ index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d9799
 +// few pixels of its radius, uncover the rim of a marker buried behind it.
 +fn ink_disc_fragment_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
 +    let z = ink_depth(pixel, sample);
++
 +    if (z == 0.0) {
 +        return true;
 +    }
++
 +    let d = pixel - centre;
 +    var along_x = vec2<f32>(select(1.0, -1.0, d.x < 0.0), 0.0);
 +    var along_y = vec2<f32>(0.0, select(1.0, -1.0, d.y < 0.0));
++
 +    if (!ink_pair_planar(pixel, along_x, z, sample)) {
 +        along_x = -along_x;
++
 +        if (!ink_pair_planar(pixel, along_x, z, sample)) {
 +            return z <= depth + abs(depth) * DEPTH_REL_TOL;
 +        }
 +    }
++
 +    if (!ink_pair_planar(pixel, along_y, z, sample)) {
 +        along_y = -along_y;
++
 +        if (!ink_pair_planar(pixel, along_y, z, sample)) {
 +            return z <= depth + abs(depth) * DEPTH_REL_TOL;
 +        }
 +    }
++
 +    let gx = (ink_depth(pixel + along_x, sample) - z) * along_x.x;
 +    let gy = (ink_depth(pixel + along_y, sample) - z) * along_y.y;
 +    let predicted = z - d.x * gx - d.y * gy;
 +    return ink_carry_visible(predicted, z, depth, ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y)));
- }
- 
--// The rigid teaching fixture uses the same ray convention as the retained camera.
++}
++
 +// Orthographic visibility uses parallel rays, independent of lateral camera position.
  fn toward_eye(point: vec3<f32>) -> vec3<f32> {
--    if (line.ortho_h > 0.0) { return vec3<f32>(mvp[0].z,mvp[1].z,mvp[2].z); }
--    return vec3<f32>(line.eye_x,line.eye_y,line.eye_z) - point;
-+    if (line.ortho_h > 0.0) {
-+        return vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z);
-+    }
-+    return vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - point;
-+}
+     if (line.ortho_h > 0.0) {
+         return vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z);
+@@ -49,3 +195,88 @@ fn toward_eye(point: vec3<f32>) -> vec3<f32> {
+ 
+     return vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - point;
+ }
 +
 +// Test the footprint and its source centre at the same subpixel sample position.
 +// Only a verified plane can veto the centre: a raw texel at a silhouette is ambiguous.
@@ -1367,6 +1408,7 @@ index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d9799
 +    if (!ink_disc_fragment_visible(pixel, centre, depth, sample)) {
 +        return false;
 +    }
++
 +    let source_pixel = floor(centre) + fract(pixel);
 +    return !ink_disc_source_hidden(source_pixel, centre, depth, sample);
 +}
@@ -1376,77 +1418,107 @@ index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d9799
 +// The centre is hidden only when that complete plane lies strictly in front of it.
 +fn ink_disc_source_hidden(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
 +    let z = ink_depth(pixel, sample);
++
 +    if (z == 0.0) {
 +        return false;
 +    }
++
 +    let d = pixel - centre;
++
 +    for (var x = 0u; x < 2u; x++) {
 +        let dx = vec2<f32>(select(1.0, -1.0, x == 1u), 0.0);
++
 +        if (!ink_pair_planar(pixel, dx, z, sample)) {
 +            continue;
 +        }
++
 +        let gx = (ink_depth(pixel + dx, sample) - z) * dx.x;
++
 +        for (var y = 0u; y < 2u; y++) {
 +            let dy = vec2<f32>(0.0, select(1.0, -1.0, y == 1u));
++
 +            if (!ink_pair_planar(pixel, dy, z, sample)) {
 +                continue;
 +            }
++
 +            let gy = (ink_depth(pixel + dy, sample) - z) * dy.y;
 +            let diagonal = ink_depth(pixel + dx + dy, sample);
 +            let expected = z + gx * dx.x + gy * dy.y;
++
 +            if (diagonal == 0.0 || abs(diagonal - expected) > ink_tolerance(z, abs(gx) + abs(gy), 2.0)) {
 +                continue;
 +            }
++
 +            let predicted = z - d.x * gx - d.y * gy;
++
 +            if (predicted > depth + ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y))) {
 +                return true;
 +            }
 +        }
 +    }
++
 +    return false;
 +}
-+
 +
 +// Use the physical primitive's own gradient even when it covers only one sample.
 +fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
 +    let z = ink_depth(pixel, sample);
-+    if (z == 0.0) { return true; }
++
++    if (z == 0.0) {
++        return true;
++    }
++
 +    var encoded = vec2<f32>(0.0);
-+    if (SCENE_MSAA) { encoded = textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).xy; }
-+    else { encoded = textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).xy; }
-+    if (any(abs(encoded) >= vec2<f32>(PLANE_INVALID))) { return ink_axis_visible(pixel, axis, sample); }
++
++    if (SCENE_MSAA) {
++        encoded = textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).xy;
++    }
++    else {
++        encoded = textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).xy;
++    }
++
++    if (any(abs(encoded) >= vec2<f32>(PLANE_INVALID))) {
++        return ink_axis_visible(pixel, axis, sample);
++    }
++
 +    let gradient = encoded / PLANE_SCALE;
 +    let delta = axis.at - pixel;
 +    let predicted = z + dot(gradient, delta);
 +    return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(gradient.x)+abs(gradient.y), abs(delta.x)+abs(delta.y)));
- }
++}
 diff --git a/session_viewer/src/shaders/physical.wgsl b/session_viewer/src/shaders/physical.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..dcf68beaceb47e45b155eafef2d3267c11abac96
+index 0000000000000000000000000000000000000000..ee3fab0aec1845dce081ce1a620a799ebaaae6fa
 --- /dev/null
 +++ b/session_viewer/src/shaders/physical.wgsl
-@@ -0,0 +1,16 @@
-+// Preserve the rasterizer's primitive gradient, including subpixel and grazing triangles.
+@@ -0,0 +1,22 @@
 +const PLANE_SCALE: f32 = 65536.0;
 +const PLANE_INVALID: f32 = 65504.0;
++
 +struct PhysicalColor {
 +    @location(0) color: vec4<f32>,
 +    @location(1) gradient: vec2<f32>,
 +};
++
 +struct PhysicalId {
 + @location(0) id: vec2<u32>,
 + @location(1) gradient: vec2<f32>,
 +};
++
 +fn physical_gradient(depth: f32) -> vec2<f32> {
 +    let scaled = vec2<f32>(dpdx(depth), dpdy(depth)) * PLANE_SCALE;
-+    if (any(abs(scaled) >= vec2<f32>(PLANE_INVALID))) { return vec2<f32>(PLANE_INVALID); }
++
++    if (any(abs(scaled) >= vec2<f32>(PLANE_INVALID))) {
++        return vec2<f32>(PLANE_INVALID);
++    }
++
 +    return scaled;
 +}
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
-index ee4233dfef777420a9c80fe852217ce13c9efe98..2118ca3afeb7ae069ec6eee83bb6375bf6c5e27e 100644
+index c55c64a407cba2d8b247017b485dbfdf03325ffd..5c0955137f354d87957518678177739f5c814060 100644
 --- a/session_viewer/src/shaders/splat.wgsl
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -167,9 +167,9 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
+@@ -183,10 +183,10 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
  
  // The id pass: (object row + 1, point row + 1).
  @fragment
@@ -1455,14 +1527,15 @@ index ee4233dfef777420a9c80fe852217ce13c9efe98..2118ca3afeb7ae069ec6eee83bb6375b
      if (outside(in)) {
          discard;
      }
+ 
 -    return vec2<u32>(in.instance + 1u, in.row + 1u);
 +    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec2<f32>(0.0));
  }
 diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
-index 0b89a50c4448e87c927b748771206e52c9e9a431..d512da804122ea331e06f44b01cb61e809682ae4 100644
+index ced21baf3bf6e2e9b6a5b0c47ada45388c5c8cb4..5389b7922636b25348f3a8e0eceb1ad865e109a6 100644
 --- a/session_viewer/src/shaders/splat_resolve.wgsl
 +++ b/session_viewer/src/shaders/splat_resolve.wgsl
-@@ -28,6 +28,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+@@ -24,6 +24,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
  
  struct FsOut {
      @location(0) color: vec4<f32>,
@@ -1470,7 +1543,7 @@ index 0b89a50c4448e87c927b748771206e52c9e9a431..d512da804122ea331e06f44b01cb61e8
      @builtin(frag_depth) depth: f32,
  };
  
-@@ -70,6 +71,7 @@ fn shade(in: VsOut) -> FsOut {
+@@ -74,6 +75,7 @@ fn shade(in: VsOut) -> FsOut {
  
      o.color = vec4<f32>(rgb, 1.0);
      o.depth = d;
@@ -1479,7 +1552,7 @@ index 0b89a50c4448e87c927b748771206e52c9e9a431..d512da804122ea331e06f44b01cb61e8
  }
  
 diff --git a/session_viewer/src/shaders/text_outline.wgsl b/session_viewer/src/shaders/text_outline.wgsl
-index 14295e1a74fd05a1d3040b670f32d8f49464e6ef..5b55823ae18677e22a2954139d1ba46d2e6f934d 100644
+index 9cb162fde5d8ab58826d231e19aa635db7839894..6d178f2c44aacc77fcca99e519f033faf5587664 100644
 --- a/session_viewer/src/shaders/text_outline.wgsl
 +++ b/session_viewer/src/shaders/text_outline.wgsl
 @@ -38,6 +38,11 @@ fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
@@ -1495,10 +1568,10 @@ index 14295e1a74fd05a1d3040b670f32d8f49464e6ef..5b55823ae18677e22a2954139d1ba46d
  fn fs_id(fragment: Fragment) -> @location(0) vec2<u32> {
      return vec2<u32>(fragment.object + 1u, 0u);
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index 7934a12b9c424223c2a92f8edbb0a4e21bf1f43b..d2c50ab216cd6739d2cad684205831e6196db0ac 100644
+index 48cec1e880728d4d9b5ed8129577d1e85104d794..1ebc43ce9088cf5ce22afaf1cc7b3affc5635dc6 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -17,6 +17,7 @@ struct VsOut {
+@@ -15,6 +15,7 @@ struct VsOut {
      @location(3) print: f32,
      @location(4) @interpolate(flat) inst_id: u32,
      @location(5) @interpolate(flat) mirrored: u32,
@@ -1506,7 +1579,7 @@ index 7934a12b9c424223c2a92f8edbb0a4e21bf1f43b..d2c50ab216cd6739d2cad684205831e6
  }
  
  // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
-@@ -30,6 +31,7 @@ fn dead_vertex() -> VsOut {
+@@ -28,6 +29,7 @@ fn dead_vertex() -> VsOut {
      dead.print = 0.0;
      dead.inst_id = 0u;
      dead.mirrored = 0u;
@@ -1514,7 +1587,7 @@ index 7934a12b9c424223c2a92f8edbb0a4e21bf1f43b..d2c50ab216cd6739d2cad684205831e6
      return dead;
  }
  
-@@ -53,6 +55,7 @@ fn vs_main(in: VsIn) -> VsOut {
+@@ -55,6 +57,7 @@ fn vs_main(in: VsIn) -> VsOut {
      o.mirrored = select(0u, 1u, dot(inst.model[0].xyz, cross(inst.model[1].xyz, inst.model[2].xyz)) < 0.0);
      o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
      o.inst_id = in.inst_id;
@@ -1522,7 +1595,7 @@ index 7934a12b9c424223c2a92f8edbb0a4e21bf1f43b..d2c50ab216cd6739d2cad684205831e6
      return o;
  }
  
-@@ -112,11 +115,17 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
+@@ -120,11 +123,20 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
  
  // The id pass: (object row + 1, 0).
  @fragment
@@ -1536,7 +1609,10 @@ index 7934a12b9c424223c2a92f8edbb0a4e21bf1f43b..d2c50ab216cd6739d2cad684205831e6
 -fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
 -    return shade(in, front);
 +fn fs_selection_mask(in: VsOut) -> @location(0) vec4<f32> {
-+    if (in.selected == 0u) { discard; }
++    if (in.selected == 0u) {
++        discard;
++    }
++
 +    return vec4<f32>(1.0);
 +}
 +

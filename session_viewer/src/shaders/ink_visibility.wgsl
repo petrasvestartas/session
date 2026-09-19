@@ -1,7 +1,3 @@
-// Ink compares its axis with the physical primitive depth carried by that primitive's
-// raster gradient. This retains subpixel and grazing facets without relaxing occlusion.
-// A bounded neighboring-plane fit handles gradients outside the attachment's range.
-// Reverse-Z: nearer is greater, 0 is cleared. Pixels are framebuffer coordinates, y down.
 @group(2) @binding(2) var scene_depth_single: texture_depth_2d;
 @group(2) @binding(3) var scene_depth_msaa: texture_depth_multisampled_2d;
 
@@ -11,11 +7,13 @@ override SCENE_MSAA: bool = false;
 
 // 2^-19: about 16 ULPs of a float, relative to the depth.
 const DEPTH_REL_TOL: f32 = 1.9073486e-6;
+
 // The rasterizer snaps vertices to 1/256 px, so a fitted plane's depth is off by its slope
 // times that; 2^-8 is exactly that quantisation, with the headroom measured away: the close-up
 // holds at 242720 non-background pixels and the probe matrix at 54 cases with its nine
 // distance-1 counts unchanged, while the floor census residual falls from 29 to 13 samples.
 const SLOPE_PX: f32 = 0.00390625;
+
 // How much of the two slopes a KINK may differ by and still count as one surface. A tessellation
 // is piecewise planar and turns at every facet boundary, so a curved BRep's edge curve runs along
 // kinks and loses half its width when the guard reads one as a surface jump; a real jump changes
@@ -48,10 +46,13 @@ fn ink_depth(pixel: vec2<f32>, sample: u32) -> f32 {
     if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w, line.vp_h))) {
         return 0.0;
     }
+
     let at = vec2<i32>(pixel);
+
     if (SCENE_MSAA) {
         return textureLoad(scene_depth_msaa, at, i32(sample));
     }
+
     return textureLoad(scene_depth_single, at, 0);
 }
 
@@ -70,13 +71,17 @@ fn ink_tolerance(depth: f32, slope: f32, lever: f32) -> f32 {
 
 fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> bool {
     let z_side = ink_depth(pixel + dir, sample);
+
     if (z_side == 0.0) {
         return false;
     }
+
     let z_far = ink_depth(pixel + dir * 2.0, sample);
+
     if (z_far == 0.0) {
         return true;
     }
+
     let g = z_side - z;
     let g_far = z_far - z_side;
     return abs(g_far - g) <= abs(z) * DEPTH_REL_TOL + KINK * (abs(g) + abs(g_far));
@@ -91,6 +96,7 @@ fn ink_carry_visible(predicted: f32, z: f32, depth: f32, tolerance: f32) -> bool
     if (z > depth + abs(depth) * DEPTH_REL_TOL) {
         return abs(predicted - depth) <= tolerance;
     }
+
     return predicted <= depth + tolerance;
 }
 
@@ -100,9 +106,11 @@ fn ink_carry_visible(predicted: f32, z: f32, depth: f32, tolerance: f32) -> bool
 fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
     let perp = vec2<f32>(-axis.along.y, axis.along.x);
     var step = vec2<f32>(sign(perp.x), 0.0);
+
     if (abs(perp.y) > abs(perp.x)) {
         step = vec2<f32>(0.0, sign(perp.y));
     }
+
     return select(step, -step, dot(pixel - axis.at, step) < 0.0);
 }
 
@@ -114,9 +122,11 @@ fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
 
 fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
+
     if (z == 0.0) {
         return true;
     }
+
     let step = ink_step(pixel, axis);
     // Three outcomes, in this order. The pair away from the stroke is written and planar, so it
     // holds the fragment's own surface and carries it. Else the pair toward the stroke is, and
@@ -126,12 +136,15 @@ fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     // compare, and that is the end of the line: a texel whose neighbours disagree with each
     // other has no surface to carry to the axis, so only its own depth can decide.
     var side = step;
+
     if (!ink_pair_planar(pixel, side, z, sample)) {
         side = -step;
+
         if (!ink_pair_planar(pixel, side, z, sample)) {
             return z <= axis.depth + abs(axis.depth) * DEPTH_REL_TOL;
         }
     }
+
     let z_side = ink_depth(pixel + side, sample);
     // The displacement to the axis as a * along + b * side; the two are never parallel.
     let e = axis.at - pixel;
@@ -151,24 +164,31 @@ fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
 
 fn ink_disc_fragment_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
+
     if (z == 0.0) {
         return true;
     }
+
     let d = pixel - centre;
     var along_x = vec2<f32>(select(1.0, -1.0, d.x < 0.0), 0.0);
     var along_y = vec2<f32>(0.0, select(1.0, -1.0, d.y < 0.0));
+
     if (!ink_pair_planar(pixel, along_x, z, sample)) {
         along_x = -along_x;
+
         if (!ink_pair_planar(pixel, along_x, z, sample)) {
             return z <= depth + abs(depth) * DEPTH_REL_TOL;
         }
     }
+
     if (!ink_pair_planar(pixel, along_y, z, sample)) {
         along_y = -along_y;
+
         if (!ink_pair_planar(pixel, along_y, z, sample)) {
             return z <= depth + abs(depth) * DEPTH_REL_TOL;
         }
     }
+
     let gx = (ink_depth(pixel + along_x, sample) - z) * along_x.x;
     let gy = (ink_depth(pixel + along_y, sample) - z) * along_y.y;
     let predicted = z - d.x * gx - d.y * gy;
@@ -181,6 +201,7 @@ fn toward_eye(point: vec3<f32>) -> vec3<f32> {
     if (line.ortho_h > 0.0) {
         return vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z);
     }
+
     return vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - point;
 }
 
@@ -191,6 +212,7 @@ fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32
     if (!ink_disc_fragment_visible(pixel, centre, depth, sample)) {
         return false;
     }
+
     let source_pixel = floor(centre) + fract(pixel);
     return !ink_disc_source_hidden(source_pixel, centre, depth, sample);
 }
@@ -201,52 +223,77 @@ fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32
 
 fn ink_disc_source_hidden(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
+
     if (z == 0.0) {
         return false;
     }
+
     let d = pixel - centre;
+
     for (var x = 0u; x < 2u; x++) {
         let dx = vec2<f32>(select(1.0, -1.0, x == 1u), 0.0);
+
         if (!ink_pair_planar(pixel, dx, z, sample)) {
             continue;
         }
+
         let gx = (ink_depth(pixel + dx, sample) - z) * dx.x;
+
         for (var y = 0u; y < 2u; y++) {
             let dy = vec2<f32>(0.0, select(1.0, -1.0, y == 1u));
+
             if (!ink_pair_planar(pixel, dy, z, sample)) {
                 continue;
             }
+
             let gy = (ink_depth(pixel + dy, sample) - z) * dy.y;
             let diagonal = ink_depth(pixel + dx + dy, sample);
             let expected = z + gx * dx.x + gy * dy.y;
+
             if (diagonal == 0.0 || abs(diagonal - expected) > ink_tolerance(z, abs(gx) + abs(gy), 2.0)) {
                 continue;
             }
+
             let predicted = z - d.x * gx - d.y * gy;
+
             if (predicted > depth + ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y))) {
                 return true;
             }
         }
     }
+
     return false;
 }
-
 
 // Use the physical primitive's own gradient even when it covers only one sample.
 
 fn ink_visible_plane(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
-    if (z == 0.0) { return true; }
+
+    if (z == 0.0) {
+        return true;
+    }
+
     var encoded = vec2<f32>(0.0);
-    if (SCENE_MSAA) { encoded = textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).xy; }
-    else { encoded = textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).xy; }
-    if (any(abs(encoded) >= vec2<f32>(PLANE_INVALID))) { return ink_axis_visible(pixel, axis, sample); }
+
+    if (SCENE_MSAA) {
+        encoded = textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).xy;
+    }
+    else {
+        encoded = textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).xy;
+    }
+
+    if (any(abs(encoded) >= vec2<f32>(PLANE_INVALID))) {
+        return ink_axis_visible(pixel, axis, sample);
+    }
+
     let gradient = encoded / PLANE_SCALE;
     let delta = axis.at - pixel;
     let predicted = z + dot(gradient, delta);
     return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(gradient.x)+abs(gradient.y), abs(delta.x)+abs(delta.y)));
 }
-@group(2) @binding(6) var<storage,read> projected: array<ProjectedTriangle>;
+
+@group(2) @binding(6) var<storage, read> projected: array<ProjectedTriangle>;
 
 // Return the index+1 of the exact opaque triangle that won this depth sample.
 
@@ -254,72 +301,95 @@ fn ink_primitive(pixel: vec2<f32>, sample: u32) -> u32 {
     if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w, line.vp_h))) {
         return 0u;
     }
+
     if (SCENE_MSAA) {
         return ink_decode_primitive(textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).zw);
     }
+
     return ink_decode_primitive(textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).zw);
 }
+
 @group(2) @binding(7) var<storage, read> triangle_tiles: array<vec4<u32>>;
 
 fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     if (ink_visible_plane(pixel, axis, sample)) {
         return true;
     }
+
     if (triangle_tiles[0].x==0u) {
         return false;
     }
+
     // The projected triangles and their tiles are in canvas pixels; the pick pass renders a
     // window of the canvas into an attachment of its own, so its fragments are offset by
     // `origin` (zero in a frame).
     let at = axis.at + line.origin;
     let fringe = ink_primitive(pixel, sample);
+
     if (fringe==0u) {
         return false;
     }
+
     let fringe_hit = projected_triangle_at(projected[fringe-1u], at);
+
     if (fringe_hit.y>0.5 && fringe_hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
         return false;
     }
+
     let source_base = floor(axis.at-fract(pixel))+fract(pixel);
+
     for (var i = 0u;i<4u;i++) {
         let primitive = ink_primitive(source_base+vec2<f32>(f32(i&1u), f32(i>>1u)), sample);
+
         if (primitive==0u || primitive==fringe) {
             continue;
         }
+
         let hit = projected_triangle_at(projected[primitive-1u], at);
+
         if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
             return false;
         }
     }
+
     if (any(at<vec2<f32>(0.0)) || any(at>=line.frame)) {
         return false;
     }
+
     let span = f32(visibility_tile_span_of(u32(line.frame.x), u32(line.frame.y)));
     let size = vec2<u32>(ceil(line.frame/span));
     let cell = vec2<u32>(at/span);
     let head = triangle_tiles[1u+cell.y*size.x+cell.x];
+
     // The tile's record as four words: x = triangles covering it, y = where its list starts,
     // z = how many were actually written, w = the overflow flag. An incomplete list (z != x)
     // or an overflowing one cannot prove that the axis is clear.
     if (head.w!=0u || head.z!=head.x) {
         return false;
     }
+
     for (var i = 0u;i<head.x;i++) {
         let offset = head.y+i*2u;
         let nearest = bitcast<f32>(triangle_tiles[(offset+1u)/4u][(offset+1u)%4u]);
+
         if (nearest<=axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
             continue;
         }
+
         let primitive = triangle_tiles[offset/4u][offset%4u];
         let bounds = projected[primitive-1u].bounds;
+
         if (any(at<bounds.xy-SLOPE_PX) || any(at>bounds.zw+SLOPE_PX)) {
             continue;
         }
+
         let hit = projected_triangle_at(projected[primitive-1u], at);
+
         if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
             return false;
         }
     }
+
     return true;
 }
 
@@ -327,6 +397,7 @@ fn ink_decode_primitive(encoded: vec2<f32>) -> u32 {
     if (any(encoded==vec2<f32>(0.0))) {
         return 0u;
     }
+
     let packed = pack2x16float(encoded);
     return ((packed&0xffffu)-0x400u) | (((packed>>16u)-0x400u)<<14u);
 }

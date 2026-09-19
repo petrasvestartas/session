@@ -10,13 +10,17 @@ pub struct Vertex {
 }
 
 const COLORS: [u32; 3] = [0xff2424e8, 0xff30b820, 0xffef6628];
+
 const SIDES: usize = 24;
+
 const SHAFT: f32 = 2.2;
+
 const TIP: f32 = 14.0;
 
 /// One immutable mesh in CSS-pixel units, with ten independently highlighted handles.
 pub fn vertices() -> Vec<Vertex> {
     let mut out = Vec::with_capacity(18_576);
+
     for (axis, color) in COLORS.into_iter().enumerate() {
         let arm = ARM as f32;
         let shaft = [(HUB as f32, SHAFT), (arm - TIP, SHAFT)];
@@ -36,6 +40,7 @@ pub fn vertices() -> Vec<Vertex> {
             orient(position, axis)
         });
     }
+
     sphere(&mut out, 0, 0.0, HUB as f32, 0xffd8d8d8, 9);
     out
 }
@@ -103,6 +108,7 @@ mod tests {
         let mesh = vertices();
         assert!(mesh.len() < 20_000);
         let mut handles = [false; 10];
+
         for vertex in mesh {
             handles[vertex.handle as usize] = true;
             assert!(
@@ -112,6 +118,7 @@ mod tests {
                     .all(|v| v.is_finite() && v.abs() <= ARM as f32 + 2.0)
             );
         }
+
         assert!(handles.into_iter().all(|v| v));
     }
 }

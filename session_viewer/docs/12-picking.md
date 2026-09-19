@@ -41,12 +41,12 @@ Install the binary interaction fixture and the supplied native harness file firs
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-83 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-80 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=84-116 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=81-113 -->
 
 - Ask for 256 MiB of storage binding where available, not the adapter maximum: the measured point-cloud scene needs 158 MB in one table.
 - A 128 MiB device still starts.
@@ -56,7 +56,7 @@ Install the binary interaction fixture and the supplied native harness file firs
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=117-162 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=114-162 -->
 
 - The surface's capabilities decide the format: the first sRGB one if there is one, so colours are written in the space the browser displays.
 
@@ -64,7 +64,7 @@ Native-only adapter naming and the error callbacks:
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=163-231 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=163-233 -->
 
 ### Step 2 · Presenting a frame
 
@@ -78,17 +78,17 @@ Native-only adapter naming and the error callbacks:
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=1-68 -->
+<!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=1-65 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=69-85 -->
+<!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=66-82 -->
 
 Offscreen and benchmark paths for native tools:
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/present.rs copy lines=86-183 -->
+<!-- file: 12 session_viewer/src/engine/gpu/present.rs copy lines=83-182 -->
 
 ### Step 3 · The frame list
 
@@ -105,7 +105,7 @@ Offscreen and benchmark paths for native tools:
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=55-123 -->
+<!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=55-131 -->
 
 
 ### Step 4 · Input bindings
@@ -133,30 +133,30 @@ Every handler returns whether a redraw is needed; a click returns `false` — no
 
 <span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=1-49 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=1-39 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=50-83 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=40-74 -->
 
 - `D` flips the headlight (`view.lit`), off by default: a face shows its flat row colour until you ask for shading.
 - `P` flips x-ray; from lesson 18 on, zero opacity turns every multi-face solid into edges and vertices.
 
 <span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=84-170 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=75-165 -->
 
 - A press that moved more than `CLICK_SLOP` before release is a drag: a camera gesture never selects on release.
 
 <span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=171-198 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=166-195 -->
 
 - The owned `pointercancel` listener detaches on drop; a forgotten closure would outlive the canvas.
 
 <span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs copy lines=199-258 -->
+<!-- file: 12 session_viewer/src/app/input.rs copy lines=196-257 -->
 
 ### Step 5 · Touch
 
@@ -171,17 +171,17 @@ Every handler returns whether a redraw is needed; a click returns `false` — no
 
 <span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/touch.rs copy lines=1-68 -->
+<!-- file: 12 session_viewer/src/app/touch.rs copy lines=1-34 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/touch.rs type lines=69-138 -->
+<!-- file: 12 session_viewer/src/app/touch.rs type lines=35-99 -->
 
 - `Act` is what the gesture asked for, not what was done: `Fit` needs the scene bounds, and this file may know only the camera.
 
 <span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/touch.rs copy lines=139-229 -->
+<!-- file: 12 session_viewer/src/app/touch.rs copy lines=100-198 -->
 
 ### Step 6 · Scene: source documents and row bookkeeping
 
@@ -195,52 +195,52 @@ Every handler returns whether a redraw is needed; a click returns `false` — no
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-63 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-48 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=64-121 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=49-105 -->
 
 - A reload must not invalidate the `Scene` the application holds: the tables empty in place and row bookkeeping restarts at zero.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=122-180 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=106-167 -->
 
 - One object row per GUID, in the kernel's canonical order; a GUID keeps its row for a whole revision.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=181-203 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=168-191 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=204-268 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=192-260 -->
 
 - Streamed clouds have no kernel object; their slot records the absolute row point 0 landed on.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=269-330 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=261-325 -->
 
 - A streamed cloud grows: each slice appends to the same row range and uploads only its new points, never rebuilding what is on the GPU.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=331-345 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=326-340 -->
 
 - Row → identity in both directions; `edge_at` reads the segment sub-ID tag bit set by the ribbon shader.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=346-409 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=341-408 -->
 
 - An edge answer goes back through the retained producer records; one that cannot be named is refused, not guessed.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=410-487 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=409-492 -->
 
 ### Step 7 · Selection mode
 
@@ -264,30 +264,30 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-48 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-44 -->
 
 - Normals are read only when every point has one: a partly-normalled cloud would shade inconsistently, and no per-point flag says which.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=49-81 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=45-80 -->
 
 - The file's octree is rewritten into this cloud's own row and node numbering, so one lane holds many clouds without colliding node indices.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=82-128 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=81-133 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=129-186 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=134-195 -->
 
 - A streamed cloud is only partly present: spacing is measured over the nodes complete within the points received.
 - Discs sized from a node still arriving would flicker as it fills.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=187-224 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=196-238 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
@@ -360,68 +360,68 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-63 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-57 -->
 
 - The tolerance is a circle in framebuffer pixels, at least one pixel wide: a click is a point, the intent a neighbourhood — the same physical size on every display.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=64-86 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=58-80 -->
 
 - `generation` counts requests; `submitted` records which generation the in-flight copy belongs to. A camera move bumps `generation`, so the answer is discarded when it lands.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=87-148 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=81-143 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=149-207 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=144-202 -->
 
 - One function computes the window's bounds, used by both the scissor and the copy: two computations that must agree are one computation used twice.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=208-226 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=203-221 -->
 
 - The ID targets are made on the first pick and kept until the canvas resizes.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=227-313 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=222-309 -->
 
 - The ID pass gets its own gradient attachment, cleared beside the ID and depth targets on every pick, so ink decides its own visibility from it.
 - Without it, a stroke would be pickable exactly where it is invisible.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=314-354 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=310-350 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=355-399 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=351-397 -->
 
 - The native census captures the unchanged ID pass: the hidden-line tests judge visibility against exact object numbers, not pixels.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=400-443 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=398-441 -->
 
 - `map` must run after the submit and only once per copy; `poll` reads the mapped bytes on a later frame.
 - Ink beats a face anywhere in the window; among equals the nearest to the cursor wins, so a curve across a face stays selectable.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=444-492 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=442-496 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=493-556 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=497-567 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs copy lines=557-636 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs copy lines=568-649 -->
 
 ### Step 11 · The ID pass in the frame list
 
@@ -434,7 +434,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=124-196 -->
+<!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=132-213 -->
 
 ### Step 12 · Selected-surface silhouette
 
@@ -446,17 +446,17 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=1-74 -->
+<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=1-70 -->
 
 - Coverage is allocated with the first selected row and released with the last: an unselected scene pays nothing.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=75-98 -->
+<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=71-95 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=99-165 -->
+<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=96-165 -->
 
 - `prepare` also answers whether anything needs drawing: the cheapest version of this feature is the one switched off.
 
@@ -472,7 +472,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs copy lines=245-341 -->
+<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs copy lines=245-345 -->
 
 ```text
 Rust bind group 0                          WGSL
@@ -501,31 +501,31 @@ binding 1: uniform [radius, 0, 0, 0]    ↔  @group(0) @binding(1) var<uniform> 
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=1-45 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=1-39 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=46-106 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=40-100 -->
 
 - Streamed clouds and sheets arrive in slices: an add makes the row, an extend appends.
 - `State` is the only place that knows a slice belongs to an object already on screen.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=107-161 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=101-149 -->
 
 - A resize is forwarded, not handled: the camera needs the new aspect, the GPU new attachments.
 - Driving both from one place keeps them from disagreeing for a frame.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=162-188 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=150-176 -->
 
 - Each ends by telling the GPU and asking for a frame: `State` is the only place that knows both sides.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=189-207 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=177-196 -->
 
 - `toggle_xray` is a view change, not a scene change: `view.opacity` goes between `1.0` and `0.0`, and `touch` schedules a frame.
 - The shaders read the zero; no row is rewritten.
@@ -533,35 +533,35 @@ binding 1: uniform [radius, 0, 0, 0]    ↔  @group(0) @binding(1) var<uniform> 
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=208-262 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=197-256 -->
 
 - `apply_pick`: an edge answer needs `Scene::edge_at`; an object answer toggles the row.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=263-316 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=257-317 -->
 
 - `render` applies a returned pick first, so the same frame presents its highlight; a pick on a still scene runs alone through `pick_frame`.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=317-380 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=318-388 -->
 
 - `request_selection` configures the tolerance in CSS pixels times the actual logical-to-physical scale, then records the request.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=381-430 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=389-441 -->
 
 Document titles and the selected name are derived labels; they have no source row and cannot intercept a click.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs type lines=431-484 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=442-499 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 12 session_viewer/src/state.rs copy lines=485-510 -->
+<!-- file: 12 session_viewer/src/state.rs copy lines=500-525 -->
 
 ### Step 14 · Gpu owns device, presentation and picking
 
@@ -625,27 +625,27 @@ Document titles and the selected name are derived labels; they have no source ro
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 12 session_viewer/src/lib.rs type whole lines=1-35 -->
+<!-- file: 12 session_viewer/src/lib.rs type whole lines=1-30 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 12 session_viewer/src/lib.rs type whole lines=36-92 -->
+<!-- file: 12 session_viewer/src/lib.rs type whole lines=31-88 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 12 session_viewer/src/lib.rs type whole lines=93-157 -->
+<!-- file: 12 session_viewer/src/lib.rs type whole lines=89-158 -->
 
 - The window handler keeps only redraw and resize.
 - Keys and the mouse go to `Input`; the shell never decides what a gesture means.
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 12 session_viewer/src/lib.rs type whole lines=158-194 -->
+<!-- file: 12 session_viewer/src/lib.rs type whole lines=159-199 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 12 session_viewer/src/lib.rs copy whole lines=195-258 -->
+<!-- file: 12 session_viewer/src/lib.rs copy whole lines=200-268 -->
 
 ### Step 17 · Page, manifest and the removed teaching fixture
 

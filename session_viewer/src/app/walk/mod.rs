@@ -1,13 +1,8 @@
-//! The walk: one producer per kernel geometry type, each receiving ONLY the lane tables it
-//! writes. `walk_geometry` dispatches; `Row` is what a producer reports for its object row.
-//! Deleting a lane = deleting its producer file and its arm here.
-
 use crate::engine::gpu::Upload;
 use crate::engine::gpu::arena::ArenaRows;
 use crate::engine::gpu::cloud::CloudRows;
 use crate::engine::gpu::glyphs::GlyphRows;
 use crate::engine::gpu::segments::SegRows;
-use crate::math::Aabb;
 use brep::{walk_brep, walk_surface};
 use cloud::walk_cloud;
 use curves::{walk_line, walk_nurbscurve, walk_polyline};
@@ -15,6 +10,7 @@ use frames::{walk_obb, walk_plane};
 use mesh::{MeshCx, MeshOpts, walk_mesh};
 use mesh_ink::Ink;
 use points::walk_point;
+use session_rust::AABB;
 use session_rust::Geometry;
 use session_rust::element::ElementGeometry;
 
@@ -74,16 +70,15 @@ pub struct WalkCx {
 /// What a producer reports for its object row: the local box, the point/vertex spacing and
 /// the flags it earned.
 pub struct Row {
-    pub bounds: Aabb,
+    pub bounds: AABB,
     pub spacing: f32,
     pub flags: u32,
-    /// The row drew faces: the inside test (eye within the box) applies to it.
-    pub faces: bool,
+    pub faces: bool, // The row drew faces: the inside test (eye within the box) applies to it.
 }
 
 impl Row {
     /// Linework, points, frames: a box, no spacing, no flags, no faces.
-    pub fn thin(bounds: Aabb) -> Self {
+    pub fn thin(bounds: AABB) -> Self {
         Self {
             bounds,
             spacing: 0.0,
@@ -149,7 +144,7 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
                 let (arena, mut ink) = w.solid();
                 walk_brep(arena, &mut ink, b, cx)
             }
-            ElementGeometry::None => Row::thin(Aabb::empty()),
+            ElementGeometry::None => Row::thin(AABB::empty()),
         },
     }
 }

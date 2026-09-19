@@ -1,6 +1,3 @@
-//! The frame list: physical surfaces first, then ink against their immutable depth. The
-//! optional picking pass follows the same visibility rule and toggles.
-
 use super::Gpu;
 use super::frame::Binds;
 use super::pick::PickMode;
@@ -17,6 +14,7 @@ impl Gpu {
         ) {
             self.rebind_ink();
         }
+
         let b = self.frame.binds(&self.objects.group);
         self.arena.prepare_visibility(
             &self.ctx,
@@ -76,12 +74,14 @@ impl Gpu {
         };
         let stale = (solid && !self.solid_outline.is_valid(&key))
             || (selected && !self.selection_outline.is_valid(&key));
+
         if stale {
             let b = self.frame.binds(&self.objects.group);
             // The edges extend the coverage by their own footprint, tested against the same
             // physical depth the ink pass reads, so the ring wraps them.
             let ink = self.frame.binds(&self.objects.ink_group);
             let edges = self.view.show_mesh_edges;
+
             if solid && selected {
                 // One rasterization of the faces writes both masks.
                 let mut pass = surface_outline::SurfaceOutline::begin_masks(
@@ -92,12 +92,14 @@ impl Gpu {
                 );
                 draws += self.arena.draw_masks(&mut pass, &b);
                 draws += self.arena.source_faces.draw_masks(&mut pass, &b);
+
                 if edges {
                     draws += self.segments.draw_masks(&mut pass, &ink);
                 }
             } else if solid {
                 let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
                 draws += self.arena.draw_solid_mask(&mut pass, &b);
+
                 if edges {
                     draws += self.segments.draw_solid_mask(&mut pass, &ink);
                 }
@@ -105,19 +107,23 @@ impl Gpu {
                 let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
                 draws += self.arena.draw_selection_mask(&mut pass, &b);
                 draws += self.arena.source_faces.draw_mask(&mut pass, &b);
+
                 if edges {
                     draws += self.segments.draw_selection_mask(&mut pass, &ink);
                 }
             }
+
             if solid {
                 self.solid_outline.encode_pool(encoder);
                 self.solid_outline.mark_valid(key);
             }
+
             if selected {
                 self.selection_outline.encode_pool(encoder);
                 self.selection_outline.mark_valid(key);
             }
         }
+
         {
             let mut pass = self.targets.begin_ink(encoder, view);
             draws += self.scene_list(&mut pass);
@@ -126,10 +132,13 @@ impl Gpu {
         if let Some(at) = self.pick.take_pending() {
             self.id_pass(encoder, Some(at));
         }
+
         draws += self.widget.draw(encoder, view, &self.targets);
+
         if let Some(ui) = self.ui.as_ref() {
             ui.draw(encoder, view);
         }
+
         (draws, self.objects.len())
     }
 
@@ -160,9 +169,11 @@ impl Gpu {
     /// Backdrop, physical faces and the cloud resolve write the depth every ink fragment reads.
     fn face_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         let mut draws = self.backdrop.draw_background(pass);
+
         if self.view.show_grid {
             draws += self.backdrop.draw_grid(pass, b);
         }
+
         draws += self.arena.draw_faces(pass, b);
         draws += self.splat.draw_resolve(pass, &self.frame.cloud_group);
         draws
@@ -189,13 +200,17 @@ impl Gpu {
         // Standalone selected curves cover coincident mesh ink. Solid boundary strokes
         // stay below the silhouette so their yellow fringe cannot narrow its black border.
         draws += self.segments.draw_selected(pass, &b, false, v.show_lines);
+
         if v.show_mesh_edges && v.markers {
             draws += self.glyphs.draw_spheres(pass, &b);
         }
+
         draws += self.arena.draw_text(pass, &basic);
+
         if v.show_points {
             draws += self.glyphs.draw_dots(pass, &b);
         }
+
         draws += self.control_net.draw_ribbons(pass, &b);
         draws += self.controls.draw_dots(pass, &b);
 
@@ -225,37 +240,48 @@ impl Gpu {
             )
         });
         let basic = self.frame.pick_binds(&self.objects.group);
+
         if self.pick.source_query() {
             if !self.pick.source_initialized() {
                 let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
+
                 if let Some((x, y, w, h)) = inner {
                     pass.set_scissor_rect(x, y, w, h);
                 }
+
                 self.arena.draw_face_ids(&mut pass, &basic);
                 self.splat.draw_ids(&mut pass, &self.frame.pick_cloud_group);
             }
+
             {
                 let mut pass = self.pick.begin_source(encoder);
+
                 if let Some((x, y, w, h)) = inner {
                     pass.set_scissor_rect(x, y, w, h);
                 }
+
                 let source = self.frame.pick_binds(&self.objects.ink_group);
                 self.controls.draw_source_ids(&mut pass, &source);
             }
+
             if let Some(at) = at {
                 self.pick.copy_window(&self.ctx, encoder, at, size);
             }
+
             return;
         }
+
         {
             // The whole attachment, halo included: the plane reconstruction reads neighbouring
             // texels, which must be occlusion samples rather than cleared ones.
             let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
+
             if mode == PickMode::Component {
                 self.arena.draw_component_ids(&mut pass, &basic);
             } else {
                 self.arena.draw_face_ids(&mut pass, &basic);
             }
+
             self.splat.draw_ids(&mut pass, &self.frame.pick_cloud_group);
         }
         let depth = self.pick.depth().expect("physical ID pass creates depth");
@@ -269,9 +295,11 @@ impl Gpu {
         let ink = self.frame.pick_binds(&group);
         {
             let mut pass = self.pick.begin_ink(encoder);
+
             if let Some((x, y, w, h)) = inner {
                 pass.set_scissor_rect(x, y, w, h);
             }
+
             match mode {
                 PickMode::Edge | PickMode::Component => {
                     if self.view.show_mesh_edges {
@@ -286,22 +314,28 @@ impl Gpu {
                     if self.view.show_mesh_edges {
                         self.segments.draw_pipe_ids(&mut pass, &ink);
                     }
+
                     if self.view.show_lines {
                         self.segments.draw_ribbon_ids(&mut pass, &ink);
                     }
+
                     if self.view.show_mesh_edges && self.view.markers {
                         self.glyphs.draw_sphere_ids(&mut pass, &ink);
                     }
+
                     self.arena.draw_text_ids(&mut pass, &basic);
+
                     if self.view.show_points {
                         self.glyphs.draw_dot_ids(&mut pass, &ink);
                     }
                 }
             }
+
             // Authored text covers geometry in every pick mode, just as its visible plane does.
             self.text
                 .draw_ids(&mut pass, &self.frame.pick_transform_group);
         }
+
         if let Some(at) = at {
             self.pick.copy_window(&self.ctx, encoder, at, size);
         }

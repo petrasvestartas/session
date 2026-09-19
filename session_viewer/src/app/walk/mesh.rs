@@ -1,14 +1,10 @@
-//! One mesh into the tables: its faces into the arena, its local box, then the ink pass
-//! (`mesh_ink`) unless the mesh is dense, a print fill, or edges are switched off. The gates
-//! and thresholds live here. Nothing here reads the GPU.
-
 use super::mesh_ink::{Ink, InkCx, edges_and_dots};
 use super::mesh_topology::{SlotMap, mesh_topology};
 use super::{Row, WalkCx};
 use crate::app::knobs;
 use crate::engine::gpu::Instance;
 use crate::engine::gpu::arena::ArenaRows;
-use crate::math::Aabb;
+use session_rust::AABB;
 use session_rust::Mesh;
 
 /// Above this many triangles a mesh draws as TRIANGLES ONLY - no edges, no markers: on a
@@ -32,11 +28,12 @@ pub const CREASE_COS: f64 = 0.906_307_787;
 
 /// Typical distance between a mesh's vertices: the diagonal over the square root of the
 /// vertex count (a surface spreads its vertices over an area). The markers thin below it.
-pub(super) fn mesh_spacing(bounds: &Aabb, verts: usize) -> f32 {
+pub(super) fn mesh_spacing(bounds: &AABB, verts: usize) -> f32 {
     if verts < 2 {
         return 0.0;
     }
-    bounds.diagonal() / (verts as f32).sqrt()
+
+    bounds.diagonal() as f32 / (verts as f32).sqrt()
 }
 
 /// A fill (every PDF glyph, every poche region) broadcasts a single width of 0: print, not
@@ -50,8 +47,7 @@ pub fn is_print_fill(m: &Mesh) -> bool {
 pub struct MeshOpts {
     pub sheet_lanes: bool,
     pub allow_open: bool,
-    /// The mesh is a tessellation of a smooth surface, so its seams are not edges.
-    pub smooth: bool,
+    pub smooth: bool, // The mesh is a tessellation of a smooth surface, so its seams are not edges.
 }
 
 impl MeshOpts {
@@ -62,6 +58,7 @@ impl MeshOpts {
         allow_open: true,
         smooth: false,
     };
+
     /// A tessellated NURBS surface: the depth-tested run, open when its grid is, and the seams
     /// between its facets are sampling, not geometry.
     pub const SURFACE: MeshOpts = MeshOpts {
@@ -69,6 +66,7 @@ impl MeshOpts {
         allow_open: true,
         smooth: true,
     };
+
     /// An element's mesh: sheet runs, but an element is never flagged open.
     pub const ELEMENT: MeshOpts = MeshOpts {
         sheet_lanes: true,
@@ -127,6 +125,7 @@ fn index_run<'a>(arena: &'a mut ArenaRows, m: &Mesh, sheet: bool) -> &'a mut Vec
     if !sheet {
         return &mut arena.idx;
     }
+
     if m.name == "text" {
         &mut arena.idx_text
     } else {
@@ -154,34 +153,45 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     let slots = SlotMap::new(&keys);
     let mut vpos64 = Vec::with_capacity(keys.len());
     let mut vpos = Vec::with_capacity(keys.len());
+
     for &key in &keys {
         let point = &m.vertex[&key];
         vpos64.push([point.x, point.y, point.z]);
         vpos.push([point.x as f32, point.y as f32, point.z as f32]);
     }
+
     let topo = if decorated {
         Some(mesh_topology(m, &keys, &vpos64, &slots))
     } else {
         None
     };
-    let mut bounds = Aabb::empty();
+    let mut bounds = AABB::empty();
     arena.verts.reserve(rm.vertices.len());
     arena.vids.reserve(rm.vertices.len());
+
     for v in &rm.vertices {
-        bounds.grow(v.position);
+        bounds.union_with_point(
+            v.position[0] as f64,
+            v.position[1] as f64,
+            v.position[2] as f64,
+        );
         arena.verts.push(*v);
         arena.vids.push(cx.row);
     }
+
     let idx = index_run(arena, m, o.sheet_lanes && print);
     idx.reserve(rm.indices.len());
+
     for &i in &rm.indices {
         idx.push(base + i);
     }
+
     if !(o.sheet_lanes && print) {
         // `o.smooth` doubles as "this mesh IS one source face": a tessellated NURBS surface
         // has no per-face source keys, so every triangle gets the same face address.
         append_face_ids(arena, m, cx.row, o.smooth, rm.indices.len() / 3);
     }
+
     lap.mark("vert+idx push");
     let mut flags = if o.sheet_lanes && print {
         Instance::FLAG_PRINT
@@ -189,12 +199,15 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         0
     };
     let smooth = o.smooth && !knobs::seams();
+
     if smooth {
         flags |= Instance::FLAG_SMOOTH;
     }
+
     if m.number_of_faces() == 1 {
         flags |= Instance::FLAG_SINGLE;
     }
+
     let row = Row {
         bounds,
         spacing: mesh_spacing(&bounds, m.number_of_vertices()),
@@ -239,6 +252,7 @@ fn append_face_ids(
     triangles: usize,
 ) {
     use crate::engine::gpu::faces::FaceSource;
+
     if surface {
         let address = arena.face_sources.len() as u32;
         arena.face_sources.push(FaceSource { parent, face: 0 });
@@ -247,9 +261,11 @@ fn append_face_ids(
             .extend(std::iter::repeat_n(address, triangles));
         return;
     }
+
     let start = arena.face_ids.len();
     let mut keys: Vec<_> = mesh.face.keys().copied().collect();
     keys.sort_unstable();
+
     for face in keys {
         let address = arena.face_sources.len() as u32;
         arena.face_sources.push(FaceSource { parent, face });
@@ -269,6 +285,7 @@ fn append_face_ids(
         };
         arena.face_ids.extend(std::iter::repeat_n(address, count));
     }
+
     assert_eq!(
         arena.face_ids.len() - start,
         triangles,

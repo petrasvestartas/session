@@ -1,5 +1,3 @@
-//! Short viewer status and recoverable browser errors; messages use textContent, never HTML.
-
 /// Show a non-disruptive message in the focused viewer's status area.
 pub fn status(message: &str) {
     // A page that reloaded after a device loss keeps saying so whenever the line is cleared.
@@ -9,6 +7,7 @@ pub fn status(message: &str) {
     } else {
         message
     };
+
     #[cfg(target_arch = "wasm32")]
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()
@@ -16,6 +15,7 @@ pub fn status(message: &str) {
     {
         status.set_text_content(Some(message));
     }
+
     #[cfg(target_arch = "wasm32")]
     super::ui::MODEL.with_borrow_mut(|model| model.status = message.chars().take(256).collect());
     log::info!("{message}");
@@ -31,8 +31,10 @@ pub fn error(message: &str) {
         if let Some(text) = document.get_element_by_id("viewer-error-message") {
             text.set_text_content(Some(message));
         }
+
         let _ = panel.remove_attribute("hidden");
     }
+
     log::error!("{message}");
 }
 
@@ -41,6 +43,7 @@ pub fn command_line(open: bool) {
     super::ui::MODEL.with_borrow_mut(|model| {
         model.command_open = open;
         model.focus_command = open;
+
         if open {
             model.command.clear();
         }
@@ -53,6 +56,7 @@ pub fn command_line(open: bool) {
 #[cfg(target_arch = "wasm32")]
 pub fn focus_canvas() {
     use wasm_bindgen::JsCast;
+
     if let Some(document) = web_sys::window().and_then(|w| w.document())
         && let Some(canvas) = document.get_element_by_id("canvas")
         && let Ok(canvas) = canvas.dyn_into::<web_sys::HtmlElement>()
@@ -92,6 +96,7 @@ pub fn layers_panel(rows: &[LayerRow]) {
 pub fn layers_visible(open: bool) {
     super::ui::MODEL.with_borrow_mut(|model| {
         model.layers_open = open;
+
         if !open {
             model.rows.clear();
         }

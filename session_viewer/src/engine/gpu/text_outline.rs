@@ -1,9 +1,3 @@
-//! Exact-position PDF outline text. The importer already applied the original font glyph
-//! and text matrices; re-shaping those meshes with a replacement font would lose the PDF.
-//! Legacy imports mix glyphs with page fills; both sheet runs use this lane.
-//! This lane owns unlit color/ID pipelines and explicitly borrows the arena's existing
-//! geometry buffers. It adds no glyph geometry copy or alternative scene model.
-
 use super::buffers::{GpuCtx, GrowBuf};
 use super::frame::Binds;
 use crate::engine::pipelines::{
@@ -87,6 +81,7 @@ fn draw(pass: &mut wgpu::RenderPass<'_>, binds: &Binds, buffers: &OutlineBuffers
     if buffers.indices.is_empty() {
         return 0;
     }
+
     binds.set(pass);
     pass.set_vertex_buffer(0, buffers.vertices.buf.slice(..));
     pass.set_vertex_buffer(1, buffers.objects.buf.slice(..));
@@ -154,9 +149,10 @@ mod tests {
         gpu.view.msaa_forced = None;
         let mut upload = Upload::default();
         upload.obj.rows.push(ObjectRow::new(
-            Xform::identity().to_f32().map(f64::from),
+            Xform::identity(),
             Instance::FLAG_PRINT | Instance::FLAG_SHEET,
         ));
+
         // A thin, slanted outline at a fractional pixel position. At one sample its
         // boundary has only black/white pixels; four samples preserve partial coverage.
         for position in [[-0.7, -0.12, 0.5], [0.6, 0.24, 0.5], [0.6, 0.07, 0.5]] {
@@ -167,6 +163,7 @@ mod tests {
             });
             upload.arena.vids.push(0);
         }
+
         upload.arena.idx_text = vec![0, 1, 2];
         gpu.set_scene(&upload);
         assert_eq!(
@@ -181,10 +178,12 @@ mod tests {
         let pixels = gpu.render_offscreen(&frame);
         let mut interiors = 0;
         let mut coverage = 0;
+
         for pixel in pixels.chunks_exact(4) {
             interiors += usize::from(pixel[0] == 0);
             coverage += usize::from(pixel[0] > 0 && pixel[0] < 255);
         }
+
         assert!(interiors > 100, "opaque glyph interiors must survive");
         assert!(
             coverage > 50,
@@ -268,6 +267,7 @@ mod tests {
     fn is_yellow(pixel: &[u8]) -> bool {
         pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 0
     }
+
     /// Recognize untouched white background after hiding an outline.
     fn is_white(pixel: &[u8]) -> bool {
         pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 255

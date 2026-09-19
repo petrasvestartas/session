@@ -1,6 +1,3 @@
-//! Source text registration. Placement never changes object identity or hide/select behavior.
-//! Document titles and manifest text use this same path; the selected-name annotation does not.
-
 use super::Scene;
 use crate::engine::gpu::Gpu;
 use crate::engine::text::{TextLabel, TextObject, TextPlacement};
@@ -23,6 +20,7 @@ impl Scene {
                 text.active = false;
             }
         }
+
         for (index, text) in texts.into_iter().enumerate() {
             let placement = if text.camera_facing {
                 TextPlacement::WorldBillboard {
@@ -52,6 +50,7 @@ impl Scene {
                 true,
             );
         }
+
         self.upload_to(gpu);
         self.restore_text_visibility(gpu);
     }
@@ -81,7 +80,8 @@ impl Scene {
                 return;
             }
         }
-        let row = self.push_row(usize::MAX, &key, Xform::identity().m, 0);
+
+        let row = self.push_row(usize::MAX, &key, Xform::identity(), 0);
         label.id = row + 1;
         label.object = Some(TextObject {
             row,
@@ -116,12 +116,14 @@ impl Scene {
                 return Some(text);
             }
         }
+
         None
     }
 
     /// Build the text lane's visible submission with the current ordinary selection flags.
     pub fn visible_texts(&self) -> Vec<TextLabel> {
         let mut labels = Vec::new();
+
         for text in &self.texts {
             if !text.active
                 || self
@@ -130,6 +132,7 @@ impl Scene {
             {
                 continue;
             }
+
             let mut label = text.label.clone();
             label.object = Some(TextObject {
                 row: text.row,
@@ -137,6 +140,7 @@ impl Scene {
             });
             labels.push(label);
         }
+
         labels
     }
 }

@@ -1,7 +1,3 @@
-//! The GPU floor every lane stands on: `GpuCtx` (device + queue), `GrowBuf` (a table that
-//! grows by appending, its live prefix copied GPU-side), `Template` (a unit mesh drawn N
-//! times) and the two buffer helpers. No lane, no shader and no per-frame state lives here.
-
 use bytemuck::Pod;
 use wgpu::util::DeviceExt;
 
@@ -57,15 +53,18 @@ impl GrowBuf {
     /// bind group pointing at it.
     pub fn append<T: Pod>(&mut self, ctx: &GpuCtx, data: &[T]) -> bool {
         debug_assert_eq!(std::mem::size_of::<T>() as u64, self.stride);
+
         if data.is_empty() {
             return false;
         }
 
         let need = self.len as u64 + data.len() as u64;
         let grew = need > self.cap;
+
         if grew {
             self.grow(ctx, need.max(self.cap * 3 / 2));
         }
+
         ctx.queue.write_buffer(
             &self.buf,
             self.len as u64 * self.stride,
@@ -78,11 +77,13 @@ impl GrowBuf {
     /// Replace the buffer with one of `new_cap` rows, moving the live prefix GPU-side.
     fn grow(&mut self, ctx: &GpuCtx, new_cap: u64) {
         let nb = zeroed_buffer(&ctx.device, self.label, new_cap * self.stride, self.usage);
+
         if self.len > 0 {
             let mut enc = ctx.device.create_command_encoder(&Default::default());
             enc.copy_buffer_to_buffer(&self.buf, 0, &nb, 0, self.len as u64 * self.stride);
             ctx.queue.submit([enc.finish()]);
         }
+
         replace_buffer(&mut self.buf, nb);
         self.cap = new_cap;
     }
@@ -92,6 +93,7 @@ impl GrowBuf {
         if data.is_empty() {
             return;
         }
+
         debug_assert!(at as u64 + data.len() as u64 <= self.cap);
         ctx.queue.write_buffer(
             &self.buf,
@@ -206,12 +208,14 @@ pub fn bind_group(
     buffers: &[&wgpu::Buffer],
 ) -> wgpu::BindGroup {
     let mut entries: Vec<wgpu::BindGroupEntry> = Vec::with_capacity(buffers.len());
+
     for (i, b) in buffers.iter().enumerate() {
         entries.push(wgpu::BindGroupEntry {
             binding: i as u32,
             resource: b.as_entire_binding(),
         });
     }
+
     ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some(label),
         layout,

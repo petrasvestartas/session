@@ -1,18 +1,3 @@
-//! Editing: what a gesture does to a document, and how the row on the GPU follows.
-//!
-//! Every edit goes through the kernel `Session`, never around it. The session owns the
-//! transforms and the undo history, so a move made here is a move a save keeps and an undo
-//! reverses; a transform written only into the GPU row would be none of those things.
-//!
-//! Two rules this module exists to hold:
-//!
-//! * **Copy-on-write first.** A manifest listing one file twice hands both placements the same
-//!   `Rc<Session>`, and the live source keeps a third. `Rc::make_mut` before any mutation is
-//!   what stops one placement's edit from moving the others.
-//! * **A move is a partial write; anything else is a rebuild.** Moving an object changes one
-//!   row's placement, which is two small writes. Deleting one, or undoing anything, changes
-//!   which rows exist at all, and the only honest answer is to walk the documents again.
-
 use crate::app::scene::Scene;
 use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
@@ -27,9 +12,11 @@ impl Scene {
     fn writable(&mut self, row: u32) -> Option<(usize, Rc<str>)> {
         let (doc, guid) = self.identity_of(row)?;
         let file = self.docs.get_mut(doc)?;
+
         if file.display_only {
             return None;
         }
+
         // The split happens HERE, before anything is written, and only for the document being
         // edited: the other placements keep the session they were sharing.
         Rc::make_mut(&mut file.session);
@@ -47,7 +34,7 @@ impl Scene {
     /// A drag calls this ONCE, at the end, with the transform measured from where it grabbed.
     /// Writing every intermediate frame into the session would fill the history with a hundred
     /// ops that undo one gesture, and the GPU row is the right place for a preview.
-    pub fn set_row_xform(&mut self, row: u32, local: Xform, label: &str) -> Option<[f64; 16]> {
+    pub fn set_row_xform(&mut self, row: u32, local: Xform, label: &str) -> Option<Xform> {
         let (doc, guid) = self.writable(row)?;
         let file = self.docs.get_mut(doc)?;
         let session = Rc::make_mut(&mut file.session);
@@ -70,7 +57,7 @@ impl Scene {
     /// With an identity file placement and no tree ancestors the two agree, which is why this
     /// is easy to miss.
     pub fn local_for_world_delta(&self, row: u32, delta: &Xform, base: &Xform) -> Option<Xform> {
-        let placed = Xform::from_matrix(self.placement_of(row)?);
+        let placed = self.placement_of(row)?;
         let parent = &placed * &base.inverse()?;
         let back = parent.inverse()?;
         Some(&(&back * &(delta * &parent)) * base)
@@ -80,18 +67,18 @@ impl Scene {
     ///
     /// The discrete form: a typed command. A drag uses `set_row_xform` with the transform it
     /// measured from its grab, through the same conjugation.
-    pub fn transform_row(&mut self, row: u32, delta: &Xform, label: &str) -> Option<[f64; 16]> {
+    pub fn transform_row(&mut self, row: u32, delta: &Xform, label: &str) -> Option<Xform> {
         let base = self.local_xform_of(row)?;
         let local = self.local_for_world_delta(row, delta, &base)?;
         self.set_row_xform(row, local, label)
     }
 
     /// One row's full placement: the file's, composed with the object's cumulative transform.
-    pub fn placement_of(&self, row: u32) -> Option<[f64; 16]> {
+    pub fn placement_of(&self, row: u32) -> Option<Xform> {
         let (doc, guid) = self.identity_of(row)?;
         let file = self.docs.get(doc)?;
         let world = file.session.world_xform(&guid);
-        Some(crate::math::mat_mul(&file.place.m, &world.m))
+        Some(&file.place * &world)
     }
 
     /// Remove one row's object from its document. The rows change, so the caller rebuilds.
@@ -99,6 +86,7 @@ impl Scene {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return false;
         }
+
         let Some((doc, guid)) = self.writable(row) else {
             return false;
         };
@@ -109,10 +97,12 @@ impl Scene {
         session.begin("delete");
         let removed = session.remove_object(&guid);
         session.commit();
+
         if removed {
             self.last_edited = Some(doc);
             self.selected = None;
         }
+
         removed
     }
 
@@ -137,6 +127,7 @@ impl Scene {
             return false;
         };
         let session = Rc::make_mut(&mut file.session);
+
         if back { session.undo() } else { session.redo() }
     }
 }
@@ -152,10 +143,8 @@ impl Scene {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return false;
         }
-        let Some(back) = self
-            .placement_of(row)
-            .and_then(|m| Xform::from_matrix(m).inverse())
-        else {
+
+        let Some(back) = self.placement_of(row).and_then(|place| place.inverse()) else {
             return false;
         };
         let local = to.transformed(&back);
@@ -173,17 +162,21 @@ impl Scene {
         let edited = match &geometry {
             Geometry::Polyline(source) => {
                 let mut next = (**source).clone();
+
                 if index >= next.point_count() {
                     return false;
                 }
+
                 next.set_point(index, to);
                 Geometry::Polyline(Rc::new(next))
             }
             Geometry::NurbsCurve(source) => {
                 let mut next = (**source).clone();
+
                 if !next.set_cv_point(index, to) {
                     return false;
                 }
+
                 Geometry::NurbsCurve(Rc::new(next))
             }
             _ => return false,
@@ -191,9 +184,11 @@ impl Scene {
         session.begin("edit point");
         let replaced = session.replace(&guid, edited);
         session.commit();
+
         if replaced {
             self.last_edited = Some(doc);
         }
+
         replaced
     }
 }
@@ -237,9 +232,9 @@ mod tests {
             .expect("row 0 is editable");
 
         assert!(!Rc::ptr_eq(&scene.docs[0].session, &scene.docs[1].session));
-        assert_eq!([moved[12], moved[13], moved[14]], [5.0, 0.0, 0.0]);
+        assert_eq!([moved.m[12], moved.m[13], moved.m[14]], [5.0, 0.0, 0.0]);
         let still = scene.placement_of(1).expect("row 1 still exists");
-        assert_eq!([still[12], still[13], still[14]], [0.0, 0.0, 0.0]);
+        assert_eq!([still.m[12], still.m[13], still.m[14]], [0.0, 0.0, 0.0]);
     }
 
     /// The frame a delta is measured in. With a file placed away from the origin, a world move
@@ -265,13 +260,16 @@ mod tests {
             display_only: false,
         });
         let before = scene.placement_of(0).expect("a placement");
-        assert_eq!([before[12], before[13], before[14]], [100.0, 0.0, 0.0]);
+        assert_eq!(
+            [before.m[12], before.m[13], before.m[14]],
+            [100.0, 0.0, 0.0]
+        );
 
         let moved = scene
             .transform_row(0, &Xform::translation(5.0, 0.0, 0.0), "move")
             .expect("row 0 is editable");
         assert_eq!(
-            [moved[12], moved[13], moved[14]],
+            [moved.m[12], moved.m[13], moved.m[14]],
             [105.0, 0.0, 0.0],
             "five world units, not fifty"
         );
@@ -286,7 +284,7 @@ mod tests {
         let moved = scene
             .transform_row(0, &Xform::translation(0.0, 2.0, 0.0), "move")
             .expect("row 0 is editable");
-        assert_eq!([moved[12], moved[13], moved[14]], [5.0, 2.0, 0.0]);
+        assert_eq!([moved.m[12], moved.m[13], moved.m[14]], [5.0, 2.0, 0.0]);
     }
 
     /// The move is in the document, so the document's own history reverses it. Undo without an
@@ -299,11 +297,11 @@ mod tests {
         scene.transform_row(0, &Xform::translation(5.0, 0.0, 0.0), "move");
         assert!(scene.undo());
         let back = scene.placement_of(0).expect("row 0 still exists");
-        assert_eq!([back[12], back[13], back[14]], [0.0, 0.0, 0.0]);
+        assert_eq!([back.m[12], back.m[13], back.m[14]], [0.0, 0.0, 0.0]);
 
         assert!(scene.redo());
         let again = scene.placement_of(0).expect("row 0 still exists");
-        assert_eq!([again[12], again[13], again[14]], [5.0, 0.0, 0.0]);
+        assert_eq!([again.m[12], again.m[13], again.m[14]], [5.0, 0.0, 0.0]);
     }
 
     /// A control-point edit is a replacement, so the whole object goes into the history and
@@ -401,10 +399,9 @@ impl Scene {
         delta: &Xform,
         label: &str,
     ) -> Result<(), String> {
-        let place = Xform::from_matrix(
-            self.placement_of(row)
-                .ok_or("Source placement unavailable")?,
-        );
+        let place = self
+            .placement_of(row)
+            .ok_or("Source placement unavailable")?;
         let back = place.inverse().ok_or("Source placement is singular")?;
         let local = &(&back * delta) * &place;
         let geometry = self.geometry(row).ok_or("Source geometry unavailable")?;
@@ -421,14 +418,17 @@ impl Scene {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return Err("Source edits require complete documents without streamed sources".into());
         }
+
         let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
         let session = Rc::make_mut(&mut self.docs[doc].session);
         session.begin(label);
         let changed = session.replace(&guid, geometry);
         session.commit();
+
         if !changed {
             return Err("Cannot replace source geometry".into());
         }
+
         self.last_edited = Some(doc);
         Ok(())
     }
@@ -445,10 +445,9 @@ impl Scene {
             .into_iter()
             .next()
             .ok_or("Source control unavailable")?;
-        let place = Xform::from_matrix(
-            self.placement_of(row)
-                .ok_or("Source placement unavailable")?,
-        );
+        let place = self
+            .placement_of(row)
+            .ok_or("Source placement unavailable")?;
         let point = point.transformed(&place);
         self.edit_subobject(
             row,
@@ -468,10 +467,13 @@ impl Scene {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return Err("Source edits require complete documents without streamed sources".into());
         }
+
         let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
+
         if self.patch_preview(row, &geometry, gpu) {
             return Ok(());
         }
+
         let original = Rc::make_mut(&mut self.docs[doc].session)
             .lookup
             .insert(guid.to_string(), geometry)

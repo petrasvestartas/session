@@ -54,7 +54,7 @@ pub fn hint(line: &str) -> &'static str {
 **CURRENT**
 
 ```rust
-            }
+
             for curve in &mut next.m_curves_3d {
                 for i in 0..curve.cv_count() {
                     if let Some(p) = curve.get_cv(i)
@@ -64,6 +64,7 @@ pub fn hint(line: &str) -> &'static str {
                     }
                 }
             }
+
             for surface in &mut next.m_surfaces {
                 for u in 0..surface.m_cv_count[0] {
                     for v in 0..surface.m_cv_count[1] {
@@ -74,8 +75,10 @@ pub fn hint(line: &str) -> &'static str {
                         }
                     }
                 }
+
                 surface.m_mesh = None;
             }
+
             validate_boundaries(&next)?;
             Geometry::BRep(Rc::new(next))
 ```
@@ -83,9 +86,10 @@ pub fn hint(line: &str) -> &'static str {
 **REPLACE WITH**
 
 ```rust
-            }
+
             let mut changed_curves = HashSet::new();
             let mut changed_surfaces = HashSet::new();
+
             for (curve_index, curve) in next.m_curves_3d.iter_mut().enumerate() {
                 for i in 0..curve.cv_count() {
                     if let Some(p) = curve.get_cv(i)
@@ -96,6 +100,7 @@ pub fn hint(line: &str) -> &'static str {
                     }
                 }
             }
+
             for (surface_index, surface) in next.m_surfaces.iter_mut().enumerate() {
                 for u in 0..surface.m_cv_count[0] {
                     for v in 0..surface.m_cv_count[1] {
@@ -107,10 +112,12 @@ pub fn hint(line: &str) -> &'static str {
                         }
                     }
                 }
+
                 if changed_surfaces.contains(&surface_index) {
                     surface.m_mesh = None;
                 }
             }
+
             validate_boundaries(&next, &changed_curves, &changed_surfaces)?;
             Geometry::BRep(Rc::new(next))
 ```
@@ -125,6 +132,7 @@ fn validate_boundaries(brep: &session_rust::BRep) -> Result<(), String> {
     if !brep.is_valid() {
         return Err("Edit would invalidate BRep topology".into());
     }
+
     for edge in &brep.m_edges {
         if edge.degenerated {
             continue;
@@ -142,6 +150,7 @@ fn validate_boundaries(
     if !brep.is_valid() {
         return Err("Edit would invalidate BRep topology".into());
     }
+
     for edge in &brep.m_edges {
         if edge.degenerated
             || (!changed_curves.contains(&(edge.curve_3d_index as usize))
@@ -161,7 +170,6 @@ fn validate_boundaries(
         assert!(next.is_closed(0));
         validate_boundaries(&next).unwrap();
     }
-}
 ```
 
 **REPLACE WITH**
@@ -175,7 +183,6 @@ fn validate_boundaries(
         )
         .unwrap();
     }
-}
 ```
 
 ### `src/app/edit.rs`
@@ -191,6 +198,7 @@ fn validate_boundaries(
 **ADD ABOVE**
 
 ```rust
+
         if self.patch_preview(row, &geometry, gpu) {
             return Ok(());
         }
@@ -257,10 +265,11 @@ use std::collections::BTreeMap;
 **CURRENT**
 
 ```rust
-        }
+
         for (doc, file) in scene.docs.iter().enumerate() {
             let start = self.nodes.len();
             let rows = self.rows.len();
+
             if !self.tree(scene, doc, &lookup)
                 || !self.graph(&file.session, doc, &file.name, &lookup)
             {
@@ -270,10 +279,11 @@ use std::collections::BTreeMap;
 **REPLACE WITH**
 
 ```rust
-        }
+
         for doc in 0..scene.docs.len() {
             let start = self.nodes.len();
             let rows = self.rows.len();
+
             if !self.tree(scene, doc, &lookup) {
                 self.nodes.truncate(start);
 ```
@@ -285,6 +295,7 @@ use std::collections::BTreeMap;
 ```rust
         let mut seen = HashSet::new();
         let mut stack = Vec::new();
+
         if let Some(root) = file.session.tree.root() {
             stack.push((root, 1, None));
         }
@@ -296,6 +307,7 @@ use std::collections::BTreeMap;
         let mut seen = HashSet::new();
         let mut seen_rows = HashSet::new();
         let mut stack = Vec::new();
+
         if let Some(root) = file.session.tree.root() {
             if root.borrow().name == file.name {
                 // The document row already represents this root and its descendants.
@@ -313,7 +325,7 @@ use std::collections::BTreeMap;
 **CURRENT**
 
 ```rust
-            }
+
             if let Some(row) = row {
                 self.rows.push(row);
 ```
@@ -321,7 +333,7 @@ use std::collections::BTreeMap;
 **REPLACE WITH**
 
 ```rust
-            }
+
             if let Some(row) = row
                 && seen_rows.insert(row)
             {
@@ -333,7 +345,7 @@ use std::collections::BTreeMap;
 **CURRENT**
 
 ```rust
-        }
+
         if self.rows.len() == self.nodes[start].rows.start {
             for row in 0..scene.object_count() as u32 {
                 if scene
@@ -343,18 +355,12 @@ use std::collections::BTreeMap;
                     self.rows.push(row);
                 }
             }
-        }
-        self.finish(start);
-        self.rows.len() <= MAX_ROWS
-    }
-
-    fn graph(&mut self, session: &Session, doc: usize, name: &str, lookup: &Lookup) -> bool {
 ```
 
 **REPLACE WITH**
 
 ```rust
-        }
+
         for row in 0..scene.object_count() as u32 {
             if scene
                 .identity_of(row)
@@ -362,19 +368,28 @@ use std::collections::BTreeMap;
                 && seen_rows.insert(row)
             {
                 let index = self.nodes.len();
+
                 if !self.push(scene.object_name(row), 1) {
                     return false;
                 }
+
                 self.rows.push(row);
                 self.finish(index);
             }
-        }
-        self.finish(start);
-        self.rows.len() <= MAX_ROWS
-    }
+```
 
-    #[cfg(test)]
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
     fn graph(&mut self, session: &Session, doc: usize, name: &str, lookup: &Lookup) -> bool {
+```
+
+**ADD ABOVE**
+
+```rust
+    #[cfg(test)]
 ```
 
 **TYPE THIS**
@@ -404,10 +419,12 @@ use std::collections::BTreeMap;
 ```rust
         let tree_count = index.rows.len();
         let mut lookup = Lookup::new();
+
         for row in 0..scene.object_count() as u32 {
             let (doc, id) = scene.identity_of(row).unwrap();
             lookup.entry(doc).or_default().insert(id, row);
         }
+
         assert!(index.graph(&shared, 0, "first", &lookup));
 ```
 
@@ -633,6 +650,7 @@ impl Scene {
 
 ```rust
         self.tables.obj.rows.push(ObjectRow::new(place, flags));
+
         if let Some(color) = self.colors.get(&(owner, Rc::from(guid))) {
             let object = self.tables.obj.rows.last_mut().expect("row just appended");
             object.color = [
@@ -709,15 +727,18 @@ impl Scene {
     /// Topology/count changes use the normal rebuild path without partially writing buffers.
     pub(crate) fn patch_preview(&mut self, row: u32, geometry: &Geometry, gpu: &mut Gpu) -> bool {
         use crate::engine::gpu::patch::Counts;
+
         if matches!(geometry, Geometry::PointCloud(_)) {
             return false;
         }
+
         let Some(span) = self.preview_spans.get(row as usize).copied().flatten() else {
             return false;
         };
         let Some(place) = self.placement_of(row) else {
             return false;
         };
+
         if let Some(preview) = self
             .surface_previews
             .get(row as usize)
@@ -732,6 +753,7 @@ impl Scene {
             gpu.grew_bounds(row);
             return true;
         }
+
         let mut up = Upload::default();
         let cx = WalkCx {
             vert_base: span.start.verts,
@@ -739,20 +761,24 @@ impl Scene {
             row,
         };
         let result = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
+
         if Counts::of(&up) != span.count {
             return false;
         }
+
         gpu.arena.patch(&gpu.ctx, span.start, &up.arena);
         gpu.segments.patch(&gpu.ctx, span.start, &up.seg);
         gpu.glyphs.patch(&gpu.ctx, span.start, &up.glyph);
         gpu.objects
             .set_geometry_bounds(&gpu.ctx, row, result.bounds, result.spacing, &place);
+
         for (i, pipe) in up.seg.pipes.iter().enumerate() {
             self.edge_sources[span.start.pipes as usize + i] = (
                 pipe.instance_id,
                 up.seg.pipe_ids.get(i).copied().unwrap_or(u32::MAX),
             );
         }
+
         gpu.grew_bounds(row);
         true
     }
@@ -835,10 +861,11 @@ impl Scene {
 **CURRENT**
 
 ```rust
-        .map(|(doc, id)| (doc, Rc::from(id)))
+        .collect();
+    Ok(scene)
 ```
 
-**ADD BELOW**
+**REPLACE WITH**
 
 ```rust
         .collect();
@@ -851,6 +878,8 @@ impl Scene {
         .colors
         .into_iter()
         .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
+        .collect();
+    Ok(scene)
 ```
 
 **TYPE THIS**
@@ -892,11 +921,10 @@ impl Scene {
 **NEW FILE · TYPE THIS**
 
 ```rust
-//! Reevaluate the existing display samples while dragging; trims and triangles keep their topology.
 use crate::engine::gpu::patch::Span;
 use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, Upload};
-use crate::math::Aabb;
+use session_rust::AABB;
 use session_rust::{Geometry, NurbsSurface, RenderVertex};
 use std::collections::HashMap;
 
@@ -917,6 +945,7 @@ pub struct SurfacePreview {
     pipe_normals: Vec<[usize; 2]>,
     chains: Vec<std::ops::Range<u32>>,
 }
+
 impl SurfacePreview {
     pub(crate) fn capture(
         up: &Upload,
@@ -931,6 +960,7 @@ impl SurfacePreview {
         {
             return None;
         }
+
         let first = local.verts as usize;
         let end = first + span.count.verts as usize;
         let samples: Vec<_> = up
@@ -940,16 +970,20 @@ impl SurfacePreview {
             .filter(|sample| (first..end).contains(&(sample.index as usize)))
             .copied()
             .collect();
+
         if samples.len() != span.count.verts as usize {
             return None;
         }
+
         let mut positions = HashMap::<[u32; 3], Vec<usize>>::new();
+
         for (i, vertex) in up.arena.verts[first..end].iter().enumerate() {
             positions
                 .entry(vertex.position.map(f32::to_bits))
                 .or_default()
                 .push(i);
         }
+
         let start_pipe = local.pipes as usize;
         let end_pipe = start_pipe + span.count.pipes as usize;
         let pipes = up.seg.pipes[start_pipe..end_pipe].to_vec();
@@ -992,29 +1026,39 @@ impl SurfacePreview {
             chains,
         })
     }
-    pub fn evaluate(&self, geometry: &Geometry) -> Option<(Vec<RenderVertex>, SegRows, Aabb)> {
+
+    pub fn evaluate(&self, geometry: &Geometry) -> Option<(Vec<RenderVertex>, SegRows, AABB)> {
         let surfaces = surfaces(geometry)?;
         let changed: Vec<_> = surfaces
             .iter()
             .enumerate()
             .map(|(i, s)| self.controls.get(i) != Some(&s.m_cv))
             .collect();
-        let mut bounds = Aabb::empty();
+        let mut bounds = AABB::empty();
         let mut vertices = Vec::with_capacity(self.samples.len());
+
         for (sample, baseline) in self.samples.iter().zip(&self.vertices) {
             let surface = surfaces.get(sample.surface as usize)?;
+
             if !changed[sample.surface as usize] {
-                bounds.grow(baseline.position);
+                bounds.union_with_point(
+                    baseline.position[0] as f64,
+                    baseline.position[1] as f64,
+                    baseline.position[2] as f64,
+                );
                 vertices.push(*baseline);
                 continue;
             }
+
             let point = surface.point_at(sample.uv[0], sample.uv[1])?;
             let normal = surface.normal_at(sample.uv[0], sample.uv[1]);
             let position = point.to_f32();
+
             if position.iter().any(|p| !p.is_finite()) {
                 return None;
             }
-            bounds.grow(position);
+
+            bounds.union_with_point(position[0] as f64, position[1] as f64, position[2] as f64);
             vertices.push(RenderVertex {
                 position,
                 normal: [
@@ -1025,10 +1069,12 @@ impl SurfacePreview {
                 color: baseline.color,
             });
         }
+
         let mut segments = SegRows {
             pipe_chains: self.chains.clone(),
             ..Default::default()
         };
+
         for ((pipe, ends), normals) in self
             .pipes
             .iter()
@@ -1043,8 +1089,10 @@ impl SurfacePreview {
             pipe.facing = super::walk::encode::pack_facing(Some(&a), Some(&b));
             segments.pipes.push(pipe);
         }
+
         Some((vertices, segments, bounds))
     }
+
     pub fn allocated_bytes(&self) -> usize {
         self.samples.capacity() * std::mem::size_of::<Sample>()
             + self.vertices.capacity() * std::mem::size_of::<RenderVertex>()
@@ -1088,12 +1136,14 @@ mod tests {
             .expect("joined box has parameter provenance");
         let (before, _, _) = preview.evaluate(&source).unwrap();
         assert_eq!(before.len(), upload.arena.verts.len());
+
         for (a, b) in before.iter().zip(&upload.arena.verts) {
             assert_eq!(
                 a.position, b.position,
                 "initial sample is the drawn source position"
             );
         }
+
         let changed =
             deform::transform(&source, Target::Face(0), &Xform::translation(0.0, 0.0, 2.0))
                 .unwrap();
@@ -1114,11 +1164,14 @@ mod tests {
                 .zip(&after)
                 .any(|(a, b)| a.position == b.position)
         );
+
         for pipe in pipes.pipes {
             assert!(after.iter().any(|v| v.position == pipe.p0));
             assert!(after.iter().any(|v| v.position == pipe.p1));
         }
+
         let (cancelled, _, _) = preview.evaluate(&source).unwrap();
+
         for (a, b) in before.iter().zip(&cancelled) {
             assert_eq!(a.position, b.position);
         }
@@ -1165,10 +1218,12 @@ fn surfaces(geometry: &Geometry) -> Option<&[NurbsSurface]> {
 ```rust
                 .show(ui, |ui| {
                     let mut at = 0;
+
                     while at < model.rows.len() {
                         let start = at;
                         let id = model.rows[at].key.split_once('/').map(|(_, id)| id);
                         at += 1;
+
                         if id.is_some() {
                             while at < model.rows.len()
                                 && model.rows[at].key.split_once('/').map(|(_, id)| id) == id
@@ -1176,10 +1231,12 @@ fn surfaces(geometry: &Geometry) -> Option<&[NurbsSurface]> {
                                 at += 1;
                             }
                         }
+
                         ui.horizontal(|ui| {
                             let first = &model.rows[start];
                             let indent = first.label.len() - first.label.trim_start().len();
                             ui.add_space(indent as f32 * 4.0);
+
                             for row in &model.rows[start..at] {
                                 let response = layer_button(ui, row);
                                 record(controls, &row.key, &row.label, &response);
@@ -1198,9 +1255,11 @@ fn surfaces(geometry: &Geometry) -> Option<&[NurbsSurface]> {
                                 ui.add_space(row.depth.min(8) as f32 * 10.);
                                 let response = layer_icon(ui, "open", row);
                                 record(controls, &format!("open/{index}"), &row.label, &response);
+
                                 if response.clicked() && row.expanded.is_some() {
                                     *action = Some(format!("open/{index}"));
                                 }
+
                                 let width = (ui.available_width() - 86.).max(24.);
                                 let response = ui
                                     .add_sized(
@@ -1217,9 +1276,11 @@ fn surfaces(geometry: &Geometry) -> Option<&[NurbsSurface]> {
                                     &format!("Select {}", row.label),
                                     &response,
                                 );
+
                                 if response.clicked() {
                                     *action = Some(row.key.clone());
                                 }
+
                                 for kind in ["hide", "lock"] {
                                     let response = layer_icon(ui, kind, row);
                                     record(
@@ -1238,10 +1299,12 @@ fn surfaces(geometry: &Geometry) -> Option<&[NurbsSurface]> {
                                         ),
                                         &response,
                                     );
+
                                     if response.clicked() {
                                         *action = Some(format!("{kind}/{index}"));
                                     }
                                 }
+
                                 layer_color(ui, row, index, controls, action);
                             } else {
                                 let response = ui.button(&row.label);
@@ -1256,6 +1319,7 @@ fn surfaces(geometry: &Geometry) -> Option<&[NurbsSurface]> {
 
 fn layer_button(ui: &mut egui::Ui, row: &LayerRow) -> egui::Response {
     let label = row.label.trim_start();
+
     if row.key.starts_with("open/") {
         let (rect, response) = ui.allocate_exact_size(egui::vec2(20.0, 28.0), egui::Sense::click());
         let c = rect.center();
@@ -1279,6 +1343,7 @@ fn layer_button(ui: &mut egui::Ui, row: &LayerRow) -> egui::Response {
         ));
         return response;
     }
+
     let label: String = label.chars().take(160).collect();
     let text = if row.key.starts_with("hide/") {
         if row.hidden {
@@ -1314,10 +1379,12 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
     let c = rect.center();
     let ink = ui.visuals().text_color();
     let stroke = egui::Stroke::new(1.4_f32, ink);
+
     if response.hovered() {
         ui.painter()
             .rect_filled(rect.shrink(1.), 3., ui.visuals().widgets.hovered.bg_fill);
     }
+
     match kind {
         "open" => {
             if let Some(open) = row.expanded {
@@ -1337,6 +1404,7 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
                 ui.painter()
                     .add(egui::Shape::convex_polygon(points, ink, egui::Stroke::NONE));
             }
+
             response.on_hover_text("Expand or collapse")
         }
         "hide" => {
@@ -1347,14 +1415,17 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
             };
             ui.painter()
                 .circle(c + egui::vec2(0., -3.), 5., fill, stroke);
+
             for y in [3., 6.] {
                 ui.painter()
                     .line_segment([c + egui::vec2(-3., y), c + egui::vec2(3., y)], stroke);
             }
+
             if row.hidden {
                 ui.painter()
                     .line_segment([c + egui::vec2(-7., 8.), c + egui::vec2(7., -9.)], stroke);
             }
+
             response.on_hover_text(if row.hidden {
                 "Show object and children"
             } else {
@@ -1436,6 +1507,7 @@ fn layer_color(
                             let key =
                                 format!("color/{index}/{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]);
                             record(controls, &key, name, &response);
+
                             if response.clicked() {
                                 *action = Some(key);
                                 ui.close();
@@ -1445,11 +1517,13 @@ fn layer_color(
                 }
                 ui.separator();
                 let mut changed = false;
+
                 for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
                     changed |= ui
                         .add(egui::Slider::new(value, 0..=255).text(channel))
                         .changed();
                 }
+
                 if changed {
                     *action = Some(format!(
                         "color/{index}/{:02x}{:02x}{:02x}",
@@ -1583,9 +1657,11 @@ fn cache_samples(
 ) {
     let mut rows: Vec<_> = mesh.vertex.iter().collect();
     rows.sort_unstable_by_key(|&(key, _)| *key);
+
     if rows.len() != render.vertices.len() {
         return;
     }
+
     for (offset, ((_, vertex), rendered)) in rows.into_iter().zip(&render.vertices).enumerate() {
         let (Some(&u), Some(&v)) = (vertex.attributes.get("u"), vertex.attributes.get("v")) else {
             continue;
@@ -1667,14 +1743,12 @@ fn cache_samples(
 **CURRENT**
 
 ```rust
-            .append(ctx, up, [&self.verts.buf, &self.vids.buf, &self.faces.buf]);
+    /// The solid faces, one indexed draw: the physical depth every ink fragment reads.
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```rust
-    }
-
     pub(crate) fn patch_vertices(&mut self, ctx: &GpuCtx, first: u32, vertices: &[RenderVertex]) {
         self.tiles.invalidate();
         self.verts.write_at(ctx, first, vertices);
@@ -1689,6 +1763,7 @@ fn cache_samples(
         self.print.write_at(ctx, at.print, &up.idx_print);
         self.text.write_at(ctx, at.text, &up.idx_text);
         self.source_faces.patch(ctx, at, up);
+    }
 ```
 
 ### `src/engine/gpu/buffers.rs`
@@ -1767,10 +1842,10 @@ impl GlyphLane {
 **CURRENT**
 
 ```rust
-    pub const FLAG_SINGLE: u32 = 1 << 7;
+    /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```rust
     /// Replace authored colors with the layer color.
@@ -1790,6 +1865,7 @@ pub mod objects;
 **ADD BELOW**
 
 ```rust
+
 pub(crate) mod patch;
 ```
 
@@ -1828,9 +1904,9 @@ pub(crate) mod patch;
         &mut self,
         ctx: &GpuCtx,
         row: u32,
-        bounds: Aabb,
+        bounds: AABB,
         spacing: f32,
-        place: &Mat4,
+        place: &Xform,
     ) {
         self.local_bounds[row as usize] = bounds;
         self.rows[row as usize].spacing = spacing;
@@ -1857,8 +1933,8 @@ pub(crate) mod patch;
 **NEW FILE · TYPE THIS**
 
 ```rust
-//! Sizes and offsets for replacing one object without rewalking unrelated documents.
 use super::Upload;
+
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub(crate) struct Counts {
     pub verts: u32,
@@ -1871,6 +1947,7 @@ pub(crate) struct Counts {
     pub spheres: u32,
     pub dots: u32,
 }
+
 impl Counts {
     pub fn of(up: &Upload) -> Self {
         Self {
@@ -1885,6 +1962,7 @@ impl Counts {
             dots: up.glyph.dots.len() as u32,
         }
     }
+
     pub fn plus(self, other: Self) -> Self {
         Self {
             verts: self.verts + other.verts,
@@ -1898,6 +1976,7 @@ impl Counts {
             dots: self.dots + other.dots,
         }
     }
+
     pub fn minus(self, other: Self) -> Self {
         Self {
             verts: self.verts - other.verts,
@@ -1912,6 +1991,7 @@ impl Counts {
         }
     }
 }
+
 #[derive(Clone, Copy)]
 pub(crate) struct Span {
     pub start: Counts,
@@ -1926,15 +2006,12 @@ pub(crate) struct Span {
 **CURRENT**
 
 ```rust
-            push_chunk(&mut self.sheets, d.instance, chunk, ids);
-        }
+    /// Which sheet a global ribbon row belongs to: (object row, segment index within it).
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```rust
-    }
-
     pub(crate) fn patch_pipes(&mut self, ctx: &GpuCtx, first: u32, up: &SegRows) {
         let pipes = joined_rows(&up.pipes, &up.pipe_chains, first);
         self.pipes.buf.write_at(ctx, first, &pipes);
@@ -1951,6 +2028,7 @@ pub(crate) struct Span {
         let mut ids = up.ribbon_ids.clone();
         ids.resize(up.ribbons.len(), u32::MAX);
         self.ribbons.ids.write_at(ctx, at.ribbons, &ids);
+    }
 ```
 
 ### `src/shaders/glyph.wgsl`
@@ -1962,7 +2040,6 @@ pub(crate) struct Span {
 ```wgsl
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = g.color * inst.color;
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 **REPLACE WITH**
@@ -1970,7 +2047,6 @@ pub(crate) struct Span {
 ```wgsl
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = object_color(g.color, inst);
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 ### `src/shaders/ribbon.wgsl`
@@ -1982,7 +2058,6 @@ pub(crate) struct Span {
 ```wgsl
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = unpack4x8unorm(seg.color) * inst.color;
-    if (selected) {
 ```
 
 **REPLACE WITH**
@@ -1990,7 +2065,6 @@ pub(crate) struct Span {
 ```wgsl
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = object_color(unpack4x8unorm(seg.color), inst);
-    if (selected) {
 ```
 
 ### `src/shaders/scene.wgsl`
@@ -2022,7 +2096,6 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 ```wgsl
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = g.color * inst.color;
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 **REPLACE WITH**
@@ -2030,7 +2103,6 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 ```wgsl
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = object_color(g.color, inst);
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 ### `src/shaders/splat.wgsl`
@@ -2046,7 +2118,10 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 **ADD BELOW**
 
 ```wgsl
-    if ((table[base + 38u] & 256u) != 0u) { rgba = vec4<f32>(tint.rgb, rgba.a); }
+
+    if ((table[base + 38u] & 256u) != 0u) {
+        rgba = vec4<f32>(tint.rgb, rgba.a);
+    }
 ```
 
 ### `src/shaders/triangle.wgsl`
@@ -2058,7 +2133,6 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 ```wgsl
     o.pos = clip;
     var color = in.color.rgb * inst.color.rgb;
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 **REPLACE WITH**
@@ -2066,7 +2140,6 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 ```wgsl
     o.pos = clip;
     var color = object_color(vec4<f32>(in.color.rgb, 1.0), inst).rgb;
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 ### `src/state.rs`
@@ -2107,10 +2180,12 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 
 ```rust
         };
+
         if active.target.is_some() {
             self.scene.rebuild(&mut self.gpu);
             self.restore_edit_selection(active.row);
         }
+
         self.gpu
 ```
 
@@ -2126,7 +2201,7 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 **CURRENT**
 
 ```rust
-            );
+                    .edit_subobject(active.row, target, &delta, "transform subobject");
             self.scene.rebuild(&mut self.gpu);
             self.restore_edit_selection(active.row);
 ```
@@ -2134,7 +2209,7 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 **REPLACE WITH**
 
 ```rust
-            );
+                    .edit_subobject(active.row, target, &delta, "transform subobject");
             self.restore_source_render(active.row);
             self.restore_edit_selection(active.row);
 ```
@@ -2180,6 +2255,7 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
                 );
                 self.scene.model(&command)?;
                 self.after_history();
+
                 if created {
                     if let Some(doc) = self.scene.created_doc {
                         let row = (0..self.gpu.objects.len())
@@ -2187,6 +2263,7 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
                             .find(|&row| self.scene.identity_of(row).is_some_and(|id| id.0 == doc));
                         self.select(row);
                     }
+
                     let name = match command {
                         Modeling::Point(_) => "point",
                         Modeling::Line(..) => "line",
@@ -2245,6 +2322,7 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 impl State {
     fn restore_source_render(&mut self, row: u32) {
         let geometry = self.scene.geometry(row).cloned();
+
         if !geometry.is_some_and(|geometry| self.scene.patch_preview(row, &geometry, &mut self.gpu))
         {
             self.scene.rebuild(&mut self.gpu);
@@ -2260,29 +2338,32 @@ impl State {
 **CURRENT**
 
 ```rust
-            self.toggle_layer(layer);
+        let Some((action, index)) = key.split_once('/') else {
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```rust
-            return;
-        }
         if let Some(value) = key.strip_prefix("color/") {
             if let Some((index, hex)) = value.split_once('/')
                 && let (Ok(index), Ok(rgb)) = (index.parse::<usize>(), u32::from_str_radix(hex, 16))
                 && index < self.hierarchy.nodes.len()
             {
                 let color = [(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8];
+
                 for row in self.hierarchy.targets(index) {
                     if let Some(id) = self.scene.identity_of(row) {
                         self.scene.colors.insert(id, color);
                         self.gpu.set_object_color(row, color);
                     }
                 }
+
                 self.refresh_layers();
                 self.touch();
             }
+
+            return;
+        }
 ```
 
 **TYPE THIS**
@@ -2314,17 +2395,16 @@ impl State {
 **CURRENT**
 
 ```rust
-                        self.select(Some(row));
+                "hide" => {
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```rust
-                    }
-                }
                 "lock" => {
                     let rows = self.hierarchy.targets(index);
                     let lock = rows.iter().any(|row| self.scene.selectable(*row));
+
                     if lock
                         && (self
                             .scene
@@ -2338,6 +2418,7 @@ impl State {
                     {
                         self.select(None);
                     }
+
                     for row in rows {
                         if let Some(id) = self.scene.identity_of(row) {
                             if lock {
@@ -2346,6 +2427,8 @@ impl State {
                                 self.scene.locked.remove(&id);
                             }
                         }
+                    }
+                }
 ```
 
 **TYPE THIS**
@@ -2355,6 +2438,7 @@ impl State {
 ```rust
             });
             let indent = "  ".repeat(node.depth.min(16));
+
             if node.end > index + 1 {
                 let mark = if self.hierarchy.open.contains(&index) {
                     "▾"
@@ -2368,6 +2452,7 @@ impl State {
                     hidden,
                 });
             }
+
             rows.push(LayerRow {
                 key: format!("select/{index}"),
                 label: format!("{indent}Select {}", node.label),

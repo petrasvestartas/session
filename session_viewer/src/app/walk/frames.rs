@@ -1,11 +1,8 @@
-//! Planes and oriented boxes into the FLAT ribbon lane as outlines: a 1 m square for a
-//! plane, the 12 edges for a box.
-
 use super::Row;
 use super::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
 use crate::engine::gpu::CylinderSegment;
 use crate::engine::gpu::segments::SegRows;
-use crate::math::Aabb;
+use session_rust::AABB;
 use session_rust::{OBB, Plane, Point, Vector};
 
 /// Half-extent of the square drawn for an infinite plane, world mm.
@@ -30,18 +27,22 @@ const BOX_EDGES: [[usize; 2]; 12] = [
 /// The square's corner at signs `s` along the plane's x/y axes.
 fn corner(o: &Point, x: &Vector, y: &Vector, s: [f64; 2]) -> [f32; 3] {
     let mut position = [0.0; 3];
+
     for (k, value) in position.iter_mut().enumerate() {
         *value = (o[k] + (x[k] * s[0] + y[k] * s[1]) * PLANE_SIZE) as f32;
     }
+
     position
 }
 
 /// The `edges` over `pts` as segments with one pen; returns the points' box.
-fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pen) -> Aabb {
-    let mut bounds = Aabb::empty();
+fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pen) -> AABB {
+    let mut bounds = AABB::empty();
+
     for p in pts {
-        bounds.grow(*p);
+        bounds.union_with_point(p[0] as f64, p[1] as f64, p[2] as f64);
     }
+
     for &[i, j] in edges {
         seg.ribbons.push(CylinderSegment {
             p0: pts[i],
@@ -52,6 +53,7 @@ fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pe
             facing: FACING_UNKNOWN,
         });
     }
+
     bounds
 }
 

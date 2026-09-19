@@ -1,7 +1,3 @@
-//! The two ways a frame leaves `Gpu`: presented to the swapchain (`present`) or read back from
-//! an offscreen texture (`render_offscreen`, the native harness). Each writes the uniforms,
-//! encodes through `encode_frame`, and submits.
-
 use super::Gpu;
 use super::frame::{FrameCx, FrameInput};
 #[cfg(not(target_arch = "wasm32"))]
@@ -34,6 +30,7 @@ impl Gpu {
             logical: self.logical_size,
             ortho_half_height: self.frame.ortho_h,
         };
+
         if let Err(error) = self.text.prepare(&self.ctx, &frame) {
             log::warn!("text preparation: {error}");
         }
@@ -153,10 +150,12 @@ impl Gpu {
         });
         let data = slice.get_mapped_range();
         let mut out = Vec::with_capacity((w * 4 * h) as usize);
+
         for row in 0..h {
             let a = (row * padded) as usize;
             out.extend_from_slice(&data[a..a + (w * 4) as usize]);
         }
+
         drop(data);
         readback.unmap();
         out

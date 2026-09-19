@@ -1,7 +1,6 @@
 //! Plate census: per-mesh AABB extents + face-normal thickness, per-polyline distance to the nearest mesh face plane, the fit camera, and the depth rule judged by ray-casting every outline sample against the plates in front of it at 1x, 4x and 16x the fit distance (VIEWER_W/H size the pen; CENSUS_RECOLOR=<out.pb> writes a copy whose outline segments are magenta when covered, blue when visible, cyan when partly covered).
 
 use session_rust::{Color, Mesh, Point, Polyline, Quaternion, Session, Vector, Xform};
-use session_viewer::math::{Mat4, mat_scale, mat_to_f32, xform_point_f64};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
@@ -106,6 +105,12 @@ fn env_f64(name: &str, default: f64) -> f64 {
     }
 }
 
+/// A point through a placement, as the array the plate arithmetic reads.
+fn placed(place: &Xform, p: [f64; 3]) -> [f64; 3] {
+    let q = place.transform_point(&Point::new(p[0], p[1], p[2]));
+    [q[0], q[1], q[2]]
+}
+
 fn grow(lo: &mut [f64; 3], hi: &mut [f64; 3], p: &[f64; 3]) {
     for k in 0..3 {
         lo[k] = lo[k].min(p[k]);
@@ -184,7 +189,7 @@ fn face_triangles(mesh: &Mesh, face: usize) -> Vec<[usize; 3]> {
     triangles
 }
 
-fn plate_of(m: &Mesh, place: &Mat4) -> Plate {
+fn plate_of(m: &Mesh, place: &Xform) -> Plate {
     let mut local: Vec<[f64; 3]> = Vec::with_capacity(m.vertex.len());
     for key in m.vertices() {
         let v = &m.vertex[&key];
@@ -192,7 +197,7 @@ fn plate_of(m: &Mesh, place: &Mat4) -> Plate {
     }
     let mut verts: Vec<[f64; 3]> = Vec::with_capacity(local.len());
     for p in &local {
-        verts.push(xform_point_f64(place, *p));
+        verts.push(placed(place, *p));
     }
     let (lo, hi) = box_of(&verts);
     let ext = sorted_extents(&lo, &hi);
@@ -207,7 +212,7 @@ fn plate_of(m: &Mesh, place: &Mat4) -> Plate {
         for triangle in face_triangles(m, fk) {
             tris.push(triangle.map(|key| {
                 let point = &m.vertex[&key];
-                xform_point_f64(place, [point.x, point.y, point.z])
+                placed(place, [point.x, point.y, point.z])
             }));
         }
         let Some(fpts) = m.face_points(fk) else {
@@ -215,7 +220,7 @@ fn plate_of(m: &Mesh, place: &Mat4) -> Plate {
         };
         let mut pts: Vec<[f64; 3]> = Vec::with_capacity(fpts.len());
         for p in &fpts {
-            pts.push(xform_point_f64(place, [p[0], p[1], p[2]]));
+            pts.push(placed(place, [p[0], p[1], p[2]]));
         }
         if pts.len() < 3 {
             continue;
@@ -279,15 +284,15 @@ fn newell_nz(pts: &[[f64; 3]]) -> f64 {
 
 // The nearest mesh face plane (max point deviation) and the outline's samples: its vertices
 // and its edge midpoints.
-fn outline_of(pl: &Polyline, place: &Mat4, plates: &[Plate]) -> Outline {
+fn outline_of(pl: &Polyline, place: &Xform, plates: &[Plate]) -> Outline {
     let mut local: Vec<[f64; 3]> = Vec::with_capacity(pl.coords.len() / 3);
     for c in pl.coords.chunks_exact(3) {
         local.push([c[0], c[1], c[2]]);
     }
-    let scale = mat_scale(&mat_to_f32(place));
+    let scale = place.uniform_scale();
     let mut pts: Vec<[f64; 3]> = Vec::with_capacity(local.len());
     for p in &local {
-        pts.push(xform_point_f64(place, *p));
+        pts.push(placed(place, *p));
     }
     let (lo, hi) = box_of(&pts);
     let ext = sorted_extents(&lo, &hi);
@@ -576,10 +581,10 @@ fn judge(
     best
 }
 
-fn placement(world: &HashMap<String, Xform>, guid: &str) -> Mat4 {
+fn placement(world: &HashMap<String, Xform>, guid: &str) -> Xform {
     match world.get(guid) {
-        Some(x) => x.m,
-        None => Xform::identity().m,
+        Some(x) => x.clone(),
+        None => Xform::identity(),
     }
 }
 
@@ -604,13 +609,13 @@ fn scene_box(
         grow(
             &mut lo,
             &mut hi,
-            &xform_point_f64(&placement(world, p.guid()), [p[0], p[1], p[2]]),
+            &placed(&placement(world, p.guid()), [p[0], p[1], p[2]]),
         );
     }
     for l in &s.objects.lines {
         let m = placement(world, l.guid());
-        grow(&mut lo, &mut hi, &xform_point_f64(&m, [l[0], l[1], l[2]]));
-        grow(&mut lo, &mut hi, &xform_point_f64(&m, [l[3], l[4], l[5]]));
+        grow(&mut lo, &mut hi, &placed(&m, [l[0], l[1], l[2]]));
+        grow(&mut lo, &mut hi, &placed(&m, [l[3], l[4], l[5]]));
     }
     (lo, hi)
 }
@@ -1813,7 +1818,7 @@ mod span_tests {
                 [0, 6, 7],
             ],
         );
-        let place = Xform::identity().m;
+        let place = Xform::identity();
         let view = ProbeView {
             eye: [0.0, 0.0, 10.0],
             parallel: Some([0.0, 0.0, -1.0]),
@@ -1849,9 +1854,9 @@ mod span_tests {
             ],
             vec![vec![0, 1, 2]],
         );
-        let place = [
+        let place = Xform::from_matrix([
             2.0, 0.0, 0.25, 0.0, 0.5, 3.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 5.0, -2.0, 8.0, 1.0,
-        ];
+        ]);
         let plate = plate_of(&mesh, &place);
         let face = &plate.faces[0];
         for vertex in &plate.verts {
@@ -2006,7 +2011,7 @@ mod span_tests {
             ],
             vec![vec![0, 1, 2]],
         );
-        let plates = [plate_of(&mesh, &Xform::identity().m)];
+        let plates = [plate_of(&mesh, &Xform::identity())];
         for distance in [10.0, 1000.0] {
             let fit = Fit {
                 eye: [0.0, 0.0, distance],

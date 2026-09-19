@@ -1,5 +1,3 @@
-//! Source identities and single-parent selection transitions. GPU rows are only pick addresses.
-
 use session_rust::element::ElementGeometry;
 use session_rust::{Geometry, NurbsCurve, NurbsSurface, Point};
 
@@ -51,9 +49,11 @@ impl SelectionMode {
     /// F10 is idempotent. No selected parent leaves the mode unchanged.
     pub fn enable_controls(&mut self, parent: Option<u32>, cloud: bool) -> bool {
         let Some(parent) = parent else { return false };
+
         if matches!(self, Self::Controls { parent: active, .. } if *active == parent) {
             return false;
         }
+
         *self = Self::Controls {
             parent,
             selected: None,
@@ -89,9 +89,11 @@ impl Controls {
     /// Keep source IDs even when invalid coordinates make an individual control unavailable.
     fn push(&mut self, id: ControlId, point: &Point) -> Option<usize> {
         let position = [point[0], point[1], point[2]];
+
         if !position.into_iter().all(f64::is_finite) {
             return None;
         }
+
         let index = self.points.len();
         self.points.push(Control { id, position });
         Some(index)
@@ -111,20 +113,24 @@ impl Controls {
             Geometry::Line(line) => {
                 self.push(ControlId::Vertex(0), &line.start());
                 self.push(ControlId::Vertex(1), &line.end());
+
                 if self.points.len() == 2 {
                     self.links.push([0, 1]);
                 }
             }
             Geometry::Polyline(polyline) => {
                 let mut previous = None;
+
                 for (index, coords) in polyline.coords.chunks_exact(3).enumerate() {
                     let current = self.push(
                         ControlId::Vertex(index),
                         &Point::new(coords[0], coords[1], coords[2]),
                     );
+
                     if let (Some(start), Some(end)) = (previous, current) {
                         self.links.push([start, end]);
                     }
+
                     previous = current;
                 }
             }
@@ -161,9 +167,11 @@ impl Controls {
         for (index, vertex) in brep.m_vertices.iter().enumerate() {
             self.push(ControlId::Vertex(index), &vertex.point);
         }
+
         for (index, curve) in brep.m_curves_3d.iter().enumerate() {
             self.curve(curve, index);
         }
+
         for (index, surface) in brep.m_surfaces.iter().enumerate() {
             self.surface(surface, index);
         }
@@ -172,6 +180,7 @@ impl Controls {
     /// Rational curve accessors return Euclidean source control positions.
     fn curve(&mut self, curve: &NurbsCurve, index: usize) {
         let mut previous = None;
+
         for point in 0..curve.cv_count() {
             let current = match curve.get_cv(point) {
                 Some(position) => self.push(
@@ -183,9 +192,11 @@ impl Controls {
                 ),
                 None => None,
             };
+
             if let (Some(start), Some(end)) = (previous, current) {
                 self.links.push([start, end]);
             }
+
             previous = current;
         }
     }
@@ -194,8 +205,10 @@ impl Controls {
     fn surface(&mut self, surface: &NurbsSurface, index: usize) {
         let [width, height] = surface.m_cv_count;
         let mut previous = vec![None; height];
+
         for u in 0..width {
             let mut last = None;
+
             for (v, above) in previous.iter_mut().enumerate() {
                 let current = match surface.get_cv(u, v) {
                     Some(position) => self.push(
@@ -208,12 +221,15 @@ impl Controls {
                     ),
                     None => None,
                 };
+
                 if let (Some(start), Some(end)) = (*above, current) {
                     self.links.push([start, end]);
                 }
+
                 if let (Some(start), Some(end)) = (last, current) {
                     self.links.push([start, end]);
                 }
+
                 *above = current;
                 last = current;
             }

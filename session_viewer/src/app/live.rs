@@ -1,13 +1,3 @@
-//! The live source: the deployed page watches `view_live.yaml` in the R2 bucket and every
-//! file it lists, re-reading each with `If-None-Match` so an idle poll is a handful of
-//! `304`s. A `200` with a new `ETag` is a change; the bytes it returned ARE the bytes decoded
-//! (one download), and an unchanged file is the same decoded `Session` again - shared with
-//! the scene through an `Rc`, so a swap re-walks the unchanged files but never re-decodes
-//! or copies them. A relay message (ntfy, `EventSource`) only says "look now" - the
-//! conditional reads still decide.
-//!
-//! Page query: `?live=off`, `?live=<manifest url>`, `?poll=<seconds>`, `?notify=off|<sse url>`.
-
 use super::decode::session_from_bytes;
 use super::fetch::{GetOpts, get};
 use super::manifest::Manifest;
@@ -29,6 +19,7 @@ pub const DEFAULT_SOURCE: &str =
 
 /// The relay a publisher announces an upload on, as an SSE endpoint.
 const DEFAULT_NOTIFY: &str = "https://ntfy.sh/wood-live-84eaac4a04729911/sse";
+
 const DEFAULT_POLL_SECONDS: f64 = 5.0;
 
 /// How often the loop looks at the relay's flag: an in-memory check, so it is cheap.
@@ -98,8 +89,7 @@ pub struct LiveSource {
     manifest: Option<Manifest>,
     etags: HashMap<String, String>,
     hashes: HashMap<String, u64>,
-    /// The current decoded set, one `Rc` per listed file, shared with the scene's documents.
-    sessions: HashMap<String, Rc<Session>>,
+    sessions: HashMap<String, Rc<Session>>, // The current decoded set, one `Rc` per listed file, shared with the scene's documents.
     last_warning: Option<String>,
     pending: bool,
     notify: Option<Notify>,
@@ -120,16 +110,20 @@ impl LiveSource {
     /// `/view_live` polls (and gets notified) exactly as the deployed root page does.
     pub fn from_query() -> Option<Self> {
         let live = query("live");
+
         if live.as_deref() == Some("off") || live.as_deref() == Some("0") {
             return None;
         }
+
         let named = query_scene().or_else(path_scene);
+
         if live.is_none()
             && named.as_deref() != Some("view_live")
             && (named.is_some() || page_is_local())
         {
             return None;
         }
+
         let url = match live {
             Some(u) if u.starts_with("https://") || is_local_url(&u) => u,
             Some(other) => {
@@ -198,6 +192,7 @@ impl LiveSource {
             if_none_match: known.clone(),
             range: None,
         };
+
         match get(url, &opts).await {
             Err(e) => Read::Failed(e),
             Ok(r) if r.status == 304 => Read::Same,
@@ -212,10 +207,12 @@ impl LiveSource {
                         Read::Changed(r.bytes)
                     };
                 }
+
                 let mut hasher = std::collections::hash_map::DefaultHasher::new();
                 r.bytes.hash(&mut hasher);
                 let hash = hasher.finish();
                 let same = self.hashes.insert(url.to_string(), hash) == Some(hash);
+
                 if same {
                     Read::Same
                 } else {
@@ -258,9 +255,11 @@ impl LiveSource {
     pub async fn check(&mut self) -> Option<Vec<FileDoc>> {
         let announced = self.notify.as_ref().is_some_and(Notify::take);
         let now = crate::engine::performance::now_ms();
+
         if !announced && now - self.last_read_ms < self.poll_ms {
             return None;
         }
+
         self.last_read_ms = now;
         let url = self.url.clone();
         let changed = match self.read(&url).await {
@@ -274,6 +273,7 @@ impl LiveSource {
                     self.hashes.remove(&url);
                     return None;
                 }
+
                 true
             }
             Read::Same => false,
@@ -281,10 +281,12 @@ impl LiveSource {
         self.pending |= changed;
         let files = self.file_urls();
         let mut failed = false;
+
         for (_, file) in &files {
             if file.contains("/pb/revisions/") && self.sessions.contains_key(file) {
                 continue;
             }
+
             match self.read(file).await {
                 Read::Changed(bytes) => {
                     self.pending = true;
@@ -299,34 +301,42 @@ impl LiveSource {
                 }
             }
         }
+
         if failed || !self.pending {
             return None;
         }
+
         log::info!(
             "live: source changed{}; reloading the scene",
             if announced { " (announced)" } else { "" }
         );
         let docs = self.load_all(&files).await;
         let mut removed = Vec::new();
+
         for url in self.sessions.keys() {
             let mut listed = false;
+
             for (_, file) in &files {
                 if file == url {
                     listed = true;
                     break;
                 }
             }
+
             if !listed {
                 removed.push(url.clone());
             }
         }
+
         for url in removed {
             self.sessions.remove(&url);
         }
+
         if docs.len() != files.len() {
             self.warn("replacement is incomplete; retaining the last valid scene".to_string());
             return None;
         }
+
         self.pending = false;
         Some(docs)
     }
@@ -341,10 +351,12 @@ impl LiveSource {
                 return;
             }
         };
+
         if session.lookup.is_empty() {
             self.forget(url, format!("{url} holds no geometry ({n} bytes); skipped"));
             return;
         }
+
         log::info!(
             "live: decoded {url}: {} objects, {n} bytes",
             session.lookup.len()
@@ -358,11 +370,13 @@ impl LiveSource {
             return Vec::new();
         };
         let mut out = Vec::with_capacity(m.items.len());
+
         for (i, item) in m.items.iter().enumerate() {
             if !item.file.trim().is_empty() {
                 out.push((i, join(&self.base, &item.file)));
             }
         }
+
         out
     }
 
@@ -373,8 +387,10 @@ impl LiveSource {
             return Vec::new();
         };
         let mut out = Vec::new();
+
         for (i, url) in files {
             let (i, url) = (*i, url.as_str());
+
             if !self.sessions.contains_key(url) {
                 match get(
                     url,
@@ -392,6 +408,7 @@ impl LiveSource {
                     }
                 }
             }
+
             let Some(session) = self.sessions.get(url).cloned() else {
                 continue;
             };
@@ -404,6 +421,7 @@ impl LiveSource {
                 display_only: m.items[i].display_only,
             });
         }
+
         self.manifest = Some(m);
         out
     }
@@ -422,6 +440,7 @@ fn on_relay_message(flag: &Rc<RefCell<bool>>, e: &web_sys::MessageEvent) {
     let Some(text) = e.data().as_string() else {
         return;
     };
+
     if is_change_notification(&text) {
         *flag.borrow_mut() = true;
     }
@@ -434,6 +453,7 @@ fn is_change_notification(text: &str) -> bool {
     struct Envelope {
         event: Option<String>,
     }
+
     match serde_json::from_str::<Envelope>(text) {
         Ok(env) => matches!(env.event.as_deref(), None | Some("message")),
         Err(_) => !text.trim().is_empty(),

@@ -1,11 +1,9 @@
-//! `Targets` - the physical depth and colour attachments at the scene's sample count. The
-//! face pass establishes occlusion; the ink pass samples the depth without modifying it.
-
 use super::buffers::GpuCtx;
 
 /// How many pixels a discrete GPU carries at 4x: 3840x2160 and change. Measured on
 /// `view_local` at that size, 4x cost one 8.2 ms against 6.9 at 1x - a fifth of the frame.
 const MSAA_PIXELS_DISCRETE: u32 = 9_000_000;
+
 /// From this many physical pixels per CSS pixel the canvas stays at 1x unless forced.
 const MSAA_MAX_PIXEL_SCALE: f32 = 2.0;
 
@@ -108,9 +106,11 @@ impl Targets {
     pub fn destroy(&self) {
         self.depth.destroy();
         self.gradient.destroy();
+
         if let Some(msaa) = &self.msaa {
             msaa.destroy();
         }
+
         for placeholder in &self._placeholders {
             placeholder.destroy();
         }
@@ -147,12 +147,15 @@ impl Targets {
         if super::view::reduced() {
             return 1;
         }
+
         if let Some(s) = forced {
             return if s == 4 { 4 } else { 1 };
         }
+
         if pixel_scale >= MSAA_MAX_PIXEL_SCALE {
             return 1;
         }
+
         match budget {
             Some(max) if solid && pixels <= max => 4,
             _ => 1,
@@ -203,6 +206,7 @@ impl Targets {
             multiview_mask: None,
         })
     }
+
     /// Ink samples physical depth while the read-only attachment preserves depth-tested sheets.
     pub fn begin_ink<'a>(
         &'a self,

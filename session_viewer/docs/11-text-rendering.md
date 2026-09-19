@@ -36,12 +36,12 @@ Install the supplied same-font comparison page and its WASM export first; `lib.r
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-73 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-76 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=74-100 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=77-104 -->
 
 Vertex layout ↔ shader locations:
 
@@ -55,7 +55,7 @@ Rust vertex_attr_array (stride 28)          WGSL vs_main
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=101-148 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=105-152 -->
 
 The signed distance to a rounded rectangle gives one physical pixel of edge coverage; the colour is always black.
 
@@ -95,16 +95,16 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=84-142 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=84-150 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=143-219 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=151-232 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=220-258 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=233-279 -->
 
 ## Step 5 · Planes: projection, raster and the quad
 
@@ -118,17 +118,17 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=259-322 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=280-355 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=323-402 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=356-441 -->
 
 - Screen-space text takes the other path, through Glyphon's shared atlas.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=403-467 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=442-512 -->
 
 Bindings and vertex layout ↔ shader:
 
@@ -146,7 +146,7 @@ vertex_attr_array (stride 56)
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=468-492 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=513-537 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-a8b790c015.svg" data-zone="Shaders"></span>
 
@@ -156,7 +156,7 @@ A native GPU check for the plane path ends the file.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs copy lines=493-588 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs copy lines=538-637 -->
 
 ## Step 6 · The text lane: frame input and counters
 
@@ -169,7 +169,7 @@ A native GPU check for the plane path ends the file.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=1-61 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=1-48 -->
 
 ## Step 7 · The lane owns Glyphon
 
@@ -182,13 +182,13 @@ A native GPU check for the plane path ends the file.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=62-121 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=49-106 -->
 
 - Replacement is all-or-nothing: an invalid submission leaves the previous document standing, so a bad label cannot empty the screen.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=122-144 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=107-129 -->
 
 ## Step 8 · Prepare: place, rasterize, build both draw lists
 
@@ -201,11 +201,11 @@ A native GPU check for the plane path ends the file.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=145-218 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=130-212 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=219-273 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=213-272 -->
 
 - Glyphon needs a callback mapping each shaped run to its label's clip depth: the atlas knows glyphs, not scenes, so depth comes from this side.
 
@@ -219,7 +219,7 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=274-340 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=273-343 -->
 
 ## Step 10 · CSS to physical, once
 
@@ -235,29 +235,29 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=341-374 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=344-377 -->
 
 - Only the anchor is projected: following a world point needs one clip position, then screen-space layout.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=375-431 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=378-440 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=432-498 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=441-512 -->
 
 - Glyphon owns its own shaders; the lane only hands it a depth state.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=499-548 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=513-563 -->
 
 Native checks for scale, depth, nameplates and cache eviction live in the same file.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs copy lines=549-949 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs copy lines=564-978 -->
 
 <!-- check: 11 -->
 

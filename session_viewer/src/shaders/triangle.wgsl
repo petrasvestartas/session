@@ -1,5 +1,3 @@
-// Mesh faces: lit triangles from the arena, on the scene contract of scene.wgsl.
-
 const BACKFACE_COLOR: vec3<f32> = vec3<f32>(0.80, 0.05, 0.05);
 
 struct VsIn {
@@ -39,17 +37,21 @@ fn dead_vertex() -> VsOut {
 
 fn transform_vertex(in: VsIn) -> VsOut {
     let inst = instances[in.inst_id];
+
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
         return dead_vertex();
     }
+
     let world = place(in.inst_id, in.position);
     let clip = mvp * vec4<f32>(world, 1.0);
     var o: VsOut;
     o.pos = clip;
     var color = object_color(vec4<f32>(in.color.rgb, 1.0), inst).rgb;
+
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = SELECT_COLOR;
     }
+
     o.color = color;
     o.world_pos = world;
     o.normal = face_normal(inst.model, in.normal);
@@ -64,9 +66,12 @@ fn transform_vertex(in: VsIn) -> VsOut {
 }
 
 @vertex
-fn vs_main(in: VsIn) -> VsOut { return transform_vertex(in); }
+fn vs_main(in: VsIn) -> VsOut {
+    return transform_vertex(in);
+}
 
 @group(3) @binding(0) var<storage, read> face_vertices: array<f32>;
+
 // The sub id a face answers with, the same value as faces.rs::FACE_TAG. It is kept clear of
 // the stroke lane's high bit and of the control-dot tag so one pick channel carries all three.
 const FACE_TAG: u32 = 0x20000000u;
@@ -87,14 +92,20 @@ fn pull_triangle(index: u32) -> VsOut {
 }
 
 @vertex
-fn vs_triangle(@builtin(vertex_index) index: u32) -> VsOut { return pull_triangle(index); }
+fn vs_triangle(@builtin(vertex_index) index: u32) -> VsOut {
+    return pull_triangle(index);
+}
 
 @vertex
 fn vs_face(@builtin(vertex_index) index: u32) -> VsOut {
     var out=pull_triangle(index);
     out.source_face = source_faces[index/3u];
     out.selected = select(0u, 1u, out.source_face != 0xffffffffu && out.source_face == selected_face.x);
-    if (out.selected != 0u) { out.color = SELECT_COLOR; }
+
+    if (out.selected != 0u) {
+        out.color = SELECT_COLOR;
+    }
+
     return out;
 }
 
@@ -105,6 +116,7 @@ fn view_dir(world_pos: vec3<f32>) -> vec3<f32> {
     if (line.ortho_h > 0.0) {
         return normalize(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
     }
+
     return normalize(vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - world_pos);
 }
 
@@ -113,6 +125,7 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     // Flat normal from screen-space derivatives when the mesh baked none (y is down).
     let flat_n = cross(dpdy(in.world_pos), dpdx(in.world_pos));
     var n = vec3<f32>(0.0, 0.0, 1.0);
+
     if (dot(in.normal, in.normal) > 1e-12) {
         n = normalize(in.normal);
     } else if (dot(flat_n, flat_n) > 1e-24) {
@@ -133,11 +146,15 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     // camera holds 1.00 of its colour, the sphere's silhouette - its normal square to the view -
     // reads 0.59..0.62, and the darkest face pixel in either frame, iso or from below, is 0.47.
     let v = view_dir(in.world_pos);
+
     // Face the normal toward the eye by its own dot product, not by winding: `front`/`mirrored`
     // answer which side of the WINDING is visible, so a flipped authored normal on an
     // otherwise-front triangle used to light as if seen from behind it. Two coplanar flat
     // polygons that differ only in which way their normal was authored now shade identically.
-    if (dot(n, v) < 0.0) { n = -n; }
+    if (dot(n, v) < 0.0) {
+        n = -n;
+    }
+
     let l = normalize(v + vec3<f32>(0.0, 0.0, 0.35));
     let h = normalize(l + v);
     let wrap = clamp((dot(n, l) + 0.5) / 1.5, 0.0, 1.0);
@@ -156,26 +173,38 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
 // The id pass: (object row + 1, 0).
 @fragment
 fn fs_id(in: VsOut) -> PhysicalId {
-    if (in.xray != 0u) { discard; }
+    if (in.xray != 0u) {
+        discard;
+    }
+
     let sub = select((FACE_TAG | in.source_face) + 1u, 0u, in.source_face == 0xffffffffu);
     return PhysicalId(vec2<u32>(in.inst_id + 1u, sub), physical_triangle(in.pos.z, in.primitive));
 }
 
 @fragment
 fn fs_selection_mask(in: VsOut) -> @location(0) vec4<f32> {
-    if (in.selected == 0u || in.xray != 0u) { discard; }
+    if (in.selected == 0u || in.xray != 0u) {
+        discard;
+    }
+
     return vec4<f32>(1.0);
 }
 
 @fragment
 fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> PhysicalColor {
-    if (in.xray != 0u) { discard; }
+    if (in.xray != 0u) {
+        discard;
+    }
+
     return PhysicalColor(shade(in, front), physical_triangle(in.pos.z, in.primitive));
 }
 
 @fragment
 fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
-    if (in.selected == 0u || in.xray != 0u) { discard; }
+    if (in.selected == 0u || in.xray != 0u) {
+        discard;
+    }
+
     return shade(in, front);
 }
 
@@ -183,7 +212,10 @@ fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location
 // objects create no artificial seam in the group's outside silhouette.
 @fragment
 fn fs_solid_mask(in: VsOut) -> @location(0) vec4<f32> {
-    if (in.xray != 0u) { discard; }
+    if (in.xray != 0u) {
+        discard;
+    }
+
     return vec4<f32>(1.0);
 }
 
@@ -196,6 +228,9 @@ struct MaskPair {
 
 @fragment
 fn fs_masks(in: VsOut) -> MaskPair {
-    if (in.xray != 0u) { discard; }
+    if (in.xray != 0u) {
+        discard;
+    }
+
     return MaskPair(vec4<f32>(1.0), vec4<f32>(f32(in.selected != 0u)));
 }

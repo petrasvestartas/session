@@ -1,8 +1,7 @@
-//! Reevaluate the existing display samples while dragging; trims and triangles keep their topology.
 use crate::engine::gpu::patch::Span;
 use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, Upload};
-use crate::math::Aabb;
+use session_rust::AABB;
 use session_rust::{Geometry, NurbsSurface, RenderVertex};
 use std::collections::HashMap;
 
@@ -23,6 +22,7 @@ pub struct SurfacePreview {
     pipe_normals: Vec<[usize; 2]>,
     chains: Vec<std::ops::Range<u32>>,
 }
+
 impl SurfacePreview {
     pub(crate) fn capture(
         up: &Upload,
@@ -37,6 +37,7 @@ impl SurfacePreview {
         {
             return None;
         }
+
         let first = local.verts as usize;
         let end = first + span.count.verts as usize;
         let samples: Vec<_> = up
@@ -46,16 +47,20 @@ impl SurfacePreview {
             .filter(|sample| (first..end).contains(&(sample.index as usize)))
             .copied()
             .collect();
+
         if samples.len() != span.count.verts as usize {
             return None;
         }
+
         let mut positions = HashMap::<[u32; 3], Vec<usize>>::new();
+
         for (i, vertex) in up.arena.verts[first..end].iter().enumerate() {
             positions
                 .entry(vertex.position.map(f32::to_bits))
                 .or_default()
                 .push(i);
         }
+
         let start_pipe = local.pipes as usize;
         let end_pipe = start_pipe + span.count.pipes as usize;
         let pipes = up.seg.pipes[start_pipe..end_pipe].to_vec();
@@ -98,29 +103,39 @@ impl SurfacePreview {
             chains,
         })
     }
-    pub fn evaluate(&self, geometry: &Geometry) -> Option<(Vec<RenderVertex>, SegRows, Aabb)> {
+
+    pub fn evaluate(&self, geometry: &Geometry) -> Option<(Vec<RenderVertex>, SegRows, AABB)> {
         let surfaces = surfaces(geometry)?;
         let changed: Vec<_> = surfaces
             .iter()
             .enumerate()
             .map(|(i, s)| self.controls.get(i) != Some(&s.m_cv))
             .collect();
-        let mut bounds = Aabb::empty();
+        let mut bounds = AABB::empty();
         let mut vertices = Vec::with_capacity(self.samples.len());
+
         for (sample, baseline) in self.samples.iter().zip(&self.vertices) {
             let surface = surfaces.get(sample.surface as usize)?;
+
             if !changed[sample.surface as usize] {
-                bounds.grow(baseline.position);
+                bounds.union_with_point(
+                    baseline.position[0] as f64,
+                    baseline.position[1] as f64,
+                    baseline.position[2] as f64,
+                );
                 vertices.push(*baseline);
                 continue;
             }
+
             let point = surface.point_at(sample.uv[0], sample.uv[1])?;
             let normal = surface.normal_at(sample.uv[0], sample.uv[1]);
             let position = point.to_f32();
+
             if position.iter().any(|p| !p.is_finite()) {
                 return None;
             }
-            bounds.grow(position);
+
+            bounds.union_with_point(position[0] as f64, position[1] as f64, position[2] as f64);
             vertices.push(RenderVertex {
                 position,
                 normal: [
@@ -131,10 +146,12 @@ impl SurfacePreview {
                 color: baseline.color,
             });
         }
+
         let mut segments = SegRows {
             pipe_chains: self.chains.clone(),
             ..Default::default()
         };
+
         for ((pipe, ends), normals) in self
             .pipes
             .iter()
@@ -149,8 +166,10 @@ impl SurfacePreview {
             pipe.facing = super::walk::encode::pack_facing(Some(&a), Some(&b));
             segments.pipes.push(pipe);
         }
+
         Some((vertices, segments, bounds))
     }
+
     pub fn allocated_bytes(&self) -> usize {
         self.samples.capacity() * std::mem::size_of::<Sample>()
             + self.vertices.capacity() * std::mem::size_of::<RenderVertex>()
@@ -194,12 +213,14 @@ mod tests {
             .expect("joined box has parameter provenance");
         let (before, _, _) = preview.evaluate(&source).unwrap();
         assert_eq!(before.len(), upload.arena.verts.len());
+
         for (a, b) in before.iter().zip(&upload.arena.verts) {
             assert_eq!(
                 a.position, b.position,
                 "initial sample is the drawn source position"
             );
         }
+
         let changed =
             deform::transform(&source, Target::Face(0), &Xform::translation(0.0, 0.0, 2.0))
                 .unwrap();
@@ -220,11 +241,14 @@ mod tests {
                 .zip(&after)
                 .any(|(a, b)| a.position == b.position)
         );
+
         for pipe in pipes.pipes {
             assert!(after.iter().any(|v| v.position == pipe.p0));
             assert!(after.iter().any(|v| v.position == pipe.p1));
         }
+
         let (cancelled, _, _) = preview.evaluate(&source).unwrap();
+
         for (a, b) in before.iter().zip(&cancelled) {
             assert_eq!(a.position, b.position);
         }

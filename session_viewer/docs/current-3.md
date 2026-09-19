@@ -24,10 +24,8 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return false;
         }
-        let Some(back) = self
-            .placement_of(row)
-            .and_then(|m| Xform::from_matrix(m).inverse())
-        else {
+
+        let Some(back) = self.placement_of(row).and_then(|place| place.inverse()) else {
             return false;
         };
         let local = to.transformed(&back);
@@ -49,6 +47,7 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
 ```rust
         );
     }
+
     #[test]
     fn control_edit_converts_world_to_local_under_file_placement() {
         let mut source = Session::new("placed");
@@ -85,7 +84,6 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
         };
         assert_eq!(line.get_point(1).unwrap()[0], 1.0);
     }
-
 }
 ```
 
@@ -146,7 +144,7 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
 **CURRENT**
 
 ```rust
-        }
+
         if self.control_drag.take().is_some() {
             // The control preview is a dot in a temporary lane; re-uploading from the source
             // puts it back.
@@ -156,11 +154,12 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
 **REPLACE WITH**
 
 ```rust
-        }
+
         if let Some(active) = self.control_drag.take() {
             if let Some(geometry) = self.scene.geometry(active.parent) {
                 self.controls = crate::app::selection::Controls::from_geometry(geometry);
             }
+
             self.upload_controls();
 ```
 
@@ -195,7 +194,7 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
         let Some(place) = self.scene.placement_of(parent) else {
             return false;
         };
-        let origin = Point::new(at[0], at[1], at[2]).transformed(&Xform::from_matrix(place));
+        let origin = Point::new(at[0], at[1], at[2]).transformed(&place);
         let Some((sx, sy)) = self.project([origin[0], origin[1], origin[2]]) else {
             return false;
 ```
@@ -228,7 +227,7 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
         let Some(back) = self
             .scene
             .placement_of(active.parent)
-            .and_then(|m| Xform::from_matrix(m).inverse())
+            .and_then(|place| place.inverse())
         else {
             return false;
         };
@@ -246,9 +245,11 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
 **ADD ABOVE**
 
 ```rust
+
         if let Some(geometry) = self.scene.geometry(active.parent) {
             self.controls = crate::app::selection::Controls::from_geometry(geometry);
         }
+
         self.upload_controls();
         self.touch();
 ```
@@ -272,7 +273,7 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
 ```rust
         let (from, dir) = self.camera.ray((x, y), self.viewport())?;
         let free = active.plane.hit(&active.origin, &from, &dir)?;
-        let place = Xform::from_matrix(self.scene.placement_of(active.parent)?);
+        let place = self.scene.placement_of(active.parent)?;
         let mut candidates = Vec::new();
 ```
 
@@ -284,13 +285,6 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
                     control.position[2],
                 ),
                 kind: SnapKind::Vertex,
-                owner: active.parent,
-            });
-        }
-        // The ranking is in SCREEN space, so the aperture means pixels wherever the camera is.
-        let project = |p: &Point| self.project([p[0], p[1], p[2]]);
-        match snap::best(&candidates, (x, y), SNAP_APERTURE_PX * self.pixel_scale(), project) {
-            Some(hit) => Some(hit.point),
 ```
 
 **REPLACE WITH**
@@ -300,18 +294,6 @@ Drag polyline and NURBS controls on placed objects without a release jump. Keep 
                 )
                 .transformed(&place),
                 kind: SnapKind::Vertex,
-                owner: active.parent,
-            });
-        }
-        // The ranking is in SCREEN space, so the aperture means pixels wherever the camera is.
-        let project = |p: &Point| self.project([p[0], p[1], p[2]]);
-        match snap::best(
-            &candidates,
-            (x, y),
-            SNAP_APERTURE_PX * self.pixel_scale(),
-            project,
-        ) {
-            Some(hit) => Some(hit.point),
 ```
 
 ### Check step 3

@@ -1,6 +1,7 @@
-//! Source-precision orbit camera, framed projection and a rebased reversed-depth view transform.
-use crate::math::{Aabb, FOVY_DEG};
-use session_rust::{Point, Quaternion, Vector, Xform};
+use session_rust::{AABB, Point, Quaternion, Vector, Xform};
+
+/// The camera's vertical field of view, degrees; the pen math and the shaders' push assume it.
+pub const FOVY_DEG: f64 = 60.0;
 
 /// World unit the scene coordinates are expressed in.
 #[derive(Clone, Copy, PartialEq)]
@@ -45,9 +46,7 @@ pub struct Camera {
     pub up: [f64; 3],            // derived by update_position
     pub perspective: bool,
     pub unit: Unit,
-    /// Scene bounding-sphere radius in metres, set by `fit`. Floors the far plane so zooming
-    /// into one detail can never clip the rest of the scene (0 = pure distance-scaled range).
-    pub scene_extent: f64,
+    pub scene_extent: f64, // Scene bounding-sphere radius in metres, set by `fit`. Floors the far plane so zooming into one detail can never clip the rest of the scene (0 = pure distance-scaled range).
 }
 
 impl Camera {
@@ -93,9 +92,11 @@ impl Camera {
     pub fn pan(&mut self, dx: f32, dy: f32) {
         let right = self.orientation.rotate_vector(Vector::x_axis());
         let k = self.distance * 0.0015;
+
         for i in 0..3 {
             self.target[i] += (-(dx as f64) * right[i] + dy as f64 * self.up[i]) * k;
         }
+
         self.update_position();
     }
 
@@ -124,6 +125,7 @@ impl Camera {
         {
             return None;
         }
+
         let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
         let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
         // WORLD units, not the camera's internal metres: `target`, `position` and `distance`
@@ -139,9 +141,11 @@ impl Camera {
         let right = self.orientation.rotate_vector(Vector::x_axis());
         let forward = self.orientation.rotate_vector(Vector::y_axis());
         let mut on_plane = [0.0; 3];
+
         for i in 0..3 {
             on_plane[i] = target[i] + right[i] * ndc_x * half_w + self.up[i] * ndc_y * half_h;
         }
+
         if !self.perspective {
             // Orthographic draws as far BEHIND the eye plane as in front of it, and every
             // consumer of this ray discards a hit at a negative parameter. Starting the ray on
@@ -155,19 +159,24 @@ impl Camera {
             );
             return Some((origin, forward));
         }
+
         let eye = [
             self.position[0] / s,
             self.position[1] / s,
             self.position[2] / s,
         ];
         let mut dir = [0.0; 3];
+
         for i in 0..3 {
             dir[i] = on_plane[i] - eye[i];
         }
+
         let length = (dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]).sqrt();
+
         if !length.is_finite() || length <= 0.0 {
             return None;
         }
+
         Some((
             Point::new(eye[0], eye[1], eye[2]),
             Vector::new(dir[0] / length, dir[1] / length, dir[2] / length),
@@ -183,6 +192,7 @@ impl Camera {
         {
             return;
         }
+
         let new_dist = zoom_distance(self.distance, amount);
         let k = new_dist / self.distance; // actual factor after the guard
         let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
@@ -192,10 +202,12 @@ impl Camera {
         let half_h = self.distance * (FOVY_DEG * 0.5).to_radians().tan();
         let half_w = half_h * (viewport.0 / viewport.1);
         let right = self.orientation.rotate_vector(Vector::x_axis());
+
         for i in 0..3 {
             let cursor_off = right[i] * ndc_x * half_w + self.up[i] * ndc_y * half_h;
             self.target[i] += cursor_off * (1.0 - k); // keeps the curson's world point fixed
         }
+
         self.distance = new_dist;
         self.update_position();
     }
@@ -215,11 +227,13 @@ impl Camera {
     /// half-height distance*tan30 at the target) and refit the perspective camera to that -
     /// orientation untouched, target recentred on the formerly visible geometry. The other
     /// direction (perspective -> ortho) only ever widens what is visible and keeps the plain flip.
-    pub fn toggle_projection_framed(&mut self, bounds: &Aabb, aspect: f64) {
+    pub fn toggle_projection_framed(&mut self, bounds: &AABB, aspect: f64) {
         self.perspective = !self.perspective;
-        if !self.perspective || !bounds.is_finite() {
+
+        if !self.perspective || !bounds.is_valid() {
             return;
         }
+
         let s = self.unit.to_meters();
         let t = self.origin(); // target, world units
         let right = self.orientation.rotate_vector(Vector::x_axis());
@@ -233,25 +247,27 @@ impl Camera {
         let half_w = half_h * aspect;
         let mut lo = [f64::INFINITY; 3];
         let mut hi = [f64::NEG_INFINITY; 3];
+
         for corner in bounds.corners() {
-            let c = [
-                corner[0] as f64 - t[0],
-                corner[1] as f64 - t[1],
-                corner[2] as f64 - t[2],
-            ];
+            let c = [corner[0] - t[0], corner[1] - t[1], corner[2] - t[2]];
             let dx = (c[0] * right[0] + c[1] * right[1] + c[2] * right[2]).clamp(-half_w, half_w);
             let dy = (c[0] * up[0] + c[1] * up[1] + c[2] * up[2]).clamp(-half_h, half_h);
             let dz = c[0] * fwd[0] + c[1] * fwd[1] + c[2] * fwd[2];
+
             for i in 0..3 {
                 let p = t[i] + dx * right[i] + dy * up[i] + dz * fwd[i];
                 lo[i] = lo[i].min(p);
                 hi[i] = hi[i].max(p);
             }
         }
-        let clipped = Aabb {
-            min: [lo[0] as f32, lo[1] as f32, lo[2] as f32],
-            max: [hi[0] as f32, hi[1] as f32, hi[2] as f32],
-        };
+
+        let clipped = AABB::from_points(
+            &[
+                Point::new(lo[0], lo[1], lo[2]),
+                Point::new(hi[0], hi[1], hi[2]),
+            ],
+            0.0,
+        );
         self.fit(&clipped, aspect);
     }
 
@@ -363,20 +379,16 @@ impl Camera {
 
     /// Frame an AABB: center the target on it and set the distance from the box measured along the
     /// camera's own axes, so an elongated scene fills the view rather than its bounding sphere (+5%).
-    pub fn fit(&mut self, bounds: &Aabb, aspect: f64) {
-        if !bounds.is_finite() {
+    pub fn fit(&mut self, bounds: &AABB, aspect: f64) {
+        if !bounds.is_valid() {
             return;
         }
-        let (min, max) = (bounds.min, bounds.max);
+
         // unit scale
         let s = self.unit.to_meters();
 
         // target + box center
-        self.target = [
-            (min[0] as f64 + max[0] as f64) * 0.5 * s,
-            (min[1] as f64 + max[1] as f64) * 0.5 * s,
-            (min[2] as f64 + max[2] as f64) * 0.5 * s,
-        ];
+        self.target = [bounds.cx * s, bounds.cy * s, bounds.cz * s];
 
         // Fit along the CAMERA'S OWN AXES, not the box's bounding sphere.
         //
@@ -398,12 +410,14 @@ impl Camera {
         // proportionally more distance, hence the `+ z` rather than a max of the two separately.
         let mut distance: f64 = 0.0;
         let mut extent: f64 = 0.0;
+
         for p in self.offsets(bounds) {
             let (x, y, z) = (dot3(&p, &right), dot3(&p, &up), dot3(&p, &fwd));
             extent = extent.max((x * x + y * y + z * z).sqrt());
             distance = distance.max(x.abs() / tx + z);
             distance = distance.max(y.abs() / ty + z);
         }
+
         if extent <= 0.0 {
             return;
         }
@@ -416,28 +430,35 @@ impl Camera {
     }
 
     /// The box's eight corners in metres, relative to the current target.
-    fn offsets(&self, bounds: &Aabb) -> [[f64; 3]; 8] {
+    fn offsets(&self, bounds: &AABB) -> [[f64; 3]; 8] {
         let s = self.unit.to_meters();
-        bounds.corners().map(|c| {
-            [
-                c[0] as f64 * s - self.target[0],
-                c[1] as f64 * s - self.target[1],
-                c[2] as f64 * s - self.target[2],
-            ]
-        })
+        let mut out = [[0.0; 3]; 8];
+
+        for (offset, c) in out.iter_mut().zip(bounds.corners()) {
+            *offset = [
+                c[0] * s - self.target[0],
+                c[1] * s - self.target[1],
+                c[2] * s - self.target[2],
+            ];
+        }
+
+        out
     }
 
     /// Grow the far-plane floor to cover a scene that streamed in after the last fit, without
     /// touching the view. Same definition as `fit`'s: the farthest scene corner from the
     /// target, in metres.
-    pub fn grow_extent(&mut self, bounds: &Aabb) {
-        if !bounds.is_finite() {
+    pub fn grow_extent(&mut self, bounds: &AABB) {
+        if !bounds.is_valid() {
             return;
         }
+
         let mut extent: f64 = 0.0;
+
         for p in self.offsets(bounds) {
             extent = extent.max((p[0] * p[0] + p[1] * p[1] + p[2] * p[2]).sqrt());
         }
+
         if extent.is_finite() && extent > self.scene_extent {
             self.scene_extent = extent;
         }
@@ -452,6 +473,7 @@ impl Camera {
     pub fn update_position(&mut self) {
         let fwd = self.orientation.rotate_vector(Vector::y_axis()); // eye -> target
         let up = self.orientation.rotate_vector(Vector::z_axis());
+
         for i in 0..3 {
             self.position[i] = self.target[i] - fwd[i] * self.distance;
             self.up[i] = up[i];
@@ -492,6 +514,7 @@ mod tests {
     fn near_plane_cuts_a_millimetre_ahead_not_a_beam() {
         let mut cam = Camera::new();
         cam.scene_extent = 118.0;
+
         for dist in [122.0, 10.0, 0.5] {
             cam.distance = dist;
             cam.update_position();
@@ -515,6 +538,7 @@ mod tests {
         let mut cam = Camera::new();
         cam.perspective = false;
         cam.scene_extent = 2.0;
+
         for distance in [3.3, 13.2, 52.8] {
             cam.distance = distance;
             cam.update_position();
@@ -531,11 +555,14 @@ mod tests {
     fn orthographic_depth_contains_the_scene_before_and_behind_the_eye() {
         let mut cam = Camera::new();
         cam.perspective = false;
+
         for extent in [0.0, 2.0, 118.0] {
             cam.scene_extent = extent;
+
             for distance in [1.0e-6, 0.5, 122.0] {
                 cam.distance = distance;
                 cam.update_position();
+
                 for depth in [distance - extent, distance + extent] {
                     let projected = ndc_depth(&cam, depth);
                     assert!(
@@ -554,6 +581,7 @@ fn zoom_distance(distance: f64, amount: f32) -> f64 {
     if !amount.is_finite() {
         return distance;
     }
+
     (distance * 0.9_f64.powf(f64::from(amount).clamp(-10.0, 10.0))).clamp(1.0e-6, 1.0e15)
 }
 
@@ -572,10 +600,12 @@ mod wheel_tests {
         fn the_centre_ray_is_the_view_axis() {
             let mut cam = Camera::new();
             cam.update_position();
+
             for perspective in [true, false] {
                 cam.perspective = perspective;
                 let (_, dir) = cam.ray((400.0, 200.0), viewport()).expect("a ray");
                 let forward = cam.orientation.rotate_vector(Vector::y_axis());
+
                 for i in 0..3 {
                     assert!((dir[i] - forward[i]).abs() < 1e-12, "{perspective}");
                 }
@@ -592,9 +622,11 @@ mod wheel_tests {
             cam.perspective = true;
             let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
             let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
+
             for i in 0..3 {
                 assert!((a[i] - b[i]).abs() < 1e-9, "one eye");
             }
+
             assert!(
                 (0..3).any(|i| (da[i] - db[i]).abs() > 1e-6),
                 "different directions"
@@ -603,9 +635,11 @@ mod wheel_tests {
             cam.perspective = false;
             let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
             let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
+
             for i in 0..3 {
                 assert!((da[i] - db[i]).abs() < 1e-12, "one direction");
             }
+
             assert!(
                 (0..3).any(|i| (a[i] - b[i]).abs() > 1e-6),
                 "different origins"
@@ -630,6 +664,7 @@ mod wheel_tests {
             let expected: Vec<f64> = (0..3)
                 .map(|i| target[i] + right[i] * 0.5 * half_w + cam.up[i] * 0.5 * half_h)
                 .collect();
+
             for perspective in [true, false] {
                 cam.perspective = perspective;
                 let (origin, dir) = cam.ray((600.0, 100.0), viewport()).expect("a ray");
@@ -637,6 +672,7 @@ mod wheel_tests {
                 let denom: f64 = (0..3).map(|i| dir[i] * forward[i]).sum();
                 let num: f64 = (0..3).map(|i| (target[i] - origin[i]) * forward[i]).sum();
                 let t = num / denom;
+
                 for i in 0..3 {
                     let hit = origin[i] + dir[i] * t;
                     assert!((hit - expected[i]).abs() < 1e-6, "{perspective} axis {i}");
@@ -678,6 +714,7 @@ mod wheel_tests {
         }
     }
     use super::*;
+
     #[test]
     fn coalesced_wheel_events_remain_positive_and_preserve_the_cursor_anchor() {
         let mut camera = Camera::new();

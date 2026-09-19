@@ -1,11 +1,10 @@
 diff --git a/Cargo.lock b/Cargo.lock
 --- a/Cargo.lock
 +++ b/Cargo.lock
-@@ -17,6 +17,15 @@
- version = "0.1.10"
+@@ -18,6 +18,15 @@ version = "0.1.10"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "366ffbaa4442f4684d91e2cd7c5ea7c4ed8add41959a31447066e279e432b618"
-+
+ 
 +[[package]]
 +name = "accesskit"
 +version = "0.24.1"
@@ -14,15 +13,14 @@ diff --git a/Cargo.lock b/Cargo.lock
 +dependencies = [
 + "uuid",
 +]
- 
++
  [[package]]
  name = "ahash"
-@@ -272,6 +281,15 @@
-  "serde",
-  "termcolor",
+ version = "0.8.12"
+@@ -274,6 +283,15 @@ dependencies = [
   "unicode-width",
-+]
-+
+ ]
+ 
 +[[package]]
 +name = "color"
 +version = "0.3.3"
@@ -30,13 +28,16 @@ diff --git a/Cargo.lock b/Cargo.lock
 +checksum = "2ec7c5eb7a16992b1904d76c517d170ab353b0e0b3d5a0c81a8a0cd1037893cf"
 +dependencies = [
 + "bytemuck",
- ]
- 
++]
++
  [[package]]
-@@ -479,12 +497,112 @@
+ name = "combine"
+ version = "4.6.8"
+@@ -478,12 +496,112 @@ version = "0.1.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
  
- [[package]]
++[[package]]
 +name = "ecolor"
 +version = "0.34.3"
 +source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -99,13 +100,13 @@ diff --git a/Cargo.lock b/Cargo.lock
 + "winit",
 +]
 +
-+[[package]]
+ [[package]]
  name = "either"
  version = "1.18.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "252afb9ae5eaa683babdc6a068b3f5726eb19e05070c731f9b2a23a7c3e8ed34"
  
- [[package]]
++[[package]]
 +name = "emath"
 +version = "0.34.3"
 +source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -142,15 +143,13 @@ diff --git a/Cargo.lock b/Cargo.lock
 +source = "registry+https://github.com/rust-lang/crates.io-index"
 +checksum = "f8970033a4282a7bcf899b38b5ed3a58b732fe093d03785d58648515d8d309da"
 +
-+[[package]]
+ [[package]]
  name = "equivalent"
  version = "1.0.2"
- source = "registry+https://github.com/rust-lang/crates.io-index"
-@@ -523,6 +641,15 @@
- version = "2.5.0"
+@@ -524,6 +642,15 @@ version = "2.5.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
-+
+ 
 +[[package]]
 +name = "fearless_simd"
 +version = "0.3.0"
@@ -159,14 +158,14 @@ diff --git a/Cargo.lock b/Cargo.lock
 +dependencies = [
 + "bytemuck",
 +]
- 
++
  [[package]]
  name = "find-msvc-tools"
-@@ -964,6 +1091,18 @@
- version = "3.1.0"
+ version = "0.1.12"
+@@ -965,6 +1092,18 @@ version = "3.1.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
-+
+ 
 +[[package]]
 +name = "kurbo"
 +version = "0.13.1"
@@ -178,26 +177,28 @@ diff --git a/Cargo.lock b/Cargo.lock
 + "polycool",
 + "smallvec",
 +]
- 
++
  [[package]]
  name = "libc"
-@@ -1122,6 +1261,12 @@
+ version = "0.2.189"
+@@ -1121,6 +1260,12 @@ dependencies = [
+  "jni-sys 0.3.1",
  ]
  
- [[package]]
++[[package]]
 +name = "nohash-hasher"
 +version = "0.2.0"
 +source = "registry+https://github.com/rust-lang/crates.io-index"
 +checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 +
-+[[package]]
+ [[package]]
  name = "num-traits"
  version = "0.2.19"
- source = "registry+https://github.com/rust-lang/crates.io-index"
-@@ -1389,6 +1534,18 @@
+@@ -1388,6 +1533,18 @@ dependencies = [
+  "objc2-user-notifications",
  ]
  
- [[package]]
++[[package]]
 +name = "objc2-ui-kit"
 +version = "0.3.2"
 +source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -209,16 +210,13 @@ diff --git a/Cargo.lock b/Cargo.lock
 + "objc2-foundation 0.3.2",
 +]
 +
-+[[package]]
+ [[package]]
  name = "objc2-uniform-type-identifiers"
  version = "0.2.2"
- source = "registry+https://github.com/rust-lang/crates.io-index"
-@@ -1467,6 +1624,19 @@
-  "redox_syscall 0.5.18",
-  "smallvec",
+@@ -1469,6 +1626,19 @@ dependencies = [
   "windows-link",
-+]
-+
+ ]
+ 
 +[[package]]
 +name = "peniko"
 +version = "0.6.1"
@@ -230,14 +228,15 @@ diff --git a/Cargo.lock b/Cargo.lock
 + "kurbo",
 + "linebender_resource_handle",
 + "smallvec",
- ]
- 
++]
++
  [[package]]
-@@ -1543,6 +1713,15 @@
- version = "0.4.0"
+ name = "percent-encoding"
+ version = "2.3.2"
+@@ -1544,6 +1714,15 @@ version = "0.4.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "2f3a9f18d041e6d0e102a0a46750538147e5e8992d3b4873aaafee2520b00ce3"
-+
+ 
 +[[package]]
 +name = "polycool"
 +version = "0.4.0"
@@ -246,10 +245,11 @@ diff --git a/Cargo.lock b/Cargo.lock
 +dependencies = [
 + "arrayvec",
 +]
- 
++
  [[package]]
  name = "portable-atomic"
-@@ -2138,6 +2317,9 @@
+ version = "1.15.0"
+@@ -2138,6 +2317,9 @@ dependencies = [
   "bytemuck",
   "console_error_panic_hook",
   "console_log",
@@ -259,10 +259,11 @@ diff --git a/Cargo.lock b/Cargo.lock
   "getrandom 0.2.17",
   "glyphon",
   "js-sys",
-@@ -2521,6 +2703,15 @@
+@@ -2520,6 +2702,15 @@ dependencies = [
+  "core_maths",
  ]
  
- [[package]]
++[[package]]
 +name = "type-map"
 +version = "0.5.1"
 +source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -271,16 +272,13 @@ diff --git a/Cargo.lock b/Cargo.lock
 + "rustc-hash 2.1.3",
 +]
 +
-+[[package]]
+ [[package]]
  name = "unicode-bidi"
  version = "0.3.18"
- source = "registry+https://github.com/rust-lang/crates.io-index"
-@@ -2573,6 +2764,32 @@
-  "rand 0.10.2",
-  "serde_core",
+@@ -2575,6 +2766,32 @@ dependencies = [
   "wasm-bindgen",
-+]
-+
+ ]
+ 
 +[[package]]
 +name = "vello_common"
 +version = "0.0.6"
@@ -305,10 +303,12 @@ diff --git a/Cargo.lock b/Cargo.lock
 + "bytemuck",
 + "hashbrown 0.16.1",
 + "vello_common",
- ]
- 
++]
++
  [[package]]
-@@ -3194,7 +3411,7 @@
+ name = "version_check"
+ version = "0.9.5"
+@@ -3194,7 +3411,7 @@ dependencies = [
   "objc2 0.5.2",
   "objc2-app-kit",
   "objc2-foundation 0.2.2",
@@ -320,7 +320,7 @@ diff --git a/Cargo.lock b/Cargo.lock
 diff --git a/Cargo.toml b/Cargo.toml
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -15,6 +15,9 @@
+@@ -15,6 +15,9 @@ toml = "=0.8.23"
  serde_json = { version = "1.0", features = ["float_roundtrip"] }
  winit = "0.30"
  wgpu = "29.0"
@@ -330,7 +330,7 @@ diff --git a/Cargo.toml b/Cargo.toml
  glyphon = "=0.11.0" # The maintained text renderer release compatible with wgpu 29.
  log = "0.4"
  console_error_panic_hook = "0.1.6"
-@@ -27,8 +30,6 @@
+@@ -27,8 +30,6 @@ web-sys = { version = "0.3", features = [
      "Element",
      "HtmlCanvasElement",
      "HtmlElement",
@@ -342,43 +342,45 @@ diff --git a/Cargo.toml b/Cargo.toml
 diff --git a/index.html b/index.html
 --- a/index.html
 +++ b/index.html
-@@ -36,6 +36,7 @@
-                    filter: drop-shadow(-1px 1px 0 #ffffff99);
-                    transition: border-top-width .25s cubic-bezier(.2,.8,.3,1.25), border-left-width .25s cubic-bezier(.2,.8,.3,1.25); }
-     #viewer-docs:hover, #viewer-docs:focus-visible { border-top-width:52px; border-left-width:52px; outline:none; }
-+    #viewer-status:empty { display: none; }
-     #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
-                  font:1rem system-ui; text-align:center; padding-top:40vh; }
-   </style>
-@@ -52,15 +53,6 @@
-   <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Left click selects, right drag orbits, L opens the layers panel, colon opens the command line."></canvas>
-   <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
-   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
--  <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
--       `L` opens and closes it; a click on a row hides or shows that layer. -->
--  <div id="viewer-layers" hidden role="group" aria-label="Layers"
--       style="position:fixed;top:12px;left:12px;width:min(320px,80vw);max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
--  <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
--       back the moment it closes, so typing `z` in here is a letter and not an undo. -->
--  <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
+@@ -82,6 +82,9 @@
+         border-left-width: 52px;
+         outline: none;
+       }
++      #viewer-status:empty {
++        display: none;
++      }
+       #no-webgpu {
+         position: fixed;
+         inset: 0;
+@@ -108,15 +111,6 @@
+     <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Left click selects, right drag orbits, L opens the layers panel, colon opens the command line."></canvas>
+     <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
+     <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
+-    <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
+-    `L` opens and closes it; a click on a row hides or shows that layer. -->
+-    <div id="viewer-layers" hidden role="group" aria-label="Layers"
+-       style="position: fixed; top: 12px; left: 12px; width: min(320px,80vw); max-height: 70vh; overflow: auto; color: #fff; background: #222d; font: 13px/1.7 system-ui; padding: 6px 0; border-radius: 4px; outline: 1px solid #555;"></div>
+-    <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
+-    back the moment it closes, so typing `z` in here is a letter and not an undo. -->
+-    <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
 -         aria-label="Command line"
--         style="position:fixed;bottom:44px;left:12px;width:min(420px,60vw);color:#fff;background:#222d;border:0;border-radius:4px;font:14px/1.6 ui-monospace,monospace;padding:4px 8px;outline:1px solid #555">
-   <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
-   <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
-   <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
+-         style="position: fixed; bottom: 44px; left: 12px; width: min(420px,60vw); color: #fff; background: #222d; border: 0; border-radius: 4px; font: 14px/1.6 ui-monospace,monospace; padding: 4px 8px; outline: 1px solid #555;">
+     <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
+     <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
+     <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
 diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 --- a/src/app/feedback.rs
 +++ b/src/app/feedback.rs
-@@ -16,6 +16,8 @@
-     {
+@@ -16,6 +16,8 @@ pub fn status(message: &str) {
          status.set_text_content(Some(message));
      }
+ 
 +    #[cfg(target_arch = "wasm32")]
 +    super::ui::MODEL.with_borrow_mut(|model| model.status = message.chars().take(256).collect());
      log::info!("{message}");
  }
  
-@@ -34,29 +36,15 @@
+@@ -36,32 +38,16 @@ pub fn error(message: &str) {
      log::error!("{message}");
  }
  
@@ -392,30 +394,33 @@ diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 -        .get_element_by_id("viewer-command")?
 -        .dyn_into()
 -        .ok()?;
+-
 -    if open {
 -        input.set_hidden(false);
 -        input.set_value("");
 -        let _ = input.focus();
 -    } else {
 -        input.set_hidden(true);
--        if let Some(canvas) = document.get_element_by_id("canvas")
--            && let Ok(canvas) = canvas.dyn_into::<web_sys::HtmlElement>()
--        {
--            let _ = canvas.focus();
 +pub fn command_line(open: bool) {
 +    super::ui::MODEL.with_borrow_mut(|model| {
 +        model.command_open = open;
 +        model.focus_command = open;
+ 
+-        if let Some(canvas) = document.get_element_by_id("canvas")
+-            && let Ok(canvas) = canvas.dyn_into::<web_sys::HtmlElement>()
+-        {
+-            let _ = canvas.focus();
 +        if open {
 +            model.command.clear();
          }
 -    }
+-
 -    Some(input)
 +    });
  }
  
  /// Give the canvas the keyboard back. Every key binding is on the canvas, so anything that
-@@ -76,23 +64,12 @@
+@@ -82,23 +68,12 @@ pub fn focus_canvas() {
  #[cfg(not(target_arch = "wasm32"))]
  pub fn focus_canvas() {}
  
@@ -440,7 +445,7 @@ diff --git a/src/app/feedback.rs b/src/app/feedback.rs
  pub struct LayerRow {
      pub key: String,
      pub label: String,
-@@ -100,63 +77,24 @@
+@@ -106,66 +81,25 @@ pub struct LayerRow {
      pub hidden: bool,
  }
  
@@ -455,6 +460,7 @@ diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 -        return;
 -    };
 -    panel.set_text_content(None);
+-
 -    for row in rows {
 -        // A button, not a div: the panel is the viewer's only set of discrete controls, and a
 -        // div is neither reachable by keyboard nor announced as something that can be pressed.
@@ -468,12 +474,14 @@ diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 -            "style",
 -            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:1",
 -        );
+-
 -        if row.hidden {
 -            let _ = line.set_attribute(
 -                "style",
 -                "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:0.45",
 -            );
 -        }
+-
 -        let mark = if row.hidden { "·" } else { "•" };
 -        line.set_text_content(Some(&format!("{mark} {} ({})", row.label, row.count)));
 -        let _ = panel.append_child(&line);
@@ -496,6 +504,7 @@ diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 +pub fn layers_visible(open: bool) {
 +    super::ui::MODEL.with_borrow_mut(|model| {
 +        model.layers_open = open;
++
 +        if !open {
 +            model.rows.clear();
 +        }
@@ -516,7 +525,7 @@ diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 diff --git a/src/app/input.rs b/src/app/input.rs
 --- a/src/app/input.rs
 +++ b/src/app/input.rs
-@@ -228,6 +228,7 @@
+@@ -222,6 +222,7 @@ impl Input {
      /// as the start of a click: both widgets sit over the object they move, so a press that
      /// lands on one is never also a pick of what is behind it.
      ///
@@ -524,7 +533,7 @@ diff --git a/src/app/input.rs b/src/app/input.rs
      /// A release within the slop is a click and asks the GPU what is under it. The picture is
      /// unchanged until the answer lands, so a click never redraws by itself.
      fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
-@@ -313,119 +314,6 @@
+@@ -313,120 +314,6 @@ impl Drop for PointerCancellation {
      }
  }
  
@@ -552,6 +561,7 @@ diff --git a/src/app/input.rs b/src/app/input.rs
 -                "Enter" => {
 -                    let line = box_.value();
 -                    crate::app::feedback::command_line(false);
+-
 -                    if !line.trim().is_empty() {
 -                        let _ = proxy.send_event(crate::Msg::Command(line));
 -                    }
@@ -647,7 +657,7 @@ diff --git a/src/app/input.rs b/src/app/input.rs
 diff --git a/src/app/mod.rs b/src/app/mod.rs
 --- a/src/app/mod.rs
 +++ b/src/app/mod.rs
-@@ -21,6 +21,8 @@
+@@ -17,6 +17,8 @@ pub mod sheet_query;
  pub mod snap;
  pub mod stream;
  pub mod touch;
@@ -660,7 +670,7 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/app/ui.rs
-@@ -0,0 +1,304 @@
+@@ -0,0 +1,334 @@
 +use crate::State;
 +use crate::app::feedback::LayerRow;
 +use std::cell::RefCell;
@@ -723,9 +733,11 @@ new file mode 100644
 +
 +    pub fn frame(&mut self, state: &mut State) -> bool {
 +        let input = self.input.take_egui_input(&state.window);
++
 +        if let Some(controls) = self.controls.as_mut() {
 +            controls.clear();
 +        }
++
 +        let mut action = None;
 +        let mut command = None;
 +        let mut output = self.context.run_ui(input, |root| {
@@ -738,9 +750,11 @@ new file mode 100644
 +        self.input
 +            .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
 +        let changed = action.is_some() || command.is_some();
++
 +        if let Some(key) = action {
 +            state.panel_action(&key);
 +        }
++
 +        if let Some(text) = command {
 +            let message = state.run_command(&text).unwrap_or_else(|error| error);
 +            crate::app::feedback::status(&message);
@@ -748,14 +762,17 @@ new file mode 100644
 +                if model.history.len() == 8 {
 +                    model.history.pop_front();
 +                }
++
 +                model.history.push_back(format!("> {text}\n{message}"));
 +            });
 +            state.touch();
 +        }
++
 +        self.publish();
 +        let repaint = changed || self.context.has_requested_repaint();
 +        output.pixels_per_point *=
 +            state.gpu.config.width as f32 / state.window.inner_size().width.max(1) as f32;
++
 +        if let Some(ui) = state.gpu.ui.as_mut() {
 +            ui.prepare(
 +                &state.gpu.ctx,
@@ -764,8 +781,10 @@ new file mode 100644
 +                [state.gpu.config.width, state.gpu.config.height],
 +            );
 +        }
++
 +        repaint
 +    }
++
 +    fn publish(&self) {
 +        if self.controls.is_some()
 +            && let Some(canvas) = web_sys::window()
@@ -775,11 +794,13 @@ new file mode 100644
 +            let snapshot = MODEL.with_borrow(|model| serde_json::json!({"framework": "egui 0.34.3", "controls": self.controls, "command_open": model.command_open, "layers_open": model.layers_open, "command": model.command, "history": model.history}));
 +            let _ = canvas.set_attribute("data-viewer-ui", &snapshot.to_string());
 +        }
++
 +        if let Some(status) = web_sys::window()
 +            .and_then(|w| w.document())
 +            .and_then(|d| d.get_element_by_id("viewer-status"))
 +        {
 +            let hidden = MODEL.with_borrow(|model| model.command_open);
++
 +            if hidden {
 +                let _ = status.set_attribute("hidden", "");
 +            } else {
@@ -798,6 +819,7 @@ new file mode 100644
 +    visuals.selection.bg_fill = egui::Color32::BLACK;
 +    visuals.selection.stroke = egui::Stroke::new(1.0_f32, egui::Color32::WHITE);
 +    visuals.indent_has_left_vline = false;
++
 +    for widget in [
 +        &mut visuals.widgets.noninteractive,
 +        &mut visuals.widgets.inactive,
@@ -809,6 +831,7 @@ new file mode 100644
 +        widget.weak_bg_fill = egui::Color32::WHITE;
 +        widget.fg_stroke.color = egui::Color32::BLACK;
 +    }
++
 +    visuals
 +}
 +
@@ -833,6 +856,7 @@ new file mode 100644
 +    if !model.layers_open {
 +        return;
 +    }
++
 +    egui::Window::new("Session layers")
 +        .default_pos([12.0, 12.0])
 +        .default_width(310.0)
@@ -844,10 +868,12 @@ new file mode 100644
 +                .max_height(context.content_rect().height() * 0.65)
 +                .show(ui, |ui| {
 +                    let mut at = 0;
++
 +                    while at < model.rows.len() {
 +                        let start = at;
 +                        let id = model.rows[at].key.split_once('/').map(|(_, id)| id);
 +                        at += 1;
++
 +                        if id.is_some() {
 +                            while at < model.rows.len()
 +                                && model.rows[at].key.split_once('/').map(|(_, id)| id) == id
@@ -855,13 +881,16 @@ new file mode 100644
 +                                at += 1;
 +                            }
 +                        }
++
 +                        ui.horizontal(|ui| {
 +                            let first = &model.rows[start];
 +                            let indent = first.label.len() - first.label.trim_start().len();
 +                            ui.add_space(indent as f32 * 4.0);
++
 +                            for row in &model.rows[start..at] {
 +                                let response = layer_button(ui, row);
 +                                record(controls, &row.key, &row.label, &response);
++
 +                                if response.clicked() {
 +                                    *action = Some(row.key.clone());
 +                                }
@@ -874,6 +903,7 @@ new file mode 100644
 +
 +fn layer_button(ui: &mut egui::Ui, row: &LayerRow) -> egui::Response {
 +    let label = row.label.trim_start();
++
 +    if row.key.starts_with("open/") {
 +        let (rect, response) = ui.allocate_exact_size(egui::vec2(12.0, 18.0), egui::Sense::click());
 +        let c = rect.center();
@@ -897,6 +927,7 @@ new file mode 100644
 +        ));
 +        return response;
 +    }
++
 +    let label: String = label.chars().take(160).collect();
 +    let text = if row.key.starts_with("hide/") {
 +        if row.hidden {
@@ -919,6 +950,7 @@ new file mode 100644
 +    if !model.command_open {
 +        return;
 +    }
++
 +    let mut open = model.command_open;
 +    egui::Window::new("Command line")
 +        .anchor(egui::Align2::LEFT_BOTTOM, [12.0, -12.0])
@@ -930,6 +962,7 @@ new file mode 100644
 +            for text in &model.history {
 +                ui.label(text);
 +            }
++
 +            ui.label("World coordinates: x,y,z. Select a curve before trim, extend or explode.");
 +            let response = ui.add(
 +                egui::TextEdit::singleline(&mut model.command)
@@ -940,25 +973,32 @@ new file mode 100644
 +                    .desired_width(f32::INFINITY),
 +            );
 +            record(controls, "command/input", "Command", &response);
++
 +            if model.focus_command {
 +                response.request_focus();
 +                model.focus_command = false;
 +            }
++
 +            let enter =
 +                response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter));
 +            ui.horizontal(|ui| {
 +                let run = ui.button("Run");
 +                record(controls, "command/run", "Run", &run);
++
 +                if (enter || run.clicked()) && !model.command.trim().is_empty() {
 +                    *command = Some(std::mem::take(&mut model.command));
 +                }
++
 +                let close = ui.button("Close (Esc)");
 +                record(controls, "command/close", "Close", &close);
++
 +                if close.clicked() || ui.input(|input| input.key_pressed(egui::Key::Escape)) {
 +                    model.command_open = false;
 +                }
++
 +                ui.label("point · line · polyline · trim · extend · explode · undo");
 +            });
++
 +            if !model.status.is_empty() {
 +                ui.label(&model.status);
 +            }
@@ -968,7 +1008,7 @@ new file mode 100644
 diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 --- a/src/engine/gpu/mod.rs
 +++ b/src/engine/gpu/mod.rs
-@@ -24,6 +24,7 @@
+@@ -19,6 +19,7 @@ pub mod targets;
  pub mod text;
  pub mod text_outline;
  mod triangle_tiles;
@@ -976,15 +1016,15 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
  pub mod upload;
  pub mod view;
  mod widget;
-@@ -75,6 +76,7 @@
+@@ -68,6 +69,7 @@ pub struct Gpu {
+     pub controls: GlyphLane,
      pub control_net: SegmentLane,
-     /// A fixed mesh with independent depth for overlapping manipulation handles.
-     pub widget: widget::Widget,
+     pub widget: widget::Widget, // A fixed mesh with independent depth for overlapping manipulation handles.
 +    pub ui: Option<ui::Ui>,
      pub text: text::TextLane,
      pub selection_outline: surface_outline::SurfaceOutline,
      pub solid_outline: surface_outline::SurfaceOutline,
-@@ -94,7 +96,7 @@
+@@ -84,7 +86,7 @@ pub struct Gpu {
  
  impl Gpu {
      /// Owned buffers and framebuffer texture arithmetic, not a physical VRAM measurement.
@@ -993,7 +1033,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
      pub fn allocated_bytes(&self) -> (u64, u64) {
          let (splat_buffers, splat_textures) = self.splat.allocated_bytes();
          let (pick_buffers, pick_textures) = self.pick.allocated_bytes();
-@@ -221,6 +223,7 @@
+@@ -211,6 +213,7 @@ impl Gpu {
              controls,
              control_net,
              widget,
@@ -1004,13 +1044,15 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 diff --git a/src/engine/gpu/render.rs b/src/engine/gpu/render.rs
 --- a/src/engine/gpu/render.rs
 +++ b/src/engine/gpu/render.rs
-@@ -127,6 +127,9 @@
-             self.id_pass(encoder, Some(at));
+@@ -134,6 +134,11 @@ impl Gpu {
          }
+ 
          draws += self.widget.draw(encoder, view, &self.targets);
++
 +        if let Some(ui) = self.ui.as_ref() {
 +            ui.draw(encoder, view);
 +        }
++
          (draws, self.objects.len())
      }
  
@@ -1018,7 +1060,7 @@ diff --git a/src/engine/gpu/ui.rs b/src/engine/gpu/ui.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/engine/gpu/ui.rs
-@@ -0,0 +1,98 @@
+@@ -0,0 +1,103 @@
 +use super::buffers::GpuCtx;
 +
 +pub struct Ui {
@@ -1058,16 +1100,20 @@ new file mode 100644
 +            self.renderer.free_texture(&id);
 +            self.textures.remove(&id);
 +        }
++
 +        for (id, delta) in &output.textures_delta.set {
 +            self.textures.insert(*id);
 +            self.renderer
 +                .update_texture(&ctx.device, &ctx.queue, *id, delta);
 +        }
++
 +        self.free = output.textures_delta.free;
 +        self.jobs = context.tessellate(output.shapes, output.pixels_per_point);
++
 +        if self.jobs.is_empty() {
 +            return;
 +        }
++
 +        self.screen = egui_wgpu::ScreenDescriptor {
 +            size_in_pixels: size,
 +            pixels_per_point: output.pixels_per_point,
@@ -1092,6 +1138,7 @@ new file mode 100644
 +        if self.jobs.is_empty() {
 +            return;
 +        }
++
 +        let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
 +            label: Some("egui"),
 +            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -1120,18 +1167,16 @@ new file mode 100644
 diff --git a/src/lib.rs b/src/lib.rs
 --- a/src/lib.rs
 +++ b/src/lib.rs
-@@ -47,10 +47,6 @@
+@@ -42,8 +42,6 @@ pub enum Msg {
      SheetChunk(SheetChunk),
      SheetEntity(app::sheet_query::Resolved),
      CancelPointer,
--    /// A line typed into the command box, sent when Enter was pressed in it.
--    Command(String),
--    /// A layers-panel row was clicked, carrying its key.
--    ToggleLayer(String),
+-    Command(String), // A line typed into the command box, sent when Enter was pressed in it.
+-    ToggleLayer(String), // A layers-panel row was clicked, carrying its key.
  }
  
  #[cfg(target_arch = "wasm32")]
-@@ -73,8 +69,7 @@
+@@ -66,8 +64,7 @@ pub struct App {
      proxy: Option<EventLoopProxy<Msg>>,
      input: Input,
      pointer_cancellation: Option<app::input::PointerCancellation>,
@@ -1141,7 +1186,7 @@ diff --git a/src/lib.rs b/src/lib.rs
  }
  
  #[cfg(target_arch = "wasm32")]
-@@ -88,8 +83,7 @@
+@@ -81,8 +78,7 @@ impl App {
              state: None,
              input: Input::new(),
              pointer_cancellation: None,
@@ -1151,10 +1196,10 @@ diff --git a/src/lib.rs b/src/lib.rs
          };
          event_loop.spawn_app(app);
          Ok(())
-@@ -100,6 +94,11 @@
-         if let Some((w, h)) = desired_canvas_size() {
+@@ -94,6 +90,11 @@ impl App {
              let _ = state.resize(w, h);
          }
+ 
 +        self.ui = Some(app::ui::Ui::new(&state.window));
 +        state.gpu.ui = Some(engine::gpu::ui::Ui::new(
 +            &state.gpu.ctx,
@@ -1163,26 +1208,28 @@ diff --git a/src/lib.rs b/src/lib.rs
          state.window.request_redraw();
          self.state = Some(state);
      }
-@@ -137,18 +136,6 @@
-             match app::input::PointerCancellation::new(canvas, proxy.clone()) {
-                 Ok(listener) => self.pointer_cancellation = Some(listener),
+@@ -135,20 +136,6 @@ impl ApplicationHandler<Msg> for App {
                  Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
--            }
+             }
+ 
 -            if let Some(input) = app::feedback::command_line(false) {
 -                match app::input::CommandKeys::new(input, proxy.clone()) {
 -                    Ok(listener) => self.command_keys = Some(listener),
 -                    Err(error) => log::warn!("Cannot register the command line: {error:?}"),
 -                }
 -            }
+-
 -            if let Some(panel) = app::feedback::layers_visible(false) {
 -                match app::input::LayerClicks::new(panel, proxy.clone()) {
 -                    Ok(listener) => self.layer_clicks = Some(listener),
 -                    Err(error) => log::warn!("Cannot register the layers panel: {error:?}"),
 -                }
-             }
+-            }
+-
              wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
          }
-@@ -183,16 +170,6 @@
+     }
+@@ -183,16 +170,6 @@ impl ApplicationHandler<Msg> for App {
                      col_at,
                  });
              }
@@ -1199,20 +1246,24 @@ diff --git a/src/lib.rs b/src/lib.rs
              Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
              Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
              Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
-@@ -221,6 +198,31 @@
+@@ -222,6 +199,37 @@ impl ApplicationHandler<Msg> for App {
      /// changed. A frame is requested only when something did.
      fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
          let Some(state) = &mut self.state else { return };
++
 +        if let Some(ui) = self.ui.as_mut() {
 +            let (mut consumed, repaint) = ui.event(&state.window, &event);
++
 +            if matches!(event, WindowEvent::KeyboardInput { .. })
 +                && !app::ui::MODEL.with_borrow(|model| model.command_open)
 +            {
 +                consumed = false;
 +            }
++
 +            if repaint {
 +                state.request_frame();
 +            }
++
 +            if consumed {
 +                if matches!(
 +                    event,
@@ -1224,29 +1275,32 @@ diff --git a/src/lib.rs b/src/lib.rs
 +                    self.input.cancel();
 +                    state.cancel_gesture();
 +                }
++
 +                self.request_if_needed();
 +                return;
 +            }
 +        }
++
          let changed = match event {
              WindowEvent::CloseRequested => {
                  event_loop.exit();
-@@ -241,7 +243,11 @@
+@@ -244,7 +252,12 @@ impl ApplicationHandler<Msg> for App {
                  if held {
                      state.needs_frame = true;
                  } else {
 +                    let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state));
                      state.render();
++
 +                    if repaint {
 +                        state.request_frame();
 +                    }
                  }
+ 
                  false
-             }
 diff --git a/src/state.rs b/src/state.rs
 --- a/src/state.rs
 +++ b/src/state.rs
-@@ -274,6 +274,12 @@
+@@ -257,6 +257,12 @@ impl State {
      }
  
      /// The picture changed: the next redraw presents it.

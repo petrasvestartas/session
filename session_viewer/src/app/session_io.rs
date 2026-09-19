@@ -1,4 +1,3 @@
-//! A single portable file containing every retained source document and its placement.
 use super::scene::{FileDoc, Scene};
 use crate::engine::text::TextLabel;
 use prost::Message;
@@ -7,6 +6,7 @@ use session_rust::{Session, Xform};
 use std::rc::Rc;
 
 const MAGIC: &[u8] = b"SESSION-VIEWER\x01\n";
+
 const LIMIT: usize = 512 * 1024 * 1024;
 
 #[derive(Clone, PartialEq, Message)]
@@ -16,6 +16,7 @@ struct Archive {
     #[prost(bytes = "vec", tag = "2")]
     metadata: Vec<u8>,
 }
+
 #[derive(Serialize, Deserialize)]
 struct Metadata {
     #[serde(default)]
@@ -30,6 +31,7 @@ struct Metadata {
     edge_colors: Option<Vec<(usize, String, [u8; 3])>>,
     texts: Vec<(String, TextLabel, bool)>,
 }
+
 #[derive(Serialize, Deserialize)]
 struct Document {
     name: String,
@@ -41,22 +43,28 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
     if !scene.streamed.is_empty() || !scene.sheets.is_empty() {
         return Err("This scene contains streamed sources. Open complete source documents before saving an editable session.".into());
     }
+
     let mut documents = Vec::new();
     let mut size = 0usize;
+
     for file in &scene.docs {
         if file.display_only {
             return Err(
                 "A source document is not retained; the complete session cannot be saved.".into(),
             );
         }
+
         // Serialize a snapshot: saving must not clear the live document's undo history.
         let bytes = (*file.session).clone().pb_dumps();
         size = size.saturating_add(bytes.len());
+
         if size > LIMIT {
             return Err("Session exceeds the 512 MiB file limit".into());
         }
+
         documents.push(bytes);
     }
+
     let mut hidden: Vec<_> = scene
         .hidden
         .iter()
@@ -108,9 +116,11 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
         documents,
         metadata: serde_json::to_vec(&metadata).map_err(|e| e.to_string())?,
     };
+
     if archive.encoded_len() + MAGIC.len() > LIMIT {
         return Err("Session exceeds the 512 MiB file limit".into());
     }
+
     let mut bytes = MAGIC.to_vec();
     archive.encode(&mut bytes).map_err(|e| e.to_string())?;
     Ok(bytes)
@@ -121,27 +131,33 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
     if bytes.len() > LIMIT {
         return Err("Session exceeds the 512 MiB file limit".into());
     }
+
     let payload = bytes
         .strip_prefix(MAGIC)
         .ok_or("Not a Session Viewer file")?;
     let archive = Archive::decode(payload).map_err(|e| e.to_string())?;
     let metadata: Metadata =
         serde_json::from_slice(&archive.metadata).map_err(|e| e.to_string())?;
+
     if metadata.documents.len() != archive.documents.len() {
         return Err("Document inventory does not match".into());
     }
+
     if metadata
         .created_doc
         .is_some_and(|index| index >= metadata.documents.len())
     {
         return Err("Created document index is outside the inventory".into());
     }
+
     let mut scene = Scene::new();
     scene.created_doc = metadata.created_doc;
+
     for (meta, bytes) in metadata.documents.into_iter().zip(archive.documents) {
         if !meta.place.into_iter().all(f64::is_finite) || !meta.point_px.is_finite() {
             return Err("Non-finite document placement".into());
         }
+
         let proto =
             session_rust::proto::Session::decode(bytes.as_slice()).map_err(|e| e.to_string())?;
         super::validate::session(&proto)?;
@@ -155,9 +171,11 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
             session: Rc::new(session),
         });
     }
+
     for (key, label, active) in metadata.texts {
         scene.register_text(key, label, active);
     }
+
     scene.hidden = metadata
         .hidden
         .into_iter()
@@ -189,6 +207,7 @@ mod browser {
     #[wasm_bindgen(inline_js = r#"
 export function downloadSession(bytes) {
     const url = URL.createObjectURL(new Blob([bytes], {type:'application/octet-stream'}));
+
     const a = document.createElement('a'); a.href=url; a.download='session.session';
     document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
@@ -206,13 +225,16 @@ export function chooseSession() {
     extern "C" {
         #[wasm_bindgen(catch, js_name=downloadSession)]
         pub fn download(bytes: &[u8]) -> Result<(), JsValue>;
+
         #[wasm_bindgen(js_name=chooseSession)]
         fn choose() -> js_sys::Promise;
     }
+
     pub fn pick() {
         let promise = choose();
         wasm_bindgen_futures::spawn_local(async move {
             let result = wasm_bindgen_futures::JsFuture::from(promise).await;
+
             match result {
                 Ok(value) if value.is_null() => {}
                 Ok(value) => match super::open(&js_sys::Uint8Array::new(&value).to_vec()) {
@@ -234,6 +256,7 @@ mod tests {
     use super::*;
     use crate::app::deform::Target;
     use session_rust::{Geometry, Mesh, Point};
+
     #[test]
     fn created_curves_keep_visible_screen_pens_after_open() {
         let mut scene = Scene::new();
@@ -267,6 +290,7 @@ mod tests {
         source.add_mesh(mesh, None);
         let shared = Rc::new(source);
         let mut scene = Scene::new();
+
         for x in [100., 200.] {
             scene.add_file(FileDoc {
                 name: format!("placement {x}"),
@@ -276,6 +300,7 @@ mod tests {
                 display_only: false,
             });
         }
+
         scene
             .edit_subobject(
                 0,
@@ -325,6 +350,7 @@ mod tests {
         assert_eq!(second.vertex[&0].z, 0.);
         assert_eq!(first.face[&0], vec![0, 1, 2]);
     }
+
     #[test]
     fn incomplete_or_foreign_files_are_rejected() {
         assert!(open(b"not a session").is_err());

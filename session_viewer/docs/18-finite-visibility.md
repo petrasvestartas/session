@@ -131,11 +131,11 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
-<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=1-67 -->
+<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=1-90 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
-<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=68-138 -->
+<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=91-174 -->
 
 - The projection itself, used by the one compute pass that fills the record buffer.
 - The binning passes and the ink query share the smaller `projected_triangle.wgsl`, appended to both.
@@ -180,7 +180,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-57 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-58 -->
 
 - The pool is one flat array, not a quota per tile: a dense tile borrows space a sparse one never used, so the allocation follows the scene rather than the grid.
 
@@ -188,7 +188,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=58-79 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=59-80 -->
 
 - `PoolReport` reads the scan's first record back one frame later: an absolute word index into
   the tile buffer, header words included, so it is above capacity exactly when the lists did not
@@ -198,62 +198,62 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=80-182 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=81-192 -->
 
 - `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=183-215 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=193-224 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=216-248 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=225-258 -->
 
 - `prepare` resizes storage for the triangle count, the framebuffer and the last report.
 - Beyond the device's storage binding limit it releases the tables and reports, so the ink shader keeps the plane rule.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=249-326 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=259-342 -->
 
 - `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=327-397 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=343-417 -->
 
 - Counting first removes the per-tile cap.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=398-433 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=418-453 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=434-465 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=454-486 -->
 
 - Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=466-491 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=487-512 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=492-599 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=513-620 -->
 
 - Every preparation shader compiles the same projected-record and tile-grid arithmetic the ink shader uses, so the CPU, the raster passes and the ink query cannot disagree about which tile a pixel is in.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=600-607 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=621-628 -->
 
 Copy the rest of the file:
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=608-796 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=629-824 -->
 
 <!-- check: 18 -->
 
@@ -281,7 +281,7 @@ The blank lines separate the helpers; type them so the file matches production:
 
 <span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
-<!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=12,13 -->
+<!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=12-13 -->
 
 
 ## Part E · Rust owners and wiring

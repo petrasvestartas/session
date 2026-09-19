@@ -1,7 +1,7 @@
 diff --git a/src/state.rs b/src/state.rs
 --- a/src/state.rs
 +++ b/src/state.rs
-@@ -17,6 +17,7 @@
+@@ -12,6 +12,7 @@ use crate::engine::gpu::{FrameInput, Gpu, Pick};
  use crate::engine::performance::{heap_mb, now_ms};
  mod cloud_query;
  pub mod edit;
@@ -9,15 +9,15 @@ diff --git a/src/state.rs b/src/state.rs
  mod sheet_query;
  mod text;
  use std::sync::Arc;
-@@ -49,6 +50,7 @@
-     /// When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
-     last_resize_ms: f64,
+@@ -40,6 +41,7 @@ pub struct State {
+     last_frame_ms: f64,
+     last_resize_ms: f64, // When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
      pub selection: SelectionMode,
 +    hierarchy: crate::app::hierarchy::Hierarchy,
      controls: Controls,
      requested: PickMode,
      pub selection_radius_css: f64,
-@@ -85,6 +87,7 @@
+@@ -72,6 +74,7 @@ impl State {
              last_frame_ms: 0.0,
              last_resize_ms: f64::NEG_INFINITY,
              selection: SelectionMode::Object,
@@ -25,7 +25,7 @@ diff --git a/src/state.rs b/src/state.rs
              controls: Controls::default(),
              requested: PickMode::Object,
              selection_radius_css: 6.0,
-@@ -180,6 +183,8 @@
+@@ -167,6 +170,8 @@ impl State {
  
      /// Drop every document; the canvas, device and camera stay.
      pub fn clear(&mut self) {
@@ -34,42 +34,48 @@ diff --git a/src/state.rs b/src/state.rs
          self.selection = SelectionMode::Object;
          self.sheet_query = None;
          self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-@@ -278,6 +283,10 @@
+@@ -261,6 +266,12 @@ impl State {
  
      /// Make `row` the selection (or none), moving the highlight.
      pub fn select(&mut self, row: Option<u32>) {
 +        self.cancel_gesture();
++
 +        for old in self.hierarchy.selected.drain(..) {
 +            self.gpu.set_selected(old, false);
 +        }
++
          self.selection = SelectionMode::Object;
          self.sheet_query = None;
          self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-@@ -309,6 +318,14 @@
+@@ -295,6 +306,17 @@ impl State {
      /// a `rebuild` (an edit commit) re-applies it when the rows come back. A live reload
      /// takes the `clear` path instead and starts a fresh scene with nothing hidden.
      pub fn hide_selected(&mut self) {
 +        if !self.hierarchy.selected.is_empty() {
 +            let rows = std::mem::take(&mut self.hierarchy.selected);
++
 +            for row in &rows {
 +                self.gpu.set_selected(*row, false);
 +            }
++
 +            self.set_rows_hidden(&rows, true);
 +            return;
 +        }
++
          let Some(row) = self.scene.selected else {
              return;
          };
 diff --git a/src/state/edit.rs b/src/state/edit.rs
 --- a/src/state/edit.rs
 +++ b/src/state/edit.rs
-@@ -186,14 +186,10 @@
-             return;
+@@ -176,15 +176,11 @@ impl State {
          };
+ 
          if !self.scene.delete_row(row) {
 +            self.status("This object cannot be deleted; streamed scenes cannot be rebuilt");
              return;
          }
+ 
 -        self.select(None);
 -        self.scene.rebuild(&mut self.gpu);
 -        self.place_gizmo(None);
@@ -80,7 +86,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
      }
  
      /// Undo the last edit in the document that was edited last - Ctrl+Z.
-@@ -213,6 +209,8 @@
+@@ -204,6 +200,8 @@ impl State {
      /// An undo can bring an object back or take one away, so the rows are rebuilt rather than
      /// patched. The selection is dropped because the row it named may not exist any more.
      fn after_history(&mut self) {
@@ -89,10 +95,10 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
          self.selection = SelectionMode::Object;
          self.select(None);
          self.scene.rebuild(&mut self.gpu);
-@@ -514,35 +512,12 @@
-         if rows.is_empty() {
+@@ -516,41 +514,12 @@ impl State {
              return;
          }
+ 
 -        let hidden: Vec<bool> = rows
 -            .iter()
 -            .map(|&row| {
@@ -102,23 +108,29 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -            })
 -            .collect();
 -        let hide = !hidden.iter().all(|&h| h);
+-
 -        for (&row, was) in rows.iter().zip(&hidden) {
 -            if *was == hide {
 -                continue;
 -            }
+-
 -            let Some(identity) = self.scene.identity_of(row) else {
 -                continue;
 -            };
+-
 -            if hide {
 -                self.scene.hidden.insert(identity);
 -            } else {
 -                self.scene.hidden.remove(&identity);
 -            }
+-
 -            self.gpu.set_hidden(row, hide);
 -        }
+-
 -        if self.scene.selected.is_some_and(|row| rows.contains(&row)) && hide {
 -            self.select(None);
 -        }
+-
 -        self.refresh_layers();
 -        self.update_label();
 -        self.touch();
@@ -131,17 +143,17 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
      }
  
      /// Redraw the panel from the scene, when it is open.
-@@ -550,7 +525,8 @@
-         if !crate::app::feedback::layers_open() {
+@@ -559,7 +528,8 @@ impl State {
              return;
          }
+ 
 -        let rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
 +        self.hierarchy.refresh(&self.scene);
 +        let mut rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
              .into_iter()
              .map(|row| crate::app::feedback::LayerRow {
                  key: row.layer.key(),
-@@ -559,6 +535,7 @@
+@@ -568,6 +538,7 @@ impl State {
                  hidden: row.hidden,
              })
              .collect();
@@ -153,7 +165,7 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/state/panel.rs
-@@ -0,0 +1,170 @@
+@@ -0,0 +1,183 @@
 +use crate::app::layers::Layer;
 +use crate::state::State;
 +
@@ -167,12 +179,14 @@ new file mode 100644
 +            self.toggle_layer(layer);
 +            return;
 +        }
++
 +        let Some((action, index)) = key.split_once('/') else {
 +            return;
 +        };
 +        let Ok(index) = index.parse::<usize>() else {
 +            return;
 +        };
++
 +        if action == "page" {
 +            self.hierarchy.page = index;
 +        } else if index < self.hierarchy.nodes.len() {
@@ -185,6 +199,7 @@ new file mode 100644
 +                "select" => {
 +                    let rows = self.hierarchy.targets(index);
 +                    self.select(None);
++
 +                    for row in rows {
 +                        if self
 +                            .scene
@@ -195,6 +210,7 @@ new file mode 100644
 +                            self.hierarchy.selected.push(row);
 +                        }
 +                    }
++
 +                    if self.hierarchy.selected.len() == 1 {
 +                        let row = self.hierarchy.selected[0];
 +                        self.select(Some(row));
@@ -213,6 +229,7 @@ new file mode 100644
 +                _ => return,
 +            }
 +        }
++
 +        self.refresh_layers();
 +        self.touch();
 +    }
@@ -232,6 +249,7 @@ new file mode 100644
 +        {
 +            self.select(None);
 +        }
++
 +        for row in rows {
 +            let Some(id) = self.scene.identity_of(*row) else {
 +                continue;
@@ -241,10 +259,12 @@ new file mode 100644
 +            } else {
 +                self.scene.hidden.remove(&id)
 +            };
++
 +            if changed {
 +                self.gpu.set_hidden(*row, hide);
 +            }
 +        }
++
 +        self.refresh_layers();
 +        self.update_label();
 +        self.touch();
@@ -259,6 +279,7 @@ new file mode 100644
 +            .page
 +            .min(visible.len().saturating_sub(1) / PAGE_SIZE);
 +        let first = self.hierarchy.page * PAGE_SIZE;
++
 +        for &index in visible.iter().skip(first).take(PAGE_SIZE) {
 +            let node = &self.hierarchy.nodes[index];
 +            let count = node.rows.len();
@@ -268,6 +289,7 @@ new file mode 100644
 +                    .is_some_and(|id| self.scene.hidden.contains(&id))
 +            });
 +            let indent = "  ".repeat(node.depth.min(16));
++
 +            if node.end > index + 1 {
 +                let mark = if self.hierarchy.open.contains(&index) {
 +                    "▾"
@@ -281,6 +303,7 @@ new file mode 100644
 +                    hidden,
 +                });
 +            }
++
 +            rows.push(LayerRow {
 +                key: format!("select/{index}"),
 +                label: format!("{indent}Select {}", node.label),
@@ -298,6 +321,7 @@ new file mode 100644
 +                hidden,
 +            });
 +        }
++
 +        for (label, page) in [
 +            ("Previous", self.hierarchy.page.checked_sub(1)),
 +            (
@@ -314,6 +338,7 @@ new file mode 100644
 +                });
 +            }
 +        }
++
 +        if self.hierarchy.truncated {
 +            rows.push(LayerRow {
 +                key: String::new(),

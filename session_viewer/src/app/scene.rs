@@ -1,8 +1,3 @@
-//! The document side: `Scene` owns WHAT is loaded - every kernel `Session` with its placement,
-//! the `Upload` tables, the row bookkeeping and the streamed-cloud slots. `add_file` walks one
-//! session into the tables; rows append during loading and rebuild explicitly after edits.
-//! Geometry preparation lives in `walk/`; this coordinator retains source ownership for picks.
-
 #[path = "scene_text.rs"]
 mod text;
 pub use text::SceneText;
@@ -16,7 +11,6 @@ use crate::app::walk::mesh::Lap;
 use crate::app::walk::sheet::{SheetRows, SheetSlice, walk_sheet_slice};
 use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
-use crate::math::{Mat4, mat_mul};
 use session_rust::{Geometry, Session, Xform};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -26,12 +20,9 @@ use std::rc::Rc;
 pub struct FileDoc {
     pub name: String,
     pub place: Xform,
-    /// Shared placements detach through Rc::make_mut before editing source geometry.
-    pub session: Rc<Session>,
+    pub session: Rc<Session>, // Shared placements detach through Rc::make_mut before editing source geometry.
     pub point_px: f32,
-    /// True only for a streamed source descriptor with an empty Session shell.
-    /// Full-file display_only hints retain geometry and become false after loading.
-    pub display_only: bool,
+    pub display_only: bool, // True only for a streamed source descriptor with an empty Session shell. Full-file display_only hints retain geometry and become false after loading.
 }
 
 /// A streamed cloud's first slice and what later slices need: its file's node table, how
@@ -42,12 +33,10 @@ pub struct StreamedInit {
     pub place: Xform,
     pub rows: StreamRows,
     pub lod: CloudLod,
-    /// Where the packed arrays sit in the file, so the next slices need no second probe.
-    pub fields: CloudFields,
+    pub fields: CloudFields, // Where the packed arrays sit in the file, so the next slices need no second probe.
     pub resident: u32,
     pub point_px: f32,
-    /// Where the colour run continues for the next slice.
-    pub col_at: u64,
+    pub col_at: u64, // Where the colour run continues for the next slice.
 }
 
 /// A bounded resident prefix plus the full source descriptor used by ranged F10 queries.
@@ -57,7 +46,7 @@ pub struct StreamedCloud {
     pub row: u32,
     pub lod: CloudLod,
     pub fields: CloudFields,
-    pub place: crate::math::Mat4,
+    pub place: Xform,
     pub done_to: u32,
     pub total: u32,
     pub point_px: f32,
@@ -83,12 +72,11 @@ pub struct SheetBatch {
     pub meta_url: Option<String>,
     pub row: u32,
     pub fields: SheetFields,
-    pub place: Mat4,
+    pub place: Xform,
     pub done_to: u32,
     pub total: u32,
     pub resolved: Option<(u32, EntityMeta)>,
-    /// The side table's validated head, read once.
-    pub table: Option<SheetTable>,
+    pub table: Option<SheetTable>, // The side table's validated head, read once.
 }
 
 /// What a pick resolved to: the document, the geometry's guid, its object row, for a cloud
@@ -121,8 +109,7 @@ struct Bases {
 /// The open document set, the pending upload and the row bookkeeping.
 pub struct Scene {
     pub docs: Vec<FileDoc>,
-    /// Every source text placement shares ordinary scene identity and visibility.
-    pub texts: Vec<SceneText>,
+    pub texts: Vec<SceneText>, // Every source text placement shares ordinary scene identity and visibility.
     pub tables: Upload,
     pub streamed: Vec<StreamedCloud>,
     pub sheets: Vec<SheetBatch>,
@@ -133,8 +120,7 @@ pub struct Scene {
     pub selected: Option<u32>,
     order: Vec<Rc<str>>,
     owners: Vec<usize>,
-    /// Global pipe rows resolve to original parent/edge identities after upload.
-    edge_sources: Vec<(u32, u32)>,
+    edge_sources: Vec<(u32, u32)>, // Global pipe rows resolve to original parent/edge identities after upload.
     ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,
     guid_to_row: HashMap<(usize, Rc<str>), u32>,
     bases: Bases,
@@ -142,9 +128,7 @@ pub struct Scene {
     surface_previews: Vec<Option<crate::app::surface_preview::SurfacePreview>>,
     pub(crate) mesh_previews: Vec<Option<crate::app::mesh_preview::MeshPreview>>,
     pub(super) preview_spans: Vec<Option<crate::engine::gpu::patch::Span>>,
-    /// Which document the last edit touched. Undo is per document, because the history is the
-    /// document's; this is the only thing that says which one a bare Ctrl+Z means.
-    pub last_edited: Option<usize>,
+    pub last_edited: Option<usize>, // Which document the last edit touched. Undo is per document, because the history is the document's; this is the only thing that says which one a bare Ctrl+Z means.
     pub(crate) created_doc: Option<usize>,
     pub(crate) row_revision: u64,
 }
@@ -233,6 +217,7 @@ impl Scene {
         let texts = std::mem::take(&mut self.texts);
         self.reset_rows();
         gpu.reset();
+
         for d in docs {
             if d.display_only {
                 log::warn!(
@@ -240,11 +225,14 @@ impl Scene {
                     d.name
                 );
             }
+
             self.add_file(d);
         }
+
         for text in texts {
             self.register_text(text.key, text.label, text.active);
         }
+
         self.upload_to(gpu);
         self.restore_text_visibility(gpu);
     }
@@ -261,6 +249,7 @@ impl Scene {
                 .unwrap_or(u32::MAX);
             self.edge_sources.push((pipe.instance_id, edge));
         }
+
         gpu.set_scene(&self.tables);
         self.bases.vert += self.tables.arena.verts.len() as u32;
         self.bases.obj += self.tables.obj.rows.len() as u32;
@@ -273,10 +262,11 @@ impl Scene {
 
     /// The next object row and its guid bookkeeping.
     /// One object row for `guid` owned by document `owner` (`usize::MAX` for a text object).
-    pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Mat4, flags: u32) -> u32 {
+    pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Xform, flags: u32) -> u32 {
         self.row_revision = self.row_revision.wrapping_add(1);
         let row = self.bases.obj + self.tables.obj.rows.len() as u32;
         self.tables.obj.rows.push(ObjectRow::new(place, flags));
+
         if let Some(color) = self.colors.get(&(owner, Rc::from(guid))) {
             let object = self.tables.obj.rows.last_mut().expect("row just appended");
             object.color = [
@@ -293,6 +283,7 @@ impl Scene {
             object.edge_color = u32::from_le_bytes([color[0], color[1], color[2], 255]);
             object.flags |= Instance::FLAG_EDGE_COLOR;
         }
+
         let guid: Rc<str> = Rc::from(guid);
         self.guid_to_row.insert((owner, Rc::clone(&guid)), row);
         self.order.push(guid);
@@ -327,9 +318,11 @@ impl Scene {
             let Some(geom) = session.lookup.get(&guid) else {
                 continue;
             };
+
             if !is_drawable(geom) {
                 continue;
             }
+
             let flags = if self
                 .hidden
                 .contains(&(self.docs.len(), Rc::from(guid.as_str())))
@@ -338,7 +331,7 @@ impl Scene {
             } else {
                 0
             };
-            let object_place = placement(&world, &place.m, &guid);
+            let object_place = placement(&world, &place, &guid);
             let row = self.push_row(self.docs.len(), &guid, object_place, flags);
             let ribbon_start = self.tables.seg.ribbons.len();
             let cx = WalkCx {
@@ -376,24 +369,30 @@ impl Scene {
             o.bounds = r.bounds;
             o.spacing = r.spacing;
             o.faces = r.faces;
+
             if r.faces {
                 o.flags |= Instance::FLAG_HAS_FACES;
             }
+
             let ribbon_end = self.tables.seg.ribbons.len();
+
             if ribbon_start != ribbon_end {
                 self.ribbon_ranges[row as usize] = Some(
                     self.bases.ribbon + ribbon_start as u32..self.bases.ribbon + ribbon_end as u32,
                 );
             }
         }
+
         lap.mark("objects");
 
         let extent = file_extent(&self.tables, &from);
-        self.tables.bounds.union(&extent);
+        self.tables.bounds.union_with(&extent);
+
         // Typed modeling geometry stays in the 3D workspace even when all its points are coplanar.
-        if self.created_doc != Some(self.docs.len()) && is_planar(&self.tables, &from, &place.m) {
+        if self.created_doc != Some(self.docs.len()) && is_planar(&self.tables, &from, &place) {
             mark_sheet(&mut self.tables, &from);
         }
+
         lap.mark("sweeps");
 
         if display_only || knobs::drop_sessions() {
@@ -401,6 +400,7 @@ impl Scene {
                 "'{name}': retaining source geometry for controls; the legacy display_only/drop_sessions hint no longer releases it"
             );
         }
+
         self.docs.push(FileDoc {
             name,
             place,
@@ -425,7 +425,7 @@ impl Scene {
             col_at: _,
         } = init;
         let total = fields.count;
-        let row = self.push_row(self.docs.len(), &format!("stream:{url}"), place.m, 0);
+        let row = self.push_row(self.docs.len(), &format!("stream:{url}"), place.clone(), 0);
         let slice = StreamSlice {
             rows,
             lod: &lod,
@@ -438,10 +438,10 @@ impl Scene {
         let o = self.tables.obj.rows.last_mut().unwrap();
         o.bounds = bounds;
         o.spacing = point_px;
-        self.tables.bounds.union(&bounds.placed(&place.m));
+        self.tables.bounds.union_with(&bounds.transformed(&place));
         self.upload_to(gpu);
 
-        let model = place.m;
+        let model = place.clone();
         self.docs.push(FileDoc {
             name: name.clone(),
             place,
@@ -468,12 +468,14 @@ impl Scene {
         let Some(sc) = self.streamed.get(idx) else {
             return;
         };
+
         if to <= sc.done_to {
             return;
         }
+
         let place = match self.document(sc.row) {
-            Some(document) => document.place.m,
-            None => Xform::identity().m,
+            Some(document) => document.place.clone(),
+            None => Xform::identity(),
         };
         let slice = StreamSlice {
             rows,
@@ -484,7 +486,7 @@ impl Scene {
             point_px: sc.point_px,
         };
         let bounds = walk_stream_slice(&mut self.tables.cloud, &slice);
-        self.tables.bounds.union(&bounds.placed(&place));
+        self.tables.bounds.union_with(&bounds.transformed(&place));
         self.streamed[idx].done_to = to;
         self.upload_to(gpu);
     }
@@ -506,17 +508,17 @@ impl Scene {
         let row = self.push_row(
             self.docs.len(),
             &format!("sheet:{url}"),
-            place.m,
+            place.clone(),
             Instance::FLAG_SHEET,
         );
         let slice = SheetSlice { rows, from: 0, row };
         let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
         let o = self.tables.obj.rows.last_mut().unwrap();
         o.bounds = bounds;
-        self.tables.bounds.union(&bounds.placed(&place.m));
+        self.tables.bounds.union_with(&bounds.transformed(&place));
         self.upload_to(gpu);
 
-        let model = place.m;
+        let model = place.clone();
         self.docs.push(FileDoc {
             name: name.clone(),
             place,
@@ -544,17 +546,19 @@ impl Scene {
         let Some(sheet) = self.sheets.get(idx) else {
             return;
         };
+
         if to <= sheet.done_to {
             return;
         }
-        let place = sheet.place;
+
+        let place = sheet.place.clone();
         let slice = SheetSlice {
             rows,
             from: sheet.done_to,
             row: sheet.row,
         };
         let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
-        self.tables.bounds.union(&bounds.placed(&place));
+        self.tables.bounds.union_with(&bounds.transformed(&place));
         self.sheets[idx].done_to = to;
         self.upload_to(gpu);
     }
@@ -566,6 +570,7 @@ impl Scene {
                 return Some(slot);
             }
         }
+
         None
     }
 
@@ -579,15 +584,18 @@ impl Scene {
     pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
         let guid = self.order.get(pick.row as usize)?.to_string();
         let mut point = None;
+
         if let Some((parent, local)) = gpu.cloud.row_of(pick.sub)
             && parent == pick.row
         {
             point = self.point_at(pick.row, local);
         }
+
         let mut entity = None;
         // Bit 31 marks a segment sub-id, set in ribbon.wgsl; the low 31 bits are already the
         // global ribbon row, the decode having taken the shader's +1 off.
         let ribbon = pick.sub & 0x7fff_ffff;
+
         if pick.sub & 0x8000_0000 != 0
             && self.sheet_at(pick.row).is_some()
             && let Some((parent, _)) = gpu.segments.row_of(ribbon)
@@ -595,6 +603,7 @@ impl Scene {
         {
             entity = gpu.segments.source_id(ribbon).filter(|id| *id != u32::MAX);
         }
+
         let doc = match self.document(pick.row) {
             Some(document) => document.name.clone(),
             None => String::new(),
@@ -627,6 +636,7 @@ impl Scene {
         if let Some(text) = self.text_at(row) {
             return &text.label.text;
         }
+
         if let Some(sheet) = self.sheet_at(row) {
             return match &sheet.resolved {
                 Some((_, meta)) if !meta.name.trim().is_empty() => &meta.name,
@@ -634,6 +644,7 @@ impl Scene {
                 _ => &sheet.name,
             };
         }
+
         let (name, kind) = match self.geometry(row) {
             Some(Geometry::OBB(value)) => (value.name.as_str(), "Box"),
             Some(Geometry::BRep(value)) => (value.name.as_str(), "BRep"),
@@ -648,6 +659,7 @@ impl Scene {
             Some(Geometry::Polyline(value)) => (value.name.as_str(), "Polyline"),
             None => ("", "Object"),
         };
+
         if name.trim().is_empty() { kind } else { name }
     }
 
@@ -656,6 +668,7 @@ impl Scene {
         if pick.sub & 0x8000_0000 == 0 {
             return None;
         }
+
         let &(parent, edge) = self.edge_sources.get((pick.sub & 0x7fff_ffff) as usize)?;
         (parent == pick.row && edge != u32::MAX).then_some(edge)
     }
@@ -668,9 +681,11 @@ impl Scene {
         };
         let c = pc.coords();
         let i = local as usize * 3;
+
         if i + 2 >= c.len() {
             return None;
         }
+
         Some(PickedPoint {
             local,
             id: pc.point_id(local as usize),
@@ -696,11 +711,13 @@ impl Scene {
     /// resolves to nothing and is simply skipped.
     pub fn hidden_rows(&self) -> Vec<u32> {
         let mut rows = Vec::new();
+
         for identity in &self.hidden {
             if let Some(&row) = self.guid_to_row.get(identity) {
                 rows.push(row);
             }
         }
+
         rows
     }
 
@@ -710,12 +727,11 @@ impl Scene {
     }
 }
 
-/// An object's placement: the manifest `place` times the session's own world xform for that
-/// guid. Composed once per row on raw matrices - no kernel `Xform` allocations.
-fn placement(world: &HashMap<String, Xform>, place: &Mat4, guid: &str) -> Mat4 {
+/// An object's placement: the manifest `place` times the session's own world xform for that guid.
+fn placement(world: &HashMap<String, Xform>, place: &Xform, guid: &str) -> Xform {
     match world.get(guid) {
-        Some(local) => mat_mul(place, &local.m),
-        None => *place,
+        Some(local) => place * local,
+        None => place.clone(),
     }
 }
 
@@ -805,15 +821,18 @@ impl Scene {
     /// Topology/count changes use the normal rebuild path without partially writing buffers.
     pub(crate) fn patch_preview(&mut self, row: u32, geometry: &Geometry, gpu: &mut Gpu) -> bool {
         use crate::engine::gpu::patch::Counts;
+
         if matches!(geometry, Geometry::PointCloud(_)) {
             return false;
         }
+
         let Some(span) = self.preview_spans.get(row as usize).copied().flatten() else {
             return false;
         };
         let Some(place) = self.placement_of(row) else {
             return false;
         };
+
         if let Some(preview) = self
             .surface_previews
             .get(row as usize)
@@ -828,6 +847,7 @@ impl Scene {
             gpu.grew_bounds(row);
             return true;
         }
+
         let mut up = Upload::default();
         let cx = WalkCx {
             vert_base: span.start.verts,
@@ -835,9 +855,11 @@ impl Scene {
             row,
         };
         let result = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
+
         if Counts::of(&up) != span.count {
             return false;
         }
+
         self.mesh_previews[row as usize] =
             crate::app::mesh_preview::MeshPreview::capture(&up, span, Counts::default(), geometry);
         gpu.arena.patch(&gpu.ctx, span.start, &up.arena);
@@ -845,12 +867,14 @@ impl Scene {
         gpu.glyphs.patch(&gpu.ctx, span.start, &up.glyph);
         gpu.objects
             .set_geometry_bounds(&gpu.ctx, row, result.bounds, result.spacing, &place);
+
         for (i, pipe) in up.seg.pipes.iter().enumerate() {
             self.edge_sources[span.start.pipes as usize + i] = (
                 pipe.instance_id,
                 up.seg.pipe_ids.get(i).copied().unwrap_or(u32::MAX),
             );
         }
+
         gpu.grew_bounds(row);
         true
     }

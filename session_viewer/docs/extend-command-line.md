@@ -39,7 +39,7 @@ WindowEvent::KeyboardInput { event,.. } => {
 }
 ```
 
-- `viewer_focused` (`src/lib.rs:238-249`) is `active_element.id == "canvas"`. With the field focused it is false, `Input::key` never runs, and `f`, `h`, `[`, `]`, `1`-`7` type characters.
+- `viewer_focused` (`src/lib.rs:309-321`) is `active_element.id == "canvas"`. With the field focused it is false, `Input::key` never runs, and `f`, `h`, `[`, `]`, `1`-`7` type characters.
 - So `Input::key` (`src/app/input.rs`) needs no guard, boolean or mode enum: each is a weaker copy of the browser's decision.
 
 ## The listener owns the field; one message carries the line

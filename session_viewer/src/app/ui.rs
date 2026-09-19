@@ -84,6 +84,7 @@ impl Ui {
         use winit::event::{ElementState, TouchPhase, WindowEvent};
         let ratio = window.scale_factor() as f32;
         let mut consumed = response.consumed;
+
         match event {
             WindowEvent::CursorMoved { position, .. } => {
                 self.pointer = egui::pos2(position.x as f32 / ratio, position.y as f32 / ratio);
@@ -93,7 +94,9 @@ impl Ui {
                 if *state == ElementState::Pressed {
                     self.ui_drag = !self.scene_rect.contains(self.pointer);
                 }
+
                 consumed = self.ui_drag;
+
                 if *state == ElementState::Released {
                     self.ui_drag = false;
                 }
@@ -104,15 +107,20 @@ impl Ui {
                     touch.location.x as f32 / ratio,
                     touch.location.y as f32 / ratio,
                 );
+
                 if touch.phase == TouchPhase::Started {
                     if self.touches.is_empty() {
                         self.ui_drag = !self.scene_rect.contains(self.pointer);
                     }
+
                     self.touches.insert(touch.id);
                 }
+
                 consumed = self.ui_drag;
+
                 if matches!(touch.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
                     self.touches.remove(&touch.id);
+
                     if self.touches.is_empty() {
                         self.ui_drag = false;
                     }
@@ -124,6 +132,7 @@ impl Ui {
             }
             _ => {}
         }
+
         (consumed || escape, response.repaint || escape)
     }
 
@@ -136,9 +145,11 @@ impl Ui {
             egui::Pos2::ZERO,
             egui::vec2(logical[0] as f32, logical[1] as f32),
         ));
+
         if let Some(controls) = self.controls.as_mut() {
             controls.clear();
         }
+
         let mut action = None;
         let mut command = None;
         let mut tool = None;
@@ -153,6 +164,7 @@ impl Ui {
         self.input
             .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
         let changed = action.is_some() || command.is_some() || tool.is_some();
+
         if let Some(tool) = tool {
             match tool {
                 "layers" => state.toggle_layers_panel(),
@@ -170,11 +182,14 @@ impl Ui {
                 }
                 _ => command = Some(tool.to_string()),
             }
+
             state.touch();
         }
+
         if let Some(key) = action {
             state.panel_action(&key);
         }
+
         if let Some(text) = command {
             let message = state.run_command(&text).unwrap_or_else(|error| error);
             crate::app::feedback::status(&message);
@@ -182,13 +197,16 @@ impl Ui {
                 if model.history.len() == 8 {
                     model.history.pop_front();
                 }
+
                 model.history.push_back(format!("> {text}\n{message}"));
             });
             state.touch();
         }
+
         self.publish();
         let repaint = changed || self.context.has_requested_repaint();
         output.pixels_per_point = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
+
         if let Some(ui) = state.gpu.ui.as_mut() {
             ui.prepare(
                 &state.gpu.ctx,
@@ -197,8 +215,10 @@ impl Ui {
                 [state.gpu.config.width, state.gpu.config.height],
             );
         }
+
         repaint
     }
+
     fn publish(&self) {
         if self.controls.is_some()
             && let Some(canvas) = web_sys::window()
@@ -208,6 +228,7 @@ impl Ui {
             let snapshot = MODEL.with_borrow(|model| serde_json::json!({"framework": "egui 0.34.3", "controls": self.controls, "command_open": model.command_open, "layers_open": model.layers_open, "command": model.command, "history": model.history, "hint": crate::app::command::hint(&model.command)}));
             let _ = canvas.set_attribute("data-viewer-ui", &snapshot.to_string());
         }
+
         if let Some(status) = web_sys::window()
             .and_then(|w| w.document())
             .and_then(|d| d.get_element_by_id("viewer-status"))
@@ -226,6 +247,7 @@ fn visuals() -> egui::Visuals {
     visuals.selection.bg_fill = egui::Color32::BLACK;
     visuals.selection.stroke = egui::Stroke::new(1.0_f32, egui::Color32::WHITE);
     visuals.indent_has_left_vline = false;
+
     for widget in [
         &mut visuals.widgets.noninteractive,
         &mut visuals.widgets.inactive,
@@ -237,6 +259,7 @@ fn visuals() -> egui::Visuals {
         widget.weak_bg_fill = egui::Color32::WHITE;
         widget.fg_stroke.color = egui::Color32::BLACK;
     }
+
     visuals
 }
 
@@ -261,6 +284,7 @@ fn layers(
     if !model.layers_open {
         return;
     }
+
     let width = (root.available_width() * 0.25).clamp(180.0, 310.0);
     egui::Panel::right("session-layers")
         .default_size(width)
@@ -271,6 +295,7 @@ fn layers(
                 ui.strong("Layers");
                 let close = ui.button("Close");
                 record(controls, "layers/close", "Close layers", &close);
+
                 if close.clicked() {
                     model.layers_open = false;
                 }
@@ -288,9 +313,11 @@ fn layers(
                                 ui.add_space(row.depth.min(8) as f32 * 10.);
                                 let response = layer_icon(ui, "open", row);
                                 record(controls, &format!("open/{index}"), &row.label, &response);
+
                                 if response.clicked() && row.expanded.is_some() {
                                     *action = Some(format!("open/{index}"));
                                 }
+
                                 let width = (ui.available_width() - 86.).max(24.);
                                 let response = ui
                                     .add_sized(
@@ -307,9 +334,11 @@ fn layers(
                                     &format!("Select {}", row.label),
                                     &response,
                                 );
+
                                 if response.clicked() {
                                     *action = Some(row.key.clone());
                                 }
+
                                 for kind in ["hide", "lock"] {
                                     let response = layer_icon(ui, kind, row);
                                     record(
@@ -328,14 +357,17 @@ fn layers(
                                         ),
                                         &response,
                                     );
+
                                     if response.clicked() {
                                         *action = Some(format!("{kind}/{index}"));
                                     }
                                 }
+
                                 layer_color(ui, row, index, controls, action);
                             } else {
                                 let response = ui.button(&row.label);
                                 record(controls, &row.key, &row.label, &response);
+
                                 if response.clicked() {
                                     *action = Some(row.key.clone());
                                 }
@@ -351,10 +383,12 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
     let c = rect.center();
     let ink = ui.visuals().text_color();
     let stroke = egui::Stroke::new(1.4_f32, ink);
+
     if response.hovered() {
         ui.painter()
             .rect_filled(rect.shrink(1.), 3., ui.visuals().widgets.hovered.bg_fill);
     }
+
     match kind {
         "open" => {
             if let Some(open) = row.expanded {
@@ -374,6 +408,7 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
                 ui.painter()
                     .add(egui::Shape::convex_polygon(points, ink, egui::Stroke::NONE));
             }
+
             response.on_hover_text("Expand or collapse")
         }
         "hide" => {
@@ -384,14 +419,17 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
             };
             ui.painter()
                 .circle(c + egui::vec2(0., -3.), 5., fill, stroke);
+
             for y in [3., 6.] {
                 ui.painter()
                     .line_segment([c + egui::vec2(-3., y), c + egui::vec2(3., y)], stroke);
             }
+
             if row.hidden {
                 ui.painter()
                     .line_segment([c + egui::vec2(-7., 8.), c + egui::vec2(7., -9.)], stroke);
             }
+
             response.on_hover_text(if row.hidden {
                 "Show object and children"
             } else {
@@ -450,6 +488,7 @@ fn layer_color(
             .ctx()
             .data_mut(|data| data.get_temp::<bool>(channel_id).unwrap_or(false))
             && row.has_faces;
+
         if row.has_faces {
             ui.horizontal(|ui| {
                 for (label, value) in [("Faces", false), ("Edges", true)] {
@@ -460,6 +499,7 @@ fn layer_color(
                         label,
                         &response,
                     );
+
                     if response.clicked() {
                         edge = value;
                     }
@@ -468,6 +508,7 @@ fn layer_color(
         } else {
             ui.label("Object and child colors");
         }
+
         ui.ctx().data_mut(|data| data.insert_temp(channel_id, edge));
         let channel = if edge { "edge" } else { "face" };
         color = if edge { row.edge_color } else { row.color }.unwrap_or([180; 3]);
@@ -476,10 +517,12 @@ fn layer_color(
             .on_hover_text("Restore the source colors for this channel and its children");
         let key = format!("color/{index}/{channel}/original");
         record(controls, &key, "Original", &response);
+
         if response.clicked() {
             *action = Some(key);
             ui.close();
         }
+
         ui.separator();
         for colors in [
             [
@@ -514,6 +557,7 @@ fn layer_color(
                         rgb[0], rgb[1], rgb[2]
                     );
                     record(controls, &key, name, &response);
+
                     if response.clicked() {
                         *action = Some(key);
                         ui.close();
@@ -523,11 +567,13 @@ fn layer_color(
         }
         ui.separator();
         let mut changed = false;
+
         for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
             changed |= ui
                 .add(egui::Slider::new(value, 0..=255).text(channel))
                 .changed();
         }
+
         if changed {
             *action = Some(format!(
                 "color/{index}/{channel}/{:02x}{:02x}{:02x}",
@@ -565,6 +611,7 @@ fn commands(
                     for text in &model.history {
                         ui.label(text);
                     }
+
                     if !model.status.is_empty() {
                         ui.label(&model.status);
                     }
@@ -581,23 +628,29 @@ fn commands(
                         .hint_text("Point 0,0,0"),
                 );
                 record(controls, "command/input", "Command", &response);
+
                 if model.focus_command {
                     response.request_focus();
                     model.focus_command = false;
                 }
+
                 if response.gained_focus() {
                     model.command_open = true;
                 }
+
                 let enter =
                     response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter));
                 let run = ui.add_sized([40.0, 28.0], egui::Button::new("Run"));
                 record(controls, "command/run", "Run", &run);
+
                 if (enter || run.clicked()) && !model.command.trim().is_empty() {
                     *command = Some(std::mem::take(&mut model.command));
                     model.focus_command = true;
                 }
+
                 let close = ui.add_sized([40.0, 28.0], egui::Button::new("Esc"));
                 record(controls, "command/close", "Close", &close);
+
                 if close.clicked() || ui.input(|input| input.key_pressed(egui::Key::Escape)) {
                     model.command_open = false;
                     model.focus_command = false;
@@ -655,8 +708,10 @@ fn toolbar(
                         .add_sized([44.0, 44.0], egui::Button::new(label))
                         .on_hover_text(help);
                     record(controls, &format!("toolbar/{label}"), help, &response);
+
                     if response.clicked() {
                         response.surrender_focus();
+
                         if command.contains(' ') {
                             model.command = command.to_string();
                             model.command_open = true;

@@ -1,5 +1,5 @@
-//! Sizes and offsets for replacing one object without rewalking unrelated documents.
 use super::Upload;
+
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub(crate) struct Counts {
     pub verts: u32,
@@ -12,6 +12,7 @@ pub(crate) struct Counts {
     pub spheres: u32,
     pub dots: u32,
 }
+
 impl Counts {
     pub fn of(up: &Upload) -> Self {
         Self {
@@ -26,6 +27,7 @@ impl Counts {
             dots: up.glyph.dots.len() as u32,
         }
     }
+
     pub fn plus(self, other: Self) -> Self {
         Self {
             verts: self.verts + other.verts,
@@ -39,6 +41,7 @@ impl Counts {
             dots: self.dots + other.dots,
         }
     }
+
     pub fn minus(self, other: Self) -> Self {
         Self {
             verts: self.verts - other.verts,
@@ -53,6 +56,7 @@ impl Counts {
         }
     }
 }
+
 #[derive(Clone, Copy)]
 pub(crate) struct Span {
     pub start: Counts,

@@ -1,37 +1,44 @@
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index 545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca..276a260697ca16ec09a202c1a0688d020144f3ff 100644
+index ec6531af4cb54b5d390d5b60db015c6e686a41ea..0cba76cdbbd67542f8f8dbb43ec80e06bb67190f 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
-@@ -1,9 +1,9 @@
- <!doctype html>
- <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 01</title>
-+<title>Session checkpoint 02</title>
- <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
- <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
--</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 01</output>
-+</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 02</output>
- <script>
- let tutorial;
- let pointer;
-@@ -21,7 +21,7 @@ function render() {
-     const canvas = document.getElementById('canvas');
-     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-     canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 01 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-+    document.getElementById('status').textContent = 'Checkpoint 02 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
- }
- /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
- function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+-    <title>Session checkpoint 01</title>
++    <title>Session checkpoint 02</title>
+     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+     <style>
+       html, body {
+@@ -32,7 +32,7 @@
+   </head>
+   <body>
+     <canvas id="canvas" tabindex="0"></canvas>
+-    <output id="status">Starting checkpoint 01</output>
++    <output id="status">Starting checkpoint 02</output>
+     <script>
+       let tutorial;
+       let pointer;
+@@ -59,7 +59,7 @@
+         const canvas = document.getElementById('canvas');
+         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+         canvas.dataset.tutorialInspection = JSON.stringify(state);
+-        document.getElementById('status').textContent = 'Checkpoint 01 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++        document.getElementById('status').textContent = 'Checkpoint 02 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+       }
+ 
+       /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
 diff --git a/session_viewer/src/camera.rs b/session_viewer/src/camera.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f4111af5c39b
+index 0000000000000000000000000000000000000000..31df176479e37f0abdf949dc65926d64ebe17ddd
 --- /dev/null
 +++ b/session_viewer/src/camera.rs
-@@ -0,0 +1,514 @@
-+//! Source-precision orbit camera, framed projection and a rebased reversed-depth view transform.
-+use crate::math::{Aabb, FOVY_DEG};
-+use session_rust::{Point, Quaternion, Vector, Xform};
+@@ -0,0 +1,535 @@
++use session_rust::{AABB, Point, Quaternion, Vector, Xform};
++
++/// The camera's vertical field of view, degrees; the pen math and the shaders' push assume it.
++pub const FOVY_DEG: f64 = 60.0;
 +
 +/// World unit the scene coordinates are expressed in.
 +#[derive(Clone, Copy, PartialEq)]
@@ -76,9 +83,7 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +    pub up: [f64; 3],            // derived by update_position
 +    pub perspective: bool,
 +    pub unit: Unit,
-+    /// Scene bounding-sphere radius in metres, set by `fit`. Floors the far plane so zooming
-+    /// into one detail can never clip the rest of the scene (0 = pure distance-scaled range).
-+    pub scene_extent: f64,
++    pub scene_extent: f64, // Scene bounding-sphere radius in metres, set by `fit`. Floors the far plane so zooming into one detail can never clip the rest of the scene (0 = pure distance-scaled range).
 +}
 +
 +impl Camera {
@@ -124,9 +129,11 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +    pub fn pan(&mut self, dx: f32, dy: f32) {
 +        let right = self.orientation.rotate_vector(Vector::x_axis());
 +        let k = self.distance * 0.0015;
++
 +        for i in 0..3 {
 +            self.target[i] += (-(dx as f64) * right[i] + dy as f64 * self.up[i]) * k;
 +        }
++
 +        self.update_position();
 +    }
 +
@@ -150,6 +157,7 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +        {
 +            return;
 +        }
++
 +        let new_dist = zoom_distance(self.distance, amount);
 +        let k = new_dist / self.distance; // actual factor after the guard
 +        let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
@@ -159,10 +167,12 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +        let half_h = self.distance * (FOVY_DEG * 0.5).to_radians().tan();
 +        let half_w = half_h * (viewport.0 / viewport.1);
 +        let right = self.orientation.rotate_vector(Vector::x_axis());
++
 +        for i in 0..3 {
 +            let cursor_off = right[i] * ndc_x * half_w + self.up[i] * ndc_y * half_h;
 +            self.target[i] += cursor_off * (1.0 - k); // keeps the curson's world point fixed
 +        }
++
 +        self.distance = new_dist;
 +        self.update_position();
 +    }
@@ -182,11 +192,13 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +    /// half-height distance*tan30 at the target) and refit the perspective camera to that -
 +    /// orientation untouched, target recentred on the formerly visible geometry. The other
 +    /// direction (perspective -> ortho) only ever widens what is visible and keeps the plain flip.
-+    pub fn toggle_projection_framed(&mut self, bounds: &Aabb, aspect: f64) {
++    pub fn toggle_projection_framed(&mut self, bounds: &AABB, aspect: f64) {
 +        self.perspective = !self.perspective;
-+        if !self.perspective || !bounds.is_finite() {
++
++        if !self.perspective || !bounds.is_valid() {
 +            return;
 +        }
++
 +        let s = self.unit.to_meters();
 +        let t = self.origin(); // target, world units
 +        let right = self.orientation.rotate_vector(Vector::x_axis());
@@ -200,25 +212,27 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +        let half_w = half_h * aspect;
 +        let mut lo = [f64::INFINITY; 3];
 +        let mut hi = [f64::NEG_INFINITY; 3];
++
 +        for corner in bounds.corners() {
-+            let c = [
-+                corner[0] as f64 - t[0],
-+                corner[1] as f64 - t[1],
-+                corner[2] as f64 - t[2],
-+            ];
++            let c = [corner[0] - t[0], corner[1] - t[1], corner[2] - t[2]];
 +            let dx = (c[0] * right[0] + c[1] * right[1] + c[2] * right[2]).clamp(-half_w, half_w);
 +            let dy = (c[0] * up[0] + c[1] * up[1] + c[2] * up[2]).clamp(-half_h, half_h);
 +            let dz = c[0] * fwd[0] + c[1] * fwd[1] + c[2] * fwd[2];
++
 +            for i in 0..3 {
 +                let p = t[i] + dx * right[i] + dy * up[i] + dz * fwd[i];
 +                lo[i] = lo[i].min(p);
 +                hi[i] = hi[i].max(p);
 +            }
 +        }
-+        let clipped = Aabb {
-+            min: [lo[0] as f32, lo[1] as f32, lo[2] as f32],
-+            max: [hi[0] as f32, hi[1] as f32, hi[2] as f32],
-+        };
++
++        let clipped = AABB::from_points(
++            &[
++                Point::new(lo[0], lo[1], lo[2]),
++                Point::new(hi[0], hi[1], hi[2]),
++            ],
++            0.0,
++        );
 +        self.fit(&clipped, aspect);
 +    }
 +
@@ -330,20 +344,16 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +
 +    /// Frame an AABB: center the target on it and set the distance from the box measured along the
 +    /// camera's own axes, so an elongated scene fills the view rather than its bounding sphere (+5%).
-+    pub fn fit(&mut self, bounds: &Aabb, aspect: f64) {
-+        if !bounds.is_finite() {
++    pub fn fit(&mut self, bounds: &AABB, aspect: f64) {
++        if !bounds.is_valid() {
 +            return;
 +        }
-+        let (min, max) = (bounds.min, bounds.max);
++
 +        // unit scale
 +        let s = self.unit.to_meters();
 +
 +        // target + box center
-+        self.target = [
-+            (min[0] as f64 + max[0] as f64) * 0.5 * s,
-+            (min[1] as f64 + max[1] as f64) * 0.5 * s,
-+            (min[2] as f64 + max[2] as f64) * 0.5 * s,
-+        ];
++        self.target = [bounds.cx * s, bounds.cy * s, bounds.cz * s];
 +
 +        // Fit along the CAMERA'S OWN AXES, not the box's bounding sphere.
 +        //
@@ -365,12 +375,14 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +        // proportionally more distance, hence the `+ z` rather than a max of the two separately.
 +        let mut distance: f64 = 0.0;
 +        let mut extent: f64 = 0.0;
++
 +        for p in self.offsets(bounds) {
 +            let (x, y, z) = (dot3(&p, &right), dot3(&p, &up), dot3(&p, &fwd));
 +            extent = extent.max((x * x + y * y + z * z).sqrt());
 +            distance = distance.max(x.abs() / tx + z);
 +            distance = distance.max(y.abs() / ty + z);
 +        }
++
 +        if extent <= 0.0 {
 +            return;
 +        }
@@ -383,28 +395,35 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +    }
 +
 +    /// The box's eight corners in metres, relative to the current target.
-+    fn offsets(&self, bounds: &Aabb) -> [[f64; 3]; 8] {
++    fn offsets(&self, bounds: &AABB) -> [[f64; 3]; 8] {
 +        let s = self.unit.to_meters();
-+        bounds.corners().map(|c| {
-+            [
-+                c[0] as f64 * s - self.target[0],
-+                c[1] as f64 * s - self.target[1],
-+                c[2] as f64 * s - self.target[2],
-+            ]
-+        })
++        let mut out = [[0.0; 3]; 8];
++
++        for (offset, c) in out.iter_mut().zip(bounds.corners()) {
++            *offset = [
++                c[0] * s - self.target[0],
++                c[1] * s - self.target[1],
++                c[2] * s - self.target[2],
++            ];
++        }
++
++        out
 +    }
 +
 +    /// Grow the far-plane floor to cover a scene that streamed in after the last fit, without
 +    /// touching the view. Same definition as `fit`'s: the farthest scene corner from the
 +    /// target, in metres.
-+    pub fn grow_extent(&mut self, bounds: &Aabb) {
-+        if !bounds.is_finite() {
++    pub fn grow_extent(&mut self, bounds: &AABB) {
++        if !bounds.is_valid() {
 +            return;
 +        }
++
 +        let mut extent: f64 = 0.0;
++
 +        for p in self.offsets(bounds) {
 +            extent = extent.max((p[0] * p[0] + p[1] * p[1] + p[2] * p[2]).sqrt());
 +        }
++
 +        if extent.is_finite() && extent > self.scene_extent {
 +            self.scene_extent = extent;
 +        }
@@ -419,6 +438,7 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +    pub fn update_position(&mut self) {
 +        let fwd = self.orientation.rotate_vector(Vector::y_axis()); // eye -> target
 +        let up = self.orientation.rotate_vector(Vector::z_axis());
++
 +        for i in 0..3 {
 +            self.position[i] = self.target[i] - fwd[i] * self.distance;
 +            self.up[i] = up[i];
@@ -459,6 +479,7 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +    fn near_plane_cuts_a_millimetre_ahead_not_a_beam() {
 +        let mut cam = Camera::new();
 +        cam.scene_extent = 118.0;
++
 +        for dist in [122.0, 10.0, 0.5] {
 +            cam.distance = dist;
 +            cam.update_position();
@@ -482,6 +503,7 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +        let mut cam = Camera::new();
 +        cam.perspective = false;
 +        cam.scene_extent = 2.0;
++
 +        for distance in [3.3, 13.2, 52.8] {
 +            cam.distance = distance;
 +            cam.update_position();
@@ -498,11 +520,14 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +    fn orthographic_depth_contains_the_scene_before_and_behind_the_eye() {
 +        let mut cam = Camera::new();
 +        cam.perspective = false;
++
 +        for extent in [0.0, 2.0, 118.0] {
 +            cam.scene_extent = extent;
++
 +            for distance in [1.0e-6, 0.5, 122.0] {
 +                cam.distance = distance;
 +                cam.update_position();
++
 +                for depth in [distance - extent, distance + extent] {
 +                    let projected = ndc_depth(&cam, depth);
 +                    assert!(
@@ -521,12 +546,14 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +    if !amount.is_finite() {
 +        return distance;
 +    }
++
 +    (distance * 0.9_f64.powf(f64::from(amount).clamp(-10.0, 10.0))).clamp(1.0e-6, 1.0e15)
 +}
 +
 +#[cfg(test)]
 +mod wheel_tests {
 +    use super::*;
++
 +    #[test]
 +    fn coalesced_wheel_events_remain_positive_and_preserve_the_cursor_anchor() {
 +        let mut camera = Camera::new();
@@ -544,20 +571,19 @@ index 0000000000000000000000000000000000000000..2985620d371c59e29430e621ee09f411
 +    }
 +}
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c1178d54b 100644
+index 85bf51f77195e2c326413a0f526df9cea7e87e26..622e42937c4afc47f4a2dc7c326e6f8916845cd3 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -1,7 +1,8 @@
- //! Temporary direct-canvas browser shell; the production winit shell replaces it later.
+@@ -1,5 +1,8 @@
++use session_rust::AABB;
++use session_rust::Point;
  use wasm_bindgen::prelude::*;
  use wgpu::util::DeviceExt;
--
 +pub mod camera;
-+pub mod math;
+ 
  /// The browser owns the canvas; this teaching facade owns one GPU/device and one draw lane.
  #[wasm_bindgen]
- pub struct Tutorial {
-@@ -11,8 +12,10 @@ pub struct Tutorial {
+@@ -10,8 +13,10 @@ pub struct Tutorial {
      queue: wgpu::Queue,
      config: wgpu::SurfaceConfiguration,
      pipeline: wgpu::RenderPipeline,
@@ -566,10 +592,10 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
      scale: f64,
 +    camera: camera::Camera,
  }
+ 
  #[wasm_bindgen]
- impl Tutorial {
-@@ -27,11 +30,19 @@ impl Tutorial {
-     }
+@@ -29,12 +34,20 @@ impl Tutorial {
+ 
      /// Apply one camera gesture; the first GPU checkpoint intentionally has no camera yet.
      pub fn drag(&mut self, dx: f32, dy: f32, pan: bool) {
 -        let _ = (dx, dy, pan);
@@ -579,6 +605,7 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
 +            self.camera.orbit(dx, dy);
 +        }
      }
+ 
      /// Apply one cursor-centered camera zoom when the camera checkpoint is installed.
      pub fn zoom(&mut self, delta: f32, x: f64, y: f64) {
 -        let _ = (delta, x, y);
@@ -589,8 +616,8 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
 +        );
      }
  }
- impl Tutorial {
-@@ -130,6 +141,16 @@ impl Tutorial {
+ 
+@@ -134,6 +147,16 @@ impl Tutorial {
              multiview_mask: None,
              cache: None,
          });
@@ -598,16 +625,16 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
 +        camera.unit = camera::Unit::Meters;
 +        camera.set_view(camera::View::Top);
 +        camera.fit(
-+            &math::Aabb {
-+                min: [-1.5, -1.0, -0.1],
-+                max: [1.5, 1.0, 0.1],
-+            },
++            &AABB::from_points(
++                &[Point::new(-1.5, -1.0, -0.1), Point::new(1.5, 1.0, 0.1)],
++                0.0,
++            ),
 +            1.5,
 +        );
  
          Ok(Self {
              canvas,
-@@ -138,8 +159,10 @@ impl Tutorial {
+@@ -142,8 +165,10 @@ impl Tutorial {
              queue,
              config,
              pipeline,
@@ -617,12 +644,11 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
 +            camera,
          })
      }
-     /// Resize once, upload the camera transform, encode the lane, submit and present.
-@@ -156,7 +179,12 @@ impl Tutorial {
-             self.config.height = height;
+ 
+@@ -163,6 +188,12 @@ impl Tutorial {
              self.surface.configure(&self.device, &self.config);
          }
--
+ 
 +        let mvp = self.camera.view_proj_anchored(
 +            width as f64 / height as f64,
 +            &session_rust::Point::new(0.0, 0.0, 0.0),
@@ -632,7 +658,7 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
          let output = match self.surface.get_current_texture() {
              wgpu::CurrentSurfaceTexture::Success(output)
              | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
-@@ -192,7 +220,7 @@ impl Tutorial {
+@@ -198,7 +229,7 @@ impl Tutorial {
          }
          self.queue.submit([encoder.finish()]);
          output.present();
@@ -640,233 +666,4 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
 +        Ok(serde_json::json!({"stage": 2, "objects": 1, "width":width,"height":height,"scale":scale,"drawn":true}).to_string())
      }
  }
- /// Keep initialization/render errors visible at the browser boundary.
-diff --git a/session_viewer/src/math.rs b/session_viewer/src/math.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..4a9bcc3c75e765b10c4a3a2372a5eedd9892eb29
---- /dev/null
-+++ b/session_viewer/src/math.rs
-@@ -0,0 +1,223 @@
-+//! Small f64/f32 math shared by the app and the engine: the column-major `Mat4`, point
-+//! transforms, the f32 `Aabb` with empty semantics, and the two camera facts recovered from
-+//! a view-projection. Nothing here touches wgpu; the only kernel type named is `Xform`.
-+
-+use session_rust::Xform;
-+
-+/// One object's world placement as 16 raw column-major doubles (index = col * 4 + row).
-+/// Not a kernel `Xform`: that struct carries Strings and a guid and allocates per copy.
-+pub type Mat4 = [f64; 16];
-+
-+/// `a * b` in the kernel's column-major convention. Allocates nothing.
-+pub fn mat_mul(a: &Mat4, b: &Mat4) -> Mat4 {
-+    let mut out = [0.0f64; 16];
-+    for i in 0..4 {
-+        for j in 0..4 {
-+            let mut sum = 0.0;
-+            for k in 0..4 {
-+                sum += a[k * 4 + i] * b[j * 4 + k];
-+            }
-+            out[j * 4 + i] = sum;
-+        }
-+    }
-+    out
-+}
-+
-+/// The GPU edge: f64 world math stays CPU-side, the instance row is f32.
-+pub fn mat_to_f32(m: &Mat4) -> [f32; 16] {
-+    let mut output = [0.0; 16];
-+    for (target, source) in output.iter_mut().zip(m) {
-+        *target = *source as f32;
-+    }
-+    output
-+}
-+
-+/// A point through an affine matrix, f32 in and out (the arithmetic runs in f64).
-+pub fn xform_point(m: &Mat4, p: [f32; 3]) -> [f32; 3] {
-+    let w = xform_point_f64(m, [p[0] as f64, p[1] as f64, p[2] as f64]);
-+    [w[0] as f32, w[1] as f32, w[2] as f32]
-+}
-+
-+/// A point through an affine matrix in f64.
-+pub fn xform_point_f64(m: &Mat4, p: [f64; 3]) -> [f64; 3] {
-+    [
-+        m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12],
-+        m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13],
-+        m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14],
-+    ]
-+}
-+
-+/// The camera's vertical field of view, degrees; the pen math and the shaders' push assume it.
-+pub const FOVY_DEG: f64 = 60.0;
-+
-+/// `a * b` for two column-major f32 matrices (the record builder folds mvp x model per cloud).
-+pub fn mat_mul_f32(a: &[f32; 16], b: &[f32; 16]) -> [f32; 16] {
-+    let mut m = [0.0f32; 16];
-+    for col in 0..4 {
-+        for r in 0..4 {
-+            let mut s = 0.0;
-+            for k in 0..4 {
-+                s += a[k * 4 + r] * b[col * 4 + k];
-+            }
-+            m[col * 4 + r] = s;
-+        }
-+    }
-+    m
-+}
-+
-+/// The length of the matrix's first column: the uniform scale a placement applies.
-+pub fn mat_scale(m: &[f32; 16]) -> f64 {
-+    ((m[0] as f64).powi(2) + (m[1] as f64).powi(2) + (m[2] as f64).powi(2)).sqrt()
-+}
-+
-+/// An axis-aligned box in f32 with an EMPTY state (min > max), so a scene can start with no
-+/// box and grow one file at a time.
-+#[derive(Clone, Copy, Debug, PartialEq)]
-+pub struct Aabb {
-+    pub min: [f32; 3],
-+    pub max: [f32; 3],
-+}
-+
-+impl Aabb {
-+    /// The inverted box nothing has grown yet.
-+    pub fn empty() -> Self {
-+        Self {
-+            min: [f32::INFINITY; 3],
-+            max: [f32::NEG_INFINITY; 3],
-+        }
-+    }
-+
-+    /// True once at least one point went in: every bound finite AND min <= max. The name is
-+    /// only the first half. `Aabb::empty()` is rejected by the finite test itself - its bounds
-+    /// are the two infinities - and `min <= max` catches a box that was built wrong from
-+    /// finite numbers. Read it as "has a box".
-+    pub fn is_finite(&self) -> bool {
-+        for value in self.min.iter().chain(self.max.iter()) {
-+            if !value.is_finite() {
-+                return false;
-+            }
-+        }
-+        self.min[0] <= self.max[0]
-+    }
-+
-+    /// Widen by one point.
-+    pub fn grow(&mut self, p: [f32; 3]) {
-+        for (k, v) in p.iter().enumerate() {
-+            self.min[k] = self.min[k].min(*v);
-+            self.max[k] = self.max[k].max(*v);
-+        }
-+    }
-+
-+    /// Widen by another box; an empty box changes nothing.
-+    pub fn union(&mut self, other: &Aabb) {
-+        if !other.is_finite() {
-+            return;
-+        }
-+        self.grow(other.min);
-+        self.grow(other.max);
-+    }
-+
-+    /// The box of this box's eight corners through `m` (conservative for rotations).
-+    pub fn placed(&self, m: &Mat4) -> Aabb {
-+        let mut out = Aabb::empty();
-+        if !self.is_finite() {
-+            return out;
-+        }
-+        for p in self.corners() {
-+            out.grow(xform_point(m, p));
-+        }
-+        out
-+    }
-+
-+    /// The eight corners, bit k of the index choosing min or max on axis k.
-+    pub fn corners(&self) -> [[f32; 3]; 8] {
-+        std::array::from_fn(|c| {
-+            [
-+                if c & 1 == 0 { self.min[0] } else { self.max[0] },
-+                if c & 2 == 0 { self.min[1] } else { self.max[1] },
-+                if c & 4 == 0 { self.min[2] } else { self.max[2] },
-+            ]
-+        })
-+    }
-+
-+    /// The diagonal length, 0 when empty.
-+    pub fn diagonal(&self) -> f32 {
-+        if !self.is_finite() {
-+            return 0.0;
-+        }
-+        let d = [
-+            self.max[0] - self.min[0],
-+            self.max[1] - self.min[1],
-+            self.max[2] - self.min[2],
-+        ];
-+        (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt()
-+    }
-+
-+    /// Whether `p` lies inside (closed box).
-+    pub fn contains(&self, p: [f64; 3]) -> bool {
-+        for (axis, value) in p.iter().enumerate() {
-+            if !(*value >= self.min[axis] as f64 && *value <= self.max[axis] as f64) {
-+                return false;
-+            }
-+        }
-+        true
-+    }
-+}
-+
-+/// The camera position recovered from the combined view-projection alone: the eye is where
-+/// clip x, y and w vanish at once, so three rows and one 3x3 solve give it. Orthographic has no
-+/// eye (rows 0, 1, 3 are dependent); the fallback is the view direction pushed far back.
-+pub fn eye_from_view_proj(vp: &Xform) -> [f32; 3] {
-+    let a = [vp[(0, 0)], vp[(0, 1)], vp[(0, 2)], vp[(0, 3)]];
-+    let b = [vp[(1, 0)], vp[(1, 1)], vp[(1, 2)], vp[(1, 3)]];
-+    let c = [vp[(3, 0)], vp[(3, 1)], vp[(3, 2)], vp[(3, 3)]];
-+    let rows = [[a[0], a[1], a[2]], [b[0], b[1], b[2]], [c[0], c[1], c[2]]];
-+    let rhs = [-a[3], -b[3], -c[3]];
-+    let d = det3(&rows);
-+
-+    let mut norm: f64 = 1.0;
-+    for row in rows {
-+        norm *= (row[0] * row[0] + row[1] * row[1] + row[2] * row[2]).sqrt();
-+    }
-+    if d.abs() <= 1e-9 * norm.max(1e-30) {
-+        let f = [vp[(2, 0)], vp[(2, 1)], vp[(2, 2)]];
-+        let len = (f[0] * f[0] + f[1] * f[1] + f[2] * f[2]).sqrt().max(1e-30);
-+        let mut far = [0.0; 3];
-+        for (target, source) in far.iter_mut().zip(f) {
-+            *target = (source / len * 1.0e9) as f32;
-+        }
-+        return far;
-+    }
-+
-+    let mut eye = [0.0f32; 3];
-+    for k in 0..3 {
-+        let mut m = rows;
-+        for row in 0..3 {
-+            m[row][k] = rhs[row];
-+        }
-+        eye[k] = (det3(&m) / d) as f32;
-+    }
-+    eye
-+}
-+
-+/// Determinant of a 3x3 given by rows.
-+fn det3(m: &[[f64; 3]; 3]) -> f64 {
-+    m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
-+        - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
-+        + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
-+}
-+
-+/// Ortho half-height in world units, 0.0 in perspective. The w row says which projection this
-+/// is (all zeros = orthographic); row 1 is the y basis scaled by 1/h, so 1/|row1.xyz| is the
-+/// world half-height, and rotation and the anchor drop out.
-+pub fn ortho_half_height(vp: &Xform) -> f32 {
-+    let w2 = vp[(3, 0)].powi(2) + vp[(3, 1)].powi(2) + vp[(3, 2)].powi(2);
-+    if w2 > 1e-12 {
-+        return 0.0;
-+    }
-+    let r1 = vp[(1, 0)].powi(2) + vp[(1, 1)].powi(2) + vp[(1, 2)].powi(2);
-+    if r1 <= 1e-30 {
-+        return 0.0;
-+    }
-+    (1.0 / r1.sqrt()) as f32
-+}
+ 

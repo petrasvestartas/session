@@ -15,47 +15,30 @@ Type world coordinates, change exact kernel geometry, and keep each command as o
 **CURRENT**
 
 ```rust
-//! The command line: one typed line becomes one named action.
-//!
-//! Parsing is here and doing is in `State`, so what a line MEANS can be tested without a
-//! window, a device or a scene. A verb the viewer does not have is an error with the line
-//! quoted back, never a silent no-op: a command line that ignores what you typed is worse
-//! than one that refuses it.
-//!
-//! Every verb is an action the viewer already has. The command line is a second way to reach
-//! them, not a second implementation of them.
-
-use crate::app::coords;
-use crate::app::gizmo::Axis;
-
 /// What a line asked for.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Command {
-    /// Move the selection by a world offset, in millimetres.
-    Move([f64; 3]),
-    /// Turn the selection about one axis through its own centre, in degrees.
-    Rotate { axis: Axis, degrees: f64 },
-    /// Scale the selection about its own centre.
+    Move([f64; 3]), // Move the selection by a world offset, in millimetres.
+    Rotate { axis: Axis, degrees: f64 }, // Turn the selection about one axis through its own centre, in degrees.
+    Scale(f64),                          // Scale the selection about its own centre.
+    Delete,
 ```
 
 **REPLACE WITH**
 
 ```rust
-use crate::app::coords;
-use crate::app::gizmo::Axis;
-
 /// What a line asked for.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Command {
     Model(crate::app::modeling::Modeling),
-    /// Move the selection by a world offset, in millimetres.
-    Move([f64; 3]),
-    /// Turn the selection about one axis through its own centre, in degrees.
+    Move([f64; 3]), // Move the selection by a world offset, in millimetres.
     Rotate {
+        // Turn the selection about one axis through its own centre, in degrees.
         axis: Axis,
         degrees: f64,
     },
-    /// Scale the selection about its own centre.
+    Scale(f64), // Scale the selection about its own centre.
+    Delete,
 ```
 
 **TYPE THIS**
@@ -80,6 +63,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ```rust
     let rest: Vec<&str> = words.collect();
+
     match verb.as_str() {
         "move" | "m" => offset(&rest).map(Command::Move),
 ```
@@ -94,9 +78,11 @@ pub fn parse(line: &str) -> Result<Command, String> {
         "delete" | "del" | "undo" | "redo" | "hide" | "show" | "fit" | "escape" | "esc" => Some(0),
         _ => None,
     };
+
     if expected.is_some_and(|count| rest.len() != count) {
         return Err(format!("wrong number of arguments for `{verb}`"));
     }
+
     match verb.as_str() {
         "point" | "line" | "polyline" | "trim" | "extend" | "explode" => {
             model(&verb, &rest).map(Command::Model)
@@ -109,27 +95,13 @@ pub fn parse(line: &str) -> Result<Command, String> {
 **CURRENT**
 
 ```rust
-        assert_eq!(parse(""), Err("nothing typed".into()));
-        assert!(parse("scale 0").is_err(), "a zero scale collapses the object");
-        assert!(parse("rotate 90").is_err(), "no axis");
-        assert!(parse("rotate x").is_err(), "no angle");
         assert!(parse("move sideways").is_err());
     }
 ```
 
-**REPLACE WITH**
+**ADD BELOW**
 
 ```rust
-        assert_eq!(parse(""), Err("nothing typed".into()));
-        assert!(
-            parse("scale 0").is_err(),
-            "a zero scale collapses the object"
-        );
-        assert!(parse("rotate 90").is_err(), "no axis");
-        assert!(parse("rotate x").is_err(), "no angle");
-        assert!(parse("move sideways").is_err());
-    }
-
     #[test]
     fn modeling_commands_validate_arity_and_coordinates() {
         use crate::app::modeling::Modeling;
@@ -142,6 +114,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
             Ok(Command::Model(Modeling::Trim(0.2, 0.8)))
         );
         assert_eq!(parse("explode"), Ok(Command::Model(Modeling::Explode)));
+
         for line in [
             "point @1,2,3",
             "line 0,0,0",
@@ -152,6 +125,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
         ] {
             assert!(parse(line).is_err(), "{line}");
         }
+
         assert!(parse(&"x".repeat(65537)).is_err());
     }
 ```
@@ -172,6 +146,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, String> {
     use crate::app::modeling::Modeling;
+
     match verb {
         "explode" if words.is_empty() => Ok(Modeling::Explode),
         "trim" | "extend" if words.len() == 2 => {
@@ -185,15 +160,18 @@ fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, S
         }
         "point" | "line" | "polyline" => {
             let mut points = Vec::new();
+
             if words.len() > crate::app::modeling::MAX_POINTS {
                 return Err("too many points".into());
             }
+
             for word in words {
                 let Some(coords::Typed::Absolute { x, y, z }) = coords::parse(word) else {
                     return Err("use world coordinates x,y,z separated by spaces".into());
                 };
                 points.push([x, y, z.unwrap_or(0.0)]);
             }
+
             match (verb, points.len()) {
                 ("point", 1) => Ok(Modeling::Point(points[0])),
                 ("line", 2) => Ok(Modeling::Line(points[0], points[1])),
@@ -255,19 +233,23 @@ impl Scene {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return Err("geometry edits require a scene without streamed sources".into());
         }
+
         match command {
             Modeling::Point(p) => self.create_geometry(Geometry::Point(Rc::new(point(*p)?))),
             Modeling::Line(a, b) => {
                 let line = Line::from_points(&point(*a)?, &point(*b)?);
+
                 if line.length() <= 1e-12 {
                     return Err("line endpoints must differ".into());
                 }
+
                 self.create_geometry(Geometry::Line(Rc::new(line)))
             }
             Modeling::Polyline(points) => {
                 if !(2..=MAX_POINTS).contains(&points.len()) {
                     return Err(format!("polyline needs 2–{MAX_POINTS} points"));
                 }
+
                 let points = points
                     .iter()
                     .map(|p| point(*p))
@@ -296,6 +278,7 @@ impl Scene {
         self.created_doc = Some(doc);
         let session = Rc::make_mut(&mut self.docs[doc].session);
         session.begin("create");
+
         match geometry {
             Geometry::Point(p) => {
                 session.add_point((*p).clone(), None);
@@ -309,6 +292,7 @@ impl Scene {
             }
             _ => unreachable!(),
         }
+
         session.commit();
         self.last_edited = Some(doc);
         Ok(())
@@ -318,17 +302,22 @@ impl Scene {
         let row = self.selected.ok_or("select one object first")?;
         let (doc, guid) = self.identity_of(row).ok_or("object no longer exists")?;
         let file = self.docs.get(doc).ok_or("this object has no document")?;
+
         if file.display_only {
             return Err("this document is display only".into());
         }
+
         let source = self.geometry(row).ok_or("source geometry is unavailable")?;
+
         if matches!(command, Modeling::Explode) {
             let Geometry::Polyline(line) = source else {
                 return Err("explode currently accepts polylines".into());
             };
+
             if line.point_count() > MAX_POINTS {
                 return Err(format!("explode is limited to {MAX_POINTS} points"));
             }
+
             if file
                 .session
                 .tree
@@ -337,6 +326,7 @@ impl Scene {
             {
                 return Err("explode requires an object without child geometry".into());
             }
+
             let points = line.get_points();
             let width = line.width;
             let dash = line.dash.clone();
@@ -344,10 +334,12 @@ impl Scene {
             let place = file.session.world_xform(&guid);
             let session = Rc::make_mut(&mut self.docs[doc].session);
             session.begin("explode");
+
             if !session.remove_object(&guid) {
                 session.commit();
                 return Err("object no longer exists".into());
             }
+
             for pair in points.windows(2) {
                 let mut line = Line::from_points(&pair[0], &pair[1]);
                 line.width = width;
@@ -356,6 +348,7 @@ impl Scene {
                 let node = session.add_line(line, None);
                 session.set_xform(&node.borrow().name, place.clone());
             }
+
             session.commit();
         } else {
             let next = edited(source, command)?;
@@ -363,10 +356,12 @@ impl Scene {
             session.begin("edit geometry");
             let replaced = session.replace(&guid, next);
             session.commit();
+
             if !replaced {
                 return Err("object no longer exists".into());
             }
         }
+
         self.last_edited = Some(doc);
         Ok(())
     }
@@ -376,6 +371,7 @@ fn point(p: [f64; 3]) -> Result<Point, String> {
     if p.iter().any(|v| !v.is_finite() || v.abs() > 1e12) {
         return Err("coordinates must be finite and within ±1e12".into());
     }
+
     Ok(Point::new(p[0], p[1], p[2]))
 }
 
@@ -385,12 +381,15 @@ fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
         Modeling::Extend(a, b) => (a, b, false),
         _ => return Err("expected trim or extend".into()),
     };
+
     if !a.is_finite() || !b.is_finite() || a >= b || a.abs() > 1e6 || b.abs() > 1e6 {
         return Err("parameters must be finite, increasing, and within ±1e6".into());
     }
+
     if (trim && (a < 0.0 || b > 1.0)) || (!trim && (a > 0.0 || b < 1.0)) {
         return Err("trim keeps 0 ≤ a < b ≤ 1; extend needs a ≤ 0 and b ≥ 1".into());
     }
+
     match source {
         Geometry::Line(line) => {
             let mut next = Line::from_points(&line.point_at(a), &line.point_at(b));
@@ -404,6 +403,7 @@ fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
             if curve.m_cv_count > MAX_POINTS {
                 return Err(format!("curve edits are limited to {MAX_POINTS} controls"));
             }
+
             let mut next = (**curve).clone();
             let (lo, hi) = next.domain();
             let a = lo + a * (hi - lo);
@@ -413,9 +413,11 @@ fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
             } else {
                 next.extend(a, b)
             };
+
             if !ok {
                 return Err("kernel refused this curve interval".into());
             }
+
             Ok(Geometry::NurbsCurve(Rc::new(next)))
         }
         _ => Err("trim and extend currently accept lines and NURBS curves".into()),
@@ -503,9 +505,11 @@ mod tests {
         scene.model(&Modeling::Explode).unwrap();
         let session = &scene.docs[0].session;
         assert_eq!(session.lookup.len(), 2);
+
         for guid in session.lookup.keys() {
             assert_eq!(session.world_xform(guid).m[12], 5.0);
         }
+
         assert!(scene.undo());
         assert_eq!(scene.docs[0].session.lookup.len(), 1);
         assert!(matches!(
@@ -525,7 +529,7 @@ mod tests {
 **CURRENT**
 
 ```rust
-    pub last_edited: Option<usize>,
+    pub last_edited: Option<usize>, // Which document the last edit touched. Undo is per document, because the history is the document's; this is the only thing that says which one a bare Ctrl+Z means.
 ```
 
 **ADD BELOW**
@@ -583,11 +587,13 @@ mod tests {
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
         self.cancel_gesture();
         let command = crate::app::command::parse(line)?;
+
         if matches!(command, Command::Delete | Command::Undo | Command::Redo)
             && (!self.scene.streamed.is_empty() || !self.scene.sheets.is_empty())
         {
             return Err("this command requires a scene without streamed sources".into());
         }
+
         let needs_selection = matches!(
 ```
 
@@ -632,9 +638,11 @@ mod tests {
 ```rust
             Command::Delete => {
                 let row = self.scene.selected.ok_or("nothing is selected")?;
+
                 if !self.scene.delete_row(row) {
                     return Err("this object cannot be deleted".into());
                 }
+
                 self.after_history();
                 Ok("deleted".into())
             }
@@ -642,6 +650,7 @@ mod tests {
                 if !self.scene.undo() {
                     return Err("nothing to undo".into());
                 }
+
                 self.after_history();
                 Ok("undone".into())
             }
@@ -649,6 +658,7 @@ mod tests {
                 if !self.scene.redo() {
                     return Err("nothing to redo".into());
                 }
+
                 self.after_history();
                 Ok("redone".into())
 ```

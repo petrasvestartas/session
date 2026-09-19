@@ -20,24 +20,18 @@
 
 ## Step 1 · Kernel: only a valid derivative cross is a normal
 
-![Where this step sits in the viewer: Kernel, with 9 of 12 zones built so far.](illustrations/locator-aab456356b.svg){ .locator data-strip="illustrations/strip-0228f733aa.svg" }
-
 - `normal_at` returns `+Z` at a pole. Finite, but not this face's normal; it must not bypass the fan fallback.
 - Read the derivatives directly: a zero-length cross means "singular here", so the incident-triangle fan decides.
 
 ![Diagram: derivatives du, dv · length > 0? · analytic normal · incident-triangle fan](illustrations/09-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
+The kernel is maintained in its own repository and the course never edits it: read the file, do not type it.
 
-<!-- file: 09 session_rust/src/nurbssurface_trimmed.rs type -->
+<!-- listing: 09 session_rust/src/nurbssurface_trimmed.rs -->
 
-Same rule for the grid remesher (U poles of spheres and cones):
+Same rule in the grid remesher (`remesh_nurbssurface_grid.rs`, the U poles of spheres and cones).
 
-<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
-
-<!-- file: 09 session_rust/src/remesh_nurbssurface_grid.rs type -->
-
-Kernel unit tests, the C++/Python parity ports and the teapot asset are supplied:
+The teapot asset is supplied:
 
 <!-- supplied: 09 -->
 

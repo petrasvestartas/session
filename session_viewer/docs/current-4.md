@@ -19,7 +19,6 @@ Replace the flat strokes with actual triangle meshes: cylindrical shafts, cone t
 ```rust
 /// The one length everything else is a fraction of, in CSS pixels.
 pub const ARM: f64 = 72.0;
-/// Axis scale balls, on the same side as the arrows so pulling out always grows.
 ```
 
 **REPLACE WITH**
@@ -27,172 +26,6 @@ pub const ARM: f64 = 72.0;
 ```rust
 /// The one length everything else is a fraction of, in CSS pixels.
 pub const ARM: f64 = 96.0;
-/// Axis scale balls, on the same side as the arrows so pulling out always grows.
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-    pub fn new(origin: Point) -> Self {
-        Self { origin, hovered: None, drag: None }
-    }
-```
-
-**REPLACE WITH**
-
-```rust
-    pub fn new(origin: Point) -> Self {
-        Self {
-            origin,
-            hovered: None,
-            drag: None,
-        }
-    }
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-                grabbed: self.origin.clone(),
-                angle: angle_in_plane(&plane_hit(from, dir, &self.origin, &axis.unit())?, &self.origin, axis),
-                reach: 1.0,
-                plane: axis.unit(),
-            },
-            Handle::Scale(axis) => {
-                let p = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
-                let reach = dot(&sub(&p, &self.origin), &axis.unit());
-                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: axis.unit() }
-            }
-            Handle::ScaleUniform => {
-                let normal = facing(dir);
-                let p = plane_hit(from, dir, &self.origin, &normal)?;
-                let reach = length(&sub(&p, &self.origin));
-                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: normal }
-            }
-```
-
-**REPLACE WITH**
-
-```rust
-                grabbed: self.origin.clone(),
-                angle: angle_in_plane(
-                    &plane_hit(from, dir, &self.origin, &axis.unit())?,
-                    &self.origin,
-                    axis,
-                ),
-                reach: 1.0,
-                plane: axis.unit(),
-            },
-            Handle::Scale(axis) => {
-                let p = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
-                let reach = dot(&sub(&p, &self.origin), &axis.unit());
-                Drag {
-                    handle,
-                    grabbed: p,
-                    angle: 0.0,
-                    reach: nonzero(reach),
-                    plane: axis.unit(),
-                }
-            }
-            Handle::ScaleUniform => {
-                let normal = facing(dir);
-                let p = plane_hit(from, dir, &self.origin, &normal)?;
-                let reach = length(&sub(&p, &self.origin));
-                Drag {
-                    handle,
-                    grabbed: p,
-                    angle: 0.0,
-                    reach: nonzero(reach),
-                    plane: normal,
-                }
-            }
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-fn nonzero(v: f64) -> f64 {
-    if v.abs() < 1e-9 { 1e-9_f64.copysign(if v < 0.0 { -1.0 } else { 1.0 }) } else { v }
-}
-```
-
-**REPLACE WITH**
-
-```rust
-fn nonzero(v: f64) -> f64 {
-    if v.abs() < 1e-9 {
-        1e-9_f64.copysign(if v < 0.0 { -1.0 } else { 1.0 })
-    } else {
-        v
-    }
-}
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-        let (f, d) = down(ARM, 0.0);
-        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Translate(Axis::X)), "the arm tip is not an arc");
-        let (f, d) = down(ARM * 3.0, ARM * 3.0);
-```
-
-**REPLACE WITH**
-
-```rust
-        let (f, d) = down(ARM, 0.0);
-        assert_eq!(
-            g.hit(&f, &d, SCALE),
-            Some(Handle::Translate(Axis::X)),
-            "the arm tip is not an arc"
-        );
-        let (f, d) = down(ARM * 3.0, ARM * 3.0);
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-        let (f0, d0) = down(30.0, 0.0);
-        let drag = g.begin(Handle::Translate(Axis::X), &f0, &d0).expect("grabbed");
-        let (f1, d1) = down(42.0, 0.0);
-```
-
-**REPLACE WITH**
-
-```rust
-        let (f0, d0) = down(30.0, 0.0);
-        let drag = g
-            .begin(Handle::Translate(Axis::X), &f0, &d0)
-            .expect("grabbed");
-        let (f1, d1) = down(42.0, 0.0);
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-        let grown = g.update(&drag, &f1, &d1).expect("a transform");
-        assert!(grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0, "one axis only");
-```
-
-**REPLACE WITH**
-
-```rust
-        let grown = g.update(&drag, &f1, &d1).expect("a transform");
-        assert!(
-            grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0,
-            "one axis only"
-        );
 ```
 
 ### `src/app/input.rs`
@@ -225,6 +58,7 @@ fn nonzero(v: f64) -> f64 {
                     self.control_drag = true;
                     return false;
                 }
+
                 if state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
                     self.gizmo_drag = true;
 ```
@@ -237,47 +71,9 @@ fn nonzero(v: f64) -> f64 {
                     self.control_drag = true;
                     return false;
                 }
+
                 if !self.ctrl && state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
                     self.gizmo_drag = true;
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-        use wasm_bindgen::JsCast;
-        let callback =
-            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-                let Some(target) = event.target() else { return };
-```
-
-**REPLACE WITH**
-
-```rust
-        use wasm_bindgen::JsCast;
-        let callback = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
-            move |event: web_sys::Event| {
-                let Some(target) = event.target() else { return };
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-                let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
-            });
-        panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;
-```
-
-**REPLACE WITH**
-
-```rust
-                let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
-            },
-        );
-        panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;
 ```
 
 ### `src/engine/gpu/mod.rs`
@@ -303,10 +99,7 @@ mod widget_mesh;
 
 ```rust
     pub control_net: SegmentLane,
-    /// The move/rotate/scale widget, drawn by the same two lane types the control net uses:
-    /// three arms and their balls are strokes and markers, so the widget costs no shader and
-    /// no pipeline of its own.
-    pub gizmo_arms: SegmentLane,
+    pub gizmo_arms: SegmentLane, // The move/rotate/scale widget, drawn by the same two lane types the control net uses: three arms and their balls are strokes and markers, so the widget costs no shader and no pipeline of its own.
     pub gizmo_dots: GlyphLane,
     pub text: text::TextLane,
 ```
@@ -315,8 +108,7 @@ mod widget_mesh;
 
 ```rust
     pub control_net: SegmentLane,
-    /// A fixed mesh with independent depth for overlapping manipulation handles.
-    pub widget: widget::Widget,
+    pub widget: widget::Widget, // A fixed mesh with independent depth for overlapping manipulation handles.
     pub text: text::TextLane,
 ```
 
@@ -401,11 +193,7 @@ mod widget_mesh;
     ///
     /// The rows are built by the caller, which knows the camera; this owns the two lanes and
     /// the borrow of the device, so the widget's drawing is one call rather than four.
-    pub fn set_widget_rows(
-        &mut self,
-        segments: &segments::SegRows,
-        glyphs: &glyphs::GlyphRows,
-    ) {
+    pub fn set_widget_rows(&mut self, segments: &segments::SegRows, glyphs: &glyphs::GlyphRows) {
         self.gizmo_arms.reset();
         self.gizmo_dots.reset();
         self.gizmo_arms.append(&self.ctx, &self.layouts, segments);
@@ -427,8 +215,6 @@ mod widget_mesh;
 **CURRENT**
 
 ```rust
-        }
-    }
 
     /// The identity row the widgets draw against, minting it the first time.
     ///
@@ -437,18 +223,22 @@ mod widget_mesh;
     /// and a caller that forgot would have them draw against a buffer nobody owns.
     pub fn widget_row(&mut self) -> u32 {
         let (row, grew) = self.objects.widget_row(&self.ctx, &self.layouts);
+
         if grew {
             self.rebind_ink();
         }
+
         row
     }
+
+    /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
 ```
 
 **REPLACE WITH**
 
 ```rust
-        }
-    }
+
+    /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
 ```
 
 **TYPE THIS**
@@ -687,16 +477,19 @@ impl Widget {
             extent.0.div_ceil(64).clamp(1, 16) * 64,
             extent.1.div_ceil(64).clamp(1, 16) * 64,
         );
+
         if self.tile.as_ref().is_none_or(|tile| tile.size != extent) {
             self.tile = None;
             self.tile = Some(Tile::new(ctx, &self.texture_layout, extent));
         }
+
         let mut uniform = [0.0_f32; 24];
         let [x, y, width, height] = rect;
         let sx = size.0 as f64 / width;
         let sy = size.1 as f64 / height;
         let tx = (size.0 as f64 - 2.0 * x - width) / width;
         let ty = (2.0 * y + height - size.1 as f64) / height;
+
         for column in 0..4 {
             let at = column * 4;
             uniform[at] = (sx * matrix.m[at] + tx * matrix.m[at + 3]) as f32;
@@ -704,6 +497,7 @@ impl Widget {
             uniform[at + 2] = matrix.m[at + 2] as f32;
             uniform[at + 3] = matrix.m[at + 3] as f32;
         }
+
         uniform[16] = (2.0 * x / size.0 as f64 - 1.0) as f32;
         uniform[17] = (1.0 - 2.0 * y / size.1 as f64) as f32;
         uniform[18] = (2.0 * width / size.0 as f64) as f32;
@@ -923,6 +717,7 @@ fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
     let radius = crate::app::gizmo::ARM + 2.0;
     let mut min = [f64::INFINITY; 2];
     let mut max = [f64::NEG_INFINITY; 2];
+
     for corner in 0..8 {
         let p = std::array::from_fn::<_, 3, _>(|i| {
             if corner & (1 << i) == 0 {
@@ -934,18 +729,22 @@ fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
         let c = std::array::from_fn::<_, 4, _>(|i| {
             m[i] * p[0] + m[4 + i] * p[1] + m[8 + i] * p[2] + m[12 + i]
         });
+
         if c[3] <= 0.0 {
             return None;
         }
+
         let screen = [
             (c[0] / c[3] * 0.5 + 0.5) * size.0 as f64,
             (0.5 - c[1] / c[3] * 0.5) * size.1 as f64,
         ];
+
         for i in 0..2 {
             min[i] = min[i].min(screen[i]);
             max[i] = max[i].max(screen[i]);
         }
     }
+
     let x = (min[0] - 2.0).floor().max(0.0);
     let y = (min[1] - 2.0).floor().max(0.0);
     let width = (max[0] + 2.0).ceil().min(size.0 as f64) - x;
@@ -971,13 +770,17 @@ pub struct Vertex {
 }
 
 const COLORS: [u32; 3] = [0xff2424e8, 0xff30b820, 0xffef6628];
+
 const SIDES: usize = 24;
+
 const SHAFT: f32 = 2.2;
+
 const TIP: f32 = 14.0;
 
 /// One immutable mesh in CSS-pixel units, with ten independently highlighted handles.
 pub fn vertices() -> Vec<Vertex> {
     let mut out = Vec::with_capacity(18_576);
+
     for (axis, color) in COLORS.into_iter().enumerate() {
         let arm = ARM as f32;
         let shaft = [(HUB as f32, SHAFT), (arm - TIP, SHAFT)];
@@ -997,6 +800,7 @@ pub fn vertices() -> Vec<Vertex> {
             orient(position, axis)
         });
     }
+
     sphere(&mut out, 0, 0.0, HUB as f32, 0xffd8d8d8, 9);
     out
 }
@@ -1064,6 +868,7 @@ mod tests {
         let mesh = vertices();
         assert!(mesh.len() < 20_000);
         let mut handles = [false; 10];
+
         for vertex in mesh {
             handles[vertex.handle as usize] = true;
             assert!(
@@ -1073,6 +878,7 @@ mod tests {
                     .all(|v| v.is_finite() && v.abs() <= ARM as f32 + 2.0)
             );
         }
+
         assert!(handles.into_iter().all(|v| v));
     }
 }
@@ -1088,6 +894,7 @@ struct Widget {
     rect: vec4<f32>,
     settings: vec4<f32>,
 };
+
 @group(0) @binding(0) var<uniform> widget: Widget;
 @group(1) @binding(0) var picture: texture_2d<f32>;
 @group(1) @binding(1) var picture_sampler: sampler;
@@ -1096,17 +903,21 @@ struct Varying {
     @builtin(position) position: vec4<f32>,
     @location(0) color: vec3<f32>,
 };
+
 @vertex
 fn vs_main(@location(0) position: vec3<f32>, @location(1) color: u32,
            @location(2) handle: u32) -> Varying {
     var out: Varying;
     out.position = widget.mvp * vec4<f32>(position, 1.0);
     out.color = unpack4x8unorm(color).rgb;
+
     if f32(handle) == widget.settings.x {
         out.color = vec3<f32>(0.95, 0.65, 0.08);
     }
+
     return out;
 }
+
 @fragment
 fn fs_main(in: Varying) -> @location(0) vec4<f32> {
     return vec4<f32>(in.color, 1.0);
@@ -1116,6 +927,7 @@ struct Composite {
     @builtin(position) position: vec4<f32>,
     @location(0) uv: vec2<f32>,
 };
+
 @vertex
 fn vs_composite(@builtin(vertex_index) index: u32) -> Composite {
     let corners = array<vec2<f32>, 6>(vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
@@ -1125,6 +937,7 @@ fn vs_composite(@builtin(vertex_index) index: u32) -> Composite {
     out.position = vec4<f32>(widget.rect.xy + out.uv * widget.rect.zw, 0., 1.);
     return out;
 }
+
 @fragment
 fn fs_composite(in: Composite) -> @location(0) vec4<f32> {
     let pixel = textureSample(picture, picture_sampler, in.uv);
@@ -1156,14 +969,14 @@ fn fs_composite(in: Composite) -> @location(0) vec4<f32> {
 
 ```rust
 use crate::app::cplane::CPlane;
+use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, HUB, Handle};
+use crate::app::layers::{self, Layer};
 use crate::app::selection::ControlId;
 use crate::app::snap::{self, Snap, SnapKind};
-use crate::app::layers::{self, Layer};
-use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, HUB, Handle};
 use crate::app::walk::encode::FACING_UNKNOWN;
-use crate::state::render_position;
 use crate::engine::gpu::glyphs::{GlyphPoint, GlyphRows};
 use crate::engine::gpu::segments::{CylinderSegment, SegRows};
+use crate::state::render_position;
 use crate::state::{SelectionMode, State};
 ```
 
@@ -1240,7 +1053,8 @@ impl State {
     /// gumball is the same size on screen wherever the camera is.
     pub fn upload_gizmo(&mut self) {
         let Some(gizmo) = self.gizmo.as_ref() else {
-            self.gpu.set_widget_rows(&SegRows::default(), &GlyphRows::default());
+            self.gpu
+                .set_widget_rows(&SegRows::default(), &GlyphRows::default());
             return;
         };
         let origin = gizmo.origin.clone();
@@ -1260,12 +1074,7 @@ impl State {
 /// A free function of an origin and two scales, so what the gumball would draw can be checked
 /// without a window, a camera or a device - which is the only reason the thing was ever
 /// checkable at all on a machine whose browser renders it black.
-fn widget_rows(
-    origin: &Point,
-    per_px: f64,
-    pixel_scale: f64,
-    widget: u32,
-) -> (SegRows, GlyphRows) {
+fn widget_rows(origin: &Point, per_px: f64, pixel_scale: f64, widget: u32) -> (SegRows, GlyphRows) {
     let arm = ARM * per_px;
     let ball = BALL_AT * per_px;
     let mut segments = SegRows::default();
@@ -1278,6 +1087,7 @@ fn widget_rows(
         instance_id: widget,
         facing: FACING_UNKNOWN,
     };
+
     for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
         let u = axis.unit();
         let at = |d: f64| {
@@ -1287,9 +1097,11 @@ fn widget_rows(
                 origin[2] + u[2] * d,
             ]
         };
-        segments
-            .ribbons
-            .push(stroke([origin[0], origin[1], origin[2]], at(arm), AXIS_COLORS[i]));
+        segments.ribbons.push(stroke(
+            [origin[0], origin[1], origin[2]],
+            at(arm),
+            AXIS_COLORS[i],
+        ));
         glyphs.dots.push(GlyphPoint {
             center: render_position(at(ball)),
             radius: -(BALL_PX * pixel_scale) as f32,
@@ -1299,12 +1111,14 @@ fn widget_rows(
             facing_ext: [FACING_UNKNOWN; 2],
         });
     }
+
     // The three rotation arcs, drawn where `Gizmo::hit` tests for them: a quarter circle at the
     // arm's radius, in the quadrant both arms avoid. An arc that is hit-tested and not drawn is
     // an invisible ring that swallows clicks.
     for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
         let (u, v) = arc_axes(axis);
         let mut previous: Option<[f64; 3]> = None;
+
         for step in 0..=ARC_STEPS {
             let t = std::f64::consts::FRAC_PI_2 * f64::from(step) / f64::from(ARC_STEPS);
             let (c, d) = (-t.cos() * arm, -t.sin() * arm);
@@ -1313,12 +1127,15 @@ fn widget_rows(
                 origin[1] + u[1] * c + v[1] * d,
                 origin[2] + u[2] * c + v[2] * d,
             ];
+
             if let Some(from) = previous {
                 segments.ribbons.push(stroke(from, at, AXIS_COLORS[i]));
             }
+
             previous = Some(at);
         }
     }
+
     glyphs.dots.push(GlyphPoint {
         center: render_position([origin[0], origin[1], origin[2]]),
         radius: -(HUB * pixel_scale) as f32,
@@ -1381,9 +1198,11 @@ impl State {
             return false;
         };
         let hovered = gizmo.hit(&from, &dir, per_px);
+
         if gizmo.hovered == hovered {
             return false;
         }
+
         gizmo.hovered = hovered;
         self.upload_gizmo();
         true
@@ -1396,7 +1215,6 @@ impl State {
 **CURRENT**
 
 ```rust
-    use super::*;
 
     /// What the widget would draw, without a window or a device: the counts, where the arms
     /// end, and that every colour is what the lane will read. The gumball could not be seen on
@@ -1427,17 +1245,24 @@ impl State {
             unpacked[0] > 0.8 && unpacked[1] < 0.2 && unpacked[2] < 0.2,
             "X is red on both sides, {unpacked:?}"
         );
-        assert_eq!(glyphs.dots[3].color, [1.0, 1.0, 1.0, 1.0], "the hub is white");
+        assert_eq!(
+            glyphs.dots[3].color,
+            [1.0, 1.0, 1.0, 1.0],
+            "the hub is white"
+        );
 
         // The balls are screen-sized, which the lane reads as a NEGATIVE radius.
         assert!(glyphs.dots.iter().all(|d| d.radius < 0.0));
     }
+
+    /// The gumball, rendered. A headless device draws the same frame twice - once without the
 ```
 
 **REPLACE WITH**
 
 ```rust
-    use super::*;
+
+    /// The gumball, rendered. A headless device draws the same frame twice - once without the
 ```
 
 **TYPE THIS**
@@ -1478,11 +1303,15 @@ impl State {
         // where both in-plane coordinates are negative.
         let z_arc = &segments.ribbons[3 + 2 * ARC_STEPS as usize..];
         assert_eq!(z_arc.len(), ARC_STEPS as usize);
+
         for segment in z_arc {
             for p in [segment.p0, segment.p1] {
                 let r = (f64::from(p[0]).powi(2) + f64::from(p[1]).powi(2)).sqrt();
                 assert!((r - ARM * per_px).abs() < 0.5, "on the arm's circle: {r}");
-                assert!(p[0] <= 1e-3 && p[1] <= 1e-3, "in the quadrant hit() tests: {p:?}");
+                assert!(
+                    p[0] <= 1e-3 && p[1] <= 1e-3,
+                    "in the quadrant hit() tests: {p:?}"
+                );
                 assert!(p[2].abs() < 1e-6, "in the plane normal to Z");
             }
         }
@@ -1496,49 +1325,6 @@ impl State {
 ```rust
 
     /// The conversion the widget's size depends on. A 2x display has twice the physical pixels
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-        let retina = world_per_css_px(1000.0, 1600.0, 2.0);
-        assert!((one_to_one - retina).abs() < 1e-9, "the same CSS pixel, either way");
-```
-
-**REPLACE WITH**
-
-```rust
-        let retina = world_per_css_px(1000.0, 1600.0, 2.0);
-        assert!(
-            (one_to_one - retina).abs() < 1e-9,
-            "the same CSS pixel, either way"
-        );
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-        );
-        assert_eq!(world_per_css_px(1000.0, 0.0, 1.0), 1.0, "no surface, no answer");
-    }
-}
-```
-
-**REPLACE WITH**
-
-```rust
-        );
-        assert_eq!(
-            world_per_css_px(1000.0, 0.0, 1.0),
-            1.0,
-            "no surface, no answer"
-        );
-    }
-}
 ```
 
 ### Check step 4

@@ -1,7 +1,3 @@
-//! Black surface silhouettes from visible coverage. Combined solid silhouettes and
-//! selected boundaries share allocation, depth testing and compositing.
-//! The mask never changes geometry or picking, and cannot include hidden surfaces.
-
 use std::collections::HashSet;
 
 use super::buffers::GpuCtx;
@@ -12,9 +8,7 @@ struct Mask {
     resolved: Attachment,
     multisampled: Option<Attachment>,
     group: wgpu::BindGroup,
-    /// The maximum of each `POOL`-square block of `resolved`: the compositor skips every
-    /// pixel whose neighbourhood of blocks is empty, which is most of the frame.
-    coarse: Attachment,
+    coarse: Attachment, // The maximum of each `POOL`-square block of `resolved`: the compositor skips every pixel whose neighbourhood of blocks is empty, which is most of the frame.
     coarse_size: (u32, u32),
     pool_group: wgpu::BindGroup,
     size: (u32, u32),
@@ -34,8 +28,7 @@ pub struct MaskKey {
     pub faces: u64,
     pub size: (u32, u32),
     pub samples: u32,
-    /// The edges are part of the coverage, so the mask follows their toggle and pen.
-    pub edges: bool,
+    pub edges: bool, // The edges are part of the coverage, so the mask follows their toggle and pen.
     pub pen: u32,
 }
 
@@ -56,8 +49,7 @@ pub struct SurfaceOutline {
     pipeline: wgpu::RenderPipeline,
     pool_pipeline: wgpu::RenderPipeline,
     mask: Option<Mask>,
-    /// The key the current mask contents were rendered for.
-    valid_for: Option<MaskKey>,
+    valid_for: Option<MaskKey>, // The key the current mask contents were rendered for.
 }
 
 impl SurfaceOutline {
@@ -194,6 +186,7 @@ impl SurfaceOutline {
         } else {
             self.selected.remove(&row);
         }
+
         if self.kind == OutlineKind::Selected && self.selected.is_empty() {
             self.mask = None;
         }
@@ -225,10 +218,12 @@ impl SurfaceOutline {
             self.valid_for = None;
             return false;
         }
+
         let changed = match &self.mask {
             Some(mask) => mask.size != size || mask.samples != samples,
             None => true,
         };
+
         if changed {
             let usage =
                 wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
@@ -295,6 +290,7 @@ impl SurfaceOutline {
             });
             self.valid_for = None;
         }
+
         // One radius for every silhouette: an ordinary solid's outline is as heavy as a
         // selected one's, the selection differing by its yellow fill, not its border.
         let css_radius = 1.6875;
@@ -465,6 +461,7 @@ mod tests {
         gpu.view.show_outlines = true;
         gpu.view.show_grid = false;
         gpu.view.markers = false;
+
         for shape in [
             BRep::create_cone(150.0, 400.0),
             BRep::create_cylinder(150.0, 400.0),
@@ -482,11 +479,13 @@ mod tests {
             });
             scene.upload_to(&mut gpu);
             gpu.set_selected(0, true);
+
             for samples in [1, 4] {
                 for dpr in [1.0, 2.0] {
                     gpu.logical_size = [480.0 / dpr; 2];
                     gpu.view.msaa_forced = Some(samples);
                     gpu.resize(480, 480);
+
                     for orbit in [(0.0, 0.0), (95.0, -65.0), (-80.0, 130.0)] {
                         let mut camera = Camera::new();
                         camera.fit(&gpu.bounds, 1.0);
@@ -504,13 +503,16 @@ mod tests {
                         gpu.segments.set_selected(0, true);
                         let edged = gpu.render_offscreen(&input);
                         let mut coverage = 0_u32;
+
                         for (plain, inked) in silhouette.chunks_exact(4).zip(edged.chunks_exact(4))
                         {
                             let lo = *plain[..3].iter().min().unwrap();
                             let hi = *plain[..3].iter().max().unwrap();
+
                             if hi - lo <= 2 {
                                 coverage += u32::from(255 - hi);
                             }
+
                             if hi < 8 {
                                 assert!(
                                     inked[..3].iter().all(|channel| *channel < 12),
@@ -518,6 +520,7 @@ mod tests {
                                 );
                             }
                         }
+
                         assert!(
                             coverage > gpu.config.height * 255 / 2,
                             "visible silhouette includes fractional coverage: {coverage}"
@@ -540,14 +543,17 @@ mod tests {
             clear: wgpu::Color::WHITE,
             now_ms: 0.0,
         };
+
         for samples in [1, 4] {
             gpu.view.msaa_forced = Some(samples);
             gpu.resize(200, 200);
+
             for overlap in [false, true] {
                 gpu.reset();
                 let mut upload = Upload::default();
                 quad(&mut upload, 0.4, 0.5);
                 quad(&mut upload, 0.4, 0.6);
+
                 for (i, vertex) in upload.arena.verts.iter_mut().enumerate() {
                     vertex.position[0] += if i < 4 {
                         -0.4
@@ -557,6 +563,7 @@ mod tests {
                         0.4
                     };
                 }
+
                 gpu.set_scene(&upload);
                 let outlined = gpu.render_offscreen(&input);
                 gpu.view.show_outlines = false;
@@ -564,6 +571,7 @@ mod tests {
                 let ids = gpu.render_ids_offscreen(&input);
                 gpu.view.show_outlines = true;
                 assert_eq!(ids, gpu.render_ids_offscreen(&input));
+
                 for y in 65..135 {
                     for x in 45..150 {
                         let at = (y * 200 + x) * 4;
@@ -574,6 +582,7 @@ mod tests {
                         );
                     }
                 }
+
                 assert_ne!(
                     outlined, plain,
                     "the combined outside silhouette must still be outlined"
@@ -585,7 +594,8 @@ mod tests {
     fn quad(upload: &mut Upload, extent: f32, depth: f32) {
         let row = upload.obj.rows.len() as u32;
         let first = upload.arena.verts.len() as u32;
-        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
+        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
+
         for [x, y] in [
             [-extent, -extent],
             [extent, -extent],
@@ -599,6 +609,7 @@ mod tests {
             });
             upload.arena.vids.push(row);
         }
+
         upload
             .arena
             .idx
@@ -621,6 +632,7 @@ mod tests {
             clear: wgpu::Color::WHITE,
             now_ms: 0.0,
         };
+
         for samples in [1, 4, 1] {
             gpu.view.msaa_forced = Some(samples);
             gpu.resize(200, 200);
@@ -699,6 +711,7 @@ mod tests {
             gpu.view.show_outlines = true;
             gpu.set_hidden(1, false);
         }
+
         gpu.release();
         assert_eq!(gpu.selection_outline.allocated_bytes(), (16, 0));
     }

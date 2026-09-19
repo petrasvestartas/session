@@ -1,7 +1,3 @@
-//! Pipelines are data. `PipelineDesc` names what differs between the viewer's render
-//! pipelines and `build` is the only place wgpu is asked for one. Every lane owns its own
-//! descs and rebuilds them through `retarget` when the MSAA sample count flips.
-
 pub mod layouts;
 
 pub use layouts::Layouts;
@@ -26,18 +22,12 @@ impl Target {
 /// How a pipeline treats depth. Every compare is reverse-Z: nearer is GREATER.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum DepthMode {
-    /// Write, strict `Greater`: solids and depth-only prepasses.
-    Opaque,
-    /// Source point queries write depth and accept exact ties with resident source points.
-    OpaqueEqual,
-    /// Test only, strict `Greater`: sheet fills and the grid.
-    ReadOnly,
-    /// Test only, `GreaterEqual`: blended ink that must tie with its prepass and with faces.
-    ReadOnlyEqual,
-    /// No test, no write: the background.
-    Always,
-    /// No depth attachment at all: a full-screen pass over a texture.
-    Detached,
+    Opaque,        // Write, strict `Greater`: solids and depth-only prepasses.
+    OpaqueEqual, // Source point queries write depth and accept exact ties with resident source points.
+    ReadOnly,    // Test only, strict `Greater`: sheet fills and the grid.
+    ReadOnlyEqual, // Test only, `GreaterEqual`: blended ink that must tie with its prepass and with faces.
+    Always,        // No test, no write: the background.
+    Detached,      // No depth attachment at all: a full-screen pass over a texture.
 }
 
 impl DepthMode {
@@ -56,14 +46,10 @@ impl DepthMode {
 /// What a pipeline writes to the colour target.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ColorWrite {
-    /// Overwrite: solids, ids, the backdrop.
-    Opaque,
-    /// Alpha-blend: ink with an AA feather.
-    Blended,
-    /// Keep the larger value: coverage masks, where a stroke's feather must not dent a face.
-    Max,
-    /// No colour at all: a rasterization run for its fragment side effects.
-    Nothing,
+    Opaque,  // Overwrite: solids, ids, the backdrop.
+    Blended, // Alpha-blend: ink with an AA feather.
+    Max, // Keep the larger value: coverage masks, where a stroke's feather must not dent a face.
+    Nothing, // No colour at all: a rasterization run for its fragment side effects.
 }
 
 impl ColorWrite {
@@ -109,9 +95,7 @@ pub struct PipelineDesc<'a> {
     pub depth: DepthMode,
     pub scene_samples: Option<u32>,
     pub physical: bool,
-    /// Two `R8Unorm` coverage targets (solid, selected) written in one pass with MAX
-    /// blending, so writing 0 is the same as discarding.
-    pub masks: bool,
+    pub masks: bool, // Two `R8Unorm` coverage targets (solid, selected) written in one pass with MAX blending, so writing 0 is the same as discarding.
 }
 
 impl<'a> PipelineDesc<'a> {
@@ -266,9 +250,11 @@ pub fn pipeline_layout(
     groups: &[&wgpu::BindGroupLayout],
 ) -> wgpu::PipelineLayout {
     let mut slots: Vec<Option<&wgpu::BindGroupLayout>> = Vec::with_capacity(groups.len());
+
     for g in groups {
         slots.push(Some(*g));
     }
+
     device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some(label),
         bind_group_layouts: &slots,
@@ -287,6 +273,7 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
         blend,
         write_mask,
     })];
+
     if desc.masks {
         let max = wgpu::BlendComponent {
             src_factor: wgpu::BlendFactor::One,
@@ -303,6 +290,7 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
         });
         targets = vec![coverage.clone(), coverage];
     }
+
     if desc.physical {
         targets.push(Some(wgpu::ColorTargetState {
             format: wgpu::TextureFormat::Rgba16Float,
@@ -317,7 +305,9 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
             },
         }));
     }
+
     let mut constants = Vec::new();
+
     if let Some(samples) = desc.scene_samples {
         constants.push(("SCENE_MSAA", f64::from(samples > 1)));
     }

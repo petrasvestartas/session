@@ -43,7 +43,7 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=1-52 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=1-53 -->
 
 - A `Weak<Session>` recognizes a document without keeping it alive.
 - When every `Rc` pointer matches the last snapshot, the cached payload is returned with no walk.
@@ -51,11 +51,11 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=53-95 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=54-102 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-140 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=103-149 -->
 
 The rest of `session_payload` — components, the lookup, the transform map and the caches — then the per-type payload walks, one function per geometry kind:
 
@@ -64,13 +64,13 @@ The rest of `session_payload` — components, the lookup, the transform map and 
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=141-363 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=150-423 -->
 
 The end of the mesh walk, the element walk, and the unit tests, part of the file:
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=364-487 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=424-556 -->
 
 <!-- check: 16 -->
 

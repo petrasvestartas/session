@@ -1,15 +1,3 @@
-//! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
-//! left click picks the object, Ctrl+click an edge and Ctrl+Shift+click a face, and a left
-//! drag on a gizmo handle moves the selection; Delete removes it, Ctrl+Z undoes and
-//! Ctrl+Shift+Z or Ctrl+Y redoes;
-//! 1-7 named views, Space projection, C reset, F fits the selection (or
-//! everything with none selected), Q/W/E lane toggles, O silhouettes, D face lighting,
-//! B the back-face flag, L the layers panel, : the command line,
-//! H hides the selection and S shows everything back, T toggles selected names,
-//! P toggles x-ray (faces gone, edges stay), F10 shows the selected object's source controls,
-//! [ ] cloud size, Escape clears the selection. Fingers go to `touch.rs`.
-//! Every handler says whether the frame must be redrawn.
-
 use super::touch::{Act, Touches};
 use crate::State;
 use crate::camera::View;
@@ -25,11 +13,8 @@ pub struct Input {
     panning: bool,
     ctrl: bool,
     shift: bool,
-    /// A gizmo handle is being dragged, so the pointer belongs to the widget and neither the
-    /// camera nor the picker sees it until it is let go.
-    gizmo_drag: bool,
-    /// A control point is being dragged: the same press, a different gesture.
-    control_drag: bool,
+    gizmo_drag: bool, // A gizmo handle is being dragged, so the pointer belongs to the widget and neither the camera nor the picker sees it until it is let go.
+    control_drag: bool, // A control point is being dragged: the same press, a different gesture.
     last_cursor: (f64, f64),
     left_down: Option<(f64, f64)>,
     touch: Touches,
@@ -116,12 +101,14 @@ impl Input {
             Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
             _ => return false,
         }
+
         true
     }
 
     /// Buttons, motion, wheel, modifiers and fingers. True when the frame must be redrawn.
     pub fn mouse(&mut self, state: &mut State, event: &WindowEvent) -> bool {
         let viewport = state.viewport();
+
         match event {
             WindowEvent::MouseInput {
                 state: btn,
@@ -150,24 +137,30 @@ impl Input {
                 let scale = crate::engine::gpu::view::surface_per_physical();
                 let position =
                     winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
+
                 if self.control_drag {
                     self.last_cursor = (position.x, position.y);
                     return state.drag_control(position.x, position.y);
                 }
+
                 if self.gizmo_drag {
                     self.last_cursor = (position.x, position.y);
                     return state.drag_gizmo(position.x, position.y);
                 }
+
                 let dragging = self.orbiting || self.panning;
+
                 if dragging {
                     let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
                     let dy = ((position.y - self.last_cursor.1) / device_pixel_ratio()) as f32;
+
                     if self.panning || self.ctrl {
                         state.camera.pan(dx, dy);
                     } else {
                         state.camera.orbit(dx, dy);
                     }
                 }
+
                 self.last_cursor = (position.x, position.y);
                 dragging || state.hover_gizmo(position.x, position.y)
             }
@@ -198,9 +191,11 @@ impl Input {
                     ),
                     ..*t
                 };
+
                 if t.phase == TouchPhase::Started {
                     self.fingers.insert(t.id);
                 }
+
                 if self.touch_edit.is_some()
                     && t.phase == TouchPhase::Started
                     && self.fingers.len() > 1
@@ -211,28 +206,35 @@ impl Input {
                     self.control_drag = false;
                     self.touch_cancelled = true;
                 }
+
                 if self.touch_cancelled {
                     if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
                         self.fingers.remove(&t.id);
                     }
+
                     if self.fingers.is_empty() {
                         self.touch_cancelled = false;
                         self.touch = Touches::new();
                     }
+
                     state.interacting = false;
                     return true;
                 }
+
                 if t.phase == TouchPhase::Started && self.fingers.len() == 1 {
                     self.last_cursor = (t.location.x, t.location.y);
                     self.control_drag = state.begin_control_drag(t.location.x, t.location.y);
                     self.gizmo_drag =
                         !self.control_drag && state.begin_gizmo_touch(t.location.x, t.location.y);
+
                     if self.control_drag || self.gizmo_drag {
                         self.touch_edit = Some(t.id);
                     }
                 }
+
                 if self.touch_edit == Some(t.id) {
                     self.last_cursor = (t.location.x, t.location.y);
+
                     match t.phase {
                         TouchPhase::Moved => {
                             if self.control_drag {
@@ -251,6 +253,7 @@ impl Input {
                         TouchPhase::Cancelled => state.cancel_gesture(),
                         TouchPhase::Started => {}
                     }
+
                     if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
                         self.fingers.remove(&t.id);
                         self.touch_edit = None;
@@ -258,13 +261,17 @@ impl Input {
                         self.gizmo_drag = false;
                         self.touch = Touches::new();
                     }
+
                     state.interacting = self.touch_edit.is_some();
                     return true;
                 }
+
                 if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
                     self.fingers.remove(&t.id);
                 }
+
                 state.interacting = matches!(t.phase, TouchPhase::Started | TouchPhase::Moved);
+
                 match self
                     .touch
                     .event(&mut state.camera, t, viewport, device_pixel_ratio())
@@ -314,10 +321,12 @@ impl Input {
                     self.control_drag = true;
                     return false;
                 }
+
                 if !self.ctrl && state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
                     self.gizmo_drag = true;
                     return false;
                 }
+
                 self.left_down = Some(self.last_cursor);
                 false
             }
@@ -327,20 +336,24 @@ impl Input {
                     state.end_control_drag(self.last_cursor.0, self.last_cursor.1);
                     return true;
                 }
+
                 if self.gizmo_drag {
                     self.gizmo_drag = false;
                     state.end_gizmo(self.last_cursor.0, self.last_cursor.1);
                     return true;
                 }
+
                 let Some(down) = self.left_down.take() else {
                     return false;
                 };
                 let moved = (self.last_cursor.0 - down.0)
                     .abs()
                     .max((self.last_cursor.1 - down.1).abs());
+
                 if moved > CLICK_SLOP * device_pixel_ratio() {
                     return false;
                 }
+
                 state.request_selection(
                     self.last_cursor.0 as u32,
                     self.last_cursor.1 as u32,

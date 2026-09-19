@@ -1,32 +1,23 @@
-//! The gumball: ten handles, a hit test, and the transform each drag produces.
-//!
-//! Pure CPU and f64: no wgpu, no kernel objects, no `State`. What a drag produces is a world
-//! matrix, which the caller applies to one object row or to many.
-//!
-//! It is hit tested on the CPU rather than through the id targets, and that is deliberate.
-//! Scene picking draws integer ids into a window and reads them back asynchronously, dropping
-//! stale answers by generation, so an answer arrives a frame after the pointer moved. Hover
-//! feedback a frame late is unusable, and the widget's geometry is the viewer's own, so there
-//! is nothing to read back.
-//!
-//! Every length below is in CSS pixels and multiplied by `world_per_px` at the gumball's
-//! depth, which is what keeps the widget the same size on screen at any zoom or projection: a
-//! control that shrinks with distance stops being grabbable exactly when the object needs it.
-
-use session_rust::{Point, Vector};
+use session_rust::intersection::{line_line_parameters, line_plane};
+use session_rust::{Line, Plane, Point, Vector, Xform};
 
 /// The one length everything else is a fraction of, in CSS pixels.
 pub const ARM: f64 = 96.0;
+
 /// Axis scale balls, on the same side as the arrows so pulling out always grows.
 pub const BALL_AT: f64 = ARM * 0.5;
+
 /// Grab radius. Wider than the 6 px pick radius because a handle is grabbed, not aimed at.
 const GRAB: f64 = 8.0;
+
 /// Uniform-scale ball at the centre.
 pub const HUB: f64 = 6.0;
+
 /// Drag softening. A scale that follows the raw distance ratio doubles an object within a few
 /// pixels of the centre, where that ratio changes fastest. A square root flattens it without
 /// moving its fixed point: 1 is still 1, and any factor is still reachable, just further out.
 const SCALE_SOFTENING: f64 = 0.5;
+
 /// The smallest factor a scale may produce. Below this a matrix is singular or mirrors, and
 /// either one is baked into geometry for good.
 const MIN_SCALE: f64 = 0.01;
@@ -74,6 +65,7 @@ impl Handle {
             Axis::Y => "Y",
             Axis::Z => "Z",
         };
+
         match self {
             Handle::Translate(a) => ("Move", name(a), "mm"),
             Handle::Rotate(a) => ("Rotate", name(a), "deg"),
@@ -87,20 +79,10 @@ impl Handle {
 #[derive(Clone, Debug)]
 pub struct Drag {
     pub handle: Handle,
-    /// Where the grab landed: a point on the axis, or in the handle's plane.
-    grabbed: Point,
-    /// The angle of the grab about the axis, for a rotate.
-    angle: f64,
-    /// Where the grab was, for a scale, and never zero. SIGNED along the axis for
-    /// `Scale(axis)`, so grabbing the negative side stores a negative reach and the ratio in
-    /// `update` still comes out positive; a plain distance for `ScaleUniform`.
-    reach: f64,
-    /// The plane a uniform scale is measured in, chosen once at the grab.
-    ///
-    /// Choosing it again from the live ray on every move lets it flip to another world axis
-    /// mid-drag, and the reach is then measured in a different plane than the one the grab was
-    /// measured in - the object jumps. Unused by the other handles, which have an axis.
-    plane: Vector,
+    grabbed: Point, // Where the grab landed: a point on the axis, or in the handle's plane.
+    angle: f64,     // The angle of the grab about the axis, for a rotate.
+    reach: f64, // Where the grab was, for a scale, and never zero. SIGNED along the axis for `Scale(axis)`, so grabbing the negative side stores a negative reach and the ratio in `update` still comes out positive; a plain distance for `ScaleUniform`.
+    plane: Vector, // The plane a uniform scale is measured in, chosen once at the grab.  Choosing it again from the live ray on every move lets it flip to another world axis mid-drag, and the reach is then measured in a different plane than the one the grab was measured in - the object jumps. Unused by the other handles, which have an axis.
 }
 
 /// Where the widget is and what it is doing.
@@ -145,24 +127,31 @@ impl Gizmo {
     ) -> Option<Handle> {
         let s = world_per_px;
         let grab = radius.max(GRAB);
+
         if within(from, dir, &self.origin, HUB * s) {
             return Some(Handle::ScaleUniform);
         }
+
         for axis in [Axis::X, Axis::Y, Axis::Z] {
             if end_on(dir, axis) {
                 continue;
             }
-            let at = along(&self.origin, &axis.unit(), BALL_AT * s);
+
+            let at = &self.origin + &(&axis.unit() * (BALL_AT * s));
+
             if within(from, dir, &at, grab * s) {
                 return Some(Handle::Scale(axis));
             }
         }
+
         for axis in [Axis::X, Axis::Y, Axis::Z] {
             if end_on(dir, axis) {
                 continue;
             }
+
             if let Some(p) = closest_on_axis(from, dir, &self.origin, &axis.unit()) {
-                let t = dot(&sub(&p, &self.origin), &axis.unit());
+                let t = (&p - &self.origin).dot(&axis.unit());
+
                 // The arm's grabbable run starts where the hub ends: inside it all three arms
                 // overlap, and whichever was tested first would win a click aimed at the centre.
                 if (HUB * s..=ARM * s).contains(&t) && within(from, dir, &p, grab * s) {
@@ -170,19 +159,22 @@ impl Gizmo {
                 }
             }
         }
+
         for axis in [Axis::X, Axis::Y, Axis::Z] {
             if let Some(p) = plane_hit(from, dir, &self.origin, &axis.unit()) {
-                let d = sub(&p, &self.origin);
+                let d = &p - &self.origin;
                 let (u, v) = axis.others();
+
                 // A quarter arc, in the quadrant the arms and balls do not occupy. Sharing a
                 // radius with the arm tip would make the two ambiguous exactly where a reader
                 // aims for one of them.
-                if dot(&d, &u) < 0.0 && dot(&d, &v) < 0.0 && (length(&d) - ARM * s).abs() < grab * s
+                if d.dot(&u) < 0.0 && d.dot(&v) < 0.0 && (d.magnitude() - ARM * s).abs() < grab * s
                 {
                     return Some(Handle::Rotate(axis));
                 }
             }
         }
+
         None
     }
 
@@ -210,7 +202,7 @@ impl Gizmo {
             },
             Handle::Scale(axis) => {
                 let p = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
-                let reach = dot(&sub(&p, &self.origin), &axis.unit());
+                let reach = (&p - &self.origin).dot(&axis.unit());
                 Drag {
                     handle,
                     grabbed: p,
@@ -222,7 +214,7 @@ impl Gizmo {
             Handle::ScaleUniform => {
                 let normal = facing(dir);
                 let p = plane_hit(from, dir, &self.origin, &normal)?;
-                let reach = length(&sub(&p, &self.origin));
+                let reach = (&p - &self.origin).magnitude();
                 Drag {
                     handle,
                     grabbed: p,
@@ -240,12 +232,12 @@ impl Gizmo {
     ///
     /// Always measured from the grab, never accumulated frame to frame: a drag that adds a
     /// delta per move drifts, and a dropped frame changes the result.
-    pub fn update(&self, drag: &Drag, from: &Point, dir: &Vector) -> Option<[f64; 16]> {
+    pub fn update(&self, drag: &Drag, from: &Point, dir: &Vector) -> Option<Xform> {
         match drag.handle {
             Handle::Translate(axis) => {
                 let now = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
-                let d = sub(&now, &drag.grabbed);
-                Some(translation(d[0], d[1], d[2]))
+                let d = &now - &drag.grabbed;
+                Some(Xform::translation(d[0], d[1], d[2]))
             }
             Handle::Rotate(axis) => {
                 let now = plane_hit(from, dir, &self.origin, &axis.unit())?;
@@ -254,32 +246,32 @@ impl Gizmo {
             }
             Handle::Scale(axis) => {
                 let now = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
-                let reach = dot(&sub(&now, &self.origin), &axis.unit());
+                let reach = (&now - &self.origin).dot(&axis.unit());
                 let k = softened(reach / drag.reach);
                 let (x, y, z) = match axis {
                     Axis::X => (k, 1.0, 1.0),
                     Axis::Y => (1.0, k, 1.0),
                     Axis::Z => (1.0, 1.0, k),
                 };
-                Some(about(&self.origin, scaling(x, y, z)))
+                Some(about(&self.origin, Xform::scale_xyz(x, y, z)))
             }
             Handle::ScaleUniform => {
                 // The plane the grab was measured in, not one chosen again from this frame's
                 // ray: a plane that flips mid-drag makes the object jump.
                 let now = plane_hit(from, dir, &self.origin, &drag.plane)?;
-                let k = softened(length(&sub(&now, &self.origin)) / drag.reach);
-                Some(about(&self.origin, scaling(k, k, k)))
+                let k = softened((&now - &self.origin).magnitude() / drag.reach);
+                Some(about(&self.origin, Xform::scale_xyz(k, k, k)))
             }
         }
     }
 
     /// The transform for a value typed into the numeric box, with the same meaning a drag has:
     /// a move is millimetres, a rotation degrees, a scale a factor.
-    pub fn typed(&self, handle: Handle, value: f64) -> [f64; 16] {
+    pub fn typed(&self, handle: Handle, value: f64) -> Xform {
         match handle {
             Handle::Translate(axis) => {
                 let u = axis.unit();
-                translation(u[0] * value, u[1] * value, u[2] * value)
+                Xform::translation(u[0] * value, u[1] * value, u[2] * value)
             }
             Handle::Rotate(axis) => about(&self.origin, rotation(axis, value.to_radians())),
             Handle::Scale(axis) => {
@@ -289,39 +281,26 @@ impl Gizmo {
                     Axis::Y => (1.0, k, 1.0),
                     Axis::Z => (1.0, 1.0, k),
                 };
-                about(&self.origin, scaling(x, y, z))
+                about(&self.origin, Xform::scale_xyz(x, y, z))
             }
             Handle::ScaleUniform => {
                 let k = value.max(MIN_SCALE);
-                about(&self.origin, scaling(k, k, k))
+                about(&self.origin, Xform::scale_xyz(k, k, k))
             }
         }
     }
 }
 
-// ---- the arithmetic, all f64 -------------------------------------------------------------
-
-fn sub(a: &Point, b: &Point) -> [f64; 3] {
-    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-}
-
-fn dot(a: &[f64; 3], b: &Vector) -> f64 {
-    a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-}
-
-fn length(v: &[f64; 3]) -> f64 {
-    (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt()
-}
-
-fn along(p: &Point, v: &Vector, d: f64) -> Point {
-    Point::new(p[0] + v[0] * d, p[1] + v[1] * d, p[2] + v[2] * d)
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// Ray geometry
+// ═══════════════════════════════════════════════════════════════════════════
 
 /// A factor that never collapses or mirrors, softened so the drag is usable near the centre.
 fn softened(ratio: f64) -> f64 {
     if !ratio.is_finite() || ratio <= 0.0 {
         return MIN_SCALE;
     }
+
     ratio.powf(SCALE_SOFTENING).max(MIN_SCALE)
 }
 
@@ -337,6 +316,7 @@ fn nonzero(v: f64) -> f64 {
 /// ray is never near-parallel to it.
 fn facing(dir: &Vector) -> Vector {
     let (x, y, z) = (dir[0].abs(), dir[1].abs(), dir[2].abs());
+
     if x >= y && x >= z {
         Axis::X.unit()
     } else if y >= z {
@@ -355,115 +335,66 @@ fn facing(dir: &Vector) -> Vector {
 /// the drag anyway, because there is no answer to where along an axis a ray that runs down it
 /// is. Skipping the handle is the same refusal, made early enough that the click falls through.
 fn end_on(dir: &Vector, axis: Axis) -> bool {
-    dot(&[dir[0], dir[1], dir[2]], &axis.unit()).abs() > 0.97
+    dir.dot(&axis.unit()).abs() > 0.97
 }
 
+/// The point on the axis closest to the ray, `None` when the two run parallel.
 fn closest_on_axis(from: &Point, dir: &Vector, origin: &Point, axis: &Vector) -> Option<Point> {
-    let w = sub(from, origin);
-    let b = dot(&[dir[0], dir[1], dir[2]], axis);
-    let denom = 1.0 - b * b;
-    if denom.abs() < 1e-9 {
-        return None;
-    }
-    let t = (dot(&w, axis) - b * dot(&w, dir)) / denom;
-    Some(along(origin, axis, t))
+    let ray = Line::from_point_direction_length(from, dir, 1.0);
+    let line = Line::from_point_direction_length(origin, axis, 1.0);
+    let (_, t) = line_line_parameters(&ray, &line, 1e-9, false, false)?;
+
+    Some(origin + &(axis * t))
 }
 
 /// Where a ray meets the plane through `origin` with this normal, in front of the ray.
 fn plane_hit(from: &Point, dir: &Vector, origin: &Point, normal: &Vector) -> Option<Point> {
-    let denom = dot(&[dir[0], dir[1], dir[2]], normal);
-    if denom.abs() < 1e-9 {
+    if dir.dot(normal).abs() < 1e-9 {
         return None;
     }
-    let t = dot(&sub(origin, from), normal) / denom;
-    (t > 0.0 && t.is_finite()).then(|| along(from, dir, t))
+
+    let ray = Line::from_point_direction_length(from, dir, 1.0);
+    let plane = Plane::from_point_normal(origin.clone(), normal.clone(), Some(false));
+    let hit = line_plane(&ray, &plane, false)?;
+    let t = (&hit - from).dot(dir);
+
+    (t > 0.0 && t.is_finite()).then_some(hit)
 }
 
 /// Whether a ray passes within `radius` of a point.
 fn within(from: &Point, dir: &Vector, at: &Point, radius: f64) -> bool {
-    let w = sub(at, from);
-    let t = dot(&w, dir);
+    let t = (at - from).dot(dir);
+
     if t < 0.0 {
         return false;
     }
-    let closest = along(from, dir, t);
-    length(&sub(&closest, at)) <= radius
+
+    let closest = from + &(dir * t);
+    (&closest - at).magnitude() <= radius
 }
 
 /// The angle of a point about an axis, measured from that axis's first companion.
 fn angle_in_plane(p: &Point, origin: &Point, axis: Axis) -> f64 {
     let (u, v) = axis.others();
-    let d = sub(p, origin);
-    dot(&d, &v).atan2(dot(&d, &u))
+    let d = p - origin;
+    d.dot(&v).atan2(d.dot(&u))
 }
 
-fn translation(x: f64, y: f64, z: f64) -> [f64; 16] {
-    let mut m = identity();
-    m[12] = x;
-    m[13] = y;
-    m[14] = z;
-    m
-}
-
-fn scaling(x: f64, y: f64, z: f64) -> [f64; 16] {
-    let mut m = identity();
-    m[0] = x;
-    m[5] = y;
-    m[10] = z;
-    m
-}
-
-fn rotation(axis: Axis, radians: f64) -> [f64; 16] {
-    let (c, s) = (radians.cos(), radians.sin());
-    let mut m = identity();
+/// A rotation about one world axis, in radians.
+fn rotation(axis: Axis, radians: f64) -> Xform {
     match axis {
-        Axis::X => {
-            m[5] = c;
-            m[6] = s;
-            m[9] = -s;
-            m[10] = c;
-        }
-        Axis::Y => {
-            m[0] = c;
-            m[2] = -s;
-            m[8] = s;
-            m[10] = c;
-        }
-        Axis::Z => {
-            m[0] = c;
-            m[1] = s;
-            m[4] = -s;
-            m[5] = c;
-        }
+        Axis::X => Xform::rotation_x(radians, false),
+        Axis::Y => Xform::rotation_y(radians, false),
+        Axis::Z => Xform::rotation_z(radians, false),
     }
-    m
-}
-
-fn identity() -> [f64; 16] {
-    let mut m = [0.0; 16];
-    m[0] = 1.0;
-    m[5] = 1.0;
-    m[10] = 1.0;
-    m[15] = 1.0;
-    m
 }
 
 /// `m` applied about `pivot` rather than the world origin.
-fn about(pivot: &Point, m: [f64; 16]) -> [f64; 16] {
-    let to = translation(pivot[0], pivot[1], pivot[2]);
-    let back = translation(-pivot[0], -pivot[1], -pivot[2]);
-    mul(&mul(&to, &m), &back)
-}
+fn about(pivot: &Point, m: Xform) -> Xform {
+    let to = Xform::translation(pivot[0], pivot[1], pivot[2]);
+    let back = Xform::translation(-pivot[0], -pivot[1], -pivot[2]);
 
-/// Column-major 4x4 product.
-fn mul(a: &[f64; 16], b: &[f64; 16]) -> [f64; 16] {
-    let mut out = [0.0; 16];
-    for col in 0..4 {
-        for row in 0..4 {
-            out[col * 4 + row] = (0..4).map(|k| a[k * 4 + row] * b[col * 4 + k]).sum();
-        }
-    }
-    out
+    &(&to * &m) * &back
 }
 
 #[cfg(test)]
@@ -543,8 +474,8 @@ mod tests {
             .expect("grabbed");
         let (f1, d1) = down(42.0, 0.0);
         let m = g.update(&drag, &f1, &d1).expect("a transform");
-        assert!((m[12] - 12.0).abs() < 1e-9);
-        assert!(m[13].abs() < 1e-9 && m[14].abs() < 1e-9);
+        assert!((m.m[12] - 12.0).abs() < 1e-9);
+        assert!(m.m[13].abs() < 1e-9 && m.m[14].abs() < 1e-9);
     }
 
     /// Sighting straight down the axis has no answer, so there is no drag rather than a wrong
@@ -566,8 +497,8 @@ mod tests {
         let (f1, d1) = down(0.0, ARM);
         let m = g.update(&drag, &f1, &d1).expect("a transform");
         // column 0 is the image of the x axis
-        assert!((m[0]).abs() < 1e-9, "x.x");
-        assert!((m[1] - 1.0).abs() < 1e-9, "x.y");
+        assert!((m.m[0]).abs() < 1e-9, "x.x");
+        assert!((m.m[1] - 1.0).abs() < 1e-9, "x.y");
     }
 
     /// A scale is measured from the grab, so re-reading the same pointer gives 1, and it can
@@ -578,18 +509,18 @@ mod tests {
         let (f0, d0) = down(BALL_AT, 0.0);
         let drag = g.begin(Handle::Scale(Axis::X), &f0, &d0).expect("grabbed");
         let m = g.update(&drag, &f0, &d0).expect("a transform");
-        assert!((m[0] - 1.0).abs() < 1e-9, "no movement is no change");
+        assert!((m.m[0] - 1.0).abs() < 1e-9, "no movement is no change");
 
         let (f1, d1) = down(BALL_AT * 4.0, 0.0);
         let grown = g.update(&drag, &f1, &d1).expect("a transform");
         assert!(
-            grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0,
+            grown.m[0] > 1.0 && grown.m[5] == 1.0 && grown.m[10] == 1.0,
             "one axis only"
         );
 
         let (f2, d2) = down(-BALL_AT * 4.0, 0.0);
         let flipped = g.update(&drag, &f2, &d2).expect("a transform");
-        assert!(flipped[0] >= MIN_SCALE, "never mirrors");
+        assert!(flipped.m[0] >= MIN_SCALE, "never mirrors");
     }
 
     /// A rotation and a scale act about the gumball, not the world origin: a point AT the
@@ -597,14 +528,14 @@ mod tests {
     #[test]
     fn transforms_act_about_the_gumball() {
         let g = Gizmo::new(Point::new(100.0, 200.0, 300.0));
+
         for m in [
             g.typed(Handle::Rotate(Axis::Z), 90.0),
             g.typed(Handle::ScaleUniform, 3.0),
         ] {
-            let p = [100.0, 200.0, 300.0, 1.0];
-            let moved: Vec<f64> = (0..3)
-                .map(|r| (0..4).map(|k| m[k * 4 + r] * p[k]).sum())
-                .collect();
+            let p = Point::new(100.0, 200.0, 300.0);
+            let moved = m.transform_point(&p);
+
             for i in 0..3 {
                 assert!((moved[i] - p[i]).abs() < 1e-9, "axis {i}");
             }
@@ -616,8 +547,8 @@ mod tests {
     fn typed_values_match_the_drag_and_are_clamped() {
         let g = at_origin();
         let m = g.typed(Handle::Translate(Axis::Y), 12.5);
-        assert_eq!([m[12], m[13], m[14]], [0.0, 12.5, 0.0]);
+        assert_eq!([m.m[12], m.m[13], m.m[14]], [0.0, 12.5, 0.0]);
         let z = g.typed(Handle::ScaleUniform, 0.0);
-        assert!(z[0] >= MIN_SCALE && z[5] >= MIN_SCALE && z[10] >= MIN_SCALE);
+        assert!(z.m[0] >= MIN_SCALE && z.m[5] >= MIN_SCALE && z.m[10] >= MIN_SCALE);
     }
 }

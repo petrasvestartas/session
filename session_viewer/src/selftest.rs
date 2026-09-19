@@ -4,10 +4,10 @@
 
 use crate::app::manifest::Manifest;
 use crate::app::scene::{FileDoc, Scene};
+use crate::camera::FOVY_DEG;
 use crate::camera::{Camera, View};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::now_ms;
-use crate::math::FOVY_DEG;
 use session_rust::{Session, Xform};
 use std::rc::Rc;
 

@@ -1,4 +1,3 @@
-//! Fixed world-plane coverage text: retained shaped glyphs, bounded raster textures, projected quads.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use super::TextFrame;
 use crate::engine::pipelines::Target;
@@ -7,6 +6,7 @@ use glyphon::{FontSystem, SwashCache, SwashContent};
 
 /// Hard texture payload budget, independent of adapter limits and the rest of the scene.
 const TEXTURE_BUDGET: u64 = 32 * 1024 * 1024;
+
 /// A coverage texture retains its source layout and grows resolution only when necessary.
 struct CachedPlane {
     label: TextLabel,
@@ -103,6 +103,7 @@ impl Planes {
         self.draws.clear();
         self.vertices.reset();
         let mut retained = Vec::new();
+
         for cached in self.cached.drain(..) {
             for run in &document.runs {
                 if run.label.id == cached.label.id
@@ -113,8 +114,10 @@ impl Planes {
                 }
             }
         }
+
         self.cached = retained;
         let mut vertices = Vec::new();
+
         for run in &document.runs {
             if !matches!(run.label.placement, TextPlacement::WorldPlane { .. })
                 || run.label.text.is_empty()
@@ -123,12 +126,14 @@ impl Planes {
             }
             let em_pixels = raster_em(&run.label, frame);
             let mut index = None;
+
             for (at, cached) in self.cached.iter().enumerate() {
                 if cached.label.id == run.label.id {
                     index = Some(at);
                     break;
                 }
             }
+
             let rebuild = match index {
                 Some(at) => !same_raster(
                     &self.cached[at],
@@ -138,15 +143,18 @@ impl Planes {
                 ),
                 None => true,
             };
+
             if rebuild {
                 let (pixels, size, extent) =
                     rasterize(run, &mut document.fonts, raster, em_pixels)?;
                 let mut allocated = u64::from(size[0]) * u64::from(size[1]);
+
                 for (at, cached) in self.cached.iter().enumerate() {
                     if Some(at) != index {
                         allocated += u64::from(cached.size[0]) * u64::from(cached.size[1]);
                     }
                 }
+
                 anyhow::ensure!(
                     allocated <= TEXTURE_BUDGET,
                     "world text coverage exceeds 32 MiB budget"
@@ -199,6 +207,7 @@ impl Planes {
                     texture,
                     bind,
                 };
+
                 match index {
                     Some(at) => self.cached[at] = cached,
                     None => {
@@ -206,13 +215,16 @@ impl Planes {
                         self.cached.push(cached);
                     }
                 }
+
                 self.rasterizations += 1;
+
                 // Completed plane textures no longer depend on Swash images; bound the shared
                 // CPU image cache before preparing another source or Glyphon's draw lists.
                 if raster.image_cache.len() > 4096 {
                     *raster = SwashCache::new();
                 }
             }
+
             let index = index.expect("a prepared world plane has a cache entry");
             let start = vertices.len() as u32;
             append_quad(
@@ -224,6 +236,7 @@ impl Planes {
             );
             self.draws.push((index, start));
         }
+
         self.vertices.append(ctx, &vertices);
         Ok(())
     }
@@ -233,6 +246,7 @@ impl Planes {
         if self.draws.is_empty() {
             return 0;
         }
+
         self.draw_run(pass, &self.pipeline)
     }
 
@@ -252,12 +266,15 @@ impl Planes {
         if self.draws.is_empty() {
             return 0;
         }
+
         pass.set_pipeline(pipeline);
         pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
+
         for &(index, start) in &self.draws {
             pass.set_bind_group(0, &self.cached[index].bind, &[]);
             pass.draw(start..start + 6, 0..1);
         }
+
         self.draws.len() as u32
     }
 
@@ -267,21 +284,26 @@ impl Planes {
         self.draws.clear();
         self.vertices.reset();
     }
+
     /// Return both coverage textures and grown vertex capacity on scene disposal.
     pub(super) fn release(&mut self, ctx: &GpuCtx) {
         self.reset();
         self.vertices.release(ctx);
     }
+
     /// Exact owned vertex-buffer capacity, separate from sampled texture payload.
     pub(super) fn buffer_bytes(&self) -> u64 {
         self.vertices.buf.size()
     }
+
     /// Exact R8 texture payload; excludes driver allocation granularity.
     pub(super) fn texture_bytes(&self) -> u64 {
         let mut total = 0;
+
         for cached in &self.cached {
             total += u64::from(cached.size[0]) * u64::from(cached.size[1]);
         }
+
         total
     }
 }
@@ -304,11 +326,13 @@ fn project(world: [f64; 3], frame: &TextFrame) -> [f32; 4] {
         1.0,
     ];
     let mut clip = [0.0; 4];
+
     for (row, out) in clip.iter_mut().enumerate() {
         for (column, value) in point.iter().enumerate() {
             *out += frame.mvp[column * 4 + row] * value;
         }
     }
+
     clip
 }
 
@@ -325,28 +349,38 @@ fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
         return 32;
     };
     let a = project(world, frame);
+
     if a[3] <= 0.0 {
         return 32;
     }
+
     let mut projected_em = 0.0f32;
+
     for direction in [right, up] {
         let mut end = world;
+
         for axis in 0..3 {
             end[axis] += direction[axis] * world_height;
         }
+
         let b = project(end, frame);
+
         if b[3] <= 0.0 {
             continue;
         }
+
         let x = (a[0] / a[3] - b[0] / b[3]) * frame.framebuffer[0] as f32 * 0.5;
         let y = (a[1] / a[3] - b[1] / b[3]) * frame.framebuffer[1] as f32 * 0.5;
         projected_em = projected_em.max(x.hypot(y));
     }
+
     let needed = (projected_em * 2.0).clamp(32.0, 256.0);
     let mut bucket = 32;
+
     while (bucket as f32) < needed {
         bucket *= 2;
     }
+
     bucket
 }
 
@@ -360,6 +394,7 @@ fn rasterize(
     let scale = em_pixels as f32 / run.label.font_size;
     let mut glyphs = Vec::new();
     let mut bounds = [0i32; 4];
+
     for line in run.buffer.layout_runs() {
         bounds[2] = bounds[2].max((line.line_w * scale).ceil() as i32);
         bounds[3] = bounds[3].max(((line.line_top + line.line_height) * scale).ceil() as i32);
@@ -367,6 +402,7 @@ fn rasterize(
             bounds[2] <= 4092 && bounds[3] <= 4092,
             "world text layout exceeds 4096px extent"
         );
+
         for glyph in line.glyphs {
             let physical = glyph.physical((0.0, 0.0), scale);
             let Some(image) = raster.get_image(fonts, physical.cache_key) else {
@@ -381,6 +417,7 @@ fn rasterize(
             glyphs.push((physical.cache_key, x, y));
         }
     }
+
     // Match the selection-name plate proportions. Whole caps stay outside the glyph box.
     let vertical_padding = (run.label.font_size * (2.0 / 9.0) * scale).ceil() as i32;
     let horizontal_padding = (bounds[3] - bounds[1] + 2 * vertical_padding + 1) / 2;
@@ -397,10 +434,12 @@ fn rasterize(
         "world text texture exceeds 4096px extent"
     );
     let mut pixels = vec![0u8; (size[0] * size[1]) as usize];
+
     for (key, x, y) in glyphs {
         let Some(image) = raster.get_image(fonts, key) else {
             continue;
         };
+
         for row in 0..image.placement.height {
             for column in 0..image.placement.width {
                 let source = (row * image.placement.width + column) as usize;
@@ -421,6 +460,7 @@ fn rasterize(
             }
         }
     }
+
     Ok((
         pixels,
         size,
@@ -452,6 +492,7 @@ fn append_quad(
     };
     let unit = world_height / f64::from(label.font_size);
     let mut color = [0.0; 4];
+
     for (index, component) in color.iter_mut().enumerate() {
         let value = f32::from(label.ink_color()[index]) / 255.0;
         *component = if srgb && index < 3 {
@@ -464,6 +505,7 @@ fn append_quad(
             value
         };
     }
+
     let scale = frame.framebuffer[0] as f32 / frame.logical[0] as f32;
     let mut bounds = [
         0.0,
@@ -471,11 +513,13 @@ fn append_quad(
         frame.framebuffer[0] as f32,
         frame.framebuffer[1] as f32,
     ];
+
     if let Some(clip) = label.clip {
         for (index, value) in bounds.iter_mut().enumerate() {
             *value = clip[index] * scale;
         }
     }
+
     for [u, v] in [
         [0.0, 0.0],
         [0.0, 1.0],
@@ -487,9 +531,11 @@ fn append_quad(
         let x = f64::from(extent[0] + (extent[2] - extent[0]) * u) * unit;
         let y = f64::from(extent[1] + (extent[3] - extent[1]) * v) * unit;
         let mut point = world;
+
         for axis in 0..3 {
             point[axis] += right[axis] * x - up[axis] * y;
         }
+
         let clip = project(point, frame);
         vertices.push([
             clip[0],
@@ -562,7 +608,8 @@ mod tests {
         gpu.view.show_grid = false;
         gpu.view.lit = false;
         let mut upload = Upload::default();
-        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
+        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
+
         for position in [
             [-1.0, -1.0, 0.7],
             [1.0, -1.0, 0.7],
@@ -576,6 +623,7 @@ mod tests {
             });
             upload.arena.vids.push(0);
         }
+
         upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
         gpu.set_scene(&upload);
         let input = FrameInput {
@@ -616,10 +664,12 @@ mod tests {
         let front = gpu.render_offscreen(&input);
         let mut white = 0;
         let mut black = 0;
+
         for pixel in front.chunks_exact(4) {
             white += usize::from(pixel[0] > 240 && pixel[1] > 240 && pixel[2] > 240);
             black += usize::from(pixel[0] < 8 && pixel[1] < 8 && pixel[2] < 8);
         }
+
         assert!(
             white > 40 && black > 500,
             "foreground text has white glyphs on a black plane"

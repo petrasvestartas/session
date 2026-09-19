@@ -1,7 +1,6 @@
-//! Source curve/face splits; the kernel computes every region before the session is changed.
 use super::scene::Scene;
 use session_rust::simple_split;
-use session_rust::{BRep, Geometry, NurbsCurve, Xform};
+use session_rust::{BRep, Geometry, NurbsCurve};
 use std::rc::Rc;
 
 pub fn is_cutter(geometry: &Geometry) -> bool {
@@ -27,6 +26,7 @@ pub fn face_index(geometry: &Geometry, selected: Option<usize>) -> Result<Option
         _ => Err("Split accepts lines, polylines, NURBS curves and surface faces".into()),
     }
 }
+
 fn brep_face(brep: &BRep, selected: Option<usize>) -> Result<usize, String> {
     selected
         .or((brep.face_count() == 1).then_some(0))
@@ -35,6 +35,7 @@ fn brep_face(brep: &BRep, selected: Option<usize>) -> Result<usize, String> {
             "Ctrl+Shift-select one BRep face before Split; the solid stays joined".into()
         })
 }
+
 fn curve(geometry: &Geometry) -> Result<NurbsCurve, String> {
     match geometry {
         Geometry::Line(line) => Ok(NurbsCurve::create(
@@ -59,34 +60,45 @@ impl Scene {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return Err("Splitting requires complete retained source documents".into());
         }
+
         if cutters.is_empty() || cutters.len() > 64 {
             return Err("Choose 1–64 cutter curves".into());
         }
+
         if !self.selectable(target) {
             return Err("Unlock the target before splitting".into());
         }
+
         let (doc, guid) = self.identity_of(target).ok_or("Target no longer exists")?;
         let file = self.docs.get(doc).ok_or("Target has no source document")?;
+
         if file.display_only {
             return Err("Target is display only".into());
         }
-        let back = Xform::from_matrix(self.placement_of(target).ok_or("Target has no placement")?)
+
+        let back = self
+            .placement_of(target)
+            .ok_or("Target has no placement")?
             .inverse()
             .ok_or("Target placement is singular")?;
         let mut tools = Vec::new();
+
         for &row in cutters {
             if row == target || !self.selectable(row) {
                 return Err("Choose an unlocked cutter distinct from the target".into());
             }
+
             let mut cutter = curve(self.geometry(row).ok_or("Cutter no longer exists")?)?;
-            let place =
-                Xform::from_matrix(self.placement_of(row).ok_or("Cutter has no placement")?);
+            let place = self.placement_of(row).ok_or("Cutter has no placement")?;
+
             if place.inverse().is_none() {
                 return Err("Cannot transform the cutter into target coordinates".into());
             }
+
             cutter.transform(&(&back * &place));
             tools.push(cutter);
         }
+
         let source = self
             .geometry(target)
             .ok_or("Source geometry is unavailable")?;
@@ -151,9 +163,11 @@ impl Scene {
             }
             _ => return Err("Unsupported split target".into()),
         };
+
         if regions < 2 {
             return Ok(1);
         }
+
         let parent_name = file
             .session
             .tree
@@ -163,10 +177,13 @@ impl Scene {
         let place = file.session.xform(&guid);
         let color = self.colors.get(&(doc, Rc::clone(&guid))).copied();
         let edge_color = self.edge_colors.get(&(doc, Rc::clone(&guid))).copied();
+
         if pieces.len() > 1 {
             let name = source.name();
+
             for (index, piece) in pieces.iter_mut().enumerate() {
                 let name = format!("{name} (part {})", index + 1);
+
                 match piece {
                     Geometry::Line(p) => Rc::make_mut(p).name = name,
                     Geometry::Polyline(p) => Rc::make_mut(p).name = name,
@@ -175,6 +192,7 @@ impl Scene {
                 }
             }
         }
+
         let first = pieces.remove(0);
         let session = Rc::make_mut(&mut self.docs[doc].session);
         // Resolve the parent after copy-on-write, inside the edited document's tree.
@@ -183,6 +201,7 @@ impl Scene {
         // All fallible geometry work has completed; these validated pieces have at least two controls.
         let replaced = session.replace(&guid, first);
         debug_assert!(replaced);
+
         for piece in pieces {
             let node = match piece {
                 Geometry::Line(piece) => session.add_line((*piece).clone(), parent.as_ref()),
@@ -196,13 +215,16 @@ impl Scene {
             };
             let id = node.borrow().name.clone();
             session.set_xform(&id, place.clone());
+
             if let Some(color) = color {
                 self.colors.insert((doc, Rc::from(id.as_str())), color);
             }
+
             if let Some(color) = edge_color {
                 self.edge_colors.insert((doc, Rc::from(id.as_str())), color);
             }
         }
+
         session.commit();
         self.last_edited = Some(doc);
         Ok(regions)
@@ -213,7 +235,9 @@ impl Scene {
 mod tests {
     use super::*;
     use crate::app::scene::FileDoc;
+    use session_rust::Xform;
     use session_rust::{Line, Point, Session};
+
     fn add(scene: &mut Scene, session: Rc<Session>, name: &str, place: Xform) {
         scene.add_file(FileDoc {
             name: name.into(),
@@ -223,6 +247,7 @@ mod tests {
             display_only: false,
         });
     }
+
     #[test]
     fn split_preserves_tree_placement_and_other_shared_documents_and_undo() {
         let mut session = Session::new("shared");
@@ -287,6 +312,7 @@ mod tests {
         let restored = crate::app::session_io::open(&bytes).unwrap();
         assert_eq!(restored.docs[0].session.objects.lines.len(), 2);
     }
+
     #[test]
     fn split_face_keeps_solid_joined_and_invalid_cut_preserves_source() {
         let brep = BRep::create_box(10., 10., 10.);

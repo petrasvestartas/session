@@ -1,30 +1,18 @@
 diff --git a/src/app/edit.rs b/src/app/edit.rs
 --- a/src/app/edit.rs
 +++ b/src/app/edit.rs
-@@ -96,6 +96,9 @@
+@@ -83,6 +83,10 @@ impl Scene {
  
      /// Remove one row's object from its document. The rows change, so the caller rebuilds.
      pub fn delete_row(&mut self, row: u32) -> bool {
 +        if !self.streamed.is_empty() || !self.sheets.is_empty() {
 +            return false;
 +        }
++
          let Some((doc, guid)) = self.writable(row) else {
              return false;
          };
-@@ -134,11 +137,7 @@
-             return false;
-         };
-         let session = Rc::make_mut(&mut file.session);
--        if back {
--            session.undo()
--        } else {
--            session.redo()
--        }
-+        if back { session.undo() } else { session.redo() }
-     }
- }
- 
-@@ -335,26 +334,6 @@
+@@ -328,27 +332,6 @@ mod tests {
          assert_eq!(line.get_point(1).expect("two points")[1], 0.0);
      }
  
@@ -48,13 +36,15 @@ diff --git a/src/app/edit.rs b/src/app/edit.rs
 -                .is_none()
 -        );
 -    }
+-
      #[test]
      fn control_edit_converts_world_to_local_under_file_placement() {
          let mut source = Session::new("placed");
-@@ -392,4 +371,24 @@
+@@ -385,4 +368,25 @@ mod tests {
+         };
          assert_eq!(line.get_point(1).unwrap()[0], 1.0);
      }
- 
++
 +    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
 +    /// a drag that appears to do nothing is a bug report waiting to happen.
 +    #[test]
@@ -79,7 +69,7 @@ diff --git a/src/app/edit.rs b/src/app/edit.rs
 diff --git a/src/app/inspection.rs b/src/app/inspection.rs
 --- a/src/app/inspection.rs
 +++ b/src/app/inspection.rs
-@@ -35,6 +35,9 @@
+@@ -35,6 +35,9 @@ pub fn publish(state: &State) {
          "submitted_at_ms": crate::engine::performance::now_ms(),
          "frames": state.gpu.performance.frames,
          "draw_calls": state.gpu.performance.draws,
@@ -89,7 +79,7 @@ diff --git a/src/app/inspection.rs b/src/app/inspection.rs
          "selected": parent,
          "selected_group_count": state.selected_group_count(),
          "hidden_count": state.scene.hidden.len(),
-@@ -65,6 +68,7 @@
+@@ -65,6 +68,7 @@ pub fn publish(state: &State) {
          "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
          "gpu_buffer_capacity_bytes": buffers,
          "gpu_texture_estimate_bytes": textures,
@@ -100,7 +90,7 @@ diff --git a/src/app/inspection.rs b/src/app/inspection.rs
 diff --git a/src/app/mod.rs b/src/app/mod.rs
 --- a/src/app/mod.rs
 +++ b/src/app/mod.rs
-@@ -21,8 +21,6 @@
+@@ -17,8 +17,6 @@ pub mod sheet_query;
  pub mod snap;
  pub mod stream;
  pub mod touch;
@@ -109,7 +99,7 @@ diff --git a/src/app/mod.rs b/src/app/mod.rs
  pub mod validate;
  pub mod walk;
  
-@@ -39,3 +37,6 @@
+@@ -35,3 +33,6 @@ pub mod route;
  
  #[cfg(any(target_arch = "wasm32", test))]
  pub mod inspection;
@@ -119,23 +109,19 @@ diff --git a/src/app/mod.rs b/src/app/mod.rs
 diff --git a/src/app/scene.rs b/src/app/scene.rs
 --- a/src/app/scene.rs
 +++ b/src/app/scene.rs
-@@ -26,11 +26,7 @@
+@@ -20,7 +20,7 @@ use std::rc::Rc;
  pub struct FileDoc {
      pub name: String,
      pub place: Xform,
--    /// Shared with whoever decoded it (the live source keeps its current set), and shared
--    /// again between placements: a manifest listing one file twice hands both documents the
--    /// same `Rc`. Nothing mutates a session today. Anything that starts to must call
--    /// `Rc::make_mut` FIRST, or one placement's edit moves every other placement of that file
--    /// and the live source's cached copy with them.
-+    /// Shared placements detach through Rc::make_mut before editing source geometry.
-     pub session: Rc<Session>,
+-    pub session: Rc<Session>, // Shared with whoever decoded it (the live source keeps its current set), and shared again between placements: a manifest listing one file twice hands both documents the same `Rc`. Nothing mutates a session today. Anything that starts to must call `Rc::make_mut` FIRST, or one placement's edit moves every other placement of that file and the live source's cached copy with them.
++    pub session: Rc<Session>, // Shared placements detach through Rc::make_mut before editing source geometry.
      pub point_px: f32,
-     /// True only for a streamed source descriptor with an empty Session shell.
+     pub display_only: bool, // True only for a streamed source descriptor with an empty Session shell. Full-file display_only hints retain geometry and become false after loading.
+ }
 diff --git a/src/state/edit.rs b/src/state/edit.rs
 --- a/src/state/edit.rs
 +++ b/src/state/edit.rs
-@@ -196,6 +196,10 @@
+@@ -188,6 +188,11 @@ impl State {
  
      /// Undo the last edit in the document that was edited last - Ctrl+Z.
      pub fn undo(&mut self) {
@@ -143,10 +129,11 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 +            self.status("Undo requires a scene without streamed sources");
 +            return;
 +        }
++
          if self.scene.undo() {
              self.after_history();
          }
-@@ -203,6 +207,10 @@
+@@ -195,6 +200,11 @@ impl State {
  
      /// Redo it - Ctrl+Y, or Ctrl+Shift+Z.
      pub fn redo(&mut self) {
@@ -154,10 +141,11 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 +            self.status("Redo requires a scene without streamed sources");
 +            return;
 +        }
++
          if self.scene.redo() {
              self.after_history();
          }
-@@ -668,13 +676,7 @@
+@@ -689,13 +699,7 @@ const SNAP_APERTURE_PX: f64 = 12.0;
  mod tests {
      use super::*;
  
@@ -172,7 +160,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
      #[cfg(not(target_arch = "wasm32"))]
      #[test]
      #[ignore = "requires a native GPU adapter"]
-@@ -732,7 +734,7 @@
+@@ -757,7 +761,7 @@ mod tests {
  
      /// The conversion the widget's size depends on. A 2x display has twice the physical pixels
      /// for the same CSS pixel, so one CSS pixel is twice as much world - and the arm that is

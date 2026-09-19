@@ -1,7 +1,3 @@
-// The scene contract every lane shader is compiled with (pipelines::scene_module appends
-// this file): the camera at group 0, the per-frame line block at group 1, the object rows and
-// their anchored translations at group 2. A lane declares only its own group 3.
-
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 @group(1) @binding(0) var<uniform> line: LineUniform;
 
@@ -14,6 +10,7 @@ struct Instance {
     spacing: f32,
     edge_color: u32,
 };
+
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;
 @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
 
@@ -52,14 +49,19 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 }
 
 fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
-    if ((inst.flags & 1024u) == 0u) { return object_color(authored, inst); }
+    if ((inst.flags & 1024u) == 0u) {
+        return object_color(authored, inst);
+    }
+
     if ((inst.flags & 512u) != 0u) {
         return vec4<f32>(unpack4x8unorm(inst.edge_color).rgb, authored.a);
     }
+
     return authored;
 }
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
+
 // The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
 const DISC_ID_TAG: u32 = 0x40000000u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);

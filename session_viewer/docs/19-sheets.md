@@ -14,15 +14,13 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 1–3 and 9; steps 4–8 fail and build again at step 9.
+**Does it compile yet?** `cargo check` passes after steps 3 and 9; steps 4–8 fail and build again at step 9.
 
 <!-- step-status: end -->
 
 ## Part A · The format
 
 ### Step 1 · A message that can be sliced
-
-![Where this step sits in the viewer: Kernel, with 10 of 12 zones built so far.](illustrations/locator-9af79fbe38.svg){ .locator data-strip="illustrations/strip-5ca71efefa.svg" }
 
 - `Sheet` mirrors `PointCloud`: the big arrays are packed fixed-width fields, so a slice of segments `[from, to)` is one HTTP Range per array.
 - Per segment: `coords` holds six doubles, `colors` one RGBA8, `widths` one float in mm, `source_ids` one entity id.
@@ -35,28 +33,14 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 ![Diagram: Session.objects · Objects.sheets = 17 · Sheet · coords = 3\ 48 B per segment · colors = 4 · widths = 5\ 4 B per segment · source_ids = 15\ 4 B per segment, last](illustrations/19-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
+The schema is the kernel's, already in `session_proto`; read it, nothing is typed:
 
-<!-- file: 19 session_proto/sheet.proto copy -->
-
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 19 session_proto/objects.proto copy -->
+<!-- listing: 19 session_proto/sheet.proto -->
 
 ### Step 2 · The kernel tolerates the field
 
-![Where this step sits in the viewer: Kernel, with 10 of 12 zones built so far.](illustrations/locator-9af79fbe38.svg){ .locator data-strip="illustrations/strip-5ca71efefa.svg" }
-
-- The generated Rust module gains the message; the kernel's own `Objects` serializer names the new field and never reads it.
+- The kernel already carries the message: its generated Rust module has it, and its own `Objects` serializer names the new field and never reads it. Nothing to type.
 - A kernel that loads a sheet file sees an empty session, so the viewer never hands a sheet to the kernel.
-
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 19 session_rust/src/proto/session_proto.rs copy -->
-
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 19 session_rust/src/objects.rs copy -->
 
 ### Step 3 · The publisher
 
@@ -114,11 +98,11 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 19 session_viewer/src/app/walk/sheet.rs type lines=1-65 -->
+<!-- file: 19 session_viewer/src/app/walk/sheet.rs type lines=1-64 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 19 session_viewer/src/app/walk/sheet.rs copy lines=66-109 -->
+<!-- file: 19 session_viewer/src/app/walk/sheet.rs copy lines=65-109 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
@@ -172,7 +156,7 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 19 session_viewer/src/app/sheet_query.rs copy lines=130-244 -->
+<!-- file: 19 session_viewer/src/app/sheet_query.rs copy lines=130-257 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 

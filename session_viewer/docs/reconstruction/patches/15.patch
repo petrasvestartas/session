@@ -1,428 +1,8 @@
-diff --git a/bash/lib/view.sh b/bash/lib/view.sh
-new file mode 100755
-index 0000000000000000000000000000000000000000..c1adf719e5ed1f463e5a4a1fb09e1073d245d198
---- /dev/null
-+++ b/bash/lib/view.sh
-@@ -0,0 +1,170 @@
-+#!/usr/bin/env bash
-+# Shared Cloudflare R2 settings and helpers for view_put.sh and view_live.sh.
-+#
-+# Stable manifests live under scenes/, compatibility payloads under pb/view_*, and immutable
-+# payloads under pb/revisions/. The viewer also supports local regression/tutorial fixtures.
-+
-+R2_BUCKET="${R2_BUCKET:-session-viewer-data}"
-+R2_ACCOUNT="${R2_ACCOUNT:-0520459c6817bd96c1e25fcb49461c4e}"
-+R2_ENDPOINT="${R2_ENDPOINT:-https://${R2_ACCOUNT}.r2.cloudflarestorage.com}"
-+R2_PUBLIC="${R2_PUBLIC:-https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev}"
-+R2_PROFILE="r2"
-+
-+# The relay an open viewer listens on. Posting here turns "within one poll" into "within a
-+# fraction of a second"; the message body is ignored by the page, only the fact of it matters.
-+R2_NOTIFY="https://ntfy.sh/wood-live-84eaac4a04729911"
-+
-+# One value of the `[r2]` profile in ~/.aws/credentials.
-+r2_credential() {
-+    awk -v want="$1" -v prof="[${R2_PROFILE}]" '
-+        $0 == prof { in_prof = 1; next }
-+        /^\[/ { in_prof = 0 }
-+        in_prof && $1 == want { print $3; exit }
-+    ' "$HOME/.aws/credentials" 2>/dev/null
-+}
-+
-+# Fail early and say what is missing, rather than letting a tool print a stack of XML.
-+r2_require_credentials() {
-+    if [ -z "$(r2_credential aws_access_key_id)" ] || [ -z "$(r2_credential aws_secret_access_key)" ]; then
-+        cat >&2 <<CREDS
-+ERROR: no [${R2_PROFILE}] profile with keys in ~/.aws/credentials.
-+
-+Create an R2 API token with **Object Read & Write** at
-+  https://dash.cloudflare.com/${R2_ACCOUNT}/r2/api-tokens
-+then add its two values:
-+
-+  [${R2_PROFILE}]
-+  region = auto
-+  aws_access_key_id = <access key id>
-+  aws_secret_access_key = <secret access key>
-+CREDS
-+        return 1
-+    fi
-+}
-+
-+# A curl config file holding the credentials, mode 0600, so the secret never appears on a
-+# command line (`ps` shows arguments to every user). Made once per shell, removed on exit.
-+r2_curl_config() {
-+    if [ -z "${R2_CURL_CONFIG:-}" ]; then
-+        R2_CURL_CONFIG=$(umask 077 && mktemp) || return 1
-+        trap 'rm -f "$R2_CURL_CONFIG"' EXIT
-+        printf 'user = "%s:%s"\n' "$(r2_credential aws_access_key_id)" "$(r2_credential aws_secret_access_key)" > "$R2_CURL_CONFIG"
-+    fi
-+}
-+
-+# PUT one file to one key with curl's built-in SigV4 signing: one HTTPS request and no
-+# Python start-up (the aws CLI cost ~0.5 s per call). Prints the HTTP status.
-+r2_put() {
-+    local src="$1" key="$2" type="application/octet-stream" cache="no-cache"
-+    r2_curl_config || return 1
-+    case "$key" in *.toml) type="application/toml" ;; *.yaml|*.yml) type="application/yaml" ;; *.json) type="application/json" ;; esac
-+    case "$key" in pb/revisions/*) cache="public, max-age=31536000, immutable" ;; esac
-+    curl --connect-timeout 10 --max-time 180 --retry 2 --retry-delay 1 --retry-max-time 200 -sS -o /dev/null -w "%{http_code}" -X PUT -T "$src" \
-+        --aws-sigv4 "aws:amz:auto:s3" -K "$R2_CURL_CONFIG" \
-+        -H "Content-Type: $type" -H "Cache-Control: $cache" \
-+        "${R2_ENDPOINT}/${R2_BUCKET}/${key}"
-+}
-+
-+# The HTTP status the public URL answers a HEAD with: 200 = there, 404 = not there, anything
-+# else = the store is not answering properly right now.
-+r2_head_status() {
-+    curl --connect-timeout 10 --max-time 180 --retry 2 --retry-delay 1 --retry-max-time 200 -sS -o /dev/null -w "%{http_code}" -I "${R2_PUBLIC}/${1}"
-+}
-+
-+# Upload one file to one key, then CHECK it arrived: the public URL must answer 200 with the
-+# same byte count. An upload that reports success and serves nothing is the failure worth
-+# catching, because the page keeps drawing the previous scene and looks fine.
-+r2_upload() {
-+    local src="$1" key="$2"
-+    local size code served
-+    size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
-+
-+    echo "  ${src}  ->  s3://${R2_BUCKET}/${key}  (${size} bytes)"
-+    code=$(r2_put "$src" "$key") || return 1
-+    if [ "$code" != "200" ]; then
-+        echo "ERROR: PUT ${key} answered HTTP ${code}" >&2
-+        return 1
-+    fi
-+
-+    served=$(curl --connect-timeout 10 --max-time 30 --retry 2 --retry-delay 1 --retry-max-time 60 -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
-+    if [ "$served" != "$size" ]; then
-+        echo "ERROR: uploaded ${size} bytes but ${R2_PUBLIC}/${key} serves '${served:-nothing}'" >&2
-+        return 1
-+    fi
-+    echo "  verified: ${R2_PUBLIC}/${key}"
-+}
-+
-+# A content-addressed key is immutable: reuse verified bytes instead of uploading them again.
-+r2_revision() {
-+    local src="$1" key="$2" code size
-+    case "$key" in pb/revisions/*.pb) ;; *) echo 'ERROR: expected a content-addressed revision key' >&2; return 1 ;; esac
-+    size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
-+    code=$(r2_head_status "$key") || return 1
-+    case "$code" in
-+        200) r2_verify "$key" "$size" ;;
-+        404) r2_upload "$src" "$key" ;;
-+        *) echo "ERROR: revision lookup ${key} answered HTTP ${code}" >&2; return 1 ;;
-+    esac
-+}
-+
-+# `r2_upload`, but the verify runs in the background: the caller `wait`s on `$!` and gets the
-+# verify's exit status, so two uploads and their checks overlap instead of queueing.
-+r2_upload_start() {
-+    local src="$1" key="$2"
-+    local size code
-+    size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
-+
-+    echo "  ${src}  ->  s3://${R2_BUCKET}/${key}  (${size} bytes)"
-+    code=$(r2_put "$src" "$key") || return 1
-+    if [ "$code" != "200" ]; then
-+        echo "ERROR: PUT ${key} answered HTTP ${code}" >&2
-+        return 1
-+    fi
-+    r2_verify "$key" "$size" &
-+}
-+
-+# The public URL must serve `size` bytes for `key`.
-+r2_verify() {
-+    local key="$1" size="$2" served
-+    served=$(curl --connect-timeout 10 --max-time 30 --retry 2 --retry-delay 1 --retry-max-time 60 -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
-+    if [ "$served" != "$size" ]; then
-+        echo "ERROR: uploaded ${size} bytes but ${R2_PUBLIC}/${key} serves '${served:-nothing}'" >&2
-+        return 1
-+    fi
-+    echo "  verified: ${R2_PUBLIC}/${key}"
-+}
-+
-+# Tell any open viewer to look now instead of waiting for its next poll. Best effort: the page
-+# converges on its own, so a relay that is down is not a failed publish.
-+r2_notify() {
-+    if [ "${R2_NOTIFY_ENABLED:-1}" = 0 ]; then return 0; fi
-+    if curl -fsS -m 5 -d "${1:-published}" "$R2_NOTIFY" >/dev/null 2>&1; then
-+        echo "  notified ${R2_NOTIFY}"
-+    else
-+        echo "  (relay unreachable; open pages pick this up on their next poll)"
-+    fi
-+}
-+
-+# Copy a verified immutable object to the stable alias without uploading the payload twice.
-+# R2 supports S3 CopyObject. Read the XML body too: HTTP 200 may contain an embedded error.
-+r2_alias() {
-+    local source="$1" key="$2" size="$3" response code
-+    r2_curl_config || return 1
-+    response=$(mktemp) || return 1
-+    code=$(curl --connect-timeout 10 --max-time 180 --retry 2 --retry-delay 1 --retry-max-time 200 \
-+        -sS -o "$response" -w '%{http_code}' -X PUT --data '' \
-+        --aws-sigv4 'aws:amz:auto:s3' -K "$R2_CURL_CONFIG" \
-+        -H "x-amz-copy-source: /${R2_BUCKET}/${source}" \
-+        -H 'x-amz-metadata-directive: REPLACE' -H 'Content-Type: application/octet-stream' -H 'Cache-Control: no-cache' \
-+        "${R2_ENDPOINT}/${R2_BUCKET}/${key}") || { rm -f "$response"; return 1; }
-+    if [ "$code" != 200 ] || ! python3 -c 'import sys, xml.etree.ElementTree as E; root=E.parse(sys.argv[1]).getroot(); sys.exit(root.tag.split("}")[-1] != "CopyObjectResult")' "$response"; then
-+        rm -f "$response"
-+        echo "ERROR: copying ${source} to ${key} failed (HTTP ${code})" >&2
-+        return 1
-+    fi
-+    rm -f "$response"
-+    r2_verify "$key" "$size"
-+}
-+
-+# Monotonic elapsed timing is independent of wall-clock adjustments and date formatting.
-+r2_now_ms() { python3 -c 'import time; print(time.monotonic_ns() // 1000000)'; }
-diff --git a/bash/lib/view_manifest.py b/bash/lib/view_manifest.py
-new file mode 100644
-index 0000000000000000000000000000000000000000..94c05c4812a354674022f2848963bf1df69ae002
---- /dev/null
-+++ b/bash/lib/view_manifest.py
-@@ -0,0 +1,85 @@
-+#!/usr/bin/env python3
-+"""Validate and materialize a scene whose uploaded payload is an immutable revision."""
-+import json
-+import math
-+from pathlib import Path
-+import sys
-+import tomllib
-+
-+
-+def read(path):
-+    """Read the viewer's existing TOML, JSON or YAML manifest formats."""
-+    raw = Path(path).read_bytes()
-+    if len(raw) > 4 * 1024 * 1024:
-+        raise ValueError("manifest exceeds 4 MiB")
-+    if Path(path).suffix == ".toml":
-+        data = tomllib.loads(raw.decode())
-+    else:
-+        try:
-+            data = json.loads(raw)
-+        except ValueError:
-+            import yaml
-+            data = yaml.safe_load(raw)
-+    if not isinstance(data, dict) or not isinstance(data.get("items"), list) or not data["items"]:
-+        raise ValueError("manifest must contain a nonempty items array")
-+    for item in data["items"]:
-+        if not isinstance(item, dict) or not isinstance(item.get("file"), str) or not item["file"].strip():
-+            raise ValueError("each item must name a file")
-+    return data
-+
-+
-+def value(item):
-+    """Write the finite scalar/array values used by Session TOML scene manifests."""
-+    if isinstance(item, bool):
-+        return "true" if item else "false"
-+    if isinstance(item, str):
-+        return json.dumps(item, ensure_ascii=False)
-+    if isinstance(item, (int, float)) and math.isfinite(item):
-+        return repr(item)
-+    if isinstance(item, list):
-+        return "[" + ", ".join(value(entry) for entry in item) + "]"
-+    if isinstance(item, dict):
-+        return "{ " + ", ".join(json.dumps(key) + " = " + value(entry) for key, entry in item.items()) + " }"
-+    raise ValueError("manifest contains an unsupported or non-finite value")
-+
-+
-+def write(data, path):
-+    """Retain every authored placement/style field while changing only the payload reference."""
-+    if Path(path).suffix == ".toml":
-+        lines = [json.dumps(key) + " = " + value(entry) for key, entry in data.items() if key != "items"]
-+        for item in data["items"]:
-+            lines.extend(["", "[[items]]"])
-+            lines.extend(json.dumps(key) + " = " + value(entry) for key, entry in item.items())
-+        text = "\n".join(lines) + "\n"
-+    else:
-+        text = json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
-+    Path(path).write_text(text)
-+
-+
-+def main():
-+    """Print referenced keys, or rewrite the supplied geometry reference to a content hash."""
-+    data = read(sys.argv[1])
-+    if len(sys.argv) == 2:
-+        for item in data["items"]:
-+            print(item["file"])
-+        return
-+    geometry, revision, output = sys.argv[2:]
-+    names = {Path(geometry).name, "view_live.pb"}
-+    matched = False
-+    for item in data["items"]:
-+        if item["file"] == revision or (Path(item["file"]).name in names and not item["file"].startswith(("http://", "https://"))):
-+            item["file"] = revision
-+            matched = True
-+    if not matched:
-+        raise ValueError("manifest does not reference the supplied geometry or view_live.pb")
-+    write(data, output)
-+
-+
-+if __name__ == "__main__":
-+    try:
-+        main()
-+    except (ValueError, OSError, ImportError) as error:
-+        sys.exit("manifest: " + str(error))
-+
-+# Workspace root: python3 bash/lib/view_manifest.py scene.toml scan.pb pb/revisions/<sha>.pb /tmp/view_live.toml
-+# Local publisher helper; public scene URL remains ?scene=view_live.toml.
-diff --git a/bash/view_live.sh b/bash/view_live.sh
-new file mode 100755
-index 0000000000000000000000000000000000000000..745ee4a838d24ff1412cf1a97088227fb94bcc5d
---- /dev/null
-+++ b/bash/view_live.sh
-@@ -0,0 +1,70 @@
-+#!/usr/bin/env bash
-+# Publish a coherent live revision, preserving the existing stable scene/geometry aliases.
-+set -euo pipefail
-+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-+source "${SCRIPT_DIR}/lib/view.sh"
-+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-+
-+if [ "$#" = 2 ]; then
-+    manifest="$1"
-+    geometry="$2"
-+    case "$manifest" in *.toml) suffix=toml ;; *.yaml|*.yml|*.json) suffix=yaml ;; *) echo "ERROR: expected a TOML, YAML or JSON scene" >&2; exit 1 ;; esac
-+elif [ "$#" -le 1 ]; then
-+    suffix=yaml
-+    if [ "$#" = 1 ]; then
-+        [ -d "$1" ] || { echo "ERROR: not a directory: $1" >&2; exit 1; }
-+        directories=("$1")
-+    else
-+        directories=("." "./out" "./pb" "./data/output/pb" "${REPO_ROOT}/session_viewer/assets")
-+    fi
-+    manifest=""
-+    for directory in "${directories[@]}"; do
-+        if [ -s "${directory}/view_live.yaml" ] && [ -s "${directory}/view_live.pb" ]; then
-+            manifest="${directory}/view_live.yaml"
-+            geometry="${directory}/view_live.pb"
-+            break
-+        fi
-+    done
-+    [ -n "$manifest" ] || { printf 'ERROR: no view_live.yaml/view_live.pb pair in: %s\n' "${directories[*]}" >&2; exit 1; }
-+else
-+    echo "Usage: view_live.sh [directory] | view_live.sh scene.toml scan.pb" >&2
-+    exit 1
-+fi
-+[ -s "$manifest" ] && [ -s "$geometry" ] || { echo "ERROR: manifest or geometry missing/empty" >&2; exit 1; }
-+case "$geometry" in *.pb) ;; *) echo "ERROR: geometry must be .pb" >&2; exit 1 ;; esac
-+
-+scratch=$(mktemp -d)
-+trap 'rm -rf "$scratch"; rm -f "${R2_CURL_CONFIG:-}"' EXIT
-+revision="pb/revisions/$(sha256sum "$geometry" | cut -d' ' -f1).pb"
-+prepared="${scratch}/view_live.${suffix}"
-+python3 "${SCRIPT_DIR}/lib/view_manifest.py" "$manifest" "$geometry" "$revision" "$prepared"
-+python3 "${SCRIPT_DIR}/lib/view_manifest.py" "$prepared" > "${scratch}/files"
-+r2_require_credentials
-+# Materialize credential ownership before command-substitution/background helpers run.
-+r2_curl_config
-+trap 'rm -rf "$scratch"; rm -f "${R2_CURL_CONFIG:-}"' EXIT
-+
-+# Verify other referenced payloads before any publication mutation.
-+while IFS= read -r entry; do
-+    [ "$entry" = "$revision" ] && continue
-+    case "$entry" in https://*) url="$entry" ;; *) url="${R2_PUBLIC}/${entry#./}" ;; esac
-+    code=$(curl --connect-timeout 10 --max-time 30 --retry 2 -sS -o /dev/null -w '%{http_code}' -I "$url")
-+    [ "$code" = 200 ] || { echo "ERROR: referenced payload $entry returned HTTP $code" >&2; exit 1; }
-+done < "${scratch}/files"
-+
-+started=$(r2_now_ms)
-+r2_revision "$geometry" "$revision"
-+# Existing consumers can still read the stable payload; the new manifest uses immutable bytes.
-+r2_alias "$revision" "pb/view_live.pb" "$(stat -c%s "$geometry")"
-+r2_upload "$prepared" "scenes/view_live.${suffix}"
-+# Default deployed consumers poll YAML. The optional TOML alias has identical semantics.
-+if [ "$suffix" = toml ]; then
-+    python3 "${SCRIPT_DIR}/lib/view_manifest.py" "$prepared" "$geometry" "$revision" "${scratch}/view_live.yaml"
-+    r2_upload "${scratch}/view_live.yaml" "scenes/view_live.yaml"
-+fi
-+published=$(r2_now_ms)
-+printf 'publication verified: %s ms; open ?scene=view_live.%s\n' "$((published-started))" "$suffix"
-+r2_notify "view_live.pb"
-+
-+# Workspace root: ./bash/view_live.sh scene.toml scan.pb (or ./bash/view_live.sh [directory]).
-+# View: http://localhost:8770/?scene=view_live.toml ; credentials stay in ~/.aws/credentials.
-diff --git a/bash/view_put.sh b/bash/view_put.sh
-new file mode 100755
-index 0000000000000000000000000000000000000000..6e139ec068cc7a9dadfd34eaf26459271d4a9dc4
---- /dev/null
-+++ b/bash/view_put.sh
-@@ -0,0 +1,71 @@
-+#!/usr/bin/env bash
-+# Put one .pb in the bucket AND give it a scene, so it is viewable in one step.
-+#
-+#   bash/view_put.sh <file.pb> [name]
-+#
-+#   bash/view_put.sh out/scan.pb          -> pb/view_scan.pb + scenes/view_scan.yaml
-+#   bash/view_put.sh out/scan.pb lidar_a  -> pb/view_lidar_a.pb + scenes/view_lidar_a.yaml
-+#
-+# It prints the `?scene=` to open. A .pb on its own is not viewable - the page loads a MANIFEST
-+# and draws what that names - so uploading one without writing a scene for it just leaves an
-+# orphan nobody can see. The scene is a single item at the origin; edit it afterwards
-+# (`aws s3 cp` it down, change `at`, put it back) when the file needs placing.
-+#
-+# An EXISTING scene of that name is never overwritten: it may place several files, and clobbering
-+# it with a one-item scene would silently drop the rest. Pass a different name instead.
-+set -u
-+
-+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-+source "${SCRIPT_DIR}/lib/view.sh"
-+
-+src="${1:-}"
-+if [ -z "$src" ]; then
-+    echo "Usage: view_put.sh <file.pb> [name]"
-+    echo "       uploads pb/view_<name>.pb and writes scenes/view_<name>.yaml"
-+    exit 1
-+fi
-+[ -f "$src" ] || { echo "ERROR: no such file: $src" >&2; exit 1; }
-+[ -s "$src" ] || { echo "ERROR: $src is empty" >&2; exit 1; }
-+case "$src" in *.pb) ;; *) echo "ERROR: $src is not a .pb" >&2; exit 1 ;; esac
-+
-+# view_<name>: from the second argument, else the file's own basename. Already-prefixed names are
-+# left alone rather than becoming view_view_x.
-+name="${2:-$(basename "$src" .pb)}"
-+name="${name#view_}"
-+[[ "$name" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "ERROR: scene name may contain letters, digits, underscore and hyphen" >&2; exit 1; }
-+stem="view_${name}"
-+key="pb/${stem}.pb"
-+scene="scenes/${stem}.yaml"
-+
-+r2_require_credentials || exit 1
-+
-+existing=$(curl --connect-timeout 10 --max-time 30 --retry 2 -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
-+[ -n "$existing" ] && echo "  replacing ${key} (was ${existing} bytes)"
-+
-+r2_upload "$src" "$key" || exit 1
-+
-+# The scene. Written only when there is none, so a hand-placed scene survives a re-upload of the
-+# geometry it names - which is the normal case: the .pb changes, the placement does not.
-+scene_status=$(r2_head_status "$scene")
-+if [ "$scene_status" = "200" ]; then
-+    echo "  ${scene} exists - kept as it is (delete it first if you want a fresh one)"
-+elif [ "$scene_status" != "404" ]; then
-+    echo "ERROR: ${R2_PUBLIC}/${scene} answered HTTP ${scene_status}; not writing a scene blind" >&2
-+    exit 1
-+else
-+    tmp=$(mktemp) && trap 'rm -f "$tmp" "${R2_CURL_CONFIG:-}"' EXIT
-+    cat > "$tmp" <<EOF
-+# Written by bash/view_put.sh for ${stem}.pb. One item at the origin - edit \`at\` to place it,
-+# or add more entries under \`items\`; nothing regenerates this file, so your changes stay.
-+name: "${name}"
-+
-+items:
-+  - file: "${key}"
-+    name: "${name}"
-+    at: [0, 0, 0]
-+EOF
-+    r2_upload "$tmp" "$scene" || exit 1
-+fi
-+
-+echo
-+echo "  open:  ?scene=${stem}.yaml"
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 03632cab0fc33536ac8b5be10e7a48cd5daff04a..5e11937a3deaba4d7fddbabd574c2eaad53567e9 100644
+index 0656cc18a6a3727d3a03c76572cce858fce28cff..8b74e4a4a2830d1398ec402e600d96a16044d060 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
-@@ -298,6 +298,33 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
+@@ -334,6 +334,34 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
      if next <= end { Some(next) } else { None }
  }
  
@@ -448,6 +28,7 @@ index 03632cab0fc33536ac8b5be10e7a48cd5daff04a..5e11937a3deaba4d7fddbabd574c2eaa
 +        if !bounded_range(at, length) {
 +            return None;
 +        }
++
 +        body_end(at, length, end)?;
 +        Some(length.max(64 * 1024).min(end - at))
 +    }
@@ -456,7 +37,7 @@ index 03632cab0fc33536ac8b5be10e7a48cd5daff04a..5e11937a3deaba4d7fddbabd574c2eaa
  /// A packed `int32` (varint) array in full.
  pub fn packed_i32(raw: &[u8]) -> Vec<i32> {
      let mut out = Vec::new();
-@@ -348,7 +375,7 @@ pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
+@@ -394,7 +422,7 @@ pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
  #[cfg(target_arch = "wasm32")]
  pub use web::*;
  
@@ -465,8 +46,8 @@ index 03632cab0fc33536ac8b5be10e7a48cd5daff04a..5e11937a3deaba4d7fddbabd574c2eaa
  #[cfg(target_arch = "wasm32")]
  mod web {
      use super::*;
-@@ -357,6 +384,25 @@ mod web {
-     const POINT_BYTES: u64 = 24;
+@@ -404,6 +432,27 @@ mod web {
+ 
      const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
  
 +    impl MetadataWindow {
@@ -479,11 +60,13 @@ index 03632cab0fc33536ac8b5be10e7a48cd5daff04a..5e11937a3deaba4d7fddbabd574c2eaa
 +            fields: &CloudFields,
 +        ) -> Option<&[u8]> {
 +            body_end(at, length, fields.end)?;
++
 +            if self.slice(at, length).is_none() {
 +                let read_length = Self::read_length(at, length, fields.end)?;
 +                self.bytes = source_range(url, at, read_length, &fields.revision).await?;
 +                self.at = at;
 +            }
++
 +            self.slice(at, length)
 +        }
 +    }
@@ -491,11 +74,12 @@ index 03632cab0fc33536ac8b5be10e7a48cd5daff04a..5e11937a3deaba4d7fddbabd574c2eaa
      /// Exact bounded 206 bodies, tied to the metadata's exposed source validator.
      async fn source_range(
          url: &str,
-@@ -424,9 +470,12 @@ mod web {
+@@ -480,10 +529,13 @@ mod web {
          let mut seen = [false; 7];
          let mut table_bytes = 0u64;
          let mut ids = None;
 +        let mut window = MetadataWindow::default();
+ 
          while at < fields.end {
 -            let header = source_range(url, at, 64.min(fields.end - at), &fields.revision).await?;
 -            let (tag, used) = varint(&header, 0)?;
@@ -504,34 +88,36 @@ index 03632cab0fc33536ac8b5be10e7a48cd5daff04a..5e11937a3deaba4d7fddbabd574c2eaa
 +                .await?;
 +            let (tag, used) = varint(header, 0)?;
              let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
+ 
              if field == 0 {
-                 return None;
-@@ -435,11 +484,11 @@ mod web {
-                 if (8..=15).contains(&field) {
+@@ -495,12 +547,12 @@ mod web {
                      return None;
                  }
+ 
 -                let skip = skip_scalar(&header, used, wire)?;
 +                let skip = skip_scalar(header, used, wire)?;
                  at = body_end(at, (used + skip) as u64, fields.end)?;
                  continue;
              }
+ 
 -            let (length, extra) = varint(&header, used)?;
 +            let (length, extra) = varint(header, used)?;
              let body = body_end(at, (used + extra) as u64, fields.end)?;
              let next = body_end(body, length, fields.end)?;
-             if (8..=14).contains(&field) {
-@@ -450,8 +499,8 @@ mod web {
-                 if table_bytes > MAX_TABLE_BYTES {
+ 
+@@ -515,9 +567,9 @@ mod web {
                      return None;
                  }
+ 
 -                let raw = source_range(url, body, length, &fields.revision).await?;
--                if !lod.set_field(field, &raw) {
 +                let raw = window.read(url, body, length, fields).await?;
+ 
+-                if !lod.set_field(field, &raw) {
 +                if !lod.set_field(field, raw) {
                      return None;
                  }
-                 seen[field - 8] = true;
-@@ -522,6 +571,35 @@ mod web {
+ 
+@@ -599,6 +651,35 @@ mod web {
  mod tests {
      use super::*;
  

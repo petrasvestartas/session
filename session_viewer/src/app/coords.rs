@@ -1,50 +1,36 @@
-//! Typed coordinates: what a command line does with the text between the commas.
-//!
-//! Four forms, resolved against the last point the user gave and the plane they are drawing on:
-//!
-//! ```text
-//!   12,4,0     absolute, world
-//!   12,4       absolute, on the construction plane
-//!   @3,0       relative to the previous point
-//!   @5<90      polar: 5 along the plane, 90 degrees round from its first axis
-//!   5          bare distance, along the direction already established
-//! ```
-//!
-//! f64 throughout. A typed coordinate is the one input a user expects to be exact, and every
-//! kernel `Point` is f64, so narrowing anywhere here would be a choice to lose what they typed.
-
 use session_rust::{Point, Vector};
 
 /// A parsed coordinate, before it knows where it is.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Typed {
-    /// World coordinates. `z` is `None` when only two were given.
-    Absolute { x: f64, y: f64, z: Option<f64> },
-    /// An offset from the previous point. `z` is `None` when only two were given.
-    Relative { x: f64, y: f64, z: Option<f64> },
-    /// A distance and an angle in degrees, in the plane.
-    Polar { distance: f64, degrees: f64 },
-    /// A distance along a direction the caller already has.
-    Distance(f64),
+    Absolute { x: f64, y: f64, z: Option<f64> }, // World coordinates. `z` is `None` when only two were given.
+    Relative { x: f64, y: f64, z: Option<f64> }, // An offset from the previous point. `z` is `None` when only two were given.
+    Polar { distance: f64, degrees: f64 }, // A distance and an angle in degrees, in the plane.
+    Distance(f64),                         // A distance along a direction the caller already has.
 }
 
 /// Parse one line of coordinate text. `None` when it is not a coordinate at all, which is how
 /// a command line tells a coordinate from a verb.
 pub fn parse(text: &str) -> Option<Typed> {
     let text = text.trim();
+
     if text.is_empty() {
         return None;
     }
+
     let (body, relative) = match text.strip_prefix('@') {
         Some(rest) => (rest.trim(), true),
         None => (text, false),
     };
+
     if let Some((d, a)) = body.split_once('<') {
         let distance = number(d)?;
         let degrees = number(a)?;
         return Some(Typed::Polar { distance, degrees });
     }
+
     let parts: Vec<&str> = body.split(',').map(str::trim).collect();
+
     match parts.len() {
         1 if relative => None, // `@5` alone has no direction; use `@5<0`
         1 => Some(Typed::Distance(number(parts[0])?)),
@@ -85,6 +71,7 @@ pub fn resolve(
             base[2] + x_axis[2] * u + y_axis[2] * v,
         )
     };
+
     match typed {
         Typed::Absolute { x, y, z: Some(z) } => Some(Point::new(x, y, z)),
         Typed::Absolute { x, y, z: None } => Some(on_plane(x, y, origin)),

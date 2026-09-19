@@ -1,21 +1,18 @@
 diff --git a/session_viewer/src/app/cloud_query.rs b/session_viewer/src/app/cloud_query.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f125740c6f
+index 0000000000000000000000000000000000000000..5a8bab853b3df7de97fcda4cee966624a18c3168
 --- /dev/null
 +++ b/session_viewer/src/app/cloud_query.rs
-@@ -0,0 +1,556 @@
-+//! Exhaustive source-cloud selection with bounded range reads. The display retains its LOD
-+//! residency budget; a click examines every intersecting source node, including nonresident
-+//! nodes. Only one page of candidates exists at a time and visibility stays in the GPU picker.
-+
+@@ -0,0 +1,617 @@
 +use super::stream::{CloudFields, CloudLod};
-+use crate::math::Mat4;
++use session_rust::Xform;
 +use std::cell::Cell;
 +use std::ops::Range;
 +use std::rc::Rc;
 +
 +/// Coordinates fetched per page (1.5 MiB of wire doubles), independent of cloud size.
 +pub const PAGE_POINTS: u32 = 65_536;
++
 +/// Original point IDs are packed fixed32 (schema field 15), deliberately range-addressable.
 +pub fn original_id(raw: &[u8]) -> Result<u32, String> {
 +    let Ok(bytes): Result<[u8; 4], _> = raw.try_into() else {
@@ -27,58 +24,73 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +/// The click's immutable projection in source coordinates and physical pixels.
 +#[derive(Clone)]
 +pub struct QueryView {
-+    pub matrix: Mat4,
++    pub matrix: Xform,
 +    pub size: [f64; 2],
 +    pub at: [u32; 2],
 +    pub radius: f64,
 +}
++
 +impl QueryView {
 +    /// Homogeneous source-to-clip projection; division waits until the eye plane is checked.
 +    fn clip(&self, point: [f64; 3]) -> [f64; 4] {
 +        let mut clip = [0.0; 4];
++
 +        for (row, value) in clip.iter_mut().enumerate() {
-+            *value = self.matrix[row] * point[0]
-+                + self.matrix[4 + row] * point[1]
-+                + self.matrix[8 + row] * point[2]
-+                + self.matrix[12 + row];
++            *value = self.matrix.m[row] * point[0]
++                + self.matrix.m[4 + row] * point[1]
++                + self.matrix.m[8 + row] * point[2]
++                + self.matrix.m[12 + row];
 +        }
++
 +        clip
 +    }
++
 +    /// Pixel center and reversed depth; candidates behind the eye or clip planes are absent.
 +    pub fn project(&self, point: [f64; 3]) -> Option<[f64; 3]> {
 +        let p = self.clip(point);
++
 +        if invalid_clip(&p) || p[3] <= 0.0 || p[2] < 0.0 || p[2] > p[3] {
 +            return None;
 +        }
++
 +        Some([
 +            (p[0] / p[3] + 1.0) * self.size[0] * 0.5,
 +            (1.0 - p[1] / p[3]) * self.size[1] * 0.5,
 +            p[2] / p[3],
 +        ])
 +    }
++
 +    /// A conservative projected cube test. A cube crossing the eye plane must be examined.
 +    fn intersects(&self, min: [f64; 3], size: f64) -> bool {
 +        if !size.is_finite() || size < 0.0 || !min.into_iter().all(f64::is_finite) {
 +            return true;
 +        }
++
 +        let mut corners = [[0.0; 4]; 8];
++
 +        for (corner, clip) in corners.iter_mut().enumerate() {
 +            *clip = self.clip(cube_corner(min, size, corner));
 +        }
++
 +        if corners.iter().any(invalid_clip) {
 +            return true;
 +        }
++
 +        if corners.iter().all(behind_eye) {
 +            return false;
 +        }
++
 +        if corners.iter().any(behind_eye) {
 +            return true;
 +        }
++
 +        if corners.iter().all(beyond_far) || corners.iter().all(beyond_near) {
 +            return false;
 +        }
++
 +        let mut lo = [f64::INFINITY; 2];
 +        let mut hi = [f64::NEG_INFINITY; 2];
++
 +        for p in corners {
 +            let xy = [
 +                (p[0] / p[3] + 1.0) * self.size[0] * 0.5,
@@ -86,12 +98,15 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +            ];
 +            grow_pixel_bounds(&mut lo, &mut hi, xy);
 +        }
++
 +        for axis in 0..2 {
 +            let center = self.at[axis] as f64 + 0.5;
++
 +            if lo[axis] > center + self.radius || hi[axis] < center - self.radius {
 +                return false;
 +            }
 +        }
++
 +        true
 +    }
 +}
@@ -100,18 +115,22 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +fn invalid_clip(point: &[f64; 4]) -> bool {
 +    !point.iter().copied().all(f64::is_finite)
 +}
++
 +/// The perspective eye plane separates forward and backward homogeneous coordinates.
 +fn behind_eye(point: &[f64; 4]) -> bool {
 +    point[3] <= 0.0
 +}
++
 +/// Reversed-Z far clipping remains at clip z=0.
 +fn beyond_far(point: &[f64; 4]) -> bool {
 +    point[2] < 0.0
 +}
++
 +/// Reversed-Z near clipping remains at clip z=w.
 +fn beyond_near(point: &[f64; 4]) -> bool {
 +    point[2] > point[3]
 +}
++
 +/// Enumerate a source cube corner without constructing a separate geometry object.
 +fn cube_corner(min: [f64; 3], size: f64, corner: usize) -> [f64; 3] {
 +    [
@@ -120,6 +139,7 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +        min[2] + if corner & 4 == 0 { 0.0 } else { size },
 +    ]
 +}
++
 +/// Expand both pixel axes; keeping this loop named avoids nesting it in the corner walk.
 +fn grow_pixel_bounds(lo: &mut [f64; 2], hi: &mut [f64; 2], point: [f64; 2]) {
 +    for axis in 0..2 {
@@ -144,10 +164,12 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +fn merge(mut ranges: Vec<Range<u32>>) -> Vec<Range<u32>> {
 +    ranges.sort_unstable_by(source_range_order);
 +    let mut out: Vec<Range<u32>> = Vec::new();
++
 +    for range in ranges {
 +        if range.is_empty() {
 +            continue;
 +        }
++
 +        if let Some(last) = out.last_mut()
 +            && range.start <= last.end
 +        {
@@ -156,6 +178,7 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +            out.push(range);
 +        }
 +    }
++
 +    out
 +}
 +
@@ -168,11 +191,14 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +/// Missing/malformed coverage falls back to a bounded scan of the complete source array.
 +pub fn eligible_ranges(lod: &CloudLod, total: u32, view: &QueryView) -> Vec<Range<u32>> {
 +    let n = lod.len();
++
 +    if n == 0 || lod.first.len() < n || lod.count.len() < n || lod.min.len() < n * 3 {
 +        return all_rows(total);
 +    }
++
 +    let mut coverage = Vec::new();
 +    let mut eligible = Vec::new();
++
 +    for node in 0..n {
 +        let (Ok(first), Ok(count)) = (
 +            u32::try_from(lod.first[node]),
@@ -183,19 +209,24 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +        let Some(end) = first.checked_add(count) else {
 +            return all_rows(total);
 +        };
++
 +        if end > total {
 +            return all_rows(total);
 +        }
++
 +        coverage.push(first..end);
 +        let at = node * 3;
 +        let min = [lod.min[at], lod.min[at + 1], lod.min[at + 2]];
++
 +        if view.intersects(min, lod.size[node]) {
 +            eligible.push(first..end);
 +        }
 +    }
++
 +    if merge(coverage) != all_rows(total) {
 +        return all_rows(total);
 +    }
++
 +    merge(eligible)
 +}
 +
@@ -216,14 +247,17 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +    next: usize,
 +    pub awaiting_gpu: bool,
 +}
++
 +impl Query {
 +    /// Freeze the source descriptor and all eligible ranges for this camera generation.
 +    pub fn new(id: u64, cloud: &super::scene::StreamedCloud, view: QueryView) -> Self {
 +        let ranges = eligible_ranges(&cloud.lod, cloud.total, &view);
 +        let mut total = 0;
++
 +        for range in &ranges {
 +            total += range.end - range.start;
 +        }
++
 +        Self {
 +            id,
 +            parent: cloud.row,
@@ -241,20 +275,25 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +            awaiting_gpu: false,
 +        }
 +    }
++
 +    /// Advance one bounded page; only called after the previous GPU answer was collected.
 +    pub fn next_page(&mut self) -> Option<Range<u32>> {
 +        if self.cancelled.get() {
 +            return None;
 +        }
++
 +        let range = self.ranges.get_mut(self.next)?;
 +        let page = range.start..range.end.min(range.start.saturating_add(PAGE_POINTS));
 +        range.start = page.end;
++
 +        if range.start >= range.end {
 +            self.next += 1;
 +        }
++
 +        Some(page)
 +    }
 +}
++
 +impl Drop for Query {
 +    /// Retire callbacks when the query completes, fails, or is replaced by new input.
 +    fn drop(&mut self) {
@@ -268,6 +307,7 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +    pub count: u32,
 +    pub result: Result<(Vec<Candidate>, Option<String>), String>,
 +}
++
 +/// Final original identity and exact source position; never a provisional page winner.
 +pub struct Resolved {
 +    pub query: u64,
@@ -315,6 +355,7 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +    async fn post_page(source: SourceRequest, view: QueryView, page: Range<u32>) {
 +        let count = page.end - page.start;
 +        let result = read_page(&source, &view, page).await;
++
 +        if !source.cancelled.get() {
 +            post(crate::Msg::CloudQueryBatch(Batch {
 +                query: source.query,
@@ -333,9 +374,11 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +        let at = source.fields.coords_at + u64::from(page.start) * 24;
 +        let length = u64::from(page.end - page.start) * 24;
 +        let (raw, revision) = range(&source.url, at, length, &source.revision).await?;
++
 +        if source.cancelled.get() {
 +            return Err("Point query cancelled".to_string());
 +        }
++
 +        Ok((page_candidates(&raw, page.start, view)?, revision))
 +    }
 +
@@ -344,12 +387,15 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +        if raw.len() != 24 {
 +            return Err("Source coordinate range must contain exactly 24 bytes".to_string());
 +        }
++
 +        let mut position = [0.0; 3];
++
 +        for (axis, value) in position.iter_mut().enumerate() {
 +            let bytes: [u8; 8] = raw[axis * 8..axis * 8 + 8]
 +                .try_into()
 +                .expect("exact triple checked above");
 +            *value = f64::from_le_bytes(bytes);
++
 +            if !value.is_finite() || !(*value as f32).is_finite() {
 +                return Err(
 +                    "Source coordinates are nonfinite or outside the GPU coordinate range"
@@ -357,17 +403,21 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +                );
 +            }
 +        }
++
 +        Ok(position)
 +    }
 +
 +    /// One bounded page's candidates; visibility and cross-page ranking remain on the GPU.
 +    fn page_candidates(raw: &[u8], first: u32, view: &QueryView) -> Result<Vec<Candidate>, String> {
 +        let mut candidates = Vec::new();
++
 +        for (offset, xyz) in raw.chunks_exact(24).enumerate() {
 +            let position = source_position(xyz)?;
++
 +            if let Some(point) = view.project(position) {
 +                let distance = (point[0] - view.at[0] as f64 - 0.5).powi(2)
 +                    + (point[1] - view.at[1] as f64 - 0.5).powi(2);
++
 +                if distance <= view.radius.powi(2) {
 +                    candidates.push(Candidate {
 +                        local: first + offset as u32,
@@ -376,6 +426,7 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +                }
 +            }
 +        }
++
 +        Ok(candidates)
 +    }
 +
@@ -387,6 +438,7 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +    /// Post the original identity and exact position only while this query remains current.
 +    async fn post_source(source: SourceRequest, local: u32) {
 +        let result = read_source(&source, local).await;
++
 +        if !source.cancelled.get() {
 +            post(crate::Msg::CloudQueryResolved(Resolved {
 +                query: source.query,
@@ -405,9 +457,11 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +            &source.revision,
 +        )
 +        .await?;
++
 +        if source.cancelled.get() {
 +            return Err("Point query cancelled".to_string());
 +        }
++
 +        let position = source_position(&coords)?;
 +        let original = if fields.ids_len == 0 {
 +            local
@@ -415,6 +469,7 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +            if fields.ids_len != u64::from(fields.count) * 4 {
 +                return Err("Original point ID count differs from source coordinates".to_string());
 +            }
++
 +            let (raw, _) = range(
 +                &source.url,
 +                fields.ids_at + u64::from(local) * 4,
@@ -433,22 +488,26 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +#[cfg(test)]
 +mod tests {
 +    use super::*;
++
 +    fn view() -> QueryView {
 +        QueryView {
-+            matrix: session_rust::Xform::identity().m,
++            matrix: Xform::identity(),
 +            size: [100.0; 2],
 +            at: [50; 2],
 +            radius: 6.0,
 +        }
 +    }
++
 +    #[test]
 +    fn original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges() {
 +        for value in [0, 127, 128, 65535, u32::MAX, 42] {
 +            assert_eq!(original_id(&value.to_le_bytes()).unwrap(), value);
 +        }
++
 +        assert!(original_id(&[1, 2, 3]).is_err());
 +        assert!(original_id(&[1, 2, 3, 4, 5]).is_err());
 +    }
++
 +    #[test]
 +    fn nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned() {
 +        let lod = CloudLod {
@@ -467,6 +526,7 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +            std::iter::once(0..6_000_101).collect::<Vec<_>>()
 +        );
 +    }
++
 +    #[test]
 +    fn cube_eligibility_uses_the_same_pixel_center_as_candidate_projection() {
 +        let v = view();
@@ -478,10 +538,11 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +    #[test]
 +    fn near_plane_crossing_cube_is_conservative() {
 +        let mut v = view();
-+        v.matrix[3] = 1.0;
-+        v.matrix[15] = 0.0;
++        v.matrix.m[3] = 1.0;
++        v.matrix.m[15] = 0.0;
 +        assert!(v.intersects([-1.0, 0.0, 0.0], 2.0));
 +    }
++
 +    #[test]
 +    fn bounded_pages_visit_the_entire_range_and_cancellation_stops_advancement() {
 +        let mut query = Query {
@@ -562,13 +623,10 @@ index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f1
 +}
 diff --git a/session_viewer/src/app/fetch.rs b/session_viewer/src/app/fetch.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d8711d870e8
+index 0000000000000000000000000000000000000000..5decfbe754bed56149c12f32e132ceee756253c4
 --- /dev/null
 +++ b/session_viewer/src/app/fetch.rs
-@@ -0,0 +1,248 @@
-+//! The browser's network edge: cross-origin GETs (plain and conditional), HTTP Range reads
-+//! that refuse anything but `206`, and the two ways to hand the browser its main thread back.
-+
+@@ -0,0 +1,264 @@
 +use wasm_bindgen::closure::Closure;
 +use wasm_bindgen::{JsCast, JsValue};
 +use wasm_bindgen_futures::JsFuture;
@@ -611,15 +669,19 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +    init.set_signal(Some(&deadline.controller.signal()));
 +    init.set_method("GET");
 +    init.set_mode(RequestMode::Cors);
++
 +    if opts.no_store {
 +        init.set_cache(web_sys::RequestCache::NoStore);
 +    } else if opts.revalidate {
 +        init.set_cache(web_sys::RequestCache::NoCache);
 +    }
++
 +    let headers = Headers::new().map_err(describe)?;
++
 +    if let Some(tag) = &opts.if_none_match {
 +        headers.set("If-None-Match", tag).map_err(describe)?;
 +    }
++
 +    if let Some((start, len)) = opts.range {
 +        if len == 0 {
 +            return Ok(Reply {
@@ -628,6 +690,7 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +                bytes: Vec::new(),
 +            });
 +        }
++
 +        headers
 +            .set(
 +                "Range",
@@ -639,6 +702,7 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +            )
 +            .map_err(describe)?;
 +    }
++
 +    init.set_headers(&headers);
 +    let request = Request::new_with_str_and_init(url, &init).map_err(describe)?;
 +    let window = web_sys::window().ok_or("no window")?;
@@ -656,6 +720,7 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +    } else {
 +        (200..300).contains(&status)
 +    };
++
 +    if !wanted {
 +        return Ok(Reply {
 +            status,
@@ -663,6 +728,7 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +            bytes: Vec::new(),
 +        });
 +    }
++
 +    if let Ok(Some(length)) = resp.headers().get("Content-Length")
 +        && let Ok(length) = length.parse::<u64>()
 +        && length > 512 * 1024 * 1024
@@ -671,15 +737,18 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +            "payload exceeds the 512 MiB whole-file limit; use cloud streaming".to_string(),
 +        );
 +    }
++
 +    let buf = JsFuture::from(resp.array_buffer().map_err(describe)?)
 +        .await
 +        .map_err(describe)?;
 +    let bytes = js_sys::Uint8Array::new(&buf).to_vec();
++
 +    if let Some((_, length)) = opts.range
 +        && bytes.len() as u64 > length
 +    {
 +        return Err("range response exceeds requested bytes".to_string());
 +    }
++
 +    Ok(Reply {
 +        status,
 +        etag,
@@ -719,9 +788,11 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +        },
 +    )
 +    .await?;
++
 +    if !(200..300).contains(&r.status) {
 +        return Err(format!("HTTP {} for {url}", r.status));
 +    }
++
 +    Ok(r.bytes)
 +}
 +
@@ -745,6 +816,7 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +        },
 +    )
 +    .await?;
++
 +    if reply.status != 206 || reply.bytes.len() as u64 != len {
 +        return Err(format!(
 +            "Range read failed for {url} (HTTP {}, {} of {len} bytes)",
@@ -752,9 +824,11 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +            reply.bytes.len()
 +        ));
 +    }
++
 +    if revision.is_some() && revision != &reply.etag {
 +        return Err(format!("{url} changed during the read; reload it"));
 +    }
++
 +    Ok((reply.bytes, reply.etag))
 +}
 +
@@ -782,6 +856,7 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +    timer: i32,
 +    _callback: Closure<dyn FnMut()>,
 +}
++
 +impl Deadline {
 +    /// Permit slow scene transfers for ninety seconds, then surface a recoverable network error.
 +    fn new() -> Result<Self, String> {
@@ -802,6 +877,7 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +        })
 +    }
 +}
++
 +impl Drop for Deadline {
 +    /// Remove the JavaScript timer before dropping its Rust callback handle.
 +    fn drop(&mut self) {
@@ -810,15 +886,16 @@ index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d87
 +        }
 +    }
 +}
++
 +/// The browser callback adapter forwards cancellation to the request's controller.
 +fn abort_request(controller: &web_sys::AbortController) {
 +    controller.abort();
 +}
 diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
-index ecc8c8070550e64f76c1db5fcfcece5da65bdc5f..f63c1c022ddc743540191ba51433a6900641296b 100644
+index 571f41a64952550ad6f6f7a69f1a8866e19f555c..279e28dbd08565c1cdffe05139f1decf4640a4c2 100644
 --- a/session_viewer/src/app/input.rs
 +++ b/session_viewer/src/app/input.rs
-@@ -54,6 +54,7 @@ impl Input {
+@@ -44,6 +44,7 @@ impl Input {
                  .camera
                  .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
              Key::Named(NamedKey::Escape) => state.escape_selection(),
@@ -827,7 +904,7 @@ index ecc8c8070550e64f76c1db5fcfcece5da65bdc5f..f63c1c022ddc743540191ba51433a690
              Key::Character("2") => state.camera.set_view(View::Back),
              Key::Character("3") => state.camera.set_view(View::Left),
 diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
-index a17fd97b039d992827fb8edcefc5e1ef004159a2..f31db8bae111e86d20416b432407b4f8427e1fb7 100644
+index 5e96b7c5b2ebb9b9efaeea025158f9a78126ee70..0a4f7335b35030d2eb8de94cbe813677d7bf5065 100644
 --- a/session_viewer/src/app/inspection.rs
 +++ b/session_viewer/src/app/inspection.rs
 @@ -31,7 +31,7 @@ pub fn publish(state: &State) {
@@ -840,12 +917,10 @@ index a17fd97b039d992827fb8edcefc5e1ef004159a2..f31db8bae111e86d20416b432407b4f8
          "control_segments": state.gpu.control_net.ribbon_count(),
          "pick_busy": state.gpu.pick.busy(),
 diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
-index 9f18a09947cdd41eaf4c22bbe19626b63f484fc6..e90a21156f54d11731549f8ca97dc2aadc1a0602 100644
+index 6926f8880f4cdb234815185ce0a1567929d29e3f..6f8806483db1dfde2902e247d713f137db657ae0 100644
 --- a/session_viewer/src/app/loader.rs
 +++ b/session_viewer/src/app/loader.rs
-@@ -1,7 +1,8 @@
- //! Local tutorial fixture boundary; chapter14 installs production routing and reloads.
- 
+@@ -1,5 +1,6 @@
 -use super::scene::{FileDoc, Scene};
 +use super::scene::{FileDoc, Scene, StreamedInit};
  use super::stream::CloudFields;
@@ -853,26 +928,29 @@ index 9f18a09947cdd41eaf4c22bbe19626b63f484fc6..e90a21156f54d11731549f8ca97dc2aa
  use crate::{Msg, State};
  use session_rust::{Session, Xform};
  use std::cell::RefCell;
-@@ -53,6 +54,9 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
+@@ -53,6 +54,10 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
  
  /// Only the explicit local streaming test selects the ranged source fixture.
  async fn fixture() -> Result<(), String> {
 +    if super::route::query("scene").as_deref() == Some("stream-test.yaml") {
 +        return streamed_fixture().await;
 +    }
++
      let session = Session::pb_loads(include_bytes!("../../assets/pb/interaction.pb"))
          .map_err(fixture_error)?;
      post(Msg::File(FileDoc {
-@@ -70,6 +74,44 @@ fn fixture_error(error: Box<dyn std::error::Error>) -> String {
+@@ -70,6 +75,46 @@ fn fixture_error(error: Box<dyn std::error::Error>) -> String {
      format!("Bundled interaction fixture: {error}")
  }
  
 +/// Read one bounded display prefix while retaining every actual source row for F10.
 +async fn streamed_fixture() -> Result<(), String> {
 +    let base = super::route::query("data").ok_or("local source URL is missing")?;
++
 +    if !base.starts_with("http://127.0.0.1:") && !base.starts_with("http://localhost:") {
 +        return Err("The tutorial source fixture must use a local HTTP server".to_string());
 +    }
++
 +    let url = format!("{}/cloud.pb", base.trim_end_matches('/'));
 +    let mut fields = super::stream::cloud_fields(&url)
 +        .await
@@ -909,17 +987,15 @@ index 9f18a09947cdd41eaf4c22bbe19626b63f484fc6..e90a21156f54d11731549f8ca97dc2aa
  pub struct StreamCursor {
      pub idx: usize,
 diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
-index 90c0e7a788c1956a46eaf24dd2f099b9c22c1c2c..e5361f826df6cfdaa4d23f172eddfe85f998b253 100644
+index 080e1938f3889b0afed3657a5d094232968483cf..843124dc7b9528e4dea4ed581dc38f4bcb7eb544 100644
 --- a/session_viewer/src/app/mod.rs
 +++ b/session_viewer/src/app/mod.rs
-@@ -1,5 +1,6 @@
- //! Source scene and selection; chapter14 replaces the local loading boundary.
- 
+@@ -1,3 +1,4 @@
 +pub mod cloud_query;
  pub mod feedback;
  pub mod input;
  pub mod knobs;
-@@ -9,6 +10,8 @@ pub mod stream;
+@@ -7,6 +8,8 @@ pub mod stream;
  pub mod touch;
  pub mod walk;
  
@@ -929,11 +1005,20 @@ index 90c0e7a788c1956a46eaf24dd2f099b9c22c1c2c..e5361f826df6cfdaa4d23f172eddfe85
  pub mod loader;
  #[cfg(target_arch = "wasm32")]
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index 51ee66b0991fa62baf75cc81dd3014e95b9485e2..1533465103dd75f732fbdb8feb32bd9e1845955b 100644
+index 136012761b2931ff0bb0f538350e79ebd763da2c..3a3629fd34f190e5014ed4a869077dc1bbd035be 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
-@@ -485,3 +485,84 @@ fn placement(world: &HashMap<String, Xform>, place: &Mat4, guid: &str) -> Mat4 {
-         None => *place,
+@@ -482,11 +482,91 @@ impl Scene {
+     }
+ }
+ 
+-/// An object's placement: the manifest `place` times the session's own world xform for that
+-/// guid. Composed once per row on raw matrices - no kernel `Xform` allocations.
++/// An object's placement: the manifest `place` times the session's own world xform for that guid.
+ fn placement(world: &HashMap<String, Xform>, place: &Xform, guid: &str) -> Xform {
+     match world.get(guid) {
+         Some(local) => place * local,
+         None => place.clone(),
      }
  }
 +
@@ -1018,13 +1103,10 @@ index 51ee66b0991fa62baf75cc81dd3014e95b9485e2..1533465103dd75f732fbdb8feb32bd9e
 +    }
 +}
 diff --git a/session_viewer/src/app/selection.rs b/session_viewer/src/app/selection.rs
-index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177efe2e78d6 100644
+index 6a25c79e3d9de367ea65a9b92790a53d6c222c1f..046764f28f25074d257e6ef86f00e0a79bd2b0cf 100644
 --- a/session_viewer/src/app/selection.rs
 +++ b/session_viewer/src/app/selection.rs
-@@ -1,6 +1,18 @@
--//! Original edge identity and single-parent selection; source controls arrive in chapter13.
-+//! Source identities and single-parent selection transitions. GPU rows are only pick addresses.
- 
+@@ -1,4 +1,16 @@
 -/// Exactly one parent owns the specialized edge selection.
 +use session_rust::element::ElementGeometry;
 +use session_rust::{Geometry, NurbsCurve, NurbsSurface, Point};
@@ -1042,7 +1124,7 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
  #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize)]
  pub enum SelectionMode {
      #[default]
-@@ -9,24 +21,224 @@ pub enum SelectionMode {
+@@ -7,26 +19,242 @@ pub enum SelectionMode {
          parent: u32,
          edge: u32,
      },
@@ -1063,20 +1145,22 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +            Self::Edge { parent, .. } | Self::Controls { parent, .. } => Some(*parent),
          }
      }
+ 
 -    /// Replace old-parent edge selection atomically.
-+
 +    /// Replacing the enum clears all old-parent sub-selection atomically.
      pub fn select_edge(&mut self, parent: u32, edge: u32) {
          *self = Self::Edge { parent, edge };
      }
+ 
 -    /// Leave edge selection while retaining its parent for ordinary highlighting.
-+
 +    /// F10 is idempotent. No selected parent leaves the mode unchanged.
 +    pub fn enable_controls(&mut self, parent: Option<u32>, cloud: bool) -> bool {
 +        let Some(parent) = parent else { return false };
++
 +        if matches!(self, Self::Controls { parent: active, .. } if *active == parent) {
 +            return false;
 +        }
++
 +        *self = Self::Controls {
 +            parent,
 +            selected: None,
@@ -1112,9 +1196,11 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +    /// Keep source IDs even when invalid coordinates make an individual control unavailable.
 +    fn push(&mut self, id: ControlId, point: &Point) -> Option<usize> {
 +        let position = [point[0], point[1], point[2]];
++
 +        if !position.into_iter().all(f64::is_finite) {
 +            return None;
 +        }
++
 +        let index = self.points.len();
 +        self.points.push(Control { id, position });
 +        Some(index)
@@ -1134,20 +1220,24 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +            Geometry::Line(line) => {
 +                self.push(ControlId::Vertex(0), &line.start());
 +                self.push(ControlId::Vertex(1), &line.end());
++
 +                if self.points.len() == 2 {
 +                    self.links.push([0, 1]);
 +                }
 +            }
 +            Geometry::Polyline(polyline) => {
 +                let mut previous = None;
++
 +                for (index, coords) in polyline.coords.chunks_exact(3).enumerate() {
 +                    let current = self.push(
 +                        ControlId::Vertex(index),
 +                        &Point::new(coords[0], coords[1], coords[2]),
 +                    );
++
 +                    if let (Some(start), Some(end)) = (previous, current) {
 +                        self.links.push([start, end]);
 +                    }
++
 +                    previous = current;
 +                }
 +            }
@@ -1184,9 +1274,11 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +        for (index, vertex) in brep.m_vertices.iter().enumerate() {
 +            self.push(ControlId::Vertex(index), &vertex.point);
 +        }
++
 +        for (index, curve) in brep.m_curves_3d.iter().enumerate() {
 +            self.curve(curve, index);
 +        }
++
 +        for (index, surface) in brep.m_surfaces.iter().enumerate() {
 +            self.surface(surface, index);
 +        }
@@ -1195,6 +1287,7 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +    /// Rational curve accessors return Euclidean source control positions.
 +    fn curve(&mut self, curve: &NurbsCurve, index: usize) {
 +        let mut previous = None;
++
 +        for point in 0..curve.cv_count() {
 +            let current = match curve.get_cv(point) {
 +                Some(position) => self.push(
@@ -1206,9 +1299,11 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +                ),
 +                None => None,
 +            };
++
 +            if let (Some(start), Some(end)) = (previous, current) {
 +                self.links.push([start, end]);
 +            }
++
 +            previous = current;
 +        }
 +    }
@@ -1217,8 +1312,10 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +    fn surface(&mut self, surface: &NurbsSurface, index: usize) {
 +        let [width, height] = surface.m_cv_count;
 +        let mut previous = vec![None; height];
++
 +        for u in 0..width {
 +            let mut last = None;
++
 +            for (v, above) in previous.iter_mut().enumerate() {
 +                let current = match surface.get_cv(u, v) {
 +                    Some(position) => self.push(
@@ -1231,12 +1328,15 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +                    ),
 +                    None => None,
 +                };
++
 +                if let (Some(start), Some(end)) = (*above, current) {
 +                    self.links.push([start, end]);
 +                }
++
 +                if let (Some(start), Some(end)) = (last, current) {
 +                    self.links.push([start, end]);
 +                }
++
 +                *above = current;
 +                last = current;
 +            }
@@ -1272,10 +1372,10 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +    }
 +}
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd5daff04a 100644
+index 29f05e6b8b2e1d233b1a3859fbc1e6fd738c4c83..0656cc18a6a3727d3a03c76572cce858fce28cff 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
-@@ -35,12 +35,602 @@ pub struct CloudLod {
+@@ -26,13 +26,689 @@ pub struct CloudLod {
  }
  
  impl CloudLod {
@@ -1284,15 +1384,17 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
      pub fn len(&self) -> usize {
          self.size.len()
      }
+ 
 -    /// Whether the source carries a node table.
-+
 +    /// Decode one complete packed LOD array; false for malformed or unknown fields.
 +    pub fn set_field(&mut self, field: usize, raw: &[u8]) -> bool {
 +        if (8..=10).contains(&field) && !raw.len().is_multiple_of(8) {
 +            return false;
 +        }
++
 +        if (11..=14).contains(&field) {
 +            let mut at = 0;
++
 +            while at < raw.len() {
 +                let Some((_, bytes)) = varint(raw, at) else {
 +                    return false;
@@ -1300,6 +1402,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +                at += bytes;
 +            }
 +        }
++
 +        match field {
 +            8 => self.min = packed_f64(raw),
 +            9 => self.size = packed_f64(raw),
@@ -1310,6 +1413,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +            14 => self.children = packed_i32(raw),
 +            _ => return false,
 +        }
++
 +        true
 +    }
 +
@@ -1322,6 +1426,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        let Some(children) = n.checked_mul(8) else {
 +            return false;
 +        };
++
 +        if n == 0
 +            || self.min.len() != triples
 +            || self.spacing.len() != n
@@ -1333,12 +1438,15 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        {
 +            return false;
 +        }
++
 +        let mut parents = vec![false; n];
++
 +        for node in 0..n {
 +            if !self.valid_node(node, total) || !self.valid_children(node, &mut parents) {
 +                return false;
 +            }
 +        }
++
 +        !parents[1..].contains(&false)
 +    }
 +
@@ -1346,6 +1454,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +    fn valid_node(&self, node: usize, total: u32) -> bool {
 +        let size = self.size[node];
 +        let spacing = self.spacing[node];
++
 +        if !finite_float(size)
 +            || size < 0.0
 +            || !finite_float(spacing)
@@ -1354,11 +1463,13 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        {
 +            return false;
 +        }
++
 +        for &min in &self.min[node * 3..node * 3 + 3] {
 +            if !finite_float(min) || !finite_float(min + size) {
 +                return false;
 +            }
 +        }
++
 +        let (Ok(first), Ok(count)) = (
 +            u32::try_from(self.first[node]),
 +            u32::try_from(self.count[node]),
@@ -1377,9 +1488,11 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +            if child == -1 {
 +                continue;
 +            }
++
 +            let Ok(child) = usize::try_from(child) else {
 +                return false;
 +            };
++
 +            if child == 0
 +                || child >= parents.len()
 +                || parents[child]
@@ -1387,8 +1500,10 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +            {
 +                return false;
 +            }
++
 +            parents[child] = true;
 +        }
++
 +        true
 +    }
 +
@@ -1402,17 +1517,23 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +pub fn varint(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
 +    let (mut v, mut shift) = (0u64, 0u32);
 +    let start = i;
++
 +    loop {
 +        let byte = *b.get(i)?;
++
 +        if shift == 63 && byte > 1 {
 +            return None;
 +        }
++
 +        v |= ((byte & 0x7f) as u64) << shift;
 +        i += 1;
++
 +        if byte & 0x80 == 0 {
 +            return Some((v, i - start));
 +        }
++
 +        shift += 7;
++
 +        if shift > 63 {
 +            return None;
 +        }
@@ -1448,34 +1569,45 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +    let mut at = 0usize;
 +    let objects_end = descend_message(head, &mut at, None, 3)?;
 +    let end = descend_message(head, &mut at, Some(objects_end), 8)?;
++
 +    while (at as u64) < end {
 +        let (tag, used) = varint(head, at)?;
 +        at = at.checked_add(used)?;
 +        let (field, wire) = (u32::try_from(tag >> 3).ok()?, (tag & 7) as u32);
++
 +        if field == 0 {
 +            return None;
 +        }
++
 +        if wire != 2 {
 +            at = at.checked_add(skip_scalar(head, at, wire)?)?;
++
 +            if at as u64 > end {
 +                return None;
 +            }
++
 +            continue;
 +        }
++
 +        let (length, used) = varint(head, at)?;
 +        at = at.checked_add(used)?;
 +        let next = (at as u64).checked_add(length)?;
++
 +        if next > end {
 +            return None;
 +        }
++
 +        if field == 3 {
 +            return Some((at as u64, length, end));
 +        }
++
 +        if field == 4 || length > NAME_BYTES {
 +            return None;
 +        }
++
 +        at = usize::try_from(next).ok()?;
 +    }
++
 +    None
 +}
 +
@@ -1485,26 +1617,33 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        let (tag, used) = varint(head, *at)?;
 +        *at = (*at).checked_add(used)?;
 +        let (field, wire) = (u32::try_from(tag >> 3).ok()?, tag & 7);
++
 +        if field == 0 || wire != 2 {
 +            return None;
 +        }
++
 +        let (length, used) = varint(head, *at)?;
 +        *at = (*at).checked_add(used)?;
 +        let next = (*at as u64).checked_add(length)?;
++
 +        if let Some(end) = parent_end
 +            && next > end
 +        {
 +            return None;
 +        }
++
 +        if field == want {
 +            if want == 8 && parent_end != Some(next) {
 +                return None;
 +            }
++
 +            return Some(next);
 +        }
++
 +        if length > NAME_BYTES {
 +            return None;
 +        }
++
 +        *at = usize::try_from(next).ok()?;
 +    }
 +}
@@ -1520,14 +1659,19 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +    if raw.len() as u64 != u64::from(count).checked_mul(24)? {
 +        return None;
 +    }
++
 +    let mut out = Vec::with_capacity(raw.len() / 8);
++
 +    for bytes in raw.chunks_exact(8) {
 +        let value = f64::from_le_bytes(bytes.try_into().ok()?);
++
 +        if !finite_float(value) {
 +            return None;
 +        }
++
 +        out.push(value as f32);
 +    }
++
 +    Some(out)
 +}
 +
@@ -1541,6 +1685,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +#[cfg(any(target_arch = "wasm32", test))]
 +fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
 +    let next = at.checked_add(length)?;
++
 +    if next <= end { Some(next) } else { None }
 +}
 +
@@ -1548,29 +1693,35 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +pub fn packed_i32(raw: &[u8]) -> Vec<i32> {
 +    let mut out = Vec::new();
 +    let mut i = 0usize;
++
 +    while i < raw.len() {
 +        let Some((v, n)) = varint(raw, i) else { break };
 +        out.push(v as i32);
 +        i += n;
 +    }
++
 +    out
 +}
 +
 +/// A packed `double` array in full.
 +pub fn packed_f64(raw: &[u8]) -> Vec<f64> {
 +    let mut out = Vec::with_capacity(raw.len() / 8);
++
 +    for c in raw.chunks_exact(8) {
 +        out.push(f64::from_le_bytes(c.try_into().unwrap()));
 +    }
++
 +    out
 +}
 +
 +/// An already-fetched coords slice as f32 triples.
 +pub fn positions_from(raw: &[u8]) -> Vec<f32> {
 +    let mut out = Vec::with_capacity(raw.len() / 8);
++
 +    for c in raw.chunks_exact(8) {
 +        out.push(f64::from_le_bytes(c.try_into().unwrap()) as f32);
 +    }
++
 +    out
 +}
 +
@@ -1579,15 +1730,19 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
 +    let mut out = Vec::with_capacity(count as usize);
 +    let mut i = 0usize;
++
 +    for _ in 0..count {
 +        let mut rgba = [255u8; 4];
++
 +        for k in &mut rgba {
 +            let (v, n) = varint(raw, i)?;
 +            i += n;
 +            *k = (v & 255) as u8;
 +        }
++
 +        out.push(u32::from_le_bytes(rgba));
 +    }
++
 +    Some((out, i))
 +}
 +
@@ -1601,6 +1756,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +    use crate::app::fetch::{GetOpts, fetch_range, get};
 +
 +    const POINT_BYTES: u64 = 24;
++
 +    const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
 +
 +    /// Exact bounded 206 bodies, tied to the metadata's exposed source validator.
@@ -1613,9 +1769,11 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        if !bounded_range(at, length) {
 +            return None;
 +        }
++
 +        if length == 0 {
 +            return Some(Vec::new());
 +        }
++
 +        Some(fetch_range(url, at, length, revision).await.ok()?.0)
 +    }
 +
@@ -1631,18 +1789,24 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        )
 +        .await
 +        .ok()?;
++
 +        if reply.status != 206 || reply.bytes.len() > 8192 {
 +            return None;
 +        }
++
 +        let (coords_at, coords_len, end) = cloud_layout(&reply.bytes)?;
++
 +        if coords_len == 0 || !coords_len.is_multiple_of(POINT_BYTES) {
 +            return None;
 +        }
++
 +        let after = body_end(coords_at, coords_len, end)?;
 +        let mut colors = (after, 0);
++
 +        if after < end {
 +            let header = source_range(url, after, 16.min(end - after), &reply.etag).await?;
 +            let (tag, used) = varint(&header, 0)?;
++
 +            if tag >> 3 == 4 && tag & 7 == 2 {
 +                let (length, extra) = varint(&header, used)?;
 +                let body = after.checked_add((used + extra) as u64)?;
@@ -1650,6 +1814,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +                colors = (body, length);
 +            }
 +        }
++
 +        Some(CloudFields {
 +            end,
 +            coords_at,
@@ -1670,49 +1835,65 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        let mut seen = [false; 7];
 +        let mut table_bytes = 0u64;
 +        let mut ids = None;
++
 +        while at < fields.end {
 +            let header = source_range(url, at, 64.min(fields.end - at), &fields.revision).await?;
 +            let (tag, used) = varint(&header, 0)?;
 +            let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
++
 +            if field == 0 {
 +                return None;
 +            }
++
 +            if wire != 2 {
 +                if (8..=15).contains(&field) {
 +                    return None;
 +                }
++
 +                let skip = skip_scalar(&header, used, wire)?;
 +                at = body_end(at, (used + skip) as u64, fields.end)?;
 +                continue;
 +            }
++
 +            let (length, extra) = varint(&header, used)?;
 +            let body = body_end(at, (used + extra) as u64, fields.end)?;
 +            let next = body_end(body, length, fields.end)?;
++
 +            if (8..=14).contains(&field) {
 +                if seen[field - 8] {
 +                    return None;
 +                }
++
 +                table_bytes = table_bytes.checked_add(length)?;
++
 +                if table_bytes > MAX_TABLE_BYTES {
 +                    return None;
 +                }
++
 +                let raw = source_range(url, body, length, &fields.revision).await?;
++
 +                if !lod.set_field(field, &raw) {
 +                    return None;
 +                }
++
 +                seen[field - 8] = true;
 +            }
++
 +            if field == 15 {
 +                if length != u64::from(fields.count) * 4 || ids.is_some() {
 +                    return None;
 +                }
++
 +                ids = Some((body, length));
 +            }
++
 +            at = next;
 +        }
++
 +        if seen.contains(&false) || !lod.valid(fields.count) {
 +            return None;
 +        }
++
 +        (fields.ids_at, fields.ids_len) = ids.unwrap_or((0, 0));
 +        Some(lod)
 +    }
@@ -1727,6 +1908,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        if from > to || to > fields.count {
 +            return None;
 +        }
++
 +        let at = fields
 +            .coords_at
 +            .checked_add(u64::from(from).checked_mul(POINT_BYTES)?)?;
@@ -1748,16 +1930,20 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        count: u32,
 +    ) -> Option<(Vec<u32>, u64)> {
 +        let end = body_end(fields.colors_at, fields.colors_len, fields.end)?;
++
 +        if at < fields.colors_at || at > end || count > fields.count {
 +            return None;
 +        }
++
 +        // 8 B a colour is the WORST case, not the size: each of the four channels is a varint,
 +        // and a channel of 128 or more takes two bytes. `colors_from` reports where it really
 +        // stopped, and that is where the next slice starts.
 +        let length = (u64::from(count) * 8).min(end - at);
++
 +        if length == 0 {
 +            return None;
 +        }
++
 +        let raw = source_range(url, at, length, &fields.revision).await?;
 +        let (colors, used) = colors_from(&raw, count)?;
 +        Some((colors, body_end(at, used as u64, end)?))
@@ -1828,6 +2014,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +        assert_eq!(checked_positions(&raw, 1).unwrap(), [1.0, 2.0, 3.0]);
 +        assert!(checked_positions(&raw[..23], 1).is_none());
 +        assert!(checked_positions(&raw, 2).is_none());
++
 +        for bad in [f64::NAN, f64::INFINITY, f64::MAX] {
 +            let raw: Vec<_> = [bad, 0.0, 0.0]
 +                .into_iter()
@@ -1881,10 +2068,10 @@ index 920f036f77b250d98108579b6788c6e8c8015378..03632cab0fc33536ac8b5be10e7a48cd
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
-index 7b04b7394e876d5c9944862e8a8f146e15d68572..91ab6de56dcbe177976b93e34dd43e586d344ee1 100644
+index 4be79134d194ceab99f571de1b3d93371dd7b8fa..8dd899f61f723a643a7ac9a45080fdf9c455c87d 100644
 --- a/session_viewer/src/engine/gpu/pick.rs
 +++ b/session_viewer/src/engine/gpu/pick.rs
-@@ -40,6 +40,18 @@ pub enum PickMode {
+@@ -35,6 +35,18 @@ pub enum PickMode {
      #[default]
      Object,
      Edge,
@@ -1903,7 +2090,7 @@ index 7b04b7394e876d5c9944862e8a8f146e15d68572..91ab6de56dcbe177976b93e34dd43e58
  }
  
  /// The readback window: a `PICK_RADIUS` square about the cursor, clamped into the target.
-@@ -97,6 +109,7 @@ pub struct Picker {
+@@ -89,6 +101,7 @@ pub struct Picker {
      submitted: u64,
      pub mode: PickMode,
      radius: u32,
@@ -1911,7 +2098,7 @@ index 7b04b7394e876d5c9944862e8a8f146e15d68572..91ab6de56dcbe177976b93e34dd43e58
      readback: Option<wgpu::Buffer>,
      targets: Option<IdTargets>,
  }
-@@ -180,6 +193,7 @@ impl Picker {
+@@ -175,6 +188,7 @@ impl Picker {
              submitted: 0,
              mode: PickMode::Object,
              radius: PICK_RADIUS,
@@ -1919,7 +2106,7 @@ index 7b04b7394e876d5c9944862e8a8f146e15d68572..91ab6de56dcbe177976b93e34dd43e58
              readback: None,
              targets: None,
          }
-@@ -201,10 +215,66 @@ impl Picker {
+@@ -196,10 +210,67 @@ impl Picker {
  
      /// Invalidate pending and mapped results on camera, viewport, scene or mode changes.
      pub fn cancel(&mut self) {
@@ -1938,6 +2125,7 @@ index 7b04b7394e876d5c9944862e8a8f146e15d68572..91ab6de56dcbe177976b93e34dd43e58
 +    pub fn source_query(&self) -> bool {
 +        self.source_phase != SourcePhase::Inactive
 +    }
++
 +    /// Whether physical scene depth and the first source page have been encoded.
 +    pub fn source_initialized(&self) -> bool {
 +        self.source_phase == SourcePhase::MorePages
@@ -1987,36 +2175,42 @@ index 7b04b7394e876d5c9944862e8a8f146e15d68572..91ab6de56dcbe177976b93e34dd43e58
      pub fn window(&self, at: (u32, u32), size: (u32, u32)) -> Window {
          Window::with_radius(at, size, self.radius)
 diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
-index 5c5b7edce2a7c7833a67da8039c0d3d7089af6cb..6b37c2e57fb6d53daadc71c133a2c9e786a477fa 100644
+index 97cbb7bf355293c08bbed85a6a9e39b6c68368f2..1f8d06bbcbc9a512b15e1720b1580d000f07f4b9 100644
 --- a/session_viewer/src/engine/gpu/render.rs
 +++ b/session_viewer/src/engine/gpu/render.rs
-@@ -115,6 +115,8 @@ impl Gpu {
-             draws += self.glyphs.draw_dots(pass, &b);
+@@ -123,6 +123,8 @@ impl Gpu {
          }
+ 
          draws += self.selection_outline.draw(pass);
 +        draws += self.control_net.draw_ribbons(pass, &b);
 +        draws += self.controls.draw_dots(pass, &b);
          draws += self.text.draw(pass);
          draws
      }
-@@ -135,6 +137,32 @@ impl Gpu {
+@@ -143,6 +145,41 @@ impl Gpu {
              line: &self.frame.line_group,
              instances: &self.objects.group,
          };
++
 +        if self.pick.source_query() {
 +            if !self.pick.source_initialized() {
 +                let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
++
 +                if let Some(window) = window {
 +                    pass.set_scissor_rect(window.x, window.y, window.w, window.h);
 +                }
++
 +                self.arena.draw_face_ids(&mut pass, &basic);
 +                self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
 +            }
++
 +            {
 +                let mut pass = self.pick.begin_source(encoder);
++
 +                if let Some(window) = window {
 +                    pass.set_scissor_rect(window.x, window.y, window.w, window.h);
 +                }
++
 +                let source = Binds {
 +                    mvp: &self.frame.mvp_group,
 +                    line: &self.frame.line_group,
@@ -2024,15 +2218,18 @@ index 5c5b7edce2a7c7833a67da8039c0d3d7089af6cb..6b37c2e57fb6d53daadc71c133a2c9e7
 +                };
 +                self.controls.draw_source_ids(&mut pass, &source);
 +            }
++
 +            if let Some(at) = at {
 +                self.pick.copy_window(&self.ctx, encoder, at);
 +            }
++
 +            return;
 +        }
++
          {
              let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
-             // Plane reconstruction also reads neighboring texels: render a small halo around
-@@ -172,6 +200,10 @@ impl Gpu {
+ 
+@@ -184,6 +221,10 @@ impl Gpu {
                          self.segments.draw_edge_ids(&mut pass, &ink);
                      }
                  }
@@ -2044,10 +2241,10 @@ index 5c5b7edce2a7c7833a67da8039c0d3d7089af6cb..6b37c2e57fb6d53daadc71c133a2c9e7
                      if self.view.show_mesh_edges {
                          self.segments.draw_pipe_ids(&mut pass, &ink);
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 4c1a982f8d71fb1096f6ed1da5ce956d091004a9..3658f3316d6684d362ff10c84039fd253031f935 100644
+index e398319ed3a8668183cb34e17b5e2fde00094014..159230ec6de91232807d8b74d79b6efeda3d03b6 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -30,6 +30,8 @@ pub enum Msg {
+@@ -25,6 +25,8 @@ pub enum Msg {
      Fit,
      StreamedCloud(Box<StreamedInit>),
      CloudChunk(CloudChunk),
@@ -2066,12 +2263,10 @@ index 4c1a982f8d71fb1096f6ed1da5ce956d091004a9..3658f3316d6684d362ff10c84039fd25
                  self.input.cancel();
                  state.touch();
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c227468d16 100644
+index d1fc237afaa68e97b82be86e5808c64c5a5e15fe..05ba8113ba7c0a3e746e7fabaa7c30a1bde58d2c 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
-@@ -4,10 +4,14 @@
- //! never the other way round.
- 
+@@ -1,8 +1,12 @@
  use crate::app::scene::{FileDoc, Scene, StreamedInit};
 -use crate::app::selection::SelectionMode;
 +use crate::app::selection::{ControlId, Controls, SelectionMode};
@@ -2085,24 +2280,24 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
  use crate::engine::gpu::{FrameInput, Gpu, Pick};
  use crate::engine::performance::{heap_mb, now_ms};
  use crate::engine::text::{TextLabel, TextPlacement};
-@@ -37,10 +41,16 @@ pub struct State {
-     dirty: bool,
+@@ -31,10 +35,14 @@ pub struct State {
+     dirty: bool, // The picture changed: the redraw presents a colour frame. A pending pick alone does not.
      last_frame_ms: f64,
      pub selection: SelectionMode,
 +    controls: Controls,
      requested: PickMode,
      pub selection_radius_css: f64,
-+    /// Document annotations are prepared only when documents change, never on camera motion.
-     scene_labels: Vec<TextLabel>,
-+    /// A view preference retained across selections and scene reloads; T toggles it.
-     show_selected_names: bool,
+-    scene_labels: Vec<TextLabel>,
+-    show_selected_names: bool,
++    scene_labels: Vec<TextLabel>, // Document annotations are prepared only when documents change, never on camera motion.
++    show_selected_names: bool, // A view preference retained across selections and scene reloads; T toggles it.
 +    cloud_query: Option<crate::app::cloud_query::Query>,
 +    #[cfg(target_arch = "wasm32")]
 +    query_generation: u64,
  }
  
  impl State {
-@@ -59,10 +69,14 @@ impl State {
+@@ -53,10 +61,14 @@ impl State {
              dirty: true,
              last_frame_ms: 0.0,
              selection: SelectionMode::Object,
@@ -2117,7 +2312,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
          })
      }
  
-@@ -119,6 +133,7 @@ impl State {
+@@ -113,6 +125,7 @@ impl State {
      /// Drop every document; the canvas, device and camera stay.
      pub fn clear(&mut self) {
          self.selection = SelectionMode::Object;
@@ -2125,7 +2320,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
          self.scene_labels.clear();
          self.scene.clear(&mut self.gpu);
          self.touch();
-@@ -163,6 +178,7 @@ impl State {
+@@ -151,6 +164,7 @@ impl State {
      pub fn resize(&mut self, width: u32, height: u32) {
          self.gpu.resize(width, height);
          self.gpu.logical_size = self.logical_size();
@@ -2133,7 +2328,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
          self.touch();
      }
  
-@@ -190,6 +206,7 @@ impl State {
+@@ -178,6 +192,7 @@ impl State {
  
      /// The picture changed: the next redraw presents it.
      pub fn touch(&mut self) {
@@ -2141,7 +2336,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
          self.gpu.pick.cancel();
          self.dirty = true;
          self.needs_frame = true;
-@@ -198,6 +215,7 @@ impl State {
+@@ -186,6 +201,7 @@ impl State {
      /// Make `row` the selection (or none), moving the highlight.
      pub fn select(&mut self, row: Option<u32>) {
          self.selection = SelectionMode::Object;
@@ -2149,7 +2344,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
          self.gpu.controls.reset();
          self.gpu.control_net.reset();
          self.gpu.segments.set_edge(&self.gpu.ctx, None);
-@@ -213,6 +231,13 @@ impl State {
+@@ -204,6 +220,13 @@ impl State {
          self.touch();
      }
  
@@ -2163,7 +2358,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
      /// Hide the selection - `H`. The guid goes in the hide set as well as the row's flag, so
      /// a `rebuild` (an edit commit) re-applies it when the rows come back. A live reload
      /// takes the `clear` path instead and starts a fresh scene with nothing hidden.
-@@ -240,6 +265,11 @@ impl State {
+@@ -232,6 +255,12 @@ impl State {
  
      /// A pick came back: log what it hit and select it (clicking the selection clears it).
      fn apply_pick(&mut self, pick: Option<Pick>) {
@@ -2172,11 +2367,12 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +            self.apply_cloud_query_pick(pick);
 +            return;
 +        }
++
          match self.requested {
              PickMode::Edge => {
                  if let Some(pick) = pick
-@@ -255,6 +285,14 @@ impl State {
-                 }
+@@ -248,6 +277,15 @@ impl State {
+ 
                  return;
              }
 +            PickMode::Controls { parent, cloud } => {
@@ -2185,28 +2381,30 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +                {
 +                    self.apply_control(pick, cloud);
 +                }
++
 +                return;
 +            }
              PickMode::Object => {}
          }
-         let Some(p) = pick else {
-@@ -298,6 +336,7 @@ impl State {
-         let logical = self.logical_size();
+ 
+@@ -295,6 +333,7 @@ impl State {
+ 
          if logical != self.gpu.logical_size {
              self.gpu.logical_size = logical;
 +            self.upload_controls();
              self.touch();
          }
-         let failure = match self.gpu.failure.lock() {
-@@ -306,15 +345,22 @@ impl State {
-         };
+ 
+@@ -305,6 +344,7 @@ impl State {
+ 
          if let Some(message) = failure {
              crate::app::feedback::error(&message);
 +            self.cancel_cloud_query();
              self.gpu.pick.cancel();
              self.needs_frame = false;
              return;
-         }
+@@ -312,11 +352,17 @@ impl State {
+ 
          if let Some(pick) = self.gpu.pick.poll() {
              self.apply_pick(pick);
 +        } else if self.cloud_query_awaiting_gpu() && !self.gpu.pick.busy() {
@@ -2215,31 +2413,35 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +            self.upload_controls();
 +            self.status("Point query failed during GPU readback; click to retry");
          }
+ 
          self.needs_frame = false;
+ 
          if self.gpu.view.spin {
 +            self.cancel_cloud_query();
              self.camera.orbit(SPIN_STEP, 0.0);
          }
-         let now_ms = now_ms();
-@@ -334,7 +380,7 @@ impl State {
-         self.dirty |= rebase.moved || self.gpu.view.perf || self.gpu.view.spin;
+ 
+@@ -338,7 +384,7 @@ impl State {
  
          let mut dropped = false;
+ 
 -        if self.dirty {
 +        if self.dirty && !self.cloud_query_awaiting_gpu() {
              let gap = now_ms - self.last_frame_ms;
              self.last_frame_ms = now_ms;
              let drawn = self.gpu.present(&input);
-@@ -376,11 +422,21 @@ impl State {
+@@ -384,11 +430,23 @@ impl State {
  
      /// A pointer gesture chooses one pass; Ctrl never also performs ordinary selection.
      pub fn request_selection(&mut self, x: u32, y: u32, edge: bool) {
 +        self.cancel_cloud_query();
          self.gpu.pick.cancel();
++
 +        #[cfg(target_arch = "wasm32")]
 +        if !edge && self.start_cloud_query(x, y) {
 +            return;
 +        }
++
          let mode = if edge {
              PickMode::Edge
          } else {
@@ -2253,7 +2455,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
          };
          self.requested = mode;
          let logical = self.logical_size();
-@@ -392,6 +448,44 @@ impl State {
+@@ -400,6 +458,47 @@ impl State {
          self.needs_frame = true;
      }
  
@@ -2263,6 +2465,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +            self.status("Select one object before pressing F10");
 +            return;
 +        };
++
 +        if matches!(self.selection, SelectionMode::Controls { parent: active, .. } if active == parent)
 +        {
 +            return;
@@ -2278,10 +2481,12 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +                return;
 +            }
 +        };
++
 +        if !controls.cloud && controls.points.is_empty() {
 +            self.status("This object has no selectable source controls");
 +            return;
 +        }
++
 +        self.selection.enable_controls(Some(parent), controls.cloud);
 +        self.gpu.segments.set_edge(&self.gpu.ctx, None);
 +        self.gpu.set_selected(parent, false);
@@ -2298,7 +2503,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
      /// Escape clears targets before retaining the active parent as an ordinary selection.
      pub fn escape_selection(&mut self) {
          let parent = self.selection.escape();
-@@ -399,14 +493,297 @@ impl State {
+@@ -407,14 +506,317 @@ impl State {
          self.status("");
      }
  
@@ -2318,6 +2523,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +        };
 +        let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
 +        let mut glyphs = GlyphRows::default();
++
 +        for control in &self.controls.points {
 +            let color = if Some(control.id) == selected {
 +                [1.0, 1.0, 0.0, 1.0]
@@ -2333,7 +2539,9 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +                facing_ext: [FACING_UNKNOWN; 2],
 +            });
 +        }
++
 +        let mut segments = SegRows::default();
++
 +        for &[start, end] in &self.controls.links {
 +            segments.ribbons.push(CylinderSegment {
 +                p0: render_position(self.controls.points[start].position),
@@ -2344,6 +2552,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +                facing: FACING_UNKNOWN,
 +            });
 +        }
++
 +        self.gpu
 +            .controls
 +            .append(&self.gpu.ctx, &self.gpu.layouts, &glyphs);
@@ -2357,16 +2566,20 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +        let SelectionMode::Controls { parent, .. } = self.selection else {
 +            return;
 +        };
++
 +        if pick.row != parent {
 +            return;
 +        }
++
 +        let id = if cloud {
 +            let Some((owner, local)) = self.gpu.cloud.row_of(pick.sub) else {
 +                return;
 +            };
++
 +            if owner != parent {
 +                return;
 +            }
++
 +            self.gpu.splat.set_point(Some(pick.sub));
 +            let Some(source) = self.scene.point_at(parent, local) else {
 +                self.status("Source point ID unavailable; no local display ID was substituted");
@@ -2379,6 +2592,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +            if pick.sub & 0xc000_0000 != 0x4000_0000 {
 +                return;
 +            }
++
 +            let Some(control) = self.controls.points.get((pick.sub & 0x3fff_ffff) as usize) else {
 +                return;
 +            };
@@ -2391,10 +2605,9 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +        };
 +        self.upload_controls();
 +        self.status(&format!("Selected {id:?}"));
-         self.touch();
-     }
- 
--    /// Prepare one source-document title when its CAD rows arrive.
++        self.touch();
++    }
++
 +    /// A source-query page owns GPU readback while ordinary color rendering is paused.
 +    fn cloud_query_awaiting_gpu(&self) -> bool {
 +        match &self.cloud_query {
@@ -2410,6 +2623,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +                return Some(slot);
 +            }
 +        }
++
 +        None
 +    }
 +
@@ -2445,7 +2659,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +            .view_proj_anchored(self.aspect(), &session_rust::Point::new(0.0, 0.0, 0.0));
 +        let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
 +        let view = QueryView {
-+            matrix: crate::math::mat_mul(&projection.m, &cloud.place),
++            matrix: &projection * &cloud.place,
 +            size: [
 +                f64::from(self.gpu.config.width),
 +                f64::from(self.gpu.config.height),
@@ -2467,6 +2681,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +        };
 +        query.awaiting_gpu = false;
 +        query.candidates.clear();
++
 +        if let Some(page) = query.next_page() {
 +            let progress = format!(
 +                "Checking source points: {} / {} (display LOD remains bounded)",
@@ -2482,6 +2697,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +            self.gpu.pick.cancel();
 +            self.status("No visible source point in the selection window");
 +        }
++
 +        self.upload_controls();
 +    }
 +
@@ -2491,9 +2707,11 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +        let Some(query) = self.cloud_query.as_mut() else {
 +            return;
 +        };
++
 +        if query.id != batch.query || query.cancelled.get() {
 +            return;
 +        }
++
 +        let (candidates, revision) = match batch.result {
 +            Ok(result) => result,
 +            Err(error) => {
@@ -2506,10 +2724,12 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +        };
 +        query.checked += batch.count;
 +        query.revision = revision;
++
 +        if candidates.is_empty() {
 +            self.advance_cloud_query();
 +            return;
 +        }
++
 +        query.candidates = candidates;
 +        query.awaiting_gpu = true;
 +        let parent = query.parent;
@@ -2517,6 +2737,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +        let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
 +        let query = self.cloud_query.as_ref().unwrap();
 +        let mut glyphs = GlyphRows::default();
++
 +        for candidate in &query.candidates {
 +            glyphs.dots.push(GlyphPoint {
 +                center: render_position(candidate.position),
@@ -2527,6 +2748,7 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +                facing_ext: [candidate.local, FACING_UNKNOWN],
 +            });
 +        }
++
 +        self.gpu.controls.reset();
 +        self.gpu
 +            .controls
@@ -2566,9 +2788,11 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +        let Some(query) = self.cloud_query.as_ref() else {
 +            return;
 +        };
++
 +        if query.id != resolved.query || query.cancelled.get() {
 +            return;
 +        }
++
 +        let query = self.cloud_query.take().unwrap();
 +        let (source, position) = match resolved.result {
 +            Ok(result) => result,
@@ -2593,15 +2817,16 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +            "Selected source point {source} (row {}); all {} eligible points checked",
 +            best, query.total
 +        ));
-+        self.touch();
-+    }
-+
+         self.touch();
+     }
+ 
+-    /// Prepare one source-document title when its CAD rows arrive.
 +    /// Keep one readable source-document title above each loaded CAD group.
 +    /// Only the newly appended rows are visited; large scenes are not scanned on selection.
      fn annotate_document(&mut self, first_row: usize) {
-         let mut bounds = crate::math::Aabb::empty();
-         for index in first_row..self.scene.object_count() {
-@@ -434,10 +811,11 @@ impl State {
+         let mut bounds = AABB::empty();
+ 
+@@ -445,11 +847,12 @@ impl State {
          ));
      }
  
@@ -2609,12 +2834,13 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +    /// Source-document text and the selected object's centered name share a fixed white style.
      fn update_label(&mut self) {
          let mut labels = self.scene_labels.clone();
+ 
          if self.show_selected_names
 +            && !matches!(self.selection, SelectionMode::Controls { .. })
              && let Some(row) = self.scene.selected
              && let Some(bounds) = self.gpu.objects.row_bounds(row)
          {
-@@ -474,7 +852,24 @@ impl State {
+@@ -487,7 +890,26 @@ impl State {
      fn perf_line(&self, _gap_ms: f64, _encode_ms: f64) {}
  }
  
@@ -2624,9 +2850,11 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +    /// Read-only source-control detail for the opt-in browser inspection fixture.
 +    pub fn inspected_controls(&self) -> Vec<serde_json::Value> {
 +        let mut points = Vec::with_capacity(self.controls.points.len());
++
 +        for point in &self.controls.points {
 +            points.push(serde_json::json!({"id": point.id, "position": point.position}));
 +        }
++
 +        points
 +    }
 +}
@@ -2637,10 +2865,10 @@ index b258f62b32326078e49bce2792a4a5ce34b32225..d29800257db3fa1ae6ba065bd85934c2
 +}
 +
 +/// Center a viewer annotation in the object's world-space bounds before camera projection.
- fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
+ fn label_center(bounds: &AABB) -> [f64; 3] {
      let mut center = [0.0; 3];
-     for (axis, coordinate) in center.iter_mut().enumerate() {
-@@ -483,7 +878,7 @@ fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
+ 
+@@ -498,7 +920,7 @@ fn label_center(bounds: &AABB) -> [f64; 3] {
      center
  }
  

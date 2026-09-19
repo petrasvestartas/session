@@ -1,8 +1,3 @@
-//! `State` - the viewer itself: the layers (`gpu`, `scene`, `camera`) and the shell state:
-//! `needs_frame`, the demand for a redraw, and `dirty`, whether the picture changed (a pick
-//! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
-//! never the other way round.
-
 use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
 use crate::app::selection::{ControlId, Controls, SelectionMode};
 use crate::app::walk::cloud::StreamRows;
@@ -41,15 +36,11 @@ pub struct State {
     pub gpu: Gpu,
     pub camera: Camera,
     pub scene: Scene,
-    /// Something changed since the last frame; the shell asks for a redraw when it sees this.
-    pub needs_frame: bool,
-    /// A drag or pinch is in progress (set by the input layer).
-    pub interacting: bool,
-    /// The picture changed: the redraw presents a colour frame. A pending pick alone does not.
-    dirty: bool,
+    pub needs_frame: bool, // Something changed since the last frame; the shell asks for a redraw when it sees this.
+    pub interacting: bool, // A drag or pinch is in progress (set by the input layer).
+    dirty: bool, // The picture changed: the redraw presents a colour frame. A pending pick alone does not.
     last_frame_ms: f64,
-    /// When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
-    last_resize_ms: f64,
+    last_resize_ms: f64, // When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
     pub selection: SelectionMode,
     pub selection_tool: crate::app::selection::SelectionTool,
     hierarchy: crate::app::hierarchy::Hierarchy,
@@ -57,19 +48,15 @@ pub struct State {
     controls: Controls,
     requested: PickMode,
     pub selection_radius_css: f64,
-    /// A view preference retained across selections and scene reloads; T toggles it.
-    show_selected_names: bool,
+    show_selected_names: bool, // A view preference retained across selections and scene reloads; T toggles it.
     cloud_query: Option<crate::app::cloud_query::Query>,
     #[cfg(target_arch = "wasm32")]
     query_generation: u64,
     sheet_query: Option<crate::app::sheet_query::Query>,
     sheet_generation: u64,
-    /// The move/rotate/scale widget, present only while a row with a box is selected.
-    pub gizmo: Option<crate::app::gizmo::Gizmo>,
-    /// The drag in progress, holding what the gesture is measured FROM.
-    dragging: Option<edit::GizmoDrag>,
-    /// A control point being dragged, which is a different gesture from a placement drag.
-    control_drag: Option<edit::ControlDrag>,
+    pub gizmo: Option<crate::app::gizmo::Gizmo>, // The move/rotate/scale widget, present only while a row with a box is selected.
+    dragging: Option<edit::GizmoDrag>, // The drag in progress, holding what the gesture is measured FROM.
+    control_drag: Option<edit::ControlDrag>, // A control point being dragged, which is a different gesture from a placement drag.
 }
 
 impl State {
@@ -204,12 +191,7 @@ impl State {
     /// Fit the camera around everything loaded so far.
     pub fn fit_all(&mut self) {
         let b = &self.gpu.bounds;
-        log::info!(
-            "fit: bounds {:?} .. {:?} aspect {:.3}",
-            b.min,
-            b.max,
-            self.aspect()
-        );
+        log::info!("fit: bounds {} aspect {:.3}", b.str(), self.aspect());
         self.camera.fit(&self.gpu.bounds, self.aspect());
         self.touch();
     }
@@ -226,9 +208,8 @@ impl State {
             return;
         };
         log::info!(
-            "fit selected: bounds {:?} .. {:?} aspect {:.3}",
-            b.min,
-            b.max,
+            "fit selected: bounds {} aspect {:.3}",
+            b.str(),
             self.aspect()
         );
         self.camera.fit(&b, self.aspect());
@@ -246,9 +227,11 @@ impl State {
     /// canvas meanwhile. A lone resize - a window moved to another screen - applies at once.
     pub fn resize(&mut self, width: u32, height: u32) -> bool {
         let now = now_ms();
+
         if now - self.last_resize_ms < Self::RESIZE_HOLD_MS {
             return false;
         }
+
         self.last_resize_ms = now;
         self.gpu.resize(width, height);
         self.gpu.logical_size = self.logical_size();
@@ -298,9 +281,11 @@ impl State {
         self.cancel_split();
         let row = row.filter(|row| self.scene.selectable(*row));
         self.cancel_gesture();
+
         for old in self.hierarchy.selected.drain(..) {
             self.gpu.set_selected(old, false);
         }
+
         self.selection = SelectionMode::Object;
         self.sheet_query = None;
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
@@ -309,12 +294,15 @@ impl State {
         self.gpu.control_net.reset();
         self.gpu.segments.set_edge(&self.gpu.ctx, None);
         self.gpu.splat.set_controls(None);
+
         if let Some(old) = self.scene.selected.take() {
             self.gpu.set_selected(old, false);
         }
+
         if let Some(r) = row {
             self.gpu.set_selected(r, true);
         }
+
         self.scene.selected = row;
         self.place_gizmo(row);
         self.update_label();
@@ -334,12 +322,15 @@ impl State {
     pub fn hide_selected(&mut self) {
         if !self.hierarchy.selected.is_empty() {
             let rows = std::mem::take(&mut self.hierarchy.selected);
+
             for row in &rows {
                 self.gpu.set_selected(*row, false);
             }
+
             self.set_rows_hidden(&rows, true);
             return;
         }
+
         let Some(row) = self.scene.selected else {
             return;
         };
@@ -359,6 +350,7 @@ impl State {
         for row in self.scene.hidden_rows() {
             self.gpu.set_hidden(row, false);
         }
+
         self.scene.hidden.clear();
         self.refresh_layers();
         self.update_label();
@@ -371,14 +363,18 @@ impl State {
             if let Some(pick) = pick {
                 self.pick_split_cutter(pick.row);
             }
+
             return;
         }
+
         let pick = pick.filter(|pick| self.scene.selectable(pick.row));
+
         #[cfg(target_arch = "wasm32")]
         if self.cloud_query_awaiting_gpu() {
             self.apply_cloud_query_pick(pick);
             return;
         }
+
         match self.requested {
             PickMode::Edge | PickMode::Component => {
                 if let Some(pick) = pick
@@ -419,15 +415,18 @@ impl State {
                 {
                     self.apply_control(pick, cloud);
                 }
+
                 return;
             }
             PickMode::Object => {}
         }
+
         let Some(p) = pick else {
             log::info!("pick: nothing");
             self.select(None);
             return;
         };
+
         match self.scene.resolve(p, &self.gpu) {
             Some(hit) => {
                 match &hit.point {
@@ -444,10 +443,12 @@ impl State {
                     ),
                     None => log::info!("pick: '{}' {} row {}", hit.doc, hit.guid, hit.row),
                 }
+
                 if let Some(entity) = hit.entity {
                     self.apply_sheet_pick(hit.row, entity);
                     return;
                 }
+
                 let toggle = if self.scene.selected == Some(hit.row) {
                     None
                 } else {
@@ -467,27 +468,32 @@ impl State {
     pub fn render(&mut self) {
         self.upload_gizmo();
         let logical = self.logical_size();
+
         if logical != self.gpu.logical_size {
             self.gpu.logical_size = logical;
             self.upload_controls();
             self.touch();
         }
+
         let failure = match self.gpu.failure.lock() {
             Ok(failure) => failure.clone(),
             Err(_) => None,
         };
+
         if let Some(message) = failure {
             #[cfg(target_arch = "wasm32")]
             if crate::app::route::recover_from_device_loss(&message) {
                 self.needs_frame = false;
                 return;
             }
+
             crate::app::feedback::error(&message);
             self.cancel_cloud_query();
             self.gpu.pick.cancel();
             self.needs_frame = false;
             return;
         }
+
         if let Some(pick) = self.gpu.pick.poll() {
             self.apply_pick(pick);
         } else if self.cloud_query_awaiting_gpu() && !self.gpu.pick.busy() {
@@ -496,11 +502,14 @@ impl State {
             self.upload_controls();
             self.status("Point query failed during GPU readback; click to retry");
         }
+
         self.needs_frame = false;
+
         if self.gpu.view.spin {
             self.cancel_cloud_query();
             self.camera.orbit(SPIN_STEP, 0.0);
         }
+
         let now_ms = now_ms();
         self.camera.grow_extent(&self.gpu.bounds);
         let origin = self.camera.origin();
@@ -518,11 +527,13 @@ impl State {
         self.dirty |= rebase.moved || self.gpu.view.perf || self.gpu.view.spin;
 
         let mut dropped = false;
+
         if self.dirty && !self.cloud_query_awaiting_gpu() {
             let gap = now_ms - self.last_frame_ms;
             self.last_frame_ms = now_ms;
             self.gpu.performance.interacting = self.interacting;
             let drawn = self.gpu.present(&input);
+
             // Only when there is something to give up: a ratio above 1, or the samples. At
             // device scale 1 the canvas keeps its size, so the targets are remade here.
             if self.gpu.performance.take_slow_interaction()
@@ -537,15 +548,19 @@ impl State {
                 );
                 self.status("Slow frames: rendering at device scale 1 without antialiasing");
             }
+
             dropped = drawn.is_none() && self.gpu.surface.is_some();
             self.dirty = dropped;
+
             if let (true, Some(encode_ms)) = (self.gpu.view.perf, drawn) {
                 self.perf_line(gap, encode_ms);
             }
         }
+
         if !dropped && let Some(at) = self.gpu.pick.take_pending() {
             self.gpu.pick_frame(&input, at);
         }
+
         self.needs_frame |= dropped
             || rebase.pending
             || self.gpu.pick.busy()
@@ -567,6 +582,7 @@ impl State {
                 f64::from(canvas.client_height().max(1)),
             ];
         }
+
         [
             f64::from(self.gpu.config.width),
             f64::from(self.gpu.config.height),
@@ -585,10 +601,12 @@ impl State {
             && (edge || self.selection_tool == crate::app::selection::SelectionTool::Edge);
         self.cancel_cloud_query();
         self.gpu.pick.cancel();
+
         #[cfg(target_arch = "wasm32")]
         if !splitting && !edge && self.start_cloud_query(x, y) {
             return;
         }
+
         let mode = if splitting {
             PickMode::Object
         } else if face {
@@ -619,6 +637,7 @@ impl State {
             self.status("Select one object before pressing F10");
             return;
         };
+
         if matches!(self.selection, SelectionMode::Controls { parent: active, .. } if active == parent)
         {
             return;
@@ -634,10 +653,12 @@ impl State {
                 return;
             }
         };
+
         if !controls.cloud && controls.points.is_empty() {
             self.status("This object has no selectable source controls");
             return;
         }
+
         // The widget and the control net compete for the same clicks and the same space, so
         // control mode takes the widget away.
         self.place_gizmo(None);
@@ -674,6 +695,7 @@ impl State {
         };
         let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
         let mut glyphs = GlyphRows::default();
+
         for control in &self.controls.points {
             let color = if Some(control.id) == selected {
                 [1.0, 1.0, 0.0, 1.0]
@@ -689,7 +711,9 @@ impl State {
                 facing_ext: [FACING_UNKNOWN; 2],
             });
         }
+
         let mut segments = SegRows::default();
+
         for &[start, end] in &self.controls.links {
             segments.ribbons.push(CylinderSegment {
                 p0: render_position(self.controls.points[start].position),
@@ -700,6 +724,7 @@ impl State {
                 facing: FACING_UNKNOWN,
             });
         }
+
         self.gpu
             .controls
             .append(&self.gpu.ctx, &self.gpu.layouts, &glyphs);
@@ -713,16 +738,20 @@ impl State {
         let SelectionMode::Controls { parent, .. } = self.selection else {
             return;
         };
+
         if pick.row != parent {
             return;
         }
+
         let id = if cloud {
             let Some((owner, local)) = self.gpu.cloud.row_of(pick.sub) else {
                 return;
             };
+
             if owner != parent {
                 return;
             }
+
             self.gpu.splat.set_point(Some(pick.sub));
             let Some(source) = self.scene.point_at(parent, local) else {
                 self.status("Source point ID unavailable; no local display ID was substituted");
@@ -735,6 +764,7 @@ impl State {
             if pick.sub & 0xc000_0000 != 0x4000_0000 {
                 return;
             }
+
             let Some(control) = self.controls.points.get((pick.sub & 0x3fff_ffff) as usize) else {
                 return;
             };
@@ -777,9 +807,11 @@ impl State {
     /// Read-only source-control detail for the opt-in browser inspection fixture.
     pub fn inspected_controls(&self) -> Vec<serde_json::Value> {
         let mut points = Vec::with_capacity(self.controls.points.len());
+
         for point in &self.controls.points {
             points.push(serde_json::json!({"id": point.id, "position": point.position}));
         }
+
         points
     }
 }

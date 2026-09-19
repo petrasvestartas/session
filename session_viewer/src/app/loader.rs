@@ -1,8 +1,3 @@
-//! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
-//! event loop as a `Msg` - whole files through `decode`, big clouds and every sheet a slice
-//! at a time through `stream`. Live first, then the URL's route, then the poll loop. Touches
-//! no GPU.
-
 use super::decode::session_from_bytes;
 use super::fetch::{fetch_bytes, sleep_ms};
 use super::live::LiveSource;
@@ -57,12 +52,16 @@ const SHEET_MAX_SEGMENTS: u32 = 3_000_000;
 thread_local! {
     /// The start-up proxy, kept so `reload_scene` and the stream tasks can post messages.
     static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
+
     /// Points resident across every streamed cloud on the page: the ceiling is a scene budget.
     static RESIDENT: Cell<u32> = const { Cell::new(0) };
+
     /// Segments resident across every sheet on the page, under its own ceiling.
     static SHEET_RESIDENT: Cell<u32> = const { Cell::new(0) };
+
     /// Bumped on every `Clear`: a stream task from an older scene stops at its next slice.
     static GENERATION: Cell<u32> = const { Cell::new(0) };
+
     static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
 }
 
@@ -130,15 +129,18 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
 
     let mut live = LiveSource::from_query();
     let mut loaded = false;
+
     if let Some(src) = live.as_mut() {
         log::info!("live: watching {} every {:.0} ms", src.url, src.poll_ms);
         loaded = post_live(src).await;
     }
+
     if !loaded && let Some(route) = scene_route() {
         load_route(&route, None).await;
     }
 
     let Some(mut src) = live else { return };
+
     loop {
         sleep_ms(src.tick_ms).await;
         post_live(&mut src).await;
@@ -151,17 +153,23 @@ async fn post_live(src: &mut LiveSource) -> bool {
     let Some(docs) = src.check().await else {
         return false;
     };
+
     if stale_load(generation) {
         return false;
     }
+
     let texts = src.texts();
+
     if docs.is_empty() && texts.is_empty() {
         return false;
     }
+
     clear_scene();
+
     for doc in docs {
         post(Msg::File(doc));
     }
+
     post(Msg::Texts(texts));
     post(Msg::Fit);
     super::feedback::status("");
@@ -232,9 +240,11 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             return;
         }
     };
+
     if stale_load(generation) {
         return;
     }
+
     let manifest = match Manifest::parse(&bytes) {
         Ok(m) => m,
         Err(e) => {
@@ -245,17 +255,21 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
     log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
 
     let mut files = 0u32;
+
     for item in &manifest.items {
         if item.file.ends_with(".pb") {
             files += 1;
         }
     }
+
     let files = files.max(1);
     let share = (max_points() / files).max(STREAM_MIN_PREFIX);
+
     for (i, item) in manifest.items.iter().enumerate() {
         let url = join(&route.base, &item.file);
         let place = manifest.place(i, AUTO_GRID);
         let point_px = item.point_size as f32;
+
         if url.ends_with(".pb") {
             let slot = Placement {
                 name: manifest.name_of(i, &item.file),
@@ -267,16 +281,19 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             } else {
                 budget_left()
             };
+
             if let Some(init) =
                 stream_prefix(&url, &slot, share.min(remaining.max(STREAM_MIN_PREFIX))).await
             {
                 if stale_load(generation) {
                     return;
                 }
+
                 if init.resident == 0 {
                     failed = true;
                     continue;
                 }
+
                 if replacement.is_some() {
                     staged_points = staged_points.saturating_add(init.resident);
                     pending.push(PendingDocument::Streamed(Box::new(init)));
@@ -284,21 +301,26 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                     budget_spend(init.resident);
                     post(Msg::StreamedCloud(Box::new(init)));
                 }
+
                 continue;
             }
+
             let remaining = if replacement.is_some() {
                 max_segments().saturating_sub(staged_segments)
             } else {
                 sheet_budget_left()
             };
+
             if let Some(init) = sheet_prefix(&url, &slot, remaining).await {
                 if stale_load(generation) {
                     return;
                 }
+
                 if init.resident == 0 {
                     failed = true;
                     continue;
                 }
+
                 if replacement.is_some() {
                     staged_segments = staged_segments.saturating_add(init.resident);
                     pending.push(PendingDocument::Sheet(Box::new(init)));
@@ -306,12 +328,15 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                     sheet_budget_spend(init.resident);
                     post(Msg::Sheet(Box::new(init)));
                 }
+
                 continue;
             }
         }
+
         // A whole file is decoded into the wasm heap several times over; past the device's
         // budget the page would die without a word, so the file is skipped with one instead.
         let length = super::fetch::content_length(&url).await.unwrap_or(0);
+
         if spent + length > budget {
             log::warn!(
                 "skipped '{}': {} MB over the {} MB scene budget",
@@ -322,6 +347,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             skipped.push(format!("{} ({} MB)", item.file, length >> 20));
             continue;
         }
+
         spent += length;
         let f0 = now_ms();
         let bytes = match fetch_bytes(&url).await {
@@ -342,14 +368,17 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                 continue;
             }
         };
+
         if stale_load(generation) {
             return;
         }
+
         if session.lookup.is_empty() {
             log::warn!("'{}' holds no geometry ({n} bytes); skipped", item.file);
             failed = true;
             continue;
         }
+
         let name = manifest.name_of(i, &session.name);
         log::info!(
             "loaded '{name}': {} objects, {n} bytes | fetch {:.0} ms, parse {:.0} ms",
@@ -364,15 +393,18 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             point_px,
             display_only: item.display_only,
         };
+
         if replacement.is_some() {
             pending.push(PendingDocument::Whole(doc));
         } else {
             post(Msg::File(doc));
         }
     }
+
     if stale_load(generation) {
         return;
     }
+
     if replacement.is_some() {
         if failed {
             super::feedback::status(
@@ -380,9 +412,11 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             );
             return;
         }
+
         clear_scene();
         budget_spend(staged_points);
         sheet_budget_spend(staged_segments);
+
         for document in pending {
             match document {
                 PendingDocument::Whole(doc) => {
@@ -397,11 +431,14 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             }
         }
     }
+
     post(Msg::Texts(manifest.texts));
     post(Msg::Fit);
+
     if !failed {
         super::feedback::status(&skipped_notice(&skipped, budget));
     }
+
     log::info!(
         "scene posted {:.0} ms after the manifest fetch",
         now_ms() - t0
@@ -430,9 +467,11 @@ struct Placement {
 async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<StreamedInit> {
     let (name, place, point_px) = (slot.name.as_str(), slot.place.clone(), slot.point_px);
     let mut fields = cloud_fields(url).await?;
+
     if fields.count <= STREAM_PREFIX_POINTS && fields.coords_len < STREAM_MIN_BYTES {
         return None;
     }
+
     let lod = cloud_lod(url, &mut fields).await?;
     let resident = STREAM_PREFIX_POINTS.min(share).min(fields.count);
     let Some(positions) = fetch_positions(url, &fields, 0, resident).await else {
@@ -541,11 +580,14 @@ async fn sheet_rest(c: SheetCursor) {
     let (url, idx, fields) = (c.url, c.idx, c.fields);
     let generation = GENERATION.get();
     let mut at = c.from;
+
     while at < fields.count {
         if GENERATION.get() != generation {
             return;
         }
+
         let left = sheet_budget_left();
+
         if left == 0 {
             log::info!(
                 "'{url}': {at} of {} segments resident - at the page's segment ceiling (?segments= to raise it)",
@@ -553,21 +595,26 @@ async fn sheet_rest(c: SheetCursor) {
             );
             return;
         }
+
         let to = (at + SHEET_CHUNK_SEGMENTS.min(left)).min(fields.count);
         sheet_budget_spend(to - at);
         let Some(rows) = fetch_sheet_slice(&url, &fields, at, to).await else {
             if GENERATION.get() == generation {
                 SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_sub(to - at));
             }
+
             super::feedback::status("A sheet range failed; reload to retry the missing data");
             return;
         };
+
         if GENERATION.get() != generation {
             return;
         }
+
         if !post(Msg::SheetChunk(SheetChunk { idx, rows, to })) {
             return;
         }
+
         at = to;
     }
 }
@@ -594,11 +641,14 @@ async fn stream_rest(c: StreamCursor) {
     let generation = GENERATION.get();
     let mut col_at = c.col_at;
     let mut at = c.from;
+
     while at < fields.count {
         if GENERATION.get() != generation {
             return;
         }
+
         let left = budget_left();
+
         if left == 0 {
             log::info!(
                 "'{url}': {at} of {} points resident - at the page's point ceiling (?points= to raise it)",
@@ -606,12 +656,14 @@ async fn stream_rest(c: StreamCursor) {
             );
             return;
         }
+
         let to = (at + STREAM_CHUNK_POINTS.min(left)).min(fields.count);
         budget_spend(to - at);
         let Some(positions) = fetch_positions(&url, &fields, at, to).await else {
             if GENERATION.get() == generation {
                 RESIDENT.set(RESIDENT.get().saturating_sub(to - at));
             }
+
             super::feedback::status("A point-cloud range failed; reload to retry the missing data");
             return;
         };
@@ -619,9 +671,11 @@ async fn stream_rest(c: StreamCursor) {
             .await
             .unwrap_or((Vec::new(), col_at));
         col_at = next;
+
         if GENERATION.get() != generation {
             return;
         }
+
         if !post(Msg::CloudChunk(CloudChunk {
             idx,
             rows: StreamRows { positions, colors },
@@ -642,6 +696,7 @@ fn scene_budget_bytes() -> u64 {
     {
         return mb << 20;
     }
+
     let gigabytes = web_sys::window()
         .map(|window| window.navigator())
         .and_then(|navigator| js_sys::Reflect::get(&navigator, &"deviceMemory".into()).ok())
@@ -655,6 +710,7 @@ fn skipped_notice(skipped: &[String], budget: u64) -> String {
     if skipped.is_empty() {
         return String::new();
     }
+
     format!(
         "Skipped over the {} MB scene budget: {}. Add ?budget=<MB> to raise it.",
         budget >> 20,

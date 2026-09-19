@@ -1,23 +1,18 @@
-//! Clocks and counters: the frame timer that logs fps once a second, WASM memory capacity,
-//! and `now_ms` on both targets. Native builds read the system clock.
-
 /// Frame timing: a smoothed frame time and one log line a second when `perf` is on.
 pub struct Performance {
     prev_frame: f64,
     last_log: f64,
     frame_ms: f64,
     pub frames: u64,
-    /// Draw calls encoded for the last color frame, excluding asynchronous ID work.
-    pub draws: u32,
-    /// A drag or pinch is in progress, so frames are back to back and their spacing is the
-    /// cost of a frame.
-    pub interacting: bool,
+    pub draws: u32, // Draw calls encoded for the last color frame, excluding asynchronous ID work.
+    pub interacting: bool, // A drag or pinch is in progress, so frames are back to back and their spacing is the cost of a frame.
     slow_run: u32,
     slow: bool,
 }
 
 /// An interaction frame slower than this counts as slow ...
 const SLOW_FRAME_MS: f64 = 40.0;
+
 /// ... and this many in a row mean the GPU cannot keep up at this resolution.
 const SLOW_FRAMES: u32 = 30;
 
@@ -53,9 +48,11 @@ impl Performance {
         } else {
             0
         };
+
         if self.slow_run == SLOW_FRAMES {
             self.slow = true;
         }
+
         self.frame_ms = if self.frame_ms == 0.0 {
             dt
         } else {
@@ -120,6 +117,7 @@ pub fn heap_mb() -> f64 {
     let Some(resident) = stats.split_whitespace().nth(1) else {
         return 0.0;
     };
+
     match resident.parse::<f64>() {
         Ok(pages) => pages * 4096.0 / 1.048576e6,
         Err(_) => 0.0,
@@ -148,9 +146,11 @@ pub fn perf_line(text: &str) {
             };
             e.set_id("perf");
             let _ = e.set_attribute("style", "position:fixed;left:0;top:0;margin:0;padding:2px 6px;font:12px monospace;color:#000;background:rgba(255,255,255,.7);z-index:9;pointer-events:none");
+
             if let Some(b) = doc.body() {
                 let _ = b.append_child(&e);
             }
+
             e
         }
     };
@@ -165,11 +165,13 @@ mod tests {
         perf.interacting = interacting;
         let mut now = perf.prev_frame;
         let mut slow = false;
+
         for _ in 0..count {
             now += step_ms;
             perf.frame(1, 1, now, false);
             slow |= perf.take_slow_interaction();
         }
+
         slow
     }
 

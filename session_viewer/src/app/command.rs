@@ -5,15 +5,13 @@ use crate::app::gizmo::Axis;
 #[derive(Clone, Debug, PartialEq)]
 pub enum Command {
     Model(crate::app::modeling::Modeling),
-    /// Move the selection by a world offset, in millimetres.
-    Move([f64; 3]),
-    /// Turn the selection about one axis through its own centre, in degrees.
+    Move([f64; 3]), // Move the selection by a world offset, in millimetres.
     Rotate {
+        // Turn the selection about one axis through its own centre, in degrees.
         axis: Axis,
         degrees: f64,
     },
-    /// Scale the selection about its own centre.
-    Scale(f64),
+    Scale(f64), // Scale the selection about its own centre.
     Split,
     Save,
     Open,
@@ -23,8 +21,7 @@ pub enum Command {
     Hide,
     ShowAll,
     Fit,
-    /// Clear the selection.
-    Escape,
+    Escape, // Clear the selection.
 }
 
 /// Contextual syntax shown while typing, including immediately usable examples.
@@ -61,10 +58,13 @@ pub fn parse(line: &str) -> Result<Command, String> {
     if line.len() > 65536 {
         return Err("command exceeds 64 KiB".into());
     }
+
     let line = line.trim();
+
     if line.is_empty() {
         return Err("nothing typed".into());
     }
+
     let mut words = line.split_whitespace();
     let verb = words.next().unwrap_or_default().to_ascii_lowercase();
     let rest: Vec<&str> = words.collect();
@@ -75,9 +75,11 @@ pub fn parse(line: &str) -> Result<Command, String> {
         | "fit" | "escape" | "esc" => Some(0),
         _ => None,
     };
+
     if expected.is_some_and(|count| rest.len() != count) {
         return Err(format!("wrong number of arguments for `{verb}`"));
     }
+
     match verb.as_str() {
         "point" | "line" | "polyline" | "curve" | "trim" | "extend" | "explode" => {
             model(&verb, &rest).map(Command::Model)
@@ -89,9 +91,11 @@ pub fn parse(line: &str) -> Result<Command, String> {
         }
         "scale" | "s" => {
             let k = number(rest.first().copied(), "scale 2")?;
+
             if k <= 0.0 {
                 return Err("scale wants a factor above zero".into());
             }
+
             Ok(Command::Scale(k))
         }
         "split" => Ok(Command::Split),
@@ -126,6 +130,7 @@ fn offset(words: &[&str]) -> Result<[f64; 3], String> {
     let Some(typed) = coords::parse(&text) else {
         return Err(format!("`{joined}` is not an offset; try `move 10 0 0`"));
     };
+
     match typed {
         coords::Typed::Absolute { x, y, z } | coords::Typed::Relative { x, y, z } => {
             Ok([x, y, z.unwrap_or(0.0)])
@@ -152,6 +157,7 @@ fn number(word: Option<&str>, example: &str) -> Result<f64, String> {
     let Some(word) = word else {
         return Err(format!("missing a number; try `{example}`"));
     };
+
     match word.parse::<f64>() {
         Ok(v) if v.is_finite() => Ok(v),
         _ => Err(format!("`{word}` is not a number")),
@@ -207,6 +213,7 @@ mod tests {
             Ok(Command::Model(Modeling::Trim(0.2, 0.8)))
         );
         assert_eq!(parse("explode"), Ok(Command::Model(Modeling::Explode)));
+
         for line in [
             "point @1,2,3",
             "line 0,0,0",
@@ -217,6 +224,7 @@ mod tests {
         ] {
             assert!(parse(line).is_err(), "{line}");
         }
+
         assert!(parse(&"x".repeat(65537)).is_err());
     }
 
@@ -234,6 +242,7 @@ mod tests {
 
 fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, String> {
     use crate::app::modeling::Modeling;
+
     match verb {
         "explode" if words.is_empty() => Ok(Modeling::Explode),
         "trim" | "extend" if words.len() == 2 => {
@@ -247,15 +256,18 @@ fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, S
         }
         "point" | "line" | "polyline" | "curve" => {
             let mut points = Vec::new();
+
             if words.len() > crate::app::modeling::MAX_POINTS {
                 return Err("too many points".into());
             }
+
             for word in words {
                 let Some(coords::Typed::Absolute { x, y, z }) = coords::parse(word) else {
                     return Err("use world coordinates x,y,z separated by spaces".into());
                 };
                 points.push([x, y, z.unwrap_or(0.0)]);
             }
+
             match (verb, points.len()) {
                 ("point", 1) => Ok(Modeling::Point(points[0])),
                 ("line", 2) => Ok(Modeling::Line(points[0], points[1])),

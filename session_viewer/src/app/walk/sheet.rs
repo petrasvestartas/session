@@ -1,9 +1,6 @@
-//! Sheets into the ribbon table: a streamed slice of flattened drawing segments that never
-//! became a kernel object, each carrying the entity id a pick resolves through the side table.
-
 use super::encode::{BLACK, FACING_UNKNOWN};
 use crate::engine::gpu::segments::{CylinderSegment, SegDraw, SegRows};
-use crate::math::Aabb;
+use session_rust::AABB;
 
 /// A streamed slice: raw rows off the wire, already converted. A short column (an absent
 /// array) is padded by the walk: black, hairline, no entity.
@@ -32,17 +29,18 @@ fn sheet_radius(width: f32) -> f32 {
 }
 
 /// Append one slice as unjoined ribbons; returns the slice's local box.
-pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> Aabb {
+pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> AABB {
     seg.ribbon_ids.resize(seg.ribbons.len(), u32::MAX);
     let first = seg.ribbons.len() as u32;
     let count = (s.rows.positions.len() / 6) as u32;
     seg.ribbons.reserve(count as usize);
     seg.ribbon_ids.reserve(count as usize);
-    let mut bounds = Aabb::empty();
+    let mut bounds = AABB::empty();
+
     for (i, p) in s.rows.positions.chunks_exact(6).enumerate() {
         let (p0, p1) = ([p[0], p[1], p[2]], [p[3], p[4], p[5]]);
-        bounds.grow(p0);
-        bounds.grow(p1);
+        bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
+        bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);
         seg.ribbons.push(CylinderSegment {
             p0,
             radius: sheet_radius(s.rows.widths.get(i).copied().unwrap_or(0.0)),
@@ -54,6 +52,7 @@ pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> Aabb {
         seg.ribbon_ids
             .push(s.rows.ids.get(i).copied().unwrap_or(u32::MAX));
     }
+
     seg.sheets.push(SegDraw {
         instance: s.row,
         from: s.from,
@@ -66,6 +65,7 @@ pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> Aabb {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use session_rust::Point;
 
     /// Short colour, width and id columns pad; the box spans both ends of every segment.
     #[test]
@@ -90,8 +90,8 @@ mod tests {
             row: 7,
         };
         let bounds = walk_sheet_slice(&mut seg, &slice);
-        assert_eq!(bounds.min, [-5.0, 0.0, 0.0]);
-        assert_eq!(bounds.max, [10.0, 2.0, 0.0]);
+        assert_eq!(bounds.min_point(), Point::new(-5.0, 0.0, 0.0));
+        assert_eq!(bounds.max_point(), Point::new(10.0, 2.0, 0.0));
         assert_eq!(seg.ribbons.len(), 3);
         assert_eq!(seg.ribbon_ids, [u32::MAX, 4, u32::MAX]);
         assert_eq!(seg.ribbons[1].radius, 0.5);

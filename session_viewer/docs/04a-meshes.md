@@ -43,29 +43,29 @@ Bind groups every lane shares (`Layouts`):
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=1-39 -->
+<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=1-35 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=40-99 -->
+<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=36-100 -->
 
 - `reset` keeps the allocation: a reload refills a buffer already the right size.
 - `release` hands the buffer back, for a cleared scene that should hold no GPU memory.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=100-123 -->
+<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=101-124 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=124-186 -->
+<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=125-187 -->
 
 - One helper builds every bind group: buffers in binding order, no names to keep in sync. A layout mismatch then fails at one call site instead of eight.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=187-206 -->
+<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=188-209 -->
 
 ## Step 2 · Bind-group layouts
 
@@ -79,13 +79,13 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=1-52 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=1-48 -->
 
 - The ink layout adds the physical depth at bindings 2 and 3 — one single-sampled view, one multisampled; the unused one is a 1×1 placeholder.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=53-106 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=49-102 -->
 
 ## Step 3 · Pipelines are data
 
@@ -96,39 +96,39 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-58 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-48 -->
 
 ![The six depth modes are three compare functions crossed with the write flag; Always with a write has no caller, and Detached has no depth attachment at all.](illustrations/depth-modes.svg)
 
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=59-117 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=49-103 -->
 
 - One base description becomes a family: `with` renames and repoints the fragment entry, `vertex` swaps the vertex entry, `color` and `depth` set the two states that vary between passes.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=118-182 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=104-168 -->
 
 - `SCENE` is the contract every lane compiles with: a lane names the constant instead of repeating an `include_str!`.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=183-205 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=169-191 -->
 
 - `module` appends `normals.wgsl` to every shader source: one normal transform serves all lanes.
 - `scene_module` also appends `scene.wgsl`, declaring the camera, the line block and the object rows once for every lane.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=206-235 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=192-223 -->
 
 - `build` is the only place wgpu is asked for a render pipeline: `Depth32Float`, no cull, fill mode, the desc supplies the rest.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=236-285 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=224-274 -->
 
 - `scene.wgsl` is the scene contract: groups 0 to 2, the `Instance` row, the `LineUniform` block, the `FLAG_*` bits, `place`. No lane declares them itself, so a row field changes in one place.
 
@@ -161,16 +161,16 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=1-70 -->
+<!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=1-67 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=71-135 -->
+<!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=68-133 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=136-165 -->
+<!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=134-163 -->
 
 - `TextureSpec` holds an attachment as data - size, format, samples, usage.
 - Kept as data, every attachment rebuilds from one place when the sample count flips.
@@ -187,7 +187,7 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-44 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-39 -->
 
 `LineUniform` is 80 bytes, declared once in `scene.wgsl` — one list of offsets to keep true:
 
@@ -213,7 +213,7 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=45-110 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=40-98 -->
 
 - `PickView` renders a window of the canvas into an attachment its own size: a pick costs the window, not the canvas.
 - `clip_transform` maps the canvas projection onto the window's sub-frustum.
@@ -221,30 +221,30 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=111-181 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=99-169 -->
 
 - `FrameUniforms` owns the three frame blocks, the same three for the pick pass plus the bare transform, and the frame's solved camera facts: `mvp_f32`, `ortho_h`, `eye`.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=182-210 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=170-192 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=211-258 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=193-240 -->
 
 - Construction makes the buffers and bind groups, no camera in them yet.
 - A frame writes only into buffers already built and bound — no per-frame allocation.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=259-337 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=241-320 -->
 
 - The three blocks are written together from one solved camera, so they cannot disagree about which frame they describe.
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=338-355 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=321-338 -->
 
 - `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result.
 - The pen is `thickness_px * pixel_scale`, keeping its CSS width at every device scale.
@@ -252,7 +252,7 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=356-400 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=339-383 -->
 
 - `write_pick` runs after `write`, deriving the pick blocks from the frame's own solved values.
 - The camera is premultiplied by the window's clip transform; `origin` becomes the window's top-left.
@@ -260,11 +260,11 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=401-418 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=384-401 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ac9c0f575f.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=419-425 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=402-408 -->
 
 ## Step 6 · Runtime knobs and the query string
 
@@ -299,49 +299,49 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6f3a43d3.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-26 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-21 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6f3a43d3.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=27-65 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=22-58 -->
 
 - Group 2 for ink binds the same two buffers plus the face pass's depth views.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6f3a43d3.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=66-117 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=59-108 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6f3a43d3.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=118-188 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=109-179 -->
 
 - `append` converts each row to the 96-byte `Instance`, keeps the f64 translation aside, and records bounded rows for the inside test.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6f3a43d3.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=189-255 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=180-250 -->
 
 - `rebase_anchor` rewrites only the translation column when the camera target drifts a quarter of the view distance, throttled to one rebuild per interval.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6f3a43d3.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=256-314 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=251-316 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6f3a43d3.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=315-362 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=317-371 -->
 
 - `anchored_model` spells out on the CPU the composition a shader performs, so a test can check it.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6f3a43d3.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=363-418 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=372-432 -->
 
 - Flags are set and written back one row at a time: selecting an object must not re-upload the table.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6f3a43d3.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=419-471 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=433-482 -->
 
 <!-- check: 04a -->
 
@@ -355,13 +355,13 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ca01a21fea.svg" data-zone="Shaders"></span>
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-23 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-21 -->
 
 - A hidden row's triangle is parked outside the clip volume; the ID pass shares this vertex stage, so a hidden object is unpickable too.
 
 <span class="zone-mark" data-strip="illustrations/strip-ca01a21fea.svg" data-zone="Shaders"></span>
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=24-61 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=22-63 -->
 
 - Shading is a function of its own: `fs_main` calls it, `fs_id` returns the row and never lights.
 - A camera headlight with wrapped diffuse keeps the darkest visible face its own colour, not black.
@@ -369,13 +369,13 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-ca01a21fea.svg" data-zone="Shaders"></span>
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=62-113 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=64-121 -->
 
 - The two fragment entries end the file: `fs_id` writes the object row for picking, `fs_main` the shaded colour.
 
 <span class="zone-mark" data-strip="illustrations/strip-ca01a21fea.svg" data-zone="Shaders"></span>
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=114-122 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=122-130 -->
 
 ## Step 9 · The mesh lane
 
@@ -386,21 +386,21 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=1-63 -->
+<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=1-59 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=64-114 -->
+<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=60-110 -->
 
 - Three index runs share one vertex table: solid faces, sheet fills, lettering. The last two go through the unlit outline lane below.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=115-162 -->
+<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=111-158 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=163-228 -->
+<!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=159-225 -->
 
 - The outline lane borrows the arena's buffers and draws imported PDF lettering unlit; the arena's print and text runs call it.
 
@@ -410,22 +410,22 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=1-55 -->
+<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=1-49 -->
 
 - Imported outline text is geometry, not glyphs: it keeps exact object IDs and the sheet depth comparison, so it picks and occludes like the drawing it came from.
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=56-67 -->
+<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=50-61 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=68-114 -->
+<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=62-109 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs copy lines=115-246 -->
+<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs copy lines=110-246 -->
 
 ## Step 10 · Upload and the fixture
 
@@ -454,25 +454,25 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=1-33 -->
+<!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=1-35 -->
 
 - `new` is the device setup, then every shared resource once.
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=34-96 -->
+<!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=36-99 -->
 
 - `set_scene` appends each lane's delta; `resize` rebuilds size-dependent targets and the ink bind group that samples them.
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=97-139 -->
+<!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=100-145 -->
 
 - The frame: write uniforms, face pass, ink pass, submit, present.
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=140-172 -->
+<!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=146-180 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
@@ -482,11 +482,11 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
-<!-- file: 04a session_viewer/src/lib.rs type whole lines=1-52 -->
+<!-- file: 04a session_viewer/src/lib.rs type whole lines=1-54 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
-<!-- file: 04a session_viewer/src/lib.rs type whole lines=53-95 -->
+<!-- file: 04a session_viewer/src/lib.rs type whole lines=55-103 -->
 
 - `render` is the frame: resize if needed, take one anchor for the whole frame, submit. One anchor stops two lanes disagreeing about where the world is.
 

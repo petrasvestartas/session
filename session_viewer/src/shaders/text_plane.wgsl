@@ -1,4 +1,3 @@
-// Fixed world-plane text keeps full homogeneous coordinates and perspective-correct UVs.
 struct Vertex {
     @builtin(position) position: vec4<f32>,
     @location(0) uv: vec2<f32>,
@@ -7,8 +6,10 @@ struct Vertex {
     @location(3) @interpolate(flat) object: u32,
     @location(4) @interpolate(flat) selected: f32,
 }
+
 @group(0) @binding(0) var coverage_texture: texture_2d<f32>;
 @group(0) @binding(1) var coverage_sampler: sampler;
+
 // The pick pass's clip-space map from the canvas projection to its window-sized attachment.
 @group(1) @binding(0) var<uniform> pick: mat4x4<f32>;
 
@@ -46,7 +47,10 @@ fn plate_distance(uv: vec2<f32>) -> f32 {
 // Selection changes the whole backing to yellow; physical reverse-Z still hides covered text.
 @fragment
 fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
-    if (in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) { discard; }
+    if (in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) {
+        discard;
+    }
+
     let coverage = textureSample(coverage_texture, coverage_sampler, in.uv).r;
     let distance = plate_distance(in.uv);
     let plate_coverage = clamp(0.5 - distance / max(fwidth(distance), 0.001), 0.0, 1.0);
@@ -56,7 +60,13 @@ fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
 
 @fragment
 fn fs_id(in: Vertex) -> @location(0) vec2<u32> {
-    if (in.object == 0u || in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) { discard; }
-    if (plate_distance(in.uv) > 0.0) { discard; }
+    if (in.object == 0u || in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) {
+        discard;
+    }
+
+    if (plate_distance(in.uv) > 0.0) {
+        discard;
+    }
+
     return vec2<u32>(in.object, 0u);
 }

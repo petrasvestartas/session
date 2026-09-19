@@ -105,7 +105,8 @@ def measure(step, lesson_markdown, workspace, env, log_dir):
             ok = cargo_check(workspace / "session_viewer", env, log_dir / f"check-{position}.log")
             results[str(position)] = "ok" if ok else "fail"
             print(f"  check at position {position}: {'ok' if ok else 'FAIL'}", flush=True)
-        position += 1
+        if kind in ("file", "supplied", "check", "checkpoint"):
+            position += 1
     REPLAY.check_files(workspace, step.record["files"])
     (workspace / ".reconstruction-state.json").write_text(json.dumps({
         "checkpoint": step.id, "files": step.record["files"]}, indent=2) + "\n")

@@ -1,7 +1,3 @@
-//! The ink a mesh wears: one pipe per visible edge, one marker per vertex - the SOLID lane.
-//! Reads the fused topology and the positions by slot; writes `SegRows.pipes` and
-//! `GlyphRows.spheres`, nothing else.
-
 use super::encode::{BLACK, FACING_UNKNOWN, encode_width, oct16, pack_facing};
 use super::mesh::{COPLANAR_DOT, CREASE_COS, Lap, WIREFRAME_BLACK_MIN};
 use super::mesh_topology::{MeshTopo, SlotMap};
@@ -24,8 +20,7 @@ pub struct InkCx<'a> {
     pub row: u32,
     pub vpos: &'a [[f32; 3]],
     pub slots: &'a SlotMap,
-    /// The mesh samples a smooth surface, so only its borders and creases are ink.
-    pub smooth: bool,
+    pub smooth: bool, // The mesh samples a smooth surface, so only its borders and creases are ink.
     pub lap: &'a mut Lap,
 }
 
@@ -48,6 +43,7 @@ fn normal_of(topo: &MeshTopo, faces: [u32; 2], side: usize) -> Option<[f64; 3]> 
     if faces[side] == u32::MAX {
         return None;
     }
+
     topo.normals[faces[side] as usize]
 }
 
@@ -59,9 +55,11 @@ fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3
     let f = topo.edge_faces[ei];
     let n0 = normal_of(topo, f, 0);
     let n1 = normal_of(topo, f, 1);
+
     if topo.opposed[ei] {
         return (n0, n1);
     }
+
     (n0, n1.map(reversed_normal))
 }
 
@@ -78,6 +76,7 @@ fn smooth_feature(topo: &MeshTopo, ei: usize, pair: (Option<[f64; 3]>, Option<[f
     if topo.edge_faces[ei][1] == u32::MAX {
         return true;
     }
+
     match pair {
         (Some(n0), Some(n1)) => dot3(&n0, &n1) < CREASE_COS,
         _ => true,
@@ -90,7 +89,9 @@ fn push_faces(edge_faces: &[[u32; 2]], ei: usize, fkeys: &mut Vec<usize>) {
         if f == u32::MAX {
             continue;
         }
+
         let fk = f as usize;
+
         if !fkeys.contains(&fk) {
             fkeys.push(fk);
         }
@@ -102,6 +103,7 @@ fn facing_word(codes: &[u32], k: usize) -> u32 {
     match (codes.get(2 * k).copied(), codes.get(2 * k + 1).copied()) {
         (Some(a), b) => {
             let v = a | b.unwrap_or(a) << 16;
+
             if v == FACING_UNKNOWN { v ^ 1 } else { v }
         }
         _ => FACING_UNKNOWN,
@@ -114,12 +116,15 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     let w = m.widths();
     let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN;
     ink.seg.pipes.reserve(topo.edges.len());
+
     for (i, (a, b, col)) in topo.edges.iter().enumerate() {
         let (na, nb) = edge_normals(topo, i);
         let facing = pack_facing(na.as_ref(), nb.as_ref());
+
         if hidden(w, i) {
             continue;
         }
+
         // Interior tessellation: a diagonal across a flat region shares two coplanar faces.
         if let (Some(n0), Some(n1)) = (na, nb)
             && dot3(&n0, &n1) >= COPLANAR_DOT
@@ -127,9 +132,11 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
         {
             continue;
         }
+
         if cx.smooth && !smooth_feature(topo, i, (na, nb)) {
             continue;
         }
+
         ink.seg
             .pipe_ids
             .push(if cx.smooth { u32::MAX } else { i as u32 });
@@ -157,13 +164,17 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
     let w = m.widths();
     let nv = cx.vpos.len();
     let mut best = vec![(f64::NEG_INFINITY, 0usize); nv];
+
     for (i, (a, b, _)) in topo.edges.iter().enumerate() {
         if hidden(w, i) {
             continue;
         }
+
         let wi = width_at(w, i);
+
         for vk in [*a, *b] {
             let e = &mut best[cx.slots.slot(vk)];
+
             if wi > e.0 {
                 *e = (wi, i);
             }
@@ -171,15 +182,19 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
     }
 
     let mut vstart = vec![0u32; nv + 1];
+
     for (a, b, _) in topo.edges.iter() {
         vstart[cx.slots.slot(*a) + 1] += 1;
         vstart[cx.slots.slot(*b) + 1] += 1;
     }
+
     for i in 0..nv {
         vstart[i + 1] += vstart[i];
     }
+
     let mut vinc = vec![0u32; 2 * topo.edges.len()];
     let mut cur = vstart.clone();
+
     for (i, (a, b, _)) in topo.edges.iter().enumerate() {
         for vk in [*a, *b] {
             let s = cx.slots.slot(vk);
@@ -187,6 +202,7 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
             cur[s] += 1;
         }
     }
+
     Incidence { best, vstart, vinc }
 }
 
@@ -206,16 +222,21 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
     let mut fkeys: Vec<usize> = Vec::new();
     let mut codes: Vec<u32> = Vec::new();
     ink.glyph.spheres.reserve(nv);
+
     for (i, &(vw, ei)) in inc.best.iter().enumerate().take(nv) {
         if vw == f64::NEG_INFINITY {
             continue;
         }
+
         fkeys.clear();
         push_faces(&topo.edge_faces, ei, &mut fkeys);
+
         for &j in &inc.vinc[inc.vstart[i] as usize..inc.vstart[i + 1] as usize] {
             push_faces(&topo.edge_faces, j as usize, &mut fkeys);
         }
+
         codes.clear();
+
         for fk in &fkeys {
             if let Some(n) = topo.normals[*fk]
                 && let Some(code) = oct16(&n)
@@ -224,6 +245,7 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
                 codes.push(code);
             }
         }
+
         ink.glyph.spheres.push(GlyphPoint {
             center: cx.vpos[i],
             radius: encode_width(vw),
@@ -254,9 +276,11 @@ pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) 
     cx.lap.mark("incidence");
     push_pipes(ink, m, topo, cx);
     cx.lap.mark("pipe loop");
+
     if knobs::no_dots() {
         return;
     }
+
     push_markers(ink, m, topo, &MarkerCx { cx, inc: &inc });
     cx.lap.mark("markers");
 }
@@ -297,19 +321,23 @@ mod tests {
     /// packed 16-bit normals to tell apart, which is what put these seams on screen.
     fn bulged_grid() -> Mesh {
         let mut points = Vec::with_capacity(16);
+
         for i in 0..4 {
             for j in 0..4 {
                 let (x, y) = (i as f64 * 100.0, j as f64 * 100.0);
                 points.push(Point::new(x, y, 2e-4 * (x * x + y * y)));
             }
         }
+
         let mut faces = Vec::with_capacity(9);
+
         for i in 0..3 {
             for j in 0..3 {
                 let k = i * 4 + j;
                 faces.push(vec![k, k + 4, k + 5, k + 1]);
             }
         }
+
         Mesh::from_vertices_and_faces(points, faces)
     }
 
@@ -354,6 +382,7 @@ mod tests {
         );
         assert_eq!(segments.pipes.len(), 12);
         assert_eq!(glyphs.spheres.len(), 8);
+
         for segment in &segments.pipes {
             assert_ne!(segment.facing, FACING_UNKNOWN);
             assert_eq!(segment.instance_id, 7);

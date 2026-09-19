@@ -1,9 +1,3 @@
-//! The cloud lane's tables: positions, colours, optional normals, the octree nodes, and one
-//! `Cloud` record per cloud. A cloud's points arrive in CHUNKS (a whole file is one chunk; a
-//! streamed file is a prefix and then slices, interleaved with other files' rows), so a
-//! cloud maps its own point index to lane rows through its chunk list. `CloudRows` is one
-//! upload's delta; `CloudLane` is the GPU side.
-
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::upload::drop_rows;
 
@@ -18,13 +12,10 @@ pub struct CloudDraw {
     pub from: u32,
     pub count: u32,
     pub first: u32,
-    /// Measured point spacing, cloud-local units (drives the splat radius).
-    pub spacing: f32,
-    /// This cloud's slice of the upload's node table; `node_count` 0 = no octree.
-    pub node_first: u32,
+    pub spacing: f32, // Measured point spacing, cloud-local units (drives the splat radius).
+    pub node_first: u32, // This cloud's slice of the upload's node table; `node_count` 0 = no octree.
     pub node_count: u32,
-    /// Upload-local first row in the normals table, or `NO_NORMALS`.
-    pub nrm_first: u32,
+    pub nrm_first: u32, // Upload-local first row in the normals table, or `NO_NORMALS`.
 }
 
 /// One octree node, read off the file: `first`/`count` are RELATIVE to the cloud's point 0
@@ -74,6 +65,7 @@ impl Cloud {
                 return Some(chunk.row_of(i));
             }
         }
+
         None
     }
 }
@@ -160,10 +152,12 @@ impl CloudLane {
                 to: d.from + d.count,
                 row: point_base + d.first,
             };
+
             if d.from > 0 {
                 self.extend(d.instance, chunk);
                 continue;
             }
+
             let nrm_first = if d.nrm_first == NO_NORMALS {
                 NO_NORMALS
             } else {
@@ -179,6 +173,7 @@ impl CloudLane {
                 chunks: vec![chunk],
             });
         }
+
         moved
     }
 
@@ -189,6 +184,7 @@ impl CloudLane {
             if cloud.instance != instance {
                 continue;
             }
+
             if chunk.from != cloud.resident {
                 log::warn!(
                     "cloud chunk [{}, {}) does not continue the {} resident points; dropped",
@@ -198,10 +194,12 @@ impl CloudLane {
                 );
                 return;
             }
+
             cloud.resident = chunk.to;
             cloud.chunks.push(chunk);
             return;
         }
+
         log::warn!("cloud chunk for row {instance} arrived before its cloud; dropped");
     }
 
@@ -214,6 +212,7 @@ impl CloudLane {
                 }
             }
         }
+
         None
     }
 
@@ -229,9 +228,11 @@ impl CloudLane {
     /// Points resident across every cloud.
     pub fn resident(&self) -> u32 {
         let mut resident = 0;
+
         for cloud in &self.clouds {
             resident += cloud.resident;
         }
+
         resident
     }
 

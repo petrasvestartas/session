@@ -1,51 +1,35 @@
-//! The scene manifest: WHICH files a scene is made of and WHERE each one sits (`at` =
-//! translation, `xform` = all 16 numbers, neither = the auto-grid). Edit, reload, no rebuild.
-
 use serde::Deserialize;
 use session_rust::Xform;
 
 /// One manifest entry: a file and its placement.
 #[derive(Clone, Deserialize)]
 pub struct Item {
-    /// Asset path, e.g. `pb/view_lines_he.pb`, relative to the scene's base.
-    pub file: String,
-    /// Display name; empty = the session's own.
+    pub file: String, // Asset path, e.g. `pb/view_lines_he.pb`, relative to the scene's base.
     #[serde(default)]
-    pub name: String,
-    /// Translation in world units.
+    pub name: String, // Display name; empty = the session's own.
     #[serde(default)]
-    pub at: Option<[f64; 3]>,
-    /// Full 4x4 column-major (wins over `at`).
+    pub at: Option<[f64; 3]>, // Translation in world units.
     #[serde(default)]
-    pub xform: Option<[f64; 16]>,
-    /// Cloud point size in px for this file; 0 = the pb's own.
+    pub xform: Option<[f64; 16]>, // Full 4x4 column-major (wins over `at`).
     #[serde(default)]
-    pub point_size: f64,
-    /// Legacy memory hint, accepted for compatibility. Full-file sources stay retained
-    /// so original source controls remain available to F10.
+    pub point_size: f64, // Cloud point size in px for this file; 0 = the pb's own.
     #[serde(default)]
-    pub display_only: bool,
+    pub display_only: bool, // Legacy memory hint, accepted for compatibility. Full-file sources stay retained so original source controls remain available to F10.
 }
 
 /// One fixed world-space text plane; its frame and em height use the scene's world units.
 #[derive(Clone, Debug, Deserialize)]
 pub struct TextItem {
-    /// UTF-8 text, retained verbatim after rejecting empty or whitespace-only content.
-    pub text: String,
-    /// World-space plane origin, independent of any geometry item's placement.
+    pub text: String, // UTF-8 text, retained verbatim after rejecting empty or whitespace-only content.
     #[serde(default)]
-    pub at: [f64; 3],
-    /// Unit direction of increasing text X; defaults to world +X.
+    pub at: [f64; 3], // World-space plane origin, independent of any geometry item's placement.
     #[serde(default = "text_right")]
-    pub right: [f64; 3],
-    /// Unit direction of increasing text Y; defaults to world +Y.
+    pub right: [f64; 3], // Unit direction of increasing text X; defaults to world +X.
     #[serde(default = "text_up")]
-    pub up: [f64; 3],
-    /// Required positive finite em height in world units.
-    pub height: f64,
-    /// Face the camera while keeping the supplied world em height.
+    pub up: [f64; 3], // Unit direction of increasing text Y; defaults to world +Y.
+    pub height: f64,  // Required positive finite em height in world units.
     #[serde(default)]
-    pub camera_facing: bool,
+    pub camera_facing: bool, // Face the camera while keeping the supplied world em height.
 }
 
 /// The parsed scene file: ordered geometry items and optional fixed world-space text planes.
@@ -66,6 +50,7 @@ impl Item {
             x.m = m;
             return Some(x);
         }
+
         self.at.map(translation)
     }
 }
@@ -76,6 +61,7 @@ impl Manifest {
         if bytes.len() > 4 * 1024 * 1024 {
             return Err("manifest exceeds 4 MiB".to_string());
         }
+
         let text = match std::str::from_utf8(bytes) {
             Ok(text) => text,
             Err(error) => return Err(format!("manifest is not UTF-8: {error}")),
@@ -93,38 +79,49 @@ impl Manifest {
                 }
             },
         };
+
         if manifest.items.len() > 100_000 {
             return Err("manifest exceeds 100,000 items".to_string());
         }
+
         for (index, item) in manifest.items.iter().enumerate() {
             if item.file.trim().is_empty() {
                 return Err(format!("item {index}: missing geometry file"));
             }
+
             if !item.point_size.is_finite() || item.point_size < 0.0 {
                 return Err(format!("item {index}: invalid point size"));
             }
+
             if item.at.is_some_and(nonfinite_transform)
                 || item.xform.is_some_and(nonfinite_transform)
             {
                 return Err(format!("item {index}: non-finite transform"));
             }
+
             if let Some(matrix) = item.xform
                 && (matrix[3] != 0.0 || matrix[7] != 0.0 || matrix[11] != 0.0 || matrix[15] != 1.0)
             {
                 return Err(format!("item {index}: placement must be affine"));
             }
         }
+
         if manifest.texts.len() > 1024 {
             return Err("manifest exceeds 1,024 text records".to_string());
         }
+
         let mut text_bytes = 0usize;
+
         for (index, item) in manifest.texts.iter().enumerate() {
             text_bytes = text_bytes.saturating_add(item.text.len());
+
             if text_bytes > 256 * 1024 {
                 return Err("manifest text exceeds 256 KiB of UTF-8 content".to_string());
             }
+
             item.validate(index)?;
         }
+
         Ok(manifest)
     }
 
@@ -139,6 +136,7 @@ impl Manifest {
     /// Item `i`'s display name: the manifest's, else `fallback`.
     pub fn name_of(&self, i: usize, fallback: &str) -> String {
         let n = &self.items[i].name;
+
         if n.is_empty() {
             fallback.to_string()
         } else {
@@ -153,30 +151,38 @@ impl TextItem {
         if self.text.trim().is_empty() {
             return Err(format!("text {index}: missing text content"));
         }
+
         if !self.height.is_finite() || self.height <= 0.0 {
             return Err(format!("text {index}: height must be positive and finite"));
         }
+
         if nonfinite_transform(self.at) {
             return Err(format!("text {index}: non-finite position"));
         }
+
         for axis in [self.right, self.up] {
             if nonfinite_transform(axis) {
                 return Err(format!("text {index}: non-finite plane axis"));
             }
+
             let length = (axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]).sqrt();
+
             if (length - 1.0).abs() > 1e-6 {
                 return Err(format!(
                     "text {index}: plane axes must be unit length within 1e-6"
                 ));
             }
         }
+
         let dot =
             self.right[0] * self.up[0] + self.right[1] * self.up[1] + self.right[2] * self.up[2];
+
         if dot.abs() > 1e-6 {
             return Err(format!(
                 "text {index}: plane axes must be orthogonal within 1e-6"
             ));
         }
+
         Ok(())
     }
 }
@@ -230,6 +236,7 @@ mod tests {
             "{\"name\":\"sample\",\"items\":[{\"file\":\"pb/box.pb\",\"at\":[1,2,3]}]}",
             "name = \"sample\"\n[[items]]\nfile = \"pb/box.pb\"\nat = [1, 2, 3]\n",
         ];
+
         for form in forms {
             let manifest = Manifest::parse(form.as_bytes()).unwrap();
             assert!(manifest.texts.is_empty());
@@ -249,8 +256,10 @@ mod tests {
         ] {
             assert!(Manifest::parse(source.as_bytes()).is_err(), "{source}");
         }
+
         assert!(Manifest::parse(&[0xff]).is_err());
     }
+
     /// Every supported syntax creates the same world frame without renderer-specific types.
     #[test]
     fn world_text_yaml_json_and_toml_are_equivalent() {
@@ -259,6 +268,7 @@ mod tests {
             r#"{"items":[],"texts":[{"text":"Fixed Ω cube","at":[1,2,3],"right":[0,1,0],"up":[0,0,-1],"height":12.5}]}"#,
             "items = []\n[[texts]]\ntext = \"Fixed Ω cube\"\nat = [1, 2, 3]\nright = [0, 1, 0]\nup = [0, 0, -1]\nheight = 12.5\n",
         ];
+
         for form in forms {
             let manifest = Manifest::parse(form.as_bytes()).unwrap();
             assert_eq!(manifest.texts.len(), 1);
@@ -312,6 +322,7 @@ mod tests {
         let source = b"items: []\ntexts: [{text: label, height: 1, right: [1.0000005, 0, 0], up: [0.0000005, 1, 0]}]";
         let manifest = Manifest::parse(source).unwrap();
         assert_eq!(manifest.texts[0].right[0], 1.0000005);
+
         for source in [
             b"items: []\ntexts: [{text: label, height: 1, right: [1.000002, 0, 0]}]".as_slice(),
             b"items: []\ntexts: [{text: label, height: 1, up: [0.000002, 1, 0]}]".as_slice(),

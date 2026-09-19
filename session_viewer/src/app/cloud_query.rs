@@ -1,15 +1,12 @@
-//! Exhaustive source-cloud selection with bounded range reads. The display retains its LOD
-//! residency budget; a click examines every intersecting source node, including nonresident
-//! nodes. Only one page of candidates exists at a time and visibility stays in the GPU picker.
-
 use super::stream::{CloudFields, CloudLod};
-use crate::math::Mat4;
+use session_rust::Xform;
 use std::cell::Cell;
 use std::ops::Range;
 use std::rc::Rc;
 
 /// Coordinates fetched per page (1.5 MiB of wire doubles), independent of cloud size.
 pub const PAGE_POINTS: u32 = 65_536;
+
 /// Original point IDs are packed fixed32 (schema field 15), deliberately range-addressable.
 pub fn original_id(raw: &[u8]) -> Result<u32, String> {
     let Ok(bytes): Result<[u8; 4], _> = raw.try_into() else {
@@ -21,58 +18,73 @@ pub fn original_id(raw: &[u8]) -> Result<u32, String> {
 /// The click's immutable projection in source coordinates and physical pixels.
 #[derive(Clone)]
 pub struct QueryView {
-    pub matrix: Mat4,
+    pub matrix: Xform,
     pub size: [f64; 2],
     pub at: [u32; 2],
     pub radius: f64,
 }
+
 impl QueryView {
     /// Homogeneous source-to-clip projection; division waits until the eye plane is checked.
     fn clip(&self, point: [f64; 3]) -> [f64; 4] {
         let mut clip = [0.0; 4];
+
         for (row, value) in clip.iter_mut().enumerate() {
-            *value = self.matrix[row] * point[0]
-                + self.matrix[4 + row] * point[1]
-                + self.matrix[8 + row] * point[2]
-                + self.matrix[12 + row];
+            *value = self.matrix.m[row] * point[0]
+                + self.matrix.m[4 + row] * point[1]
+                + self.matrix.m[8 + row] * point[2]
+                + self.matrix.m[12 + row];
         }
+
         clip
     }
+
     /// Pixel center and reversed depth; candidates behind the eye or clip planes are absent.
     pub fn project(&self, point: [f64; 3]) -> Option<[f64; 3]> {
         let p = self.clip(point);
+
         if invalid_clip(&p) || p[3] <= 0.0 || p[2] < 0.0 || p[2] > p[3] {
             return None;
         }
+
         Some([
             (p[0] / p[3] + 1.0) * self.size[0] * 0.5,
             (1.0 - p[1] / p[3]) * self.size[1] * 0.5,
             p[2] / p[3],
         ])
     }
+
     /// A conservative projected cube test. A cube crossing the eye plane must be examined.
     fn intersects(&self, min: [f64; 3], size: f64) -> bool {
         if !size.is_finite() || size < 0.0 || !min.into_iter().all(f64::is_finite) {
             return true;
         }
+
         let mut corners = [[0.0; 4]; 8];
+
         for (corner, clip) in corners.iter_mut().enumerate() {
             *clip = self.clip(cube_corner(min, size, corner));
         }
+
         if corners.iter().any(invalid_clip) {
             return true;
         }
+
         if corners.iter().all(behind_eye) {
             return false;
         }
+
         if corners.iter().any(behind_eye) {
             return true;
         }
+
         if corners.iter().all(beyond_far) || corners.iter().all(beyond_near) {
             return false;
         }
+
         let mut lo = [f64::INFINITY; 2];
         let mut hi = [f64::NEG_INFINITY; 2];
+
         for p in corners {
             let xy = [
                 (p[0] / p[3] + 1.0) * self.size[0] * 0.5,
@@ -80,12 +92,15 @@ impl QueryView {
             ];
             grow_pixel_bounds(&mut lo, &mut hi, xy);
         }
+
         for axis in 0..2 {
             let center = self.at[axis] as f64 + 0.5;
+
             if lo[axis] > center + self.radius || hi[axis] < center - self.radius {
                 return false;
             }
         }
+
         true
     }
 }
@@ -94,18 +109,22 @@ impl QueryView {
 fn invalid_clip(point: &[f64; 4]) -> bool {
     !point.iter().copied().all(f64::is_finite)
 }
+
 /// The perspective eye plane separates forward and backward homogeneous coordinates.
 fn behind_eye(point: &[f64; 4]) -> bool {
     point[3] <= 0.0
 }
+
 /// Reversed-Z far clipping remains at clip z=0.
 fn beyond_far(point: &[f64; 4]) -> bool {
     point[2] < 0.0
 }
+
 /// Reversed-Z near clipping remains at clip z=w.
 fn beyond_near(point: &[f64; 4]) -> bool {
     point[2] > point[3]
 }
+
 /// Enumerate a source cube corner without constructing a separate geometry object.
 fn cube_corner(min: [f64; 3], size: f64, corner: usize) -> [f64; 3] {
     [
@@ -114,6 +133,7 @@ fn cube_corner(min: [f64; 3], size: f64, corner: usize) -> [f64; 3] {
         min[2] + if corner & 4 == 0 { 0.0 } else { size },
     ]
 }
+
 /// Expand both pixel axes; keeping this loop named avoids nesting it in the corner walk.
 fn grow_pixel_bounds(lo: &mut [f64; 2], hi: &mut [f64; 2], point: [f64; 2]) {
     for axis in 0..2 {
@@ -138,10 +158,12 @@ fn source_range_order(left: &Range<u32>, right: &Range<u32>) -> std::cmp::Orderi
 fn merge(mut ranges: Vec<Range<u32>>) -> Vec<Range<u32>> {
     ranges.sort_unstable_by(source_range_order);
     let mut out: Vec<Range<u32>> = Vec::new();
+
     for range in ranges {
         if range.is_empty() {
             continue;
         }
+
         if let Some(last) = out.last_mut()
             && range.start <= last.end
         {
@@ -150,6 +172,7 @@ fn merge(mut ranges: Vec<Range<u32>>) -> Vec<Range<u32>> {
             out.push(range);
         }
     }
+
     out
 }
 
@@ -162,11 +185,14 @@ fn all_rows(total: u32) -> Vec<Range<u32>> {
 /// Missing/malformed coverage falls back to a bounded scan of the complete source array.
 pub fn eligible_ranges(lod: &CloudLod, total: u32, view: &QueryView) -> Vec<Range<u32>> {
     let n = lod.len();
+
     if n == 0 || lod.first.len() < n || lod.count.len() < n || lod.min.len() < n * 3 {
         return all_rows(total);
     }
+
     let mut coverage = Vec::new();
     let mut eligible = Vec::new();
+
     for node in 0..n {
         let (Ok(first), Ok(count)) = (
             u32::try_from(lod.first[node]),
@@ -177,19 +203,24 @@ pub fn eligible_ranges(lod: &CloudLod, total: u32, view: &QueryView) -> Vec<Rang
         let Some(end) = first.checked_add(count) else {
             return all_rows(total);
         };
+
         if end > total {
             return all_rows(total);
         }
+
         coverage.push(first..end);
         let at = node * 3;
         let min = [lod.min[at], lod.min[at + 1], lod.min[at + 2]];
+
         if view.intersects(min, lod.size[node]) {
             eligible.push(first..end);
         }
     }
+
     if merge(coverage) != all_rows(total) {
         return all_rows(total);
     }
+
     merge(eligible)
 }
 
@@ -210,14 +241,17 @@ pub struct Query {
     next: usize,
     pub awaiting_gpu: bool,
 }
+
 impl Query {
     /// Freeze the source descriptor and all eligible ranges for this camera generation.
     pub fn new(id: u64, cloud: &super::scene::StreamedCloud, view: QueryView) -> Self {
         let ranges = eligible_ranges(&cloud.lod, cloud.total, &view);
         let mut total = 0;
+
         for range in &ranges {
             total += range.end - range.start;
         }
+
         Self {
             id,
             parent: cloud.row,
@@ -235,20 +269,25 @@ impl Query {
             awaiting_gpu: false,
         }
     }
+
     /// Advance one bounded page; only called after the previous GPU answer was collected.
     pub fn next_page(&mut self) -> Option<Range<u32>> {
         if self.cancelled.get() {
             return None;
         }
+
         let range = self.ranges.get_mut(self.next)?;
         let page = range.start..range.end.min(range.start.saturating_add(PAGE_POINTS));
         range.start = page.end;
+
         if range.start >= range.end {
             self.next += 1;
         }
+
         Some(page)
     }
 }
+
 impl Drop for Query {
     /// Retire callbacks when the query completes, fails, or is replaced by new input.
     fn drop(&mut self) {
@@ -262,6 +301,7 @@ pub struct Batch {
     pub count: u32,
     pub result: Result<(Vec<Candidate>, Option<String>), String>,
 }
+
 /// Final original identity and exact source position; never a provisional page winner.
 pub struct Resolved {
     pub query: u64,
@@ -309,6 +349,7 @@ mod web {
     async fn post_page(source: SourceRequest, view: QueryView, page: Range<u32>) {
         let count = page.end - page.start;
         let result = read_page(&source, &view, page).await;
+
         if !source.cancelled.get() {
             post(crate::Msg::CloudQueryBatch(Batch {
                 query: source.query,
@@ -327,9 +368,11 @@ mod web {
         let at = source.fields.coords_at + u64::from(page.start) * 24;
         let length = u64::from(page.end - page.start) * 24;
         let (raw, revision) = range(&source.url, at, length, &source.revision).await?;
+
         if source.cancelled.get() {
             return Err("Point query cancelled".to_string());
         }
+
         Ok((page_candidates(&raw, page.start, view)?, revision))
     }
 
@@ -338,12 +381,15 @@ mod web {
         if raw.len() != 24 {
             return Err("Source coordinate range must contain exactly 24 bytes".to_string());
         }
+
         let mut position = [0.0; 3];
+
         for (axis, value) in position.iter_mut().enumerate() {
             let bytes: [u8; 8] = raw[axis * 8..axis * 8 + 8]
                 .try_into()
                 .expect("exact triple checked above");
             *value = f64::from_le_bytes(bytes);
+
             if !value.is_finite() || !(*value as f32).is_finite() {
                 return Err(
                     "Source coordinates are nonfinite or outside the GPU coordinate range"
@@ -351,17 +397,21 @@ mod web {
                 );
             }
         }
+
         Ok(position)
     }
 
     /// One bounded page's candidates; visibility and cross-page ranking remain on the GPU.
     fn page_candidates(raw: &[u8], first: u32, view: &QueryView) -> Result<Vec<Candidate>, String> {
         let mut candidates = Vec::new();
+
         for (offset, xyz) in raw.chunks_exact(24).enumerate() {
             let position = source_position(xyz)?;
+
             if let Some(point) = view.project(position) {
                 let distance = (point[0] - view.at[0] as f64 - 0.5).powi(2)
                     + (point[1] - view.at[1] as f64 - 0.5).powi(2);
+
                 if distance <= view.radius.powi(2) {
                     candidates.push(Candidate {
                         local: first + offset as u32,
@@ -370,6 +420,7 @@ mod web {
                 }
             }
         }
+
         Ok(candidates)
     }
 
@@ -381,6 +432,7 @@ mod web {
     /// Post the original identity and exact position only while this query remains current.
     async fn post_source(source: SourceRequest, local: u32) {
         let result = read_source(&source, local).await;
+
         if !source.cancelled.get() {
             post(crate::Msg::CloudQueryResolved(Resolved {
                 query: source.query,
@@ -399,9 +451,11 @@ mod web {
             &source.revision,
         )
         .await?;
+
         if source.cancelled.get() {
             return Err("Point query cancelled".to_string());
         }
+
         let position = source_position(&coords)?;
         let original = if fields.ids_len == 0 {
             local
@@ -409,6 +463,7 @@ mod web {
             if fields.ids_len != u64::from(fields.count) * 4 {
                 return Err("Original point ID count differs from source coordinates".to_string());
             }
+
             let (raw, _) = range(
                 &source.url,
                 fields.ids_at + u64::from(local) * 4,
@@ -427,22 +482,26 @@ pub use web::{fetch_page, resolve_id};
 #[cfg(test)]
 mod tests {
     use super::*;
+
     fn view() -> QueryView {
         QueryView {
-            matrix: session_rust::Xform::identity().m,
+            matrix: Xform::identity(),
             size: [100.0; 2],
             at: [50; 2],
             radius: 6.0,
         }
     }
+
     #[test]
     fn original_fixed32_ids_preserve_all_bits_and_reject_partial_ranges() {
         for value in [0, 127, 128, 65535, u32::MAX, 42] {
             assert_eq!(original_id(&value.to_le_bytes()).unwrap(), value);
         }
+
         assert!(original_id(&[1, 2, 3]).is_err());
         assert!(original_id(&[1, 2, 3, 4, 5]).is_err());
     }
+
     #[test]
     fn nodes_after_six_million_remain_eligible_and_uncovered_rows_are_scanned() {
         let lod = CloudLod {
@@ -461,6 +520,7 @@ mod tests {
             std::iter::once(0..6_000_101).collect::<Vec<_>>()
         );
     }
+
     #[test]
     fn cube_eligibility_uses_the_same_pixel_center_as_candidate_projection() {
         let v = view();
@@ -472,10 +532,11 @@ mod tests {
     #[test]
     fn near_plane_crossing_cube_is_conservative() {
         let mut v = view();
-        v.matrix[3] = 1.0;
-        v.matrix[15] = 0.0;
+        v.matrix.m[3] = 1.0;
+        v.matrix.m[15] = 0.0;
         assert!(v.intersects([-1.0, 0.0, 0.0], 2.0));
     }
+
     #[test]
     fn bounded_pages_visit_the_entire_range_and_cancellation_stops_advancement() {
         let mut query = Query {

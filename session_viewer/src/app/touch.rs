@@ -1,40 +1,3 @@
-//! Touch gestures — the phone half of the camera bindings.
-//!
-//! winit's web backend splits pointers by `pointerType`: a pointer whose type is `"touch"` is
-//! routed to `WindowEvent::Touch` and NEVER to `CursorMoved` / `MouseInput`
-//! (`winit-0.30.13/src/platform_impl/web/web_sys/pointer.rs`, the `match pointer_type` arms —
-//! the comment there says duplicate mouse events would be "inconsistent with other platforms").
-//! So a finger cannot also reach the mouse arms in `lib.rs`, and the two sets of bindings can be
-//! read, and changed, independently. (The runner registers a SECOND, unfiltered set of pointer
-//! listeners on the window — `event_loop/runner.rs`, "pointermove"/"pointerdown"/"pointerup" —
-//! but those raise `DeviceEvent`, which this viewer does not implement, and they return early
-//! unless device events are switched on. They are not a second route into anything here.)
-//!
-//! | gesture | camera | the mouse binding it mirrors |
-//! |---|---|---|
-//! | one finger, drag | `orbit` | right-drag |
-//! | two fingers, slide | `pan` | middle-drag |
-//! | two fingers, spread / close | `zoom_at` their midpoint | wheel |
-//! | double tap | `fit` | `F` |
-//!
-//! Two conversions have to happen here, or the same hand movement means different things on
-//! different phones.
-//!
-//! FINGER TRAVEL IS IN CSS PIXELS. winit reports PHYSICAL pixels (`to_physical(scale_factor)`,
-//! same file), so one centimetre of glass is three times the number on a dpr-3 phone that it is
-//! on a dpr-1 laptop. Orbit is a fixed radians-per-unit, so the raw figure would spin the model
-//! three times as fast for the same movement — and differently again on the next phone. Dividing
-//! by the device pixel ratio makes the gesture mean one thing everywhere; on a dpr-1 screen it
-//! is then exactly the mouse.
-//!
-//! PAN IS FINGER-EXACT. `Camera::pan` scales its argument by a hard-coded `distance * 0.0015`,
-//! which equals the `2·tan(30°)` the projection really spans only when the viewport is 770 px
-//! tall — anywhere else the model slides faster or slower than the hand holding it. A mouse does
-//! not notice, because the cursor is not the thing being dragged. A finger IS on the thing, so
-//! the error reads as the model slipping. Scaling by the real viewport height (`PAN_PER_PX`)
-//! removes it, in both projections: the orthographic branch of `view_proj_anchored` uses the
-//! same `distance * tan(30°)` half-height as the perspective one.
-
 use winit::event::{Touch, TouchPhase};
 
 use crate::camera::Camera;
@@ -60,10 +23,13 @@ const PINCH_MAX: f64 = 2.0;
 /// where the browser throttles the frame loop to 1 Hz, it always will. That is a measurement
 /// trap, not a bug: a viewer nobody is looking at has no gestures to miss.
 const TAP_SLOP: f64 = 12.0;
+
 const TAP_MS: f64 = 300.0;
+
 /// … and a second tap this soon after it, and this near it, is a double tap. Both windows are
 /// wider than the single-tap ones: the second tap of a real double tap is the sloppier of the two.
 const DOUBLE_TAP_MS: f64 = 320.0;
+
 const DOUBLE_TAP_SLOP: f64 = 40.0;
 
 /// What one touch event asked for. `Fit` needs the scene bounds, which live a layer up, so it is
@@ -72,8 +38,7 @@ pub enum Act {
     None,
     Moved,
     Fit,
-    /// A single tap, in surface pixels: the finger's pick.
-    Tap((f64, f64)),
+    Tap((f64, f64)), // A single tap, in surface pixels: the finger's pick.
 }
 
 /// One finger, from its `Started` to its `Ended`. Physical pixels throughout.
@@ -87,14 +52,9 @@ struct Finger {
 /// Every finger on the glass, plus what the last two-finger sample measured.
 pub struct Touches {
     fingers: Vec<Finger>,
-    /// Distance between the first two fingers at the previous event, and their midpoint.
-    /// `span == 0.0` means NOT SEEDED: the next two-finger move records and does nothing else.
-    /// Every change in finger count clears it, and that is what stops the model jumping when a
-    /// second finger joins or leaves halfway through a gesture.
-    span: f64,
+    span: f64, // Distance between the first two fingers at the previous event, and their midpoint. `span == 0.0` means NOT SEEDED: the next two-finger move records and does nothing else. Every change in finger count clears it, and that is what stops the model jumping when a second finger joins or leaves halfway through a gesture.
     mid: (f64, f64),
-    /// When and where the last tap lifted, for the double tap.
-    tap: Option<(f64, (f64, f64))>,
+    tap: Option<(f64, (f64, f64))>, // When and where the last tap lifted, for the double tap.
 }
 
 impl Touches {
@@ -113,6 +73,7 @@ impl Touches {
     /// ratio that turns physical travel back into the CSS pixels a hand feels.
     pub fn event(&mut self, cam: &mut Camera, t: &Touch, vp: (f64, f64), dpr: f64) -> Act {
         let p = (t.location.x, t.location.y);
+
         match t.phase {
             TouchPhase::Started => {
                 self.fingers.push(Finger {
@@ -154,6 +115,7 @@ impl Touches {
         let (a, b) = (self.fingers[0].pos, self.fingers[1].pos);
         let span = (b.0 - a.0).hypot(b.1 - a.1).max(1.0);
         let mid = ((a.0 + b.0) * 0.5, (a.1 + b.1) * 0.5);
+
         if self.span == 0.0 {
             self.span = span; // first sample of this shape: record, do not act
             self.mid = mid;
@@ -181,24 +143,30 @@ impl Touches {
         let Some(f) = self.drop_finger(id) else {
             return Act::None;
         };
+
         if !self.fingers.is_empty() {
             self.tap = None;
             return Act::None;
         }
+
         let now = now_ms();
+
         if (p.0 - f.down.0).hypot(p.1 - f.down.1) / dpr > TAP_SLOP || now - f.t0 > TAP_MS {
             self.tap = None; // a drag, or a press held long enough to mean something else
             return Act::None;
         }
+
         let second = match self.tap.take() {
             Some((t0, at)) => {
                 now - t0 < DOUBLE_TAP_MS && (p.0 - at.0).hypot(p.1 - at.1) / dpr < DOUBLE_TAP_SLOP
             }
             None => false,
         };
+
         if second {
             return Act::Fit; // `self.tap` is already cleared, so three taps are not two doubles
         }
+
         self.tap = Some((now, p));
         Act::Tap(p)
     }
@@ -210,6 +178,7 @@ impl Touches {
                 return Some(index);
             }
         }
+
         None
     }
 

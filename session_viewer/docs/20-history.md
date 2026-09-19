@@ -2,7 +2,7 @@
 
 ## You are building
 
-A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was immediately final. This lesson gives the kernel a history: edits group into transactions, a removal's record is the tombstone undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet. The kernel now has the history an editing viewer records through, and [lesson 21](21-editing.md) is where the viewer starts using it.
+A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was immediately final. The kernel has a history: edits group into transactions, a removal's record is the tombstone undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet. This lesson reads the kernel's history - nothing is typed, the kernel is maintained in its own repository - because [lesson 21](21-editing.md) is where the viewer starts recording through it.
 
 ![Diagram: begin(label) · add · replace · remove · set_xform · records: Add · Remove · Replace · Xform · commit() · undo() · redo() · pb_dump · file_json_dump…](illustrations/20-01.svg)
 
@@ -14,15 +14,13 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after step 1 and Part C; steps 2–5 fail and build again at Part C.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
 ## Part A · Records
 
 ### Step 1 · The tombstone
-
-![Where this step sits in the viewer: Kernel, with 10 of 12 zones built so far.](illustrations/locator-9af79fbe38.svg){ .locator data-strip="illustrations/strip-5ca71efefa.svg" }
 
 - `clone` is a deep copy that keeps the guid: a snapshot must still name the object it stands for. `duplicate` mints a fresh guid and is never used here.
 - A `Tombstone` is everything needed to put one object back into every live table.
@@ -33,62 +31,35 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 ![Diagram: Tombstone · obj clone · collection · obj_index · xform · parent_guid · index · subtree node · attribute · edges](illustrations/20-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/history.rs type lines=1-59 -->
+<!-- listing: 20 session_rust/src/history.rs -->
 
 - The tombstone is built while the tables are emptied: the only moment when every position it must remember is still known.
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/history.rs type lines=60-114 -->
 
 - A transform record is the same shape — before and after, absolute — so replaying it never depends on the state it lands in.
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/history.rs type lines=115-127 -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/history.rs type lines=128-182 -->
 
 - `Op` prints itself, which makes a transaction readable in a test failure: the history is a data structure someone has to debug.
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/history.rs type lines=183-202 -->
 
 ### Step 2 · Undo replays in reverse
-
-![Where this step sits in the viewer: Kernel, with 10 of 12 zones built so far.](illustrations/locator-9af79fbe38.svg){ .locator data-strip="illustrations/strip-5ca71efefa.svg" }
 
 - `undo` pops a transaction, reverts its records last to first and pushes it onto the redo stack; `redo` applies them first to last.
 - An add reverts by detaching, a remove by attaching, a replace by swapping the before clone in, a transform by placing the before value.
 - Both commit an open transaction first, so a half-typed gesture is never lost.
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/history.rs type lines=203-268 -->
 
 - Keeping both directions in one place shows that every record type handles both.
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
 
-<!-- file: 20 session_rust/src/history.rs type lines=269-320 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/lib.rs type -->
 
 - Everything in this lesson lives in the shared kernel, so the tests run there.
 
 ## Part B · The session records
 
 ### Step 3 · One place to add
-
-![Where this step sits in the viewer: Kernel, with 10 of 12 zones built so far.](illustrations/locator-9af79fbe38.svg){ .locator data-strip="illustrations/strip-5ca71efefa.svg" }
 
 - Every `add_*` routes through `_add_object`: it pushes to the typed list, `lookup`, the graph and the tree exactly as before, and records an `Add` while a transaction is open.
 - `replace(guid, obj)` is the edit history sees: it gives `obj` the guid, swaps it into the typed list and `lookup`, refreshes the graph attribute and records before and after.
@@ -100,58 +71,32 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 ![Diagram: mutators · add_* → _add_object · replace → _swap · remove_object → _detach · set_xform → xforms.insert · history.record](illustrations/20-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/session.rs type -->
+<!-- listing: 20 session_rust/src/session.rs -->
 
 ### Step 4 · The tree gives the node back, the graph its edges
-
-![Where this step sits in the viewer: Kernel, with 10 of 12 zones built so far.](illustrations/locator-9af79fbe38.svg){ .locator data-strip="illustrations/strip-5ca71efefa.svg" }
 
 - `Tree::remove` returns the detached node with its subtree, and `TreeNode::insert` puts a child back at an index, so a restored object lands where it was.
 - `Graph::edges_of` lists the incident edges with their attribute and direction, the part of a removal that had no way back before.
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
 
-<!-- file: 20 session_rust/src/tree.rs type -->
-
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/graph.rs type -->
 
 
 ### Step 5 · Identity survives a swap
 
-![Where this step sits in the viewer: Kernel, with 10 of 12 zones built so far.](illustrations/locator-9af79fbe38.svg){ .locator data-strip="illustrations/strip-5ca71efefa.svg" }
-
 - `replace` sets the guid on the replacement, and a guid minted once cannot be reset, so the four types that lacked `refresh_guid` gain it.
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/element.rs type -->
-
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/obb.rs type -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
 
-<!-- file: 20 session_rust/src/plane.rs type -->
 
 - The work was finding which four types lacked it, not making the change.
 
-<span class="zone-mark" data-strip="illustrations/strip-5ca71efefa.svg" data-zone="Kernel"></span>
-
-<!-- file: 20 session_rust/src/pointcloud.rs type -->
 
 
 ## Part C · Three kernels, one behaviour
 
 - The Python and C++ kernels carry the same `History`, `replace`, `begin`, `commit`, `undo` and `redo`, the same records and the same test names, so a document behaves the same whichever language edits it.
-- The Python and C++ kernels are supplied with their tests, and so are the Rust tests: install them all with the command below and run them from the Check.
-
-<!-- supplied: 20 -->
+- All three kernels carry their tests; run the Rust ones from the Check.
 
 <!-- check: 20 -->
 
@@ -165,7 +110,7 @@ Native tests:
 cd "$COURSE_WORK/session_viewer/../session_rust" && cargo test --lib minitest_suite -- --nocapture
 ```
 
-The cases you typed are `MINI_TEST!` blocks, not `#[test]` functions: they register themselves and the whole suite runs as one libtest case, so filtering by name runs nothing. Expected: the run ends `[rust-minitest] N/N passed` and `test mini_test::harness::minitest_suite ... ok`. A failure prints `FAIL <group>::<name>  <file>:<line>` and the failing check, so `Undo Remove` or `History Purged On Save` names itself when it breaks. The viewer builds and runs unchanged: it loads documents and never edits them.
+The cases are `MINI_TEST!` blocks, not `#[test]` functions: they register themselves and the whole suite runs as one libtest case, so filtering by name runs nothing. Expected: the run ends `[rust-minitest] N/N passed` and `test mini_test::harness::minitest_suite ... ok`. A failure prints `FAIL <group>::<name>  <file>:<line>` and the failing check, so `Undo Remove` or `History Purged On Save` names itself when it breaks. The viewer builds and runs unchanged: it loads documents and never edits them.
 
 ## Verify you reached production
 

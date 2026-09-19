@@ -1,9 +1,3 @@
-//! Picking by id pass: on request the lanes redraw ONCE at 1x into an `Rg32Uint` target -
-//! (object row + 1, sub-object id + 1) per pixel - scissored to a small window about the
-//! cursor, which is copied out and mapped asynchronously. `poll` answers with the nearest
-//! ink hit in the window (a hairline or a dot is hard to land on exactly), else the nearest
-//! face. No CPU ray cast, and it works for streamed clouds that never existed on the CPU.
-
 use super::buffers::GpuCtx;
 use super::frame::PickView;
 use super::targets::{Attachment, TextureSpec};
@@ -32,9 +26,11 @@ struct IdTargets {
 
 /// Default selection tolerance in CSS pixels, independent of display stroke width.
 pub const PICK_RADIUS: u32 = 6;
+
 /// Texels rendered around the readback window: the ink visibility test fits planes from
 /// neighbouring texels, so the attachment extends this far past what is copied out.
 pub const PICK_HALO: u32 = 3;
+
 /// Bounds readback allocations even at unusual browser zoom factors.
 const MAX_RADIUS: u32 = 128;
 
@@ -44,8 +40,7 @@ pub enum PickMode {
     #[default]
     Object,
     Edge,
-    /// Original edges take precedence; otherwise pick the visible source face.
-    Component,
+    Component, // Original edges take precedence; otherwise pick the visible source face.
     Controls {
         parent: u32,
         cloud: bool,
@@ -67,8 +62,7 @@ pub struct Window {
     pub y: u32,
     pub w: u32,
     pub h: u32,
-    /// The cursor's place inside the window.
-    pub cx: u32,
+    pub cx: u32, // The cursor's place inside the window.
     pub cy: u32,
     pub radius: u32,
 }
@@ -122,10 +116,8 @@ const ROW_BYTES: u32 = ((2 * MAX_RADIUS + 1) * 8).div_ceil(256) * 256;
 pub struct Picker {
     pending: Option<(u32, u32)>,
     inflight: bool,
-    /// The window the in-flight copy covers.
-    window: Window,
-    /// A copy was encoded this frame and its buffer must be mapped once the submit is in.
-    copied: bool,
+    window: Window, // The window the in-flight copy covers.
+    copied: bool, // A copy was encoded this frame and its buffer must be mapped once the submit is in.
     ready: Arc<AtomicU8>,
     generation: u64,
     submitted: u64,
@@ -134,8 +126,7 @@ pub struct Picker {
     source_phase: SourcePhase,
     readback: Option<wgpu::Buffer>,
     targets: Option<IdTargets>,
-    /// Where the targets sit in the canvas, set by `begin_pass`.
-    view: PickView,
+    view: PickView, // Where the targets sit in the canvas, set by `begin_pass`.
 }
 
 /// A native full-frame ID capture awaiting queue submission and readback.
@@ -168,8 +159,10 @@ impl IdReadback {
             .expect("ID buffer map");
         let bytes = self.buffer.slice(..).get_mapped_range();
         let mut ids = Vec::with_capacity((self.size.0 * self.size.1) as usize);
+
         for y in 0..self.size.1 {
             let start = (y * self.row_bytes) as usize;
+
             for pixel in bytes[start..start + (self.size.0 * 8) as usize].chunks_exact(8) {
                 ids.push([
                     u32::from_le_bytes(pixel[..4].try_into().expect("object ID bytes")),
@@ -177,6 +170,7 @@ impl IdReadback {
                 ]);
             }
         }
+
         drop(bytes);
         self.buffer.unmap();
         ids
@@ -255,6 +249,7 @@ impl Picker {
     pub fn source_query(&self) -> bool {
         self.source_phase != SourcePhase::Inactive
     }
+
     /// Whether physical scene depth and the first source page have been encoded.
     pub fn source_initialized(&self) -> bool {
         self.source_phase == SourcePhase::MorePages
@@ -337,6 +332,7 @@ impl Picker {
     ) -> wgpu::RenderPass<'a> {
         let size = (view.w, view.h);
         self.view = view;
+
         if !matches!(&self.targets, Some(targets) if targets.size == size) {
             let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC;
             let id = Attachment::new(
@@ -378,6 +374,7 @@ impl Picker {
                 size,
             });
         }
+
         let t = self.targets.as_ref().unwrap();
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("pick pass"),
@@ -467,9 +464,11 @@ impl Picker {
     ) {
         let Some(t) = &self.targets else { return };
         let win = self.window(at, size);
+
         if self.readback.is_none() {
             self.readback = Some(readback_buffer(ctx));
         }
+
         let buf = self.readback.as_ref().expect("readback initialized above");
         encoder.copy_texture_to_buffer(
             wgpu::TexelCopyTextureInfo {
@@ -552,6 +551,7 @@ impl Picker {
         if !self.copied {
             return;
         }
+
         self.copied = false;
         let Some(buf) = &self.readback else { return };
         let flag = self.ready.clone();
@@ -565,15 +565,18 @@ impl Picker {
     /// picks the curve.
     pub fn poll(&mut self) -> Option<Option<Pick>> {
         let status = self.ready.load(Ordering::Acquire);
+
         if !self.inflight || status == 0 {
             return None;
         }
+
         if status == 2 {
             self.ready.store(0, Ordering::Release);
             self.inflight = false;
             log::warn!("selection readback failed; click again to retry");
             return None;
         }
+
         let buf = self.readback.as_ref()?;
         let win = self.window;
         let best = {
@@ -583,9 +586,11 @@ impl Picker {
         buf.unmap();
         self.ready.store(0, Ordering::Release);
         self.inflight = false;
+
         if self.submitted != self.generation {
             return None;
         }
+
         Some(best.map(decode_pick))
     }
 
@@ -599,31 +604,38 @@ impl Picker {
 /// The (object, sub) texel of `win` to answer with: ink first, then the nearest to the cursor.
 fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
     let mut best: Option<(bool, u64, u32, u32)> = None;
+
     for y in 0..win.h {
         for x in 0..win.w {
             let at = (y * ROW_BYTES + x * 8) as usize;
             let object = u32::from_le_bytes(bytes[at..at + 4].try_into().unwrap());
+
             if object == 0 {
                 continue;
             }
+
             let sub = u32::from_le_bytes(bytes[at + 4..at + 8].try_into().unwrap());
             let (dx, dy) = (x as i64 - win.cx as i64, y as i64 - win.cy as i64);
             let distance = (dx * dx + dy * dy) as u64;
+
             if distance > u64::from(win.radius).pow(2) {
                 continue;
             }
+
             let face = sub == 0 || sub.wrapping_sub(1) & 0xe000_0000 == super::faces::FACE_TAG;
             // The rule, as a tuple compared left to right: `false < true` in Rust, so ink
             // (face == false) beats a face outright, and only then does the nearer win. The
             // last two fields decide nothing real - they make the order total, so the same
             // pixels always answer the same way.
             let key = (face, distance, object, sub);
+
             match best {
                 Some(previous) if key >= previous => {}
                 _ => best = Some(key),
             }
         }
     }
+
     best.map(hit_ids)
 }
 
@@ -671,11 +683,13 @@ mod tests {
     /// Pack synthetic ID texels with the production readback stride.
     fn texels(win: Window, hits: &[(u32, u32, u32, u32)]) -> Vec<u8> {
         let mut bytes = vec![0u8; (ROW_BYTES * win.h) as usize];
+
         for &(x, y, object, sub) in hits {
             let at = (y * ROW_BYTES + x * 8) as usize;
             bytes[at..at + 4].copy_from_slice(&object.to_le_bytes());
             bytes[at + 4..at + 8].copy_from_slice(&sub.to_le_bytes());
         }
+
         bytes
     }
 

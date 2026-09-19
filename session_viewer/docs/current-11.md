@@ -8,23 +8,37 @@ Continue in the same checkpoint workspace. Complete the edits below before compi
 
 Store face and edge display overrides separately from authored source colors. Use the spare instance word for packed edge RGB without growing the GPU object stride. A per-channel Original button removes the override; Save/Open retains both channels and migrates older single-color archives. Mesh gestures cache source-to-render addresses and patch only the selected neighborhood during pointer movement, committing source geometry once on release. Include object placement revisions in the cloud raster cache key so a cloud follows its gumball while the camera stays still.
 
-### `../session_rust/src/mesh.rs`
+### `index.html`
 
 **TYPE THIS**
 
 **CURRENT**
 
-```rust
-    pub fn invalidate_triangle_bvh(&mut self) {
+```html
+        display: block;
+        border-top: 40px solid #111;
+        border-left: 40px solid transparent;
+        filter: drop-shadow(-1px 1px 0 #ffffff99);
+        transition: border-top-width .25s cubic-bezier(.2, .8, .3, 1.25), border-left-width .25s cubic-bezier(.2, .8, .3, 1.25);
+      }
+      #viewer-docs:hover, #viewer-docs:focus-visible {
+        border-top-width: 52px;
+        border-left-width: 52px;
+        outline: none;
 ```
 
-**ADD ABOVE**
+**REPLACE WITH**
 
-```rust
-    /// Maintained name for dropping geometry-derived caches.
-    pub fn clear_triangle_bvh(&mut self) {
-        self.invalidate_triangle_bvh();
-    }
+```html
+        display: block;
+        border-top: 20px solid #111;
+        border-left: 20px solid transparent;
+        transition: border-top-width .25s cubic-bezier(.2, .8, .3, 1.25), border-left-width .25s cubic-bezier(.2, .8, .3, 1.25);
+      }
+      #viewer-docs:hover, #viewer-docs:focus-visible {
+        border-top-width: 26px;
+        border-left-width: 26px;
+        outline: none;
 ```
 
 ### `src/app/deform.rs`
@@ -52,7 +66,7 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
 **CURRENT**
 
 ```rust
-            }
+
             mesh.triangulation.clear();
             // The identity transform invalidates kernel render/BVH caches in both the frozen
             // course kernel and the maintained kernel without changing the edited positions.
@@ -63,7 +77,7 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
 **REPLACE WITH**
 
 ```rust
-            }
+
             // A subobject move preserves connectivity, including authored hole triangulations.
             mesh.clear_triangle_bvh();
             Geometry::Mesh(Rc::new(mesh))
@@ -107,7 +121,6 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
 **NEW FILE · TYPE THIS**
 
 ```rust
-//! Sparse render-only mesh gestures. Source replacement happens once on release.
 use super::deform::{Target, mesh_keys};
 use crate::engine::gpu::glyphs::GlyphPoint;
 use crate::engine::gpu::patch::{Counts, Span};
@@ -123,12 +136,14 @@ pub struct MeshPreview {
     dots: Vec<(usize, GlyphPoint)>,
     span: Span,
 }
+
 pub struct Gesture {
     vertices: Vec<(u32, RenderVertex, bool)>,
     pipes: Vec<(u32, CylinderSegment, [bool; 2])>,
     spheres: Vec<(u32, GlyphPoint, bool)>,
     dots: Vec<(u32, GlyphPoint, bool)>,
 }
+
 pub fn mesh(geometry: &Geometry) -> Option<&Mesh> {
     match geometry {
         Geometry::Mesh(mesh) => Some(mesh),
@@ -139,6 +154,7 @@ pub fn mesh(geometry: &Geometry) -> Option<&Mesh> {
         _ => None,
     }
 }
+
 impl MeshPreview {
     pub(crate) fn capture(
         up: &Upload,
@@ -147,14 +163,18 @@ impl MeshPreview {
         geometry: &Geometry,
     ) -> Option<Self> {
         let mesh = mesh(geometry)?;
+
         if span.count.ribbons != 0 {
             return None;
         }
+
         let mut keys = mesh.vertices();
+
         if mesh.color_mode == session_rust::mesh::ColorMode::FACECOLORS
             && mesh.get_facecolors().len() == mesh.face.len()
         {
             keys.clear();
+
             for face in mesh.faces() {
                 let ring = &mesh.face[&face];
                 let triangles = mesh
@@ -167,6 +187,7 @@ impl MeshPreview {
                             .map(|i| [ring[0], ring[i], ring[i + 1]])
                             .collect()
                     });
+
                 for triangle in triangles {
                     if triangle.iter().all(|key| mesh.vertex.contains_key(key)) {
                         keys.extend(triangle);
@@ -174,9 +195,11 @@ impl MeshPreview {
                 }
             }
         }
+
         if keys.len() != span.count.verts as usize {
             return None;
         }
+
         let vertices = keys
             .into_iter()
             .zip(
@@ -187,18 +210,22 @@ impl MeshPreview {
             .collect();
         let mut seen = HashSet::new();
         let mut edges = Vec::new();
+
         for face in mesh.faces() {
             let ring = &mesh.face[&face];
+
             for i in 0..ring.len() {
                 let pair = [
                     ring[i].min(ring[(i + 1) % ring.len()]),
                     ring[i].max(ring[(i + 1) % ring.len()]),
                 ];
+
                 if seen.insert(pair) {
                     edges.push(pair);
                 }
             }
         }
+
         let pipes = (local.pipes..local.pipes + span.count.pipes)
             .map(|i| {
                 Some((
@@ -209,6 +236,7 @@ impl MeshPreview {
             .collect::<Option<Vec<_>>>()?;
         // Marker provenance is accepted only when source positions are unambiguous.
         let mut positions = HashMap::new();
+
         for (&key, v) in &mesh.vertex {
             let p = [v.x as f32, v.y as f32, v.z as f32].map(f32::to_bits);
             positions
@@ -216,6 +244,7 @@ impl MeshPreview {
                 .and_modify(|value| *value = None)
                 .or_insert(Some(key));
         }
+
         let markers = |items: &[GlyphPoint]| {
             items
                 .iter()
@@ -235,15 +264,18 @@ impl MeshPreview {
             span,
         })
     }
+
     pub fn begin(&self, geometry: &Geometry, target: Target) -> Option<Gesture> {
         let mesh = mesh(geometry)?;
         let selected: HashSet<_> = mesh_keys(mesh, target).ok()?.into_iter().collect();
         let mut affected = selected.clone();
+
         for ring in mesh.face.values() {
             if ring.iter().any(|k| selected.contains(k)) {
                 affected.extend(ring);
             }
         }
+
         let vertices = self
             .vertices
             .iter()
@@ -279,6 +311,7 @@ impl MeshPreview {
             dots: markers(&self.dots, self.span.start.dots),
         })
     }
+
     pub fn allocated_bytes(&self) -> usize {
         self.vertices.capacity() * std::mem::size_of::<(usize, RenderVertex)>()
             + self.pipes.capacity() * std::mem::size_of::<([usize; 2], CylinderSegment)>()
@@ -286,6 +319,7 @@ impl MeshPreview {
                 * std::mem::size_of::<(usize, GlyphPoint)>()
     }
 }
+
 impl Gesture {
     pub fn apply(&self, gpu: &mut Gpu, delta: &Xform, restore: bool) {
         let position = |p: [f32; 3]| {
@@ -295,26 +329,33 @@ impl Gesture {
                     as f32
             })
         };
+
         for &(index, mut v, moved) in &self.vertices {
             if !restore {
                 if moved {
                     v.position = position(v.position);
                 }
+
                 v.normal = [0.; 3];
             }
+
             gpu.arena.patch_vertices(&gpu.ctx, index, &[v]);
         }
+
         for &(index, mut p, moved) in &self.pipes {
             if !restore {
                 if moved[0] {
                     p.p0 = position(p.p0);
                 }
+
                 if moved[1] {
                     p.p1 = position(p.p1);
                 }
+
                 // During a gesture, finite triangle visibility supplies the occlusion test.
                 p.facing = u32::MAX;
             }
+
             gpu.segments.patch_pipes(
                 &gpu.ctx,
                 index,
@@ -324,18 +365,22 @@ impl Gesture {
                 },
             );
         }
+
         for (items, sphere) in [(&self.spheres, true), (&self.dots, false)] {
             for &(index, mut g, moved) in items {
                 if !restore {
                     if moved {
                         g.center = position(g.center);
                     }
+
                     g.facing = u32::MAX;
                     g.facing_ext = [u32::MAX; 2];
                 }
+
                 gpu.glyphs.patch_marker(&gpu.ctx, index, sphere, g);
             }
         }
+
         gpu.objects.geometry_changed();
     }
 }
@@ -346,14 +391,17 @@ mod tests {
     use crate::app::walk::{Walk, WalkCx, walk_geometry};
     use session_rust::Point;
     use std::rc::Rc;
+
     #[test]
     fn large_mesh_gesture_only_patches_local_neighborhood() {
         let mut mesh = Mesh::new();
+
         for y in 0..101 {
             for x in 0..101 {
                 mesh.add_vertex(Point::new(x as f64, y as f64, 0.), Some(y * 101 + x));
             }
         }
+
         for y in 0..100 {
             for x in 0..100 {
                 let a = y * 101 + x;
@@ -361,6 +409,7 @@ mod tests {
                 mesh.add_face(vec![a, a + 102, a + 101], None);
             }
         }
+
         let geometry = Geometry::Mesh(Rc::new(mesh));
         let mut up = Upload::default();
         walk_geometry(
@@ -556,9 +605,11 @@ pub mod mesh_preview;
             o.bounds = r.bounds;
             o.spacing = r.spacing;
             o.faces = r.faces;
+
             if r.faces {
                 o.flags |= Instance::FLAG_HAS_FACES;
             }
+
             let ribbon_end = self.tables.seg.ribbons.len();
 ```
 
@@ -640,21 +691,19 @@ pub mod mesh_preview;
 **CURRENT**
 
 ```rust
-        .locked
-        .into_iter()
-        .map(|(doc, id)| (doc, Rc::from(id)))
+    scene.colors = metadata
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```rust
-        .collect();
     // Older archives applied their single color to faces and edges alike.
     scene.edge_colors = metadata
         .edge_colors
         .unwrap_or_else(|| metadata.colors.clone())
         .into_iter()
         .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
+        .collect();
 ```
 
 **TYPE THIS**
@@ -730,6 +779,7 @@ pub mod mesh_preview;
             if let Some(color) = color {
                 self.colors.insert((doc, Rc::from(id.as_str())), color);
             }
+
             if let Some(color) = edge_color {
                 self.edge_colors.insert((doc, Rc::from(id.as_str())), color);
             }
@@ -779,6 +829,7 @@ pub mod mesh_preview;
                             let key =
                                 format!("color/{index}/{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]);
                             record(controls, &key, name, &response);
+
                             if response.clicked() {
                                 *action = Some(key);
                                 ui.close();
@@ -788,11 +839,13 @@ pub mod mesh_preview;
                 }
                 ui.separator();
                 let mut changed = false;
+
                 for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
                     changed |= ui
                         .add(egui::Slider::new(value, 0..=255).text(channel))
                         .changed();
                 }
+
                 if changed {
                     *action = Some(format!(
                         "color/{index}/{:02x}{:02x}{:02x}",
@@ -823,6 +876,7 @@ pub mod mesh_preview;
             .ctx()
             .data_mut(|data| data.get_temp::<bool>(channel_id).unwrap_or(false))
             && row.has_faces;
+
         if row.has_faces {
             ui.horizontal(|ui| {
                 for (label, value) in [("Faces", false), ("Edges", true)] {
@@ -833,6 +887,7 @@ pub mod mesh_preview;
                         label,
                         &response,
                     );
+
                     if response.clicked() {
                         edge = value;
                     }
@@ -841,6 +896,7 @@ pub mod mesh_preview;
         } else {
             ui.label("Object and child colors");
         }
+
         ui.ctx().data_mut(|data| data.insert_temp(channel_id, edge));
         let channel = if edge { "edge" } else { "face" };
         color = if edge { row.edge_color } else { row.color }.unwrap_or([180; 3]);
@@ -849,10 +905,12 @@ pub mod mesh_preview;
             .on_hover_text("Restore the source colors for this channel and its children");
         let key = format!("color/{index}/{channel}/original");
         record(controls, &key, "Original", &response);
+
         if response.clicked() {
             *action = Some(key);
             ui.close();
         }
+
         ui.separator();
         for colors in [
             [
@@ -887,6 +945,7 @@ pub mod mesh_preview;
                         rgb[0], rgb[1], rgb[2]
                     );
                     record(controls, &key, name, &response);
+
                     if response.clicked() {
                         *action = Some(key);
                         ui.close();
@@ -896,11 +955,13 @@ pub mod mesh_preview;
         }
         ui.separator();
         let mut changed = false;
+
         for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
             changed |= ui
                 .add(egui::Slider::new(value, 0..=255).text(channel))
                 .changed();
         }
+
         if changed {
             *action = Some(format!(
                 "color/{index}/{channel}/{:02x}{:02x}{:02x}",
@@ -949,13 +1010,14 @@ impl GlyphLane {
 **CURRENT**
 
 ```rust
-    pub const FLAG_COLOR: u32 = 1 << 8;
+    /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
 ```
 
-**ADD BELOW**
+**ADD ABOVE**
 
 ```rust
     pub const FLAG_EDGE_COLOR: u32 = 1 << 9;
+
     pub const FLAG_HAS_FACES: u32 = 1 << 10;
 ```
 
@@ -1077,9 +1139,11 @@ impl GlyphLane {
                 Instance::FLAG_COLOR
             };
             r.flags &= !flag;
+
             if color.is_some() {
                 r.flags |= flag;
             }
+
             if edge {
                 r._pad = color
                     .map(|c| u32::from_le_bytes([c[0], c[1], c[2], 255]))
@@ -1096,6 +1160,7 @@ impl GlyphLane {
                     })
                     .unwrap_or([1.; 4]);
             }
+
             self.buffer.write_at(ctx, row, std::slice::from_ref(r));
 ```
 
@@ -1104,16 +1169,12 @@ impl GlyphLane {
 **CURRENT**
 
 ```rust
-        self.buffer.write_at(ctx, row, std::slice::from_ref(r));
-    }
+    /// Forget every row; the buffers keep their capacity.
 ```
 
-**REPLACE WITH**
+**ADD ABOVE**
 
 ```rust
-        self.buffer.write_at(ctx, row, std::slice::from_ref(r));
-    }
-
     pub(crate) fn geometry_changed(&mut self) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
     }
@@ -1158,7 +1219,6 @@ impl GlyphLane {
 ```wgsl
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = object_color(g.color, inst);
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 **REPLACE WITH**
@@ -1166,7 +1226,6 @@ impl GlyphLane {
 ```wgsl
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = edge_color(g.color, inst);
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 ### `src/shaders/ribbon.wgsl`
@@ -1178,7 +1237,6 @@ impl GlyphLane {
 ```wgsl
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = object_color(unpack4x8unorm(seg.color), inst);
-    if (selected) {
 ```
 
 **REPLACE WITH**
@@ -1186,7 +1244,6 @@ impl GlyphLane {
 ```wgsl
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = edge_color(unpack4x8unorm(seg.color), inst);
-    if (selected) {
 ```
 
 ### `src/shaders/scene.wgsl`
@@ -1217,10 +1274,14 @@ const FACING_UNKNOWN: u32 = 0xffffffffu;
 
 ```wgsl
 fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
-    if ((inst.flags & 1024u) == 0u) { return object_color(authored, inst); }
+    if ((inst.flags & 1024u) == 0u) {
+        return object_color(authored, inst);
+    }
+
     if ((inst.flags & 512u) != 0u) {
         return vec4<f32>(unpack4x8unorm(inst.edge_color).rgb, authored.a);
     }
+
     return authored;
 }
 ```
@@ -1234,7 +1295,6 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 ```wgsl
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = object_color(g.color, inst);
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 **REPLACE WITH**
@@ -1242,7 +1302,6 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 ```wgsl
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = edge_color(g.color, inst);
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
 ```
 
 ### `src/state/edit.rs`
@@ -1302,19 +1361,24 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 **CURRENT**
 
 ```rust
-            let local = &(&back * &Xform::from_matrix(delta)) * &place;
+            let local = &(&back * &delta) * &place;
 ```
 
 **ADD BELOW**
 
 ```rust
+
             if let Some(preview) = active.mesh_preview.as_ref() {
                 preview.apply(&mut self.gpu, &local, false);
-                let origin = active.origin.transformed(&Xform::from_matrix(delta));
-                self.gpu.bounds.grow(origin.to_f32());
+                let origin = active.origin.transformed(&delta);
+                self.gpu
+                    .bounds
+                    .union_with_point(origin[0], origin[1], origin[2]);
+
                 if let Some(gizmo) = self.gizmo.as_mut() {
                     gizmo.origin = origin;
                 }
+
                 self.upload_gizmo();
                 self.touch();
                 return true;
@@ -1355,6 +1419,7 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
                 && index < self.hierarchy.nodes.len()
             {
                 let color = [(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8];
+
                 for row in self.hierarchy.targets(index) {
                     if let Some(id) = self.scene.identity_of(row) {
                         self.scene.colors.insert(id, color);
@@ -1367,6 +1432,7 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 ```rust
         if let Some(value) = key.strip_prefix("color/") {
             let parts: Vec<_> = value.split('/').collect();
+
             if parts.len() == 3
                 && let Ok(index) = parts[0].parse::<usize>()
                 && index < self.hierarchy.nodes.len()
@@ -1381,6 +1447,7 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
                     };
                     Some([(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8])
                 };
+
                 for row in self.hierarchy.targets(index) {
                     if edge
                         && !self.gpu.objects.row(row).is_some_and(|r| {
@@ -1389,17 +1456,20 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
                     {
                         continue;
                     }
+
                     if let Some(id) = self.scene.identity_of(row) {
                         let colors = if edge {
                             &mut self.scene.edge_colors
                         } else {
                             &mut self.scene.colors
                         };
+
                         if let Some(color) = color {
                             colors.insert(id, color);
                         } else {
                             colors.remove(&id);
                         }
+
                         self.gpu.set_object_color(row, edge, color);
                     }
 ```
@@ -1435,7 +1505,7 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 
 ### Check step 11
 
-**Verification pending:** run the check below before continuing.
+**Verified:** the complete step compiles for WebAssembly.
 
 ```bash
 cargo check -j4 --lib

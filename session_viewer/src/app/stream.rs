@@ -1,33 +1,22 @@
-//! Reading a cloud or a sheet by HTTP Range, without decoding the file whole. Two facts about
-//! the wire format make it possible: every hop `Session.3 -> Objects.8 -> PointCloud` (or
-//! `Objects.17 -> Sheet`) is length-delimited, so the headers sit in the first few KB; and
-//! `coords` is packed double, so its length prefix gives the exact count before a byte of
-//! payload is read. The byte-level parsing here is pure and tested natively; the fetching
-//! half is wasm-only.
-
 /// Where the packed source arrays live in the file, as absolute byte offsets.
 #[derive(Clone, Debug)]
 pub struct CloudFields {
-    /// End of the enclosing PointCloud message, exclusive.
-    pub end: u64,
+    pub end: u64, // End of the enclosing PointCloud message, exclusive.
     pub coords_at: u64,
     pub coords_len: u64,
     pub colors_at: u64,
     pub colors_len: u64,
     pub count: u32,
-    /// Packed fixed32 original point IDs (field 15); absent means identity IDs.
-    pub ids_at: u64,
+    pub ids_at: u64, // Packed fixed32 original point IDs (field 15); absent means identity IDs.
     pub ids_len: u64,
-    /// Source validator captured with the first metadata range when the server exposes it.
-    pub revision: Option<String>,
+    pub revision: Option<String>, // Source validator captured with the first metadata range when the server exposes it.
 }
 
 /// Where a sheet's fixed-width arrays live in the file, as absolute byte offsets; a zero
 /// length means the field is absent (default colour, hairline pens, no entity ids).
 #[derive(Clone, Debug, Default)]
 pub struct SheetFields {
-    /// End of the enclosing Sheet message, exclusive.
-    pub end: u64,
+    pub end: u64, // End of the enclosing Sheet message, exclusive.
     pub coords_at: u64,
     pub coords_len: u64,
     pub colors_at: u64,
@@ -36,12 +25,9 @@ pub struct SheetFields {
     pub widths_len: u64,
     pub ids_at: u64,
     pub ids_len: u64,
-    /// Segments, from the coords length; `segment_count` (field 6) must agree.
-    pub count: u32,
-    /// Records in the side table (field 7).
-    pub entities: u32,
-    /// Side-table file name relative to the sheet URL; empty = none.
-    pub meta: String,
+    pub count: u32, // Segments, from the coords length; `segment_count` (field 6) must agree.
+    pub entities: u32, // Records in the side table (field 7).
+    pub meta: String, // Side-table file name relative to the sheet URL; empty = none.
     pub revision: Option<String>,
 }
 
@@ -60,10 +46,13 @@ pub struct Field {
 pub fn field_at(header: &[u8], at: u64, end: u64) -> Option<Field> {
     let (tag, used) = varint(header, 0)?;
     let (field, wire) = (u32::try_from(tag >> 3).ok()?, (tag & 7) as u32);
+
     if field == 0 {
         return None;
     }
+
     let body = body_end(at, used as u64, end)?;
+
     if wire != 2 {
         let (value, _) = if wire == 0 {
             varint(header, used)?
@@ -79,6 +68,7 @@ pub fn field_at(header: &[u8], at: u64, end: u64) -> Option<Field> {
             next: body_end(body, skip as u64, end)?,
         });
     }
+
     let (length, extra) = varint(header, used)?;
     let body = body_end(body, extra as u64, end)?;
     Some(Field {
@@ -99,6 +89,7 @@ impl SheetFields {
     /// wrong wire type.
     pub fn set(&mut self, f: &Field, body: &[u8]) -> bool {
         let per_segment = u64::from(self.count) * 4;
+
         match (f.field, f.wire) {
             (4, 2) if self.colors_len == 0 && f.value == per_segment => {
                 (self.colors_at, self.colors_len) = (f.body, f.value)
@@ -121,6 +112,7 @@ impl SheetFields {
             (1..=8, _) | (15, _) => return false,
             _ => {}
         }
+
         true
     }
 }
@@ -149,8 +141,10 @@ impl CloudLod {
         if (8..=10).contains(&field) && !raw.len().is_multiple_of(8) {
             return false;
         }
+
         if (11..=14).contains(&field) {
             let mut at = 0;
+
             while at < raw.len() {
                 let Some((_, bytes)) = varint(raw, at) else {
                     return false;
@@ -158,6 +152,7 @@ impl CloudLod {
                 at += bytes;
             }
         }
+
         match field {
             8 => self.min = packed_f64(raw),
             9 => self.size = packed_f64(raw),
@@ -168,6 +163,7 @@ impl CloudLod {
             14 => self.children = packed_i32(raw),
             _ => return false,
         }
+
         true
     }
 
@@ -180,6 +176,7 @@ impl CloudLod {
         let Some(children) = n.checked_mul(8) else {
             return false;
         };
+
         if n == 0
             || self.min.len() != triples
             || self.spacing.len() != n
@@ -191,12 +188,15 @@ impl CloudLod {
         {
             return false;
         }
+
         let mut parents = vec![false; n];
+
         for node in 0..n {
             if !self.valid_node(node, total) || !self.valid_children(node, &mut parents) {
                 return false;
             }
         }
+
         !parents[1..].contains(&false)
     }
 
@@ -204,6 +204,7 @@ impl CloudLod {
     fn valid_node(&self, node: usize, total: u32) -> bool {
         let size = self.size[node];
         let spacing = self.spacing[node];
+
         if !finite_float(size)
             || size < 0.0
             || !finite_float(spacing)
@@ -212,11 +213,13 @@ impl CloudLod {
         {
             return false;
         }
+
         for &min in &self.min[node * 3..node * 3 + 3] {
             if !finite_float(min) || !finite_float(min + size) {
                 return false;
             }
         }
+
         let (Ok(first), Ok(count)) = (
             u32::try_from(self.first[node]),
             u32::try_from(self.count[node]),
@@ -235,9 +238,11 @@ impl CloudLod {
             if child == -1 {
                 continue;
             }
+
             let Ok(child) = usize::try_from(child) else {
                 return false;
             };
+
             if child == 0
                 || child >= parents.len()
                 || parents[child]
@@ -245,8 +250,10 @@ impl CloudLod {
             {
                 return false;
             }
+
             parents[child] = true;
         }
+
         true
     }
 
@@ -260,17 +267,23 @@ impl CloudLod {
 pub fn varint(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
     let (mut v, mut shift) = (0u64, 0u32);
     let start = i;
+
     loop {
         let byte = *b.get(i)?;
+
         if shift == 63 && byte > 1 {
             return None;
         }
+
         v |= ((byte & 0x7f) as u64) << shift;
         i += 1;
+
         if byte & 0x80 == 0 {
             return Some((v, i - start));
         }
+
         shift += 7;
+
         if shift > 63 {
             return None;
         }
@@ -325,30 +338,40 @@ fn first_array(head: &[u8], mut at: usize, end: u64) -> Option<(u64, u64, u64)> 
         let (tag, used) = varint(head, at)?;
         at = at.checked_add(used)?;
         let (field, wire) = (u32::try_from(tag >> 3).ok()?, (tag & 7) as u32);
+
         if field == 0 {
             return None;
         }
+
         if wire != 2 {
             at = at.checked_add(skip_scalar(head, at, wire)?)?;
+
             if at as u64 > end {
                 return None;
             }
+
             continue;
         }
+
         let (length, used) = varint(head, at)?;
         at = at.checked_add(used)?;
         let next = (at as u64).checked_add(length)?;
+
         if next > end {
             return None;
         }
+
         if field == 3 {
             return Some((at as u64, length, end));
         }
+
         if field > 3 || length > NAME_BYTES {
             return None;
         }
+
         at = usize::try_from(next).ok()?;
     }
+
     None
 }
 
@@ -359,28 +382,35 @@ fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u
         let (tag, used) = varint(head, *at)?;
         *at = (*at).checked_add(used)?;
         let (field, wire) = (u32::try_from(tag >> 3).ok()?, tag & 7);
+
         if field == 0 || wire != 2 {
             return None;
         }
+
         let (length, used) = varint(head, *at)?;
         *at = (*at).checked_add(used)?;
         let next = (*at as u64).checked_add(length)?;
+
         if let Some(end) = parent_end
             && next > end
         {
             return None;
         }
+
         if field == want {
             if let Some(end) = parent_end
                 && end != next
             {
                 return None;
             }
+
             return Some(next);
         }
+
         if length > NAME_BYTES {
             return None;
         }
+
         *at = usize::try_from(next).ok()?;
     }
 }
@@ -402,14 +432,19 @@ fn checked_doubles(raw: &[u8], n: u64) -> Option<Vec<f32>> {
     if raw.len() as u64 != n.checked_mul(8)? {
         return None;
     }
+
     let mut out = Vec::with_capacity(raw.len() / 8);
+
     for bytes in raw.chunks_exact(8) {
         let value = f64::from_le_bytes(bytes.try_into().ok()?);
+
         if !finite_float(value) {
             return None;
         }
+
         out.push(value as f32);
     }
+
     Some(out)
 }
 
@@ -422,6 +457,7 @@ fn bounded_range(at: u64, length: u64) -> bool {
 /// Checked body bounds, shared by metadata, position and color ranges.
 fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
     let next = at.checked_add(length)?;
+
     if next <= end { Some(next) } else { None }
 }
 
@@ -447,6 +483,7 @@ impl MetadataWindow {
         if !bounded_range(at, length) {
             return None;
         }
+
         body_end(at, length, end)?;
         Some(length.max(64 * 1024).min(end - at))
     }
@@ -456,48 +493,58 @@ impl MetadataWindow {
 pub fn packed_i32(raw: &[u8]) -> Vec<i32> {
     let mut out = Vec::new();
     let mut i = 0usize;
+
     while i < raw.len() {
         let Some((v, n)) = varint(raw, i) else { break };
         out.push(v as i32);
         i += n;
     }
+
     out
 }
 
 /// A packed `double` array in full.
 pub fn packed_f64(raw: &[u8]) -> Vec<f64> {
     let mut out = Vec::with_capacity(raw.len() / 8);
+
     for c in raw.chunks_exact(8) {
         out.push(f64::from_le_bytes(c.try_into().unwrap()));
     }
+
     out
 }
 
 /// A packed `fixed32` array in full.
 pub fn packed_u32(raw: &[u8]) -> Vec<u32> {
     let mut out = Vec::with_capacity(raw.len() / 4);
+
     for c in raw.chunks_exact(4) {
         out.push(u32::from_le_bytes(c.try_into().unwrap()));
     }
+
     out
 }
 
 /// A packed `float` array in full; a non-finite value becomes 0 (the hairline pen).
 pub fn packed_f32(raw: &[u8]) -> Vec<f32> {
     let mut out = Vec::with_capacity(raw.len() / 4);
+
     for c in raw.chunks_exact(4) {
         let v = f32::from_le_bytes(c.try_into().unwrap());
         out.push(if v.is_finite() { v } else { 0.0 });
     }
+
     out
 }
 
 /// An already-fetched coords slice as f32 triples.
 pub fn positions_from(raw: &[u8]) -> Vec<f32> {
     let mut out = Vec::with_capacity(raw.len() / 8);
+
     for c in raw.chunks_exact(8) {
         out.push(f64::from_le_bytes(c.try_into().unwrap()) as f32);
     }
+
     out
 }
 
@@ -506,15 +553,19 @@ pub fn positions_from(raw: &[u8]) -> Vec<f32> {
 pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
     let mut out = Vec::with_capacity(count as usize);
     let mut i = 0usize;
+
     for _ in 0..count {
         let mut rgba = [255u8; 4];
+
         for k in &mut rgba {
             let (v, n) = varint(raw, i)?;
             i += n;
             *k = (v & 255) as u8;
         }
+
         out.push(u32::from_le_bytes(rgba));
     }
+
     Some((out, i))
 }
 
@@ -529,6 +580,7 @@ mod web {
     use crate::app::walk::sheet::SheetRows;
 
     const POINT_BYTES: u64 = 24;
+
     const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
 
     impl MetadataWindow {
@@ -542,11 +594,13 @@ mod web {
             revision: &Option<String>,
         ) -> Option<&[u8]> {
             body_end(at, length, end)?;
+
             if self.slice(at, length).is_none() {
                 let read_length = Self::read_length(at, length, end)?;
                 self.bytes = source_range(url, at, read_length, revision).await?;
                 self.at = at;
             }
+
             self.slice(at, length)
         }
     }
@@ -561,9 +615,11 @@ mod web {
         if !bounded_range(at, length) {
             return None;
         }
+
         if length == 0 {
             return Some(Vec::new());
         }
+
         Some(fetch_range(url, at, length, revision).await.ok()?.0)
     }
 
@@ -579,18 +635,24 @@ mod web {
         )
         .await
         .ok()?;
+
         if reply.status != 206 || reply.bytes.len() > 8192 {
             return None;
         }
+
         let (coords_at, coords_len, end) = cloud_layout(&reply.bytes)?;
+
         if coords_len == 0 || !coords_len.is_multiple_of(POINT_BYTES) {
             return None;
         }
+
         let after = body_end(coords_at, coords_len, end)?;
         let mut colors = (after, 0);
+
         if after < end {
             let header = source_range(url, after, 16.min(end - after), &reply.etag).await?;
             let (tag, used) = varint(&header, 0)?;
+
             if tag >> 3 == 4 && tag & 7 == 2 {
                 let (length, extra) = varint(&header, used)?;
                 let body = after.checked_add((used + extra) as u64)?;
@@ -598,6 +660,7 @@ mod web {
                 colors = (body, length);
             }
         }
+
         Some(CloudFields {
             end,
             coords_at,
@@ -619,6 +682,7 @@ mod web {
         let mut table_bytes = 0u64;
         let mut ids = None;
         let mut window = MetadataWindow::default();
+
         while at < fields.end {
             let header = window
                 .read(
@@ -631,47 +695,62 @@ mod web {
                 .await?;
             let (tag, used) = varint(header, 0)?;
             let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
+
             if field == 0 {
                 return None;
             }
+
             if wire != 2 {
                 if (8..=15).contains(&field) {
                     return None;
                 }
+
                 let skip = skip_scalar(header, used, wire)?;
                 at = body_end(at, (used + skip) as u64, fields.end)?;
                 continue;
             }
+
             let (length, extra) = varint(header, used)?;
             let body = body_end(at, (used + extra) as u64, fields.end)?;
             let next = body_end(body, length, fields.end)?;
+
             if (8..=14).contains(&field) {
                 if seen[field - 8] {
                     return None;
                 }
+
                 table_bytes = table_bytes.checked_add(length)?;
+
                 if table_bytes > MAX_TABLE_BYTES {
                     return None;
                 }
+
                 let raw = window
                     .read(url, body, length, fields.end, &fields.revision)
                     .await?;
+
                 if !lod.set_field(field, raw) {
                     return None;
                 }
+
                 seen[field - 8] = true;
             }
+
             if field == 15 {
                 if length != u64::from(fields.count) * 4 || ids.is_some() {
                     return None;
                 }
+
                 ids = Some((body, length));
             }
+
             at = next;
         }
+
         if seen.contains(&false) || !lod.valid(fields.count) {
             return None;
         }
+
         (fields.ids_at, fields.ids_len) = ids.unwrap_or((0, 0));
         Some(lod)
     }
@@ -686,6 +765,7 @@ mod web {
         if from > to || to > fields.count {
             return None;
         }
+
         let at = fields
             .coords_at
             .checked_add(u64::from(from).checked_mul(POINT_BYTES)?)?;
@@ -707,16 +787,20 @@ mod web {
         count: u32,
     ) -> Option<(Vec<u32>, u64)> {
         let end = body_end(fields.colors_at, fields.colors_len, fields.end)?;
+
         if at < fields.colors_at || at > end || count > fields.count {
             return None;
         }
+
         // 8 B a colour is the WORST case, not the size: each of the four channels is a varint,
         // and a channel of 128 or more takes two bytes. `colors_from` reports where it really
         // stopped, and that is where the next slice starts.
         let length = (u64::from(count) * 8).min(end - at);
+
         if length == 0 {
             return None;
         }
+
         let raw = source_range(url, at, length, &fields.revision).await?;
         let (colors, used) = colors_from(&raw, count)?;
         Some((colors, body_end(at, used as u64, end)?))
@@ -735,13 +819,17 @@ mod web {
         )
         .await
         .ok()?;
+
         if reply.status != 206 || reply.bytes.len() > 8192 {
             return None;
         }
+
         let (coords_at, coords_len, end) = sheet_layout(&reply.bytes)?;
+
         if coords_len == 0 || !coords_len.is_multiple_of(SheetFields::SEGMENT_BYTES) {
             return None;
         }
+
         let mut fields = SheetFields {
             end,
             coords_at,
@@ -752,6 +840,7 @@ mod web {
         };
         let mut at = body_end(coords_at, coords_len, end)?;
         let mut window = MetadataWindow::default();
+
         while at < end {
             let header = window
                 .read(url, at, 64.min(end - at), end, &fields.revision)
@@ -761,17 +850,21 @@ mod web {
                 if f.value > NAME_BYTES {
                     return None;
                 }
+
                 window
                     .read(url, f.body, f.value, end, &fields.revision)
                     .await?
             } else {
                 &[]
             };
+
             if !fields.set(&f, body) {
                 return None;
             }
+
             at = f.next;
         }
+
         Some(fields)
     }
 
@@ -787,6 +880,7 @@ mod web {
         if len == 0 {
             return Some(Vec::new());
         }
+
         let start = at.checked_add(u64::from(from).checked_mul(stride)?)?;
         let length = u64::from(to - from).checked_mul(stride)?;
         body_end(start, length, body_end(at, len, fields.end)?)?;
@@ -804,6 +898,7 @@ mod web {
         if from > to || to > fields.count {
             return None;
         }
+
         let coords = (fields.coords_at, fields.coords_len);
         let raw = sheet_array(url, fields, coords, from, to, SheetFields::SEGMENT_BYTES).await?;
         let positions = checked_doubles(&raw, u64::from(to - from) * 6)?;
@@ -917,6 +1012,7 @@ mod tests {
         assert_eq!(checked_positions(&raw, 1).unwrap(), [1.0, 2.0, 3.0]);
         assert!(checked_positions(&raw[..23], 1).is_none());
         assert!(checked_positions(&raw, 2).is_none());
+
         for bad in [f64::NAN, f64::INFINITY, f64::MAX] {
             let raw: Vec<_> = [bad, 0.0, 0.0]
                 .into_iter()
@@ -963,13 +1059,16 @@ mod tests {
     /// One protobuf varint.
     fn uvarint(mut v: u64) -> Vec<u8> {
         let mut out = Vec::new();
+
         loop {
             let byte = (v & 0x7f) as u8;
             v >>= 7;
+
             if v == 0 {
                 out.push(byte);
                 return out;
             }
+
             out.push(byte | 0x80);
         }
     }
@@ -1019,11 +1118,14 @@ mod tests {
             } else {
                 &[]
             };
+
             if !fields.set(&f, body) {
                 return false;
             }
+
             at = f.next;
         }
+
         true
     }
 

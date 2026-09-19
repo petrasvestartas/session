@@ -1,6 +1,3 @@
-//! Streamed F10 queries: page source points, test GPU visibility, then resolve source IDs.
-//! This coordinates existing Scene and Gpu owners; display LOD never limits a source query.
-
 use super::State;
 #[cfg(target_arch = "wasm32")]
 use super::{
@@ -24,6 +21,7 @@ impl State {
                 return Some(slot);
             }
         }
+
         None
     }
 
@@ -59,7 +57,7 @@ impl State {
             .view_proj_anchored(self.aspect(), &session_rust::Point::new(0.0, 0.0, 0.0));
         let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
         let view = QueryView {
-            matrix: crate::math::mat_mul(&projection.m, &cloud.place),
+            matrix: &projection * &cloud.place,
             size: [
                 f64::from(self.gpu.config.width),
                 f64::from(self.gpu.config.height),
@@ -81,6 +79,7 @@ impl State {
         };
         query.awaiting_gpu = false;
         query.candidates.clear();
+
         if let Some(page) = query.next_page() {
             let progress = format!(
                 "Checking source points: {} / {} (display LOD remains bounded)",
@@ -96,6 +95,7 @@ impl State {
             self.gpu.pick.cancel();
             self.status("No visible source point in the selection window");
         }
+
         self.upload_controls();
     }
 
@@ -105,9 +105,11 @@ impl State {
         let Some(query) = self.cloud_query.as_mut() else {
             return;
         };
+
         if query.id != batch.query || query.cancelled.get() {
             return;
         }
+
         let (candidates, revision) = match batch.result {
             Ok(result) => result,
             Err(error) => {
@@ -120,10 +122,12 @@ impl State {
         };
         query.checked += batch.count;
         query.revision = revision;
+
         if candidates.is_empty() {
             self.advance_cloud_query();
             return;
         }
+
         query.candidates = candidates;
         query.awaiting_gpu = true;
         let parent = query.parent;
@@ -131,6 +135,7 @@ impl State {
         let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
         let query = self.cloud_query.as_ref().unwrap();
         let mut glyphs = GlyphRows::default();
+
         for candidate in &query.candidates {
             glyphs.dots.push(GlyphPoint {
                 center: render_position(candidate.position),
@@ -141,6 +146,7 @@ impl State {
                 facing_ext: [candidate.local, FACING_UNKNOWN],
             });
         }
+
         self.gpu.controls.reset();
         self.gpu
             .controls
@@ -180,9 +186,11 @@ impl State {
         let Some(query) = self.cloud_query.as_ref() else {
             return;
         };
+
         if query.id != resolved.query || query.cancelled.get() {
             return;
         }
+
         let query = self.cloud_query.take().unwrap();
         let (source, position) = match resolved.result {
             Ok(result) => result,

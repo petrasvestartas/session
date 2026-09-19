@@ -222,35 +222,45 @@ index 0000000000000000000000000000000000000000..5d69ab6b4577a6350f360f3ae1a05399
 +</script>
 +</html>
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index dd812577b2bba47df27134eafab8843f927d5866..b3450f005a3b0f6d7986bc0817ba83ce9ca28393 100644
+index 8b0ee575efc83b08d1b2b8c10633ff2e3d5b7ff6..00f4814622448aec18a930d94cccc7e3e385d0ca 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
-@@ -1,11 +1,11 @@
- <!doctype html>
- <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 10</title>
-+<title>Session checkpoint 11</title>
- <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
- <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
- <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
--<link data-trunk rel="copy-file" href="assets/text-layout.html">
--</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-layout.html" style="position:fixed;right:12px;top:12px;color:white">Inspect shaped text</a><output id="status">Starting checkpoint 10</output>
-+<link data-trunk rel="copy-file" href="assets/text-quality.html">
-+</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-quality.html" style="position:fixed;right:12px;top:12px;color:white">Compare GPU text</a><output id="status">Starting checkpoint 11</output>
- <script>
- let tutorial;
- let pointer;
-@@ -23,7 +23,7 @@ function render() {
-     const canvas = document.getElementById('canvas');
-     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-     canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 10 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-+    document.getElementById('status').textContent = 'Checkpoint 11 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
- }
- /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
- function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+-    <title>Session checkpoint 10</title>
++    <title>Session checkpoint 11</title>
+     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+     <style>
+       html, body {
+@@ -30,12 +30,12 @@
+       }
+     </style>
+     <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
+-    <link data-trunk rel="copy-file" href="assets/text-layout.html">
++    <link data-trunk rel="copy-file" href="assets/text-quality.html">
+   </head>
+   <body>
+     <canvas id="canvas" tabindex="0"></canvas>
+-    <a href="./text-layout.html" style="position: fixed; right: 12px; top: 12px; color: white;">Inspect shaped text</a>
+-    <output id="status">Starting checkpoint 10</output>
++    <a href="./text-quality.html" style="position: fixed; right: 12px; top: 12px; color: white;">Compare GPU text</a>
++    <output id="status">Starting checkpoint 11</output>
+     <script>
+       let tutorial;
+       let pointer;
+@@ -62,7 +62,7 @@
+         const canvas = document.getElementById('canvas');
+         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+         canvas.dataset.tutorialInspection = JSON.stringify(state);
+-        document.getElementById('status').textContent = 'Checkpoint 10 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++        document.getElementById('status').textContent = 'Checkpoint 11 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+       }
+ 
+       /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5bf08f0096 100644
+index 435ca00baa86f83c263491b852e3eb2e417d5e9b..f4603c7d57e70e515a4595cebaa6523e7ab6db37 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
 @@ -11,6 +11,7 @@ pub mod objects;
@@ -261,15 +271,15 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
  pub mod text_outline;
  pub mod upload;
  pub mod view;
-@@ -39,6 +40,7 @@ pub struct Gpu {
+@@ -40,6 +41,7 @@ pub struct Gpu {
      pub arena: arena::ArenaLane,
      pub segments: segments::SegmentLane,
      pub glyphs: glyphs::GlyphLane,
 +    pub text: text::TextLane,
      pub cloud: cloud::CloudLane,
      pub splat: splat::Splat,
-     pub bounds: crate::math::Aabb,
-@@ -91,6 +93,7 @@ impl Gpu {
+     pub bounds: AABB,
+@@ -93,6 +95,7 @@ impl Gpu {
          let arena = arena::ArenaLane::new(&ctx, &layouts, target);
          let segments = segments::SegmentLane::new(&ctx, &layouts, target);
          let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
@@ -277,15 +287,15 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
          let cloud = cloud::CloudLane::new(&ctx);
          let splat = splat::Splat::new(&ctx, &layouts, target, cloud.buffers());
          Ok(Self {
-@@ -106,6 +109,7 @@ impl Gpu {
+@@ -108,6 +111,7 @@ impl Gpu {
              arena,
              segments,
              glyphs,
 +            text,
              cloud,
              splat,
-             bounds: crate::math::Aabb::empty(),
-@@ -168,6 +172,7 @@ impl Gpu {
+             bounds: AABB::empty(),
+@@ -177,6 +181,7 @@ impl Gpu {
              self.arena.retarget(&self.ctx, &self.layouts, target);
              self.segments.retarget(&self.ctx, &self.layouts, target);
              self.glyphs.retarget(&self.ctx, &self.layouts, target);
@@ -293,16 +303,16 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
              self.splat.retarget(&self.ctx, &self.layouts, target);
              log::info!("msaa: {}x", samples);
          }
-@@ -206,7 +211,7 @@ impl Gpu {
-         result
+@@ -218,7 +223,7 @@ impl Gpu {
      }
+ 
      /// Write the camera and CSS-to-physical pen scale once for every lane in this frame.
 -    pub fn write_frame_uniforms(&mut self, input: &FrameInput) {
 +    pub fn write_frame_uniforms(&mut self, input: &FrameInput) -> anyhow::Result<()> {
          self.frame.write(
              &self.ctx,
              input,
-@@ -219,10 +224,21 @@ impl Gpu {
+@@ -231,11 +236,22 @@ impl Gpu {
          );
          self.objects
              .update_inside(&self.ctx, self.frame.eye, &self.bounds);
@@ -318,6 +328,7 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
 +        )?;
 +        Ok(())
      }
+ 
      /// Encode cloud depth first, then physical mesh faces, then analytic ink.
      pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
 -        self.write_frame_uniforms(input);
@@ -325,7 +336,7 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
          let output = match self.surface.get_current_texture() {
              wgpu::CurrentSurfaceTexture::Success(output)
              | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
-@@ -279,6 +295,7 @@ impl Gpu {
+@@ -297,6 +313,7 @@ impl Gpu {
              self.segments.draw_ribbons(&mut pass, &ink);
              self.glyphs.draw_dots(&mut pass, &ink);
              self.arena.draw_text(&mut pass, &basic);
@@ -335,17 +346,10 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
          output.present();
 diff --git a/session_viewer/src/engine/gpu/text.rs b/session_viewer/src/engine/gpu/text.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bcc2bf43fa
+index 0000000000000000000000000000000000000000..22253ee4178d0b62afaa30855721e5c5097fd80f
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/text.rs
-@@ -0,0 +1,949 @@
-+//! Dedicated coverage-text lane, pinned to Glyphon 0.11 (wgpu 29).
-+//!
-+//! The maintained shader is `glyphon-0.11.0/src/shader.wgsl`: R8Unorm coverage,
-+//! straight-alpha output with ALPHA_BLENDING, integer texel footprints and fractional
-+//! raster cache keys. It does not use mesh lighting. `ColorMode::Web` is appropriate
-+//! for non-sRGB targets; the viewer's sRGB targets use Accurate mode.
-+
+@@ -0,0 +1,978 @@
 +use super::buffers::GpuCtx;
 +#[path = "text_plane.rs"]
 +mod plane;
@@ -381,21 +385,15 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +    pub requested_glyphs: usize,
 +    pub distinct_raster_keys: usize,
 +    pub new_raster_keys: usize,
-+    /// Actual CPU raster images retained by Swash, excluding empty glyphs.
-+    pub raster_images: usize,
++    pub raster_images: usize, // Actual CPU raster images retained by Swash, excluding empty glyphs.
 +    pub new_raster_images: usize,
-+    /// Allocated byte-vector payload only; excludes hash-table/font/shaper overhead and GPU atlases.
-+    pub raster_image_capacity_bytes: usize,
++    pub raster_image_capacity_bytes: usize, // Allocated byte-vector payload only; excludes hash-table/font/shaper overhead and GPU atlases.
 +    pub atlas_resets: u64,
 +    pub preparation_ms: f64,
-+    /// Glyphon's private packed instance is 28 bytes at the pin. This is active data only,
-+    /// not a claim about its private capacity or GPU allocator overhead.
-+    pub active_instance_bytes: usize,
++    pub active_instance_bytes: usize, // Glyphon's private packed instance is 28 bytes at the pin. This is active data only, not a claim about its private capacity or GPU allocator overhead.
 +    pub missing_glyphs: usize,
-+    /// Exact owned vertex capacity for black nameplate backgrounds, not Glyphon internals.
-+    pub nameplate_capacity_bytes: u64,
-+    /// Application-owned fixed-plane vertices, R8 texture payload, and cache rebuilds.
-+    pub world_plane_buffer_bytes: u64,
++    pub nameplate_capacity_bytes: u64, // Exact owned vertex capacity for black nameplate backgrounds, not Glyphon internals.
++    pub world_plane_buffer_bytes: u64, // Application-owned fixed-plane vertices, R8 texture payload, and cache rebuilds.
 +    pub world_plane_texture_bytes: u64,
 +    pub world_plane_rasterizations: u64,
 +}
@@ -416,9 +414,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +    atlas_font_revision: u64,
 +    prepared: Option<(u64, u64, TextFrame)>,
 +    raster_keys: HashSet<glyphon::CacheKey>,
-+    /// 0 or 1, never a tally: whether `prepare` left this renderer anything to draw. `draw`
-+    /// skips the render call when it did not.
-+    overlay_count: u32,
++    overlay_count: u32, // 0 or 1, never a tally: whether `prepare` left this renderer anything to draw. `draw` skips the render call when it did not.
 +    anchored_count: u32,
 +}
 +
@@ -489,19 +485,23 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +            self.document.font_revision,
 +            frame.clone(),
 +        );
++
 +        if self.prepared.as_ref() == Some(&key) {
 +            self.stats.skipped_preparations += 1;
 +            return Ok(());
 +        }
++
 +        self.overlay_count = 0;
 +        self.anchored_count = 0;
 +        self.plates.reset();
 +        let scale = frame.scale()?;
 +        let start = now_ms();
 +        let fonts_changed = self.atlas_font_revision != self.document.font_revision;
++
 +        if fonts_changed || self.raster_keys.len() > 4096 {
 +            self.rebuild_resources(ctx);
 +        }
++
 +        let raster_images_before = self.raster.image_cache.values().flatten().count();
 +        self.planes
 +            .prepare(ctx, &mut self.document, &mut self.raster, frame)?;
@@ -520,13 +520,16 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +        self.stats.new_raster_keys = 0;
 +        self.stats.requested_glyphs = 0;
 +        self.stats.missing_glyphs = 0;
++
 +        for run in &self.document.runs {
 +            let Some(mut placed) = place(&run.label, frame, scale) else {
 +                continue;
 +            };
++
 +            if let Some(rectangle) = center_nameplate(run, &mut placed, frame, scale) {
 +                plates.push(rectangle);
 +            }
++
 +            let area = TextArea {
 +                buffer: &run.buffer,
 +                left: placed.left,
@@ -541,6 +544,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +                ),
 +                custom_glyphs: &[],
 +            };
++
 +            for line in run.buffer.layout_runs() {
 +                for glyph in line.glyphs {
 +                    self.stats.requested_glyphs += 1;
@@ -550,6 +554,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +                        usize::from(self.raster_keys.insert(physical.cache_key));
 +                }
 +            }
++
 +            if let Some(depth) = placed.depth {
 +                depths.insert(run.label.id as usize, depth);
 +                anchors.push(area);
@@ -557,6 +562,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +                overlays.push(area);
 +            }
 +        }
++
 +        self.overlay.prepare(
 +            &ctx.device,
 +            &ctx.queue,
@@ -578,6 +584,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +            |id| depth_for(&depths, id),
 +        )?;
 +        self.plates.prepare(ctx, &plates, frame.framebuffer);
++
 +        for run in &self.document.runs {
 +            if place(&run.label, frame, scale).is_some() && !run.label.text.is_empty() {
 +                match run.label.placement {
@@ -588,12 +595,15 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +                }
 +            }
 +        }
++
 +        self.stats.raster_images = 0;
 +        self.stats.raster_image_capacity_bytes = 0;
++
 +        for image in self.raster.image_cache.values().flatten() {
 +            self.stats.raster_images += 1;
 +            self.stats.raster_image_capacity_bytes += image.data.capacity();
 +        }
++
 +        self.stats.new_raster_images = self
 +            .stats
 +            .raster_images
@@ -615,19 +625,23 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +    /// Draw against the scene's read-only depth attachment after scene ink, overlays last.
 +    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
 +        let mut draws = self.planes.draw(pass);
++
 +        if self.anchored_count != 0 {
 +            match self.anchored.render(&self.atlas, &self.viewport, pass) {
 +                Ok(()) => draws += 1,
 +                Err(error) => log::error!("anchored text render: {error}"),
 +            }
 +        }
++
 +        draws += self.plates.draw(pass);
++
 +        if self.overlay_count != 0 {
 +            match self.overlay.render(&self.atlas, &self.viewport, pass) {
 +                Ok(()) => draws += 1,
 +                Err(error) => log::error!("overlay text render: {error}"),
 +            }
 +        }
++
 +        draws
 +    }
 +
@@ -740,13 +754,17 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +    ];
 +    let m = &frame.mvp;
 +    let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
++
 +    if !w.is_finite() || w <= 0.0 {
 +        return None;
 +    }
++
 +    let z = (m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]) / w;
++
 +    if !(0.0..=1.0).contains(&z) {
 +        return None;
 +    }
++
 +    let x = (m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12]) / w;
 +    let y = (m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13]) / w;
 +    let raster_scale = match world_height {
@@ -756,9 +774,11 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +        }
 +        None => scale,
 +    };
++
 +    if !raster_scale.is_finite() || raster_scale <= 0.0 {
 +        return None;
 +    }
++
 +    Some(PlacedText {
 +        left: (x + 1.0) * 0.5 * frame.framebuffer[0] as f32 + offset[0] * scale,
 +        top: (1.0 - y) * 0.5 * frame.framebuffer[1] as f32 + offset[1] * scale,
@@ -784,20 +804,25 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +    else {
 +        return None;
 +    };
++
 +    if run.label.text.is_empty() {
 +        return None;
 +    }
++
 +    let mut width = 0.0f32;
 +    let mut top = f32::INFINITY;
 +    let mut bottom = f32::NEG_INFINITY;
++
 +    for line in run.buffer.layout_runs() {
 +        width = width.max(line.line_w);
 +        top = top.min(line.line_top);
 +        bottom = bottom.max(line.line_top + line.line_height);
 +    }
++
 +    if !top.is_finite() || !bottom.is_finite() {
 +        return None;
 +    }
++
 +    placed.left -= width * scale * 0.5;
 +    placed.top -= (top + bottom) * scale * 0.5;
 +    let bounds = clip_bounds(&run.label, frame, scale);
@@ -884,6 +909,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +    {
 +        return performance.now();
 +    }
++
 +    0.0
 +}
 +
@@ -952,6 +978,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +        };
 +        assert!(place(&label, &frame, 2.0).is_none());
 +    }
++
 +    #[test]
 +    fn nameplate_center_padding_clip_and_scale_share_one_coordinate_system() {
 +        let mut document = TextDocument::new();
@@ -969,6 +996,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +            clip: None,
 +        };
 +        document.set_labels(vec![label.clone()]).unwrap();
++
 +        for scale in [1.0, 1.25, 2.0] {
 +            let frame = frame(scale);
 +            let run = &document.runs[0];
@@ -984,6 +1012,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +            assert!(((rectangle[1] + rectangle[3]) * 0.5 - 300.0 * scale as f32).abs() < 0.001);
 +            assert!((rectangle[3] - rectangle[1] - 34.0 * scale as f32).abs() < 0.001);
 +        }
++
 +        label.clip = Some([390.0, 290.0, 410.0, 310.0]);
 +        label.color = [255, 255, 0, 255];
 +        document.set_labels(vec![label.clone()]).unwrap();
@@ -1024,7 +1053,8 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +        gpu.view.show_grid = false;
 +        gpu.view.lit = false;
 +        let mut upload = Upload::default();
-+        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
++        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
++
 +        for position in [
 +            [-1.0, -1.0, 0.7],
 +            [1.0, -1.0, 0.7],
@@ -1038,6 +1068,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +            });
 +            upload.arena.vids.push(0);
 +        }
++
 +        upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
 +        gpu.set_scene(&upload);
 +        let mut input = FrameInput {
@@ -1070,6 +1101,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +        let mut top = 160;
 +        let mut bottom = 0;
 +        let mut black = 0;
++
 +        for (index, pixel) in pixels.chunks_exact(4).enumerate() {
 +            if pixel[0] < 5 && pixel[1] < 5 && pixel[2] < 5 {
 +                let x = index % 320;
@@ -1081,6 +1113,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +                black += 1;
 +            }
 +        }
++
 +        assert!(
 +            black > 600,
 +            "the nameplate has a real opaque black GPU background"
@@ -1088,9 +1121,11 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +        assert!(((left + right) as f32 * 0.5 - 160.0).abs() <= 1.0);
 +        assert!(((top + bottom) as f32 * 0.5 - 80.0).abs() <= 1.0);
 +        let mut line_width = 0.0f32;
++
 +        for line in gpu.text.document.runs[0].buffer.layout_runs() {
 +            line_width = line_width.max(line.line_w);
 +        }
++
 +        assert!(
 +            (right - left + 1) as f32 - 25.5 >= line_width - 2.0,
 +            "the complete shaped line fits in the straight section between both caps"
@@ -1131,10 +1166,8 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +        gpu.view.show_grid = false;
 +        gpu.view.lit = false;
 +        let mut upload = Upload::default();
-+        upload
-+            .obj
-+            .rows
-+            .push(ObjectRow::new(Xform::identity().to_f32().map(f64::from), 0));
++        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
++
 +        for position in [
 +            [-1.0, -1.0, 0.7],
 +            [1.0, -1.0, 0.7],
@@ -1148,6 +1181,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +            });
 +            upload.arena.vids.push(0);
 +        }
++
 +        upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
 +        gpu.set_scene(&upload);
 +        let mut frame = FrameInput {
@@ -1208,6 +1242,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +        gpu.text.set_labels(vec![label]).unwrap();
 +        let clipped = gpu.render_offscreen(&frame);
 +        assert!(white_pixels(&clipped) > 10);
++
 +        for (index, pixel) in clipped.chunks_exact(4).enumerate() {
 +            if index % 256 >= 24 {
 +                assert!(
@@ -1216,6 +1251,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +                );
 +            }
 +        }
++
 +        gpu.text.release(&gpu.ctx);
 +        assert_eq!(
 +            baseline,
@@ -1252,6 +1288,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +            },
 +            clip: None,
 +        };
++
 +        for step in 0..60 {
 +            label.placement = TextPlacement::WorldBillboard {
 +                world: [-0.9, 0.5, 0.5],
@@ -1271,6 +1308,7 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +                "cache growth is limited to the budget plus one preparation"
 +            );
 +        }
++
 +        assert!(
 +            gpu.text.stats.atlas_resets > 0,
 +            "this continuous-scale fixture must actually cross the eviction threshold"
@@ -1282,19 +1320,20 @@ index 0000000000000000000000000000000000000000..4cd6dda3de775ba601d3729cfa73d5bc
 +    /// Count opaque interiors without treating anti-aliased edges as full glyph coverage.
 +    fn white_pixels(pixels: &[u8]) -> usize {
 +        let mut count = 0;
++
 +        for pixel in pixels.chunks_exact(4) {
 +            count += usize::from(pixel[0] > 240 && pixel[1] > 240 && pixel[2] > 240);
 +        }
++
 +        count
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/text_plane.rs b/session_viewer/src/engine/gpu/text_plane.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0d74e59ed
+index 0000000000000000000000000000000000000000..b8ae5796f00658c3f526d658635be91509f9a466
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/text_plane.rs
-@@ -0,0 +1,588 @@
-+//! Fixed world-plane coverage text: retained shaped glyphs, bounded raster textures, projected quads.
+@@ -0,0 +1,637 @@
 +use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 +use super::TextFrame;
 +use crate::engine::pipelines::Target;
@@ -1303,6 +1342,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +
 +/// Hard texture payload budget, independent of adapter limits and the rest of the scene.
 +const TEXTURE_BUDGET: u64 = 32 * 1024 * 1024;
++
 +/// A coverage texture retains its source layout and grows resolution only when necessary.
 +struct CachedPlane {
 +    label: TextLabel,
@@ -1388,6 +1428,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        self.draws.clear();
 +        self.vertices.reset();
 +        let mut retained = Vec::new();
++
 +        for cached in self.cached.drain(..) {
 +            for run in &document.runs {
 +                if run.label.id == cached.label.id
@@ -1398,8 +1439,10 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +                }
 +            }
 +        }
++
 +        self.cached = retained;
 +        let mut vertices = Vec::new();
++
 +        for run in &document.runs {
 +            if !matches!(run.label.placement, TextPlacement::WorldPlane { .. })
 +                || run.label.text.is_empty()
@@ -1408,12 +1451,14 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +            }
 +            let em_pixels = raster_em(&run.label, frame);
 +            let mut index = None;
++
 +            for (at, cached) in self.cached.iter().enumerate() {
 +                if cached.label.id == run.label.id {
 +                    index = Some(at);
 +                    break;
 +                }
 +            }
++
 +            let rebuild = match index {
 +                Some(at) => !same_raster(
 +                    &self.cached[at],
@@ -1423,15 +1468,18 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +                ),
 +                None => true,
 +            };
++
 +            if rebuild {
 +                let (pixels, size, extent) =
 +                    rasterize(run, &mut document.fonts, raster, em_pixels)?;
 +                let mut allocated = u64::from(size[0]) * u64::from(size[1]);
++
 +                for (at, cached) in self.cached.iter().enumerate() {
 +                    if Some(at) != index {
 +                        allocated += u64::from(cached.size[0]) * u64::from(cached.size[1]);
 +                    }
 +                }
++
 +                anyhow::ensure!(
 +                    allocated <= TEXTURE_BUDGET,
 +                    "world text coverage exceeds 32 MiB budget"
@@ -1484,6 +1532,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +                    _texture: texture,
 +                    bind,
 +                };
++
 +                match index {
 +                    Some(at) => self.cached[at] = cached,
 +                    None => {
@@ -1491,13 +1540,16 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +                        self.cached.push(cached);
 +                    }
 +                }
++
 +                self.rasterizations += 1;
++
 +                // Completed plane textures no longer depend on Swash images; bound the shared
 +                // CPU image cache before preparing another source or Glyphon's draw lists.
 +                if raster.image_cache.len() > 4096 {
 +                    *raster = SwashCache::new();
 +                }
 +            }
++
 +            let index = index.expect("a prepared world plane has a cache entry");
 +            let start = vertices.len() as u32;
 +            append_quad(
@@ -1509,6 +1561,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +            );
 +            self.draws.push((index, start));
 +        }
++
 +        self.vertices.append(ctx, &vertices);
 +        Ok(())
 +    }
@@ -1518,12 +1571,15 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        if self.draws.is_empty() {
 +            return 0;
 +        }
++
 +        pass.set_pipeline(&self.pipeline);
 +        pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
++
 +        for &(index, start) in &self.draws {
 +            pass.set_bind_group(0, &self.cached[index].bind, &[]);
 +            pass.draw(start..start + 6, 0..1);
 +        }
++
 +        self.draws.len() as u32
 +    }
 +
@@ -1533,21 +1589,26 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        self.draws.clear();
 +        self.vertices.reset();
 +    }
++
 +    /// Return both coverage textures and grown vertex capacity on scene disposal.
 +    pub(super) fn release(&mut self, ctx: &GpuCtx) {
 +        self.reset();
 +        self.vertices.release(ctx);
 +    }
++
 +    /// Exact owned vertex-buffer capacity, separate from sampled texture payload.
 +    pub(super) fn buffer_bytes(&self) -> u64 {
 +        self.vertices.buf.size()
 +    }
++
 +    /// Exact R8 texture payload; excludes driver allocation granularity.
 +    pub(super) fn texture_bytes(&self) -> u64 {
 +        let mut total = 0;
++
 +        for cached in &self.cached {
 +            total += u64::from(cached.size[0]) * u64::from(cached.size[1]);
 +        }
++
 +        total
 +    }
 +}
@@ -1570,11 +1631,13 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        1.0,
 +    ];
 +    let mut clip = [0.0; 4];
++
 +    for (row, out) in clip.iter_mut().enumerate() {
 +        for (column, value) in point.iter().enumerate() {
 +            *out += frame.mvp[column * 4 + row] * value;
 +        }
 +    }
++
 +    clip
 +}
 +
@@ -1591,28 +1654,38 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        return 32;
 +    };
 +    let a = project(world, frame);
++
 +    if a[3] <= 0.0 {
 +        return 32;
 +    }
++
 +    let mut projected_em = 0.0f32;
++
 +    for direction in [right, up] {
 +        let mut end = world;
++
 +        for axis in 0..3 {
 +            end[axis] += direction[axis] * world_height;
 +        }
++
 +        let b = project(end, frame);
++
 +        if b[3] <= 0.0 {
 +            continue;
 +        }
++
 +        let x = (a[0] / a[3] - b[0] / b[3]) * frame.framebuffer[0] as f32 * 0.5;
 +        let y = (a[1] / a[3] - b[1] / b[3]) * frame.framebuffer[1] as f32 * 0.5;
 +        projected_em = projected_em.max(x.hypot(y));
 +    }
++
 +    let needed = (projected_em * 2.0).clamp(32.0, 256.0);
 +    let mut bucket = 32;
++
 +    while (bucket as f32) < needed {
 +        bucket *= 2;
 +    }
++
 +    bucket
 +}
 +
@@ -1626,6 +1699,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +    let scale = em_pixels as f32 / run.label.font_size;
 +    let mut glyphs = Vec::new();
 +    let mut bounds = [0i32; 4];
++
 +    for line in run.buffer.layout_runs() {
 +        bounds[2] = bounds[2].max((line.line_w * scale).ceil() as i32);
 +        bounds[3] = bounds[3].max(((line.line_top + line.line_height) * scale).ceil() as i32);
@@ -1633,6 +1707,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +            bounds[2] <= 4092 && bounds[3] <= 4092,
 +            "world text layout exceeds 4096px extent"
 +        );
++
 +        for glyph in line.glyphs {
 +            let physical = glyph.physical((0.0, 0.0), scale);
 +            let Some(image) = raster.get_image(fonts, physical.cache_key) else {
@@ -1647,6 +1722,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +            glyphs.push((physical.cache_key, x, y));
 +        }
 +    }
++
 +    bounds[0] -= 2;
 +    bounds[1] -= 2;
 +    bounds[2] += 2;
@@ -1660,10 +1736,12 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        "world text texture exceeds 4096px extent"
 +    );
 +    let mut pixels = vec![0u8; (size[0] * size[1]) as usize];
++
 +    for (key, x, y) in glyphs {
 +        let Some(image) = raster.get_image(fonts, key) else {
 +            continue;
 +        };
++
 +        for row in 0..image.placement.height {
 +            for column in 0..image.placement.width {
 +                let source = (row * image.placement.width + column) as usize;
@@ -1684,6 +1762,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +            }
 +        }
 +    }
++
 +    Ok((
 +        pixels,
 +        size,
@@ -1715,6 +1794,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +    };
 +    let unit = world_height / f64::from(label.font_size);
 +    let mut color = [0.0; 4];
++
 +    for (index, component) in color.iter_mut().enumerate() {
 +        let value = f32::from(label.color[index]) / 255.0;
 +        *component = if srgb && index < 3 {
@@ -1727,6 +1807,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +            value
 +        };
 +    }
++
 +    let scale = frame.framebuffer[0] as f32 / frame.logical[0] as f32;
 +    let mut bounds = [
 +        0.0,
@@ -1734,11 +1815,13 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        frame.framebuffer[0] as f32,
 +        frame.framebuffer[1] as f32,
 +    ];
++
 +    if let Some(clip) = label.clip {
 +        for (index, value) in bounds.iter_mut().enumerate() {
 +            *value = clip[index] * scale;
 +        }
 +    }
++
 +    for [u, v] in [
 +        [0.0, 0.0],
 +        [0.0, 1.0],
@@ -1750,9 +1833,11 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        let x = f64::from(extent[0] + (extent[2] - extent[0]) * u) * unit;
 +        let y = f64::from(extent[1] + (extent[3] - extent[1]) * v) * unit;
 +        let mut point = world;
++
 +        for axis in 0..3 {
 +            point[axis] += right[axis] * x - up[axis] * y;
 +        }
++
 +        let clip = project(point, frame);
 +        vertices.push([
 +            clip[0], clip[1], clip[2], clip[3], u, v, color[0], color[1], color[2], color[3],
@@ -1799,7 +1884,8 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        gpu.view.show_grid = false;
 +        gpu.view.lit = false;
 +        let mut upload = Upload::default();
-+        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
++        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
++
 +        for position in [
 +            [-1.0, -1.0, 0.7],
 +            [1.0, -1.0, 0.7],
@@ -1813,6 +1899,7 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +            });
 +            upload.arena.vids.push(0);
 +        }
++
 +        upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
 +        gpu.set_scene(&upload);
 +        let input = FrameInput {
@@ -1852,10 +1939,12 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +        let front = gpu.render_offscreen(&input);
 +        let mut white = 0;
 +        let mut black = 0;
++
 +        for pixel in front.chunks_exact(4) {
 +            white += usize::from(pixel[0] > 240 && pixel[1] > 240 && pixel[2] > 240);
 +            black += usize::from(pixel[0] < 8 && pixel[1] < 8 && pixel[2] < 8);
 +        }
++
 +        assert!(
 +            white > 40 && black > 500,
 +            "foreground text has white glyphs on a black plane"
@@ -1884,11 +1973,10 @@ index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0
 +}
 diff --git a/session_viewer/src/engine/gpu/text_plate.rs b/session_viewer/src/engine/gpu/text_plate.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d0f56da9423ad5ce1234ba83092b9ee44cf68c22
+index 0000000000000000000000000000000000000000..ecb8d778e2b11bf3ef34ed30fa36b7771662f23e
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/text_plate.rs
-@@ -0,0 +1,148 @@
-+//! Black annotation plates share the text lane's target and overlay depth policy.
+@@ -0,0 +1,152 @@
 +use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 +use crate::engine::pipelines::Target;
 +
@@ -1923,6 +2011,7 @@ index 0000000000000000000000000000000000000000..d0f56da9423ad5ce1234ba83092b9ee4
 +    pub(super) fn prepare(&mut self, ctx: &GpuCtx, rectangles: &[Rectangle], size: [u32; 2]) {
 +        self.vertices.reset();
 +        let mut vertices = Vec::with_capacity(rectangles.len() * 6);
++
 +        for rectangle in rectangles {
 +            let [left, top, right, bottom] = rectangle.bounds;
 +            let half = [(right - left) * 0.5, (bottom - top) * 0.5];
@@ -1936,9 +2025,11 @@ index 0000000000000000000000000000000000000000..d0f56da9423ad5ce1234ba83092b9ee4
 +            let top = top.max(rectangle.clip[1]);
 +            let right = right.min(rectangle.clip[2]);
 +            let bottom = bottom.min(rectangle.clip[3]);
++
 +            if right <= left || bottom <= top {
 +                continue;
 +            }
++
 +            for [x, y] in [
 +                [left, top],
 +                [left, bottom],
@@ -1958,6 +2049,7 @@ index 0000000000000000000000000000000000000000..d0f56da9423ad5ce1234ba83092b9ee4
 +                ]);
 +            }
 +        }
++
 +        self.vertices.append(ctx, &vertices);
 +    }
 +
@@ -1966,6 +2058,7 @@ index 0000000000000000000000000000000000000000..d0f56da9423ad5ce1234ba83092b9ee4
 +        if self.vertices.is_empty() {
 +            return 0;
 +        }
++
 +        pass.set_pipeline(&self.pipeline);
 +        pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
 +        pass.draw(0..self.vertices.len(), 0..1);
@@ -2037,19 +2130,21 @@ index 0000000000000000000000000000000000000000..d0f56da9423ad5ce1234ba83092b9ee4
 +        })
 +}
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5ec01a85f2 100644
+index fc55932bc64d6793f6bbc82231032604f6e252e7..3219bc536c8b5e6da333bb4e056ec691cc3bef46 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -4,7 +4,7 @@ pub mod camera;
+@@ -1,8 +1,9 @@
++use session_rust::AABB;
+ pub mod app;
+ pub mod camera;
  pub mod engine;
  pub mod fixture;
- pub mod math;
 -pub mod text_layout;
 +pub mod text_quality;
  use engine::gpu::{FrameInput, Gpu};
  use wasm_bindgen::prelude::*;
- /// Canvas and input ownership remain separate from GPU lane ownership.
-@@ -25,6 +25,9 @@ impl Tutorial {
+ 
+@@ -25,6 +26,9 @@ impl Tutorial {
          let mut fixture = fixture::build();
          gpu.set_scene(&fixture.upload);
          fixture.upload.drop_uploaded();
@@ -2059,7 +2154,7 @@ index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5e
          let mut camera = camera::Camera::new();
          camera.unit = camera::Unit::Millimeters;
          camera.set_view(camera::View::Iso);
-@@ -95,7 +98,7 @@ impl Tutorial {
+@@ -105,7 +109,7 @@ impl Tutorial {
              now_ms: now,
          };
          self.gpu.render(&input).map_err(js_error)?;
@@ -2068,13 +2163,13 @@ index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5e
              "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
      }
  }
-@@ -113,3 +116,58 @@ fn parse_distance(value: String) -> Option<f64> {
+@@ -125,3 +129,54 @@ fn parse_distance(value: String) -> Option<f64> {
      let value = value.parse::<f64>().ok()?;
      (value.is_finite() && (1.0..=16.0).contains(&value)).then_some(value)
  }
 +
 +/// Distinguish a CSS-sized overlay from a source-world label sharing the scene depth.
-+fn text_labels(bounds: &math::Aabb) -> Vec<engine::text::TextLabel> {
++fn text_labels(bounds: &AABB) -> Vec<engine::text::TextLabel> {
 +    use engine::text::{TextLabel, TextPlacement};
 +    vec![
 +        TextLabel {
@@ -2084,7 +2179,7 @@ index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5e
 +            line_height: 24.0,
 +            color: [255; 4],
 +            placement: TextPlacement::Nameplate {
-+                world: [0.0, 0.0, bounds.max[2] as f64 + 30.0],
++                world: [0.0, 0.0, bounds.max_point()[2] + 30.0],
 +                padding: [6.0, 4.0],
 +                rounded: false,
 +            },
@@ -2097,11 +2192,7 @@ index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5e
 +            line_height: 19.5,
 +            color: [255; 4],
 +            placement: TextPlacement::Nameplate {
-+                world: [
-+                    (bounds.min[0] + bounds.max[0]) as f64 * 0.5,
-+                    (bounds.min[1] + bounds.max[1]) as f64 * 0.5,
-+                    bounds.max[2] as f64,
-+                ],
++                world: [bounds.cx, bounds.cy, bounds.max_point()[2]],
 +                padding: [12.75, 3.0],
 +                rounded: true,
 +            },
@@ -2115,9 +2206,9 @@ index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5e
 +            color: [255; 4],
 +            placement: TextPlacement::WorldPlane {
 +                world: [
-+                    bounds.min[0] as f64 - 100.0,
-+                    bounds.min[1] as f64 - 100.0,
-+                    bounds.max[2] as f64,
++                    bounds.min_point()[0] - 100.0,
++                    bounds.min_point()[1] - 100.0,
++                    bounds.max_point()[2],
 +                ],
 +                right: [1.0, 0.0, 0.0],
 +                up: [0.0, 0.0, 1.0],
@@ -2129,17 +2220,17 @@ index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5e
 +}
 diff --git a/session_viewer/src/shaders/text_plane.wgsl b/session_viewer/src/shaders/text_plane.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..83535ed7154ffc07844e1bddfadd390e1c44e6ec
+index 0000000000000000000000000000000000000000..05b86c5dfc78c482d5ee4e9b9b3b51902c07b0c9
 --- /dev/null
 +++ b/session_viewer/src/shaders/text_plane.wgsl
-@@ -0,0 +1,25 @@
-+// Fixed world-plane text keeps full homogeneous coordinates and perspective-correct UVs.
+@@ -0,0 +1,28 @@
 +struct Vertex {
 +    @builtin(position) position: vec4<f32>,
 +    @location(0) uv: vec2<f32>,
 +    @location(1) color: vec4<f32>,
 +    @location(2) @interpolate(flat) clip: vec4<f32>,
 +}
++
 +@group(0) @binding(0) var coverage_texture: texture_2d<f32>;
 +@group(0) @binding(1) var coverage_sampler: sampler;
 +
@@ -2154,17 +2245,19 @@ index 0000000000000000000000000000000000000000..83535ed7154ffc07844e1bddfadd390e
 +// Fixed text has an opaque black backing; physical reverse-Z hides the whole plane behind solids.
 +@fragment
 +fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
-+    if (in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) { discard; }
++    if (in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) {
++        discard;
++    }
++
 +    let coverage = textureSample(coverage_texture, coverage_sampler, in.uv).r;
 +    return vec4<f32>(in.color.rgb * coverage, in.color.a);
 +}
 diff --git a/session_viewer/src/shaders/text_plate.wgsl b/session_viewer/src/shaders/text_plate.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..9c5bd2833fbddef489c00af9dac15abcfe304fe6
+index 0000000000000000000000000000000000000000..80db8fc7fa831fb460343b406873ba0390ab95d7
 --- /dev/null
 +++ b/session_viewer/src/shaders/text_plate.wgsl
-@@ -0,0 +1,28 @@
-+// Screen-space annotation vertices retain local physical coordinates for pixel coverage.
+@@ -0,0 +1,27 @@
 +struct PlateVertex {
 +    @builtin(position) position: vec4<f32>,
 +    @location(0) local: vec2<f32>,
@@ -2194,11 +2287,10 @@ index 0000000000000000000000000000000000000000..9c5bd2833fbddef489c00af9dac15abc
 +}
 diff --git a/session_viewer/src/text_layout.rs b/session_viewer/src/text_layout.rs
 deleted file mode 100644
-index 6212d9f72fb869f80ca50d47c1245878ba657e08..0000000000000000000000000000000000000000
+index 5f1878a955ee3460ff8beca8d4fb350c7d29c497..0000000000000000000000000000000000000000
 --- a/session_viewer/src/text_layout.rs
 +++ /dev/null
-@@ -1,59 +0,0 @@
--//! Teaching layout fixture: inspect final shaper output before any GPU text resource exists.
+@@ -1,64 +0,0 @@
 -use crate::engine::text::{FONT_FAMILY, TextDocument, TextLabel, TextPlacement};
 -use wasm_bindgen::prelude::*;
 -
@@ -2212,6 +2304,7 @@ index 6212d9f72fb869f80ca50d47c1245878ba657e08..00000000000000000000000000000000
 -fn layout_report() -> anyhow::Result<String> {
 -    let mut document = TextDocument::new();
 -    let mut labels = Vec::new();
+-
 -    for (index, size) in [12.0, 14.0, 16.0, 18.0, 24.0].into_iter().enumerate() {
 -        labels.push(TextLabel {
 -            id: index as u32,
@@ -2226,8 +2319,10 @@ index 6212d9f72fb869f80ca50d47c1245878ba657e08..00000000000000000000000000000000
 -            clip: None,
 -        });
 -    }
+-
 -    document.set_labels(labels.clone())?;
 -    let shaped = document.shape_count;
+-
 -    for label in &mut labels {
 -        label.color = [255, 255, 0, 255];
 -        label.placement = TextPlacement::Screen {
@@ -2235,16 +2330,19 @@ index 6212d9f72fb869f80ca50d47c1245878ba657e08..00000000000000000000000000000000
 -            top: 20.0,
 -        };
 -    }
+-
 -    document.set_labels(labels)?;
 -    anyhow::ensure!(
 -        document.shape_count == shaped,
 -        "placement/color unexpectedly reshaped"
 -    );
 -    let mut rows = Vec::new();
+-
 -    for run in &document.runs {
 -        rows.push(serde_json::json!({"id":run.label.id,"text":run.label.text,
 -            "size":run.label.font_size,"lineHeight":run.label.line_height}));
 -    }
+-
 -    Ok(
 -        serde_json::json!({"family":FONT_FAMILY,"rows":rows,"glyphs":document.diagnostics(),
 -        "shapeCount":document.shape_count,"shapedBeforePlacementChange":shaped,

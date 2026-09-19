@@ -1,14 +1,14 @@
-//! Scene-text presentation: source labels, the derived selection name, and fit bounds.
-
 use super::State;
 use crate::app::selection::SelectionMode;
 use crate::engine::text::{TextLabel, TextPlacement};
+use session_rust::AABB;
 
 impl State {
     /// Keep one readable source-document title above each loaded CAD group.
     /// Only the newly appended rows are visited; large scenes are not scanned on selection.
     pub(super) fn annotate_document(&mut self, first_row: usize) {
-        let mut bounds = crate::math::Aabb::empty();
+        let mut bounds = AABB::empty();
+
         for index in first_row..self.scene.object_count() {
             let row = index as u32;
             if matches!(
@@ -16,17 +16,19 @@ impl State {
                 Some(session_rust::Geometry::BRep(_) | session_rust::Geometry::NurbsSurface(_))
             ) && let Some(object) = self.gpu.objects.row_bounds(row)
             {
-                bounds.union(&object);
+                bounds.union_with(&object);
             }
         }
-        if !bounds.is_finite() {
+
+        if !bounds.is_valid() {
             return;
         }
+
         let Some(document) = self.scene.docs.last() else {
             return;
         };
         let mut anchor = label_center(&bounds);
-        anchor[2] = f64::from(bounds.max[2]) + f64::from(bounds.diagonal()) * 0.08;
+        anchor[2] = bounds.cz + bounds.hz + bounds.diagonal() * 0.08;
         let label = nameplate(1, document.name.clone(), anchor);
         self.scene.set_document_title(label, &mut self.gpu);
     }
@@ -34,6 +36,7 @@ impl State {
     /// Submit selectable source text and the derived white-on-black selection name.
     pub(super) fn update_label(&mut self) {
         let mut labels = self.scene.visible_texts();
+
         if self.show_selected_names
             && !matches!(self.selection, SelectionMode::Controls { .. })
             && let Some(row) = self.scene.selected
@@ -46,9 +49,11 @@ impl State {
                 label_center(&bounds),
             ));
         }
+
         if let Err(error) = self.gpu.text.set_labels(labels) {
             self.status(&format!("Text: {error}"));
         }
+
         self.include_text_bounds();
     }
 
@@ -70,40 +75,57 @@ impl State {
                     world,
                     [1.0, 0.0, 0.0],
                     [0.0, 1.0, 0.0],
-                    f64::from(self.gpu.bounds.diagonal()).max(1.0) * 0.002,
+                    self.gpu.bounds.diagonal().max(1.0) * 0.002,
                 ),
                 TextPlacement::Screen { .. } => continue,
             };
+
             if run.label.object.is_none() {
                 continue;
             }
+
             let unit = world_height / f64::from(run.label.font_size);
             let mut width = 0.0f64;
             let mut height = 0.0f64;
+
             for line in run.buffer.layout_runs() {
                 width = width.max(f64::from(line.line_w) * unit);
                 height = height.max(f64::from(line.line_top + line.line_height) * unit);
             }
+
             let vertical_padding = world_height * 2.0 / 9.0;
             let horizontal_padding = height * 0.5 + vertical_padding;
-            let mut bounds = crate::math::Aabb::empty();
+            let mut bounds = AABB::empty();
+
             for x in [-horizontal_padding, width + horizontal_padding] {
                 for y in [-vertical_padding, height + vertical_padding] {
                     let mut point = [0.0f32; 3];
+
                     for axis in 0..3 {
                         point[axis] = (world[axis] + right[axis] * x - up[axis] * y) as f32;
                     }
+
                     if point.into_iter().all(f32::is_finite) {
                         if matches!(
                             run.label.placement,
                             TextPlacement::WorldPlane { .. } | TextPlacement::WorldBillboard { .. }
                         ) {
-                            self.gpu.bounds.grow(point);
+                            self.gpu.bounds.union_with_point(
+                                f64::from(point[0]),
+                                f64::from(point[1]),
+                                f64::from(point[2]),
+                            );
                         }
-                        bounds.grow(point);
+
+                        bounds.union_with_point(
+                            f64::from(point[0]),
+                            f64::from(point[1]),
+                            f64::from(point[2]),
+                        );
                     }
                 }
             }
+
             if let Some(object) = run.label.object {
                 self.gpu.objects.set_text_bounds(object.row, bounds);
             }
@@ -112,12 +134,8 @@ impl State {
 }
 
 /// Center a viewer annotation in the object's world-space bounds before camera projection.
-fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
-    let mut center = [0.0; 3];
-    for (axis, coordinate) in center.iter_mut().enumerate() {
-        *coordinate = (f64::from(bounds.min[axis]) + f64::from(bounds.max[axis])) * 0.5;
-    }
-    center
+fn label_center(bounds: &AABB) -> [f64; 3] {
+    [bounds.cx, bounds.cy, bounds.cz]
 }
 
 /// White-on-black annotations; selection ID 0 uses 75% of the document title size.

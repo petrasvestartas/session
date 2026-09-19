@@ -15,7 +15,7 @@ Build a command area across the entire bottom, a layers panel on the right and a
 **CURRENT**
 
 ```rust
-    Scale(f64),
+    Scale(f64), // Scale the selection about its own centre.
 ```
 
 **ADD BELOW**
@@ -64,7 +64,6 @@ Build a command area across the entire bottom, a layers panel on the right and a
 **NEW FILE · TYPE THIS**
 
 ```rust
-//! Source-subobject transforms. Display triangles are never the edited geometry.
 use super::selection::{ControlId, Controls, SelectionMode};
 use session_rust::{Geometry, Mesh, NurbsSurface, Point, Xform};
 use std::collections::HashSet;
@@ -76,6 +75,7 @@ pub enum Target {
     Edge(u32),
     Face(usize),
 }
+
 impl Target {
     pub fn selected(mode: &SelectionMode) -> Option<Self> {
         match *mode {
@@ -94,9 +94,11 @@ fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
         Target::Control(ControlId::Vertex(key)) if mesh.vertex.contains_key(&key) => Ok(vec![key]),
         Target::Face(key) => {
             let mut keys = mesh.face.get(&key).ok_or("Unknown mesh face")?.clone();
+
             if let Some(holes) = mesh.face_holes.get(&key) {
                 keys.extend(holes.iter().flatten());
             }
+
             keys.sort_unstable();
             keys.dedup();
             Ok(keys)
@@ -105,27 +107,34 @@ fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
             // Match the producer's source-edge numbering: first occurrence while walking sorted faces.
             let mut seen = HashSet::new();
             let mut at = 0;
+
             for face in mesh.faces() {
                 let keys = &mesh.face[&face];
+
                 for i in 0..keys.len() {
                     let (a, b) = (keys[i], keys[(i + 1) % keys.len()]);
                     let pair = (a.min(b), a.max(b));
+
                     if seen.insert(pair) {
                         if at == index {
                             return Ok(vec![pair.0, pair.1]);
                         }
+
                         at += 1;
                     }
                 }
             }
+
             Err("Unknown mesh edge".into())
         }
         _ => Err("Select a mesh vertex, edge or face".into()),
     }
 }
+
 fn surface_keys(surface: &NurbsSurface, target: Target) -> Result<Vec<(usize, usize)>, String> {
     let [nu, nv] = surface.m_cv_count;
     let all = || (0..nu).flat_map(|u| (0..nv).map(move |v| (u, v))).collect();
+
     match target {
         Target::Control(ControlId::Surface { surface: 0, u, v }) if u < nu && v < nv => {
             Ok(vec![(u, v)])
@@ -194,6 +203,7 @@ pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String>
         },
     }
 }
+
 fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
     Controls::from_geometry(geometry)
         .points
@@ -207,9 +217,11 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
     if !delta.m.iter().all(|v| v.is_finite()) {
         return Err("Transform must be finite".into());
     }
+
     let edited = match geometry {
         Geometry::Mesh(source) => {
             let mut mesh = (**source).clone();
+
             for key in mesh_keys(&mesh, target)? {
                 let point = mesh
                     .vertex_point(key)
@@ -220,6 +232,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     .ok_or("Missing vertex")?
                     .set_position(point);
             }
+
             mesh.triangulation.clear();
             // The identity transform invalidates kernel render/BVH caches in both the frozen
             // course kernel and the maintained kernel without changing the edited positions.
@@ -228,15 +241,18 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
         }
         Geometry::NurbsSurface(source) => {
             let mut surface = (**source).clone();
+
             for (u, v) in surface_keys(&surface, target)? {
                 let p = surface
                     .get_cv(u, v)
                     .ok_or("Missing surface control")?
                     .transformed(delta);
+
                 if !surface.set_cv(u, v, &p) {
                     return Err("Cannot set surface control".into());
                 }
             }
+
             surface.m_mesh = None;
             Geometry::NurbsSurface(Rc::new(surface))
         }
@@ -261,9 +277,11 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                 .ok_or("Unknown curve control")?
                 .transformed(delta);
             let mut next = (**source).clone();
+
             if !next.set_cv_point(point, &p) {
                 return Err("Cannot set curve control".into());
             }
+
             Geometry::NurbsCurve(Rc::new(next))
         }
         Geometry::Line(source) => {
@@ -296,11 +314,13 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     .iter()
                     .any(|s| (0..3).all(|i| (s[i] - p[i]).abs() <= 1e-8))
             };
+
             for vertex in &mut next.m_vertices {
                 if matches(&vertex.point) {
                     vertex.point = vertex.point.transformed(delta);
                 }
             }
+
             for curve in &mut next.m_curves_3d {
                 for i in 0..curve.cv_count() {
                     if let Some(p) = curve.get_cv(i)
@@ -310,6 +330,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     }
                 }
             }
+
             for surface in &mut next.m_surfaces {
                 for u in 0..surface.m_cv_count[0] {
                     for v in 0..surface.m_cv_count[1] {
@@ -320,13 +341,16 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                         }
                     }
                 }
+
                 surface.m_mesh = None;
             }
+
             validate_boundaries(&next)?;
             Geometry::BRep(Rc::new(next))
         }
         Geometry::Element(source) => {
             let mut next = (**source).clone();
+
             match source.geometry() {
                 session_rust::element::ElementGeometry::Mesh(mesh) => {
                     let Geometry::Mesh(mesh) =
@@ -346,6 +370,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                 }
                 _ => return Err("Element has no source geometry".into()),
             }
+
             Geometry::Element(Rc::new(next))
         }
         _ => return Err("This source control cannot be transformed".into()),
@@ -359,20 +384,26 @@ fn validate_boundaries(brep: &session_rust::BRep) -> Result<(), String> {
     if !brep.is_valid() {
         return Err("Edit would invalidate BRep topology".into());
     }
+
     for edge in &brep.m_edges {
         if edge.degenerated {
             continue;
         }
+
         let curve = &brep.m_curves_3d[edge.curve_3d_index as usize];
         let (a, b) = curve.domain();
+
         for pc in &edge.pcurves {
             let surface = &brep.m_surfaces[pc.surface_index as usize];
+
             for ci in [pc.curve_2d_index, pc.curve_2d_index_2] {
                 if ci < 0 {
                     continue;
                 }
+
                 let uv = &brep.m_curves_2d[ci as usize];
                 let (u0, u1) = uv.domain();
+
                 for sample in 0..=16 {
                     let t = sample as f64 / 16.0;
                     let p = curve.point_at(a + (b - a) * t);
@@ -381,6 +412,7 @@ fn validate_boundaries(brep: &session_rust::BRep) -> Result<(), String> {
                         .point_at(q[0], q[1])
                         .ok_or("Cannot evaluate incident surface")?;
                     let tolerance = edge.tolerance.max(1e-6) * 10.0;
+
                     if (0..3).any(|i| (p[i] - actual[i]).abs() > tolerance) {
                         return Err("This BRep edit requires rebuilding adjacent trims; the original solid was preserved".into());
                     }
@@ -388,14 +420,17 @@ fn validate_boundaries(brep: &session_rust::BRep) -> Result<(), String> {
             }
         }
     }
+
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     fn mesh() -> Geometry {
         let mut mesh = Mesh::new();
+
         for (key, p) in [
             (10, [0., 0., 0.]),
             (20, [10., 0., 0.]),
@@ -405,10 +440,12 @@ mod tests {
         ] {
             mesh.add_vertex(Point::new(p[0], p[1], p[2]), Some(key));
         }
+
         mesh.add_face(vec![10, 20, 30, 40], Some(7));
         mesh.add_face(vec![10, 90, 20], Some(19));
         Geometry::Mesh(Rc::new(mesh))
     }
+
     #[test]
     fn mesh_face_moves_shared_source_vertices_not_unrelated_vertices() {
         let source = mesh();
@@ -417,9 +454,11 @@ mod tests {
         else {
             panic!()
         };
+
         for key in [10, 20, 30, 40] {
             assert_eq!(next.vertex[&key].z, 3.);
         }
+
         assert_eq!(next.vertex[&90].z, 10.);
         assert_eq!(next.face[&19], vec![10, 90, 20]);
         let Geometry::Mesh(original) = source else {
@@ -427,6 +466,7 @@ mod tests {
         };
         assert_eq!(original.vertex[&10].z, 0.);
     }
+
     #[test]
     fn edge_ids_match_the_display_producer_even_with_sparse_keys() {
         let Geometry::Mesh(mesh) = mesh() else {
@@ -443,6 +483,7 @@ mod tests {
         let slots = super::super::walk::mesh_topology::SlotMap::new(&keys);
         let topo =
             super::super::walk::mesh_topology::mesh_topology(&mesh, &keys, &positions, &slots);
+
         for (i, &(a, b, _)) in topo.edges.iter().enumerate() {
             assert_eq!(
                 mesh_keys(&mesh, Target::Edge(i as u32)).unwrap(),
@@ -450,6 +491,7 @@ mod tests {
             );
         }
     }
+
     #[test]
     fn surface_boundary_preserves_weights_and_the_opposite_boundary() {
         let mut surface = NurbsSurface::create(
@@ -468,11 +510,13 @@ mod tests {
         )
         .unwrap();
         assert!(surface.make_rational());
+
         for u in 0..2 {
             for v in 0..2 {
                 surface.set_cv_4d(u, v, u as f64 * 2., v as f64 * 2., 0., 2.);
             }
         }
+
         let Geometry::NurbsSurface(next) = transform(
             &Geometry::NurbsSurface(Rc::new(surface)),
             Target::Edge(0),
@@ -487,6 +531,7 @@ mod tests {
         assert_eq!(next.weight(0, 0), 2.);
         assert_eq!(next.weight(1, 1), 2.);
     }
+
     #[test]
     fn moving_box_face_keeps_edges_on_incident_surfaces() {
         let source = Geometry::BRep(Rc::new(session_rust::BRep::create_box(10., 20., 30.)));
@@ -526,10 +571,9 @@ impl Scene {
         delta: &Xform,
         label: &str,
     ) -> Result<(), String> {
-        let place = Xform::from_matrix(
-            self.placement_of(row)
-                .ok_or("Source placement unavailable")?,
-        );
+        let place = self
+            .placement_of(row)
+            .ok_or("Source placement unavailable")?;
         let back = place.inverse().ok_or("Source placement is singular")?;
         let local = &(&back * delta) * &place;
         let geometry = self.geometry(row).ok_or("Source geometry unavailable")?;
@@ -546,14 +590,17 @@ impl Scene {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return Err("Source edits require complete documents without streamed sources".into());
         }
+
         let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
         let session = Rc::make_mut(&mut self.docs[doc].session);
         session.begin(label);
         let changed = session.replace(&guid, geometry);
         session.commit();
+
         if !changed {
             return Err("Cannot replace source geometry".into());
         }
+
         self.last_edited = Some(doc);
         Ok(())
     }
@@ -570,10 +617,9 @@ impl Scene {
             .into_iter()
             .next()
             .ok_or("Source control unavailable")?;
-        let place = Xform::from_matrix(
-            self.placement_of(row)
-                .ok_or("Source placement unavailable")?,
-        );
+        let place = self
+            .placement_of(row)
+            .ok_or("Source placement unavailable")?;
         let point = point.transformed(&place);
         self.edit_subobject(
             row,
@@ -593,6 +639,7 @@ impl Scene {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return Err("Source edits require complete documents without streamed sources".into());
         }
+
         let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
         let original = Rc::make_mut(&mut self.docs[doc].session)
             .lookup
@@ -617,7 +664,6 @@ impl Scene {
 ```rust
     pub fn hit(&self, from: &Point, dir: &Vector, world_per_px: f64) -> Option<Handle> {
         let s = world_per_px;
-        if within(from, dir, &self.origin, HUB * s) {
 ```
 
 **REPLACE WITH**
@@ -637,7 +683,6 @@ impl Scene {
     ) -> Option<Handle> {
         let s = world_per_px;
         let grab = radius.max(GRAB);
-        if within(from, dir, &self.origin, HUB * s) {
 ```
 
 **TYPE THIS**
@@ -645,7 +690,7 @@ impl Scene {
 **CURRENT**
 
 ```rust
-            let at = along(&self.origin, &axis.unit(), BALL_AT * s);
+
             if within(from, dir, &at, GRAB * s) {
                 return Some(Handle::Scale(axis));
 ```
@@ -653,7 +698,7 @@ impl Scene {
 **REPLACE WITH**
 
 ```rust
-            let at = along(&self.origin, &axis.unit(), BALL_AT * s);
+
             if within(from, dir, &at, grab * s) {
                 return Some(Handle::Scale(axis));
 ```
@@ -682,7 +727,7 @@ impl Scene {
 
 ```rust
                 // aims for one of them.
-                if dot(&d, &u) < 0.0 && dot(&d, &v) < 0.0 && (length(&d) - ARM * s).abs() < GRAB * s
+                if d.dot(&u) < 0.0 && d.dot(&v) < 0.0 && (d.magnitude() - ARM * s).abs() < GRAB * s
                 {
 ```
 
@@ -690,7 +735,7 @@ impl Scene {
 
 ```rust
                 // aims for one of them.
-                if dot(&d, &u) < 0.0 && dot(&d, &v) < 0.0 && (length(&d) - ARM * s).abs() < grab * s
+                if d.dot(&u) < 0.0 && d.dot(&v) < 0.0 && (d.magnitude() - ARM * s).abs() < grab * s
                 {
 ```
 
@@ -739,9 +784,11 @@ impl Scene {
 **ADD ABOVE**
 
 ```rust
+
                 if t.phase == TouchPhase::Started {
                     self.fingers.insert(t.id);
                 }
+
                 if self.touch_edit.is_some()
                     && t.phase == TouchPhase::Started
                     && self.fingers.len() > 1
@@ -752,28 +799,35 @@ impl Scene {
                     self.control_drag = false;
                     self.touch_cancelled = true;
                 }
+
                 if self.touch_cancelled {
                     if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
                         self.fingers.remove(&t.id);
                     }
+
                     if self.fingers.is_empty() {
                         self.touch_cancelled = false;
                         self.touch = Touches::new();
                     }
+
                     state.interacting = false;
                     return true;
                 }
+
                 if t.phase == TouchPhase::Started && self.fingers.len() == 1 {
                     self.last_cursor = (t.location.x, t.location.y);
                     self.control_drag = state.begin_control_drag(t.location.x, t.location.y);
                     self.gizmo_drag =
                         !self.control_drag && state.begin_gizmo_touch(t.location.x, t.location.y);
+
                     if self.control_drag || self.gizmo_drag {
                         self.touch_edit = Some(t.id);
                     }
                 }
+
                 if self.touch_edit == Some(t.id) {
                     self.last_cursor = (t.location.x, t.location.y);
+
                     match t.phase {
                         TouchPhase::Moved => {
                             if self.control_drag {
@@ -792,6 +846,7 @@ impl Scene {
                         TouchPhase::Cancelled => state.cancel_gesture(),
                         TouchPhase::Started => {}
                     }
+
                     if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
                         self.fingers.remove(&t.id);
                         self.touch_edit = None;
@@ -799,9 +854,11 @@ impl Scene {
                         self.gizmo_drag = false;
                         self.touch = Touches::new();
                     }
+
                     state.interacting = self.touch_edit.is_some();
                     return true;
                 }
+
                 if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
                     self.fingers.remove(&t.id);
                 }
@@ -952,7 +1009,6 @@ pub enum SelectionTool {
 **NEW FILE · TYPE THIS**
 
 ```rust
-//! A single portable file containing every retained source document and its placement.
 use super::scene::{FileDoc, Scene};
 use crate::engine::text::TextLabel;
 use prost::Message;
@@ -961,6 +1017,7 @@ use session_rust::{Session, Xform};
 use std::rc::Rc;
 
 const MAGIC: &[u8] = b"SESSION-VIEWER\x01\n";
+
 const LIMIT: usize = 512 * 1024 * 1024;
 
 #[derive(Clone, PartialEq, Message)]
@@ -970,12 +1027,14 @@ struct Archive {
     #[prost(bytes = "vec", tag = "2")]
     metadata: Vec<u8>,
 }
+
 #[derive(Serialize, Deserialize)]
 struct Metadata {
     documents: Vec<Document>,
     hidden: Vec<(usize, String)>,
     texts: Vec<(String, TextLabel, bool)>,
 }
+
 #[derive(Serialize, Deserialize)]
 struct Document {
     name: String,
@@ -987,22 +1046,28 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
     if !scene.streamed.is_empty() || !scene.sheets.is_empty() {
         return Err("This scene contains streamed sources. Open complete source documents before saving an editable session.".into());
     }
+
     let mut documents = Vec::new();
     let mut size = 0usize;
+
     for file in &scene.docs {
         if file.display_only {
             return Err(
                 "A source document is not retained; the complete session cannot be saved.".into(),
             );
         }
+
         // Serialize a snapshot: saving must not clear the live document's undo history.
         let bytes = (*file.session).clone().pb_dumps();
         size = size.saturating_add(bytes.len());
+
         if size > LIMIT {
             return Err("Session exceeds the 512 MiB file limit".into());
         }
+
         documents.push(bytes);
     }
+
     let mut hidden: Vec<_> = scene
         .hidden
         .iter()
@@ -1030,9 +1095,11 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
         documents,
         metadata: serde_json::to_vec(&metadata).map_err(|e| e.to_string())?,
     };
+
     if archive.encoded_len() + MAGIC.len() > LIMIT {
         return Err("Session exceeds the 512 MiB file limit".into());
     }
+
     let mut bytes = MAGIC.to_vec();
     archive.encode(&mut bytes).map_err(|e| e.to_string())?;
     Ok(bytes)
@@ -1043,20 +1110,25 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
     if bytes.len() > LIMIT {
         return Err("Session exceeds the 512 MiB file limit".into());
     }
+
     let payload = bytes
         .strip_prefix(MAGIC)
         .ok_or("Not a Session Viewer file")?;
     let archive = Archive::decode(payload).map_err(|e| e.to_string())?;
     let metadata: Metadata =
         serde_json::from_slice(&archive.metadata).map_err(|e| e.to_string())?;
+
     if metadata.documents.len() != archive.documents.len() {
         return Err("Document inventory does not match".into());
     }
+
     let mut scene = Scene::new();
+
     for (meta, bytes) in metadata.documents.into_iter().zip(archive.documents) {
         if !meta.place.into_iter().all(f64::is_finite) || !meta.point_px.is_finite() {
             return Err("Non-finite document placement".into());
         }
+
         let proto =
             session_rust::proto::Session::decode(bytes.as_slice()).map_err(|e| e.to_string())?;
         super::validate::session(&proto)?;
@@ -1070,9 +1142,11 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
             session: Rc::new(session),
         });
     }
+
     for (key, label, active) in metadata.texts {
         scene.register_text(key, label, active);
     }
+
     scene.hidden = metadata
         .hidden
         .into_iter()
@@ -1087,6 +1161,7 @@ mod browser {
     #[wasm_bindgen(inline_js = r#"
 export function downloadSession(bytes) {
     const url = URL.createObjectURL(new Blob([bytes], {type:'application/octet-stream'}));
+
     const a = document.createElement('a'); a.href=url; a.download='session.session';
     document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
@@ -1104,13 +1179,16 @@ export function chooseSession() {
     extern "C" {
         #[wasm_bindgen(catch, js_name=downloadSession)]
         pub fn download(bytes: &[u8]) -> Result<(), JsValue>;
+
         #[wasm_bindgen(js_name=chooseSession)]
         fn choose() -> js_sys::Promise;
     }
+
     pub fn pick() {
         let promise = choose();
         wasm_bindgen_futures::spawn_local(async move {
             let result = wasm_bindgen_futures::JsFuture::from(promise).await;
+
             match result {
                 Ok(value) if value.is_null() => {}
                 Ok(value) => match super::open(&js_sys::Uint8Array::new(&value).to_vec()) {
@@ -1132,6 +1210,7 @@ mod tests {
     use super::*;
     use crate::app::deform::Target;
     use session_rust::{Geometry, Mesh, Point};
+
     #[test]
     fn edited_documents_placements_hidden_state_and_history_survive_save() {
         let mut source = Session::new("source");
@@ -1146,6 +1225,7 @@ mod tests {
         source.add_mesh(mesh, None);
         let shared = Rc::new(source);
         let mut scene = Scene::new();
+
         for x in [100., 200.] {
             scene.add_file(FileDoc {
                 name: format!("placement {x}"),
@@ -1155,6 +1235,7 @@ mod tests {
                 display_only: false,
             });
         }
+
         scene
             .edit_subobject(
                 0,
@@ -1181,6 +1262,7 @@ mod tests {
         assert_eq!(second.vertex[&0].z, 0.);
         assert_eq!(first.face[&0], vec![0, 1, 2]);
     }
+
     #[test]
     fn incomplete_or_foreign_files_are_rejected() {
         assert!(open(b"not a session").is_err());
@@ -1294,22 +1376,6 @@ impl Ui {
 
     pub fn frame(&mut self, state: &mut State) -> bool {
         let input = self.input.take_egui_input(&state.window);
-        if let Some(controls) = self.controls.as_mut() {
-            controls.clear();
-        }
-        let mut action = None;
-        let mut command = None;
-        let mut output = self.context.run_ui(input, |root| {
-            let context = root.ctx();
-            MODEL.with_borrow_mut(|model| {
-                layers(context, model, &mut self.controls, &mut action);
-                commands(context, model, &mut self.controls, &mut command);
-            });
-        });
-        self.input
-            .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
-        let changed = action.is_some() || command.is_some();
-        if let Some(key) = action {
 ```
 
 **REPLACE WITH**
@@ -1321,6 +1387,7 @@ impl Ui {
         use winit::event::{ElementState, TouchPhase, WindowEvent};
         let ratio = window.scale_factor() as f32;
         let mut consumed = response.consumed;
+
         match event {
             WindowEvent::CursorMoved { position, .. } => {
                 self.pointer = egui::pos2(position.x as f32 / ratio, position.y as f32 / ratio);
@@ -1330,7 +1397,9 @@ impl Ui {
                 if *state == ElementState::Pressed {
                     self.ui_drag = !self.scene_rect.contains(self.pointer);
                 }
+
                 consumed = self.ui_drag;
+
                 if *state == ElementState::Released {
                     self.ui_drag = false;
                 }
@@ -1341,15 +1410,20 @@ impl Ui {
                     touch.location.x as f32 / ratio,
                     touch.location.y as f32 / ratio,
                 );
+
                 if touch.phase == TouchPhase::Started {
                     if self.touches.is_empty() {
                         self.ui_drag = !self.scene_rect.contains(self.pointer);
                     }
+
                     self.touches.insert(touch.id);
                 }
+
                 consumed = self.ui_drag;
+
                 if matches!(touch.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
                     self.touches.remove(&touch.id);
+
                     if self.touches.is_empty() {
                         self.ui_drag = false;
                     }
@@ -1361,6 +1435,7 @@ impl Ui {
             }
             _ => {}
         }
+
         (consumed || escape, response.repaint || escape)
     }
 
@@ -1373,10 +1448,29 @@ impl Ui {
             egui::Pos2::ZERO,
             egui::vec2(logical[0] as f32, logical[1] as f32),
         ));
-        if let Some(controls) = self.controls.as_mut() {
-            controls.clear();
-        }
-        let mut action = None;
+```
+
+**TYPE THIS**
+
+**CURRENT**
+
+```rust
+        let mut command = None;
+        let mut output = self.context.run_ui(input, |root| {
+            let context = root.ctx();
+            MODEL.with_borrow_mut(|model| {
+                layers(context, model, &mut self.controls, &mut action);
+                commands(context, model, &mut self.controls, &mut command);
+            });
+        });
+        self.input
+            .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
+        let changed = action.is_some() || command.is_some();
+```
+
+**REPLACE WITH**
+
+```rust
         let mut command = None;
         let mut tool = None;
         let mut output = self.context.run_ui(input, |root| {
@@ -1390,6 +1484,7 @@ impl Ui {
         self.input
             .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
         let changed = action.is_some() || command.is_some() || tool.is_some();
+
         if let Some(tool) = tool {
             match tool {
                 "layers" => state.toggle_layers_panel(),
@@ -1407,9 +1502,9 @@ impl Ui {
                 }
                 _ => command = Some(tool.to_string()),
             }
+
             state.touch();
         }
-        if let Some(key) = action {
 ```
 
 **TYPE THIS**
@@ -1420,7 +1515,6 @@ impl Ui {
         let repaint = changed || self.context.has_requested_repaint();
         output.pixels_per_point *=
             state.gpu.config.width as f32 / state.window.inner_size().width.max(1) as f32;
-        if let Some(ui) = state.gpu.ui.as_mut() {
 ```
 
 **REPLACE WITH**
@@ -1428,7 +1522,6 @@ impl Ui {
 ```rust
         let repaint = changed || self.context.has_requested_repaint();
         output.pixels_per_point = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
-        if let Some(ui) = state.gpu.ui.as_mut() {
 ```
 
 **TYPE THIS**
@@ -1438,6 +1531,7 @@ impl Ui {
 ```rust
         {
             let hidden = MODEL.with_borrow(|model| model.command_open);
+
             if hidden {
                 let _ = status.set_attribute("hidden", "");
             } else {
@@ -1495,7 +1589,7 @@ fn layers(
 **CURRENT**
 
 ```rust
-    }
+
     egui::Window::new("Session layers")
         .default_pos([12.0, 12.0])
         .default_width(310.0)
@@ -1511,7 +1605,7 @@ fn layers(
 **REPLACE WITH**
 
 ```rust
-    }
+
     let width = (root.available_width() * 0.25).clamp(180.0, 310.0);
     egui::Panel::right("session-layers")
         .default_size(width)
@@ -1522,6 +1616,7 @@ fn layers(
                 ui.strong("Layers");
                 let close = ui.button("Close");
                 record(controls, "layers/close", "Close layers", &close);
+
                 if close.clicked() {
                     model.layers_open = false;
                 }
@@ -1568,6 +1663,7 @@ fn commands(
     if !model.command_open {
         return;
     }
+
     let mut open = model.command_open;
     egui::Window::new("Command line")
         .anchor(egui::Align2::LEFT_BOTTOM, [12.0, -12.0])
@@ -1579,6 +1675,7 @@ fn commands(
             for text in &model.history {
                 ui.label(text);
             }
+
             ui.label("World coordinates: x,y,z. Select a curve before trim, extend or explode.");
             let response = ui.add(
                 egui::TextEdit::singleline(&mut model.command)
@@ -1589,25 +1686,32 @@ fn commands(
                     .desired_width(f32::INFINITY),
             );
             record(controls, "command/input", "Command", &response);
+
             if model.focus_command {
                 response.request_focus();
                 model.focus_command = false;
             }
+
             let enter =
                 response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter));
             ui.horizontal(|ui| {
                 let run = ui.button("Run");
                 record(controls, "command/run", "Run", &run);
+
                 if (enter || run.clicked()) && !model.command.trim().is_empty() {
                     *command = Some(std::mem::take(&mut model.command));
                 }
+
                 let close = ui.button("Close (Esc)");
                 record(controls, "command/close", "Close", &close);
+
                 if close.clicked() || ui.input(|input| input.key_pressed(egui::Key::Escape)) {
                     model.command_open = false;
                 }
+
                 ui.label("point · line · polyline · trim · extend · explode · undo");
             });
+
             if !model.status.is_empty() {
                 ui.label(&model.status);
             }
@@ -1655,6 +1759,7 @@ fn commands(
                     for text in &model.history {
                         ui.label(text);
                     }
+
                     if !model.status.is_empty() {
                         ui.label(&model.status);
                     }
@@ -1670,23 +1775,29 @@ fn commands(
                         .hint_text("Type a command"),
                 );
                 record(controls, "command/input", "Command", &response);
+
                 if model.focus_command {
                     response.request_focus();
                     model.focus_command = false;
                 }
+
                 if response.gained_focus() {
                     model.command_open = true;
                 }
+
                 let enter =
                     response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter));
                 let run = ui.add_sized([40.0, 28.0], egui::Button::new("Run"));
                 record(controls, "command/run", "Run", &run);
+
                 if (enter || run.clicked()) && !model.command.trim().is_empty() {
                     *command = Some(std::mem::take(&mut model.command));
                     model.focus_command = true;
                 }
+
                 let close = ui.add_sized([40.0, 28.0], egui::Button::new("Esc"));
                 record(controls, "command/close", "Close", &close);
+
                 if close.clicked() || ui.input(|input| input.key_pressed(egui::Key::Escape)) {
                     model.command_open = false;
                     response.surrender_focus();
@@ -1737,6 +1848,7 @@ fn toolbar(
                         .add_sized([44.0, 44.0], egui::Button::new(label))
                         .on_hover_text(help);
                     record(controls, &format!("toolbar/{label}"), help, &response);
+
                     if response.clicked() {
                         if command.contains(' ') {
                             model.command = command.to_string();
@@ -1847,7 +1959,7 @@ pub struct TextLabel {
 **CURRENT**
 
 ```rust
-        }
+
         self.ui = Some(app::ui::Ui::new(&state.window));
         state.gpu.ui = Some(engine::gpu::ui::Ui::new(
 ```
@@ -1855,7 +1967,7 @@ pub struct TextLabel {
 **REPLACE WITH**
 
 ```rust
-        }
+
         self.ui = Some(app::ui::Ui::new(&state.window, state.logical_size()[0]));
         state.gpu.ui = Some(engine::gpu::ui::Ui::new(
 ```
@@ -2015,23 +2127,15 @@ pub struct TextLabel {
 
 ```rust
         };
-        let origin = Point::new(
-            f64::from(box_.min[0] + box_.max[0]) * 0.5,
-            f64::from(box_.min[1] + box_.max[1]) * 0.5,
-            f64::from(box_.min[2] + box_.max[2]) * 0.5,
-        );
-        match self.gizmo.as_mut() {
+        let origin = Point::new(box_.cx, box_.cy, box_.cz);
 ```
 
 **REPLACE WITH**
 
 ```rust
         };
-        let mut origin = Point::new(
-            f64::from(box_.min[0] + box_.max[0]) * 0.5,
-            f64::from(box_.min[1] + box_.max[1]) * 0.5,
-            f64::from(box_.min[2] + box_.max[2]) * 0.5,
-        );
+        let mut origin = box_.center();
+
         if let Some(row) = row
             && let Some(target) = crate::app::deform::Target::selected(&self.selection)
             && let Some(geometry) = self.scene.geometry(row)
@@ -2045,9 +2149,8 @@ pub struct TextLabel {
                 points.iter().map(|p| p[1]).sum::<f64>() / n,
                 points.iter().map(|p| p[2]).sum::<f64>() / n,
             )
-            .transformed(&Xform::from_matrix(place));
+            .transformed(&place);
         }
-        match self.gizmo.as_mut() {
 ```
 
 **TYPE THIS**
@@ -2117,7 +2220,7 @@ pub struct TextLabel {
         let Some(delta) = gizmo.update(&active.drag, &from, &dir) else {
             return false;
         };
-        let place = crate::math::mat_mul(&delta, &active.base_place);
+        let place = &delta * &active.base_place;
 ```
 
 **REPLACE WITH**
@@ -2128,13 +2231,14 @@ pub struct TextLabel {
         else {
             return false;
         };
+
         if let (Some(target), Some(source)) = (active.target, active.source.as_ref()) {
             let row = active.row;
-            let place = Xform::from_matrix(active.base_place);
+            let place = active.base_place.clone();
             let Some(back) = place.inverse() else {
                 return false;
             };
-            let local = &(&back * &Xform::from_matrix(delta)) * &place;
+            let local = &(&back * &delta) * &place;
             let edited = match crate::app::deform::transform(source, target, &local) {
                 Ok(value) => value,
                 Err(error) => {
@@ -2142,19 +2246,23 @@ pub struct TextLabel {
                     return false;
                 }
             };
-            let origin = active.origin.transformed(&Xform::from_matrix(delta));
+            let origin = active.origin.transformed(&delta);
+
             if let Err(error) = self.scene.preview_geometry(row, edited, &mut self.gpu) {
                 self.status(&error);
                 return false;
             }
+
             if let Some(gizmo) = self.gizmo.as_mut() {
                 gizmo.origin = origin;
             }
+
             self.upload_gizmo();
             self.touch();
             return true;
         }
-        let place = crate::math::mat_mul(&delta, &active.base_place);
+
+        let place = &delta * &active.base_place;
 ```
 
 **TYPE THIS**
@@ -2172,10 +2280,12 @@ pub struct TextLabel {
 ```rust
             return false;
         };
+
         if active.target.is_some() {
             self.scene.rebuild(&mut self.gpu);
             self.restore_edit_selection(active.row);
         }
+
         self.gpu
 ```
 
@@ -2199,23 +2309,24 @@ pub struct TextLabel {
         else {
             return false;
         };
+
         if let Some(target) = active.target {
-            let result = self.scene.edit_subobject(
-                active.row,
-                target,
-                &Xform::from_matrix(delta),
-                "transform subobject",
-            );
+            let result =
+                self.scene
+                    .edit_subobject(active.row, target, &delta, "transform subobject");
             self.scene.rebuild(&mut self.gpu);
             self.restore_edit_selection(active.row);
+
             if let Err(error) = result {
                 self.status(&error);
                 return false;
             }
+
             self.refresh_layers();
             self.touch();
             return true;
         }
+
         // The delta is a WORLD matrix and the session stores a LOCAL one: the same conjugation
 ```
 
@@ -2272,6 +2383,7 @@ pub struct TextLabel {
 **ADD ABOVE**
 
 ```rust
+
         if let Some(target) = crate::app::deform::Target::selected(&self.selection) {
             self.scene.edit_subobject(row, target, &delta, label)?;
             self.scene.rebuild(&mut self.gpu);
@@ -2292,6 +2404,7 @@ pub struct TextLabel {
             ControlId::Vertex(index) => index,
             _ => return false,
         };
+
         if !self.scene.set_control_point(active.parent, index, &point) {
             self.status("This geometry's control points cannot be edited");
             return false;
@@ -2301,6 +2414,7 @@ pub struct TextLabel {
 
 ```rust
         };
+
         if let Err(error) = self
             .scene
             .set_source_control(active.parent, active.id, &point)
@@ -2329,12 +2443,15 @@ impl State {
         let selection = self.selection.clone();
         self.select(Some(row));
         self.selection = selection;
+
         match self.selection {
             SelectionMode::Controls { .. } => {
                 self.gpu.set_selected(row, false);
+
                 if let Some(geometry) = self.scene.geometry(row) {
                     self.controls = crate::app::selection::Controls::from_geometry(geometry);
                 }
+
                 self.upload_controls();
             }
             SelectionMode::Face { face, .. } => {
@@ -2348,6 +2465,7 @@ impl State {
             }
             SelectionMode::Object => {}
         }
+
         self.place_gizmo(Some(row));
         self.refresh_layers();
         self.touch();

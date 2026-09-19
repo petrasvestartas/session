@@ -1,9 +1,3 @@
-//! The construction plane: where a click lands when there is no geometry under it.
-//!
-//! One of the three world planes through a chosen origin, picked so the camera is looking at
-//! it rather than along it. Everything here is f64 and free of the GPU: a click resolves to a
-//! world point before anything else happens to it.
-
 use session_rust::{Point, Vector};
 
 /// Which pair of world axes the plane spans. The third axis is its normal.
@@ -23,6 +17,7 @@ impl CPlane {
     /// tie somewhere; it breaks toward Z, then Y, so a level-ish view draws on the ground.
     pub fn facing(forward: &Vector) -> Self {
         let (x, y, z) = (forward[0].abs(), forward[1].abs(), forward[2].abs());
+
         if z >= x && z >= y {
             CPlane::Xy
         } else if y >= x {
@@ -49,16 +44,20 @@ impl CPlane {
     pub fn hit(self, origin: &Point, from: &Point, direction: &Vector) -> Option<Point> {
         let n = self.normal();
         let denom = direction[0] * n[0] + direction[1] * n[1] + direction[2] * n[2];
+
         if denom.abs() < 1e-12 {
             return None;
         }
+
         let num = (origin[0] - from[0]) * n[0]
             + (origin[1] - from[1]) * n[1]
             + (origin[2] - from[2]) * n[2];
         let t = num / denom;
+
         if !t.is_finite() || t <= 0.0 {
             return None;
         }
+
         Some(Point::new(
             from[0] + direction[0] * t,
             from[1] + direction[1] * t,

@@ -1,6 +1,3 @@
-// The point lane: one pixel-aligned quad per point, pulled by vertex index, into the lane's
-// own 1x depth + colour targets. Group 0 = the cloud uniform, group 1 = records + tables.
-
 struct CloudUniform {
     size: f32,
     vp_w: f32,
@@ -11,6 +8,7 @@ struct CloudUniform {
     origin: vec2<f32>,
     frame: vec2<f32>,
 };
+
 @group(0) @binding(0) var<uniform> cloud: CloudUniform;
 
 // The record table as raw words: a 4-word header {n, total, 0, 0}, then REC_WORDS per record:
@@ -44,14 +42,17 @@ fn record_of(gid: u32) -> u32 {
     let n = table[0];
     var lo = 0u;
     var hi = n;
+
     while (hi - lo > 1u) {
         let mid = (lo + hi) / 2u;
+
         if (table[4u + mid * REC_WORDS + 22u] <= gid) {
             lo = mid;
         } else {
             hi = mid;
         }
     }
+
     return lo;
 }
 
@@ -59,9 +60,11 @@ fn record_of(gid: u32) -> u32 {
 fn project(gid: u32) -> Splat {
     var s: Splat;
     s.ok = false;
+
     if (gid >= table[1]) {
         return s;
     }
+
     let base = 4u + record_of(gid) * REC_WORDS;
     let offset = gid - table[base + 22u];
     let i = table[base + 20u] + offset;
@@ -74,10 +77,13 @@ fn project(gid: u32) -> Splat {
     s.row = i;
     s.instance = table[base + 37u];
     let clip = m * vec4<f32>(positions[i * 3u], positions[i * 3u + 1u], positions[i * 3u + 2u], 1.0);
+
     if (clip.w <= 0.0) {
         return s;
     }
+
     let ndc = clip.xyz / clip.w;
+
     if (ndc.z < 0.0 || ndc.z > 1.0) {
         return s;
     }
@@ -90,16 +96,23 @@ fn project(gid: u32) -> Splat {
     s.r = clamp(bitcast<f32>(table[base + 23u]) * cloud.frame.y / clip.w, r_min, 8.0);
     let x = (ndc.x * 0.5 + 0.5) * cloud.frame.x - cloud.origin.x;
     let y = (0.5 - ndc.y * 0.5) * cloud.frame.y - cloud.origin.y;
+
     if (x < -s.r || y < -s.r || x >= cloud.vp_w + s.r || y >= cloud.vp_h + s.r) {
         return s;
     }
+
     s.px = vec2<i32>(i32(x), i32(y));
     s.z = ndc.z;
 
     let tint = vec4<f32>(rec_f(base, 16u), rec_f(base, 17u), rec_f(base, 18u), 1.0);
     var rgba = unpack4x8unorm(colors[i]) * tint;
-    if ((table[base + 38u] & 256u) != 0u) { rgba = vec4<f32>(tint.rgb, rgba.a); }
+
+    if ((table[base + 38u] & 256u) != 0u) {
+        rgba = vec4<f32>(tint.rgb, rgba.a);
+    }
+
     let nrm_first = table[base + 36u];
+
     if (nrm_first != NO_NORMALS) {
         let packed_n = normals[nrm_first + offset];
         let rot = mat3x3<f32>(
@@ -112,10 +125,14 @@ fn project(gid: u32) -> Splat {
         let lambert = 0.25 + 0.75 * abs(dot(nw, light));
         rgba = vec4<f32>(rgba.rgb * lambert, rgba.a);
     }
+
     // Word 38 is the object's flag word - bit 0 is FLAG_SELECTED, spelled out because this lane
     // compiles without scene.wgsl - and word 39 is the highlighted point's row + 1. Either one
     // paints the yellow the other lanes take from SELECT_COLOR.
-    if ((table[base + 38u] & 1u) != 0u || table[base + 39u] == i + 1u) { rgba = vec4<f32>(1.0, 1.0, 0.0, 1.0); }
+    if ((table[base + 38u] & 1u) != 0u || table[base + 39u] == i + 1u) {
+        rgba = vec4<f32>(1.0, 1.0, 0.0, 1.0);
+    }
+
     s.color = pack4x8unorm(rgba);
     s.ok = true;
     return s;
@@ -136,10 +153,12 @@ struct PointOut {
 fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
     var o: PointOut;
     let s = project(vid / 6u);
+
     if (!s.ok) {
         o.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
         return o;
     }
+
     let ir = i32(ceil(s.r - 0.5));
     let corner_rr = 2.0 * f32(ir * ir) - 0.001;
     let lo = vec2<f32>(f32(s.px.x - ir), f32(s.px.y - ir));
@@ -169,6 +188,7 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
     if (outside(in)) {
         discard;
     }
+
     return in.color;
 }
 
@@ -178,5 +198,6 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
     if (outside(in)) {
         discard;
     }
+
     return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec4<f32>(0.0));
 }

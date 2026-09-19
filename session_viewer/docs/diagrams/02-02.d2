@@ -6,11 +6,11 @@ classes: {
 }
 direction: right
 
-E: "Aabb::empty" { class: box }
-B: "Aabb min · max" { class: focus }
+E: "AABB::empty" { class: box }
+B: "AABB center · half-size" { class: focus }
 W: "world box" { class: box }
 Q: "queries" { class: box }
 
-E -> B: "grow · union" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
-B -> W: "placed(Mat4)" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+E -> B: "union_with_point · union_with" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+B -> W: "transformed(Xform)" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
 B -> Q: "diagonal · contains" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

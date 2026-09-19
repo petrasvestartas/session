@@ -1,18 +1,7 @@
 diff --git a/src/app/command.rs b/src/app/command.rs
 --- a/src/app/command.rs
 +++ b/src/app/command.rs
-@@ -1,23 +1,17 @@
--//! The command line: one typed line becomes one named action.
--//!
--//! Parsing is here and doing is in `State`, so what a line MEANS can be tested without a
--//! window, a device or a scene. A verb the viewer does not have is an error with the line
--//! quoted back, never a silent no-op: a command line that ignores what you typed is worse
--//! than one that refuses it.
--//!
--//! Every verb is an action the viewer already has. The command line is a second way to reach
--//! them, not a second implementation of them.
--
- use crate::app::coords;
+@@ -2,11 +2,16 @@ use crate::app::coords;
  use crate::app::gizmo::Axis;
  
  /// What a line asked for.
@@ -20,28 +9,30 @@ diff --git a/src/app/command.rs b/src/app/command.rs
 +#[derive(Clone, Debug, PartialEq)]
  pub enum Command {
 +    Model(crate::app::modeling::Modeling),
-     /// Move the selection by a world offset, in millimetres.
-     Move([f64; 3]),
-     /// Turn the selection about one axis through its own centre, in degrees.
--    Rotate { axis: Axis, degrees: f64 },
+     Move([f64; 3]), // Move the selection by a world offset, in millimetres.
+-    Rotate { axis: Axis, degrees: f64 }, // Turn the selection about one axis through its own centre, in degrees.
+-    Scale(f64),                          // Scale the selection about its own centre.
 +    Rotate {
++        // Turn the selection about one axis through its own centre, in degrees.
 +        axis: Axis,
 +        degrees: f64,
 +    },
-     /// Scale the selection about its own centre.
-     Scale(f64),
++    Scale(f64), // Scale the selection about its own centre.
      Delete,
-@@ -32,6 +26,9 @@
+     Undo,
+     Redo,
+@@ -18,6 +23,10 @@ pub enum Command {
  
  /// Parse one line. `Err` carries what to show the person who typed it.
  pub fn parse(line: &str) -> Result<Command, String> {
 +    if line.len() > 65536 {
 +        return Err("command exceeds 64 KiB".into());
 +    }
++
      let line = line.trim();
+ 
      if line.is_empty() {
-         return Err("nothing typed".into());
-@@ -39,7 +36,19 @@
+@@ -27,8 +36,21 @@ pub fn parse(line: &str) -> Result<Command, String> {
      let mut words = line.split_whitespace();
      let verb = words.next().unwrap_or_default().to_ascii_lowercase();
      let rest: Vec<&str> = words.collect();
@@ -51,9 +42,11 @@ diff --git a/src/app/command.rs b/src/app/command.rs
 +        "delete" | "del" | "undo" | "redo" | "hide" | "show" | "fit" | "escape" | "esc" => Some(0),
 +        _ => None,
 +    };
++
 +    if expected.is_some_and(|count| rest.len() != count) {
 +        return Err(format!("wrong number of arguments for `{verb}`"));
 +    }
+ 
      match verb.as_str() {
 +        "point" | "line" | "polyline" | "trim" | "extend" | "explode" => {
 +            model(&verb, &rest).map(Command::Model)
@@ -61,20 +54,10 @@ diff --git a/src/app/command.rs b/src/app/command.rs
          "move" | "m" => offset(&rest).map(Command::Move),
          "rotate" | "rot" => {
              let (axis, degrees) = axis_and_number(&rest, "rotate x 90")?;
-@@ -141,10 +150,38 @@
-     fn a_line_it_cannot_do_says_so() {
-         assert_eq!(parse("fly 3"), Err("no command `fly`".into()));
-         assert_eq!(parse(""), Err("nothing typed".into()));
--        assert!(parse("scale 0").is_err(), "a zero scale collapses the object");
-+        assert!(
-+            parse("scale 0").is_err(),
-+            "a zero scale collapses the object"
-+        );
-         assert!(parse("rotate 90").is_err(), "no axis");
-         assert!(parse("rotate x").is_err(), "no angle");
+@@ -143,6 +165,33 @@ mod tests {
          assert!(parse("move sideways").is_err());
-+    }
-+
+     }
+ 
 +    #[test]
 +    fn modeling_commands_validate_arity_and_coordinates() {
 +        use crate::app::modeling::Modeling;
@@ -87,6 +70,7 @@ diff --git a/src/app/command.rs b/src/app/command.rs
 +            Ok(Command::Model(Modeling::Trim(0.2, 0.8)))
 +        );
 +        assert_eq!(parse("explode"), Ok(Command::Model(Modeling::Explode)));
++
 +        for line in [
 +            "point @1,2,3",
 +            "line 0,0,0",
@@ -97,17 +81,21 @@ diff --git a/src/app/command.rs b/src/app/command.rs
 +        ] {
 +            assert!(parse(line).is_err(), "{line}");
 +        }
++
 +        assert!(parse(&"x".repeat(65537)).is_err());
-     }
- 
++    }
++
      #[test]
-@@ -158,3 +195,38 @@
+     fn rotation_names_its_axis() {
+         assert_eq!(
+@@ -154,3 +203,42 @@ mod tests {
          );
      }
  }
 +
 +fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, String> {
 +    use crate::app::modeling::Modeling;
++
 +    match verb {
 +        "explode" if words.is_empty() => Ok(Modeling::Explode),
 +        "trim" | "extend" if words.len() == 2 => {
@@ -121,15 +109,18 @@ diff --git a/src/app/command.rs b/src/app/command.rs
 +        }
 +        "point" | "line" | "polyline" => {
 +            let mut points = Vec::new();
++
 +            if words.len() > crate::app::modeling::MAX_POINTS {
 +                return Err("too many points".into());
 +            }
++
 +            for word in words {
 +                let Some(coords::Typed::Absolute { x, y, z }) = coords::parse(word) else {
 +                    return Err("use world coordinates x,y,z separated by spaces".into());
 +                };
 +                points.push([x, y, z.unwrap_or(0.0)]);
 +            }
++
 +            match (verb, points.len()) {
 +                ("point", 1) => Ok(Modeling::Point(points[0])),
 +                ("line", 2) => Ok(Modeling::Line(points[0], points[1])),
@@ -143,23 +134,25 @@ diff --git a/src/app/command.rs b/src/app/command.rs
 diff --git a/src/state/edit.rs b/src/state/edit.rs
 --- a/src/state/edit.rs
 +++ b/src/state/edit.rs
-@@ -408,7 +408,13 @@
+@@ -406,7 +406,15 @@ impl State {
      /// Every arm calls an action the viewer already has, so a command cannot drift from the
      /// key that does the same thing.
      pub fn run_command(&mut self, line: &str) -> Result<String, String> {
 +        self.cancel_gesture();
          let command = crate::app::command::parse(line)?;
++
 +        if matches!(command, Command::Delete | Command::Undo | Command::Redo)
 +            && (!self.scene.streamed.is_empty() || !self.scene.sheets.is_empty())
 +        {
 +            return Err("this command requires a scene without streamed sources".into());
 +        }
++
          let needs_selection = matches!(
              command,
              Command::Move(_) | Command::Rotate { .. } | Command::Scale(_) | Command::Delete
-@@ -417,6 +423,11 @@
-             return Err("nothing is selected".into());
+@@ -417,6 +425,11 @@ impl State {
          }
+ 
          match command {
 +            Command::Model(command) => {
 +                self.scene.model(&command)?;
@@ -169,15 +162,17 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
              Command::Move(d) => self.apply(Xform::translation(d[0], d[1], d[2]), "move"),
              Command::Rotate { axis, degrees } => {
                  let about = self.gizmo.as_ref().map(|g| g.origin.clone());
-@@ -428,15 +439,25 @@
+@@ -428,15 +441,29 @@ impl State {
                  self.apply(scaling_about(k, about.as_ref()), "scale")
              }
              Command::Delete => {
 -                self.delete_selected();
 +                let row = self.scene.selected.ok_or("nothing is selected")?;
++
 +                if !self.scene.delete_row(row) {
 +                    return Err("this object cannot be deleted".into());
 +                }
++
 +                self.after_history();
                  Ok("deleted".into())
              }
@@ -186,6 +181,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 +                if !self.scene.undo() {
 +                    return Err("nothing to undo".into());
 +                }
++
 +                self.after_history();
                  Ok("undone".into())
              }
@@ -194,6 +190,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 +                if !self.scene.redo() {
 +                    return Err("nothing to redo".into());
 +                }
++
 +                self.after_history();
                  Ok("redone".into())
              }

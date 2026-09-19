@@ -98,7 +98,7 @@ Comparing `z0` with `d` directly hides ink on its own face. The physical gradien
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=1-43 -->
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=1-41 -->
 
 ### 4b · Reading depth and fitting a neighbouring pair
 
@@ -109,7 +109,7 @@ Comparing `z0` with `d` directly hides ink on its own face. The physical gradien
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=44-101 -->
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=42-109 -->
 
 ### 4c · Carrying a stroke fragment's surface to the axis
 
@@ -122,7 +122,7 @@ Comparing `z0` with `d` directly hides ink on its own face. The physical gradien
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=102-137 -->
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=110-150 -->
 
 ### 4d · Discs: markers stand or fall with their centre
 
@@ -132,7 +132,7 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=138-187 -->
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=151-209 -->
 
 ### 4e · Corner fits and the fast path
 
@@ -145,7 +145,7 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=188-236 -->
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=210-282 -->
 
 ## Step 5 · Shaders emit the gradient
 

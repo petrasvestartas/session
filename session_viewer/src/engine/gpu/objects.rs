@@ -1,18 +1,13 @@
-//! `ObjectRows` - the per-object columns ONE upload carries (a delta, dropped after upload) -
-//! and `InstanceTable`, the ONE owner of the object rows the GPU reads: the rows, their f64
-//! translations, the sparse bounded rows, the re-anchor, the inside test, the two buffers and
-//! their bind group.
-
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
 use super::instance::Instance;
 use super::targets::Targets;
 use crate::engine::pipelines::Layouts;
-use crate::math::{Aabb, Mat4, mat_to_f32};
-use session_rust::Point;
+use session_rust::{AABB, Point, Xform};
 
 /// Re-anchor threshold band, world units: the table is rebased once the camera target drifts
 /// a quarter of the view distance from the anchor, clamped to [MIN, MAX].
 const REANCHOR_MIN: f64 = 1.0e3;
+
 const REANCHOR_MAX: f64 = 1.0e5;
 
 /// Re-anchors are throttled to this interval so a wheel-zoom gesture does not rebuild every tick.
@@ -22,26 +17,24 @@ const REANCHOR_THROTTLE_MS: f64 = 200.0;
 /// (empty when the object has no volume the ink lanes care about) and vertex spacing.
 #[derive(Clone)]
 pub struct ObjectRow {
-    pub place: Mat4,
+    pub place: Xform,
     pub color: [f32; 4],
     pub edge_color: u32,
     pub flags: u32,
-    pub bounds: Aabb,
-    /// Meshes: the local vertex spacing; clouds: the point size in px. Read as a pen hint.
-    pub spacing: f32,
-    /// The row drew faces, so the per-frame inside test walks its box.
-    pub faces: bool,
+    pub bounds: AABB,
+    pub spacing: f32, // Meshes: the local vertex spacing; clouds: the point size in px. Read as a pen hint.
+    pub faces: bool,  // The row drew faces, so the per-frame inside test walks its box.
 }
 
 impl ObjectRow {
     /// A row with the file placement, white tint and no columns filled yet.
-    pub fn new(place: Mat4, flags: u32) -> Self {
+    pub fn new(place: Xform, flags: u32) -> Self {
         Self {
             place,
             color: [1.0; 4],
             edge_color: 0,
             flags,
-            bounds: Aabb::empty(),
+            bounds: AABB::empty(),
             spacing: 0.0,
             faces: false,
         }
@@ -70,27 +63,27 @@ struct BoundedRow {
 }
 
 /// The row's mesh-local box carried through its placement, in world units.
-fn world_box(r: &ObjectRow) -> Aabb {
-    r.bounds.placed(&r.place)
+fn world_box(r: &ObjectRow) -> AABB {
+    r.bounds.transformed(&r.place)
 }
 
 /// One row's GPU form under a placement: the model matrix with its translation column cleared,
 /// the true f64 translation taken out of that column, and the row's own box placed into the
 /// world. Split out of `set_placement` because it is the whole arithmetic of a move and a
 /// device is not needed to check it.
-fn placed_row(local: &Aabb, place: &Mat4) -> ([f32; 16], [f64; 3], Aabb) {
-    let world = local.placed(place);
-    let mut model = mat_to_f32(place);
+fn placed_row(local: &AABB, place: &Xform) -> ([f32; 16], [f64; 3], AABB) {
+    let world = local.transformed(place);
+    let mut model = place.to_f32();
     model[12] = 0.0;
     model[13] = 0.0;
     model[14] = 0.0;
     (
         model,
-        [place[12], place[13], place[14]],
-        if world.is_finite() {
+        [place.m[12], place.m[13], place.m[14]],
+        if world.is_valid() {
             world
         } else {
-            Aabb::empty()
+            AABB::empty()
         },
     )
 }
@@ -119,25 +112,16 @@ fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
 pub struct InstanceTable {
     geometry_revision: u64,
     rows: Vec<Instance>,
-    /// The TRUE world translation per row, in f64. The GPU never sees it: `anchored` narrows
-    /// it against the current anchor. Every change to a placement is applied HERE, so the
-    /// error of an edit is the error of the edit, not of the position it happens at.
-    translation: Vec<[f64; 3]>,
-    /// Each row's box in its OWN space. `world_bounds` is this box under the current
-    /// placement, so an edit that only moves the object recomputes the world box from here
-    /// instead of walking the geometry again.
-    local_bounds: Vec<Aabb>,
-    /// The identity row the widgets draw against, once something has asked for it.
-    widget: Option<u32>,
+    translation: Vec<[f64; 3]>, // The TRUE world translation per row, in f64. The GPU never sees it: `anchored` narrows it against the current anchor. Every change to a placement is applied HERE, so the error of an edit is the error of the edit, not of the position it happens at.
+    local_bounds: Vec<AABB>, // Each row's box in its OWN space. `world_bounds` is this box under the current placement, so an edit that only moves the object recomputes the world box from here instead of walking the geometry again.
+    widget: Option<u32>, // The identity row the widgets draw against, once something has asked for it.
     bounded: Vec<BoundedRow>,
-    /// Every row's world box, row order, so index = row; `Aabb::empty()` where not finite.
-    world_bounds: Vec<Aabb>,
+    world_bounds: Vec<AABB>, // Every row's world box, row order, so index = row; `AABB::empty()` where not finite.
     last_origin: Option<Point>,
     buffer: GrowBuf,
     translations: GrowBuf,
     last_rebase_ms: f64,
-    /// Group 2 of every instance-reading pipeline; rebuilt when either buffer grows.
-    pub group: wgpu::BindGroup,
+    pub group: wgpu::BindGroup, // Group 2 of every instance-reading pipeline; rebuilt when either buffer grows.
     pub ink_group: wgpu::BindGroup,
 }
 
@@ -286,6 +270,7 @@ impl InstanceTable {
     /// send only the new rows. The next frame rebases the whole table.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &ObjectRows) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
+
         // The widget row sits after every scene row, so a second file's rows would land after
         // IT and every row number past it would be off by one. Drop it first; whoever wants it
         // mints it again, at the new end.
@@ -301,6 +286,7 @@ impl InstanceTable {
             // below is measured against.
             self.buffer.reset();
             self.translations.reset();
+
             if keep > 0 {
                 let rows: Vec<Instance> = self.rows.clone();
                 let anchored_rows: Vec<[f32; 4]> = match &self.last_origin {
@@ -312,11 +298,13 @@ impl InstanceTable {
                     None => vec![[0.0f32; 4]; keep],
                 };
                 let grew = self.buffer.append(ctx, &rows);
+
                 if self.translations.append(ctx, &anchored_rows) || grew {
                     self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
                 }
             }
         }
+
         if self.translation.is_empty() {
             self.rows.clear();
             self.world_bounds.clear();
@@ -324,39 +312,35 @@ impl InstanceTable {
             self.buffer.reset();
             self.translations.reset();
         }
+
         let base = self.translation.len() as u32;
         self.rows.reserve(up.rows.len());
         self.translation.reserve(up.rows.len());
         self.world_bounds.reserve(up.rows.len());
         self.local_bounds.reserve(up.rows.len());
+
         for (i, r) in up.rows.iter().enumerate() {
             let world = world_box(r);
-            if r.faces && world.is_finite() {
-                let lo = [
-                    world.min[0] as f64,
-                    world.min[1] as f64,
-                    world.min[2] as f64,
-                ];
-                let hi = [
-                    world.max[0] as f64,
-                    world.max[1] as f64,
-                    world.max[2] as f64,
-                ];
+
+            if r.faces && world.is_valid() {
+                let lo = world.min_point();
+                let hi = world.max_point();
                 self.bounded.push(BoundedRow {
                     row: base + i as u32,
-                    lo,
-                    hi,
+                    lo: [lo[0], lo[1], lo[2]],
+                    hi: [hi[0], hi[1], hi[2]],
                 });
             }
-            self.world_bounds.push(if world.is_finite() {
+
+            self.world_bounds.push(if world.is_valid() {
                 world
             } else {
-                Aabb::empty()
+                AABB::empty()
             });
             self.local_bounds.push(r.bounds);
             self.translation
-                .push([r.place[12], r.place[13], r.place[14]]);
-            let mut model = mat_to_f32(&r.place);
+                .push([r.place.m[12], r.place.m[13], r.place.m[14]]);
+            let mut model = r.place.to_f32();
             model[12] = 0.0;
             model[13] = 0.0;
             model[14] = 0.0;
@@ -369,19 +353,24 @@ impl InstanceTable {
                 _pad: r.edge_color,
             });
         }
+
         if self.rows.is_empty() {
             self.rows.push(Instance::placeholder());
         }
 
         let fresh = &self.rows[self.buffer.len() as usize..];
+
         if fresh.is_empty() {
             return;
         }
+
         let zeros = vec![[0.0f32; 4]; fresh.len()];
         let grew = self.buffer.append(ctx, fresh);
+
         if self.translations.append(ctx, &zeros) || grew {
             self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
         }
+
         self.last_origin = None;
     }
 
@@ -404,10 +393,12 @@ impl InstanceTable {
         };
         let moved = need
             && (self.last_origin.is_none() || now - self.last_rebase_ms > REANCHOR_THROTTLE_MS);
+
         if moved {
             self.rebuild(ctx, origin);
             self.last_rebase_ms = now;
         }
+
         Rebase {
             // Safe in one step: `last_origin` being None makes `need` true and `moved` true,
             // so `rebuild` above has just filled it. Otherwise it was already filled.
@@ -423,9 +414,11 @@ impl InstanceTable {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
         self.last_origin = Some(origin.clone());
         let mut rebased: Vec<[f32; 4]> = Vec::with_capacity(self.rows.len());
+
         for t in &self.translation {
             rebased.push(anchored(*t, origin));
         }
+
         rebased.resize(self.rows.len(), [0.0; 4]);
         self.translations.write_at(ctx, 0, &rebased);
     }
@@ -433,21 +426,24 @@ impl InstanceTable {
     /// Row `i`'s model as a shader composes it: rotation/scale plus the anchored translation.
     pub fn anchored_model(&self, i: u32) -> Option<[f32; 16]> {
         let mut model = self.rows.get(i as usize)?.model;
+
         if let (Some(t), Some(o)) = (self.translation.get(i as usize), &self.last_origin) {
             let a = anchored(*t, o);
             model[12] = a[0];
             model[13] = a[1];
             model[14] = a[2];
         }
+
         Some(model)
     }
 
     /// Per-frame refresh of `FLAG_INSIDE` over the bounded rows only; a row is written back
     /// only when its answer flips.
-    pub fn update_inside(&mut self, ctx: &GpuCtx, eye: [f32; 3], scene: &Aabb) {
+    pub fn update_inside(&mut self, ctx: &GpuCtx, eye: [f32; 3], scene: &AABB) {
         if self.bounded.is_empty() {
             return;
         }
+
         let Some(origin) = self.last_origin.clone() else {
             return;
         };
@@ -456,9 +452,11 @@ impl InstanceTable {
             origin[1] + eye[1] as f64,
             origin[2] + eye[2] as f64,
         ];
-        let in_scene = scene.contains(ew);
+        let in_scene = scene.contains(&Point::new(ew[0], ew[1], ew[2]));
+
         for b in &self.bounded {
             let mut inside = in_scene;
+
             if inside {
                 for (coordinate, (low, high)) in ew.iter().zip(b.lo.iter().zip(&b.hi)) {
                     if !(coordinate >= low && coordinate <= high) {
@@ -467,12 +465,15 @@ impl InstanceTable {
                     }
                 }
             }
+
             let Some(row) = self.rows.get_mut(b.row as usize) else {
                 continue;
             };
+
             if (row.flags & Instance::FLAG_INSIDE != 0) == inside {
                 continue;
             }
+
             row.flags ^= Instance::FLAG_INSIDE;
             self.buffer.write_at(ctx, b.row, std::slice::from_ref(row));
         }
@@ -491,6 +492,7 @@ impl InstanceTable {
         if let Some(row) = self.widget {
             return (row, false);
         }
+
         let row = self.rows.len() as u32;
         // `placeholder`'s identity model and zero flags are what the widget wants; its mid-grey
         // tint is not. Both lanes multiply their own row colour by the object's, so a grey
@@ -500,8 +502,8 @@ impl InstanceTable {
             ..Instance::placeholder()
         });
         self.translation.push([0.0; 3]);
-        self.local_bounds.push(Aabb::empty());
-        self.world_bounds.push(Aabb::empty());
+        self.local_bounds.push(AABB::empty());
+        self.world_bounds.push(AABB::empty());
         // The widget's geometry is in absolute world coordinates and the frame is drawn about
         // the anchor, so its anchored translation is what `anchored` gives a zero f64 base:
         // minus the anchor. A literal zero draws the widget one whole anchor away from the
@@ -517,9 +519,11 @@ impl InstanceTable {
         let grew_t = self
             .translations
             .append(ctx, std::slice::from_ref(&translation));
+
         if grew || grew_t {
             self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
         }
+
         self.widget = Some(row);
         (row, grew || grew_t)
     }
@@ -533,7 +537,7 @@ impl InstanceTable {
     ///
     /// The world box is recomputed from the row's own box, and `bounded` (the sparse list the
     /// inside test walks) is kept in step. Returns false when the row does not exist.
-    pub fn set_placement(&mut self, ctx: &GpuCtx, row: u32, place: &Mat4) -> bool {
+    pub fn set_placement(&mut self, ctx: &GpuCtx, row: u32, place: &Xform) -> bool {
         let i = row as usize;
         let (Some(instance), Some(local)) = (self.rows.get_mut(i), self.local_bounds.get(i)) else {
             return false;
@@ -542,29 +546,27 @@ impl InstanceTable {
         instance.model = model;
         self.translation[i] = translation;
         self.world_bounds[i] = world;
+
         for b in &mut self.bounded {
             if b.row == row {
-                b.lo = [
-                    world.min[0] as f64,
-                    world.min[1] as f64,
-                    world.min[2] as f64,
-                ];
-                b.hi = [
-                    world.max[0] as f64,
-                    world.max[1] as f64,
-                    world.max[2] as f64,
-                ];
+                let lo = world.min_point();
+                let hi = world.max_point();
+                b.lo = [lo[0], lo[1], lo[2]];
+                b.hi = [hi[0], hi[1], hi[2]];
             }
         }
+
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
         let instance = *instance;
         self.buffer
             .write_at(ctx, row, std::slice::from_ref(&instance));
+
         if let Some(origin) = &self.last_origin {
             let t = anchored(self.translation[i], origin);
             self.translations
                 .write_at(ctx, row, std::slice::from_ref(&t));
         }
+
         true
     }
 
@@ -573,9 +575,9 @@ impl InstanceTable {
         &mut self,
         ctx: &GpuCtx,
         row: u32,
-        bounds: Aabb,
+        bounds: AABB,
         spacing: f32,
-        place: &Mat4,
+        place: &Xform,
     ) {
         self.local_bounds[row as usize] = bounds;
         self.rows[row as usize].spacing = spacing;
@@ -591,9 +593,11 @@ impl InstanceTable {
                 Instance::FLAG_COLOR
             };
             r.flags &= !flag;
+
             if color.is_some() {
                 r.flags |= flag;
             }
+
             if edge {
                 r._pad = color
                     .map(|c| u32::from_le_bytes([c[0], c[1], c[2], 255]))
@@ -610,6 +614,7 @@ impl InstanceTable {
                     })
                     .unwrap_or([1.; 4]);
             }
+
             self.buffer.write_at(ctx, row, std::slice::from_ref(r));
         }
     }
@@ -620,13 +625,17 @@ impl InstanceTable {
             return;
         };
         let was = r.flags & bit != 0;
+
         if was == on {
             return;
         }
+
         r.flags ^= bit;
+
         if bit & Instance::FLAG_HIDDEN != 0 {
             self.geometry_revision = self.geometry_revision.wrapping_add(1);
         }
+
         self.buffer.write_at(ctx, row, std::slice::from_ref(r));
     }
 
@@ -673,13 +682,13 @@ impl InstanceTable {
     }
 
     /// Row `row`'s world box, `None` when the row has no volume (or does not exist).
-    pub fn row_bounds(&self, row: u32) -> Option<Aabb> {
+    pub fn row_bounds(&self, row: u32) -> Option<AABB> {
         let b = *self.world_bounds.get(row as usize)?;
-        b.is_finite().then_some(b)
+        b.is_valid().then_some(b)
     }
 
     /// Text has no solid volume; its shaped world box still supports fitting and annotations.
-    pub fn set_text_bounds(&mut self, row: u32, bounds: Aabb) {
+    pub fn set_text_bounds(&mut self, row: u32, bounds: AABB) {
         if let Some(target) = self.world_bounds.get_mut(row as usize) {
             *target = bounds;
         }
@@ -705,26 +714,22 @@ impl InstanceTable {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use session_rust::Xform;
 
     /// A translated local box lands at the translated world position.
     #[test]
     fn world_box_translates() {
-        let mut r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0).m, 0);
-        r.bounds = Aabb {
-            min: [0.0, 0.0, 0.0],
-            max: [1.0, 2.0, 3.0],
-        };
+        let mut r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0), 0);
+        r.bounds = AABB::new(0.5, 1.0, 1.5, 0.5, 1.0, 1.5);
         let b = world_box(&r);
-        assert_eq!(b.min, [10.0, 20.0, 30.0]);
-        assert_eq!(b.max, [11.0, 22.0, 33.0]);
+        assert_eq!(b.min_point(), Point::new(10.0, 20.0, 30.0));
+        assert_eq!(b.max_point(), Point::new(11.0, 22.0, 33.0));
     }
 
     /// A row with no local box stays empty, translated or not.
     #[test]
     fn world_box_empty_stays_empty() {
-        let r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0).m, 0);
-        assert!(!world_box(&r).is_finite());
+        let r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0), 0);
+        assert!(!world_box(&r).is_valid());
     }
 
     /// A millimetre move a kilometre out survives subtraction against a near anchor and does
@@ -746,17 +751,14 @@ mod tests {
     /// carrying the position twice would draw the object at twice its distance.
     #[test]
     fn a_move_goes_into_the_translation_not_the_matrix() {
-        let local = Aabb {
-            min: [-1.0, -1.0, -1.0],
-            max: [1.0, 1.0, 1.0],
-        };
-        let place = Xform::translation(10.0, 20.0, 30.0).m;
+        let local = AABB::new(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+        let place = Xform::translation(10.0, 20.0, 30.0);
         let (model, translation, world) = placed_row(&local, &place);
 
         assert_eq!([model[12], model[13], model[14]], [0.0, 0.0, 0.0]);
         assert_eq!(translation, [10.0, 20.0, 30.0]);
-        assert_eq!(world.min, [9.0, 19.0, 29.0]);
-        assert_eq!(world.max, [11.0, 21.0, 31.0]);
+        assert_eq!(world.min_point(), Point::new(9.0, 19.0, 29.0));
+        assert_eq!(world.max_point(), Point::new(11.0, 21.0, 31.0));
     }
 
     /// The write a drag frame makes, on a real device: one row moves, its neighbour does not,
@@ -768,26 +770,25 @@ mod tests {
         use crate::engine::gpu::{Gpu, Upload};
         let mut gpu = pollster::block_on(Gpu::new_headless(64, 64)).unwrap();
         let mut upload = Upload::default();
+
         for x in [0.0, 100.0] {
-            let mut row = ObjectRow::new(Xform::translation(x, 0.0, 0.0).m, 0);
-            row.bounds = Aabb {
-                min: [-1.0, -1.0, -1.0],
-                max: [1.0, 1.0, 1.0],
-            };
+            let mut row = ObjectRow::new(Xform::translation(x, 0.0, 0.0), 0);
+            row.bounds = AABB::new(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
             row.faces = true;
             upload.obj.rows.push(row);
         }
+
         gpu.set_scene(&upload);
         assert_eq!(gpu.objects.len(), 2);
 
-        let moved = Xform::translation(0.0, 50.0, 0.0).m;
+        let moved = Xform::translation(0.0, 50.0, 0.0);
         assert!(gpu.objects.set_placement(&gpu.ctx, 0, &moved));
 
         let first = gpu.objects.row_bounds(0).expect("row 0 has a box");
         let second = gpu.objects.row_bounds(1).expect("row 1 has a box");
-        assert_eq!(first.min[1], 49.0);
-        assert_eq!(second.min[0], 99.0);
-        assert_eq!(second.min[1], -1.0, "the neighbour did not move");
+        assert_eq!(first.min_point()[1], 49.0);
+        assert_eq!(second.min_point()[0], 99.0);
+        assert_eq!(second.min_point()[1], -1.0, "the neighbour did not move");
 
         // The widget row is minted once, after every scene row, and stays where it was put.
         let (widget, _) = gpu.objects.widget_row(&gpu.ctx, &gpu.layouts);
@@ -799,7 +800,7 @@ mod tests {
         let mut more = Upload::default();
         more.obj
             .rows
-            .push(ObjectRow::new(Xform::translation(200.0, 0.0, 0.0).m, 0));
+            .push(ObjectRow::new(Xform::translation(200.0, 0.0, 0.0), 0));
         gpu.set_scene(&more);
         assert_eq!(gpu.objects.len(), 3, "two rows, one file's row, no widget");
         assert_eq!(gpu.objects.widget_row(&gpu.ctx, &gpu.layouts).0, 3);
@@ -809,8 +810,8 @@ mod tests {
     /// and the fit never walk a box that answers yes to everything.
     #[test]
     fn a_row_with_no_box_stays_empty() {
-        let (_, _, world) = placed_row(&Aabb::empty(), &Xform::translation(1.0, 0.0, 0.0).m);
-        assert!(!world.is_finite());
+        let (_, _, world) = placed_row(&AABB::empty(), &Xform::translation(1.0, 0.0, 0.0));
+        assert!(!world.is_valid());
     }
 
     /// The anchored value is a pure function of the f64 base and the anchor, so a placement

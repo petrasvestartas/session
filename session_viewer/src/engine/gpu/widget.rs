@@ -114,16 +114,19 @@ impl Widget {
             extent.0.div_ceil(64).clamp(1, 16) * 64,
             extent.1.div_ceil(64).clamp(1, 16) * 64,
         );
+
         if self.tile.as_ref().is_none_or(|tile| tile.size != extent) {
             self.tile = None;
             self.tile = Some(Tile::new(ctx, &self.texture_layout, extent));
         }
+
         let mut uniform = [0.0_f32; 24];
         let [x, y, width, height] = rect;
         let sx = size.0 as f64 / width;
         let sy = size.1 as f64 / height;
         let tx = (size.0 as f64 - 2.0 * x - width) / width;
         let ty = (2.0 * y + height - size.1 as f64) / height;
+
         for column in 0..4 {
             let at = column * 4;
             uniform[at] = (sx * matrix.m[at] + tx * matrix.m[at + 3]) as f32;
@@ -131,6 +134,7 @@ impl Widget {
             uniform[at + 2] = matrix.m[at + 2] as f32;
             uniform[at + 3] = matrix.m[at + 3] as f32;
         }
+
         uniform[16] = (2.0 * x / size.0 as f64 - 1.0) as f32;
         uniform[17] = (1.0 - 2.0 * y / size.1 as f64) as f32;
         uniform[18] = (2.0 * width / size.0 as f64) as f32;
@@ -350,6 +354,7 @@ fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
     let radius = crate::app::gizmo::ARM + 2.0;
     let mut min = [f64::INFINITY; 2];
     let mut max = [f64::NEG_INFINITY; 2];
+
     for corner in 0..8 {
         let p = std::array::from_fn::<_, 3, _>(|i| {
             if corner & (1 << i) == 0 {
@@ -361,18 +366,22 @@ fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
         let c = std::array::from_fn::<_, 4, _>(|i| {
             m[i] * p[0] + m[4 + i] * p[1] + m[8 + i] * p[2] + m[12 + i]
         });
+
         if c[3] <= 0.0 {
             return None;
         }
+
         let screen = [
             (c[0] / c[3] * 0.5 + 0.5) * size.0 as f64,
             (0.5 - c[1] / c[3] * 0.5) * size.1 as f64,
         ];
+
         for i in 0..2 {
             min[i] = min[i].min(screen[i]);
             max[i] = max[i].max(screen[i]);
         }
     }
+
     let x = (min[0] - 2.0).floor().max(0.0);
     let y = (min[1] - 2.0).floor().max(0.0);
     let width = (max[0] + 2.0).ceil().min(size.0 as f64) - x;

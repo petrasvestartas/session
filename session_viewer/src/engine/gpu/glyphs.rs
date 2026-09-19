@@ -1,7 +1,3 @@
-//! The glyph lane: every vertex-sized piece of ink. Two tables of the same 48 B row - spheres
-//! (mesh/BRep vertex markers, the SOLID lane, on a quad template) and
-//! dots (free points, the FLAT lane, three verts per dot). `GlyphRows` is one upload.
-
 use super::buffers::{GpuCtx, GrowBuf, ROWS, Template, bind_group};
 use super::frame::Binds;
 use super::upload::drop_rows;
@@ -26,14 +22,10 @@ const DOT_VERTS: u32 = 3;
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct GlyphPoint {
     pub center: [f32; 3],
-    /// 0 = the screen-constant pen; > 0 = a world-mm radius; < 0 = exactly that many screen
-    /// pixels, which is what the F10 control dots use so they hold their size at every zoom.
-    pub radius: f32,
+    pub radius: f32, // 0 = the screen-constant pen; > 0 = a world-mm radius; < 0 = exactly that many screen pixels, which is what the F10 control dots use so they hold their size at every zoom.
     pub color: [f32; 4],
     pub instance_id: u32,
-    /// Up to SIX incident face normals as oct16 pairs, widest edge's two first;
-    /// `FACING_UNKNOWN` = no adjacency / no more.
-    pub facing: u32,
+    pub facing: u32, // Up to SIX incident face normals as oct16 pairs, widest edge's two first; `FACING_UNKNOWN` = no adjacency / no more.
     pub facing_ext: [u32; 2],
 }
 
@@ -166,6 +158,7 @@ impl GlyphLane {
         if self.spheres.buf.append(ctx, &up.spheres) {
             self.spheres.rebind(ctx, l);
         }
+
         if self.dots.buf.append(ctx, &up.dots) {
             self.dots.rebind(ctx, l);
         }
@@ -206,6 +199,7 @@ impl GlyphLane {
         if self.spheres.buf.is_empty() {
             return 0;
         }
+
         pass.set_pipeline(pipeline);
         b.set(pass);
         pass.set_bind_group(3, &self.spheres.group, &[]);
@@ -224,6 +218,7 @@ impl GlyphLane {
         if self.dots.buf.is_empty() {
             return 0;
         }
+
         pass.set_pipeline(pipeline);
         b.set(pass);
         pass.set_bind_group(3, &self.dots.group, &[]);
@@ -329,6 +324,7 @@ mod tests {
             "facing",
             "facing_ext",
         ];
+
         for (name, src) in SHADERS {
             assert_eq!(
                 wgsl_fields(src, "GlyphPoint"),
@@ -336,6 +332,7 @@ mod tests {
                 "{name}: GlyphPoint fields"
             );
         }
+
         assert_eq!(std::mem::size_of::<GlyphPoint>(), 48);
         assert_eq!(std::mem::offset_of!(GlyphPoint, facing_ext), 40);
     }

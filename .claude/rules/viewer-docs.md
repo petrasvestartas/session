@@ -25,11 +25,19 @@ paths:
   EVERY step (CARGO_INCREMENTAL=0 - 195 distinct states otherwise fill the disk) into
   `step-checks.json`, and `step_status.py` renders it between the `step-status` markers.
   `step_status.py --check` fails when a lesson is stale; re-run both after editing steps.
-- Changing viewer source that the final checkpoint covers: reconstruct it
-  (`replay.py --output <new> --through 18`), then `docs/reconstruction/refreeze.py --workspace <new>`
-  folds the production diff into patch 18, series/baseline hashes and the tree hash; add a
-  directive in lesson 18 for taught files; then audit + compile points + `docs/serve.sh build`
-  + `docs/check_site.py` + `converge.py --workspace <fresh replay> --production .`.
+- The series is git history: `series_git.py materialize` builds it (one commit per step, tags
+  `step/NN`), `extensions_git.py append` adds the integrated chain as steps 22.. and each other
+  extension lesson as `alt/<id>` off step 21. Changing viewer source: run
+  `house_format.py` on it, `fold.py --production` folds the diff into the steps that own the
+  lines, `check_steps.py` proves every step compiles, then `series_git.py regenerate --ref <branch>
+  --production <worktree at step 21>`, `extensions_git.py regenerate`, `retile.py`, audit,
+  `compile_points.py`, `extensions.py --verify` + `--write`, `docs/serve.sh build`, `check_site.py`.
+- The kernel is never taught. `kernel-base.json` pins session_rust and the parity sources at the
+  maintained HEADs (`pin_kernel.py` re-pins; `rebase_series.py` puts every step's viewer on the
+  new base); a lesson that explains kernel code uses `<!-- listing: NN session_rust/... -->`, never
+  a `file` directive. `port_math.py` + `reformat_series.py series --port` is the pattern for a
+  viewer-wide API move: a deterministic rewrite applied to every step tree, with production as
+  its fixed point, instead of amending and rebasing 36 commits.
 - The viewer page carries a black folded-corner link to `docs/`; Trunk copies `target/docs/site`
   into `dist/docs` and `docs/build_site.sh` (pre-build hook) rebuilds the site when stale.
 - Mermaid: `flowchart TB` for chains longer than five nodes (LR gets shrunk to unreadable size);

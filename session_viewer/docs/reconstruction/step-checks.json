@@ -39,9 +39,6 @@
   },
   "02": {
     "order": [
-      "Step 1 \u00b7 Matrix helpers",
-      "Step 2 \u00b7 A box that can be empty",
-      "Step 3 \u00b7 Recover camera facts from the matrix",
       "Step 4 \u00b7 Camera state",
       "Step 5 \u00b7 Construction and gestures",
       "Step 6 \u00b7 Projection swap that keeps the content",
@@ -51,10 +48,7 @@
       "Step 10 \u00b7 Wire the shell"
     ],
     "results": {
-      "Step 1 \u00b7 Matrix helpers": "ok",
       "Step 10 \u00b7 Wire the shell": "ok",
-      "Step 2 \u00b7 A box that can be empty": "ok",
-      "Step 3 \u00b7 Recover camera facts from the matrix": "ok",
       "Step 4 \u00b7 Camera state": "ok",
       "Step 5 \u00b7 Construction and gestures": "ok",
       "Step 6 \u00b7 Projection swap that keeps the content": "ok",
@@ -183,10 +177,9 @@
   },
   "06": {
     "order": [
-      "Step 1 \u00b7 Kernel: one-sided normals at a C0 knot",
       "Step 2 \u00b7 Row encodings",
       "Step 3 \u00b7 What a producer reports",
-      "Step 4 \u00b7 Per-file sweeps and thickness",
+      "Step 4 \u00b7 Per-file sweeps",
       "Step 5 \u00b7 Fused mesh topology",
       "Step 6 \u00b7 Ink: pipes for edges, spheres for vertices",
       "Step 7 \u00b7 One mesh into the tables",
@@ -198,14 +191,13 @@
       "Step 13 \u00b7 Flat preview shading"
     ],
     "results": {
-      "Step 1 \u00b7 Kernel: one-sided normals at a C0 knot": "ok",
       "Step 10 \u00b7 Launch-time knobs": "ok",
       "Step 11 \u00b7 Wire the producers": "ok",
       "Step 12 \u00b7 The fixture becomes a source scene": "ok",
       "Step 13 \u00b7 Flat preview shading": "ok",
       "Step 2 \u00b7 Row encodings": "ok",
       "Step 3 \u00b7 What a producer reports": "ok",
-      "Step 4 \u00b7 Per-file sweeps and thickness": "ok",
+      "Step 4 \u00b7 Per-file sweeps": "ok",
       "Step 5 \u00b7 Fused mesh topology": "ok",
       "Step 6 \u00b7 Ink: pipes for edges, spheres for vertices": "ok",
       "Step 7 \u00b7 One mesh into the tables": "ok",
@@ -215,22 +207,12 @@
   },
   "07": {
     "order": [
-      "Step 1 \u00b7 Kernel: the trim-loop contract",
-      "Step 2 \u00b7 Kernel: one triangulation body",
-      "Step 3 \u00b7 Kernel: constrain boundaries and C0 knot lines",
-      "Step 4 \u00b7 Kernel: lift to the given points, tag, split creases",
-      "Step 5 \u00b7 Kernel: BRep phases",
       "Step 6 \u00b7 Viewer: chains from the face meshes",
       "Step 7 \u00b7 Viewer: outward orientation from the tessellation",
       "Step 8 \u00b7 Viewer: ink the solid's edges",
       "Step 9 \u00b7 Fixture and status"
     ],
     "results": {
-      "Step 1 \u00b7 Kernel: the trim-loop contract": "fail",
-      "Step 2 \u00b7 Kernel: one triangulation body": "ok",
-      "Step 3 \u00b7 Kernel: constrain boundaries and C0 knot lines": "fail",
-      "Step 4 \u00b7 Kernel: lift to the given points, tag, split creases": "ok",
-      "Step 5 \u00b7 Kernel: BRep phases": "ok",
       "Step 6 \u00b7 Viewer: chains from the face meshes": "ok",
       "Step 7 \u00b7 Viewer: outward orientation from the tessellation": "ok",
       "Step 8 \u00b7 Viewer: ink the solid's edges": "ok",
@@ -495,8 +477,6 @@
   },
   "19": {
     "order": [
-      "Step 1 \u00b7 A message that can be sliced",
-      "Step 2 \u00b7 The kernel tolerates the field",
       "Step 3 \u00b7 The publisher",
       "Step 4 \u00b7 Locate every array",
       "Step 5 \u00b7 Prefix, then slices",
@@ -506,8 +486,6 @@
       "Step 9 \u00b7 Selection and the status line"
     ],
     "results": {
-      "Step 1 \u00b7 A message that can be sliced": "ok",
-      "Step 2 \u00b7 The kernel tolerates the field": "ok",
       "Step 3 \u00b7 The publisher": "ok",
       "Step 4 \u00b7 Locate every array": "fail",
       "Step 5 \u00b7 Prefix, then slices": "fail",
@@ -518,22 +496,8 @@
     }
   },
   "20": {
-    "order": [
-      "Step 1 \u00b7 The tombstone",
-      "Step 2 \u00b7 Undo replays in reverse",
-      "Step 3 \u00b7 One place to add",
-      "Step 4 \u00b7 The tree gives the node back, the graph its edges",
-      "Step 5 \u00b7 Identity survives a swap",
-      "Part C \u00b7 Three kernels, one behaviour"
-    ],
-    "results": {
-      "Part C \u00b7 Three kernels, one behaviour": "ok",
-      "Step 1 \u00b7 The tombstone": "ok",
-      "Step 2 \u00b7 Undo replays in reverse": "fail",
-      "Step 3 \u00b7 One place to add": "fail",
-      "Step 4 \u00b7 The tree gives the node back, the graph its edges": "fail",
-      "Step 5 \u00b7 Identity survives a swap": "fail"
-    }
+    "order": [],
+    "results": {}
   },
   "21": {
     "order": [

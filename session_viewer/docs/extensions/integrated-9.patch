@@ -1,8 +1,8 @@
 diff --git a/src/app/command.rs b/src/app/command.rs
 --- a/src/app/command.rs
 +++ b/src/app/command.rs
-@@ -26,6 +26,31 @@
-     Escape,
+@@ -23,6 +23,31 @@ pub enum Command {
+     Escape, // Clear the selection.
  }
  
 +/// Contextual syntax shown while typing, including immediately usable examples.
@@ -36,13 +36,14 @@ diff --git a/src/app/command.rs b/src/app/command.rs
 diff --git a/src/app/deform.rs b/src/app/deform.rs
 --- a/src/app/deform.rs
 +++ b/src/app/deform.rs
-@@ -235,28 +235,34 @@
-                     vertex.point = vertex.point.transformed(delta);
+@@ -255,31 +255,38 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                  }
              }
+ 
 -            for curve in &mut next.m_curves_3d {
 +            let mut changed_curves = HashSet::new();
 +            let mut changed_surfaces = HashSet::new();
++
 +            for (curve_index, curve) in next.m_curves_3d.iter_mut().enumerate() {
                  for i in 0..curve.cv_count() {
                      if let Some(p) = curve.get_cv(i)
@@ -53,6 +54,7 @@ diff --git a/src/app/deform.rs b/src/app/deform.rs
                      }
                  }
              }
+ 
 -            for surface in &mut next.m_surfaces {
 +            for (surface_index, surface) in next.m_surfaces.iter_mut().enumerate() {
                  for u in 0..surface.m_cv_count[0] {
@@ -65,18 +67,19 @@ diff --git a/src/app/deform.rs b/src/app/deform.rs
                          }
                      }
                  }
+ 
 -                surface.m_mesh = None;
--            }
--            validate_boundaries(&next)?;
 +                if changed_surfaces.contains(&surface_index) {
 +                    surface.m_mesh = None;
 +                }
-+            }
+             }
+ 
+-            validate_boundaries(&next)?;
 +            validate_boundaries(&next, &changed_curves, &changed_surfaces)?;
              Geometry::BRep(Rc::new(next))
          }
          Geometry::Element(source) => {
-@@ -289,12 +295,22 @@
+@@ -314,13 +321,23 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
  
  /// Keep the topological edge curve on every incident surface. Unsupported trim changes refuse
  /// atomically instead of leaving a solid whose render mesh disagrees with its source geometry.
@@ -89,6 +92,7 @@ diff --git a/src/app/deform.rs b/src/app/deform.rs
      if !brep.is_valid() {
          return Err("Edit would invalidate BRep topology".into());
      }
+ 
      for edge in &brep.m_edges {
 -        if edge.degenerated {
 +        if edge.degenerated
@@ -100,39 +104,39 @@ diff --git a/src/app/deform.rs b/src/app/deform.rs
 +        {
              continue;
          }
-         let curve = &brep.m_curves_3d[edge.curve_3d_index as usize];
-@@ -431,6 +447,11 @@
+ 
+@@ -476,6 +493,11 @@ mod tests {
          };
          assert!(next.is_valid());
          assert!(next.is_closed(0));
 -        validate_boundaries(&next).unwrap();
--    }
--}
 +        validate_boundaries(
 +            &next,
 +            &(0..next.m_curves_3d.len()).collect(),
 +            &(0..next.m_surfaces.len()).collect(),
 +        )
 +        .unwrap();
-+    }
-+}
+     }
+ }
 diff --git a/src/app/edit.rs b/src/app/edit.rs
 --- a/src/app/edit.rs
 +++ b/src/app/edit.rs
-@@ -469,6 +469,9 @@
-             return Err("Source edits require complete documents without streamed sources".into());
+@@ -469,6 +469,11 @@ impl Scene {
          }
+ 
          let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
++
 +        if self.patch_preview(row, &geometry, gpu) {
 +            return Ok(());
 +        }
++
          let original = Rc::make_mut(&mut self.docs[doc].session)
              .lookup
              .insert(guid.to_string(), geometry)
 diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 --- a/src/app/feedback.rs
 +++ b/src/app/feedback.rs
-@@ -69,12 +69,16 @@
+@@ -73,12 +73,16 @@ pub fn focus_canvas() {}
  pub fn command_line(_open: bool) {}
  
  /// One row of the layers panel, as the panel needs it.
@@ -161,14 +165,15 @@ diff --git a/src/app/hierarchy.rs b/src/app/hierarchy.rs
  use std::collections::BTreeMap;
  use std::collections::HashMap;
  use std::collections::HashSet;
-@@ -54,12 +56,10 @@
-                     .insert(identity.1, row);
+@@ -61,13 +63,11 @@ impl Hierarchy {
              }
          }
+ 
 -        for (doc, file) in scene.docs.iter().enumerate() {
 +        for doc in 0..scene.docs.len() {
              let start = self.nodes.len();
              let rows = self.rows.len();
+ 
 -            if !self.tree(scene, doc, &lookup)
 -                || !self.graph(&file.session, doc, &file.name, &lookup)
 -            {
@@ -176,12 +181,13 @@ diff --git a/src/app/hierarchy.rs b/src/app/hierarchy.rs
                  self.nodes.truncate(start);
                  self.rows.truncate(rows);
                  self.truncated = true;
-@@ -76,9 +76,17 @@
-             return false;
+@@ -87,10 +87,18 @@ impl Hierarchy {
          }
+ 
          let mut seen = HashSet::new();
 +        let mut seen_rows = HashSet::new();
          let mut stack = Vec::new();
+ 
          if let Some(root) = file.session.tree.root() {
 -            stack.push((root, 1, None));
 +            if root.borrow().name == file.name {
@@ -193,23 +199,23 @@ diff --git a/src/app/hierarchy.rs b/src/app/hierarchy.rs
 +                stack.push((root, 1, None));
 +            }
          }
+ 
          for _ in 0..MAX_NODES * 2 {
-             let Some((node, depth, exit)) = stack.pop() else {
-@@ -98,7 +106,9 @@
-             if !self.push(label, depth) {
+@@ -116,7 +124,9 @@ impl Hierarchy {
                  return false;
              }
+ 
 -            if let Some(row) = row {
 +            if let Some(row) = row
 +                && seen_rows.insert(row)
 +            {
                  self.rows.push(row);
              }
-             stack.push((Rc::clone(&node), depth, Some(index)));
-@@ -113,20 +123,25 @@
-         if !stack.is_empty() {
+ 
+@@ -136,14 +146,20 @@ impl Hierarchy {
              return false;
          }
+ 
 -        if self.rows.len() == self.nodes[start].rows.start {
 -            for row in 0..scene.object_count() as u32 {
 -                if scene
@@ -224,14 +230,17 @@ diff --git a/src/app/hierarchy.rs b/src/app/hierarchy.rs
 +                && seen_rows.insert(row)
 +            {
 +                let index = self.nodes.len();
++
 +                if !self.push(scene.object_name(row), 1) {
 +                    return false;
                  }
++
 +                self.rows.push(row);
 +                self.finish(index);
              }
          }
-         self.finish(start);
+ 
+@@ -151,6 +167,7 @@ impl Hierarchy {
          self.rows.len() <= MAX_ROWS
      }
  
@@ -239,7 +248,7 @@ diff --git a/src/app/hierarchy.rs b/src/app/hierarchy.rs
      fn graph(&mut self, session: &Session, doc: usize, name: &str, lookup: &Lookup) -> bool {
          let vertices = session.graph.number_of_vertices();
          let edges: usize = session.graph.edges.values().map(|edges| edges.len()).sum();
-@@ -231,6 +246,7 @@
+@@ -269,6 +286,7 @@ mod tests {
      use super::*;
      use crate::app::scene::FileDoc;
      use session_rust::Point;
@@ -247,21 +256,23 @@ diff --git a/src/app/hierarchy.rs b/src/app/hierarchy.rs
      use session_rust::Session;
      use session_rust::Xform;
  
-@@ -280,6 +296,13 @@
+@@ -320,6 +338,15 @@ mod tests {
              .unwrap();
          assert_eq!(index.targets(parent), vec![0, 1]);
          assert_eq!(index.targets(child), vec![0]);
 +        let tree_count = index.rows.len();
 +        let mut lookup = Lookup::new();
++
 +        for row in 0..scene.object_count() as u32 {
 +            let (doc, id) = scene.identity_of(row).unwrap();
 +            lookup.entry(doc).or_default().insert(id, row);
 +        }
++
 +        assert!(index.graph(&shared, 0, "first", &lookup));
          let edge = index
              .nodes
              .iter()
-@@ -287,9 +310,8 @@
+@@ -327,9 +354,8 @@ mod tests {
              .unwrap();
          assert_eq!(index.targets(edge), vec![0, 1]);
          assert!(!index.visible().contains(&child));
@@ -275,7 +286,7 @@ diff --git a/src/app/hierarchy.rs b/src/app/hierarchy.rs
 diff --git a/src/app/inspection.rs b/src/app/inspection.rs
 --- a/src/app/inspection.rs
 +++ b/src/app/inspection.rs
-@@ -31,7 +31,7 @@
+@@ -31,7 +31,7 @@ pub fn publish(state: &State) {
          None => None,
      };
      let identity = selected_identity(state);
@@ -284,7 +295,7 @@ diff --git a/src/app/inspection.rs b/src/app/inspection.rs
          "submitted_at_ms": crate::engine::performance::now_ms(),
          "frames": state.gpu.performance.frames,
          "draw_calls": state.gpu.performance.draws,
-@@ -74,6 +74,10 @@
+@@ -74,6 +74,10 @@ pub fn publish(state: &State) {
          "text_labels": text_labels(state),
          "wasm_capacity_bytes": crate::engine::performance::heap_mb() * 1_048_576.0,
      });
@@ -298,7 +309,7 @@ diff --git a/src/app/inspection.rs b/src/app/inspection.rs
 diff --git a/src/app/mod.rs b/src/app/mod.rs
 --- a/src/app/mod.rs
 +++ b/src/app/mod.rs
-@@ -42,3 +42,5 @@
+@@ -38,3 +38,5 @@ pub mod inspection;
  
  #[cfg(target_arch = "wasm32")]
  pub mod ui;
@@ -307,7 +318,7 @@ diff --git a/src/app/mod.rs b/src/app/mod.rs
 diff --git a/src/app/scene.rs b/src/app/scene.rs
 --- a/src/app/scene.rs
 +++ b/src/app/scene.rs
-@@ -127,6 +127,8 @@
+@@ -114,6 +114,8 @@ pub struct Scene {
      pub streamed: Vec<StreamedCloud>,
      pub sheets: Vec<SheetBatch>,
      pub hidden: HashSet<(usize, Rc<str>)>,
@@ -316,17 +327,17 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
      pub selected: Option<u32>,
      order: Vec<Rc<str>>,
      owners: Vec<usize>,
-@@ -135,6 +137,9 @@
+@@ -121,6 +123,9 @@ pub struct Scene {
      ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,
      guid_to_row: HashMap<(usize, Rc<str>), u32>,
      bases: Bases,
 +    uploaded: crate::engine::gpu::patch::Counts,
 +    surface_previews: Vec<Option<crate::app::surface_preview::SurfacePreview>>,
 +    pub(super) preview_spans: Vec<Option<crate::engine::gpu::patch::Span>>,
-     /// Which document the last edit touched. Undo is per document, because the history is the
-     /// document's; this is the only thing that says which one a bare Ctrl+Z means.
-     pub last_edited: Option<usize>,
-@@ -150,6 +155,12 @@
+     pub last_edited: Option<usize>, // Which document the last edit touched. Undo is per document, because the history is the document's; this is the only thing that says which one a bare Ctrl+Z means.
+     pub(crate) created_doc: Option<usize>,
+     pub(crate) row_revision: u64,
+@@ -134,6 +139,12 @@ impl Default for Scene {
  }
  
  impl Scene {
@@ -339,7 +350,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
      /// Empty: no documents, no rows.
      pub fn new() -> Self {
          Self {
-@@ -159,6 +170,8 @@
+@@ -143,6 +154,8 @@ impl Scene {
              streamed: Vec::new(),
              sheets: Vec::new(),
              hidden: HashSet::new(),
@@ -348,7 +359,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
              selected: None,
              order: Vec::new(),
              owners: Vec::new(),
-@@ -166,6 +179,9 @@
+@@ -150,6 +163,9 @@ impl Scene {
              ribbon_ranges: Vec::new(),
              guid_to_row: HashMap::new(),
              bases: Bases::default(),
@@ -358,7 +369,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
              last_edited: None,
              created_doc: None,
              row_revision: 0,
-@@ -180,6 +196,8 @@
+@@ -164,6 +180,8 @@ impl Scene {
          self.docs.clear();
          self.texts.clear();
          self.hidden.clear();
@@ -367,7 +378,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
          self.reset_rows();
          gpu.release();
      }
-@@ -197,6 +215,9 @@
+@@ -181,6 +199,9 @@ impl Scene {
          self.guid_to_row.clear();
          self.selected = None;
          self.bases = Bases::default();
@@ -377,7 +388,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
      }
  
      /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch - the
-@@ -238,6 +259,9 @@
+@@ -227,6 +248,9 @@ impl Scene {
          self.bases.vert += self.tables.arena.verts.len() as u32;
          self.bases.obj += self.tables.obj.rows.len() as u32;
          self.bases.ribbon += self.tables.seg.ribbons.len() as u32;
@@ -387,10 +398,11 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
          self.tables.drop_uploaded();
      }
  
-@@ -247,11 +271,24 @@
+@@ -236,11 +260,25 @@ impl Scene {
          self.row_revision = self.row_revision.wrapping_add(1);
          let row = self.bases.obj + self.tables.obj.rows.len() as u32;
          self.tables.obj.rows.push(ObjectRow::new(place, flags));
++
 +        if let Some(color) = self.colors.get(&(owner, Rc::from(guid))) {
 +            let object = self.tables.obj.rows.last_mut().expect("row just appended");
 +            object.color = [
@@ -412,7 +424,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
          row
      }
  
-@@ -297,7 +334,25 @@
+@@ -288,7 +326,25 @@ impl Scene {
                  cloud_px: point_px,
                  row,
              };
@@ -438,7 +450,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
              let o = self.tables.obj.rows.last_mut().unwrap();
              o.flags |= r.flags;
              o.bounds = r.bounds;
-@@ -722,3 +777,69 @@
+@@ -734,3 +790,77 @@ mod tests {
          assert!(!scene.tables.arena.idx.is_empty());
      }
  }
@@ -448,15 +460,18 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
 +    /// Topology/count changes use the normal rebuild path without partially writing buffers.
 +    pub(crate) fn patch_preview(&mut self, row: u32, geometry: &Geometry, gpu: &mut Gpu) -> bool {
 +        use crate::engine::gpu::patch::Counts;
++
 +        if matches!(geometry, Geometry::PointCloud(_)) {
 +            return false;
 +        }
++
 +        let Some(span) = self.preview_spans.get(row as usize).copied().flatten() else {
 +            return false;
 +        };
 +        let Some(place) = self.placement_of(row) else {
 +            return false;
 +        };
++
 +        if let Some(preview) = self
 +            .surface_previews
 +            .get(row as usize)
@@ -471,6 +486,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
 +            gpu.grew_bounds(row);
 +            return true;
 +        }
++
 +        let mut up = Upload::default();
 +        let cx = WalkCx {
 +            vert_base: span.start.verts,
@@ -478,20 +494,24 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
 +            row,
 +        };
 +        let result = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
++
 +        if Counts::of(&up) != span.count {
 +            return false;
 +        }
++
 +        gpu.arena.patch(&gpu.ctx, span.start, &up.arena);
 +        gpu.segments.patch(&gpu.ctx, span.start, &up.seg);
 +        gpu.glyphs.patch(&gpu.ctx, span.start, &up.glyph);
 +        gpu.objects
 +            .set_geometry_bounds(&gpu.ctx, row, result.bounds, result.spacing, &place);
++
 +        for (i, pipe) in up.seg.pipes.iter().enumerate() {
 +            self.edge_sources[span.start.pipes as usize + i] = (
 +                pipe.instance_id,
 +                up.seg.pipe_ids.get(i).copied().unwrap_or(u32::MAX),
 +            );
 +        }
++
 +        gpu.grew_bounds(row);
 +        true
 +    }
@@ -511,7 +531,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
 diff --git a/src/app/session_io.rs b/src/app/session_io.rs
 --- a/src/app/session_io.rs
 +++ b/src/app/session_io.rs
-@@ -20,6 +20,10 @@
+@@ -21,6 +21,10 @@ struct Archive {
  struct Metadata {
      documents: Vec<Document>,
      hidden: Vec<(usize, String)>,
@@ -521,8 +541,8 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
 +    colors: Vec<(usize, String, [u8; 3])>,
      texts: Vec<(String, TextLabel, bool)>,
  }
- #[derive(Serialize, Deserialize)]
-@@ -55,6 +59,18 @@
+ 
+@@ -63,6 +67,18 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
          .map(|(doc, id)| (*doc, id.to_string()))
          .collect();
      hidden.sort();
@@ -541,7 +561,7 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
      let metadata = Metadata {
          documents: scene
              .docs
-@@ -66,6 +82,8 @@
+@@ -74,6 +90,8 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
              })
              .collect(),
          hidden,
@@ -550,11 +570,10 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
          texts: scene
              .texts
              .iter()
-@@ -123,6 +141,16 @@
-         .hidden
+@@ -141,6 +159,16 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
          .into_iter()
          .map(|(doc, id)| (doc, Rc::from(id)))
-+        .collect();
+         .collect();
 +    scene.locked = metadata
 +        .locked
 +        .into_iter()
@@ -564,10 +583,11 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
 +        .colors
 +        .into_iter()
 +        .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
-         .collect();
++        .collect();
      Ok(scene)
  }
-@@ -210,11 +238,19 @@
+ 
+@@ -234,11 +262,19 @@ mod tests {
              )
              .unwrap();
          scene.hidden.insert(scene.identity_of(1).unwrap());
@@ -591,12 +611,11 @@ diff --git a/src/app/surface_preview.rs b/src/app/surface_preview.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/app/surface_preview.rs
-@@ -0,0 +1,244 @@
-+//! Reevaluate the existing display samples while dragging; trims and triangles keep their topology.
+@@ -0,0 +1,268 @@
 +use crate::engine::gpu::patch::Span;
 +use crate::engine::gpu::segments::SegRows;
 +use crate::engine::gpu::{CylinderSegment, Upload};
-+use crate::math::Aabb;
++use session_rust::AABB;
 +use session_rust::{Geometry, NurbsSurface, RenderVertex};
 +use std::collections::HashMap;
 +
@@ -617,6 +636,7 @@ new file mode 100644
 +    pipe_normals: Vec<[usize; 2]>,
 +    chains: Vec<std::ops::Range<u32>>,
 +}
++
 +impl SurfacePreview {
 +    pub(crate) fn capture(
 +        up: &Upload,
@@ -631,6 +651,7 @@ new file mode 100644
 +        {
 +            return None;
 +        }
++
 +        let first = local.verts as usize;
 +        let end = first + span.count.verts as usize;
 +        let samples: Vec<_> = up
@@ -640,16 +661,20 @@ new file mode 100644
 +            .filter(|sample| (first..end).contains(&(sample.index as usize)))
 +            .copied()
 +            .collect();
++
 +        if samples.len() != span.count.verts as usize {
 +            return None;
 +        }
++
 +        let mut positions = HashMap::<[u32; 3], Vec<usize>>::new();
++
 +        for (i, vertex) in up.arena.verts[first..end].iter().enumerate() {
 +            positions
 +                .entry(vertex.position.map(f32::to_bits))
 +                .or_default()
 +                .push(i);
 +        }
++
 +        let start_pipe = local.pipes as usize;
 +        let end_pipe = start_pipe + span.count.pipes as usize;
 +        let pipes = up.seg.pipes[start_pipe..end_pipe].to_vec();
@@ -692,29 +717,39 @@ new file mode 100644
 +            chains,
 +        })
 +    }
-+    pub fn evaluate(&self, geometry: &Geometry) -> Option<(Vec<RenderVertex>, SegRows, Aabb)> {
++
++    pub fn evaluate(&self, geometry: &Geometry) -> Option<(Vec<RenderVertex>, SegRows, AABB)> {
 +        let surfaces = surfaces(geometry)?;
 +        let changed: Vec<_> = surfaces
 +            .iter()
 +            .enumerate()
 +            .map(|(i, s)| self.controls.get(i) != Some(&s.m_cv))
 +            .collect();
-+        let mut bounds = Aabb::empty();
++        let mut bounds = AABB::empty();
 +        let mut vertices = Vec::with_capacity(self.samples.len());
++
 +        for (sample, baseline) in self.samples.iter().zip(&self.vertices) {
 +            let surface = surfaces.get(sample.surface as usize)?;
++
 +            if !changed[sample.surface as usize] {
-+                bounds.grow(baseline.position);
++                bounds.union_with_point(
++                    baseline.position[0] as f64,
++                    baseline.position[1] as f64,
++                    baseline.position[2] as f64,
++                );
 +                vertices.push(*baseline);
 +                continue;
 +            }
++
 +            let point = surface.point_at(sample.uv[0], sample.uv[1])?;
 +            let normal = surface.normal_at(sample.uv[0], sample.uv[1]);
 +            let position = point.to_f32();
++
 +            if position.iter().any(|p| !p.is_finite()) {
 +                return None;
 +            }
-+            bounds.grow(position);
++
++            bounds.union_with_point(position[0] as f64, position[1] as f64, position[2] as f64);
 +            vertices.push(RenderVertex {
 +                position,
 +                normal: [
@@ -725,10 +760,12 @@ new file mode 100644
 +                color: baseline.color,
 +            });
 +        }
++
 +        let mut segments = SegRows {
 +            pipe_chains: self.chains.clone(),
 +            ..Default::default()
 +        };
++
 +        for ((pipe, ends), normals) in self
 +            .pipes
 +            .iter()
@@ -743,8 +780,10 @@ new file mode 100644
 +            pipe.facing = super::walk::encode::pack_facing(Some(&a), Some(&b));
 +            segments.pipes.push(pipe);
 +        }
++
 +        Some((vertices, segments, bounds))
 +    }
++
 +    pub fn allocated_bytes(&self) -> usize {
 +        self.samples.capacity() * std::mem::size_of::<Sample>()
 +            + self.vertices.capacity() * std::mem::size_of::<RenderVertex>()
@@ -788,12 +827,14 @@ new file mode 100644
 +            .expect("joined box has parameter provenance");
 +        let (before, _, _) = preview.evaluate(&source).unwrap();
 +        assert_eq!(before.len(), upload.arena.verts.len());
++
 +        for (a, b) in before.iter().zip(&upload.arena.verts) {
 +            assert_eq!(
 +                a.position, b.position,
 +                "initial sample is the drawn source position"
 +            );
 +        }
++
 +        let changed =
 +            deform::transform(&source, Target::Face(0), &Xform::translation(0.0, 0.0, 2.0))
 +                .unwrap();
@@ -814,11 +855,14 @@ new file mode 100644
 +                .zip(&after)
 +                .any(|(a, b)| a.position == b.position)
 +        );
++
 +        for pipe in pipes.pipes {
 +            assert!(after.iter().any(|v| v.position == pipe.p0));
 +            assert!(after.iter().any(|v| v.position == pipe.p1));
 +        }
++
 +        let (cancelled, _, _) = preview.evaluate(&source).unwrap();
++
 +        for (a, b) in before.iter().zip(&cancelled) {
 +            assert_eq!(a.position, b.position);
 +        }
@@ -839,7 +883,7 @@ new file mode 100644
 diff --git a/src/app/ui.rs b/src/app/ui.rs
 --- a/src/app/ui.rs
 +++ b/src/app/ui.rs
-@@ -205,7 +205,7 @@
+@@ -225,7 +225,7 @@ impl Ui {
                  .and_then(|window| window.document())
                  .and_then(|document| document.get_element_by_id("canvas"))
          {
@@ -847,40 +891,37 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +            let snapshot = MODEL.with_borrow(|model| serde_json::json!({"framework": "egui 0.34.3", "controls": self.controls, "command_open": model.command_open, "layers_open": model.layers_open, "command": model.command, "history": model.history, "hint": crate::app::command::hint(&model.command)}));
              let _ = canvas.set_attribute("data-viewer-ui", &snapshot.to_string());
          }
-         if let Some(status) = web_sys::window()
-@@ -279,24 +279,62 @@
+ 
+@@ -304,28 +304,68 @@ fn layers(
              egui::ScrollArea::vertical()
                  .auto_shrink([false, false])
                  .show(ui, |ui| {
 -                    let mut at = 0;
--                    while at < model.rows.len() {
--                        let start = at;
--                        let id = model.rows[at].key.split_once('/').map(|(_, id)| id);
--                        at += 1;
--                        if id.is_some() {
--                            while at < model.rows.len()
--                                && model.rows[at].key.split_once('/').map(|(_, id)| id) == id
 +                    for row in &model.rows {
 +                        ui.horizontal(|ui| {
 +                            if let Some((_, index)) = row.key.split_once('/')
 +                                && row.key.starts_with("select/")
-                             {
--                                at += 1;
--                            }
--                        }
--                        ui.horizontal(|ui| {
--                            let first = &model.rows[start];
--                            let indent = first.label.len() - first.label.trim_start().len();
--                            ui.add_space(indent as f32 * 4.0);
--                            for row in &model.rows[start..at] {
--                                let response = layer_button(ui, row);
++                            {
 +                                ui.spacing_mut().item_spacing.x = 2.;
 +                                ui.add_space(row.depth.min(8) as f32 * 10.);
 +                                let response = layer_icon(ui, "open", row);
 +                                record(controls, &format!("open/{index}"), &row.label, &response);
+ 
+-                    while at < model.rows.len() {
+-                        let start = at;
+-                        let id = model.rows[at].key.split_once('/').map(|(_, id)| id);
+-                        at += 1;
 +                                if response.clicked() && row.expanded.is_some() {
 +                                    *action = Some(format!("open/{index}"));
 +                                }
+ 
+-                        if id.is_some() {
+-                            while at < model.rows.len()
+-                                && model.rows[at].key.split_once('/').map(|(_, id)| id) == id
+-                            {
+-                                at += 1;
+-                            }
+-                        }
 +                                let width = (ui.available_width() - 86.).max(24.);
 +                                let response = ui
 +                                    .add_sized(
@@ -897,9 +938,17 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +                                    &format!("Select {}", row.label),
 +                                    &response,
 +                                );
+ 
+-                        ui.horizontal(|ui| {
+-                            let first = &model.rows[start];
+-                            let indent = first.label.len() - first.label.trim_start().len();
+-                            ui.add_space(indent as f32 * 4.0);
 +                                if response.clicked() {
 +                                    *action = Some(row.key.clone());
 +                                }
+ 
+-                            for row in &model.rows[start..at] {
+-                                let response = layer_button(ui, row);
 +                                for kind in ["hide", "lock"] {
 +                                    let response = layer_icon(ui, kind, row);
 +                                    record(
@@ -918,22 +967,25 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +                                        ),
 +                                        &response,
 +                                    );
++
 +                                    if response.clicked() {
 +                                        *action = Some(format!("{kind}/{index}"));
 +                                    }
 +                                }
++
 +                                layer_color(ui, row, index, controls, action);
 +                            } else {
 +                                let response = ui.button(&row.label);
                                  record(controls, &row.key, &row.label, &response);
+ 
                                  if response.clicked() {
-                                     *action = Some(row.key.clone());
-@@ -308,54 +346,163 @@
+@@ -338,56 +378,172 @@ fn layers(
          });
  }
  
 -fn layer_button(ui: &mut egui::Ui, row: &LayerRow) -> egui::Response {
 -    let label = row.label.trim_start();
+-
 -    if row.key.starts_with("open/") {
 -        let (rect, response) = ui.allocate_exact_size(egui::vec2(20.0, 28.0), egui::Sense::click());
 -        let c = rect.center();
@@ -956,32 +1008,23 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 -            egui::Stroke::NONE,
 -        ));
 -        return response;
--    }
++fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
++    let (rect, response) = ui.allocate_exact_size(egui::vec2(26., 28.), egui::Sense::click());
++    let c = rect.center();
++    let ink = ui.visuals().text_color();
++    let stroke = egui::Stroke::new(1.4_f32, ink);
++
++    if response.hovered() {
++        ui.painter()
++            .rect_filled(rect.shrink(1.), 3., ui.visuals().widgets.hovered.bg_fill);
+     }
+ 
 -    let label: String = label.chars().take(160).collect();
 -    let text = if row.key.starts_with("hide/") {
 -        if row.hidden {
 -            "Show".to_string()
 -        } else {
 -            "Hide".to_string()
--        }
--    } else {
--        format!("{} ({})", label.trim_start_matches("Select "), row.count)
--    };
--    let width = if row.key.starts_with("hide/") {
--        44.0
--    } else {
--        (ui.available_width()
--            - if row.key.starts_with("select/") {
--                52.0
-+fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
-+    let (rect, response) = ui.allocate_exact_size(egui::vec2(26., 28.), egui::Sense::click());
-+    let c = rect.center();
-+    let ink = ui.visuals().text_color();
-+    let stroke = egui::Stroke::new(1.4_f32, ink);
-+    if response.hovered() {
-+        ui.painter()
-+            .rect_filled(rect.shrink(1.), 3., ui.visuals().widgets.hovered.bg_fill);
-+    }
 +    match kind {
 +        "open" => {
 +            if let Some(open) = row.expanded {
@@ -1001,8 +1044,18 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +                ui.painter()
 +                    .add(egui::Shape::convex_polygon(points, ink, egui::Stroke::NONE));
 +            }
++
 +            response.on_hover_text("Expand or collapse")
-+        }
+         }
+-    } else {
+-        format!("{} ({})", label.trim_start_matches("Select "), row.count)
+-    };
+-    let width = if row.key.starts_with("hide/") {
+-        44.0
+-    } else {
+-        (ui.available_width()
+-            - if row.key.starts_with("select/") {
+-                52.0
 +        "hide" => {
 +            let fill = if row.hidden {
 +                egui::Color32::TRANSPARENT
@@ -1012,14 +1065,17 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +            };
 +            ui.painter()
 +                .circle(c + egui::vec2(0., -3.), 5., fill, stroke);
++
 +            for y in [3., 6.] {
 +                ui.painter()
 +                    .line_segment([c + egui::vec2(-3., y), c + egui::vec2(3., y)], stroke);
 +            }
++
 +            if row.hidden {
 +                ui.painter()
 +                    .line_segment([c + egui::vec2(-7., 8.), c + egui::vec2(7., -9.)], stroke);
 +            }
++
 +            response.on_hover_text(if row.hidden {
 +                "Show object and children"
 +            } else {
@@ -1105,6 +1161,7 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +                            let key =
 +                                format!("color/{index}/{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]);
 +                            record(controls, &key, name, &response);
++
 +                            if response.clicked() {
 +                                *action = Some(key);
 +                                ui.close();
@@ -1114,11 +1171,13 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +                }
 +                ui.separator();
 +                let mut changed = false;
++
 +                for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
 +                    changed |= ui
 +                        .add(egui::Slider::new(value, 0..=255).text(channel))
 +                        .changed();
 +                }
++
 +                if changed {
 +                    *action = Some(format!(
 +                        "color/{index}/{:02x}{:02x}{:02x}",
@@ -1138,7 +1197,7 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
  }
  
  fn commands(
-@@ -364,16 +511,16 @@
+@@ -396,16 +552,16 @@ fn commands(
      controls: &mut Option<Vec<Control>>,
      command: &mut Option<String>,
  ) {
@@ -1158,7 +1217,7 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
                  .show(ui, |ui| {
                      for text in &model.history {
                          ui.label(text);
-@@ -383,6 +530,7 @@
+@@ -416,6 +572,7 @@ fn commands(
                      }
                  });
              ui.separator();
@@ -1166,7 +1225,7 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
              ui.horizontal(|ui| {
                  ui.strong("Command:");
                  let width = (ui.available_width() - 100.0).max(40.0);
-@@ -390,7 +538,7 @@
+@@ -423,7 +580,7 @@ fn commands(
                      [width, 28.0],
                      egui::TextEdit::singleline(&mut model.command)
                          .char_limit(2048)
@@ -1174,20 +1233,20 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +                        .hint_text("Point 0,0,0"),
                  );
                  record(controls, "command/input", "Command", &response);
-                 if model.focus_command {
+ 
 diff --git a/src/app/walk/brep.rs b/src/app/walk/brep.rs
 --- a/src/app/walk/brep.rs
 +++ b/src/app/walk/brep.rs
-@@ -92,6 +92,8 @@
-                 triangle.swap(1, 2);
+@@ -97,6 +97,8 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
              }
          }
+ 
 +        let surface_index = b.m_faces[fi].surface_index as usize;
 +        cache_samples(arena, fm, &rm, &b.m_surfaces[surface_index], surface_index);
          push_face(arena, &rm, cx, &mut solid, fi);
      }
-     let mut flags = Instance::FLAG_SMOOTH;
-@@ -443,3 +445,35 @@
+ 
+@@ -490,3 +492,37 @@ mod tests {
          }
      }
  }
@@ -1202,9 +1261,11 @@ diff --git a/src/app/walk/brep.rs b/src/app/walk/brep.rs
 +) {
 +    let mut rows: Vec<_> = mesh.vertex.iter().collect();
 +    rows.sort_unstable_by_key(|&(key, _)| *key);
++
 +    if rows.len() != render.vertices.len() {
 +        return;
 +    }
++
 +    for (offset, ((_, vertex), rendered)) in rows.into_iter().zip(&render.vertices).enumerate() {
 +        let (Some(&u), Some(&v)) = (vertex.attributes.get("u"), vertex.attributes.get("v")) else {
 +            continue;
@@ -1226,7 +1287,7 @@ diff --git a/src/app/walk/brep.rs b/src/app/walk/brep.rs
 diff --git a/src/app/walk/points.rs b/src/app/walk/points.rs
 --- a/src/app/walk/points.rs
 +++ b/src/app/walk/points.rs
-@@ -10,9 +10,11 @@
+@@ -8,9 +8,11 @@ use session_rust::Point;
  /// One SDF dot.
  pub fn walk_point(glyph: &mut GlyphRows, p: &Point, row: u32) -> Row {
      let center = p.to_f32();
@@ -1242,15 +1303,15 @@ diff --git a/src/app/walk/points.rs b/src/app/walk/points.rs
 diff --git a/src/engine/gpu/arena.rs b/src/engine/gpu/arena.rs
 --- a/src/engine/gpu/arena.rs
 +++ b/src/engine/gpu/arena.rs
-@@ -33,6 +33,7 @@
-     /// One upload-local original face address per solid triangle.
-     pub face_ids: Vec<u32>,
+@@ -28,6 +28,7 @@ pub struct ArenaRows {
+     pub idx_text: Vec<u32>,
+     pub face_ids: Vec<u32>, // One upload-local original face address per solid triangle.
      pub face_sources: Vec<super::faces::FaceSource>,
 +    pub surface_samples: Vec<crate::app::surface_preview::Sample>,
  }
  
  impl ArenaRows {
-@@ -45,6 +46,7 @@
+@@ -40,6 +41,7 @@ impl ArenaRows {
          drop_rows(&mut self.idx_text);
          drop_rows(&mut self.face_ids);
          drop_rows(&mut self.face_sources);
@@ -1258,12 +1319,10 @@ diff --git a/src/engine/gpu/arena.rs b/src/engine/gpu/arena.rs
      }
  }
  
-@@ -148,6 +150,22 @@
-         self.text.append(ctx, &up.idx_text);
-         self.source_faces
+@@ -145,6 +147,22 @@ impl ArenaLane {
              .append(ctx, up, [&self.verts.buf, &self.vids.buf, &self.faces.buf]);
-+    }
-+
+     }
+ 
 +    pub(crate) fn patch_vertices(&mut self, ctx: &GpuCtx, first: u32, vertices: &[RenderVertex]) {
 +        self.tiles.invalidate();
 +        self.verts.write_at(ctx, first, vertices);
@@ -1278,26 +1337,29 @@ diff --git a/src/engine/gpu/arena.rs b/src/engine/gpu/arena.rs
 +        self.print.write_at(ctx, at.print, &up.idx_print);
 +        self.text.write_at(ctx, at.text, &up.idx_text);
 +        self.source_faces.patch(ctx, at, up);
-     }
- 
++    }
++
      /// The solid faces, one indexed draw: the physical depth every ink fragment reads.
+     pub fn draw_faces(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+         self.source_faces.draw_physical(pass, b)
 diff --git a/src/engine/gpu/buffers.rs b/src/engine/gpu/buffers.rs
 --- a/src/engine/gpu/buffers.rs
 +++ b/src/engine/gpu/buffers.rs
-@@ -89,6 +89,9 @@
+@@ -90,6 +90,10 @@ impl GrowBuf {
  
      /// Overwrite rows `[at, at + data.len())`, which must already exist.
      pub fn write_at<T: Pod>(&self, ctx: &GpuCtx, at: u32, data: &[T]) {
 +        if data.is_empty() {
 +            return;
 +        }
++
          debug_assert!(at as u64 + data.len() as u64 <= self.cap);
          ctx.queue.write_buffer(
              &self.buf,
 diff --git a/src/engine/gpu/faces.rs b/src/engine/gpu/faces.rs
 --- a/src/engine/gpu/faces.rs
 +++ b/src/engine/gpu/faces.rs
-@@ -134,6 +134,24 @@
+@@ -132,6 +132,24 @@ impl Faces {
          }));
      }
  
@@ -1325,7 +1387,7 @@ diff --git a/src/engine/gpu/faces.rs b/src/engine/gpu/faces.rs
 diff --git a/src/engine/gpu/glyphs.rs b/src/engine/gpu/glyphs.rs
 --- a/src/engine/gpu/glyphs.rs
 +++ b/src/engine/gpu/glyphs.rs
-@@ -100,6 +100,11 @@
+@@ -92,6 +92,11 @@ pub struct GlyphLane {
  }
  
  impl GlyphLane {
@@ -1340,27 +1402,29 @@ diff --git a/src/engine/gpu/glyphs.rs b/src/engine/gpu/glyphs.rs
 diff --git a/src/engine/gpu/instance.rs b/src/engine/gpu/instance.rs
 --- a/src/engine/gpu/instance.rs
 +++ b/src/engine/gpu/instance.rs
-@@ -44,6 +44,8 @@
-     /// One face only (a NURBS surface, a one-face mesh or BRep): x-ray leaves it shaded, since
+@@ -46,6 +46,9 @@ impl Instance {
      /// it has no interior to look into.
      pub const FLAG_SINGLE: u32 = 1 << 7;
+ 
 +    /// Replace authored colors with the layer color.
 +    pub const FLAG_COLOR: u32 = 1 << 8;
- 
++
      /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
      pub fn placeholder() -> Self {
+         Self {
 diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 --- a/src/engine/gpu/mod.rs
 +++ b/src/engine/gpu/mod.rs
-@@ -14,6 +14,7 @@
+@@ -9,6 +9,8 @@ pub mod glyphs;
  pub mod instance;
  pub mod lod;
  pub mod objects;
++
 +pub(crate) mod patch;
  pub mod pick;
  pub mod present;
  pub mod render;
-@@ -433,6 +434,11 @@
+@@ -432,6 +434,11 @@ impl Gpu {
          self.splat.invalidate();
      }
  
@@ -1375,7 +1439,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 diff --git a/src/engine/gpu/objects.rs b/src/engine/gpu/objects.rs
 --- a/src/engine/gpu/objects.rs
 +++ b/src/engine/gpu/objects.rs
-@@ -566,6 +566,34 @@
+@@ -568,6 +568,34 @@ impl InstanceTable {
          true
      }
  
@@ -1384,9 +1448,9 @@ diff --git a/src/engine/gpu/objects.rs b/src/engine/gpu/objects.rs
 +        &mut self,
 +        ctx: &GpuCtx,
 +        row: u32,
-+        bounds: Aabb,
++        bounds: AABB,
 +        spacing: f32,
-+        place: &Mat4,
++        place: &Xform,
 +    ) {
 +        self.local_bounds[row as usize] = bounds;
 +        self.rows[row as usize].spacing = spacing;
@@ -1414,9 +1478,9 @@ diff --git a/src/engine/gpu/patch.rs b/src/engine/gpu/patch.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/engine/gpu/patch.rs
-@@ -0,0 +1,60 @@
-+//! Sizes and offsets for replacing one object without rewalking unrelated documents.
+@@ -0,0 +1,64 @@
 +use super::Upload;
++
 +#[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 +pub(crate) struct Counts {
 +    pub verts: u32,
@@ -1429,6 +1493,7 @@ new file mode 100644
 +    pub spheres: u32,
 +    pub dots: u32,
 +}
++
 +impl Counts {
 +    pub fn of(up: &Upload) -> Self {
 +        Self {
@@ -1443,6 +1508,7 @@ new file mode 100644
 +            dots: up.glyph.dots.len() as u32,
 +        }
 +    }
++
 +    pub fn plus(self, other: Self) -> Self {
 +        Self {
 +            verts: self.verts + other.verts,
@@ -1456,6 +1522,7 @@ new file mode 100644
 +            dots: self.dots + other.dots,
 +        }
 +    }
++
 +    pub fn minus(self, other: Self) -> Self {
 +        Self {
 +            verts: self.verts - other.verts,
@@ -1470,6 +1537,7 @@ new file mode 100644
 +        }
 +    }
 +}
++
 +#[derive(Clone, Copy)]
 +pub(crate) struct Span {
 +    pub start: Counts,
@@ -1478,12 +1546,10 @@ new file mode 100644
 diff --git a/src/engine/gpu/segments.rs b/src/engine/gpu/segments.rs
 --- a/src/engine/gpu/segments.rs
 +++ b/src/engine/gpu/segments.rs
-@@ -325,6 +325,24 @@
-             };
-             push_chunk(&mut self.sheets, d.instance, chunk, ids);
+@@ -325,6 +325,24 @@ impl SegmentLane {
          }
-+    }
-+
+     }
+ 
 +    pub(crate) fn patch_pipes(&mut self, ctx: &GpuCtx, first: u32, up: &SegRows) {
 +        let pipes = joined_rows(&up.pipes, &up.pipe_chains, first);
 +        self.pipes.buf.write_at(ctx, first, &pipes);
@@ -1500,37 +1566,39 @@ diff --git a/src/engine/gpu/segments.rs b/src/engine/gpu/segments.rs
 +        let mut ids = up.ribbon_ids.clone();
 +        ids.resize(up.ribbons.len(), u32::MAX);
 +        self.ribbons.ids.write_at(ctx, at.ribbons, &ids);
-     }
- 
++    }
++
      /// Which sheet a global ribbon row belongs to: (object row, segment index within it).
+     pub fn row_of(&self, row: u32) -> Option<(u32, u32)> {
+         let (index, local) = sheet_of(&self.sheets, row)?;
 diff --git a/src/shaders/glyph.wgsl b/src/shaders/glyph.wgsl
 --- a/src/shaders/glyph.wgsl
 +++ b/src/shaders/glyph.wgsl
-@@ -74,7 +74,7 @@
+@@ -79,7 +79,7 @@ fn glyph_vertex(vid: u32) -> VsOut {
  
      var o: VsOut;
      o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
 -    var color = g.color * inst.color;
 +    var color = object_color(g.color, inst);
+ 
      if ((inst.flags & FLAG_SELECTED) != 0u) {
          color = vec4<f32>(SELECT_COLOR, color.a);
-     }
 diff --git a/src/shaders/ribbon.wgsl b/src/shaders/ribbon.wgsl
 --- a/src/shaders/ribbon.wgsl
 +++ b/src/shaders/ribbon.wgsl
-@@ -233,7 +233,7 @@
+@@ -279,7 +279,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
      var o: VsOut;
      let ndc = (p / vp - 0.5) * 2.0;
      o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
 -    var color = unpack4x8unorm(seg.color) * inst.color;
 +    var color = object_color(unpack4x8unorm(seg.color), inst);
+ 
      if (selected) {
          color = vec4<f32>(SELECT_COLOR, color.a);
-     }
 diff --git a/src/shaders/scene.wgsl b/src/shaders/scene.wgsl
 --- a/src/shaders/scene.wgsl
 +++ b/src/shaders/scene.wgsl
-@@ -44,6 +44,11 @@
+@@ -41,6 +41,11 @@ const FLAG_OPEN: u32 = 16u;
  const FLAG_SHEET: u32 = 32u;
  const FLAG_SMOOTH: u32 = 64u;
  const FLAG_SINGLE: u32 = 128u;
@@ -1541,85 +1609,92 @@ diff --git a/src/shaders/scene.wgsl b/src/shaders/scene.wgsl
 +}
  
  const FACING_UNKNOWN: u32 = 0xffffffffu;
- // The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
+ 
 diff --git a/src/shaders/sphere.wgsl b/src/shaders/sphere.wgsl
 --- a/src/shaders/sphere.wgsl
 +++ b/src/shaders/sphere.wgsl
-@@ -111,7 +111,7 @@
+@@ -125,7 +125,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
  
      var o: VsOut;
      o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
 -    var color = g.color * inst.color;
 +    var color = object_color(g.color, inst);
+ 
      if ((inst.flags & FLAG_SELECTED) != 0u) {
          color = vec4<f32>(SELECT_COLOR, color.a);
-     }
 diff --git a/src/shaders/splat.wgsl b/src/shaders/splat.wgsl
 --- a/src/shaders/splat.wgsl
 +++ b/src/shaders/splat.wgsl
-@@ -98,6 +98,7 @@
+@@ -106,6 +106,11 @@ fn project(gid: u32) -> Splat {
  
      let tint = vec4<f32>(rec_f(base, 16u), rec_f(base, 17u), rec_f(base, 18u), 1.0);
      var rgba = unpack4x8unorm(colors[i]) * tint;
-+    if ((table[base + 38u] & 256u) != 0u) { rgba = vec4<f32>(tint.rgb, rgba.a); }
++
++    if ((table[base + 38u] & 256u) != 0u) {
++        rgba = vec4<f32>(tint.rgb, rgba.a);
++    }
++
      let nrm_first = table[base + 36u];
+ 
      if (nrm_first != NO_NORMALS) {
-         let packed_n = normals[nrm_first + offset];
 diff --git a/src/shaders/triangle.wgsl b/src/shaders/triangle.wgsl
 --- a/src/shaders/triangle.wgsl
 +++ b/src/shaders/triangle.wgsl
-@@ -46,7 +46,7 @@
+@@ -46,7 +46,7 @@ fn transform_vertex(in: VsIn) -> VsOut {
      let clip = mvp * vec4<f32>(world, 1.0);
      var o: VsOut;
      o.pos = clip;
 -    var color = in.color.rgb * inst.color.rgb;
 +    var color = object_color(vec4<f32>(in.color.rgb, 1.0), inst).rgb;
+ 
      if ((inst.flags & FLAG_SELECTED) != 0u) {
          color = SELECT_COLOR;
-     }
 diff --git a/src/state.rs b/src/state.rs
 --- a/src/state.rs
 +++ b/src/state.rs
-@@ -291,6 +291,7 @@
+@@ -274,6 +274,7 @@ impl State {
  
      /// Make `row` the selection (or none), moving the highlight.
      pub fn select(&mut self, row: Option<u32>) {
 +        let row = row.filter(|row| self.scene.selectable(*row));
          self.cancel_gesture();
+ 
          for old in self.hierarchy.selected.drain(..) {
-             self.gpu.set_selected(old, false);
-@@ -361,6 +362,7 @@
+@@ -353,6 +354,8 @@ impl State {
  
      /// A pick came back: log what it hit and select it (clicking the selection clears it).
      fn apply_pick(&mut self, pick: Option<Pick>) {
 +        let pick = pick.filter(|pick| self.scene.selectable(pick.row));
++
          #[cfg(target_arch = "wasm32")]
          if self.cloud_query_awaiting_gpu() {
              self.apply_cloud_query_pick(pick);
 diff --git a/src/state/edit.rs b/src/state/edit.rs
 --- a/src/state/edit.rs
 +++ b/src/state/edit.rs
-@@ -169,10 +169,6 @@
+@@ -160,12 +160,6 @@ impl State {
          let Some(active) = self.dragging.take() else {
              return false;
          };
+-
 -        if active.target.is_some() {
 -            self.scene.rebuild(&mut self.gpu);
 -            self.restore_edit_selection(active.row);
 -        }
+-
          self.gpu
              .objects
              .set_placement(&self.gpu.ctx, active.row, &active.base_place);
-@@ -196,7 +192,7 @@
-                 &Xform::from_matrix(delta),
-                 "transform subobject",
-             );
+@@ -187,7 +181,7 @@ impl State {
+             let result =
+                 self.scene
+                     .edit_subobject(active.row, target, &delta, "transform subobject");
 -            self.scene.rebuild(&mut self.gpu);
 +            self.restore_source_render(active.row);
              self.restore_edit_selection(active.row);
+ 
              if let Err(error) = result {
-                 self.status(&error);
-@@ -240,7 +236,7 @@
+@@ -235,7 +229,7 @@ impl State {
      pub fn cancel_gesture(&mut self) {
          if let Some(active) = self.dragging.take() {
              if active.target.is_some() {
@@ -1627,8 +1702,8 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 +                self.restore_source_render(active.row);
                  self.restore_edit_selection(active.row);
              }
-             self.gpu
-@@ -445,9 +441,31 @@
+ 
+@@ -459,9 +453,33 @@ impl State {
                  Ok("Choose a .session file".into())
              }
              Command::Model(command) => {
@@ -1640,6 +1715,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
                  self.scene.model(&command)?;
                  self.after_history();
 -                Ok("geometry updated".into())
++
 +                if created {
 +                    if let Some(doc) = self.scene.created_doc {
 +                        let row = (0..self.gpu.objects.len())
@@ -1647,6 +1723,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 +                            .find(|&row| self.scene.identity_of(row).is_some_and(|id| id.0 == doc));
 +                        self.select(row);
 +                    }
++
 +                    let name = match command {
 +                        Modeling::Point(_) => "point",
 +                        Modeling::Line(..) => "line",
@@ -1661,9 +1738,9 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
              }
              Command::Move(d) => self.apply(Xform::translation(d[0], d[1], d[2]), "move"),
              Command::Rotate { axis, degrees } => {
-@@ -577,15 +595,7 @@
-             return;
+@@ -600,15 +618,7 @@ impl State {
          }
+ 
          self.hierarchy.refresh(&self.scene);
 -        let mut rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
 -            .into_iter()
@@ -1678,7 +1755,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
          self.hierarchy_labels(&mut rows);
          crate::app::feedback::layers_panel(&rows);
      }
-@@ -887,3 +897,13 @@
+@@ -930,3 +940,14 @@ impl State {
          self.touch();
      }
  }
@@ -1686,6 +1763,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 +impl State {
 +    fn restore_source_render(&mut self, row: u32) {
 +        let geometry = self.scene.geometry(row).cloned();
++
 +        if !geometry.is_some_and(|geometry| self.scene.patch_preview(row, &geometry, &mut self.gpu))
 +        {
 +            self.scene.rebuild(&mut self.gpu);
@@ -1695,33 +1773,37 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 diff --git a/src/state/panel.rs b/src/state/panel.rs
 --- a/src/state/panel.rs
 +++ b/src/state/panel.rs
-@@ -9,6 +9,23 @@
-     pub fn panel_action(&mut self, key: &str) {
-         if let Some(layer) = Layer::from_key(key) {
-             self.toggle_layer(layer);
-+            return;
-+        }
+@@ -12,6 +12,27 @@ impl State {
+             return;
+         }
+ 
 +        if let Some(value) = key.strip_prefix("color/") {
 +            if let Some((index, hex)) = value.split_once('/')
 +                && let (Ok(index), Ok(rgb)) = (index.parse::<usize>(), u32::from_str_radix(hex, 16))
 +                && index < self.hierarchy.nodes.len()
 +            {
 +                let color = [(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8];
++
 +                for row in self.hierarchy.targets(index) {
 +                    if let Some(id) = self.scene.identity_of(row) {
 +                        self.scene.colors.insert(id, color);
 +                        self.gpu.set_object_color(row, color);
 +                    }
 +                }
++
 +                self.refresh_layers();
 +                self.touch();
 +            }
-             return;
-         }
++
++            return;
++        }
++
          let Some((action, index)) = key.split_once('/') else {
-@@ -30,11 +47,9 @@
-                     let rows = self.hierarchy.targets(index);
+             return;
+         };
+@@ -33,11 +54,9 @@ impl State {
                      self.select(None);
+ 
                      for row in rows {
 -                        if self
 -                            .scene
@@ -1734,15 +1816,14 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
                              self.gpu.set_selected(row, true);
                              self.hierarchy.selected.push(row);
                          }
-@@ -42,6 +57,32 @@
-                     if self.hierarchy.selected.len() == 1 {
-                         let row = self.hierarchy.selected[0];
+@@ -48,6 +67,34 @@ impl State {
                          self.select(Some(row));
-+                    }
-+                }
+                     }
+                 }
 +                "lock" => {
 +                    let rows = self.hierarchy.targets(index);
 +                    let lock = rows.iter().any(|row| self.scene.selectable(*row));
++
 +                    if lock
 +                        && (self
 +                            .scene
@@ -1756,6 +1837,7 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
 +                    {
 +                        self.select(None);
 +                    }
++
 +                    for row in rows {
 +                        if let Some(id) = self.scene.identity_of(row) {
 +                            if lock {
@@ -1764,14 +1846,17 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
 +                                self.scene.locked.remove(&id);
 +                            }
 +                        }
-                     }
-                 }
++                    }
++                }
                  "hide" => {
-@@ -111,35 +152,28 @@
+                     let rows = self.hierarchy.targets(index);
+                     let hide = rows.iter().any(|row| {
+@@ -120,37 +167,28 @@ impl State {
                      .identity_of(*row)
                      .is_some_and(|id| self.scene.hidden.contains(&id))
              });
 -            let indent = "  ".repeat(node.depth.min(16));
+-
 -            if node.end > index + 1 {
 -                let mark = if self.hierarchy.open.contains(&index) {
 -                    "▾"
@@ -1785,6 +1870,12 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
 -                    hidden,
 -                });
 -            }
+-
+-            rows.push(LayerRow {
+-                key: format!("select/{index}"),
+-                label: format!("{indent}Select {}", node.label),
+-                count,
+-                hidden,
 +            let targets = &self.hierarchy.rows[node.rows.clone()];
 +            let locked = targets.iter().all(|row| !self.scene.selectable(*row));
 +            let first_color = targets
@@ -1797,31 +1888,26 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
 +                        .identity_of(*row)
 +                        .is_some_and(|id| self.scene.colors.get(&id) == Some(first))
 +                })
-+            });
+             });
              rows.push(LayerRow {
-                 key: format!("select/{index}"),
--                label: format!("{indent}Select {}", node.label),
-+                label: node.label.clone(),
-                 count,
-                 hidden,
--            });
--            rows.push(LayerRow {
 -                key: format!("hide/{index}"),
 -                label: format!(
 -                    "{indent}{} {}",
 -                    if hidden { "Show" } else { "Hide" },
 -                    node.label
 -                ),
--                count,
--                hidden,
++                key: format!("select/{index}"),
++                label: node.label.clone(),
+                 count,
+                 hidden,
 +                locked,
 +                color,
 +                depth: node.depth,
 +                expanded: (node.end > index + 1).then(|| self.hierarchy.open.contains(&index)),
              });
          }
-         for (label, page) in [
-@@ -155,6 +189,7 @@
+ 
+@@ -167,6 +205,7 @@ impl State {
                      label: label.into(),
                      count: visible.len(),
                      hidden: false,
@@ -1829,7 +1915,7 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
                  });
              }
          }
-@@ -164,6 +199,7 @@
+@@ -177,6 +216,7 @@ impl State {
                  label: "Tree exceeds panel capacity".into(),
                  count: 0,
                  hidden: false,

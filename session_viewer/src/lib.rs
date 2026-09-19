@@ -1,11 +1,6 @@
-//! session_viewer - a browser-only (WebGPU/wgpu + winit) CAD viewer over `session_rust`.
-//! This file is the shell only: the canvas window, the event loop and the `Msg` handlers,
-//! each delegating to `State`. Loading is `app/loader.rs`; bindings are `app/input.rs`.
-
 pub mod app;
 mod camera;
 mod engine;
-pub mod math;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod selftest;
 mod state;
@@ -95,6 +90,7 @@ impl App {
         if let Some((w, h)) = desired_canvas_size() {
             let _ = state.resize(w, h);
         }
+
         self.ui = Some(app::ui::Ui::new(&state.window, state.logical_size()[0]));
         state.gpu.ui = Some(engine::gpu::ui::Ui::new(
             &state.gpu.ctx,
@@ -121,6 +117,7 @@ impl ApplicationHandler<Msg> for App {
         if self.state.is_some() || self.proxy.is_none() {
             return;
         }
+
         let Some(canvas) = viewer_canvas() else {
             app::feedback::error("The viewer canvas is missing or invalid");
             return;
@@ -133,11 +130,13 @@ impl ApplicationHandler<Msg> for App {
                 return;
             }
         };
+
         if let Some(proxy) = self.proxy.take() {
             match app::input::PointerCancellation::new(canvas, proxy.clone()) {
                 Ok(listener) => self.pointer_cancellation = Some(listener),
                 Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
             }
+
             wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
         }
     }
@@ -149,6 +148,7 @@ impl ApplicationHandler<Msg> for App {
             other => other,
         };
         let Some(state) = &mut self.state else { return };
+
         match msg {
             Msg::Ready(_) => {}
             Msg::Clear => state.clear(),
@@ -201,6 +201,7 @@ impl ApplicationHandler<Msg> for App {
                 state.touch();
             }
         }
+
         self.request_if_needed();
     }
 
@@ -208,16 +209,20 @@ impl ApplicationHandler<Msg> for App {
     /// changed. A frame is requested only when something did.
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         let Some(state) = &mut self.state else { return };
+
         if let Some(ui) = self.ui.as_mut() {
             let (mut consumed, repaint) = ui.event(&state.window, &event);
+
             if matches!(event, WindowEvent::KeyboardInput { .. })
                 && !app::ui::MODEL.with_borrow(|model| model.command_open)
             {
                 consumed = false;
             }
+
             if repaint {
                 state.request_frame();
             }
+
             if consumed {
                 if matches!(
                     event,
@@ -233,10 +238,12 @@ impl ApplicationHandler<Msg> for App {
                     self.input.cancel();
                     state.cancel_gesture();
                 }
+
                 self.request_if_needed();
                 return;
             }
         }
+
         let changed = match event {
             WindowEvent::CloseRequested => {
                 event_loop.exit();
@@ -246,6 +253,7 @@ impl ApplicationHandler<Msg> for App {
                 if page_hidden() || desired_canvas_size().is_none() {
                     return;
                 }
+
                 // A size the targets may not follow yet holds the frame with it: `needs_frame`
                 // asks again next frame, and the last picture stays stretched until then.
                 let held = match desired_canvas_size() {
@@ -254,15 +262,18 @@ impl ApplicationHandler<Msg> for App {
                     }
                     _ => false,
                 };
+
                 if held {
                     state.needs_frame = true;
                 } else {
                     let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state));
                     state.render();
+
                     if repaint {
                         state.request_frame();
                     }
                 }
+
                 false
             }
             WindowEvent::Resized(_) => true,
@@ -274,9 +285,11 @@ impl ApplicationHandler<Msg> for App {
             }
             other => self.input.mouse(state, &other),
         };
+
         if changed {
             state.touch();
         }
+
         self.request_if_needed();
     }
 }
@@ -300,6 +313,7 @@ fn viewer_focused() -> bool {
     let Some(document) = window.document() else {
         return false;
     };
+
     match document.active_element() {
         Some(element) => element.id() == "canvas",
         None => false,
@@ -312,6 +326,7 @@ fn page_hidden() -> bool {
     let Some(window) = web_sys::window() else {
         return true;
     };
+
     match window.document() {
         Some(document) => document.hidden(),
         None => true,
@@ -334,18 +349,22 @@ fn desired_canvas_size() -> Option<(u32, u32)> {
 #[wasm_bindgen(start)]
 pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
     console_error_panic_hook::set_once();
+
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()
         && document.get_element_by_id("text-quality-canvas").is_some()
     {
         return Ok(());
     }
+
     // The page a device loss reloaded into draws reduced from its first frame and says why.
     if let Some(notice) = app::route::adopt_recovery() {
         app::feedback::status(notice);
     }
+
     if let Err(error) = App::run() {
         app::feedback::error(&format!("Cannot start the viewer: {error}"));
     }
+
     Ok(())
 }

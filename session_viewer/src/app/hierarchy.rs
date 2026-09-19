@@ -9,8 +9,11 @@ use std::ops::Range;
 use std::rc::Rc;
 
 const MAX_NODES: usize = 200_000;
+
 const MAX_ROWS: usize = 1_000_000;
+
 pub const PAGE_SIZE: usize = 128;
+
 type Lookup = HashMap<usize, HashMap<Rc<str>, u32>>;
 
 pub struct Node {
@@ -44,10 +47,13 @@ impl Hierarchy {
         self.nodes.clear();
         self.rows.clear();
         self.truncated = scene.object_count() > MAX_NODES;
+
         if self.truncated {
             return;
         }
+
         let mut lookup = Lookup::new();
+
         for row in 0..scene.object_count() as u32 {
             if let Some(identity) = scene.identity_of(row) {
                 lookup
@@ -56,9 +62,11 @@ impl Hierarchy {
                     .insert(identity.1, row);
             }
         }
+
         for doc in 0..scene.docs.len() {
             let start = self.nodes.len();
             let rows = self.rows.len();
+
             if !self.tree(scene, doc, &lookup) {
                 self.nodes.truncate(start);
                 self.rows.truncate(rows);
@@ -66,18 +74,22 @@ impl Hierarchy {
                 break;
             }
         }
+
         self.open.retain(|index| *index < self.nodes.len());
     }
 
     fn tree(&mut self, scene: &Scene, doc: usize, lookup: &Lookup) -> bool {
         let file = &scene.docs[doc];
         let start = self.nodes.len();
+
         if !self.push(&file.name, 0) {
             return false;
         }
+
         let mut seen = HashSet::new();
         let mut seen_rows = HashSet::new();
         let mut stack = Vec::new();
+
         if let Some(root) = file.session.tree.root() {
             if root.borrow().name == file.name {
                 // The document row already represents this root and its descendants.
@@ -88,41 +100,52 @@ impl Hierarchy {
                 stack.push((root, 1, None));
             }
         }
+
         for _ in 0..MAX_NODES * 2 {
             let Some((node, depth, exit)) = stack.pop() else {
                 break;
             };
+
             if let Some(index) = exit {
                 self.finish(index);
                 continue;
             }
+
             if !seen.insert(Rc::as_ptr(&node)) {
                 continue;
             }
+
             let borrowed = node.borrow();
             let row = row_of(lookup, doc, &borrowed.name);
             let label = row.map(|r| scene.object_name(r)).unwrap_or(&borrowed.name);
             let index = self.nodes.len();
+
             if !self.push(label, depth) {
                 return false;
             }
+
             if let Some(row) = row
                 && seen_rows.insert(row)
             {
                 self.rows.push(row);
             }
+
             stack.push((Rc::clone(&node), depth, Some(index)));
             let children = borrowed.children();
+
             if stack.len() + children.len() > MAX_NODES {
                 return false;
             }
+
             for child in children.into_iter().rev() {
                 stack.push((child, depth + 1, None));
             }
         }
+
         if !stack.is_empty() {
             return false;
         }
+
         for row in 0..scene.object_count() as u32 {
             if scene
                 .identity_of(row)
@@ -130,13 +153,16 @@ impl Hierarchy {
                 && seen_rows.insert(row)
             {
                 let index = self.nodes.len();
+
                 if !self.push(scene.object_name(row), 1) {
                     return false;
                 }
+
                 self.rows.push(row);
                 self.finish(index);
             }
         }
+
         self.finish(start);
         self.rows.len() <= MAX_ROWS
     }
@@ -146,10 +172,13 @@ impl Hierarchy {
         let vertices = session.graph.number_of_vertices();
         let edges: usize = session.graph.edges.values().map(|edges| edges.len()).sum();
         let remaining = MAX_ROWS.saturating_sub(self.rows.len());
+
         if vertices > MAX_NODES || vertices > remaining || edges > remaining - vertices {
             return false;
         }
+
         let mut groups: BTreeMap<String, Vec<u32>> = BTreeMap::new();
+
         for vertex in session.graph.get_vertices() {
             if let Some(row) = row_of(lookup, doc, &vertex.name) {
                 groups
@@ -158,34 +187,42 @@ impl Hierarchy {
                     .push(row);
             }
         }
+
         for (from, edges) in &session.graph.edges {
             for (to, edge) in edges {
                 if from > to {
                     continue;
                 }
+
                 let rows = groups
                     .entry(format!("edge: {}", edge.attribute))
                     .or_default();
+
                 for guid in [from, to] {
                     if let Some(row) = row_of(lookup, doc, guid) {
                         rows.push(row);
                     }
+
                     if from == to {
                         break;
                     }
                 }
             }
         }
+
         for (label, mut rows) in groups {
             rows.sort_unstable();
             rows.dedup();
             let index = self.nodes.len();
+
             if !self.push(&format!("{name} / {label}"), 0) {
                 return false;
             }
+
             self.rows.extend(rows);
             self.finish(index);
         }
+
         true
     }
 
@@ -193,6 +230,7 @@ impl Hierarchy {
         if self.nodes.len() >= MAX_NODES {
             return false;
         }
+
         let start = self.rows.len();
         let label = label.chars().take(160).collect();
         self.nodes.push(Node {
@@ -212,6 +250,7 @@ impl Hierarchy {
     pub fn visible(&self) -> Vec<usize> {
         let mut result = Vec::new();
         let mut index = 0;
+
         for _ in 0..self.nodes.len() {
             let Some(node) = self.nodes.get(index) else {
                 break;
@@ -223,6 +262,7 @@ impl Hierarchy {
                 node.end
             };
         }
+
         result
     }
 
@@ -273,6 +313,7 @@ mod tests {
         session.add_edge(&a.borrow().name, &b.borrow().name, "joint");
         let shared = Rc::new(session);
         let mut scene = Scene::new();
+
         for name in ["first", "second"] {
             scene.add_file(FileDoc {
                 name: name.into(),
@@ -282,6 +323,7 @@ mod tests {
                 display_only: false,
             });
         }
+
         let mut index = Hierarchy::default();
         index.rebuild(&scene);
         let parent = index
@@ -298,10 +340,12 @@ mod tests {
         assert_eq!(index.targets(child), vec![0]);
         let tree_count = index.rows.len();
         let mut lookup = Lookup::new();
+
         for row in 0..scene.object_count() as u32 {
             let (doc, id) = scene.identity_of(row).unwrap();
             lookup.entry(doc).or_default().insert(id, row);
         }
+
         assert!(index.graph(&shared, 0, "first", &lookup));
         let edge = index
             .nodes

@@ -1,8 +1,3 @@
-//! The point lane's renderer: one pixel-aligned quad per point into the lane's OWN 1x depth +
-//! colour targets (the hardware depth test keeps the nearest point), then a fullscreen resolve
-//! into the scene pass with EDL and `frag_depth`. A record per visible cloud (or octree node)
-//! folds camera x placement, tint and radius; the point pass is skipped while nothing changed.
-
 use super::buffers::{GpuCtx, bind_group, zeroed_buffer};
 use super::cloud::{Cloud, LodNode, NO_NORMALS, PointBufs};
 use super::instance::Instance;
@@ -10,7 +5,7 @@ use super::lod::{LodWalk, Projection, radius_factor};
 use super::objects::InstanceTable;
 use super::targets::{Attachment, TextureSpec};
 use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
-use crate::math::{mat_mul_f32, mat_scale};
+use session_rust::Xform;
 use wgpu::PrimitiveTopology::TriangleList;
 
 /// Records the lane can hold in one frame: one per cloud, or one per selected octree node.
@@ -29,26 +24,17 @@ const HEADER_BYTES: u64 = 16;
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct SplatRecord {
-    /// mvp x anchored model: one mat-vec per point.
-    pub mvp_model: [f32; 16],
-    /// Instance tint; `.a` = the minimum radius in px.
-    pub tint: [f32; 4],
+    pub mvp_model: [f32; 16], // mvp x anchored model: one mat-vec per point.
+    pub tint: [f32; 4],       // Instance tint; `.a` = the minimum radius in px.
     pub first: u32,
     pub count: u32,
-    /// Points before this record: the vertex index minus `cum` is the offset into the range.
-    pub cum: u32,
-    /// Radius factor: screen radius = k * vp_h / clip.w (perspective) or k * vp_h (ortho).
-    pub k: f32,
-    /// The model's rotation columns (translation-free), three vec4 slots, for the normals.
-    pub rot: [f32; 12],
-    /// First row in the normals table, or `NO_NORMALS`.
-    pub nrm_first: u32,
-    /// The object row, written by the id pass.
-    pub instance: u32,
+    pub cum: u32, // Points before this record: the vertex index minus `cum` is the offset into the range.
+    pub k: f32, // Radius factor: screen radius = k * vp_h / clip.w (perspective) or k * vp_h (ortho).
+    pub rot: [f32; 12], // The model's rotation columns (translation-free), three vec4 slots, for the normals.
+    pub nrm_first: u32, // First row in the normals table, or `NO_NORMALS`.
+    pub instance: u32,  // The object row, written by the id pass.
     pub flags: u32,
-    /// Not padding: the highlighted source point's row + 1, or 0. `splat.wgsl` reads it as
-    /// word 39 and paints that one point yellow.
-    pub selected_point: u32,
+    pub selected_point: u32, // Not padding: the highlighted source point's row + 1, or 0. `splat.wgsl` reads it as word 39 and paints that one point yellow.
 }
 
 const _: () = assert!(std::mem::size_of::<SplatRecord>() == 160);
@@ -288,9 +274,11 @@ impl Splat {
         cloud_group: &wgpu::BindGroup,
     ) {
         let mut point_count = 0u32;
+
         for c in cx.clouds {
             point_count += c.resident;
         }
+
         let key = Key {
             mvp: *cx.mvp,
             cloud_size: cx.cloud_size,
@@ -298,14 +286,18 @@ impl Splat {
             point_count,
             geometry: cx.objects.geometry_revision(),
         };
+
         if self.key.as_ref() == Some(&key) {
             return;
         }
+
         self.key = Some(key);
         self.build_records(cx);
+
         if self.total == 0 {
             return;
         }
+
         if !matches!(&self.targets, Some(targets) if targets.size == cx.size) {
             self.targets = Some(SplatTargets::new(ctx, l, cx.size));
         }
@@ -336,9 +328,11 @@ impl Splat {
         let Some(targets) = &self.targets else {
             return 0;
         };
+
         if self.total == 0 {
             return 0;
         }
+
         pass.set_pipeline(&self.resolve_pipeline);
         pass.set_bind_group(0, cloud_group, &[]);
         pass.set_bind_group(1, &targets.resolve_group, &[]);
@@ -351,6 +345,7 @@ impl Splat {
         if self.total == 0 {
             return 0;
         }
+
         pass.set_pipeline(&self.id_pipeline);
         pass.set_bind_group(0, cloud_group, &[]);
         pass.set_bind_group(1, &self.points_group, &[]);
@@ -370,13 +365,16 @@ impl Splat {
             nodes: cx.nodes,
         };
         let mut cum = 0u32;
+
         for c in cx.clouds {
             let Some(row) = cx.objects.row(c.instance) else {
                 continue;
             };
+
             if row.flags & Instance::FLAG_HIDDEN != 0 {
                 continue;
             }
+
             let Some(model) = cx.objects.anchored_model(c.instance) else {
                 continue;
             };
@@ -390,12 +388,14 @@ impl Splat {
                 cx.lod_px
             };
             self.walk.select(&p, c, &model);
-            let m = mat_mul_f32(cx.mvp, &model);
+            let m = (&Xform::from_matrix(cx.mvp.map(f64::from))
+                * &Xform::from_matrix(model.map(f64::from)))
+                .to_f32();
             let rot = [
                 model[0], model[1], model[2], 0.0, model[4], model[5], model[6], 0.0, model[8],
                 model[9], model[10], 0.0,
             ];
-            let scale = mat_scale(&model);
+            let scale = Xform::from_matrix(model.map(f64::from)).uniform_scale();
             let selected = row.flags & Instance::FLAG_SELECTED != 0;
             let tint = if selected {
                 [1.0, 1.0, 0.0, (px * 0.5).max(0.5)]
@@ -410,12 +410,15 @@ impl Splat {
 
             for r in &self.walk.ranges {
                 let k = radius_factor(r, px, scale, cx.ortho_h);
+
                 for chunk in &c.chunks {
                     let a = r.first.max(chunk.from);
                     let b = (r.first + r.count).min(chunk.to);
+
                     if a >= b || self.records.len() >= MAX_RECORDS {
                         continue;
                     }
+
                     let nrm_first = if c.nrm_first == NO_NORMALS {
                         NO_NORMALS
                     } else {
@@ -441,6 +444,7 @@ impl Splat {
                 }
             }
         }
+
         self.total = cum;
     }
 }

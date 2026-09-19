@@ -1,25 +1,26 @@
 diff --git a/index.html b/index.html
 --- a/index.html
 +++ b/index.html
-@@ -55,7 +55,7 @@
-   <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
-        `L` opens and closes it; a click on a row hides or shows that layer. -->
-   <div id="viewer-layers" hidden role="group" aria-label="Layers"
--       style="position:fixed;top:12px;left:12px;min-width:180px;max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
-+       style="position:fixed;top:12px;left:12px;width:min(320px,80vw);max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
-   <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
-        back the moment it closes, so typing `z` in here is a letter and not an undo. -->
-   <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
+@@ -111,7 +111,7 @@
+     <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
+     `L` opens and closes it; a click on a row hides or shows that layer. -->
+     <div id="viewer-layers" hidden role="group" aria-label="Layers"
+-       style="position: fixed; top: 12px; left: 12px; min-width: 180px; max-height: 70vh; overflow: auto; color: #fff; background: #222d; font: 13px/1.7 system-ui; padding: 6px 0; border-radius: 4px; outline: 1px solid #555;"></div>
++       style="position: fixed; top: 12px; left: 12px; width: min(320px,80vw); max-height: 70vh; overflow: auto; color: #fff; background: #222d; font: 13px/1.7 system-ui; padding: 6px 0; border-radius: 4px; outline: 1px solid #555;"></div>
+     <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
+     back the moment it closes, so typing `z` in here is a letter and not an undo. -->
+     <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
 diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 --- a/src/app/feedback.rs
 +++ b/src/app/feedback.rs
-@@ -122,12 +122,12 @@
+@@ -129,13 +129,13 @@ pub fn layers_panel(rows: &[LayerRow]) {
          let _ = line.set_attribute("data-layer", &row.key);
          let _ = line.set_attribute(
              "style",
 -            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:1",
 +            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:1",
          );
+ 
          if row.hidden {
              let _ = line.set_attribute(
                  "style",
@@ -27,12 +28,12 @@ diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 +                "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:0.45",
              );
          }
-         let mark = if row.hidden { "·" } else { "•" };
+ 
 diff --git a/src/app/hierarchy.rs b/src/app/hierarchy.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/app/hierarchy.rs
-@@ -0,0 +1,298 @@
+@@ -0,0 +1,338 @@
 +use crate::app::scene::Scene;
 +use session_rust::Session;
 +use std::collections::BTreeMap;
@@ -42,8 +43,11 @@ new file mode 100644
 +use std::rc::Rc;
 +
 +const MAX_NODES: usize = 200_000;
++
 +const MAX_ROWS: usize = 1_000_000;
++
 +pub const PAGE_SIZE: usize = 128;
++
 +type Lookup = HashMap<usize, HashMap<Rc<str>, u32>>;
 +
 +pub struct Node {
@@ -77,10 +81,13 @@ new file mode 100644
 +        self.nodes.clear();
 +        self.rows.clear();
 +        self.truncated = scene.object_count() > MAX_NODES;
++
 +        if self.truncated {
 +            return;
 +        }
++
 +        let mut lookup = Lookup::new();
++
 +        for row in 0..scene.object_count() as u32 {
 +            if let Some(identity) = scene.identity_of(row) {
 +                lookup
@@ -89,9 +96,11 @@ new file mode 100644
 +                    .insert(identity.1, row);
 +            }
 +        }
++
 +        for (doc, file) in scene.docs.iter().enumerate() {
 +            let start = self.nodes.len();
 +            let rows = self.rows.len();
++
 +            if !self.tree(scene, doc, &lookup)
 +                || !self.graph(&file.session, doc, &file.name, &lookup)
 +            {
@@ -101,53 +110,68 @@ new file mode 100644
 +                break;
 +            }
 +        }
++
 +        self.open.retain(|index| *index < self.nodes.len());
 +    }
 +
 +    fn tree(&mut self, scene: &Scene, doc: usize, lookup: &Lookup) -> bool {
 +        let file = &scene.docs[doc];
 +        let start = self.nodes.len();
++
 +        if !self.push(&file.name, 0) {
 +            return false;
 +        }
++
 +        let mut seen = HashSet::new();
 +        let mut stack = Vec::new();
++
 +        if let Some(root) = file.session.tree.root() {
 +            stack.push((root, 1, None));
 +        }
++
 +        for _ in 0..MAX_NODES * 2 {
 +            let Some((node, depth, exit)) = stack.pop() else {
 +                break;
 +            };
++
 +            if let Some(index) = exit {
 +                self.finish(index);
 +                continue;
 +            }
++
 +            if !seen.insert(Rc::as_ptr(&node)) {
 +                continue;
 +            }
++
 +            let borrowed = node.borrow();
 +            let row = row_of(lookup, doc, &borrowed.name);
 +            let label = row.map(|r| scene.object_name(r)).unwrap_or(&borrowed.name);
 +            let index = self.nodes.len();
++
 +            if !self.push(label, depth) {
 +                return false;
 +            }
++
 +            if let Some(row) = row {
 +                self.rows.push(row);
 +            }
++
 +            stack.push((Rc::clone(&node), depth, Some(index)));
 +            let children = borrowed.children();
++
 +            if stack.len() + children.len() > MAX_NODES {
 +                return false;
 +            }
++
 +            for child in children.into_iter().rev() {
 +                stack.push((child, depth + 1, None));
 +            }
 +        }
++
 +        if !stack.is_empty() {
 +            return false;
 +        }
++
 +        if self.rows.len() == self.nodes[start].rows.start {
 +            for row in 0..scene.object_count() as u32 {
 +                if scene
@@ -158,6 +182,7 @@ new file mode 100644
 +                }
 +            }
 +        }
++
 +        self.finish(start);
 +        self.rows.len() <= MAX_ROWS
 +    }
@@ -166,10 +191,13 @@ new file mode 100644
 +        let vertices = session.graph.number_of_vertices();
 +        let edges: usize = session.graph.edges.values().map(|edges| edges.len()).sum();
 +        let remaining = MAX_ROWS.saturating_sub(self.rows.len());
++
 +        if vertices > MAX_NODES || vertices > remaining || edges > remaining - vertices {
 +            return false;
 +        }
++
 +        let mut groups: BTreeMap<String, Vec<u32>> = BTreeMap::new();
++
 +        for vertex in session.graph.get_vertices() {
 +            if let Some(row) = row_of(lookup, doc, &vertex.name) {
 +                groups
@@ -178,34 +206,42 @@ new file mode 100644
 +                    .push(row);
 +            }
 +        }
++
 +        for (from, edges) in &session.graph.edges {
 +            for (to, edge) in edges {
 +                if from > to {
 +                    continue;
 +                }
++
 +                let rows = groups
 +                    .entry(format!("edge: {}", edge.attribute))
 +                    .or_default();
++
 +                for guid in [from, to] {
 +                    if let Some(row) = row_of(lookup, doc, guid) {
 +                        rows.push(row);
 +                    }
++
 +                    if from == to {
 +                        break;
 +                    }
 +                }
 +            }
 +        }
++
 +        for (label, mut rows) in groups {
 +            rows.sort_unstable();
 +            rows.dedup();
 +            let index = self.nodes.len();
++
 +            if !self.push(&format!("{name} / {label}"), 0) {
 +                return false;
 +            }
++
 +            self.rows.extend(rows);
 +            self.finish(index);
 +        }
++
 +        true
 +    }
 +
@@ -213,6 +249,7 @@ new file mode 100644
 +        if self.nodes.len() >= MAX_NODES {
 +            return false;
 +        }
++
 +        let start = self.rows.len();
 +        let label = label.chars().take(160).collect();
 +        self.nodes.push(Node {
@@ -232,6 +269,7 @@ new file mode 100644
 +    pub fn visible(&self) -> Vec<usize> {
 +        let mut result = Vec::new();
 +        let mut index = 0;
++
 +        for _ in 0..self.nodes.len() {
 +            let Some(node) = self.nodes.get(index) else {
 +                break;
@@ -243,6 +281,7 @@ new file mode 100644
 +                node.end
 +            };
 +        }
++
 +        result
 +    }
 +
@@ -292,6 +331,7 @@ new file mode 100644
 +        session.add_edge(&a.borrow().name, &b.borrow().name, "joint");
 +        let shared = Rc::new(session);
 +        let mut scene = Scene::new();
++
 +        for name in ["first", "second"] {
 +            scene.add_file(FileDoc {
 +                name: name.into(),
@@ -301,6 +341,7 @@ new file mode 100644
 +                display_only: false,
 +            });
 +        }
++
 +        let mut index = Hierarchy::default();
 +        index.rebuild(&scene);
 +        let parent = index
@@ -334,7 +375,7 @@ new file mode 100644
 diff --git a/src/app/inspection.rs b/src/app/inspection.rs
 --- a/src/app/inspection.rs
 +++ b/src/app/inspection.rs
-@@ -36,6 +36,8 @@
+@@ -36,6 +36,8 @@ pub fn publish(state: &State) {
          "frames": state.gpu.performance.frames,
          "draw_calls": state.gpu.performance.draws,
          "selected": parent,
@@ -346,36 +387,26 @@ diff --git a/src/app/inspection.rs b/src/app/inspection.rs
 diff --git a/src/app/layers.rs b/src/app/layers.rs
 --- a/src/app/layers.rs
 +++ b/src/app/layers.rs
-@@ -100,42 +100,53 @@
-     pub hidden: bool,
+@@ -92,52 +92,60 @@ pub struct Row {
+     pub hidden: bool, // Every one of them is hidden.
  }
  
 -/// The rows a panel would show: the documents in load order, then the kinds present.
 +/// Count document and type buckets in one scene walk.
  pub fn rows(scene: &Scene) -> Vec<Row> {
-+    let mut documents = vec![(0, 0); scene.docs.len()];
-+    let mut kinds = [(0, 0); 6];
-+    for row in 0..scene.object_count() as u32 {
-+        let Some(identity) = scene.identity_of(row) else {
-+            continue;
-+        };
-+        let hidden = usize::from(scene.hidden.contains(&identity));
-+        if let Some(count) = documents.get_mut(identity.0) {
-+            count.0 += 1;
-+            count.1 += hidden;
-+        }
-+        if let Some(geometry) = scene.geometry(row) {
-+            let count = &mut kinds[Kind::of(geometry) as usize];
-+            count.0 += 1;
-+            count.1 += hidden;
-+        }
-+    }
-     let mut out = Vec::new();
+-    let mut out = Vec::new();
+-
 -    for (index, doc) in scene.docs.iter().enumerate() {
 -        let rows = of_layer(scene, Layer::Document(index));
++    let mut documents = vec![(0, 0); scene.docs.len()];
++    let mut kinds = [(0, 0); 6];
+ 
 -        if rows.is_empty() {
--            continue;
++    for row in 0..scene.object_count() as u32 {
++        let Some(identity) = scene.identity_of(row) else {
+             continue;
 -        }
+-
 -        out.push(Row {
 -            layer: Layer::Document(index),
 -            label: doc.name.clone(),
@@ -383,27 +414,36 @@ diff --git a/src/app/layers.rs b/src/app/layers.rs
 -            hidden: all_hidden(scene, &rows),
 -        });
 -    }
++        };
++        let hidden = usize::from(scene.hidden.contains(&identity));
+ 
 -    let mut kinds: Vec<Kind> = Vec::new();
++        if let Some(count) = documents.get_mut(identity.0) {
++            count.0 += 1;
++            count.1 += hidden;
++        }
+ 
 -    for row in 0..scene.object_count() as u32 {
--        if let Some(geometry) = scene.geometry(row) {
+         if let Some(geometry) = scene.geometry(row) {
 -            let kind = Kind::of(geometry);
+-
 -            if !kinds.contains(&kind) {
 -                kinds.push(kind);
 -            }
--        }
--    }
++            let count = &mut kinds[Kind::of(geometry) as usize];
++            count.0 += 1;
++            count.1 += hidden;
+         }
+     }
+ 
 -    kinds.sort();
+-
 -    for kind in kinds {
 -        let rows = of_layer(scene, Layer::Kind(kind));
++    let mut out = Vec::new();
+ 
 -        if rows.is_empty() {
 -            continue;
--        }
--        out.push(Row {
--            layer: Layer::Kind(kind),
--            label: kind.label().to_string(),
--            count: rows.len(),
--            hidden: all_hidden(scene, &rows),
--        });
 +    for (index, &(count, hidden)) in documents.iter().enumerate() {
 +        if count > 0 {
 +            out.push(Row {
@@ -412,8 +452,15 @@ diff --git a/src/app/layers.rs b/src/app/layers.rs
 +                count,
 +                hidden: hidden == count,
 +            });
-+        }
+         }
 +    }
+ 
+-        out.push(Row {
+-            layer: Layer::Kind(kind),
+-            label: kind.label().to_string(),
+-            count: rows.len(),
+-            hidden: all_hidden(scene, &rows),
+-        });
 +    for kind in [
 +        Kind::Solids,
 +        Kind::Surfaces,
@@ -423,6 +470,7 @@ diff --git a/src/app/layers.rs b/src/app/layers.rs
 +        Kind::Clouds,
 +    ] {
 +        let (count, hidden) = kinds[kind as usize];
++
 +        if count > 0 {
 +            out.push(Row {
 +                layer: Layer::Kind(kind),
@@ -432,14 +480,12 @@ diff --git a/src/app/layers.rs b/src/app/layers.rs
 +            });
 +        }
      }
+ 
      out
- }
-@@ -153,15 +164,6 @@
-         }
-     }
+@@ -161,15 +169,6 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
      rows
--}
--
+ }
+ 
 -fn all_hidden(scene: &Scene, rows: &[u32]) -> bool {
 -    !rows.is_empty()
 -        && rows.iter().all(|&row| {
@@ -447,10 +493,12 @@ diff --git a/src/app/layers.rs b/src/app/layers.rs
 -                .identity_of(row)
 -                .is_some_and(|identity| scene.hidden.contains(&identity))
 -        })
- }
- 
+-}
+-
  #[cfg(test)]
-@@ -209,6 +211,21 @@
+ mod tests {
+     use super::*;
+@@ -217,6 +216,22 @@ mod tests {
          assert_eq!(rows[3].count, 2, "one point in each file");
      }
  
@@ -459,6 +507,7 @@ diff --git a/src/app/layers.rs b/src/app/layers.rs
 +        let mut scene = scene_with_two_files();
 +        scene.hidden.insert(scene.identity_of(0).unwrap());
 +        scene.hidden.insert(scene.identity_of(2).unwrap());
++
 +        for row in rows(&scene) {
 +            let members = of_layer(&scene, row.layer);
 +            assert_eq!(row.count, members.len());
@@ -472,23 +521,10 @@ diff --git a/src/app/layers.rs b/src/app/layers.rs
      /// A layer is a filter over rows that already exist, so it can name rows from more than
      /// one document, and a document row names only its own.
      #[test]
-@@ -223,7 +240,11 @@
-     /// otherwise a click lands on a different row than the one under the pointer.
-     #[test]
-     fn a_row_key_survives_the_round_trip() {
--        for layer in [Layer::Document(0), Layer::Document(17), Layer::Kind(Kind::Clouds)] {
-+        for layer in [
-+            Layer::Document(0),
-+            Layer::Document(17),
-+            Layer::Kind(Kind::Clouds),
-+        ] {
-             assert_eq!(Layer::from_key(&layer.key()), Some(layer));
-         }
-         assert_eq!(Layer::from_key("kind:sandwiches"), None);
 diff --git a/src/app/mod.rs b/src/app/mod.rs
 --- a/src/app/mod.rs
 +++ b/src/app/mod.rs
-@@ -9,6 +9,7 @@
+@@ -5,6 +5,7 @@ pub mod cplane;
  pub mod edit;
  pub mod feedback;
  pub mod gizmo;
@@ -499,15 +535,15 @@ diff --git a/src/app/mod.rs b/src/app/mod.rs
 diff --git a/src/app/scene.rs b/src/app/scene.rs
 --- a/src/app/scene.rs
 +++ b/src/app/scene.rs
-@@ -143,6 +143,7 @@
-     /// document's; this is the only thing that says which one a bare Ctrl+Z means.
-     pub last_edited: Option<usize>,
+@@ -123,6 +123,7 @@ pub struct Scene {
+     bases: Bases,
+     pub last_edited: Option<usize>, // Which document the last edit touched. Undo is per document, because the history is the document's; this is the only thing that says which one a bare Ctrl+Z means.
      pub(crate) created_doc: Option<usize>,
 +    pub(crate) row_revision: u64,
  }
  
  impl Default for Scene {
-@@ -171,6 +172,7 @@
+@@ -151,6 +152,7 @@ impl Scene {
              bases: Bases::default(),
              last_edited: None,
              created_doc: None,
@@ -515,7 +551,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
          }
      }
  
-@@ -188,6 +190,7 @@
+@@ -168,6 +170,7 @@ impl Scene {
  
      /// Forget every row and its identity; the documents and the hidden set are the caller's.
      fn reset_rows(&mut self) {
@@ -523,15 +559,15 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
          self.tables = Upload::default();
          self.streamed.clear();
          self.sheets.clear();
-@@ -245,6 +248,7 @@
+@@ -230,6 +233,7 @@ impl Scene {
      /// The next object row and its guid bookkeeping.
      /// One object row for `guid` owned by document `owner` (`usize::MAX` for a text object).
-     pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Mat4, flags: u32) -> u32 {
+     pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Xform, flags: u32) -> u32 {
 +        self.row_revision = self.row_revision.wrapping_add(1);
          let row = self.bases.obj + self.tables.obj.rows.len() as u32;
          self.tables.obj.rows.push(ObjectRow::new(place, flags));
          let guid: Rc<str> = Rc::from(guid);
-@@ -258,6 +262,7 @@
+@@ -243,6 +247,7 @@ impl Scene {
      /// Walk one session into the tables: one object row per guid in the kernel's canonical
      /// order (the row a guid gets is the row it keeps), then the per-file sweeps.
      pub fn add_file(&mut self, doc: FileDoc) {
@@ -542,7 +578,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
 diff --git a/src/lib.rs b/src/lib.rs
 --- a/src/lib.rs
 +++ b/src/lib.rs
-@@ -191,9 +191,7 @@
+@@ -191,9 +191,7 @@ impl ApplicationHandler<Msg> for App {
                  app::feedback::status(&said);
              }
              Msg::ToggleLayer(key) => {
@@ -556,7 +592,7 @@ diff --git a/src/lib.rs b/src/lib.rs
 diff --git a/src/state.rs b/src/state.rs
 --- a/src/state.rs
 +++ b/src/state.rs
-@@ -17,6 +17,7 @@
+@@ -12,6 +12,7 @@ use crate::engine::gpu::{FrameInput, Gpu, Pick};
  use crate::engine::performance::{heap_mb, now_ms};
  mod cloud_query;
  pub mod edit;
@@ -564,15 +600,15 @@ diff --git a/src/state.rs b/src/state.rs
  mod sheet_query;
  mod text;
  use std::sync::Arc;
-@@ -49,6 +50,7 @@
-     /// When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
-     last_resize_ms: f64,
+@@ -40,6 +41,7 @@ pub struct State {
+     last_frame_ms: f64,
+     last_resize_ms: f64, // When the attachments last followed the canvas; the next resize waits `RESIZE_HOLD_MS`.
      pub selection: SelectionMode,
 +    hierarchy: crate::app::hierarchy::Hierarchy,
      controls: Controls,
      requested: PickMode,
      pub selection_radius_css: f64,
-@@ -85,6 +87,7 @@
+@@ -72,6 +74,7 @@ impl State {
              last_frame_ms: 0.0,
              last_resize_ms: f64::NEG_INFINITY,
              selection: SelectionMode::Object,
@@ -580,7 +616,7 @@ diff --git a/src/state.rs b/src/state.rs
              controls: Controls::default(),
              requested: PickMode::Object,
              selection_radius_css: 6.0,
-@@ -181,6 +184,7 @@
+@@ -168,6 +171,7 @@ impl State {
      /// Drop every document; the canvas, device and camera stay.
      pub fn clear(&mut self) {
          self.cancel_gesture();
@@ -588,41 +624,47 @@ diff --git a/src/state.rs b/src/state.rs
          self.selection = SelectionMode::Object;
          self.sheet_query = None;
          self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-@@ -280,6 +284,9 @@
+@@ -263,6 +267,11 @@ impl State {
      /// Make `row` the selection (or none), moving the highlight.
      pub fn select(&mut self, row: Option<u32>) {
          self.cancel_gesture();
++
 +        for old in self.hierarchy.selected.drain(..) {
 +            self.gpu.set_selected(old, false);
 +        }
++
          self.selection = SelectionMode::Object;
          self.sheet_query = None;
          self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-@@ -311,6 +318,14 @@
+@@ -297,6 +306,17 @@ impl State {
      /// a `rebuild` (an edit commit) re-applies it when the rows come back. A live reload
      /// takes the `clear` path instead and starts a fresh scene with nothing hidden.
      pub fn hide_selected(&mut self) {
 +        if !self.hierarchy.selected.is_empty() {
 +            let rows = std::mem::take(&mut self.hierarchy.selected);
++
 +            for row in &rows {
 +                self.gpu.set_selected(*row, false);
 +            }
++
 +            self.set_rows_hidden(&rows, true);
 +            return;
 +        }
++
          let Some(row) = self.scene.selected else {
              return;
          };
 diff --git a/src/state/edit.rs b/src/state/edit.rs
 --- a/src/state/edit.rs
 +++ b/src/state/edit.rs
-@@ -188,14 +188,10 @@
-             return;
+@@ -179,15 +179,11 @@ impl State {
          };
+ 
          if !self.scene.delete_row(row) {
 +            self.status("This object cannot be deleted; streamed scenes cannot be rebuilt");
              return;
          }
+ 
 -        self.select(None);
 -        self.scene.rebuild(&mut self.gpu);
 -        self.place_gizmo(None);
@@ -633,7 +675,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
      }
  
      /// Undo the last edit in the document that was edited last - Ctrl+Z.
-@@ -215,6 +211,8 @@
+@@ -207,6 +203,8 @@ impl State {
      /// An undo can bring an object back or take one away, so the rows are rebuilt rather than
      /// patched. The selection is dropped because the row it named may not exist any more.
      fn after_history(&mut self) {
@@ -642,10 +684,10 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
          self.selection = SelectionMode::Object;
          self.select(None);
          self.scene.rebuild(&mut self.gpu);
-@@ -459,35 +457,12 @@
-         if rows.is_empty() {
+@@ -467,41 +465,12 @@ impl State {
              return;
          }
+ 
 -        let hidden: Vec<bool> = rows
 -            .iter()
 -            .map(|&row| {
@@ -655,23 +697,29 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -            })
 -            .collect();
 -        let hide = !hidden.iter().all(|&h| h);
+-
 -        for (&row, was) in rows.iter().zip(&hidden) {
 -            if *was == hide {
 -                continue;
 -            }
+-
 -            let Some(identity) = self.scene.identity_of(row) else {
 -                continue;
 -            };
+-
 -            if hide {
 -                self.scene.hidden.insert(identity);
 -            } else {
 -                self.scene.hidden.remove(&identity);
 -            }
+-
 -            self.gpu.set_hidden(row, hide);
 -        }
+-
 -        if self.scene.selected.is_some_and(|row| rows.contains(&row)) && hide {
 -            self.select(None);
 -        }
+-
 -        self.refresh_layers();
 -        self.update_label();
 -        self.touch();
@@ -684,17 +732,17 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
      }
  
      /// Redraw the panel from the scene, when it is open.
-@@ -495,7 +470,8 @@
-         if !crate::app::feedback::layers_open() {
+@@ -510,7 +479,8 @@ impl State {
              return;
          }
+ 
 -        let rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
 +        self.hierarchy.refresh(&self.scene);
 +        let mut rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
              .into_iter()
              .map(|row| crate::app::feedback::LayerRow {
                  key: row.layer.key(),
-@@ -504,6 +480,7 @@
+@@ -519,6 +489,7 @@ impl State {
                  hidden: row.hidden,
              })
              .collect();
@@ -706,7 +754,7 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/state/panel.rs
-@@ -0,0 +1,170 @@
+@@ -0,0 +1,183 @@
 +use crate::app::layers::Layer;
 +use crate::state::State;
 +
@@ -720,12 +768,14 @@ new file mode 100644
 +            self.toggle_layer(layer);
 +            return;
 +        }
++
 +        let Some((action, index)) = key.split_once('/') else {
 +            return;
 +        };
 +        let Ok(index) = index.parse::<usize>() else {
 +            return;
 +        };
++
 +        if action == "page" {
 +            self.hierarchy.page = index;
 +        } else if index < self.hierarchy.nodes.len() {
@@ -738,6 +788,7 @@ new file mode 100644
 +                "select" => {
 +                    let rows = self.hierarchy.targets(index);
 +                    self.select(None);
++
 +                    for row in rows {
 +                        if self
 +                            .scene
@@ -748,6 +799,7 @@ new file mode 100644
 +                            self.hierarchy.selected.push(row);
 +                        }
 +                    }
++
 +                    if self.hierarchy.selected.len() == 1 {
 +                        let row = self.hierarchy.selected[0];
 +                        self.select(Some(row));
@@ -766,6 +818,7 @@ new file mode 100644
 +                _ => return,
 +            }
 +        }
++
 +        self.refresh_layers();
 +        self.touch();
 +    }
@@ -785,6 +838,7 @@ new file mode 100644
 +        {
 +            self.select(None);
 +        }
++
 +        for row in rows {
 +            let Some(id) = self.scene.identity_of(*row) else {
 +                continue;
@@ -794,10 +848,12 @@ new file mode 100644
 +            } else {
 +                self.scene.hidden.remove(&id)
 +            };
++
 +            if changed {
 +                self.gpu.set_hidden(*row, hide);
 +            }
 +        }
++
 +        self.refresh_layers();
 +        self.update_label();
 +        self.touch();
@@ -812,6 +868,7 @@ new file mode 100644
 +            .page
 +            .min(visible.len().saturating_sub(1) / PAGE_SIZE);
 +        let first = self.hierarchy.page * PAGE_SIZE;
++
 +        for &index in visible.iter().skip(first).take(PAGE_SIZE) {
 +            let node = &self.hierarchy.nodes[index];
 +            let count = node.rows.len();
@@ -821,6 +878,7 @@ new file mode 100644
 +                    .is_some_and(|id| self.scene.hidden.contains(&id))
 +            });
 +            let indent = "  ".repeat(node.depth.min(16));
++
 +            if node.end > index + 1 {
 +                let mark = if self.hierarchy.open.contains(&index) {
 +                    "▾"
@@ -834,6 +892,7 @@ new file mode 100644
 +                    hidden,
 +                });
 +            }
++
 +            rows.push(LayerRow {
 +                key: format!("select/{index}"),
 +                label: format!("{indent}Select {}", node.label),
@@ -851,6 +910,7 @@ new file mode 100644
 +                hidden,
 +            });
 +        }
++
 +        for (label, page) in [
 +            ("Previous", self.hierarchy.page.checked_sub(1)),
 +            (
@@ -867,6 +927,7 @@ new file mode 100644
 +                });
 +            }
 +        }
++
 +        if self.hierarchy.truncated {
 +            rows.push(LayerRow {
 +                key: String::new(),

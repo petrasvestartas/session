@@ -1,8 +1,3 @@
-//! `Gpu` - the lowest layer of the viewer: the floor (surface, device, layouts, frame
-//! uniforms, targets, view knobs, the object table) and the lanes, one file each. This file
-//! builds the struct, appends an upload and keeps the lanes' targets current; the frame list
-//! is `render.rs`, presenting is `present.rs`, picking is `pick.rs`.
-
 pub mod arena;
 pub mod backdrop;
 pub mod buffers;
@@ -14,6 +9,7 @@ pub mod glyphs;
 pub mod instance;
 pub mod lod;
 pub mod objects;
+
 pub(crate) mod patch;
 pub mod pick;
 pub mod present;
@@ -33,8 +29,7 @@ mod widget_mesh;
 
 use crate::engine::performance::Performance;
 use crate::engine::pipelines::{Layouts, Target};
-use crate::math::Aabb;
-use session_rust::Point;
+use session_rust::{AABB, Point};
 
 use arena::ArenaLane;
 use backdrop::BackdropLane;
@@ -75,23 +70,19 @@ pub struct Gpu {
     pub glyphs: GlyphLane,
     pub controls: GlyphLane,
     pub control_net: SegmentLane,
-    /// A fixed mesh with independent depth for overlapping manipulation handles.
-    pub widget: widget::Widget,
+    pub widget: widget::Widget, // A fixed mesh with independent depth for overlapping manipulation handles.
     pub ui: Option<ui::Ui>,
     pub text: text::TextLane,
     pub selection_outline: surface_outline::SurfaceOutline,
     pub solid_outline: surface_outline::SurfaceOutline,
-    /// Counts selection flag changes: part of the coverage masks' cache key.
-    pub selection_revision: u64,
+    pub selection_revision: u64, // Counts selection flag changes: part of the coverage masks' cache key.
     pub logical_size: [f64; 2],
     pub cloud: CloudLane,
     pub splat: Splat,
     pub pick: Picker,
     pub performance: Performance,
-    /// The world box of everything uploaded; the camera fits it and the inside test reads it.
-    pub bounds: Aabb,
-    /// What class of GPU is drawing; the antialiasing budget is spent against it.
-    device_type: wgpu::DeviceType,
+    pub bounds: AABB, // The world box of everything uploaded; the camera fits it and the inside test reads it.
+    device_type: wgpu::DeviceType, // What class of GPU is drawing; the antialiasing budget is spent against it.
     pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>,
 }
 
@@ -234,7 +225,7 @@ impl Gpu {
             splat,
             pick: Picker::new(),
             performance: Performance::new(),
-            bounds: Aabb::empty(),
+            bounds: AABB::empty(),
             device_type,
             failure,
         })
@@ -247,12 +238,14 @@ impl Gpu {
         self.arena.append(&self.ctx, &up.arena);
         self.segments.append(&self.ctx, &self.layouts, &up.seg);
         self.glyphs.append(&self.ctx, &self.layouts, &up.glyph);
+
         if self.cloud.append(&self.ctx, &up.cloud) {
             self.splat
                 .rebind(&self.ctx, &self.layouts, self.cloud.buffers());
         }
+
         self.splat.invalidate();
-        self.bounds.union(&up.bounds);
+        self.bounds.union_with(&up.bounds);
 
         log::info!(
             "scene: {} objects, {} verts, {} pipes, {} ribbons, {} markers, {} dots, {} points",
@@ -277,7 +270,7 @@ impl Gpu {
     /// leaves the union generous, which costs depth precision and never correctness.
     pub fn grew_bounds(&mut self, row: u32) {
         if let Some(box_) = self.objects.row_bounds(row) {
-            self.bounds.union(&box_);
+            self.bounds.union_with(&box_);
         }
     }
 
@@ -306,6 +299,7 @@ impl Gpu {
     fn retarget(&mut self, resized: bool) {
         let samples = self.msaa_now();
         let flip = samples != self.targets.samples;
+
         if flip || resized {
             self.targets.destroy();
             self.targets = Targets::new(
@@ -316,6 +310,7 @@ impl Gpu {
             );
             self.rebind_ink();
         }
+
         if flip {
             let target = self.target();
             self.backdrop.retarget(&self.ctx, &self.layouts, target);
@@ -361,9 +356,11 @@ impl Gpu {
         let rebase = self
             .objects
             .rebase_anchor(&self.ctx, origin, view_dist, now);
+
         if rebase.moved {
             self.splat.invalidate();
         }
+
         rebase
     }
 
@@ -372,11 +369,14 @@ impl Gpu {
         if width == 0 || height == 0 {
             return;
         }
+
         self.config.width = width;
         self.config.height = height;
+
         if let Some(s) = &self.surface {
             s.configure(&self.ctx.device, &self.config);
         }
+
         self.retarget(true);
         self.splat.resize();
         self.pick.resize();
@@ -398,7 +398,7 @@ impl Gpu {
         self.segments.set_edge(&self.ctx, None);
         self.cloud.reset();
         self.splat.invalidate();
-        self.bounds = Aabb::empty();
+        self.bounds = AABB::empty();
     }
 
     /// Forget every lane's rows AND hand the memory back, CPU mirrors and GPU buffers alike.
@@ -419,7 +419,7 @@ impl Gpu {
         self.splat.release();
         self.splat
             .rebind(&self.ctx, &self.layouts, self.cloud.buffers());
-        self.bounds = Aabb::empty();
+        self.bounds = AABB::empty();
         self.retarget(false);
         self.rebind_ink();
     }

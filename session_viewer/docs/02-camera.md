@@ -15,7 +15,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 ## Starting point
 
 - Checkpoint 01: one triangle, identity matrix in the uniform, `drag` and `zoom` do nothing.
-- This lesson adds the production `camera.rs` and `math.rs` in full, then wires the shell to them.
+- This lesson adds the production `camera.rs` in full on top of the kernel's `Xform` and `AABB`, then wires the shell to it.
 
 <!-- step-status: start -->
 
@@ -23,49 +23,21 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <!-- step-status: end -->
 
-## Step 1 · Matrix helpers
+## Step 1 · The kernel's matrix and box
 
-![Where this step sits in the viewer: State, with 5 of 12 zones built so far.](illustrations/locator-c2c82bdd01.svg){ .locator data-strip="illustrations/strip-0324278002.svg" }
+Nothing to type: the matrix and box arithmetic the viewer needs lives in the kernel, `session_rust::Xform` and `session_rust::AABB`, and this step is where you read what it provides.
 
-- A placement is 16 column-major doubles: `index = col * 4 + row`. Every multiply here and the kernel's `Xform` follow it.
-- `mat_to_f32` and the kernel's `Xform::to_f32` are the two matrix f64 → f32 edges: the first for an object's placement, the second for the view-projection this lesson writes into the uniform. Two places to look when a large model jitters.
+- A placement is an `Xform`: 16 column-major doubles, `index = col * 4 + row`. `&a * &b` composes two, `transform_point` places a point, `to_f32` is the one f64 → f32 edge on the way to the GPU. Two places to look when a large model jitters: an object's placement and the view-projection this lesson writes into the uniform.
+- `Xform::uniform_scale` is the length of the first column, the scale a placement applies. The cloud lanes read it to size their points.
 
-![Diagram: Mat4 · [f64; 16] · Mat4 · placed point · [f32; 16] for the GPU](illustrations/02-01.svg)
+![Diagram: Xform · [f64; 16] · Xform · transform_point · to_f32 for the GPU](illustrations/02-01.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
+- `AABB::empty()` has negative half-sizes, so `is_valid` is false and a scene can start with no box; `union_with_point(x, y, z)` grows it one coordinate triple at a time without allocating a `Point`, and `union_with` merges two boxes, an empty one contributing nothing.
+- `transformed` runs the eight corners through an `Xform` and boxes them again: conservative for rotations, exact for translations. `corners` returns all eight, not the two extremes, because a rotation moves a corner that was not extreme into one that is.
 
-<!-- file: 02 session_viewer/src/math.rs type lines=1-71 -->
+![Diagram: AABB::empty · AABB center · half-size · world box · queries](illustrations/02-02.svg)
 
-## Step 2 · A box that can be empty
-
-![Where this step sits in the viewer: State, with 5 of 12 zones built so far.](illustrations/locator-c2c82bdd01.svg){ .locator data-strip="illustrations/strip-0324278002.svg" }
-
-- `Aabb::empty()` is inverted (min > max), so a scene can start with no box and `grow` one point at a time.
-- `placed` transforms the eight corners; conservative for rotations, exact for translations.
-
-![Diagram: Aabb::empty · Aabb min · max · world box · queries](illustrations/02-02.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
-<!-- file: 02 session_viewer/src/math.rs type lines=72-126 -->
-
-- `corners` returns all eight, not the two extremes: a rotation moves a corner that was not extreme into one that is.
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
-<!-- file: 02 session_viewer/src/math.rs type lines=127-157 -->
-
-## Step 3 · Recover camera facts from the matrix
-
-![Where this step sits in the viewer: State, with 5 of 12 zones built so far.](illustrations/locator-c2c82bdd01.svg){ .locator data-strip="illustrations/strip-0324278002.svg" }
-
-- Draw lanes receive only the view-projection, never the camera.
-- The eye is where clip x, y and w vanish together: one 3×3 solve.
-- Orthographic has no eye; the fallback is the view direction pushed far back.
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
-<!-- file: 02 session_viewer/src/math.rs type lines=158-223 -->
+- Draw lanes receive only the view-projection, never the camera, so the two camera facts they need are read off the matrix: `Xform::eye` is where clip x, y and w vanish together (one 3×3 solve; orthographic has no eye, so the view direction is pushed far back), and `Xform::ortho_half_height` is the world half-height of an orthographic projection, 0 in perspective.
 
 ## Step 4 · Camera state
 
@@ -77,7 +49,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=1-52 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=1-48 -->
 
 ## Step 5 · Construction and gestures
 
@@ -89,12 +61,12 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=53-111 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=49-110 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=112-138 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=111-146 -->
 
 ## Step 6 · Projection swap that keeps the content
 
@@ -106,7 +78,7 @@ Orthographic shows content off-axis and nearer than the target plane, so a naive
 
 <span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=139-195 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=147-217 -->
 
 ## Step 7 · The view-projection
 
@@ -118,7 +90,7 @@ Orthographic shows content off-axis and nearer than the target plane, so a naive
 
 <span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=196-269 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=218-291 -->
 
 ## Step 8 · Named views, fit, extent
 
@@ -129,23 +101,23 @@ Orthographic shows content off-axis and nearer than the target plane, so a naive
 
 - `grow_extent` widens only the far-plane floor when more geometry streams in.
 
-![Diagram: set_view · Camera · fit(Aabb, aspect) · grow_extent · position · up](illustrations/02-03.svg)
+![Diagram: set_view · Camera · fit(AABB, aspect) · grow_extent · position · up](illustrations/02-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=270-298 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=292-319 -->
 
 - Fitting alone reads the scene: it centres the target on the box.
 
 <span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=299-347 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=320-377 -->
 
 - The far plane has a floor, not a value: geometry streams in after the first fit, so the camera keeps the widest extent it has ever seen instead of refitting and cutting what it already showed.
 
 <span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=348-400 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=378-442 -->
 
 ## Step 9 · Wheel response
 
@@ -156,7 +128,7 @@ Orthographic shows content off-axis and nearer than the target plane, so a naive
 
 <span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs copy lines=401-514 -->
+<!-- file: 02 session_viewer/src/camera.rs copy lines=443-535 -->
 
 <!-- check: 02 -->
 
@@ -196,14 +168,14 @@ Dragging twice as far on a high-DPI display: look at the `self.scale` conversion
 
 <!-- tree: 02 session_viewer/src -->
 
-- `Camera` owns view state; `math.rs` owns the shared matrix and box helpers.
+- `Camera` owns view state; the kernel's `Xform` and `AABB` own the matrix and box arithmetic.
 - Data flow: gesture → `Camera` → `Xform` → `[f32; 16]` → uniform → `mvp` in the shader.
 
-**Production equivalent:** `src/camera.rs` and `src/math.rs`.
+**Production equivalent:** `src/camera.rs`.
 
 ## Try
 
-- Change `FOVY_DEG` in `math.rs` and reload: almost nothing moves. `fit` derives the distance from the same constant, so a wider field of view pulls the camera in by as much as it widens the view. Comment out the `camera.fit(...)` call in `open` first, and the triangle then grows or shrinks with the constant.
+- Change `FOVY_DEG` in `camera.rs` and reload: almost nothing moves. `fit` derives the distance from the same constant, so a wider field of view pulls the camera in by as much as it widens the view. Comment out the `camera.fit(...)` call in `open` first, and the triangle then grows or shrinks with the constant.
 - Add `camera.perspective = true;` after the `set_view(View::Top)` call in `open` and orbit: `set_view` switches to orthographic, so this checkpoint starts parallel — with perspective back on, the far edge shrinks and the wheel walks the eye towards the triangle instead of scaling the whole picture.
 - Pan with Shift held and release far from the origin, then zoom with the wheel: the point under the cursor stays under the cursor.
 
@@ -211,9 +183,9 @@ Dragging twice as far on a high-DPI display: look at the `self.scale` conversion
 
 **`index = col * 4 + row`. Why does the convention matter more than the formula?**
 
-*How to work it out.* Indexing the other way gives the transpose — still a valid 4×4 matrix, so nothing errors. Three parties have an opinion: the kernel's `Xform`, this file, and WGSL's `m * v`. One convention, no runtime check.
+*How to work it out.* Indexing the other way gives the transpose — still a valid 4×4 matrix, so nothing errors. Three parties have an opinion: the kernel's `Xform`, `camera.rs`, and WGSL's `m * v`. One convention, no runtime check.
 
-*The answer.* The wrong one is silent: a transposed matrix multiplies and produces a plausibly wrong picture — the object rotates about the wrong point, or translates when it should scale. `math.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
+*The answer.* The wrong one is silent: a transposed matrix multiplies and produces a plausibly wrong picture — the object rotates about the wrong point, or translates when it should scale. `camera.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
 
 **Reverse-Z needs three things to agree. Which three?**
 

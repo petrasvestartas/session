@@ -1,130 +1,28 @@
 diff --git a/src/app/gizmo.rs b/src/app/gizmo.rs
 --- a/src/app/gizmo.rs
 +++ b/src/app/gizmo.rs
-@@ -16,7 +16,7 @@
- use session_rust::{Point, Vector};
+@@ -2,7 +2,7 @@ use session_rust::intersection::{line_line_parameters, line_plane};
+ use session_rust::{Line, Plane, Point, Vector, Xform};
  
  /// The one length everything else is a fraction of, in CSS pixels.
 -pub const ARM: f64 = 72.0;
 +pub const ARM: f64 = 96.0;
+ 
  /// Axis scale balls, on the same side as the arrows so pulling out always grows.
  pub const BALL_AT: f64 = ARM * 0.5;
- /// Grab radius. Wider than the 6 px pick radius because a handle is grabbed, not aimed at.
-@@ -112,7 +112,11 @@
- 
- impl Gizmo {
-     pub fn new(origin: Point) -> Self {
--        Self { origin, hovered: None, drag: None }
-+        Self {
-+            origin,
-+            hovered: None,
-+            drag: None,
-+        }
-     }
- 
-     /// Move the widget and forget any interaction: a new selection is not a continued drag.
-@@ -184,20 +188,36 @@
-             Handle::Rotate(axis) => Drag {
-                 handle,
-                 grabbed: self.origin.clone(),
--                angle: angle_in_plane(&plane_hit(from, dir, &self.origin, &axis.unit())?, &self.origin, axis),
-+                angle: angle_in_plane(
-+                    &plane_hit(from, dir, &self.origin, &axis.unit())?,
-+                    &self.origin,
-+                    axis,
-+                ),
-                 reach: 1.0,
-                 plane: axis.unit(),
-             },
-             Handle::Scale(axis) => {
-                 let p = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
-                 let reach = dot(&sub(&p, &self.origin), &axis.unit());
--                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: axis.unit() }
-+                Drag {
-+                    handle,
-+                    grabbed: p,
-+                    angle: 0.0,
-+                    reach: nonzero(reach),
-+                    plane: axis.unit(),
-+                }
-             }
-             Handle::ScaleUniform => {
-                 let normal = facing(dir);
-                 let p = plane_hit(from, dir, &self.origin, &normal)?;
-                 let reach = length(&sub(&p, &self.origin));
--                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: normal }
-+                Drag {
-+                    handle,
-+                    grabbed: p,
-+                    angle: 0.0,
-+                    reach: nonzero(reach),
-+                    plane: normal,
-+                }
-             }
-         };
-         self.drag = Some(drag.clone());
-@@ -294,7 +314,11 @@
- }
- 
- fn nonzero(v: f64) -> f64 {
--    if v.abs() < 1e-9 { 1e-9_f64.copysign(if v < 0.0 { -1.0 } else { 1.0 }) } else { v }
-+    if v.abs() < 1e-9 {
-+        1e-9_f64.copysign(if v < 0.0 { -1.0 } else { 1.0 })
-+    } else {
-+        v
-+    }
- }
- 
- /// The world axis a ray runs most along: the plane to measure a uniform scale in, chosen so the
-@@ -461,7 +485,11 @@
-         let (f, d) = down(-r, -r);
-         assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Rotate(Axis::Z)));
-         let (f, d) = down(ARM, 0.0);
--        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Translate(Axis::X)), "the arm tip is not an arc");
-+        assert_eq!(
-+            g.hit(&f, &d, SCALE),
-+            Some(Handle::Translate(Axis::X)),
-+            "the arm tip is not an arc"
-+        );
-         let (f, d) = down(ARM * 3.0, ARM * 3.0);
-         assert_eq!(g.hit(&f, &d, SCALE), None);
-     }
-@@ -498,7 +526,9 @@
-     fn a_translate_drag_moves_along_its_axis_only() {
-         let mut g = at_origin();
-         let (f0, d0) = down(30.0, 0.0);
--        let drag = g.begin(Handle::Translate(Axis::X), &f0, &d0).expect("grabbed");
-+        let drag = g
-+            .begin(Handle::Translate(Axis::X), &f0, &d0)
-+            .expect("grabbed");
-         let (f1, d1) = down(42.0, 0.0);
-         let m = g.update(&drag, &f1, &d1).expect("a transform");
-         assert!((m[12] - 12.0).abs() < 1e-9);
-@@ -540,7 +570,10 @@
- 
-         let (f1, d1) = down(BALL_AT * 4.0, 0.0);
-         let grown = g.update(&drag, &f1, &d1).expect("a transform");
--        assert!(grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0, "one axis only");
-+        assert!(
-+            grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0,
-+            "one axis only"
-+        );
- 
-         let (f2, d2) = down(-BALL_AT * 4.0, 0.0);
-         let flipped = g.update(&drag, &f2, &d2).expect("a transform");
 diff --git a/src/app/input.rs b/src/app/input.rs
 --- a/src/app/input.rs
 +++ b/src/app/input.rs
-@@ -162,7 +162,7 @@
-                     }
+@@ -155,7 +155,7 @@ impl Input {
                  }
+ 
                  self.last_cursor = (position.x, position.y);
 -                dragging
 +                dragging || state.hover_gizmo(position.x, position.y)
              }
              WindowEvent::MouseWheel { delta, .. } => {
                  let amount = match delta {
-@@ -233,11 +233,11 @@
+@@ -227,12 +227,12 @@ impl Input {
      fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
          match btn {
              ElementState::Pressed => {
@@ -133,36 +31,16 @@ diff --git a/src/app/input.rs b/src/app/input.rs
                      self.control_drag = true;
                      return false;
                  }
+ 
 -                if state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
 +                if !self.ctrl && state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
                      self.gizmo_drag = true;
                      return false;
                  }
-@@ -396,8 +396,8 @@
-         proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
-     ) -> Result<Self, wasm_bindgen::JsValue> {
-         use wasm_bindgen::JsCast;
--        let callback =
--            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-+        let callback = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
-+            move |event: web_sys::Event| {
-                 let Some(target) = event.target() else { return };
-                 let Ok(element) = target.dyn_into::<web_sys::Element>() else {
-                     return;
-@@ -409,7 +409,8 @@
-                 // with it - including the `L` that closes the panel being clicked.
-                 crate::app::feedback::focus_canvas();
-                 let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
--            });
-+            },
-+        );
-         panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;
-         Ok(Self { panel, callback })
-     }
 diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 --- a/src/engine/gpu/mod.rs
 +++ b/src/engine/gpu/mod.rs
-@@ -26,6 +26,8 @@
+@@ -21,6 +21,8 @@ pub mod text_outline;
  mod triangle_tiles;
  pub mod upload;
  pub mod view;
@@ -171,21 +49,17 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
  
  use crate::engine::performance::Performance;
  use crate::engine::pipelines::{Layouts, Target};
-@@ -71,11 +73,8 @@
+@@ -65,8 +67,7 @@ pub struct Gpu {
      pub glyphs: GlyphLane,
      pub controls: GlyphLane,
      pub control_net: SegmentLane,
--    /// The move/rotate/scale widget, drawn by the same two lane types the control net uses:
--    /// three arms and their balls are strokes and markers, so the widget costs no shader and
--    /// no pipeline of its own.
--    pub gizmo_arms: SegmentLane,
+-    pub gizmo_arms: SegmentLane, // The move/rotate/scale widget, drawn by the same two lane types the control net uses: three arms and their balls are strokes and markers, so the widget costs no shader and no pipeline of its own.
 -    pub gizmo_dots: GlyphLane,
-+    /// A fixed mesh with independent depth for overlapping manipulation handles.
-+    pub widget: widget::Widget,
++    pub widget: widget::Widget, // A fixed mesh with independent depth for overlapping manipulation handles.
      pub text: text::TextLane,
      pub selection_outline: surface_outline::SurfaceOutline,
      pub solid_outline: surface_outline::SurfaceOutline,
-@@ -108,8 +107,7 @@
+@@ -96,8 +97,7 @@ impl Gpu {
              + self.glyphs.allocated_bytes()
              + self.controls.allocated_bytes()
              + self.control_net.allocated_bytes()
@@ -195,7 +69,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
              + self.cloud.allocated_bytes()
              + self.objects.allocated_bytes()
              + self.frame.allocated_bytes()
-@@ -129,6 +127,7 @@
+@@ -117,6 +117,7 @@ impl Gpu {
          (
              buffers,
              frame_textures
@@ -203,7 +77,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
                  + self.arena.tiles.allocated_bytes().1
                  + splat_textures
                  + pick_textures
-@@ -185,8 +184,7 @@
+@@ -173,8 +174,7 @@ impl Gpu {
          let glyphs = GlyphLane::new(&ctx, &layouts, target);
          let controls = GlyphLane::new(&ctx, &layouts, target);
          let control_net = SegmentLane::new(&ctx, &layouts, target);
@@ -213,7 +87,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
          let text = text::TextLane::new(&ctx, target);
          let selection_outline = surface_outline::SurfaceOutline::new(
              &ctx,
-@@ -222,8 +220,7 @@
+@@ -210,8 +210,7 @@ impl Gpu {
              glyphs,
              controls,
              control_net,
@@ -223,7 +97,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
              text,
              selection_outline,
              solid_outline,
-@@ -267,21 +264,6 @@
+@@ -257,17 +256,6 @@ impl Gpu {
          self.rebind_ink();
      }
  
@@ -231,11 +105,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 -    ///
 -    /// The rows are built by the caller, which knows the camera; this owns the two lanes and
 -    /// the borrow of the device, so the widget's drawing is one call rather than four.
--    pub fn set_widget_rows(
--        &mut self,
--        segments: &segments::SegRows,
--        glyphs: &glyphs::GlyphRows,
--    ) {
+-    pub fn set_widget_rows(&mut self, segments: &segments::SegRows, glyphs: &glyphs::GlyphRows) {
 -        self.gizmo_arms.reset();
 -        self.gizmo_dots.reset();
 -        self.gizmo_arms.append(&self.ctx, &self.layouts, segments);
@@ -245,12 +115,10 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
      /// Grow the scene's bounds by a row that moved.
      ///
      /// `bounds` is the union every reader frames against - `fit`, and the far plane through
-@@ -293,19 +275,6 @@
-         if let Some(box_) = self.objects.row_bounds(row) {
-             self.bounds.union(&box_);
+@@ -281,21 +269,6 @@ impl Gpu {
          }
--    }
--
+     }
+ 
 -    /// The identity row the widgets draw against, minting it the first time.
 -    ///
 -    /// Minting it can grow the instance buffers, and group 2 for INK binds those same buffers,
@@ -258,14 +126,18 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 -    /// and a caller that forgot would have them draw against a buffer nobody owns.
 -    pub fn widget_row(&mut self) -> u32 {
 -        let (row, grew) = self.objects.widget_row(&self.ctx, &self.layouts);
+-
 -        if grew {
 -            self.rebind_ink();
 -        }
+-
 -        row
-     }
- 
+-    }
+-
      /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
-@@ -351,8 +320,7 @@
+     fn rebind_ink(&mut self) {
+         self.objects.rebind_ink(
+@@ -341,8 +314,7 @@ impl Gpu {
              self.glyphs.retarget(&self.ctx, &self.layouts, target);
              self.controls.retarget(&self.ctx, &self.layouts, target);
              self.control_net.retarget(&self.ctx, &self.layouts, target);
@@ -275,7 +147,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
              self.text.retarget(&self.ctx, target);
              self.selection_outline.retarget(&self.ctx, target);
              self.solid_outline.retarget(&self.ctx, target);
-@@ -418,8 +386,7 @@
+@@ -413,8 +385,7 @@ impl Gpu {
          self.glyphs.reset();
          self.controls.reset();
          self.control_net.reset();
@@ -285,7 +157,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
          self.text.reset();
          self.selection_outline.reset();
          self.solid_outline.reset();
-@@ -438,8 +405,7 @@
+@@ -433,8 +404,7 @@ impl Gpu {
          self.glyphs.release(&self.ctx, &self.layouts);
          self.controls.release(&self.ctx, &self.layouts);
          self.control_net.release(&self.ctx, &self.layouts);
@@ -298,7 +170,7 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 diff --git a/src/engine/gpu/present.rs b/src/engine/gpu/present.rs
 --- a/src/engine/gpu/present.rs
 +++ b/src/engine/gpu/present.rs
-@@ -18,6 +18,13 @@
+@@ -14,6 +14,13 @@ impl Gpu {
              pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
          };
          self.frame.write(&self.ctx, input, &cx);
@@ -315,16 +187,16 @@ diff --git a/src/engine/gpu/present.rs b/src/engine/gpu/present.rs
 diff --git a/src/engine/gpu/render.rs b/src/engine/gpu/render.rs
 --- a/src/engine/gpu/render.rs
 +++ b/src/engine/gpu/render.rs
-@@ -126,6 +126,7 @@
-         if let Some(at) = self.pick.take_pending() {
+@@ -133,6 +133,7 @@ impl Gpu {
              self.id_pass(encoder, Some(at));
          }
+ 
 +        draws += self.widget.draw(encoder, view, &self.targets);
          (draws, self.objects.len())
      }
  
-@@ -194,9 +195,7 @@
-         }
+@@ -207,9 +208,7 @@ impl Gpu {
+ 
          draws += self.control_net.draw_ribbons(pass, &b);
          draws += self.controls.draw_dots(pass, &b);
 -        // Last of the ink list, so the widget is drawn over the object it moves.
@@ -338,7 +210,7 @@ diff --git a/src/engine/gpu/widget.rs b/src/engine/gpu/widget.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/engine/gpu/widget.rs
-@@ -0,0 +1,381 @@
+@@ -0,0 +1,390 @@
 +use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 +use super::targets::{Attachment, Targets, TextureSpec};
 +use super::widget_mesh;
@@ -455,16 +327,19 @@ new file mode 100644
 +            extent.0.div_ceil(64).clamp(1, 16) * 64,
 +            extent.1.div_ceil(64).clamp(1, 16) * 64,
 +        );
++
 +        if self.tile.as_ref().is_none_or(|tile| tile.size != extent) {
 +            self.tile = None;
 +            self.tile = Some(Tile::new(ctx, &self.texture_layout, extent));
 +        }
++
 +        let mut uniform = [0.0_f32; 24];
 +        let [x, y, width, height] = rect;
 +        let sx = size.0 as f64 / width;
 +        let sy = size.1 as f64 / height;
 +        let tx = (size.0 as f64 - 2.0 * x - width) / width;
 +        let ty = (2.0 * y + height - size.1 as f64) / height;
++
 +        for column in 0..4 {
 +            let at = column * 4;
 +            uniform[at] = (sx * matrix.m[at] + tx * matrix.m[at + 3]) as f32;
@@ -472,6 +347,7 @@ new file mode 100644
 +            uniform[at + 2] = matrix.m[at + 2] as f32;
 +            uniform[at + 3] = matrix.m[at + 3] as f32;
 +        }
++
 +        uniform[16] = (2.0 * x / size.0 as f64 - 1.0) as f32;
 +        uniform[17] = (1.0 - 2.0 * y / size.1 as f64) as f32;
 +        uniform[18] = (2.0 * width / size.0 as f64) as f32;
@@ -691,6 +567,7 @@ new file mode 100644
 +    let radius = crate::app::gizmo::ARM + 2.0;
 +    let mut min = [f64::INFINITY; 2];
 +    let mut max = [f64::NEG_INFINITY; 2];
++
 +    for corner in 0..8 {
 +        let p = std::array::from_fn::<_, 3, _>(|i| {
 +            if corner & (1 << i) == 0 {
@@ -702,18 +579,22 @@ new file mode 100644
 +        let c = std::array::from_fn::<_, 4, _>(|i| {
 +            m[i] * p[0] + m[4 + i] * p[1] + m[8 + i] * p[2] + m[12 + i]
 +        });
++
 +        if c[3] <= 0.0 {
 +            return None;
 +        }
++
 +        let screen = [
 +            (c[0] / c[3] * 0.5 + 0.5) * size.0 as f64,
 +            (0.5 - c[1] / c[3] * 0.5) * size.1 as f64,
 +        ];
++
 +        for i in 0..2 {
 +            min[i] = min[i].min(screen[i]);
 +            max[i] = max[i].max(screen[i]);
 +        }
 +    }
++
 +    let x = (min[0] - 2.0).floor().max(0.0);
 +    let y = (min[1] - 2.0).floor().max(0.0);
 +    let width = (max[0] + 2.0).ceil().min(size.0 as f64) - x;
@@ -724,7 +605,7 @@ diff --git a/src/engine/gpu/widget_mesh.rs b/src/engine/gpu/widget_mesh.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/engine/gpu/widget_mesh.rs
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,124 @@
 +use crate::app::gizmo::{ARM, BALL_AT, HUB};
 +use std::f32::consts::{FRAC_PI_2, PI, TAU};
 +
@@ -737,13 +618,17 @@ new file mode 100644
 +}
 +
 +const COLORS: [u32; 3] = [0xff2424e8, 0xff30b820, 0xffef6628];
++
 +const SIDES: usize = 24;
++
 +const SHAFT: f32 = 2.2;
++
 +const TIP: f32 = 14.0;
 +
 +/// One immutable mesh in CSS-pixel units, with ten independently highlighted handles.
 +pub fn vertices() -> Vec<Vertex> {
 +    let mut out = Vec::with_capacity(18_576);
++
 +    for (axis, color) in COLORS.into_iter().enumerate() {
 +        let arm = ARM as f32;
 +        let shaft = [(HUB as f32, SHAFT), (arm - TIP, SHAFT)];
@@ -763,6 +648,7 @@ new file mode 100644
 +            orient(position, axis)
 +        });
 +    }
++
 +    sphere(&mut out, 0, 0.0, HUB as f32, 0xffd8d8d8, 9);
 +    out
 +}
@@ -830,6 +716,7 @@ new file mode 100644
 +        let mesh = vertices();
 +        assert!(mesh.len() < 20_000);
 +        let mut handles = [false; 10];
++
 +        for vertex in mesh {
 +            handles[vertex.handle as usize] = true;
 +            assert!(
@@ -839,6 +726,7 @@ new file mode 100644
 +                    .all(|v| v.is_finite() && v.abs() <= ARM as f32 + 2.0)
 +            );
 +        }
++
 +        assert!(handles.into_iter().all(|v| v));
 +    }
 +}
@@ -846,12 +734,13 @@ diff --git a/src/shaders/widget.wgsl b/src/shaders/widget.wgsl
 new file mode 100644
 --- /dev/null
 +++ b/src/shaders/widget.wgsl
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,54 @@
 +struct Widget {
 +    mvp: mat4x4<f32>,
 +    rect: vec4<f32>,
 +    settings: vec4<f32>,
 +};
++
 +@group(0) @binding(0) var<uniform> widget: Widget;
 +@group(1) @binding(0) var picture: texture_2d<f32>;
 +@group(1) @binding(1) var picture_sampler: sampler;
@@ -860,17 +749,21 @@ new file mode 100644
 +    @builtin(position) position: vec4<f32>,
 +    @location(0) color: vec3<f32>,
 +};
++
 +@vertex
 +fn vs_main(@location(0) position: vec3<f32>, @location(1) color: u32,
 +           @location(2) handle: u32) -> Varying {
 +    var out: Varying;
 +    out.position = widget.mvp * vec4<f32>(position, 1.0);
 +    out.color = unpack4x8unorm(color).rgb;
++
 +    if f32(handle) == widget.settings.x {
 +        out.color = vec3<f32>(0.95, 0.65, 0.08);
 +    }
++
 +    return out;
 +}
++
 +@fragment
 +fn fs_main(in: Varying) -> @location(0) vec4<f32> {
 +    return vec4<f32>(in.color, 1.0);
@@ -880,6 +773,7 @@ new file mode 100644
 +    @builtin(position) position: vec4<f32>,
 +    @location(0) uv: vec2<f32>,
 +};
++
 +@vertex
 +fn vs_composite(@builtin(vertex_index) index: u32) -> Composite {
 +    let corners = array<vec2<f32>, 6>(vec2(0., 0.), vec2(1., 0.), vec2(1., 1.),
@@ -889,6 +783,7 @@ new file mode 100644
 +    out.position = vec4<f32>(widget.rect.xy + out.uv * widget.rect.zw, 0., 1.);
 +    return out;
 +}
++
 +@fragment
 +fn fs_composite(in: Composite) -> @location(0) vec4<f32> {
 +    let pixel = textureSample(picture, picture_sampler, in.uv);
@@ -897,35 +792,33 @@ new file mode 100644
 diff --git a/src/state.rs b/src/state.rs
 --- a/src/state.rs
 +++ b/src/state.rs
-@@ -427,6 +427,7 @@
+@@ -420,6 +420,7 @@ impl State {
      /// back is applied first, so the same frame presents its highlight; a pick requested on
      /// a still scene runs alone, with no colour frame to wait behind.
      pub fn render(&mut self) {
 +        self.upload_gizmo();
          let logical = self.logical_size();
+ 
          if logical != self.gpu.logical_size {
-             self.gpu.logical_size = logical;
 diff --git a/src/state/edit.rs b/src/state/edit.rs
 --- a/src/state/edit.rs
 +++ b/src/state/edit.rs
-@@ -10,14 +10,10 @@
- 
+@@ -1,13 +1,9 @@
  use crate::app::command::Command;
  use crate::app::cplane::CPlane;
+-use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, HUB, Handle};
 +use crate::app::gizmo::{Axis, Drag, Gizmo, Handle};
-+use crate::app::layers::{self, Layer};
+ use crate::app::layers::{self, Layer};
  use crate::app::selection::ControlId;
  use crate::app::snap::{self, Snap, SnapKind};
--use crate::app::layers::{self, Layer};
--use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, HUB, Handle};
 -use crate::app::walk::encode::FACING_UNKNOWN;
--use crate::state::render_position;
 -use crate::engine::gpu::glyphs::{GlyphPoint, GlyphRows};
 -use crate::engine::gpu::segments::{CylinderSegment, SegRows};
+-use crate::state::render_position;
  use crate::state::{SelectionMode, State};
  use session_rust::{Point, Vector, Xform};
  
-@@ -235,6 +231,18 @@
+@@ -227,6 +223,19 @@ impl State {
      /// is multiplied back up by the physical-per-CSS ratio. Without that the widget is half
      /// size on a 2x display - drawn half size, and grabbable only within half the radius.
      fn world_per_px(&self) -> f64 {
@@ -941,10 +834,11 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 +            let vertical = (m[1] * m[1] + m[5] * m[5] + m[9] * m[9]).sqrt();
 +            return 2.0 * w.abs() / (vertical * self.logical_size()[1]).max(1e-12);
 +        }
++
          world_per_css_px(
              self.camera.distance_world(),
              self.viewport().1,
-@@ -274,137 +282,47 @@
+@@ -269,141 +278,49 @@ fn world_per_css_px(world_distance: f64, physical_height: f64, physical_per_css:
      per_physical * physical_per_css
  }
  
@@ -980,34 +874,13 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 +    /// Update the fixed mesh placement without rebuilding its vertices.
      pub fn upload_gizmo(&mut self) {
          let Some(gizmo) = self.gizmo.as_ref() else {
--            self.gpu.set_widget_rows(&SegRows::default(), &GlyphRows::default());
+-            self.gpu
+-                .set_widget_rows(&SegRows::default(), &GlyphRows::default());
 +            self.gpu.widget.clear();
              return;
          };
 -        let origin = gizmo.origin.clone();
-+        self.gpu.widget.placement = Some((
-+            [gizmo.origin[0], gizmo.origin[1], gizmo.origin[2]],
-+            self.world_per_px(),
-+        ));
-+        let handle = self
-+            .dragging
-+            .as_ref()
-+            .map(|drag| drag.drag.handle)
-+            .or(gizmo.hovered);
-+        self.gpu.widget.active = match handle {
-+            Some(Handle::Translate(axis)) => axis as u32 as f32,
-+            Some(Handle::Rotate(axis)) => axis as u32 as f32 + 3.0,
-+            Some(Handle::Scale(axis)) => axis as u32 as f32 + 6.0,
-+            Some(Handle::ScaleUniform) => 9.0,
-+            None => -1.0,
-+        };
-+    }
-+
-+    pub fn hover_gizmo(&mut self, x: f64, y: f64) -> bool {
-+        let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
-+            return false;
-+        };
-         let per_px = self.world_per_px();
+-        let per_px = self.world_per_px();
 -        // The marker lane reads a negative radius as PHYSICAL pixels; the widget's sizes are in
 -        // CSS pixels, like every other size a person sees.
 -        let scale = self.pixel_scale();
@@ -1023,12 +896,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -/// A free function of an origin and two scales, so what the gumball would draw can be checked
 -/// without a window, a camera or a device - which is the only reason the thing was ever
 -/// checkable at all on a machine whose browser renders it black.
--fn widget_rows(
--    origin: &Point,
--    per_px: f64,
--    pixel_scale: f64,
--    widget: u32,
--) -> (SegRows, GlyphRows) {
+-fn widget_rows(origin: &Point, per_px: f64, pixel_scale: f64, widget: u32) -> (SegRows, GlyphRows) {
 -    let arm = ARM * per_px;
 -    let ball = BALL_AT * per_px;
 -    let mut segments = SegRows::default();
@@ -1041,6 +909,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -        instance_id: widget,
 -        facing: FACING_UNKNOWN,
 -    };
+-
 -    for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
 -        let u = axis.unit();
 -        let at = |d: f64| {
@@ -1050,9 +919,14 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -                origin[2] + u[2] * d,
 -            ]
 -        };
--        segments
--            .ribbons
--            .push(stroke([origin[0], origin[1], origin[2]], at(arm), AXIS_COLORS[i]));
+-        segments.ribbons.push(stroke(
+-            [origin[0], origin[1], origin[2]],
+-            at(arm),
+-            AXIS_COLORS[i],
++        self.gpu.widget.placement = Some((
++            [gizmo.origin[0], gizmo.origin[1], gizmo.origin[2]],
++            self.world_per_px(),
+         ));
 -        glyphs.dots.push(GlyphPoint {
 -            center: render_position(at(ball)),
 -            radius: -(BALL_PX * pixel_scale) as f32,
@@ -1061,13 +935,27 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -            facing: FACING_UNKNOWN,
 -            facing_ext: [FACING_UNKNOWN; 2],
 -        });
--    }
++        let handle = self
++            .dragging
++            .as_ref()
++            .map(|drag| drag.drag.handle)
++            .or(gizmo.hovered);
++        self.gpu.widget.active = match handle {
++            Some(Handle::Translate(axis)) => axis as u32 as f32,
++            Some(Handle::Rotate(axis)) => axis as u32 as f32 + 3.0,
++            Some(Handle::Scale(axis)) => axis as u32 as f32 + 6.0,
++            Some(Handle::ScaleUniform) => 9.0,
++            None => -1.0,
++        };
+     }
+ 
 -    // The three rotation arcs, drawn where `Gizmo::hit` tests for them: a quarter circle at the
 -    // arm's radius, in the quadrant both arms avoid. An arc that is hit-tested and not drawn is
 -    // an invisible ring that swallows clicks.
 -    for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
 -        let (u, v) = arc_axes(axis);
 -        let mut previous: Option<[f64; 3]> = None;
+-
 -        for step in 0..=ARC_STEPS {
 -            let t = std::f64::consts::FRAC_PI_2 * f64::from(step) / f64::from(ARC_STEPS);
 -            let (c, d) = (-t.cos() * arm, -t.sin() * arm);
@@ -1076,12 +964,26 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -                origin[1] + u[1] * c + v[1] * d,
 -                origin[2] + u[2] * c + v[2] * d,
 -            ];
+-
 -            if let Some(from) = previous {
 -                segments.ribbons.push(stroke(from, at, AXIS_COLORS[i]));
 -            }
++    pub fn hover_gizmo(&mut self, x: f64, y: f64) -> bool {
++        let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
++            return false;
++        };
++        let per_px = self.world_per_px();
++        let Some(gizmo) = self.gizmo.as_mut() else {
++            return false;
++        };
++        let hovered = gizmo.hit(&from, &dir, per_px);
+ 
 -            previous = Some(at);
--        }
++        if gizmo.hovered == hovered {
++            return false;
+         }
 -    }
+ 
 -    glyphs.dots.push(GlyphPoint {
 -        center: render_position([origin[0], origin[1], origin[2]]),
 -        radius: -(HUB * pixel_scale) as f32,
@@ -1103,13 +1005,6 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -        ((packed >> 16) & 0xff) as f32 / 255.0,
 -        ((packed >> 24) & 0xff) as f32 / 255.0,
 -    ]
-+        let Some(gizmo) = self.gizmo.as_mut() else {
-+            return false;
-+        };
-+        let hovered = gizmo.hit(&from, &dir, per_px);
-+        if gizmo.hovered == hovered {
-+            return false;
-+        }
 +        gizmo.hovered = hovered;
 +        self.upload_gizmo();
 +        true
@@ -1117,11 +1012,10 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
  }
  
  impl State {
-@@ -772,41 +690,6 @@
- #[cfg(test)]
+@@ -801,45 +718,6 @@ const SNAP_APERTURE_PX: f64 = 12.0;
  mod tests {
      use super::*;
--
+ 
 -    /// What the widget would draw, without a window or a device: the counts, where the arms
 -    /// end, and that every colour is what the lane will read. The gumball could not be seen on
 -    /// the machine it was written on, so this is the check that it is there at all.
@@ -1151,15 +1045,20 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -            unpacked[0] > 0.8 && unpacked[1] < 0.2 && unpacked[2] < 0.2,
 -            "X is red on both sides, {unpacked:?}"
 -        );
--        assert_eq!(glyphs.dots[3].color, [1.0, 1.0, 1.0, 1.0], "the hub is white");
+-        assert_eq!(
+-            glyphs.dots[3].color,
+-            [1.0, 1.0, 1.0, 1.0],
+-            "the hub is white"
+-        );
 -
 -        // The balls are screen-sized, which the lane reads as a NEGATIVE radius.
 -        assert!(glyphs.dots.iter().all(|d| d.radius < 0.0));
 -    }
- 
+-
      /// The gumball, rendered. A headless device draws the same frame twice - once without the
      /// widget and once with it - and the pixels that changed are the widget.
-@@ -841,10 +724,8 @@
+     ///
+@@ -873,10 +751,8 @@ mod tests {
          };
          let before = gpu.render_offscreen(&input);
  
@@ -1172,7 +1071,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
          let after = gpu.render_offscreen(&input);
  
          let (mut red, mut green, mut blue, mut changed) = (0, 0, 0, 0);
-@@ -872,26 +753,6 @@
+@@ -908,30 +784,6 @@ mod tests {
          );
      }
  
@@ -1186,11 +1085,15 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 -        // where both in-plane coordinates are negative.
 -        let z_arc = &segments.ribbons[3 + 2 * ARC_STEPS as usize..];
 -        assert_eq!(z_arc.len(), ARC_STEPS as usize);
+-
 -        for segment in z_arc {
 -            for p in [segment.p0, segment.p1] {
 -                let r = (f64::from(p[0]).powi(2) + f64::from(p[1]).powi(2)).sqrt();
 -                assert!((r - ARM * per_px).abs() < 0.5, "on the arm's circle: {r}");
--                assert!(p[0] <= 1e-3 && p[1] <= 1e-3, "in the quadrant hit() tests: {p:?}");
+-                assert!(
+-                    p[0] <= 1e-3 && p[1] <= 1e-3,
+-                    "in the quadrant hit() tests: {p:?}"
+-                );
 -                assert!(p[2].abs() < 1e-6, "in the plane normal to Z");
 -            }
 -        }
@@ -1199,29 +1102,3 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
      /// The conversion the widget's size depends on. A 2x display has twice the physical pixels
      /// for the same CSS pixel, so one CSS pixel is twice as much world - and the arm that is
      /// 72 CSS pixels long stays 72 CSS pixels long.
-@@ -899,7 +760,10 @@
-     fn a_css_pixel_is_worth_more_world_on_a_denser_display() {
-         let one_to_one = world_per_css_px(1000.0, 800.0, 1.0);
-         let retina = world_per_css_px(1000.0, 1600.0, 2.0);
--        assert!((one_to_one - retina).abs() < 1e-9, "the same CSS pixel, either way");
-+        assert!(
-+            (one_to_one - retina).abs() < 1e-9,
-+            "the same CSS pixel, either way"
-+        );
- 
-         let closer = world_per_css_px(500.0, 800.0, 1.0);
-         assert!(closer < one_to_one, "nearer camera, less world in a pixel");
-@@ -910,6 +774,10 @@
-                 < 1e-9,
-             "the answer scales with the distance, so the distance must be in world units"
-         );
--        assert_eq!(world_per_css_px(1000.0, 0.0, 1.0), 1.0, "no surface, no answer");
--    }
--}
-+        assert_eq!(
-+            world_per_css_px(1000.0, 0.0, 1.0),
-+            1.0,
-+            "no surface, no answer"
-+        );
-+    }
-+}

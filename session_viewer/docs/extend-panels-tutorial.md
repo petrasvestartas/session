@@ -45,8 +45,11 @@ use std::ops::Range;
 use std::rc::Rc;
 
 const MAX_NODES: usize = 200_000;
+
 const MAX_ROWS: usize = 1_000_000;
+
 pub const PAGE_SIZE: usize = 128;
+
 type Lookup = HashMap<usize, HashMap<Rc<str>, u32>>;
 
 pub struct Node {
@@ -80,10 +83,13 @@ impl Hierarchy {
         self.nodes.clear();
         self.rows.clear();
         self.truncated = scene.object_count() > MAX_NODES;
+
         if self.truncated {
             return;
         }
+
         let mut lookup = Lookup::new();
+
         for row in 0..scene.object_count() as u32 {
             if let Some(identity) = scene.identity_of(row) {
                 lookup
@@ -92,9 +98,11 @@ impl Hierarchy {
                     .insert(identity.1, row);
             }
         }
+
         for (doc, file) in scene.docs.iter().enumerate() {
             let start = self.nodes.len();
             let rows = self.rows.len();
+
             if !self.tree(scene, doc, &lookup)
                 || !self.graph(&file.session, doc, &file.name, &lookup)
             {
@@ -104,53 +112,68 @@ impl Hierarchy {
                 break;
             }
         }
+
         self.open.retain(|index| *index < self.nodes.len());
     }
 
     fn tree(&mut self, scene: &Scene, doc: usize, lookup: &Lookup) -> bool {
         let file = &scene.docs[doc];
         let start = self.nodes.len();
+
         if !self.push(&file.name, 0) {
             return false;
         }
+
         let mut seen = HashSet::new();
         let mut stack = Vec::new();
+
         if let Some(root) = file.session.tree.root() {
             stack.push((root, 1, None));
         }
+
         for _ in 0..MAX_NODES * 2 {
             let Some((node, depth, exit)) = stack.pop() else {
                 break;
             };
+
             if let Some(index) = exit {
                 self.finish(index);
                 continue;
             }
+
             if !seen.insert(Rc::as_ptr(&node)) {
                 continue;
             }
+
             let borrowed = node.borrow();
             let row = row_of(lookup, doc, &borrowed.name);
             let label = row.map(|r| scene.object_name(r)).unwrap_or(&borrowed.name);
             let index = self.nodes.len();
+
             if !self.push(label, depth) {
                 return false;
             }
+
             if let Some(row) = row {
                 self.rows.push(row);
             }
+
             stack.push((Rc::clone(&node), depth, Some(index)));
             let children = borrowed.children();
+
             if stack.len() + children.len() > MAX_NODES {
                 return false;
             }
+
             for child in children.into_iter().rev() {
                 stack.push((child, depth + 1, None));
             }
         }
+
         if !stack.is_empty() {
             return false;
         }
+
         if self.rows.len() == self.nodes[start].rows.start {
             for row in 0..scene.object_count() as u32 {
                 if scene
@@ -161,6 +184,7 @@ impl Hierarchy {
                 }
             }
         }
+
         self.finish(start);
         self.rows.len() <= MAX_ROWS
     }
@@ -169,10 +193,13 @@ impl Hierarchy {
         let vertices = session.graph.number_of_vertices();
         let edges: usize = session.graph.edges.values().map(|edges| edges.len()).sum();
         let remaining = MAX_ROWS.saturating_sub(self.rows.len());
+
         if vertices > MAX_NODES || vertices > remaining || edges > remaining - vertices {
             return false;
         }
+
         let mut groups: BTreeMap<String, Vec<u32>> = BTreeMap::new();
+
         for vertex in session.graph.get_vertices() {
             if let Some(row) = row_of(lookup, doc, &vertex.name) {
                 groups
@@ -181,34 +208,42 @@ impl Hierarchy {
                     .push(row);
             }
         }
+
         for (from, edges) in &session.graph.edges {
             for (to, edge) in edges {
                 if from > to {
                     continue;
                 }
+
                 let rows = groups
                     .entry(format!("edge: {}", edge.attribute))
                     .or_default();
+
                 for guid in [from, to] {
                     if let Some(row) = row_of(lookup, doc, guid) {
                         rows.push(row);
                     }
+
                     if from == to {
                         break;
                     }
                 }
             }
         }
+
         for (label, mut rows) in groups {
             rows.sort_unstable();
             rows.dedup();
             let index = self.nodes.len();
+
             if !self.push(&format!("{name} / {label}"), 0) {
                 return false;
             }
+
             self.rows.extend(rows);
             self.finish(index);
         }
+
         true
     }
 
@@ -216,6 +251,7 @@ impl Hierarchy {
         if self.nodes.len() >= MAX_NODES {
             return false;
         }
+
         let start = self.rows.len();
         let label = label.chars().take(160).collect();
         self.nodes.push(Node {
@@ -235,6 +271,7 @@ impl Hierarchy {
     pub fn visible(&self) -> Vec<usize> {
         let mut result = Vec::new();
         let mut index = 0;
+
         for _ in 0..self.nodes.len() {
             let Some(node) = self.nodes.get(index) else {
                 break;
@@ -246,6 +283,7 @@ impl Hierarchy {
                 node.end
             };
         }
+
         result
     }
 
@@ -295,6 +333,7 @@ mod tests {
         session.add_edge(&a.borrow().name, &b.borrow().name, "joint");
         let shared = Rc::new(session);
         let mut scene = Scene::new();
+
         for name in ["first", "second"] {
             scene.add_file(FileDoc {
                 name: name.into(),
@@ -304,6 +343,7 @@ mod tests {
                 display_only: false,
             });
         }
+
         let mut index = Hierarchy::default();
         index.rebuild(&scene);
         let parent = index
@@ -359,7 +399,7 @@ pub mod hierarchy;
 **CURRENT**
 
 ```rust
-    pub last_edited: Option<usize>,
+    pub last_edited: Option<usize>, // Which document the last edit touched. Undo is per document, because the history is the document's; this is the only thing that says which one a bare Ctrl+Z means.
 ```
 
 **ADD BELOW**
@@ -401,7 +441,7 @@ pub mod hierarchy;
 **CURRENT**
 
 ```rust
-    pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Mat4, flags: u32) -> u32 {
+    pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Xform, flags: u32) -> u32 {
 ```
 
 **ADD BELOW**
@@ -507,6 +547,7 @@ mod panel;
 
 ```rust
         self.cancel_gesture();
+
         for old in self.hierarchy.selected.drain(..) {
             self.gpu.set_selected(old, false);
         }
@@ -525,9 +566,11 @@ mod panel;
 ```rust
         if !self.hierarchy.selected.is_empty() {
             let rows = std::mem::take(&mut self.hierarchy.selected);
+
             for row in &rows {
                 self.gpu.set_selected(*row, false);
             }
+
             self.set_rows_hidden(&rows, true);
             return;
         }
@@ -543,6 +586,7 @@ mod panel;
         if !self.scene.delete_row(row) {
             return;
         }
+
         self.select(None);
         self.scene.rebuild(&mut self.gpu);
         self.place_gizmo(None);
@@ -559,6 +603,7 @@ mod panel;
             self.status("This object cannot be deleted; streamed scenes cannot be rebuilt");
             return;
         }
+
         self.after_history();
     }
 ```
@@ -583,7 +628,7 @@ mod panel;
 **CURRENT**
 
 ```rust
-        }
+
         let hidden: Vec<bool> = rows
             .iter()
             .map(|&row| {
@@ -593,23 +638,29 @@ mod panel;
             })
             .collect();
         let hide = !hidden.iter().all(|&h| h);
+
         for (&row, was) in rows.iter().zip(&hidden) {
             if *was == hide {
                 continue;
             }
+
             let Some(identity) = self.scene.identity_of(row) else {
                 continue;
             };
+
             if hide {
                 self.scene.hidden.insert(identity);
             } else {
                 self.scene.hidden.remove(&identity);
             }
+
             self.gpu.set_hidden(row, hide);
         }
+
         if self.scene.selected.is_some_and(|row| rows.contains(&row)) && hide {
             self.select(None);
         }
+
         self.refresh_layers();
         self.update_label();
         self.touch();
@@ -619,7 +670,7 @@ mod panel;
 **REPLACE WITH**
 
 ```rust
-        }
+
         let hide = rows.iter().any(|&row| {
             self.scene
                 .identity_of(row)
@@ -634,7 +685,7 @@ mod panel;
 **CURRENT**
 
 ```rust
-        }
+
         let rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
             .into_iter()
 ```
@@ -642,7 +693,7 @@ mod panel;
 **REPLACE WITH**
 
 ```rust
-        }
+
         self.hierarchy.refresh(&self.scene);
         let mut rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
             .into_iter()
@@ -680,12 +731,14 @@ impl State {
             self.toggle_layer(layer);
             return;
         }
+
         let Some((action, index)) = key.split_once('/') else {
             return;
         };
         let Ok(index) = index.parse::<usize>() else {
             return;
         };
+
         if action == "page" {
             self.hierarchy.page = index;
         } else if index < self.hierarchy.nodes.len() {
@@ -698,6 +751,7 @@ impl State {
                 "select" => {
                     let rows = self.hierarchy.targets(index);
                     self.select(None);
+
                     for row in rows {
                         if self
                             .scene
@@ -708,6 +762,7 @@ impl State {
                             self.hierarchy.selected.push(row);
                         }
                     }
+
                     if self.hierarchy.selected.len() == 1 {
                         let row = self.hierarchy.selected[0];
                         self.select(Some(row));
@@ -726,6 +781,7 @@ impl State {
                 _ => return,
             }
         }
+
         self.refresh_layers();
         self.touch();
     }
@@ -745,6 +801,7 @@ impl State {
         {
             self.select(None);
         }
+
         for row in rows {
             let Some(id) = self.scene.identity_of(*row) else {
                 continue;
@@ -754,10 +811,12 @@ impl State {
             } else {
                 self.scene.hidden.remove(&id)
             };
+
             if changed {
                 self.gpu.set_hidden(*row, hide);
             }
         }
+
         self.refresh_layers();
         self.update_label();
         self.touch();
@@ -772,6 +831,7 @@ impl State {
             .page
             .min(visible.len().saturating_sub(1) / PAGE_SIZE);
         let first = self.hierarchy.page * PAGE_SIZE;
+
         for &index in visible.iter().skip(first).take(PAGE_SIZE) {
             let node = &self.hierarchy.nodes[index];
             let count = node.rows.len();
@@ -781,6 +841,7 @@ impl State {
                     .is_some_and(|id| self.scene.hidden.contains(&id))
             });
             let indent = "  ".repeat(node.depth.min(16));
+
             if node.end > index + 1 {
                 let mark = if self.hierarchy.open.contains(&index) {
                     "▾"
@@ -794,6 +855,7 @@ impl State {
                     hidden,
                 });
             }
+
             rows.push(LayerRow {
                 key: format!("select/{index}"),
                 label: format!("{indent}Select {}", node.label),
@@ -811,6 +873,7 @@ impl State {
                 hidden,
             });
         }
+
         for (label, page) in [
             ("Previous", self.hierarchy.page.checked_sub(1)),
             (
@@ -827,6 +890,7 @@ impl State {
                 });
             }
         }
+
         if self.hierarchy.truncated {
             rows.push(LayerRow {
                 key: String::new(),
@@ -858,17 +922,17 @@ Reuse the existing delegated listener: change its message handler, not the liste
 **CURRENT**
 
 ```html
-  <div id="viewer-layers" hidden role="group" aria-label="Layers"
-       style="position:fixed;top:12px;left:12px;min-width:180px;max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
-  <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
+    <div id="viewer-layers" hidden role="group" aria-label="Layers"
+       style="position: fixed; top: 12px; left: 12px; min-width: 180px; max-height: 70vh; overflow: auto; color: #fff; background: #222d; font: 13px/1.7 system-ui; padding: 6px 0; border-radius: 4px; outline: 1px solid #555;"></div>
+    <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
 ```
 
 **REPLACE WITH**
 
 ```html
-  <div id="viewer-layers" hidden role="group" aria-label="Layers"
-       style="position:fixed;top:12px;left:12px;width:min(320px,80vw);max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
-  <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
+    <div id="viewer-layers" hidden role="group" aria-label="Layers"
+       style="position: fixed; top: 12px; left: 12px; width: min(320px,80vw); max-height: 70vh; overflow: auto; color: #fff; background: #222d; font: 13px/1.7 system-ui; padding: 6px 0; border-radius: 4px; outline: 1px solid #555;"></div>
+    <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
 ```
 
 ### `src/app/feedback.rs`
@@ -881,6 +945,7 @@ Reuse the existing delegated listener: change its message handler, not the liste
             "style",
             "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:1",
         );
+
         if row.hidden {
             let _ = line.set_attribute(
                 "style",
@@ -894,6 +959,7 @@ Reuse the existing delegated listener: change its message handler, not the liste
             "style",
             "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:1",
         );
+
         if row.hidden {
             let _ = line.set_attribute(
                 "style",
@@ -929,11 +995,14 @@ Reuse the existing delegated listener: change its message handler, not the liste
 /// The rows a panel would show: the documents in load order, then the kinds present.
 pub fn rows(scene: &Scene) -> Vec<Row> {
     let mut out = Vec::new();
+
     for (index, doc) in scene.docs.iter().enumerate() {
         let rows = of_layer(scene, Layer::Document(index));
+
         if rows.is_empty() {
             continue;
         }
+
         out.push(Row {
             layer: Layer::Document(index),
             label: doc.name.clone(),
@@ -941,21 +1010,28 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
             hidden: all_hidden(scene, &rows),
         });
     }
+
     let mut kinds: Vec<Kind> = Vec::new();
+
     for row in 0..scene.object_count() as u32 {
         if let Some(geometry) = scene.geometry(row) {
             let kind = Kind::of(geometry);
+
             if !kinds.contains(&kind) {
                 kinds.push(kind);
             }
         }
     }
+
     kinds.sort();
+
     for kind in kinds {
         let rows = of_layer(scene, Layer::Kind(kind));
+
         if rows.is_empty() {
             continue;
         }
+
         out.push(Row {
             layer: Layer::Kind(kind),
             label: kind.label().to_string(),
@@ -973,22 +1049,27 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
 pub fn rows(scene: &Scene) -> Vec<Row> {
     let mut documents = vec![(0, 0); scene.docs.len()];
     let mut kinds = [(0, 0); 6];
+
     for row in 0..scene.object_count() as u32 {
         let Some(identity) = scene.identity_of(row) else {
             continue;
         };
         let hidden = usize::from(scene.hidden.contains(&identity));
+
         if let Some(count) = documents.get_mut(identity.0) {
             count.0 += 1;
             count.1 += hidden;
         }
+
         if let Some(geometry) = scene.geometry(row) {
             let count = &mut kinds[Kind::of(geometry) as usize];
             count.0 += 1;
             count.1 += hidden;
         }
     }
+
     let mut out = Vec::new();
+
     for (index, &(count, hidden)) in documents.iter().enumerate() {
         if count > 0 {
             out.push(Row {
@@ -999,6 +1080,7 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
             });
         }
     }
+
     for kind in [
         Kind::Solids,
         Kind::Surfaces,
@@ -1008,6 +1090,7 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
         Kind::Clouds,
     ] {
         let (count, hidden) = kinds[kind as usize];
+
         if count > 0 {
             out.push(Row {
                 layer: Layer::Kind(kind),
@@ -1024,8 +1107,6 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
 **CURRENT**
 
 ```rust
-    rows
-}
 
 fn all_hidden(scene: &Scene, rows: &[u32]) -> bool {
     !rows.is_empty()
@@ -1035,13 +1116,15 @@ fn all_hidden(scene: &Scene, rows: &[u32]) -> bool {
                 .is_some_and(|identity| scene.hidden.contains(&identity))
         })
 }
+
+#[cfg(test)]
 ```
 
 **REPLACE WITH**
 
 ```rust
-    rows
-}
+
+#[cfg(test)]
 ```
 
 **TYPE THIS**
@@ -1060,6 +1143,7 @@ fn all_hidden(scene: &Scene, rows: &[u32]) -> bool {
         let mut scene = scene_with_two_files();
         scene.hidden.insert(scene.identity_of(0).unwrap());
         scene.hidden.insert(scene.identity_of(2).unwrap());
+
         for row in rows(&scene) {
             let members = of_layer(&scene, row.layer);
             assert_eq!(row.count, members.len());
@@ -1069,28 +1153,6 @@ fn all_hidden(scene: &Scene, rows: &[u32]) -> bool {
             assert_eq!(row.hidden, hidden);
         }
     }
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-    fn a_row_key_survives_the_round_trip() {
-        for layer in [Layer::Document(0), Layer::Document(17), Layer::Kind(Kind::Clouds)] {
-            assert_eq!(Layer::from_key(&layer.key()), Some(layer));
-```
-
-**REPLACE WITH**
-
-```rust
-    fn a_row_key_survives_the_round_trip() {
-        for layer in [
-            Layer::Document(0),
-            Layer::Document(17),
-            Layer::Kind(Kind::Clouds),
-        ] {
-            assert_eq!(Layer::from_key(&layer.key()), Some(layer));
 ```
 
 ### `src/lib.rs`

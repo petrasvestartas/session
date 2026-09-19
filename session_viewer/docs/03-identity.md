@@ -32,13 +32,13 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-c206283004.svg" data-zone="GPU core"></span>
 
-<!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-58 -->
 
 The rest is `#[cfg(test)]`: naga parses every lane shader and checks WGSL member offsets against the Rust ones. The browser build never compiles it.
 
 <span class="zone-mark" data-strip="illustrations/strip-c206283004.svg" data-zone="GPU core"></span>
 
-<!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=58-236 -->
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=59-245 -->
 
 ## Step 2 · Declare the engine module tree
 

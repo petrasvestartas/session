@@ -27,28 +27,28 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/manifest.rs type lines=1-57 -->
+<!-- file: 14 session_viewer/src/app/manifest.rs type lines=1-42 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/manifest.rs type lines=58-127 -->
+<!-- file: 14 session_viewer/src/app/manifest.rs type lines=43-125 -->
 
 - Placement has a fallback: an item with no transform takes its slot in the auto grid.
 - So a manifest of nothing but file names still loads — with the grid step at zero every unplaced item lands on the origin, and a scene that wants them apart gives each one an `at`.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/manifest.rs type lines=128-146 -->
+<!-- file: 14 session_viewer/src/app/manifest.rs type lines=126-145 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/manifest.rs type lines=147-217 -->
+<!-- file: 14 session_viewer/src/app/manifest.rs type lines=146-224 -->
 
 Parser unit tests, part of the file:
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/manifest.rs copy lines=218-347 -->
+<!-- file: 14 session_viewer/src/app/manifest.rs copy lines=225-359 -->
 
 ## Step 2 · Validate serialized counts before the kernel allocates
 
@@ -64,16 +64,16 @@ Parser unit tests, part of the file:
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/validate.rs copy lines=1-147 -->
+<!-- file: 14 session_viewer/src/app/validate.rs copy lines=1-168 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/validate.rs type lines=148-232 -->
+<!-- file: 14 session_viewer/src/app/validate.rs type lines=169-270 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/validate.rs copy lines=233-473 -->
+<!-- file: 14 session_viewer/src/app/validate.rs copy lines=271-550 -->
 
 ## Step 3 · Decode without freezing the page
 
@@ -86,11 +86,11 @@ Parser unit tests, part of the file:
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/decode.rs type lines=1-60 -->
+<!-- file: 14 session_viewer/src/app/decode.rs type lines=1-58 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/decode.rs type lines=61-149 -->
+<!-- file: 14 session_viewer/src/app/decode.rs type lines=59-157 -->
 
 - Decoding is `pb_loads` unrolled with awaits, so the browser gets a turn between chunks.
 - A two-second freeze while a scene loads is a bug you cannot profile after the fact.
@@ -120,60 +120,60 @@ Parser unit tests, part of the file:
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=1-68 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=1-59 -->
 
 - The flag says *when* to check, never *what* changed, so a lost or duplicated notification cannot corrupt the scene.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=69-90 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=60-81 -->
 
 - `from_query` turns the page off, on, or onto a custom manifest; a named scene or a local dev page never watches the bucket.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=91-116 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=82-106 -->
 
 - Watching the bucket is a property of how the page was reached, not a mode someone sets.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=117-174 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=107-168 -->
 
 - The console warning is deduplicated by message, so a poll that keeps failing logs once instead of repeating. It never reaches the status line.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=175-190 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=169-184 -->
 
 - `read` returns `Changed`, `Same` or `Failed`; a server without ETags falls back to hashing the body.
 - A manifest inside the bucket names its files from the bucket root; any other manifest names them from its own folder.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=191-256 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=185-253 -->
 
 - `check` is one tick: nothing happens unless the relay flagged or the interval is due.
 - Any unreadable file in a replacement returns `None`; the last valid scene stays.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=257-333 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=254-343 -->
 
 - An empty file is forgotten, not treated as an empty scene: a publisher writing in place is briefly zero bytes, and that moment must not clear the screen.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=334-354 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=344-366 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=355-411 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=367-429 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=412-441 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=430-461 -->
 
 <!-- check: 14 -->
 

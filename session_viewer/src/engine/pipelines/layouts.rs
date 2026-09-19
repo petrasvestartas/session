@@ -1,7 +1,3 @@
-//! `Layouts` — every bind-group layout the viewer binds, built once per device. A layout is
-//! the SHAPE of a bind group; the buffers live in `gpu/`. Group scheme for every draw:
-//! 0 = mvp, 1 = line/pen uniform, 2 = instances (rows + anchored translations), 3 = the lane's rows.
-
 /// One buffer binding, visible to `stages`.
 fn buffer_entry(
     binding: u32,

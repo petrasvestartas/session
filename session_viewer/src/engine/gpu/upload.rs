@@ -1,13 +1,9 @@
-//! `Upload` - the walked rows on their way to the GPU: every lane's table for one file, the
-//! object rows included - ALL deltas. Built by `app::scene::Scene`, borrowed by
-//! `Gpu::set_scene`, then emptied. No wgpu type and no kernel type here.
-
 use super::arena::ArenaRows;
 use super::cloud::CloudRows;
 use super::glyphs::GlyphRows;
 use super::objects::ObjectRows;
 use super::segments::SegRows;
-use crate::math::Aabb;
+use session_rust::AABB;
 
 /// Everything `Gpu` needs to fill its buffers for one file. Deleting a lane = deleting its
 /// field here, its file under `gpu/`, its producer under `walk/` and its line in `render.rs`.
@@ -17,8 +13,7 @@ pub struct Upload {
     pub seg: SegRows,
     pub glyph: GlyphRows,
     pub cloud: CloudRows,
-    /// The world box of this upload's rows; `Gpu::set_scene` unions it into the scene box.
-    pub bounds: Aabb,
+    pub bounds: AABB, // The world box of this upload's rows; `Gpu::set_scene` unions it into the scene box.
 }
 
 impl Default for Upload {
@@ -30,7 +25,7 @@ impl Default for Upload {
             seg: SegRows::default(),
             glyph: GlyphRows::default(),
             cloud: CloudRows::default(),
-            bounds: Aabb::empty(),
+            bounds: AABB::empty(),
         }
     }
 }
@@ -43,7 +38,7 @@ impl Upload {
         self.seg.drop_rows();
         self.glyph.drop_rows();
         self.cloud.drop_rows();
-        self.bounds = Aabb::empty();
+        self.bounds = AABB::empty();
     }
 }
 

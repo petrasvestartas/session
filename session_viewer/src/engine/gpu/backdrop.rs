@@ -1,6 +1,3 @@
-//! The backdrop lane: the fullscreen background triangle and the vertexless 50-vertex grid.
-//! No table, no upload; two pipelines and two draws that open every frame.
-
 use super::buffers::GpuCtx;
 use super::frame::Binds;
 use crate::engine::pipelines::{

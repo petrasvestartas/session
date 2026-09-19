@@ -1,38 +1,40 @@
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index d93141370ff7af53632904d891f518ad7b416944..916b554e3a81d47dd7c25468eb20d57fcab8901f 100644
+index ea2fac30f97ecd81e9aa0043a31cc5088af628f8..38659c0065ea42a266a92486c908f34e67c87504 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
-@@ -1,9 +1,9 @@
- <!doctype html>
- <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 04b</title>
-+<title>Session checkpoint 04c</title>
- <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
- <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
--</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04b</output>
-+</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04c</output>
- <script>
- let tutorial;
- let pointer;
-@@ -21,7 +21,7 @@ function render() {
-     const canvas = document.getElementById('canvas');
-     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-     canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 04b · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-+    document.getElementById('status').textContent = 'Checkpoint 04c · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
- }
- /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
- function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+-    <title>Session checkpoint 04b</title>
++    <title>Session checkpoint 04c</title>
+     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+     <style>
+       html, body {
+@@ -32,7 +32,7 @@
+   </head>
+   <body>
+     <canvas id="canvas" tabindex="0"></canvas>
+-    <output id="status">Starting checkpoint 04b</output>
++    <output id="status">Starting checkpoint 04c</output>
+     <script>
+       let tutorial;
+       let pointer;
+@@ -59,7 +59,7 @@
+         const canvas = document.getElementById('canvas');
+         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+         canvas.dataset.tutorialInspection = JSON.stringify(state);
+-        document.getElementById('status').textContent = 'Checkpoint 04b · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++        document.getElementById('status').textContent = 'Checkpoint 04c · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+       }
+ 
+       /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
 diff --git a/session_viewer/src/engine/gpu/glyphs.rs b/session_viewer/src/engine/gpu/glyphs.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..9ac8d43d7e34e032b84b431fe3b80e2ceb617267
+index 0000000000000000000000000000000000000000..165a8b6757c30023109c811aaca73c0988ca9ff2
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/glyphs.rs
-@@ -0,0 +1,322 @@
-+//! The glyph lane: every vertex-sized piece of ink. Two tables of the same 48 B row - spheres
-+//! (mesh/BRep vertex markers, the SOLID lane, on a quad template) and
-+//! dots (free points, the FLAT lane, three verts per dot). `GlyphRows` is one upload.
-+
+@@ -0,0 +1,319 @@
 +use super::buffers::{GpuCtx, GrowBuf, ROWS, Template, bind_group};
 +use super::frame::Binds;
 +use super::upload::drop_rows;
@@ -57,14 +59,10 @@ index 0000000000000000000000000000000000000000..9ac8d43d7e34e032b84b431fe3b80e2c
 +#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 +pub struct GlyphPoint {
 +    pub center: [f32; 3],
-+    /// 0 = the screen-constant pen; > 0 = a world-mm radius; < 0 = exactly that many screen
-+    /// pixels, which is what the F10 control dots use so they hold their size at every zoom.
-+    pub radius: f32,
++    pub radius: f32, // 0 = the screen-constant pen; > 0 = a world-mm radius; < 0 = exactly that many screen pixels, which is what the F10 control dots use so they hold their size at every zoom.
 +    pub color: [f32; 4],
 +    pub instance_id: u32,
-+    /// Up to SIX incident face normals as oct16 pairs, widest edge's two first;
-+    /// `FACING_UNKNOWN` = no adjacency / no more.
-+    pub facing: u32,
++    pub facing: u32, // Up to SIX incident face normals as oct16 pairs, widest edge's two first; `FACING_UNKNOWN` = no adjacency / no more.
 +    pub facing_ext: [u32; 2],
 +}
 +
@@ -177,6 +175,7 @@ index 0000000000000000000000000000000000000000..9ac8d43d7e34e032b84b431fe3b80e2c
 +        if self.spheres.buf.append(ctx, &up.spheres) {
 +            self.spheres.rebind(ctx, l);
 +        }
++
 +        if self.dots.buf.append(ctx, &up.dots) {
 +            self.dots.rebind(ctx, l);
 +        }
@@ -217,6 +216,7 @@ index 0000000000000000000000000000000000000000..9ac8d43d7e34e032b84b431fe3b80e2c
 +        if self.spheres.buf.is_empty() {
 +            return 0;
 +        }
++
 +        pass.set_pipeline(pipeline);
 +        b.set(pass);
 +        pass.set_bind_group(3, &self.spheres.group, &[]);
@@ -235,6 +235,7 @@ index 0000000000000000000000000000000000000000..9ac8d43d7e34e032b84b431fe3b80e2c
 +        if self.dots.buf.is_empty() {
 +            return 0;
 +        }
++
 +        pass.set_pipeline(pipeline);
 +        b.set(pass);
 +        pass.set_bind_group(3, &self.dots.group, &[]);
@@ -340,6 +341,7 @@ index 0000000000000000000000000000000000000000..9ac8d43d7e34e032b84b431fe3b80e2c
 +            "facing",
 +            "facing_ext",
 +        ];
++
 +        for (name, src) in SHADERS {
 +            assert_eq!(
 +                wgsl_fields(src, "GlyphPoint"),
@@ -347,15 +349,16 @@ index 0000000000000000000000000000000000000000..9ac8d43d7e34e032b84b431fe3b80e2c
 +                "{name}: GlyphPoint fields"
 +            );
 +        }
++
 +        assert_eq!(std::mem::size_of::<GlyphPoint>(), 48);
 +        assert_eq!(std::mem::offset_of!(GlyphPoint, facing_ext), 40);
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index 19904d7ef063b4dd3570c64846ddea431a25c45a..26518f03a28887e94ae44b83eca59d02c997dbe7 100644
+index 0b2ee3af65016ecf84a0d0429195536ec903ac2a..0d7f23838c04f26259e16dec015e140caec8de5e 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
-@@ -2,6 +2,7 @@
+@@ -2,6 +2,7 @@ use session_rust::AABB;
  pub mod arena;
  pub mod buffers;
  pub mod frame;
@@ -371,15 +374,15 @@ index 19904d7ef063b4dd3570c64846ddea431a25c45a..26518f03a28887e94ae44b83eca59d02
  pub use instance::Instance;
  use objects::InkScene;
  pub use objects::{ObjectRow, Rebase};
-@@ -29,6 +31,7 @@ pub struct Gpu {
+@@ -30,6 +32,7 @@ pub struct Gpu {
      pub objects: objects::InstanceTable,
      pub arena: arena::ArenaLane,
      pub segments: segments::SegmentLane,
 +    pub glyphs: glyphs::GlyphLane,
-     pub bounds: crate::math::Aabb,
+     pub bounds: AABB,
      pub logical_size: [f64; 2],
      pub device_type: wgpu::DeviceType,
-@@ -77,6 +80,7 @@ impl Gpu {
+@@ -79,6 +82,7 @@ impl Gpu {
          let objects = objects::InstanceTable::new(&ctx, &layouts, &InkScene { targets: &targets });
          let arena = arena::ArenaLane::new(&ctx, &layouts, target);
          let segments = segments::SegmentLane::new(&ctx, &layouts, target);
@@ -387,23 +390,23 @@ index 19904d7ef063b4dd3570c64846ddea431a25c45a..26518f03a28887e94ae44b83eca59d02
          Ok(Self {
              surface,
              ctx,
-@@ -88,6 +92,7 @@ impl Gpu {
+@@ -90,6 +94,7 @@ impl Gpu {
              objects,
              arena,
              segments,
 +            glyphs,
-             bounds: crate::math::Aabb::empty(),
+             bounds: AABB::empty(),
              logical_size: [1.0; 2],
              device_type,
-@@ -98,6 +103,7 @@ impl Gpu {
+@@ -101,6 +106,7 @@ impl Gpu {
          self.objects.append(&self.ctx, &self.layouts, &up.obj);
          self.arena.append(&self.ctx, &up.arena);
          self.segments.append(&self.ctx, &self.layouts, &up.seg);
 +        self.glyphs.append(&self.ctx, &self.layouts, &up.glyph);
-         self.bounds.union(&up.bounds);
+         self.bounds.union_with(&up.bounds);
      }
-     /// Recreate size-dependent targets and groups; chapter05 adds budgeted multisampling.
-@@ -172,6 +178,8 @@ impl Gpu {
+ 
+@@ -179,6 +185,8 @@ impl Gpu {
              self.arena.draw_print(&mut pass, &basic);
              self.segments.draw_pipes(&mut pass, &ink);
              self.segments.draw_ribbons(&mut pass, &ink);
@@ -413,46 +416,44 @@ index 19904d7ef063b4dd3570c64846ddea431a25c45a..26518f03a28887e94ae44b83eca59d02
          }
          self.ctx.queue.submit([encoder.finish()]);
 diff --git a/session_viewer/src/engine/gpu/upload.rs b/session_viewer/src/engine/gpu/upload.rs
-index 785696ae38d77933d303b64534f295b8d9001dea..5f4266bef87d488f7e3bd0ad91362766851c20ee 100644
+index e6b6e1678a1616bc8102f5d2fc5cdc5ccc058c74..42d1fc53a27bea27de46774fdb4107c5287ba559 100644
 --- a/session_viewer/src/engine/gpu/upload.rs
 +++ b/session_viewer/src/engine/gpu/upload.rs
-@@ -3,6 +3,7 @@
- //! `Gpu::set_scene`, then emptied. No wgpu type and no kernel type here.
- 
+@@ -1,4 +1,5 @@
  use super::arena::ArenaRows;
 +use super::glyphs::GlyphRows;
  use super::objects::ObjectRows;
  use super::segments::SegRows;
- use crate::math::Aabb;
-@@ -13,6 +14,7 @@ pub struct Upload {
+ use session_rust::AABB;
+@@ -9,6 +10,7 @@ pub struct Upload {
      pub obj: ObjectRows,
      pub arena: ArenaRows,
      pub seg: SegRows,
 +    pub glyph: GlyphRows,
-     /// The world box of this upload's rows; `Gpu::set_scene` unions it into the scene box.
-     pub bounds: Aabb,
+     pub bounds: AABB, // The world box of this upload's rows; `Gpu::set_scene` unions it into the scene box.
  }
-@@ -24,6 +26,7 @@ impl Default for Upload {
+ 
+@@ -19,6 +21,7 @@ impl Default for Upload {
              obj: ObjectRows::default(),
              arena: ArenaRows::default(),
              seg: SegRows::default(),
 +            glyph: GlyphRows::default(),
-             bounds: Aabb::empty(),
+             bounds: AABB::empty(),
          }
      }
-@@ -35,6 +38,7 @@ impl Upload {
+@@ -30,6 +33,7 @@ impl Upload {
          drop_rows(&mut self.obj.rows);
          self.arena.drop_rows();
          self.seg.drop_rows();
 +        self.glyph.drop_rows();
-         self.bounds = Aabb::empty();
+         self.bounds = AABB::empty();
      }
  }
 diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
-index 98aeca7e7150fb1a754effdaab1131d69a2fe772..d021d4ac68c4066eecf029892f2e87de4c89d438 100644
+index fe2cdcc0c4d1415dbc7f499b3f5ce61e596306a7..2da01920de708be7ba489a0c3b90a75213d0cbb4 100644
 --- a/session_viewer/src/engine/pipelines/layouts.rs
 +++ b/session_viewer/src/engine/pipelines/layouts.rs
-@@ -85,6 +85,18 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+@@ -81,6 +81,18 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
      })
  }
  
@@ -471,7 +472,7 @@ index 98aeca7e7150fb1a754effdaab1131d69a2fe772..d021d4ac68c4066eecf029892f2e87de
  /// Segment rows retain source-edge IDs and one shared selection uniform.
  fn segment_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
      device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-@@ -107,6 +119,7 @@ pub struct Layouts {
+@@ -103,6 +115,7 @@ pub struct Layouts {
      pub line: wgpu::BindGroupLayout,
      pub instance: wgpu::BindGroupLayout,
      pub ink_instance: wgpu::BindGroupLayout,
@@ -479,7 +480,7 @@ index 98aeca7e7150fb1a754effdaab1131d69a2fe772..d021d4ac68c4066eecf029892f2e87de
      pub segment_rows: wgpu::BindGroupLayout,
  }
  
-@@ -118,6 +131,7 @@ impl Layouts {
+@@ -114,6 +127,7 @@ impl Layouts {
              line: uniform_layout(device, "line.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
              instance: instance_layout(device),
              ink_instance: ink_instance_layout(device),
@@ -488,10 +489,10 @@ index 98aeca7e7150fb1a754effdaab1131d69a2fe772..d021d4ac68c4066eecf029892f2e87de
          }
      }
 diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
-index a20c8a5821592e3bd6a3a0626c14941022a333f4..220c041fd882b10d135d8640ab571f8737f595ce 100644
+index f31b8f3e737fdb356fab265fc25bcfb5fb1889cc..6ef032b4b1f1204b30651645c83202da1bc99d22 100644
 --- a/session_viewer/src/engine/pipelines/mod.rs
 +++ b/session_viewer/src/engine/pipelines/mod.rs
-@@ -181,6 +181,12 @@ const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+@@ -167,6 +167,12 @@ const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
      format: wgpu::VertexFormat::Uint32,
  }];
  
@@ -504,7 +505,7 @@ index a20c8a5821592e3bd6a3a0626c14941022a333f4..220c041fd882b10d135d8640ab571f87
  /// The mesh vertex slot: the kernel's interleaved `RenderVertex` (pos, normal, colour).
  pub fn vertex_layout() -> wgpu::VertexBufferLayout<'static> {
      RenderVertex::layout()
-@@ -195,6 +201,15 @@ pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
+@@ -181,6 +187,15 @@ pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
      }
  }
  
@@ -521,30 +522,28 @@ index a20c8a5821592e3bd6a3a0626c14941022a333f4..220c041fd882b10d135d8640ab571f87
  pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
      let source = format!("{}\n{}", source, include_str!("../../shaders/normals.wgsl"));
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index 690f50f7f98b3dc4e40764a4dee8e8f239df6e6b..2b0c588afa11f74b70222fb43791eeeac983e868 100644
+index f00e4cd2bd9b52e52add78d2e5524337fe8ef012..ed1a908081d9bb9e0a8f750c084958eee8e18bc7 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
-@@ -1,5 +1,5 @@
--//! Independent source rows exercise each drawing lane as it arrives: a mesh and a polyline.
+@@ -1,4 +1,4 @@
 -use crate::engine::gpu::{CylinderSegment, Instance, ObjectRow, Upload};
-+//! Independent source rows exercise each drawing lane as it arrives: mesh, polyline, dot.
 +use crate::engine::gpu::{CylinderSegment, GlyphPoint, Instance, ObjectRow, Upload};
+ use session_rust::AABB;
+ use session_rust::Point;
  use session_rust::{RenderVertex, Xform};
- /// Build small deterministic local data; no network, private bucket or geometry decoder.
- pub fn scene() -> Upload {
-@@ -8,7 +8,7 @@ pub fn scene() -> Upload {
-         min: [-2.0, -1.3, -0.1],
-         max: [2.0, 1.3, 0.1],
-     };
+@@ -11,7 +11,7 @@ pub fn scene() -> Upload {
+         0.0,
+     );
+ 
 -    for _ in 0..2 {
 +    for _ in 0..3 {
          upload
              .obj
              .rows
-@@ -41,5 +41,13 @@ pub fn scene() -> Upload {
-             facing: 0xffffffff,
+@@ -49,5 +49,13 @@ pub fn scene() -> Upload {
          });
      }
+ 
 +    upload.glyph.dots.push(GlyphPoint {
 +        center: [-1.0, -0.7, 0.0],
 +        radius: 0.09,
@@ -556,10 +555,10 @@ index 690f50f7f98b3dc4e40764a4dee8e8f239df6e6b..2b0c588afa11f74b70222fb43791eeea
      upload
  }
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index d33b9d82bf9813b8b6693191a5575b3dd8fdf141..3b8ae641cd8f1948d586195561be4a903d3a7fbf 100644
+index aa3bbe827318927ad13844055542aa67430ab0b6..cd035ae3e026664811bfb03e15b9f3da57324ab9 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -82,7 +82,7 @@ impl Tutorial {
+@@ -88,7 +88,7 @@ impl Tutorial {
          };
          self.gpu.render(&input).map_err(js_error)?;
          Ok(serde_json::json!({"stage":4,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,
@@ -567,16 +566,13 @@ index d33b9d82bf9813b8b6693191a5575b3dd8fdf141..3b8ae641cd8f1948d586195561be4a90
 +            "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count()}).to_string())
      }
  }
- /// Read a monotonic frame time from the browser when available.
+ 
 diff --git a/session_viewer/src/shaders/glyph.wgsl b/session_viewer/src/shaders/glyph.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc033b7a7fca
+index 0000000000000000000000000000000000000000..4126a6f2818b05b1571977bae417b6570a34ac36
 --- /dev/null
 +++ b/session_viewer/src/shaders/glyph.wgsl
-@@ -0,0 +1,140 @@
-+// Free points as SDF dots: one triangle per dot (its incircle is the disc), no template.
-+// Group 3 = the glyph table.
-+
+@@ -0,0 +1,153 @@
 +struct GlyphPoint {
 +    center: vec3<f32>,
 +    radius: f32,
@@ -585,6 +581,7 @@ index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc03
 +    facing: u32,
 +    facing_ext: vec2<u32>,
 +};
++
 +@group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 +
 +// An equilateral triangle whose incircle (radius 1 in corner space) is the visible dot.
@@ -615,11 +612,14 @@ index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc03
 +fn glyph_vertex(vid: u32) -> VsOut {
 +    let g = glyphs[vid / 3u];
 +    let inst = instances[g.instance_id];
++
 +    if ((inst.flags & FLAG_HIDDEN) != 0u) {
 +        return dead_dot();
 +    }
++
 +    let world = place(g.instance_id, g.center);
 +    let clip = mvp * vec4<f32>(world, 1.0);
++
 +    if (clip.z - clip.w > 0.0) {
 +        return dead_dot();
 +    }
@@ -627,6 +627,7 @@ index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc03
 +    // Three sizes in one field: 0 takes the global pen, a positive radius is world mm
 +    // projected here, a negative radius is already a pixel count and holds at every zoom.
 +    var px = line.thickness * 0.5;
++
 +    if (g.radius < 0.0) {
 +        px = -g.radius;
 +    } else if (g.radius > 0.0) {
@@ -636,10 +637,13 @@ index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc03
 +            px = g.radius * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6);
 +        }
 +    }
++
 +    if (px > max(line.frame.x, line.frame.y)) {
 +        return dead_dot();
 +    }
++
 +    var fade = 1.0;
++
 +    if (px < 0.5) {
 +        fade = max(px / 0.5, HAIRLINE_MIN_ALPHA);
 +        px = 0.5;
@@ -651,9 +655,11 @@ index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc03
 +    var o: VsOut;
 +    o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
 +    var color = g.color * inst.color;
++
 +    if ((inst.flags & FLAG_SELECTED) != 0u) {
 +        color = vec4<f32>(SELECT_COLOR, color.a);
 +    }
++
 +    o.color = color;
 +    o.corner = corner;
 +    o.px = px;
@@ -681,9 +687,11 @@ index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc03
 +@fragment
 +fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
 +    let alpha = coverage(in);
++
 +    if (alpha <= 0.0 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample)) {
 +        discard;
 +    }
++
 +    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
 +}
 +
@@ -692,6 +700,7 @@ index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc03
 +    if (coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
 +        discard;
 +    }
++
 +    return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG | (in.point_index + 1u));
 +}
 +
@@ -711,18 +720,18 @@ index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc03
 +
 +@fragment
 +fn fs_source_id(in: VsOut) -> @location(0) vec2<u32> {
-+    if (coverage(in) < 0.5) { discard; }
++    if (coverage(in) < 0.5) {
++        discard;
++    }
++
 +    return vec2<u32>(in.inst_id + 1u, in.point_index + 1u);
 +}
 diff --git a/session_viewer/src/shaders/sphere.wgsl b/session_viewer/src/shaders/sphere.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8c3fc4413
+index 0000000000000000000000000000000000000000..bc4fee4f0a319c64641f21e438cd3ba70efe40b6
 --- /dev/null
 +++ b/session_viewer/src/shaders/sphere.wgsl
-@@ -0,0 +1,155 @@
-+// Mesh vertex markers: a camera-facing quad template per glyph, trimmed to a disc by the
-+// fragment SDF, hidden when every incident face turns away. Group 3 = the glyph table.
-+
+@@ -0,0 +1,174 @@
 +struct GlyphPoint {
 +    center: vec3<f32>,
 +    radius: f32,
@@ -731,6 +740,7 @@ index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8
 +    facing: u32,
 +    facing_ext: vec2<u32>,
 +};
++
 +@group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 +
 +// A marker thins when the object's vertex spacing is under this many marker diameters.
@@ -743,6 +753,7 @@ index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8
 +    if (line.ortho_h > 0.0) {
 +        return line.thickness * line.ortho_h / line.vp_h;
 +    }
++
 +    return line.thickness * clip_w / (line.proj_y * line.vp_h);
 +}
 +
@@ -751,6 +762,7 @@ index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8
 +    if (line.ortho_h > 0.0) {
 +        return world * line.vp_h * 0.5 / line.ortho_h;
 +    }
++
 +    return world * line.proj_y * line.vp_h * 0.5 / max(w, 1e-6);
 +}
 +
@@ -774,19 +786,25 @@ index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8
 +fn faces_front(g: GlyphPoint, model: mat4x4<f32>, to_eye: vec3<f32>) -> vec2<bool> {
 +    let fwords = array<u32, 3>(g.facing, g.facing_ext.x, g.facing_ext.y);
 +    var known = false;
++
 +    for (var w = 0u; w < 3u; w = w + 1u) {
 +        let fw = fwords[w];
++
 +        if (fw == FACING_UNKNOWN) {
 +            continue;
 +        }
++
 +        known = true;
++
 +        for (var h = 0u; h < 2u; h = h + 1u) {
 +            let n = face_normal(model, oct16_decode((fw >> (16u * h)) & 0xffffu));
++
 +            if (dot(n, to_eye) > 0.0) {
 +                return vec2<bool>(true, true);
 +            }
 +        }
 +    }
++
 +    return vec2<bool>(known, false);
 +}
 +
@@ -794,24 +812,30 @@ index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8
 +fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> VsOut {
 +    let g = glyphs[gi];
 +    let inst = instances[g.instance_id];
++
 +    if ((inst.flags & FLAG_HIDDEN) != 0u) {
 +        return dead_dot();
 +    }
++
 +    let centre = place(g.instance_id, g.center);
 +    let clip = mvp * vec4<f32>(centre, 1.0);
++
 +    if (clip.z - clip.w > 0.0) {
 +        return dead_dot();
 +    }
 +
 +    let r = select(pen_world_radius(clip.w), g.radius, g.radius > 0.0);
 +    var px = to_px(r, clip.w);
++
 +    if (inst.spacing > 0.0) {
 +        let sp_px = to_px(inst.spacing, clip.w);
 +        px = px * clamp(sp_px / max(MARKER_MIN_DIAMS * 2.0 * px, 1e-6), TAPER_MIN, 1.0);
 +    }
++
 +    if (px > max(line.frame.x, line.frame.y)) {
 +        return dead_dot();
 +    }
++
 +    px = max(px, 0.5);
 +
 +    let off = tmpl.xy * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
@@ -824,8 +848,10 @@ index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8
 +    // Hidden vertices never reach the rasterizer, unless the eye is inside the object or
 +    // x-ray (`P`) shows every vertex.
 +    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || line.opacity <= 0.0;
++
 +    if (!inside) {
 +        let kf = faces_front(g, inst.model, toward_eye(centre));
++
 +        if (kf.x && !kf.y) {
 +            return dead_dot();
 +        }
@@ -834,9 +860,11 @@ index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8
 +    var o: VsOut;
 +    o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
 +    var color = g.color * inst.color;
++
 +    if ((inst.flags & FLAG_SELECTED) != 0u) {
 +        color = vec4<f32>(SELECT_COLOR, color.a);
 +    }
++
 +    o.color = color;
 +    o.corner = tmpl.xy;
 +    o.px = px;
@@ -862,9 +890,11 @@ index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8
 +@fragment
 +fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
 +    let alpha = coverage(in);
++
 +    if (alpha <= 0.0 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample)) {
 +        discard;
 +    }
++
 +    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
 +}
 +
@@ -873,5 +903,6 @@ index 0000000000000000000000000000000000000000..4a8cbe34e111bfc7748b90befb1da1d8
 +    if (coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
 +        discard;
 +    }
++
 +    return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);
 +}

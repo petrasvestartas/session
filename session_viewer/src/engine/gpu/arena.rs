@@ -1,7 +1,3 @@
-//! The mesh lane: one vertex table every mesh, BRep and sheet fill shares, and the three
-//! index runs drawn from it - solid faces, sheet fills (depth write off, document order) and
-//! lettering (last of all). `ArenaRows` is one upload's delta; `ArenaLane` is the GPU side.
-
 use super::buffers::{GpuCtx, GrowBuf, INDICES, VERTS};
 use super::frame::Binds;
 use super::text_outline::{OutlineBuffers, OutlineTextLane};
@@ -30,8 +26,7 @@ pub struct ArenaRows {
     pub idx: Vec<u32>,
     pub idx_print: Vec<u32>,
     pub idx_text: Vec<u32>,
-    /// One upload-local original face address per solid triangle.
-    pub face_ids: Vec<u32>,
+    pub face_ids: Vec<u32>, // One upload-local original face address per solid triangle.
     pub face_sources: Vec<super::faces::FaceSource>,
     pub surface_samples: Vec<crate::app::surface_preview::Sample>,
 }
@@ -250,6 +245,7 @@ impl ArenaLane {
         if run.is_empty() {
             return 0;
         }
+
         pass.set_pipeline(pipeline);
         b.set(pass);
         pass.set_vertex_buffer(0, self.verts.buf.slice(..));

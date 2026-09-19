@@ -1,7 +1,3 @@
-//! `Instance` - the one object row every instance-reading shader indexes by `instance_id`,
-//! its flag bits, and the mirror tests that prove the shaders declare the same rows.
-//! No buffer and no bind group here: `objects.rs` owns both tables.
-
 use session_rust::Xform;
 
 /// One object row as the shaders see it: rotation/scale with a ZERO translation column (the
@@ -13,10 +9,8 @@ pub struct Instance {
     pub model: [f32; 16],
     pub color: [f32; 4],
     pub flags: u32,
-    /// Unused; keeps `spacing` at offset 88 and the row at 96 bytes.
-    pub _pad0: f32,
-    /// Vertex spacing, world units; markers thin once it projects small. 0 = unknown.
-    pub spacing: f32,
+    pub _pad0: f32,   // Unused; keeps `spacing` at offset 88 and the row at 96 bytes.
+    pub spacing: f32, // Vertex spacing, world units; markers thin once it projects small. 0 = unknown.
     pub _pad: u32,
 }
 
@@ -25,28 +19,38 @@ const _: () = assert!(std::mem::size_of::<Instance>() == 96);
 impl Instance {
     /// The row is the current selection: the shaders tint it. Bit 0.
     pub const FLAG_SELECTED: u32 = 1 << 0;
+
     /// The row is skipped by every draw. Bit 1.
     pub const FLAG_HIDDEN: u32 = 1 << 1;
+
     /// The eye is inside this object's bounds (per-frame CPU test): the edge lanes skip the
     /// facing cull, since from inside a solid every face points away. Bit 2.
     pub const FLAG_INSIDE: u32 = 1 << 2;
+
     /// A print fill (zero edge width): lit flat, no wireframe. Bit 3.
     pub const FLAG_PRINT: u32 = 1 << 3;
+
     /// An open mesh (border edges): the facing cull's premise is void, skipped like INSIDE. Bit 4.
     pub const FLAG_OPEN: u32 = 1 << 4;
+
     /// A row of a planar drawing sheet: fills composite in document order. Bit 5.
     pub const FLAG_SHEET: u32 = 1 << 5;
+
     /// A TESSELLATION, not an authored mesh: its interior seams are an artifact of how finely
     /// the surface was sampled, not edges of the thing. The walk drops those seams before the
     /// GPU sees them; this flag is what tells the marker lane its vertices are samples, not
     /// corners. Bit 6.
     pub const FLAG_SMOOTH: u32 = 1 << 6;
+
     /// One face only (a NURBS surface, a one-face mesh or BRep): x-ray leaves it shaded, since
     /// it has no interior to look into.
     pub const FLAG_SINGLE: u32 = 1 << 7;
+
     /// Replace authored colors with the layer color.
     pub const FLAG_COLOR: u32 = 1 << 8;
+
     pub const FLAG_EDGE_COLOR: u32 = 1 << 9;
+
     pub const FLAG_HAS_FACES: u32 = 1 << 10;
 
     /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
@@ -95,16 +99,20 @@ mod tests {
         use crate::engine::gpu::glyphs::GlyphPoint;
         use crate::engine::gpu::segments::{CylinderSegment, StrokeSegment};
         use std::mem::{offset_of, size_of};
+
         for (name, source) in lane_shaders() {
             // The backdrop declares no scene binding; every other lane is on the contract.
             let scene = source.contains("mvp") || source.contains("line.");
             let mut source = source.to_string();
+
             if source.contains("-> InkColor") {
                 source = format!("{source}\n{}", crate::engine::pipelines::INK);
             }
+
             if scene {
                 source = format!("{source}\n{}", crate::engine::pipelines::SCENE);
             }
+
             let source = crate::engine::pipelines::shared(&source);
             let module = naga::front::wgsl::parse_str(&source)
                 .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
@@ -117,6 +125,7 @@ mod tests {
             )
             .validate(&module)
             .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
+
             for (_, ty) in module.types.iter() {
                 let Some(structure) = ty.name.as_deref() else {
                     continue;
@@ -181,6 +190,7 @@ mod tests {
                 };
                 assert_eq!(*span as usize, size, "{name}: {structure} stride");
                 assert_eq!(members.len(), offsets.len(), "{name}: {structure} members");
+
                 for (member, expected) in members.iter().zip(offsets) {
                     assert_eq!(
                         member.offset as usize, expected,
@@ -237,6 +247,7 @@ mod tests {
         let binding = "@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;";
         assert!(SCENE.contains(binding), "translations binding");
         assert!(SCENE.contains("fn place("), "the place() helper");
+
         for (name, src) in lane_shaders() {
             assert!(
                 !src.contains("struct Instance"),
@@ -247,6 +258,7 @@ mod tests {
                 "{name}: redeclares LineUniform"
             );
         }
+
         assert_eq!(&Instance::placeholder().model[12..15], &[0.0; 3]);
     }
 }

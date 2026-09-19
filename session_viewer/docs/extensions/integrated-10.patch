@@ -1,15 +1,15 @@
 diff --git a/src/app/command.rs b/src/app/command.rs
 --- a/src/app/command.rs
 +++ b/src/app/command.rs
-@@ -14,6 +14,7 @@
+@@ -12,6 +12,7 @@ pub enum Command {
+         degrees: f64,
      },
-     /// Scale the selection about its own centre.
-     Scale(f64),
+     Scale(f64), // Scale the selection about its own centre.
 +    Split,
      Save,
      Open,
      Delete,
-@@ -37,6 +38,7 @@
+@@ -34,6 +35,7 @@ pub fn hint(line: &str) -> &'static str {
      {
          "point" => "Point x,y,z · Example: Point 0,0,0 · Enter creates the point",
          "line" => "Line start end · Example: Line 0,0,0 100,0,0",
@@ -17,7 +17,7 @@ diff --git a/src/app/command.rs b/src/app/command.rs
          "polyline" => "Polyline points… · Example: Polyline 0,0,0 100,0,0 100,100,0",
          "move" | "m" => "Select an object, then Move dx,dy,dz · Example: Move 10,0,0",
          "rotate" | "rot" => "Select an object, then Rotate axis degrees · Example: Rotate z 45",
-@@ -44,6 +46,9 @@
+@@ -41,6 +43,9 @@ pub fn hint(line: &str) -> &'static str {
          "trim" => "Select a line or curve · Trim 0.2 0.8 keeps that part of its length/domain",
          "extend" => "Select a line or curve · Extend -0.2 1.2 extends its domain at both ends",
          "explode" => "Select a polyline · Explode creates its individual line segments",
@@ -27,7 +27,7 @@ diff --git a/src/app/command.rs b/src/app/command.rs
          "save" => "Save downloads the complete editable scene as a .session file",
          "open" => "Open restores a saved .session file",
          "fit" => "Fit zooms to the selection, or the whole scene when nothing is selected",
-@@ -66,15 +71,15 @@
+@@ -66,8 +71,8 @@ pub fn parse(line: &str) -> Result<Command, String> {
      let expected = match verb.as_str() {
          "scale" | "s" => Some(1),
          "rotate" | "rot" => Some(2),
@@ -37,33 +37,34 @@ diff --git a/src/app/command.rs b/src/app/command.rs
 +        | "fit" | "escape" | "esc" => Some(0),
          _ => None,
      };
-     if expected.is_some_and(|count| rest.len() != count) {
-         return Err(format!("wrong number of arguments for `{verb}`"));
+ 
+@@ -76,7 +81,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
      }
+ 
      match verb.as_str() {
 -        "point" | "line" | "polyline" | "trim" | "extend" | "explode" => {
 +        "point" | "line" | "polyline" | "curve" | "trim" | "extend" | "explode" => {
              model(&verb, &rest).map(Command::Model)
          }
          "move" | "m" => offset(&rest).map(Command::Move),
-@@ -89,6 +94,7 @@
-             }
+@@ -93,6 +98,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
+ 
              Ok(Command::Scale(k))
          }
 +        "split" => Ok(Command::Split),
          "save" => Ok(Command::Save),
          "open" => Ok(Command::Open),
          "delete" | "del" => Ok(Command::Delete),
-@@ -239,7 +245,7 @@
+@@ -248,7 +254,7 @@ fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, S
                  Modeling::Extend(a, b)
              })
          }
 -        "point" | "line" | "polyline" => {
 +        "point" | "line" | "polyline" | "curve" => {
              let mut points = Vec::new();
+ 
              if words.len() > crate::app::modeling::MAX_POINTS {
-                 return Err("too many points".into());
-@@ -254,7 +260,10 @@
+@@ -266,7 +272,10 @@ fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, S
                  ("point", 1) => Ok(Modeling::Point(points[0])),
                  ("line", 2) => Ok(Modeling::Line(points[0], points[1])),
                  ("polyline", 2..) => Ok(Modeling::Polyline(points)),
@@ -78,7 +79,7 @@ diff --git a/src/app/command.rs b/src/app/command.rs
 diff --git a/src/app/input.rs b/src/app/input.rs
 --- a/src/app/input.rs
 +++ b/src/app/input.rs
-@@ -71,6 +71,7 @@
+@@ -56,6 +56,7 @@ impl Input {
                  .camera
                  .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
              Key::Named(NamedKey::Escape) => state.escape_selection(),
@@ -89,7 +90,7 @@ diff --git a/src/app/input.rs b/src/app/input.rs
 diff --git a/src/app/inspection.rs b/src/app/inspection.rs
 --- a/src/app/inspection.rs
 +++ b/src/app/inspection.rs
-@@ -76,6 +76,16 @@
+@@ -76,6 +76,16 @@ pub fn publish(state: &State) {
      });
      snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
      snapshot["color_count"] = serde_json::json!(state.scene.colors.len());
@@ -109,7 +110,7 @@ diff --git a/src/app/inspection.rs b/src/app/inspection.rs
 diff --git a/src/app/mod.rs b/src/app/mod.rs
 --- a/src/app/mod.rs
 +++ b/src/app/mod.rs
-@@ -44,3 +44,5 @@
+@@ -40,3 +40,5 @@ pub mod inspection;
  pub mod ui;
  
  pub mod surface_preview;
@@ -118,7 +119,7 @@ diff --git a/src/app/mod.rs b/src/app/mod.rs
 diff --git a/src/app/modeling.rs b/src/app/modeling.rs
 --- a/src/app/modeling.rs
 +++ b/src/app/modeling.rs
-@@ -15,6 +15,7 @@
+@@ -15,6 +15,7 @@ pub enum Modeling {
      Point([f64; 3]),
      Line([f64; 3], [f64; 3]),
      Polyline(Vec<[f64; 3]>),
@@ -126,15 +127,15 @@ diff --git a/src/app/modeling.rs b/src/app/modeling.rs
      Trim(f64, f64),
      Extend(f64, f64),
      Explode,
-@@ -44,6 +45,18 @@
-                     .map(|p| point(*p))
+@@ -49,6 +50,19 @@ impl Scene {
                      .collect::<Result<Vec<_>, _>>()?;
                  self.create_geometry(Geometry::Polyline(Rc::new(Polyline::new(points))))
-+            }
+             }
 +            Modeling::Curve(points) => {
 +                if !(2..=MAX_POINTS).contains(&points.len()) {
 +                    return Err(format!("curve needs 2–{MAX_POINTS} control points"));
 +                }
++
 +                let points = points
 +                    .iter()
 +                    .map(|p| point(*p))
@@ -142,37 +143,38 @@ diff --git a/src/app/modeling.rs b/src/app/modeling.rs
 +                let curve =
 +                    session_rust::NurbsCurve::create(false, (points.len() - 1).min(3), &points);
 +                self.create_geometry(Geometry::NurbsCurve(Rc::new(curve)))
-             }
++            }
              _ => self.edit_geometry(command),
          }
-@@ -77,6 +90,9 @@
-             Geometry::Polyline(line) => {
+     }
+@@ -83,6 +97,9 @@ impl Scene {
                  let added = session.add_polyline((*line).clone(), None);
                  debug_assert!(added.is_some());
-+            }
+             }
 +            Geometry::NurbsCurve(curve) => {
 +                session.add_nurbscurve((*curve).clone(), None);
-             }
++            }
              _ => unreachable!(),
          }
+ 
 diff --git a/src/app/scene.rs b/src/app/scene.rs
 --- a/src/app/scene.rs
 +++ b/src/app/scene.rs
-@@ -369,7 +369,8 @@
- 
+@@ -364,7 +364,8 @@ impl Scene {
          let extent = file_extent(&self.tables, &from);
-         self.tables.bounds.union(&extent);
--        if is_planar(&self.tables, &from, &place.m) {
+         self.tables.bounds.union_with(&extent);
+ 
+-        if is_planar(&self.tables, &from, &place) {
 +        // Typed modeling geometry stays in the 3D workspace even when all its points are coplanar.
-+        if self.created_doc != Some(self.docs.len()) && is_planar(&self.tables, &from, &place.m) {
++        if self.created_doc != Some(self.docs.len()) && is_planar(&self.tables, &from, &place) {
              mark_sheet(&mut self.tables, &from);
          }
-         lap.mark("sweeps");
+ 
 diff --git a/src/app/session_io.rs b/src/app/session_io.rs
 --- a/src/app/session_io.rs
 +++ b/src/app/session_io.rs
-@@ -18,6 +18,8 @@
- }
+@@ -19,6 +19,8 @@ struct Archive {
+ 
  #[derive(Serialize, Deserialize)]
  struct Metadata {
 +    #[serde(default)]
@@ -180,7 +182,7 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
      documents: Vec<Document>,
      hidden: Vec<(usize, String)>,
      #[serde(default)]
-@@ -72,6 +74,7 @@
+@@ -80,6 +82,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
          .collect();
      colors.sort();
      let metadata = Metadata {
@@ -188,25 +190,26 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
          documents: scene
              .docs
              .iter()
-@@ -116,7 +119,14 @@
-     if metadata.documents.len() != archive.documents.len() {
+@@ -129,7 +132,15 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
          return Err("Document inventory does not match".into());
      }
+ 
 +    if metadata
 +        .created_doc
 +        .is_some_and(|index| index >= metadata.documents.len())
 +    {
 +        return Err("Created document index is outside the inventory".into());
 +    }
++
      let mut scene = Scene::new();
 +    scene.created_doc = metadata.created_doc;
+ 
      for (meta, bytes) in metadata.documents.into_iter().zip(archive.documents) {
          if !meta.place.into_iter().all(f64::is_finite) || !meta.point_px.is_finite() {
-             return Err("Non-finite document placement".into());
-@@ -206,6 +216,25 @@
-     use super::*;
+@@ -228,6 +239,25 @@ mod tests {
      use crate::app::deform::Target;
      use session_rust::{Geometry, Mesh, Point};
+ 
 +    #[test]
 +    fn created_curves_keep_visible_screen_pens_after_open() {
 +        let mut scene = Scene::new();
@@ -233,11 +236,10 @@ diff --git a/src/app/splitting.rs b/src/app/splitting.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/app/splitting.rs
-@@ -0,0 +1,338 @@
-+//! Source curve/face splits; the kernel computes every region before the session is changed.
+@@ -0,0 +1,363 @@
 +use super::scene::Scene;
 +use session_rust::simple_split;
-+use session_rust::{BRep, Geometry, NurbsCurve, Xform};
++use session_rust::{BRep, Geometry, NurbsCurve};
 +use std::rc::Rc;
 +
 +pub fn is_cutter(geometry: &Geometry) -> bool {
@@ -263,6 +265,7 @@ new file mode 100644
 +        _ => Err("Split accepts lines, polylines, NURBS curves and surface faces".into()),
 +    }
 +}
++
 +fn brep_face(brep: &BRep, selected: Option<usize>) -> Result<usize, String> {
 +    selected
 +        .or((brep.face_count() == 1).then_some(0))
@@ -271,6 +274,7 @@ new file mode 100644
 +            "Ctrl+Shift-select one BRep face before Split; the solid stays joined".into()
 +        })
 +}
++
 +fn curve(geometry: &Geometry) -> Result<NurbsCurve, String> {
 +    match geometry {
 +        Geometry::Line(line) => Ok(NurbsCurve::create(
@@ -295,34 +299,45 @@ new file mode 100644
 +        if !self.streamed.is_empty() || !self.sheets.is_empty() {
 +            return Err("Splitting requires complete retained source documents".into());
 +        }
++
 +        if cutters.is_empty() || cutters.len() > 64 {
 +            return Err("Choose 1–64 cutter curves".into());
 +        }
++
 +        if !self.selectable(target) {
 +            return Err("Unlock the target before splitting".into());
 +        }
++
 +        let (doc, guid) = self.identity_of(target).ok_or("Target no longer exists")?;
 +        let file = self.docs.get(doc).ok_or("Target has no source document")?;
++
 +        if file.display_only {
 +            return Err("Target is display only".into());
 +        }
-+        let back = Xform::from_matrix(self.placement_of(target).ok_or("Target has no placement")?)
++
++        let back = self
++            .placement_of(target)
++            .ok_or("Target has no placement")?
 +            .inverse()
 +            .ok_or("Target placement is singular")?;
 +        let mut tools = Vec::new();
++
 +        for &row in cutters {
 +            if row == target || !self.selectable(row) {
 +                return Err("Choose an unlocked cutter distinct from the target".into());
 +            }
++
 +            let mut cutter = curve(self.geometry(row).ok_or("Cutter no longer exists")?)?;
-+            let place =
-+                Xform::from_matrix(self.placement_of(row).ok_or("Cutter has no placement")?);
++            let place = self.placement_of(row).ok_or("Cutter has no placement")?;
++
 +            if place.inverse().is_none() {
 +                return Err("Cannot transform the cutter into target coordinates".into());
 +            }
++
 +            cutter.transform(&(&back * &place));
 +            tools.push(cutter);
 +        }
++
 +        let source = self
 +            .geometry(target)
 +            .ok_or("Source geometry is unavailable")?;
@@ -387,9 +402,11 @@ new file mode 100644
 +            }
 +            _ => return Err("Unsupported split target".into()),
 +        };
++
 +        if regions < 2 {
 +            return Ok(1);
 +        }
++
 +        let parent_name = file
 +            .session
 +            .tree
@@ -398,10 +415,13 @@ new file mode 100644
 +            .map(|node| node.borrow().name.clone());
 +        let place = file.session.xform(&guid);
 +        let color = self.colors.get(&(doc, Rc::clone(&guid))).copied();
++
 +        if pieces.len() > 1 {
 +            let name = source.name();
++
 +            for (index, piece) in pieces.iter_mut().enumerate() {
 +                let name = format!("{name} (part {})", index + 1);
++
 +                match piece {
 +                    Geometry::Line(p) => Rc::make_mut(p).name = name,
 +                    Geometry::Polyline(p) => Rc::make_mut(p).name = name,
@@ -410,6 +430,7 @@ new file mode 100644
 +                }
 +            }
 +        }
++
 +        let first = pieces.remove(0);
 +        let session = Rc::make_mut(&mut self.docs[doc].session);
 +        // Resolve the parent after copy-on-write, inside the edited document's tree.
@@ -418,6 +439,7 @@ new file mode 100644
 +        // All fallible geometry work has completed; these validated pieces have at least two controls.
 +        let replaced = session.replace(&guid, first);
 +        debug_assert!(replaced);
++
 +        for piece in pieces {
 +            let node = match piece {
 +                Geometry::Line(piece) => session.add_line((*piece).clone(), parent.as_ref()),
@@ -431,10 +453,12 @@ new file mode 100644
 +            };
 +            let id = node.borrow().name.clone();
 +            session.set_xform(&id, place.clone());
++
 +            if let Some(color) = color {
 +                self.colors.insert((doc, Rc::from(id)), color);
 +            }
 +        }
++
 +        session.commit();
 +        self.last_edited = Some(doc);
 +        Ok(regions)
@@ -445,7 +469,9 @@ new file mode 100644
 +mod tests {
 +    use super::*;
 +    use crate::app::scene::FileDoc;
++    use session_rust::Xform;
 +    use session_rust::{Line, Point, Session};
++
 +    fn add(scene: &mut Scene, session: Rc<Session>, name: &str, place: Xform) {
 +        scene.add_file(FileDoc {
 +            name: name.into(),
@@ -455,6 +481,7 @@ new file mode 100644
 +            display_only: false,
 +        });
 +    }
++
 +    #[test]
 +    fn split_preserves_tree_placement_and_other_shared_documents_and_undo() {
 +        let mut session = Session::new("shared");
@@ -519,6 +546,7 @@ new file mode 100644
 +        let restored = crate::app::session_io::open(&bytes).unwrap();
 +        assert_eq!(restored.docs[0].session.objects.lines.len(), 2);
 +    }
++
 +    #[test]
 +    fn split_face_keeps_solid_joined_and_invalid_cut_preserves_source() {
 +        let brep = BRep::create_box(10., 10., 10.);
@@ -575,8 +603,8 @@ new file mode 100644
 diff --git a/src/app/ui.rs b/src/app/ui.rs
 --- a/src/app/ui.rs
 +++ b/src/app/ui.rs
-@@ -560,7 +560,9 @@
-                 record(controls, "command/close", "Close", &close);
+@@ -608,7 +608,9 @@ fn commands(
+ 
                  if close.clicked() || ui.input(|input| input.key_pressed(egui::Key::Escape)) {
                      model.command_open = false;
 +                    model.focus_command = false;
@@ -585,7 +613,7 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
                      crate::app::feedback::focus_canvas();
                  }
              });
-@@ -586,6 +588,11 @@
+@@ -634,6 +636,11 @@ const TOOLBAR: &[(&str, &str, &str)] = &[
          "Create a polyline",
          "polyline 0,0,0 100,0,0 100,100,0",
      ),
@@ -597,18 +625,19 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
      ("Undo", "Undo the last edit", "undo"),
      ("Redo", "Redo the last edit", "redo"),
      ("Save", "Save the whole session", "save"),
-@@ -609,6 +616,7 @@
-                         .on_hover_text(help);
+@@ -658,6 +665,8 @@ fn toolbar(
                      record(controls, &format!("toolbar/{label}"), help, &response);
+ 
                      if response.clicked() {
 +                        response.surrender_focus();
++
                          if command.contains(' ') {
                              model.command = command.to_string();
                              model.command_open = true;
 diff --git a/src/shaders/ribbon.wgsl b/src/shaders/ribbon.wgsl
 --- a/src/shaders/ribbon.wgsl
 +++ b/src/shaders/ribbon.wgsl
-@@ -346,8 +346,9 @@
+@@ -415,8 +415,9 @@ fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair
  const SEGMENT_BIT: u32 = 0x80000000u;
  
  @fragment
@@ -618,8 +647,8 @@ diff --git a/src/shaders/ribbon.wgsl b/src/shaders/ribbon.wgsl
 +    if (coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
          discard;
      }
-     return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | SEGMENT_BIT);
-@@ -356,7 +357,7 @@
+ 
+@@ -426,7 +427,7 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
  // Specialized edge picks exclude segments without a producer-provided source edge.
  @fragment
  fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
@@ -627,11 +656,11 @@ diff --git a/src/shaders/ribbon.wgsl b/src/shaders/ribbon.wgsl
 +    if (in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
          discard;
      }
-     // Bit 31 is the STROKE tag of the pick-id union `Pick::sub` documents (engine/gpu/pick.rs):
+ 
 diff --git a/src/state.rs b/src/state.rs
 --- a/src/state.rs
 +++ b/src/state.rs
-@@ -19,6 +19,7 @@
+@@ -14,6 +14,7 @@ mod cloud_query;
  pub mod edit;
  mod panel;
  mod sheet_query;
@@ -639,7 +668,7 @@ diff --git a/src/state.rs b/src/state.rs
  mod text;
  use std::sync::Arc;
  use winit::window::Window;
-@@ -52,6 +53,7 @@
+@@ -43,6 +44,7 @@ pub struct State {
      pub selection: SelectionMode,
      pub selection_tool: crate::app::selection::SelectionTool,
      hierarchy: crate::app::hierarchy::Hierarchy,
@@ -647,7 +676,7 @@ diff --git a/src/state.rs b/src/state.rs
      controls: Controls,
      requested: PickMode,
      pub selection_radius_css: f64,
-@@ -90,6 +92,7 @@
+@@ -77,6 +79,7 @@ impl State {
              selection: SelectionMode::Object,
              selection_tool: crate::app::selection::SelectionTool::default(),
              hierarchy: Default::default(),
@@ -655,7 +684,7 @@ diff --git a/src/state.rs b/src/state.rs
              controls: Controls::default(),
              requested: PickMode::Object,
              selection_radius_css: 6.0,
-@@ -185,6 +188,7 @@
+@@ -172,6 +175,7 @@ impl State {
  
      /// Drop every document; the canvas, device and camera stay.
      pub fn clear(&mut self) {
@@ -663,15 +692,15 @@ diff --git a/src/state.rs b/src/state.rs
          self.cancel_gesture();
          self.hierarchy = Default::default();
          self.selection = SelectionMode::Object;
-@@ -291,6 +295,7 @@
+@@ -274,6 +278,7 @@ impl State {
  
      /// Make `row` the selection (or none), moving the highlight.
      pub fn select(&mut self, row: Option<u32>) {
 +        self.cancel_split();
          let row = row.filter(|row| self.scene.selectable(*row));
          self.cancel_gesture();
-         for old in self.hierarchy.selected.drain(..) {
-@@ -362,6 +367,12 @@
+ 
+@@ -354,6 +359,14 @@ impl State {
  
      /// A pick came back: log what it hit and select it (clicking the selection clears it).
      fn apply_pick(&mut self, pick: Option<Pick>) {
@@ -679,12 +708,14 @@ diff --git a/src/state.rs b/src/state.rs
 +            if let Some(pick) = pick {
 +                self.pick_split_cutter(pick.row);
 +            }
++
 +            return;
 +        }
++
          let pick = pick.filter(|pick| self.scene.selectable(pick.row));
+ 
          #[cfg(target_arch = "wasm32")]
-         if self.cloud_query_awaiting_gpu() {
-@@ -567,15 +578,20 @@
+@@ -581,17 +594,22 @@ impl State {
      /// with edges still winning. Both false is the ordinary object pass, or the control-point
      /// pass while F10 controls are up. Ctrl never also performs ordinary selection.
      pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
@@ -697,14 +728,14 @@ diff --git a/src/state.rs b/src/state.rs
 +            && (edge || self.selection_tool == crate::app::selection::SelectionTool::Edge);
          self.cancel_cloud_query();
          self.gpu.pick.cancel();
+ 
          #[cfg(target_arch = "wasm32")]
 -        if !edge && self.start_cloud_query(x, y) {
--            return;
--        }
--        let mode = if face {
 +        if !splitting && !edge && self.start_cloud_query(x, y) {
-+            return;
-+        }
+             return;
+         }
+ 
+-        let mode = if face {
 +        let mode = if splitting {
 +            PickMode::Object
 +        } else if face {
@@ -714,7 +745,7 @@ diff --git a/src/state.rs b/src/state.rs
 diff --git a/src/state/edit.rs b/src/state/edit.rs
 --- a/src/state/edit.rs
 +++ b/src/state/edit.rs
-@@ -293,7 +293,7 @@
+@@ -295,7 +295,7 @@ impl State {
  
      /// An undo can bring an object back or take one away, so the rows are rebuilt rather than
      /// patched. The selection is dropped because the row it named may not exist any more.
@@ -723,25 +754,26 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
          self.hierarchy.open.clear();
          self.hierarchy.page = 0;
          self.selection = SelectionMode::Object;
-@@ -415,6 +415,9 @@
-     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
+@@ -424,6 +424,10 @@ impl State {
          self.cancel_gesture();
          let command = crate::app::command::parse(line)?;
+ 
 +        if command != Command::Split {
 +            self.cancel_split();
 +        }
++
          if matches!(command, Command::Delete | Command::Undo | Command::Redo)
              && (!self.scene.streamed.is_empty() || !self.scene.sheets.is_empty())
          {
-@@ -428,6 +431,7 @@
-             return Err("nothing is selected".into());
+@@ -440,6 +444,7 @@ impl State {
          }
+ 
          match command {
 +            Command::Split => self.split_command(),
              Command::Save => {
                  let bytes = crate::app::session_io::save(&self.scene)?;
                  #[cfg(target_arch = "wasm32")]
-@@ -444,7 +448,10 @@
+@@ -456,7 +461,10 @@ impl State {
                  use crate::app::modeling::Modeling;
                  let created = matches!(
                      command,
@@ -753,7 +785,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
                  );
                  self.scene.model(&command)?;
                  self.after_history();
-@@ -458,6 +465,7 @@
+@@ -472,6 +480,7 @@ impl State {
                      let name = match command {
                          Modeling::Point(_) => "point",
                          Modeling::Line(..) => "line",
@@ -764,24 +796,27 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 diff --git a/src/state/panel.rs b/src/state/panel.rs
 --- a/src/state/panel.rs
 +++ b/src/state/panel.rs
-@@ -45,6 +45,12 @@
+@@ -51,6 +51,15 @@ impl State {
                  }
                  "select" => {
                      let rows = self.hierarchy.targets(index);
++
 +                    if self.pending_split.is_some() {
 +                        for row in rows {
 +                            self.pick_split_cutter(row);
 +                        }
++
 +                        return;
 +                    }
++
                      self.select(None);
+ 
                      for row in rows {
-                         if self.scene.identity_of(row).is_some_and(|id| {
 diff --git a/src/state/splitting.rs b/src/state/splitting.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/state/splitting.rs
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,131 @@
 +use super::State;
 +use crate::app::{feedback, splitting};
 +
@@ -790,6 +825,7 @@ new file mode 100644
 +    pub face: Option<usize>,
 +    pub cutters: Vec<u32>,
 +}
++
 +impl State {
 +    #[cfg(target_arch = "wasm32")]
 +    pub(crate) fn split_status(&self) -> Option<(u32, Option<usize>, &[u32])> {
@@ -797,10 +833,12 @@ new file mode 100644
 +            .as_ref()
 +            .map(|p| (p.target, p.face, p.cutters.as_slice()))
 +    }
++
 +    pub(super) fn split_command(&mut self) -> Result<String, String> {
 +        if self.pending_split.is_some() {
 +            return self.finish_split();
 +        }
++
 +        let row = self
 +            .scene
 +            .selected
@@ -823,6 +861,7 @@ new file mode 100644
 +        feedback::focus_canvas();
 +        Ok("Split: select cutter lines, polylines or curves, then press Enter or tap Split again. Esc cancels. Faces require on-surface cutters.".into())
 +    }
++
 +    pub(super) fn cancel_split(&mut self) {
 +        if let Some(pending) = self.pending_split.take() {
 +            for row in pending.cutters {
@@ -830,10 +869,12 @@ new file mode 100644
 +            }
 +        }
 +    }
++
 +    pub(super) fn pick_split_cutter(&mut self, row: u32) {
 +        let Some(pending) = self.pending_split.as_mut() else {
 +            return;
 +        };
++
 +        if row == pending.target
 +            || !self.scene.selectable(row)
 +            || !self.scene.geometry(row).is_some_and(splitting::is_cutter)
@@ -843,6 +884,7 @@ new file mode 100644
 +            );
 +            return;
 +        }
++
 +        if let Some(at) = pending.cutters.iter().position(|item| *item == row) {
 +            pending.cutters.remove(at);
 +            self.gpu.set_selected(row, false);
@@ -850,12 +892,14 @@ new file mode 100644
 +            pending.cutters.push(row);
 +            self.gpu.set_selected(row, true);
 +        }
++
 +        let count = pending.cutters.len();
 +        self.status(&format!(
 +            "Split: {count} cutter curves selected. Enter or Split confirms; Esc cancels."
 +        ));
 +        self.touch();
 +    }
++
 +    pub fn confirm_split(&mut self) {
 +        if self.pending_split.is_some() {
 +            let message = self.finish_split().unwrap_or_else(|error| error);
@@ -863,19 +907,24 @@ new file mode 100644
 +            self.touch();
 +        }
 +    }
++
 +    fn finish_split(&mut self) -> Result<String, String> {
 +        let pending = self.pending_split.take().ok_or("Start Split first")?;
++
 +        if pending.cutters.is_empty() {
 +            self.pending_split = Some(pending);
 +            return Err("Select at least one cutter curve, then press Enter".into());
 +        }
++
 +        for &row in &pending.cutters {
 +            self.gpu.set_selected(row, false);
 +        }
++
 +        let identity = self.scene.identity_of(pending.target);
 +        let result = self
 +            .scene
 +            .split_rows(pending.target, pending.face, &pending.cutters);
++
 +        match result {
 +            Ok(regions) if regions > 1 => {
 +                self.after_history();

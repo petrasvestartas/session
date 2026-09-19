@@ -22,7 +22,7 @@
 
 ## Step 1 · Kernel: one-sided normals at a C0 knot
 
-![Where this step sits in the viewer: Kernel, with 8 of 12 zones built so far.](illustrations/locator-4299885286.svg){ .locator data-strip="illustrations/strip-ab35262a37.svg" }
+The kernel is maintained in its own repository and the course never edits it: read the file, do not type it.
 
 - A knot repeated `degree` times folds the surface; averaging normals across that fold makes a sharp edge look rounded.
 - The grid mesher splits a shading vertex on the crease side: same position and `u`/`v`, different normal, so the split never invents a CAD vertex.
@@ -30,15 +30,10 @@
 
 ![Diagram: repeated knot · accumulated normals · two shading vertices\ same u,v](illustrations/06-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ab35262a37.svg" data-zone="Kernel"></span>
-
-<!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=1-4 -->
+<!-- listing: 06 session_rust/src/remesh_nurbssurface_grid.rs -->
 
 `split_crease_normals` is `pub(crate)`: the trimmed mesher in `nurbssurface_trimmed.rs` shares it.
 
-<span class="zone-mark" data-strip="illustrations/strip-ab35262a37.svg" data-zone="Kernel"></span>
-
-<!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=5-5 -->
 
 <!-- check: 06 -->
 
@@ -92,19 +87,19 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=1-48 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=1-57 -->
 
 - Newell normals, not the first three corners: a reflex second corner would invert the normal and turn a flat region into a crease.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=49-95 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=58-86 -->
 
 - Faces are slotted by arrival, not by direction; `opposed` records a winding disagreement instead of declaring the solid open.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=96-173 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=87-179 -->
 
 ## Step 6 · Ink: pipes for edges, spheres for vertices
 
@@ -117,40 +112,40 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-67 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-60 -->
 
 - The rest is the crease test drawn above: one cosine sorts a shared edge into border, crease, or an interior diagonal.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=68-110 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=61-116 -->
 
 - A smooth tessellation inks only borders and creases; a coplanar diagonal is dropped unless `VIEWER_ALL_EDGES` asks for it.
 - `pipe_ids` gets the source edge index for an authored mesh and `u32::MAX` for a tessellation seam: selection must never return an invented edge.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=111-146 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=117-168 -->
 
 - Incidence is CSR over the edges: each vertex knows its widest visible edge and every incident edge, so a marker can carry up to six face normals.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=147-192 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=169-245 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=193-250 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=246-320 -->
 
 - One entry point runs both lanes in order — pipes, then markers unless `VIEWER_NO_DOTS` — so a caller cannot produce edges without their vertices.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=251-268 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=321-344 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs copy lines=269-373 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs copy lines=345-402 -->
 
 ## Step 7 · One mesh into the tables
 
@@ -164,23 +159,23 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-56 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-46 -->
 
 - Named presets keep those three decisions out of the producer bodies.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=57-78 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=47-72 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=79-141 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=73-138 -->
 
 - Faces go into the arena with `vids = cx.row`; the ink pass runs only on decorated meshes with a topology.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=142-236 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=139-250 -->
 
 ## Step 8 · Curves into the ribbon lane
 
@@ -192,20 +187,20 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-61 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-64 -->
 
 - A NURBS curve is sampled by turning angle of its control polygon, so a full circle gets the same chord count at any radius.
 - `render_position` is the f64 → f32 boundary for every sampled point; a producer already holding f32 endpoints casts them where it builds them.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=62-123 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=65-153 -->
 
 - A NURBS curve reaches the GPU as a polyline and then takes the polyline path. One sampling rule, used everywhere a curve is drawn.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=124-145 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=154-155 -->
 
 ## Step 9 · Edge records and the first BRep consumer
 

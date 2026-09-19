@@ -31,26 +31,48 @@ Finish the shared ownership comments, event routing and formatting. The next che
 **CURRENT**
 
 ```rust
-        let session = Rc::make_mut(&mut file.session);
-        if back {
-            session.undo()
-        } else {
-            session.redo()
-        }
+
+    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
+    /// a drag that appears to do nothing is a bug report waiting to happen.
+    #[test]
+    fn a_kind_with_no_control_points_is_refused() {
+        let mut scene = one_point_twice();
+        assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
     }
+
+    /// A streamed source is a shell with no kernel object behind it: editing it would write
+    /// into an empty session and silently lose the edit, so it is refused.
+    #[test]
+    fn a_display_only_document_refuses_the_edit() {
+        let mut scene = one_point_twice();
+        scene.docs[0].display_only = true;
+        assert!(
+            scene
+                .transform_row(0, &Xform::translation(1.0, 0.0, 0.0), "move")
+                .is_none()
+        );
+    }
+
+    #[test]
 ```
 
 **REPLACE WITH**
 
 ```rust
-        let session = Rc::make_mut(&mut file.session);
-        if back { session.undo() } else { session.redo() }
-    }
+
+    #[test]
 ```
 
 **TYPE THIS**
 
 **CURRENT**
+
+```rust
+        assert_eq!(line.get_point(1).unwrap()[0], 1.0);
+    }
+```
+
+**ADD BELOW**
 
 ```rust
 
@@ -74,52 +96,6 @@ Finish the shared ownership comments, event routing and formatting. The next che
                 .is_none()
         );
     }
-    #[test]
-```
-
-**REPLACE WITH**
-
-```rust
-
-    #[test]
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-    }
-
-}
-```
-
-**REPLACE WITH**
-
-```rust
-    }
-
-    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
-    /// a drag that appears to do nothing is a bug report waiting to happen.
-    #[test]
-    fn a_kind_with_no_control_points_is_refused() {
-        let mut scene = one_point_twice();
-        assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
-    }
-
-    /// A streamed source is a shell with no kernel object behind it: editing it would write
-    /// into an empty session and silently lose the edit, so it is refused.
-    #[test]
-    fn a_display_only_document_refuses_the_edit() {
-        let mut scene = one_point_twice();
-        scene.docs[0].display_only = true;
-        assert!(
-            scene
-                .transform_row(0, &Xform::translation(1.0, 0.0, 0.0), "move")
-                .is_none()
-        );
-    }
-}
 ```
 
 ### `src/app/inspection.rs`
@@ -198,20 +174,16 @@ pub mod ui;
 
 ```rust
     pub place: Xform,
-    /// Shared with whoever decoded it (the live source keeps its current set), and shared
-    /// again between placements: a manifest listing one file twice hands both documents the
-    /// same `Rc`. Nothing mutates a session today. Anything that starts to must call
-    /// `Rc::make_mut` FIRST, or one placement's edit moves every other placement of that file
-    /// and the live source's cached copy with them.
-    pub session: Rc<Session>,
+    pub session: Rc<Session>, // Shared with whoever decoded it (the live source keeps its current set), and shared again between placements: a manifest listing one file twice hands both documents the same `Rc`. Nothing mutates a session today. Anything that starts to must call `Rc::make_mut` FIRST, or one placement's edit moves every other placement of that file and the live source's cached copy with them.
+    pub point_px: f32,
 ```
 
 **REPLACE WITH**
 
 ```rust
     pub place: Xform,
-    /// Shared placements detach through Rc::make_mut before editing source geometry.
-    pub session: Rc<Session>,
+    pub session: Rc<Session>, // Shared placements detach through Rc::make_mut before editing source geometry.
+    pub point_px: f32,
 ```
 
 ### `src/state/edit.rs`

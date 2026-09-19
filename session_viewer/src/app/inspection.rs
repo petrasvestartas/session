@@ -1,4 +1,3 @@
-//! Read-only, opt-in browser measurements (`?inspect=1`); no mutation or production UI.
 #[cfg(target_arch = "wasm32")]
 use crate::State;
 mod source_memory;
@@ -13,6 +12,7 @@ pub fn publish(state: &State) {
     if super::route::query("inspect").as_deref() != Some("1") {
         return;
     }
+
     let Some(window) = web_sys::window() else {
         return;
     };
@@ -116,6 +116,7 @@ fn sheet_entity(state: &State) -> Option<serde_json::Value> {
 fn text_labels(state: &State) -> Vec<serde_json::Value> {
     use crate::engine::text::TextPlacement;
     let mut labels = Vec::new();
+
     for run in &state.gpu.text.document.runs {
         let (kind, world, padding) = match run.label.placement {
             TextPlacement::Screen { .. } => ("screen", None, None),
@@ -128,10 +129,12 @@ fn text_labels(state: &State) -> Vec<serde_json::Value> {
         };
         let mut width = 0.0f32;
         let mut height = 0.0f32;
+
         for line in run.buffer.layout_runs() {
             width = width.max(line.line_w);
             height = height.max(line.line_top + line.line_height);
         }
+
         labels.push(serde_json::json!({
             "id": run.label.id,
             "object": run.label.object.map(|object| object.row),
@@ -154,5 +157,6 @@ fn text_labels(state: &State) -> Vec<serde_json::Value> {
             },
         }));
     }
+
     labels
 }

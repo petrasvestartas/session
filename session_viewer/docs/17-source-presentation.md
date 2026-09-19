@@ -49,7 +49,7 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=1-28 -->
+<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=1-27 -->
 
 Group 3 borrows the arena's buffers and adds the face table and the selected-face uniform:
 
@@ -63,29 +63,29 @@ Group 3 borrows the arena's buffers and adds the face table and the selected-fac
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=29-78 -->
+<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=28-77 -->
 
 - `append` shifts upload-local face addresses by the scene's running count, so replacement never reuses an address.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=79-128 -->
+<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=78-127 -->
 
 - `source` rejects a sub-ID whose parent row does not match: a stale address cannot select another object's face.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=129-166 -->
+<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=128-170 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=167-204 -->
+<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=171-214 -->
 
 - Three pipelines, one vertex entry `vs_face`: IDs into the pick target, the highlight over read-only equal depth, and a coverage mask for part C.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=205-243 -->
+<!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=215-253 -->
 
 ### Step 2 · The triangle shader learns vertex pulling
 
@@ -171,7 +171,7 @@ Group 3 borrows the arena's buffers and adds the face table and the selected-fac
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state.rs type hunks=7,8,11,12,15,16 -->
+<!-- file: 17 session_viewer/src/state.rs type hunks=6,7,10,11,14,15,16 -->
 
 ## Part B · Authored text is an object
 
@@ -206,21 +206,21 @@ Group 3 borrows the arena's buffers and adds the face table and the selected-fac
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-15 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-12 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=16-67 -->
-
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=68-85 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=13-66 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=86-142 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=67-85 -->
+
+
+<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
+
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=86-146 -->
 
 - Resolving text by row, and building the visible submission with the current selection flags.
 
@@ -240,22 +240,22 @@ Group 3 borrows the arena's buffers and adds the face table and the selected-fac
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state/text.rs type lines=1-33 -->
+<!-- file: 17 session_viewer/src/state/text.rs type lines=1-35 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state/text.rs type lines=34-54 -->
+<!-- file: 17 session_viewer/src/state/text.rs type lines=36-59 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state/text.rs type lines=55-112 -->
+<!-- file: 17 session_viewer/src/state/text.rs type lines=60-134 -->
 
 - Fitting includes authored text: a label's shaped extent in its own fixed frame joins the scene's bounds, or `F` would cut the text off.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state/text.rs type lines=113-144 -->
+<!-- file: 17 session_viewer/src/state/text.rs type lines=135-162 -->
 
 - `State`'s second companion is the streamed F10 query: this file groups its page, answer and resolve workflow.
 
@@ -263,29 +263,29 @@ Group 3 borrows the arena's buffers and adds the face table and the selected-fac
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=1-38 -->
+<!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=1-36 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=39-101 -->
+<!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=37-101 -->
 
 - The page loop, one page per frame: fetch, test, accumulate, and resolve the winner only once every eligible page has answered.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=102-159 -->
+<!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=102-165 -->
 
 - Each batch is stamped with the camera, scene and parent it was asked against; an older generation's callback is dropped rather than answered.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=160-212 -->
+<!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=166-220 -->
 
 - `state.rs` declares both modules and keeps only ownership; hide and show refresh labels.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state.rs type hunks=1,3,4,5,6,9,10,17,18 -->
+<!-- file: 17 session_viewer/src/state.rs type hunks=1,2,3,4,5,8,9,17,18 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
@@ -328,17 +328,17 @@ Group 3 borrows the arena's buffers and adds the face table and the selected-fac
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/text.rs type hunks=1-5 -->
+<!-- file: 17 session_viewer/src/engine/gpu/text.rs type hunks=1-6 -->
 
 - Remaining label literals in this file gain the new field:
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/text.rs type hunks=6-17 -->
+<!-- file: 17 session_viewer/src/engine/gpu/text.rs type hunks=7-18 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 17 session_viewer/src/app/inspection.rs type hunks=2 -->
+<!-- file: 17 session_viewer/src/app/inspection.rs type hunks=2-2 -->
 
 - Each reported label gains its object row, world height and resolved ink colour, so the snapshot says which text is selected, not just what text exists.
 
@@ -360,7 +360,7 @@ Group 3 borrows the arena's buffers and adds the face table and the selected-fac
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=1-33 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=1-27 -->
 
 Group 0 is the ordinary mask, group 1 the selected; one layout serves both, and the pool layout holds one mask for the reduction:
 
@@ -374,12 +374,12 @@ Group 0 is the ordinary mask, group 1 the selected; one layout serves both, and 
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=34-121 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=28-115 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=122-145 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=116-140 -->
 
 - `prepare` allocates coverage only while something is outlined.
 - The coarse texture is `size / POOL` in each direction, bound beside the resolved mask.
@@ -387,42 +387,42 @@ Group 0 is the ordinary mask, group 1 the selected; one layout serves both, and 
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=146-226 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=141-223 -->
 
 - The radius is the only per-frame write: CSS pixels scaled to physical and clamped, so the ring keeps its apparent weight at any device scale.
 - The textures above are touched only when the size changes.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=227-250 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=224-248 -->
 
 - The mask pass tests the frame's immutable depth, so hidden surfaces cannot contribute coverage.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=251-287 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=249-285 -->
 
 - `encode_pool` runs after the mask pass: one full-screen triangle over the coarse texture, no depth, `fs_pool` as its fragment entry.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=288-314 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=286-312 -->
 
 - `draw_combined` composites both silhouettes once; `allocated_bytes` counts the coarse texture with the mask.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=315-343 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=313-341 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=344-375 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=342-373 -->
 
 Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, because silhouettes start off:
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=376-624 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=374-637 -->
 
 - The shader dilates coverage with a one-pixel smooth edge and returns black at that alpha.
 - `near_any_coverage` returns zero without entering the loop when the pixel's coarse block and its eight neighbours are all empty.
@@ -460,7 +460,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
-<!-- file: 17 session_viewer/src/app/inspection.rs type hunks=1 -->
+<!-- file: 17 session_viewer/src/app/inspection.rs type hunks=1-1 -->
 
 - `?inspect=1` is how every checkpoint in this course is observed without a screenshot.
 
@@ -495,17 +495,17 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=1-6 -->
+<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=1-5 -->
 
 - Two more pipelines split ordinary from selected strokes; `draw_selected` is skipped when nothing is selected.
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=7-14 -->
+<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=6-13 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
-<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=15-17 -->
+<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=14-16 -->
 
 - The layout test mirrors `StrokeSegment` and pins `origin`, `frame` and `opacity` in the single `LineUniform` of `scene.wgsl`, the contract every lane is compiled with: 80 bytes.
 
@@ -525,19 +525,19 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
-<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-2 -->
+<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-3 -->
 
 - A selected stroke's half-width is floored at `line.thickness`, so its yellow core is at least twice the ordinary pen; a CAD boundary sample takes 1.0 in place of the density taper, so refining a surface never thins the pen along its edges.
 
 <span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
-<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=3-4 -->
+<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=4-5 -->
 
 - Three vertex entries share `stroke_vertex`; `coverage` applies both join planes before the capsule distance.
 
 <span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
-<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=5-6 -->
+<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=6-7 -->
 
 ### Step 14b · Install the supplied tooling
 
@@ -626,7 +626,7 @@ Three rules keep every pixel the same: the pick pass draws a window, antialiasin
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 17 session_viewer/src/state.rs type hunks=2,13,14 -->
+<!-- file: 17 session_viewer/src/state.rs type hunks=12-13 -->
 
 
 ## Step 17 · Wire the frame

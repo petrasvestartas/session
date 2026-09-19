@@ -1,13 +1,3 @@
-//! Object snapping: the candidate points near the cursor, and which one wins.
-//!
-//! Ranked in SCREEN space, not world space. Two candidates a metre apart in world can be one
-//! pixel apart on screen, and it is the pixel distance the user is aiming with. The caller
-//! supplies the projection, which keeps this module free of the camera and the GPU.
-//!
-//! Kind beats distance. An endpoint three pixels away wins over a point-on-edge one pixel
-//! away, because a user reaching for an end and getting "somewhere along it" has to undo,
-//! while the reverse is a small correction.
-
 use session_rust::Point;
 
 /// What a candidate is, in the order it wins ties. Lower wins.
@@ -24,8 +14,7 @@ pub enum SnapKind {
 pub struct Snap {
     pub point: Point,
     pub kind: SnapKind,
-    /// Which object it came from, so a caller can say what it snapped to.
-    pub owner: u32,
+    pub owner: u32, // Which object it came from, so a caller can say what it snapped to.
 }
 
 /// The ends, vertices and midpoints of one open or closed polyline.
@@ -37,7 +26,9 @@ pub fn from_polyline(points: &[Point], closed: bool, owner: u32, out: &mut Vec<S
     if points.is_empty() {
         return;
     }
+
     let last = points.len() - 1;
+
     for (i, p) in points.iter().enumerate() {
         let interior = i != 0 && i != last;
         let kind = if closed || interior {
@@ -51,7 +42,9 @@ pub fn from_polyline(points: &[Point], closed: bool, owner: u32, out: &mut Vec<S
             owner,
         });
     }
+
     let spans = if closed { points.len() } else { last };
+
     for i in 0..spans {
         let a = &points[i];
         let b = &points[(i + 1) % points.len()];
@@ -96,23 +89,28 @@ where
     F: Fn(&Point) -> Option<(f64, f64)>,
 {
     let mut winner: Option<(SnapKind, f64, &Snap)> = None;
+
     for c in candidates {
         let Some((x, y)) = project(&c.point) else {
             continue;
         };
         let (dx, dy) = (x - cursor.0, y - cursor.1);
         let d = (dx * dx + dy * dy).sqrt();
+
         if d > aperture {
             continue;
         }
+
         let better = match winner {
             None => true,
             Some((kind, best_d, _)) => c.kind < kind || (c.kind == kind && d < best_d),
         };
+
         if better {
             winner = Some((c.kind, d, c));
         }
     }
+
     winner.map(|(_, _, c)| c.clone())
 }
 

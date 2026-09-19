@@ -34,13 +34,13 @@ Streamed clouds display a bounded prefix, so a click must ask the source, not th
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 13 session_viewer/src/app/selection.rs type hunks=1 -->
+<!-- file: 13 session_viewer/src/app/selection.rs type hunks=1-1 -->
 
 - `Controls::from_geometry` reads source data: mesh vertex keys, BRep vertices, curve and surface control nets with links; never tessellation vertices.
 
 <span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 13 session_viewer/src/app/selection.rs type hunks=2 -->
+<!-- file: 13 session_viewer/src/app/selection.rs type hunks=2-2 -->
 
 ## Step 2 · Fetching and source-query records
 
@@ -55,43 +55,43 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-38 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-35 -->
 
 - `get` treats any HTTP status as success and only a network failure as an error: a 304 or a 404 is the caller's decision.
 - So one function serves the live source's conditional read and the loader's download.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/fetch.rs type lines=39-121 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs type lines=36-129 -->
 
 - `content_length` is a HEAD request: a file's download size before a byte is fetched, so a scene can refuse what the device cannot hold.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-228 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=130-242 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=229-248 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=243-264 -->
 
 - `QueryView` freezes the click's projection; every page is tested against the same matrix and pixel window.
 - A cube crossing the eye plane cannot be excluded, so `intersects` returns true for it.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=1-52 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=1-55 -->
 
 - A source query may look at more nodes than it needed; it must never skip one that held the answer.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=53-92 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=56-107 -->
 
 - A cube whose projection is not finite is kept and tested the slow way: the arithmetic that would reject it is the arithmetic that failed.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=93-124 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=108-144 -->
 
 - `eligible_ranges` walks every octree node, resident or not; when the node table misses rows it falls back to a full bounded scan.
 - `fetch_page` spawns one bounded range read per page and posts the result back.
@@ -103,27 +103,27 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=125-195 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=145-226 -->
 
 - `Query` owns the cancellation token; superseding input drops the query and every callback in flight checks the token before posting.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=196-251 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=227-289 -->
 
 - Cancellation is an ownership property rather than a flag someone must remember to set.
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=252-270 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=290-310 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-368 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=311-418 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=369-556 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=419-617 -->
 
 <!-- check: 13 -->
 
@@ -192,13 +192,13 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 13 session_viewer/src/state.rs type hunks=11-13 -->
+<!-- file: 13 session_viewer/src/state.rs type hunks=11-14 -->
 
 - A click in control mode picks controls; a click on a streamed cloud's controls starts the page loop instead.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 13 session_viewer/src/state.rs type hunks=14-14 -->
+<!-- file: 13 session_viewer/src/state.rs type hunks=17-17 -->
 
 - `enable_controls` reads the source geometry once; a display-only object without source reports that instead of inventing controls.
 
@@ -218,7 +218,7 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 <span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
-<!-- file: 13 session_viewer/src/state.rs type hunks=17-19 -->
+<!-- file: 13 session_viewer/src/state.rs type hunks=18-20 -->
 
 ## Step 6 · Key, message and loader wiring
 

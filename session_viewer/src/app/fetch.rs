@@ -1,6 +1,3 @@
-//! The browser's network edge: cross-origin GETs (plain and conditional), HTTP Range reads
-//! that refuse anything but `206`, and the two ways to hand the browser its main thread back.
-
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
@@ -43,15 +40,19 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
     init.set_signal(Some(&deadline.controller.signal()));
     init.set_method("GET");
     init.set_mode(RequestMode::Cors);
+
     if opts.no_store {
         init.set_cache(web_sys::RequestCache::NoStore);
     } else if opts.revalidate {
         init.set_cache(web_sys::RequestCache::NoCache);
     }
+
     let headers = Headers::new().map_err(describe)?;
+
     if let Some(tag) = &opts.if_none_match {
         headers.set("If-None-Match", tag).map_err(describe)?;
     }
+
     if let Some((start, len)) = opts.range {
         if len == 0 {
             return Ok(Reply {
@@ -60,6 +61,7 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
                 bytes: Vec::new(),
             });
         }
+
         headers
             .set(
                 "Range",
@@ -71,6 +73,7 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
             )
             .map_err(describe)?;
     }
+
     init.set_headers(&headers);
     let request = Request::new_with_str_and_init(url, &init).map_err(describe)?;
     let window = web_sys::window().ok_or("no window")?;
@@ -88,6 +91,7 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
     } else {
         (200..300).contains(&status)
     };
+
     if !wanted {
         return Ok(Reply {
             status,
@@ -95,6 +99,7 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
             bytes: Vec::new(),
         });
     }
+
     if let Ok(Some(length)) = resp.headers().get("Content-Length")
         && let Ok(length) = length.parse::<u64>()
         && length > 512 * 1024 * 1024
@@ -103,15 +108,18 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
             "payload exceeds the 512 MiB whole-file limit; use cloud streaming".to_string(),
         );
     }
+
     let buf = JsFuture::from(resp.array_buffer().map_err(describe)?)
         .await
         .map_err(describe)?;
     let bytes = js_sys::Uint8Array::new(&buf).to_vec();
+
     if let Some((_, length)) = opts.range
         && bytes.len() as u64 > length
     {
         return Err("range response exceeds requested bytes".to_string());
     }
+
     Ok(Reply {
         status,
         etag,
@@ -151,9 +159,11 @@ pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
         },
     )
     .await?;
+
     if !(200..300).contains(&r.status) {
         return Err(format!("HTTP {} for {url}", r.status));
     }
+
     Ok(r.bytes)
 }
 
@@ -177,6 +187,7 @@ pub async fn fetch_range(
         },
     )
     .await?;
+
     if reply.status != 206 || reply.bytes.len() as u64 != len {
         return Err(format!(
             "Range read failed for {url} (HTTP {}, {} of {len} bytes)",
@@ -184,9 +195,11 @@ pub async fn fetch_range(
             reply.bytes.len()
         ));
     }
+
     if revision.is_some() && revision != &reply.etag {
         return Err(format!("{url} changed during the read; reload it"));
     }
+
     Ok((reply.bytes, reply.etag))
 }
 
@@ -214,6 +227,7 @@ struct Deadline {
     timer: i32,
     _callback: Closure<dyn FnMut()>,
 }
+
 impl Deadline {
     /// Permit slow scene transfers for ninety seconds, then surface a recoverable network error.
     fn new() -> Result<Self, String> {
@@ -234,6 +248,7 @@ impl Deadline {
         })
     }
 }
+
 impl Drop for Deadline {
     /// Remove the JavaScript timer before dropping its Rust callback handle.
     fn drop(&mut self) {
@@ -242,6 +257,7 @@ impl Drop for Deadline {
         }
     }
 }
+
 /// The browser callback adapter forwards cancellation to the request's controller.
 fn abort_request(controller: &web_sys::AbortController) {
     controller.abort();

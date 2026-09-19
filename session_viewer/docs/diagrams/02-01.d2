@@ -6,11 +6,11 @@ classes: {
 }
 direction: right
 
-A: "Mat4 · [f64; 16]" { class: focus }
-B: "Mat4" { class: box }
+A: "Xform · [f64; 16]" { class: focus }
+B: "Xform" { class: box }
 P: "placed point" { class: box }
 G: "[f32; 16] for the GPU" { class: box }
 
-A -> B: "mat_mul" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
-A -> P: "xform_point_f64" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
-A -> G: "mat_to_f32" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+A -> B: "&a * &b" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+A -> P: "transform_point" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+A -> G: "to_f32" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

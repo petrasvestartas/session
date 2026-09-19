@@ -1,19 +1,17 @@
-//! Lines, polylines and NURBS curves into the FLAT ribbon lane: one segment per span,
-//! `FACING_UNKNOWN` because free linework has no topological facing cull.
-
 use super::Row;
 use super::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
 use crate::engine::gpu::CylinderSegment;
 use crate::engine::gpu::segments::SegRows;
-use crate::math::Aabb;
+use session_rust::AABB;
 use session_rust::{Line, NurbsCurve, Polyline};
 
 /// Segments between consecutive points, growing `bounds` as they go.
-pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut Aabb) {
+pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut AABB) {
     let first = seg.ribbons.len() as u32;
     seg.ribbons.reserve(pts.len().saturating_sub(1));
+
     for w in pts.windows(2) {
-        bounds.grow(w[0]);
+        bounds.union_with_point(w[0][0] as f64, w[0][1] as f64, w[0][2] as f64);
         seg.ribbons.push(CylinderSegment {
             p0: w[0],
             radius: pen.radius,
@@ -23,9 +21,11 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
             facing: FACING_UNKNOWN,
         });
     }
+
     seg.ribbon_chains.push(first..seg.ribbons.len() as u32);
+
     if let Some(last) = pts.last() {
-        bounds.grow(*last);
+        bounds.union_with_point(last[0] as f64, last[1] as f64, last[2] as f64);
     }
 }
 
@@ -33,9 +33,9 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
 pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
     let p0 = [l[0] as f32, l[1] as f32, l[2] as f32];
     let p1 = [l[3] as f32, l[4] as f32, l[5] as f32];
-    let mut bounds = Aabb::empty();
-    bounds.grow(p0);
-    bounds.grow(p1);
+    let mut bounds = AABB::empty();
+    bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
+    bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);
     seg.ribbons.push(CylinderSegment {
         p0,
         radius: encode_width(l.width),
@@ -50,15 +50,17 @@ pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
 /// One segment per span, straight from the flat coordinate array.
 pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
     let mut pts: Vec<[f32; 3]> = Vec::with_capacity(pl.coords.len() / 3);
+
     for c in pl.coords.chunks_exact(3) {
         pts.push([c[0] as f32, c[1] as f32, c[2] as f32]);
     }
+
     let pen = Pen {
         row,
         radius: encode_width(pl.width),
         color: pack_rgba(pl.linecolor.to_f32()),
     };
-    let mut bounds = Aabb::empty();
+    let mut bounds = AABB::empty();
     push_polyline(seg, &pts, &pen, &mut bounds);
     Row::thin(bounds)
 }
@@ -89,22 +91,28 @@ pub(super) fn render_position(point: [f64; 3]) -> [f32; 3] {
 fn turning_degrees(c: &NurbsCurve) -> f64 {
     let mut total = 0.0;
     let mut prev: Option<[f64; 3]> = None;
+
     for i in 1..c.m_cv_count {
         let (Some(a), Some(b)) = (control_position(c, i - 1), control_position(c, i)) else {
             continue;
         };
         let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
         let len = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+
         if len < 1e-12 {
             continue;
         }
+
         let u = [d[0] / len, d[1] / len, d[2] / len];
+
         if let Some(q) = prev {
             let dot = (q[0] * u[0] + q[1] * u[1] + q[2] * u[2]).clamp(-1.0, 1.0);
             total += dot.acos().to_degrees();
         }
+
         prev = Some(u);
     }
+
     total
 }
 
@@ -113,15 +121,18 @@ pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
     if c.m_cv_count < 2 {
         return Vec::new();
     }
+
     let spans = c.span_count().max(1);
     let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512);
 
     let (t0, t1) = c.domain();
     let mut pts: Vec<[f64; 3]> = Vec::with_capacity(n + 1);
+
     for i in 0..=n {
         let point = c.point_at(t0 + (t1 - t0) * i as f64 / n as f64);
         pts.push([point[0], point[1], point[2]]);
     }
+
     pts
 }
 
@@ -141,7 +152,7 @@ pub fn walk_nurbscurve(seg: &mut SegRows, c: &NurbsCurve, row: u32) -> Row {
         radius: encode_width(c.width),
         color: pack_rgba(color),
     };
-    let mut bounds = Aabb::empty();
+    let mut bounds = AABB::empty();
     push_polyline(seg, &pts, &pen, &mut bounds);
     Row::thin(bounds)
 }

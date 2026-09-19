@@ -1,6 +1,3 @@
-//! Row encodings shared by every producer: pen widths to radii, colours to RGBA8, normals to
-//! oct16 and the packed `facing` word the ink shaders test. Pure functions on numbers.
-
 /// An authored width (kernel millimetres) as the world-mm RADIUS the shaders project; the
 /// untouched 1.0 default (and 0 / non-finite) is 0.0 = the screen-constant pen.
 pub fn encode_width(w: f64) -> f32 {
@@ -34,14 +31,18 @@ fn quant_snorm8(v: f64) -> u32 {
 /// A unit vector in 16 bits, octahedral (~1.4 deg of error, used for the SIGN of a dot).
 pub fn oct16(n: &[f64; 3]) -> Option<u32> {
     let l = n[0].abs() + n[1].abs() + n[2].abs();
+
     if l.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater) {
         return None;
     }
+
     let (mut x, mut y) = (n[0] / l, n[1] / l);
+
     if n[2] < 0.0 {
         let (ax, ay) = (x.abs(), y.abs());
         (x, y) = ((1.0 - ay) * sign_not_zero(x), (1.0 - ax) * sign_not_zero(y));
     }
+
     Some(quant_snorm8(x) | quant_snorm8(y) << 8)
 }
 
@@ -58,9 +59,11 @@ pub fn pack_facing(n0: Option<&[f64; 3]>, n1: Option<&[f64; 3]>) -> u32 {
         (Some(a), None) | (None, Some(a)) => (oct16(a), oct16(a)),
         _ => (None, None),
     };
+
     match pair {
         (Some(a), Some(b)) => {
             let v = a | b << 16;
+
             if v == FACING_UNKNOWN { v ^ 1 } else { v }
         }
         _ => FACING_UNKNOWN,

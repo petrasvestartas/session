@@ -1,9 +1,5 @@
-//! The level-of-detail walk over one cloud's octree: which node ranges to draw this frame,
-//! given how wide each node's point spacing projects on screen. Pure CPU; the point lane
-//! turns the ranges into records.
-
 use super::cloud::{Cloud, LodNode};
-use crate::math::mat_scale;
+use session_rust::Xform;
 
 /// Clouds smaller than this draw WHOLE whatever the LOD cutoff says: nothing to save, and a
 /// node drawn at its own coarser spacing is fatter than the whole cloud.
@@ -31,8 +27,7 @@ struct Visit {
 /// cutoff in pixels, and the lane's node table.
 pub struct Projection<'a> {
     pub eye: [f32; 3],
-    /// Ortho half-height in world mm; 0 in perspective.
-    pub ortho_h: f32,
+    pub ortho_h: f32, // Ortho half-height in world mm; 0 in perspective.
     pub height_px: u32,
     pub lod_px: f32,
     pub nodes: &'a [LodNode],
@@ -53,6 +48,7 @@ impl LodWalk {
     /// it and clipped to the points resident so far.
     pub fn select(&mut self, p: &Projection, c: &Cloud, model: &[f32; 16]) {
         self.ranges.clear();
+
         if c.node_count == 0 || p.lod_px <= 0.0 || c.resident < LOD_MIN_POINTS {
             self.ranges.push(Range {
                 first: 0,
@@ -64,17 +60,20 @@ impl LodWalk {
         }
 
         let base = c.node_first as usize;
-        let scale = mat_scale(model);
+        let scale = Xform::from_matrix(model.map(f64::from)).uniform_scale();
         self.stack.clear();
         self.visits.clear();
         self.stack.push((0, usize::MAX));
+
         while let Some((n, parent)) = self.stack.pop() {
             let Some(node) = p.nodes.get(base + n) else {
                 continue;
             };
+
             if node.first >= c.resident {
                 continue;
             }
+
             let count = node.count.min(c.resident - node.first);
             let slot = self.visits.len();
             self.visits.push(Visit {
@@ -83,6 +82,7 @@ impl LodWalk {
                 spacing: node.spacing,
                 parent,
             });
+
             if projected_spacing(p, node, model, scale) > p.lod_px as f64 {
                 for &child in &node.children {
                     if child >= 0 {
@@ -94,10 +94,12 @@ impl LodWalk {
 
         for i in (0..self.visits.len()).rev() {
             let (fine, parent) = (self.visits[i].spacing, self.visits[i].parent);
+
             if parent != usize::MAX && fine < self.visits[parent].spacing {
                 self.visits[parent].spacing = fine;
             }
         }
+
         for v in &self.visits {
             if v.count > 0 {
                 self.ranges.push(Range {
@@ -139,9 +141,11 @@ fn projected_spacing(p: &Projection, node: &LodNode, model: &[f32; 16], scale: f
 /// `ortho_h` is in world mm, the radius in metres.
 pub fn radius_factor(r: &Range, px: f32, scale: f64, ortho_h: f32) -> f32 {
     let mut world_r = (r.spacing as f64).max(1.0e-9) * scale * 0.001 * (px as f64) / 6.0;
+
     if r.tile {
         world_r = world_r.max(r.spacing as f64 * scale * 0.001 * 0.5);
     }
+
     let k = if ortho_h > 0.0 {
         world_r / (2.0 * ortho_h as f64 * 0.001)
     } else {

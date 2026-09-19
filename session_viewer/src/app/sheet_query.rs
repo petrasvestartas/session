@@ -1,15 +1,13 @@
-//! Sheet entity lookup by bounded range reads of the side table: the 8-byte head once per
-//! sheet, then one 16-byte record and one JSON blob per pick. The segment itself was picked
-//! on the GPU; only its entity's identity comes off the wire.
-
 use serde::Deserialize;
 use std::cell::Cell;
 use std::rc::Rc;
 
 /// The side table's head: magic `SHM1`, u32 LE record count.
 pub const HEAD_BYTES: u64 = 8;
+
 /// One record: u64 LE offset, u64 LE length, relative to the byte after the table.
 pub const RECORD_BYTES: u64 = 16;
+
 /// A blob longer than this is not one entity's record.
 pub const MAX_BLOB: u64 = 64 * 1024;
 
@@ -40,6 +38,7 @@ pub fn table_count(raw: &[u8]) -> Result<u32, String> {
     if raw.len() != HEAD_BYTES as usize || &raw[..4] != b"SHM1" {
         return Err("Side table head is not SHM1".to_string());
     }
+
     Ok(u32::from_le_bytes(
         raw[4..8].try_into().expect("exact head checked above"),
     ))
@@ -50,6 +49,7 @@ pub fn record(raw: &[u8]) -> Result<(u64, u64), String> {
     if raw.len() != RECORD_BYTES as usize {
         return Err("Side table record must contain exactly 16 bytes".to_string());
     }
+
     Ok((
         u64::from_le_bytes(raw[..8].try_into().expect("exact record checked above")),
         u64::from_le_bytes(raw[8..].try_into().expect("exact record checked above")),
@@ -129,6 +129,7 @@ mod web {
         entities: u32,
     ) {
         let result = read_entity(&url, entity, table, entities, &cancelled).await;
+
         if !cancelled.get() {
             post(crate::Msg::SheetEntity(Resolved { query, result }));
         }
@@ -148,33 +149,42 @@ mod web {
             None => {
                 let (raw, revision) = range(url, 0, HEAD_BYTES, &None).await?;
                 let count = table_count(&raw)?;
+
                 if count != entities {
                     return Err(format!(
                         "Side table holds {count} records; the sheet says {entities}"
                     ));
                 }
+
                 SheetTable { count, revision }
             }
         };
+
         if cancelled.get() {
             return Err("Entity lookup cancelled".to_string());
         }
+
         if id >= table.count {
             return Err(format!(
                 "Entity {id} is outside the {}-record side table",
                 table.count
             ));
         }
+
         let (raw, _) = range(url, record_at(id), RECORD_BYTES, &table.revision).await?;
+
         if cancelled.get() {
             return Err("Entity lookup cancelled".to_string());
         }
+
         let (offset, length) = record(&raw)?;
+
         if length > MAX_BLOB {
             return Err(format!(
                 "Entity {id} record is {length} bytes, over the {MAX_BLOB} limit"
             ));
         }
+
         let at = record_at(table.count)
             .checked_add(offset)
             .ok_or("Entity record offset overflows")?;
@@ -194,14 +204,17 @@ mod tests {
         let mut out = b"SHM1".to_vec();
         out.extend((blobs.len() as u32).to_le_bytes());
         let mut offset = 0u64;
+
         for blob in blobs {
             out.extend(offset.to_le_bytes());
             out.extend((blob.len() as u64).to_le_bytes());
             offset += blob.len() as u64;
         }
+
         for blob in blobs {
             out.extend(blob.as_bytes());
         }
+
         out
     }
 

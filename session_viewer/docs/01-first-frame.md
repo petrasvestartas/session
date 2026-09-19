@@ -29,7 +29,7 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
 
-<!-- file: 01 session_viewer/src/lib.rs type whole lines=1-36 -->
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=1-39 -->
 
 ## Step 2 · Instance, surface, adapter, device
 
@@ -43,7 +43,7 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
 
-<!-- file: 01 session_viewer/src/lib.rs type whole lines=37-58 -->
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=40-62 -->
 
 ## Step 3 · Surface configuration and the camera uniform
 
@@ -64,7 +64,7 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
 
-<!-- file: 01 session_viewer/src/lib.rs type whole lines=59-98 -->
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=63-102 -->
 
 ## Step 4 · Shader module, pipeline layout, render pipeline
 
@@ -78,7 +78,7 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
 
-<!-- file: 01 session_viewer/src/lib.rs type whole lines=99-144 -->
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=103-148 -->
 
 ## Step 5 · One frame
 
@@ -92,7 +92,7 @@
 
 <span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
 
-<!-- file: 01 session_viewer/src/lib.rs type whole lines=145-205 -->
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=149-213 -->
 
 ## Step 6 · The shader
 

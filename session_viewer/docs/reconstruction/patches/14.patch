@@ -56,28 +56,24 @@ index 0000000000000000000000000000000000000000..c7ad4c310ac1e4bb31708fc0e5622b85
 +    echo "docs/build_site.sh: course sources or uvx not found; wrote a placeholder page" >&2
 +fi
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index 2c2f1be3277c88ebcbb4642bfb4b46c71cd8106f..2217bc15b2ead11de37725414dda387d819b6189 100644
+index f330c82d8f58a1df5962cf07f1443eb05347023e..6acdf8ea381b0a599faa2b72e4eea7aaaf0c2534 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
-@@ -54,6 +54,8 @@
-   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
-   <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
-   <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
-+  <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
-+  <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
-   <!-- Message telling that Webgpu is not available. -->
-   <script>
-     // These named registrations belong to this document's lifetime and are installed once.
+@@ -110,6 +110,8 @@
+     <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
+     <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
+     <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
++    <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
++    <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
+     <!-- Message telling that Webgpu is not available. -->
+     <script>
+       // These named registrations belong to this document's lifetime and are installed once.
 diff --git a/session_viewer/src/app/decode.rs b/session_viewer/src/app/decode.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c638200052e16
+index 0000000000000000000000000000000000000000..47e2ef4110b1a367231d7368b389bd85f4c57d36
 --- /dev/null
 +++ b/session_viewer/src/app/decode.rs
-@@ -0,0 +1,149 @@
-+//! Bytes to a kernel `Session`, chunked: prost decodes the proto in one short block, then the
-+//! objects are converted CHUNK at a time with a macrotask between chunks so a 250k-object
-+//! parse never freezes the page. The bytes are taken by value and dropped after the decode.
-+
+@@ -0,0 +1,157 @@
 +use super::fetch::next_tick;
 +use prost::Message;
 +use session_rust::proto;
@@ -112,6 +108,7 @@ index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c6382
 +            $s.lookup
 +                .insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
 +            $s.objects.$slot.push(g);
++
 +            if $pacer.tick() {
 +                next_tick().await;
 +            }
@@ -127,6 +124,7 @@ index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c6382
 +            $s.lookup
 +                .insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
 +            $s.objects.$slot.push(g);
++
 +            if $pacer.tick() {
 +                next_tick().await;
 +            }
@@ -142,6 +140,7 @@ index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c6382
 +                .to_string(),
 +        );
 +    }
++
 +    if url.ends_with(".json") {
 +        let text = match std::str::from_utf8(&bytes) {
 +            Ok(text) => text,
@@ -155,6 +154,7 @@ index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c6382
 +        super::validate::retained(&session)?;
 +        return Ok(session);
 +    }
++
 +    let p = match proto::Session::decode(bytes.as_slice()) {
 +        Ok(session) => session,
 +        Err(error) => return Err(format!("invalid session protobuf: {error}")),
@@ -186,18 +186,22 @@ index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c6382
 +        let mut xform = Xform::identity();
 +        xform.set_guid(xf.guid.clone());
 +        xform.name = xf.name.clone();
++
 +        for (i, val) in xf.matrix.iter().enumerate().take(16) {
 +            xform.m[i] = *val;
 +        }
++
 +        s.xforms.insert(entry.guid.clone(), xform);
 +    }
 +
 +    if let Some(gp) = &p.graph {
 +        s.graph = session_rust::Graph::new(&gp.name);
 +        s.graph.set_guid(gp.guid.clone());
++
 +        for (name, v) in &gp.vertices {
 +            s.graph.add_node(name, &v.attribute);
 +        }
++
 +        for e in &gp.edges {
 +            s.graph.add_edge(&e.v0, &e.v1, &e.attribute);
 +        }
@@ -206,39 +210,33 @@ index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c6382
 +    if let Some(tp) = &p.tree {
 +        s.tree = Tree::new(&tp.name);
 +        s.tree.set_guid(tp.guid.clone());
++
 +        if let Some(rp) = &tp.root {
 +            let root = build_tree(rp);
 +            s.tree.add(&root, None);
 +        }
 +    }
++
 +    Ok(s)
 +}
 +
 +/// One proto node and its children, recursively.
 +fn build_tree(proto: &proto::TreeNode) -> Rc<std::cell::RefCell<TreeNode>> {
 +    let node = TreeNode::new(&proto.name);
++
 +    for c in &proto.children {
 +        let child = build_tree(c);
 +        node.borrow_mut().add(&child);
 +    }
++
 +    node
 +}
 diff --git a/session_viewer/src/app/live.rs b/session_viewer/src/app/live.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f40bfbdba
+index 0000000000000000000000000000000000000000..f089d9977407a0d9d4303a6155966087f307d40c
 --- /dev/null
 +++ b/session_viewer/src/app/live.rs
-@@ -0,0 +1,441 @@
-+//! The live source: the deployed page watches `view_live.yaml` in the R2 bucket and every
-+//! file it lists, re-reading each with `If-None-Match` so an idle poll is a handful of
-+//! `304`s. A `200` with a new `ETag` is a change; the bytes it returned ARE the bytes decoded
-+//! (one download), and an unchanged file is the same decoded `Session` again - shared with
-+//! the scene through an `Rc`, so a swap re-walks the unchanged files but never re-decodes
-+//! or copies them. A relay message (ntfy, `EventSource`) only says "look now" - the
-+//! conditional reads still decide.
-+//!
-+//! Page query: `?live=off`, `?live=<manifest url>`, `?poll=<seconds>`, `?notify=off|<sse url>`.
-+
+@@ -0,0 +1,461 @@
 +use super::decode::session_from_bytes;
 +use super::fetch::{GetOpts, get};
 +use super::manifest::Manifest;
@@ -260,6 +258,7 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +
 +/// The relay a publisher announces an upload on, as an SSE endpoint.
 +const DEFAULT_NOTIFY: &str = "https://ntfy.sh/wood-live-84eaac4a04729911/sse";
++
 +const DEFAULT_POLL_SECONDS: f64 = 5.0;
 +
 +/// How often the loop looks at the relay's flag: an in-memory check, so it is cheap.
@@ -329,8 +328,7 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +    manifest: Option<Manifest>,
 +    etags: HashMap<String, String>,
 +    hashes: HashMap<String, u64>,
-+    /// The current decoded set, one `Rc` per listed file, shared with the scene's documents.
-+    sessions: HashMap<String, Rc<Session>>,
++    sessions: HashMap<String, Rc<Session>>, // The current decoded set, one `Rc` per listed file, shared with the scene's documents.
 +    last_warning: Option<String>,
 +    pending: bool,
 +    notify: Option<Notify>,
@@ -351,16 +349,20 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +    /// `/view_live` polls (and gets notified) exactly as the deployed root page does.
 +    pub fn from_query() -> Option<Self> {
 +        let live = query("live");
++
 +        if live.as_deref() == Some("off") || live.as_deref() == Some("0") {
 +            return None;
 +        }
++
 +        let named = query_scene().or_else(path_scene);
++
 +        if live.is_none()
 +            && named.as_deref() != Some("view_live")
 +            && (named.is_some() || page_is_local())
 +        {
 +            return None;
 +        }
++
 +        let url = match live {
 +            Some(u) if u.starts_with("https://") || is_local_url(&u) => u,
 +            Some(other) => {
@@ -429,6 +431,7 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +            if_none_match: known.clone(),
 +            range: None,
 +        };
++
 +        match get(url, &opts).await {
 +            Err(e) => Read::Failed(e),
 +            Ok(r) if r.status == 304 => Read::Same,
@@ -443,10 +446,12 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +                        Read::Changed(r.bytes)
 +                    };
 +                }
++
 +                let mut hasher = std::collections::hash_map::DefaultHasher::new();
 +                r.bytes.hash(&mut hasher);
 +                let hash = hasher.finish();
 +                let same = self.hashes.insert(url.to_string(), hash) == Some(hash);
++
 +                if same {
 +                    Read::Same
 +                } else {
@@ -489,9 +494,11 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +    pub async fn check(&mut self) -> Option<Vec<FileDoc>> {
 +        let announced = self.notify.as_ref().is_some_and(Notify::take);
 +        let now = crate::engine::performance::now_ms();
++
 +        if !announced && now - self.last_read_ms < self.poll_ms {
 +            return None;
 +        }
++
 +        self.last_read_ms = now;
 +        let url = self.url.clone();
 +        let changed = match self.read(&url).await {
@@ -505,6 +512,7 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +                    self.hashes.remove(&url);
 +                    return None;
 +                }
++
 +                true
 +            }
 +            Read::Same => false,
@@ -512,10 +520,12 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +        self.pending |= changed;
 +        let files = self.file_urls();
 +        let mut failed = false;
++
 +        for (_, file) in &files {
 +            if file.contains("/pb/revisions/") && self.sessions.contains_key(file) {
 +                continue;
 +            }
++
 +            match self.read(file).await {
 +                Read::Changed(bytes) => {
 +                    self.pending = true;
@@ -530,34 +540,42 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +                }
 +            }
 +        }
++
 +        if failed || !self.pending {
 +            return None;
 +        }
++
 +        log::info!(
 +            "live: source changed{}; reloading the scene",
 +            if announced { " (announced)" } else { "" }
 +        );
 +        let docs = self.load_all(&files).await;
 +        let mut removed = Vec::new();
++
 +        for url in self.sessions.keys() {
 +            let mut listed = false;
++
 +            for (_, file) in &files {
 +                if file == url {
 +                    listed = true;
 +                    break;
 +                }
 +            }
++
 +            if !listed {
 +                removed.push(url.clone());
 +            }
 +        }
++
 +        for url in removed {
 +            self.sessions.remove(&url);
 +        }
++
 +        if docs.len() != files.len() {
 +            self.warn("replacement is incomplete; retaining the last valid scene".to_string());
 +            return None;
 +        }
++
 +        self.pending = false;
 +        Some(docs)
 +    }
@@ -572,10 +590,12 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +                return;
 +            }
 +        };
++
 +        if session.lookup.is_empty() {
 +            self.forget(url, format!("{url} holds no geometry ({n} bytes); skipped"));
 +            return;
 +        }
++
 +        log::info!(
 +            "live: decoded {url}: {} objects, {n} bytes",
 +            session.lookup.len()
@@ -589,11 +609,13 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +            return Vec::new();
 +        };
 +        let mut out = Vec::with_capacity(m.items.len());
++
 +        for (i, item) in m.items.iter().enumerate() {
 +            if !item.file.trim().is_empty() {
 +                out.push((i, join(&self.base, &item.file)));
 +            }
 +        }
++
 +        out
 +    }
 +
@@ -604,8 +626,10 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +            return Vec::new();
 +        };
 +        let mut out = Vec::new();
++
 +        for (i, url) in files {
 +            let (i, url) = (*i, url.as_str());
++
 +            if !self.sessions.contains_key(url) {
 +                match get(
 +                    url,
@@ -623,6 +647,7 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +                    }
 +                }
 +            }
++
 +            let Some(session) = self.sessions.get(url).cloned() else {
 +                continue;
 +            };
@@ -635,6 +660,7 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +                display_only: m.items[i].display_only,
 +            });
 +        }
++
 +        self.manifest = Some(m);
 +        out
 +    }
@@ -653,6 +679,7 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +    let Some(text) = e.data().as_string() else {
 +        return;
 +    };
++
 +    if is_change_notification(&text) {
 +        *flag.borrow_mut() = true;
 +    }
@@ -665,21 +692,17 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +    struct Envelope {
 +        event: Option<String>,
 +    }
++
 +    match serde_json::from_str::<Envelope>(text) {
 +        Ok(env) => matches!(env.event.as_deref(), None | Some("message")),
 +        Err(_) => !text.trim().is_empty(),
 +    }
 +}
 diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
-index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dccd1008bf 100644
+index 6f8806483db1dfde2902e247d713f137db657ae0..afba932255cec765f3448f9493f7d21c10d08a6a 100644
 --- a/session_viewer/src/app/loader.rs
 +++ b/session_viewer/src/app/loader.rs
-@@ -1,118 +1,421 @@
--//! Local tutorial fixture boundary; chapter14 installs production routing and reloads.
-+//! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
-+//! event loop as a `Msg` - whole files through `decode`, big clouds a slice at a time
-+//! through `stream`. Live first, then the URL's route, then the poll loop. Touches no GPU.
- 
+@@ -1,121 +1,455 @@
 +use super::decode::session_from_bytes;
 +use super::fetch::{fetch_bytes, sleep_ms};
 +use super::live::LiveSource;
@@ -724,10 +747,13 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
  thread_local! {
 +    /// The start-up proxy, kept so `reload_scene` and the stream tasks can post messages.
      static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
++
 +    /// Points resident across every streamed cloud on the page: the ceiling is a scene budget.
 +    static RESIDENT: Cell<u32> = const { Cell::new(0) };
++
 +    /// Bumped on every `Clear`: a stream task from an older scene stops at its next slice.
 +    static GENERATION: Cell<u32> = const { Cell::new(0) };
++
 +    static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
  }
  
@@ -791,26 +817,29 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
          }
      };
 -    post(Msg::Ready(Box::new(state)));
++    let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+ 
 -    if let Err(error) = fixture().await {
 -        super::feedback::error(&error);
 -        return;
-+    let _ = proxy.send_event(Msg::Ready(Box::new(state)));
-+
 +    let mut live = LiveSource::from_query();
 +    let mut loaded = false;
++
 +    if let Some(src) = live.as_mut() {
 +        log::info!("live: watching {} every {:.0} ms", src.url, src.poll_ms);
 +        loaded = post_live(src).await;
 +    }
++
 +    if !loaded && let Some(route) = scene_route() {
 +        load_route(&route, None).await;
-+    }
-+
+     }
+ 
 +    let Some(mut src) = live else { return };
++
 +    loop {
 +        sleep_ms(src.tick_ms).await;
 +        post_live(&mut src).await;
-     }
++    }
 +}
 +
 +/// One live check: when the source changed, replace the scene. True when files loaded.
@@ -819,23 +848,33 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +    let Some(docs) = src.check().await else {
 +        return false;
 +    };
++
 +    if stale_load(generation) {
 +        return false;
 +    }
++
 +    let texts = src.texts();
++
 +    if docs.is_empty() && texts.is_empty() {
 +        return false;
 +    }
++
 +    clear_scene();
++
 +    for doc in docs {
 +        post(Msg::File(doc));
 +    }
++
 +    post(Msg::Texts(texts));
      post(Msg::Fit);
      super::feedback::status("");
 +    true
-+}
-+
+ }
+ 
+-/// Only the explicit local streaming test selects the ranged source fixture.
+-async fn fixture() -> Result<(), String> {
+-    if super::route::query("scene").as_deref() == Some("stream-test.yaml") {
+-        return streamed_fixture().await;
 +/// Reload the scene in place: same canvas, same camera, new geometry. A named `url` is read
 +/// from the bucket exactly as `?scene=` is; with none the page reloads its own route.
 +#[wasm_bindgen]
@@ -856,12 +895,8 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +/// A state-capturing browser task delegates replacement to one named async operation.
 +async fn load_replacement(route: SceneRoute, generation: u64) {
 +    load_route(&route, Some(generation)).await;
- }
- 
--/// Only the explicit local streaming test selects the ranged source fixture.
--async fn fixture() -> Result<(), String> {
--    if super::route::query("scene").as_deref() == Some("stream-test.yaml") {
--        return streamed_fixture().await;
++}
++
 +/// Newer route requests win even if older network or decode operations finish later.
 +fn stale_load(generation: u64) -> bool {
 +    LOAD_GENERATION.get() != generation
@@ -876,22 +911,9 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +            fetch_bytes(&yaml).await
 +        }
 +        result => result,
-     }
--    let session = Session::pb_loads(include_bytes!("../../assets/pb/interaction.pb"))
--        .map_err(fixture_error)?;
--    post(Msg::File(FileDoc {
--        name: "Interaction fixture".to_string(),
--        session: Rc::new(session),
--        place: Xform::identity(),
--        point_px: 0.0,
--        display_only: false,
--    }));
--    Ok(())
- }
- 
--/// Keep fixture decode failures visible while production validation is introduced later.
--fn fixture_error(error: Box<dyn std::error::Error>) -> String {
--    format!("Bundled interaction fixture: {error}")
++    }
++}
++
 +/// Fetch a manifest and post every item, in manifest order, then a `Fit`. `replacement` picks
 +/// the mode: `None` is the first load, which posts each item the moment it arrives and books
 +/// it against the live budget; `Some(generation)` is a reload, which STAGES every item, bails
@@ -916,9 +938,11 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +            return;
 +        }
 +    };
++
 +    if stale_load(generation) {
 +        return;
 +    }
++
 +    let manifest = match Manifest::parse(&bytes) {
 +        Ok(m) => m,
 +        Err(e) => {
@@ -929,17 +953,31 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +    log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
 +
 +    let mut files = 0u32;
++
 +    for item in &manifest.items {
 +        if item.file.ends_with(".pb") {
 +            files += 1;
 +        }
-+    }
+     }
+ 
+-    let session = Session::pb_loads(include_bytes!("../../assets/pb/interaction.pb"))
+-        .map_err(fixture_error)?;
+-    post(Msg::File(FileDoc {
+-        name: "Interaction fixture".to_string(),
+-        session: Rc::new(session),
+-        place: Xform::identity(),
+-        point_px: 0.0,
+-        display_only: false,
+-    }));
+-    Ok(())
 +    let files = files.max(1);
 +    let share = (max_points() / files).max(STREAM_MIN_PREFIX);
++
 +    for (i, item) in manifest.items.iter().enumerate() {
 +        let url = join(&route.base, &item.file);
 +        let place = manifest.place(i, AUTO_GRID);
 +        let point_px = item.point_size as f32;
++
 +        if url.ends_with(".pb") {
 +            let slot = Placement {
 +                name: manifest.name_of(i, &item.file),
@@ -951,16 +989,19 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +            } else {
 +                budget_left()
 +            };
++
 +            if let Some(init) =
 +                stream_prefix(&url, &slot, share.min(remaining.max(STREAM_MIN_PREFIX))).await
 +            {
 +                if stale_load(generation) {
 +                    return;
 +                }
++
 +                if init.resident == 0 {
 +                    failed = true;
 +                    continue;
 +                }
++
 +                if replacement.is_some() {
 +                    staged_points = staged_points.saturating_add(init.resident);
 +                    pending.push(PendingDocument::Streamed(Box::new(init)));
@@ -968,12 +1009,15 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +                    budget_spend(init.resident);
 +                    post(Msg::StreamedCloud(Box::new(init)));
 +                }
++
 +                continue;
 +            }
 +        }
++
 +        // A whole file is decoded into the wasm heap several times over; past the device's
 +        // budget the page would die without a word, so the file is skipped with one instead.
 +        let length = super::fetch::content_length(&url).await.unwrap_or(0);
++
 +        if spent + length > budget {
 +            log::warn!(
 +                "skipped '{}': {} MB over the {} MB scene budget",
@@ -984,6 +1028,7 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +            skipped.push(format!("{} ({} MB)", item.file, length >> 20));
 +            continue;
 +        }
++
 +        spent += length;
 +        let f0 = now_ms();
 +        let bytes = match fetch_bytes(&url).await {
@@ -1004,14 +1049,17 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +                continue;
 +            }
 +        };
++
 +        if stale_load(generation) {
 +            return;
 +        }
++
 +        if session.lookup.is_empty() {
 +            log::warn!("'{}' holds no geometry ({n} bytes); skipped", item.file);
 +            failed = true;
 +            continue;
 +        }
++
 +        let name = manifest.name_of(i, &session.name);
 +        log::info!(
 +            "loaded '{name}': {} objects, {n} bytes | fetch {:.0} ms, parse {:.0} ms",
@@ -1026,15 +1074,18 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +            point_px,
 +            display_only: item.display_only,
 +        };
++
 +        if replacement.is_some() {
 +            pending.push(PendingDocument::Whole(doc));
 +        } else {
 +            post(Msg::File(doc));
 +        }
 +    }
++
 +    if stale_load(generation) {
 +        return;
 +    }
++
 +    if replacement.is_some() {
 +        if failed {
 +            super::feedback::status(
@@ -1042,8 +1093,10 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +            );
 +            return;
 +        }
++
 +        clear_scene();
 +        budget_spend(staged_points);
++
 +        for document in pending {
 +            match document {
 +                PendingDocument::Whole(doc) => {
@@ -1055,28 +1108,32 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +            }
 +        }
 +    }
++
 +    post(Msg::Texts(manifest.texts));
 +    post(Msg::Fit);
++
 +    if !failed {
 +        super::feedback::status(&skipped_notice(&skipped, budget));
 +    }
++
 +    log::info!(
 +        "scene posted {:.0} ms after the manifest fetch",
 +        now_ms() - t0
 +    );
  }
  
--/// Read one bounded display prefix while retaining every actual source row for F10.
--async fn streamed_fixture() -> Result<(), String> {
--    let base = super::route::query("data").ok_or("local source URL is missing")?;
--    if !base.starts_with("http://127.0.0.1:") && !base.starts_with("http://localhost:") {
--        return Err("The tutorial source fixture must use a local HTTP server".to_string());
+-/// Keep fixture decode failures visible while production validation is introduced later.
+-fn fixture_error(error: Box<dyn std::error::Error>) -> String {
+-    format!("Bundled interaction fixture: {error}")
 +/// Replacement staging preserves manifest order across whole files and streamed clouds.
 +enum PendingDocument {
 +    Whole(FileDoc),
 +    Streamed(Box<StreamedInit>),
-+}
-+
+ }
+ 
+-/// Read one bounded display prefix while retaining every actual source row for F10.
+-async fn streamed_fixture() -> Result<(), String> {
+-    let base = super::route::query("data").ok_or("local source URL is missing")?;
 +/// Where a streamed cloud goes: its document name, placement and point size.
 +struct Placement {
 +    name: String,
@@ -1091,9 +1148,13 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<StreamedInit> {
 +    let (name, place, point_px) = (slot.name.as_str(), slot.place.clone(), slot.point_px);
 +    let mut fields = cloud_fields(url).await?;
+ 
+-    if !base.starts_with("http://127.0.0.1:") && !base.starts_with("http://localhost:") {
+-        return Err("The tutorial source fixture must use a local HTTP server".to_string());
 +    if fields.count <= STREAM_PREFIX_POINTS && fields.coords_len < STREAM_MIN_BYTES {
 +        return None;
      }
+ 
 -    let url = format!("{}/cloud.pb", base.trim_end_matches('/'));
 -    let mut fields = super::stream::cloud_fields(&url)
 -        .await
@@ -1167,7 +1228,7 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
  pub struct StreamCursor {
      pub idx: usize,
      pub url: String,
-@@ -121,5 +424,82 @@ pub struct StreamCursor {
+@@ -124,5 +458,91 @@ pub struct StreamCursor {
      pub col_at: u64,
  }
  
@@ -1185,11 +1246,14 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +    let generation = GENERATION.get();
 +    let mut col_at = c.col_at;
 +    let mut at = c.from;
++
 +    while at < fields.count {
 +        if GENERATION.get() != generation {
 +            return;
 +        }
++
 +        let left = budget_left();
++
 +        if left == 0 {
 +            log::info!(
 +                "'{url}': {at} of {} points resident - at the page's point ceiling (?points= to raise it)",
@@ -1197,12 +1261,14 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +            );
 +            return;
 +        }
++
 +        let to = (at + STREAM_CHUNK_POINTS.min(left)).min(fields.count);
 +        budget_spend(to - at);
 +        let Some(positions) = fetch_positions(&url, &fields, at, to).await else {
 +            if GENERATION.get() == generation {
 +                RESIDENT.set(RESIDENT.get().saturating_sub(to - at));
 +            }
++
 +            super::feedback::status("A point-cloud range failed; reload to retry the missing data");
 +            return;
 +        };
@@ -1210,9 +1276,11 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +            .await
 +            .unwrap_or((Vec::new(), col_at));
 +        col_at = next;
++
 +        if GENERATION.get() != generation {
 +            return;
 +        }
++
 +        if !post(Msg::CloudChunk(CloudChunk {
 +            idx,
 +            rows: StreamRows { positions, colors },
@@ -1233,6 +1301,7 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +    {
 +        return mb << 20;
 +    }
++
 +    let gigabytes = web_sys::window()
 +        .map(|window| window.navigator())
 +        .and_then(|navigator| js_sys::Reflect::get(&navigator, &"deviceMemory".into()).ok())
@@ -1246,6 +1315,7 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +    if skipped.is_empty() {
 +        return String::new();
 +    }
++
 +    format!(
 +        "Skipped over the {} MB scene budget: {}. Add ?budget=<MB> to raise it.",
 +        budget >> 20,
@@ -1254,55 +1324,40 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..c2d621d3569e802672120adec07046dc
 +}
 diff --git a/session_viewer/src/app/manifest.rs b/session_viewer/src/app/manifest.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb890c317ef
+index 0000000000000000000000000000000000000000..04bea7d5a098af87679372e417aace33913476ca
 --- /dev/null
 +++ b/session_viewer/src/app/manifest.rs
-@@ -0,0 +1,347 @@
-+//! The scene manifest: WHICH files a scene is made of and WHERE each one sits (`at` =
-+//! translation, `xform` = all 16 numbers, neither = the auto-grid). Edit, reload, no rebuild.
-+
+@@ -0,0 +1,359 @@
 +use serde::Deserialize;
 +use session_rust::Xform;
 +
 +/// One manifest entry: a file and its placement.
 +#[derive(Clone, Deserialize)]
 +pub struct Item {
-+    /// Asset path, e.g. `pb/view_lines_he.pb`, relative to the scene's base.
-+    pub file: String,
-+    /// Display name; empty = the session's own.
++    pub file: String, // Asset path, e.g. `pb/view_lines_he.pb`, relative to the scene's base.
 +    #[serde(default)]
-+    pub name: String,
-+    /// Translation in world units.
++    pub name: String, // Display name; empty = the session's own.
 +    #[serde(default)]
-+    pub at: Option<[f64; 3]>,
-+    /// Full 4x4 column-major (wins over `at`).
++    pub at: Option<[f64; 3]>, // Translation in world units.
 +    #[serde(default)]
-+    pub xform: Option<[f64; 16]>,
-+    /// Cloud point size in px for this file; 0 = the pb's own.
++    pub xform: Option<[f64; 16]>, // Full 4x4 column-major (wins over `at`).
 +    #[serde(default)]
-+    pub point_size: f64,
-+    /// Legacy memory hint, accepted for compatibility. Full-file sources stay retained
-+    /// so original source controls remain available to F10.
++    pub point_size: f64, // Cloud point size in px for this file; 0 = the pb's own.
 +    #[serde(default)]
-+    pub display_only: bool,
++    pub display_only: bool, // Legacy memory hint, accepted for compatibility. Full-file sources stay retained so original source controls remain available to F10.
 +}
 +
 +/// One fixed world-space text plane; its frame and em height use the scene's world units.
 +#[derive(Clone, Debug, Deserialize)]
 +pub struct TextItem {
-+    /// UTF-8 text, retained verbatim after rejecting empty or whitespace-only content.
-+    pub text: String,
-+    /// World-space plane origin, independent of any geometry item's placement.
++    pub text: String, // UTF-8 text, retained verbatim after rejecting empty or whitespace-only content.
 +    #[serde(default)]
-+    pub at: [f64; 3],
-+    /// Unit direction of increasing text X; defaults to world +X.
++    pub at: [f64; 3], // World-space plane origin, independent of any geometry item's placement.
 +    #[serde(default = "text_right")]
-+    pub right: [f64; 3],
-+    /// Unit direction of increasing text Y; defaults to world +Y.
++    pub right: [f64; 3], // Unit direction of increasing text X; defaults to world +X.
 +    #[serde(default = "text_up")]
-+    pub up: [f64; 3],
-+    /// Required positive finite em height in world units.
-+    pub height: f64,
++    pub up: [f64; 3], // Unit direction of increasing text Y; defaults to world +Y.
++    pub height: f64,  // Required positive finite em height in world units.
 +}
 +
 +/// The parsed scene file: ordered geometry items and optional fixed world-space text planes.
@@ -1323,6 +1378,7 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +            x.m = m;
 +            return Some(x);
 +        }
++
 +        self.at.map(translation)
 +    }
 +}
@@ -1333,6 +1389,7 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +        if bytes.len() > 4 * 1024 * 1024 {
 +            return Err("manifest exceeds 4 MiB".to_string());
 +        }
++
 +        let text = match std::str::from_utf8(bytes) {
 +            Ok(text) => text,
 +            Err(error) => return Err(format!("manifest is not UTF-8: {error}")),
@@ -1350,38 +1407,49 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +                }
 +            },
 +        };
++
 +        if manifest.items.len() > 100_000 {
 +            return Err("manifest exceeds 100,000 items".to_string());
 +        }
++
 +        for (index, item) in manifest.items.iter().enumerate() {
 +            if item.file.trim().is_empty() {
 +                return Err(format!("item {index}: missing geometry file"));
 +            }
++
 +            if !item.point_size.is_finite() || item.point_size < 0.0 {
 +                return Err(format!("item {index}: invalid point size"));
 +            }
++
 +            if item.at.is_some_and(nonfinite_transform)
 +                || item.xform.is_some_and(nonfinite_transform)
 +            {
 +                return Err(format!("item {index}: non-finite transform"));
 +            }
++
 +            if let Some(matrix) = item.xform
 +                && (matrix[3] != 0.0 || matrix[7] != 0.0 || matrix[11] != 0.0 || matrix[15] != 1.0)
 +            {
 +                return Err(format!("item {index}: placement must be affine"));
 +            }
 +        }
++
 +        if manifest.texts.len() > 1024 {
 +            return Err("manifest exceeds 1,024 text records".to_string());
 +        }
++
 +        let mut text_bytes = 0usize;
++
 +        for (index, item) in manifest.texts.iter().enumerate() {
 +            text_bytes = text_bytes.saturating_add(item.text.len());
++
 +            if text_bytes > 256 * 1024 {
 +                return Err("manifest text exceeds 256 KiB of UTF-8 content".to_string());
 +            }
++
 +            item.validate(index)?;
 +        }
++
 +        Ok(manifest)
 +    }
 +
@@ -1396,6 +1464,7 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +    /// Item `i`'s display name: the manifest's, else `fallback`.
 +    pub fn name_of(&self, i: usize, fallback: &str) -> String {
 +        let n = &self.items[i].name;
++
 +        if n.is_empty() {
 +            fallback.to_string()
 +        } else {
@@ -1410,30 +1479,38 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +        if self.text.trim().is_empty() {
 +            return Err(format!("text {index}: missing text content"));
 +        }
++
 +        if !self.height.is_finite() || self.height <= 0.0 {
 +            return Err(format!("text {index}: height must be positive and finite"));
 +        }
++
 +        if nonfinite_transform(self.at) {
 +            return Err(format!("text {index}: non-finite position"));
 +        }
++
 +        for axis in [self.right, self.up] {
 +            if nonfinite_transform(axis) {
 +                return Err(format!("text {index}: non-finite plane axis"));
 +            }
++
 +            let length = (axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]).sqrt();
++
 +            if (length - 1.0).abs() > 1e-6 {
 +                return Err(format!(
 +                    "text {index}: plane axes must be unit length within 1e-6"
 +                ));
 +            }
 +        }
++
 +        let dot =
 +            self.right[0] * self.up[0] + self.right[1] * self.up[1] + self.right[2] * self.up[2];
++
 +        if dot.abs() > 1e-6 {
 +            return Err(format!(
 +                "text {index}: plane axes must be orthogonal within 1e-6"
 +            ));
 +        }
++
 +        Ok(())
 +    }
 +}
@@ -1487,6 +1564,7 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +            "{\"name\":\"sample\",\"items\":[{\"file\":\"pb/box.pb\",\"at\":[1,2,3]}]}",
 +            "name = \"sample\"\n[[items]]\nfile = \"pb/box.pb\"\nat = [1, 2, 3]\n",
 +        ];
++
 +        for form in forms {
 +            let manifest = Manifest::parse(form.as_bytes()).unwrap();
 +            assert!(manifest.texts.is_empty());
@@ -1506,8 +1584,10 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +        ] {
 +            assert!(Manifest::parse(source.as_bytes()).is_err(), "{source}");
 +        }
++
 +        assert!(Manifest::parse(&[0xff]).is_err());
 +    }
++
 +    /// Every supported syntax creates the same world frame without renderer-specific types.
 +    #[test]
 +    fn world_text_yaml_json_and_toml_are_equivalent() {
@@ -1516,6 +1596,7 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +            r#"{"items":[],"texts":[{"text":"Fixed Ω cube","at":[1,2,3],"right":[0,1,0],"up":[0,0,-1],"height":12.5}]}"#,
 +            "items = []\n[[texts]]\ntext = \"Fixed Ω cube\"\nat = [1, 2, 3]\nright = [0, 1, 0]\nup = [0, 0, -1]\nheight = 12.5\n",
 +        ];
++
 +        for form in forms {
 +            let manifest = Manifest::parse(form.as_bytes()).unwrap();
 +            assert_eq!(manifest.texts.len(), 1);
@@ -1569,6 +1650,7 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +        let source = b"items: []\ntexts: [{text: label, height: 1, right: [1.0000005, 0, 0], up: [0.0000005, 1, 0]}]";
 +        let manifest = Manifest::parse(source).unwrap();
 +        assert_eq!(manifest.texts[0].right[0], 1.0000005);
++
 +        for source in [
 +            b"items: []\ntexts: [{text: label, height: 1, right: [1.000002, 0, 0]}]".as_slice(),
 +            b"items: []\ntexts: [{text: label, height: 1, up: [0.000002, 1, 0]}]".as_slice(),
@@ -1606,16 +1688,10 @@ index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb8
 +    }
 +}
 diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
-index e5361f826df6cfdaa4d23f172eddfe85f998b253..2ef628363bdfb35d3ddc77cde5ec5e7ce79f5e3a 100644
+index 843124dc7b9528e4dea4ed581dc38f4bcb7eb544..ec518347ab5ed3aa12e6001238a92fac10866115 100644
 --- a/session_viewer/src/app/mod.rs
 +++ b/session_viewer/src/app/mod.rs
-@@ -1,18 +1,26 @@
--//! Source scene and selection; chapter14 replaces the local loading boundary.
-+//! The app layer: what a scene IS (manifest, documents, the walk into rows) and how it gets
-+//! here (route, fetch, decode, stream, the loader, the live source) and is driven (input,
-+//! touch). Above the engine, below the shell in lib.rs. Never names a wgpu type.
- 
- pub mod cloud_query;
+@@ -2,15 +2,21 @@ pub mod cloud_query;
  pub mod feedback;
  pub mod input;
  pub mod knobs;
@@ -1638,20 +1714,10 @@ index e5361f826df6cfdaa4d23f172eddfe85f998b253..2ef628363bdfb35d3ddc77cde5ec5e7c
  #[cfg(target_arch = "wasm32")]
  pub mod route;
 diff --git a/session_viewer/src/app/route.rs b/session_viewer/src/app/route.rs
-index 063956142744d66d8c68003efec676e0f18464ce..fa62d6cc63be6d2acb4bb7ba0298d4ceca80375b 100644
+index adaa2a8d680bbde16f77f97c8fef83b6fd65c4a9..5ab9745e22e21a3ed44a3ce5c80088afaa391433 100644
 --- a/session_viewer/src/app/route.rs
 +++ b/session_viewer/src/app/route.rs
-@@ -1,4 +1,33 @@
--//! The existing query parser; routing and live publication arrive in chapter14.
-+//! The URL decides where a scene comes from. ONE query parser (`query`) serves every knob,
-+//! and `SceneRoute` names the three routes:
-+//!
-+//! - no query on localhost: `view_local.yaml` + `pb/view_local_*.pb`, all from this origin;
-+//! - `?scene=<name>` or a path like `/view_lines`: that manifest AND its files from the bucket;
-+//! - no query elsewhere: the live source (`live.rs`), `view_live.yaml` re-read every poll.
-+//!
-+//! `?data=<https base>` overrides where the `.pb` come from; `?data=off` forces this origin.
-+
+@@ -1,3 +1,25 @@
 +/// The public bucket every named scene and its files come from.
 +pub const DATA_BASE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/";
 +
@@ -1673,11 +1739,12 @@ index 063956142744d66d8c68003efec676e0f18464ce..fa62d6cc63be6d2acb4bb7ba0298d4ce
 +    pub manifest: String,
 +    pub base: String,
 +}
- 
++
  /// The `?name=` value of this page's query string, percent-decoded.
  pub fn query(name: &str) -> Option<String> {
-@@ -15,3 +44,111 @@ pub fn query(name: &str) -> Option<String> {
-     }
+     let search = web_sys::window()?.location().search().ok()?;
+@@ -16,3 +38,116 @@ pub fn query(name: &str) -> Option<String> {
+ 
      None
  }
 +
@@ -1715,11 +1782,13 @@ index 063956142744d66d8c68003efec676e0f18464ce..fa62d6cc63be6d2acb4bb7ba0298d4ce
 +/// The `?scene=` value when it stays inside one tree (no scheme, no `..`, no absolute path).
 +pub fn query_scene() -> Option<String> {
 +    let decoded = query("scene")?;
++
 +    for segment in decoded.split('/') {
 +        if segment == ".." {
 +            return None;
 +        }
 +    }
++
 +    let safe = !decoded.is_empty()
 +        && !decoded.starts_with('/')
 +        && !decoded.contains("//")
@@ -1739,6 +1808,7 @@ index 063956142744d66d8c68003efec676e0f18464ce..fa62d6cc63be6d2acb4bb7ba0298d4ce
 +            DATA_BASE.to_string()
 +        }
 +    };
++
 +    if base.ends_with('/') {
 +        base
 +    } else {
@@ -1751,6 +1821,7 @@ index 063956142744d66d8c68003efec676e0f18464ce..fa62d6cc63be6d2acb4bb7ba0298d4ce
 +    if file.starts_with("https://") || file.starts_with("http://") {
 +        return file.to_string();
 +    }
++
 +    format!("{}{}", base, file.trim_start_matches("./"))
 +}
 +
@@ -1779,6 +1850,7 @@ index 063956142744d66d8c68003efec676e0f18464ce..fa62d6cc63be6d2acb4bb7ba0298d4ce
 +    if let Some(path) = query_scene().or_else(path_scene) {
 +        return Some(named_scene(&path));
 +    }
++
 +    if page_is_local() {
 +        Some(SceneRoute {
 +            manifest: LOCAL_SCENE.to_string(),
@@ -1789,19 +1861,18 @@ index 063956142744d66d8c68003efec676e0f18464ce..fa62d6cc63be6d2acb4bb7ba0298d4ce
 +    }
 +}
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index 1533465103dd75f732fbdb8feb32bd9e1845955b..5a91119d7b6b8e3d3817ba8e9594608d9b725ff8 100644
+index 3a3629fd34f190e5014ed4a869077dc1bbd035be..595dddf93e335485a28991480014ebeb495cc5c5 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
-@@ -90,6 +90,8 @@ struct Bases {
+@@ -75,6 +75,7 @@ struct Bases {
  /// The open document set, the pending upload and the row bookkeeping.
  pub struct Scene {
      pub docs: Vec<FileDoc>,
-+    /// Authored world-plane text from the scene manifest, independent of object annotations.
-+    pub texts: Vec<super::manifest::TextItem>,
++    pub texts: Vec<super::manifest::TextItem>, // Authored world-plane text from the scene manifest, independent of object annotations.
      pub tables: Upload,
      pub streamed: Vec<StreamedCloud>,
      pub hidden: HashSet<(usize, Rc<str>)>,
-@@ -115,6 +117,7 @@ impl Scene {
+@@ -99,6 +100,7 @@ impl Scene {
      pub fn new() -> Self {
          Self {
              docs: Vec::new(),
@@ -1809,7 +1880,7 @@ index 1533465103dd75f732fbdb8feb32bd9e1845955b..5a91119d7b6b8e3d3817ba8e9594608d
              tables: Upload::default(),
              streamed: Vec::new(),
              hidden: HashSet::new(),
-@@ -132,6 +135,7 @@ impl Scene {
+@@ -116,6 +118,7 @@ impl Scene {
      /// REPLACED without tearing down `State` (camera, surface and pipelines survive).
      pub fn clear(&mut self, gpu: &mut Gpu) {
          self.docs.clear();
@@ -1819,11 +1890,10 @@ index 1533465103dd75f732fbdb8feb32bd9e1845955b..5a91119d7b6b8e3d3817ba8e9594608d
          self.order.clear();
 diff --git a/session_viewer/src/app/validate.rs b/session_viewer/src/app/validate.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a34c0b874f
+index 0000000000000000000000000000000000000000..c343e015d3f57165838e2432586825a167c9dfba
 --- /dev/null
 +++ b/session_viewer/src/app/validate.rs
-@@ -0,0 +1,473 @@
-+//! Viewer trust-boundary validation before kernel constructors allocate from serialized counts.
+@@ -0,0 +1,550 @@
 +use prost::Message;
 +use session_rust::proto;
 +
@@ -1831,10 +1901,12 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +pub fn json(text: &str) -> Result<(), String> {
 +    let source: serde_json::Value = serde_json::from_str(text).map_err(json_error)?;
 +    let mut pending = vec![(&source, 0usize)];
++
 +    while let Some((value, depth)) = pending.pop() {
 +        if depth > 64 {
 +            return Err("session JSON exceeds 64 nested levels".into());
 +        }
++
 +        match value {
 +            serde_json::Value::Object(fields) => {
 +                if fields.contains_key("control_points")
@@ -1842,6 +1914,7 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +                {
 +                    json_controls(value)?;
 +                }
++
 +                for child in fields.values() {
 +                    pending.push((child, depth + 1));
 +                }
@@ -1854,6 +1927,7 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +            _ => {}
 +        }
 +    }
++
 +    Ok(())
 +}
 +
@@ -1876,9 +1950,11 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +        },
 +        None => default,
 +    };
++
 +    if count > maximum {
 +        return Err(format!("JSON {key} exceeds its supported count"));
 +    }
++
 +    Ok(count as usize)
 +}
 +
@@ -1902,32 +1978,41 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +        .as_array()
 +        .ok_or("JSON controls must be an array")?;
 +    let dimension = json_count(source, "dimension", 3, 3)?;
++
 +    if dimension < 2 {
 +        return Err("invalid JSON control dimension".into());
 +    }
++
 +    let size = dimension + usize::from(source["is_rational"].as_bool().unwrap_or(false));
++
 +    if source.get("cv_count_u").is_some() {
 +        let rows = json_count(source, "cv_count_u", 0, 1_000_000)?;
 +        let columns = json_count(source, "cv_count_v", 0, 1_000_000)?;
 +        let total = rows as u64 * columns as u64;
++
 +        if total > 4_000_000 || controls.len() as u64 != total * size as u64 {
 +            return Err("JSON surface controls disagree with their declared counts".into());
 +        }
++
 +        json_axis(source, "order_u", rows, "nurbsknots_u")?;
 +        json_axis(source, "order_v", columns, "nurbsknots_v")?;
 +    } else {
 +        let count = json_count(source, "cv_count", 0, 1_000_000)?;
 +        let stride = json_count(source, "cv_stride", size as u64, 4)?;
++
 +        if count != controls.len() || stride != size {
 +            return Err("JSON curve controls disagree with their declared count or stride".into());
 +        }
++
 +        for control in controls {
 +            if control.as_array().map(Vec::len) != Some(size) {
 +                return Err("incomplete JSON curve control".into());
 +            }
 +        }
++
 +        json_axis(source, "order", count, "nurbsknots")?;
 +    }
++
 +    Ok(())
 +}
 +
@@ -1943,9 +2028,11 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +        .as_array()
 +        .ok_or("missing JSON NURBS knots")?;
 +    let mut knots = Vec::with_capacity(values.len());
++
 +    for value in values {
 +        knots.push(value.as_f64().ok_or("invalid JSON NURBS knot")?);
 +    }
++
 +    axis(order as i32, count as i32, &knots)?;
 +    Ok(())
 +}
@@ -1955,18 +2042,23 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +    for item in &source.objects.meshes {
 +        mesh(&item.to_proto())?;
 +    }
++
 +    for item in &source.objects.pointclouds {
 +        cloud(&item.to_proto())?;
 +    }
++
 +    for item in &source.objects.nurbscurves {
 +        curve(&item.to_proto())?;
 +    }
++
 +    for item in &source.objects.nurbssurfaces {
 +        surface(&item.to_proto())?;
 +    }
++
 +    for item in &source.objects.breps {
 +        brep(&item.to_proto())?;
 +    }
++
 +    Ok(())
 +}
 +
@@ -1982,37 +2074,48 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +            + objects.nurbssurfaces.len()
 +            + objects.breps.len()
 +            + objects.elements.len();
++
 +        if count > 2_000_000 {
 +            return Err("scene exceeds two million source objects".into());
 +        }
++
 +        for point in &objects.points {
 +            finite(&[point.x, point.y, point.z, point.width], "point")?;
 +        }
++
 +        for line in &objects.lines {
 +            if line.coords.len() != 6 {
 +                return Err("line needs exactly two endpoint triples".into());
 +            }
++
 +            finite(&line.coords, "line coordinates")?;
 +            finite(&line.dash, "line dashes")?;
 +        }
++
 +        for polyline in &objects.polylines {
 +            triples(&polyline.coords, "polyline coordinates")?;
 +        }
++
 +        for item in &objects.meshes {
 +            mesh(item)?;
 +        }
++
 +        for item in &objects.pointclouds {
 +            cloud(item)?;
 +        }
++
 +        for item in &objects.nurbscurves {
 +            curve(item)?;
 +        }
++
 +        for item in &objects.nurbssurfaces {
 +            surface(item)?;
 +        }
++
 +        for item in &objects.breps {
 +            brep(item)?;
 +        }
++
 +        for item in &objects.elements {
 +            match item.geometry_type.as_str() {
 +                "Mesh" => mesh(
@@ -2025,11 +2128,13 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +            }
 +        }
 +    }
++
 +    for entry in &source.xforms {
 +        let Some(transform) = &entry.xform else {
 +            return Err("missing object transform".into());
 +        };
 +        finite(&transform.matrix, "object transform")?;
++
 +        if transform.matrix.len() != 16
 +            || transform.matrix[3] != 0.0
 +            || transform.matrix[7] != 0.0
@@ -2039,19 +2144,23 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +            return Err("object placement must be a sixteen-value affine matrix".into());
 +        }
 +    }
++
 +    if let Some(tree) = &source.tree
 +        && let Some(root) = &tree.root
 +    {
 +        let mut pending = vec![(root, 0usize)];
++
 +        while let Some((node, depth)) = pending.pop() {
 +            if depth > 64 {
 +                return Err("scene hierarchy exceeds 64 levels".into());
 +            }
++
 +            for child in &node.children {
 +                pending.push((child, depth + 1));
 +            }
 +        }
 +    }
++
 +    Ok(())
 +}
 +
@@ -2067,6 +2176,7 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +            return Err(format!("{label}: non-finite value"));
 +        }
 +    }
++
 +    Ok(())
 +}
 +
@@ -2075,6 +2185,7 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +    if !values.len().is_multiple_of(3) {
 +        return Err(format!("{label}: incomplete coordinate triple"));
 +    }
++
 +    finite(values, label)
 +}
 +
@@ -2083,18 +2194,23 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +    if !(2..=64).contains(&order) || count < order || count > 1_000_000 {
 +        return Err("invalid or oversized NURBS order/control count".into());
 +    }
++
 +    if knots.len() != (order + count - 2) as usize {
 +        return Err("NURBS knot count does not match its order and controls".into());
 +    }
++
 +    finite(knots, "NURBS knots")?;
++
 +    for pair in knots.windows(2) {
 +        if pair[0] > pair[1] {
 +            return Err("NURBS knots are not monotonic".into());
 +        }
 +    }
++
 +    if knots[(order - 2) as usize] >= knots[(count - 1) as usize] {
 +        return Err("NURBS parameter domain is empty".into());
 +    }
++
 +    Ok(count as usize)
 +}
 +
@@ -2103,11 +2219,14 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +    if !(2..=3).contains(&source.dimension) {
 +        return Err("NURBS curve dimension must be 2 or 3".into());
 +    }
++
 +    let count = axis(source.order, source.cv_count, &source.nurbsknots)?;
 +    let size = source.dimension as usize + usize::from(source.is_rational);
++
 +    if source.cvs.len() != count * size {
 +        return Err("NURBS curve control storage is incomplete".into());
 +    }
++
 +    finite(&source.cvs, "NURBS curve controls")
 +}
 +
@@ -2116,11 +2235,14 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +    if source.dimension != 3 {
 +        return Err("NURBS surface dimension must be 3".into());
 +    }
++
 +    let rows = axis(source.order_u, source.cv_count_u, &source.nurbsknots_u)?;
 +    let columns = axis(source.order_v, source.cv_count_v, &source.nurbsknots_v)?;
++
 +    if rows.saturating_mul(columns) > 4_000_000 {
 +        return Err("surface exceeds four million controls".into());
 +    }
++
 +    let size = 3 + usize::from(source.is_rational);
 +    let stride_u = if source.cv_stride_u > 0 {
 +        source.cv_stride_u as usize
@@ -2133,13 +2255,17 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +        size
 +    };
 +    let addressed = addressed_surface_controls(rows, columns, stride_u, stride_v, size);
++
 +    if !matches!(addressed, Some(length) if length <= source.cvs.len()) {
 +        return Err("NURBS surface control storage is incomplete".into());
 +    }
++
 +    finite(&source.cvs, "NURBS surface controls")?;
++
 +    if let Some(cached) = &source.cached_mesh {
 +        mesh(cached)?;
 +    }
++
 +    Ok(())
 +}
 +
@@ -2149,28 +2275,36 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +        if *key > u32::MAX as u64 {
 +            return Err("mesh vertex key exceeds the browser index range".into());
 +        }
++
 +        finite(&[vertex.x, vertex.y, vertex.z], "mesh vertex")?;
++
 +        for value in vertex.attributes.values() {
 +            if !value.is_finite() {
 +                return Err("mesh vertex has a non-finite attribute".into());
 +            }
 +        }
 +    }
++
 +    for face in source.faces.values() {
 +        if face.vertices.len() < 3 {
 +            return Err("mesh face has fewer than three vertices".into());
 +        }
++
 +        mesh_indices(source, &face.vertices)?;
++
 +        for hole in &face.holes {
 +            mesh_indices(source, &hole.vertices)?;
 +        }
 +    }
++
 +    for (face, triangles) in &source.triangulation {
 +        if !source.faces.contains_key(face) || !triangles.vertices.len().is_multiple_of(3) {
 +            return Err("invalid mesh triangulation record".into());
 +        }
++
 +        mesh_indices(source, &triangles.vertices)?;
 +    }
++
 +    Ok(())
 +}
 +
@@ -2181,6 +2315,7 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +            return Err(format!("mesh references missing vertex {index}"));
 +        }
 +    }
++
 +    Ok(())
 +}
 +
@@ -2189,13 +2324,16 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +    triples(&source.coords, "point cloud")?;
 +    finite(&source.normals, "point normals")?;
 +    let points = source.coords.len() / 3;
++
 +    if (!source.normals.is_empty() && source.normals.len() != source.coords.len())
 +        || (!source.colors.is_empty() && source.colors.len() != points * 4)
 +        || (!source.point_ids.is_empty() && source.point_ids.len() != points)
 +    {
 +        return Err("point-cloud attribute counts disagree".into());
 +    }
++
 +    let nodes = source.lod_size.len();
++
 +    if nodes > 0 {
 +        if source.lod_min.len() != nodes * 3
 +            || source.lod_spacing.len() != nodes
@@ -2206,8 +2344,10 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +        {
 +            return Err("point-cloud octree arrays disagree".into());
 +        }
++
 +        finite(&source.lod_min, "octree bounds")?;
 +        finite(&source.lod_size, "octree sizes")?;
++
 +        for node in 0..nodes {
 +            if source.lod_first[node] < 0
 +                || source.lod_count[node] < 0
@@ -2216,12 +2356,14 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +                return Err("octree range exceeds its source points".into());
 +            }
 +        }
++
 +        for child in &source.lod_children {
 +            if *child < -1 || *child >= nodes as i32 {
 +                return Err("octree references an absent child".into());
 +            }
 +        }
 +    }
++
 +    Ok(())
 +}
 +
@@ -2230,23 +2372,28 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +    for item in &source.curves_2d {
 +        curve(item)?;
 +    }
++
 +    for item in &source.curves_3d {
 +        curve(item)?;
 +    }
++
 +    for item in &source.surfaces {
 +        surface(item)?;
 +    }
++
 +    for vertex in &source.vertices {
 +        if let Some(point) = &vertex.point {
 +            finite(&[point.x, point.y, point.z], "BRep vertex")?;
 +        }
 +    }
++
 +    Ok(())
 +}
 +
 +#[cfg(test)]
 +mod tests {
 +    use super::*;
++
 +    #[test]
 +    fn hostile_counts_do_not_reach_kernel_allocations() {
 +        let source = proto::NurbsCurve {
@@ -2266,6 +2413,7 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +        };
 +        assert!(surface(&source).is_err());
 +    }
++
 +    #[test]
 +    fn missing_indices_and_partial_cloud_attributes_are_errors() {
 +        let mut source = proto::Mesh::default();
@@ -2297,19 +2445,19 @@ index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a3
 +    }
 +}
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 3658f3316d6684d362ff10c84039fd253031f935..e6ab54d84047af4cdc1316a576e370a45afcdf18 100644
+index 159230ec6de91232807d8b74d79b6efeda3d03b6..b5f439830e56aa05e4aa2287e41475cdfefbae1f 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -6,6 +6,8 @@ pub mod app;
+@@ -1,6 +1,8 @@
+ pub mod app;
  mod camera;
  mod engine;
- pub mod math;
 +#[cfg(not(target_arch = "wasm32"))]
 +pub mod selftest;
  mod state;
  #[cfg(target_arch = "wasm32")]
  pub mod text_quality;
-@@ -26,6 +28,7 @@ pub struct CloudChunk {
+@@ -21,6 +23,7 @@ pub struct CloudChunk {
  pub enum Msg {
      Ready(Box<State>),
      File(FileDoc),
@@ -2326,10 +2474,10 @@ index 3658f3316d6684d362ff10c84039fd253031f935..e6ab54d84047af4cdc1316a576e370a4
                  let (url, fields, from, col_at) = (
                      init.url.clone(),
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index d29800257db3fa1ae6ba065bd85934c227468d16..cd1649274bc559ce9174116d3a3953a5f8381787 100644
+index 05ba8113ba7c0a3e746e7fabaa7c30a1bde58d2c..ee821fc787c99fa049bde90f2d3635cb48682f85 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
-@@ -110,6 +110,14 @@ impl State {
+@@ -102,6 +102,14 @@ impl State {
          self.touch();
      }
  
@@ -2344,10 +2492,10 @@ index d29800257db3fa1ae6ba065bd85934c227468d16..cd1649274bc559ce9174116d3a3953a5
      /// A streamed cloud's first slice; returns the slot later slices address.
      pub fn add_streamed(&mut self, init: StreamedInit) -> usize {
          let idx = self.scene.add_streamed_cloud(init, &mut self.gpu);
-@@ -814,6 +822,22 @@ impl State {
-     /// Source-document text and the selected object's centered name share a fixed white style.
+@@ -851,6 +859,23 @@ impl State {
      fn update_label(&mut self) {
          let mut labels = self.scene_labels.clone();
+ 
 +        for (index, text) in self.scene.texts.iter().enumerate() {
 +            labels.push(TextLabel {
 +                id: (self.scene.docs.len() + index + 1) as u32,
@@ -2364,10 +2512,11 @@ index d29800257db3fa1ae6ba065bd85934c227468d16..cd1649274bc559ce9174116d3a3953a5
 +                clip: None,
 +            });
 +        }
++
          if self.show_selected_names
              && !matches!(self.selection, SelectionMode::Controls { .. })
              && let Some(row) = self.scene.selected
-@@ -831,6 +855,40 @@ impl State {
+@@ -869,6 +894,49 @@ impl State {
          }
      }
  
@@ -2386,19 +2535,28 @@ index d29800257db3fa1ae6ba065bd85934c227468d16..cd1649274bc559ce9174116d3a3953a5
 +            let unit = world_height / f64::from(run.label.font_size);
 +            let mut width = 0.0f64;
 +            let mut height = 0.0f64;
++
 +            for line in run.buffer.layout_runs() {
 +                width = width.max(f64::from(line.line_w) * unit);
 +                height = height.max(f64::from(line.line_top + line.line_height) * unit);
 +            }
++
 +            let padding = world_height * 0.125;
++
 +            for x in [-padding, width + padding] {
 +                for y in [-padding, height + padding] {
 +                    let mut point = [0.0f32; 3];
++
 +                    for axis in 0..3 {
 +                        point[axis] = (world[axis] + right[axis] * x - up[axis] * y) as f32;
 +                    }
++
 +                    if point.into_iter().all(f32::is_finite) {
-+                        self.gpu.bounds.grow(point);
++                        self.gpu.bounds.union_with_point(
++                            point[0] as f64,
++                            point[1] as f64,
++                            point[2] as f64,
++                        );
 +                    }
 +                }
 +            }

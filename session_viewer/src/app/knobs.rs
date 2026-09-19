@@ -1,6 +1,3 @@
-//! Launch-time harness toggles on the app side, each read ONCE per process (an env lookup
-//! scans the environment block, and a sheet holds tens of thousands of meshes). Presence-only.
-
 use std::sync::OnceLock;
 
 /// `std::env::var(name).is_ok()`, cached in `slot` on first use. Always false on wasm.
@@ -14,10 +11,15 @@ fn read_environment_flag(name: &str) -> bool {
 }
 
 static PROFILE: OnceLock<bool> = OnceLock::new();
+
 static DROP_SESSIONS: OnceLock<bool> = OnceLock::new();
+
 static NO_EDGES: OnceLock<bool> = OnceLock::new();
+
 static NO_DOTS: OnceLock<bool> = OnceLock::new();
+
 static ALL_EDGES: OnceLock<bool> = OnceLock::new();
+
 static SEAMS: OnceLock<bool> = OnceLock::new();
 
 /// VIEWER_PROFILE: print the walk's laps to stderr (native harness only).

@@ -1,10 +1,3 @@
-//! Dedicated coverage-text lane, pinned to Glyphon 0.11 (wgpu 29).
-//!
-//! The maintained shader is `glyphon-0.11.0/src/shader.wgsl`: R8Unorm coverage,
-//! straight-alpha output with ALPHA_BLENDING, integer texel footprints and fractional
-//! raster cache keys. It does not use mesh lighting. `ColorMode::Web` is appropriate
-//! for non-sRGB targets; the viewer's sRGB targets use Accurate mode.
-
 use super::buffers::GpuCtx;
 #[path = "text_plane.rs"]
 mod plane;
@@ -40,21 +33,15 @@ pub struct TextStats {
     pub requested_glyphs: usize,
     pub distinct_raster_keys: usize,
     pub new_raster_keys: usize,
-    /// Actual CPU raster images retained by Swash, excluding empty glyphs.
-    pub raster_images: usize,
+    pub raster_images: usize, // Actual CPU raster images retained by Swash, excluding empty glyphs.
     pub new_raster_images: usize,
-    /// Allocated byte-vector payload only; excludes hash-table/font/shaper overhead and GPU atlases.
-    pub raster_image_capacity_bytes: usize,
+    pub raster_image_capacity_bytes: usize, // Allocated byte-vector payload only; excludes hash-table/font/shaper overhead and GPU atlases.
     pub atlas_resets: u64,
     pub preparation_ms: f64,
-    /// Glyphon's private packed instance is 28 bytes at the pin. This is active data only,
-    /// not a claim about its private capacity or GPU allocator overhead.
-    pub active_instance_bytes: usize,
+    pub active_instance_bytes: usize, // Glyphon's private packed instance is 28 bytes at the pin. This is active data only, not a claim about its private capacity or GPU allocator overhead.
     pub missing_glyphs: usize,
-    /// Exact owned vertex capacity for black nameplate backgrounds, not Glyphon internals.
-    pub nameplate_capacity_bytes: u64,
-    /// Application-owned fixed-plane vertices, R8 texture payload, and cache rebuilds.
-    pub world_plane_buffer_bytes: u64,
+    pub nameplate_capacity_bytes: u64, // Exact owned vertex capacity for black nameplate backgrounds, not Glyphon internals.
+    pub world_plane_buffer_bytes: u64, // Application-owned fixed-plane vertices, R8 texture payload, and cache rebuilds.
     pub world_plane_texture_bytes: u64,
     pub world_plane_rasterizations: u64,
 }
@@ -75,9 +62,7 @@ pub struct TextLane {
     atlas_font_revision: u64,
     prepared: Option<(u64, u64, TextFrame)>,
     raster_keys: HashSet<glyphon::CacheKey>,
-    /// 0 or 1, never a tally: whether `prepare` left this renderer anything to draw. `draw`
-    /// skips the render call when it did not.
-    overlay_count: u32,
+    overlay_count: u32, // 0 or 1, never a tally: whether `prepare` left this renderer anything to draw. `draw` skips the render call when it did not.
     anchored_count: u32,
 }
 
@@ -148,19 +133,23 @@ impl TextLane {
             self.document.font_revision,
             frame.clone(),
         );
+
         if self.prepared.as_ref() == Some(&key) {
             self.stats.skipped_preparations += 1;
             return Ok(());
         }
+
         self.overlay_count = 0;
         self.anchored_count = 0;
         self.plates.reset();
         let scale = frame.scale()?;
         let start = now_ms();
         let fonts_changed = self.atlas_font_revision != self.document.font_revision;
+
         if fonts_changed || self.raster_keys.len() > 4096 {
             self.rebuild_resources(ctx);
         }
+
         let raster_images_before = self.raster.image_cache.values().flatten().count();
         self.planes
             .prepare(ctx, &mut self.document, &mut self.raster, frame)?;
@@ -179,13 +168,16 @@ impl TextLane {
         self.stats.new_raster_keys = 0;
         self.stats.requested_glyphs = 0;
         self.stats.missing_glyphs = 0;
+
         for run in &self.document.runs {
             let Some(mut placed) = place(&run.label, frame, scale) else {
                 continue;
             };
+
             if let Some(rectangle) = text_rectangle(run, &mut placed, frame, scale) {
                 plates.push(rectangle);
             }
+
             let area = TextArea {
                 buffer: &run.buffer,
                 left: placed.left,
@@ -200,6 +192,7 @@ impl TextLane {
                 ),
                 custom_glyphs: &[],
             };
+
             for line in run.buffer.layout_runs() {
                 for glyph in line.glyphs {
                     self.stats.requested_glyphs += 1;
@@ -209,6 +202,7 @@ impl TextLane {
                         usize::from(self.raster_keys.insert(physical.cache_key));
                 }
             }
+
             if let Some(depth) = placed.depth {
                 depths.insert(run.label.id as usize, depth);
                 anchors.push(area);
@@ -216,6 +210,7 @@ impl TextLane {
                 overlays.push(area);
             }
         }
+
         self.overlay.prepare(
             &ctx.device,
             &ctx.queue,
@@ -237,6 +232,7 @@ impl TextLane {
             |id| depth_for(&depths, id),
         )?;
         self.plates.prepare(ctx, &plates, frame.framebuffer);
+
         for run in &self.document.runs {
             if place(&run.label, frame, scale).is_some() && !run.label.text.is_empty() {
                 match run.label.placement {
@@ -247,12 +243,15 @@ impl TextLane {
                 }
             }
         }
+
         self.stats.raster_images = 0;
         self.stats.raster_image_capacity_bytes = 0;
+
         for image in self.raster.image_cache.values().flatten() {
             self.stats.raster_images += 1;
             self.stats.raster_image_capacity_bytes += image.data.capacity();
         }
+
         self.stats.new_raster_images = self
             .stats
             .raster_images
@@ -284,19 +283,23 @@ impl TextLane {
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
         let mut draws = self.planes.draw(pass);
         draws += self.plates.draw(pass, false);
+
         if self.anchored_count != 0 {
             match self.anchored.render(&self.atlas, &self.viewport, pass) {
                 Ok(()) => draws += 1,
                 Err(error) => log::error!("anchored text render: {error}"),
             }
         }
+
         draws += self.plates.draw(pass, true);
+
         if self.overlay_count != 0 {
             match self.overlay.render(&self.atlas, &self.viewport, pass) {
                 Ok(()) => draws += 1,
                 Err(error) => log::error!("overlay text render: {error}"),
             }
         }
+
         draws
     }
 
@@ -409,13 +412,17 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
     ];
     let m = &frame.mvp;
     let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
+
     if !w.is_finite() || w <= 0.0 {
         return None;
     }
+
     let z = (m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]) / w;
+
     if !(0.0..=1.0).contains(&z) {
         return None;
     }
+
     let x = (m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12]) / w;
     let y = (m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13]) / w;
     let raster_scale = match world_height {
@@ -425,9 +432,11 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
         }
         None => scale,
     };
+
     if !raster_scale.is_finite() || raster_scale <= 0.0 {
         return None;
     }
+
     Some(PlacedText {
         left: (x + 1.0) * 0.5 * frame.framebuffer[0] as f32 + offset[0] * scale,
         top: (1.0 - y) * 0.5 * frame.framebuffer[1] as f32 + offset[1] * scale,
@@ -454,29 +463,37 @@ fn text_rectangle(
         _ if run.label.object.is_some() => ([0.0, run.label.font_size * 2.0 / 9.0], true, false),
         _ => return None,
     };
+
     if run.label.text.is_empty() {
         return None;
     }
+
     let mut width = 0.0f32;
     let mut top = f32::INFINITY;
     let mut bottom = f32::NEG_INFINITY;
+
     for line in run.buffer.layout_runs() {
         width = width.max(line.line_w);
         top = top.min(line.line_top);
         bottom = bottom.max(line.line_top + line.line_height);
     }
+
     if !top.is_finite() || !bottom.is_finite() {
         return None;
     }
+
     if rounded {
         // Reserve an entire cap at either end so rounding never intersects the shaped line.
         padding[0] = padding[0].max((bottom - top) * 0.5 + padding[1]);
     }
+
     let raster = placed.scale;
+
     if centered {
         placed.left -= width * raster * 0.5;
         placed.top -= (top + bottom) * raster * 0.5;
     }
+
     let bounds = clip_bounds(&run.label, frame, scale);
     let bounds = [
         bounds.left as f32,
@@ -563,6 +580,7 @@ fn now_ms() -> f64 {
     {
         return performance.now();
     }
+
     0.0
 }
 
@@ -633,6 +651,7 @@ mod tests {
         };
         assert!(place(&label, &frame, 2.0).is_none());
     }
+
     #[test]
     fn nameplate_center_padding_clip_and_scale_share_one_coordinate_system() {
         let mut document = TextDocument::new();
@@ -651,6 +670,7 @@ mod tests {
             clip: None,
         };
         document.set_labels(vec![label.clone()]).unwrap();
+
         for scale in [1.0, 1.25, 2.0] {
             let frame = frame(scale);
             let run = &document.runs[0];
@@ -666,6 +686,7 @@ mod tests {
             assert!(((rectangle[1] + rectangle[3]) * 0.5 - 300.0 * scale as f32).abs() < 0.001);
             assert!((rectangle[3] - rectangle[1] - 34.0 * scale as f32).abs() < 0.001);
         }
+
         label.clip = Some([390.0, 290.0, 410.0, 310.0]);
         label.color = [255, 255, 0, 255];
         document.set_labels(vec![label.clone()]).unwrap();
@@ -704,7 +725,8 @@ mod tests {
         gpu.view.show_grid = false;
         gpu.view.lit = false;
         let mut upload = Upload::default();
-        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
+        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
+
         for position in [
             [-1.0, -1.0, 0.7],
             [1.0, -1.0, 0.7],
@@ -718,6 +740,7 @@ mod tests {
             });
             upload.arena.vids.push(0);
         }
+
         upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
         gpu.set_scene(&upload);
         let mut input = FrameInput {
@@ -751,6 +774,7 @@ mod tests {
         let mut top = 160;
         let mut bottom = 0;
         let mut black = 0;
+
         for (index, pixel) in pixels.chunks_exact(4).enumerate() {
             if pixel[0] < 5 && pixel[1] < 5 && pixel[2] < 5 {
                 let x = index % 320;
@@ -762,6 +786,7 @@ mod tests {
                 black += 1;
             }
         }
+
         assert!(
             black > 600,
             "the nameplate has a real opaque black GPU background"
@@ -769,9 +794,11 @@ mod tests {
         assert!(((left + right) as f32 * 0.5 - 160.0).abs() <= 1.0);
         assert!(((top + bottom) as f32 * 0.5 - 80.0).abs() <= 1.0);
         let mut line_width = 0.0f32;
+
         for line in gpu.text.document.runs[0].buffer.layout_runs() {
             line_width = line_width.max(line.line_w);
         }
+
         assert!(
             (right - left + 1) as f32 - 25.5 >= line_width - 2.0,
             "the complete shaped line fits in the straight section between both caps"
@@ -842,10 +869,8 @@ mod tests {
         gpu.view.show_grid = false;
         gpu.view.lit = false;
         let mut upload = Upload::default();
-        upload
-            .obj
-            .rows
-            .push(ObjectRow::new(Xform::identity().to_f32().map(f64::from), 0));
+        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
+
         for position in [
             [-1.0, -1.0, 0.7],
             [1.0, -1.0, 0.7],
@@ -859,6 +884,7 @@ mod tests {
             });
             upload.arena.vids.push(0);
         }
+
         upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
         gpu.set_scene(&upload);
         let mut frame = FrameInput {
@@ -920,6 +946,7 @@ mod tests {
         gpu.text.set_labels(vec![label]).unwrap();
         let clipped = gpu.render_offscreen(&frame);
         assert!(white_pixels(&clipped) > 10);
+
         for (index, pixel) in clipped.chunks_exact(4).enumerate() {
             if index % 256 >= 24 {
                 assert!(
@@ -928,6 +955,7 @@ mod tests {
                 );
             }
         }
+
         gpu.text.release(&gpu.ctx);
         assert_eq!(
             baseline,
@@ -965,6 +993,7 @@ mod tests {
             },
             clip: None,
         };
+
         for step in 0..60 {
             label.placement = TextPlacement::WorldBillboard {
                 world: [-0.9, 0.5, 0.5],
@@ -984,6 +1013,7 @@ mod tests {
                 "cache growth is limited to the budget plus one preparation"
             );
         }
+
         assert!(
             gpu.text.stats.atlas_resets > 0,
             "this continuous-scale fixture must actually cross the eviction threshold"
@@ -995,9 +1025,11 @@ mod tests {
     /// Count opaque interiors without treating anti-aliased edges as full glyph coverage.
     fn white_pixels(pixels: &[u8]) -> usize {
         let mut count = 0;
+
         for pixel in pixels.chunks_exact(4) {
             count += usize::from(pixel[0] > 240 && pixel[1] > 240 && pixel[2] > 240);
         }
+
         count
     }
 }

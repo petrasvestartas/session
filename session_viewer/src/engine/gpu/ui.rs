@@ -37,16 +37,20 @@ impl Ui {
             self.renderer.free_texture(&id);
             self.textures.remove(&id);
         }
+
         for (id, delta) in &output.textures_delta.set {
             self.textures.insert(*id);
             self.renderer
                 .update_texture(&ctx.device, &ctx.queue, *id, delta);
         }
+
         self.free = output.textures_delta.free;
         self.jobs = context.tessellate(output.shapes, output.pixels_per_point);
+
         if self.jobs.is_empty() {
             return;
         }
+
         self.screen = egui_wgpu::ScreenDescriptor {
             size_in_pixels: size,
             pixels_per_point: output.pixels_per_point,
@@ -71,6 +75,7 @@ impl Ui {
         if self.jobs.is_empty() {
             return;
         }
+
         let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("egui"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {

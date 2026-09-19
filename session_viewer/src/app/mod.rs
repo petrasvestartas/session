@@ -1,7 +1,3 @@
-//! The app layer: what a scene IS (manifest, documents, the walk into rows) and how it gets
-//! here (route, fetch, decode, stream, the loader, the live source) and is driven (input,
-//! touch). Above the engine, below the shell in lib.rs. Never names a wgpu type.
-
 pub mod cloud_query;
 pub mod command;
 pub mod coords;

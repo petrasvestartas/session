@@ -168,7 +168,7 @@ def spaces():
                1000, 430)
     c.text(28, 40, "One point, six spaces", "h")
     top = row(c, 66, [(["Source · f64", "CAD coordinates", "large offsets kept exact"], "cpu"),
-                      (["World · f64", "`Mat4 model × point`", "`math::xform_point_f64`"], "cpu"),
+                      (["World · f64", "`Xform model × point`", "`Xform::transform_point`"], "cpu"),
                       (["Object-relative · f32", "`Instance.model` (no translation)", "`translations[row]` (16 B)"], "gpu")],
               labels=["placement", "− anchor"])
     a, b, g = top
@@ -2838,7 +2838,7 @@ def producer_contract():
     c.arrow(a[0] + a[2], a[1] + a[3] / 2, mid[0], a[1] + a[3] / 2)
     c.arrow(b[0] + b[2], b[1] + b[3] / 2, mid[0], b[1] + b[3] / 2)
     out = c.box(mid[0] + mid[2] + 44, 140, ["Row · what it reports",
-                                            "`bounds` an Aabb in the object's OWN space",
+                                            "`bounds` an AABB in the object's OWN space",
                                             "`spacing` diagonal / √vertices",
                                             "`flags` PRINT · SMOOTH · SINGLE · OPEN",
                                             "`faces` did it draw triangles?"], "cpu")

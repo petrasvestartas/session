@@ -1,12 +1,3 @@
-//! The URL decides where a scene comes from. ONE query parser (`query`) serves every knob,
-//! and `SceneRoute` names the three routes:
-//!
-//! - no query on localhost: `view_local.yaml` + `pb/view_local_*.pb`, all from this origin;
-//! - `?scene=<name>` or a path like `/view_lines`: that manifest AND its files from the bucket;
-//! - no query elsewhere: the live source (`live.rs`), `view_live.yaml` re-read every poll.
-//!
-//! `?data=<https base>` overrides where the `.pb` come from; `?data=off` forces this origin.
-
 /// The public bucket every named scene and its files come from.
 pub const DATA_BASE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/";
 
@@ -34,14 +25,17 @@ pub fn query(name: &str) -> Option<String> {
     let search = web_sys::window()?.location().search().ok()?;
     let raw = search.strip_prefix('?')?;
     let prefix = format!("{name}=");
+
     for pair in raw.split('&') {
         if let Some(v) = pair.strip_prefix(prefix.as_str()) {
             return js_sys::decode_uri_component(v).ok()?.as_string();
         }
+
         if pair == name {
             return Some(String::new());
         }
     }
+
     None
 }
 
@@ -79,11 +73,13 @@ pub fn path_scene() -> Option<String> {
 /// The `?scene=` value when it stays inside one tree (no scheme, no `..`, no absolute path).
 pub fn query_scene() -> Option<String> {
     let decoded = query("scene")?;
+
     for segment in decoded.split('/') {
         if segment == ".." {
             return None;
         }
     }
+
     let safe = !decoded.is_empty()
         && !decoded.starts_with('/')
         && !decoded.contains("//")
@@ -103,6 +99,7 @@ pub fn data_base() -> String {
             DATA_BASE.to_string()
         }
     };
+
     if base.ends_with('/') {
         base
     } else {
@@ -115,6 +112,7 @@ pub fn join(base: &str, file: &str) -> String {
     if file.starts_with("https://") || file.starts_with("http://") {
         return file.to_string();
     }
+
     format!("{}{}", base, file.trim_start_matches("./"))
 }
 
@@ -143,6 +141,7 @@ pub fn scene_route() -> Option<SceneRoute> {
     if let Some(path) = query_scene().or_else(path_scene) {
         return Some(named_scene(&path));
     }
+
     if page_is_local() {
         Some(SceneRoute {
             manifest: LOCAL_SCENE.to_string(),
@@ -162,6 +161,7 @@ pub fn recover_from_device_loss(message: &str) -> bool {
     if !message.contains("device lost") || crate::engine::gpu::view::reduced() {
         return false;
     }
+
     let Some(window) = web_sys::window() else {
         return false;
     };
@@ -170,9 +170,11 @@ pub fn recover_from_device_loss(message: &str) -> bool {
         return false;
     };
     let mut query = query_without(&search, "recovered");
+
     if !query.is_empty() {
         query.push('&');
     }
+
     let reason: String = message.chars().take(200).collect();
     query.push_str("recovered=");
     query.push_str(&String::from(js_sys::encode_uri_component(&reason)));
@@ -210,8 +212,10 @@ static RECOVERED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 pub fn adopt_recovery() -> Option<&'static str> {
     let reason = query("recovered")?;
     crate::engine::gpu::view::reduce();
+
     if let Some(window) = web_sys::window() {
         let location = window.location();
+
         if let (Ok(path), Ok(search), Ok(hash), Ok(history)) = (
             location.pathname(),
             location.search(),
@@ -227,6 +231,7 @@ pub fn adopt_recovery() -> Option<&'static str> {
             let _ = history.replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(&url));
         }
     }
+
     let reason = if reason.is_empty() {
         "WebGPU device lost".to_string()
     } else {

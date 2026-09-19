@@ -1,136 +1,3 @@
-diff --git a/session_proto/objects.proto b/session_proto/objects.proto
-index e40744b85105815f8bba47c6f06b62e66e441189..4a531c56eb2b10d48986918642594ed90c872a79 100644
---- a/session_proto/objects.proto
-+++ b/session_proto/objects.proto
-@@ -13,6 +13,7 @@ import "nurbscurve.proto";
- import "nurbssurface.proto";
- import "brep.proto";
- import "element.proto";
-+import "sheet.proto";
- 
- // Component message for custom domain objects (e.g. FloorBuilder, WallBuilder)
- // Allows external packages to store arbitrary serializable objects in a Session.
-@@ -39,4 +40,5 @@ message Objects {
-   repeated BRep breps = 14;                 // Collection of BReps
-   repeated Element elements = 15;           // Collection of elements
-   repeated Component components = 16;       // Collection of custom domain objects
-+  repeated Sheet sheets = 17;               // Collection of sheets
- }
-diff --git a/session_proto/sheet.proto b/session_proto/sheet.proto
-new file mode 100644
-index 0000000000000000000000000000000000000000..044fcdaf8a521610ce8b1af24f7dc810c3d3e11e
---- /dev/null
-+++ b/session_proto/sheet.proto
-@@ -0,0 +1,31 @@
-+syntax = "proto3";
-+
-+package session_proto;
-+
-+
-+// Sheet: one drawing's linework flattened to segments, published for RANGE reads.
-+//
-+// The viewer never needs the whole file to start drawing. Every big array is a packed
-+// FIXED-WIDTH field - double, fixed32, float - so a reader that scans the protobuf tags in
-+// the first kilobytes knows the byte offset and length of every array, and can fetch any
-+// slice of it with one HTTP Range request: segment i is bytes [48*i, 48*i+48) of `coords`,
-+// [4*i, 4*i+4) of `colors`, `widths` and `source_ids`. `uint32` (varint) would break this -
-+// 1 to 5 bytes each, no way to seek - so it is only used for the two scalar counts, which
-+// are read once from the header. Field numbers are wire order, so `source_ids` at 15 is the
-+// LAST array in the file: everything a first paint needs comes before it.
-+//
-+// Per-entity metadata (guid, name, kind, authored pen) is NOT in this message. It lives in a
-+// side table named by `meta`: magic `SHM1`, u32 LE count, count records of u64 LE offset and
-+// u64 LE length relative to the byte after the table, then UTF-8 JSON blobs. A segment's
-+// `source_ids` entry is its record index, so a pick resolves to one blob by one more Range.
-+message Sheet {
-+  string guid = 1;                                  // Unique identifier
-+  string name = 2;                                  // Sheet name
-+  repeated double coords = 3 [packed = true];       // 6 per segment: x0 y0 z0 x1 y1 z1, world mm
-+  repeated fixed32 colors = 4 [packed = true];      // one RGBA8 per segment, low byte red
-+  repeated float widths = 5 [packed = true];        // pen width in mm per segment, 0 = hairline
-+  uint32 segment_count = 6;                         // number of segments
-+  uint32 entity_count = 7;                          // records in the side table
-+  string meta = 8;                                  // side-table file name relative to this file, empty = none
-+  repeated fixed32 source_ids = 15 [packed = true]; // entity id per segment, index into the side table; the LAST field
-+}
-diff --git a/session_rust/src/objects.rs b/session_rust/src/objects.rs
-index a84c4885b02539267805b6b1b81ba5ca496c4029..b41765a7b82c69b97a97d213d926271eba6ff222 100644
---- a/session_rust/src/objects.rs
-+++ b/session_rust/src/objects.rs
-@@ -230,6 +230,7 @@ impl Objects {
-                 .iter()
-                 .map(|c| crate::proto::Component::decode(c.pb_dumps().as_slice()).unwrap())
-                 .collect(),
-+            sheets: Vec::new(),
-         };
-         proto.encode_to_vec()
-     }
-diff --git a/session_rust/src/proto/session_proto.rs b/session_rust/src/proto/session_proto.rs
-index 20c69007f34c4dd76166e14926de51be47cfd0ff..089dd58dddb460b2c63b4af8df5741b79f61c757 100644
---- a/session_rust/src/proto/session_proto.rs
-+++ b/session_rust/src/proto/session_proto.rs
-@@ -881,6 +881,51 @@ pub struct PointCloud {
-     #[prost(fixed32, repeated, tag = "15")]
-     pub point_ids: ::prost::alloc::vec::Vec<u32>,
- }
-+/// Sheet: one drawing's linework flattened to segments, published for RANGE reads.
-+///
-+/// The viewer never needs the whole file to start drawing. Every big array is a packed
-+/// FIXED-WIDTH field - double, fixed32, float - so a reader that scans the protobuf tags in
-+/// the first kilobytes knows the byte offset and length of every array, and can fetch any
-+/// slice of it with one HTTP Range request: segment i is bytes [48*i, 48*i+48) of `coords`,
-+/// [4*i, 4*i+4) of `colors`, `widths` and `source_ids`. `uint32` (varint) would break this -
-+/// 1 to 5 bytes each, no way to seek - so it is only used for the two scalar counts, which
-+/// are read once from the header. Field numbers are wire order, so `source_ids` at 15 is the
-+/// LAST array in the file: everything a first paint needs comes before it.
-+///
-+/// Per-entity metadata (guid, name, kind, authored pen) is NOT in this message. It lives in a
-+/// side table named by `meta`: magic `SHM1`, u32 LE count, count records of u64 LE offset and
-+/// u64 LE length relative to the byte after the table, then UTF-8 JSON blobs. A segment's
-+/// `source_ids` entry is its record index, so a pick resolves to one blob by one more Range.
-+#[derive(Clone, PartialEq, ::prost::Message)]
-+pub struct Sheet {
-+    /// Unique identifier
-+    #[prost(string, tag = "1")]
-+    pub guid: ::prost::alloc::string::String,
-+    /// Sheet name
-+    #[prost(string, tag = "2")]
-+    pub name: ::prost::alloc::string::String,
-+    /// 6 per segment: x0 y0 z0 x1 y1 z1, world mm
-+    #[prost(double, repeated, tag = "3")]
-+    pub coords: ::prost::alloc::vec::Vec<f64>,
-+    /// one RGBA8 per segment, low byte red
-+    #[prost(fixed32, repeated, tag = "4")]
-+    pub colors: ::prost::alloc::vec::Vec<u32>,
-+    /// pen width in mm per segment, 0 = hairline
-+    #[prost(float, repeated, tag = "5")]
-+    pub widths: ::prost::alloc::vec::Vec<f32>,
-+    /// number of segments
-+    #[prost(uint32, tag = "6")]
-+    pub segment_count: u32,
-+    /// records in the side table
-+    #[prost(uint32, tag = "7")]
-+    pub entity_count: u32,
-+    /// side-table file name relative to this file, empty = none
-+    #[prost(string, tag = "8")]
-+    pub meta: ::prost::alloc::string::String,
-+    /// entity id per segment, index into the side table; the LAST field
-+    #[prost(fixed32, repeated, tag = "15")]
-+    pub source_ids: ::prost::alloc::vec::Vec<u32>,
-+}
- /// Component message for custom domain objects (e.g. FloorBuilder, WallBuilder)
- /// Allows external packages to store arbitrary serializable objects in a Session.
- #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
-@@ -943,6 +988,9 @@ pub struct Objects {
-     /// Collection of custom domain objects
-     #[prost(message, repeated, tag = "16")]
-     pub components: ::prost::alloc::vec::Vec<Component>,
-+    /// Collection of sheets
-+    #[prost(message, repeated, tag = "17")]
-+    pub sheets: ::prost::alloc::vec::Vec<Sheet>,
- }
- /// Quaternion message for representing rotations
- #[derive(Clone, PartialEq, ::prost::Message)]
 diff --git a/session_viewer/examples/mk_sheet.rs b/session_viewer/examples/mk_sheet.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..e4172fc99d52eeb55cf5b1280d230e8eac2018c9
@@ -359,7 +226,7 @@ index 0000000000000000000000000000000000000000..e4172fc99d52eeb55cf5b1280d230e8e
 +view: https://petrasvestartas.github.io/session/
 +*/
 diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
-index 7b2d9fce0e96b545651baa408d609c0b31554823..d59a2a4baca686a586f6913b0ce3856049120473 100644
+index 85a636577a771fbe36a1e09eb5f8354e2c8cb881..8a582c47cf835baefa8703140eceeb591d482d66 100644
 --- a/session_viewer/src/app/inspection.rs
 +++ b/session_viewer/src/app/inspection.rs
 @@ -39,6 +39,7 @@ pub fn publish(state: &State) {
@@ -389,20 +256,10 @@ index 7b2d9fce0e96b545651baa408d609c0b31554823..d59a2a4baca686a586f6913b0ce38560
  #[cfg(target_arch = "wasm32")]
  fn text_labels(state: &State) -> Vec<serde_json::Value> {
 diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
-index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146ba8323cfd 100644
+index afba932255cec765f3448f9493f7d21c10d08a6a..74541285c3f45c15f2f0365972c05f5f1b126944 100644
 --- a/session_viewer/src/app/loader.rs
 +++ b/session_viewer/src/app/loader.rs
-@@ -1,6 +1,7 @@
- //! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
--//! event loop as a `Msg` - whole files through `decode`, big clouds a slice at a time
--//! through `stream`. Live first, then the URL's route, then the poll loop. Touches no GPU.
-+//! event loop as a `Msg` - whole files through `decode`, big clouds and every sheet a slice
-+//! at a time through `stream`. Live first, then the URL's route, then the poll loop. Touches
-+//! no GPU.
- 
- use super::decode::session_from_bytes;
- use super::fetch::{fetch_bytes, sleep_ms};
-@@ -8,11 +9,15 @@ use super::live::LiveSource;
+@@ -4,11 +4,15 @@ use super::live::LiveSource;
  use super::manifest::Manifest;
  use super::route::AUTO_GRID;
  use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
@@ -421,7 +278,7 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
  use session_rust::Xform;
  use std::cell::{Cell, RefCell};
  use std::rc::Rc;
-@@ -39,11 +44,23 @@ const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
+@@ -35,6 +39,16 @@ const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
  /// so the cloud is on screen and correct, just sparse.
  const STREAM_MIN_PREFIX: u32 = 250_000;
  
@@ -438,14 +295,17 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
  thread_local! {
      /// The start-up proxy, kept so `reload_scene` and the stream tasks can post messages.
      static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
+@@ -42,6 +56,9 @@ thread_local! {
      /// Points resident across every streamed cloud on the page: the ceiling is a scene budget.
      static RESIDENT: Cell<u32> = const { Cell::new(0) };
+ 
 +    /// Segments resident across every sheet on the page, under its own ceiling.
 +    static SHEET_RESIDENT: Cell<u32> = const { Cell::new(0) };
++
      /// Bumped on every `Clear`: a stream task from an older scene stops at its next slice.
      static GENERATION: Cell<u32> = const { Cell::new(0) };
-     static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
-@@ -53,6 +70,7 @@ thread_local! {
+ 
+@@ -52,6 +69,7 @@ thread_local! {
  fn clear_scene() {
      GENERATION.set(GENERATION.get().wrapping_add(1));
      RESIDENT.set(0);
@@ -453,7 +313,7 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
      post(Msg::Clear);
  }
  
-@@ -80,6 +98,21 @@ fn budget_spend(n: u32) {
+@@ -79,6 +97,21 @@ fn budget_spend(n: u32) {
      RESIDENT.set(RESIDENT.get().saturating_add(n));
  }
  
@@ -475,7 +335,7 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
  /// Start-up: the live source when the page has one, else the URL's route, then the empty
  /// canvas either way; then the poll loop.
  pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
-@@ -190,6 +223,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -198,6 +231,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
      let mut spent = 0u64;
      let mut skipped: Vec<String> = Vec::new();
      let mut staged_points = 0u32;
@@ -483,23 +343,27 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
      let t0 = now_ms();
      let bytes = match fetch_manifest(route).await {
          Ok(b) => b,
-@@ -252,6 +286,28 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
-                 }
+@@ -270,6 +304,33 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+ 
                  continue;
              }
++
 +            let remaining = if replacement.is_some() {
 +                max_segments().saturating_sub(staged_segments)
 +            } else {
 +                sheet_budget_left()
 +            };
++
 +            if let Some(init) = sheet_prefix(&url, &slot, remaining).await {
 +                if stale_load(generation) {
 +                    return;
 +                }
++
 +                if init.resident == 0 {
 +                    failed = true;
 +                    continue;
 +                }
++
 +                if replacement.is_some() {
 +                    staged_segments = staged_segments.saturating_add(init.resident);
 +                    pending.push(PendingDocument::Sheet(Box::new(init)));
@@ -507,20 +371,21 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
 +                    sheet_budget_spend(init.resident);
 +                    post(Msg::Sheet(Box::new(init)));
 +                }
++
 +                continue;
 +            }
          }
+ 
          // A whole file is decoded into the wasm heap several times over; past the device's
-         // budget the page would die without a word, so the file is skipped with one instead.
-@@ -326,6 +382,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
-         }
+@@ -354,6 +415,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+ 
          clear_scene();
          budget_spend(staged_points);
 +        sheet_budget_spend(staged_segments);
+ 
          for document in pending {
              match document {
-                 PendingDocument::Whole(doc) => {
-@@ -334,6 +391,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -363,6 +425,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                  PendingDocument::Streamed(stream) => {
                      post(Msg::StreamedCloud(stream));
                  }
@@ -530,7 +395,7 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
              }
          }
      }
-@@ -348,13 +408,15 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -380,13 +445,15 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
      );
  }
  
@@ -548,7 +413,7 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
  struct Placement {
      name: String,
      place: Xform,
-@@ -414,6 +476,102 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
+@@ -448,6 +515,110 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
      })
  }
  
@@ -617,11 +482,14 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
 +    let (url, idx, fields) = (c.url, c.idx, c.fields);
 +    let generation = GENERATION.get();
 +    let mut at = c.from;
++
 +    while at < fields.count {
 +        if GENERATION.get() != generation {
 +            return;
 +        }
++
 +        let left = sheet_budget_left();
++
 +        if left == 0 {
 +            log::info!(
 +                "'{url}': {at} of {} segments resident - at the page's segment ceiling (?segments= to raise it)",
@@ -629,21 +497,26 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
 +            );
 +            return;
 +        }
++
 +        let to = (at + SHEET_CHUNK_SEGMENTS.min(left)).min(fields.count);
 +        sheet_budget_spend(to - at);
 +        let Some(rows) = fetch_sheet_slice(&url, &fields, at, to).await else {
 +            if GENERATION.get() == generation {
 +                SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_sub(to - at));
 +            }
++
 +            super::feedback::status("A sheet range failed; reload to retry the missing data");
 +            return;
 +        };
++
 +        if GENERATION.get() != generation {
 +            return;
 +        }
++
 +        if !post(Msg::SheetChunk(SheetChunk { idx, rows, to })) {
 +            return;
 +        }
++
 +        at = to;
 +    }
 +}
@@ -652,10 +525,10 @@ index c2d621d3569e802672120adec07046dccd1008bf..4692cdc94fd701c17b398239aa94146b
  /// colour run continues.
  pub struct StreamCursor {
 diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
-index 2ef628363bdfb35d3ddc77cde5ec5e7ce79f5e3a..3cc9933bb164535f05d4f5107d41cb1b7f3a7bff 100644
+index ec518347ab5ed3aa12e6001238a92fac10866115..64b0f1c1771d20ba396793422bbffad3d94aed4e 100644
 --- a/session_viewer/src/app/mod.rs
 +++ b/session_viewer/src/app/mod.rs
-@@ -9,6 +9,7 @@ pub mod knobs;
+@@ -5,6 +5,7 @@ pub mod knobs;
  pub mod manifest;
  pub mod scene;
  pub mod selection;
@@ -664,10 +537,10 @@ index 2ef628363bdfb35d3ddc77cde5ec5e7ce79f5e3a..3cc9933bb164535f05d4f5107d41cb1b
  pub mod touch;
  pub mod validate;
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6832ddd06 100644
+index 9b99c8177b304462a200234f5853d674c86654a2..50e186f99b0385855fd3791c6ad669184a2c38d1 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
-@@ -8,10 +8,12 @@ mod text;
+@@ -3,10 +3,12 @@ mod text;
  pub use text::SceneText;
  
  use crate::app::knobs;
@@ -680,8 +553,8 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
 +use crate::app::walk::sheet::{SheetRows, SheetSlice, walk_sheet_slice};
  use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
  use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
- use crate::math::{Mat4, mat_mul};
-@@ -65,14 +67,43 @@ pub struct StreamedCloud {
+ use session_rust::{Geometry, Session, Xform};
+@@ -50,14 +52,42 @@ pub struct StreamedCloud {
      pub point_px: f32,
  }
  
@@ -707,12 +580,11 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
 +    pub meta_url: Option<String>,
 +    pub row: u32,
 +    pub fields: SheetFields,
-+    pub place: Mat4,
++    pub place: Xform,
 +    pub done_to: u32,
 +    pub total: u32,
 +    pub resolved: Option<(u32, EntityMeta)>,
-+    /// The side table's validated head, read once.
-+    pub table: Option<SheetTable>,
++    pub table: Option<SheetTable>, // The side table's validated head, read once.
 +}
 +
 +/// What a pick resolved to: the document, the geometry's guid, its object row, for a cloud
@@ -727,15 +599,15 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
  }
  
  /// A picked cloud point: the row-local index (this file version only) and the stable id.
-@@ -98,6 +129,7 @@ pub struct Scene {
-     pub texts: Vec<SceneText>,
+@@ -82,6 +112,7 @@ pub struct Scene {
+     pub texts: Vec<SceneText>, // Every source text placement shares ordinary scene identity and visibility.
      pub tables: Upload,
      pub streamed: Vec<StreamedCloud>,
 +    pub sheets: Vec<SheetBatch>,
      pub hidden: HashSet<(usize, Rc<str>)>,
      pub selected: Option<u32>,
      order: Vec<Rc<str>>,
-@@ -124,6 +156,7 @@ impl Scene {
+@@ -107,6 +138,7 @@ impl Scene {
              texts: Vec::new(),
              tables: Upload::default(),
              streamed: Vec::new(),
@@ -743,7 +615,7 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
              hidden: HashSet::new(),
              selected: None,
              order: Vec::new(),
-@@ -140,33 +173,31 @@ impl Scene {
+@@ -123,33 +155,31 @@ impl Scene {
      pub fn clear(&mut self, gpu: &mut Gpu) {
          self.docs.clear();
          self.texts.clear();
@@ -785,9 +657,9 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
 -        self.bases = Bases::default();
 +        self.reset_rows();
          gpu.reset();
+ 
          for d in docs {
-             if d.display_only {
-@@ -372,7 +403,93 @@ impl Scene {
+@@ -369,7 +399,96 @@ impl Scene {
          self.upload_to(gpu);
      }
  
@@ -809,17 +681,17 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
 +        let row = self.push_row(
 +            self.docs.len(),
 +            &format!("sheet:{url}"),
-+            place.m,
++            place.clone(),
 +            Instance::FLAG_SHEET,
 +        );
 +        let slice = SheetSlice { rows, from: 0, row };
 +        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
 +        let o = self.tables.obj.rows.last_mut().unwrap();
 +        o.bounds = bounds;
-+        self.tables.bounds.union(&bounds.placed(&place.m));
++        self.tables.bounds.union_with(&bounds.transformed(&place));
 +        self.upload_to(gpu);
 +
-+        let model = place.m;
++        let model = place.clone();
 +        self.docs.push(FileDoc {
 +            name: name.clone(),
 +            place,
@@ -847,17 +719,19 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
 +        let Some(sheet) = self.sheets.get(idx) else {
 +            return;
 +        };
++
 +        if to <= sheet.done_to {
 +            return;
 +        }
-+        let place = sheet.place;
++
++        let place = sheet.place.clone();
 +        let slice = SheetSlice {
 +            rows,
 +            from: sheet.done_to,
 +            row: sheet.row,
 +        };
 +        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
-+        self.tables.bounds.union(&bounds.placed(&place));
++        self.tables.bounds.union_with(&bounds.transformed(&place));
 +        self.sheets[idx].done_to = to;
 +        self.upload_to(gpu);
 +    }
@@ -869,6 +743,7 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
 +                return Some(slot);
 +            }
 +        }
++
 +        None
 +    }
 +
@@ -882,14 +757,15 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
      pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
          let guid = self.order.get(pick.row as usize)?.to_string();
          let mut point = None;
-@@ -381,6 +498,17 @@ impl Scene {
-         {
+@@ -380,6 +499,19 @@ impl Scene {
              point = self.point_at(pick.row, local);
          }
+ 
 +        let mut entity = None;
 +        // Bit 31 marks a segment sub-id, set in ribbon.wgsl; the low 31 bits are already the
 +        // global ribbon row, the decode having taken the shader's +1 off.
 +        let ribbon = pick.sub & 0x7fff_ffff;
++
 +        if pick.sub & 0x8000_0000 != 0
 +            && self.sheet_at(pick.row).is_some()
 +            && let Some((parent, _)) = gpu.segments.row_of(ribbon)
@@ -897,10 +773,11 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
 +        {
 +            entity = gpu.segments.source_id(ribbon).filter(|id| *id != u32::MAX);
 +        }
++
          let doc = match self.document(pick.row) {
              Some(document) => document.name.clone(),
              None => String::new(),
-@@ -390,6 +518,7 @@ impl Scene {
+@@ -389,6 +521,7 @@ impl Scene {
              guid,
              row: pick.row,
              point,
@@ -908,7 +785,7 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
          })
      }
  
-@@ -406,11 +535,19 @@ impl Scene {
+@@ -405,12 +538,21 @@ impl Scene {
              .get(self.order.get(row as usize)?.as_ref())
      }
  
@@ -919,6 +796,7 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
          if let Some(text) = self.text_at(row) {
              return &text.label.text;
          }
+ 
 +        if let Some(sheet) = self.sheet_at(row) {
 +            return match &sheet.resolved {
 +                Some((_, meta)) if !meta.name.trim().is_empty() => &meta.name,
@@ -926,27 +804,26 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6
 +                _ => &sheet.name,
 +            };
 +        }
++
          let (name, kind) = match self.geometry(row) {
              Some(Geometry::OBB(value)) => (value.name.as_str(), "Box"),
              Some(Geometry::BRep(value)) => (value.name.as_str(), "BRep"),
 diff --git a/session_viewer/src/app/sheet_query.rs b/session_viewer/src/app/sheet_query.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..ab6a0f9e95625f17f7cecc2073a11512ba36a9ec
+index 0000000000000000000000000000000000000000..318abe664f516c6e1e6c4a4f1f83edcdf9049fd1
 --- /dev/null
 +++ b/session_viewer/src/app/sheet_query.rs
-@@ -0,0 +1,244 @@
-+//! Sheet entity lookup by bounded range reads of the side table: the 8-byte head once per
-+//! sheet, then one 16-byte record and one JSON blob per pick. The segment itself was picked
-+//! on the GPU; only its entity's identity comes off the wire.
-+
+@@ -0,0 +1,257 @@
 +use serde::Deserialize;
 +use std::cell::Cell;
 +use std::rc::Rc;
 +
 +/// The side table's head: magic `SHM1`, u32 LE record count.
 +pub const HEAD_BYTES: u64 = 8;
++
 +/// One record: u64 LE offset, u64 LE length, relative to the byte after the table.
 +pub const RECORD_BYTES: u64 = 16;
++
 +/// A blob longer than this is not one entity's record.
 +pub const MAX_BLOB: u64 = 64 * 1024;
 +
@@ -977,6 +854,7 @@ index 0000000000000000000000000000000000000000..ab6a0f9e95625f17f7cecc2073a11512
 +    if raw.len() != HEAD_BYTES as usize || &raw[..4] != b"SHM1" {
 +        return Err("Side table head is not SHM1".to_string());
 +    }
++
 +    Ok(u32::from_le_bytes(
 +        raw[4..8].try_into().expect("exact head checked above"),
 +    ))
@@ -987,6 +865,7 @@ index 0000000000000000000000000000000000000000..ab6a0f9e95625f17f7cecc2073a11512
 +    if raw.len() != RECORD_BYTES as usize {
 +        return Err("Side table record must contain exactly 16 bytes".to_string());
 +    }
++
 +    Ok((
 +        u64::from_le_bytes(raw[..8].try_into().expect("exact record checked above")),
 +        u64::from_le_bytes(raw[8..].try_into().expect("exact record checked above")),
@@ -1066,6 +945,7 @@ index 0000000000000000000000000000000000000000..ab6a0f9e95625f17f7cecc2073a11512
 +        entities: u32,
 +    ) {
 +        let result = read_entity(&url, entity, table, entities, &cancelled).await;
++
 +        if !cancelled.get() {
 +            post(crate::Msg::SheetEntity(Resolved { query, result }));
 +        }
@@ -1085,33 +965,42 @@ index 0000000000000000000000000000000000000000..ab6a0f9e95625f17f7cecc2073a11512
 +            None => {
 +                let (raw, revision) = range(url, 0, HEAD_BYTES, &None).await?;
 +                let count = table_count(&raw)?;
++
 +                if count != entities {
 +                    return Err(format!(
 +                        "Side table holds {count} records; the sheet says {entities}"
 +                    ));
 +                }
++
 +                SheetTable { count, revision }
 +            }
 +        };
++
 +        if cancelled.get() {
 +            return Err("Entity lookup cancelled".to_string());
 +        }
++
 +        if id >= table.count {
 +            return Err(format!(
 +                "Entity {id} is outside the {}-record side table",
 +                table.count
 +            ));
 +        }
++
 +        let (raw, _) = range(url, record_at(id), RECORD_BYTES, &table.revision).await?;
++
 +        if cancelled.get() {
 +            return Err("Entity lookup cancelled".to_string());
 +        }
++
 +        let (offset, length) = record(&raw)?;
++
 +        if length > MAX_BLOB {
 +            return Err(format!(
 +                "Entity {id} record is {length} bytes, over the {MAX_BLOB} limit"
 +            ));
 +        }
++
 +        let at = record_at(table.count)
 +            .checked_add(offset)
 +            .ok_or("Entity record offset overflows")?;
@@ -1131,14 +1020,17 @@ index 0000000000000000000000000000000000000000..ab6a0f9e95625f17f7cecc2073a11512
 +        let mut out = b"SHM1".to_vec();
 +        out.extend((blobs.len() as u32).to_le_bytes());
 +        let mut offset = 0u64;
++
 +        for blob in blobs {
 +            out.extend(offset.to_le_bytes());
 +            out.extend((blob.len() as u64).to_le_bytes());
 +            offset += blob.len() as u64;
 +        }
++
 +        for blob in blobs {
 +            out.extend(blob.as_bytes());
 +        }
++
 +        out
 +    }
 +
@@ -1180,34 +1072,18 @@ index 0000000000000000000000000000000000000000..ab6a0f9e95625f17f7cecc2073a11512
 +    }
 +}
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123bba700e08 100644
+index 8b74e4a4a2830d1398ec402e600d96a16044d060..b4bd7698118de0df52a5df6aa33916461451b807 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
-@@ -1,8 +1,9 @@
--//! Reading a cloud by HTTP Range, without decoding the file whole. Two facts about the wire
--//! format make it possible: every hop `Session.3 -> Objects.8 -> PointCloud` is
--//! length-delimited, so the headers sit in the first few KB; and `coords` is packed double,
--//! so its length prefix gives the exact point count before a byte of payload is read. The
--//! byte-level parsing here is pure and tested natively; the fetching half is wasm-only.
-+//! Reading a cloud or a sheet by HTTP Range, without decoding the file whole. Two facts about
-+//! the wire format make it possible: every hop `Session.3 -> Objects.8 -> PointCloud` (or
-+//! `Objects.17 -> Sheet`) is length-delimited, so the headers sit in the first few KB; and
-+//! `coords` is packed double, so its length prefix gives the exact count before a byte of
-+//! payload is read. The byte-level parsing here is pure and tested natively; the fetching
-+//! half is wasm-only.
- 
- /// Where the packed source arrays live in the file, as absolute byte offsets.
- #[derive(Clone, Debug)]
-@@ -21,6 +22,109 @@ pub struct CloudFields {
-     pub revision: Option<String>,
+@@ -12,6 +12,111 @@ pub struct CloudFields {
+     pub revision: Option<String>, // Source validator captured with the first metadata range when the server exposes it.
  }
  
 +/// Where a sheet's fixed-width arrays live in the file, as absolute byte offsets; a zero
 +/// length means the field is absent (default colour, hairline pens, no entity ids).
 +#[derive(Clone, Debug, Default)]
 +pub struct SheetFields {
-+    /// End of the enclosing Sheet message, exclusive.
-+    pub end: u64,
++    pub end: u64, // End of the enclosing Sheet message, exclusive.
 +    pub coords_at: u64,
 +    pub coords_len: u64,
 +    pub colors_at: u64,
@@ -1216,12 +1092,9 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +    pub widths_len: u64,
 +    pub ids_at: u64,
 +    pub ids_len: u64,
-+    /// Segments, from the coords length; `segment_count` (field 6) must agree.
-+    pub count: u32,
-+    /// Records in the side table (field 7).
-+    pub entities: u32,
-+    /// Side-table file name relative to the sheet URL; empty = none.
-+    pub meta: String,
++    pub count: u32, // Segments, from the coords length; `segment_count` (field 6) must agree.
++    pub entities: u32, // Records in the side table (field 7).
++    pub meta: String, // Side-table file name relative to the sheet URL; empty = none.
 +    pub revision: Option<String>,
 +}
 +
@@ -1240,10 +1113,13 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +pub fn field_at(header: &[u8], at: u64, end: u64) -> Option<Field> {
 +    let (tag, used) = varint(header, 0)?;
 +    let (field, wire) = (u32::try_from(tag >> 3).ok()?, (tag & 7) as u32);
++
 +    if field == 0 {
 +        return None;
 +    }
++
 +    let body = body_end(at, used as u64, end)?;
++
 +    if wire != 2 {
 +        let (value, _) = if wire == 0 {
 +            varint(header, used)?
@@ -1259,6 +1135,7 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +            next: body_end(body, skip as u64, end)?,
 +        });
 +    }
++
 +    let (length, extra) = varint(header, used)?;
 +    let body = body_end(body, extra as u64, end)?;
 +    Some(Field {
@@ -1279,6 +1156,7 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +    /// wrong wire type.
 +    pub fn set(&mut self, f: &Field, body: &[u8]) -> bool {
 +        let per_segment = u64::from(self.count) * 4;
++
 +        match (f.field, f.wire) {
 +            (4, 2) if self.colors_len == 0 && f.value == per_segment => {
 +                (self.colors_at, self.colors_len) = (f.body, f.value)
@@ -1301,6 +1179,7 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +            (1..=8, _) | (15, _) => return false,
 +            _ => {}
 +        }
++
 +        true
 +    }
 +}
@@ -1308,13 +1187,13 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
  /// One cloud's LOD node table, read from the file's tail without touching a point.
  /// `first`/`count` index the cloud's rows, which are stored in octree order.
  #[derive(Clone, Default)]
-@@ -202,6 +306,21 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
+@@ -214,7 +319,21 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
      let mut at = 0usize;
      let objects_end = descend_message(head, &mut at, None, 3)?;
      let end = descend_message(head, &mut at, Some(objects_end), 8)?;
 +    first_array(head, at, end)
 +}
-+
+ 
 +/// The same walk down `Session.3 -> Objects.17 -> Sheet`: where `coords` starts, how long it
 +/// is, and where the sheet message ends.
 +pub fn sheet_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
@@ -1330,16 +1209,16 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
      while (at as u64) < end {
          let (tag, used) = varint(head, at)?;
          at = at.checked_add(used)?;
-@@ -225,7 +344,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
-         if field == 3 {
+@@ -246,7 +365,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
              return Some((at as u64, length, end));
          }
+ 
 -        if field == 4 || length > NAME_BYTES {
 +        if field > 3 || length > NAME_BYTES {
              return None;
          }
-         at = usize::try_from(next).ok()?;
-@@ -234,6 +353,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
+ 
+@@ -257,6 +376,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
  }
  
  /// Descend one length-delimited envelope, skipping only small names before its target field.
@@ -1347,9 +1226,9 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
  fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u32) -> Option<u64> {
      loop {
          let (tag, used) = varint(head, *at)?;
-@@ -251,7 +371,9 @@ fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u
-             return None;
+@@ -278,7 +398,9 @@ fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u
          }
+ 
          if field == want {
 -            if want == 8 && parent_end != Some(next) {
 +            if let Some(end) = parent_end
@@ -1357,8 +1236,8 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +            {
                  return None;
              }
-             return Some(next);
-@@ -271,7 +393,13 @@ fn finite_float(value: f64) -> bool {
+ 
+@@ -301,7 +423,13 @@ fn finite_float(value: f64) -> bool {
  /// Exact packed triples only; truncated reads and nonrepresentable coordinates never upload.
  #[cfg(any(target_arch = "wasm32", test))]
  fn checked_positions(raw: &[u8], count: u32) -> Option<Vec<f32>> {
@@ -1372,16 +1251,16 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +    if raw.len() as u64 != n.checked_mul(8)? {
          return None;
      }
-     let mut out = Vec::with_capacity(raw.len() / 8);
-@@ -292,7 +420,6 @@ fn bounded_range(at: u64, length: u64) -> bool {
+ 
+@@ -327,7 +455,6 @@ fn bounded_range(at: u64, length: u64) -> bool {
  }
  
  /// Checked body bounds, shared by metadata, position and color ranges.
 -#[cfg(any(target_arch = "wasm32", test))]
  fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
      let next = at.checked_add(length)?;
-     if next <= end { Some(next) } else { None }
-@@ -315,7 +442,7 @@ impl MetadataWindow {
+ 
+@@ -351,7 +478,7 @@ impl MetadataWindow {
          self.bytes.get(start..start.checked_add(length)?)
      }
  
@@ -1390,41 +1269,45 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
      fn read_length(at: u64, length: u64, end: u64) -> Option<u64> {
          if !bounded_range(at, length) {
              return None;
-@@ -346,6 +473,25 @@ pub fn packed_f64(raw: &[u8]) -> Vec<f64> {
+@@ -387,6 +514,29 @@ pub fn packed_f64(raw: &[u8]) -> Vec<f64> {
      out
  }
  
 +/// A packed `fixed32` array in full.
 +pub fn packed_u32(raw: &[u8]) -> Vec<u32> {
 +    let mut out = Vec::with_capacity(raw.len() / 4);
++
 +    for c in raw.chunks_exact(4) {
 +        out.push(u32::from_le_bytes(c.try_into().unwrap()));
 +    }
++
 +    out
 +}
 +
 +/// A packed `float` array in full; a non-finite value becomes 0 (the hairline pen).
 +pub fn packed_f32(raw: &[u8]) -> Vec<f32> {
 +    let mut out = Vec::with_capacity(raw.len() / 4);
++
 +    for c in raw.chunks_exact(4) {
 +        let v = f32::from_le_bytes(c.try_into().unwrap());
 +        out.push(if v.is_finite() { v } else { 0.0 });
 +    }
++
 +    out
 +}
 +
  /// An already-fetched coords slice as f32 triples.
  pub fn positions_from(raw: &[u8]) -> Vec<f32> {
      let mut out = Vec::with_capacity(raw.len() / 8);
-@@ -380,6 +526,7 @@ pub use web::*;
+@@ -427,6 +577,7 @@ pub use web::*;
  mod web {
      use super::*;
      use crate::app::fetch::{GetOpts, fetch_range, get};
 +    use crate::app::walk::sheet::SheetRows;
  
      const POINT_BYTES: u64 = 24;
-     const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
-@@ -391,12 +538,13 @@ mod web {
+ 
+@@ -439,13 +590,14 @@ mod web {
              url: &str,
              at: u64,
              length: u64,
@@ -1434,6 +1317,7 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
          ) -> Option<&[u8]> {
 -            body_end(at, length, fields.end)?;
 +            body_end(at, length, end)?;
+ 
              if self.slice(at, length).is_none() {
 -                let read_length = Self::read_length(at, length, fields.end)?;
 -                self.bytes = source_range(url, at, read_length, &fields.revision).await?;
@@ -1441,9 +1325,9 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +                self.bytes = source_range(url, at, read_length, revision).await?;
                  self.at = at;
              }
-             self.slice(at, length)
-@@ -473,7 +621,13 @@ mod web {
-         let mut window = MetadataWindow::default();
+ 
+@@ -533,7 +685,13 @@ mod web {
+ 
          while at < fields.end {
              let header = window
 -                .read(url, at, 64.min(fields.end - at), fields)
@@ -1457,18 +1341,18 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
                  .await?;
              let (tag, used) = varint(header, 0)?;
              let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
-@@ -499,7 +653,9 @@ mod web {
-                 if table_bytes > MAX_TABLE_BYTES {
+@@ -567,7 +725,9 @@ mod web {
                      return None;
                  }
+ 
 -                let raw = window.read(url, body, length, fields).await?;
 +                let raw = window
 +                    .read(url, body, length, fields.end, &fields.revision)
 +                    .await?;
+ 
                  if !lod.set_field(field, raw) {
                      return None;
-                 }
-@@ -565,6 +721,107 @@ mod web {
+@@ -645,6 +805,118 @@ mod web {
          let (colors, used) = colors_from(&raw, count)?;
          Some((colors, body_end(at, used as u64, end)?))
      }
@@ -1486,13 +1370,17 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +        )
 +        .await
 +        .ok()?;
++
 +        if reply.status != 206 || reply.bytes.len() > 8192 {
 +            return None;
 +        }
++
 +        let (coords_at, coords_len, end) = sheet_layout(&reply.bytes)?;
++
 +        if coords_len == 0 || !coords_len.is_multiple_of(SheetFields::SEGMENT_BYTES) {
 +            return None;
 +        }
++
 +        let mut fields = SheetFields {
 +            end,
 +            coords_at,
@@ -1503,6 +1391,7 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +        };
 +        let mut at = body_end(coords_at, coords_len, end)?;
 +        let mut window = MetadataWindow::default();
++
 +        while at < end {
 +            let header = window
 +                .read(url, at, 64.min(end - at), end, &fields.revision)
@@ -1512,17 +1401,21 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +                if f.value > NAME_BYTES {
 +                    return None;
 +                }
++
 +                window
 +                    .read(url, f.body, f.value, end, &fields.revision)
 +                    .await?
 +            } else {
 +                &[]
 +            };
++
 +            if !fields.set(&f, body) {
 +                return None;
 +            }
++
 +            at = f.next;
 +        }
++
 +        Some(fields)
 +    }
 +
@@ -1538,6 +1431,7 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +        if len == 0 {
 +            return Some(Vec::new());
 +        }
++
 +        let start = at.checked_add(u64::from(from).checked_mul(stride)?)?;
 +        let length = u64::from(to - from).checked_mul(stride)?;
 +        body_end(start, length, body_end(at, len, fields.end)?)?;
@@ -1555,6 +1449,7 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +        if from > to || to > fields.count {
 +            return None;
 +        }
++
 +        let coords = (fields.coords_at, fields.coords_len);
 +        let raw = sheet_array(url, fields, coords, from, to, SheetFields::SEGMENT_BYTES).await?;
 +        let positions = checked_doubles(&raw, u64::from(to - from) * 6)?;
@@ -1576,20 +1471,23 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
  }
  
  #[cfg(test)]
-@@ -703,6 +960,116 @@ mod tests {
+@@ -784,6 +1056,122 @@ mod tests {
          );
      }
  
 +    /// One protobuf varint.
 +    fn uvarint(mut v: u64) -> Vec<u8> {
 +        let mut out = Vec::new();
++
 +        loop {
 +            let byte = (v & 0x7f) as u8;
 +            v >>= 7;
++
 +            if v == 0 {
 +                out.push(byte);
 +                return out;
 +            }
++
 +            out.push(byte | 0x80);
 +        }
 +    }
@@ -1639,11 +1537,14 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
 +            } else {
 +                &[]
 +            };
++
 +            if !fields.set(&f, body) {
 +                return false;
 +            }
++
 +            at = f.next;
 +        }
++
 +        true
 +    }
 +
@@ -1694,10 +1595,10 @@ index 5e11937a3deaba4d7fddbabd574c2eaad53567e9..08186f591e3261525388959d2050123b
      #[test]
      fn colors_decode_and_report_their_end() {
 diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
-index 90217d77f6832cce3f83f745fc054e185e7724cd..e7fd5ba304bb8653bfe9c09949e75be09aea3293 100644
+index e1f50d1b1eb528db1fa3bacfce707d9b601a249f..eec9c8ff49cacff0f382a336325d58f584745b6f 100644
 --- a/session_viewer/src/app/walk/mod.rs
 +++ b/session_viewer/src/app/walk/mod.rs
-@@ -30,6 +30,7 @@ pub mod mesh;
+@@ -26,6 +26,7 @@ pub mod mesh;
  pub mod mesh_ink;
  pub mod mesh_topology;
  pub mod points;
@@ -1707,16 +1608,13 @@ index 90217d77f6832cce3f83f745fc054e185e7724cd..e7fd5ba304bb8653bfe9c09949e75be0
  pub struct Walk<'a> {
 diff --git a/session_viewer/src/app/walk/sheet.rs b/session_viewer/src/app/walk/sheet.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc31420b40d665
+index 0000000000000000000000000000000000000000..d7c7acbaf68ffcff590e6c7cb4f79a9ae91a7287
 --- /dev/null
 +++ b/session_viewer/src/app/walk/sheet.rs
 @@ -0,0 +1,109 @@
-+//! Sheets into the ribbon table: a streamed slice of flattened drawing segments that never
-+//! became a kernel object, each carrying the entity id a pick resolves through the side table.
-+
 +use super::encode::{BLACK, FACING_UNKNOWN};
 +use crate::engine::gpu::segments::{CylinderSegment, SegDraw, SegRows};
-+use crate::math::Aabb;
++use session_rust::AABB;
 +
 +/// A streamed slice: raw rows off the wire, already converted. A short column (an absent
 +/// array) is padded by the walk: black, hairline, no entity.
@@ -1745,17 +1643,18 @@ index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc3142
 +}
 +
 +/// Append one slice as unjoined ribbons; returns the slice's local box.
-+pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> Aabb {
++pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> AABB {
 +    seg.ribbon_ids.resize(seg.ribbons.len(), u32::MAX);
 +    let first = seg.ribbons.len() as u32;
 +    let count = (s.rows.positions.len() / 6) as u32;
 +    seg.ribbons.reserve(count as usize);
 +    seg.ribbon_ids.reserve(count as usize);
-+    let mut bounds = Aabb::empty();
++    let mut bounds = AABB::empty();
++
 +    for (i, p) in s.rows.positions.chunks_exact(6).enumerate() {
 +        let (p0, p1) = ([p[0], p[1], p[2]], [p[3], p[4], p[5]]);
-+        bounds.grow(p0);
-+        bounds.grow(p1);
++        bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
++        bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);
 +        seg.ribbons.push(CylinderSegment {
 +            p0,
 +            radius: sheet_radius(s.rows.widths.get(i).copied().unwrap_or(0.0)),
@@ -1767,6 +1666,7 @@ index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc3142
 +        seg.ribbon_ids
 +            .push(s.rows.ids.get(i).copied().unwrap_or(u32::MAX));
 +    }
++
 +    seg.sheets.push(SegDraw {
 +        instance: s.row,
 +        from: s.from,
@@ -1779,6 +1679,7 @@ index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc3142
 +#[cfg(test)]
 +mod tests {
 +    use super::*;
++    use session_rust::Point;
 +
 +    /// Short colour, width and id columns pad; the box spans both ends of every segment.
 +    #[test]
@@ -1803,8 +1704,8 @@ index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc3142
 +            row: 7,
 +        };
 +        let bounds = walk_sheet_slice(&mut seg, &slice);
-+        assert_eq!(bounds.min, [-5.0, 0.0, 0.0]);
-+        assert_eq!(bounds.max, [10.0, 2.0, 0.0]);
++        assert_eq!(bounds.min_point(), Point::new(-5.0, 0.0, 0.0));
++        assert_eq!(bounds.max_point(), Point::new(10.0, 2.0, 0.0));
 +        assert_eq!(seg.ribbons.len(), 3);
 +        assert_eq!(seg.ribbon_ids, [u32::MAX, 4, u32::MAX]);
 +        assert_eq!(seg.ribbons[1].radius, 0.5);
@@ -1821,19 +1722,10 @@ index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc3142
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
-index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a626701c69a9b 100644
+index c692151ee7ad269ba799d5d1e4501218739db791..2fffc93f7990f4867d22341a8d8e5056cc4834aa 100644
 --- a/session_viewer/src/engine/gpu/segments.rs
 +++ b/session_viewer/src/engine/gpu/segments.rs
-@@ -1,6 +1,8 @@
- //! The segment lane: every straight piece of ink. Two tables of the same connected stroke row - pipes
- //! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
- //! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
-+//! A streamed sheet's ribbons arrive in CHUNKS interleaved with other uploads, so the lane
-+//! maps a global ribbon row back to (sheet row, segment index) through the sheet's chunk list.
- 
- use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
- use super::frame::Binds;
-@@ -37,6 +39,16 @@ pub struct CylinderSegment {
+@@ -30,6 +30,16 @@ pub struct CylinderSegment {
  
  const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
  
@@ -1850,18 +1742,16 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
  /// One upload's segments: the solid lane's pipes and the flat lane's ribbons.
  #[derive(Default)]
  pub struct SegRows {
-@@ -48,6 +60,10 @@ pub struct SegRows {
-     /// Consecutive spans belonging to one source polyline or NURBS curve.
-     pub ribbon_chains: Vec<std::ops::Range<u32>>,
+@@ -38,6 +48,8 @@ pub struct SegRows {
+     pub pipe_chains: Vec<std::ops::Range<u32>>, // Source curve ranges in this upload; independent mesh wires remain unjoined.
+     pub ribbon_chains: Vec<std::ops::Range<u32>>, // Consecutive spans belonging to one source polyline or NURBS curve.
      pub ribbons: Vec<CylinderSegment>,
-+    /// Source entity id per ribbon, or u32::MAX; shorter than `ribbons` means no identity.
-+    pub ribbon_ids: Vec<u32>,
-+    /// The sheet slices among this upload's ribbons.
-+    pub sheets: Vec<SegDraw>,
++    pub ribbon_ids: Vec<u32>, // Source entity id per ribbon, or u32::MAX; shorter than `ribbons` means no identity.
++    pub sheets: Vec<SegDraw>, // The sheet slices among this upload's ribbons.
  }
  
  impl SegRows {
-@@ -58,7 +74,71 @@ impl SegRows {
+@@ -48,7 +60,76 @@ impl SegRows {
          drop_rows(&mut self.pipe_chains);
          drop_rows(&mut self.ribbon_chains);
          drop_rows(&mut self.ribbons);
@@ -1899,10 +1789,12 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
 +        });
 +        return;
 +    }
++
 +    for sheet in sheets.iter_mut() {
 +        if sheet.instance != instance {
 +            continue;
 +        }
++
 +        if chunk.from != sheet.resident {
 +            log::warn!(
 +                "sheet chunk [{}, {}) does not continue the {} resident segments; dropped",
@@ -1912,11 +1804,13 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
 +            );
 +            return;
 +        }
++
 +        sheet.resident = chunk.to;
 +        sheet.chunks.push(chunk);
 +        sheet.ids.extend_from_slice(ids);
 +        return;
      }
++
 +    log::warn!("sheet chunk for row {instance} arrived before its sheet; dropped");
 +}
 +
@@ -1929,11 +1823,12 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
 +            }
 +        }
 +    }
++
 +    None
  }
  
  /// GPU connectivity partitions the shared rounded cap instead of blending it twice.
-@@ -167,7 +247,7 @@ struct SegPipelines {
+@@ -160,7 +241,7 @@ struct SegPipelines {
      masks_selected: wgpu::RenderPipeline,
  }
  
@@ -1942,7 +1837,7 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
  pub struct SegmentLane {
      pipes: SegTable,
      ribbons: SegTable,
-@@ -176,6 +256,7 @@ pub struct SegmentLane {
+@@ -169,6 +250,7 @@ pub struct SegmentLane {
      selection: wgpu::Buffer,
      selected_rows: HashSet<u32>,
      selected_edge: bool,
@@ -1950,7 +1845,7 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
  }
  
  impl SegmentLane {
-@@ -207,6 +288,7 @@ impl SegmentLane {
+@@ -200,6 +282,7 @@ impl SegmentLane {
              selection,
              selected_rows: HashSet::new(),
              selected_edge: false,
@@ -1958,16 +1853,17 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
          }
      }
  
-@@ -224,16 +306,37 @@ impl SegmentLane {
-         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
+@@ -219,17 +302,39 @@ impl SegmentLane {
              self.pipes.rebind(ctx, l, &self.selection);
          }
+ 
 -        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, self.ribbons.buf.len());
 +        let ribbon_base = self.ribbons.buf.len();
 +        let mut ribbon_ids = up.ribbon_ids.clone();
 +        ribbon_ids.resize(up.ribbons.len(), u32::MAX);
 +        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, ribbon_base);
          let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
+ 
 -        if self
 -            .ribbons
 -            .ids
@@ -1977,6 +1873,7 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
 +        if self.ribbons.ids.append(ctx, &ribbon_ids) || ribbons_changed {
              self.ribbons.rebind(ctx, l, &self.selection);
          }
++
 +        for d in &up.sheets {
 +            let Some(ids) = ribbon_ids.get(d.first as usize..(d.first + d.count) as usize) else {
 +                continue;
@@ -2003,7 +1900,7 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
      }
  
      /// Highlight one source edge without reuploading its tessellation or the parent geometry.
-@@ -363,6 +466,7 @@ impl SegmentLane {
+@@ -368,6 +473,7 @@ impl SegmentLane {
      pub fn reset(&mut self) {
          self.selected_rows.clear();
          self.selected_edge = false;
@@ -2011,7 +1908,7 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
          self.pipes.buf.reset();
          self.pipes.ids.reset();
          self.ribbons.buf.reset();
-@@ -373,6 +477,7 @@ impl SegmentLane {
+@@ -378,6 +484,7 @@ impl SegmentLane {
      pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
          self.selected_rows.clear();
          self.selected_edge = false;
@@ -2019,7 +1916,7 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
          self.pipes.buf.release(ctx);
          self.pipes.ids.release(ctx);
          self.ribbons.buf.release(ctx);
-@@ -509,4 +614,27 @@ mod tests {
+@@ -516,4 +623,27 @@ mod tests {
          assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
          assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
      }
@@ -2048,10 +1945,10 @@ index d27ed22d7542597d6005588f70fb90114cc7dfb6..18cd6dd1b970c1d1f49a6e28766a6267
 +    }
  }
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index ca9aed067974dcecff84a8b16df9f840cd7a0d41..369099b5865eefb80a97b7d4c1a88cf08d7a1334 100644
+index 2182c96dc9c1a6be1bd8ebaf03b4785974336b49..b1c633ef84429689aad8080692b228e013881ecc 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -12,8 +12,9 @@ mod state;
+@@ -7,8 +7,9 @@ mod state;
  #[cfg(target_arch = "wasm32")]
  pub mod text_quality;
  
@@ -2062,7 +1959,7 @@ index ca9aed067974dcecff84a8b16df9f840cd7a0d41..369099b5865eefb80a97b7d4c1a88cf0
  pub use state::State;
  
  /// One more slice of streamed cloud `idx`: its rows and the point the cloud is resident up to.
-@@ -23,6 +24,13 @@ pub struct CloudChunk {
+@@ -18,6 +19,13 @@ pub struct CloudChunk {
      pub to: u32,
  }
  
@@ -2076,7 +1973,7 @@ index ca9aed067974dcecff84a8b16df9f840cd7a0d41..369099b5865eefb80a97b7d4c1a88cf0
  /// Async loader -> event-loop messages. `Ready` carries the `State` built around an empty
  /// scene; everything after it changes the scene in place.
  pub enum Msg {
-@@ -35,6 +43,9 @@ pub enum Msg {
+@@ -30,6 +38,9 @@ pub enum Msg {
      CloudChunk(CloudChunk),
      CloudQueryBatch(app::cloud_query::Batch),
      CloudQueryResolved(app::cloud_query::Resolved),
@@ -2106,13 +2003,10 @@ index ca9aed067974dcecff84a8b16df9f840cd7a0d41..369099b5865eefb80a97b7d4c1a88cf0
                  self.input.cancel();
                  state.touch();
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index b65eae4b4e7746c837aa31f410504ae4a45e8dd6..c52a717d28f6a156b6b683595c59a7f4a07553f9 100644
+index 10ba9caa891d5c366970374360f38c4e77e7a867..02da3446a392274ae2ee196afd2cc3ab2f5fe661 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
-@@ -3,10 +3,11 @@
- //! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
- //! never the other way round.
- 
+@@ -1,7 +1,8 @@
 -use crate::app::scene::{FileDoc, Scene, StreamedInit};
 +use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
  use crate::app::selection::{ControlId, Controls, SelectionMode};
@@ -2122,7 +2016,7 @@ index b65eae4b4e7746c837aa31f410504ae4a45e8dd6..c52a717d28f6a156b6b683595c59a7f4
  use crate::camera::Camera;
  use crate::engine::gpu::glyphs::GlyphRows;
  use crate::engine::gpu::pick::PickMode;
-@@ -15,6 +16,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
+@@ -10,6 +11,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
  use crate::engine::gpu::{FrameInput, Gpu, Pick};
  use crate::engine::performance::{heap_mb, now_ms};
  mod cloud_query;
@@ -2130,7 +2024,7 @@ index b65eae4b4e7746c837aa31f410504ae4a45e8dd6..c52a717d28f6a156b6b683595c59a7f4
  mod text;
  use std::sync::Arc;
  use winit::window::Window;
-@@ -52,6 +54,8 @@ pub struct State {
+@@ -43,6 +45,8 @@ pub struct State {
      cloud_query: Option<crate::app::cloud_query::Query>,
      #[cfg(target_arch = "wasm32")]
      query_generation: u64,
@@ -2139,7 +2033,7 @@ index b65eae4b4e7746c837aa31f410504ae4a45e8dd6..c52a717d28f6a156b6b683595c59a7f4
  }
  
  impl State {
-@@ -78,6 +82,8 @@ impl State {
+@@ -69,6 +73,8 @@ impl State {
              cloud_query: None,
              #[cfg(target_arch = "wasm32")]
              query_generation: 0,
@@ -2148,7 +2042,7 @@ index b65eae4b4e7746c837aa31f410504ae4a45e8dd6..c52a717d28f6a156b6b683595c59a7f4
          })
      }
  
-@@ -138,9 +144,29 @@ impl State {
+@@ -129,9 +135,29 @@ impl State {
          self.touch();
      }
  
@@ -2178,7 +2072,7 @@ index b65eae4b4e7746c837aa31f410504ae4a45e8dd6..c52a717d28f6a156b6b683595c59a7f4
          self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
          self.controls = Controls::default();
          self.scene.clear(&mut self.gpu);
-@@ -223,6 +249,7 @@ impl State {
+@@ -208,6 +234,7 @@ impl State {
      /// Make `row` the selection (or none), moving the highlight.
      pub fn select(&mut self, row: Option<u32>) {
          self.selection = SelectionMode::Object;
@@ -2186,26 +2080,24 @@ index b65eae4b4e7746c837aa31f410504ae4a45e8dd6..c52a717d28f6a156b6b683595c59a7f4
          self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
          self.controls = Controls::default();
          self.gpu.controls.reset();
-@@ -344,6 +371,10 @@ impl State {
-                     ),
+@@ -338,6 +365,11 @@ impl State {
                      None => log::info!("pick: '{}' {} row {}", hit.doc, hit.guid, hit.row),
                  }
+ 
 +                if let Some(entity) = hit.entity {
 +                    self.apply_sheet_pick(hit.row, entity);
 +                    return;
 +                }
++
                  let toggle = if self.scene.selected == Some(hit.row) {
                      None
                  } else {
 diff --git a/session_viewer/src/state/sheet_query.rs b/session_viewer/src/state/sheet_query.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a7dbd7ac2eb075e5aab4664c8fec79a5420d3317
+index 0000000000000000000000000000000000000000..f584ed299459834c25d90cdb44d7a791d9ce0e28
 --- /dev/null
 +++ b/session_viewer/src/state/sheet_query.rs
-@@ -0,0 +1,79 @@
-+//! Sheet entity selection: a ribbon pick on a sheet row highlights every segment of that
-+//! entity through the edge-selection uniform, then one bounded side-table read names it.
-+
+@@ -0,0 +1,83 @@
 +use super::State;
 +use crate::app::selection::SelectionMode;
 +use crate::app::sheet_query::{Query, Resolved};
@@ -2216,6 +2108,7 @@ index 0000000000000000000000000000000000000000..a7dbd7ac2eb075e5aab4664c8fec79a5
 +        let Some(slot) = self.scene.sheet_slot(row) else {
 +            return;
 +        };
++
 +        if self.selection
 +            == (SelectionMode::Edge {
 +                parent: row,
@@ -2226,6 +2119,7 @@ index 0000000000000000000000000000000000000000..a7dbd7ac2eb075e5aab4664c8fec79a5
 +            self.status("");
 +            return;
 +        }
++
 +        self.select(Some(row));
 +        self.gpu.set_selected(row, false);
 +        self.selection.select_edge(row, entity);
@@ -2235,6 +2129,7 @@ index 0000000000000000000000000000000000000000..a7dbd7ac2eb075e5aab4664c8fec79a5
 +        self.scene.sheets[slot].resolved = None;
 +        self.sheet_generation = self.sheet_generation.wrapping_add(1);
 +        let query = Query::new(self.sheet_generation, row, entity);
++
 +        match self.scene.sheets[slot].meta_url.clone() {
 +            None => self.status(&format!("Selected entity {entity}")),
 +            Some(url) => {
@@ -2250,6 +2145,7 @@ index 0000000000000000000000000000000000000000..a7dbd7ac2eb075e5aab4664c8fec79a5
 +                let _ = url;
 +            }
 +        }
++
 +        self.sheet_query = Some(query);
 +        self.touch();
 +    }
@@ -2259,13 +2155,16 @@ index 0000000000000000000000000000000000000000..a7dbd7ac2eb075e5aab4664c8fec79a5
 +        let Some(query) = self.sheet_query.as_ref() else {
 +            return;
 +        };
++
 +        if query.id != resolved.query || query.cancelled.get() {
 +            return;
 +        }
++
 +        let query = self.sheet_query.take().unwrap();
 +        let Some(slot) = self.scene.sheet_slot(query.row) else {
 +            return;
 +        };
++
 +        match resolved.result {
 +            Ok((meta, table)) => {
 +                self.status(&format!(

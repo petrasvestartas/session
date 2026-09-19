@@ -1,6 +1,6 @@
 {
   "repository": "https://github.com/petrasvestartas/session_rust.git",
-  "revision": "a59c4124637e16f6a55e9c179c6f6d3d9f58d7ce",
+  "revision": "5b67ee82478829ad10113a594f081e5f33c1f4c8",
   "paths": [
     "Cargo.toml",
     "build.rs",
@@ -8,13 +8,13 @@
     "AGENTS.md"
   ],
   "archive": "kernel-base.tar.gz",
-  "sha256": "8445e10f3af2c327f3e7252771f4c3c3eaae8cf79a1b3804b010f73193c2c1ca",
+  "sha256": "76ed0732963120f4b48d22a1ce77fd935210ed63fe69efefac45d36bdded834f",
   "purpose": "Exact unmodified shared Rust prerequisite; CAD chapters apply the consolidation changes. Generated protobuf source is included; REGEN_PROTO=0 avoids mutable sibling schemas.",
   "parity_sources": [
     {
       "directory": "session_cpp",
       "repository": "https://github.com/petrasvestartas/session_cpp.git",
-      "revision": "be936e1cad8bfe49399a401881ebc4fc154d66a5",
+      "revision": "680ee1f8f02a02b96cbdc60702474926b6c21fe6",
       "paths": [
         "AGENTS.md",
         "README.md",
@@ -25,12 +25,12 @@
         "serialization"
       ],
       "archive": "session_cpp-base.tar.gz",
-      "sha256": "d0ca4fa50e5d9c1c3f9c8d16acb1dc8036f6de4c4f73f419bc2e7e61ea68ef4c"
+      "sha256": "97daaffdde61881a82b7fc8e6c324a6be236e8f47bf865f7fd9da562d7286c7b"
     },
     {
       "directory": "session_py",
       "repository": "https://github.com/petrasvestartas/session_py.git",
-      "revision": "3cd630b717bacb7418986eeceedfba03c1fcc02f",
+      "revision": "804ebce85115806a8865008934d25f38d8c4f940",
       "paths": [
         "AGENTS.md",
         "README.md",
@@ -41,12 +41,12 @@
         "serialization"
       ],
       "archive": "session_py-base.tar.gz",
-      "sha256": "f3fbe198e3e71237c0f308b0b910db2ec9851e9f08595cbe482e5b07603a5244"
+      "sha256": "d9c6d2719f5b198d5612423b7d4ccf24c9aa5db5b907db1cba97fd10194671e4"
     },
     {
       "directory": "session_proto",
       "repository": "https://github.com/petrasvestartas/session_proto.git",
-      "revision": "74439a72ced46e898fd0ada4b0f9e17d476ddbd2",
+      "revision": "0dfcacf9c1f3decb41cd81ef02aaa2ec96c27987",
       "paths": [
         "README.md",
         "boundingbox.proto",
@@ -70,6 +70,7 @@
         "polyline.proto",
         "quaternion.proto",
         "session.proto",
+        "sheet.proto",
         "tolerance.proto",
         "tree.proto",
         "treenode.proto",
@@ -78,7 +79,7 @@
         "xform.proto"
       ],
       "archive": "session_proto-base.tar.gz",
-      "sha256": "dbe076e812241f1fb82947677b72879d460955f08ead4cb5f9a015c60dd46a4a"
+      "sha256": "2d1bcdc26065ff5993c3f4fe859a1d15dbdd76b6ca3cf90bbf91c7569c1e67ed"
     }
   ]
 }

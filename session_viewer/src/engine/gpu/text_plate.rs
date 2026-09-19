@@ -1,4 +1,3 @@
-//! Annotation plates share the text lane's target and depth policy; selected sources are yellow.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use crate::engine::pipelines::Target;
 
@@ -45,11 +44,13 @@ impl Plates {
         self.vertices.reset();
         let mut vertices = Vec::with_capacity(rectangles.len() * 6);
         self.physical_vertices = 0;
+
         for overlay in [false, true] {
             for rectangle in rectangles {
                 if rectangle.depth.is_none() != overlay {
                     continue;
                 }
+
                 let [left, top, right, bottom] = rectangle.bounds;
                 let half = [(right - left) * 0.5, (bottom - top) * 0.5];
                 let center = [(left + right) * 0.5, (top + bottom) * 0.5];
@@ -62,9 +63,11 @@ impl Plates {
                 let top = top.max(rectangle.clip[1]);
                 let right = right.min(rectangle.clip[2]);
                 let bottom = bottom.min(rectangle.clip[3]);
+
                 if right <= left || bottom <= top {
                     continue;
                 }
+
                 for [x, y] in [
                     [left, top],
                     [left, bottom],
@@ -91,10 +94,12 @@ impl Plates {
                     ]);
                 }
             }
+
             if !overlay {
                 self.physical_vertices = vertices.len() as u32;
             }
         }
+
         self.vertices.append(ctx, &vertices);
     }
 
@@ -105,9 +110,11 @@ impl Plates {
         } else {
             0..self.physical_vertices
         };
+
         if range.is_empty() {
             return 0;
         }
+
         pass.set_pipeline(&self.pipeline);
         pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
         pass.draw(range, 0..1);
@@ -123,6 +130,7 @@ impl Plates {
         if self.vertices.is_empty() {
             return 0;
         }
+
         pass.set_pipeline(&self.id_pipeline);
         pass.set_bind_group(0, pick_transform, &[]);
         pass.set_vertex_buffer(0, self.vertices.buf.slice(..));

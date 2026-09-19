@@ -1,6 +1,3 @@
-// Free points as SDF dots: one triangle per dot (its incircle is the disc), no template.
-// Group 3 = the glyph table.
-
 struct GlyphPoint {
     center: vec3<f32>,
     radius: f32,
@@ -9,6 +6,7 @@ struct GlyphPoint {
     facing: u32,
     facing_ext: vec2<u32>,
 };
+
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 
 // An equilateral triangle whose incircle (radius 1 in corner space) is the visible dot.
@@ -39,11 +37,14 @@ fn dead_dot() -> VsOut {
 fn glyph_vertex(vid: u32) -> VsOut {
     let g = glyphs[vid / 3u];
     let inst = instances[g.instance_id];
+
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
         return dead_dot();
     }
+
     let world = place(g.instance_id, g.center);
     let clip = mvp * vec4<f32>(world, 1.0);
+
     if (clip.z - clip.w > 0.0) {
         return dead_dot();
     }
@@ -51,6 +52,7 @@ fn glyph_vertex(vid: u32) -> VsOut {
     // Three sizes in one field: 0 takes the global pen, a positive radius is world mm
     // projected here, a negative radius is already a pixel count and holds at every zoom.
     var px = line.thickness * 0.5;
+
     if (g.radius < 0.0) {
         px = -g.radius;
     } else if (g.radius > 0.0) {
@@ -60,10 +62,13 @@ fn glyph_vertex(vid: u32) -> VsOut {
             px = g.radius * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6);
         }
     }
+
     if (px > max(line.frame.x, line.frame.y)) {
         return dead_dot();
     }
+
     var fade = 1.0;
+
     if (px < 0.5) {
         fade = max(px / 0.5, HAIRLINE_MIN_ALPHA);
         px = 0.5;
@@ -75,9 +80,11 @@ fn glyph_vertex(vid: u32) -> VsOut {
     var o: VsOut;
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = edge_color(g.color, inst);
+
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = vec4<f32>(SELECT_COLOR, color.a);
     }
+
     o.color = color;
     o.corner = corner;
     o.px = px;
@@ -105,9 +112,11 @@ fn coverage(in: VsOut) -> f32 {
 @fragment
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
     let alpha = coverage(in);
+
     if (alpha <= 0.0 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample)) {
         discard;
     }
+
     return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
 }
 
@@ -116,6 +125,7 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     if (coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
         discard;
     }
+
     return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG | (in.point_index + 1u));
 }
 
@@ -135,6 +145,9 @@ fn vs_source(@builtin(vertex_index) vid: u32) -> VsOut {
 
 @fragment
 fn fs_source_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) < 0.5) { discard; }
+    if (coverage(in) < 0.5) {
+        discard;
+    }
+
     return vec2<u32>(in.inst_id + 1u, in.point_index + 1u);
 }

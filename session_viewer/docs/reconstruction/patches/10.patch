@@ -195,68 +195,72 @@ index 0000000000000000000000000000000000000000..ee5101c0d921260b11bc0c2e219d562e
 +Those are excluded from measured GPU totals; combined preparation time is not labeled as
 +rasterization or upload time.
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index ae58248dd605dd88792f155e6164dc43b284513b..dd812577b2bba47df27134eafab8843f927d5866 100644
+index 3081c50e446fff9a6ae18d00cb7e221e6f084cd4..8b0ee575efc83b08d1b2b8c10633ff2e3d5b7ff6 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
-@@ -1,9 +1,11 @@
- <!doctype html>
- <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 09</title>
-+<title>Session checkpoint 10</title>
- <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
- <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
--</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 09</output>
-+<link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
-+<link data-trunk rel="copy-file" href="assets/text-layout.html">
-+</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-layout.html" style="position:fixed;right:12px;top:12px;color:white">Inspect shaped text</a><output id="status">Starting checkpoint 10</output>
- <script>
- let tutorial;
- let pointer;
-@@ -21,7 +23,7 @@ function render() {
-     const canvas = document.getElementById('canvas');
-     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-     canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 09 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-+    document.getElementById('status').textContent = 'Checkpoint 10 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
- }
- /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
- function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+-    <title>Session checkpoint 09</title>
++    <title>Session checkpoint 10</title>
+     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+     <style>
+       html, body {
+@@ -29,10 +29,13 @@
+         pointer-events: none;
+       }
+     </style>
++    <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
++    <link data-trunk rel="copy-file" href="assets/text-layout.html">
+   </head>
+   <body>
+     <canvas id="canvas" tabindex="0"></canvas>
+-    <output id="status">Starting checkpoint 09</output>
++    <a href="./text-layout.html" style="position: fixed; right: 12px; top: 12px; color: white;">Inspect shaped text</a>
++    <output id="status">Starting checkpoint 10</output>
+     <script>
+       let tutorial;
+       let pointer;
+@@ -59,7 +62,7 @@
+         const canvas = document.getElementById('canvas');
+         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+         canvas.dataset.tutorialInspection = JSON.stringify(state);
+-        document.getElementById('status').textContent = 'Checkpoint 09 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++        document.getElementById('status').textContent = 'Checkpoint 10 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+       }
+ 
+       /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
 diff --git a/session_viewer/src/engine/mod.rs b/session_viewer/src/engine/mod.rs
-index e7c87b71f318b9a7aef1745531316501bdb9c040..452a01b8928b24e9b4db5618f8e745d5b557118c 100644
+index 77252137a98fe69bcad94cd865aff7da7ba91e30..8b0220715de12eb75b2df497748751cc70663ee3 100644
 --- a/session_viewer/src/engine/mod.rs
 +++ b/session_viewer/src/engine/mod.rs
-@@ -1,3 +1,5 @@
- //! Rendering lanes and their shared pipeline contract.
+@@ -1,2 +1,4 @@
  pub mod gpu;
 +pub mod performance;
  pub mod pipelines;
 +pub mod text;
 diff --git a/session_viewer/src/engine/performance.rs b/session_viewer/src/engine/performance.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..5d03101dbbca0aca2dc8de3f6a712685675b2620
+index 0000000000000000000000000000000000000000..b110fed235be94eccc905d86af35bec48f5bf01e
 --- /dev/null
 +++ b/session_viewer/src/engine/performance.rs
-@@ -0,0 +1,195 @@
-+//! Clocks and counters: the frame timer that logs fps once a second, WASM memory capacity,
-+//! and `now_ms` on both targets. Native builds read the system clock.
-+
+@@ -0,0 +1,197 @@
 +/// Frame timing: a smoothed frame time and one log line a second when `perf` is on.
 +pub struct Performance {
 +    prev_frame: f64,
 +    last_log: f64,
 +    frame_ms: f64,
 +    pub frames: u64,
-+    /// Draw calls encoded for the last color frame, excluding asynchronous ID work.
-+    pub draws: u32,
-+    /// A drag or pinch is in progress, so frames are back to back and their spacing is the
-+    /// cost of a frame.
-+    pub interacting: bool,
++    pub draws: u32, // Draw calls encoded for the last color frame, excluding asynchronous ID work.
++    pub interacting: bool, // A drag or pinch is in progress, so frames are back to back and their spacing is the cost of a frame.
 +    slow_run: u32,
 +    slow: bool,
 +}
 +
 +/// An interaction frame slower than this counts as slow ...
 +const SLOW_FRAME_MS: f64 = 40.0;
++
 +/// ... and this many in a row mean the GPU cannot keep up at this resolution.
 +const SLOW_FRAMES: u32 = 30;
 +
@@ -292,9 +296,11 @@ index 0000000000000000000000000000000000000000..5d03101dbbca0aca2dc8de3f6a712685
 +        } else {
 +            0
 +        };
++
 +        if self.slow_run == SLOW_FRAMES {
 +            self.slow = true;
 +        }
++
 +        self.frame_ms = if self.frame_ms == 0.0 {
 +            dt
 +        } else {
@@ -359,6 +365,7 @@ index 0000000000000000000000000000000000000000..5d03101dbbca0aca2dc8de3f6a712685
 +    let Some(resident) = stats.split_whitespace().nth(1) else {
 +        return 0.0;
 +    };
++
 +    match resident.parse::<f64>() {
 +        Ok(pages) => pages * 4096.0 / 1.048576e6,
 +        Err(_) => 0.0,
@@ -387,9 +394,11 @@ index 0000000000000000000000000000000000000000..5d03101dbbca0aca2dc8de3f6a712685
 +            };
 +            e.set_id("perf");
 +            let _ = e.set_attribute("style", "position:fixed;left:0;top:0;margin:0;padding:2px 6px;font:12px monospace;color:#000;background:rgba(255,255,255,.7);z-index:9;pointer-events:none");
++
 +            if let Some(b) = doc.body() {
 +                let _ = b.append_child(&e);
 +            }
++
 +            e
 +        }
 +    };
@@ -404,11 +413,13 @@ index 0000000000000000000000000000000000000000..5d03101dbbca0aca2dc8de3f6a712685
 +        perf.interacting = interacting;
 +        let mut now = perf.prev_frame;
 +        let mut slow = false;
++
 +        for _ in 0..count {
 +            now += step_ms;
 +            perf.frame(1, 1, now, false);
 +            slow |= perf.take_slow_interaction();
 +        }
++
 +        slow
 +    }
 +
@@ -434,20 +445,21 @@ index 0000000000000000000000000000000000000000..5d03101dbbca0aca2dc8de3f6a712685
 +}
 diff --git a/session_viewer/src/engine/text.rs b/session_viewer/src/engine/text.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b2876346561
+index 0000000000000000000000000000000000000000..159cea96142f15b09309cf572ea0c0e4b6ceba71
 --- /dev/null
 +++ b/session_viewer/src/engine/text.rs
-@@ -0,0 +1,437 @@
-+//! Source-text layout, identity and physical placement. Fonts and shaped runs live here;
-+//! the GPU lane owns Glyphon's atlas and draw resources. PDF outlines remain mesh data.
-+
+@@ -0,0 +1,455 @@
 +use glyphon::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap, fontdb};
 +use serde::Serialize;
 +
 +pub const FONT_FAMILY: &str = "Noto Sans";
++
 +pub const FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.ttf");
++
 +pub const SYMBOL_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols-Regular.ttf");
++
 +pub const FALLBACK_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols2-Regular.ttf");
++
 +/// Bound a submitted text document independently of available GPU memory.
 +const MAX_TEXT_BYTES: usize = 256 * 1024;
 +
@@ -462,24 +474,21 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +        world: [f64; 3],
 +        offset: [f32; 2],
 +    },
-+    /// Center a fixed-CSS label and black plate on a world anchor. This annotation overlays
-+    /// the scene, so a selected solid's interior bounds center cannot hide its own name.
 +    Nameplate {
++        // Center a fixed-CSS label and black plate on a world anchor. This annotation overlays the scene, so a selected solid's interior bounds center cannot hide its own name.
 +        world: [f64; 3],
-+        /// Horizontal and vertical inset around the shaped line box, in CSS pixels.
-+        padding: [f32; 2],
-+        /// Round all corners to half the shorter plate side when true.
-+        rounded: bool,
++        padding: [f32; 2], // Horizontal and vertical inset around the shaped line box, in CSS pixels.
++        rounded: bool,     // Round all corners to half the shorter plate side when true.
 +    },
-+    /// Fixed world plane: top-left line origin, orthonormal right/up axes, and world em height.
 +    WorldPlane {
++        // Fixed world plane: top-left line origin, orthonormal right/up axes, and world em height.
 +        world: [f64; 3],
 +        right: [f64; 3],
 +        up: [f64; 3],
 +        world_height: f64,
 +    },
-+    /// Camera-facing text whose em height is measured in scene world units.
 +    WorldBillboard {
++        // Camera-facing text whose em height is measured in scene world units.
 +        world: [f64; 3],
 +        world_height: f64,
 +    },
@@ -494,8 +503,7 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +    pub line_height: f32,
 +    pub color: [u8; 4],
 +    pub placement: TextPlacement,
-+    /// Left, top, right, bottom in canvas CSS coordinates; never inferred from glyph bounds.
-+    pub clip: Option<[f32; 4]>,
++    pub clip: Option<[f32; 4]>, // Left, top, right, bottom in canvas CSS coordinates; never inferred from glyph bounds.
 +}
 +
 +/// Retained logical glyph coordinates, independent of camera motion and framebuffer scale.
@@ -511,8 +519,7 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +    pub revision: u64,
 +    pub font_revision: u64,
 +    pub shape_count: u64,
-+    /// Accumulated shaping time; the GPU lane reports combined preparation time separately.
-+    pub shaping_ms: f64,
++    pub shaping_ms: f64, // Accumulated shaping time; the GPU lane reports combined preparation time separately.
 +}
 +
 +impl TextDocument {
@@ -533,26 +540,33 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +    pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
 +        let mut bytes = 0usize;
 +        let mut ids = std::collections::HashSet::new();
++
 +        for label in &labels {
 +            bytes = bytes.saturating_add(label.text.len());
 +            anyhow::ensure!(bytes <= MAX_TEXT_BYTES, "text document exceeds 256 KiB");
 +            anyhow::ensure!(ids.insert(label.id), "duplicate text label ID {}", label.id);
 +            validate_label(label)?;
 +        }
++
 +        if self.runs.len() == labels.len() {
 +            let mut unchanged = true;
++
 +            for (run, label) in self.runs.iter().zip(&labels) {
 +                unchanged &= run.label == *label;
 +            }
++
 +            if unchanged {
 +                return Ok(());
 +            }
 +        }
++
 +        let previous = std::mem::take(&mut self.runs);
 +        let mut previous_by_id = std::collections::HashMap::new();
++
 +        for run in previous {
 +            previous_by_id.insert(run.label.id, run);
 +        }
++
 +        for label in labels {
 +            let old = previous_by_id.remove(&label.id);
 +            let buffer = match old {
@@ -567,6 +581,7 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +            };
 +            self.runs.push(TextRun { label, buffer });
 +        }
++
 +        self.revision = self.revision.wrapping_add(1);
 +        Ok(())
 +    }
@@ -575,6 +590,7 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +    /// The caller must supply the primary family and any desired fallback faces together.
 +    pub fn replace_fonts(&mut self, sources: Vec<Vec<u8>>) -> anyhow::Result<()> {
 +        let mut db = fontdb::Database::new();
++
 +        for bytes in sources {
 +            let before = db.faces().count();
 +            db.load_font_data(bytes);
@@ -583,15 +599,18 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +                "font data contains no usable face"
 +            );
 +        }
++
 +        anyhow::ensure!(db.faces().count() > 0, "font set is empty");
 +        db.set_sans_serif_family(FONT_FAMILY);
 +        self.fonts = FontSystem::new_with_locale_and_db("en-US".into(), db);
++
 +        for run in &mut self.runs {
 +            let started = crate::engine::performance::now_ms();
 +            run.buffer = shape(&mut self.fonts, &run.label);
 +            self.shaping_ms += crate::engine::performance::now_ms() - started;
 +            self.shape_count += 1;
 +        }
++
 +        self.font_revision = self.font_revision.wrapping_add(1);
 +        self.revision = self.revision.wrapping_add(1);
 +        Ok(())
@@ -607,6 +626,7 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +    /// Export source clusters and logical metrics before rasterization for regression tools.
 +    pub fn diagnostics(&self) -> Vec<GlyphDiagnostic> {
 +        let mut out = Vec::new();
++
 +        for run in &self.runs {
 +            for line in run.buffer.layout_runs() {
 +                for glyph in line.glyphs {
@@ -628,6 +648,7 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +                }
 +            }
 +        }
++
 +        out
 +    }
 +}
@@ -701,12 +722,14 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +        } => world.iter().all(finite_f64) && world_height.is_finite() && world_height > 0.0,
 +    };
 +    anyhow::ensure!(valid_placement, "invalid text placement");
++
 +    if let Some(c) = label.clip {
 +        anyhow::ensure!(
 +            c.iter().all(finite_f32) && c[2] >= c[0] && c[3] >= c[1],
 +            "invalid text clip rectangle"
 +        );
 +    }
++
 +    Ok(())
 +}
 +
@@ -715,11 +738,13 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +    let mut right_length = 0.0;
 +    let mut up_length = 0.0;
 +    let mut dot = 0.0;
++
 +    for axis in 0..3 {
 +        right_length += right[axis] * right[axis];
 +        up_length += up[axis] * up[axis];
 +        dot += right[axis] * up[axis];
 +    }
++
 +    (right_length.sqrt() - 1.0).abs() <= 1e-6
 +        && (up_length.sqrt() - 1.0).abs() <= 1e-6
 +        && dot.abs() <= 1e-6
@@ -729,6 +754,7 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +fn finite_f32(value: &f32) -> bool {
 +    value.is_finite()
 +}
++
 +/// Iterator adapter for finite world coordinate validation.
 +fn finite_f64(value: &f64) -> bool {
 +    value.is_finite()
@@ -807,6 +833,7 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +    fn has_glyph(glyph: &GlyphDiagnostic) -> bool {
 +        glyph.glyph != 0
 +    }
++
 +    /// Detect source clusters spanning multiple UTF-8 bytes.
 +    fn multi_byte_cluster(glyph: &GlyphDiagnostic) -> bool {
 +        glyph.cluster[1] - glyph.cluster[0] > 1
@@ -856,9 +883,11 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +        let glyphs = doc.diagnostics();
 +        assert!(glyphs.iter().all(has_glyph));
 +        let mut faces = std::collections::HashSet::new();
++
 +        for glyph in glyphs {
 +            faces.insert(glyph.font);
 +        }
++
 +        assert!(
 +            faces.len() >= 2,
 +            "sample must exercise explicit font fallback"
@@ -876,18 +905,18 @@ index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b28
 +    }
 +}
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index cdcf8b3f6f7709f06be4aa46a92096da45f91444..3abb9423a8be8fe2cb2a08b235778df95ac45ca1 100644
+index 79f80fd8c6bb4322fa3a73c3d6a82223f38cb3a4..fc55932bc64d6793f6bbc82231032604f6e252e7 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -4,6 +4,7 @@ pub mod camera;
+@@ -2,6 +2,7 @@ pub mod app;
+ pub mod camera;
  pub mod engine;
  pub mod fixture;
- pub mod math;
 +pub mod text_layout;
  use engine::gpu::{FrameInput, Gpu};
  use wasm_bindgen::prelude::*;
- /// Canvas and input ownership remain separate from GPU lane ownership.
-@@ -94,7 +95,7 @@ impl Tutorial {
+ 
+@@ -104,7 +105,7 @@ impl Tutorial {
              now_ms: now,
          };
          self.gpu.render(&input).map_err(js_error)?;
@@ -898,11 +927,10 @@ index cdcf8b3f6f7709f06be4aa46a92096da45f91444..3abb9423a8be8fe2cb2a08b235778df9
  }
 diff --git a/session_viewer/src/text_layout.rs b/session_viewer/src/text_layout.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..6212d9f72fb869f80ca50d47c1245878ba657e08
+index 0000000000000000000000000000000000000000..5f1878a955ee3460ff8beca8d4fb350c7d29c497
 --- /dev/null
 +++ b/session_viewer/src/text_layout.rs
-@@ -0,0 +1,59 @@
-+//! Teaching layout fixture: inspect final shaper output before any GPU text resource exists.
+@@ -0,0 +1,64 @@
 +use crate::engine::text::{FONT_FAMILY, TextDocument, TextLabel, TextPlacement};
 +use wasm_bindgen::prelude::*;
 +
@@ -916,6 +944,7 @@ index 0000000000000000000000000000000000000000..6212d9f72fb869f80ca50d47c1245878
 +fn layout_report() -> anyhow::Result<String> {
 +    let mut document = TextDocument::new();
 +    let mut labels = Vec::new();
++
 +    for (index, size) in [12.0, 14.0, 16.0, 18.0, 24.0].into_iter().enumerate() {
 +        labels.push(TextLabel {
 +            id: index as u32,
@@ -930,8 +959,10 @@ index 0000000000000000000000000000000000000000..6212d9f72fb869f80ca50d47c1245878
 +            clip: None,
 +        });
 +    }
++
 +    document.set_labels(labels.clone())?;
 +    let shaped = document.shape_count;
++
 +    for label in &mut labels {
 +        label.color = [255, 255, 0, 255];
 +        label.placement = TextPlacement::Screen {
@@ -939,16 +970,19 @@ index 0000000000000000000000000000000000000000..6212d9f72fb869f80ca50d47c1245878
 +            top: 20.0,
 +        };
 +    }
++
 +    document.set_labels(labels)?;
 +    anyhow::ensure!(
 +        document.shape_count == shaped,
 +        "placement/color unexpectedly reshaped"
 +    );
 +    let mut rows = Vec::new();
++
 +    for run in &document.runs {
 +        rows.push(serde_json::json!({"id":run.label.id,"text":run.label.text,
 +            "size":run.label.font_size,"lineHeight":run.label.line_height}));
 +    }
++
 +    Ok(
 +        serde_json::json!({"family":FONT_FAMILY,"rows":rows,"glyphs":document.diagnostics(),
 +        "shapeCount":document.shape_count,"shapedBeforePlacementChange":shaped,

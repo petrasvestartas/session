@@ -1,13 +1,3 @@
-//! The editing gestures: what a pointer on a gizmo handle, a Delete and a Ctrl+Z do.
-//!
-//! State is the only place that knows the camera, the scene and the GPU at once, so the join
-//! lives here and the four pure modules below it stay free of all three.
-//!
-//! A drag is three moments. It BEGINS by remembering the object's own transform and the
-//! placement it was drawn with. It MOVES by writing a preview into the row's GPU placement -
-//! two small writes, no document touched. It ENDS by writing the document once, which is what
-//! makes one gesture one undo step.
-
 use crate::app::command::Command;
 use crate::app::cplane::CPlane;
 use crate::app::gizmo::{Axis, Drag, Gizmo, Handle};
@@ -20,11 +10,8 @@ use session_rust::{Point, Vector, Xform};
 /// A drag in progress: the row, its transform when the drag started, and the handle.
 pub struct GizmoDrag {
     row: u32,
-    /// The object's LOCAL transform at the grab. Every frame's preview is measured from this,
-    /// never from the frame before, so a dropped frame changes nothing.
-    base_local: Xform,
-    /// The full placement at the grab, for the same reason, on the GPU side.
-    base_place: [f64; 16],
+    base_local: Xform, // The object's LOCAL transform at the grab. Every frame's preview is measured from this, never from the frame before, so a dropped frame changes nothing.
+    base_place: Xform, // The full placement at the grab, for the same reason, on the GPU side.
     drag: Drag,
     target: Option<crate::app::deform::Target>,
     source: Option<session_rust::Geometry>,
@@ -45,11 +32,8 @@ impl State {
             self.upload_gizmo();
             return;
         };
-        let mut origin = Point::new(
-            f64::from(box_.min[0] + box_.max[0]) * 0.5,
-            f64::from(box_.min[1] + box_.max[1]) * 0.5,
-            f64::from(box_.min[2] + box_.max[2]) * 0.5,
-        );
+        let mut origin = box_.center();
+
         if let Some(row) = row
             && let Some(target) = crate::app::deform::Target::selected(&self.selection)
             && let Some(geometry) = self.scene.geometry(row)
@@ -63,12 +47,14 @@ impl State {
                 points.iter().map(|p| p[1]).sum::<f64>() / n,
                 points.iter().map(|p| p[2]).sum::<f64>() / n,
             )
-            .transformed(&Xform::from_matrix(place));
+            .transformed(&place);
         }
+
         match self.gizmo.as_mut() {
             Some(gizmo) => gizmo.set_origin(origin),
             None => self.gizmo = Some(Gizmo::new(origin)),
         }
+
         self.upload_gizmo();
     }
 
@@ -138,24 +124,31 @@ impl State {
         else {
             return false;
         };
+
         if let (Some(target), Some(source)) = (active.target, active.source.as_ref()) {
             let row = active.row;
-            let place = Xform::from_matrix(active.base_place);
+            let place = active.base_place.clone();
             let Some(back) = place.inverse() else {
                 return false;
             };
-            let local = &(&back * &Xform::from_matrix(delta)) * &place;
+            let local = &(&back * &delta) * &place;
+
             if let Some(preview) = active.mesh_preview.as_ref() {
                 preview.apply(&mut self.gpu, &local, false);
-                let origin = active.origin.transformed(&Xform::from_matrix(delta));
-                self.gpu.bounds.grow(origin.to_f32());
+                let origin = active.origin.transformed(&delta);
+                self.gpu
+                    .bounds
+                    .union_with_point(origin[0], origin[1], origin[2]);
+
                 if let Some(gizmo) = self.gizmo.as_mut() {
                     gizmo.origin = origin;
                 }
+
                 self.upload_gizmo();
                 self.touch();
                 return true;
             }
+
             let edited = match crate::app::deform::transform(source, target, &local) {
                 Ok(value) => value,
                 Err(error) => {
@@ -163,19 +156,23 @@ impl State {
                     return false;
                 }
             };
-            let origin = active.origin.transformed(&Xform::from_matrix(delta));
+            let origin = active.origin.transformed(&delta);
+
             if let Err(error) = self.scene.preview_geometry(row, edited, &mut self.gpu) {
                 self.status(&error);
                 return false;
             }
+
             if let Some(gizmo) = self.gizmo.as_mut() {
                 gizmo.origin = origin;
             }
+
             self.upload_gizmo();
             self.touch();
             return true;
         }
-        let place = crate::math::mat_mul(&delta, &active.base_place);
+
+        let place = &delta * &active.base_place;
         self.gpu
             .objects
             .set_placement(&self.gpu.ctx, active.row, &place);
@@ -206,27 +203,27 @@ impl State {
         else {
             return false;
         };
+
         if let Some(target) = active.target {
-            let result = self.scene.edit_subobject(
-                active.row,
-                target,
-                &Xform::from_matrix(delta),
-                "transform subobject",
-            );
+            let result =
+                self.scene
+                    .edit_subobject(active.row, target, &delta, "transform subobject");
             self.restore_source_render(active.row);
             self.restore_edit_selection(active.row);
+
             if let Err(error) = result {
                 self.status(&error);
                 return false;
             }
+
             self.refresh_layers();
             self.touch();
             return true;
         }
+
         // The delta is a WORLD matrix and the session stores a LOCAL one: the same conjugation
         // the command line goes through, or the object jumps to a different place than the last
         // preview frame drew it.
-        let delta = Xform::from_matrix(delta);
         let Some(local) = self
             .scene
             .local_for_world_delta(active.row, &delta, &active.base_local)
@@ -238,12 +235,14 @@ impl State {
             Handle::Rotate(_) => "rotate",
             Handle::Scale(_) | Handle::ScaleUniform => "scale",
         };
+
         if let Some(place) = self.scene.set_row_xform(active.row, local, label) {
             self.gpu
                 .objects
                 .set_placement(&self.gpu.ctx, active.row, &place);
             self.gpu.grew_bounds(active.row);
         }
+
         self.touch();
         true
     }
@@ -263,19 +262,24 @@ impl State {
                 self.restore_source_render(active.row);
                 self.restore_edit_selection(active.row);
             }
+
             self.gpu
                 .objects
                 .set_placement(&self.gpu.ctx, active.row, &active.base_place);
+
             if let Some(gizmo) = self.gizmo.as_mut() {
                 gizmo.drag = None;
             }
+
             self.place_gizmo(Some(active.row));
             self.touch();
         }
+
         if let Some(active) = self.control_drag.take() {
             if let Some(geometry) = self.scene.geometry(active.parent) {
                 self.controls = crate::app::selection::Controls::from_geometry(geometry);
             }
+
             self.upload_controls();
             self.touch();
         }
@@ -286,10 +290,12 @@ impl State {
         let Some(row) = self.scene.selected else {
             return;
         };
+
         if !self.scene.delete_row(row) {
             self.status("This object cannot be deleted; streamed scenes cannot be rebuilt");
             return;
         }
+
         self.after_history();
     }
 
@@ -299,6 +305,7 @@ impl State {
             self.status("Undo requires a scene without streamed sources");
             return;
         }
+
         if self.scene.undo() {
             self.after_history();
         }
@@ -310,6 +317,7 @@ impl State {
             self.status("Redo requires a scene without streamed sources");
             return;
         }
+
         if self.scene.redo() {
             self.after_history();
         }
@@ -348,6 +356,7 @@ impl State {
             let vertical = (m[1] * m[1] + m[5] * m[5] + m[9] * m[9]).sqrt();
             return 2.0 * w.abs() / (vertical * self.logical_size()[1]).max(1e-12);
         }
+
         world_per_css_px(
             self.camera.distance_world(),
             self.viewport().1,
@@ -360,9 +369,11 @@ impl State {
     /// in CSS pixels, so this is the conversion between them.
     fn pixel_scale(&self) -> f64 {
         let logical = self.logical_size()[0];
+
         if logical <= 0.0 {
             return 1.0;
         }
+
         f64::from(self.gpu.config.width) / logical
     }
 }
@@ -382,8 +393,9 @@ fn world_per_css_px(world_distance: f64, physical_height: f64, physical_per_css:
     if physical_height <= 0.0 {
         return 1.0;
     }
+
     let per_physical =
-        2.0 * world_distance * (crate::math::FOVY_DEG * 0.5).to_radians().tan() / physical_height;
+        2.0 * world_distance * (crate::camera::FOVY_DEG * 0.5).to_radians().tan() / physical_height;
     per_physical * physical_per_css
 }
 
@@ -421,9 +433,11 @@ impl State {
             return false;
         };
         let hovered = gizmo.hit(&from, &dir, per_px);
+
         if gizmo.hovered == hovered {
             return false;
         }
+
         gizmo.hovered = hovered;
         self.upload_gizmo();
         true
@@ -439,21 +453,26 @@ impl State {
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
         self.cancel_gesture();
         let command = crate::app::command::parse(line)?;
+
         if command != Command::Split {
             self.cancel_split();
         }
+
         if matches!(command, Command::Delete | Command::Undo | Command::Redo)
             && (!self.scene.streamed.is_empty() || !self.scene.sheets.is_empty())
         {
             return Err("this command requires a scene without streamed sources".into());
         }
+
         let needs_selection = matches!(
             command,
             Command::Move(_) | Command::Rotate { .. } | Command::Scale(_) | Command::Delete
         );
+
         if needs_selection && self.scene.selected.is_none() {
             return Err("nothing is selected".into());
         }
+
         match command {
             Command::Split => self.split_command(),
             Command::Save => {
@@ -479,6 +498,7 @@ impl State {
                 );
                 self.scene.model(&command)?;
                 self.after_history();
+
                 if created {
                     if let Some(doc) = self.scene.created_doc {
                         let row = (0..self.gpu.objects.len())
@@ -486,6 +506,7 @@ impl State {
                             .find(|&row| self.scene.identity_of(row).is_some_and(|id| id.0 == doc));
                         self.select(row);
                     }
+
                     let name = match command {
                         Modeling::Point(_) => "point",
                         Modeling::Line(..) => "line",
@@ -511,9 +532,11 @@ impl State {
             }
             Command::Delete => {
                 let row = self.scene.selected.ok_or("nothing is selected")?;
+
                 if !self.scene.delete_row(row) {
                     return Err("this object cannot be deleted".into());
                 }
+
                 self.after_history();
                 Ok("deleted".into())
             }
@@ -521,6 +544,7 @@ impl State {
                 if !self.scene.undo() {
                     return Err("nothing to undo".into());
                 }
+
                 self.after_history();
                 Ok("undone".into())
             }
@@ -528,6 +552,7 @@ impl State {
                 if !self.scene.redo() {
                     return Err("nothing to redo".into());
                 }
+
                 self.after_history();
                 Ok("redone".into())
             }
@@ -555,6 +580,7 @@ impl State {
         let Some(row) = self.scene.selected else {
             return Err("nothing is selected".into());
         };
+
         if let Some(target) = crate::app::deform::Target::selected(&self.selection) {
             self.scene.edit_subobject(row, target, &delta, label)?;
             self.scene.rebuild(&mut self.gpu);
@@ -562,6 +588,7 @@ impl State {
             self.touch();
             return Ok(label.into());
         }
+
         let Some(place) = self.scene.transform_row(row, &delta, label) else {
             return Err("this row cannot be edited".into());
         };
@@ -610,9 +637,11 @@ impl State {
     /// makes one click enough on a half-hidden layer, which is what a person means by it.
     pub fn toggle_layer(&mut self, layer: Layer) {
         let rows = layers::of_layer(&self.scene, layer);
+
         if rows.is_empty() {
             return;
         }
+
         let hide = rows.iter().any(|&row| {
             self.scene
                 .identity_of(row)
@@ -626,6 +655,7 @@ impl State {
         if !crate::app::feedback::layers_open() {
             return;
         }
+
         self.hierarchy.refresh(&self.scene);
         let mut rows = Vec::new();
         self.hierarchy_labels(&mut rows);
@@ -639,9 +669,11 @@ impl State {
     pub fn toggle_layers_panel(&mut self) {
         let open = !crate::app::feedback::layers_open();
         crate::app::feedback::layers_visible(open);
+
         if open {
             self.refresh_layers();
         }
+
         self.touch();
     }
 }
@@ -649,10 +681,8 @@ impl State {
 /// A control point being dragged: which row and which control, and the plane it moves in.
 pub struct ControlDrag {
     parent: u32,
-    /// Index into `State.controls.points`, which is what the preview moves.
-    index: usize,
-    /// Which kernel control it is, which is what the commit moves.
-    id: ControlId,
+    index: usize, // Index into `State.controls.points`, which is what the preview moves.
+    id: ControlId, // Which kernel control it is, which is what the commit moves.
     plane: CPlane,
     origin: Point,
 }
@@ -677,16 +707,18 @@ impl State {
         let Some(place) = self.scene.placement_of(parent) else {
             return false;
         };
-        let origin = Point::new(at[0], at[1], at[2]).transformed(&Xform::from_matrix(place));
+        let origin = Point::new(at[0], at[1], at[2]).transformed(&place);
         let Some((sx, sy)) = self.project([origin[0], origin[1], origin[2]]) else {
             return false;
         };
         // `project` answers in physical pixels, so a CSS radius is converted the same way the
         // widget's own sizes are.
         let grab = GRAB_CSS * self.pixel_scale();
+
         if (sx - x).abs() > grab || (sy - y).abs() > grab {
             return false;
         }
+
         let forward = self.camera.orientation.rotate_vector(Vector::y_axis());
         self.control_drag = Some(ControlDrag {
             parent,
@@ -710,7 +742,7 @@ impl State {
         let Some(back) = self
             .scene
             .placement_of(active.parent)
-            .and_then(|m| Xform::from_matrix(m).inverse())
+            .and_then(|place| place.inverse())
         else {
             return false;
         };
@@ -728,14 +760,17 @@ impl State {
         let Some(active) = self.control_drag.take() else {
             return false;
         };
+
         if let Some(geometry) = self.scene.geometry(active.parent) {
             self.controls = crate::app::selection::Controls::from_geometry(geometry);
         }
+
         self.upload_controls();
         self.touch();
         let Some(point) = self.control_target(&active, x, y) else {
             return false;
         };
+
         if let Err(error) = self
             .scene
             .set_source_control(active.parent, active.id, &point)
@@ -743,6 +778,7 @@ impl State {
             self.status(&error);
             return false;
         }
+
         self.scene.rebuild(&mut self.gpu);
         self.selection = SelectionMode::Object;
         self.select(Some(active.parent));
@@ -756,12 +792,14 @@ impl State {
     fn control_target(&self, active: &ControlDrag, x: f64, y: f64) -> Option<Point> {
         let (from, dir) = self.camera.ray((x, y), self.viewport())?;
         let free = active.plane.hit(&active.origin, &from, &dir)?;
-        let place = Xform::from_matrix(self.scene.placement_of(active.parent)?);
+        let place = self.scene.placement_of(active.parent)?;
         let mut candidates = Vec::new();
+
         for (i, control) in self.controls.points.iter().enumerate() {
             if i == active.index {
                 continue;
             }
+
             candidates.push(Snap {
                 point: Point::new(
                     control.position[0],
@@ -773,8 +811,10 @@ impl State {
                 owner: active.parent,
             });
         }
+
         // The ranking is in SCREEN space, so the aperture means pixels wherever the camera is.
         let project = |p: &Point| self.project([p[0], p[1], p[2]]);
+
         match snap::best(
             &candidates,
             (x, y),
@@ -792,9 +832,11 @@ impl State {
         let anchor = Point::new(at[0], at[1], at[2]);
         let mvp = self.camera.view_proj_anchored(self.aspect(), &anchor);
         let clip = [mvp.m[12], mvp.m[13], mvp.m[14], mvp.m[15]];
+
         if clip[3] <= 0.0 {
             return None;
         }
+
         Some((
             (clip[0] / clip[3] * 0.5 + 0.5) * w,
             (0.5 - clip[1] / clip[3] * 0.5) * h,
@@ -826,7 +868,7 @@ mod tests {
         let mut gpu = pollster::block_on(Gpu::new_headless(256, 256)).unwrap();
         gpu.view.show_grid = false;
         let mut upload = Upload::default();
-        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
+        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
         gpu.set_scene(&upload);
 
         let mut camera = Camera::new();
@@ -846,12 +888,15 @@ mod tests {
         let after = gpu.render_offscreen(&input);
 
         let (mut red, mut green, mut blue, mut changed) = (0, 0, 0, 0);
+
         for (a, b) in before.chunks_exact(4).zip(after.chunks_exact(4)) {
             if a[..3] == b[..3] {
                 continue;
             }
+
             changed += 1;
             let (r, g, bl) = (i32::from(b[0]), i32::from(b[1]), i32::from(b[2]));
+
             if r > g + 40 && r > bl + 40 {
                 red += 1;
             } else if g > r + 40 && g > bl + 40 {
@@ -860,6 +905,7 @@ mod tests {
                 blue += 1;
             }
         }
+
         assert!(
             changed > 100,
             "the widget changed the picture: {changed} pixels"
@@ -905,12 +951,15 @@ impl State {
         let selection = self.selection.clone();
         self.select(Some(row));
         self.selection = selection;
+
         match self.selection {
             SelectionMode::Controls { .. } => {
                 self.gpu.set_selected(row, false);
+
                 if let Some(geometry) = self.scene.geometry(row) {
                     self.controls = crate::app::selection::Controls::from_geometry(geometry);
                 }
+
                 self.upload_controls();
             }
             SelectionMode::Face { face, .. } => {
@@ -924,6 +973,7 @@ impl State {
             }
             SelectionMode::Object => {}
         }
+
         self.place_gizmo(Some(row));
         self.refresh_layers();
         self.touch();
@@ -933,6 +983,7 @@ impl State {
 impl State {
     fn restore_source_render(&mut self, row: u32) {
         let geometry = self.scene.geometry(row).cloned();
+
         if !geometry.is_some_and(|geometry| self.scene.patch_preview(row, &geometry, &mut self.gpu))
         {
             self.scene.rebuild(&mut self.gpu);

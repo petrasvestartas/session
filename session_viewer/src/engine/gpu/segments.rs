@@ -1,9 +1,3 @@
-//! The segment lane: every straight piece of ink. Two tables of the same connected stroke row - pipes
-//! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
-//! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
-//! A streamed sheet's ribbons arrive in CHUNKS interleaved with other uploads, so the lane
-//! maps a global ribbon row back to (sheet row, segment index) through the sheet's chunk list.
-
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
 use super::frame::Binds;
 use super::upload::drop_rows;
@@ -27,14 +21,11 @@ const RIBBON_VERTS: u32 = 6;
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct CylinderSegment {
     pub p0: [f32; 3],
-    /// 0 = the screen-constant pen; > 0 = a world-mm radius.
-    pub radius: f32,
+    pub radius: f32, // 0 = the screen-constant pen; > 0 = a world-mm radius.
     pub p1: [f32; 3],
     pub instance_id: u32,
-    /// RGBA8, low byte red.
-    pub color: u32,
-    /// Two oct16 adjacent face normals; `FACING_UNKNOWN` = no adjacency, always drawn.
-    pub facing: u32,
+    pub color: u32,  // RGBA8, low byte red.
+    pub facing: u32, // Two oct16 adjacent face normals; `FACING_UNKNOWN` = no adjacency, always drawn.
 }
 
 const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
@@ -53,17 +44,12 @@ pub struct SegDraw {
 #[derive(Default)]
 pub struct SegRows {
     pub pipes: Vec<CylinderSegment>,
-    /// Source edge index per pipe, or u32::MAX when no CAD edge identity is available.
-    pub pipe_ids: Vec<u32>,
-    /// Source curve ranges in this upload; independent mesh wires remain unjoined.
-    pub pipe_chains: Vec<std::ops::Range<u32>>,
-    /// Consecutive spans belonging to one source polyline or NURBS curve.
-    pub ribbon_chains: Vec<std::ops::Range<u32>>,
+    pub pipe_ids: Vec<u32>, // Source edge index per pipe, or u32::MAX when no CAD edge identity is available.
+    pub pipe_chains: Vec<std::ops::Range<u32>>, // Source curve ranges in this upload; independent mesh wires remain unjoined.
+    pub ribbon_chains: Vec<std::ops::Range<u32>>, // Consecutive spans belonging to one source polyline or NURBS curve.
     pub ribbons: Vec<CylinderSegment>,
-    /// Source entity id per ribbon, or u32::MAX; shorter than `ribbons` means no identity.
-    pub ribbon_ids: Vec<u32>,
-    /// The sheet slices among this upload's ribbons.
-    pub sheets: Vec<SegDraw>,
+    pub ribbon_ids: Vec<u32>, // Source entity id per ribbon, or u32::MAX; shorter than `ribbons` means no identity.
+    pub sheets: Vec<SegDraw>, // The sheet slices among this upload's ribbons.
 }
 
 impl SegRows {
@@ -108,10 +94,12 @@ fn push_chunk(sheets: &mut Vec<SegSheet>, instance: u32, chunk: SegChunk, ids: &
         });
         return;
     }
+
     for sheet in sheets.iter_mut() {
         if sheet.instance != instance {
             continue;
         }
+
         if chunk.from != sheet.resident {
             log::warn!(
                 "sheet chunk [{}, {}) does not continue the {} resident segments; dropped",
@@ -121,11 +109,13 @@ fn push_chunk(sheets: &mut Vec<SegSheet>, instance: u32, chunk: SegChunk, ids: &
             );
             return;
         }
+
         sheet.resident = chunk.to;
         sheet.chunks.push(chunk);
         sheet.ids.extend_from_slice(ids);
         return;
     }
+
     log::warn!("sheet chunk for row {instance} arrived before its sheet; dropped");
 }
 
@@ -138,6 +128,7 @@ fn sheet_of(sheets: &[SegSheet], row: u32) -> Option<(usize, u32)> {
             }
         }
     }
+
     None
 }
 
@@ -157,6 +148,7 @@ fn joined_rows(
     base: u32,
 ) -> Vec<StrokeSegment> {
     let mut result = Vec::with_capacity(rows.len());
+
     for segment in rows {
         result.push(StrokeSegment {
             segment: *segment,
@@ -164,10 +156,12 @@ fn joined_rows(
             next: u32::MAX,
         });
     }
+
     for chain in chains {
         if chain.end > rows.len() as u32 || chain.end.saturating_sub(chain.start) < 2 {
             continue;
         }
+
         for index in chain.clone() {
             let next = if index + 1 == chain.end {
                 chain.start
@@ -176,6 +170,7 @@ fn joined_rows(
             };
             let a = &rows[index as usize];
             let b = &rows[next as usize];
+
             if a.p1 == b.p0
                 && a.instance_id == b.instance_id
                 && a.color == b.color
@@ -186,6 +181,7 @@ fn joined_rows(
             }
         }
     }
+
     result
 }
 
@@ -239,11 +235,9 @@ struct SegPipelines {
     selected: wgpu::RenderPipeline,
     id_ribbon: wgpu::RenderPipeline,
     id_edge: wgpu::RenderPipeline,
-    /// Solid-edge coverage into one silhouette mask, ordinary and selected strokes.
-    mask_unselected: wgpu::RenderPipeline,
+    mask_unselected: wgpu::RenderPipeline, // Solid-edge coverage into one silhouette mask, ordinary and selected strokes.
     mask_selected: wgpu::RenderPipeline,
-    /// The same into the solid and selected masks together.
-    masks_unselected: wgpu::RenderPipeline,
+    masks_unselected: wgpu::RenderPipeline, // The same into the solid and selected masks together.
     masks_selected: wgpu::RenderPipeline,
 }
 
@@ -303,17 +297,21 @@ impl SegmentLane {
         ids.resize(up.pipes.len(), u32::MAX);
         let pipes = joined_rows(&up.pipes, &up.pipe_chains, self.pipes.buf.len());
         let pipes_changed = self.pipes.buf.append(ctx, &pipes);
+
         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
             self.pipes.rebind(ctx, l, &self.selection);
         }
+
         let ribbon_base = self.ribbons.buf.len();
         let mut ribbon_ids = up.ribbon_ids.clone();
         ribbon_ids.resize(up.ribbons.len(), u32::MAX);
         let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, ribbon_base);
         let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
+
         if self.ribbons.ids.append(ctx, &ribbon_ids) || ribbons_changed {
             self.ribbons.rebind(ctx, l, &self.selection);
         }
+
         for d in &up.sheets {
             let Some(ids) = ribbon_ids.get(d.first as usize..(d.first + d.count) as usize) else {
                 continue;
@@ -387,12 +385,15 @@ impl SegmentLane {
         ribbons: bool,
     ) -> u32 {
         let mut draws = 0;
+
         if pipes {
             draws += self.draw_table(pass, b, &self.gpu.unselected, &self.pipes);
         }
+
         if ribbons {
             draws += self.draw_table(pass, b, &self.gpu.unselected, &self.ribbons);
         }
+
         draws
     }
 
@@ -407,13 +408,17 @@ impl SegmentLane {
         if self.selected_rows.is_empty() && !self.selected_edge {
             return 0;
         }
+
         let mut draws = 0;
+
         if pipes {
             draws += self.draw_table(pass, b, &self.gpu.selected, &self.pipes);
         }
+
         if ribbons {
             draws += self.draw_table(pass, b, &self.gpu.selected, &self.ribbons);
         }
+
         draws
     }
 
@@ -428,6 +433,7 @@ impl SegmentLane {
         if self.selected_rows.is_empty() {
             return 0;
         }
+
         self.draw_table(pass, b, &self.gpu.mask_selected, &self.pipes)
     }
 
@@ -473,6 +479,7 @@ impl SegmentLane {
         if table.buf.is_empty() {
             return 0;
         }
+
         pass.set_pipeline(pipeline);
         b.set(pass);
         pass.set_bind_group(3, &table.group, &[]);
@@ -621,6 +628,7 @@ mod tests {
             "previous",
             "next",
         ];
+
         for (name, src) in SHADERS {
             assert_eq!(
                 wgsl_fields(src, "StrokeSegment"),
@@ -628,6 +636,7 @@ mod tests {
                 "{name}: StrokeSegment fields"
             );
         }
+
         assert_eq!(std::mem::size_of::<CylinderSegment>(), 40);
         assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
         assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);

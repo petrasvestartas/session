@@ -1,54 +1,22 @@
-//! `View` - the runtime knobs a frame reads: what to show, the
-//! cloud / EDL / LOD scalars and the pen weight. Read ONCE at startup from the query string
-//! (wasm) or the environment (native); the key handlers flip them afterwards. No GPU here.
-
 /// The knobs one frame reads.
 pub struct View {
-    /// The construction grid; disable for color-based visibility probes.
-    pub show_grid: bool,
-    /// Point markers - the FLAT lane's dots. `Q`.
-    pub show_points: bool,
-    /// Lines and polylines - the FLAT lane's ribbons. `W`.
-    pub show_lines: bool,
-    /// Mesh/BRep edges and their vertex markers - the SOLID lane. `E`.
-    pub show_mesh_edges: bool,
-    /// Black visible-surface silhouettes, including unselected objects. Off by default: the
-    /// coverage masks and compositor cost a full-screen pass per frame, which is slow on
-    /// integrated GPUs (`?outlines=1` / `VIEWER_OUTLINES=1` starts with them on). `O`.
-    pub show_outlines: bool,
-    /// Vertex markers on top of the solid ink; `BENCH_NO_MARKERS` turns them off for timing.
-    pub markers: bool,
-    /// Global scale on per-cloud point sizes, `[` and `]` (`VIEWER_CLOUD_SCALE`).
-    pub cloud_size: f32,
-    /// Eye-Dome Lighting strength; 0 = off (`VIEWER_EDL`).
-    pub edl_strength: f32,
-    /// Octree LOD cutoff in projected pixels; 0 = off, draw every cloud whole (`?lod=` / `VIEWER_LOD`).
-    pub lod_px: f32,
-    /// Default source edge/line pen weight in CSS px (`?thickness=` / `VIEWER_THICKNESS`).
-    pub thickness_px: f32,
-    /// Width of the antialiasing ramp on the DOT lanes, px (`?aa=` / `VIEWER_AA`). Only 1 is
-    /// phase-invariant: a ramp of width f sampled at pixel centres spaced cos(angle) apart
-    /// beats with the mark's subpixel offset unless f divides that spacing, and at 1.5 px
-    /// against a 1.5 px pen the beat is 22% of the ink. The ribbons no longer read this at
-    /// all - they integrate the pixel box exactly, which cannot beat at any width.
-    pub feather_px: f32,
-    /// Light the mesh faces with a camera headlight. Off by default: every face its flat
-    /// colour, which reads as a drawing and is what a colour-based visibility probe needs; `D`
-    /// (`?lit=1` / `VIEWER_LIT`) turns the headlight on when a curved surface needs its shading.
-    pub lit: bool,
-    /// Paint a face seen from behind red - the inside of an open solid, or a flipped normal.
-    /// Off by default: it doubles as a selection-style highlight, not a warning, so it only
-    /// shows once asked for, with `B` (`?backface=1` / `VIEWER_BACKFACE`).
-    pub backface: bool,
-    /// Alpha on every closed shaded solid; 0 is x-ray, where every face is discarded and only
-    /// edges remain. `P` toggles 1 <-> 0 (`?opacity=` / `VIEWER_OPACITY` set any value).
-    pub opacity: f32,
-    /// Force the sample count (`?msaa=` / `VIEWER_MSAA`): 4 = 4x, anything else 1x.
-    pub msaa_forced: Option<u32>,
-    /// Continuous rendering with a frame line on the page (`?perf=1` / `VIEWER_PERF`).
-    pub perf: bool,
-    /// Orbit a little every frame - a moving-camera benchmark (`?spin=1`).
-    pub spin: bool,
+    pub show_grid: bool, // The construction grid; disable for color-based visibility probes.
+    pub show_points: bool, // Point markers - the FLAT lane's dots. `Q`.
+    pub show_lines: bool, // Lines and polylines - the FLAT lane's ribbons. `W`.
+    pub show_mesh_edges: bool, // Mesh/BRep edges and their vertex markers - the SOLID lane. `E`.
+    pub show_outlines: bool, // Black visible-surface silhouettes, including unselected objects. Off by default: the coverage masks and compositor cost a full-screen pass per frame, which is slow on integrated GPUs (`?outlines=1` / `VIEWER_OUTLINES=1` starts with them on). `O`.
+    pub markers: bool, // Vertex markers on top of the solid ink; `BENCH_NO_MARKERS` turns them off for timing.
+    pub cloud_size: f32, // Global scale on per-cloud point sizes, `[` and `]` (`VIEWER_CLOUD_SCALE`).
+    pub edl_strength: f32, // Eye-Dome Lighting strength; 0 = off (`VIEWER_EDL`).
+    pub lod_px: f32, // Octree LOD cutoff in projected pixels; 0 = off, draw every cloud whole (`?lod=` / `VIEWER_LOD`).
+    pub thickness_px: f32, // Default source edge/line pen weight in CSS px (`?thickness=` / `VIEWER_THICKNESS`).
+    pub feather_px: f32, // Width of the antialiasing ramp on the DOT lanes, px (`?aa=` / `VIEWER_AA`). Only 1 is phase-invariant: a ramp of width f sampled at pixel centres spaced cos(angle) apart beats with the mark's subpixel offset unless f divides that spacing, and at 1.5 px against a 1.5 px pen the beat is 22% of the ink. The ribbons no longer read this at all - they integrate the pixel box exactly, which cannot beat at any width.
+    pub lit: bool, // Light the mesh faces with a camera headlight. Off by default: every face its flat colour, which reads as a drawing and is what a colour-based visibility probe needs; `D` (`?lit=1` / `VIEWER_LIT`) turns the headlight on when a curved surface needs its shading.
+    pub backface: bool, // Paint a face seen from behind red - the inside of an open solid, or a flipped normal. Off by default: it doubles as a selection-style highlight, not a warning, so it only shows once asked for, with `B` (`?backface=1` / `VIEWER_BACKFACE`).
+    pub opacity: f32, // Alpha on every closed shaded solid; 0 is x-ray, where every face is discarded and only edges remain. `P` toggles 1 <-> 0 (`?opacity=` / `VIEWER_OPACITY` set any value).
+    pub msaa_forced: Option<u32>, // Force the sample count (`?msaa=` / `VIEWER_MSAA`): 4 = 4x, anything else 1x.
+    pub perf: bool, // Continuous rendering with a frame line on the page (`?perf=1` / `VIEWER_PERF`).
+    pub spin: bool, // Orbit a little every frame - a moving-camera benchmark (`?spin=1`).
 }
 
 impl View {
@@ -88,6 +56,7 @@ pub fn device_pixel_ratio() -> f64 {
             .unwrap_or(1.0);
         let cap = f64::from(knob_f32("VIEWER_DPR", "dpr", 0.0));
         let ratio = if cap >= 0.5 { ratio.min(cap) } else { ratio };
+
         if reduced() { ratio.min(1.0) } else { ratio }
     }
     #[cfg(not(target_arch = "wasm32"))]
@@ -147,6 +116,7 @@ fn knob_f32(env: &str, query: &str, default: f32) -> f32 {
     let Some(raw) = knob(env, query) else {
         return default;
     };
+
     match raw.parse::<f32>() {
         Ok(value) if value.is_finite() => value,
         _ => default,

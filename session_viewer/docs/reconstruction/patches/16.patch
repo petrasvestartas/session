@@ -530,14 +530,13 @@ index 0000000000000000000000000000000000000000..d56ff17b1925da92ea0b84f3ff223e43
 +}
 diff --git a/session_viewer/examples/census_plates.rs b/session_viewer/examples/census_plates.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fba88c92c1
+index 0000000000000000000000000000000000000000..2388e31240bb1b1e41c5fc8b12a541db530673c3
 --- /dev/null
 +++ b/session_viewer/examples/census_plates.rs
-@@ -0,0 +1,2036 @@
+@@ -0,0 +1,2041 @@
 +//! Plate census: per-mesh AABB extents + face-normal thickness, per-polyline distance to the nearest mesh face plane, the fit camera, and the depth rule judged by ray-casting every outline sample against the plates in front of it at 1x, 4x and 16x the fit distance (VIEWER_W/H size the pen; CENSUS_RECOLOR=<out.pb> writes a copy whose outline segments are magenta when covered, blue when visible, cyan when partly covered).
 +
 +use session_rust::{Color, Mesh, Point, Polyline, Quaternion, Session, Vector, Xform};
-+use session_viewer::math::{Mat4, mat_scale, mat_to_f32, xform_point_f64};
 +use std::cmp::Ordering;
 +use std::collections::HashMap;
 +
@@ -642,6 +641,12 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +    }
 +}
 +
++/// A point through a placement, as the array the plate arithmetic reads.
++fn placed(place: &Xform, p: [f64; 3]) -> [f64; 3] {
++    let q = place.transform_point(&Point::new(p[0], p[1], p[2]));
++    [q[0], q[1], q[2]]
++}
++
 +fn grow(lo: &mut [f64; 3], hi: &mut [f64; 3], p: &[f64; 3]) {
 +    for k in 0..3 {
 +        lo[k] = lo[k].min(p[k]);
@@ -720,7 +725,7 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +    triangles
 +}
 +
-+fn plate_of(m: &Mesh, place: &Mat4) -> Plate {
++fn plate_of(m: &Mesh, place: &Xform) -> Plate {
 +    let mut local: Vec<[f64; 3]> = Vec::with_capacity(m.vertex.len());
 +    for key in m.vertices() {
 +        let v = &m.vertex[&key];
@@ -728,7 +733,7 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +    }
 +    let mut verts: Vec<[f64; 3]> = Vec::with_capacity(local.len());
 +    for p in &local {
-+        verts.push(xform_point_f64(place, *p));
++        verts.push(placed(place, *p));
 +    }
 +    let (lo, hi) = box_of(&verts);
 +    let ext = sorted_extents(&lo, &hi);
@@ -743,7 +748,7 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +        for triangle in face_triangles(m, fk) {
 +            tris.push(triangle.map(|key| {
 +                let point = &m.vertex[&key];
-+                xform_point_f64(place, [point.x, point.y, point.z])
++                placed(place, [point.x, point.y, point.z])
 +            }));
 +        }
 +        let Some(fpts) = m.face_points(fk) else {
@@ -751,7 +756,7 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +        };
 +        let mut pts: Vec<[f64; 3]> = Vec::with_capacity(fpts.len());
 +        for p in &fpts {
-+            pts.push(xform_point_f64(place, [p[0], p[1], p[2]]));
++            pts.push(placed(place, [p[0], p[1], p[2]]));
 +        }
 +        if pts.len() < 3 {
 +            continue;
@@ -815,15 +820,15 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +
 +// The nearest mesh face plane (max point deviation) and the outline's samples: its vertices
 +// and its edge midpoints.
-+fn outline_of(pl: &Polyline, place: &Mat4, plates: &[Plate]) -> Outline {
++fn outline_of(pl: &Polyline, place: &Xform, plates: &[Plate]) -> Outline {
 +    let mut local: Vec<[f64; 3]> = Vec::with_capacity(pl.coords.len() / 3);
 +    for c in pl.coords.chunks_exact(3) {
 +        local.push([c[0], c[1], c[2]]);
 +    }
-+    let scale = mat_scale(&mat_to_f32(place));
++    let scale = place.uniform_scale();
 +    let mut pts: Vec<[f64; 3]> = Vec::with_capacity(local.len());
 +    for p in &local {
-+        pts.push(xform_point_f64(place, *p));
++        pts.push(placed(place, *p));
 +    }
 +    let (lo, hi) = box_of(&pts);
 +    let ext = sorted_extents(&lo, &hi);
@@ -1112,10 +1117,10 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +    best
 +}
 +
-+fn placement(world: &HashMap<String, Xform>, guid: &str) -> Mat4 {
++fn placement(world: &HashMap<String, Xform>, guid: &str) -> Xform {
 +    match world.get(guid) {
-+        Some(x) => x.m,
-+        None => Xform::identity().m,
++        Some(x) => x.clone(),
++        None => Xform::identity(),
 +    }
 +}
 +
@@ -1140,13 +1145,13 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +        grow(
 +            &mut lo,
 +            &mut hi,
-+            &xform_point_f64(&placement(world, p.guid()), [p[0], p[1], p[2]]),
++            &placed(&placement(world, p.guid()), [p[0], p[1], p[2]]),
 +        );
 +    }
 +    for l in &s.objects.lines {
 +        let m = placement(world, l.guid());
-+        grow(&mut lo, &mut hi, &xform_point_f64(&m, [l[0], l[1], l[2]]));
-+        grow(&mut lo, &mut hi, &xform_point_f64(&m, [l[3], l[4], l[5]]));
++        grow(&mut lo, &mut hi, &placed(&m, [l[0], l[1], l[2]]));
++        grow(&mut lo, &mut hi, &placed(&m, [l[3], l[4], l[5]]));
 +    }
 +    (lo, hi)
 +}
@@ -2349,7 +2354,7 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +                [0, 6, 7],
 +            ],
 +        );
-+        let place = Xform::identity().m;
++        let place = Xform::identity();
 +        let view = ProbeView {
 +            eye: [0.0, 0.0, 10.0],
 +            parallel: Some([0.0, 0.0, -1.0]),
@@ -2385,9 +2390,9 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +            ],
 +            vec![vec![0, 1, 2]],
 +        );
-+        let place = [
++        let place = Xform::from_matrix([
 +            2.0, 0.0, 0.25, 0.0, 0.5, 3.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 5.0, -2.0, 8.0, 1.0,
-+        ];
++        ]);
 +        let plate = plate_of(&mesh, &place);
 +        let face = &plate.faces[0];
 +        for vertex in &plate.verts {
@@ -2542,7 +2547,7 @@ index 0000000000000000000000000000000000000000..73e6b3583b65d525488da53a6798d5fb
 +            ],
 +            vec![vec![0, 1, 2]],
 +        );
-+        let plates = [plate_of(&mesh, &Xform::identity().m)];
++        let plates = [plate_of(&mesh, &Xform::identity())];
 +        for distance in [10.0, 1000.0] {
 +            let fit = Fit {
 +                eye: [0.0, 0.0, distance],
@@ -2765,10 +2770,10 @@ index 0000000000000000000000000000000000000000..567b3438e5b336d945c24534a12a5ffc
 +}
 diff --git a/session_viewer/examples/interaction_fixture.rs b/session_viewer/examples/interaction_fixture.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..584ace230675c381398b436ded18cf300c83c8af
+index 0000000000000000000000000000000000000000..388eb0c55342251e5f2f1f393599db78f8fdfdc5
 --- /dev/null
 +++ b/session_viewer/examples/interaction_fixture.rs
-@@ -0,0 +1,122 @@
+@@ -0,0 +1,130 @@
 +//! Deterministic source geometry for tests/interaction.cjs; writes outside tracked assets.
 +use session_rust::{
 +    BRep, Color, Line, Mesh, NurbsCurve, NurbsSurface, Point, PointCloud, Polyline, Session, Xform,
@@ -2817,8 +2822,7 @@ index 0000000000000000000000000000000000000000..584ace230675c381398b436ded18cf30
 +        Some([2.5, 3.5, 0.0]),
 +        3,
 +    ));
-+    let mut curve =
-+        NurbsCurve::create_clamped_uniform(3, 3, &[p(8.0, 3.0), p(9.0, 4.0), p(10.0, 3.0)], 1.0);
++    let mut curve = NurbsCurve::create(false, 2, &[p(8.0, 3.0), p(9.0, 4.0), p(10.0, 3.0)]);
 +    curve.name = "interaction curve".into();
 +    curve.width = 0.02;
 +    let guid = curve.guid().to_string();
@@ -2830,7 +2834,16 @@ index 0000000000000000000000000000000000000000..584ace230675c381398b436ded18cf30
 +        Some([9.0, 3.5, 0.0]),
 +        3,
 +    ));
-+    let mut surface = NurbsSurface::create_simple(3, false, 2, 2, 2, 2).unwrap();
++    let mut surface = NurbsSurface::create(
++        false,
++        false,
++        1,
++        1,
++        2,
++        2,
++        &[p(0., 0.), p(1., 0.), p(0., 1.), p(1., 1.)],
++    )
++    .unwrap();
 +    for u in 0..2 {
 +        for v in 0..2 {
 +            surface.set_cv(u, v, &p(-10.0 + 2.0 * u as f64, -4.0 + 2.0 * v as f64));
@@ -4334,11 +4347,10 @@ index 0000000000000000000000000000000000000000..68e6e4160990131aa76b115d79d329ea
 +    print!("{}", render_scene(&files, w, h, &out));
 +}
 diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
-index f31db8bae111e86d20416b432407b4f8427e1fb7..201bb720e18e4150a9a224e32c9d789f35f65604 100644
+index 0a4f7335b35030d2eb8de94cbe813677d7bf5065..6ce2fa024ae9f2f25e085435f041efcf1f50c4e5 100644
 --- a/session_viewer/src/app/inspection.rs
 +++ b/session_viewer/src/app/inspection.rs
-@@ -1,6 +1,11 @@
- //! Read-only, opt-in browser measurements (`?inspect=1`); no mutation or production UI.
+@@ -1,5 +1,10 @@
  #[cfg(target_arch = "wasm32")]
  use crate::State;
 +mod source_memory;
@@ -4371,13 +4383,10 @@ index f31db8bae111e86d20416b432407b4f8427e1fb7..201bb720e18e4150a9a224e32c9d789f
          "gpu_buffer_capacity_bytes": buffers,
 diff --git a/session_viewer/src/app/inspection/source_memory.rs b/session_viewer/src/app/inspection/source_memory.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba0416136bdcf
+index 0000000000000000000000000000000000000000..51d6748a86aecd28f8b8145d0604ff5881f222f6
 --- /dev/null
 +++ b/session_viewer/src/app/inspection/source_memory.rs
-@@ -0,0 +1,487 @@
-+//! Known retained source payloads, not RSS, allocator usage or total heap ownership.
-+//! Vec/String capacities are exact payload capacities. Slice and map-entry figures use
-+//! exposed occupied lengths; private spare capacity and allocator metadata are excluded.
+@@ -0,0 +1,556 @@
 +use super::super::scene::FileDoc;
 +use session_rust::{
 +    BRep, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, NurbsSurfaceTrimmed, OBB, Plane,
@@ -4409,18 +4418,22 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +            + self.occupied_map_entry_bytes
 +            + self.shared_value_bytes
 +    }
++
 +    /// Count allocated Vec elements without traversing them or counting their children twice.
 +    fn vector<T>(&mut self, value: &Vec<T>) {
 +        self.vector_capacity_bytes += value.capacity() * size_of::<T>();
 +    }
++
 +    /// Count occupied data where the source exposes a slice but keeps capacity private.
 +    fn slice<T>(&mut self, value: &[T]) {
 +        self.exposed_slice_bytes += size_of_val(value);
 +    }
++
 +    /// Count key/value payload only; hash buckets, control bytes and spare slots are excluded.
 +    fn map<K, V>(&mut self, value: &HashMap<K, V>) {
 +        self.occupied_map_entry_bytes += value.len() * size_of::<(K, V)>();
 +    }
++
 +    /// Account child string allocation separately from its already-counted header.
 +    fn string(&mut self, value: &String) {
 +        self.string_capacity_bytes += value.capacity();
@@ -4439,6 +4452,7 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    /// Future in-place source editing must invalidate this cache or replace the Rc session.
 +    pub fn snapshot(&mut self, docs: &[FileDoc]) -> Payload {
 +        let mut matches = docs.len() == self.documents.len();
++
 +        if matches {
 +            for (old, doc) in self.documents.iter().zip(docs) {
 +                if old.as_ptr() != Rc::as_ptr(&doc.session) {
@@ -4447,9 +4461,11 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +                }
 +            }
 +        }
++
 +        if matches {
 +            return self.payload;
 +        }
++
 +        let mut payload = Payload {
 +            scans: self.payload.scans + 1,
 +            ..Payload::default()
@@ -4457,14 +4473,17 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +        let mut seen_sessions = HashSet::new();
 +        let mut seen_geometry = HashSet::new();
 +        self.documents.clear();
++
 +        for doc in docs {
 +            self.documents.push(Rc::downgrade(&doc.session));
++
 +            if seen_sessions.insert(Rc::as_ptr(&doc.session) as usize) {
 +                payload.unique_sessions += 1;
 +                payload.shared_value_bytes += size_of::<Session>();
 +                session_payload(&doc.session, &mut payload, &mut seen_geometry);
 +            }
 +        }
++
 +        self.payload = payload;
 +        payload
 +    }
@@ -4479,6 +4498,7 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    children: fn(&T, &mut Payload),
 +) {
 +    payload.vector(values);
++
 +    for value in values {
 +        shared(value, payload, seen, children);
 +    }
@@ -4493,6 +4513,7 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    if !seen.insert(Rc::as_ptr(value) as usize) {
 +        return;
 +    }
++
 +    payload.unique_geometry_values += 1;
 +    payload.shared_value_bytes += size_of::<T>();
 +    children(value, payload);
@@ -4516,14 +4537,18 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    shared_all(&objects.breps, p, seen, brep_payload);
 +    shared_all(&objects.elements, p, seen, element_payload);
 +    p.vector(&objects.components);
++
 +    for component in &objects.components {
 +        p.string(&component.name);
 +        p.string(&component.type_name);
 +        p.string(&component.guid);
 +    }
++
 +    p.map(&session.lookup);
++
 +    for (name, geometry) in &session.lookup {
 +        p.string(name);
++
 +        match geometry {
 +            Geometry::Point(value) => shared(value, p, seen, point_payload),
 +            Geometry::Line(value) => shared(value, p, seen, line_payload),
@@ -4538,15 +4563,21 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +            Geometry::Element(value) => shared(value, p, seen, element_payload),
 +        }
 +    }
++
 +    p.map(&session.xforms);
++
 +    for name in session.xforms.keys() {
 +        p.string(name);
 +    }
++
 +    p.vector(&session.cached_guids);
++
 +    for name in &session.cached_guids {
 +        p.string(name);
 +    }
++
 +    p.vector(&session.cached_boxes);
++
 +    for value in &session.cached_boxes {
 +        box_payload(value, p);
 +    }
@@ -4557,17 +4588,20 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    p.string(&value.name);
 +    p.string(&value.pointcolor.name);
 +}
++
 +/// Lines expose their dash pattern and name; coordinate storage is inline.
 +fn line_payload(value: &Line, p: &mut Payload) {
 +    p.string(&value.name);
 +    p.vector(&value.dash);
 +    p.string(&value.linecolor.name);
 +}
++
 +/// Plane internals are private; no cloned origin or axes are manufactured for inspection.
 +fn plane_payload(value: &Plane, p: &mut Payload) {
 +    p.string(&value.name);
 +    p.string(&value.linecolor.name);
 +}
++
 +/// Public box center metadata is additional to the enclosing box value.
 +fn box_payload(value: &OBB, p: &mut Payload) {
 +    p.string(&value.name);
@@ -4577,6 +4611,7 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    p.string(&value.z_axis.name);
 +    p.string(&value.half_size.name);
 +}
++
 +/// Polyline coordinates and dash storage are exposed Vec capacities.
 +fn polyline_payload(value: &Polyline, p: &mut Payload) {
 +    p.string(&value.name);
@@ -4585,6 +4620,7 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    plane_payload(&value.plane, p);
 +    p.string(&value.linecolor.name);
 +}
++
 +/// Cloud accessors borrow packed data without allocating Point/Color objects or serialization.
 +fn cloud_payload(value: &PointCloud, p: &mut Payload) {
 +    p.string(&value.name);
@@ -4593,6 +4629,7 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    p.slice(value.normals());
 +    p.slice(value.point_ids());
 +}
++
 +/// Curves expose control, knot and color vector capacities directly.
 +fn curve_payload(value: &NurbsCurve, p: &mut Payload) {
 +    p.string(&value.name);
@@ -4603,6 +4640,7 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    color_names(&value.pointcolors, p);
 +    color_names(&value.linecolors, p);
 +}
++
 +/// Include an actual retained surface mesh cache, without creating one for accounting.
 +fn surface_payload(value: &NurbsSurface, p: &mut Payload) {
 +    p.string(&value.name);
@@ -4615,10 +4653,12 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    color_names(&value.pointcolors, p);
 +    color_names(&value.linecolors, p);
 +    color_names(&value.facecolors, p);
++
 +    if let Some(mesh) = &value.m_mesh {
 +        mesh_payload(mesh, p);
 +    }
 +}
++
 +/// Trim loops and plane-cut arrays belong to the retained trimmed source representation.
 +fn trimmed_payload(value: &NurbsSurfaceTrimmed, p: &mut Payload) {
 +    p.string(&value.name);
@@ -4626,23 +4666,29 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    surface_payload(&value.m_surface, p);
 +    p.vector(&value.m_inner_loops);
 +    p.vector(&value.cut_planes);
++
 +    if let Some(curve) = &value.m_outer_loop {
 +        curve_payload(curve, p);
 +    }
++
 +    for curve in &value.m_inner_loops {
 +        curve_payload(curve, p);
 +    }
++
 +    if let Some(point) = &value.cut_q0 {
 +        point_payload(point, p);
 +    }
++
 +    if let Some(normal) = &value.cut_n {
 +        p.string(&normal.name);
 +    }
++
 +    for (point, normal) in &value.cut_planes {
 +        point_payload(point, p);
 +        p.string(&normal.name);
 +    }
 +}
++
 +/// Account nested topology vectors and their owned curve/surface children exactly once.
 +fn brep_payload(value: &BRep, p: &mut Payload) {
 +    p.string(&value.name);
@@ -4656,37 +4702,48 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    p.vector(&value.m_faces);
 +    p.vector(&value.m_shells);
 +    p.vector(&value.m_solids);
++
 +    for surface in &value.m_surfaces {
 +        surface_payload(surface, p);
 +    }
++
 +    for curve in &value.m_curves_3d {
 +        curve_payload(curve, p);
 +    }
++
 +    for curve in &value.m_curves_2d {
 +        curve_payload(curve, p);
 +    }
++
 +    for vertex in &value.m_vertices {
 +        point_payload(&vertex.point, p);
 +    }
++
 +    for edge in &value.m_edges {
 +        p.vector(&edge.pcurves);
 +    }
++
 +    for wire in &value.m_wires {
 +        p.vector(&wire.edges);
 +    }
++
 +    for face in &value.m_faces {
 +        p.vector(&face.wires);
++
 +        if let Some(color) = &face.facecolor {
 +            p.string(&color.name);
 +        }
 +    }
++
 +    for shell in &value.m_shells {
 +        p.vector(&shell.faces);
 +    }
++
 +    for solid in &value.m_solids {
 +        p.vector(&solid.shells);
 +    }
 +}
++
 +/// Color arrays own public names in addition to their inline RGBA values and headers.
 +fn color_names(values: &[session_rust::Color], p: &mut Payload) {
 +    for color in values {
@@ -4697,55 +4754,73 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +/// String-keyed attribute entry payload excludes the map implementation's bucket metadata.
 +fn attributes_payload(value: &HashMap<String, f64>, p: &mut Payload) {
 +    p.map(value);
++
 +    for key in value.keys() {
 +        p.string(key);
 +    }
 +}
++
 +/// Mesh maps expose occupied entries; vector child capacities remain separately accountable.
 +fn mesh_payload(value: &Mesh, p: &mut Payload) {
 +    p.string(&value.name);
 +    p.map(&value.vertex);
 +    p.map(&value.face);
 +    p.map(&value.halfedge);
++
 +    for vertex in value.vertex.values() {
 +        p.occupied_map_entry_bytes += vertex.attributes.len() * size_of::<(String, f64)>();
++
 +        for key in vertex.attributes.keys() {
 +            p.string(key);
 +        }
 +    }
++
 +    for face in value.face.values() {
 +        p.vector(face);
 +    }
++
 +    for edges in value.halfedge.values() {
 +        p.map(edges);
 +    }
++
 +    p.map(&value.facedata);
++
 +    for attributes in value.facedata.values() {
 +        attributes_payload(attributes, p);
 +    }
++
 +    p.map(&value.edgedata);
++
 +    for attributes in value.edgedata.values() {
 +        attributes_payload(attributes, p);
 +    }
++
 +    attributes_payload(&value.default_vertex_attributes, p);
 +    attributes_payload(&value.default_face_attributes, p);
 +    attributes_payload(&value.default_edge_attributes, p);
 +    p.map(&value.triangulation);
++
 +    for triangles in value.triangulation.values() {
 +        p.vector(triangles);
 +    }
++
 +    p.map(&value.face_holes);
++
 +    for holes in value.face_holes.values() {
 +        p.vector(holes);
++
 +        for hole in holes {
 +            p.vector(hole);
 +        }
 +    }
++
 +    p.vector(&value.tri_tris);
 +    p.vector(&value.tri_vertices);
++
 +    for point in &value.tri_vertices {
 +        point_payload(point, p);
 +    }
++
 +    p.slice(value.get_pointcolors());
 +    p.slice(value.get_linecolors());
 +    p.slice(value.get_facecolors());
@@ -4755,6 +4830,7 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    color_names(value.get_facecolors(), p);
 +    p.string(&value.objectcolor().name);
 +}
++
 +/// Count existing element geometry and public feature payloads without invoking lazy caches.
 +fn element_payload(value: &Element, p: &mut Payload) {
 +    use session_rust::element::ElementGeometry;
@@ -4763,20 +4839,25 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +    p.vector(&value.element_data);
 +    p.vector(&value.features);
 +    p.vector(&value.insertion_vectors);
++
 +    for vector in &value.insertion_vectors {
 +        p.string(&vector.name);
 +    }
++
 +    if let Some(vector) = &value.dimensions {
 +        p.string(&vector.name);
 +    }
++
 +    for feature in &value.features {
 +        p.string(&feature.name);
 +        p.string(&feature.feature_type);
 +        p.vector(&feature.outlines);
++
 +        for outline in &feature.outlines {
 +            polyline_payload(outline, p);
 +        }
 +    }
++
 +    match value.geometry() {
 +        ElementGeometry::Mesh(mesh) => mesh_payload(mesh, p),
 +        ElementGeometry::BRep(brep) => brep_payload(brep, p),
@@ -4864,7 +4945,7 @@ index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba041
 +}
 diff --git a/session_viewer/src/selftest.rs b/session_viewer/src/selftest.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d45c09c72eb61a9ad4aad52acc7ab1544989ec4e
+index 0000000000000000000000000000000000000000..f34bb40273f47fb5034bd5ef5448b951d0ae63cb
 --- /dev/null
 +++ b/session_viewer/src/selftest.rs
 @@ -0,0 +1,389 @@
@@ -4874,10 +4955,10 @@ index 0000000000000000000000000000000000000000..d45c09c72eb61a9ad4aad52acc7ab154
 +
 +use crate::app::manifest::Manifest;
 +use crate::app::scene::{FileDoc, Scene};
++use crate::camera::FOVY_DEG;
 +use crate::camera::{Camera, View};
 +use crate::engine::gpu::{FrameInput, Gpu, Pick};
 +use crate::engine::performance::now_ms;
-+use crate::math::FOVY_DEG;
 +use session_rust::{Session, Xform};
 +use std::rc::Rc;
 +
@@ -5285,10 +5366,10 @@ index aff764f138fe0cf3b57fa29a7b932a2a517a32b0..66701638ad0aa81ec197ffd13b253bf2
  /// Switch live targets, requiring exact restoration after every round trip.
 diff --git a/session_viewer/tests/README.md b/session_viewer/tests/README.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..94e1aaff18e2dc83584032f791c6d76d7bed15dc
+index 0000000000000000000000000000000000000000..69c588b4b51f728c078933fb130e8fbf79f34b01
 --- /dev/null
 +++ b/session_viewer/tests/README.md
-@@ -0,0 +1,214 @@
+@@ -0,0 +1,250 @@
 +# Maintained browser checks
 +
 +Serve the production build with `REGEN_PROTO=0 NO_COLOR=true trunk serve` on port 8770.
@@ -5503,6 +5584,42 @@ index 0000000000000000000000000000000000000000..94e1aaff18e2dc83584032f791c6d76d
 +depth-gradient attachments. The interaction fixture uses T to expose short selected strokes
 +and accepts their antialiased yellow coverage; the separate nameplate fixture verifies
 +the default centered white/black label and T persistence.
++
++`node tests/editing-extensions.cjs` runs five configurations against the supplied nested fixture: desktop, smaller viewport, perspective, 2× DPI and resize. Each checks tree/graph selection and hide/show, creation, trim/extend, explode/undo, all four gumball gestures, control commit/cancel and widget memory release. It writes `docs/extensions/rounds.json`; a browser without an adapter fails the run.
++
++`node docs/extensions/capture.cjs` records real tutorial screenshots and their inspection state in `docs/extensions/screenshots.json`. Both scripts use `CHROME_BIN`, `VIEWER_URL` and JSON `VIEWER_CHROME_ARGS`. They inherit GPU environment variables from the shell and close their own browser contexts.
++
++## Docked workspace and source edits
++
++`node tests/docked-workspace.cjs` checks the bottom command area, left toolbar and
++right Layers panel at desktop DPR 1/2 and a 390×844 phone viewport. It uses real
++browser touch events for gumball commit, cancellation and second-finger cancellation,
++and downloads then reopens a complete `.session` file. Captures and saved files go
++to `/tmp/viewer-docked-workspace` (`VIEWER_TEST_OUTPUT` overrides it).
++
++`node tests/source-editing.cjs` checks mesh, NURBS surface and BRep face/edge edits,
++then moves an original mesh vertex with the touch gumball and undoes the change.
++Every subobject edit preserves its parent placement. Generate its fixture first:
++
++```sh
++REGEN_PROTO=0 cargo run --target x86_64-unknown-linux-gnu --example interaction_fixture -- /tmp/viewer-interaction.pb
++node tests/source-editing.cjs
++```
++
++Both checks use the Chrome and environment settings described above. Mobile coverage
++uses Chrome touch emulation; physical iOS/Android devices have not been tested.
++Native `app::deform` and `app::session_io` tests cover sparse source mesh IDs,
++rational weights, joined BRep box boundaries, snapshot serialization and live undo.
++General BRep edits requiring trim reconstruction and exporting partially streamed
++scenes remain unsupported and return an error.
++
++`node tests/live-shell-editing.cjs` checks real Ctrl+Shift shell dragging and release, retained source edits, undo, and visible Point creation hints. `VIEWER_STRESS=1` also loads the bunny mesh and 342,000-point cloud to catch full-scene rebuilds during an edit.
++
++`node tests/layer-workspace.cjs` checks a single expandable layer tree, descendant visibility, selection locks and color changes, then saves/reopens the session and unlocks the same objects. Its full-viewer capture is written to `/tmp/viewer-layer-workspace/layers.png`.
++
++Run `node tests/splitting.cjs` with the same Playwright/Chrome environment for curve creation and Split, joined-face topology, touch confirmation, cancellation and Save/Open.
++
++`node tests/color-channels.cjs` checks rendered face and edge colors independently, Original resets, legacy-compatible Save/Open and captures the full viewer for current lesson 11. `node tests/large-object-dragging.cjs` loads the bundled bunny mesh and 342k-point lion, measures real pointer dragging and release, and verifies that the cloud image moves with a stationary camera. Use the same headed Chrome/WebGPU environment and `VIEWER_URL` as the other browser checks.
 diff --git a/session_viewer/tests/cad-boundary-plot.py b/session_viewer/tests/cad-boundary-plot.py
 new file mode 100644
 index 0000000000000000000000000000000000000000..0f8b20603fd1747e9de33d48077a3bba99a175ea
@@ -6694,10 +6811,10 @@ index 0000000000000000000000000000000000000000..8b1b252cf0a95bf96d935b1667103ea9
 +    sys.exit(main())
 diff --git a/session_viewer/tests/interaction.cjs b/session_viewer/tests/interaction.cjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..0ee45dff28ad166e46e2228ea08563f472474fce
+index 0000000000000000000000000000000000000000..c972ed86484d4d733e1ade0f4064a164f31d05f4
 --- /dev/null
 +++ b/session_viewer/tests/interaction.cjs
-@@ -0,0 +1,159 @@
+@@ -0,0 +1,160 @@
 +/** Real canvas gestures over deterministic source geometry. See tests/README.md. */
 +const assert=require('node:assert/strict');
 +const fs=require('node:fs/promises');
@@ -6740,6 +6857,7 @@ index 0000000000000000000000000000000000000000..0ee45dff28ad166e46e2228ea08563f4
 +    const parents=new Set();
 +    for(const spec of cases){
 +      await key(page,'Escape');
++      await key(page,'f');
 +      let state=await snapshot(page);
 +      await click(page,project(state,spec.pick));
 +      state=await snapshot(page);
@@ -6792,7 +6910,7 @@ index 0000000000000000000000000000000000000000..0ee45dff28ad166e46e2228ea08563f4
 +    assert.equal(parents.size,cases.length,'each disjoint specimen must resolve its own parent');
 +    // A thin source mesh border: CSS tolerance must behave the same at both device scales.
 +    const line=findKind(cases,'brep');
-+    await key(page,'Escape');let state=await snapshot(page),at=project(state,line.edge);
++    await key(page,'Escape');await key(page,'f');let state=await snapshot(page),at=project(state,line.edge);
 +    await click(page,[at[0],at[1]+5],true);state=await snapshot(page);
 +    assert(state.selection.Edge,'five CSS pixels from source edge must hit');
 +    await key(page,'Escape');await click(page,[at[0],at[1]+10],true);
@@ -6812,8 +6930,8 @@ index 0000000000000000000000000000000000000000..0ee45dff28ad166e46e2228ea08563f4
 +}
 +/** Retrieve the last submitted read-only state for assertions. */
 +async function snapshot(page){return page.evaluate(readSnapshot);}
-+/** Wait for a new submitted observation and completed picking, never a stale idle snapshot. */
-+async function settled(page,after){await page.waitForFunction(pickFinished,after);}
++/** Let input enter the frame loop before testing completion; an egui hover frame can arrive first. */
++async function settled(page,after){await page.waitForTimeout(150);await page.waitForFunction(pickFinished,after);}
 +/** Send a canvas-focused keyboard action and await its resulting state. */
 +async function key(page,value){const before=(await snapshot(page)).submitted_at_ms;await page.keyboard.press(value);await settled(page,before);}
 +/** Send one ordinary or Ctrl click without duplicating application selection logic. */

@@ -1,13 +1,14 @@
-//! Source-text layout, identity and physical placement. Fonts and shaped runs live here;
-//! the GPU lane owns Glyphon's atlas and draw resources. PDF outlines remain mesh data.
-
 use glyphon::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap, fontdb};
 use serde::Serialize;
 
 pub const FONT_FAMILY: &str = "Noto Sans";
+
 pub const FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.ttf");
+
 pub const SYMBOL_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols-Regular.ttf");
+
 pub const FALLBACK_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols2-Regular.ttf");
+
 /// Bound a submitted text document independently of available GPU memory.
 const MAX_TEXT_BYTES: usize = 256 * 1024;
 
@@ -22,24 +23,21 @@ pub enum TextPlacement {
         world: [f64; 3],
         offset: [f32; 2],
     },
-    /// Center a fixed-CSS label and black plate on a world anchor. This annotation overlays
-    /// the scene, so a selected solid's interior bounds center cannot hide its own name.
     Nameplate {
+        // Center a fixed-CSS label and black plate on a world anchor. This annotation overlays the scene, so a selected solid's interior bounds center cannot hide its own name.
         world: [f64; 3],
-        /// Horizontal and vertical inset around the shaped line box, in CSS pixels.
-        padding: [f32; 2],
-        /// Round all corners to half the shorter plate side when true.
-        rounded: bool,
+        padding: [f32; 2], // Horizontal and vertical inset around the shaped line box, in CSS pixels.
+        rounded: bool,     // Round all corners to half the shorter plate side when true.
     },
-    /// Fixed world plane: top-left line origin, orthonormal right/up axes, and world em height.
     WorldPlane {
+        // Fixed world plane: top-left line origin, orthonormal right/up axes, and world em height.
         world: [f64; 3],
         right: [f64; 3],
         up: [f64; 3],
         world_height: f64,
     },
-    /// Camera-facing text whose em height is measured in scene world units.
     WorldBillboard {
+        // Camera-facing text whose em height is measured in scene world units.
         world: [f64; 3],
         world_height: f64,
     },
@@ -62,8 +60,7 @@ pub struct TextLabel {
     pub line_height: f32,
     pub color: [u8; 4],
     pub placement: TextPlacement,
-    /// Left, top, right, bottom in canvas CSS coordinates; never inferred from glyph bounds.
-    pub clip: Option<[f32; 4]>,
+    pub clip: Option<[f32; 4]>, // Left, top, right, bottom in canvas CSS coordinates; never inferred from glyph bounds.
 }
 
 impl TextLabel {
@@ -90,8 +87,7 @@ pub struct TextDocument {
     pub revision: u64,
     pub font_revision: u64,
     pub shape_count: u64,
-    /// Accumulated shaping time; the GPU lane reports combined preparation time separately.
-    pub shaping_ms: f64,
+    pub shaping_ms: f64, // Accumulated shaping time; the GPU lane reports combined preparation time separately.
 }
 
 impl TextDocument {
@@ -112,26 +108,33 @@ impl TextDocument {
     pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
         let mut bytes = 0usize;
         let mut ids = std::collections::HashSet::new();
+
         for label in &labels {
             bytes = bytes.saturating_add(label.text.len());
             anyhow::ensure!(bytes <= MAX_TEXT_BYTES, "text document exceeds 256 KiB");
             anyhow::ensure!(ids.insert(label.id), "duplicate text label ID {}", label.id);
             validate_label(label)?;
         }
+
         if self.runs.len() == labels.len() {
             let mut unchanged = true;
+
             for (run, label) in self.runs.iter().zip(&labels) {
                 unchanged &= run.label == *label;
             }
+
             if unchanged {
                 return Ok(());
             }
         }
+
         let previous = std::mem::take(&mut self.runs);
         let mut previous_by_id = std::collections::HashMap::new();
+
         for run in previous {
             previous_by_id.insert(run.label.id, run);
         }
+
         for label in labels {
             let old = previous_by_id.remove(&label.id);
             let buffer = match old {
@@ -146,6 +149,7 @@ impl TextDocument {
             };
             self.runs.push(TextRun { label, buffer });
         }
+
         self.revision = self.revision.wrapping_add(1);
         Ok(())
     }
@@ -154,6 +158,7 @@ impl TextDocument {
     /// The caller must supply the primary family and any desired fallback faces together.
     pub fn replace_fonts(&mut self, sources: Vec<Vec<u8>>) -> anyhow::Result<()> {
         let mut db = fontdb::Database::new();
+
         for bytes in sources {
             let before = db.faces().count();
             db.load_font_data(bytes);
@@ -162,15 +167,18 @@ impl TextDocument {
                 "font data contains no usable face"
             );
         }
+
         anyhow::ensure!(db.faces().count() > 0, "font set is empty");
         db.set_sans_serif_family(FONT_FAMILY);
         self.fonts = FontSystem::new_with_locale_and_db("en-US".into(), db);
+
         for run in &mut self.runs {
             let started = crate::engine::performance::now_ms();
             run.buffer = shape(&mut self.fonts, &run.label);
             self.shaping_ms += crate::engine::performance::now_ms() - started;
             self.shape_count += 1;
         }
+
         self.font_revision = self.font_revision.wrapping_add(1);
         self.revision = self.revision.wrapping_add(1);
         Ok(())
@@ -186,6 +194,7 @@ impl TextDocument {
     /// Export source clusters and logical metrics before rasterization for regression tools.
     pub fn diagnostics(&self) -> Vec<GlyphDiagnostic> {
         let mut out = Vec::new();
+
         for run in &self.runs {
             for line in run.buffer.layout_runs() {
                 for glyph in line.glyphs {
@@ -207,6 +216,7 @@ impl TextDocument {
                 }
             }
         }
+
         out
     }
 }
@@ -280,12 +290,14 @@ fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
         } => world.iter().all(finite_f64) && world_height.is_finite() && world_height > 0.0,
     };
     anyhow::ensure!(valid_placement, "invalid text placement");
+
     if let Some(c) = label.clip {
         anyhow::ensure!(
             c.iter().all(finite_f32) && c[2] >= c[0] && c[3] >= c[1],
             "invalid text clip rectangle"
         );
     }
+
     Ok(())
 }
 
@@ -294,11 +306,13 @@ fn valid_plane_axes(right: [f64; 3], up: [f64; 3]) -> bool {
     let mut right_length = 0.0;
     let mut up_length = 0.0;
     let mut dot = 0.0;
+
     for axis in 0..3 {
         right_length += right[axis] * right[axis];
         up_length += up[axis] * up[axis];
         dot += right[axis] * up[axis];
     }
+
     (right_length.sqrt() - 1.0).abs() <= 1e-6
         && (up_length.sqrt() - 1.0).abs() <= 1e-6
         && dot.abs() <= 1e-6
@@ -308,6 +322,7 @@ fn valid_plane_axes(right: [f64; 3], up: [f64; 3]) -> bool {
 fn finite_f32(value: &f32) -> bool {
     value.is_finite()
 }
+
 /// Iterator adapter for finite world coordinate validation.
 fn finite_f64(value: &f64) -> bool {
     value.is_finite()
@@ -387,6 +402,7 @@ mod tests {
     fn has_glyph(glyph: &GlyphDiagnostic) -> bool {
         glyph.glyph != 0
     }
+
     /// Detect source clusters spanning multiple UTF-8 bytes.
     fn multi_byte_cluster(glyph: &GlyphDiagnostic) -> bool {
         glyph.cluster[1] - glyph.cluster[0] > 1
@@ -436,9 +452,11 @@ mod tests {
         let glyphs = doc.diagnostics();
         assert!(glyphs.iter().all(has_glyph));
         let mut faces = std::collections::HashSet::new();
+
         for glyph in glyphs {
             faces.insert(glyph.font);
         }
+
         assert!(
             faces.len() >= 2,
             "sample must exercise explicit font fallback"

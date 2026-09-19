@@ -1,4 +1,3 @@
-//! Physical face drawing and original face identities over the arena's shared triangles.
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::frame::Binds;
 use crate::engine::pipelines::{ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build};
@@ -19,8 +18,7 @@ pub struct Faces {
     ids: GrowBuf,
     selected: wgpu::Buffer,
     active: Option<u32>,
-    /// Counts highlight changes, so a cached coverage mask knows it is stale.
-    revision: u64,
+    revision: u64, // Counts highlight changes, so a cached coverage mask knows it is stale.
     layout: wgpu::BindGroupLayout,
     group: Option<wgpu::BindGroup>,
     pipes: FacePipelines,
@@ -157,6 +155,7 @@ impl Faces {
         if sub & 0xe000_0000 != FACE_TAG {
             return None;
         }
+
         let address = sub & !FACE_TAG;
         let source = *self.sources.get(address as usize)?;
         (source.parent == row).then_some((address, source))
@@ -185,26 +184,32 @@ impl Faces {
     pub fn draw_physical(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
         self.draw(pass, binds, &self.pipes.physical)
     }
+
     /// Preserve parent-object identity while carrying physical triangle provenance.
     pub fn draw_object_ids(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
         self.draw(pass, binds, &self.pipes.object_ids)
     }
+
     /// One source-ID draw over the shared index run.
     pub fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
         self.draw(pass, binds, &self.pipes.pick)
     }
+
     /// Color only the selected source face, against immutable physical depth.
     pub fn draw_highlight(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
         if self.active.is_none() {
             return 0;
         }
+
         self.draw(pass, binds, &self.pipes.highlight)
     }
+
     /// Add just the selected face to the normal selection outline mask.
     pub fn draw_mask(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
         if self.active.is_none() {
             return 0;
         }
+
         self.draw(pass, binds, &self.pipes.mask)
     }
 
@@ -213,6 +218,7 @@ impl Faces {
         if self.active.is_none() {
             return 0;
         }
+
         self.draw(pass, binds, &self.pipes.masks)
     }
 
@@ -220,6 +226,7 @@ impl Faces {
     pub fn revision(&self) -> u64 {
         self.revision
     }
+
     /// Vertex pulling uses the arena's exact position, normal, color and triangle indices.
     fn draw(
         &self,
@@ -230,15 +237,18 @@ impl Faces {
         let Some(group) = &self.group else {
             return 0;
         };
+
         if self.ids.is_empty() {
             return 0;
         }
+
         pass.set_pipeline(pipeline);
         binds.set(pass);
         pass.set_bind_group(3, group, &[]);
         pass.draw(0..self.ids.len() * 3, 0..1);
         1
     }
+
     /// Forget scene identities and references before arena buffers are reused.
     pub fn reset(&mut self, ctx: &GpuCtx) {
         self.select(ctx, None);
@@ -246,12 +256,14 @@ impl Faces {
         self.sources.clear();
         self.group = None;
     }
+
     /// Release all variable-size storage with the rest of the arena.
     pub fn release(&mut self, ctx: &GpuCtx) {
         self.reset(ctx);
         self.ids.release(ctx);
         self.sources.shrink_to_fit();
     }
+
     /// Exact owned GPU buffer capacity; the vertex/index buffers remain owned by the arena.
     pub fn allocated_bytes(&self) -> u64 {
         self.ids.buf.size() + self.selected.size()

@@ -1,8 +1,13 @@
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 
 struct TileLine {
-    thickness: f32, proj_y: f32, ortho_h: f32, vp_h: f32, vp_w: f32
+    thickness: f32,
+    proj_y: f32,
+    ortho_h: f32,
+    vp_h: f32,
+    vp_w: f32,
 };
+
 @group(1) @binding(0) var<uniform> line: TileLine;
 @group(3) @binding(0) var<storage, read> projected: array<ProjectedTriangle>;
 
@@ -13,6 +18,7 @@ struct TileLine {
 struct TileRecord {
     values: array<atomic<u32>, 4>
 };
+
 @group(3) @binding(1) var<storage, read_write> tile_records: array<TileRecord>;
 
 struct TileVertex {
@@ -27,13 +33,16 @@ struct TileVertex {
     @location(7) @interpolate(flat) reference: vec3<f32>,
 };
 
-@vertex fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance: u32) -> TileVertex {
+@vertex
+fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance: u32) -> TileVertex {
     let triangle = projected[instance];
     var out: TileVertex;
     out.clip = vec4<f32>(2.0, 2.0, 0.0, 1.0);
+
     if (triangle.edge3.w<3.0) {
         return out;
     }
+
     let size = ceil(vec2<f32>(line.vp_w, line.vp_h)/f32(visibility_tile_span()));
     let lo = clamp(floor((triangle.bounds.xy-0.00390625)/f32(visibility_tile_span())), vec2<f32>(0.0), size);
     let hi = clamp(floor((triangle.bounds.zw+0.00390625)/f32(visibility_tile_span()))+1.0, vec2<f32>(0.0), size);
@@ -57,30 +66,38 @@ fn tile_outside(edge: vec3<f32>, centre: vec2<f32>) -> bool {
 
 fn covered_tile(v: TileVertex) -> u32 {
     let centre = (floor(v.clip.xy)+0.5)*f32(visibility_tile_span());
+
     if (tile_outside(v.edge0, centre) || tile_outside(v.edge1, centre) || tile_outside(v.edge2, centre) || tile_outside(v.edge3, centre)) {
         discard;
     }
+
     let size = vec2<u32>(ceil(vec2<f32>(line.vp_w, line.vp_h)/f32(visibility_tile_span())));
     let tile = 1u+u32(v.clip.y)*size.x+u32(v.clip.x);
     return tile;
 }
 
-@fragment fn fs_count(v: TileVertex) -> @location(0) f32 {
+@fragment
+fn fs_count(v: TileVertex) -> @location(0) f32 {
     let tile = covered_tile(v);
     atomicAdd(&tile_records[tile].values[0], 1u);
     return 0.0;
 }
 
-@fragment fn fs_fill(v: TileVertex) -> @location(0) f32 {
+@fragment
+fn fs_fill(v: TileVertex) -> @location(0) f32 {
     let tile = covered_tile(v);
+
     if (atomicLoad(&tile_records[tile].values[3])!=0u) {
         return 0.0;
     }
+
     let cursor = atomicAdd(&tile_records[tile].values[2], 1u);
+
     if (cursor>=atomicLoad(&tile_records[tile].values[0])) {
         atomicStore(&tile_records[tile].values[3], 1u);
         return 0.0;
     }
+
     let offset = atomicLoad(&tile_records[tile].values[1])+cursor*2u;
     atomicStore(&tile_records[offset/4u].values[offset%4u], v.primitive);
     let centre = (floor(v.clip.xy)+0.5)*f32(visibility_tile_span());

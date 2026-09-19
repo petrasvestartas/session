@@ -1,372 +1,39 @@
-diff --git a/session_cpp/src/nurbssurface_trimmed.cpp b/session_cpp/src/nurbssurface_trimmed.cpp
-index 5b72bb6ffe767a168716ede83f491e2678ba511b..1a45876224d9ef0b8a092e579a81a48413e3d19b 100644
---- a/session_cpp/src/nurbssurface_trimmed.cpp
-+++ b/session_cpp/src/nurbssurface_trimmed.cpp
-@@ -1532,9 +1532,14 @@ Mesh NurbsSurfaceTrimmed::triangulate(const TrimLoops& loops, double max_angle_d
-     for (size_t vi = 0; vi < vert_map.size(); ++vi) {
-         if (vert_map[vi] == SIZE_MAX) continue;
-         VertexData& vd = result.vertex[vert_map[vi]];
--        Vector nrm = m_surface.normal_at(dt.vertices[vi].x, dt.vertices[vi].y);
-+        // normal_at's singular +Z sentinel is not a valid analytic face normal.
-+        auto derivatives = m_surface.evaluate(dt.vertices[vi].x, dt.vertices[vi].y, 1);
-+        Vector nrm(0.0, 0.0, 0.0);
-+        if (derivatives.size() >= 3) nrm = derivatives[2].cross(derivatives[1]);
-         double nl = std::sqrt(nrm[0]*nrm[0] + nrm[1]*nrm[1] + nrm[2]*nrm[2]);
--        if (!std::isfinite(nl) || nl <= 0.0) {
-+        if (std::isfinite(nl) && nl > 0.0) {
-+            nrm = Vector(nrm[0]/nl, nrm[1]/nl, nrm[2]/nl);
-+        } else {
-             auto f = fan.count(vert_map[vi]) ? fan[vert_map[vi]] : std::array<double,3>{0.0, 0.0, 1.0};
-             double fl = std::sqrt(f[0]*f[0] + f[1]*f[1] + f[2]*f[2]);
-             nrm = std::isfinite(fl) && fl > 0.0 ? Vector(f[0]/fl, f[1]/fl, f[2]/fl) : Vector(0.0, 0.0, 1.0);
-diff --git a/session_cpp/src/nurbssurface_trimmed_test.cpp b/session_cpp/src/nurbssurface_trimmed_test.cpp
-index c4c16508dd6d86dde27edd1beed91c5bd7ee1442..a5243bde664ab34ae747b58916f5247d6455333c 100644
---- a/session_cpp/src/nurbssurface_trimmed_test.cpp
-+++ b/session_cpp/src/nurbssurface_trimmed_test.cpp
-@@ -17,6 +17,25 @@ using namespace session_cpp::mini_test;
- 
- namespace session_cpp {
- 
-+// A collapsed planar corner takes its own triangle fan, never normal_at's +Z sentinel.
-+MINI_TEST("NurbsSurfaceTrimmed", "Singular Planar Normal") {
-+    NurbsSurfaceTrimmed trimmed;
-+    trimmed.m_surface = NurbsSurface::create(false,false,1,1,2,2,{
-+        Point(-1,0,0),Point(0,0,1),Point(1,0,0),Point(0,0,1)});
-+    TrimLoops loops;
-+    loops.uv = {{Point(0,0,0),Point(1,0,0),Point(1,1,0),Point(0,1,0)}};
-+    Mesh mesh = trimmed.mesh_loops(loops,5.0,0.001);
-+    MINI_CHECK(!mesh.face.empty());
-+    bool apex = false;
-+    for (const auto& [key, vertex] : mesh.vertex) {
-+        auto normal = vertex.normal().value();
-+        MINI_CHECK(std::abs(normal[0]) < 1e-12 && std::abs(normal[2]) < 1e-12);
-+        MINI_CHECK(std::abs(std::abs(normal[1])-1.0) < 1e-12);
-+        apex = apex || vertex.z == 1.0;
-+    }
-+    MINI_CHECK(apex);
-+}
-+
- MINI_TEST("NurbsSurfaceTrimmed", "Crease Loops") {
-     NurbsSurfaceTrimmed ts;
-     ts.m_surface = NurbsSurface::create(false, false, 1, 1, 3, 2, {
-diff --git a/session_cpp/src/remesh_nurbssurface_grid.cpp b/session_cpp/src/remesh_nurbssurface_grid.cpp
-index b9d5d535a54041c378091de225c7397c6593cd99..0070ad87e457503b61afcad7ff4414eb5e78b4a8 100644
---- a/session_cpp/src/remesh_nurbssurface_grid.cpp
-+++ b/session_cpp/src/remesh_nurbssurface_grid.cpp
-@@ -459,7 +459,10 @@ Mesh RemeshNurbsSurfaceGrid::from_u_v_q(const NurbsSurface& s, int max_u, int ma
-         bool is_pole = (sing_v0 && i == south_pole) || (sing_v1 && i == north_pole);
-         // Surface normals preserve smooth interiors; singular poles use adjacent facets.
-         if (!is_pole && u != vd.attributes.end() && v != vd.attributes.end()) {
--            Vector na = s.normal_at(u->second, v->second);
-+            // Reject normal_at's singular +Z sentinel, including U-collapsed corners.
-+            auto derivatives = s.evaluate(u->second, v->second, 1);
-+            Vector na(0.0, 0.0, 0.0);
-+            if (derivatives.size() >= 3) na = derivatives[2].cross(derivatives[1]);
-             double nl = std::sqrt(na[0]*na[0] + na[1]*na[1] + na[2]*na[2]);
-             if (std::isfinite(nl) && nl > 0.0) {
-                 nx = na[0] / nl; ny = na[1] / nl; nz = na[2] / nl;
-diff --git a/session_cpp/src/remesh_nurbssurface_grid_test.cpp b/session_cpp/src/remesh_nurbssurface_grid_test.cpp
-index 474f1ef31234c8e5eb61d07fa89aa6eb861f26bd..dd8378833d60b19eaded1154f04c288c365892a0 100644
---- a/session_cpp/src/remesh_nurbssurface_grid_test.cpp
-+++ b/session_cpp/src/remesh_nurbssurface_grid_test.cpp
-@@ -8,6 +8,28 @@ using namespace session_cpp::mini_test;
- 
- namespace session_cpp {
- 
-+// U-collapsed corners retain their fan normal on every nondegenerate triangle.
-+MINI_TEST("RemeshNurbsSurfaceGrid", "Singular Planar Normal") {
-+    NurbsSurface surface = NurbsSurface::create(false,false,1,1,2,2,{
-+        Point(0,0,1),Point(0,0,1),Point(-1,0,0),Point(1,0,0)});
-+    Mesh mesh = RemeshNurbsSurfaceGrid::from_u_v_q(surface,0,0,5.0,0.001);
-+    bool apex = false;
-+    for (const auto& [key, face] : mesh.face) {
-+        const auto& a = mesh.vertex.at(face[0]);
-+        const auto& b = mesh.vertex.at(face[1]);
-+        const auto& c = mesh.vertex.at(face[2]);
-+        if (std::abs((b.x-a.x)*(c.z-a.z)-(b.z-a.z)*(c.x-a.x)) <= 1e-14) continue;
-+        for (size_t vertex_key : face) {
-+            const auto& vertex = mesh.vertex.at(vertex_key);
-+            auto normal = vertex.normal().value();
-+            MINI_CHECK(std::abs(normal[0]) < 1e-12 && std::abs(normal[2]) < 1e-12);
-+            MINI_CHECK(std::abs(std::abs(normal[1])-1.0) < 1e-12);
-+            apex = apex || vertex.z == 1.0;
-+        }
-+    }
-+    MINI_CHECK(apex);
-+}
-+
- MINI_TEST("RemeshNurbsSurfaceGrid", "Crease Normals") {
-     NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 3, 2, {
-         Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),
-diff --git a/session_py/src/session_py/nurbssurface_trimmed.py b/session_py/src/session_py/nurbssurface_trimmed.py
-index be23339fdcedd12524753896f18ae91d2c037cdd..1aba7d2be0ba24279e96237168a63398d756b5ac 100644
---- a/session_py/src/session_py/nurbssurface_trimmed.py
-+++ b/session_py/src/session_py/nurbssurface_trimmed.py
-@@ -1386,10 +1386,16 @@ class NurbsSurfaceTrimmed:
-             if vert_map[vi] is not None:
-                 u = dt.vertices[vi].x
-                 v = dt.vertices[vi].y
--                nrm = self.m_surface.normal_at(u, v)
--                nrm = [nrm[0], nrm[1], nrm[2]]
-+                # normal_at's singular +Z sentinel must not bypass this face's fan.
-+                derivatives = self.m_surface.evaluate(u, v, 1)
-+                nrm = [0.0, 0.0, 0.0]
-+                if len(derivatives) >= 3:
-+                    normal = derivatives[2].cross(derivatives[1])
-+                    nrm = [normal[0], normal[1], normal[2]]
-                 nl = math.sqrt(nrm[0]*nrm[0] + nrm[1]*nrm[1] + nrm[2]*nrm[2])
--                if not math.isfinite(nl) or nl <= 0.0:
-+                if math.isfinite(nl) and nl > 0.0:
-+                    nrm = [nrm[0]/nl, nrm[1]/nl, nrm[2]/nl]
-+                else:
-                     f = fan.get(vert_map[vi], [0.0, 0.0, 1.0])
-                     fl = math.sqrt(f[0]*f[0] + f[1]*f[1] + f[2]*f[2])
-                     nrm = [f[0]/fl, f[1]/fl, f[2]/fl] if math.isfinite(fl) and fl > 0.0 else [0.0, 0.0, 1.0]
-diff --git a/session_py/src/session_py/nurbssurface_trimmed_test.py b/session_py/src/session_py/nurbssurface_trimmed_test.py
-index 8bff7ef7f450971e8687f0412228a7b98fa66bd6..7e6daf4dbf0f7efdf31e8e96a8d04bb4f695928f 100644
---- a/session_py/src/session_py/nurbssurface_trimmed_test.py
-+++ b/session_py/src/session_py/nurbssurface_trimmed_test.py
-@@ -554,5 +554,25 @@ def test_nurbssurface_trimmed_crease_loops():
-         MINI_CHECK(not (.8 < sum(us)/3 < 1.2 and .4 < sum(vs)/3 < .6))
- 
- 
-+@MINI_TEST("NurbsSurfaceTrimmed", "Singular Planar Normal")
-+def test_nurbssurface_trimmed_singular_planar_normal():
-+    """A collapsed planar corner uses its own fan instead of the singular +Z sentinel."""
-+    from session_py import NurbsSurface, NurbsSurfaceTrimmed, Point, TrimLoops
-+    trimmed = NurbsSurfaceTrimmed()
-+    trimmed.m_surface = NurbsSurface.create(False,False,1,1,2,2,[
-+        Point(-1,0,0),Point(0,0,1),Point(1,0,0),Point(0,0,1)])
-+    loops = TrimLoops()
-+    loops.uv = [[Point(0,0,0),Point(1,0,0),Point(1,1,0),Point(0,1,0)]]
-+    mesh = trimmed.mesh_loops(loops,5.0,0.001)
-+    MINI_CHECK(bool(mesh.face))
-+    apex = False
-+    for vertex in mesh.vertex.values():
-+        normal = vertex.normal()
-+        MINI_CHECK(abs(normal[0]) < 1e-12 and abs(normal[2]) < 1e-12)
-+        MINI_CHECK(abs(abs(normal[1])-1.0) < 1e-12)
-+        apex = apex or vertex.z == 1.0
-+    MINI_CHECK(apex)
-+
-+
- if __name__ == "__main__":
-     run_all("python")
-diff --git a/session_py/src/session_py/remesh_nurbssurface_grid.py b/session_py/src/session_py/remesh_nurbssurface_grid.py
-index 6d9173c8efcea391c2ccca9ab8fd206ef2c78210..a979f0c4dfe592101d45f9822709d60975f32dc0 100644
---- a/session_py/src/session_py/remesh_nurbssurface_grid.py
-+++ b/session_py/src/session_py/remesh_nurbssurface_grid.py
-@@ -387,7 +387,12 @@ class RemeshNurbsSurfaceGrid:
-                 is_pole = (sing_v0 and vk == south_pole) or (sing_v1 and vk == north_pole)
-                 # Surface normals preserve smooth interiors; singular poles use adjacent facets.
-                 if not is_pole and u is not None and v is not None:
--                    na = s.normal_at(u, v)
-+                    # Reject normal_at's singular +Z sentinel, including U-collapsed corners.
-+                    derivatives = s.evaluate(u, v, 1)
-+                    na = [0.0, 0.0, 0.0]
-+                    if len(derivatives) >= 3:
-+                        normal = derivatives[2].cross(derivatives[1])
-+                        na = [normal[0], normal[1], normal[2]]
-                     nl = math.sqrt(na[0]*na[0] + na[1]*na[1] + na[2]*na[2])
-                     if math.isfinite(nl) and nl > 0.0:
-                         nx, ny, nz = na[0] / nl, na[1] / nl, na[2] / nl
-diff --git a/session_py/src/session_py/remesh_nurbssurface_grid_test.py b/session_py/src/session_py/remesh_nurbssurface_grid_test.py
-index 9ac6fff229ce0a05207a0f69d01869fb2b8b20dd..f79ab11d89c994eeba49bd26e5dc84e033612308 100644
---- a/session_py/src/session_py/remesh_nurbssurface_grid_test.py
-+++ b/session_py/src/session_py/remesh_nurbssurface_grid_test.py
-@@ -4,6 +4,26 @@ from .mini_test import run_all
- from .tolerance import Tolerance
- 
- 
-+@MINI_TEST("RemeshNurbsSurfaceGrid", "Singular Planar Normal")
-+def test_remesh_nurbssurface_grid_singular_planar_normal():
-+    """U-collapsed corners retain their fan normal on every nondegenerate triangle."""
-+    from session_py import NurbsSurface, Point, RemeshNurbsSurfaceGrid
-+    surface = NurbsSurface.create(False,False,1,1,2,2,[
-+        Point(0,0,1),Point(0,0,1),Point(-1,0,0),Point(1,0,0)])
-+    mesh = RemeshNurbsSurfaceGrid.from_u_v_q(surface,0,0,5.0,0.001)
-+    apex = False
-+    for face in mesh.face.values():
-+        a,b,c = [mesh.vertex[key] for key in face]
-+        if abs((b.x-a.x)*(c.z-a.z)-(b.z-a.z)*(c.x-a.x)) <= 1e-14:
-+            continue
-+        for vertex in (a,b,c):
-+            normal = vertex.normal()
-+            MINI_CHECK(abs(normal[0]) < 1e-12 and abs(normal[2]) < 1e-12)
-+            MINI_CHECK(abs(abs(normal[1])-1.0) < 1e-12)
-+            apex = apex or vertex.z == 1.0
-+    MINI_CHECK(apex)
-+
-+
- @MINI_TEST("RemeshNurbsSurfaceGrid", "Analytic Normals")
- def test_remesh_nurbssurface_grid_analytic_normals():
-     from session_py import RemeshNurbsSurfaceGrid
-diff --git a/session_rust/src/mini_test.rs b/session_rust/src/mini_test.rs
-index b9fefd5e07e82f208ee9e1722d0c36e6bd3440f3..c6f9b49b15068d3f3bd454b265adc1d005cdd236 100644
---- a/session_rust/src/mini_test.rs
-+++ b/session_rust/src/mini_test.rs
-@@ -1862,6 +1862,7 @@ pub fn get_all_tests() -> Vec<RegisteredTest> {
-             func: run_solve_banded_spd,
-         },
-         // NurbsSurfaceTrimmed tests
-+        RegisteredTest { group: "NurbsSurfaceTrimmed", name: "Singular Planar Normal", func: run_nurbssurface_trimmed_singular_planar_normal },
-         RegisteredTest { group: "NurbsSurfaceTrimmed", name: "Crease Loops", func: run_nurbssurface_trimmed_crease_loops },
-         RegisteredTest {
-             group: "NurbsSurfaceTrimmed",
-@@ -3388,6 +3389,7 @@ pub fn get_all_tests() -> Vec<RegisteredTest> {
-             func: run_remesh_nurbssurface_grid_crease_normals,
-         },
-         // RemeshNurbsSurfaceGrid tests
-+        RegisteredTest { group: "RemeshNurbsSurfaceGrid", name: "Singular Planar Normal", func: run_remesh_nurbssurface_grid_singular_planar_normal },
-         RegisteredTest {
-             group: "RemeshNurbsSurfaceGrid",
-             name: "Analytic Normals",
-diff --git a/session_rust/src/nurbssurface_trimmed.rs b/session_rust/src/nurbssurface_trimmed.rs
-index 931147093526fc816b0f905fe2daa81c99c8887a..d7aada312dc18da57e76a87922dfeeabf087f484 100644
---- a/session_rust/src/nurbssurface_trimmed.rs
-+++ b/session_rust/src/nurbssurface_trimmed.rs
-@@ -2188,10 +2188,18 @@ impl NurbsSurfaceTrimmed {
-             if let Some(vk) = vert_map[vi] {
-                 let u = dt.vertices[vi].x;
-                 let v = dt.vertices[vi].y;
--                let normal = self.m_surface.normal_at(u, v);
--                let mut nrm = [normal[0], normal[1], normal[2]];
-+                // Inspect derivatives directly: normal_at returns +Z at a singularity,
-+                // which is finite but is not this face's normal and must not bypass its fan.
-+                let derivatives = self.m_surface.evaluate(u, v, 1);
-+                let mut nrm = [0.0; 3];
-+                if derivatives.len() >= 3 {
-+                    let normal = derivatives[2].cross(&derivatives[1]);
-+                    nrm = [normal[0], normal[1], normal[2]];
-+                }
-                 let nl = (nrm[0] * nrm[0] + nrm[1] * nrm[1] + nrm[2] * nrm[2]).sqrt();
--                if !nl.is_finite() || nl <= 0.0 {
-+                if nl.is_finite() && nl > 0.0 {
-+                    for component in &mut nrm { *component /= nl; }
-+                } else {
-                     let f = fan.get(&vk).copied().unwrap_or([0.0, 0.0, 1.0]);
-                     let fl = (f[0] * f[0] + f[1] * f[1] + f[2] * f[2]).sqrt();
-                     nrm = if fl.is_finite() && fl > 0.0 {
-diff --git a/session_rust/src/nurbssurface_trimmed_test.rs b/session_rust/src/nurbssurface_trimmed_test.rs
-index 3a3245644e144aa43969ff6888e3647b24d9260e..1f7fcfe3877f6e6462330c5dfdce32ef805d2f54 100644
---- a/session_rust/src/nurbssurface_trimmed_test.rs
-+++ b/session_rust/src/nurbssurface_trimmed_test.rs
-@@ -894,3 +894,30 @@ REGISTER_MINI_TEST!(
-     "Crease Loops",
-     crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_crease_loops
- );
-+
-+/// A collapsed planar corner has no analytic normal; its own triangle fan defines it.
-+pub fn run_nurbssurface_trimmed_singular_planar_normal() -> TestResult {
-+    MINI_TEST!("Singular Planar Normal", {
-+        use crate::{NurbsSurface, NurbsSurfaceTrimmed, Point, TrimLoops};
-+        let mut trimmed = NurbsSurfaceTrimmed::new();
-+        trimmed.m_surface = NurbsSurface::create(false, false, 1, 1, 2, 2, &[
-+            Point::new(-1.0,0.0,0.0), Point::new(0.0,0.0,1.0),
-+            Point::new(1.0,0.0,0.0), Point::new(0.0,0.0,1.0),
-+        ]).unwrap();
-+        let mut loops = TrimLoops::default();
-+        loops.uv.push(vec![Point::new(0.0,0.0,0.0),Point::new(1.0,0.0,0.0),
-+            Point::new(1.0,1.0,0.0),Point::new(0.0,1.0,0.0)]);
-+        let mesh = trimmed.mesh_loops(&loops,5.0,0.001);
-+        MINI_CHECK!(!mesh.face.is_empty());
-+        let mut apex = false;
-+        for vertex in mesh.vertex.values() {
-+            let normal = vertex.normal().unwrap();
-+            MINI_CHECK!(normal[0].abs() < 1e-12 && normal[2].abs() < 1e-12);
-+            MINI_CHECK!((normal[1].abs()-1.0).abs() < 1e-12);
-+            apex |= vertex.z == 1.0;
-+        }
-+        MINI_CHECK!(apex);
-+    })
-+}
-+REGISTER_MINI_TEST!("NurbsSurfaceTrimmed", "Singular Planar Normal",
-+    crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_singular_planar_normal);
-diff --git a/session_rust/src/remesh_nurbssurface_grid.rs b/session_rust/src/remesh_nurbssurface_grid.rs
-index 54f27f9be05abbde5f72a5e510d260a9319b9fd2..edf1e097d8937eaec8741c12c40010e003c1750a 100644
---- a/session_rust/src/remesh_nurbssurface_grid.rs
-+++ b/session_rust/src/remesh_nurbssurface_grid.rs
-@@ -574,7 +574,13 @@ impl RemeshNurbsSurfaceGrid {
-             let (mut nx, mut ny, mut nz) = (fx, fy, fz);
-             if !is_pole {
-                 if let Some((u, v)) = uv {
--                    let na = s.normal_at(u, v);
-+                    // Read the derivative cross: normal_at returns a +Z sentinel at U poles.
-+                    let derivatives = s.evaluate(u, v, 1);
-+                    let mut na = [0.0; 3];
-+                    if derivatives.len() >= 3 {
-+                        let normal = derivatives[2].cross(&derivatives[1]);
-+                        na = [normal[0], normal[1], normal[2]];
-+                    }
-                     let nl = (na[0] * na[0] + na[1] * na[1] + na[2] * na[2]).sqrt();
-                     if nl.is_finite() && nl > 0.0 {
-                         let (mut ax, mut ay, mut az) = (na[0] / nl, na[1] / nl, na[2] / nl);
-diff --git a/session_rust/src/remesh_nurbssurface_grid_test.rs b/session_rust/src/remesh_nurbssurface_grid_test.rs
-index 420f54df26cf6c37d199cfafb7351f741901540f..cc7d8ccfc897c6f12f9113df208cf8cb1e63eb18 100644
---- a/session_rust/src/remesh_nurbssurface_grid_test.rs
-+++ b/session_rust/src/remesh_nurbssurface_grid_test.rs
-@@ -296,3 +296,31 @@ REGISTER_MINI_TEST!(
-     "Crease Normals",
-     crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_crease_normals
- );
-+
-+/// U-collapsed corners retain the planar fan normal on every nondegenerate triangle.
-+pub fn run_remesh_nurbssurface_grid_singular_planar_normal() -> TestResult {
-+    MINI_TEST!("Singular Planar Normal", {
-+        use crate::{NurbsSurface, Point};
-+        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
-+        let surface = NurbsSurface::create(false,false,1,1,2,2,&[
-+            Point::new(0.0,0.0,1.0),Point::new(0.0,0.0,1.0),
-+            Point::new(-1.0,0.0,0.0),Point::new(1.0,0.0,0.0)]).unwrap();
-+        let mesh = RemeshNurbsSurfaceGrid::from_u_v_q(surface,0,0,5.0,0.001);
-+        let mut apex = false;
-+        for face in mesh.face.values() {
-+            let a = &mesh.vertex[&face[0]];
-+            let b = &mesh.vertex[&face[1]];
-+            let c = &mesh.vertex[&face[2]];
-+            if ((b.x-a.x)*(c.z-a.z)-(b.z-a.z)*(c.x-a.x)).abs() <= 1e-14 { continue; }
-+            for vertex in [a,b,c] {
-+                let normal = vertex.normal().unwrap();
-+                MINI_CHECK!(normal[0].abs() < 1e-12 && normal[2].abs() < 1e-12);
-+                MINI_CHECK!((normal[1].abs()-1.0).abs() < 1e-12);
-+                apex |= vertex.z == 1.0;
-+            }
-+        }
-+        MINI_CHECK!(apex);
-+    })
-+}
-+REGISTER_MINI_TEST!("RemeshNurbsSurfaceGrid", "Singular Planar Normal",
-+    crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_singular_planar_normal);
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index d4fae1cf80dcea5f994eb7c3acc444f95f758794..ae58248dd605dd88792f155e6164dc43b284513b 100644
+index 1e784a03ae6ed15b3a1214a065effb65e58ab7f3..3081c50e446fff9a6ae18d00cb7e221e6f084cd4 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
-@@ -1,9 +1,9 @@
- <!doctype html>
- <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 08</title>
-+<title>Session checkpoint 09</title>
- <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
- <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
--</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 08</output>
-+</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 09</output>
- <script>
- let tutorial;
- let pointer;
-@@ -21,7 +21,7 @@ function render() {
-     const canvas = document.getElementById('canvas');
-     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-     canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 08 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-+    document.getElementById('status').textContent = 'Checkpoint 09 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
- }
- /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
- function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+-    <title>Session checkpoint 08</title>
++    <title>Session checkpoint 09</title>
+     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+     <style>
+       html, body {
+@@ -32,7 +32,7 @@
+   </head>
+   <body>
+     <canvas id="canvas" tabindex="0"></canvas>
+-    <output id="status">Starting checkpoint 08</output>
++    <output id="status">Starting checkpoint 09</output>
+     <script>
+       let tutorial;
+       let pointer;
+@@ -59,7 +59,7 @@
+         const canvas = document.getElementById('canvas');
+         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+         canvas.dataset.tutorialInspection = JSON.stringify(state);
+-        document.getElementById('status').textContent = 'Checkpoint 08 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++        document.getElementById('status').textContent = 'Checkpoint 09 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+       }
+ 
+       /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index cbe88261047e936c2303fcd038f4b473767194ea..32aef3cd66b7c2f08338cefd14e61c6d9b8e1f6b 100644
+index ca0397d19f1f329f3c5d5cd592e36b02b17bca8c..1c2c7413a8f5583efc99ab708890295cda0fa08b 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
-@@ -103,11 +103,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
+@@ -113,11 +113,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
              radius: encode_width(b.width),
              color: pack_rgba(Color::black().to_f32()),
          };
@@ -378,11 +45,12 @@ index cbe88261047e936c2303fcd038f4b473767194ea..32aef3cd66b7c2f08338cefd14e61c6d
 +        let ep = EdgePen::new(&fms, &signs, pen);
          walk_brep_edges(ink, b, &chains, (&ep, &mut row.bounds));
      }
-     row
-@@ -381,4 +377,59 @@ mod tests {
+ 
+@@ -419,4 +415,68 @@ mod tests {
              );
          }
      }
++
 +    /// A collapsed UV corner on a planar pyramid side retains that side's normal at its apex.
 +    /// Check the final upload so later shading-vertex conversion cannot reintroduce face bleed.
 +    #[test]
@@ -394,41 +62,49 @@ index cbe88261047e936c2303fcd038f4b473767194ea..32aef3cd66b7c2f08338cefd14e61c6d
 +        let pyramid = BRep::create_pyramid(400.0, 350.0);
 +        let (arena, _, _, _) = walked(&pyramid);
 +        let mut apex_normals = Vec::new();
++
 +        for triangle in arena.idx.chunks_exact(3) {
 +            let a = arena.verts[triangle[0] as usize - 100];
 +            let b = arena.verts[triangle[1] as usize - 100];
 +            let c = arena.verts[triangle[2] as usize - 100];
 +            let mut ab = [0.0; 3];
 +            let mut ac = [0.0; 3];
++
 +            for axis in 0..3 {
 +                ab[axis] = b.position[axis] - a.position[axis];
 +                ac[axis] = c.position[axis] - a.position[axis];
 +            }
++
 +            let mut face = [
 +                ab[1] * ac[2] - ab[2] * ac[1],
 +                ab[2] * ac[0] - ab[0] * ac[2],
 +                ab[0] * ac[1] - ab[1] * ac[0],
 +            ];
 +            let length = dot(face, face).sqrt();
++
 +            for component in &mut face {
 +                *component /= length;
 +            }
++
 +            for vertex in [a, b, c] {
 +                let normal = vertex.normal;
 +                assert!(
 +                    dot(normal, face) > 1.0 - 1e-6,
 +                    "planar face normal {normal:?} differs from {face:?}"
 +                );
++
 +                if vertex.position[2] == 350.0 {
 +                    apex_normals.push(normal);
 +                }
 +            }
 +        }
++
 +        assert_eq!(
 +            apex_normals.len(),
 +            4,
 +            "each separate planar side owns its apex vertex"
 +        );
++
 +        for first in 0..apex_normals.len() {
 +            for second in first + 1..apex_normals.len() {
 +                assert!(
@@ -440,10 +116,10 @@ index cbe88261047e936c2303fcd038f4b473767194ea..32aef3cd66b7c2f08338cefd14e61c6d
 +    }
  }
 diff --git a/session_viewer/src/app/walk/brep_edges.rs b/session_viewer/src/app/walk/brep_edges.rs
-index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b48582091 100644
+index 73e026f90cc31b307bb3b46f1db2b821b3eb6398..acbcf7f89630fdf59e5ddab1c5d32d7ff4aff8bb 100644
 --- a/session_viewer/src/app/walk/brep_edges.rs
 +++ b/session_viewer/src/app/walk/brep_edges.rs
-@@ -283,43 +283,130 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
+@@ -319,47 +319,152 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
      out
  }
  
@@ -452,6 +128,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 -    let (a, b) = (a?, b?);
 -    let s = [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 -    let l = (s[0] * s[0] + s[1] * s[1] + s[2] * s[2]).sqrt();
+-
 -    if l > 0.0 {
 -        Some([s[0] / l, s[1] / l, s[2] / l])
 -    } else {
@@ -473,23 +150,23 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 -/// so the map's iteration order never reaches the rows.
 -fn nearest_normal(fm: &Mesh, p: [f64; 3]) -> Option<[f64; 3]> {
 -    let mut best: Option<(f64, usize, [f64; 3])> = None;
++/// Canonicalize signed zero without moving a source point or introducing a weld tolerance.
++fn position_bits(position: [f64; 3]) -> [u64; 3] {
++    let mut bits = [0; 3];
+ 
 -    for (&key, vd) in fm.vertex.iter() {
 -        let d = (vd.x - p[0]).powi(2) + (vd.y - p[1]).powi(2) + (vd.z - p[2]).powi(2);
 -        let closer = match best {
 -            Some((bd, bk, _)) => d < bd || (d == bd && key < bk),
 -            None => true,
-+/// Canonicalize signed zero without moving a source point or introducing a weld tolerance.
-+fn position_bits(position: [f64; 3]) -> [u64; 3] {
-+    let mut bits = [0; 3];
 +    for axis in 0..3 {
 +        bits[axis] = if position[axis] == 0.0 {
 +            0
 +        } else {
 +            position[axis].to_bits()
          };
--        if closer && let Some(n) = vd.normal() {
--            best = Some((d, key, n));
 +    }
++
 +    bits
 +}
 +
@@ -497,6 +174,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 +fn facet_edge(a: [f64; 3], b: [f64; 3]) -> FacetEdge {
 +    let a = position_bits(a);
 +    let b = position_bits(b);
++
 +    if a <= b { [a, b] } else { [b, a] }
 +}
 +
@@ -505,44 +183,59 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 +    let mut result = std::collections::HashMap::<FacetEdge, FacetPair>::new();
 +    let mut faces: Vec<_> = mesh.face.keys().copied().collect();
 +    faces.sort_unstable();
++
 +    for key in faces {
 +        let vertices = &mesh.face[&key];
++
 +        if vertices.len() != 3 {
 +            continue;
 +        }
++
 +        let mut p = [[0.0; 3]; 3];
++
 +        for corner in 0..3 {
 +            let v = &mesh.vertex[&vertices[corner]];
 +            p[corner] = [v.x, v.y, v.z];
 +        }
++
 +        let mut a = [0.0; 3];
 +        let mut b = [0.0; 3];
+ 
+-        if closer && let Some(n) = vd.normal() {
+-            best = Some((d, key, n));
 +        for axis in 0..3 {
 +            a[axis] = p[1][axis] - p[0][axis];
 +            b[axis] = p[2][axis] - p[0][axis];
 +        }
++
 +        let mut normal = [
 +            a[1] * b[2] - a[2] * b[1],
 +            a[2] * b[0] - a[0] * b[2],
 +            a[0] * b[1] - a[1] * b[0],
 +        ];
 +        let length = (normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]).sqrt();
++
 +        if !length.is_finite() || length <= 0.0 {
 +            continue;
 +        }
++
 +        for component in &mut normal {
 +            *component /= length;
 +        }
++
 +        for edge in 0..3 {
 +            let pair = result
 +                .entry(facet_edge(p[edge], p[(edge + 1) % 3]))
 +                .or_default();
++
 +            if pair.count < 2 {
 +                pair.normals[pair.count] = Some(normal);
 +            }
++
 +            pair.count += 1;
          }
      }
+ 
 -    Some(best?.2)
 +    result
  }
@@ -561,9 +254,11 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 +    /// Build triangle incidence once, retaining both uses of a same-face periodic seam.
 +    pub fn new(fms: &'a [Mesh], signs: &'a [f64], pen: Pen) -> Self {
 +        let mut facets = Vec::with_capacity(fms.len());
++
 +        for mesh in fms {
 +            facets.push(face_facets(mesh));
 +        }
++
 +        Self {
 +            fms,
 +            signs,
@@ -578,17 +273,21 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 +        let Some(owner) = self.facets[chain.face].get(&key) else {
 +            return pack_facing(None, None);
 +        };
++
 +        if owner.count == 0 || owner.count > 2 {
 +            return pack_facing(None, None);
 +        }
++
 +        let first = scaled_normal(owner.normals[0], self.signs[chain.face]);
 +        let second = if let Some(other) = chain.other {
 +            let Some(pair) = self.facets[other].get(&key) else {
 +                return pack_facing(None, None);
 +            };
++
 +            if pair.count != 1 || owner.count != 1 {
 +                return pack_facing(None, None);
 +            }
++
 +            scaled_normal(pair.normals[0], self.signs[other])
 +        } else if owner.count == 2 {
 +            scaled_normal(owner.normals[1], self.signs[chain.face])
@@ -600,7 +299,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
  }
  
  /// A normal turned outward by its face's sign.
-@@ -328,10 +415,10 @@ fn scaled_normal(normal: Option<[f64; 3]>, sign: f64) -> Option<[f64; 3]> {
+@@ -368,10 +473,10 @@ fn scaled_normal(normal: Option<[f64; 3]>, sign: f64) -> Option<[f64; 3]> {
      Some([n[0] * sign, n[1] * sign, n[2] * sign])
  }
  
@@ -615,7 +314,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
  pub fn push_edge_pipes(
      seg: &mut SegRows,
      chain: &EdgeChain,
-@@ -346,16 +433,6 @@ pub fn push_edge_pipes(
+@@ -387,16 +492,6 @@ pub fn push_edge_pipes(
          let (a, b) = (&fm.vertex[&w[0]], &fm.vertex[&w[1]]);
          let p0 = [a.x, a.y, a.z];
          let p1 = [b.x, b.y, b.z];
@@ -631,8 +330,8 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 -        };
          let p0f = super::curves::render_position(p0);
          let p1f = super::curves::render_position(p1);
-         // A valid f64 edge may collapse or overflow during display conversion.
-@@ -370,7 +447,7 @@ pub fn push_edge_pipes(
+ 
+@@ -413,7 +508,7 @@ pub fn push_edge_pipes(
              p1: p1f,
              instance_id: ep.pen.row,
              color: ep.pen.color,
@@ -641,7 +340,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
          });
          seg.pipe_ids
              .push(u32::try_from(chain.edge).unwrap_or(u32::MAX));
-@@ -549,8 +626,67 @@ mod tests {
+@@ -604,8 +699,74 @@ mod tests {
          }
      }
  
@@ -660,8 +359,10 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 +        let chain = chains[14].as_ref().expect("authored front meridian");
 +        let owner = &meshes[chain.face];
 +        let mut triangles = Vec::new();
++
 +        for mesh in &meshes {
 +            assert!(!mesh.face.is_empty(), "every authored patch remains meshed");
++
 +            for keys in mesh.face.values() {
 +                triangles.push(
 +                    keys.iter()
@@ -670,8 +371,10 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 +                );
 +            }
 +        }
++
 +        let eye = Point::new(-222.278644, -422.587076, 439.224717);
 +        let mut checked = 0;
++
 +        for pair in chain.keys.windows(2) {
 +            let a = owner.vertex[&pair[0]].position();
 +            let b = owner.vertex[&pair[1]].position();
@@ -683,6 +386,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 +            assert!(at[0].abs() < 1e-9 && at[1] < -140.0 && at[2] >= 90.0 && at[2] <= 240.0);
 +            let ray = Line::new(eye[0], eye[1], eye[2], at[0], at[1], at[2]);
 +            let distance = eye.distance(&at, None);
++
 +            for triangle in &triangles {
 +                if let Some(hit) = session_rust::intersection::ray_triangle(
 +                    &ray,
@@ -699,8 +403,10 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 +                    );
 +                }
 +            }
++
 +            checked += 1;
 +        }
++
 +        assert!(checked >= 8);
 +    }
 +
@@ -710,7 +416,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
      #[test]
      fn pipes_face_both_adjacent_faces() {
          use crate::app::walk::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
-@@ -560,21 +696,25 @@ mod tests {
+@@ -615,22 +776,26 @@ mod tests {
          let fms = b.face_meshes_q(Some(QUALITY));
          let chains = edge_chains(&b, &fms);
          let signs = vec![1.0; fms.len()];
@@ -729,9 +435,10 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 -        };
 +        );
          let mut seg = SegRows::default();
-         let mut bounds = Aabb::empty();
+         let mut bounds = AABB::empty();
          let circle = push_edge_pipes(&mut seg, chains[0].as_ref().unwrap(), &ep, &mut bounds);
          assert_eq!(circle, chains[0].as_ref().unwrap().keys.len() - 1);
+ 
          for p in &seg.pipes {
 -            assert_ne!(p.facing, FACING_UNKNOWN);
 +            assert_ne!(
@@ -742,7 +449,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
              assert_ne!(p.facing & 0xffff, p.facing >> 16);
              assert_eq!(p.instance_id, 3);
          }
-@@ -582,13 +722,53 @@ mod tests {
+@@ -639,13 +804,54 @@ mod tests {
          let seam = push_edge_pipes(&mut seg, chains[2].as_ref().unwrap(), &ep, &mut bounds);
          assert_eq!(seam, 1);
          let p = &seg.pipes[before];
@@ -775,12 +482,13 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 +            &mut segments,
 +            chains[1].as_ref().unwrap(),
 +            &pen,
-+            &mut Aabb::empty(),
++            &mut AABB::empty(),
 +        );
 +        assert_eq!(segments.pipes.len(), 1);
 +        assert_eq!(segments.pipe_ids, vec![1]);
 +        let facing = segments.pipes[0].facing;
 +        assert_ne!(facing & 0xffff, facing >> 16);
++
 +        for code in [facing & 0xffff, facing >> 16] {
 +            // Both cone facet normals occupy the positive-Z octahedron hemisphere.
 +            let x = (code as u8 as i8) as f64 / 127.0;
@@ -797,9 +505,9 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
      #[test]
      fn collapsed_display_segments_do_not_create_pick_targets() {
          let b = BRep::create_box(40.0, 30.0, 25.0);
-@@ -602,15 +782,15 @@ mod tests {
-             vertex.z = 1e20;
+@@ -661,15 +867,15 @@ mod tests {
          }
+ 
          let signs = vec![1.0; fms.len()];
 -        let ep = EdgePen {
 -            fms: &fms,
@@ -816,33 +524,36 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..9c9b240e935e784b1f8f86b752141d8b
 -        };
 +        );
          let mut seg = SegRows::default();
-         assert_eq!(push_edge_pipes(&mut seg, chain, &ep, &mut Aabb::empty()), 0);
+         assert_eq!(push_edge_pipes(&mut seg, chain, &ep, &mut AABB::empty()), 0);
          assert!(seg.pipes.is_empty());
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index 71e0a9fa582f22dcff07fb94516cb02f1514d8c1..835229a9a206867bf1d218d7609f5878a4e4a08b 100644
+index 4a88ae6d3844edb82e55a0fdfd8deb5d11e2f5fd..435ca00baa86f83c263491b852e3eb2e417d5e9b 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
-@@ -270,9 +270,13 @@ impl Gpu {
+@@ -285,9 +285,16 @@ impl Gpu {
                  instances: &self.objects.ink_group,
              };
              self.arena.draw_print(&mut pass, &basic);
 -            self.segments.draw_pipes(&mut pass, &ink);
++
 +            if self.view.show_mesh_edges {
 +                self.segments.draw_pipes(&mut pass, &ink);
++
 +                if self.view.markers {
 +                    self.glyphs.draw_spheres(&mut pass, &ink);
 +                }
 +            }
++
              self.segments.draw_ribbons(&mut pass, &ink);
 -            self.glyphs.draw_spheres(&mut pass, &ink);
              self.glyphs.draw_dots(&mut pass, &ink);
              self.arena.draw_text(&mut pass, &basic);
          }
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index cd869ec316bddd890bf90b374a3889ac15490473..de93294dfa44c16396fda69c12d8b7aacb2746ac 100644
+index 898bf745f8917839264be58b9a2fd6e43c96d31b..128683faa0492bad61a22f49546fa49d967467ba 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
-@@ -82,6 +82,44 @@ impl CadFixture {
+@@ -83,6 +83,44 @@ impl CadFixture {
      }
  }
  
@@ -887,7 +598,7 @@ index cd869ec316bddd890bf90b374a3889ac15490473..de93294dfa44c16396fda69c12d8b7aa
  /// A curved source patch carrying the producer's constrained hole mesh in its supported cache.
  fn trimmed_surface() -> NurbsSurface {
      use session_rust::{NurbsSurfaceTrimmed, TrimLoops};
-@@ -144,18 +182,42 @@ fn trimmed_surface() -> NurbsSurface {
+@@ -153,18 +191,44 @@ fn trimmed_surface() -> NurbsSurface {
      surface
  }
  
@@ -898,11 +609,13 @@ index cd869ec316bddd890bf90b374a3889ac15490473..de93294dfa44c16396fda69c12d8b7aa
 +    {
 +        let search = web_sys::window()?.location().search().ok()?;
 +        let prefix = format!("{name}=");
++
 +        for part in search.trim_start_matches('?').split('&') {
 +            if let Some(value) = part.strip_prefix(&prefix) {
 +                return Some(value.to_string());
 +            }
 +        }
++
 +        None
 +    }
 +    #[cfg(not(target_arch = "wasm32"))]
@@ -942,19 +655,19 @@ index cd869ec316bddd890bf90b374a3889ac15490473..de93294dfa44c16396fda69c12d8b7aa
      scene
  }
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 53544ae931ae9c15dfd24d4d625925b3de7eb2ef..cdcf8b3f6f7709f06be4aa46a92096da45f91444 100644
+index 8d7e6704b520de6bbcf4eb2382c0b271e15ba7a6..79f80fd8c6bb4322fa3a73c3d6a82223f38cb3a4 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -37,6 +37,8 @@ impl Tutorial {
-             camera.update_position();
+@@ -41,6 +41,8 @@ impl Tutorial {
          }
+ 
          gpu.view.show_grid = false;
 +        gpu.view.show_mesh_edges = app::route::query("fill").is_none();
 +        gpu.view.markers = false;
          Ok(Self {
              canvas,
              gpu,
-@@ -92,7 +94,7 @@ impl Tutorial {
+@@ -102,7 +104,7 @@ impl Tutorial {
              now_ms: now,
          };
          self.gpu.render(&input).map_err(js_error)?;
@@ -964,41 +677,40 @@ index 53544ae931ae9c15dfd24d4d625925b3de7eb2ef..cdcf8b3f6f7709f06be4aa46a92096da
      }
  }
 diff --git a/session_viewer/src/shaders/normals.wgsl b/session_viewer/src/shaders/normals.wgsl
-index 75f72c676d3e1b9e150d843cfdd165aec0086019..b8b2ed60fea675320a57af6967b885e414114836 100644
+index a532b3347a833a7e8a42d34f47399798e8ebb35e..d3a48bcd3b7724d893ef94b39cf1affe5359aac2 100644
 --- a/session_viewer/src/shaders/normals.wgsl
 +++ b/session_viewer/src/shaders/normals.wgsl
-@@ -1,9 +1,22 @@
--// Rigid/uniform-scale teaching stage; chapter09 installs the full affine normal contract.
-+// Cofactor inverse transpose, normalized without dividing by a small determinant.
-+// A singular transform has no unique surface normal and returns the explicit zero sentinel.
+@@ -1,5 +1,15 @@
  fn transform_normal(model: mat3x3<f32>, normal: vec3<f32>) -> vec3<f32> {
 -    let transformed = model * normal;
--    if (dot(transformed, transformed) == 0.0) { return vec3<f32>(0.0); }
 +    let x = model[0];
 +    let y = model[1];
 +    let z = model[2];
 +    let det = dot(x, cross(y, z));
 +    let scale = length(x) * length(y) * length(z);
++
 +    if (scale == 0.0 || abs(det) <= scale * 1e-12 || dot(normal, normal) == 0.0) {
 +        return vec3<f32>(0.0);
 +    }
++
 +    let transformed = mat3x3<f32>(cross(y, z), cross(z, x), cross(x, y)) * normal * sign(det);
-+    if (dot(transformed, transformed) == 0.0) {
-+        return vec3<f32>(0.0);
-+    }
+ 
+     if (dot(transformed, transformed) == 0.0) {
+         return vec3<f32>(0.0);
+@@ -8,6 +18,7 @@ fn transform_normal(model: mat3x3<f32>, normal: vec3<f32>) -> vec3<f32> {
      return normalize(transformed);
  }
-+
+ 
 +// Ink normals use the same coordinate convention as triangle and point-cloud normals.
  fn face_normal(model: mat4x4<f32>, normal: vec3<f32>) -> vec3<f32> {
      return transform_normal(mat3x3<f32>(model[0].xyz, model[1].xyz, model[2].xyz), normal);
  }
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index 1b62de11fa8a9ffeb02a4f2688bb92205acffe6a..d2c50ab216cd6739d2cad684205831e6196db0ac 100644
+index 246d5378ef8cc39887fd16129d0ae9001df9f3b6..1ebc43ce9088cf5ce22afaf1cc7b3affc5635dc6 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -51,8 +51,7 @@ fn vs_main(in: VsIn) -> VsOut {
-     }
+@@ -53,8 +53,7 @@ fn vs_main(in: VsIn) -> VsOut {
+ 
      o.color = color;
      o.world_pos = world;
 -    // Flat preview until09: keep source normals in the arena, use the finite face fallback.

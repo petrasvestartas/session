@@ -64,7 +64,7 @@ Shaping and every frame are timed, both from `now_ms`; native builds read the sy
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 10 session_viewer/src/engine/text.rs type lines=1-47 -->
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=1-45 -->
 
 ## Step 4 · Label, run, document
 
@@ -79,7 +79,7 @@ Shaping and every frame are timed, both from `now_ms`; native builds read the sy
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 10 session_viewer/src/engine/text.rs type lines=48-77 -->
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=46-73 -->
 
 ## Step 5 · Replace labels without reshaping unchanged ones
 
@@ -92,7 +92,7 @@ Shaping and every frame are timed, both from `now_ms`; native builds read the sy
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 10 session_viewer/src/engine/text.rs type lines=78-133 -->
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=74-137 -->
 
 ## Step 6 · Font replacement, clearing and diagnostics
 
@@ -105,13 +105,13 @@ Shaping and every frame are timed, both from `now_ms`; native builds read the sy
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 10 session_viewer/src/engine/text.rs type lines=134-194 -->
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=138-204 -->
 
 - The document owns the `FontSystem`: nothing else in the crate knows where fonts come from.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 10 session_viewer/src/engine/text.rs type lines=195-226 -->
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=205-236 -->
 
 ## Step 7 · Validation and the shaping call
 
@@ -124,18 +124,18 @@ Shaping and every frame are timed, both from `now_ms`; native builds read the sy
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 10 session_viewer/src/engine/text.rs type lines=227-287 -->
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=237-301 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 10 session_viewer/src/engine/text.rs type lines=288-324 -->
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=302-339 -->
 
 Unit checks for the shaper live in the same file.
 
 <span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 10 session_viewer/src/engine/text.rs copy lines=325-437 -->
+<!-- file: 10 session_viewer/src/engine/text.rs copy lines=340-455 -->
 
 ## Step 8 · Declare the modules
 

@@ -1,7 +1,29 @@
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -72,14 +72,13 @@
+         height: 0;
+         z-index: 10;
+         display: block;
+-        border-top: 40px solid #111;
+-        border-left: 40px solid transparent;
+-        filter: drop-shadow(-1px 1px 0 #ffffff99);
++        border-top: 20px solid #111;
++        border-left: 20px solid transparent;
+         transition: border-top-width .25s cubic-bezier(.2, .8, .3, 1.25), border-left-width .25s cubic-bezier(.2, .8, .3, 1.25);
+       }
+       #viewer-docs:hover, #viewer-docs:focus-visible {
+-        border-top-width: 52px;
+-        border-left-width: 52px;
++        border-top-width: 26px;
++        border-left-width: 26px;
+         outline: none;
+       }
+       #viewer-status:empty {
 diff --git a/src/app/deform.rs b/src/app/deform.rs
 --- a/src/app/deform.rs
 +++ b/src/app/deform.rs
-@@ -23,7 +23,7 @@
+@@ -23,7 +23,7 @@ impl Target {
      }
  }
  
@@ -10,10 +32,10 @@ diff --git a/src/app/deform.rs b/src/app/deform.rs
      match target {
          Target::Control(ControlId::Vertex(key)) if mesh.vertex.contains_key(&key) => Ok(vec![key]),
          Target::Face(key) => {
-@@ -154,10 +154,8 @@
-                     .ok_or("Missing vertex")?
+@@ -167,10 +167,8 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                      .set_position(point);
              }
+ 
 -            mesh.triangulation.clear();
 -            // The identity transform invalidates kernel render/BVH caches in both the frozen
 -            // course kernel and the maintained kernel without changing the edited positions.
@@ -26,7 +48,7 @@ diff --git a/src/app/deform.rs b/src/app/deform.rs
 diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 --- a/src/app/feedback.rs
 +++ b/src/app/feedback.rs
-@@ -77,6 +77,8 @@
+@@ -81,6 +81,8 @@ pub struct LayerRow {
      pub hidden: bool,
      pub locked: bool,
      pub color: Option<[u8; 3]>,
@@ -38,7 +60,7 @@ diff --git a/src/app/feedback.rs b/src/app/feedback.rs
 diff --git a/src/app/inspection.rs b/src/app/inspection.rs
 --- a/src/app/inspection.rs
 +++ b/src/app/inspection.rs
-@@ -76,6 +76,7 @@
+@@ -76,6 +76,7 @@ pub fn publish(state: &State) {
      });
      snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
      snapshot["color_count"] = serde_json::json!(state.scene.colors.len());
@@ -50,8 +72,7 @@ diff --git a/src/app/mesh_preview.rs b/src/app/mesh_preview.rs
 new file mode 100644
 --- /dev/null
 +++ b/src/app/mesh_preview.rs
-@@ -0,0 +1,284 @@
-+//! Sparse render-only mesh gestures. Source replacement happens once on release.
+@@ -0,0 +1,319 @@
 +use super::deform::{Target, mesh_keys};
 +use crate::engine::gpu::glyphs::GlyphPoint;
 +use crate::engine::gpu::patch::{Counts, Span};
@@ -67,12 +88,14 @@ new file mode 100644
 +    dots: Vec<(usize, GlyphPoint)>,
 +    span: Span,
 +}
++
 +pub struct Gesture {
 +    vertices: Vec<(u32, RenderVertex, bool)>,
 +    pipes: Vec<(u32, CylinderSegment, [bool; 2])>,
 +    spheres: Vec<(u32, GlyphPoint, bool)>,
 +    dots: Vec<(u32, GlyphPoint, bool)>,
 +}
++
 +pub fn mesh(geometry: &Geometry) -> Option<&Mesh> {
 +    match geometry {
 +        Geometry::Mesh(mesh) => Some(mesh),
@@ -83,6 +106,7 @@ new file mode 100644
 +        _ => None,
 +    }
 +}
++
 +impl MeshPreview {
 +    pub(crate) fn capture(
 +        up: &Upload,
@@ -91,14 +115,18 @@ new file mode 100644
 +        geometry: &Geometry,
 +    ) -> Option<Self> {
 +        let mesh = mesh(geometry)?;
++
 +        if span.count.ribbons != 0 {
 +            return None;
 +        }
++
 +        let mut keys = mesh.vertices();
++
 +        if mesh.color_mode == session_rust::mesh::ColorMode::FACECOLORS
 +            && mesh.get_facecolors().len() == mesh.face.len()
 +        {
 +            keys.clear();
++
 +            for face in mesh.faces() {
 +                let ring = &mesh.face[&face];
 +                let triangles = mesh
@@ -111,6 +139,7 @@ new file mode 100644
 +                            .map(|i| [ring[0], ring[i], ring[i + 1]])
 +                            .collect()
 +                    });
++
 +                for triangle in triangles {
 +                    if triangle.iter().all(|key| mesh.vertex.contains_key(key)) {
 +                        keys.extend(triangle);
@@ -118,9 +147,11 @@ new file mode 100644
 +                }
 +            }
 +        }
++
 +        if keys.len() != span.count.verts as usize {
 +            return None;
 +        }
++
 +        let vertices = keys
 +            .into_iter()
 +            .zip(
@@ -131,18 +162,22 @@ new file mode 100644
 +            .collect();
 +        let mut seen = HashSet::new();
 +        let mut edges = Vec::new();
++
 +        for face in mesh.faces() {
 +            let ring = &mesh.face[&face];
++
 +            for i in 0..ring.len() {
 +                let pair = [
 +                    ring[i].min(ring[(i + 1) % ring.len()]),
 +                    ring[i].max(ring[(i + 1) % ring.len()]),
 +                ];
++
 +                if seen.insert(pair) {
 +                    edges.push(pair);
 +                }
 +            }
 +        }
++
 +        let pipes = (local.pipes..local.pipes + span.count.pipes)
 +            .map(|i| {
 +                Some((
@@ -153,6 +188,7 @@ new file mode 100644
 +            .collect::<Option<Vec<_>>>()?;
 +        // Marker provenance is accepted only when source positions are unambiguous.
 +        let mut positions = HashMap::new();
++
 +        for (&key, v) in &mesh.vertex {
 +            let p = [v.x as f32, v.y as f32, v.z as f32].map(f32::to_bits);
 +            positions
@@ -160,6 +196,7 @@ new file mode 100644
 +                .and_modify(|value| *value = None)
 +                .or_insert(Some(key));
 +        }
++
 +        let markers = |items: &[GlyphPoint]| {
 +            items
 +                .iter()
@@ -179,15 +216,18 @@ new file mode 100644
 +            span,
 +        })
 +    }
++
 +    pub fn begin(&self, geometry: &Geometry, target: Target) -> Option<Gesture> {
 +        let mesh = mesh(geometry)?;
 +        let selected: HashSet<_> = mesh_keys(mesh, target).ok()?.into_iter().collect();
 +        let mut affected = selected.clone();
++
 +        for ring in mesh.face.values() {
 +            if ring.iter().any(|k| selected.contains(k)) {
 +                affected.extend(ring);
 +            }
 +        }
++
 +        let vertices = self
 +            .vertices
 +            .iter()
@@ -223,6 +263,7 @@ new file mode 100644
 +            dots: markers(&self.dots, self.span.start.dots),
 +        })
 +    }
++
 +    pub fn allocated_bytes(&self) -> usize {
 +        self.vertices.capacity() * std::mem::size_of::<(usize, RenderVertex)>()
 +            + self.pipes.capacity() * std::mem::size_of::<([usize; 2], CylinderSegment)>()
@@ -230,6 +271,7 @@ new file mode 100644
 +                * std::mem::size_of::<(usize, GlyphPoint)>()
 +    }
 +}
++
 +impl Gesture {
 +    pub fn apply(&self, gpu: &mut Gpu, delta: &Xform, restore: bool) {
 +        let position = |p: [f32; 3]| {
@@ -239,26 +281,33 @@ new file mode 100644
 +                    as f32
 +            })
 +        };
++
 +        for &(index, mut v, moved) in &self.vertices {
 +            if !restore {
 +                if moved {
 +                    v.position = position(v.position);
 +                }
++
 +                v.normal = [0.; 3];
 +            }
++
 +            gpu.arena.patch_vertices(&gpu.ctx, index, &[v]);
 +        }
++
 +        for &(index, mut p, moved) in &self.pipes {
 +            if !restore {
 +                if moved[0] {
 +                    p.p0 = position(p.p0);
 +                }
++
 +                if moved[1] {
 +                    p.p1 = position(p.p1);
 +                }
++
 +                // During a gesture, finite triangle visibility supplies the occlusion test.
 +                p.facing = u32::MAX;
 +            }
++
 +            gpu.segments.patch_pipes(
 +                &gpu.ctx,
 +                index,
@@ -268,18 +317,22 @@ new file mode 100644
 +                },
 +            );
 +        }
++
 +        for (items, sphere) in [(&self.spheres, true), (&self.dots, false)] {
 +            for &(index, mut g, moved) in items {
 +                if !restore {
 +                    if moved {
 +                        g.center = position(g.center);
 +                    }
++
 +                    g.facing = u32::MAX;
 +                    g.facing_ext = [u32::MAX; 2];
 +                }
++
 +                gpu.glyphs.patch_marker(&gpu.ctx, index, sphere, g);
 +            }
 +        }
++
 +        gpu.objects.geometry_changed();
 +    }
 +}
@@ -290,14 +343,17 @@ new file mode 100644
 +    use crate::app::walk::{Walk, WalkCx, walk_geometry};
 +    use session_rust::Point;
 +    use std::rc::Rc;
++
 +    #[test]
 +    fn large_mesh_gesture_only_patches_local_neighborhood() {
 +        let mut mesh = Mesh::new();
++
 +        for y in 0..101 {
 +            for x in 0..101 {
 +                mesh.add_vertex(Point::new(x as f64, y as f64, 0.), Some(y * 101 + x));
 +            }
 +        }
++
 +        for y in 0..100 {
 +            for x in 0..100 {
 +                let a = y * 101 + x;
@@ -305,6 +361,7 @@ new file mode 100644
 +                mesh.add_face(vec![a, a + 102, a + 101], None);
 +            }
 +        }
++
 +        let geometry = Geometry::Mesh(Rc::new(mesh));
 +        let mut up = Upload::default();
 +        walk_geometry(
@@ -338,7 +395,7 @@ new file mode 100644
 diff --git a/src/app/mod.rs b/src/app/mod.rs
 --- a/src/app/mod.rs
 +++ b/src/app/mod.rs
-@@ -15,6 +15,7 @@
+@@ -11,6 +11,7 @@ pub mod input;
  pub mod knobs;
  pub mod layers;
  pub mod manifest;
@@ -349,7 +406,7 @@ diff --git a/src/app/mod.rs b/src/app/mod.rs
 diff --git a/src/app/scene.rs b/src/app/scene.rs
 --- a/src/app/scene.rs
 +++ b/src/app/scene.rs
-@@ -129,6 +129,7 @@
+@@ -116,6 +116,7 @@ pub struct Scene {
      pub hidden: HashSet<(usize, Rc<str>)>,
      pub locked: HashSet<(usize, Rc<str>)>,
      pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,
@@ -357,15 +414,15 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
      pub selected: Option<u32>,
      order: Vec<Rc<str>>,
      owners: Vec<usize>,
-@@ -139,6 +140,7 @@
+@@ -125,6 +126,7 @@ pub struct Scene {
      bases: Bases,
      uploaded: crate::engine::gpu::patch::Counts,
      surface_previews: Vec<Option<crate::app::surface_preview::SurfacePreview>>,
 +    pub(crate) mesh_previews: Vec<Option<crate::app::mesh_preview::MeshPreview>>,
      pub(super) preview_spans: Vec<Option<crate::engine::gpu::patch::Span>>,
-     /// Which document the last edit touched. Undo is per document, because the history is the
-     /// document's; this is the only thing that says which one a bare Ctrl+Z means.
-@@ -172,6 +174,7 @@
+     pub last_edited: Option<usize>, // Which document the last edit touched. Undo is per document, because the history is the document's; this is the only thing that says which one a bare Ctrl+Z means.
+     pub(crate) created_doc: Option<usize>,
+@@ -156,6 +158,7 @@ impl Scene {
              hidden: HashSet::new(),
              locked: HashSet::new(),
              colors: HashMap::new(),
@@ -373,7 +430,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
              selected: None,
              order: Vec::new(),
              owners: Vec::new(),
-@@ -182,6 +185,7 @@
+@@ -166,6 +169,7 @@ impl Scene {
              uploaded: Default::default(),
              preview_spans: Vec::new(),
              surface_previews: Vec::new(),
@@ -381,7 +438,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
              last_edited: None,
              created_doc: None,
              row_revision: 0,
-@@ -198,6 +202,7 @@
+@@ -182,6 +186,7 @@ impl Scene {
          self.hidden.clear();
          self.locked.clear();
          self.colors.clear();
@@ -389,7 +446,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
          self.reset_rows();
          gpu.release();
      }
-@@ -218,6 +223,7 @@
+@@ -202,6 +207,7 @@ impl Scene {
          self.uploaded = Default::default();
          self.preview_spans.clear();
          self.surface_previews.clear();
@@ -397,7 +454,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
      }
  
      /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch - the
-@@ -282,6 +288,11 @@
+@@ -272,6 +278,12 @@ impl Scene {
              object.flags |= Instance::FLAG_COLOR;
          }
  
@@ -406,10 +463,11 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
 +            object.edge_color = u32::from_le_bytes([color[0], color[1], color[2], 255]);
 +            object.flags |= Instance::FLAG_EDGE_COLOR;
 +        }
++
          let guid: Rc<str> = Rc::from(guid);
          self.guid_to_row.insert((owner, Rc::clone(&guid)), row);
          self.order.push(guid);
-@@ -289,6 +300,7 @@
+@@ -279,6 +291,7 @@ impl Scene {
          self.ribbon_ranges.push(None);
          self.preview_spans.push(None);
          self.surface_previews.push(None);
@@ -417,7 +475,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
          row
      }
  
-@@ -353,11 +365,20 @@
+@@ -345,11 +358,22 @@ impl Scene {
                      start.minus(self.uploaded),
                      geom,
                  );
@@ -432,22 +490,24 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
              o.bounds = r.bounds;
              o.spacing = r.spacing;
              o.faces = r.faces;
++
 +            if r.faces {
 +                o.flags |= Instance::FLAG_HAS_FACES;
 +            }
++
              let ribbon_end = self.tables.seg.ribbons.len();
+ 
              if ribbon_start != ribbon_end {
-                 self.ribbon_ranges[row as usize] = Some(
-@@ -817,6 +838,8 @@
-         if Counts::of(&up) != span.count {
+@@ -836,6 +860,8 @@ impl Scene {
              return false;
          }
+ 
 +        self.mesh_previews[row as usize] =
 +            crate::app::mesh_preview::MeshPreview::capture(&up, span, Counts::default(), geometry);
          gpu.arena.patch(&gpu.ctx, span.start, &up.arena);
          gpu.segments.patch(&gpu.ctx, span.start, &up.seg);
          gpu.glyphs.patch(&gpu.ctx, span.start, &up.glyph);
-@@ -840,6 +863,12 @@
+@@ -861,6 +887,12 @@ impl Scene {
              .flatten()
              .map(|p| p.allocated_bytes())
              .sum::<usize>()
@@ -463,7 +523,7 @@ diff --git a/src/app/scene.rs b/src/app/scene.rs
 diff --git a/src/app/session_io.rs b/src/app/session_io.rs
 --- a/src/app/session_io.rs
 +++ b/src/app/session_io.rs
-@@ -26,6 +26,8 @@
+@@ -27,6 +27,8 @@ struct Metadata {
      locked: Vec<(usize, String)>,
      #[serde(default)]
      colors: Vec<(usize, String, [u8; 3])>,
@@ -471,8 +531,8 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
 +    edge_colors: Option<Vec<(usize, String, [u8; 3])>>,
      texts: Vec<(String, TextLabel, bool)>,
  }
- #[derive(Serialize, Deserialize)]
-@@ -87,6 +89,15 @@
+ 
+@@ -95,6 +97,15 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
          hidden,
          locked,
          colors,
@@ -488,21 +548,21 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
          texts: scene
              .texts
              .iter()
-@@ -156,6 +167,13 @@
-         .locked
+@@ -175,6 +186,13 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
          .into_iter()
          .map(|(doc, id)| (doc, Rc::from(id)))
-+        .collect();
+         .collect();
 +    // Older archives applied their single color to faces and edges alike.
 +    scene.edge_colors = metadata
 +        .edge_colors
 +        .unwrap_or_else(|| metadata.colors.clone())
 +        .into_iter()
 +        .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
-         .collect();
++        .collect();
      scene.colors = metadata
          .colors
-@@ -271,6 +289,9 @@
+         .into_iter()
+@@ -296,6 +314,9 @@ mod tests {
          scene
              .colors
              .insert(scene.identity_of(1).unwrap(), [240, 80, 30]);
@@ -512,7 +572,7 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
          let bytes = save(&scene).unwrap();
          assert!(scene.undo(), "saving leaves live undo available");
          let restored = open(&bytes).unwrap();
-@@ -278,6 +299,18 @@
+@@ -303,6 +324,18 @@ mod tests {
          assert_eq!(restored.hidden.len(), 1);
          assert_eq!(restored.locked, scene.locked);
          assert_eq!(restored.colors, scene.colors);
@@ -534,30 +594,31 @@ diff --git a/src/app/session_io.rs b/src/app/session_io.rs
 diff --git a/src/app/splitting.rs b/src/app/splitting.rs
 --- a/src/app/splitting.rs
 +++ b/src/app/splitting.rs
-@@ -162,6 +162,7 @@
+@@ -176,6 +176,7 @@ impl Scene {
              .map(|node| node.borrow().name.clone());
          let place = file.session.xform(&guid);
          let color = self.colors.get(&(doc, Rc::clone(&guid))).copied();
 +        let edge_color = self.edge_colors.get(&(doc, Rc::clone(&guid))).copied();
+ 
          if pieces.len() > 1 {
              let name = source.name();
-             for (index, piece) in pieces.iter_mut().enumerate() {
-@@ -196,7 +197,10 @@
-             let id = node.borrow().name.clone();
+@@ -216,7 +217,11 @@ impl Scene {
              session.set_xform(&id, place.clone());
+ 
              if let Some(color) = color {
 -                self.colors.insert((doc, Rc::from(id)), color);
 +                self.colors.insert((doc, Rc::from(id.as_str())), color);
 +            }
++
 +            if let Some(color) = edge_color {
 +                self.edge_colors.insert((doc, Rc::from(id.as_str())), color);
              }
          }
-         session.commit();
+ 
 diff --git a/src/app/ui.rs b/src/app/ui.rs
 --- a/src/app/ui.rs
 +++ b/src/app/ui.rs
-@@ -437,66 +437,106 @@
+@@ -475,69 +475,114 @@ fn layer_color(
      action: &mut Option<String>,
  ) {
      let mut color = row.color.unwrap_or([180, 180, 180]);
@@ -597,6 +658,7 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 -                            let key =
 -                                format!("color/{index}/{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]);
 -                            record(controls, &key, name, &response);
+-
 -                            if response.clicked() {
 -                                *action = Some(key);
 -                                ui.close();
@@ -606,21 +668,6 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 -                }
 -                ui.separator();
 -                let mut changed = false;
--                for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
--                    changed |= ui
--                        .add(egui::Slider::new(value, 0..=255).text(channel))
--                        .changed();
--                }
--                if changed {
--                    *action = Some(format!(
--                        "color/{index}/{:02x}{:02x}{:02x}",
--                        color[0], color[1], color[2]
--                    ));
--                }
--            },
--        )
--        .response
--        .on_hover_text("Change object and child colors");
 +    let response = egui::containers::menu::MenuButton::new(
 +        egui::RichText::new("■").color(egui::Color32::from_rgb(color[0], color[1], color[2])),
 +    )
@@ -634,6 +681,7 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +            .ctx()
 +            .data_mut(|data| data.get_temp::<bool>(channel_id).unwrap_or(false))
 +            && row.has_faces;
++
 +        if row.has_faces {
 +            ui.horizontal(|ui| {
 +                for (label, value) in [("Faces", false), ("Edges", true)] {
@@ -644,14 +692,20 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +                        label,
 +                        &response,
 +                    );
+ 
+-                for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
+-                    changed |= ui
+-                        .add(egui::Slider::new(value, 0..=255).text(channel))
+-                        .changed();
 +                    if response.clicked() {
 +                        edge = value;
 +                    }
-+                }
+                 }
 +            });
 +        } else {
 +            ui.label("Object and child colors");
 +        }
++
 +        ui.ctx().data_mut(|data| data.insert_temp(channel_id, edge));
 +        let channel = if edge { "edge" } else { "face" };
 +        color = if edge { row.edge_color } else { row.color }.unwrap_or([180; 3]);
@@ -660,10 +714,12 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +            .on_hover_text("Restore the source colors for this channel and its children");
 +        let key = format!("color/{index}/{channel}/original");
 +        record(controls, &key, "Original", &response);
++
 +        if response.clicked() {
 +            *action = Some(key);
 +            ui.close();
 +        }
++
 +        ui.separator();
 +        for colors in [
 +            [
@@ -698,20 +754,32 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 +                        rgb[0], rgb[1], rgb[2]
 +                    );
 +                    record(controls, &key, name, &response);
+ 
+-                if changed {
+-                    *action = Some(format!(
+-                        "color/{index}/{:02x}{:02x}{:02x}",
+-                        color[0], color[1], color[2]
+-                    ));
 +                    if response.clicked() {
 +                        *action = Some(key);
 +                        ui.close();
 +                    }
-+                }
+                 }
+-            },
+-        )
+-        .response
+-        .on_hover_text("Change object and child colors");
 +            });
 +        }
 +        ui.separator();
 +        let mut changed = false;
++
 +        for (channel, value) in ["R", "G", "B"].into_iter().zip(color.iter_mut()) {
 +            changed |= ui
 +                .add(egui::Slider::new(value, 0..=255).text(channel))
 +                .changed();
 +        }
++
 +        if changed {
 +            *action = Some(format!(
 +                "color/{index}/{channel}/{:02x}{:02x}{:02x}",
@@ -727,7 +795,7 @@ diff --git a/src/app/ui.rs b/src/app/ui.rs
 diff --git a/src/engine/gpu/glyphs.rs b/src/engine/gpu/glyphs.rs
 --- a/src/engine/gpu/glyphs.rs
 +++ b/src/engine/gpu/glyphs.rs
-@@ -100,6 +100,21 @@
+@@ -92,6 +92,21 @@ pub struct GlyphLane {
  }
  
  impl GlyphLane {
@@ -752,16 +820,18 @@ diff --git a/src/engine/gpu/glyphs.rs b/src/engine/gpu/glyphs.rs
 diff --git a/src/engine/gpu/instance.rs b/src/engine/gpu/instance.rs
 --- a/src/engine/gpu/instance.rs
 +++ b/src/engine/gpu/instance.rs
-@@ -46,6 +46,8 @@
-     pub const FLAG_SINGLE: u32 = 1 << 7;
+@@ -49,6 +49,10 @@ impl Instance {
      /// Replace authored colors with the layer color.
      pub const FLAG_COLOR: u32 = 1 << 8;
-+    pub const FLAG_EDGE_COLOR: u32 = 1 << 9;
-+    pub const FLAG_HAS_FACES: u32 = 1 << 10;
  
++    pub const FLAG_EDGE_COLOR: u32 = 1 << 9;
++
++    pub const FLAG_HAS_FACES: u32 = 1 << 10;
++
      /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
      pub fn placeholder() -> Self {
-@@ -195,7 +197,7 @@
+         Self {
+@@ -203,7 +207,7 @@ mod tests {
      /// The scene contract declares `Instance` with the Rust fields, in order.
      #[test]
      fn instance_mirror() {
@@ -773,7 +843,7 @@ diff --git a/src/engine/gpu/instance.rs b/src/engine/gpu/instance.rs
 diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 --- a/src/engine/gpu/mod.rs
 +++ b/src/engine/gpu/mod.rs
-@@ -434,8 +434,8 @@
+@@ -434,8 +434,8 @@ impl Gpu {
          self.splat.invalidate();
      }
  
@@ -787,23 +857,23 @@ diff --git a/src/engine/gpu/mod.rs b/src/engine/gpu/mod.rs
 diff --git a/src/engine/gpu/objects.rs b/src/engine/gpu/objects.rs
 --- a/src/engine/gpu/objects.rs
 +++ b/src/engine/gpu/objects.rs
-@@ -24,6 +24,7 @@
+@@ -19,6 +19,7 @@ const REANCHOR_THROTTLE_MS: f64 = 200.0;
  pub struct ObjectRow {
-     pub place: Mat4,
+     pub place: Xform,
      pub color: [f32; 4],
 +    pub edge_color: u32,
      pub flags: u32,
-     pub bounds: Aabb,
-     /// Meshes: the local vertex spacing; clouds: the point size in px. Read as a pen hint.
-@@ -38,6 +39,7 @@
+     pub bounds: AABB,
+     pub spacing: f32, // Meshes: the local vertex spacing; clouds: the point size in px. Read as a pen hint.
+@@ -31,6 +32,7 @@ impl ObjectRow {
          Self {
              place,
              color: [1.0; 4],
 +            edge_color: 0,
              flags,
-             bounds: Aabb::empty(),
+             bounds: AABB::empty(),
              spacing: 0.0,
-@@ -364,7 +366,7 @@
+@@ -348,7 +350,7 @@ impl InstanceTable {
                  flags: r.flags,
                  _pad0: 0.0,
                  spacing: r.spacing,
@@ -811,8 +881,8 @@ diff --git a/src/engine/gpu/objects.rs b/src/engine/gpu/objects.rs
 +                _pad: r.edge_color,
              });
          }
-         if self.rows.is_empty() {
-@@ -581,15 +583,33 @@
+ 
+@@ -583,15 +585,36 @@ impl InstanceTable {
      }
  
      /// Change display color without rebuilding geometry or placement.
@@ -832,9 +902,11 @@ diff --git a/src/engine/gpu/objects.rs b/src/engine/gpu/objects.rs
 +                Instance::FLAG_COLOR
 +            };
 +            r.flags &= !flag;
++
 +            if color.is_some() {
 +                r.flags |= flag;
 +            }
++
 +            if edge {
 +                r._pad = color
 +                    .map(|c| u32::from_le_bytes([c[0], c[1], c[2], 255]))
@@ -851,24 +923,25 @@ diff --git a/src/engine/gpu/objects.rs b/src/engine/gpu/objects.rs
 +                    })
 +                    .unwrap_or([1.; 4]);
 +            }
++
              self.buffer.write_at(ctx, row, std::slice::from_ref(r));
          }
      }
-@@ -608,6 +628,10 @@
-             self.geometry_revision = self.geometry_revision.wrapping_add(1);
-         }
+@@ -616,6 +639,10 @@ impl InstanceTable {
          self.buffer.write_at(ctx, row, std::slice::from_ref(r));
-+    }
-+
-+    pub(crate) fn geometry_changed(&mut self) {
-+        self.geometry_revision = self.geometry_revision.wrapping_add(1);
      }
  
++    pub(crate) fn geometry_changed(&mut self) {
++        self.geometry_revision = self.geometry_revision.wrapping_add(1);
++    }
++
      /// Forget every row; the buffers keep their capacity.
+     pub fn reset(&mut self) {
+         self.geometry_revision = self.geometry_revision.wrapping_add(1);
 diff --git a/src/engine/gpu/splat.rs b/src/engine/gpu/splat.rs
 --- a/src/engine/gpu/splat.rs
 +++ b/src/engine/gpu/splat.rs
-@@ -74,6 +74,7 @@
+@@ -60,6 +60,7 @@ struct Key {
      cloud_size: f32,
      lod_px: f32,
      point_count: u32,
@@ -876,80 +949,84 @@ diff --git a/src/engine/gpu/splat.rs b/src/engine/gpu/splat.rs
  }
  
  /// The two point-pass targets, 1x, sized to the surface, and the resolve group over them.
-@@ -295,6 +296,7 @@
+@@ -283,6 +284,7 @@ impl Splat {
              cloud_size: cx.cloud_size,
              lod_px: cx.lod_px,
              point_count,
 +            geometry: cx.objects.geometry_revision(),
          };
+ 
          if self.key.as_ref() == Some(&key) {
-             return;
 diff --git a/src/shaders/glyph.wgsl b/src/shaders/glyph.wgsl
 --- a/src/shaders/glyph.wgsl
 +++ b/src/shaders/glyph.wgsl
-@@ -74,7 +74,7 @@
+@@ -79,7 +79,7 @@ fn glyph_vertex(vid: u32) -> VsOut {
  
      var o: VsOut;
      o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
 -    var color = object_color(g.color, inst);
 +    var color = edge_color(g.color, inst);
+ 
      if ((inst.flags & FLAG_SELECTED) != 0u) {
          color = vec4<f32>(SELECT_COLOR, color.a);
-     }
 diff --git a/src/shaders/ribbon.wgsl b/src/shaders/ribbon.wgsl
 --- a/src/shaders/ribbon.wgsl
 +++ b/src/shaders/ribbon.wgsl
-@@ -233,7 +233,7 @@
+@@ -279,7 +279,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
      var o: VsOut;
      let ndc = (p / vp - 0.5) * 2.0;
      o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
 -    var color = object_color(unpack4x8unorm(seg.color), inst);
 +    var color = edge_color(unpack4x8unorm(seg.color), inst);
+ 
      if (selected) {
          color = vec4<f32>(SELECT_COLOR, color.a);
-     }
 diff --git a/src/shaders/scene.wgsl b/src/shaders/scene.wgsl
 --- a/src/shaders/scene.wgsl
 +++ b/src/shaders/scene.wgsl
-@@ -12,6 +12,7 @@
+@@ -8,6 +8,7 @@ struct Instance {
      flags: u32,
      _pad0: f32,
      spacing: f32,
 +    edge_color: u32,
  };
+ 
  @group(2) @binding(0) var<storage, read> instances: array<Instance>;
- @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
-@@ -50,6 +51,14 @@
+@@ -47,6 +48,18 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
      return select(authored * inst.color, vec4<f32>(inst.color.rgb, authored.a), (inst.flags & FLAG_COLOR) != 0u);
  }
  
 +fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
-+    if ((inst.flags & 1024u) == 0u) { return object_color(authored, inst); }
++    if ((inst.flags & 1024u) == 0u) {
++        return object_color(authored, inst);
++    }
++
 +    if ((inst.flags & 512u) != 0u) {
 +        return vec4<f32>(unpack4x8unorm(inst.edge_color).rgb, authored.a);
 +    }
++
 +    return authored;
 +}
 +
  const FACING_UNKNOWN: u32 = 0xffffffffu;
+ 
  // The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
- const DISC_ID_TAG: u32 = 0x40000000u;
 diff --git a/src/shaders/sphere.wgsl b/src/shaders/sphere.wgsl
 --- a/src/shaders/sphere.wgsl
 +++ b/src/shaders/sphere.wgsl
-@@ -111,7 +111,7 @@
+@@ -125,7 +125,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
  
      var o: VsOut;
      o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
 -    var color = object_color(g.color, inst);
 +    var color = edge_color(g.color, inst);
+ 
      if ((inst.flags & FLAG_SELECTED) != 0u) {
          color = vec4<f32>(SELECT_COLOR, color.a);
-     }
 diff --git a/src/state/edit.rs b/src/state/edit.rs
 --- a/src/state/edit.rs
 +++ b/src/state/edit.rs
-@@ -29,6 +29,7 @@
+@@ -16,6 +16,7 @@ pub struct GizmoDrag {
      target: Option<crate::app::deform::Target>,
      source: Option<session_rust::Geometry>,
      origin: Point,
@@ -957,7 +1034,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
  }
  
  impl State {
-@@ -104,6 +105,14 @@
+@@ -90,6 +91,14 @@ impl State {
          let Some(base_place) = self.scene.placement_of(row) else {
              return false;
          };
@@ -972,7 +1049,7 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
          self.dragging = Some(GizmoDrag {
              row,
              base_local,
-@@ -112,6 +121,7 @@
+@@ -98,6 +107,7 @@ impl State {
              target: crate::app::deform::Target::selected(&self.selection),
              source: self.scene.geometry(row).cloned(),
              origin: gizmo.origin.clone(),
@@ -980,25 +1057,31 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
          });
          true
      }
-@@ -135,6 +145,17 @@
+@@ -122,6 +132,23 @@ impl State {
                  return false;
              };
-             let local = &(&back * &Xform::from_matrix(delta)) * &place;
+             let local = &(&back * &delta) * &place;
++
 +            if let Some(preview) = active.mesh_preview.as_ref() {
 +                preview.apply(&mut self.gpu, &local, false);
-+                let origin = active.origin.transformed(&Xform::from_matrix(delta));
-+                self.gpu.bounds.grow(origin.to_f32());
++                let origin = active.origin.transformed(&delta);
++                self.gpu
++                    .bounds
++                    .union_with_point(origin[0], origin[1], origin[2]);
++
 +                if let Some(gizmo) = self.gizmo.as_mut() {
 +                    gizmo.origin = origin;
 +                }
++
 +                self.upload_gizmo();
 +                self.touch();
 +                return true;
 +            }
++
              let edited = match crate::app::deform::transform(source, target, &local) {
                  Ok(value) => value,
                  Err(error) => {
-@@ -235,7 +256,10 @@
+@@ -228,7 +255,10 @@ impl State {
      /// no key reaches that state.
      pub fn cancel_gesture(&mut self) {
          if let Some(active) = self.dragging.take() {
@@ -1013,13 +1096,14 @@ diff --git a/src/state/edit.rs b/src/state/edit.rs
 diff --git a/src/state/panel.rs b/src/state/panel.rs
 --- a/src/state/panel.rs
 +++ b/src/state/panel.rs
-@@ -12,15 +12,41 @@
-             return;
+@@ -13,16 +13,46 @@ impl State {
          }
+ 
          if let Some(value) = key.strip_prefix("color/") {
 -            if let Some((index, hex)) = value.split_once('/')
 -                && let (Ok(index), Ok(rgb)) = (index.parse::<usize>(), u32::from_str_radix(hex, 16))
 +            let parts: Vec<_> = value.split('/').collect();
++
 +            if parts.len() == 3
 +                && let Ok(index) = parts[0].parse::<usize>()
                  && index < self.hierarchy.nodes.len()
@@ -1035,6 +1119,7 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
 +                    };
 +                    Some([(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8])
 +                };
+ 
                  for row in self.hierarchy.targets(index) {
 +                    if edge
 +                        && !self.gpu.objects.row(row).is_some_and(|r| {
@@ -1043,6 +1128,7 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
 +                    {
 +                        continue;
 +                    }
++
                      if let Some(id) = self.scene.identity_of(row) {
 -                        self.scene.colors.insert(id, color);
 -                        self.gpu.set_object_color(row, color);
@@ -1051,16 +1137,18 @@ diff --git a/src/state/panel.rs b/src/state/panel.rs
 +                        } else {
 +                            &mut self.scene.colors
 +                        };
++
 +                        if let Some(color) = color {
 +                            colors.insert(id, color);
 +                        } else {
 +                            colors.remove(&id);
 +                        }
++
 +                        self.gpu.set_object_color(row, edge, color);
                      }
                  }
-                 self.refresh_layers();
-@@ -178,6 +204,22 @@
+ 
+@@ -196,6 +226,22 @@ impl State {
                  hidden,
                  locked,
                  color,

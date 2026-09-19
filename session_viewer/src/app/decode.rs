@@ -1,7 +1,3 @@
-//! Bytes to a kernel `Session`, chunked: prost decodes the proto in one short block, then the
-//! objects are converted CHUNK at a time with a macrotask between chunks so a 250k-object
-//! parse never freezes the page. The bytes are taken by value and dropped after the decode.
-
 use super::fetch::next_tick;
 use prost::Message;
 use session_rust::proto;
@@ -36,6 +32,7 @@ macro_rules! convert {
             $s.lookup
                 .insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
             $s.objects.$slot.push(g);
+
             if $pacer.tick() {
                 next_tick().await;
             }
@@ -51,6 +48,7 @@ macro_rules! convert {
             $s.lookup
                 .insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
             $s.objects.$slot.push(g);
+
             if $pacer.tick() {
                 next_tick().await;
             }
@@ -66,6 +64,7 @@ pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Result<Session, St
                 .to_string(),
         );
     }
+
     if url.ends_with(".json") {
         let text = match std::str::from_utf8(&bytes) {
             Ok(text) => text,
@@ -79,6 +78,7 @@ pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Result<Session, St
         super::validate::retained(&session)?;
         return Ok(session);
     }
+
     let p = match proto::Session::decode(bytes.as_slice()) {
         Ok(session) => session,
         Err(error) => return Err(format!("invalid session protobuf: {error}")),
@@ -110,18 +110,22 @@ pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Result<Session, St
         let mut xform = Xform::identity();
         xform.set_guid(xf.guid.clone());
         xform.name = xf.name.clone();
+
         for (i, val) in xf.matrix.iter().enumerate().take(16) {
             xform.m[i] = *val;
         }
+
         s.xforms.insert(entry.guid.clone(), xform);
     }
 
     if let Some(gp) = &p.graph {
         s.graph = session_rust::Graph::new(&gp.name);
         s.graph.set_guid(gp.guid.clone());
+
         for (name, v) in &gp.vertices {
             s.graph.add_node(name, &v.attribute);
         }
+
         for e in &gp.edges {
             s.graph.add_edge(&e.v0, &e.v1, &e.attribute);
         }
@@ -130,20 +134,24 @@ pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Result<Session, St
     if let Some(tp) = &p.tree {
         s.tree = Tree::new(&tp.name);
         s.tree.set_guid(tp.guid.clone());
+
         if let Some(rp) = &tp.root {
             let root = build_tree(rp);
             s.tree.add(&root, None);
         }
     }
+
     Ok(s)
 }
 
 /// One proto node and its children, recursively.
 fn build_tree(proto: &proto::TreeNode) -> Rc<std::cell::RefCell<TreeNode>> {
     let node = TreeNode::new(&proto.name);
+
     for c in &proto.children {
         let child = build_tree(c);
         node.borrow_mut().add(&child);
     }
+
     node
 }

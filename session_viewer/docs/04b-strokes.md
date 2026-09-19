@@ -37,7 +37,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=1-56 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=1-48 -->
 
 ## Step 2 · The lane
 
@@ -49,33 +49,33 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=57-115 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=49-107 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=116-180 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=108-175 -->
 
 - Every draw is `RIBBON_VERTS * rows` vertices with no vertex buffer bound; the shader indexes the table.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=181-240 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=176-236 -->
 
 - The lane reports whether it holds any solid rows: 4x is spent only when hard edges exist on the GPU, and only if the canvas fits the adapter's budget.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=241-252 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=237-248 -->
 
 - `DepthMode::Always` with blending: the shader decides visibility itself, so no hardware depth test can hide a stroke that lies on a surface.
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-275 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=249-271 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=276-314 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=272-312 -->
 
 ## Step 3 · The shared visibility rule
 
@@ -99,12 +99,12 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-4 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-0 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=5-17 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-17 -->
 
 - The two half-widths travel flat, one scalar per end, and resolve per pixel, because a per-vertex width is projective over a trapezoid.
 
@@ -116,13 +116,13 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=26-93 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=26-97 -->
 
 - The fragment: coverage times fade, then `ink_visible` at the closest axis point.
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=94-140 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=98-158 -->
 
 - `band_area` integrates the pixel box against the capsule instead of sampling a distance: the figure above is that integral.
 
@@ -130,13 +130,13 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=141-190 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=159-214 -->
 
 - The ID entries write `(row + 1, segment + 1)`; a tag bit in the segment half tells a picked ribbon from a picked face in the same channel.
 
 <span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=191-293 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=215-333 -->
 
 <!-- check: 04b -->
 
