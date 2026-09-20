@@ -1,12 +1,12 @@
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 @group(1) @binding(0) var<uniform> line: LineUniform;
 
-// One object row, 96 bytes: model 0, color 64, flags 80, pad 84, spacing 88 (engine/gpu/instance.rs).
+// One object row, 96 bytes: model 0, color 64, flags 80, AO radius 84, spacing 88 (engine/gpu/instance.rs).
 struct Instance {
     model: mat4x4<f32>,
     color: vec4<f32>,
     flags: u32,
-    _pad0: f32,
+    ao_radius: f32,
     spacing: f32,
     edge_color: u32,
 };

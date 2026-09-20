@@ -3,7 +3,7 @@ struct ProjectedTriangle {
     edge1: vec4<f32>, // w = reference y
     edge2: vec4<f32>, // w = reference depth
     edge3: vec4<f32>, // w = corner count; xyz zero for an unclipped triangle
-    gradient: vec4<f32>,
+    gradient: vec4<f32>, // depth slope, nearest depth, object contact radius
     bounds: vec4<f32>,
 };
 

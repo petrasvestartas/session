@@ -21,7 +21,7 @@ struct ProjectInstance {
     model: mat4x4<f32>,
     color: vec4<f32>,
     flags: u32,
-    _pad0: f32,
+    ao_radius: f32,
     spacing: f32,
 };
 
@@ -82,7 +82,8 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
             nearest = max(nearest, polygon.points[i].z);
         }
 
-        out.gradient = vec4<f32>(gradient, nearest, 0.0);
+        let row = physical_objects[physical_indices[index*3u]];
+        out.gradient = vec4<f32>(gradient, nearest, instances[row].ao_radius);
         out.bounds = vec4<f32>(lo, hi);
     }
 

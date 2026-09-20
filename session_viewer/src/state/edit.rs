@@ -10,8 +10,8 @@ use session_rust::{Point, Vector, Xform};
 /// A drag in progress: the row, its transform when the drag started, and the handle.
 pub struct GizmoDrag {
     row: u32,
-    base_local: Xform, // The object's LOCAL transform at the grab. Every frame's preview is measured from this, never from the frame before, so a dropped frame changes nothing.
-    base_place: Xform, // The full placement at the grab, for the same reason, on the GPU side.
+    group: Vec<(u32, Xform)>,
+    base_place: Xform, // The full placement at the grab; each preview starts from this placement.
     drag: Drag,
     target: Option<crate::app::deform::Target>,
     source: Option<session_rust::Geometry>,
@@ -32,7 +32,15 @@ impl State {
             self.upload_gizmo();
             return;
         };
-        let mut origin = box_.center();
+        let mut bounds = box_;
+        if row.is_some() {
+            for selected in &self.hierarchy.selected {
+                if let Some(b) = self.gpu.objects.row_bounds(*selected) {
+                    bounds.union_with(&b);
+                }
+            }
+        }
+        let mut origin = bounds.center();
 
         if let Some(row) = row
             && let Some(target) = crate::app::deform::Target::selected(&self.selection)
@@ -75,6 +83,11 @@ impl State {
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
             return false;
         };
+        let group = self
+            .selected_rows()
+            .into_iter()
+            .filter_map(|r| Some((r, self.scene.placement_of(r)?)))
+            .collect();
         let per_px = self.world_per_px();
         let Some(gizmo) = self.gizmo.as_mut() else {
             return false;
@@ -83,9 +96,6 @@ impl State {
             return false;
         };
         let Some(drag) = gizmo.begin(handle, &from, &dir) else {
-            return false;
-        };
-        let Some(base_local) = self.scene.local_xform_of(row) else {
             return false;
         };
         let Some(base_place) = self.scene.placement_of(row) else {
@@ -99,9 +109,10 @@ impl State {
                 .as_ref()?
                 .begin(self.scene.geometry(row)?, target)
         });
+
         self.dragging = Some(GizmoDrag {
+            group,
             row,
-            base_local,
             base_place,
             drag,
             target: crate::app::deform::Target::selected(&self.selection),
@@ -172,11 +183,12 @@ impl State {
             return true;
         }
 
-        let place = &delta * &active.base_place;
-        self.gpu
-            .objects
-            .set_placement(&self.gpu.ctx, active.row, &place);
-        self.gpu.grew_bounds(active.row);
+        for (row, base) in &active.group {
+            self.gpu
+                .objects
+                .set_placement(&self.gpu.ctx, *row, &(&delta * base));
+            self.gpu.grew_bounds(*row);
+        }
         self.place_gizmo(Some(active.row));
         self.touch();
         true
@@ -190,7 +202,10 @@ impl State {
         self.gpu
             .objects
             .set_placement(&self.gpu.ctx, active.row, &active.base_place);
-        self.gpu.grew_bounds(active.row);
+        for (row, base) in &active.group {
+            self.gpu.objects.set_placement(&self.gpu.ctx, *row, base);
+            self.gpu.grew_bounds(*row);
+        }
         self.touch();
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
             return false;
@@ -221,26 +236,14 @@ impl State {
             return true;
         }
 
-        // The delta is a WORLD matrix and the session stores a LOCAL one: the same conjugation
-        // the command line goes through, or the object jumps to a different place than the last
-        // preview frame drew it.
-        let Some(local) = self
-            .scene
-            .local_for_world_delta(active.row, &delta, &active.base_local)
-        else {
-            return false;
-        };
         let label = match active.drag.handle {
             Handle::Translate(_) => "move",
             Handle::Rotate(_) => "rotate",
             Handle::Scale(_) | Handle::ScaleUniform => "scale",
         };
-
-        if let Some(place) = self.scene.set_row_xform(active.row, local, label) {
-            self.gpu
-                .objects
-                .set_placement(&self.gpu.ctx, active.row, &place);
-            self.gpu.grew_bounds(active.row);
+        if let Err(error) = self.apply(delta, label) {
+            self.status(&error);
+            return false;
         }
 
         self.touch();
@@ -271,11 +274,16 @@ impl State {
                 gizmo.drag = None;
             }
 
+            for (row, base) in &active.group {
+                self.gpu.objects.set_placement(&self.gpu.ctx, *row, base);
+                self.gpu.grew_bounds(*row);
+            }
             self.place_gizmo(Some(active.row));
             self.touch();
         }
 
         if let Some(active) = self.control_drag.take() {
+            self.restore_source_render(active.parent);
             if let Some(geometry) = self.scene.geometry(active.parent) {
                 self.controls = crate::app::selection::Controls::from_geometry(geometry);
             }
@@ -367,7 +375,7 @@ impl State {
     /// Physical pixels per CSS pixel, from the surface and the canvas: 1 on a desktop monitor,
     /// 2 or more on a phone. The marker lane wants physical pixels and the widget's sizes are
     /// in CSS pixels, so this is the conversion between them.
-    fn pixel_scale(&self) -> f64 {
+    pub(crate) fn pixel_scale(&self) -> f64 {
         let logical = self.logical_size()[0];
 
         if logical <= 0.0 {
@@ -452,7 +460,13 @@ impl State {
     /// key that does the same thing.
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
         self.cancel_gesture();
+        if let Some(result) = self.drawing_command(line) {
+            return result;
+        }
         let command = crate::app::command::parse(line)?;
+        if !matches!(command, Command::Snap(_)) {
+            self.draft = None;
+        }
 
         if command != Command::Split {
             self.cancel_split();
@@ -474,6 +488,36 @@ impl State {
         }
 
         match command {
+            Command::Snap(value) => {
+                self.snap_enabled = value.unwrap_or(!self.snap_enabled);
+                Ok(format!(
+                    "Snap {}",
+                    if self.snap_enabled { "On" } else { "Off" }
+                ))
+            }
+            Command::Layers(value) => {
+                if let Some(open) = value {
+                    crate::app::feedback::layers_visible(open);
+                    self.refresh_layers();
+                }
+                Ok("Layers (On Off)".into())
+            }
+            Command::Selection(tool) => {
+                self.escape_selection();
+                self.selection_tool = tool;
+                Ok(format!("{tool:?} selection"))
+            }
+            Command::Controls => {
+                self.enable_controls();
+                Ok("Control points".into())
+            }
+            Command::Ssao(value) => {
+                self.gpu.view.ssao = value.unwrap_or(!self.gpu.view.ssao);
+                Ok(format!(
+                    "SSAO {}",
+                    if self.gpu.view.ssao { "On" } else { "Off" }
+                ))
+            }
             Command::Split => self.split_command(),
             Command::Save => {
                 let bytes = crate::app::session_io::save(&self.scene)?;
@@ -589,11 +633,15 @@ impl State {
             return Ok(label.into());
         }
 
-        let Some(place) = self.scene.transform_row(row, &delta, label) else {
-            return Err("this row cannot be edited".into());
-        };
-        self.gpu.objects.set_placement(&self.gpu.ctx, row, &place);
-        self.gpu.grew_bounds(row);
+        let rows = self.selected_rows();
+        let places = self
+            .scene
+            .transform_rows(&rows, &delta, label)
+            .ok_or("this selection cannot be edited")?;
+        for (row, place) in places {
+            self.gpu.objects.set_placement(&self.gpu.ctx, row, &place);
+            self.gpu.grew_bounds(row);
+        }
         self.place_gizmo(Some(row));
         self.touch();
         Ok(label.into())
@@ -748,6 +796,21 @@ impl State {
         };
         let point = point.transformed(&back);
         let index = active.index;
+        let parent = active.parent;
+        let id = active.id;
+        if let Some(source) = self.scene.geometry(parent) {
+            let target = crate::app::deform::Target::Control(id);
+            if let Ok(points) = crate::app::deform::points(source, target)
+                && let Some(from) = points.first()
+                && let Ok(edited) = crate::app::deform::transform(
+                    source,
+                    target,
+                    &Xform::translation(point[0] - from[0], point[1] - from[1], point[2] - from[2]),
+                )
+            {
+                let _ = self.scene.preview_geometry(parent, edited, &mut self.gpu);
+            }
+        }
         self.controls.points[index].position = [point[0], point[1], point[2]];
         self.upload_controls();
         self.touch();
@@ -760,6 +823,7 @@ impl State {
         let Some(active) = self.control_drag.take() else {
             return false;
         };
+        self.restore_source_render(active.parent);
 
         if let Some(geometry) = self.scene.geometry(active.parent) {
             self.controls = crate::app::selection::Controls::from_geometry(geometry);
@@ -792,6 +856,9 @@ impl State {
     fn control_target(&self, active: &ControlDrag, x: f64, y: f64) -> Option<Point> {
         let (from, dir) = self.camera.ray((x, y), self.viewport())?;
         let free = active.plane.hit(&active.origin, &from, &dir)?;
+        if !self.snap_enabled {
+            return Some(free);
+        }
         let place = self.scene.placement_of(active.parent)?;
         let mut candidates = Vec::new();
 
@@ -827,7 +894,7 @@ impl State {
     }
 
     /// A world point in framebuffer pixels, or `None` when it is behind the eye.
-    fn project(&self, at: [f64; 3]) -> Option<(f64, f64)> {
+    pub(super) fn project(&self, at: [f64; 3]) -> Option<(f64, f64)> {
         let (w, h) = self.viewport();
         let anchor = Point::new(at[0], at[1], at[2]);
         let mvp = self.camera.view_proj_anchored(self.aspect(), &anchor);

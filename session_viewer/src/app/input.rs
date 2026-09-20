@@ -55,8 +55,18 @@ impl Input {
             Key::Named(NamedKey::Space) => state
                 .camera
                 .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
-            Key::Named(NamedKey::Escape) => state.escape_selection(),
-            Key::Named(NamedKey::Enter) => state.confirm_split(),
+            Key::Named(NamedKey::Escape) => {
+                state.draft = None;
+                state.escape_selection();
+            }
+            Key::Named(NamedKey::Enter) => {
+                if state.draft.is_some() {
+                    let result = state.run_command("");
+                    crate::app::feedback::status(&result.unwrap_or_else(|e| e));
+                } else {
+                    state.confirm_split();
+                }
+            }
             Key::Named(NamedKey::F10) => state.enable_controls(),
             Key::Named(NamedKey::Delete) => state.delete_selected(),
             // The colon opens the command box, the way a modal editor does. The box then holds
@@ -91,6 +101,7 @@ impl Input {
             Key::Character("o" | "O") => {
                 state.gpu.view.show_outlines = !state.gpu.view.show_outlines
             }
+            Key::Character("g" | "G") => state.gpu.view.ssao = !state.gpu.view.ssao,
             Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
             Key::Character("h" | "H") => state.hide_selected(),
             Key::Character("s" | "S") => state.show_all(),
@@ -162,7 +173,9 @@ impl Input {
                 }
 
                 self.last_cursor = (position.x, position.y);
-                dragging || state.hover_gizmo(position.x, position.y)
+                dragging
+                    || state.hover_drawing(position.x, position.y)
+                    || state.hover_gizmo(position.x, position.y)
             }
             WindowEvent::MouseWheel { delta, .. } => {
                 let amount = match delta {
@@ -317,12 +330,22 @@ impl Input {
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
             ElementState::Pressed => {
-                if !self.ctrl && state.begin_control_drag(self.last_cursor.0, self.last_cursor.1) {
+                if state.draft.is_some() {
+                    self.left_down = Some(self.last_cursor);
+                    return false;
+                }
+                if !self.ctrl
+                    && !self.shift
+                    && state.begin_control_drag(self.last_cursor.0, self.last_cursor.1)
+                {
                     self.control_drag = true;
                     return false;
                 }
 
-                if !self.ctrl && state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
+                if !self.ctrl
+                    && !self.shift
+                    && state.begin_gizmo(self.last_cursor.0, self.last_cursor.1)
+                {
                     self.gizmo_drag = true;
                     return false;
                 }
@@ -354,6 +377,10 @@ impl Input {
                     return false;
                 }
 
+                if state.draft.is_some() {
+                    return state.click_drawing(self.last_cursor.0, self.last_cursor.1);
+                }
+                state.additive_selection = self.shift && !self.ctrl;
                 state.request_selection(
                     self.last_cursor.0 as u32,
                     self.last_cursor.1 as u32,

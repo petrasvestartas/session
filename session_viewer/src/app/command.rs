@@ -21,6 +21,11 @@ pub enum Command {
     Hide,
     ShowAll,
     Fit,
+    Layers(Option<bool>),
+    Selection(crate::app::selection::SelectionTool),
+    Controls,
+    Ssao(Option<bool>),
+    Snap(Option<bool>),
     Escape, // Clear the selection.
 }
 
@@ -33,10 +38,10 @@ pub fn hint(line: &str) -> &'static str {
         .to_ascii_lowercase()
         .as_str()
     {
-        "point" => "Point x,y,z · Example: Point 0,0,0 · Enter creates the point",
-        "line" => "Line start end · Example: Line 0,0,0 100,0,0",
+        "point" => "Point · Enter then click or type x,y,z",
+        "line" => "Line · Enter then click or type endpoints · Example: Line 0,0,0 100,0,0",
         "curve" => "Curve control points… · Example: Curve 0,0,0 50,100,0 100,0,0",
-        "polyline" => "Polyline points… · Example: Polyline 0,0,0 100,0,0 100,100,0",
+        "polyline" => "Polyline · click points, or choose Rectangle / Polygon · Enter finishes",
         "move" | "m" => "Select an object, then Move dx,dy,dz · Example: Move 10,0,0",
         "rotate" | "rot" => "Select an object, then Rotate axis degrees · Example: Rotate z 45",
         "scale" | "s" => "Select an object, then Scale factor · Example: Scale 2",
@@ -49,7 +54,12 @@ pub fn hint(line: &str) -> &'static str {
         "save" => "Save downloads the complete editable scene as a .session file",
         "open" => "Open restores a saved .session file",
         "fit" => "Fit zooms to the selection, or the whole scene when nothing is selected",
-        _ => "Try Point 0,0,0 · Line 0,0,0 100,0,0 · Fit · Undo · Save · Enter or Run executes",
+        "layers" => "Layers (On Off): show or hide the layer panel",
+        "snap" => "Snap (On Off): endpoints, vertices and midpoints within 12 pixels",
+        "ssao" | "arctic" => {
+            "SSAO (On Off): soft contact shading and studio lighting · G toggles in the viewport"
+        }
+        _ => "Type a command · Up/Down browse · Tab completes · Enter executes · Esc cancels",
     }
 }
 
@@ -81,6 +91,33 @@ pub fn parse(line: &str) -> Result<Command, String> {
     }
 
     match verb.as_str() {
+        "layers" => match rest.as_slice() {
+            [] => Ok(Command::Layers(None)),
+            [value] if value.eq_ignore_ascii_case("on") => Ok(Command::Layers(Some(true))),
+            [value] if value.eq_ignore_ascii_case("off") => Ok(Command::Layers(Some(false))),
+            _ => Err("Layers (On Off)".into()),
+        },
+        "snap" => match rest.as_slice() {
+            [] => Ok(Command::Snap(None)),
+            [value] if value.eq_ignore_ascii_case("on") => Ok(Command::Snap(Some(true))),
+            [value] if value.eq_ignore_ascii_case("off") => Ok(Command::Snap(Some(false))),
+            _ => Err("Snap (On Off)".into()),
+        },
+        "ssao" | "arctic" => match rest.as_slice() {
+            [] => Ok(Command::Ssao(None)),
+            [value] if value.eq_ignore_ascii_case("on") => Ok(Command::Ssao(Some(true))),
+            [value] if value.eq_ignore_ascii_case("off") => Ok(Command::Ssao(Some(false))),
+            _ => Err("SSAO (On Off)".into()),
+        },
+        "object" | "edge" | "face" | "controls" if rest.is_empty() => {
+            use crate::app::selection::SelectionTool;
+            Ok(match verb.as_str() {
+                "object" => Command::Selection(SelectionTool::Object),
+                "edge" => Command::Selection(SelectionTool::Edge),
+                "face" => Command::Selection(SelectionTool::Face),
+                _ => Command::Controls,
+            })
+        }
         "point" | "line" | "polyline" | "curve" | "trim" | "extend" | "explode" => {
             model(&verb, &rest).map(Command::Model)
         }
@@ -109,6 +146,85 @@ pub fn parse(line: &str) -> Result<Command, String> {
         "fit" => Ok(Command::Fit),
         "escape" | "esc" => Ok(Command::Escape),
         other => Err(format!("no command `{other}`")),
+    }
+}
+
+/// Finite choices appear as clickable words beside the prompt.
+pub fn options(line: &str) -> &'static [&'static str] {
+    match line
+        .split_whitespace()
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "polyline" => &["Polyline Points", "Polyline Rectangle", "Polyline Polygon"],
+        "layers" => &["Layers On", "Layers Off"],
+        "ssao" => &["SSAO On", "SSAO Off"],
+        "arctic" => &["Arctic On", "Arctic Off"],
+        "snap" => &["Snap On", "Snap Off"],
+        "rotate" | "rot" => &["Rotate x", "Rotate y", "Rotate z"],
+        _ => &[],
+    }
+}
+
+/// Discover commands before typing; options use the same scrollable completion list.
+pub fn completions(line: &str) -> Vec<&'static str> {
+    const COMMANDS: &[&str] = &[
+        "Arctic", "Controls", "Curve", "Delete", "Edge", "Escape", "Explode", "Extend", "Face",
+        "Fit", "Hide", "Layers", "Line", "Move", "Object", "Open", "Point", "Polyline", "Redo",
+        "Rotate", "Save", "Scale", "Show", "Snap", "Split", "SSAO", "Trim", "Undo",
+    ];
+    let lower = line.to_ascii_lowercase();
+    let choices = if lower.contains(' ') {
+        options(line)
+    } else {
+        COMMANDS
+    };
+    choices
+        .iter()
+        .copied()
+        .filter(|name| name.to_ascii_lowercase().starts_with(&lower))
+        .collect()
+}
+
+/// Browsing keeps every command reachable; matching prefixes lead the list.
+/// Options belong to their command and never include unrelated verbs.
+pub fn browse(line: &str) -> Vec<&'static str> {
+    if line.contains(' ') {
+        return options(line).to_vec();
+    }
+    let all = completions("");
+    let lower = line.to_ascii_lowercase();
+    all.iter()
+        .copied()
+        .filter(|name| name.to_ascii_lowercase().starts_with(&lower))
+        .chain(
+            all.iter()
+                .copied()
+                .filter(|name| !name.to_ascii_lowercase().starts_with(&lower)),
+        )
+        .collect()
+}
+
+/// Accept the first matching completion. False means keep a prompt for its arguments.
+pub fn accept(line: &str) -> (String, bool) {
+    if line.trim().is_empty() {
+        return (String::new(), true);
+    }
+    let choices = completions(line);
+    let text = choices.first().copied().unwrap_or(line).trim();
+    let words: Vec<_> = text.split_whitespace().collect();
+    if (!options(text).is_empty() && words.len() == 1 && !text.eq_ignore_ascii_case("polyline"))
+        || (words.len() == 2
+            && words[0].eq_ignore_ascii_case("rotate")
+            && ["x", "y", "z"]
+                .iter()
+                .any(|axis| words[1].eq_ignore_ascii_case(axis)))
+    {
+        (format!("{text} "), false)
+    } else {
+        (text.to_owned(), true)
     }
 }
 
@@ -167,6 +283,34 @@ fn number(word: Option<&str>, example: &str) -> Result<f64, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn partial_entries_accept_commands_then_options() {
+        assert_eq!(accept("Lay"), ("Layers ".into(), false));
+        assert_eq!(accept("Layers "), ("Layers On".into(), true));
+        assert_eq!(accept("Layers of"), ("Layers Off".into(), true));
+        assert_eq!(accept("Lin"), ("Line".into(), true));
+        assert_eq!(accept("Point"), ("Point".into(), true));
+        assert_eq!(accept("Polyline"), ("Polyline".into(), true));
+        assert_eq!(accept("Polyline rec"), ("Polyline Rectangle".into(), true));
+        assert_eq!(accept("Polyline pol"), ("Polyline Polygon".into(), true));
+        assert_eq!(accept("Rotate "), ("Rotate x ".into(), false));
+        assert_eq!(accept("Rotate x 45"), ("Rotate x 45".into(), true));
+        assert_eq!(accept(""), (String::new(), true));
+        assert_eq!(browse("la")[0], "Layers");
+        assert_eq!(browse("la").len(), completions("").len());
+        assert_eq!(browse("forgot"), completions(""));
+        assert_eq!(browse("Layers o"), vec!["Layers On", "Layers Off"]);
+    }
+
+    #[test]
+    fn discovery_and_layer_options_are_case_insensitive() {
+        assert_eq!(completions("la"), vec!["Layers"]);
+        assert_eq!(completions("Layers "), vec!["Layers On", "Layers Off"]);
+        assert!(completions("").contains(&"Controls"));
+        assert_eq!(parse("Layers OFF"), Ok(Command::Layers(Some(false))));
+        assert!(parse("Layers maybe").is_err());
+    }
 
     #[test]
     fn the_verbs_and_their_short_forms() {

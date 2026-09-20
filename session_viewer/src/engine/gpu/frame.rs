@@ -318,7 +318,11 @@ impl FrameUniforms {
             vp_w: cx.size.0 as f32,
             eye: self.eye,
             anchor: cx.anchor,
-            lit: f32::from(cx.view.lit),
+            lit: if cx.view.ssao {
+                2.0
+            } else {
+                f32::from(cx.view.lit)
+            },
             backface: f32::from(cx.view.backface),
             origin: [0.0; 2],
             frame: [cx.size.0 as f32, cx.size.1 as f32],

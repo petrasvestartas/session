@@ -32,7 +32,7 @@
         overscroll-behavior: none;
       }
       body {
-        background: #000;
+        background: #f0f0f0;
         overflow: hidden;
       }
       /* No focus ring. winit gives the canvas a tabindex so it can receive key
@@ -66,18 +66,18 @@
       /* The documentation corner: a black folded-corner triangle, always above the canvas. */
       #viewer-docs {
         position: fixed;
-        top: 0;
+        bottom: 0;
         right: 0;
         width: 0;
         height: 0;
         z-index: 10;
         display: block;
-        border-top: 20px solid #111;
+        border-bottom: 20px solid #111;
         border-left: 20px solid transparent;
-        transition: border-top-width .25s cubic-bezier(.2, .8, .3, 1.25), border-left-width .25s cubic-bezier(.2, .8, .3, 1.25);
+        transition: border-bottom-width .25s cubic-bezier(.2, .8, .3, 1.25), border-left-width .25s cubic-bezier(.2, .8, .3, 1.25);
       }
       #viewer-docs:hover, #viewer-docs:focus-visible {
-        border-top-width: 26px;
+        border-bottom-width: 26px;
         border-left-width: 26px;
         outline: none;
       }
@@ -107,7 +107,7 @@
       <p id="viewer-error-message"></p>
       <button type="button" onclick="location.reload()">Reload viewer</button>
     </div>
-    <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Left click selects, right drag orbits, L opens the layers panel, colon opens the command line."></canvas>
+    <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Click selects, Shift-click adds to selection, right drag orbits. Type Layers On in the command line to show layers. Enter executes and Escape cancels."></canvas>
     <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
     <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
     <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>

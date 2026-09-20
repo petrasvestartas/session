@@ -41,6 +41,29 @@ impl Gpu {
             let mut pass = self.targets.begin_faces(encoder, view, clear);
             self.face_list(&mut pass, &b)
         };
+        if self.view.ssao && self.view.opacity > 0.0 && self.arena.face_count() > 0 {
+            let target = crate::engine::pipelines::Target {
+                format: self.config.format,
+                samples: self.targets.samples,
+            };
+            let ssao = self.ssao.get_or_insert_with(|| {
+                super::ssao::Ssao::new(&self.ctx, target, (self.config.width, self.config.height))
+            });
+            let receiver = ssao.receiver(&self.objects);
+            draws += ssao.draw(
+                &self.ctx,
+                target,
+                &self.targets,
+                &self.arena.tiles.projected,
+                encoder,
+                view,
+                self.frame.mvp_f32,
+                receiver,
+                self.objects.geometry_revision(),
+            );
+        } else {
+            self.ssao = None;
+        }
         let size = (self.config.width, self.config.height);
         // No silhouettes in x-ray: with the faces gone they would only paint over the edges
         // and vertices that are the picture.
@@ -168,7 +191,7 @@ impl Gpu {
 
     /// Backdrop, physical faces and the cloud resolve write the depth every ink fragment reads.
     fn face_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        let mut draws = self.backdrop.draw_background(pass);
+        let mut draws = self.backdrop.draw_background(pass, b);
 
         if self.view.show_grid {
             draws += self.backdrop.draw_grid(pass, b);

@@ -49,7 +49,25 @@ pub struct Camera {
     pub scene_extent: f64, // Scene bounding-sphere radius in metres, set by `fit`. Floors the far plane so zooming into one detail can never clip the rest of the scene (0 = pure distance-scaled range).
 }
 
+#[derive(Debug, PartialEq)]
+pub struct CameraPose {
+    target: [f64; 3],
+    position: [f64; 3],
+    up: [f64; 3],
+    perspective: bool,
+}
+
 impl Camera {
+    /// The chosen view, independent of clipping extents added by arriving geometry.
+    pub fn pose(&self) -> CameraPose {
+        CameraPose {
+            target: self.target,
+            position: self.position,
+            up: self.up,
+            perspective: self.perspective,
+        }
+    }
+
     /// A camera at the isometric view (30° yaw, −30° pitch), distance 3, perspective, millimeters.
     pub fn new() -> Self {
         use std::f64::consts::FRAC_PI_6;
@@ -489,6 +507,25 @@ fn dot3(p: &[f64; 3], v: &Vector) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pose_tracks_navigation_without_tracking_scene_extent() {
+        let mut camera = Camera::new();
+        let initial = camera.pose();
+        camera.scene_extent = 100.0;
+        assert_eq!(camera.pose(), initial);
+        camera.orbit(10.0, 5.0);
+        assert_ne!(camera.pose(), initial);
+        let rotated = camera.pose();
+        camera.pan(10.0, 5.0);
+        assert_ne!(camera.pose(), rotated);
+        let panned = camera.pose();
+        camera.zoom(1.0);
+        assert_ne!(camera.pose(), panned);
+        let zoomed = camera.pose();
+        camera.toggle_projection();
+        assert_ne!(camera.pose(), zoomed);
+    }
 
     /// Where `view_proj` puts a metres point `depth` in front of the eye, on the view axis:
     /// its reverse-Z depth, over 1 when the near plane has cut it.

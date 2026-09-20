@@ -152,7 +152,7 @@ impl ApplicationHandler<Msg> for App {
         match msg {
             Msg::Ready(_) => {}
             Msg::Clear => state.clear(),
-            Msg::Fit => state.fit_all(),
+            Msg::Fit => state.fit_loaded(),
             Msg::File(doc) => state.append(doc),
             Msg::Texts(texts) => state.set_texts(texts),
             Msg::StreamedCloud(init) => {

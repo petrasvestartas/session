@@ -79,7 +79,7 @@ impl State {
                         self.hierarchy.open.insert(index);
                     }
                 }
-                "select" => {
+                "select" | "add" => {
                     let rows = self.hierarchy.targets(index);
 
                     if self.pending_split.is_some() {
@@ -90,21 +90,7 @@ impl State {
                         return;
                     }
 
-                    self.select(None);
-
-                    for row in rows {
-                        if self.scene.identity_of(row).is_some_and(|id| {
-                            !self.scene.hidden.contains(&id) && !self.scene.locked.contains(&id)
-                        }) {
-                            self.gpu.set_selected(row, true);
-                            self.hierarchy.selected.push(row);
-                        }
-                    }
-
-                    if self.hierarchy.selected.len() == 1 {
-                        let row = self.hierarchy.selected[0];
-                        self.select(Some(row));
-                    }
+                    self.select_rows(rows, action == "add");
                 }
                 "lock" => {
                     let rows = self.hierarchy.targets(index);
@@ -225,6 +211,9 @@ impl State {
                 count,
                 hidden,
                 locked,
+                selected: targets.iter().any(|r| {
+                    self.scene.selected == Some(*r) || self.hierarchy.selected.contains(r)
+                }),
                 color,
                 edge_color: targets
                     .first()

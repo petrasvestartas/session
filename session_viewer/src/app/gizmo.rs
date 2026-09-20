@@ -342,7 +342,9 @@ fn end_on(dir: &Vector, axis: Axis) -> bool {
 fn closest_on_axis(from: &Point, dir: &Vector, origin: &Point, axis: &Vector) -> Option<Point> {
     let ray = Line::from_point_direction_length(from, dir, 1.0);
     let line = Line::from_point_direction_length(origin, axis, 1.0);
-    let (_, t) = line_line_parameters(&ray, &line, 1e-9, false, false)?;
+    // Closest approach is deliberate: the screen-space grab radius below accepts rays
+    // near the arm. Requiring an exact intersection makes rounded pointer pixels miss.
+    let (_, t) = line_line_parameters(&ray, &line, 0.0, false, false)?;
 
     Some(origin + &(axis * t))
 }
@@ -400,6 +402,16 @@ fn about(pivot: &Point, m: Xform) -> Xform {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn arm_grab_accepts_a_ray_within_the_screen_aperture() {
+        let gizmo = Gizmo::new(Point::new(5.0, 45.0, 0.0));
+        let from = Point::new(25.0, 44.5, 100.0);
+        assert_eq!(
+            gizmo.hit(&from, &Vector::new(0.0, 0.0, -1.0), 0.25),
+            Some(Handle::Translate(Axis::X))
+        );
+    }
 
     const SCALE: f64 = 1.0; // one world unit per CSS pixel keeps the numbers readable
 

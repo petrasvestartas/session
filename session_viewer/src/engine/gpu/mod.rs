@@ -16,6 +16,7 @@ pub mod present;
 pub mod render;
 pub mod segments;
 pub mod splat;
+mod ssao;
 pub mod surface_outline;
 pub mod targets;
 pub mod text;
@@ -65,6 +66,7 @@ pub struct Gpu {
     pub view: View,
     pub objects: InstanceTable,
     pub backdrop: BackdropLane,
+    ssao: Option<ssao::Ssao>,
     pub arena: ArenaLane,
     pub segments: SegmentLane,
     pub glyphs: GlyphLane,
@@ -108,7 +110,8 @@ impl Gpu {
             + self.text.allocated_bytes()
             + splat_buffers
             + pick_buffers
-            + outline_buffers;
+            + outline_buffers
+            + if self.ssao.is_some() { 144 } else { 0 };
         let pixels = u64::from(self.config.width) * u64::from(self.config.height);
         let samples = u64::from(self.targets.samples);
         // 16 B a sample is the three physical attachments together: 4 for the MSAA colour, 4
@@ -126,7 +129,8 @@ impl Gpu {
                 + splat_textures
                 + pick_textures
                 + self.text.texture_bytes()
-                + outline_textures,
+                + outline_textures
+                + self.ssao.as_ref().map_or(0, ssao::Ssao::texture_bytes),
         )
     }
 
@@ -209,6 +213,7 @@ impl Gpu {
             view: View::from_env(),
             objects,
             backdrop,
+            ssao: None,
             arena,
             segments,
             glyphs,

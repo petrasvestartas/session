@@ -11,6 +11,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
 mod cloud_query;
+mod drawing;
 pub mod edit;
 mod panel;
 mod sheet_query;
@@ -35,6 +36,7 @@ pub struct State {
     pub window: Arc<Window>,
     pub gpu: Gpu,
     pub camera: Camera,
+    load_camera: crate::camera::CameraPose,
     pub scene: Scene,
     pub needs_frame: bool, // Something changed since the last frame; the shell asks for a redraw when it sees this.
     pub interacting: bool, // A drag or pinch is in progress (set by the input layer).
@@ -45,8 +47,11 @@ pub struct State {
     pub selection_tool: crate::app::selection::SelectionTool,
     hierarchy: crate::app::hierarchy::Hierarchy,
     pending_split: Option<splitting::Pending>,
+    pub(crate) draft: Option<drawing::Draft>,
+    pub(crate) snap_enabled: bool,
     controls: Controls,
     requested: PickMode,
+    pub(crate) additive_selection: bool,
     pub selection_radius_css: f64,
     show_selected_names: bool, // A view preference retained across selections and scene reloads; T toggles it.
     cloud_query: Option<crate::app::cloud_query::Query>,
@@ -66,10 +71,12 @@ impl State {
         let mut gpu = Gpu::new(window.clone()).await?;
         scene.upload_to(&mut gpu);
         log::info!("gpu init {:.0} ms", now_ms() - t0);
+        let camera = Camera::new();
         Ok(Self {
             window,
             gpu,
-            camera: Camera::new(),
+            load_camera: camera.pose(),
+            camera,
             scene,
             needs_frame: true,
             interacting: false,
@@ -80,8 +87,11 @@ impl State {
             selection_tool: crate::app::selection::SelectionTool::default(),
             hierarchy: Default::default(),
             pending_split: None,
+            draft: None,
+            snap_enabled: true,
             controls: Controls::default(),
             requested: PickMode::Object,
+            additive_selection: false,
             selection_radius_css: 6.0,
             show_selected_names: true,
             cloud_query: None,
@@ -175,6 +185,7 @@ impl State {
 
     /// Drop every document; the canvas, device and camera stay.
     pub fn clear(&mut self) {
+        self.load_camera = self.camera.pose();
         self.cancel_split();
         self.cancel_gesture();
         self.hierarchy = Default::default();
@@ -188,6 +199,13 @@ impl State {
         self.touch();
     }
 
+    /// Finish loading without replacing a view the user has already chosen.
+    pub fn fit_loaded(&mut self) {
+        if self.camera.pose() == self.load_camera {
+            self.fit_all();
+        }
+    }
+
     /// Fit the camera around everything loaded so far.
     pub fn fit_all(&mut self) {
         let b = &self.gpu.bounds;
@@ -196,17 +214,20 @@ impl State {
         self.touch();
     }
 
-    /// Fit the camera to the selected object's world box; falls back to `fit_all` when
+    /// Fit the camera to the selected objects' world box; falls back to `fit_all` when
     /// nothing is selected or the selection has no volume.
     pub fn fit_selected_or_all(&mut self) {
-        let row = match self.scene.selected {
-            Some(row) => self.gpu.objects.row_bounds(row),
-            None => None,
-        };
-        let Some(b) = row else {
+        let mut bounds = self
+            .selected_rows()
+            .into_iter()
+            .filter_map(|row| self.gpu.objects.row_bounds(row));
+        let Some(mut b) = bounds.next() else {
             self.fit_all();
             return;
         };
+        for next in bounds {
+            b.union_with(&next);
+        }
         log::info!(
             "fit selected: bounds {} aspect {:.3}",
             b.str(),
@@ -304,7 +325,46 @@ impl State {
         }
 
         self.scene.selected = row;
+        self.refresh_layers();
         self.place_gizmo(row);
+        self.update_label();
+        self.touch();
+    }
+
+    /// The same selection set drives the viewport, hierarchy, and shared gumball.
+    pub(crate) fn selected_rows(&self) -> Vec<u32> {
+        if self.hierarchy.selected.is_empty() {
+            self.scene.selected.into_iter().collect()
+        } else {
+            self.hierarchy.selected.clone()
+        }
+    }
+
+    pub(crate) fn select_rows(&mut self, rows: Vec<u32>, additive: bool) {
+        let mut selected = if additive {
+            self.selected_rows()
+        } else {
+            Vec::new()
+        };
+        selected.extend(rows.into_iter().filter(|r| {
+            self.scene.selectable(*r)
+                && self
+                    .scene
+                    .identity_of(*r)
+                    .is_some_and(|id| !self.scene.hidden.contains(&id))
+        }));
+        selected.sort_unstable();
+        selected.dedup();
+        self.select(None);
+        self.scene.selected = selected.first().copied();
+        for &row in &selected {
+            self.gpu.set_selected(row, true);
+        }
+        if selected.len() > 1 {
+            self.hierarchy.selected = selected;
+        }
+        self.place_gizmo(self.scene.selected);
+        self.refresh_layers();
         self.update_label();
         self.touch();
     }
@@ -423,7 +483,9 @@ impl State {
 
         let Some(p) = pick else {
             log::info!("pick: nothing");
-            self.select(None);
+            if !self.additive_selection {
+                self.select(None);
+            }
             return;
         };
 
@@ -449,12 +511,7 @@ impl State {
                     return;
                 }
 
-                let toggle = if self.scene.selected == Some(hit.row) {
-                    None
-                } else {
-                    Some(hit.row)
-                };
-                self.select(toggle);
+                self.select_rows(vec![hit.row], self.additive_selection);
             }
             None => log::info!("pick: row {} sub {} (no document)", p.row, p.sub),
         }

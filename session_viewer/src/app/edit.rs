@@ -3,6 +3,58 @@ use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
 
 impl Scene {
+    /// Compute all local transforms before writing, then record one transaction per document.
+    pub fn transform_rows(
+        &mut self,
+        rows: &[u32],
+        delta: &Xform,
+        label: &str,
+    ) -> Option<Vec<(u32, Xform)>> {
+        let mut changes = rows
+            .iter()
+            .map(|&row| {
+                let (doc, guid) = self.identity_of(row)?;
+                if self.docs.get(doc)?.display_only {
+                    return None;
+                }
+                let base = self.local_xform_of(row)?;
+                Some((doc, guid, self.local_for_world_delta(row, delta, &base)?))
+            })
+            .collect::<Option<Vec<_>>>()?;
+        let selected: std::collections::HashSet<_> = changes
+            .iter()
+            .map(|(doc, guid, _)| (*doc, guid.to_string()))
+            .collect();
+        // A selected descendant inherits its selected ancestor's world delta exactly once.
+        changes.retain(|(doc, guid, _)| {
+            self.docs[*doc]
+                .session
+                .tree
+                .get_node_by_name(guid)
+                .is_none_or(|node| {
+                    node.borrow()
+                        .ancestors()
+                        .iter()
+                        .all(|ancestor| !selected.contains(&(*doc, ancestor.borrow().name.clone())))
+                })
+        });
+        let mut docs: Vec<_> = changes.iter().map(|c| c.0).collect();
+        docs.sort_unstable();
+        docs.dedup();
+        for doc in docs {
+            let session = Rc::make_mut(&mut self.docs[doc].session);
+            session.begin(label);
+            for (_, guid, local) in changes.iter().filter(|c| c.0 == doc) {
+                session.set_xform(guid, local.clone());
+            }
+            session.commit();
+            self.last_edited = Some(doc);
+        }
+        rows.iter()
+            .map(|&row| Some((row, self.placement_of(row)?)))
+            .collect()
+    }
+
     /// The document a row belongs to, made writable: the index and the guid, with this
     /// placement's session already split off any it was sharing.
     ///
@@ -198,6 +250,44 @@ mod tests {
     use super::*;
     use crate::app::scene::FileDoc;
     use session_rust::{Point, Session};
+
+    #[test]
+    fn group_transform_undo_restores_every_member_in_one_document() {
+        let mut source = Session::new("group");
+        source.add_point(Point::new(0.0, 0.0, 0.0), None);
+        source.add_point(Point::new(10.0, 0.0, 0.0), None);
+        let mut scene = Scene::new();
+        scene.add_file(file("group", Rc::new(source)));
+        let moved = scene
+            .transform_rows(&[0, 1], &Xform::translation(5.0, 0.0, 0.0), "move group")
+            .unwrap();
+        assert!(moved.iter().all(|(_, m)| m.m[12] == 5.0));
+        assert!(scene.undo());
+        assert!(
+            [0, 1]
+                .into_iter()
+                .all(|r| scene.placement_of(r).unwrap().m[12] == 0.0)
+        );
+    }
+
+    #[test]
+    fn selected_child_inherits_the_selected_parents_delta_once() {
+        let mut source = Session::new("nested");
+        let parent = source.add_point(Point::new(0.0, 0.0, 0.0), None);
+        source.add_point(Point::new(10.0, 0.0, 0.0), Some(&parent));
+        let mut scene = Scene::new();
+        scene.add_file(file("nested", Rc::new(source)));
+        let moved = scene
+            .transform_rows(&[0, 1], &Xform::translation(5.0, 0.0, 0.0), "move nested")
+            .unwrap();
+        assert!(moved.iter().all(|(_, m)| m.m[12] == 5.0));
+        assert!(scene.undo());
+        assert!(
+            [0, 1]
+                .into_iter()
+                .all(|r| scene.placement_of(r).unwrap().m[12] == 0.0)
+        );
+    }
 
     fn file(name: &str, session: Rc<Session>) -> FileDoc {
         FileDoc {

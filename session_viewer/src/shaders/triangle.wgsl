@@ -165,7 +165,10 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     // paper, read from both sides, lit flat.
     let backface = !front && in.print <= 0.5 && line.backface > 0.5;
     let base = select(in.color, BACKFACE_COLOR, backface);
-    let shaded = select(1.0, lit, line.lit > 0.5 && in.print <= 0.5);
+    // Archive Arctic mode: diffuse sky/ground illumination, preserving source colors.
+    let ambient = mix(0.72, 1.0, 0.5 + 0.5 * n.z);
+    let lighting = select(lit, ambient, line.lit > 1.5);
+    let shaded = select(1.0, lighting, line.lit > 0.5 && in.print <= 0.5);
     let alpha = select(1.0, line.opacity, in.closed != 0u);
     return vec4<f32>(base * shaded, alpha);
 }

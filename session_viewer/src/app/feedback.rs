@@ -73,13 +73,14 @@ pub fn focus_canvas() {}
 pub fn command_line(_open: bool) {}
 
 /// One row of the layers panel, as the panel needs it.
-#[derive(Clone, Default)]
+#[derive(Clone, Default, serde::Serialize)]
 pub struct LayerRow {
     pub key: String,
     pub label: String,
     pub count: usize,
     pub hidden: bool,
     pub locked: bool,
+    pub selected: bool,
     pub color: Option<[u8; 3]>,
     pub edge_color: Option<[u8; 3]>,
     pub has_faces: bool,

@@ -1,8 +1,6 @@
 use super::buffers::GpuCtx;
 use super::frame::Binds;
-use crate::engine::pipelines::{
-    DepthMode, Layouts, PipelineDesc, Target, build, module, scene_module,
-};
+use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, scene_module};
 use wgpu::PrimitiveTopology::{LineList, TriangleList};
 
 /// The lane's shaders, for the mirror tests.
@@ -29,7 +27,7 @@ pub struct BackdropLane {
 impl BackdropLane {
     /// Compile both shaders once and build the pipelines for `target`.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-        let background_shader = module(
+        let background_shader = scene_module(
             &ctx.device,
             "background.shader",
             include_str!("../../shaders/background.wgsl"),
@@ -39,7 +37,7 @@ impl BackdropLane {
             "grid.shader",
             include_str!("../../shaders/grid.wgsl"),
         );
-        let background = build_background(ctx, &background_shader, target);
+        let background = build_background(ctx, l, &background_shader, target);
         let grid = build_grid(ctx, l, &grid_shader, target);
 
         Self {
@@ -52,13 +50,15 @@ impl BackdropLane {
 
     /// Rebuild both pipelines for a new sample count.
     pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
-        self.background = build_background(ctx, &self.background_shader, target);
+        self.background = build_background(ctx, l, &self.background_shader, target);
         self.grid = build_grid(ctx, l, &self.grid_shader, target);
     }
 
-    /// The background: one fullscreen triangle, nothing bound. Always 1 draw.
-    pub fn draw_background(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+    /// The background: one fullscreen triangle using the view lighting setting. Always 1 draw.
+    pub fn draw_background(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         pass.set_pipeline(&self.background);
+        pass.set_bind_group(0, b.mvp, &[]);
+        pass.set_bind_group(1, b.line, &[]);
         pass.draw(0..3, 0..1);
         1
     }
@@ -77,10 +77,12 @@ impl BackdropLane {
 /// The background pipeline: always drawn, never writes depth.
 fn build_background(
     ctx: &GpuCtx,
+    l: &Layouts,
     shader: &wgpu::ShaderModule,
     target: Target,
 ) -> wgpu::RenderPipeline {
-    let base = PipelineDesc::new(shader, &[], &[], TriangleList);
+    let groups = [&l.mvp, &l.line];
+    let base = PipelineDesc::new(shader, &groups, &[], TriangleList);
     build(
         &ctx.device,
         target,

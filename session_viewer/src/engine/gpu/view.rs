@@ -1,5 +1,6 @@
 /// The knobs one frame reads.
 pub struct View {
+    pub ssao: bool,
     pub show_grid: bool, // The construction grid; disable for color-based visibility probes.
     pub show_points: bool, // Point markers - the FLAT lane's dots. `Q`.
     pub show_lines: bool, // Lines and polylines - the FLAT lane's ribbons. `W`.
@@ -23,6 +24,7 @@ impl View {
     /// Read every knob once.
     pub fn from_env() -> Self {
         Self {
+            ssao: false,
             show_grid: knob("VIEWER_NO_GRID", "nogrid").is_none(),
             show_points: true,
             show_lines: true,

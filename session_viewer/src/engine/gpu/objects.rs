@@ -67,6 +67,13 @@ fn world_box(r: &ObjectRow) -> AABB {
     r.bounds.transformed(&r.place)
 }
 
+fn ambient_radius(bounds: &AABB) -> f32 {
+    if !bounds.is_valid() {
+        return 0.0;
+    }
+    (0.05 * bounds.hx.hypot(bounds.hy).hypot(bounds.hz)).max(0.01) as f32
+}
+
 /// One row's GPU form under a placement: the model matrix with its translation column cleared,
 /// the true f64 translation taken out of that column, and the row's own box placed into the
 /// world. Split out of `set_placement` because it is the whole arithmetic of a move and a
@@ -348,7 +355,7 @@ impl InstanceTable {
                 model,
                 color: r.color,
                 flags: r.flags,
-                _pad0: 0.0,
+                ao_radius: ambient_radius(&world),
                 spacing: r.spacing,
                 _pad: r.edge_color,
             });
@@ -544,6 +551,7 @@ impl InstanceTable {
         };
         let (model, translation, world) = placed_row(local, place);
         instance.model = model;
+        instance.ao_radius = ambient_radius(&world);
         self.translation[i] = translation;
         self.world_bounds[i] = world;
 
@@ -715,6 +723,16 @@ impl InstanceTable {
 mod tests {
     use super::*;
 
+    #[test]
+    fn contact_radius_follows_object_size_not_position() {
+        let small = AABB::new(0.0, 0.0, 0.0, 50.0, 50.0, 50.0);
+        let moved = small.transformed(&Xform::translation(1.0e6, 0.0, 0.0));
+        let large = small.transformed(&Xform::scale_xyz(100.0, 100.0, 100.0));
+        assert_eq!(ambient_radius(&small), ambient_radius(&moved));
+        assert!((ambient_radius(&large) / ambient_radius(&small) - 100.0).abs() < 1e-4);
+        assert_eq!(ambient_radius(&AABB::empty()), 0.0);
+    }
+
     /// A translated local box lands at the translated world position.
     #[test]
     fn world_box_translates() {
@@ -780,15 +798,22 @@ mod tests {
 
         gpu.set_scene(&upload);
         assert_eq!(gpu.objects.len(), 2);
+        let radius = gpu.objects.row(0).unwrap().ao_radius;
 
         let moved = Xform::translation(0.0, 50.0, 0.0);
         assert!(gpu.objects.set_placement(&gpu.ctx, 0, &moved));
+        assert_eq!(gpu.objects.row(0).unwrap().ao_radius, radius);
 
         let first = gpu.objects.row_bounds(0).expect("row 0 has a box");
         let second = gpu.objects.row_bounds(1).expect("row 1 has a box");
         assert_eq!(first.min_point()[1], 49.0);
         assert_eq!(second.min_point()[0], 99.0);
         assert_eq!(second.min_point()[1], -1.0, "the neighbour did not move");
+
+        gpu.objects
+            .set_placement(&gpu.ctx, 0, &Xform::scale_xyz(2.0, 2.0, 2.0));
+        assert_eq!(gpu.objects.row(0).unwrap().ao_radius, 2.0 * radius);
+        assert_eq!(gpu.objects.row(1).unwrap().ao_radius, radius);
 
         // The widget row is minted once, after every scene row, and stays where it was put.
         let (widget, _) = gpu.objects.widget_row(&gpu.ctx, &gpu.layouts);
