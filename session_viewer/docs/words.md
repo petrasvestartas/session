@@ -2,6 +2,8 @@
 
 Every word the lessons use before they have room to explain it, with the lesson that first needs it and the file or call where it appears.
 
+Nothing here is needed for lesson 00. Do not read this page through: come back when a lesson names a section, and look one word up.
+
 ## Two sides and a wire
 
 

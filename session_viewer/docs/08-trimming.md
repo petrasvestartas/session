@@ -1,16 +1,9 @@
 # 08 · Trims, holes and periodic seams
+<!-- locator: off -->
 
-## You are building
-
-![Diagram: a surface domain with outer and inner loops triangulates to a trimmed 3D face whose pipes carry u-min, u-max, v-min and v-max source ids.](illustrations/08-01.svg)
+A trimmed patch has an empty hole and a torus keeps its periodic seams attached.
 
 ![Left: outer and inner loops select the face in u,v and the hole stays empty. Right: a cylinder's seam is one XYZ curve used at u=0 and u=1.](illustrations/trims-seams.svg)
-
-## Starting point
-
-- Checkpoint 07: BRep faces share one canonical boundary polygon; every pipe of a BRep edge carries its source edge ID.
-- A standalone NURBS surface still tessellates its whole natural UV rectangle and its pipes have no source IDs.
-- This lesson changes only the viewer consumer; the kernel's constrained mesher and `TrimLoops` supply the trimmed mesh.
 
 <!-- step-status: start -->
 
@@ -18,124 +11,42 @@
 
 <!-- step-status: end -->
 
-## Step 1 · Prefer the producer's cached trim mesh
+## Step 1 · src/app/walk/brep.rs
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
-
-- A hole curve drawn over a full rectangle is not a hole: the fill must exclude the region.
-- So the constrained mesh cached on the surface wins over a fresh grid.
-- `first_pipe` remembers where this surface's pipes start so only those get boundary IDs.
-
-![Diagram: NurbsSurface · m_mesh · walk_surface · from_u_v_q grid · map_surface_boundaries](illustrations/08-02.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
-
+The geometry walk uploads shaded faces and their source boundary edges. Tessellation diagonals must never become CAD edges.
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=1-1 -->
-
-## Step 2 · Name natural boundaries from UV, not from triangle order
-
-![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
-
-- A natural boundary is a domain limit: `u == start`, `u == end`, `v == start`, `v == end`.
-- A closed direction has no physical edge, so a periodic seam never gets a boundary ID.
-- Two vertices of one pipe share exactly one boundary bit → that bit is the source ID.
-- Interior creases and seams stay `u32::MAX`: unavailable, never invented from a triangulation index.
-- Keys are exact position bits; no weld tolerance enters.
-- Everything from `#[cfg(test)]` down is the module's unit tests: COPY.
-
-![Diagram: mesh vertex u, v · map_surface_boundaries · pipe_ids · source ID · u32::MAX](illustrations/08-03.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
-
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=2-2 -->
-
 <!-- check: 08 -->
+## Step 2 · src/fixture.rs
 
-## Step 3 · Fixture: a curved trimmed patch and a torus
-
-![Where this step sits in the viewer: Shell, with 9 of 12 zones built so far.](illustrations/locator-83a00319a8.svg){ .locator data-strip="illustrations/strip-45c5341909.svg" }
-
-- The patch: a degree-2 surface, square outer loop, circular inner loop, meshed once by the constrained mesher and cached in `m_mesh`.
-- The torus is periodic in both directions: same XYZ curve, two face uses, different UV.
-
-![Diagram: trimmed_surface · square + hole · build · CadFixture · torus · periodic u, v](illustrations/08-04.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 08 session_viewer/src/fixture.rs copy -->
+## Step 3 · src/lib.rs
 
-## Step 4 · Stage bump
-
-![Where this step sits in the viewer: Page, Shell, with 9 of 12 zones built so far.](illustrations/locator-f78d0d45a4.svg){ .locator data-strip="illustrations/strip-eab6f676f4.svg" }
-
-![Diagram: lib.rs · stage · index.html · title](illustrations/08-05.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
-
+The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
 <!-- file: 08 session_viewer/src/lib.rs type -->
+## Step 4 · index.html
 
-<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 08 session_viewer/index.html copy -->
-
 ## Check
 
 <!-- checkpoint: 08 -->
 
-Expected:
-
-- The patch shows a real hole in the fill, not a drawn circle over a filled surface.
-- Orbit: boundary ink stays attached to the patch and to the torus.
-- The torus seam draws as ink on a geometrically smooth surface; no lighting break there.
-- Status shows **2 objects**.
-
-If a periodic boundary crosses the wrong part of the surface, inspect the UV branch and the oriented use mapping before touching stroke depth.
+Expected: A trimmed patch has an empty hole and a torus keeps its periodic seams attached; status: **2 objects**.
 
 ![Checkpoint 08: a trimmed patch with its hole left empty and a torus whose seams are drawn once.](screenshots/08.png)
+
+If it fails:
+
+- A periodic boundary crosses the patch: its UV branch or oriented use mapping is wrong.
+- The hole stays filled: trimming changes ink without removing covered triangles.
 
 ## What changed
 
 <!-- tree: 08 session_viewer/src/app -->
 
-- Data flow: cached `m_mesh` → `walk_mesh` → pipes → `map_surface_boundaries` → `pipe_ids`.
-
-**Production equivalent:** Production keeps this in `src/app/walk/brep.rs` (`walk_surface`, `map_surface_boundaries`) and the kernel's `session_rust/src/nurbssurface_trimmed.rs`.
-
-## Try
-
-- Append `?top=1` and look through the hole: the fill is absent there, not merely covered by a curve.
-- Orbit around the torus seam with `?thickness=3`: the seam stays one line, drawn from one face use, although two parameter uses share it.
-- Zoom in on a natural boundary of the trimmed patch: the rim is still ink from the mesh nodes, so it cannot detach however close you get.
-
-## Questions and answers
-
-**Why does drawing the hole's curve on top of a full rectangle not make a hole?**
-
-*How to work it out.* A hole must let you see through it, must not occlude, and must let a click reach whatever is behind. A painted circle fails all three, because the face is still there.
-
-*The answer.* The fill still writes depth, still occludes, still answers a pick. A hole is an absence in the *mesh* — so the constrained mesh cached on the surface must beat a freshly triangulated grid.
-
-**A natural boundary gets a source ID; a periodic seam does not. What distinguishes them?**
-
-*How to work it out.* Ask whether the surface continues past it. At `u == start` the domain ends — nothing beyond, so a real edge. At a periodic seam the surface wraps and continues; the seam is where the parameterisation was cut, not where the shape stops.
-
-*The answer.* A natural boundary limits the domain — a real edge of a real face. A seam is bookkeeping, and giving it an ID would invent a CAD edge — the same refusal as tessellation seams in lesson 06.
-
-**A seam and a shading crease sound alike. State the difference in one sentence each.**
-
-*How to work it out.* Ask which quantity is discontinuous. At a seam, the parameter jumps while position and normal are continuous. At a crease, the normal jumps while position is continuous.
-
-*The answer.* A seam is repeated parameter coordinates — the same XYZ reached at `u = 0` and `u = 1`. A crease is a discontinuity in the normal, a genuine fold. A torus has seams and no creases; a folded plane has a crease and no seam.
-
-**Boundary keys use exact position bits with no weld tolerance. Why is a tolerance the wrong tool here?**
-
-*How to work it out.* Lesson 07 *gave* both faces the same points, so equality is exact by construction. A tolerance can then only do damage: merging two boundaries that genuinely differ.
-
-*The answer.* A tolerance reconciles independent approximations. When the bits are identical by construction, compare the bits — and if they ever differ, that is a real bug you want to hear about.
-
-**What you should be able to do now**
-
-Predict what a *user* sees if `map_surface_boundaries` gets the wrong `first_pipe`. Correct: source IDs land on the wrong pipes — some of this surface's edges report no id and become unselectable, while pipes of an earlier object get ids that are not theirs, so clicking one edge highlights another. Translating a bookkeeping mistake into a symptom is most of debugging.
+Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 08](../lessons/08/index.md).
 
 ## Next
 

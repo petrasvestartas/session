@@ -1,8 +1,7 @@
-/// An authored width (kernel millimetres) as the world-mm RADIUS the shaders project; the
-/// untouched 1.0 default (and 0 / non-finite) is 0.0 = the screen-constant pen.
+/// Negative radii encode a CSS pixel half-width; zero uses the viewer's default pen.
 pub fn encode_width(w: f64) -> f32 {
     if w.is_finite() && w > 0.0 && (w - 1.0).abs() > 1e-9 {
-        (w as f32) * 0.5
+        -(w as f32) * 0.5
     } else {
         0.0
     }

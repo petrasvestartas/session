@@ -1,24 +1,9 @@
 # 04c · Markers
+<!-- locator: off -->
 
-## You are building
-
-![Diagram: glyph rows reach sphere.wgsl's quad template and glyph.wgsl's single triangle through group 3, both trimmed to a disc by coverage.](illustrations/04c-01.svg)
-
-Vertex input of the marker pipeline (`pipelines::template_layout`):
-
-| Slot | Rust | WGSL |
-|---|---|---|
-| 0 | `Template.vbo`, 12-byte positions, `step_mode: Vertex` | `@location(0) tmpl: vec3<f32>` |
-| — | `draw_indexed(.., 0..spheres.len())` | `@builtin(instance_index) gi` selects the glyph row |
-
-The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row.
+An orange point appears below the triangle and fades smoothly at small sizes.
 
 ![A sphere is four template corners pushed out by the pixel radius plus half the feather; a free dot is one equilateral triangle whose incircle is the disc.](illustrations/markers.svg)
-
-## Starting point
-
-- Checkpoint 04b: meshes and strokes. Both ink lanes share the visibility rule appended by `ink_module`.
-- Markers are the vertex-sized ink: mesh vertex markers (solid lane) and free points (flat lane), one 48-byte row for both.
 
 <!-- step-status: start -->
 
@@ -26,221 +11,78 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- step-status: end -->
 
-## Step 1 · The glyph row
+## Step 1 · src/engine/gpu/glyphs.rs
 
-![Where this step sits in the viewer: Lanes, with 8 of 12 zones built so far.](illustrations/locator-8546ffd8aa.svg){ .locator data-strip="illustrations/strip-3e64424ead.svg" }
-
-- `facing` plus `facing_ext` hold up to six incident face normals as oct16 pairs; a marker hides when every incident face turns away.
-
-![Diagram: walk · vertex or point · GlyphPoint\ center · radius · facing · glyph table](illustrations/04c-02.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
+The glyph buffers draw free dots and solid vertex markers. A marker retains its parent object row for later picking.
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=1-49 -->
-
-## Step 2 · The lane
-
-![Where this step sits in the viewer: Lanes, with 8 of 12 zones built so far.](illustrations/locator-8546ffd8aa.svg){ .locator data-strip="illustrations/strip-3e64424ead.svg" }
-
-- One table per kind, one bind group each, two shader modules, five pipelines.
-
-![Diagram: GlyphRows\ spheres · dots · GlyphLane · ink pass](illustrations/04c-03.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=50-93 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=94-147 -->
-
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=148-208 -->
-
-- Clearing keeps the capacity: a reload refills a buffer already the right size.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=209-234 -->
-
-- `source_dot` serves streamed source queries; declaring it with the others keeps the lane from growing a second pipeline set.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=235-290 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
+Download this part from its link to the path shown.
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs copy lines=291-319 -->
+## Step 2 · src/shaders/sphere.wgsl
 
-## Step 3 · Vertex markers
-
-![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
-
-- Same bindings as the ribbon shader, the row is `GlyphPoint`, `line` comes from `scene.wgsl` as always.
-- A sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
-
-![Diagram: glyphs · @group(3) · keep or hide · template corner · quad around disc · antialiased disc](illustrations/04c-04.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+Sphere impostors draw solid markers from small screen-space primitives. Write the sphere intersection depth instead of billboard depth.
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-0 -->
-
-- `to_px` turns a world length into pixels; `pen_world_radius` inverts it, giving the world radius that projects to the global pen.
-- `faces_front` decodes the packed normals.
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-14 -->
-
-- The corner is offset by the pixel radius plus half the feather, so the quad always contains the disc.
-
-- The facing cull is skipped when the object is flagged inside or open, or when `line.opacity` is zero: in x-ray, a vertex on the far side of a cube is what you want to see.
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=15-69 -->
-
-- The ramp is clamped to the ink it feathers; an unclamped one never reaches full opacity, and a thin pen fades out at distance.
-
-![Both marker shapes measure the same radius in corner space, where 1.0 is the far edge of the primitive, and the ramp is clamped so a thin pen still reaches full opacity.](illustrations/disc-coverage.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=70-174 -->
+## Step 3 · src/shaders/glyph.wgsl
 
-## Step 4 · Free dots
-
-![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
-
-- One equilateral triangle per dot; its incircle is the visible disc, so three vertices cover it without a template.
-
-![Diagram: glyphs · @group(3) · equilateral triangle · dot disc · source id pass](illustrations/04c-05.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+The dot shader draws a marker with an antialiased edge. Keep the size floor and opacity fade together.
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-0 -->
-
-- A dot wider than the canvas is dropped before it is placed.
-- The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment.
-- A large dot then survives a window-sized pass and stays pickable.
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-11 -->
-
-- `vs_source` and `fs_source_id` serve source-cloud queries.
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=12-45 -->
-
-- The fragment half is the same shape as the ribbon's: coverage first, then the shared visibility test.
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=46-153 -->
-
 <!-- check: 04c -->
+## Step 4 · src/engine/pipelines/mod.rs
 
-## Step 5 · Wire the lane
-
-![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 12 zones built so far.](illustrations/locator-2806e52b9f.svg){ .locator data-strip="illustrations/strip-c8d4b7d421.svg" }
-
-- A template vertex slot and the `ink_rows` layout (one storage buffer at group 3).
-
-![Diagram: Upload.glyph · Gpu.glyphs · template_layout · ink_rows · markers on top](illustrations/04c-06.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+Pipeline descriptions keep color, depth and sample-count choices together. The attachment formats must match the render pass.
 <!-- file: 04c session_viewer/src/engine/pipelines/mod.rs type -->
+## Step 5 · src/engine/pipelines/layouts.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+Bind-group layouts describe the resources shared by the drawing modules. Binding numbers and shader stages must agree with WGSL.
 <!-- file: 04c session_viewer/src/engine/pipelines/layouts.rs type -->
+## Step 6 · src/engine/gpu/upload.rs
 
-- Group 2 has two variants; a marker takes the ink one, which carries the physical depth it must test itself against.
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+An upload collects object rows and geometry before sending them to the GPU. Keep local and global offsets distinct when appending.
 <!-- file: 04c session_viewer/src/engine/gpu/upload.rs type -->
+## Step 7 · src/engine/gpu/mod.rs
 
-- Markers draw after strokes so their full footprint stays on top of the edges they sit on.
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+The GPU owner connects buffers, pipelines and frame resources. Create resources before building the bind groups that refer to them.
 <!-- file: 04c session_viewer/src/engine/gpu/mod.rs type -->
+## Step 8 · src/fixture.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 04c session_viewer/src/fixture.rs copy -->
+## Step 9 · src/lib.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
-
+The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
 <!-- file: 04c session_viewer/src/lib.rs type -->
+## Step 10 · index.html
 
-
-<span class="zone-mark" data-strip="illustrations/strip-f6e7047b45.svg" data-zone="Page"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 04c session_viewer/index.html copy -->
-
 ## Check
 
 <!-- checkpoint: 04c -->
 
-Expected:
-
-- Triangle, polyline, and one orange dot below the triangle.
-- Status reads **Checkpoint 04c · 3 objects**.
-- Zoom out: the dot shrinks with its world radius, then holds at half a pixel and fades instead of vanishing.
+Expected: An orange point appears below the triangle and fades smoothly at small sizes; status: **Checkpoint 04c · 3 objects**.
 
 ![Checkpoint 04c: vertex markers and free dots drawn from the glyph lane.](screenshots/04c.png)
+
+If it fails:
+
+- Dots vanish while zooming out: the half-pixel floor or alpha fade is missing.
+- A sphere looks flat: the fragment depth still describes its billboard.
 
 ## What changed
 
 <!-- tree: 04c session_viewer/src/engine -->
 
-- Data flow: `GlyphRows` → `GlyphTable` → group 3 → `sphere.wgsl` (instanced template) or `glyph.wgsl` (vertex-pulled triangles).
-
-**Production equivalent:** `src/engine/gpu/glyphs.rs`, `src/shaders/sphere.wgsl`, `src/shaders/glyph.wgsl`.
-
-## Try
-
-- Append `?aa=3`: the antialiasing ramp widens and every disc edge softens, because the feather is a uniform the lane reads per frame.
-- Set the dot's `radius` to `-6.0` in `fixture.rs`: its disc holds a six-pixel radius at every zoom, because a negative radius is already a pixel count rather than a world length.
-- Give one `GlyphPoint` a larger radius in `fixture.rs`: only that dot grows, because size travels per point.
-
-## Questions and answers
-
-**A marker is a disc, but the pipeline draws a quad template. Why not draw a disc?**
-
-*How to work it out.* Hardware fills triangles and nothing else. A disc is either many triangles approximating a circle, or a covering shape with a fragment test inside it. Price both: an N-gon costs N vertices and still shows corners when zoomed; a quad costs four and is exact.
-
-*The answer.* The template corner is pushed out in clip space by the pixel radius plus half the feather, so the quad always contains the antialiased disc, and the fragment stage decides what is inside. Cover with a simple shape, resolve with the fragment stage — the same pattern as strokes and dots.
-
-**A free dot is one triangle, not a quad. What makes that enough?**
-
-*How to work it out.* What is the smallest triangle containing a given circle? The equilateral one whose incircle is that circle. Three vertices instead of four, and no template buffer.
-
-*The answer.* The incircle of an equilateral triangle is the disc, so three vertices cover it, and the row comes from `@builtin(vertex_index) / 3` with nothing bound. Slightly more wasted area per dot than a quad, far less per-vertex work — the right trade when there are millions of dots.
-
-**The dot's too-big-to-draw test reads `frame`, while a sphere sizes itself against `vp_w`/`vp_h`. Why the difference?**
-
-*How to work it out.* Ask which question each test answers. "Is this dot so large it is not worth drawing?" is about the picture the user is looking at. "How many pixels wide is this marker in the thing I am drawing into?" is about the attachment. In a colour frame those coincide; in the pick pass they do not.
-
-*The answer.* A dot judged against the small pick window would be dropped there and silently become unpickable, so it is judged against `frame`, the canvas. A sphere genuinely needs the attachment it is being sized into, so it uses `vp_w`/`vp_h`. Two similar-looking numbers, two different questions.
-
-**When is the facing cull skipped, and what would you see if it never were?**
-
-*How to work it out.* The cull hides a vertex whose incident faces all point away. That is wrong when no face is in the way — the eye is inside the object, or the faces are not drawn at all.
-
-*The answer.* Three conditions skip it: the object is flagged inside, flagged open, or `line.opacity` is zero — x-ray. Without the skip, `P` would show back edges but no back vertices, because every far-side marker is culled by faces that are not even drawn.
-
-**What you should be able to do now**
-
-Predict where the radius sits in the 48-byte marker row before looking. Correct: `center` is a `vec3` so it aligns to 16 and leaves a 4-byte hole after it — the radius goes in that hole, so the row is 48 and not 52. 
+Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 04c](../lessons/04c/index.md).
 
 ## Next
 

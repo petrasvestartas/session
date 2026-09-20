@@ -11,6 +11,11 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
     seg.ribbons.reserve(pts.len().saturating_sub(1));
 
     for w in pts.windows(2) {
+        // Imported closed contours may repeat a vertex. A zero-length neighbor has no
+        // join direction and must not split an otherwise continuous stroke.
+        if w[0] == w[1] {
+            continue;
+        }
         bounds.union_with_point(w[0][0] as f64, w[0][1] as f64, w[0][2] as f64);
         seg.ribbons.push(CylinderSegment {
             p0: w[0],

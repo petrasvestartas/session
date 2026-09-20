@@ -10,6 +10,8 @@ it at a glance, which is what prose cannot do.
 
     python3 docs/locator.py            # regenerate the maps and the lesson references
     python3 docs/locator.py --check    # fail when a lesson is out of date
+
+A lesson containing `<!-- locator: off -->` gets no per-step maps (lesson 00 has one zone).
 """
 import argparse
 import hashlib
@@ -196,10 +198,21 @@ def main():
     (HERE / "illustrations" / c_name).unlink()
     series = json.loads((HERE / "reconstruction" / "series.json").read_text())
     steps = series["steps"]
+    current = HERE / "reconstruction/current-series.json"
+    if current.is_file():
+        steps += json.loads(current.read_text())["steps"]
     stale, drawn = [], set()
     for index, step in enumerate(steps):
-        lesson = next(p for p in HERE.glob(f"{step['id']}-*.md"))
+        lesson = HERE / f"{step['id']}.md" if step['id'].startswith("current-") else next(HERE.glob(f"{step['id']}-*.md"))
         text = MARK.sub("", IMAGE.sub("", lesson.read_text()))
+        if "<!-- locator: off -->" in text:
+            # The lesson carries no per-step maps; --check only requires none are left in it.
+            if text != lesson.read_text():
+                if args.check:
+                    stale.append(lesson.name)
+                else:
+                    lesson.write_text(text)
+            continue
         if index:
             previous = set(steps[index - 1]["files"])
         else:

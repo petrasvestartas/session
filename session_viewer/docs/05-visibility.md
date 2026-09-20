@@ -1,17 +1,9 @@
 # 05 · Depth and visible ink
+<!-- locator: off -->
 
-## You are building
-
-![Diagram: opaque faces\ triangle.wgsl · physical pass\ depth + gradient targets · background + grid\ backdrop.rs · ink pass\ ink_visibility.wgsl · ink_visible · stroke coverage color…](illustrations/05-01.svg)
+A grey box shows its visible red edges and black corners while its faces hide the far edges.
 
 ![Reversed depth, and why a thick stroke must transfer the surface depth to its axis before comparing.](illustrations/ink-visibility.svg)
-
-## Starting point
-
-- Checkpoint 04d: faces, strokes, markers and clouds draw into one color target with a single-sample depth buffer.
-- Every stroke fragment compares its own depth at its own pixel.
-- Rear edges shine through solids at grazing angles: a thick stroke covers samples beside its axis, on a surface whose depth changes sharply within one pixel.
-- Depth is reversed: near is larger, far approaches zero.
 
 <!-- step-status: start -->
 
@@ -19,337 +11,117 @@
 
 <!-- step-status: end -->
 
-## Step 1 · The physical contract shared by every shader
+## Step 1 · src/shaders/physical.wgsl
 
-![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
-
-Two constants and two output structs, appended to every shader module. `physical_gradient` is the rasterizer's own depth slope of the winning primitive, scaled so `Rg16Float` keeps it.
-
-| Contract | Where it lives |
-|---|---|
-| `Depth32Float` attachment, cleared to `0.0` (reverse-Z far) | `targets.rs::begin_faces` |
-| Solids write with `CompareFunction::Greater` (`DepthMode::Opaque`) | `pipelines/mod.rs` |
-| Grid tests without writing (`DepthMode::ReadOnly`), background `DepthMode::Always` | `backdrop.rs` below |
-| `@location(1) gradient: vec2<f32>` beside every physical color/ID | `physical.wgsl` below |
-
-![Diagram: fs_main depth · PhysicalColor\ color + gradient · fs_id · PhysicalId\ id + gradient](illustrations/05-02.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+Physical outputs store depth information beside face color. The fragment output locations must match both attachments.
 <!-- file: 05 session_viewer/src/shaders/physical.wgsl type -->
+## Step 2 · src/shaders/background.wgsl
 
-## Step 2 · Backdrop shaders
-
-![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
-
-- The background is one oversized triangle at `w = 1.0`, depth `Always`, so it never occludes.
-- The grid builds fifty vertices from `vertex_index` alone; it subtracts `line.anchor` because instance rows are rebased on the camera anchor.
-- Both return `PhysicalColor` with a zero gradient: neither is a surface ink can be carried across.
-
-![Diagram: vertex_index · background.wgsl\ depth Always · grid.wgsl\ line.anchor · PhysicalColor](illustrations/05-03.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+The background fills uncovered pixels. Leave the physical depth gradient empty because the backdrop is not scene geometry.
 <!-- file: 05 session_viewer/src/shaders/background.wgsl type -->
+## Step 3 · src/shaders/grid.wgsl
 
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+The grid generates construction lines from vertex indices. Subtract the same camera anchor as the scene geometry.
 <!-- file: 05 session_viewer/src/shaders/grid.wgsl type -->
+## Step 4 · src/engine/gpu/backdrop.rs
 
-
-## Step 3 · The backdrop lane
-
-![Where this step sits in the viewer: Lanes, with 8 of 12 zones built so far.](illustrations/locator-8546ffd8aa.svg){ .locator data-strip="illustrations/strip-3e64424ead.svg" }
-
-- One owner for two pipelines; no buffers, no upload, `retarget` when the sample count changes.
-- `draw_grid` binds `mvp` and the `line` block, matching `@group(0)`/`@group(1)` in `grid.wgsl`.
-
-![Diagram: SHADERS · BackdropLane · faces pass](illustrations/05-04.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
+The backdrop draws the background and construction grid. It must not overwrite the depth of scene geometry.
 <!-- file: 05 session_viewer/src/engine/gpu/backdrop.rs type -->
-
 <!-- check: 05 -->
+## Step 5 · src/shaders/ink_visibility.wgsl
 
-## Step 4 · The ink visibility test
-
-![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
-
-A stroke is a ribbon of fragments around its mathematical axis; the depth beside the axis belongs to whatever surface is there, not to the axis:
-
-```text
-      fragment ●─────── stroke footprint ───────● fragment
-                 \                              /
-                  \      axis (depth d)        /
-   surface ────────●─────────────────────────●──────── surface
-                   z0            depth varies across the footprint
-```
-
-Comparing `z0` with `d` directly hides ink on its own face. The physical gradient instead carries the surface depth from the fragment to the axis point, and compares only that prediction.
-
-
-### 4a · Bindings, tolerances and the axis record
-
-- `scene_gradient_*` are the new attachments from step 1; `SCENE_MSAA` picks the multisampled view.
-- Tolerances are in float precision and rasterizer snapping, not world units.
-
-![Diagram: scene_gradient_*\ @group(2) @binding(4/5) · ink_visibility.wgsl · DEPTH_REL_TOL · SLOPE_PX · KINK · InkAxis record](illustrations/05-05.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+The ink test decides which stroke samples are covered by faces. Compare depth in the same coordinate space as the face pass.
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=1-41 -->
-
-### 4b · Reading depth and fitting a neighbouring pair
-
-- Outside the viewport counts as cleared, so a stroke overhangs the canvas edge.
-- `ink_pair_planar` accepts two adjacent texels as one surface only when their slopes agree within `KINK`; a step to another surface is many times the slope.
-
-![Diagram: pixel + sample · ink_depth · ink_tolerance · ink_pair_planar · ink_carry_visible](illustrations/05-06.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=42-109 -->
-
-### 4c · Carrying a stroke fragment's surface to the axis
-
-- `ink_axis_visible` fits a plane from the fragment's texel and one neighbour away from the stroke, then evaluates it at the axis.
-- `ink_carry_visible` is one-sided when the texel is farther and a window when it is nearer, as above.
-
-![Diagram: fragment texel · neighbour texel · ink_axis_visible · ink_carry_visible](illustrations/05-07.svg)
-
-![Where a carried depth has to land: a farther texel gives a one-sided compare, a nearer one a two-sided window, so a surface that does not pass through the axis cannot uncover covered ink.](illustrations/carry-verdict.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=110-150 -->
-
-### 4d · Discs: markers stand or fall with their centre
-
-A marker is a camera-facing disc; its rim must not be uncovered by a grazing surface that crosses the disc's depth within a few pixels.
-
-![Diagram: disc centre + depth · ink_disc_fragment_visible · ink_disc_visible](illustrations/05-08.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=151-209 -->
-
-### 4e · Corner fits and the fast path
-
-- `ink_disc_source_hidden` tries each quadrant so a face boundary cannot discard a valid fit.
-- `ink_visible` is the entry point strokes call: a valid own gradient decides with one `textureLoad` and a dot product.
-- Gradients outside the attachment's range fall back to the neighbouring-pair fit.
-- A neighbouring triangle is treated as an infinite plane: the fit extends its slope past its edges.
-
-![Diagram: four quadrants · ink_disc_source_hidden · own gradient valid · ink_visible · ink_axis_visible fallback](illustrations/05-09.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=210-282 -->
+## Step 6 · src/shaders/triangle.wgsl
 
-## Step 5 · Shaders emit the gradient
-
-![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
-
-- Every fragment that writes physical depth also returns its gradient.
-- Face shaders return the real slope in both the colour and ID passes.
-- Background, grid, splats and imported lettering return zero: they are not surfaces ink can be carried across.
-
-![Diagram: triangle.wgsl fs_main · PhysicalColor · splat · splat_resolve · text_outline.wgsl · PhysicalId](illustrations/05-10.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+The mesh shader places vertices and shades visible faces. Its instance row must be the row uploaded with that vertex.
 <!-- file: 05 session_viewer/src/shaders/triangle.wgsl type -->
+## Step 7 · src/shaders/splat.wgsl
 
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+Point projection writes the nearest visible cloud samples. Keep source IDs attached to the winning samples.
 <!-- file: 05 session_viewer/src/shaders/splat.wgsl type -->
+## Step 8 · src/shaders/splat_resolve.wgsl
 
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+The resolve writes point color and depth into the scene. Background samples must leave geometry untouched.
 <!-- file: 05 session_viewer/src/shaders/splat_resolve.wgsl type -->
+## Step 9 · src/shaders/text_outline.wgsl
 
-- The resolve rejoins the private pass to the shared one: reads the lane's own depth and colour, lights each point from its neighbours, and writes `frag_depth` for the scene's depth test.
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+The resolve rejoins the private pass to the shared one: reads the drawing module's own depth and colour, lights each point from its neighbours, and writes `frag_depth` for the scene's depth test.
 <!-- file: 05 session_viewer/src/shaders/text_outline.wgsl type -->
+## Step 10 · src/engine/gpu/targets.rs
 
-- Imported lettering's pipelines stay depth read-only: glyphs are drawn against the depth their page already wrote, never lit and never re-spaced.
-
-## Step 6 · Targets: the gradient attachment and a sample budget
-
-![Where this step sits in the viewer: GPU core, with 8 of 12 zones built so far.](illustrations/locator-327f5e76cb.svg){ .locator data-strip="illustrations/strip-e3a1ffe58f.svg" }
-
-- `Rg16Float` gradient texture beside depth; its single and multisampled views swap exactly like the depth views, so bind groups stay valid at both sample counts.
-- `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
-- `msaa_budget`/`samples_for` decide the sample count from two things at this checkpoint: whether solid geometry is on the GPU, and whether the canvas fits the adapter's pixel budget. Lesson 17 adds the third gate the figure shows, the device scale.
-- Multisampling smooths hard face edges only; ribbons and discs antialias themselves.
-
-![A solid-geometry gate then a per-adapter pixel budget decide the sample count, and in a browser every adapter reports as Other, which is its own budget rather than a synonym for integrated.](illustrations/msaa-budget.svg)
-
-![Diagram: adapter type + pixels · samples_for · Targets\ depth + Rg16Float gradient · faces pass](illustrations/05-11.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+Targets own the depth and color attachments for a frame. Reversed depth clears to zero and compares nearer values as greater.
 <!-- file: 05 session_viewer/src/engine/gpu/targets.rs type -->
+## Step 11 · src/engine/pipelines/mod.rs
 
-## Step 7 · Pipelines: one flag adds the second color target
-
-![Where this step sits in the viewer: GPU core, with 8 of 12 zones built so far.](illustrations/locator-327f5e76cb.svg){ .locator data-strip="illustrations/strip-e3a1ffe58f.svg" }
-
-- `PipelineDesc::physical()` appends the `Rg16Float` target; `ReadOnlyEqual` pipelines keep the gradient their face already wrote by masking their writes.
-- `module` appends `physical.wgsl` after `normals.wgsl`, so every shader sees `PhysicalColor`.
-
-![Diagram: PipelineDesc · second target\ Rg16Float · module() · shader source · scene_gradient entry · ink bind group layout](illustrations/05-12.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+Pipeline descriptions keep color, depth and sample-count choices together. The attachment formats must match the render pass.
 <!-- file: 05 session_viewer/src/engine/pipelines/mod.rs type -->
+## Step 12 · src/engine/pipelines/layouts.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+Bind-group layouts describe the resources shared by the drawing modules. Binding numbers and shader stages must agree with WGSL.
 <!-- file: 05 session_viewer/src/engine/pipelines/layouts.rs type -->
+## Step 13 · src/engine/gpu/instance.rs
 
-- Group 2 grows: the ink variant now carries the depth and gradient views.
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+Each object row carries placement, color and selection flags for later interaction. Rust field offsets must match the shader byte for byte.
 <!-- file: 05 session_viewer/src/engine/gpu/instance.rs type -->
+## Step 14 · src/engine/gpu/objects.rs
 
-- `physical.wgsl` joins the shader sources the mirror test parses, so the new output is checked against the Rust side.
-
-## Step 8 · Lanes read and write the gradient
-
-![Where this step sits in the viewer: GPU core, Lanes, with 8 of 12 zones built so far.](illustrations/locator-1b54349f8b.svg){ .locator data-strip="illustrations/strip-76bbcc93a3.svg" }
-
-- The ink bind group gains bindings 4 and 5: `@group(2) @binding(4/5)` in step 4a.
-- The arena, splats and outline text build their pipelines with `.physical()`; the arena also gains a selection-mask pipeline.
-
-![Diagram: gradient views · objects.rs ink group · arena · draw_selection_mask · splat · text_outline retarget](illustrations/05-13.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+The object table stores GPU rows separately from source identity. Rebase translations before converting to f32 so distant objects stay stable.
 <!-- file: 05 session_viewer/src/engine/gpu/objects.rs type -->
+## Step 15 · src/engine/gpu/arena.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
+The arena holds mesh vertices and indices across objects. Add the vertex base to local indices before appending a mesh.
 <!-- file: 05 session_viewer/src/engine/gpu/arena.rs type -->
+## Step 16 · src/engine/gpu/splat.rs
 
-- The selection-mask pipeline writes the coverage the outline pass will read.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
+The splat pass chooses visible points before compositing their color and depth. Invalidate cached results when the camera or point data changes.
 <!-- file: 05 session_viewer/src/engine/gpu/splat.rs type -->
+## Step 17 · src/engine/gpu/text_outline.rs
 
-- `.physical()` on the ID pipeline and the resolve: the cloud writes the same metadata as every other surface, so ink can judge itself against a point cloud.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
+Outline text draws vector glyph geometry. Keep print fills separate from depth-writing solid faces.
 <!-- file: 05 session_viewer/src/engine/gpu/text_outline.rs type -->
+## Step 18 · src/engine/gpu/mod.rs
 
-
-## Step 9 · Wire the lane and the sample count
-
-![Where this step sits in the viewer: GPU core, with 8 of 12 zones built so far.](illustrations/locator-327f5e76cb.svg){ .locator data-strip="illustrations/strip-e3a1ffe58f.svg" }
-
-- `retarget` rebuilds targets and ink bind groups on a resize or a sample-count flip; the lanes' pipelines only when the count flips.
-- The backdrop draws first inside `begin_faces`, before any geometry.
-
-![Diagram: resize · retarget · targets · ink groups · lanes · BackdropLane · frame](illustrations/05-14.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+The GPU owner connects buffers, pipelines and frame resources. Create resources before building the bind groups that refer to them.
 <!-- file: 05 session_viewer/src/engine/gpu/mod.rs type -->
+## Step 19 · src/fixture.rs
 
-## Step 10 · The fixture and the page
-
-![Where this step sits in the viewer: Page, Shell, with 8 of 12 zones built so far.](illustrations/locator-a43611654f.svg){ .locator data-strip="illustrations/strip-773dbdb80b.svg" }
-
-The grey box and the sloping floor are the shapes the visibility test is judged on.
-
-![Diagram: fixture.rs\ grey_box · floor · Upload · ?fixture · ?distance · lib.rs](illustrations/05-15.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 05 session_viewer/src/fixture.rs copy -->
+## Step 20 · src/lib.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
-
+The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
 <!-- file: 05 session_viewer/src/lib.rs type -->
+## Step 21 · index.html
 
-- A lane costs the shell a hunk or two: construct it where the others are built, and report it.
-
-<span class="zone-mark" data-strip="illustrations/strip-f6e7047b45.svg" data-zone="Page"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 05 session_viewer/index.html copy -->
-
 ## Check
 
 <!-- checkpoint: 05 -->
 
-Expected:
-
-- A grey box on a white background, twelve red edges, black corner markers.
-- Orbit: edges on the far side of the box disappear behind its faces; front edges stay at full width up to the corners.
-- `?fixture=floor`: magenta lines just under the sloping floor stay hidden; the blue line on the floor stays visible.
-- `?top`, `?perspective`, `?distance=N` select the view for repeatable inspection.
-
-Every edge disappears: compare the depth clear and compare function against the table in step 1. Hidden edges show through: check that the face pipeline uses `.physical()` and that `fs_main` returns `physical_gradient(in.pos.z)`.
+Expected: A grey box shows its visible red edges and black corners while its faces hide the far edges; status: **Checkpoint 05 · 1 objects**.
 
 ![Checkpoint 05: hidden lines stay hidden while visible strokes and corners stay readable, over the white backdrop.](screenshots/05.png)
+
+If it fails:
+
+- Every edge disappears: the depth clear and comparison disagree with reversed depth.
+- Hidden edges show through: the face pipeline omits its physical depth gradient.
 
 ## What changed
 
 <!-- tree: 05 session_viewer/src -->
 
-- Data flow: face fragment → depth + gradient attachments → stroke fragment loads both → `ink_visible` predicts the surface depth at the axis → coverage or discard.
-- New lane: `BackdropLane` (background, grid).
-- Sample count is re-chosen on upload and on resize, from the geometry present and the adapter budget.
-
-**Production equivalent:** `src/engine/gpu/targets.rs`, `backdrop.rs`, `src/shaders/physical.wgsl`, `ink_visibility.wgsl`, `grid.wgsl`, `background.wgsl`; the page entry is `src/lib.rs`. The fixture is scaffolding: lesson 12 deletes it for the manifest loader.
-
-## Try
-
-- The grid never appears at this checkpoint: `lib.rs` sets `gpu.view.show_grid = false`, so `backdrop.rs` draws the white background alone. Delete that line and reload to see the grid it draws with a read-only depth test — then `?nogrid=1` switches it off again.
-- Orbit until a stroke passes behind the box: the covered span disappears cleanly, without a global depth offset.
-- Append `?msaa=4` and compare the stroke fringe with `msaa=1`: multisampling changes coverage, never the visibility decision.
-
-## Questions and answers
-
-
-**Why can a stroke fragment not simply compare its own depth with the depth buffer?**
-
-*How to work it out.* A stroke is a *ribbon* several pixels wide; an edge fragment reads the depth buffer at *its own* pixel — the surface under that pixel, not under the axis. On the stroke's own face the axis sits on the surface while the edge fragments sit over surface a little nearer or further.
-
-*The answer.* Half the ribbon loses the naive comparison and the line stitches. Carry the surface depth to the axis with the gradient the face pass stored, and compare only that prediction.
-
-**What exactly is stored in the gradient attachment, and who writes zero into it?**
-
-*How to work it out.* Travelling along a surface from pixel to pixel needs the rate its depth changes per pixel — its screen-space slope. Then ask which things on screen are not surfaces you can slide along.
-
-*The answer.* The winning primitive's own depth slope, scaled to survive `Rg16Float`. Faces write their real slope in both the colour and the ID pass; the background, the grid, splats and imported lettering write zero, because extrapolating across them is meaningless. A zero gradient does not mean "flat" — it means "do not extrapolate me".
-
-**Reverse-Z needs three things to agree, and you have now seen all three in code. Name them.**
-
-*How to work it out.* Lesson 02's three, now in code: the projection, the clear, the compare.
-
-*The answer.* Near and far swapped in the projection; the depth attachment cleared to `0.0`; the compare `Greater`. If every edge disappears, one of the three is wrong.
-
-**Multisampling is chosen from the adapter and the pixel count. Why does it never change the visibility decision?**
-
-*How to work it out.* MSAA changes how many samples a triangle covers within a pixel — a coverage question. The ink test asks whether the axis is behind a surface — a depth question. At 4x it runs once per sample against that sample's own depth and gradient; coverage never enters it.
-
-*The answer.* Visibility is decided from depth and gradient, not coverage. MSAA smooths hard face edges; the ink test still asks the same question at the same place. `?msaa=4` against `?msaa=1` shows it: the fringe changes, the decision does not.
-
-**What you should be able to do now**
-
-Draw the frame on paper. Correct: the face pass clears colour, depth and gradient and writes all three, the backdrop drawing first inside it; the ink pass loads colour, holds depth read-only and samples depth and gradient through group 2. Then predict a stroke on the far side of a box: its axis loses against the box's carried depth, so its fragments discard.
+Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 05](../lessons/05/index.md).
 
 ## Next
 
-[06 · CAD face contract](06-cad-contract.md): BRep faces, surfaces and boundary records flow from the shared kernel into display data.
+[06 · CAD face rules](06-cad-rules.md): BRep faces, surfaces and boundary records flow from the shared kernel into display data.
 
 ## Expected viewer result
 

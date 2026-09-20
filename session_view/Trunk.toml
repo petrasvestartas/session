@@ -1,0 +1,8 @@
+[build]
+release = true
+no_sri = true
+public_url = "./"
+
+[serve]
+port = 8770
+addresses = ["127.0.0.1"]

@@ -37,7 +37,7 @@ LANGUAGES = {".rs": "rust", ".wgsl": "wgsl", ".toml": "toml", ".lock": "toml",
              ".yml": "yaml", ".cpp": "cpp", ".h": "cpp", ".md": "markdown"}
 LABELS = {"type": "TYPE THIS", "copy": "COPY", "read": "READ ONLY"}
 COLLAPSE_COPY_LINES = 80
-DIRECTIVE = re.compile(r"^<!-- (file|listing|supplied|tree|check|checkpoint): (\d\d[a-z]?)(.*?) -->$", re.MULTILINE)
+DIRECTIVE = re.compile(r"^<!-- (file|listing|supplied|tree|check|checkpoint): (\d\d[a-z]?|current-[1-9]\d*)(.*?) -->$", re.MULTILINE)
 
 
 def supplied(name):
@@ -47,6 +47,11 @@ def supplied(name):
             or "/tests/" in name or "/examples/" in name or "_test." in name
             or "/selftest" in name or name.endswith("/text_quality.rs")
             or name.endswith((".gitignore", ".gitkeep", ".json")))
+
+
+def generated(name):
+    """Cargo writes the lockfile itself: the reader never types, copies or downloads it."""
+    return name.endswith("Cargo.lock")
 
 
 def default_label(name):
@@ -127,7 +132,7 @@ class Change:
         self.new_text = None
 
 
-def parse_patch(text):
+def parse_patch(text, directory=""):
     """Read every file section of a git patch into Change records with hunks."""
     changes = {}
     current = None
@@ -135,6 +140,8 @@ def parse_patch(text):
     for line in text.split("\n"):
         if line.startswith("diff --git "):
             name = line.split(" b/", 1)[1]
+            if directory:
+                name = directory + "/" + name
             current = Change(name)
             changes[name] = current
             hunk = None
@@ -167,13 +174,13 @@ class Step:
 
     def supplied_files(self):
         return sorted(name for name, change in self.changes.items()
-                      if supplied(name) and change.kind != "delete")
+                      if supplied(name) and not generated(name) and change.kind != "delete")
 
 
 def build_steps(workspace_root):
     """Apply the series in a disposable workspace and retain every changed file's text."""
     REPLAY.print = lambda *args, **kwargs: None
-    series = REPLAY.read_json(HERE / "reconstruction/series.json")
+    series = REPLAY.read_series()
     workspace = workspace_root / "workspace"
     REPLAY.initialize(workspace)
     REPLAY.run(["git", "init", "--quiet"], workspace, dict(os.environ), workspace_root / "logs/init.log")
@@ -181,7 +188,7 @@ def build_steps(workspace_root):
     texts = {}
     for record in series["steps"]:
         patch = (HERE / "reconstruction" / record["patch"]).read_text()
-        changes = parse_patch(patch)
+        changes = parse_patch(patch, record.get("directory", ""))
         previous_texts = {}
         for name, change in changes.items():
             path = workspace / name
@@ -413,6 +420,8 @@ class Renderer:
             self.note_use(step_id, name)
             head = f"**File:** `{name}` · **{verb}** · {label} · {self.finished(step_id, name)}\n\n"
             if label == "COPY" and text.count("\n") > COLLAPSE_COPY_LINES:
+                head = (f"**File:** `{name}` · **{verb}** · DOWNLOAD, do not type: "
+                        f"{self.finished(step_id, name)}\n\n")
                 return head + collapsible(verb, name, text, self.download(step_id, name))
             return head + fence(name, text, title)
         hunks = options["hunks"] or list(range(1, len(change.hunks) + 1))
@@ -443,14 +452,19 @@ class Renderer:
         self.order.setdefault(step_id, []).append(("supplied", None))
         if not names and not step.assets:
             return ""
-        lines = ["**Supplied files** · COPY · tooling and fixtures this checkpoint needs but the "
-                 "course does not teach. One command installs them all:\n",
-                 "```sh\npython3 \"$COURSE_REPO/docs/reconstruction/replay.py\" "
-                 f"--output \"$COURSE_WORK\" --through {step_id} --copy-supplied\n```\n"]
+        lines = ["**Supplied files** · tooling and fixtures this checkpoint needs but the course does "
+                 "not teach. Download each one to the path shown, relative to the folder that holds "
+                 "the crate:\n"]
         for name in names:
             lines.append(f"- [`{name}`]({self.download(step_id, name)}){{ download=\"{Path(name).name}\" }}")
         for asset in step.assets:
-            lines.append(f"- `{asset['target']}` (binary, SHA-256 `{asset['sha256'][:12]}…`)")
+            lines.append(f"- `{asset['target']}` (binary, SHA-256 `{asset['sha256'][:12]}…`, "
+                         "installed by the command below)")
+        if step_id.startswith("current-"):
+            return "\n".join(lines) + "\n"
+        lines.append("\nOr, with a checkout of the course repository, one command installs them all:\n")
+        lines.append("```sh\npython3 docs/reconstruction/replay.py --output <folder that holds the crate> "
+                     f"--through {step_id} --copy-supplied\n```")
         return "\n".join(lines) + "\n"
 
     def tree(self, step_id, options):
@@ -489,7 +503,7 @@ class Renderer:
         self.order.setdefault(step_id, []).append(("check", position))
         recorded = self.points.get(step_id, {}).get(str(position))
         state = "passes here" if recorded == "ok" else "UNMEASURED"
-        return ("```sh\ncargo check --locked --lib\n```\n\n"
+        return ("```sh\ncargo check --lib\n```\n\n"
                 f"Expected: no errors (measured: {state}).\n")
 
     def checkpoint(self, step_id):
@@ -499,8 +513,8 @@ class Renderer:
                   f'<a href="../{self.download_base}/{step_id}/">Every file at checkpoint {step_id}</a>, each downloadable '
                   f'exactly as the checkpoint has it. The finished viewer is on '
                   f'<a href="{GITHUB_SOURCE}">GitHub</a>.</div>\n\n')
-        return banner + ("```sh\ncd \"$COURSE_WORK/session_viewer\"\ncargo check --locked --lib\n"
-                "trunk serve --port 8780\n```\n\n"
+        return banner + ("From the crate folder, the one that holds `Cargo.toml`:\n\n"
+                "```sh\ncargo check --lib\ntrunk serve --port 8780\n```\n\n"
                 "Open <http://localhost:8780/?data=off&inspect=1>. Stop the server with Ctrl+C before the next lesson.\n")
 
     def expand(self, markdown):
@@ -520,7 +534,8 @@ class Renderer:
             if kind == "check":
                 return self.check(step_id)
             return self.checkpoint(step_id)
-        return DIRECTIVE.sub(replace, markdown)
+        # Compact lesson sources still separate prose from rendered file/check blocks.
+        return DIRECTIVE.sub(lambda match: "\n" + replace(match) + "\n", markdown)
 
 
 def step_text(step, name):
@@ -530,11 +545,12 @@ def step_text(step, name):
 
 
 def lesson_files():
-    return sorted(HERE.glob("[0-9][0-9]*-*.md"))
+    return sorted(HERE.glob("[0-9][0-9]*-*.md")) + sorted(HERE.glob("current-*.md"))
 
 
 def lesson_for(step_id):
-    matches = [path for path in lesson_files() if path.name.startswith(step_id + "-")]
+    matches = [path for path in lesson_files()
+               if path.name == step_id + ".md" or path.name.startswith(step_id + "-")]
     if len(matches) != 1:
         raise ValueError(f"expected one lesson for step {step_id}, found {matches}")
     return matches[0]
@@ -582,6 +598,12 @@ def replay_lesson(step, markdown, previous_snapshot):
         source = previous_snapshot / name
         if source.is_file():
             files[name] = source.read_text()
+    for name, change in step.changes.items():
+        if generated(name):
+            if change.kind == "delete":
+                files.pop(name, None)
+            else:
+                files[name] = change.new_text
     for match in DIRECTIVE.finditer(markdown):
         kind, step_id, rest = match.groups()
         if step_id != step.id or kind not in ("file", "supplied"):
@@ -617,6 +639,9 @@ def replay_lesson(step, markdown, previous_snapshot):
 def audit(root, points, only=None):
     """Every change is taught or supplied exactly once, and typing the lesson yields the checkpoint."""
     series, steps = snapshot_steps(root)
+    unknown = set(only or []) - {step.id for step in steps}
+    if unknown:
+        return ["unknown lesson ids: " + ", ".join(sorted(unknown))]
     errors = []
     previous = None
     for step in steps:
@@ -635,6 +660,10 @@ def audit(root, points, only=None):
         used = renderer.used.get(step.id, {})
         for name, change in sorted(step.changes.items()):
             record = used.get(name)
+            if generated(name):
+                if record is not None:
+                    errors.append(f"{lesson.name}: {name} is generated by cargo, not taught")
+                continue
             if supplied(name) and record is None:
                 if change.kind != "delete" and not any(kind == "supplied" for kind, _ in renderer.order.get(step.id, [])):
                     errors.append(f"{lesson.name}: supplied file {name} needs a <!-- supplied: {step.id} --> directive")
@@ -690,7 +719,7 @@ def write_downloads(steps, output):
         raw = output / step.id / "raw"
         raw.mkdir(parents=True, exist_ok=True)
         for name, change in step.changes.items():
-            if change.new_text is None:
+            if change.new_text is None or generated(name):
                 continue
             (raw / (name.replace("/", "--") + ".txt")).write_text(change.new_text)
 
@@ -713,6 +742,8 @@ def write_source_index(steps, output):
                  f"that last changed them. The finished production source is on [GitHub]({GITHUB_SOURCE}).", "",
                  "[Back to the course](../../docs/)", ""]
         for name in sorted(step.texts):
+            if generated(name):
+                continue
             origin = last_changed.get(name)
             if origin is None:
                 continue
@@ -731,7 +762,11 @@ def on_pre_build(config):
     source = Path(config["docs_dir"])
     output = source / "lessons"
     series_path = HERE / "reconstruction/series.json"
-    key = hashlib.sha256(series_path.read_bytes() + Path(__file__).read_bytes()).hexdigest()
+    key = hashlib.sha256(series_path.read_bytes() + Path(__file__).read_bytes()
+                         + Path(REPLAY.__file__).read_bytes()).hexdigest()
+    current_path = HERE / "reconstruction/current-series.json"
+    if current_path.is_file():
+        key = hashlib.sha256(key.encode() + current_path.read_bytes()).hexdigest()
     cache = source.parent / "course-cache"
     stamp = cache / "manifest.json"
     if not (stamp.is_file() and json.loads(stamp.read_text()).get("key") == key):
@@ -753,11 +788,14 @@ def on_pre_build(config):
 
 def reload_steps(cache):
     """Rebuild in-memory step records from the patches and the cached snapshots."""
-    series = REPLAY.read_json(HERE / "reconstruction/series.json")
+    series = REPLAY.read_series()
     steps = []
     previous = None
     for record in series["steps"]:
-        changes = parse_patch((HERE / "reconstruction" / record["patch"]).read_text())
+        patch = HERE / "reconstruction" / record["patch"]
+        if REPLAY.digest(patch) != record["patch_sha256"]:
+            raise ValueError(f"patch checksum failed: {record['id']}")
+        changes = parse_patch(patch.read_text(), record.get("directory", ""))
         snapshot = cache / "snapshots" / record["id"]
         for name, change in changes.items():
             path = snapshot / name

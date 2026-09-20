@@ -93,11 +93,14 @@ def sentence(entry):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if a lesson is out of date")
+    parser.add_argument("--lesson", action="append", help="limit updates to these lesson ids")
     args = parser.parse_args()
     data = json.loads((HERE / "step-checks.json").read_text())
     stale = []
     for step_id, entry in sorted(data.items()):
-        lesson = next(p for p in DOCS.glob(f"{step_id}-*.md"))
+        if args.lesson and step_id not in args.lesson:
+            continue
+        lesson = DOCS / f"{step_id}.md" if step_id.startswith("current-") else next(DOCS.glob(f"{step_id}-*.md"))
         text = lesson.read_text()
         block = f"{START}\n\n{sentence(entry)}\n\n{END}"
         if START in text:

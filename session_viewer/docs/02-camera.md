@@ -1,21 +1,9 @@
 # 02 · Camera
+<!-- locator: off -->
 
-## You are building
+The triangle orbits, pans and zooms toward the cursor.
 
 ![Orbit turns the orientation about the target, pan slides the target across the camera's own plane, and the wheel scales the distance; the view-projection is rebuilt from those three every frame.](illustrations/camera-basis.svg)
-
-Six spaces, five conversions:
-
-```text
-local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → NDC → viewport × DPR → pixels
-```
-
-![A point travels from f64 source coordinates through placement, rebasing, view, projection and the viewport; f64 becomes f32 only after the anchor is subtracted.](illustrations/spaces.svg)
-
-## Starting point
-
-- Checkpoint 01: one triangle, identity matrix in the uniform, `drag` and `zoom` do nothing.
-- This lesson adds the production `camera.rs` in full on top of the kernel's `Xform` and `AABB`, then wires the shell to it.
 
 <!-- step-status: start -->
 
@@ -23,191 +11,47 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <!-- step-status: end -->
 
-## Step 1 · The kernel's matrix and box
+## Step 1 · src/camera.rs
 
-Nothing to type: the matrix and box arithmetic the viewer needs lives in the kernel, `session_rust::Xform` and `session_rust::AABB`, and this step is where you read what it provides.
-
-- A placement is an `Xform`: 16 column-major doubles, `index = col * 4 + row`. `&a * &b` composes two, `transform_point` places a point, `to_f32` is the one f64 → f32 edge on the way to the GPU. Two places to look when a large model jitters: an object's placement and the view-projection this lesson writes into the uniform.
-- `Xform::uniform_scale` is the length of the first column, the scale a placement applies. The cloud lanes read it to size their points.
-
-![Diagram: Xform · [f64; 16] · Xform · transform_point · to_f32 for the GPU](illustrations/02-01.svg)
-
-- `AABB::empty()` has negative half-sizes, so `is_valid` is false and a scene can start with no box; `union_with_point(x, y, z)` grows it one coordinate triple at a time without allocating a `Point`, and `union_with` merges two boxes, an empty one contributing nothing.
-- `transformed` runs the eight corners through an `Xform` and boxes them again: conservative for rotations, exact for translations. `corners` returns all eight, not the two extremes, because a rotation moves a corner that was not extreme into one that is.
-
-![Diagram: AABB::empty · AABB center · half-size · world box · queries](illustrations/02-02.svg)
-
-- Draw lanes receive only the view-projection, never the camera, so the two camera facts they need are read off the matrix: `Xform::eye` is where clip x, y and w vanish together (one 3×3 solve; orthographic has no eye, so the view direction is pushed far back), and `Xform::ortho_half_height` is the world half-height of an orthographic projection, 0 in perspective.
-
-## Step 4 · Camera state
-
-![Where this step sits in the viewer: State, with 5 of 12 zones built so far.](illustrations/locator-c2c82bdd01.svg){ .locator data-strip="illustrations/strip-0324278002.svg" }
-
-- `orientation` is a quaternion, the single source of truth; `position` and `up` are derived from it.
-- Internal units are metres; `Unit` converts scene millimetres at the matrix edge.
-- `scene_extent` floors the far plane so zooming into one detail cannot clip the rest of the scene.
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
+The camera owns orbit, pan, zoom and projection in the same file used by the finished viewer. Subtract the world anchor before converting the matrix to f32.
 <!-- file: 02 session_viewer/src/camera.rs type lines=1-48 -->
-
-## Step 5 · Construction and gestures
-
-![Where this step sits in the viewer: State, with 5 of 12 zones built so far.](illustrations/locator-c2c82bdd01.svg){ .locator data-strip="illustrations/strip-0324278002.svg" }
-
-- Orbit is yaw about `world_up`, then pitch about the current right axis; no Euler singularity.
-- `zoom_at` keeps the world point under the cursor fixed: the target moves toward it by the zoom factor.
-- Cursor and viewport are physical pixels, the framebuffer's own space.
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
 <!-- file: 02 session_viewer/src/camera.rs type lines=49-110 -->
-
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
 <!-- file: 02 session_viewer/src/camera.rs type lines=111-146 -->
-
-## Step 6 · Projection swap that keeps the content
-
-![Where this step sits in the viewer: State, with 5 of 12 zones built so far.](illustrations/locator-c2c82bdd01.svg){ .locator data-strip="illustrations/strip-0324278002.svg" }
-
-Orthographic shows content off-axis and nearer than the target plane, so a naive flip to perspective presents sky. The framed toggle clips the bounds to the rectangle orthographic was showing, then refits.
-
-![The projection and the divide by w land the frustum in a cube. With near and far swapped, distant points crowd into a thin band at zero, which is where float32 is densest.](illustrations/frustum.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
 <!-- file: 02 session_viewer/src/camera.rs type lines=147-217 -->
-
-## Step 7 · The view-projection
-
-![Where this step sits in the viewer: State, with 5 of 12 zones built so far.](illustrations/locator-c2c82bdd01.svg){ .locator data-strip="illustrations/strip-0324278002.svg" }
-
-- **Reversed depth:** near and far are swapped in `perspective(...)`, so near is 1 and far approaches 0. The depth pass clears to 0 and compares `Greater`; all three must agree.
-- **Anchor:** eye and target go relative to a caller anchor in world units before any f32 exists, so a distant model does not cancel to noise.
-- Near is a ten-thousandth of the focus distance: the cut opens a millimetre ahead of the eye, not a beam's width.
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
 <!-- file: 02 session_viewer/src/camera.rs type lines=218-291 -->
-
-## Step 8 · Named views, fit, extent
-
-![Where this step sits in the viewer: State, with 5 of 12 zones built so far.](illustrations/locator-c2c82bdd01.svg){ .locator data-strip="illustrations/strip-0324278002.svg" }
-
-- `fit` measures the box along the camera's own axes with `tan`, not a bounding sphere with `sin`; elongated scenes no longer sit twice as far as needed.
-- Every mutation ends in `update_position`.
-
-- `grow_extent` widens only the far-plane floor when more geometry streams in.
-
-![Diagram: set_view · Camera · fit(AABB, aspect) · grow_extent · position · up](illustrations/02-03.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
 <!-- file: 02 session_viewer/src/camera.rs type lines=292-319 -->
-
-- Fitting alone reads the scene: it centres the target on the box.
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
 <!-- file: 02 session_viewer/src/camera.rs type lines=320-377 -->
-
-- The far plane has a floor, not a value: geometry streams in after the first fit, so the camera keeps the widest extent it has ever seen instead of refitting and cutting what it already showed.
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
 <!-- file: 02 session_viewer/src/camera.rs type lines=378-442 -->
-
-## Step 9 · Wheel response
-
-![Where this step sits in the viewer: State, with 5 of 12 zones built so far.](illustrations/locator-c2c82bdd01.svg){ .locator data-strip="illustrations/strip-0324278002.svg" }
-
-- `zoom_distance` is exponential per detent and clamps a single event to ten detents, so coalesced wheel events compose and never cross zero.
-- The browser build never compiles the two `#[cfg(test)]` modules.
-
-<span class="zone-mark" data-strip="illustrations/strip-0324278002.svg" data-zone="State"></span>
-
+Download this part from its link to the path shown.
 <!-- file: 02 session_viewer/src/camera.rs copy lines=443-535 -->
-
 <!-- check: 02 -->
+## Step 2 · src/lib.rs
 
-## Step 10 · Wire the shell
-
-![Where this step sits in the viewer: Page, Shell, with 5 of 12 zones built so far.](illustrations/locator-39d95f2883.svg){ .locator data-strip="illustrations/strip-27a2f28556.svg" }
-
-- The uniform buffer lives in the struct; each frame writes a fresh matrix into it.
-- The anchor passed to `view_proj_anchored` is the world origin, where the triangle sits.
-- The wheel's cursor position arrives in CSS pixels and is scaled by `self.scale` into the framebuffer's physical pixels before `zoom_at` sees it; drag deltas stay in CSS pixels, and `orbit`/`pan` carry their own per-pixel constants.
-
-![Diagram: drag · zoom from JS · Tutorial · Camera · uniform · write_buffer](illustrations/02-04.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-32dcdc35a8.svg" data-zone="Shell"></span>
-
+The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
 <!-- file: 02 session_viewer/src/lib.rs type -->
+## Step 3 · index.html
 
-<span class="zone-mark" data-strip="illustrations/strip-be7d5c5743.svg" data-zone="Page"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 02 session_viewer/index.html copy -->
-
 ## Check
 
 <!-- checkpoint: 02 -->
 
-Expected:
-
-- Status reads **Checkpoint 02 · 1 objects**.
-- Drag orbits the triangle; Shift-drag pans; the wheel zooms toward the cursor and the point under it stays put.
-- Resize the page and repeat: no stretching, no jump.
-
-Dragging twice as far on a high-DPI display: look at the `self.scale` conversion, not the camera speeds. A large translated model jitters: look for an f64 → f32 conversion before rebasing.
+Expected: The triangle orbits, pans and zooms toward the cursor; status: **Checkpoint 02 · 1 objects**.
 
 ![Checkpoint 02: the same triangle seen from the production camera; drag to orbit, Shift-drag to pan, wheel to zoom at the cursor.](screenshots/02.png)
+
+If it fails:
+
+- Dragging moves twice as far on a high-DPI screen: the cursor is scaled twice.
+- A distant model jitters: coordinates become f32 before the anchor is subtracted.
+- The triangle disappears: reversed depth needs a zero clear and a Greater comparison.
 
 ## What changed
 
 <!-- tree: 02 session_viewer/src -->
 
-- `Camera` owns view state; the kernel's `Xform` and `AABB` own the matrix and box arithmetic.
-- Data flow: gesture → `Camera` → `Xform` → `[f32; 16]` → uniform → `mvp` in the shader.
-
-**Production equivalent:** `src/camera.rs`.
-
-## Try
-
-- Change `FOVY_DEG` in `camera.rs` and reload: almost nothing moves. `fit` derives the distance from the same constant, so a wider field of view pulls the camera in by as much as it widens the view. Comment out the `camera.fit(...)` call in `open` first, and the triangle then grows or shrinks with the constant.
-- Add `camera.perspective = true;` after the `set_view(View::Top)` call in `open` and orbit: `set_view` switches to orthographic, so this checkpoint starts parallel — with perspective back on, the far edge shrinks and the wheel walks the eye towards the triangle instead of scaling the whole picture.
-- Pan with Shift held and release far from the origin, then zoom with the wheel: the point under the cursor stays under the cursor.
-
-## Questions and answers
-
-**`index = col * 4 + row`. Why does the convention matter more than the formula?**
-
-*How to work it out.* Indexing the other way gives the transpose — still a valid 4×4 matrix, so nothing errors. Three parties have an opinion: the kernel's `Xform`, `camera.rs`, and WGSL's `m * v`. One convention, no runtime check.
-
-*The answer.* The wrong one is silent: a transposed matrix multiplies and produces a plausibly wrong picture — the object rotates about the wrong point, or translates when it should scale. `camera.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
-
-**Reverse-Z needs three things to agree. Which three?**
-
-*How to work it out.* Depth is a comparison with three inputs you control: what the projection produces, what the buffer starts at, and which direction counts as "closer". Change one and the other two describe a different convention.
-
-*The answer.* Near and far are swapped in the projection (near becomes 1, far approaches 0); the depth attachment clears to `0.0`; the compare is `Greater`. Two right out of three is the interesting failure: everything vanishes (nothing beats the clear) or nothing is ever occluded (everything beats it).
-
-**Where does f64 become f32, and why exactly there?**
-
-*How to work it out.* f32 has about seven significant digits. A model a kilometre from the origin, measured in millimetres, needs seven before the decimal point, so the conversion has to happen while the numbers are *small* — after subtracting an anchor near the camera.
-
-*The answer.* After the anchor is out of it. `view_proj_anchored` subtracts the anchor in f64 and `Xform::to_f32` casts what is left into the uniform; a placement crosses at the matching edge, `mat_to_f32`. Convert before rebasing and the low bits are gone — jitter you cannot debug from inside the shader, which was handed bad numbers. The subtraction is what makes the cast safe, so a jittering placement has one thing to check: which side of it the conversion happened on.
-
-**Why must `zoom_at` be given physical pixels rather than CSS pixels?**
-
-*How to work it out.* Its job is to keep the world point under the cursor fixed, so it must agree with whatever drew that point — and the framebuffer is in physical pixels. The two units differ whenever `devicePixelRatio` is not 1.
-
-*The answer.* The cursor position and the rendered pixel must be in the same space. On a 1× display the bug is invisible; on a 2× laptop every gesture moves twice as far. So the conversion happens once, at the input layer, instead of being remembered at each call site.
-
-**What you should be able to do now**
-
-State the orbit gesture in one sentence and say why the alternatives fail. Correct: yaw about the world up axis, then pitch about the camera's *current* right axis. The other order, or stored Euler angles, eventually lines two rotation axes up and the camera loses a degree of freedom — gimbal lock. The quaternion is the single source of truth here precisely so that cannot happen.
+Data flow: gesture → camera → anchored matrix → uniform → vertex. Every file at this point: [source at checkpoint 02](../lessons/02/index.md).
 
 ## Next
 

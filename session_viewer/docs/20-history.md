@@ -1,16 +1,9 @@
 # 20 · The document: undo, redo and save
+<!-- locator: off -->
 
-## You are building
-
-A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was immediately final. The kernel has a history: edits group into transactions, a removal's record is the tombstone undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet. This lesson reads the kernel's history - nothing is typed, the kernel is maintained in its own repository - because [lesson 21](21-editing.md) is where the viewer starts recording through it.
-
-![Diagram: begin(label) · add · replace · remove · set_xform · records: Add · Remove · Replace · Xform · commit() · undo() · redo() · pb_dump · file_json_dump…](illustrations/20-01.svg)
+The sheet scene stays visible while document edits gain undo, redo and history-free saving.
 
 ![Edits group into transactions and a removal leaves a tombstone to restore from; the cursor moves back and forward through them, and a save purges the whole buffer because history never crosses pb or JSON.](illustrations/history.svg)
-
-## Starting point
-
-Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, its transform, its tree node and its graph node at once and returns a bool; nothing remembers it.
 
 <!-- step-status: start -->
 
@@ -18,164 +11,37 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- step-status: end -->
 
-## Part A · Records
+## Step 1 · session_rust/src/history.rs
 
-### Step 1 · The tombstone
-
-- `clone` is a deep copy that keeps the guid: a snapshot must still name the object it stands for. `duplicate` mints a fresh guid and is never used here.
-- A `Tombstone` is everything needed to put one object back into every live table.
-- `Add` and `Remove` share it; `Replace` and `Xform` carry absolute before and after values, never deltas.
-
-![A removal empties five live tables, and the tombstone records the slot the object held in each one: its position in the typed list, the guid lookup, the transform, the tree with its subtree, and every incident graph edge.](illustrations/tombstone.svg)
-- A `Transaction` groups the records of one gesture; `History` keeps the last 64 and drops the redo stack when a new one commits.
-
-![Diagram: Tombstone · obj clone · collection · obj_index · xform · parent_guid · index · subtree node · attribute · edges](illustrations/20-02.svg)
-
+Read this source file from its link; the checkpoint already contains it.
 <!-- listing: 20 session_rust/src/history.rs -->
+## Step 2 · session_rust/src/session.rs
 
-- The tombstone is built while the tables are emptied: the only moment when every position it must remember is still known.
-
-
-- A transform record is the same shape — before and after, absolute — so replaying it never depends on the state it lands in.
-
-
-
-
-- `Op` prints itself, which makes a transaction readable in a test failure: the history is a data structure someone has to debug.
-
-
-### Step 2 · Undo replays in reverse
-
-- `undo` pops a transaction, reverts its records last to first and pushes it onto the redo stack; `redo` applies them first to last.
-- An add reverts by detaching, a remove by attaching, a replace by swapping the before clone in, a transform by placing the before value.
-- Both commit an open transaction first, so a half-typed gesture is never lost.
-
-
-- Keeping both directions in one place shows that every record type handles both.
-
-
-
-- Everything in this lesson lives in the shared kernel, so the tests run there.
-
-## Part B · The session records
-
-### Step 3 · One place to add
-
-- Every `add_*` routes through `_add_object`: it pushes to the typed list, `lookup`, the graph and the tree exactly as before, and records an `Add` while a transaction is open.
-- `replace(guid, obj)` is the edit history sees: it gives `obj` the guid, swaps it into the typed list and `lookup`, refreshes the graph attribute and records before and after.
-- Mutating an object in place through `lookup` still works and is not recorded.
-- `remove_object` becomes `_detach` plus a record.
-- `_detach` builds the tombstone while it empties every table; `_attach` puts everything back at the same positions, including the subtree and the edges whose other end still exists.
-- `set_xform` and `remove_xform` record absolute before and after transforms.
-- `pb_dump`, `pb_dumps`, `file_json_dump` and `file_json_dumps` call `history.clear()` first.
-
-![Diagram: mutators · add_* → _add_object · replace → _swap · remove_object → _detach · set_xform → xforms.insert · history.record](illustrations/20-03.svg)
-
+Read this source file from its link; the checkpoint already contains it.
 <!-- listing: 20 session_rust/src/session.rs -->
-
-### Step 4 · The tree gives the node back, the graph its edges
-
-- `Tree::remove` returns the detached node with its subtree, and `TreeNode::insert` puts a child back at an index, so a restored object lands where it was.
-- `Graph::edges_of` lists the incident edges with their attribute and direction, the part of a removal that had no way back before.
-
-
-
-
-### Step 5 · Identity survives a swap
-
-- `replace` sets the guid on the replacement, and a guid minted once cannot be reset, so the four types that lacked `refresh_guid` gain it.
-
-
-
-
-
-- The work was finding which four types lacked it, not making the change.
-
-
-
-## Part C · Three kernels, one behaviour
-
-- The Python and C++ kernels carry the same `History`, `replace`, `begin`, `commit`, `undo` and `redo`, the same records and the same test names, so a document behaves the same whichever language edits it.
-- All three kernels carry their tests; run the Rust ones from the Check.
-
 <!-- check: 20 -->
-
 ## Check
 
 <!-- checkpoint: 20 -->
 
-Native tests:
+Expected: The sheet scene stays visible while document edits gain undo, redo and history-free saving; status: **the status clears when loading finishes**.
 
-```sh
-cd "$COURSE_WORK/session_viewer/../session_rust" && cargo test --lib minitest_suite -- --nocapture
-```
+[![Full viewer result for 20 history](screenshots/19-sheets-overview.png)](screenshots/19-sheets-overview.png)
 
-The cases are `MINI_TEST!` blocks, not `#[test]` functions: they register themselves and the whole suite runs as one libtest case, so filtering by name runs nothing. Expected: the run ends `[rust-minitest] N/N passed` and `test mini_test::harness::minitest_suite ... ok`. A failure prints `FAIL <group>::<name>  <file>:<line>` and the failing check, so `Undo Remove` or `History Purged On Save` names itself when it breaks. The viewer builds and runs unchanged: it loads documents and never edits them.
+If it fails:
 
-## Verify you reached production
-
-Record the checkpoint and compare every runtime file against the frozen production inventory:
-
-```sh
-python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output "$COURSE_WORK" --through 20 --adopt
-python3 "$COURSE_REPO/docs/reconstruction/converge.py" --workspace "$COURSE_WORK"
-```
-
-Expected:
-
-- `converge.py` reports every runtime file identical to production; the only listed differences are the documented packaging ones (the local input manifest and imported-document font artifacts).
+- Undo fails to restore a removed object: its geometry and tree position are not both recorded.
+- Saved history reappears: serialization includes the undo stack.
 
 ## What changed
 
 <!-- tree: 20 session_rust/src -->
 
-- Removal keeps its resurrection kit in the history instead of leaving nothing; the live tables are unchanged.
-- Edits are transactions; undo and redo replay absolute snapshots; the buffer holds 64 and is purged by every save.
-- The wire format is untouched: a file never carries history.
-
-## Try
-
-- Add three points, `begin`, `replace` one, `remove` one, `set_xform` one, `commit`, `undo`, `redo`; then `pb_dump` and check `history.depth()` is 0.
-- Remove an object that has children under it in the tree and undo: the children return under the same parent at the same index.
-- Open the saved file in the Python or C++ kernel and run the same sequence: the same names do the same things.
-
-## Questions and answers
-
-**History lives in memory and never crosses pb or JSON. What does that buy, and what does it give up?**
-
-*How to work it out.* Ask what a persisted history would require: a version in the file format, a decision about what an undo means after someone else edited the file, and a guarantee that a tombstone's object still makes sense in a later schema. Then ask what users expect — open a file, and it is what it is.
-
-*The answer.* An opened file always starts clean: no format to version, no cross-session semantics to define, no history leaking to whoever you send the file to. It gives up cross-session undo, as Rhino does.
-
-**A tombstone stores the object, its list position, its transform, its parent and sibling index, its subtree, its graph attribute and its incident edges. Why so much for one deletion?**
-
-*How to work it out.* List the live tables a removal touches: the typed list, `lookup`, the transform map, the tree, the graph. For each, ask what undo needs to restore it *exactly* — not just presence but position, because index order is visible to the user.
-
-*The answer.* Anything less is a restore that quietly loses a parent, a child order or an edge. The list was incomplete before because each table's loss is invisible on its own. When you write an undo, enumerate the tables, not the operations.
-
-**`Replace` and `Xform` carry absolute before and after values, never deltas. Argue for absolutes here.**
-
-*How to work it out.* A delta assumes it will be applied to exactly the state it was computed from. What breaks that: a redo stack, a reordered transaction, floating-point rounding that makes inverse composition not quite the identity. Then price the alternative: the buffer is 64 transactions, so size is not the constraint.
-
-*The answer.* Absolutes are bigger and unambiguous; deltas compose and drift. Reach for deltas when size is the binding constraint; here it is not.
-
-**A removal's clone keeps the guid rather than minting a new one. What would break with `duplicate`?**
-
-*How to work it out.* Ask who refers to an object by guid: links, the graph, selections, anything the user saved. Now restore it under a new guid — the content is back, the references are not.
-
-*The answer.* An undo has to restore *identity*, not equivalent content. That is also why the four types lacking `refresh_guid` had to gain it: `replace` gives the replacement the original's guid, and a guid minted once cannot otherwise be reset.
-
-**What you should be able to do now**
-
-Narrate a click from browser event to highlighted object, without looking. Correct: winit delivers a pointer event → `input.rs` scales it by the device ratio and, on a release under `CLICK_SLOP`, asks `State` for a selection → `State::request_selection` records the request with a generation and the window size → the next frame runs `pick_frame`, drawing the ID pass into a window-sized integer target → `copy_texture_to_buffer` and `map_async` → a later frame polls the mapping, checks the generation, sorts the window (ink before faces, nearest to the cursor) → `Scene::resolve` turns the row and sub-id into a document identity → `set_selected` flips `FLAG_SELECTED` in the row → the next frame draws the yellow strokes and the silhouette. That path crosses almost every module you built. When you can narrate it, take the [capstone](capstone.md).
+Data flow: edit → document transaction → undo cursor → restored source. Every file at this point: [source at checkpoint 20](../lessons/20/index.md).
 
 ## Next
 
-[Capstone](capstone.md): add a section plane, with the requirements, the constraints and the full design worked through, and no step-by-step.
-
-[Extending the viewer](extend-roadmap.md): what it still cannot do, and how a gumball, a command line and layer panels would fit this architecture.
-
-[Architecture reference](../ARCHITECTURE.md): the finished module graph, frame lifecycle and Rust ↔ WGSL interfaces.
+[21 · Editing](21-editing.md): add the gumball, commands and layer controls.
 
 ## Expected viewer result
 

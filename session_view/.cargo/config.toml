@@ -1,0 +1,11 @@
+# SIngle target: the browser. Browser needs no `#[cfg(target_arch = "wasm32")]` gates
+[build]
+target = "wasm32-unknown-unknown"
+
+
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=--max-memory=4294967296"]
+
+# Tests are native, becasue wasm32 has not test runner.
+[alias]
+xtest = "test --target x86_64-unknown-linux-gnu"

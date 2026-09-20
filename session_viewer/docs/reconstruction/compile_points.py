@@ -49,7 +49,7 @@ def cargo_check(viewer, env, log):
     """One WASM library check with the house build limits."""
     log.parent.mkdir(parents=True, exist_ok=True)
     with log.open("w") as output:
-        result = subprocess.run(["cargo", "check", "--locked", "--lib"], cwd=viewer, env=env,
+        result = subprocess.run(["cargo", "check", "--lib"], cwd=viewer, env=env,
                                 stdout=output, stderr=subprocess.STDOUT)
     return result.returncode == 0
 

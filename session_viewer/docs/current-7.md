@@ -1,296 +1,57 @@
-# 7 · Finish the shared editing wiring
+# current-7 · Finish the shared editing wiring
+<!-- locator: off -->
 
-[Previous](current-6.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-8.md)
+The floating interface, nested panel and control editing work together before the workspace becomes docked.
 
-Continue in the same checkpoint workspace. Complete the edits below before compiling.
+<!-- step-status: start -->
 
-![Ownership and data flow](illustrations/README-02.svg)
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
-Finish the shared ownership comments, event routing and formatting. The next checkpoint adds the docked workspace, touch editing and portable session files.
+<!-- step-status: end -->
 
-### `src/app/edit.rs`
+## Step 1 · src/app/edit.rs
+Refuse unsupported controls and display-only documents, then cover both cases with tests. Failed edits must leave the retained source untouched.
+<!-- file: current-7 session_viewer/src/app/edit.rs type -->
 
-**TYPE THIS**
+## Step 2 · src/app/inspection.rs
+Expose the new selection and resource state to the browser inspection data. Report retained resources as well as visible objects so hidden allocations are counted.
+<!-- file: current-7 session_viewer/src/app/inspection.rs type -->
 
-**CURRENT**
+## Step 3 · src/app/mod.rs
+Declare the new application modules so their files join the crate. A source file is not compiled until a module declaration names it.
+<!-- file: current-7 session_viewer/src/app/mod.rs type -->
 
-```rust
-    pub fn delete_row(&mut self, row: u32) -> bool {
-```
+## Step 4 · src/app/scene.rs
+Keep visibility helper access consistent with the editing module. Resolve visibility by row identity after each rebuild.
+<!-- file: current-7 session_viewer/src/app/scene.rs type -->
 
-**ADD BELOW**
+## Step 5 · src/state/edit.rs
+Reconnect command visibility and preserve streamed-source guards around Undo and Redo. A history action must not rebuild a partial streamed document.
+<!-- file: current-7 session_viewer/src/state/edit.rs type -->
 
-```rust
-        if !self.streamed.is_empty() || !self.sheets.is_empty() {
-            return false;
-        }
-```
+## Check
 
-**TYPE THIS**
+<!-- checkpoint: current-7 -->
 
-**CURRENT**
+Expected: the egui windows and placed control edits work together, and a successful geometry command reports **geometry updated**.
 
-```rust
+![Full viewer result for current 7](screenshots/extensions-command-create.png)
 
-    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
-    /// a drag that appears to do nothing is a bug report waiting to happen.
-    #[test]
-    fn a_kind_with_no_control_points_is_refused() {
-        let mut scene = one_point_twice();
-        assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
-    }
+If it fails:
 
-    /// A streamed source is a shell with no kernel object behind it: editing it would write
-    /// into an empty session and silently lose the edit, so it is refused.
-    #[test]
-    fn a_display_only_document_refuses_the_edit() {
-        let mut scene = one_point_twice();
-        scene.docs[0].display_only = true;
-        assert!(
-            scene
-                .transform_row(0, &Xform::translation(1.0, 0.0, 0.0), "move")
-                .is_none()
-        );
-    }
+- Undo loses streamed data: a history rebuild accepts an incomplete source.
+- A new helper is unresolved: its module declaration is missing.
 
-    #[test]
-```
+## What changed
 
-**REPLACE WITH**
+<!-- tree: current-7 session_viewer/src -->
 
-```rust
+Data flow: UI action → shared edit helpers → source history → refreshed display.
+Every file at this point: [source at checkpoint current-7](../lessons/current-7/index.md).
 
-    #[test]
-```
+## Next
 
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-        assert_eq!(line.get_point(1).unwrap()[0], 1.0);
-    }
-```
-
-**ADD BELOW**
-
-```rust
-
-    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
-    /// a drag that appears to do nothing is a bug report waiting to happen.
-    #[test]
-    fn a_kind_with_no_control_points_is_refused() {
-        let mut scene = one_point_twice();
-        assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
-    }
-
-    /// A streamed source is a shell with no kernel object behind it: editing it would write
-    /// into an empty session and silently lose the edit, so it is refused.
-    #[test]
-    fn a_display_only_document_refuses_the_edit() {
-        let mut scene = one_point_twice();
-        scene.docs[0].display_only = true;
-        assert!(
-            scene
-                .transform_row(0, &Xform::translation(1.0, 0.0, 0.0), "move")
-                .is_none()
-        );
-    }
-```
-
-### `src/app/inspection.rs`
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-        "draw_calls": state.gpu.performance.draws,
-```
-
-**ADD BELOW**
-
-```rust
-        "widget": state.gpu.widget.placement,
-        "widget_highlight": state.gpu.widget.active,
-        "widget_bytes": state.gpu.widget.allocated_bytes(),
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-        "gpu_texture_estimate_bytes": textures,
-```
-
-**ADD BELOW**
-
-```rust
-        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
-```
-
-### `src/app/mod.rs`
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-pub mod touch;
-#[cfg(target_arch = "wasm32")]
-pub mod ui;
-pub mod validate;
-```
-
-**REPLACE WITH**
-
-```rust
-pub mod touch;
-pub mod validate;
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-pub mod inspection;
-```
-
-**ADD BELOW**
-
-```rust
-
-#[cfg(target_arch = "wasm32")]
-pub mod ui;
-```
-
-### `src/app/scene.rs`
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-    pub place: Xform,
-    pub session: Rc<Session>, // Shared with whoever decoded it (the live source keeps its current set), and shared again between placements: a manifest listing one file twice hands both documents the same `Rc`. Nothing mutates a session today. Anything that starts to must call `Rc::make_mut` FIRST, or one placement's edit moves every other placement of that file and the live source's cached copy with them.
-    pub point_px: f32,
-```
-
-**REPLACE WITH**
-
-```rust
-    pub place: Xform,
-    pub session: Rc<Session>, // Shared placements detach through Rc::make_mut before editing source geometry.
-    pub point_px: f32,
-```
-
-### `src/state/edit.rs`
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-    pub fn undo(&mut self) {
-```
-
-**ADD BELOW**
-
-```rust
-        if !self.scene.streamed.is_empty() || !self.scene.sheets.is_empty() {
-            self.status("Undo requires a scene without streamed sources");
-            return;
-        }
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-    pub fn redo(&mut self) {
-```
-
-**ADD BELOW**
-
-```rust
-        if !self.scene.streamed.is_empty() || !self.scene.sheets.is_empty() {
-            self.status("Redo requires a scene without streamed sources");
-            return;
-        }
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-
-    /// The gumball, rendered. A headless device draws the same frame twice - once without the
-    /// widget and once with it - and the pixels that changed are the widget.
-    ///
-    /// Differencing rather than looking for colours on a fixed background is what makes this
-    /// independent of the backdrop, the grid and the lighting. It is the check the browser
-    /// could not give: on the machine this was written on, the page renders black through a
-    /// software path.
-    #[cfg(not(target_arch = "wasm32"))]
-```
-
-**REPLACE WITH**
-
-```rust
-
-    /// GPU pixels contain all three axes and the widget owns no scene rows.
-    #[cfg(not(target_arch = "wasm32"))]
-```
-
-**TYPE THIS**
-
-**CURRENT**
-
-```rust
-    /// for the same CSS pixel, so one CSS pixel is twice as much world - and the arm that is
-    /// 72 CSS pixels long stays 72 CSS pixels long.
-    #[test]
-```
-
-**REPLACE WITH**
-
-```rust
-    /// for the same CSS pixel, so one CSS pixel is twice as much world - and the arm that is
-    /// 96 CSS pixels long stays 96 CSS pixels long.
-    #[test]
-```
-
-### Check step 7
-
-**Verified:** the complete step compiles for WebAssembly.
-
-```bash
-cargo check -j4 --lib
-```
-
-
-## Answers and next action
-
-**What is complete here?** The original floating-window viewer and its shared editing wiring. The next checkpoint extends source editing and replaces the floating windows with docked panels.
-
-**Why keep this checkpoint?** It is the exact starting state for the next set of edits; do not mix independent extension patches into this sequence.
-
-**Run now**, in the same learning workspace:
-
-```bash
-cargo check -j4 --lib
-trunk serve --port 8780
-```
-
-Expected compiler result: `Finished` with no errors. Open <http://localhost:8780/?data=off&inspect=1>. The original egui windows, nested panel, solid gumball and polyline/NURBS control editing work together. Continue to checkpoint 8 for the docked workspace and additional source edits.
-
-Stop the server with **Ctrl+C** before editing the next checkpoint. Then open [Dock the workspace, edit source geometry and save](current-8.md) and apply its blocks in order.
-
-[Previous](current-6.md) · [Sequence](extend-integrated-tutorial.md) · [Next](current-8.md)
+[Continue with current-8](current-8.md).
 
 ## Expected viewer result
 

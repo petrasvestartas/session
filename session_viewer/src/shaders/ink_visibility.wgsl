@@ -311,13 +311,14 @@ fn ink_primitive(pixel: vec2<f32>, sample: u32) -> u32 {
 
 @group(2) @binding(7) var<storage, read> triangle_tiles: array<vec4<u32>>;
 
-fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
-    if (ink_visible_plane(pixel, axis, sample)) {
+fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> bool {
+    let plane_visible = ink_visible_plane(pixel, axis, sample);
+    if (plane_visible && !boundary) {
         return true;
     }
 
     if (triangle_tiles[0].x==0u) {
-        return false;
+        return plane_visible;
     }
 
     // The projected triangles and their tiles are in canvas pixels; the pick pass renders a
@@ -326,14 +327,11 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let at = axis.at + line.origin;
     let fringe = ink_primitive(pixel, sample);
 
-    if (fringe==0u) {
-        return false;
-    }
-
-    let fringe_hit = projected_triangle_at(projected[fringe-1u], at);
-
-    if (fringe_hit.y>0.5 && fringe_hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
-        return false;
+    if (fringe!=0u) {
+        let fringe_hit = projected_triangle_at(projected[fringe-1u], at);
+        if (fringe_hit.y>0.5 && fringe_hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
+            return false;
+        }
     }
 
     let source_base = floor(axis.at-fract(pixel))+fract(pixel);
@@ -351,6 +349,10 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
             return false;
         }
     }
+
+    // A NURBS boundary must also pass the source-axis test. A fringe texel's
+    // extrapolated plane alone can expose fragments of a hidden curve at facet joins.
+    if (plane_visible) { return true; }
 
     if (any(at<vec2<f32>(0.0)) || any(at>=line.frame)) {
         return false;

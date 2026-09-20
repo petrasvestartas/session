@@ -1,16 +1,9 @@
 # 09 · Normals and shading
+<!-- locator: off -->
 
-## You are building
-
-![Diagram: surface derivatives ∂u, ∂v · analytic normal · fallback: incident triangle fan · C0 knot / sharp face · split shading vertices\ same XYZ, two normals · face-local RenderVertex.normal…](illustrations/09-01.svg)
+The sphere shades smoothly and sharp rims retain separate normals under transformed placements.
 
 ![Analytic normal or finite fallback at a pole; two shading normals at a C0 crease; the cofactor transform keeps a normal perpendicular under nonuniform scale.](illustrations/normals.svg)
-
-## Starting point
-
-- Checkpoint 08: trimmed faces and seams are correct; every face mesh carries its own vertices and normals.
-- The vertex stage still passes a zero normal and the fragment stage shades flat from screen derivatives.
-- A planar polyhedron looks curved if normals average across faces. Nothing in this lesson welds across a BRep face.
 
 <!-- step-status: start -->
 
@@ -18,191 +11,69 @@
 
 <!-- step-status: end -->
 
-## Step 1 · Kernel: only a valid derivative cross is a normal
+## Step 1 · session_rust/src/nurbssurface_trimmed.rs
 
-- `normal_at` returns `+Z` at a pole. Finite, but not this face's normal; it must not bypass the fan fallback.
-- Read the derivatives directly: a zero-length cross means "singular here", so the incident-triangle fan decides.
-
-![Diagram: derivatives du, dv · length > 0? · analytic normal · incident-triangle fan](illustrations/09-02.svg)
-
-The kernel is maintained in its own repository and the course never edits it: read the file, do not type it.
-
+Read this source file from its link; the checkpoint already contains it.
 <!-- listing: 09 session_rust/src/nurbssurface_trimmed.rs -->
-
-Same rule in the grid remesher (`remesh_nurbssurface_grid.rs`, the U poles of spheres and cones).
-
-The teapot asset is supplied:
-
+Download each file to the path shown.
 <!-- supplied: 09 -->
-
 <!-- check: 09 -->
+## Step 2 · src/shaders/normals.wgsl
 
-## Step 2 · WGSL: transform a normal with the cofactor matrix
-
-![Where this step sits in the viewer: Shaders, with 9 of 12 zones built so far.](illustrations/locator-f29eca4630.svg){ .locator data-strip="illustrations/strip-a8b790c015.svg" }
-
-Positions use `model`; normals need its inverse transpose, or a nonuniformly scaled instance tilts its normals off the surface.
-
-```text
-Rust                                    WGSL
-Instance.model: [f32; 16]        ↔     @group(2) @binding(0) instances[row].model
-mat3x3(model[0..3].xyz)          →     x, y, z columns
-cofactors (y×z, z×x, x×y)        =     inverse transpose · det
-sign(det)                        →     mirrored instances keep outward normals
-```
-
-- A singular matrix has no unique normal: return the zero sentinel and the fragment stage shades flat.
-- Normalize after the transform. The cofactor form never divides by a small determinant.
-
-![Diagram: instances[row].model · face_normal · transform_normal · cofactors · triangle.wgsl fragment](illustrations/09-03.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-a8b790c015.svg" data-zone="Shaders"></span>
-
+Normal helpers keep lighting correct under transformed placements. Nonuniform scale requires the inverse transpose.
 <!-- file: 09 session_viewer/src/shaders/normals.wgsl type -->
+## Step 3 · src/shaders/triangle.wgsl
 
-Vertex attributes ↔ shader locations, from `RenderVertex::ATTRIBS`:
-
-```text
-position [f32;3] @0    ↔  @location(0) position
-normal   [f32;3] @12   ↔  @location(1) normal
-color    [f32;4] @24   ↔  @location(2) color
-inst_id  u32 (2nd buffer) ↔ @location(3) inst_id
-```
-
-The vertex stage transforms the baked normal; `shade` normalizes `in.normal` because interpolation does not preserve unit length.
-
-<span class="zone-mark" data-strip="illustrations/strip-a8b790c015.svg" data-zone="Shaders"></span>
-
+The mesh shader places vertices and shades visible faces. Its instance row must be the row uploaded with that vertex.
 <!-- file: 09 session_viewer/src/shaders/triangle.wgsl type -->
+## Step 4 · src/app/walk/brep_edges.rs
 
-## Step 3 · Edge facing from physical facets, not shading normals
-
-![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
-
-- A cone apex has a smooth `+Z` fan; averaging it into the seam's cull normal tilted the seam upward and hid it.
-- Index every triangle's geometric normal by its exact edge (position bits, winding-free). A seam of one periodic face keeps both incident facets.
-- Missing or ambiguous incidence disables the cull instead of guessing.
-
-![Three normals live at one vertex: the fan's shading average, each triangle's own facet normal, and the packed 16-bit code; the facing cull may only ask the facet normals.](illustrations/three-normals.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
-
+Boundary chains share samples between adjacent faces. Preserve oriented source edge IDs through the upload.
 <!-- file: 09 session_viewer/src/app/walk/brep_edges.rs type hunks=1-4 -->
-
-Module unit tests: COPY.
-
-<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
-
+Download this part from its link to the path shown.
 <!-- file: 09 session_viewer/src/app/walk/brep_edges.rs copy hunks=5-8 -->
+## Step 5 · src/app/walk/brep.rs
 
-The BRep walk builds the incidence once per upload:
-
-<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
-
+The geometry walk uploads shaded faces and their source boundary edges. Tessellation diagonals must never become CAD edges.
 <!-- file: 09 session_viewer/src/app/walk/brep.rs type hunks=1-1 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
-
+Download this part from its link to the path shown.
 <!-- file: 09 session_viewer/src/app/walk/brep.rs copy hunks=2-2 -->
-
 <!-- check: 09 -->
+## Step 6 · src/engine/gpu/mod.rs
 
-## Step 4 · A fill-only view for inspecting lighting
-
-![Where this step sits in the viewer: Shell, GPU core, with 9 of 12 zones built so far.](illustrations/locator-a1305e2b0b.svg){ .locator data-strip="illustrations/strip-bc625e87a3.svg" }
-
-Mesh edges and markers become toggles so shading can be judged without boundary ink.
-
-![Diagram: ?fill=1 · View knobs · frame · faces only](illustrations/09-05.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
-
+The GPU owner connects buffers, pipelines and frame resources. Create resources before building the bind groups that refer to them.
 <!-- file: 09 session_viewer/src/engine/gpu/mod.rs type -->
+## Step 7 · src/lib.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
-
+The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
 <!-- file: 09 session_viewer/src/lib.rs type -->
+## Step 8 · src/fixture.rs
 
-- Viewing choices live in the shell, so the lane code stays free of them.
-
-## Step 5 · Fixture: one solid per URL, optionally under an affine placement
-
-![Where this step sits in the viewer: Page, Shell, with 9 of 12 zones built so far.](illustrations/locator-f78d0d45a4.svg){ .locator data-strip="illustrations/strip-eab6f676f4.svg" }
-
-- The placement has a negative determinant and three distinct scales: the sign and cofactor paths are exercised.
-- The crease surface is degree one in U with a shared knot: two shading normals at identical XYZ.
-
-![Diagram: ?cad=sphere … torus · solid · BRep · ?affine=1 · affine_placement · build · CadFixture](illustrations/09-06.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 09 session_viewer/src/fixture.rs copy -->
+## Step 9 · index.html
 
-<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 09 session_viewer/index.html copy -->
-
 ## Check
 
 <!-- checkpoint: 09 -->
 
-Open these views (the `cad` query selects the fixture, `affine=1` applies the placement, `lit=1` turns the headlight on — every face is its flat colour without it — `fill=1` hides the boundary ink, `perspective=1` switches projection):
-
-- `?cad=sphere&lit=1` — smooth interior shading, no facet pattern.
-- `?cad=cylinder&lit=1` — smooth side; each cap is one flat tone with no bleed across the rim.
-- `?cad=crease&lit=1` — one-sided shading on each side of the fold.
-- `?cad=cylinder&affine=1&lit=1` — the mirrored, nonuniformly scaled copy shades like the original.
-- `?cad=cylinder&fill=1&lit=1` — lighting only.
-- `?cad=hole&lit=1`, `?cad=trimmed&lit=1`, `?cad=torus&lit=1` — the hole, trimmed patch and torus fixtures under these normals.
-
-A subtle crease under one light is not proof that normals are separate; identical XYZ with two normals is.
+Expected: The sphere shades smoothly and sharp rims retain separate normals under transformed placements; status: **1 object**.
 
 ![Checkpoint 09 at `?cad=sphere&lit=1`: the sphere's interior shades smoothly, with no facet pattern.](screenshots/09.png)
+
+If it fails:
+
+- A sphere looks faceted: triangle normals replace surface normals.
+- Shading crosses a sharp rim: coincident positions incorrectly share a normal.
+- A mirrored copy shades differently: the normal transform ignores the inverse transpose.
 
 ## What changed
 
 <!-- tree: 09 session_viewer/src -->
 
-- Data flow: derivatives → `RenderVertex.normal` → `@location(1)` → `transform_normal(model)` → interpolated `@location(2)` → `normalize` → headlight.
-- Edge culling reads physical facet normals; shading normals never enter visibility.
-
-**Production equivalent:** Production keeps this in `src/shaders/normals.wgsl`, `src/shaders/triangle.wgsl`, `src/app/walk/brep_edges.rs` and the kernel's `session_rust/src/remesh_nurbssurface_grid.rs` and `nurbssurface_trimmed.rs`.
-
-## Try
-
-- Open `?cad=sphere&lit=1` and then `?cad=sphere`: same mesh, different shading; a normal bug shows in the first view only.
-- Open `?cad=crease&lit=1` and orbit until the light grazes the fold: one side goes dark while the other stays lit, because the two sides own different normals at the same positions.
-- Open `?cad=cylinder&affine=1&lit=1`: the stretched copy shades like the original. Replace `transform_normal` in `normals.wgsl` with a plain `mat3x3(model) * n` and reload: the stretched copy's lighting tilts.
-
-## Questions and answers
-
-**Positions use `model`. Why can normals not?**
-
-*How to work it out.* Scale a sphere twice as wide in x. Every surface point moves by `model`; a flank normal moved the same way no longer stands perpendicular, because a nonuniform scale does not preserve angles. The matrix that does is the inverse transpose.
-
-*The answer.* Normals need `model`'s inverse transpose, built here as cofactors — the same matrix up to a positive scale, and it never divides by a small determinant as a literal inverse would.
-
-**`normal_at` returns `+Z` at a pole. Why is that dangerous, and what saves it?**
-
-*How to work it out.* `+Z` is finite, unit length and passes every sanity test, so no caller can tell it from a real normal. The true signal of a pole is parallel derivatives: their cross product has zero length.
-
-*The answer.* A plausible fallback is worse than an obvious sentinel: nothing downstream can detect it, and a sphere's pole would shade flat and facing up. The zero-length cross is the real signal, and hands the decision to the incident-triangle fan.
-
-**Edge culling reads geometric facet normals, never shading normals. What broke when it did not?**
-
-*How to work it out.* A shading normal makes a tessellated surface look smooth: an average, deliberately different from the facet it sits on. Culling with it asks a geometric question with a number smoothed on purpose.
-
-*The answer.* A cone's apex has a smooth `+Z` fan; averaging it into the seam's cull normal tilted the seam upward until it was culled and vanished. Appearance choices must not delete geometry, so the cull indexes each triangle's real normal by its exact edge.
-
-**A singular matrix yields the zero normal sentinel instead of an error. Who handles it and how?**
-
-*How to work it out.* A singular model matrix flattens the instance to a plane or a line: genuinely no unique normal. Refuse to draw, invent one, or shade without one.
-
-*The answer.* The fragment stage falls back to flat shading from screen derivatives — the honest answer, rather than a crash or a fiction.
-
-**What you should be able to do now**
-
-Name the three cases where an analytic derivative gives no normal: a pole (zero-length cross → the incident-triangle fan decides), a C0 crease (two valid normals at one position → the vertex is split, same position and `u`/`v`, different normal), a singular instance matrix (no unique direction → the zero sentinel, flat shading). Then say why `?cad=crease` beats a smooth sphere as a test: identical XYZ carrying two different normals is proof the split happened; a subtle shading difference under one light is not.
+Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 09](../lessons/09/index.md).
 
 ## Next
 

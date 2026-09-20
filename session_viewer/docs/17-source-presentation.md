@@ -1,33 +1,9 @@
 # 17 · Source faces, text objects and one silhouette
+<!-- locator: off -->
 
-## You are building
+Source faces and scene text become selectable, and optional outlines surround visible solids.
 
-**A · source faces**
-
-![Diagram: Ctrl+Shift click · PickMode::Component · FACE_TAG sub-ID · FaceSource\ parent · face](illustrations/17-01.svg)
-
-**B · text objects**
-
-![Diagram: manifest text · document title · SceneText row · select · hide · pick\ like geometry · selected: black on yellow](illustrations/17-02.svg)
-
-**C · one silhouette**
-
-![Diagram: solid mask · max(ordinary, selected) · selected mask · one black border](illustrations/17-03.svg)
-
-**D · joined strokes**
-
-![Diagram: chain ranges · previous / next rows · one join plane per shared vertex](illustrations/17-04.svg)
-
-**E · every pixel the same size**
-
-![Diagram: pick window + halo · window-sized ID attachment · ?dpr= cap · device_pixel_ratio · device scale 2: 1x samples · device lost…](illustrations/17-05.svg)
-
-## Starting point
-
-- Checkpoint 16: objects, edges and controls are selectable.
-- Text is an annotation without identity.
-- `selection_outline.rs` draws the selected object's outline.
-- Five independent parts share this checkpoint; the frame order at the end wires them together.
+![A pick renders a 19 x 19 attachment: a 13 x 13 readback window inside a three-texel halo, with origin and frame carrying the canvas into it.](illustrations/pick-window.svg)
 
 <!-- step-status: start -->
 
@@ -35,711 +11,241 @@
 
 <!-- step-status: end -->
 
-## Part A · Select a source face
+## Step 1 · src/engine/gpu/faces.rs
 
-### Step 1 · Face identities over the existing triangles
-
-![Where this step sits in the viewer: Lanes, with 10 of 12 zones built so far.](illustrations/locator-e5367f0009.svg){ .locator data-strip="illustrations/strip-64164dfbc0.svg" }
-
-- One `FaceSource` per original face; every display triangle of that face stores the same address in `ids`.
-- Picking pulls the arena's existing vertices by index: no duplicate mesh, no per-face draw call.
-- `FACE_TAG` keeps face addresses apart from edge and control sub-IDs in the same pick channel.
-
-![Diagram: display triangles · ids · source_faces · FaceSource\ parent · face · FACE_TAG sub-ID](illustrations/17-06.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+Face buffers preserve source face addresses alongside triangles. Several display triangles can name the same source face.
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=1-27 -->
-
-Group 3 borrows the arena's buffers and adds the face table and the selected-face uniform:
-
-| Binding | Rust buffer | WGSL |
-|---|---|---|
-| 0 | arena vertices | `face_vertices: array<f32>` |
-| 1 | arena object ids | `face_objects: array<u32>` |
-| 2 | arena triangle indices | `face_indices: array<u32>` |
-| 3 | `ids` | `source_faces: array<u32>` |
-| 4 | `selected` uniform | `selected_face: vec4<u32>` |
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=28-77 -->
-
-- `append` shifts upload-local face addresses by the scene's running count, so replacement never reuses an address.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=78-127 -->
-
-- `source` rejects a sub-ID whose parent row does not match: a stale address cannot select another object's face.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=128-170 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=171-214 -->
-
-- Three pipelines, one vertex entry `vs_face`: IDs into the pick target, the highlight over read-only equal depth, and a coverage mask for part C.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=215-253 -->
+## Step 2 · src/shaders/triangle.wgsl
 
-### Step 2 · The triangle shader learns vertex pulling
-
-![Where this step sits in the viewer: Shaders, with 10 of 12 zones built so far.](illustrations/locator-b2d0a9b9d0.svg){ .locator data-strip="illustrations/strip-653969caac.svg" }
-
-- `transform_vertex` is the old `vs_main` body; `vs_face` reaches the same code through storage buffers instead of vertex attributes.
-- `fs_id` writes `FACE_TAG | address` as the sub-ID; `fs_face_highlight` discards everything but the selected face.
-- `fs_solid_mask` writes plain coverage; part C reads it.
-- `origin` and `frame` — the pick attachment's corner in the canvas and the canvas size — are fields of the one `LineUniform` in `scene.wgsl`, the contract appended to every lane shader; the pick pass is what fills them.
-
-![Diagram: storage · group 3 · vs_face · fs_id · FACE_TAG · fs_face_highlight · fs_solid_mask](illustrations/17-07.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
+The mesh shader places vertices and shades visible faces. Its instance row must be the row uploaded with that vertex.
 <!-- file: 17 session_viewer/src/shaders/triangle.wgsl type -->
-
 <!-- check: 17 -->
+## Step 3 · src/engine/gpu/arena.rs
 
-### Step 3 · The arena owns a `Faces` lane
-
-![Where this step sits in the viewer: Lanes, with 10 of 12 zones built so far.](illustrations/locator-e5367f0009.svg){ .locator data-strip="illustrations/strip-64164dfbc0.svg" }
-
-- Vertex, id and index buffers gain `STORAGE` usage so `vs_face` can read them.
-- `draw_component_ids` replaces the object-ID draw only in component pick mode.
-
-![Diagram: vertex · id · index buffers · Faces lane · draw_component_ids](illustrations/17-08.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+The arena holds mesh vertices and indices across objects. Add the vertex base to local indices before appending a mesh.
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=1,2,4,5,6,7,8,10,11 -->
+## Step 4 · src/app/walk/mesh.rs
 
-### Step 4 · Producers emit one face address per triangle
-
-![Where this step sits in the viewer: Scene + walk, with 10 of 12 zones built so far.](illustrations/locator-758baddc7e.svg){ .locator data-strip="illustrations/strip-d213357acb.svg" }
-
-- Meshes: sorted source face keys, cached triangulation or the fan the kernel would build; the assertion ties the address stream to the triangle stream.
-- BReps: `push_face` records the face index it is tessellating.
-
-![Diagram: Mesh faces · BRep faces · append_face_ids · ArenaRows · face ids](illustrations/17-09.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
+The mesh walk uploads vertices, indices and source face IDs. Offset file-local indices only once.
 <!-- file: 17 session_viewer/src/app/walk/mesh.rs type -->
+## Step 5 · src/app/walk/brep.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
+The geometry walk uploads shaded faces and their source boundary edges. Tessellation diagonals must never become CAD edges.
 <!-- file: 17 session_viewer/src/app/walk/brep.rs type -->
+## Step 6 · src/app/selection.rs
 
-- That per-triangle address makes a face pickable.
-
-### Step 5 · A third selection mode
-
-![Where this step sits in the viewer: Scene + walk, Input, State, Lanes, with 10 of 12 zones built so far.](illustrations/locator-5c8f405772.svg){ .locator data-strip="illustrations/strip-278ef8ca8a.svg" }
-
-- `SelectionMode::Face` carries parent and face, so Escape returns to the parent like edges do.
-- `PickMode::Component`: the pick sorter prefers a nearby edge, then a face.
-- No object fallback — a component click that finds neither selects nothing: narrowing to a component is a different intent from selecting the whole object.
-
-![Diagram: Ctrl+Shift click · PickMode::Component · SelectionMode::Face\ parent · face · face highlight](illustrations/17-10.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
+Selection keeps original edge, face and control IDs under their parent object. Display mesh indices are not source IDs.
 <!-- file: 17 session_viewer/src/app/selection.rs type -->
+## Step 7 · src/engine/gpu/pick.rs
 
-- The picker renders into the pick window plus a three-texel `PICK_HALO`, never the canvas.
-- `view_for` falls back to the whole canvas for a full-frame capture.
-
-![A pick renders a 19 x 19 attachment: a 13 x 13 readback window inside a three-texel halo, with origin and frame carrying the canvas into it.](illustrations/pick-window.svg)
-
-![Diagram: Window about the cursor · PickView · IdTargets · view-sized · readback](illustrations/17-11.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+Picking reads an object and subobject ID asynchronously. Reject replies from a superseded request.
 <!-- file: 17 session_viewer/src/engine/gpu/pick.rs type -->
+## Step 8 · src/app/input.rs
 
-- Input tracks Shift; Ctrl+Shift requests a component pick.
-
-<span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
-
+Input routes gestures and keyboard actions to State. A moved pointer is a drag, not a selection click.
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=2,3,8,9,10,11 -->
+## Step 9 · src/state.rs
 
-- State maps the answer back through `Faces::source`, selects the parent, then narrows the highlight to the face.
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
+State coordinates input, selection and frame requests. Cancel stale asynchronous results when the scene or camera changes.
 <!-- file: 17 session_viewer/src/state.rs type hunks=6,7,10,11,14,15,16 -->
+## Step 10 · src/engine/text.rs
 
-## Part B · Authored text is an object
-
-### Step 6 · A text label can own a row
-
-![Where this step sits in the viewer: Network, Scene + walk, with 10 of 12 zones built so far.](illustrations/locator-b5139cbde5.svg){ .locator data-strip="illustrations/strip-309a33f10a.svg" }
-
-- `TextObject { row, selected }` marks a label as a scene object; `None` marks a derived annotation such as the selected-object name.
-- `ink_color` is black while the object is selected, the authored color otherwise.
-- Both text renderers read it, so the authored color is never touched.
-
-![Diagram: TextLabel · TextObject\ row · selected · derived annotation · ink_color: black · manifest camera_facing](illustrations/17-12.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
+Text layout retains shaped glyph positions for rendering. Use the same font bytes and size when comparing with browser text.
 <!-- file: 17 session_viewer/src/engine/text.rs type -->
+## Step 11 · src/app/manifest.rs
 
-- Manifest text may face the camera instead of lying in a fixed plane.
-
-<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
-
+The manifest describes scene files and their placements. Report malformed entries before starting geometry downloads.
 <!-- file: 17 session_viewer/src/app/manifest.rs type -->
+## Step 12 · src/app/scene_text.rs
 
-### Step 7 · Scene registers text rows
-
-![Where this step sits in the viewer: Scene + walk, with 10 of 12 zones built so far.](illustrations/locator-758baddc7e.svg){ .locator data-strip="illustrations/strip-d213357acb.svg" }
-
-- A key (`manifest-text/{index}`, `document-title/{doc}`) finds its previous row on reload, so hidden state survives replacement.
-- The row is an ordinary `ObjectRow`; hide, select and pick treat it like geometry.
-
-![Diagram: manifest text · document title · SceneText row · hide · select · pick · same row, hidden kept](illustrations/17-13.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
+Scene text assigns labels their own source rows. Hiding and selection must use those rows rather than derived names.
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-12 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=13-66 -->
-
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=67-85 -->
-
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=86-146 -->
+## Step 13 · src/app/scene.rs
 
-- Resolving text by row, and building the visible submission with the current selection flags.
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
+The scene owns source documents and maps their identities to GPU rows. Rebuild that mapping whenever rows are replaced.
 <!-- file: 17 session_viewer/src/app/scene.rs type -->
+## Step 14 · src/state/text.rs
 
-- `Scene` declares the text file as a sibling module: text rows and geometry rows share one numbering.
-
-### Step 8 · State's companions: text presentation and streamed queries
-
-![Where this step sits in the viewer: State, GPU core, with 10 of 12 zones built so far.](illustrations/locator-b5827c6692.svg){ .locator data-strip="illustrations/strip-cebe50c79c.svg" }
-
-- `update_label` submits the visible source texts plus the one derived name, which has no row and cannot steal its parent's click.
-
-![Diagram: visible_texts() · update_label · derived nameplate · TextLane labels · include_text_bounds · fit · selection name](illustrations/17-14.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
+State updates annotations when selection changes. Clear stale labels when their source object disappears.
 <!-- file: 17 session_viewer/src/state/text.rs type lines=1-35 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
 <!-- file: 17 session_viewer/src/state/text.rs type lines=36-59 -->
-
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
 <!-- file: 17 session_viewer/src/state/text.rs type lines=60-134 -->
-
-- Fitting includes authored text: a label's shaped extent in its own fixed frame joins the scene's bounds, or `F` would cut the text off.
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
 <!-- file: 17 session_viewer/src/state/text.rs type lines=135-162 -->
+## Step 15 · src/state/cloud_query.rs
 
-- `State`'s second companion is the streamed F10 query: this file groups its page, answer and resolve workflow.
-
-![Diagram: state.rs · state/cloud_query.rs\ page · answer · resolve · state/text.rs](illustrations/17-15.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
+State coordinates asynchronous source-point queries. A camera change invalidates any pending hit.
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=1-36 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=37-101 -->
-
-- The page loop, one page per frame: fetch, test, accumulate, and resolve the winner only once every eligible page has answered.
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=102-165 -->
-
-- Each batch is stamped with the camera, scene and parent it was asked against; an older generation's callback is dropped rather than answered.
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=166-220 -->
+## Step 16 · src/state.rs
 
-- `state.rs` declares both modules and keeps only ownership; hide and show refresh labels.
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
+State coordinates input, selection and frame requests. Cancel stale asynchronous results when the scene or camera changes.
 <!-- file: 17 session_viewer/src/state.rs type hunks=1,2,3,4,5,8,9,17,18 -->
+## Step 17 · src/engine/gpu/objects.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
-
+The object table stores GPU rows separately from source identity. Rebase translations before converting to f32 so distant objects stay stable.
 <!-- file: 17 session_viewer/src/engine/gpu/objects.rs type -->
+## Step 18 · src/engine/gpu/text_plate.rs
 
-- The source-face highlight itself belongs to `faces.rs`.
-
-### Step 9 · Plates and planes draw IDs
-
-![Where this step sits in the viewer: Shell, Lanes, Shaders, with 10 of 12 zones built so far.](illustrations/locator-ce82c85f1e.svg){ .locator data-strip="illustrations/strip-cce321161a.svg" }
-
-- Camera-facing text: `Plates` gains a depth per rectangle, an object row and an ID pipeline.
-- Physical plates draw before glyphs, overlays after.
-- Every plate vertex carries `object` and a selection flag; the plate's signed distance defines coverage, the yellow backing and the pick footprint.
-- A selected plate fills the whole rounded backing yellow.
-- Every backing reserves a full cap at each end, so rounding never intersects the shaped line.
-- `vs_id` maps the same clip-space vertices through the pick pass's window transform, so the ID footprint lands in the window-sized attachment.
-
-![Diagram: Plates\ depth · object · selected · fs_main coverage · yellow · fs_id · object row · text_plane.rs · pick transform](illustrations/17-16.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+Text plates draw a backing around shaped labels. Include glyph overhang when measuring the padding.
 <!-- file: 17 session_viewer/src/engine/gpu/text_plate.rs type -->
+## Step 19 · src/shaders/text_plate.wgsl
 
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
+Text plates draw rounded backing shapes behind labels. Keep their screen-space dimensions consistent with the glyph scale.
 <!-- file: 17 session_viewer/src/shaders/text_plate.wgsl type -->
+## Step 20 · src/engine/gpu/text_plane.rs
 
-- Fixed-plane text: the same three attributes and ID pipeline; the padding matches the selection-name plate.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+Plane text projects labels through their scene placement. Its depth must participate in ordinary scene occlusion.
 <!-- file: 17 session_viewer/src/engine/gpu/text_plane.rs type -->
+## Step 21 · src/shaders/text_plane.wgsl
 
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
+Plane labels project shaped glyphs onto their scene plane. Preserve projected depth so solids can hide the label.
 <!-- file: 17 session_viewer/src/shaders/text_plane.wgsl type -->
+## Step 22 · src/engine/gpu/text.rs
 
-- The text lane exposes `draw_ids`, and `text_rectangle` serves nameplates and source labels alike.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+The GPU text owner coordinates glyphs and label backgrounds. Apply the framebuffer scale once so glyphs remain sharp.
 <!-- file: 17 session_viewer/src/engine/gpu/text.rs type hunks=1-6 -->
-
-- Remaining label literals in this file gain the new field:
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/text.rs type hunks=7-18 -->
+## Step 23 · src/app/inspection.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
-
+Inspection reports retained resources and source information. Count shared documents once instead of once per placement.
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=2-2 -->
+## Step 24 · src/engine/gpu/surface_outline.rs
 
-- Each reported label gains its object row, world height and resolved ink colour, so the snapshot says which text is selected, not just what text exists.
-
-## Part C · One black silhouette
-
-### Step 10 · Two masks, one compositor
-
-![Where this step sits in the viewer: Lanes, Shaders, with 10 of 12 zones built so far.](illustrations/locator-75a1806619.svg){ .locator data-strip="illustrations/strip-4852beda59.svg" }
-
-- Ordinary outlines describe the union of all visible solids; touching or overlapping objects get no inner seam.
-- The selected mask is thicker; the compositor takes `max(ordinary, selected)`, so the overlap never blends twice.
-- A selected interior suppresses the ordinary contour.
-- Each mask carries a coarse copy, the maximum of every `POOL` × `POOL` block.
-- The compositor reads it first and skips the dilation loop wherever no covered texel is in reach — most of the frame.
-
-![The selected solid's yellow strokes are below the black silhouette; standalone selected curves are above it.](illustrations/frame.svg)
-
-![Ordinary and selected ink each rasterize into an R8 coverage mask; the compositor takes the larger of the two, and a pooled copy of block maxima lets a fragment with no ink near it return zero without entering the search loop.](illustrations/masks.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+Surface masks add outlines around visible coverage. Reuse masks only while camera, geometry and selection are unchanged.
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=1-27 -->
-
-Group 0 is the ordinary mask, group 1 the selected; one layout serves both, and the pool layout holds one mask for the reduction:
-
-| Group · binding | Rust | WGSL |
-|---|---|---|
-| 0 · 0 | resolved `R8Unorm` coverage | `mask: texture_2d<f32>` |
-| 0 · 1 | `uniform` (radius, is_selected) | `radius: vec4<f32>` |
-| 0 · 2 | `coarse`: block maxima of the mask | `coarse: texture_2d<f32>` |
-| 1 · 0 / 1 / 2 | the selected outline's mask, uniform and coarse copy | `selected_mask`, `selected_radius`, `selected_coarse` |
-| pool · 0 | the resolved mask being reduced | `mask` in `fs_pool` |
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=28-115 -->
-
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=116-140 -->
-
-- `prepare` allocates coverage only while something is outlined.
-- The coarse texture is `size / POOL` in each direction, bound beside the resolved mask.
-- Lesson 18 settles on one radius for ordinary and selected solids.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=141-223 -->
-
-- The radius is the only per-frame write: CSS pixels scaled to physical and clamped, so the ring keeps its apparent weight at any device scale.
-- The textures above are touched only when the size changes.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=224-248 -->
-
-- The mask pass tests the frame's immutable depth, so hidden surfaces cannot contribute coverage.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=249-285 -->
-
-- `encode_pool` runs after the mask pass: one full-screen triangle over the coarse texture, no depth, `fs_pool` as its fragment entry.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=286-312 -->
-
-- `draw_combined` composites both silhouettes once; `allocated_bytes` counts the coarse texture with the mask.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=313-341 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=342-373 -->
-
-Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, because silhouettes start off:
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+Download this part from its link to the path shown.
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=374-637 -->
+## Step 25 · src/shaders/surface_outline.wgsl
 
-- The shader dilates coverage with a one-pixel smooth edge and returns black at that alpha.
-- `near_any_coverage` returns zero without entering the loop when the pixel's coarse block and its eight neighbours are all empty.
-
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
+The outline shader expands visible coverage into a narrow border. Skip empty coarse blocks before scanning the neighboring pixels.
 <!-- file: 17 session_viewer/src/shaders/surface_outline.wgsl type -->
+## Step 26 · src/engine/gpu/arena.rs
 
-### Step 11 · The arena draws the solid mask
-
-![Where this step sits in the viewer: Shell, Input, GPU core, Lanes, with 10 of 12 zones built so far.](illustrations/locator-3f08764a0a.svg){ .locator data-strip="illustrations/strip-e43c8b5fc2.svg" }
-
-![Diagram: ArenaLane · solid coverage mask · O key · ?outlines=1](illustrations/17-17.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+The arena holds mesh vertices and indices across objects. Add the vertex base to local indices before appending a mesh.
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=3,9,12 -->
+## Step 27 · src/engine/gpu/view.rs
 
-- Silhouettes start **off**: two coverage masks and a compositor cost a full-screen pass per frame, slow on integrated GPUs.
-- `O` turns them on; `?outlines=1` / `VIEWER_OUTLINES=1` starts with them on.
-- The default pen is one CSS pixel; `?thickness=` / `VIEWER_THICKNESS` selects a heavier weight.
-- The headlight starts **off** (`D`, `?lit=1` / `VIEWER_LIT=1` turn it on), and so do back faces (`?backface=1` paints them red).
-- A CAD drawing reads better flat, and a wrong normal shows more clearly when shading is a switch rather than the default.
-- `device_pixel_ratio` is the capped ratio the canvas and camera use; `?dpr=` lowers it to trade crispness for memory, never above the browser's and never below 0.5.
-
-<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
-
+View settings control display features without changing source geometry. Convert device pixel ratio once at the framebuffer boundary.
 <!-- file: 17 session_viewer/src/engine/gpu/view.rs type -->
+## Step 28 · src/app/input.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
-
+Input routes gestures and keyboard actions to State. A moved pointer is a drag, not a selection click.
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=4-4 -->
+## Step 29 · src/app/inspection.rs
 
-- The module comment at the top of this file is the viewer's nearest thing to a user manual.
-
-<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
-
+Inspection reports retained resources and source information. Count shared documents once instead of once per placement.
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=1-1 -->
+## Step 30 · src/app/walk/curves.rs
 
-- `?inspect=1` is how every checkpoint in this course is observed without a screenshot.
-
-## Part D · Subdivisions share one join
-
-### Step 12 · Producers mark chains
-
-![Where this step sits in the viewer: Scene + walk, with 10 of 12 zones built so far.](illustrations/locator-758baddc7e.svg){ .locator data-strip="illustrations/strip-d213357acb.svg" }
-
-- A chain is one authored curve or one BRep edge; independent mesh wires never join just because endpoints coincide.
-
-![Diagram: one curve · one BRep edge · ribbon_chains · pipe_chains\ Range<u32> · separate mesh wires · own end caps](illustrations/17-18.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
+Curve sampling builds connected strokes from source geometry. Keep segment endpoints shared so joints remain continuous.
 <!-- file: 17 session_viewer/src/app/walk/curves.rs type -->
+## Step 31 · src/app/walk/brep_edges.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
-
+Boundary chains share samples between adjacent faces. Preserve oriented source edge IDs through the upload.
 <!-- file: 17 session_viewer/src/app/walk/brep_edges.rs type -->
+## Step 32 · src/engine/gpu/segments.rs
 
-- That range tells the join code which segments are neighbours and which merely touch.
-
-### Step 13 · The GPU row gains neighbours
-
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 12 zones built so far.](illustrations/locator-973e5c8e7a.svg){ .locator data-strip="illustrations/strip-42d6eaf05e.svg" }
-
-- `StrokeSegment` wraps the source row with `previous` and `next` GPU indices.
-- `joined_rows` links consecutive chain members whose endpoints, instance, color and radius agree, and wraps a closed chain.
-
-![Diagram: segment rows · StrokeSegment\ previous · next · draw_unselected · draw_selected](illustrations/17-19.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+The segment buffers store strokes and the object rows they belong to. Preserve source IDs when expanding or joining segments.
 <!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=1-5 -->
-
-- Two more pipelines split ordinary from selected strokes; `draw_selected` is skipped when nothing is selected.
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=6-13 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
 <!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=14-16 -->
+## Step 33 · src/engine/gpu/instance.rs
 
-- The layout test mirrors `StrokeSegment` and pins `origin`, `frame` and `opacity` in the single `LineUniform` of `scene.wgsl`, the contract every lane is compiled with: 80 bytes.
-
-<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
-
+Each object row carries placement, color and selection flags for later interaction. Rust field offsets must match the shader byte for byte.
 <!-- file: 17 session_viewer/src/engine/gpu/instance.rs type -->
+## Step 34 · src/shaders/ribbon.wgsl
 
-### Step 14 · One join plane per shared vertex
-
-![Where this step sits in the viewer: Shaders, with 10 of 12 zones built so far.](illustrations/locator-b2d0a9b9d0.svg){ .locator data-strip="illustrations/strip-653969caac.svg" }
-
-![Two independent ribbons overlap on the inner side of a bend and open a wedge on the outer side; cutting both at one join plane through the shared vertex gives uniform coverage.](illustrations/joins.svg)
-
-- Both segments at a shared vertex call `join_plane(before, after)` with the same ordered pair, so both compute the same bisector plane.
-- The start side keeps pixels on its side of the plane, the end side excludes them: exactly one segment owns each pixel of the shared cap.
-- `stroke_vertex(vid, layer)` culls the other layer's strokes, so the selected pass draws only selected ink.
-
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
+The stroke shader expands segments into screen-space ribbons. Clip the near plane before dividing by w.
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-3 -->
-
-- A selected stroke's half-width is floored at `line.thickness`, so its yellow core is at least twice the ordinary pen; a CAD boundary sample takes 1.0 in place of the density taper, so refining a surface never thins the pen along its edges.
-
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=4-5 -->
-
-- Three vertex entries share `stroke_vertex`; `coverage` applies both join planes before the capsule distance.
-
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=6-7 -->
-
-### Step 14b · Install the supplied tooling
-
-The reference page and native fixtures use the text-object field from Part B, so they are copied now:
-
-![Diagram: supplied fixtures · reference page · workspace](illustrations/17-20.svg)
-
+Download each file to the path shown.
 <!-- supplied: 17 -->
+## Step 35 · src/shaders/splat.wgsl
 
-## Part E · Every pixel the same size
-
-Three rules keep every pixel the same: the pick pass draws a window, antialiasing stops at device scale 2, and a lost device reloads once at the smallest settings.
-
-![Colour, depth and metadata cost 12 bytes per physical pixel at one sample and 48 at four; the canvas multiplies that, and three levers hold it down.](illustrations/attachment-cost.svg)
-
-### Step 15 · The pick window's uniforms
-
-![Where this step sits in the viewer: Shaders, with 10 of 12 zones built so far.](illustrations/locator-b2d0a9b9d0.svg){ .locator data-strip="illustrations/strip-653969caac.svg" }
-
-- The pick pass sees the scene through the sub-frustum of the attachment it draws — the window about the cursor plus its halo: `LineUniform` and `CloudUniform` carry that attachment's `origin` and the canvas `frame`.
-- In a colour frame `origin` is zero and `frame` is the canvas, so the same arithmetic serves both.
-- Splats project with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment.
-![Diagram: frame uniforms · pick uniforms\ mvp' · line' · cloud' · id_pass · window-sized attachment · splat.wgsl · frame − origin](illustrations/17-21.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
+Point projection writes the nearest visible cloud samples. Keep source IDs attached to the winning samples.
 <!-- file: 17 session_viewer/src/shaders/splat.wgsl type -->
+## Step 36 · src/shaders/splat_resolve.wgsl
 
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
+The resolve writes point color and depth into the scene. Background samples must leave geometry untouched.
 <!-- file: 17 session_viewer/src/shaders/splat_resolve.wgsl type -->
+## Step 37 · src/app/input.rs
 
-- The resolve's `CloudUniform` gains `origin` so its layout still matches the block the point pass writes.
-- The offset is applied in `splat.wgsl`, where the footprint is computed.
-
-### Step 16 · Device scale and a lost device
-
-![Where this step sits in the viewer: Network, Shell, Input, State, GPU core, with 10 of 12 zones built so far.](illustrations/locator-b4b56ad3c5.svg){ .locator data-strip="illustrations/strip-d6fe4e4656.svg" }
-
-![The same strip of glass measured three ways: CSS pixels, device pixels at ratio 2, and the surface pixels a capped ?dpr= actually renders. winit reports the middle one, so every arriving position is multiplied by surface_per_physical.](illustrations/device-scale.svg)
-
-- Input and canvas sizing share the capped `device_pixel_ratio`, so a pointer position and a rendered pixel agree at any `?dpr=`.
-- `samples_for` returns 1x from two physical pixels per CSS pixel: density already halves the stair-steps, at a quarter of the attachment memory.
-- `forced` still wins.
-- On a lost device — video memory exhausted — `recover_from_device_loss` reloads the page once at device scale 1 without antialiasing, keeping every other query.
-- `recovered_notice` keeps the status line saying so on the reloaded page.
-
-![Diagram: browser ratio · device_pixel_ratio · canvas size · pointer and touch input · samples_for: 1x · device lost…](illustrations/17-22.svg)
-
-- winit reports cursor and touch positions at the browser's ratio even when `?dpr=` renders the canvas below it.
-- `surface_per_physical` is the cap over that ratio, 1 without a cap.
-- Every arriving pointer and touch position is multiplied by it, so picks, zooms and drags read against the surface actually drawn.
-- The input layer sets `State::interacting` while a button or finger drags.
-- Drag frames come back to back, so their spacing is the cost of a frame.
-- Thirty in a row slower than 40 ms tell `reduce_for_slow_frames` to render at device scale 1 without antialiasing from then on — the attachments a device loss reloads into, without waiting for the loss. The status line says so.
-
-![Diagram: winit position · browser ratio · surface pixels · pick · zoom · drag · 30 drag frames > 40 ms · reduce_for_slow_frames\ scale 1 · MSAA off](illustrations/17-23.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
-
+Input routes gestures and keyboard actions to State. A moved pointer is a drag, not a selection click.
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=1,5,6,7,12 -->
+## Step 38 · src/lib.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
-
+The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
 <!-- file: 17 session_viewer/src/lib.rs type -->
+## Step 39 · src/engine/gpu/targets.rs
 
-- One hunk, in `desired_canvas_size`: the `?dpr=` cap from step 11.
-
-<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
-
+Targets own the depth and color attachments for a frame. Reversed depth clears to zero and compares nearer values as greater.
 <!-- file: 17 session_viewer/src/engine/gpu/targets.rs type -->
+## Step 40 · src/app/route.rs
 
-- The sample-count policy only; the coverage masks live in `surface_outline.rs`.
-
-<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
-
+Route helpers read viewer options from the page URL. Missing options must retain usable defaults.
 <!-- file: 17 session_viewer/src/app/route.rs type -->
+## Step 41 · src/app/feedback.rs
 
-- A lost device is not an error to report but a smaller frame to ask for.
-
-<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
-
+Feedback publishes status and panel information from the same application state. Return keyboard focus after dismissing an input panel.
 <!-- file: 17 session_viewer/src/app/feedback.rs type -->
+## Step 42 · src/state.rs
 
-- A device-loss failure returns before the error panel; every other failure still reports.
-
-<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
-
+State coordinates input, selection and frame requests. Cancel stale asynchronous results when the scene or camera changes.
 <!-- file: 17 session_viewer/src/state.rs type hunks=12-13 -->
+## Step 43 · src/engine/gpu/selection_outline.rs
 
-
-## Step 17 · Wire the frame
-
-![Where this step sits in the viewer: GPU core, Lanes, Shaders, with 10 of 12 zones built so far.](illustrations/locator-5677960414.svg){ .locator data-strip="illustrations/strip-83aeec37dc.svg" }
-
-- The old `selection_outline` lane goes away; two `SurfaceOutline` instances take its place.
-- `samples_for` receives the pixel scale.
-- Frame order: face highlight, print geometry, unselected strokes, selected **solid** strokes, the combined black silhouette, then selected **standalone** curves over coincident mesh ink.
-- Each mask pass is followed by its pool pass.
-- `id_pass` computes the window's view, writes the pick uniforms, draws the whole attachment (halo included) and scissors the ink and source passes to the window inside it.
-
-![Which id lanes each of the five pick modes draws: every mode draws splat ids, and face ids except Component which draws component ids instead; each narrows the rest to the lanes it is about, and authored text is pickable in every mode but a source query.](illustrations/pick-modes.svg)
-- Authored text draws its IDs in every pick mode; a source query is the exception — it returns before the ink pass that would have drawn them.
-
-![Diagram: selection_outline lane · two SurfaceOutline · render.rs order\ solid strokes · silhouette · curves · id_pass · PickView · pick uniforms · scissor inside](illustrations/17-24.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
-
+Remove this file; its replacement is now part of the rendering modules.
 <!-- file: 17 session_viewer/src/engine/gpu/selection_outline.rs -->
+## Step 44 · src/shaders/selection_outline.wgsl
 
-<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
-
+Remove this file; its replacement is now part of the rendering modules.
 <!-- file: 17 session_viewer/src/shaders/selection_outline.wgsl -->
+## Step 45 · src/engine/gpu/mod.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
-
+The GPU owner connects buffers, pipelines and frame resources. Create resources before building the bind groups that refer to them.
 <!-- file: 17 session_viewer/src/engine/gpu/mod.rs type -->
+## Step 46 · src/engine/gpu/render.rs
 
-- The frame walks `Gpu`'s lane list, so a new lane announces itself here.
-
-<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
-
+The frame encoder orders face, ink, picking and overlay passes. Later passes must load the attachments written by earlier ones.
 <!-- file: 17 session_viewer/src/engine/gpu/render.rs type -->
-
-- This is the file to read when something draws on top of something it should not.
-
 ## Check
 
 <!-- checkpoint: 17 -->
 
-Expected:
-
-- Ctrl+Shift-click inside a mesh, BRep or surface: that source face turns yellow; the status reads `Face N selected`.
-- Ctrl+Shift-click on an edge: the edge wins over the face.
-- Click a solid, press **O** and orbit: one continuous black border of uniform width; press **O** again to hide it.
-- Click a manifest text or a document title: it selects like geometry, black letters on a yellow rounded backing.
-- **H** hides it, **S** shows it; **T** still toggles only the derived selected-object name.
-- A dense polyline and the same curve with few segments look the same at their joints: no darker dots, no gaps.
-- Source edges and lines draw with a one-pixel pen; `?thickness=1.5` selects a heavier weight.
+Expected: Source faces and scene text become selectable, and optional outlines surround visible solids; status: **Face N selected**.
 
 ![Checkpoint 17. Left: Ctrl + Shift + click inside the mesh selects one source face, the rest of the object stays grey. Middle: the selected BRep with its silhouette after pressing O, one black border of uniform width around the yellow fill. Right: without the silhouette only the yellow strokes remain.](screenshots/17-face-silhouette.png)
 
-![The document title is a scene row: a click selects it with black letters on a yellow backing and its derived name; H hides it like any geometry.](screenshots/17-text.png)
+If it fails:
+
+- A face click selects an edge: edges intentionally win where both are hit.
+- Text stays visible after hiding: its row is missing from the scene visibility path.
+- Joints show dark dots: connected segments overlap instead of sharing a join partition.
 
 ## What changed
 
 <!-- tree: 17 session_viewer/src -->
 
-- Data flow: `FaceSource` rows → `Faces::ids` → `vs_face` → `FACE_TAG` sub-ID → `Faces::source` → `SelectionMode::Face`.
-- Data flow: manifest `TextItem` → `SceneText` row → `visible_texts` → plate/plane vertices with `object` → `fs_id`; a selected object draws `ink_color` black on a yellow backing.
-- Data flow: `SegRows.*_chains` → `StrokeSegment.previous/next` → `join_plane` → partitioned cap coverage.
-- GPU resources: face id buffer + selected-face uniform; two `R8Unorm` coverage masks, each with a `POOL`-reduced coarse copy the compositor consults first; strokes are 48-byte rows.
-- `State` keeps its ownership; `state/cloud_query.rs` and `state/text.rs` are its companions.
-- Memory: the pick pass renders a window-sized attachment, 4x antialiasing stops at device scale 2, `?dpr=` caps the device scale, and a lost device reloads once at reduced settings.
-
-**Production equivalent:** every file in this lesson sits at the same path in production: `src/engine/gpu/faces.rs`, `src/engine/gpu/segments.rs`, `src/engine/gpu/surface_outline.rs`, `src/app/scene_text.rs`, `src/state/text.rs`, `src/state/cloud_query.rs`.
-
-## Try
-
-- Ctrl + Shift + click the surface, then the BRep's top: `Face N selected` names a source face in each; on the BRep it is a face of the solid, not a triangle.
-- Ctrl + Shift + click exactly on a mesh edge: the edge wins — a nearby eligible edge beats the face behind it.
-- Select the BRep, press O and orbit: the black border is the union of the visible solids. Press O again and the strokes' yellow fringe defines the outline instead — not uniform where strokes meet.
-- Load a manifest with two `texts` entries and hide one with H: the other stays, and S brings the hidden one back.
-- Open `?thickness=6` and look at a corner of the polyline: no darker dot and no notch at the shared vertex, at any pen width.
-- On a high-density screen open `?dpr=1`: the canvas renders a quarter of the pixels, clicks still land where the pointer is, and `data-viewer-inspection` reports the smaller `canvas` and `gpu_texture_estimate_bytes`. The perf line carries the frame counter, gap, encode time and wasm capacity — nothing about attachments.
-
-## Questions and answers
-
-
-**Face picking pulls the arena's existing vertices by index rather than building a per-face mesh. What would the alternative cost?**
-
-*How to work it out.* To pick a face you need the face's triangles. Two ways to have them: store a second copy grouped by face, or index the copy you already uploaded. Price both — a second copy doubles mesh memory and can drift out of sync; one draw call per face is thousands of draws.
-
-*The answer.* Vertex pulling: the face lane adds a table of face addresses and a bind group, and the triangles stay exactly the ones drawn. `transform_vertex`, shared between `vs_main` and `vs_face`, makes the two paths provably identical rather than merely similar.
-
-**Why does the compositor take `max(ordinary, selected)` rather than drawing one mask over the other?**
-
-*How to work it out.* Consider a selected solid touching an unselected one. Both masks cover the contact region. Draw one over the other with alpha and the overlap is darkened twice; the seam appears. Ask for an operator idempotent where the two agree.
-
-*The answer.* `max` — the thicker coverage wins, overlap included, and a selected interior suppresses the ordinary contour inside it. Lesson 18 carries the same instinct into the masks themselves, where strokes arrive under a `Max` blend so a feathered zero cannot dent a face already written.
-
-**Explain how the coarse pooled texture makes the compositor cheaper *without changing a single output pixel*.**
-
-*How to work it out.* The dilation reads every texel within the radius — up to 27 × 27 per pixel. Ask what could let you skip the loop: knowing in advance there is no coverage in reach. A maximum over a block answers that for the whole block.
-
-*The answer.* The pool holds the maximum of each `POOL` × `POOL` block. If the block under the pixel and its eight neighbours are all empty, no covered texel can be within the radius, so the answer is zero without looping. The CPU clamps the radius to 12 so those nine blocks always contain the whole kernel — making the shortcut exact, not approximate.
-
-**Two ribbons meeting at a bend overlap inside and leave a wedge outside. What makes the join fix work, and what would break it?**
-
-*How to work it out.* At a shared vertex two quads overlap on one side and leave a gap on the other. You want each pixel of the shared region owned by exactly one of them, so you need a dividing surface both agree on — the bisector of the two directions — and opposite sides of it.
-
-*The answer.* Both segments call `join_plane` with the *same ordered pair*, so both compute the same plane; the start side keeps pixels on its side and the end side excludes them. Order the inputs differently at the two ends and the planes differ, so a pixel is owned by neither (a seam) or by both (a double blend).
-
-**The pick attachment is the window *plus a three-texel halo*. Why the halo?**
-
-*How to work it out.* Ask what the ink visibility test reads: the fragment's texel and a neighbour, to fit a plane. Now put a stroke at the very edge of the window — its neighbour texel lies outside the attachment and reads as cleared, which the test treats as "nothing there".
-
-*The answer.* Without the halo, strokes at the window's edge judge themselves against empty depth and appear or vanish wrongly, so a pick near an occluder disagrees with the picture. Three texels is the neighbourhood the fit actually reaches.
-
-**What you should be able to do now**
-
-State the frame order and justify one adjacency. Correct order: face highlight, print geometry, unselected strokes, selected solid strokes, the combined black silhouette, then selected standalone curves. A selected *solid's* strokes go under the silhouette because they belong to a body with an outline, and drawing them over it would put yellow on the very contour defining the shape. A standalone selected *curve* has no body and no silhouette of its own, so underneath it the outline of whatever it crosses would cut it into pieces.
+Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 17](../lessons/17/index.md).
 
 ## Next
 

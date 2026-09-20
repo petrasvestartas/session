@@ -4,7 +4,7 @@ Learn this one picture and the rest of the course has an address.
 
 ![The whole viewer as one map: the top row is how documents come in, the bottom row is how a frame is drawn, and a pick answer travels back up.](illustrations/map.svg)
 
-Every step that touches a file opens with this map, one box filled pink: where the code on the page lives. (A step that explains rather than edits has no map.)
+From lesson 01 on, every step that touches a file opens with this map, one box filled pink: where the code on the page lives. Lesson 00 builds only the first box, so it shows no map.
 
 A compressed copy stays **pinned at the top of the page**, following you from step to step and from code block to code block.
 

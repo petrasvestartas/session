@@ -27,6 +27,19 @@ def read_json(path):
     return json.loads(path.read_text())
 
 
+def read_series():
+    """The frozen numbered course followed by the separately pinned current lessons."""
+    series = read_json(HERE / "series.json")
+    tail = HERE / "current-series.json"
+    if tail.is_file():
+        current = read_json(tail)
+        base = series["steps"][-1]
+        if current["base"] != base["id"] or current["base_files"] != base["files"]:
+            raise ValueError("current lessons no longer start at the recorded numbered checkpoint")
+        series["steps"].extend(current["steps"])
+    return series
+
+
 def safe_path(root, relative):
     """Reject manifest paths escaping the requested reconstruction workspace."""
     path = root / relative
@@ -73,6 +86,8 @@ def initialize(workspace):
         destination.mkdir()
         with tarfile.open(archive) as stream:
             stream.extractall(destination, filter="data")
+    # Keep git apply rooted here even when this workspace sits inside another checkout.
+    run(["git", "init", "--quiet"], workspace, dict(os.environ), workspace / "evidence/init.log")
 
 
 def apply_step(workspace, step, env, evidence):
@@ -81,9 +96,10 @@ def apply_step(workspace, step, env, evidence):
     if digest(patch) != step["patch_sha256"]:
         raise ValueError(f"patch checksum failed: {step['id']}")
     if patch.stat().st_size:
-        run(["git", "apply", "--check", str(patch)], workspace, env,
+        directory = ["--directory=" + step["directory"]] if step.get("directory") else []
+        run(["git", "apply", *directory, "--check", str(patch)], workspace, env,
             evidence / "patch-check.log")
-        run(["git", "apply", str(patch)], workspace, env, evidence / "patch-apply.log")
+        run(["git", "apply", *directory, str(patch)], workspace, env, evidence / "patch-apply.log")
     copy_assets(workspace, step)
     check_files(workspace, step["files"])
     (workspace / ".reconstruction-state.json").write_text(json.dumps({
@@ -120,7 +136,7 @@ def copy_supplied(workspace, steps):
             apply_step(scratch, step, env, Path(temporary) / "logs" / step["id"])
         for step in steps:
             copy_assets(workspace, step)
-            names = [name for name in step["files"] if course.supplied(name)]
+            names = [name for name in step["files"] if course.supplied(name) and not course.generated(name)]
             for name in names:
                 source = scratch / name
                 if not source.is_file():
@@ -173,7 +189,7 @@ def verify_step(workspace, step, env, evidence):
 
 
 def selected_steps(series, through):
-    """Select the ordered prefix ending at an existing numbered checkpoint."""
+    """Select the ordered prefix ending at an existing checkpoint ID."""
     available = [step["id"] for step in series["steps"]]
     target = through or available[-1]
     if target not in available:
@@ -186,7 +202,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path,
                         help="new reconstruction workspace; never the production checkout")
-    parser.add_argument("--through", help="last numbered checkpoint, for example 04")
+    parser.add_argument("--through", help="last checkpoint, for example 04 or current-3")
     parser.add_argument("--initialize-only", action="store_true",
                         help="extract pinned shared prerequisites before typing checkpoint 00")
     parser.add_argument("--copy-assets", action="store_true",
@@ -214,7 +230,7 @@ def main():
         initialize(workspace)
         print(f"Pinned prerequisites ready; type checkpoint 00 beneath {workspace}")
         return
-    series = read_json(HERE / "series.json")
+    series = read_series()
     steps = selected_steps(series, args.through)
     if args.from_step and args.from_step not in [step["id"] for step in steps]:
         parser.error("--from-step must name a checkpoint at or before --through")
@@ -248,15 +264,16 @@ def main():
         if workspace.exists() and any(workspace.iterdir()):
             raise ValueError(f"clean-verification output must be new: {workspace}")
         workspace.mkdir(parents=True, exist_ok=True)
+        first = next((i for i, step in enumerate(steps) if step["id"] == args.from_step), 0)
         for index, final in enumerate(steps):
-            if args.from_step and final["id"] < args.from_step:
+            if index < first:
                 continue
             checkpoint = workspace / final["id"]
             initialize(checkpoint)
             for step in steps[:index + 1]:
                 apply_step(checkpoint, step, env, checkpoint / "evidence" / step["id"])
             verify_step(checkpoint, final, env, checkpoint / "evidence" / final["id"])
-        tested = sum(not args.from_step or step["id"] >= args.from_step for step in steps)
+        tested = len(steps) - first
         print(f"PASS {tested} clean checkpoint reconstructions and browser checks")
         return
     start = 0

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 640" width="1180" height="640" font-family="Roboto, system-ui, sans-serif">
+<title>What one WebGPU frame needs: nine objects made once in create(), seven steps repeated in every render()</title>
+<rect x="0" y="0" width="1180" height="640" fill="#111114"/>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#c9ccd6"/></marker></defs>
+<text x="40" y="34" font-size="20" font-weight="bold" fill="#fa9ebc">Made once · create()</text>
+<rect x="40" y="56" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="54" y="77" font-size="15" font-weight="bold" fill="#f4f4f6">wgpu::Instance::new</text>
+<text x="54" y="97" font-size="13" fill="#c9ccd6">the entry to WebGPU</text>
+<path d="M300.0,106 L300.0,117" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="40" y="118" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="54" y="139" font-size="15" font-weight="bold" fill="#f4f4f6">create_surface(canvas)</text>
+<text x="54" y="159" font-size="13" fill="#c9ccd6">the canvas, as wgpu sees it</text>
+<path d="M300.0,168 L300.0,179" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="40" y="180" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="54" y="201" font-size="15" font-weight="bold" fill="#f4f4f6">request_adapter</text>
+<text x="54" y="221" font-size="13" fill="#c9ccd6">one GPU that can present to that surface</text>
+<path d="M300.0,230 L300.0,241" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="40" y="242" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="54" y="263" font-size="15" font-weight="bold" fill="#f4f4f6">request_device → device + queue</text>
+<text x="54" y="283" font-size="13" fill="#c9ccd6">your connection; commands go into the queue</text>
+<path d="M300.0,292 L300.0,303" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="40" y="304" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="54" y="325" font-size="15" font-weight="bold" fill="#f4f4f6">SurfaceConfiguration</text>
+<text x="54" y="345" font-size="13" fill="#c9ccd6">which textures the canvas hands out; size set on first frame</text>
+<path d="M300.0,354 L300.0,365" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="40" y="366" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="54" y="387" font-size="15" font-weight="bold" fill="#f4f4f6">uniform buffer</text>
+<text x="54" y="407" font-size="13" fill="#c9ccd6">64 bytes: the camera matrix, identity for now</text>
+<path d="M300.0,416 L300.0,427" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="40" y="428" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="54" y="449" font-size="15" font-weight="bold" fill="#f4f4f6">bind group layout → bind group</text>
+<text x="54" y="469" font-size="13" fill="#c9ccd6">group 0, binding 0 = that buffer</text>
+<path d="M300.0,478 L300.0,489" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="40" y="490" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="54" y="511" font-size="15" font-weight="bold" fill="#f4f4f6">shader module</text>
+<text x="54" y="531" font-size="13" fill="#c9ccd6">first.wgsl, baked in with include_str!</text>
+<path d="M300.0,540 L300.0,551" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="40" y="552" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="54" y="573" font-size="15" font-weight="bold" fill="#f4f4f6">render pipeline</text>
+<text x="54" y="593" font-size="13" fill="#c9ccd6">vs_main + fs_main, no vertex buffers, surface format out</text>
+<text x="620" y="34" font-size="20" font-weight="bold" fill="#f0a050">Every frame · render()</text>
+<rect x="620" y="56" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="634" y="77" font-size="15" font-weight="bold" fill="#f4f4f6">surface.get_current_texture()</text>
+<text x="634" y="97" font-size="13" fill="#c9ccd6">this frame's texture, fresh each time</text>
+<path d="M880.0,106 L880.0,117" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="620" y="118" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="634" y="139" font-size="15" font-weight="bold" fill="#f4f4f6">texture.create_view()</text>
+<text x="634" y="159" font-size="13" fill="#c9ccd6">the handle a pass draws into</text>
+<path d="M880.0,168 L880.0,179" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="620" y="180" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="634" y="201" font-size="15" font-weight="bold" fill="#f4f4f6">create_command_encoder()</text>
+<text x="634" y="221" font-size="13" fill="#c9ccd6">an empty command list</text>
+<path d="M880.0,230 L880.0,241" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="620" y="242" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="634" y="263" font-size="15" font-weight="bold" fill="#f4f4f6">begin_render_pass</text>
+<text x="634" y="283" font-size="13" fill="#c9ccd6">clear · set_pipeline · set_bind_group · draw(0..3)</text>
+<path d="M880.0,292 L880.0,303" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="620" y="304" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="634" y="325" font-size="15" font-weight="bold" fill="#f4f4f6">encoder.finish()</text>
+<text x="634" y="345" font-size="13" fill="#c9ccd6">the pass is closed by the inner braces first</text>
+<path d="M880.0,354 L880.0,365" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="620" y="366" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="634" y="387" font-size="15" font-weight="bold" fill="#f4f4f6">queue.submit()</text>
+<text x="634" y="407" font-size="13" fill="#c9ccd6">the GPU runs the list</text>
+<path d="M880.0,416 L880.0,427" stroke="#c9ccd6" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="620" y="428" width="520" height="50" rx="6" fill="#4a4a54"/>
+<text x="634" y="449" font-size="15" font-weight="bold" fill="#f4f4f6">output.present()</text>
+<text x="634" y="469" font-size="13" fill="#c9ccd6">the texture goes to the screen</text>
+<path d="M560,577.0 L600,577.0 L600,267.0 L618,267.0" fill="none" stroke="#fa9ebc" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#a)"/>
+<text x="568" y="569.0" font-size="13" fill="#fa9ebc">used by the pass</text>
+<text x="40" y="624" font-size="13" fill="#c9ccd6">Left: depends only on the GPU and your code, so it is built once. Right: depends on the texture the canvas hands out for this frame, so it repeats.</text>
+</svg>

@@ -6,12 +6,14 @@ Start with the [course](docs/README.md), which rebuilds the viewer from an empty
 
 ## Run
 
-The verified toolchain is Rust/Cargo 1.97.1 and Trunk 0.21.14; use the supplied Cargo lockfile.
+The verified toolchain is Rust/Cargo 1.97.1 and Trunk 0.21.14. Run these commands from the crate folder; Cargo writes its lockfile.
 
 ```sh
 rustup target add --toolchain 1.97.1 wasm32-unknown-unknown
-cargo +1.97.1 install trunk --version 0.21.14 --locked
-REGEN_PROTO=0 NO_COLOR=true trunk serve
+cargo +1.97.1 install trunk --version 0.21.14
+cargo generate-lockfile
+cargo check --lib
+trunk serve
 ```
 
 Open <http://localhost:8770/> in a browser exposing WebGPU. The local route loads `assets/view_local.yaml` and its local PB files. A named route such as `/view_mixed` resolves the corresponding public scene manifest. The current working session also exposes the viewer through <http://localhost:8771/view_mixed>.
@@ -40,6 +42,8 @@ Source text can face the camera or remain in a fixed world plane. BRep boundarie
 The white command area sits below the viewport, with full-width dividers and only its output window above the input. It accepts typing from the first page load and completes command names inline with the suggested suffix selected. Enter accepts the first matching command, then its default or arrow-selected option; Escape cancels. The completion list opens directly upward from the input and stays within the window. History and active drawing prompts wrap at narrow widths; long input scrolls inside its field. Matching commands appear first, followed by all remaining commands. Browse with Up/Down, the mouse wheel, or the scrollbar; Tab inserts a completion. Options appear only after accepting a command with Enter, Tab or Space. Type `Lay`, press Enter, then choose inline `On` or `Off`, or enter `Layers On` directly. `Arctic On` and `Arctic Off` (also `SSAO On` and `SSAO Off`) control the same lighting as G; Rotate offers clickable axis options. The documentation triangle sits in the bottom-right corner. Layers start hidden. Each panel has a collapse control, and the layer tree highlights selected objects. Selecting or locking a group applies to its descendants.
 
 `Object`, `Edge`, `Face`, and `Controls` choose selection tools. Geometry and editing commands include `Point`, `Line`, `Polyline`, `Curve`, `Move`, `Rotate`, `Scale`, `Split`, `Trim`, `Extend`, `Explode`, `Undo`, `Redo`, `Save`, and `Open`. Enter `Point`, `Line`, `Polyline`, or `Curve`, then click the canvas or type coordinates at each prompt. Two coordinates use the construction plane facing the camera; three are world coordinates. `@dx,dy,dz` is relative to the previous point. Enter finishes a polyline or curve; Escape discards a draft. Endpoints, vertices and midpoints snap within 12 screen pixels by default; `Snap Off` and `Snap On` control snapping, including during a draft. A blue marker names the active snap and a line previews the next span. Each completed draft is one undo step. Complete commands also work: `Line 0,0,0 100,0,0` and `Move 10,0,0`.
+
+Standalone NURBS surfaces retain a fixed UV display grid and four natural domain boundaries, excluding closed directions. Control and edge previews update those samples without detecting mesh edges or rebuilding connectivity. Source line widths are screen-space weights; sheet drawing widths retain their physical pen units. The viewport is white with Arctic disabled and very light grey with Arctic enabled. Default kernel colors remain very light grey.
 
 Arctic preserves authored colors under neutral hemisphere lighting, with soft contact occlusion and a virtual ground receiver. Contact radii follow each object's size, so a small cone or torus does not inherit a building's shadow radius. Surface normals come from the rendered triangle's depth slope, retaining thin plate contacts. The pass uses 64 local and 64 broad samples, two separable depth-aware smoothing passes, and sample-aware MSAA blending at silhouettes. It runs at display resolution up to a 1920-pixel longest side; larger viewports use depth-aware enlargement. The ground follows visible solids only; hidden geometry, sheets and point clouds cannot lower it. Switching On/Off preserves the camera, including while the scene finishes loading.
 

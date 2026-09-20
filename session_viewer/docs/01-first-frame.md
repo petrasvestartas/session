@@ -1,15 +1,16 @@
 # 01 · First WebGPU frame
 
-## You are building
+<!-- locator: off -->
 
-![Diagram: canvas · surface · adapter · device + queue · pipeline · encoder…](illustrations/01-01.svg)
+One triangle on a dark canvas. `src/lib.rs` is rewritten in five pieces, then one shader file and one page.
 
-![Created once versus recorded every frame: the CPU records a pass into an encoder, the GPU executes the submitted list, the surface texture is presented.](illustrations/first-frame.svg)
+![What one WebGPU frame needs: nine objects made once in create(), seven steps repeated in every render(). The pipeline and bind group made on the left are what the pass on the right uses.](illustrations/01-objects.svg)
 
-## Starting point
+Left column: made once, in `create`. Right column: repeated in every `render`. Everything on the right depends on the texture the canvas hands out for this frame, so it cannot be built earlier.
 
-- Checkpoint 00: Rust runs in the page, no GPU.
-- `src/lib.rs` is replaced in full, in five appended pieces, one idea each.
+Where this sits in the whole viewer: the top row of the map is how a document comes in, the bottom row is how a frame is drawn. The solid arrow is the rows uploaded to the GPU once; the dashed arrow is the pick answer, the one thing that comes back. This lesson lives in **Shell** (the struct and the frame) and **Shaders**.
+
+![The whole viewer as one map: documents come in along the top row, a frame is drawn along the bottom one.](illustrations/map.svg)
 
 <!-- step-status: start -->
 
@@ -17,102 +18,39 @@
 
 <!-- step-status: end -->
 
-## Step 1 · One struct owns the GPU
+## Step 1 · `src/lib.rs`, part 1: the struct
 
-![Where this step sits in the viewer: Shell, with 3 of 12 zones built so far.](illustrations/locator-e30c9f8e31.svg){ .locator data-strip="illustrations/strip-ec577443d7.svg" }
-
-- `Tutorial` is the shell: one struct owning the GPU objects, exported to the page.
-- `#[wasm_bindgen]` on the struct and its `impl` exports `create`, `render`, `drag`, `zoom` to JavaScript.
-- `drag` and `zoom` are exported with empty bodies, so the page wires all four methods at once.
-
-![Diagram: JavaScript page · struct Tutorial · surface · device\ queue · pipeline](illustrations/01-02.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
+Replace the whole file with this beginning. `Tutorial` owns every GPU object. `#[wasm_bindgen]` exports `create`, `render`, `drag` and `zoom` to the page; `drag` and `zoom` stay empty until lesson 02.
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=1-39 -->
 
-## Step 2 · Instance, surface, adapter, device
+## Step 2 · part 2: instance, surface, adapter, device
 
-![Where this step sits in the viewer: Shell, with 3 of 12 zones built so far.](illustrations/locator-e30c9f8e31.svg){ .locator data-strip="illustrations/strip-ec577443d7.svg" }
-
-- `Backends::BROWSER_WEBGPU`: only the browser's WebGPU, never WebGL.
-- The adapter must be `compatible_surface`, or the device may not present to this canvas.
-- `on_uncaptured_error` turns a shader validation failure into a visible panic instead of a silent black canvas.
-
-![The instance picks the backend, the surface is the canvas you present to, the adapter is one physical GPU chosen to be compatible with that surface, and the device is the handle every later resource comes from.](illustrations/gpu-objects.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
+Append at the end of the file. Four objects, each made from the previous one: the instance is the entry to WebGPU, the surface is the canvas, the adapter is one GPU that can present to that surface, the device is your connection to it and the queue is where commands go. `on_uncaptured_error` turns a shader error into a panic you can read instead of a black canvas.
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=40-62 -->
 
-## Step 3 · Surface configuration and the camera uniform
+## Step 3 · part 3: surface configuration and the camera uniform
 
-![Where this step sits in the viewer: Shell, with 3 of 12 zones built so far.](illustrations/locator-e30c9f8e31.svg){ .locator data-strip="illustrations/strip-ec577443d7.svg" }
-
-- `width: 1, height: 1` marks "not configured yet"; `render_frame` resizes on first use.
-- A **uniform** is one small buffer every vertex reads.
-- It holds identity here, so clip position equals the vertex position.
-
-```text
-[f32; 16]  ──bytemuck::cast_slice──▶  wgpu::Buffer (UNIFORM | COPY_DST)
-                                           │ bind group 0, binding 0
-                                           ▼
-                            @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>
-```
-
-![Diagram: SurfaceConfiguration · Surface · identity [f32; 16] · uniform buffer · BindGroup](illustrations/01-03.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
+Append. The configuration says which textures the canvas hands out; `width: 1` means not configured yet, and the first frame sets the real size. The uniform is one 64-byte buffer every vertex reads, an identity matrix for now. The layout says: group 0, binding 0 is a uniform buffer the vertex stage reads. The bind group puts this buffer in that slot.
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=63-102 -->
 
-## Step 4 · Shader module, pipeline layout, render pipeline
+## Step 4 · part 4: shader module and pipeline
 
-![Where this step sits in the viewer: Shell, with 3 of 12 zones built so far.](illustrations/locator-e30c9f8e31.svg){ .locator data-strip="illustrations/strip-ec577443d7.svg" }
-
-- `include_str!` bakes the WGSL in: a missing shader file is a compile error, not a runtime one.
-- `vs_main`/`fs_main` and the color target `format` are the contract with the shader and the surface.
-- `buffers: &[]`: this triangle is generated from `vertex_index`, so no vertex buffer is bound.
-
-![Diagram: first.wgsl · ShaderModule · BindGroupLayout · PipelineLayout · RenderPipeline](illustrations/01-04.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
+Append. `include_str!` bakes the shader text into the binary, so a missing file is a compile error. The pipeline is the frozen recipe for one kind of draw: these two shader functions, no vertex buffers, the surface format as output. Built and validated once.
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=103-148 -->
 
-## Step 5 · One frame
+## Step 5 · part 5: one frame
 
-![Where this step sits in the viewer: Shell, with 3 of 12 zones built so far.](illustrations/locator-e30c9f8e31.svg){ .locator data-strip="illustrations/strip-ec577443d7.svg" }
-
-- Resize once when the CSS size or device scale changed; configure the surface only then.
-- A render pass borrows the encoder; the inner braces end the borrow before `encoder.finish()`.
-- This pass has a color attachment only, no depth.
-
-![Diagram: get_current_texture · TextureView · CommandEncoder · clear · draw(0..3) · present](illustrations/01-05.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
+Append. Resize the canvas and reconfigure the surface only when the size changed. Then the right column of the diagram: this frame's texture, a view, an encoder, one pass that clears and draws three vertices, finish, submit, present. The pass sits in inner braces so its borrow of the encoder ends before `finish`.
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=149-213 -->
 
-## Step 6 · The shader
+## Step 6 · `src/shaders/first.wgsl`
 
-![Where this step sits in the viewer: Shaders, with 4 of 12 zones built so far.](illustrations/locator-8fe2567227.svg){ .locator data-strip="illustrations/strip-80eddaeb51.svg" }
-
-Rust and WGSL agree on three things:
-
-```text
-Rust                                             WGSL
-bind_group_layouts: [group 0 { binding 0 }]  ↔  @group(0) @binding(0) var<uniform> mvp
-entry_point: "vs_main" / "fs_main"           ↔  @vertex fn vs_main / @fragment fn fs_main
-targets: [surface format]                    ↔  @location(0) vec4<f32> return
-```
-
-- `@builtin(vertex_index)` is 0, 1, 2 for `draw(0..3, 0..1)`.
-- `@location(0) color` leaves the vertex stage and is interpolated into the fragment stage.
-
-![Diagram: vertex_index 0..3 · vs_main · mvp uniform · fs_main](illustrations/01-06.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-80eddaeb51.svg" data-zone="Shaders"></span>
+New file. `vs_main` runs three times, with `vertex_index` 0, 1 and 2, and returns a clip-space position and a colour. `fs_main` runs once per covered pixel and returns the colour, interpolated between the three corners. Three names must agree with the Rust: `@group(0) @binding(0)` with the bind group layout, `vs_main` and `fs_main` with the entry points, and the `@location(0)` output with the surface format. `cargo check` cannot see inside WGSL, so a mismatch shows up in the browser as a validation error.
 
 <!-- file: 01 session_viewer/src/shaders/first.wgsl type -->
 
@@ -120,15 +58,9 @@ targets: [surface format]                    ↔  @location(0) vec4<f32> return
 
 ![The shader is handed only an index and computes three positions in clip space, a square two units across with y up; the viewport transform turns that into pixels with y down, and that flip is why a first image is sometimes upside down.](illustrations/clip-space.svg)
 
-## Step 7 · The page drives the shell
+## Step 7 · `index.html`
 
-![Where this step sits in the viewer: Page, with 4 of 12 zones built so far.](illustrations/locator-1b2bcec602.svg){ .locator data-strip="illustrations/strip-e5e0f143fb.svg" }
-
-JavaScript owns the canvas and pointer events; it calls the four exported methods.
-
-![Diagram: pointer · wheel · resize · index.html script · Tutorial · #status](illustrations/01-07.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-e5e0f143fb.svg" data-zone="Page"></span>
+Replace the whole file. The page now has a canvas. Its script calls `Tutorial.create` once, then `render` after every resize and pointer event, and writes the returned size into the status line.
 
 <!-- file: 01 session_viewer/index.html copy -->
 
@@ -136,66 +68,25 @@ JavaScript owns the canvas and pointer events; it calls the four exported method
 
 <!-- checkpoint: 01 -->
 
-Expected:
-
-- A red/green/blue triangle on a dark canvas.
-- Status reads **Checkpoint 01 · 1 objects · W×H** where W×H is the physical framebuffer size.
-- Resize the window: the triangle stretches with it. The uniform holds identity, so the three positions are already clip space; nothing corrects for aspect ratio until the camera in 02.
+Expected: a red, green and blue triangle on a dark canvas, and a status line **Checkpoint 01 · 1 objects · W×H**. Resize the window: the triangle stretches with it, because nothing corrects for aspect ratio until the camera in lesson 02.
 
 ![Checkpoint 01: the first triangle, colors interpolated from the three vertices.](screenshots/01.png)
 
-Background but no triangle: compare the entry-point names, `draw(0..3, ..)` and the uniform binding. If initialization fails, read the adapter/device error in the status text before touching shaders.
+If it fails:
+
+- Dark canvas, no triangle: one of the three names in step 6 does not match the Rust, or `draw(0..3, 0..1)` was mistyped.
+- Status shows an error instead of the size: read it. It is the adapter or device request failing, and the browser has no WebGPU.
+- Canvas stays empty and the console shows *tutorial WebGPU error*: a validation error; the message names the descriptor field.
 
 ## What changed
 
 <!-- tree: 01 session_viewer/src -->
 
-- `Tutorial` owns surface, device, queue, one pipeline, one bind group.
-- Data flow: identity `[f32;16]` → uniform buffer → `mvp` in the vertex shader → clip position.
-
-**Production equivalent:** `src/engine/gpu/device.rs` (adapter and device), `src/engine/gpu/present.rs` (surface), `src/engine/gpu/render.rs` (the frame).
-
-## Try
-
-- Change the clear color in `render_frame` and watch the background follow.
-- Swap two entries of the `points` array in `first.wgsl`: the outline is unchanged and two corners trade colours, because `color` is indexed by the same `index` and nothing culls the reversed winding.
-- Change `draw(0..3, 0..1)` to `draw(0..2, 0..1)`: nothing is drawn, because two vertices make no triangle.
-
-## Questions and answers
-
-These four are the frame; the rest of the course assumes them.
-
-**Name every object between an empty page and a cleared canvas, in order.**
-
-*How to work it out.* Follow the dependencies: each object is made from one that already exists. No GPU without an entry point; none that can draw to your canvas without the canvas; no buffers without an open connection to it. Then separate what is made once from what one frame needs.
-
-*The answer.* Instance → surface (from the canvas) → adapter (requested with `compatible_surface`, or it may not present here) → device + queue → surface configuration. Then, per frame: `get_current_texture` → a texture view → a command encoder → a render pass with its attachments → `encoder.finish()` → `queue.submit` → `present`.
-
-**Which of those happen once, and which happen every frame?**
-
-*How to work it out.* Anything that depends only on the GPU and your own code cannot change between frames, so it can be built once. Anything that depends on *this* frame's surface texture — handed out fresh each time — cannot be.
-
-*The answer.* Once: instance, adapter, device, queue, shader module, pipeline layout, pipeline, bind group, buffers. Every frame: the surface texture, its view, the encoder, the pass, the submit. That split is the point of a pipeline — validation paid once so each frame is cheap. Reconfiguring the surface is neither; it happens only when the size changes.
-
-**Three things Rust and WGSL must agree on here. What are they?**
-
-*How to work it out.* Walk the pipeline descriptor field by field and ask where the shader says the same thing.
-
-*The answer.* The bind-group layout against `@group(0) @binding(0)`; the entry-point names `vs_main` / `fs_main`; the colour target format against the `@location(0)` return. Every validation error in this lesson is one of the three, because `cargo check` cannot see inside WGSL.
-
-**Why is `buffers: &[]` allowed when a triangle clearly has vertices?**
-
-*How to work it out.* Read `vs_main`: it never reads an input attribute, so nothing is fetched from memory and a vertex buffer would be a slot nobody reads.
-
-*The answer.* The shader computes the three positions from `@builtin(vertex_index)`, so no buffer is bound. `draw(0..3, 0..1)` makes that builtin count 0, 1, 2.
-
-**What you should be able to do now**
-
-Write `render_frame` on paper — acquire, view, encoder, pass, set pipeline, set bind group, draw, finish, submit, present — then compare. Correct looks like: the pass in an inner scope so its borrow of the encoder ends before `encoder.finish()`, and `present()` as the last statement. Missing `present` is the classic: the frame is drawn and never shown.
+Every file at this point: [source at checkpoint 01](../lessons/01/index.md). In the maintained viewer the same code is split into `engine/gpu/device.rs` (adapter and device), `present.rs` (surface) and `render.rs` (the frame).
 
 ## Next
 
-[02 · Camera](02-camera.md): the production camera and math, wired to orbit, pan and zoom.
+[02 · Camera](02-camera.md): orbit, pan and zoom.
 
 ## Expected viewer result
 

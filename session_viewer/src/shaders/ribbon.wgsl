@@ -17,10 +17,6 @@ struct StrokeSegment {
 @group(3) @binding(1) var<storage, read> source_edges: array<u32>;
 @group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
 
-// Density taper: a wire thins when shorter than this many pen widths; never below TAPER_MIN.
-const WIRE_MIN_PENS: f32 = 3.0;
-const TAPER_MIN: f32 = 0.15;
-
 // An edge whose two faces both turn away from the eye is inside the solid: not drawn.
 fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
     if (facing == FACING_UNKNOWN) {
@@ -30,8 +26,9 @@ fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32
     return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
 }
 
-// Half-width in px at one end: half the global pen, or a world radius projected.
+// Negative radii encode screen pens; positive radii are physical sheet pens.
 fn half_width_px(radius: f32, w: f32) -> f32 {
+    if (radius < 0.0) { return -radius * line.thickness; }
     if (radius > 0.0) {
         if (line.ortho_h > 0.0) {
             return radius * line.vp_h * 0.5 / line.ortho_h;
@@ -113,15 +110,6 @@ struct VsOut {
 fn resolve_width(in: VsOut, h: f32) -> vec2<f32> {
     let raw = mix(in.hw0, in.hw1, h);
     return vec2<f32>(floor_hairline(raw), select(hairline_fade(raw), 1.0, in.solid > 0.5));
-}
-
-fn density_taper(facing: u32, len_px: f32, px: f32) -> f32 {
-    if (facing == FACING_UNKNOWN) {
-        return 1.0;
-    }
-
-    let room = WIRE_MIN_PENS * 2.0 * max(px, 1e-6);
-    return clamp(len_px / room, TAPER_MIN, 1.0);
 }
 
 fn dead_vertex() -> VsOut {
@@ -269,10 +257,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let raw0 = max(half_width_px(seg.radius, e0.w), select(0.0, line.thickness, selected));
     let raw1 = max(half_width_px(seg.radius, e1.w), select(0.0, line.thickness, selected));
     let px = floor_hairline(select(raw0, raw1, at_end1));
-    // CAD boundary segments are samples of one curve, not independent mesh wires.
-    // Refining the surface must not shrink the pen at its short boundary intervals.
-    let cad_boundary = (inst.flags & FLAG_SMOOTH) != 0u && source_edges[iid] != 0xffffffffu;
-    let crowd = select(density_taper(seg.facing, len, px), 1.0, cad_boundary || selected);
+    // Pen weight is independent of projected segment length and tessellation density.
     let along = select(-1.0, 1.0, at_end1);
     let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + FILTER_REACH);
 
@@ -289,8 +274,8 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     o.p = p;
     o.a = s0;
     o.b = s1;
-    o.hw0 = raw0 * crowd;
-    o.hw1 = raw1 * crowd;
+    o.hw0 = raw0;
+    o.hw1 = raw1;
     o.solid = select(0.0, 1.0, seg.facing != FACING_UNKNOWN);
     o.inst_id = seg.instance_id;
     o.segment_index = iid;
@@ -360,7 +345,7 @@ fn ink_axis(in: VsOut) -> InkAxis {
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
     let alpha = coverage(in);
 
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -373,7 +358,7 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
 fn fs_mask(in: VsOut, @builtin(sample_index) sample: u32) -> @location(0) vec4<f32> {
     let alpha = coverage(in);
 
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -391,7 +376,7 @@ struct MaskPair {
 fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
     let alpha = coverage(in);
 
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -402,7 +387,7 @@ fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
 fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
     let alpha = coverage(in);
 
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -417,7 +402,7 @@ const SEGMENT_BIT: u32 = 0x80000000u;
 @fragment
 // Keep visible hairlines pickable even when their coverage is shared across adjacent pixels.
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
+    if (coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -427,7 +412,7 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
 // Specialized edge picks exclude segments without a producer-provided source edge.
 @fragment
 fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
+    if (in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 

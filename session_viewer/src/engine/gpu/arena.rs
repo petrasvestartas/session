@@ -28,6 +28,7 @@ pub struct ArenaRows {
     pub idx_text: Vec<u32>,
     pub face_ids: Vec<u32>, // One upload-local original face address per solid triangle.
     pub face_sources: Vec<super::faces::FaceSource>,
+    pub surface_boundaries: Vec<(u32, [u32; 2])>, // Pipe and exact source sample indices.
     pub surface_samples: Vec<crate::app::surface_preview::Sample>,
 }
 
@@ -42,6 +43,7 @@ impl ArenaRows {
         drop_rows(&mut self.face_ids);
         drop_rows(&mut self.face_sources);
         drop_rows(&mut self.surface_samples);
+        drop_rows(&mut self.surface_boundaries);
     }
 }
 

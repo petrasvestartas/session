@@ -1,26 +1,9 @@
 # 04d · Point clouds
+<!-- locator: off -->
 
-## You are building
-
-![Diagram: cloud rows fill the point buffers, the LOD walk picks the ranges each record covers, and splat.wgsl's private depth and colour pair is resolved into the scene.](illustrations/04d-01.svg)
-
-Group 1 of the point pass (`Layouts::points`):
-
-| Binding | Rust buffer | WGSL |
-|---|---|---|
-| 0 | `Splat.record_buf` header + 160-byte records | `@group(1) @binding(0) var<storage, read> table: array<u32>` |
-| 1 | `CloudLane.pos` | `@group(1) @binding(1) positions: array<f32>` |
-| 2 | `CloudLane.col` | `@group(1) @binding(2) colors: array<u32>` |
-| 3 | `CloudLane.nrm` | `@group(1) @binding(3) normals: array<u32>` |
-
-Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_group`), not the camera: the camera is folded into each record.
+A grid of blue points appears beside the mesh, polyline and marker.
 
 ![One node, one question: a spacing that projects wider than lod_px descends into the eight children, and one that fits draws the node whole.](illustrations/lod.svg)
-
-## Starting point
-
-- Checkpoint 04c: meshes, strokes and markers draw inside the face and ink passes.
-- Points draw into their own 1× depth and color targets before the face pass, then a fullscreen resolve writes them into the scene with `frag_depth`, so a cloud occludes and is occluded like a solid.
 
 <!-- step-status: start -->
 
@@ -28,256 +11,86 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- step-status: end -->
 
-## Step 1 · Cloud tables
+## Step 1 · src/engine/gpu/cloud.rs
 
-![Where this step sits in the viewer: Lanes, with 8 of 12 zones built so far.](illustrations/locator-8546ffd8aa.svg){ .locator data-strip="illustrations/strip-3e64424ead.svg" }
-
-- A cloud's points arrive in chunks; `Chunk` maps cloud-local indices to lane rows.
-
-![Diagram: CloudRows\ positions · colors · CloudLane · PointBufs\ pos · col · nrm · points group](illustrations/04d-02.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
+Cloud buffers retain positions, attributes and source IDs. A displayed prefix must not renumber the original points.
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=1-48 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=49-106 -->
-
-- `append` returns whether a buffer moved; the point lane must then rebind its group.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=107-136 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=137-206 -->
-
-- `extend` records which object row a chunk belongs to, and a chunk that does not continue the resident prefix is refused rather than silently misplaced.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=207-258 -->
+## Step 2 · src/engine/gpu/lod.rs
 
-- `row_of` is the inverse the picker needs: a global point row back to its cloud and its index within it. Without it a picked point could not be named.
-
-## Step 2 · The LOD walk
-
-![Where this step sits in the viewer: Lanes, with 8 of 12 zones built so far.](illustrations/locator-8546ffd8aa.svg){ .locator data-strip="illustrations/strip-3e64424ead.svg" }
-
-- Pure CPU: which octree ranges to draw, given how wide each node's point spacing projects. Small clouds draw whole.
-
-![Diagram: LodNode octree · LodWalk::select · camera · lod_px · records to draw](illustrations/04d-03.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
+The cloud hierarchy chooses visible detail from projected size. Keep child ranges within the uploaded buffers.
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=1-43 -->
-
-- Each node owns its subsample, so descending only adds detail; the finest spacing found below a node travels back up to size its discs.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=44-117 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=118-155 -->
+## Step 3 · src/engine/gpu/splat.rs
 
-- Disc size is decided here on the CPU and folded into the record, so the shader divides once per point instead of reasoning about spacing.
-
-## Step 3 · The splat lane
-
-![Where this step sits in the viewer: Lanes, with 8 of 12 zones built so far.](illustrations/locator-8546ffd8aa.svg){ .locator data-strip="illustrations/strip-3e64424ead.svg" }
-
-`SplatRecord` is 160 bytes, read as raw words by the shader:
-
-| Offset | Field |
-|---|---|
-| 0 | `mvp_model: [f32; 16]` |
-| 64 | `tint: [f32; 4]`, `.a` = minimum radius in px |
-| 80 | `first`, `count`, `cum`, `k` |
-| 96 | `rot: [f32; 12]` |
-| 144 | `nrm_first`, `instance`, `flags`, `selected_point` |
-
-![Diagram: RecordCx\ camera · clouds · nodes · SplatRecord × N\ 160 B · 1× depth + color targets · face pass](illustrations/04d-04.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
+The splat pass chooses visible points before compositing their color and depth. Invalidate cached results when the camera or point data changes.
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=1-56 -->
-
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=57-122 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=123-145 -->
-
-- The lane's own type: three pipelines - colour, id, resolve - and the record buffer that feeds them.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=146-218 -->
-
-- Construction allocates the record buffer up front - 4096 records at 160 bytes, about 640 KB - and binds it over placeholder buffers.
-- The point *targets* wait for the first cloud: they scale with the framebuffer.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=219-266 -->
-
-- `prelude` is skipped while the key (camera, knobs, point count) matches; otherwise it rebuilds records, writes them and draws the point pass.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=267-340 -->
-
-- The ID pipeline draws the same quads and writes `(object row, point row)` instead of colour, so a pick names the point, not the cloud.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=341-356 -->
-
-- One record per visible cloud, or per selected octree node; a range straddling two chunks becomes two records.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=357-451 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=452-509 -->
-
-- The resolve is one fullscreen triangle writing colour and `frag_depth`, folding the private point pass back under the scene's own depth test.
-
-<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
-
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=510-523 -->
+## Step 4 · src/shaders/splat.wgsl
 
-## Step 4 · The point shaders
-
-![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
-
-- `record_of` finds the record whose cumulative range contains the vertex index.
-
-![Diagram: vertex_index · SplatRecord · point disc · fs_point · splat_resolve\ EDL · frag_depth](illustrations/04d-05.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+Point projection writes the nearest visible cloud samples. Keep source IDs attached to the winning samples.
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-52 -->
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=53-101 -->
-
-- `project` is the whole per-point cost: one mat-vec, a radius folded from the record, a depth. Everything computable per cloud was already computed on the CPU.
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=102-192 -->
+## Step 5 · src/shaders/splat_resolve.wgsl
 
-
-<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
-
+The resolve writes point color and depth into the scene. Background samples must leave geometry untouched.
 <!-- file: 04d session_viewer/src/shaders/splat_resolve.wgsl type -->
-
 <!-- check: 04d -->
+## Step 6 · src/engine/pipelines/layouts.rs
 
-![Points are rasterized as discs into a private depth and colour pair at one sample, and a fullscreen resolve inside the face pass shades from neighbouring depths and writes frag_depth - so a cloud occludes a wall and a wall occludes it, without the points ever entering the face pipeline.](illustrations/splat-resolve.svg)
-
-## Step 5 · Wire the lane
-
-![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 12 zones built so far.](illustrations/locator-2806e52b9f.svg){ .locator data-strip="illustrations/strip-c8d4b7d421.svg" }
-
-![Diagram: Upload.cloud · Gpu.cloud · Gpu.splat · point pass · scene depth](illustrations/04d-06.svg)
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+Bind-group layouts describe the resources shared by the drawing modules. Binding numbers and shader stages must agree with WGSL.
 <!-- file: 04d session_viewer/src/engine/pipelines/layouts.rs type -->
+## Step 7 · src/engine/gpu/upload.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+An upload collects object rows and geometry before sending them to the GPU. Keep local and global offsets distinct when appending.
 <!-- file: 04d session_viewer/src/engine/gpu/upload.rs type -->
+## Step 8 · src/engine/gpu/mod.rs
 
-- The prelude runs before the face pass on the same encoder; the resolve draws inside the face pass right after the solid faces.
-
-<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
-
+The GPU owner connects buffers, pipelines and frame resources. Create resources before building the bind groups that refer to them.
 <!-- file: 04d session_viewer/src/engine/gpu/mod.rs type -->
+## Step 9 · src/fixture.rs
 
-- A fourth row: a small grid of points with one `CloudDraw` and no octree.
-
-<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 04d session_viewer/src/fixture.rs copy -->
+## Step 10 · src/lib.rs
 
-<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
-
+The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
 <!-- file: 04d session_viewer/src/lib.rs type -->
+## Step 11 · index.html
 
-- Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it.
-
-<span class="zone-mark" data-strip="illustrations/strip-f6e7047b45.svg" data-zone="Page"></span>
-
+Download this file from its link to the path shown.
 <!-- file: 04d session_viewer/index.html copy -->
-
 ## Check
 
 <!-- checkpoint: 04d -->
 
-Expected:
-
-- Triangle, polyline, dot, and a grid of blue points at the lower right.
-- Status reads **Checkpoint 04 · 4 objects**.
-- Orbit: the points stay round and keep their size on screen.
+Expected: A grid of blue points appears beside the mesh, polyline and marker; status: **Checkpoint 04 · 4 objects**.
 
 ![Checkpoint 04d: a point cloud through the splat prelude and resolve, beside the mesh, stroke and marker lanes.](screenshots/04d.png)
+
+If it fails:
+
+- A cloud paints over a solid: the resolve does not write the winning point depth.
+- Points change size on a high-DPI screen: CSS pixels and framebuffer pixels are mixed.
 
 ## What changed
 
 <!-- tree: 04d session_viewer/src/engine -->
 
-- Data flow: `CloudRows` → point buffers + records → point pass into private targets → resolve into the face pass.
-
-**Production equivalent:** `src/engine/gpu/cloud.rs`, `lod.rs`, `splat.rs`, `src/shaders/splat.wgsl`, `splat_resolve.wgsl`.
-
-## Try
-
-- Append `?cloud=3`: every point grows on screen; `cloud_size` scales the per-cloud size in the record, the buffers are untouched.
-- Append `?edl=0`: the eye-dome lighting goes away and the cloud reads flat; it is a resolve-pass effect, not stored colour.
-- Append `?lod=64`: nothing changes, and that is the answer. `LodWalk::select` draws a cloud whole with no octree or under `LOD_MIN_POINTS`, and this fixture is 117 points with `node_count: 0`. The cutoff bites only behind an octree.
-
-## Questions and answers
-
-**Points draw into their own targets and are then resolved into the scene. Why not draw them with everything else?**
-
-*How to work it out.* A splat must read the depth of *neighbouring* points to shade itself (Eye-Dome Lighting), and you cannot read the depth buffer you are writing. But it must still occlude and be occluded like a solid. They conflict unless the points get their own buffer.
-
-*The answer.* A private colour and depth pass first, then a fullscreen resolve that reads them, applies EDL and writes `frag_depth` under the scene's `Greater` test, folding the result back into the shared depth as if it had been drawn there. The cost is one pass; no other lane need know clouds exist.
-
-**The point pass targets are created on the first frame that has points. What principle is that, and where else does it appear?**
-
-*How to work it out.* What should a scene with no cloud pay for cloud support? Then look for features with the same shape: expensive, allocated per-framebuffer, not always needed.
-
-*The answer.* Pay for a feature only when it is used. The same rule allocates the coverage masks only while something is outlined and releases them when nothing is, and builds the tile pool only when finite visibility runs. In a browser, memory you never allocate is the cheapest optimisation available.
-
-**The LOD walk is pure CPU and answers one question per node. What is the question?**
-
-*How to work it out.* You want just enough points that the gaps between them are invisible. So test the node's point spacing *as projected on screen* against a pixel threshold.
-
-*The answer.* "Does this node's spacing project wider than `lod_px`?" Every visited node draws its own subsample; a yes also pushes the eight children, so descending only ever adds detail — one pass, no back-tracking.
-
-**Group 0 of the point pipelines is the cloud uniform, not the camera. Where did the camera go?**
-
-*How to work it out.* A splat record must already say which range of points, at what size, from which cloud. Once a record exists per visible cloud, the CPU can premultiply the camera into it at no per-point cost.
-
-*The answer.* Folded into each `SplatRecord`, so the shader does one mat-vec per point from a record the CPU wrote, and the point pass never needs the scene's camera group. It also makes a range straddling two chunks two records rather than a special case in the shader.
-
-**What you should be able to do now**
-
-Trace one point from a chunk in CPU memory to a lit pixel, naming every buffer and pass. Correct: `CloudRows` → the lane's point buffers → `LodWalk::select` picks ranges → `SplatRecord`s written per visible cloud → the point pass draws into private colour and depth → the resolve reads both, applies EDL and writes `frag_depth` into the face pass. 
+Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 04d](../lessons/04d/index.md).
 
 ## Next
 

@@ -196,7 +196,21 @@ def main():
     if args.verify:
         verify([lesson for lesson in lessons if not args.lesson or lesson['id'] == args.lesson])
     for lesson in lessons:
+        if args.lesson and lesson['id'] != args.lesson:
+            continue
         if lesson.get('chapters'):
+            if (HERE / "reconstruction/current-series.json").is_file():
+                # These are now maintained directive pages. Never replace them with inline code.
+                for number in range(1, len(lesson['steps']) + 1):
+                    page = HERE / f"current-{number}.md"
+                    if f"<!-- checkpoint: current-{number} -->" not in page.read_text():
+                        raise ValueError(f"{page.name}: missing verified checkpoint directive")
+                with tempfile.TemporaryDirectory(prefix="current-audit-", dir=REPO / "target/docs") as temporary:
+                    errors = course.audit(Path(temporary), course.load_points(),
+                                          {f"current-{n}" for n in range(1, len(lesson['steps']) + 1)})
+                if errors:
+                    raise ValueError("\n".join(errors))
+                continue
             check_current(lesson)
             pages = chapters(lesson)
         else:
