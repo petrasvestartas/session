@@ -28,6 +28,8 @@ Replace the whole file with this beginning. `Tutorial` owns every GPU object. `#
 
 Append at the end of the file. This opens a second `impl Tutorial` block, without `#[wasm_bindgen]`. Rust allows any number of `impl` blocks for one type; the attribute on the first one exports every method in it to JavaScript, which forces JS-shaped signatures (`Result<_, JsValue>`). The private helpers `open` and `render_frame` return Rust error types (`anyhow::Result`, `wgpu::SurfaceError`) that wasm-bindgen cannot export, so they live in this plain block and the public methods convert their errors with `js_error`, a four-line helper at the end of the file in step 5. Four objects, each made from the previous one: the instance is the entry to WebGPU, the surface is the canvas, the adapter is one GPU that can present to that surface, the device is your connection to it and the queue is where commands go. `on_uncaptured_error` turns a shader error into a panic you can read instead of a black canvas.
 
+![The four objects of step 2 and what each one is for. Grey boxes are made in open(), used once and dropped: the Instance is the WebGPU API itself, the Adapter is one physical GPU. Pink boxes are stored in Tutorial and used by every later step: the Surface hands out one texture per frame, the Device makes every GPU object, the Queue is where finished commands are submitted. The dashed notes say which later step uses each one.](illustrations/01-gpu-chain.svg)
+
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=39-62 -->
 
 ## Step 3 · part 3: surface configuration and the camera uniform

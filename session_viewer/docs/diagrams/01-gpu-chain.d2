@@ -1,0 +1,29 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  note:  { style: { fill: "#ffffff"; stroke: "#8a8fb0"; stroke-dash: 4; border-radius: 6; font-size: 13; font-color: "#455b6b" } }
+}
+direction: down
+
+canvas: "<canvas> in the page\nthe pixels the user sees" { class: box }
+instance: "Instance\nthe WebGPU API itself (navigator.gpu)\nasked for one surface and one adapter, then dropped" { class: box }
+surface: "Surface\nthe canvas as wgpu sees it\nhands out one texture per frame" { class: focus }
+adapter: "Adapter\none physical GPU that can present to that surface\nasked for a device, then dropped" { class: box }
+device: "Device\nyour connection to that GPU\nmakes buffers, shaders, pipelines, textures" { class: focus }
+queue: "Queue\nwhere finished commands go\nwrite_buffer · submit" { class: focus }
+
+instance -> surface: "create_surface" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+canvas -> surface: "the argument" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+surface -> adapter: "request_adapter(compatible_surface)" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+adapter -> device: "request_device" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+device -> queue: "comes with" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+
+later_s: "every frame, step 5\nsurface.configure · get_current_texture · present" { class: note }
+later_d: "steps 3 and 4\ndevice.create_buffer · create_shader_module · create_render_pipeline" { class: note }
+later_q: "every frame, step 5\nqueue.write_buffer · queue.submit" { class: note }
+surface -> later_s { style: { stroke: "#8a8fb0"; stroke-width: 2; stroke-dash: 4 } }
+device -> later_d { style: { stroke: "#8a8fb0"; stroke-width: 2; stroke-dash: 4 } }
+queue -> later_q { style: { stroke: "#8a8fb0"; stroke-width: 2; stroke-dash: 4 } }
+
