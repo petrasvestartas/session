@@ -93,10 +93,12 @@ impl Row {
 
 /// The feature types wood's `show_attributes` draws: what `Attributes On` shows on the element.
 const ATTRIBUTE_FEATURES: [&str; 4] = ["outline", "axis", "section", "centroid"];
+const ATTRIBUTE_LINE_PX: f64 = 2.0; // Twice the 1 px default pen.
+const ATTRIBUTE_DOT_PX: f64 = 12.0; // Twice the 6 px standalone point.
 
 /// The element's geometry features into the element's OWN row, so they select, hide and
 /// transform with it. A one-point outline is a dot, anything longer a polyline; all of it
-/// red, so a feature never passes for an edge of the element.
+/// red and twice the default pen, so a feature never passes for an edge of the element.
 fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
     for feature in e.features() {
         if !ATTRIBUTE_FEATURES.contains(&feature.feature_type.as_str()) {
@@ -106,10 +108,12 @@ fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
         for outline in &feature.outlines {
             let r = if let (1, Some(mut p)) = (outline.point_count(), outline.get_point(0)) {
                 p.pointcolor = Color::red();
+                p.width = ATTRIBUTE_DOT_PX;
                 walk_point(w.glyph, &p, cx.row)
             } else {
                 let mut outline = outline.clone();
                 outline.linecolor = Color::red();
+                outline.width = ATTRIBUTE_LINE_PX;
                 walk_polyline(w.seg, &outline, cx.row)
             };
             bounds.union_with(&r.bounds);
