@@ -174,6 +174,8 @@ impl State {
                 return false;
             }
 
+            self.update_label();
+
             if let Some(gizmo) = self.gizmo.as_mut() {
                 gizmo.origin = origin;
             }
@@ -190,6 +192,7 @@ impl State {
             self.gpu.grew_bounds(*row);
         }
         self.place_gizmo(Some(active.row));
+        self.update_label();
         self.touch();
         true
     }
@@ -279,6 +282,7 @@ impl State {
                 self.gpu.grew_bounds(*row);
             }
             self.place_gizmo(Some(active.row));
+            self.update_label();
             self.touch();
         }
 
@@ -647,6 +651,7 @@ impl State {
             self.gpu.grew_bounds(row);
         }
         self.place_gizmo(Some(row));
+        self.update_label();
         self.touch();
         Ok(label.into())
     }
