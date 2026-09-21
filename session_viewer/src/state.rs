@@ -405,6 +405,28 @@ impl State {
         self.touch();
     }
 
+    /// Show or hide every object under a tree group named `attributes` (what wood's
+    /// `show_attributes` writes beside each element); `None` toggles, hiding when any is
+    /// still visible. Returns whether they are shown afterwards.
+    pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
+        self.hierarchy.refresh(&self.scene);
+        let mut rows: Vec<u32> = (0..self.hierarchy.nodes.len())
+            .filter(|index| self.hierarchy.nodes[*index].label == "attributes")
+            .flat_map(|index| self.hierarchy.targets(index))
+            .collect();
+        rows.sort_unstable();
+        rows.dedup();
+
+        let any_visible = rows.iter().any(|row| {
+            self.scene
+                .identity_of(*row)
+                .is_some_and(|id| !self.scene.hidden.contains(&id))
+        });
+        let show = value.unwrap_or(!any_visible);
+        self.set_rows_hidden(&rows, !show);
+        show
+    }
+
     /// Show everything hidden so far - `S`.
     pub fn show_all(&mut self) {
         for row in self.scene.hidden_rows() {

@@ -604,6 +604,10 @@ impl State {
                 self.hide_selected();
                 Ok("hidden".into())
             }
+            Command::Attributes(value) => {
+                let shown = self.show_attributes(value);
+                Ok(format!("Attributes {}", if shown { "On" } else { "Off" }))
+            }
             Command::ShowAll => {
                 self.show_all();
                 Ok("everything shown".into())

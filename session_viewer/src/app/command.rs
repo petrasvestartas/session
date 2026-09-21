@@ -22,6 +22,7 @@ pub enum Command {
     ShowAll,
     Fit,
     Layers(Option<bool>),
+    Attributes(Option<bool>), // Show or hide every `attributes` group: the outlines, axes, sections and centroids beside the elements.
     Selection(crate::app::selection::SelectionTool),
     Controls,
     Ssao(Option<bool>),
@@ -55,6 +56,7 @@ pub fn hint(line: &str) -> &'static str {
         "open" => "Open restores a saved .session file",
         "fit" => "Fit zooms to the selection, or the whole scene when nothing is selected",
         "layers" => "Layers (On Off): show or hide the layer panel",
+        "attributes" => "Attributes (On Off): show or hide every `attributes` group beside the elements",
         "snap" => "Snap (On Off): endpoints, vertices and midpoints within 12 pixels",
         "ssao" | "arctic" => {
             "SSAO (On Off): soft contact shading and studio lighting · G toggles in the viewport"
@@ -96,6 +98,12 @@ pub fn parse(line: &str) -> Result<Command, String> {
             [value] if value.eq_ignore_ascii_case("on") => Ok(Command::Layers(Some(true))),
             [value] if value.eq_ignore_ascii_case("off") => Ok(Command::Layers(Some(false))),
             _ => Err("Layers (On Off)".into()),
+        },
+        "attributes" => match rest.as_slice() {
+            [] => Ok(Command::Attributes(None)),
+            [value] if value.eq_ignore_ascii_case("on") => Ok(Command::Attributes(Some(true))),
+            [value] if value.eq_ignore_ascii_case("off") => Ok(Command::Attributes(Some(false))),
+            _ => Err("Attributes (On Off)".into()),
         },
         "snap" => match rest.as_slice() {
             [] => Ok(Command::Snap(None)),
@@ -160,6 +168,7 @@ pub fn options(line: &str) -> &'static [&'static str] {
     {
         "polyline" => &["Polyline Points", "Polyline Rectangle", "Polyline Polygon"],
         "layers" => &["Layers On", "Layers Off"],
+        "attributes" => &["Attributes On", "Attributes Off"],
         "ssao" => &["SSAO On", "SSAO Off"],
         "arctic" => &["Arctic On", "Arctic Off"],
         "snap" => &["Snap On", "Snap Off"],
@@ -171,7 +180,7 @@ pub fn options(line: &str) -> &'static [&'static str] {
 /// Discover commands before typing; options use the same scrollable completion list.
 pub fn completions(line: &str) -> Vec<&'static str> {
     const COMMANDS: &[&str] = &[
-        "Arctic", "Controls", "Curve", "Delete", "Edge", "Escape", "Explode", "Extend", "Face",
+        "Arctic", "Attributes", "Controls", "Curve", "Delete", "Edge", "Escape", "Explode", "Extend", "Face",
         "Fit", "Hide", "Layers", "Line", "Move", "Object", "Open", "Point", "Polyline", "Redo",
         "Rotate", "Save", "Scale", "Show", "Snap", "Split", "SSAO", "Trim", "Undo",
     ];
@@ -309,6 +318,8 @@ mod tests {
         assert_eq!(completions("Layers "), vec!["Layers On", "Layers Off"]);
         assert!(completions("").contains(&"Controls"));
         assert_eq!(parse("Layers OFF"), Ok(Command::Layers(Some(false))));
+        assert_eq!(parse("Attributes off"), Ok(Command::Attributes(Some(false))));
+        assert_eq!(parse("Attributes"), Ok(Command::Attributes(None)));
         assert!(parse("Layers maybe").is_err());
     }
 
