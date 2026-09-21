@@ -405,10 +405,13 @@ impl State {
         self.touch();
     }
 
-    /// Show or hide every object under a tree group named `attributes` (what wood's
-    /// `show_attributes` writes beside each element); `None` toggles, hiding when any is
-    /// still visible. Returns whether they are shown afterwards.
+    /// Draw or remove every element's geometry features - inside the element's own row, so
+    /// they move with it; `None` toggles. The copies wood's `show_attributes` baked beside the
+    /// element under an `attributes` group duplicate them and stay hidden. Returns whether the
+    /// features are shown afterwards.
     pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
+        let show = value.unwrap_or(!self.scene.attributes);
+        self.scene.attributes = show;
         self.hierarchy.refresh(&self.scene);
         let mut rows: Vec<u32> = (0..self.hierarchy.nodes.len())
             .filter(|index| self.hierarchy.nodes[*index].label == "attributes")
@@ -416,14 +419,13 @@ impl State {
             .collect();
         rows.sort_unstable();
         rows.dedup();
-
-        let any_visible = rows.iter().any(|row| {
-            self.scene
-                .identity_of(*row)
-                .is_some_and(|id| !self.scene.hidden.contains(&id))
-        });
-        let show = value.unwrap_or(!any_visible);
-        self.set_rows_hidden(&rows, !show);
+        self.set_rows_hidden(&rows, true);
+        self.select(None);
+        self.scene.rebuild(&mut self.gpu);
+        self.place_gizmo(None);
+        self.refresh_layers();
+        self.update_label();
+        self.touch();
         show
     }
 

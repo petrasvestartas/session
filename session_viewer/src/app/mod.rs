@@ -24,6 +24,8 @@ pub mod validate;
 pub mod walk;
 
 #[cfg(target_arch = "wasm32")]
+pub mod agent;
+#[cfg(target_arch = "wasm32")]
 pub mod decode;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch;

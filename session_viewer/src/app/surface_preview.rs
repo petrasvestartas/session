@@ -211,6 +211,7 @@ mod tests {
                 vert_base: 0,
                 cloud_px: 0.0,
                 row: 0,
+                attributes: false,
             },
             &source,
         );
@@ -252,6 +253,7 @@ mod tests {
                 vert_base: 0,
                 cloud_px: 0.0,
                 row: 0,
+                attributes: false,
             },
             &source,
         );
@@ -295,6 +297,7 @@ mod tests {
             vert_base: 0,
             cloud_px: 0.0,
             row: 3,
+            attributes: false,
         };
         walk_geometry(&mut Walk::of(&mut upload), &cx, &source);
         let span = Span {

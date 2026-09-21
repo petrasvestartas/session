@@ -56,7 +56,7 @@ pub fn hint(line: &str) -> &'static str {
         "open" => "Open restores a saved .session file",
         "fit" => "Fit zooms to the selection, or the whole scene when nothing is selected",
         "layers" => "Layers (On Off): show or hide the layer panel",
-        "attributes" => "Attributes (On Off): show or hide every `attributes` group beside the elements",
+        "attributes" => "Attributes (On Off): draw or remove the element features, moving with their element",
         "snap" => "Snap (On Off): endpoints, vertices and midpoints within 12 pixels",
         "ssao" | "arctic" => {
             "SSAO (On Off): soft contact shading and studio lighting · G toggles in the viewport"

@@ -42,6 +42,8 @@ pub enum Msg {
     SheetChunk(SheetChunk),
     SheetEntity(app::sheet_query::Resolved),
     CancelPointer,
+    #[cfg(target_arch = "wasm32")]
+    Agent(app::agent::AgentEvent),
     SavedScene(Box<app::scene::Scene>),
 }
 
@@ -65,6 +67,7 @@ pub struct App {
     proxy: Option<EventLoopProxy<Msg>>,
     input: Input,
     pointer_cancellation: Option<app::input::PointerCancellation>,
+    agent: Option<app::agent::CommandAgent>,
     ui: Option<app::ui::Ui>,
 }
 
@@ -79,6 +82,7 @@ impl App {
             state: None,
             input: Input::new(),
             pointer_cancellation: None,
+            agent: None,
             ui: None,
         };
         event_loop.spawn_app(app);
@@ -132,9 +136,14 @@ impl ApplicationHandler<Msg> for App {
         };
 
         if let Some(proxy) = self.proxy.take() {
-            match app::input::PointerCancellation::new(canvas, proxy.clone()) {
+            match app::input::PointerCancellation::new(canvas.clone(), proxy.clone()) {
                 Ok(listener) => self.pointer_cancellation = Some(listener),
                 Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
+            }
+
+            match app::agent::CommandAgent::new(canvas, proxy.clone()) {
+                Ok(agent) => self.agent = Some(agent),
+                Err(error) => log::warn!("Cannot register the command agent: {error:?}"),
             }
 
             wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
@@ -198,6 +207,13 @@ impl ApplicationHandler<Msg> for App {
             Msg::CancelPointer => {
                 state.cancel_gesture();
                 self.input.cancel();
+                state.touch();
+            }
+            Msg::Agent(event) => {
+                if let Some(ui) = self.ui.as_mut() {
+                    ui.agent(event);
+                }
+
                 state.touch();
             }
         }

@@ -118,6 +118,7 @@ pub struct Scene {
     pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,
     pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>,
     pub selected: Option<u32>,
+    pub attributes: bool, // `Attributes On`: element features are walked into their element's row.
     order: Vec<Rc<str>>,
     owners: Vec<usize>,
     edge_sources: Vec<(u32, u32)>, // Global pipe rows resolve to original parent/edge identities after upload.
@@ -160,6 +161,7 @@ impl Scene {
             colors: HashMap::new(),
             edge_colors: HashMap::new(),
             selected: None,
+            attributes: false,
             order: Vec::new(),
             owners: Vec::new(),
             edge_sources: Vec::new(),
@@ -338,6 +340,7 @@ impl Scene {
                 vert_base: self.bases.vert,
                 cloud_px: point_px,
                 row,
+                attributes: self.attributes,
             };
             let start = self
                 .uploaded
@@ -814,6 +817,43 @@ mod tests {
         assert!(controls.points.len() >= 8);
         assert!(!scene.tables.arena.idx.is_empty());
     }
+
+    /// `Attributes On` draws an element's features in the element's own row, so one moved
+    /// placement carries them; `Off` walks them out again.
+    #[test]
+    fn attributes_share_the_element_row_and_its_placement() {
+        use session_rust::element::ElementFeature;
+        use session_rust::{Element, Mesh, Polyline};
+
+        let mut element = Element::new("beam");
+        element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
+        let axis = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(100.0, 0.0, 0.0)]);
+        element.add_feature(ElementFeature::new("axis", -1, vec![axis], "axis"));
+        let mut source = Session::new("attributes");
+        source.add_element(element, None);
+        let mut scene = Scene::new();
+        scene.add_file(file("beam", Rc::new(source), false));
+        let plain = scene.tables.seg.ribbons.len();
+        assert_eq!(scene.object_count(), 1);
+
+        scene.attributes = true;
+        let doc = scene.docs.remove(0);
+        scene.reset_rows();
+        scene.add_file(doc);
+        assert_eq!(scene.object_count(), 1);
+        assert_eq!(scene.tables.seg.ribbons.len(), plain + 1);
+        assert!(scene.tables.seg.ribbons.iter().all(|r| r.instance_id == 0));
+
+        let moved = scene.transform_rows(&[0], &Xform::translation(5.0, 0.0, 0.0), "Move");
+        assert_eq!(moved.map(|m| m.len()), Some(1));
+        assert_eq!(
+            scene
+                .placement_of(0)
+                .unwrap()
+                .transform_point(&Point::new(100.0, 0.0, 0.0))[0],
+            105.0
+        );
+    }
 }
 
 impl Scene {
@@ -853,6 +893,7 @@ impl Scene {
             vert_base: span.start.verts,
             cloud_px: 0.0,
             row,
+            attributes: self.attributes,
         };
         let result = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
 

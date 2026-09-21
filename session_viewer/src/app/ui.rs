@@ -21,8 +21,8 @@ pub struct Model {
     completion_prefix: String,
     inline_suffix: bool,
     completion_visible: bool,
-    completion_rect: Option<egui::Rect>,
-    command_rect: Option<egui::Rect>,
+    pub(crate) completion_rect: Option<egui::Rect>,
+    pub(crate) command_rect: Option<egui::Rect>,
 }
 
 thread_local! { pub static MODEL: RefCell<Model> = RefCell::default(); }
@@ -42,6 +42,8 @@ pub struct Ui {
     pointer: egui::Pos2,
     ui_drag: bool,
     touches: std::collections::HashSet<u64>,
+    #[cfg(target_arch = "wasm32")]
+    agent_value: String, // The last value replayed from the hidden agent (app/agent.rs).
 }
 
 impl Ui {
@@ -69,6 +71,8 @@ impl Ui {
             pointer: egui::Pos2::ZERO,
             ui_drag: false,
             touches: std::collections::HashSet::new(),
+            #[cfg(target_arch = "wasm32")]
+            agent_value: String::new(),
         }
     }
 
@@ -159,6 +163,54 @@ impl Ui {
             consumed = true;
         }
         (consumed || escape, response.repaint || escape)
+    }
+
+    /// Replay the hidden agent's typing into the egui field, which stays the one owner of the
+    /// text: each value is diffed against the last one replayed (not the field, which may be
+    /// frames behind), so a phone's word-wise composition arrives as the backspaces and the
+    /// text an ordinary keyboard would have sent.
+    #[cfg(target_arch = "wasm32")]
+    pub fn agent(&mut self, event: super::agent::AgentEvent) {
+        use super::agent::AgentEvent;
+        let id = egui::Id::new("command-input");
+        let key = |key, pressed| egui::Event::Key {
+            key,
+            physical_key: None,
+            pressed,
+            repeat: false,
+            modifiers: egui::Modifiers::NONE,
+        };
+        let events = &mut self.input.egui_input_mut().events;
+
+        match event {
+            AgentEvent::Text(value) => {
+                let shared = self
+                    .agent_value
+                    .chars()
+                    .zip(value.chars())
+                    .take_while(|(a, b)| a == b)
+                    .count();
+
+                for _ in shared..self.agent_value.chars().count() {
+                    events.push(key(egui::Key::Backspace, true));
+                    events.push(key(egui::Key::Backspace, false));
+                }
+
+                let added: String = value.chars().skip(shared).collect();
+
+                if !added.is_empty() {
+                    events.push(egui::Event::Text(added));
+                }
+
+                self.agent_value = value;
+                self.context.memory_mut(|memory| memory.request_focus(id));
+                MODEL.with_borrow_mut(|model| model.command_open = true);
+            }
+            AgentEvent::Key(k) => {
+                events.push(key(k, true));
+                events.push(key(k, false));
+            }
+        }
     }
 
     pub fn frame(&mut self, state: &mut State) -> bool {
@@ -276,6 +328,15 @@ impl Ui {
         }
 
         self.publish();
+        // The field moved on its own - a completion, a history step, an executed line - so
+        // the agent follows it; while it is only catching up on replayed typing, they agree.
+        #[cfg(target_arch = "wasm32")]
+        MODEL.with_borrow(|model| {
+            if self.agent_value != model.command {
+                self.agent_value.clone_from(&model.command);
+                super::agent::sync(&model.command);
+            }
+        });
         let repaint = changed || self.context.has_requested_repaint();
         output.pixels_per_point = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
 

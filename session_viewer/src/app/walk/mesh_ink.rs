@@ -311,6 +311,7 @@ mod tests {
             vert_base: 0,
             cloud_px: 0.0,
             row: 0,
+            attributes: false,
         };
         walk_mesh(&mut arena, &mut ink, mesh, &MeshCx { cx: &cx, opts });
         segments.pipes.len()
@@ -370,6 +371,7 @@ mod tests {
             vert_base: 50,
             cloud_px: 0.0,
             row: 7,
+            attributes: false,
         };
         walk_mesh(
             &mut arena,
