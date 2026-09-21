@@ -316,12 +316,14 @@ impl Scene {
         self.order.reserve(count);
         self.guid_to_row.reserve(count);
 
+        let baked = baked_attributes(&session);
+
         for guid in session.order() {
             let Some(geom) = session.lookup.get(&guid) else {
                 continue;
             };
 
-            if !is_drawable(geom) {
+            if !is_drawable(geom) || baked.contains(guid.as_str()) {
                 continue;
             }
 
@@ -738,6 +740,31 @@ fn placement(world: &HashMap<String, Xform>, place: &Xform, guid: &str) -> Xform
     }
 }
 
+/// The guids under every `attributes` group: wood's baked copies of the element features. They
+/// never get a row; `Attributes On` draws the features inside the element's own row instead.
+fn baked_attributes(session: &Session) -> HashSet<String> {
+    let mut out = HashSet::new();
+    let mut stack: Vec<_> = session
+        .tree
+        .root()
+        .into_iter()
+        .map(|n| (n, false))
+        .collect();
+
+    while let Some((node, inside)) = stack.pop() {
+        let node = node.borrow();
+        let inside = inside || node.name == "attributes";
+
+        if inside && session.lookup.contains_key(&node.name) {
+            out.insert(node.name.clone());
+        }
+
+        stack.extend(node.children().into_iter().map(|c| (c, inside)));
+    }
+
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -853,6 +880,30 @@ mod tests {
                 .transform_point(&Point::new(100.0, 0.0, 0.0))[0],
             105.0
         );
+    }
+
+    #[test]
+    /// Wood's baked copies under an `attributes` group get no row, with attributes off or on.
+    fn baked_attributes_never_get_a_row() {
+        use session_rust::{Element, Mesh, Polyline};
+
+        let mut element = Element::new("beam");
+        element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
+        let mut source = Session::new("attributes");
+        source.add_element(element, None);
+        let group = source.add_group("attributes");
+        let axis = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(100.0, 0.0, 0.0)]);
+        source.add_polyline(axis, Some(&group));
+        assert_eq!(source.lookup.len(), 2);
+        let mut scene = Scene::new();
+        scene.add_file(file("beam", Rc::new(source), false));
+        assert_eq!(scene.object_count(), 1);
+
+        scene.attributes = true;
+        let doc = scene.docs.remove(0);
+        scene.reset_rows();
+        scene.add_file(doc);
+        assert_eq!(scene.object_count(), 1);
     }
 }
 

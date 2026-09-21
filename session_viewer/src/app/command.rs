@@ -22,7 +22,7 @@ pub enum Command {
     ShowAll,
     Fit,
     Layers(Option<bool>),
-    Attributes(Option<bool>), // Show or hide every `attributes` group: the outlines, axes, sections and centroids beside the elements.
+    Attributes(Option<bool>), // Draw or remove the element features - outlines, axes, sections, centroids - inside their element.
     Selection(crate::app::selection::SelectionTool),
     Controls,
     Ssao(Option<bool>),
@@ -56,7 +56,9 @@ pub fn hint(line: &str) -> &'static str {
         "open" => "Open restores a saved .session file",
         "fit" => "Fit zooms to the selection, or the whole scene when nothing is selected",
         "layers" => "Layers (On Off): show or hide the layer panel",
-        "attributes" => "Attributes (On Off): draw or remove the element features, moving with their element",
+        "attributes" => {
+            "Attributes (On Off): draw or remove the element features, moving with their element"
+        }
         "snap" => "Snap (On Off): endpoints, vertices and midpoints within 12 pixels",
         "ssao" | "arctic" => {
             "SSAO (On Off): soft contact shading and studio lighting · G toggles in the viewport"
@@ -180,9 +182,35 @@ pub fn options(line: &str) -> &'static [&'static str] {
 /// Discover commands before typing; options use the same scrollable completion list.
 pub fn completions(line: &str) -> Vec<&'static str> {
     const COMMANDS: &[&str] = &[
-        "Arctic", "Attributes", "Controls", "Curve", "Delete", "Edge", "Escape", "Explode", "Extend", "Face",
-        "Fit", "Hide", "Layers", "Line", "Move", "Object", "Open", "Point", "Polyline", "Redo",
-        "Rotate", "Save", "Scale", "Show", "Snap", "Split", "SSAO", "Trim", "Undo",
+        "Arctic",
+        "Attributes",
+        "Controls",
+        "Curve",
+        "Delete",
+        "Edge",
+        "Escape",
+        "Explode",
+        "Extend",
+        "Face",
+        "Fit",
+        "Hide",
+        "Layers",
+        "Line",
+        "Move",
+        "Object",
+        "Open",
+        "Point",
+        "Polyline",
+        "Redo",
+        "Rotate",
+        "Save",
+        "Scale",
+        "Show",
+        "Snap",
+        "Split",
+        "SSAO",
+        "Trim",
+        "Undo",
     ];
     let lower = line.to_ascii_lowercase();
     let choices = if lower.contains(' ') {
@@ -318,7 +346,10 @@ mod tests {
         assert_eq!(completions("Layers "), vec!["Layers On", "Layers Off"]);
         assert!(completions("").contains(&"Controls"));
         assert_eq!(parse("Layers OFF"), Ok(Command::Layers(Some(false))));
-        assert_eq!(parse("Attributes off"), Ok(Command::Attributes(Some(false))));
+        assert_eq!(
+            parse("Attributes off"),
+            Ok(Command::Attributes(Some(false)))
+        );
         assert_eq!(parse("Attributes"), Ok(Command::Attributes(None)));
         assert!(parse("Layers maybe").is_err());
     }
