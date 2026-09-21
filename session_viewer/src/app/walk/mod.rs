@@ -11,6 +11,7 @@ use mesh::{MeshCx, MeshOpts, walk_mesh};
 use mesh_ink::Ink;
 use points::walk_point;
 use session_rust::AABB;
+use session_rust::Color;
 use session_rust::Element;
 use session_rust::Geometry;
 use session_rust::element::ElementGeometry;
@@ -94,7 +95,8 @@ impl Row {
 const ATTRIBUTE_FEATURES: [&str; 4] = ["outline", "axis", "section", "centroid"];
 
 /// The element's geometry features into the element's OWN row, so they select, hide and
-/// transform with it. A one-point outline is a dot, anything longer a polyline.
+/// transform with it. A one-point outline is a dot, anything longer a polyline; all of it
+/// red, so a feature never passes for an edge of the element.
 fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
     for feature in e.features() {
         if !ATTRIBUTE_FEATURES.contains(&feature.feature_type.as_str()) {
@@ -102,10 +104,13 @@ fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
         }
 
         for outline in &feature.outlines {
-            let r = if let (1, Some(p)) = (outline.point_count(), outline.get_point(0)) {
+            let r = if let (1, Some(mut p)) = (outline.point_count(), outline.get_point(0)) {
+                p.pointcolor = Color::red();
                 walk_point(w.glyph, &p, cx.row)
             } else {
-                walk_polyline(w.seg, outline, cx.row)
+                let mut outline = outline.clone();
+                outline.linecolor = Color::red();
+                walk_polyline(w.seg, &outline, cx.row)
             };
             bounds.union_with(&r.bounds);
         }
