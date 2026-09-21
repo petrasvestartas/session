@@ -21,12 +21,6 @@ pub struct View {
 }
 
 impl View {
-    /// Dimmed but not x-ray: the faces blend without writing depth, so the ink inside and
-    /// behind a solid stays visible through it.
-    pub fn translucent(&self) -> bool {
-        self.opacity > 0.0 && self.opacity < 1.0
-    }
-
     /// Read every knob once.
     pub fn from_env() -> Self {
         Self {

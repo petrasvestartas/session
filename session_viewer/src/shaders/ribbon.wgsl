@@ -343,9 +343,10 @@ fn ink_axis(in: VsOut) -> InkAxis {
 
 @fragment
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
-    let alpha = coverage(in);
+    let hidden = !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u);
+    let alpha = coverage(in) * through_glass(hidden);
 
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (alpha <= 0.0) {
         discard;
     }
 

@@ -155,9 +155,10 @@ fn coverage(in: VsOut) -> f32 {
 
 @fragment
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
-    let alpha = coverage(in);
+    let hidden = !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample);
+    let alpha = coverage(in) * through_glass(hidden);
 
-    if (alpha <= 0.0 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample)) {
+    if (alpha <= 0.0) {
         discard;
     }
 

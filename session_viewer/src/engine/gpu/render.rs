@@ -41,7 +41,7 @@ impl Gpu {
             let mut pass = self.targets.begin_faces(encoder, view, clear);
             self.face_list(&mut pass, &b)
         };
-        if self.view.ssao && self.view.opacity >= 1.0 && self.arena.face_count() > 0 {
+        if self.view.ssao && self.view.opacity > 0.0 && self.arena.face_count() > 0 {
             let target = crate::engine::pipelines::Target {
                 format: self.config.format,
                 samples: self.targets.samples,
@@ -197,7 +197,7 @@ impl Gpu {
             draws += self.backdrop.draw_grid(pass, b);
         }
 
-        draws += self.arena.draw_faces(pass, b, self.view.translucent());
+        draws += self.arena.draw_faces(pass, b);
         draws += self.splat.draw_resolve(pass, &self.frame.cloud_group);
         draws
     }

@@ -403,3 +403,11 @@ fn ink_decode_primitive(encoded: vec2<f32>) -> u32 {
     let packed = pack2x16float(encoded);
     return ((packed&0xffffu)-0x400u) | (((packed>>16u)-0x400u)<<14u);
 }
+
+// Ink behind a face: gone when the faces are solid or x-ray (x-ray has no faces to hide it),
+// dimmed by the glass when they are translucent (0 < opacity < 1), so a line inside a solid
+// reads as behind its surface rather than on it.
+fn through_glass(hidden: bool) -> f32 {
+    let glass = line.opacity > 0.0 && line.opacity < 1.0;
+    return select(1.0, select(0.0, 1.0 - line.opacity, glass), hidden);
+}
