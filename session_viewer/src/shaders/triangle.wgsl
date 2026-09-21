@@ -122,6 +122,12 @@ fn view_dir(world_pos: vec3<f32>) -> vec3<f32> {
 
 fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     let front = raster_front != (in.mirrored != 0u);
+
+    // A dimmed closed solid (0 < opacity < 1) writes no depth, so its back faces would blend
+    // a second layer under the front ones: one sheet of glass, not two.
+    if (!front && in.closed != 0u && line.opacity > 0.0 && line.opacity < 1.0) {
+        discard;
+    }
     // Flat normal from screen-space derivatives when the mesh baked none (y is down).
     let flat_n = cross(dpdy(in.world_pos), dpdx(in.world_pos));
     var n = vec3<f32>(0.0, 0.0, 1.0);

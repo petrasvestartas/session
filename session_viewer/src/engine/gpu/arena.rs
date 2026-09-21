@@ -166,8 +166,8 @@ impl ArenaLane {
     }
 
     /// The solid faces, one indexed draw: the physical depth every ink fragment reads.
-    pub fn draw_faces(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.source_faces.draw_physical(pass, b)
+    pub fn draw_faces(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds, translucent: bool) -> u32 {
+        self.source_faces.draw_physical(pass, b, translucent)
     }
 
     /// Visible selected faces only; replay the identical vertices against physical depth.

@@ -30,6 +30,7 @@ const CLEAR: wgpu::Color = wgpu::Color {
 
 /// Orbit step per frame in `?spin=1` mode.
 const SPIN_STEP: f32 = 0.004;
+const ELEMENT_OPACITY: f32 = 0.7; // How see-through an element is until `Opacity` says otherwise.
 
 /// Own the window, rendering stack and source selection, coordinating frame and query lifetimes.
 pub struct State {
@@ -54,6 +55,7 @@ pub struct State {
     pub(crate) additive_selection: bool,
     pub selection_radius_css: f64,
     show_selected_names: bool, // A view preference retained across selections and scene reloads; T toggles it.
+    opacity_chosen: bool, // An `Opacity` command was given, so a later document with elements keeps it.
     cloud_query: Option<crate::app::cloud_query::Query>,
     #[cfg(target_arch = "wasm32")]
     query_generation: u64,
@@ -94,6 +96,7 @@ impl State {
             additive_selection: false,
             selection_radius_css: 6.0,
             show_selected_names: true,
+            opacity_chosen: false,
             cloud_query: None,
             #[cfg(target_arch = "wasm32")]
             query_generation: 0,
@@ -124,6 +127,7 @@ impl State {
         self.scene.upload_to(&mut self.gpu);
         self.camera.grow_extent(&self.gpu.bounds);
         self.annotate_document(first_row);
+        self.dim_elements(first_row);
         // An open panel is a view of the scene, and the scene just changed under it.
         self.refresh_layers();
         self.update_label();
@@ -419,6 +423,35 @@ impl State {
         self.update_label();
         self.touch();
         show
+    }
+
+    /// Elements arrive a little see-through, so the features inside them show; only the first
+    /// document with elements sets it, and never over an `?opacity=` knob or an `Opacity`
+    /// command already given.
+    fn dim_elements(&mut self, first_row: usize) {
+        if self.opacity_chosen || self.gpu.view.opacity < 1.0 {
+            return;
+        }
+
+        let elements = (first_row..self.scene.object_count()).any(|row| {
+            matches!(
+                self.scene.geometry(row as u32),
+                Some(session_rust::Geometry::Element(_))
+            )
+        });
+
+        if elements {
+            self.gpu.view.opacity = ELEMENT_OPACITY;
+            self.opacity_chosen = true;
+        }
+    }
+
+    /// `Opacity <value>`: alpha on every closed solid, 0 x-ray, 1 solid; from the command
+    /// line it also stops the element default from applying later.
+    pub fn set_opacity(&mut self, value: f32) {
+        self.gpu.view.opacity = value.clamp(0.0, 1.0);
+        self.opacity_chosen = true;
+        self.touch();
     }
 
     /// Show everything hidden so far - `S`.

@@ -211,7 +211,10 @@ impl ApplicationHandler<Msg> for App {
             }
             Msg::Agent(event) => {
                 if let Some(ui) = self.ui.as_mut() {
-                    ui.agent(event);
+                    for key in ui.agent(event) {
+                        self.input
+                            .key(state, winit::keyboard::Key::Character(key.as_str()));
+                    }
                 }
 
                 state.touch();

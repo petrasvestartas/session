@@ -22,6 +22,7 @@ pub enum Command {
     ShowAll,
     Fit,
     Layers(Option<bool>),
+    Opacity(f32), // Alpha on every closed solid: 0 x-ray, 1 solid, between them see-through.
     Attributes(Option<bool>), // Draw or remove the element features - outlines, axes, sections, centroids - inside their element.
     Selection(crate::app::selection::SelectionTool),
     Controls,
@@ -58,6 +59,9 @@ pub fn hint(line: &str) -> &'static str {
         "layers" => "Layers (On Off): show or hide the layer panel",
         "attributes" => {
             "Attributes (On Off): draw or remove the element features, moving with their element"
+        }
+        "opacity" => {
+            "Opacity 0..1: how solid the faces are · 0 is x-ray, 1 solid · Example: Opacity 0.5"
         }
         "snap" => "Snap (On Off): endpoints, vertices and midpoints within 12 pixels",
         "ssao" | "arctic" => {
@@ -107,6 +111,13 @@ pub fn parse(line: &str) -> Result<Command, String> {
             [value] if value.eq_ignore_ascii_case("off") => Ok(Command::Attributes(Some(false))),
             _ => Err("Attributes (On Off)".into()),
         },
+        "opacity" => {
+            let value = number(rest.first().copied(), "Opacity 0.5")?;
+            (0.0..=1.0)
+                .contains(&value)
+                .then_some(Command::Opacity(value as f32))
+                .ok_or_else(|| "Opacity takes a value from 0 to 1".to_string())
+        }
         "snap" => match rest.as_slice() {
             [] => Ok(Command::Snap(None)),
             [value] if value.eq_ignore_ascii_case("on") => Ok(Command::Snap(Some(true))),
@@ -171,6 +182,7 @@ pub fn options(line: &str) -> &'static [&'static str] {
         "polyline" => &["Polyline Points", "Polyline Rectangle", "Polyline Polygon"],
         "layers" => &["Layers On", "Layers Off"],
         "attributes" => &["Attributes On", "Attributes Off"],
+        "opacity" => &["Opacity 1", "Opacity 0.7", "Opacity 0.4", "Opacity 0"],
         "ssao" => &["SSAO On", "SSAO Off"],
         "arctic" => &["Arctic On", "Arctic Off"],
         "snap" => &["Snap On", "Snap Off"],
@@ -198,6 +210,7 @@ pub fn completions(line: &str) -> Vec<&'static str> {
         "Line",
         "Move",
         "Object",
+        "Opacity",
         "Open",
         "Point",
         "Polyline",
@@ -351,6 +364,9 @@ mod tests {
             Ok(Command::Attributes(Some(false)))
         );
         assert_eq!(parse("Attributes"), Ok(Command::Attributes(None)));
+        assert_eq!(parse("Opacity 0.5"), Ok(Command::Opacity(0.5)));
+        assert!(parse("Opacity 2").is_err());
+        assert!(parse("Opacity").is_err());
         assert!(parse("Layers maybe").is_err());
     }
 

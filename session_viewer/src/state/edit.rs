@@ -608,6 +608,10 @@ impl State {
                 self.hide_selected();
                 Ok("hidden".into())
             }
+            Command::Opacity(value) => {
+                self.set_opacity(value);
+                Ok(format!("Opacity {value}"))
+            }
             Command::Attributes(value) => {
                 let shown = self.show_attributes(value);
                 Ok(format!("Attributes {}", if shown { "On" } else { "Off" }))

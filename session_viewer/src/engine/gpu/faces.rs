@@ -27,6 +27,7 @@ pub struct Faces {
 /// All passes share the same pulled vertices and primitive numbering.
 struct FacePipelines {
     physical: wgpu::RenderPipeline,
+    translucent: wgpu::RenderPipeline, // The same draw with depth writes off: a dimmed solid must not hide the ink behind it.
     object_ids: wgpu::RenderPipeline,
     pick: wgpu::RenderPipeline,
     highlight: wgpu::RenderPipeline,
@@ -181,8 +182,18 @@ impl Faces {
     }
 
     /// Draw opaque surfaces with the same primitive addresses used by finite visibility.
-    pub fn draw_physical(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
-        self.draw(pass, binds, &self.pipes.physical)
+    pub fn draw_physical(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        binds: &Binds,
+        translucent: bool,
+    ) -> u32 {
+        let pipeline = if translucent {
+            &self.pipes.translucent
+        } else {
+            &self.pipes.physical
+        };
+        self.draw(pass, binds, pipeline)
     }
 
     /// Preserve parent-object identity while carrying physical triangle provenance.
@@ -323,6 +334,15 @@ fn pipelines(
             .color(ColorWrite::Blended)
             .physical(),
     );
+    let translucent = build(
+        &ctx.device,
+        target,
+        &object_base
+            .with("translucent triangle", "fs_main")
+            .color(ColorWrite::Blended)
+            .depth(DepthMode::ReadOnly)
+            .physical(),
+    );
     let object_ids = build(
         &ctx.device,
         Target::ID,
@@ -334,6 +354,7 @@ fn pipelines(
         mask,
         masks,
         physical,
+        translucent,
         object_ids,
     }
 }

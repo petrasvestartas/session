@@ -169,10 +169,39 @@ impl Ui {
     /// text: each value is diffed against the last one replayed (not the field, which may be
     /// frames behind), so a phone's word-wise composition arrives as the backspaces and the
     /// text an ordinary keyboard would have sent.
+    ///
+    /// With the command box closed the keyboard is still up, and then the letters are the
+    /// viewport's own bindings, as on a desktop: they come back to the caller one by one and
+    /// never reach the field. Enter on an empty line closes the box without dropping the
+    /// keyboard, which is how a phone gets from typing commands to pressing keys.
     #[cfg(target_arch = "wasm32")]
-    pub fn agent(&mut self, event: super::agent::AgentEvent) {
+    pub fn agent(&mut self, event: super::agent::AgentEvent) -> Vec<String> {
         use super::agent::AgentEvent;
         let id = egui::Id::new("command-input");
+        let (open, empty) = MODEL.with_borrow(|m| (m.command_open, m.command.is_empty()));
+
+        match &event {
+            AgentEvent::Text(value) if !open => {
+                let shared = self
+                    .agent_value
+                    .chars()
+                    .zip(value.chars())
+                    .take_while(|(a, b)| a == b)
+                    .count();
+                let keys = value.chars().skip(shared).map(String::from).collect();
+                self.agent_value.clear();
+                super::agent::sync("");
+                return keys;
+            }
+            AgentEvent::Key(egui::Key::Enter) if open && empty => {
+                super::feedback::command_line(false);
+                self.context.memory_mut(|memory| memory.surrender_focus(id));
+                super::feedback::status("Keys go to the viewer · type : for the command line");
+                return Vec::new();
+            }
+            _ => {}
+        }
+
         let key = |key, pressed| egui::Event::Key {
             key,
             physical_key: None,
@@ -211,6 +240,8 @@ impl Ui {
                 events.push(key(k, false));
             }
         }
+
+        Vec::new()
     }
 
     pub fn frame(&mut self, state: &mut State) -> bool {
@@ -973,6 +1004,7 @@ fn commands(
                     egui::TextEdit::singleline(&mut model.command)
                         .id(id)
                         .font(egui::FontId::proportional(14.0))
+                        .vertical_align(egui::Align::Center)
                         .frame(egui::Frame::NONE)
                         .clip_text(true)
                         .char_limit(2048)

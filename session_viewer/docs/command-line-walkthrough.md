@@ -87,6 +87,10 @@ Two independent lines replace the selected polyline. Run `undo` to restore it; `
 
 **L** in the scene toggles the right-hand Layers panel. You can also run `Layers` and choose **On** or **Off**. Expand a group with its small triangle; click its name to select descendants or its bulb to hide them. The command field owns letters while you type. **Escape** returns focus to the scene; the bottom command area remains visible. A failed command displays its reason and preserves the document.
 
+On a phone, tap the command field: the keyboard opens and what you type goes into the field, with **Enter** running the line. **Enter** on an empty field closes the command box but keeps the keyboard up, and then the letters are the scene's own keys - **H** hides, **S** shows all, **F** fits, **P** toggles x-ray, **1**-**7** set the views - exactly as on a desktop; **:** reopens the field. Tapping the scene puts the keyboard away.
+
+`Opacity 0..1` sets how solid the shaded faces are: `Opacity 1` is opaque, `Opacity 0` is x-ray with only the edges left, and anything between is glass - the faces dim without hiding the linework inside or behind them. A document with elements opens at 0.7 so their features show through; the `Opacity` command or `?opacity=` in the address bar overrides that.
+
 The [capture record](extensions/screenshots.json) identifies the browser, GPU configuration and exact operations. The [verification record](extensions/README.md) covers repeated editing, resize, DPI and cleanup checks.
 
 ## Selection commands, touch editing and saving
