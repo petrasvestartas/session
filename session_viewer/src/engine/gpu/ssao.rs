@@ -565,3 +565,12 @@ mod tests {
         }
     }
 }
+
+impl super::lane::Lane for Option<Ssao> {
+    fn bytes(&self) -> (u64, u64) {
+        (
+            if self.is_some() { 144 } else { 0 },
+            self.as_ref().map_or(0, Ssao::texture_bytes),
+        )
+    }
+}

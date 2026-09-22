@@ -528,3 +528,21 @@ fn build_resolve(
         .depth(DepthMode::Opaque);
     build(&ctx.device, target, &desc)
 }
+
+impl super::lane::Lane for Splat {
+    fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
+        self.retarget(ctx, layouts, target);
+    }
+
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.invalidate();
+    }
+
+    fn on_release(&mut self, _ctx: &GpuCtx, _layouts: &Layouts) {
+        self.release();
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        self.allocated_bytes()
+    }
+}

@@ -816,3 +816,17 @@ mod tests {
         assert_eq!(anchored(base, &second)[0], 9.0e3);
     }
 }
+
+impl super::lane::Lane for InstanceTable {
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.reset();
+    }
+
+    fn on_release(&mut self, ctx: &GpuCtx, layouts: &Layouts) {
+        self.release(ctx, layouts);
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), 0)
+    }
+}

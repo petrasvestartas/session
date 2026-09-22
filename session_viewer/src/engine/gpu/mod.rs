@@ -10,6 +10,7 @@ pub mod instance;
 pub mod lod;
 pub mod objects;
 
+pub mod lane;
 pub(crate) mod patch;
 pub mod pick;
 pub mod present;
@@ -39,6 +40,7 @@ use cloud::CloudLane;
 use device::DeviceSetup;
 use frame::FrameUniforms;
 use glyphs::GlyphLane;
+use lane::Lane;
 use objects::{InkScene, InstanceTable};
 use pick::Picker;
 use segments::SegmentLane;
@@ -88,45 +90,56 @@ pub struct Gpu {
     pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>, // first GPU error
 }
 
+/// Every lane, once. Adding one means writing its `Lane` impl and one line here.
+macro_rules! lane_list {
+    ($apply:ident, $g:ident) => {
+        $apply!($g;
+            frame,             // register:frame
+            objects,           // register:objects
+            backdrop,          // register:backdrop
+            arena,             // register:arena
+            segments,          // register:segments
+            glyphs,            // register:glyphs
+            controls,          // register:controls
+            control_net,       // register:control_net
+            widget,            // register:widget
+            text,              // register:text
+            selection_outline, // register:selection_outline
+            solid_outline,     // register:solid_outline
+            cloud,             // register:cloud
+            splat,             // register:splat
+            pick,              // register:pick
+            ssao               // register:ssao
+        )
+    };
+}
+
+/// The lanes, shared.
+macro_rules! shared {
+    ($g:ident; $($lane:ident),*) => { [$(&$g.$lane as &dyn Lane),*] };
+}
+
+/// The lanes, mutable. Each field is borrowed once, so `ctx` stays free.
+macro_rules! owned {
+    ($g:ident; $($lane:ident),*) => { [$(&mut $g.$lane as &mut dyn Lane),*] };
+}
+
 impl Gpu {
     /// Bytes reserved on the GPU: (buffers, textures).
     pub fn allocated_bytes(&self) -> (u64, u64) {
-        let (splat_buffers, splat_textures) = self.splat.allocated_bytes();
-        let (pick_buffers, pick_textures) = self.pick.allocated_bytes();
-        let (mut outline_buffers, mut outline_textures) = self.selection_outline.allocated_bytes();
-        let (buffers, textures) = self.solid_outline.allocated_bytes();
-        outline_buffers += buffers;
-        outline_textures += textures;
-        let buffers = self.arena.allocated_bytes()
-            + self.segments.allocated_bytes()
-            + self.glyphs.allocated_bytes()
-            + self.controls.allocated_bytes()
-            + self.control_net.allocated_bytes()
-            + self.widget.allocated_bytes().0
-            + self.cloud.allocated_bytes()
-            + self.objects.allocated_bytes()
-            + self.frame.allocated_bytes()
-            + self.text.allocated_bytes()
-            + splat_buffers
-            + pick_buffers
-            + outline_buffers
-            + if self.ssao.is_some() { 144 } else { 0 };
+        let mut buffers = 0;
+        let mut textures = 0;
+        for lane in lane_list!(shared, self) {
+            let (b, t) = lane.bytes();
+            buffers += b;
+            textures += t;
+        }
         let pixels = u64::from(self.config.width) * u64::from(self.config.height);
         let samples = u64::from(self.targets.samples);
         // per sample: 4 color + 4 depth + 8 gradient; at 1x no color copy
         let frame_textures = pixels * if samples > 1 { samples * 16 } else { 12 }
             + if samples > 1 { 12 } else { 48 };
-        (
-            buffers,
-            frame_textures
-                + self.widget.allocated_bytes().1
-                + self.arena.tiles.allocated_bytes().1
-                + splat_textures
-                + pick_textures
-                + self.text.texture_bytes()
-                + outline_textures
-                + self.ssao.as_ref().map_or(0, ssao::Ssao::texture_bytes),
-        )
+        (buffers, textures + frame_textures)
     }
 
     /// Open the GPU for a window.
@@ -307,17 +320,11 @@ impl Gpu {
 
         if flip {
             let target = self.target();
-            self.backdrop.retarget(&self.ctx, &self.layouts, target);
-            self.arena.retarget(&self.ctx, &self.layouts, target);
-            self.segments.retarget(&self.ctx, &self.layouts, target);
-            self.glyphs.retarget(&self.ctx, &self.layouts, target);
-            self.controls.retarget(&self.ctx, &self.layouts, target);
-            self.control_net.retarget(&self.ctx, &self.layouts, target);
-            self.widget.retarget(&self.ctx, target);
-            self.text.retarget(&self.ctx, target);
-            self.selection_outline.retarget(&self.ctx, target);
-            self.solid_outline.retarget(&self.ctx, target);
-            self.splat.retarget(&self.ctx, &self.layouts, target);
+            let ctx = &self.ctx;
+            let layouts = &self.layouts;
+            for lane in lane_list!(owned, self) {
+                lane.on_retarget(ctx, layouts, target);
+            }
             log::info!("msaa: {}x", samples);
         }
     }
@@ -375,39 +382,23 @@ impl Gpu {
 
     /// Forget every row; keep the buffers.
     pub fn reset(&mut self) {
-        self.objects.reset();
-        self.arena.reset(&self.ctx);
-        self.segments.reset();
-        self.glyphs.reset();
-        self.controls.reset();
-        self.control_net.reset();
-        self.widget.clear();
-        self.text.reset();
-        self.selection_outline.reset();
-        self.solid_outline.reset();
-        self.pick.cancel();
+        let ctx = &self.ctx;
+        for lane in lane_list!(owned, self) {
+            lane.on_reset(ctx);
+        }
         self.segments.set_edge(&self.ctx, None);
-        self.cloud.reset();
-        self.splat.invalidate();
         self.bounds = AABB::empty();
     }
 
     /// Forget every row and free the buffers.
     pub fn release(&mut self) {
-        self.objects.release(&self.ctx, &self.layouts);
-        self.arena.release(&self.ctx);
-        self.segments.release(&self.ctx, &self.layouts);
-        self.glyphs.release(&self.ctx, &self.layouts);
-        self.controls.release(&self.ctx, &self.layouts);
-        self.control_net.release(&self.ctx, &self.layouts);
-        self.widget.clear();
-        self.text.release(&self.ctx);
-        self.selection_outline.reset();
-        self.solid_outline.reset();
-        self.pick.cancel();
+        let ctx = &self.ctx;
+        let layouts = &self.layouts;
+        for lane in lane_list!(owned, self) {
+            lane.on_release(ctx, layouts);
+        }
         self.segments.set_edge(&self.ctx, None);
-        self.cloud.release(&self.ctx);
-        self.splat.release();
+        // a freed cloud buffer needs a new bind group
         self.splat
             .rebind(&self.ctx, &self.layouts, self.cloud.buffers());
         self.bounds = AABB::empty();

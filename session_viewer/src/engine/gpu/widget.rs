@@ -4,6 +4,7 @@ use super::widget_mesh;
 use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
 use session_rust::Xform;
 use wgpu::util::DeviceExt;
+use crate::engine::pipelines::Layouts;
 
 /// Draws the gumball into its own small texture, then over the frame.
 pub struct Widget {
@@ -410,4 +411,18 @@ fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
     let width = (max[0] + 2.0).ceil().min(size.0 as f64) - x;
     let height = (max[1] + 2.0).ceil().min(size.1 as f64) - y;
     (width > 0.0 && height > 0.0).then_some([x, y, width, height])
+}
+
+impl super::lane::Lane for Widget {
+    fn on_retarget(&mut self, ctx: &GpuCtx, _layouts: &Layouts, target: Target) {
+        self.retarget(ctx, target);
+    }
+
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.clear();
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        self.allocated_bytes()
+    }
 }

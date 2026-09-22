@@ -342,3 +342,21 @@ mod tests {
         assert_eq!(std::mem::offset_of!(GlyphPoint, facing_ext), 40);
     }
 }
+
+impl super::lane::Lane for GlyphLane {
+    fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
+        self.retarget(ctx, layouts, target);
+    }
+
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.reset();
+    }
+
+    fn on_release(&mut self, ctx: &GpuCtx, layouts: &Layouts) {
+        self.release(ctx, layouts);
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), 0)
+    }
+}

@@ -745,3 +745,13 @@ mod tests {
         assert_eq!(nearest_hit(&texels(win, &[]), win), None);
     }
 }
+
+impl super::lane::Lane for Picker {
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.cancel();
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        self.allocated_bytes()
+    }
+}

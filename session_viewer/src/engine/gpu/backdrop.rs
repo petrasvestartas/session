@@ -111,3 +111,9 @@ fn build_grid(
             .physical(),
     )
 }
+
+impl super::lane::Lane for BackdropLane {
+    fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
+        self.retarget(ctx, layouts, target);
+    }
+}

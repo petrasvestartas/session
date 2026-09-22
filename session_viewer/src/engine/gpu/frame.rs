@@ -392,3 +392,9 @@ mod tests {
         assert!((right_bottom[0] - 1.0).abs() < 1e-4 && (right_bottom[1] + 1.0).abs() < 1e-4);
     }
 }
+
+impl super::lane::Lane for FrameUniforms {
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), 0)
+    }
+}

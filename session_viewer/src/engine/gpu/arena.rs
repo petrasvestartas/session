@@ -337,3 +337,21 @@ fn build_pipelines(
         ),
     }
 }
+
+impl super::lane::Lane for ArenaLane {
+    fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
+        self.retarget(ctx, layouts, target);
+    }
+
+    fn on_reset(&mut self, ctx: &GpuCtx) {
+        self.reset(ctx);
+    }
+
+    fn on_release(&mut self, ctx: &GpuCtx, _layouts: &Layouts) {
+        self.release(ctx);
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), self.tiles.allocated_bytes().1)
+    }
+}

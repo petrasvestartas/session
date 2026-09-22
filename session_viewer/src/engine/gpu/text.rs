@@ -11,6 +11,7 @@ use glyphon::{
 };
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
+use crate::engine::pipelines::Layouts;
 
 /// Camera and canvas facts the text lane needs each frame.
 #[derive(Clone, Debug, PartialEq)]
@@ -1039,5 +1040,23 @@ mod tests {
         }
 
         count
+    }
+}
+
+impl super::lane::Lane for TextLane {
+    fn on_retarget(&mut self, ctx: &GpuCtx, _layouts: &Layouts, target: Target) {
+        self.retarget(ctx, target);
+    }
+
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.reset();
+    }
+
+    fn on_release(&mut self, ctx: &GpuCtx, _layouts: &Layouts) {
+        self.release(ctx);
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), self.texture_bytes())
     }
 }

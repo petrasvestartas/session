@@ -667,3 +667,21 @@ mod tests {
         assert_eq!(sheets[1].ids[0], u32::MAX);
     }
 }
+
+impl super::lane::Lane for SegmentLane {
+    fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
+        self.retarget(ctx, layouts, target);
+    }
+
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.reset();
+    }
+
+    fn on_release(&mut self, ctx: &GpuCtx, layouts: &Layouts) {
+        self.release(ctx, layouts);
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), 0)
+    }
+}

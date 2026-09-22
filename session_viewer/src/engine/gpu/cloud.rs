@@ -1,5 +1,6 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::upload::drop_rows;
+use crate::engine::pipelines::Layouts;
 
 /// Marker for a cloud that has no normals.
 pub const NO_NORMALS: u32 = u32::MAX;
@@ -251,5 +252,19 @@ impl CloudLane {
         self.nrm.release(ctx);
         self.clouds.shrink_to_fit();
         self.nodes.shrink_to_fit();
+    }
+}
+
+impl super::lane::Lane for CloudLane {
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.reset();
+    }
+
+    fn on_release(&mut self, ctx: &GpuCtx, _layouts: &Layouts) {
+        self.release(ctx);
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), 0)
     }
 }

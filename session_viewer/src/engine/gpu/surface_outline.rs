@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use super::buffers::GpuCtx;
 use super::targets::{Attachment, Targets, TextureSpec};
 use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
+use crate::engine::pipelines::Layouts;
 
 /// One coverage mask: where the surfaces are on screen.
 struct Mask {
@@ -711,5 +712,19 @@ mod tests {
 
         gpu.release();
         assert_eq!(gpu.selection_outline.allocated_bytes(), (16, 0));
+    }
+}
+
+impl super::lane::Lane for SurfaceOutline {
+    fn on_retarget(&mut self, ctx: &GpuCtx, _layouts: &Layouts, target: Target) {
+        self.retarget(ctx, target);
+    }
+
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.reset();
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        self.allocated_bytes()
     }
 }
