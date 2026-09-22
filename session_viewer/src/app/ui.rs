@@ -15,7 +15,7 @@ pub struct Model {
     pub focus_command: bool,
     pub status: String,
     history: VecDeque<String>,
-    command_collapsed: bool,
+    command_expanded: bool, // The history above the prompt; closed until `+` opens it.
     layers_collapsed: bool,
     completion: usize,
     completion_prefix: String,
@@ -798,11 +798,11 @@ fn commands(
 ) {
     let previous_popup = model.completion_rect.take();
     let polyline_options = model.drawing_command == "polyline";
-    let panel = if model.command_collapsed {
+    let panel = if !model.command_expanded {
         egui::Panel::bottom("command-line-collapsed").exact_size(if polyline_options {
-            62.0
+            58.0
         } else {
-            34.0
+            30.0
         })
     } else {
         egui::Panel::bottom("command-line")
@@ -818,19 +818,19 @@ fn commands(
         .frame(
             egui::Frame::new()
                 .fill(egui::Color32::WHITE)
-                .inner_margin(6),
+                .inner_margin(egui::Margin::symmetric(6, 4)),
         )
         .show_inside(root, |ui| {
             ui.set_min_height(ui.max_rect().height());
             ui.painter().hline(
                 ui.max_rect().x_range().expand(6.0),
-                ui.max_rect().top() - 6.0,
+                ui.max_rect().top() - 4.0,
                 egui::Stroke::new(1.0_f32, egui::Color32::from_gray(110)),
             );
             ui.set_clip_rect(ui.max_rect().expand(6.0));
             ui.style_mut().override_font_id = Some(egui::FontId::proportional(14.0));
             ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
-            if !model.command_collapsed {
+            if model.command_expanded {
                 egui::ScrollArea::vertical()
                     .id_salt("command-history")
                     .auto_shrink([false, false])
@@ -999,6 +999,28 @@ fn commands(
                             + 16.0
                     })
                     .sum();
+                // The options sit before the field, where the eye already is.
+                for name in inline_options {
+                    let label = name.split_once(' ').map_or(*name, |(_, option)| option);
+                    let selected = model.command.trim().eq_ignore_ascii_case(name)
+                        || (model.command.ends_with(' ')
+                            && model.command.split_whitespace().count() == 1
+                            && Some(name) == inline_options.first());
+                    let option = ui.selectable_label(selected, label);
+                    record(controls, &format!("command/option/{label}"), label, &option);
+                    if option.clicked() {
+                        let (text, run) = crate::app::command::accept(name);
+                        if run {
+                            *command = Some(text);
+                            model.command.clear();
+                        } else {
+                            model.command = text;
+                        }
+                        model.completion_visible = false;
+                        model.inline_suffix = false;
+                        model.focus_command = true;
+                    }
+                }
                 let response = ui.add_sized(
                     [(ui.available_width() - option_width - 28.0).max(40.0), 22.0],
                     egui::TextEdit::singleline(&mut model.command)
@@ -1155,27 +1177,6 @@ fn commands(
                     model.inline_suffix = false;
                     model.focus_command = true;
                 }
-                for name in inline_options {
-                    let label = name.split_once(' ').map_or(*name, |(_, option)| option);
-                    let selected = model.command.trim().eq_ignore_ascii_case(name)
-                        || (model.command.ends_with(' ')
-                            && model.command.split_whitespace().count() == 1
-                            && Some(name) == inline_options.first());
-                    let option = ui.selectable_label(selected, label);
-                    record(controls, &format!("command/option/{label}"), label, &option);
-                    if option.clicked() {
-                        let (text, run) = crate::app::command::accept(name);
-                        if run {
-                            *command = Some(text);
-                            model.command.clear();
-                        } else {
-                            model.command = text;
-                        }
-                        model.completion_visible = false;
-                        model.inline_suffix = false;
-                        model.focus_command = true;
-                    }
-                }
                 if enter && (!model.command.trim().is_empty() || !model.drawing_prompt.is_empty()) {
                     let (text, run) =
                         crate::app::command::accept(&std::mem::take(&mut model.command));
@@ -1199,7 +1200,7 @@ fn commands(
                     crate::app::feedback::focus_canvas();
                 }
                 let collapse = ui
-                    .button(if model.command_collapsed { "+" } else { "−" })
+                    .button(if model.command_expanded { "−" } else { "+" })
                     .on_hover_text("Collapse or expand history");
                 record(
                     controls,
@@ -1208,7 +1209,7 @@ fn commands(
                     &collapse,
                 );
                 if collapse.clicked() {
-                    model.command_collapsed = !model.command_collapsed;
+                    model.command_expanded = !model.command_expanded;
                     ui.ctx().request_repaint();
                 }
             });
