@@ -18,7 +18,7 @@ impl State {
     }
 
     /// Split: start choosing cutters, or finish when they are chosen.
-    pub(super) fn split_command(&mut self) -> Result<String, String> {
+    pub(crate) fn split_command(&mut self) -> Result<String, String> {
         // Split again finishes
         if self.pending_split.is_some() {
             return self.finish_split();
@@ -49,7 +49,7 @@ impl State {
     }
 
     /// Drop the pending split and its cutter highlights.
-    pub(super) fn cancel_split(&mut self) {
+    pub(crate) fn cancel_split(&mut self) {
         if let Some(pending) = self.pending_split.take() {
             for row in pending.cutters {
                 self.gpu.set_selected(row, false);

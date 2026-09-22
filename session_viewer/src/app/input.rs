@@ -1,8 +1,7 @@
 use super::touch::{Act, Touches};
 use crate::State;
-use crate::camera::View;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent};
-use winit::keyboard::{Key, NamedKey};
+use winit::keyboard::Key;
 
 /// A press moving less than this many pixels is a click.
 const CLICK_SLOP: f64 = 4.0;
@@ -51,67 +50,10 @@ impl Input {
 
     /// One key press; true when the frame must be redrawn.
     pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
-        match key {
-            Key::Named(NamedKey::Space) => state
-                .camera
-                .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
-            Key::Named(NamedKey::Escape) => {
-                state.draft = None;
-                state.escape_selection();
-            }
-            Key::Named(NamedKey::Enter) => {
-                if state.draft.is_some() {
-                    let result = state.run_command("");
-                    crate::app::feedback::status(&result.unwrap_or_else(|e| e));
-                } else {
-                    state.confirm_split();
-                }
-            }
-            Key::Named(NamedKey::F10) => state.enable_controls(),
-            Key::Named(NamedKey::Delete) => state.delete_selected(),
-            // colon opens the command line
-            Key::Character(":") => {
-                crate::app::feedback::command_line(true);
-            }
-            Key::Character("l" | "L") => state.toggle_layers_panel(),
-            // Ctrl+Z undo, Ctrl+Shift+Z redo
-            Key::Character("z" | "Z") if self.ctrl => {
-                if self.shift {
-                    state.redo()
-                } else {
-                    state.undo()
-                }
-            }
-            Key::Character("y" | "Y") if self.ctrl => state.redo(),
-            Key::Character("1") => state.camera.set_view(View::Front),
-            Key::Character("2") => state.camera.set_view(View::Back),
-            Key::Character("3") => state.camera.set_view(View::Left),
-            Key::Character("4") => state.camera.set_view(View::Right),
-            Key::Character("5") => state.camera.set_view(View::Top),
-            Key::Character("6") => state.camera.set_view(View::Bottom),
-            Key::Character("7") => state.camera.set_view(View::Iso),
-            Key::Character("c" | "C") => state.camera.reset(),
-            Key::Character("f" | "F") => state.fit_selected_or_all(),
-            Key::Character("q" | "Q") => state.gpu.view.show_points = !state.gpu.view.show_points,
-            Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
-            Key::Character("e" | "E") => {
-                state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
-            }
-            Key::Character("o" | "O") => {
-                state.gpu.view.show_outlines = !state.gpu.view.show_outlines
-            }
-            Key::Character("g" | "G") => state.gpu.view.ssao = !state.gpu.view.ssao,
-            Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
-            Key::Character("h" | "H") => state.hide_selected(),
-            Key::Character("s" | "S") => state.show_all(),
-            Key::Character("t" | "T") => state.toggle_selected_names(),
-            Key::Character("b" | "B") => state.gpu.view.backface = !state.gpu.view.backface,
-            Key::Character("p" | "P") => state.toggle_xray(),
-            Key::Character("[") => state.set_cloud_size(state.gpu.view.cloud_size - 0.25),
-            Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
-            _ => return false,
-        }
-
+        let Some(binding) = super::keys::binding(&key, self.ctrl, self.shift) else {
+            return false;
+        };
+        (binding.run)(state);
         true
     }
 

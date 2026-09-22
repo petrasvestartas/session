@@ -1,4 +1,3 @@
-use crate::app::command::Command;
 use crate::app::cplane::CPlane;
 use crate::app::gizmo::{Axis, Drag, Gizmo, Handle};
 use crate::app::layers::{self, Layer};
@@ -337,7 +336,7 @@ impl State {
     }
 
     /// After an undo, redo or delete: rebuild the rows, drop the selection.
-    pub(super) fn after_history(&mut self) {
+    pub(crate) fn after_history(&mut self) {
         self.hierarchy.open.clear();
         self.hierarchy.page = 0;
         self.selection = SelectionMode::Object;
@@ -452,176 +451,31 @@ impl State {
         if let Some(result) = self.drawing_command(line) {
             return result;
         }
-        let command = crate::app::command::parse(line)?;
-        // any other command ends the draft
-        if !matches!(command, Command::Snap(_)) {
+        let action = crate::app::command::parse(line)?;
+
+        if !action.keeps_draft() {
             self.draft = None;
         }
 
-        if command != Command::Split {
+        if !action.keeps_split() {
             self.cancel_split();
         }
 
-        if matches!(command, Command::Delete | Command::Undo | Command::Redo)
+        if action.needs_complete_scene()
             && (!self.scene.streamed.is_empty() || !self.scene.sheets.is_empty())
         {
             return Err("this command requires a scene without streamed sources".into());
         }
 
-        // commands that act on the selection
-        let needs_selection = matches!(
-            command,
-            Command::Move(_) | Command::Rotate { .. } | Command::Scale(_) | Command::Delete
-        );
-
-        if needs_selection && self.scene.selected.is_none() {
+        if action.needs_selection() && self.scene.selected.is_none() {
             return Err("nothing is selected".into());
         }
 
-        match command {
-            Command::Snap(value) => {
-                self.snap_enabled = value.unwrap_or(!self.snap_enabled);
-                Ok(format!(
-                    "Snap {}",
-                    if self.snap_enabled { "On" } else { "Off" }
-                ))
-            }
-            Command::Layers(value) => {
-                if let Some(open) = value {
-                    crate::app::feedback::layers_visible(open);
-                    self.refresh_layers();
-                }
-                Ok("Layers (On Off)".into())
-            }
-            Command::Selection(tool) => {
-                self.escape_selection();
-                self.selection_tool = tool;
-                Ok(format!("{tool:?} selection"))
-            }
-            Command::Controls => {
-                self.enable_controls();
-                Ok("Control points".into())
-            }
-            Command::Ssao(value) => {
-                self.gpu.view.ssao = value.unwrap_or(!self.gpu.view.ssao);
-                Ok(format!(
-                    "SSAO {}",
-                    if self.gpu.view.ssao { "On" } else { "Off" }
-                ))
-            }
-            Command::Split => self.split_command(),
-            Command::Save => {
-                let bytes = crate::app::session_io::save(&self.scene)?;
-                #[cfg(target_arch = "wasm32")]
-                crate::app::session_io::download(&bytes)
-                    .map_err(|e| format!("Save failed: {e:?}"))?;
-                Ok(format!("Saved complete session ({} bytes)", bytes.len()))
-            }
-            Command::Open => {
-                #[cfg(target_arch = "wasm32")]
-                crate::app::session_io::pick();
-                Ok("Choose a .session file".into())
-            }
-            Command::Model(command) => {
-                use crate::app::modeling::Modeling;
-                // a new object, as opposed to an edit
-                let created = matches!(
-                    command,
-                    Modeling::Point(_)
-                        | Modeling::Line(..)
-                        | Modeling::Polyline(_)
-                        | Modeling::Curve(_)
-                );
-                self.scene.model(&command)?;
-                self.after_history();
-
-                if created {
-                    // select the new object: the last row of its document
-                    if let Some(doc) = self.scene.created_doc {
-                        let row = (0..self.gpu.objects.len())
-                            .rev()
-                            .find(|&row| self.scene.identity_of(row).is_some_and(|id| id.0 == doc));
-                        self.select(row);
-                    }
-
-                    let name = match command {
-                        Modeling::Point(_) => "point",
-                        Modeling::Line(..) => "line",
-                        Modeling::Curve(_) => "NURBS curve",
-                        _ => "polyline",
-                    };
-                    Ok(format!(
-                        "Created and selected {name}. Type Fit to locate it; Undo to remove it."
-                    ))
-                } else {
-                    Ok("geometry updated".into())
-                }
-            }
-            Command::Move(d) => self.apply(Xform::translation(d[0], d[1], d[2]), "move"),
-            Command::Rotate { axis, degrees } => {
-                let about = self.gizmo.as_ref().map(|g| g.origin.clone()); // turn about the gizmo
-                let turn = rotation_about(axis, degrees, about.as_ref());
-                self.apply(turn, "rotate")
-            }
-            Command::Scale(k) => {
-                let about = self.gizmo.as_ref().map(|g| g.origin.clone());
-                self.apply(scaling_about(k, about.as_ref()), "scale")
-            }
-            Command::Delete => {
-                let row = self.scene.selected.ok_or("nothing is selected")?;
-
-                if !self.scene.delete_row(row) {
-                    return Err("this object cannot be deleted".into());
-                }
-
-                self.after_history();
-                Ok("deleted".into())
-            }
-            Command::Undo => {
-                if !self.scene.undo() {
-                    return Err("nothing to undo".into());
-                }
-
-                self.after_history();
-                Ok("undone".into())
-            }
-            Command::Redo => {
-                if !self.scene.redo() {
-                    return Err("nothing to redo".into());
-                }
-
-                self.after_history();
-                Ok("redone".into())
-            }
-            Command::Hide => {
-                self.hide_selected();
-                Ok("hidden".into())
-            }
-            Command::Opacity(value) => {
-                self.set_opacity(value);
-                Ok(format!("Opacity {value}"))
-            }
-            Command::Attributes(value) => {
-                let shown = self.show_attributes(value);
-                Ok(format!("Attributes {}", if shown { "On" } else { "Off" }))
-            }
-            Command::ShowAll => {
-                self.show_all();
-                Ok("everything shown".into())
-            }
-            Command::Fit => {
-                self.fit_selected_or_all();
-                Ok("fitted".into())
-            }
-            Command::Escape => {
-                self.escape_selection();
-                Ok("selection cleared".into())
-            }
-        }
+        action.run(self)
     }
 
     /// Apply one transform to the selection and record it.
-    fn apply(&mut self, delta: Xform, label: &str) -> Result<String, String> {
+    pub(crate) fn apply(&mut self, delta: Xform, label: &str) -> Result<String, String> {
         let Some(row) = self.scene.selected else {
             return Err("nothing is selected".into());
         };
@@ -653,7 +507,7 @@ impl State {
 }
 
 /// A rotation about a point.
-fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
+pub(crate) fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
     let turn = match axis {
         Axis::X => Xform::rotation_x(degrees, true),
         Axis::Y => Xform::rotation_y(degrees, true),
@@ -663,7 +517,7 @@ fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
 }
 
 /// A uniform scale about a point.
-fn scaling_about(factor: f64, about: Option<&Point>) -> Xform {
+pub(crate) fn scaling_about(factor: f64, about: Option<&Point>) -> Xform {
     match about {
         Some(p) => Xform::scale_uniform(p, factor),
         None => Xform::scale_xyz(factor, factor, factor),

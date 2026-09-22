@@ -8,6 +8,7 @@ pub mod feedback;
 pub mod gizmo;
 pub mod hierarchy;
 pub mod input;
+pub mod keys;
 pub mod knobs;
 pub mod layers;
 pub mod manifest;
