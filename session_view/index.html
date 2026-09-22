@@ -3,10 +3,130 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Session checkpoint 00</title>
-    <link data-trunk rel="rust" data-wasm-opt="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>01 - First WebGPU frame</title>
+    <!-- Trunk build instruction. Trunk scans index.html for <link data-trunk ...> -->
+    <!-- rel="rust" means compile the Rust crate in this directory to WebAssembly Trunk runs cargo build --target wasm32-unknown-unknown, runs wasm-bindgen, then replaces this tag with the script <script> that loads the .wasm and the JavaScript glue. -->
+    <!-- data-target-name="session_view" - which cargo target to build. -->
+    <!-- data-wasm-opt=0 - skip wasm-opt after building. Faster rebuilds during the course; production sets a level like z -->
+    <link data-trunk rel="rust" data-target-name="session_view" data-wasm-opt="0">
+    <style>
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background: #171b23;
+            color: white;
+            font: 14px sans-serif;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        #status {
+            position: fixed;
+            left: 12px;
+            top: 12px;
+            padding: 8px;
+            pointer-events: none;
+        }
+    </style>
 </head>
 
-<body><output id="status">Loading WASM</output></body>
+<body>
+    <!-- This is the drawing surface itself. Tutorial::create(canvas), which wgpu wraps as the Surface. Everything GPU code daraw ends up in these pixel.s -->
+    <!-- id="canvas"  - how the JS finds it (document.getElementById("canvas")) before calling create-->
+    <!-- tabindex="0" - makes the canvas focusable, so it can receive keyboard events -->
+    <canvas id="canvas" tabindex="0"></canvas>
+    <output id="status">Starting checkpoint 01</output>
+    <script>
+
+        let tutorial;
+        let pointer;
+
+        /// Read the generated WASM exports after Trunk has initialized the module.
+        async function start(){
+
+            /// The object Trunk publishes once its injected loader thas fetched and instantiated the .wasm.
+            /// It does not exist when the page inline script first runs, to start reschedules itself every 20 ms.
+            if (!window.wasmBindings){
+                setTimeout(start, 20);
+                return;
+            }
+
+            try {
+
+                ///  #[wasm_bindgen] pub async fn create; turns into a JS promise, hence await.
+                /// It asks for the adapter and device and builds the pipeline, and hands back the object.
+                tutorial = await window.wasmBindings.Tutorial.create(document.getElementById('canvas'));
+
+                /// Exposes it on the console so you can type manually by debugging: tutorial.render(800, 600, 1)
+                window.tutorial = tutorial;
+
+                /// Draws the first frame
+                render();
+            } catch (error){
+                document.getElementById('status').textContent = String(error);
+                throw error;
+            }
+        }
+
+        /// Keep the per at the actual CSS size times browser device scale.
+        function render(){
+            const canvas = document.getElementById('canvas');
+            const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+            canvas.dataset.tutorialInspection = JSON.stringify(state);
+            document.getElementById('status').textContent = 'Checkpoint 01 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+        }
+
+        /// Start an orbit gesture - shift selecs pan in checkpoints with a camera.
+        function down(event){
+            pointer = [event.clientX, event.clientY]; // remembers where the drag started
+            event.target.setPointerCapture(event.pointerId); // routes all further pointer events for that finger/button to this element
+        }
+
+        /// Forward one CSS-pixel to the production camera.
+        function move(event){
+            if (!pointer) // no drag in progress
+                return;
+            const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1]; // how far the pointer moved since the last event
+            pointer = [event.clientX, event.clientY];
+            tutorial.drag(dx, dy, event.shiftKey); // Shift is passed as the "pan instead of orbit"
+            render(); // draw the animation loop
+        }
+
+        /// End pointer ownership without retaining a stale gesture.
+        function up(){
+            pointer = undefined;
+        }
+
+        /// Normalize DOM wheel pixels to the production camera step, the dolly toward the actual curson in the same physical-pixel space as the framebuffer.
+        function wheel(event){
+            event.preventDefault(); // stops the browser from scrolling the page instead.
+            tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY); // positive when scrolling down
+            render(); // redraw
+        }
+
+        /// Schedule a resize only after initialization completed.
+        function resize() {
+            if (tutorial)
+                render();
+        }
+
+        const canvas = document.getElementById('canvas');
+
+        // Events for mouse, pen and touch, so the same code handles a trackpad drag and a finger.
+        canvas.addEventListener('pointerdown', down);
+        canvas.addEventListener('pointermove', move);
+        canvas.addEventListener('pointerup', up);
+        canvas.addEventListener('pointercancel', up);
+        canvas.addEventListener('wheel', wheel, {passive: false});
+        window.addEventListener('resize', resize);
+        start(); // kicks off the polling loop that waits for the WASM and builds tutorial
+
+    </script>
+</body>
 
 </html>

@@ -6,38 +6,47 @@ paths:
 
 # Viewer lesson docs (session_viewer/docs/NN-*.md)
 
-- Lesson code is NEVER written in the Markdown. A lesson is prose plus directives that
-  `docs/course_pages.py` expands from the verified checkpoint patches under
-  `docs/reconstruction/`: `<!-- file: NN path [type|copy] [hunks=..] [lines=A-B] [whole] -->`
-  renders CURRENT / REPLACE WITH, CURRENT / ADD BELOW, NEW FILE or DELETE blocks;
-  `<!-- supplied: NN -->`, `<!-- tree: NN prefix -->`, `<!-- listing: NN path -->`,
-  `<!-- check: NN -->`, `<!-- checkpoint: NN -->` are the other directives.
-- Prose is bullets, one idea per step, code first; a block says WHAT, prose says WHY. Never
-  narrate an edit. Label TYPE THIS / COPY deliberately. Numbers only when visible in shown code.
-- Tests are not documented in docs/: test files, examples and parity ports are "supplied"
-  (installed by `replay.py --copy-supplied`), never explained.
-- `python3 docs/course_pages.py --audit` must pass: every checkpoint change taught or supplied
-  exactly once, and typing the lesson literally reproduces the checkpoint hashes. Every
-  `<!-- check: NN -->` marker must be recorded by `docs/reconstruction/compile_points.py`
-  (it runs cargo check on the typed state; one cargo process at a time, -j4).
-- Each lesson also states, before its first step, which of its steps compile. That sentence is
-  generated: `docs/reconstruction/step_checks.py` cargo-checks the typed state at the end of
-  EVERY step (CARGO_INCREMENTAL=0 - 195 distinct states otherwise fill the disk) into
-  `step-checks.json`, and `step_status.py` renders it between the `step-status` markers.
-  `step_status.py --check` fails when a lesson is stale; re-run both after editing steps.
-- The series is git history: `series_git.py materialize` builds it (one commit per step, tags
-  `step/NN`), `extensions_git.py append` adds the integrated chain as steps 22.. and each other
-  extension lesson as `alt/<id>` off step 21. Changing viewer source: run
-  `house_format.py` on it, `fold.py --production` folds the diff into the steps that own the
-  lines, `check_steps.py` proves every step compiles, then `series_git.py regenerate --ref <branch>
-  --production <worktree at step 21>`, `extensions_git.py regenerate`, `retile.py`, audit,
-  `compile_points.py`, `extensions.py --verify` + `--write`, `docs/serve.sh build`, `check_site.py`.
-- The kernel is never taught. `kernel-base.json` pins session_rust and the parity sources at the
-  maintained HEADs (`pin_kernel.py` re-pins; `rebase_series.py` puts every step's viewer on the
-  new base); a lesson that explains kernel code uses `<!-- listing: NN session_rust/... -->`, never
-  a `file` directive. `port_math.py` + `reformat_series.py series --port` is the pattern for a
-  viewer-wide API move: a deterministic rewrite applied to every step tree, with production as
-  its fixed point, instead of amending and rebasing 36 commits.
+- Every checkpoint of the course is a complete, runnable crate under
+  `session_viewer/docs/lessons/<id>/`. The course is ONE chain, `00` to `37` (with `04a-d`):
+  one starting point, one ending point, and `37` equals the maintained viewer. A new feature
+  becomes the next lesson at the end; there are no branches or alternate tracks.
+  `docs/lessons/SERIES.txt` is the parent map: `<id> <parent-id> <page>`. Each crate depends on
+  the live kernel through `session_rust = { path = "../../../../session_rust" }` and carries an
+  empty `[workspace]`; `cargo check` / `trunk serve` inside the directory must just work.
+- Lesson code is NEVER written in the Markdown. A step is one reference line
+  (`` `lessons/01/src/lib.rs` · type this, append at the end of the file ``) followed by a
+  `pymdownx.snippets` include of a named section of the real file:
+  ```` ```rust
+  --8<-- "lessons/01/src/lib.rs:step-2"
+  ``` ````
+  The section is fenced in the crate by two comment lines, `// --8<-- [start:step-2]` and
+  `// --8<-- [end:step-2]` (`#` in TOML/YAML/sh, `<!-- -->` in HTML outside script), stripped
+  from the rendered page. Those markers are the only link between page and crate: keep them when
+  editing, move them with the code, and a missing one fails the site build by name. Only the two
+  kernel listings (`--8<-- "session_rust/src/color.rs:171:173"`) still use line numbers, because
+  the kernel is never annotated. The kernel is included through the `..` base path, never copied
+  into a lesson. There is no generator: a change to step N is applied to every later crate by
+  hand (`diff -r docs/lessons/N docs/lessons/N+1` shows what each step owns).
+- Page prose: ONE plain sentence per step, under 25 words, no parenthetical asides, no
+  cross-references to other steps or lessons. It says what the block does, not how Rust or wgpu
+  works. Example: "Append: create the GPU connection in four steps, instance → surface → adapter
+  → device and queue." Label "type this" / "copy the file" deliberately. Tests, examples and
+  parity ports are listed as files to copy from the lesson crate, never explained.
+- Code comments, in the lesson crates AND in production `session_viewer/src/`: every line a
+  first-time reader would ask "what is this?" about gets a comment: on the right for a field or argument, one line above for a statement. Under ten
+  words, plain words, present tense, no jargon the code does not already show. Say what the
+  thing IS or DOES, never why the API is designed that way. Good: `width: 1, // canvas size in
+  pixels`, `// no depth buffer yet`. Bad: anything that needs a second sentence, a "because",
+  or names a later lesson. Each step starts with one heading comment naming its part. A
+  comment must survive two readings: first as its author, then by a fresh agent with no
+  context (`Explore` or a plain fork) asked to explain the line from the comment alone; a
+  comment it cannot explain is rewritten, not extended. No comment of any kind spans more than one line, `///` included; a paragraph of
+  rationale is deleted, not shortened, and the code's own names carry the meaning.
+  A comment is the same text wherever the line exists: in production `src/` and in every lesson
+  crate that contains it, so a note written in one place is copied verbatim to the others.
+- The only site check is `docs/serve.sh build` (MkDocs with `check_paths: true`: a snippet that
+  names a missing file fails the build). The only code check is `cargo check -j4 --lib` inside
+  the lesson directory, one lesson at a time.
 - The viewer page carries a black folded-corner link to `docs/`; Trunk copies `target/docs/site`
   into `dist/docs` and `docs/build_site.sh` (pre-build hook) rebuilds the site when stale.
 - Mermaid: `flowchart TB` for chains longer than five nodes (LR gets shrunk to unreadable size);
@@ -47,22 +56,15 @@ paths:
   (`--all` everything, `--check` fails when a committed SVG is stale). It fetches its own pinned
   d2 into `target/tools/` the first time, so a fresh checkout needs one command and a network
   connection once. Edit the `.d2`, never the `.svg`.
-- Every step opens with the viewer map, and a compact copy of it stays pinned while the reader
-  scrolls: `python3 docs/locator.py` regenerates both plus the per-code-block zone marks the
-  pinned bar follows (`--check` fails when a lesson is stale). It refuses to run when a taught
-  file matches no zone, so a new top-level path means adding it to `ZONES` there.
 - `python3 docs/check_svg.py docs/illustrations/*.svg` is the playwright-free check: it renders each
   SVG in an installed Chrome and fails on a label that leaves the canvas, overlaps another, or is
-  too close in colour to the shape it sits on (below 3:1, found by paint order and exact fill
-  containment - `Canvas.raw()` rewrites white to near-black for the dark page, which silently turns
-  ink on a light box into ink on a black one). It exits non-zero. Use it when
+  too close in colour to the shape it sits on (below 3:1). It exits non-zero. Use it when
   `check_illustrations.cjs` cannot run. NOTE: running `draw.py` REWRITES every SVG and strips the
   measured `textLength` pins; restore them with
   `git checkout -- $(grep -l textLength docs/illustrations/*.svg)` before committing, or re-pin the
   regenerated set with `python3 docs/check_svg.py --write docs/illustrations/*.svg`. `--write` skips
-  a drawing its generator owns (the d2 diagrams, `map.svg`, `locator-*`, `strip-*`): those are
-  verified by byte comparison, so a pin would make them report stale for good.
+  the d2 diagrams: those are verified by byte comparison, so a pin would make them report stale
+  for good. `illustrations/map.svg` is a committed static drawing with no generator.
 - Illustrations come from `docs/illustrations/draw.py` (BRG Equilibrium palette; boxes sized
   from text). Never hand-place SVG text: regenerate, then `node docs/check_illustrations.cjs
   --write` must PASS (real Chrome metrics, no overflow, no collisions, pinned textLength).
-
