@@ -3,13 +3,14 @@
 
 <head>
     <meta charset="utf-8">
+    <!-- --8<-- [start:step-7] -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>01 - First WebGPU frame</title>
     <!-- Trunk build instruction. Trunk scans index.html for <link data-trunk ...> -->
     <!-- rel="rust" means compile the Rust crate in this directory to WebAssembly Trunk runs cargo build --target wasm32-unknown-unknown, runs wasm-bindgen, then replaces this tag with the script <script> that loads the .wasm and the JavaScript glue. -->
-    <!-- data-target-name="session_view" - which cargo target to build. -->
+    <!-- data-target-name="session_viewer" - which cargo target to build. -->
     <!-- data-wasm-opt=0 - skip wasm-opt after building. Faster rebuilds during the course; production sets a level like z -->
-    <link data-trunk rel="rust" data-target-name="session_view" data-wasm-opt="0">
+    <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
     <style>
         html, body {
             margin: 0;
@@ -128,6 +129,7 @@
         start(); // kicks off the polling loop that waits for the WASM and builds tutorial
 
     </script>
+    <!-- --8<-- [end:step-7] -->
 </body>
 
 </html>
