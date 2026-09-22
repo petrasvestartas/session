@@ -33,10 +33,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Only session_rust is a build dependency of the viewer; the other submodules
-      # (C++/Python kernels, data) are dead weight for this job.
-      - name: Checkout session_rust submodule
-        run: git submodule update --init --depth 1 session_rust
+      # session_rust is the viewer's build dependency, session_proto holds the one
+      # schema lesson 19 includes; the other submodules are dead weight for this job.
+      - name: Checkout the submodules the course needs
+        run: git submodule update --init --depth 1 session_rust session_proto
       - name: Add wasm target
         run: rustup target add wasm32-unknown-unknown
       - name: Install trunk
