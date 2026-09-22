@@ -92,7 +92,7 @@ impl Row {
 }
 
 /// The feature types wood's `show_attributes` draws: what `Attributes On` shows on the element.
-const ATTRIBUTE_FEATURES: [&str; 4] = ["outline", "axis", "section", "centroid"];
+const ATTRIBUTE_FEATURES: [&str; 3] = ["outline", "axis", "section"];
 const ATTRIBUTE_LINE_PX: f64 = 2.0; // Twice the 1 px default pen.
 const ATTRIBUTE_DOT_PX: f64 = 12.0; // Twice the 6 px standalone point.
 
@@ -198,20 +198,15 @@ mod tests {
     use session_rust::Polyline;
     use session_rust::element::ElementFeature;
 
-    /// One element with a box, an `axis` polyline far outside it, a `centroid` point and a
+    /// One element with a box, an `axis` polyline far outside it, a one-point `section` and a
     /// `cut` that is not an attribute, walked with attributes on or off.
     fn walk_element(attributes: bool) -> (Upload, Row) {
         let mut element = Element::new("beam");
         element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
         let axis = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(100.0, 0.0, 0.0)]);
         element.add_feature(ElementFeature::new("axis", -1, vec![axis], "axis"));
-        let centroid = Polyline::new(vec![Point::new(5.0, 5.0, 5.0)]);
-        element.add_feature(ElementFeature::new(
-            "centroid",
-            -1,
-            vec![centroid],
-            "centroid",
-        ));
+        let dot = Polyline::new(vec![Point::new(5.0, 5.0, 5.0)]);
+        element.add_feature(ElementFeature::new("section", -1, vec![dot], "section"));
         let cut = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(0.0, 200.0, 0.0)]);
         element.add_feature(ElementFeature::new("cut", 0, vec![cut], "cut"));
         let mut up = Upload::default();

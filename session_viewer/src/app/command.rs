@@ -23,7 +23,7 @@ pub enum Command {
     Fit,
     Layers(Option<bool>),
     Opacity(f32), // Alpha on every closed solid: 0 x-ray, 1 solid, between them see-through.
-    Attributes(Option<bool>), // Draw or remove the element features - outlines, axes, sections, centroids - inside their element.
+    Attributes(Option<bool>), // Draw or remove the element features - outlines, axes, sections - inside their element.
     Selection(crate::app::selection::SelectionTool),
     Controls,
     Ssao(Option<bool>),
