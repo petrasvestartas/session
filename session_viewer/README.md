@@ -63,4 +63,4 @@ bash/view_put.sh out/scan.pb
 bash/view_live.sh scene.yaml scan.pb
 ```
 
-The course supplies the complete checkpoint patches, pinned shared prerequisites and a reconstruction driver under `docs/reconstruction/`; the lessons are in `docs/`.
+Every checkpoint of the course is a runnable crate under `docs/lessons/<id>/`; the lessons are in `docs/`.

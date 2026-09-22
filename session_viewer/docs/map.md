@@ -51,7 +51,7 @@ They meet once: the walk's rows are uploaded, and the frame path reads only thos
 
 **Scene + walk** lit: you are deciding what a document *becomes*. Nothing here can see the camera; wanting to is the design telling you the work belongs one row down.
 
-Two zones lit: the change crosses a boundary — a file written across several steps, with the build red in between. The **Does it compile yet?** line at the top of each lesson names them.
+Two zones lit: the change crosses a boundary — a file written across several steps, with the build red in between; the lesson says where to run `cargo check`.
 
 ## Next
 

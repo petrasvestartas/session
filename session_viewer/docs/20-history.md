@@ -1,28 +1,36 @@
 # 20 · The document: undo, redo and save
-<!-- locator: off -->
 
 The sheet scene stays visible while document edits gain undo, redo and history-free saving.
 
 ![Edits group into transactions and a removal leaves a tombstone to restore from; the cursor moves back and forward through them, and a save purges the whole buffer because history never crosses pb or JSON.](illustrations/history.svg)
 
-<!-- step-status: start -->
-
-**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
-
-<!-- step-status: end -->
-
 ## Step 1 · session_rust/src/history.rs
 
 Read this source file from its link; the checkpoint already contains it.
-<!-- listing: 20 session_rust/src/history.rs -->
+
+???
+
+    ```rust
+    --8<-- "session_rust/src/history.rs"
+    ```
+    
+
 ## Step 2 · session_rust/src/session.rs
 
 Read this source file from its link; the checkpoint already contains it.
-<!-- listing: 20 session_rust/src/session.rs -->
-<!-- check: 20 -->
+
+???
+
+    ```rust
+    --8<-- "session_rust/src/session.rs"
+    ```
+    
+
+Run `cargo check` in `lessons/20/`.
+
 ## Check
 
-<!-- checkpoint: 20 -->
+Run `trunk serve` in `lessons/20/` and open <http://127.0.0.1:8770/>.
 
 Expected: The sheet scene stays visible while document edits gain undo, redo and history-free saving; status: **the status clears when loading finishes**.
 
@@ -35,9 +43,70 @@ If it fails:
 
 ## What changed
 
-<!-- tree: 20 session_rust/src -->
+```text
+lessons/20/session_rust/src/
+├── bin/
+│   ├── minitest.rs
+│   └── pdf_import.rs
+├── proto/
+│   ├── .gitattributes
+│   └── session_proto.rs
+├── aabb.rs
+├── boolean_polyline.rs
+├── brep.rs
+├── closest.rs
+├── color.rs
+├── convex_hull.rs
+├── element.rs
+├── file_encoders.rs
+├── file_obj.rs
+├── file_step.rs
+├── graph.rs
+├── guid_serde.rs
+├── history.rs
+├── instance_ref.rs
+├── intersection.rs
+├── io_xyz.rs
+├── lib.rs
+├── line.rs
+├── main.rs
+├── matrix.rs
+├── mesh.rs
+├── mesh_offset.rs
+├── nurbscurve.rs
+├── nurbsknot.rs
+├── nurbssurface.rs
+├── nurbssurface_trimmed.rs
+├── obb.rs
+├── objects.rs
+├── pdf.rs
+├── plane.rs
+├── point.rs
+├── pointcloud.rs
+├── polyline.rs
+├── primitives.rs
+├── quaternion.rs
+├── remesh_cdt.rs
+├── remesh_nurbssurface_adaptive.rs
+├── remesh_nurbssurface_grid.rs
+├── render_mesh.rs
+├── session.rs
+├── session_config.rs
+├── simple_split.rs
+├── spatial_aabbtree.rs
+├── spatial_bvh.rs
+├── spatial_kdtree.rs
+├── spatial_octree.rs
+├── spatial_rtree.rs
+├── tolerance.rs
+├── tree.rs
+├── vector.rs
+└── xform.rs
+```
 
-Data flow: edit → document transaction → undo cursor → restored source. Every file at this point: [source at checkpoint 20](../lessons/20/index.md).
+`+` new in this lesson · `~` changed in this lesson
+
+Every file at this point: `lessons/20/`.
 
 ## Next
 
@@ -45,6 +114,6 @@ Data flow: edit → document transaction → undo cursor → restored source. Ev
 
 ## Expected viewer result
 
-The viewer appearance is unchanged from checkpoint 19: the same two sheets still draw in top view. This lesson adds kernel history, with no new viewer controls; the undo, redo and save checks above verify the new behavior. The image is a maintained-viewer reference of the same sheet scene.
+The picture is unchanged from lesson 19; undo, redo and save are the new behavior.
 
 [![Full viewer result for 20 history](screenshots/19-sheets-overview.png)](screenshots/19-sheets-overview.png)

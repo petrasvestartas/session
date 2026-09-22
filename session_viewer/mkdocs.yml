@@ -1,6 +1,9 @@
 site_name: Build the Session Viewer
 site_description: A code-first course that reconstructs the Rust, WebAssembly, WebGPU and WGSL viewer step by step.
 docs_dir: target/docs/source
+# The lesson crates are read by the snippets extension, not copied into the site.
+exclude_docs: |
+  docs/lessons/
 site_dir: target/docs/site
 dev_addr: 127.0.0.1:8772
 theme:
@@ -18,8 +21,6 @@ theme:
     - content.code.annotate
 plugins:
   - search
-hooks:
-  - docs/course_pages.py
 validation:
   nav:
     omitted_files: ignore
@@ -30,6 +31,11 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.details
+  - pymdownx.snippets:
+      base_path:
+        - !relative $config_dir/docs
+        - !relative $config_dir/..
+      check_paths: true
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -44,7 +50,6 @@ extra_css:
   - docs/stylesheets/theme.css
   - docs/stylesheets/course.css
 extra_javascript:
-  - docs/js/locator.js
   - docs/js/viewer.js
 watch:
   - docs
@@ -94,6 +99,11 @@ nav:
     - 9 · Live editing and layer controls: docs/current-9.md
     - 10 · Split curves and joined faces: docs/current-10.md
     - 11 · Colors and large-object dragging: docs/current-11.md
+    - 12 · Contact shadows that follow object size: docs/current-12.md
+    - 13 · Polyline options, ordered input and a remembered view: docs/current-13.md
+    - 14 · Attributes On|Off and a phone keyboard: docs/current-14.md
+    - 15 · Translucent faces and the Opacity command: docs/current-15.md
+    - 16 · Attribute features in red and a one-row command dock: docs/current-16.md
   - Capstone: docs/capstone.md
   - Extending the viewer:
     - Small code, bounded work: docs/performance-patterns.md

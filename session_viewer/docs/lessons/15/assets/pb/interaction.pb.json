@@ -1,0 +1,103 @@
+[
+  {
+    "edge": [
+      -9.0,
+      4.0,
+      0.2
+    ],
+    "guid": "b1c88add-f93a-4dea-b578-51f32dec6857",
+    "kind": "mesh",
+    "minimum_controls": 8,
+    "pick": [
+      -9.0,
+      3.0,
+      0.2
+    ]
+  },
+  {
+    "edge": [
+      -3.0,
+      3.0,
+      0.0
+    ],
+    "guid": "91368cd2-ca1d-4243-8181-5a723fd43912",
+    "kind": "line",
+    "minimum_controls": 2,
+    "pick": [
+      -3.0,
+      3.0,
+      0.0
+    ]
+  },
+  {
+    "edge": [
+      2.5,
+      3.5,
+      0.0
+    ],
+    "guid": "855d04f8-927f-4130-97c6-ad0529fd503c",
+    "kind": "polyline",
+    "minimum_controls": 3,
+    "pick": [
+      2.5,
+      3.5,
+      0.0
+    ]
+  },
+  {
+    "edge": [
+      9.0,
+      3.5,
+      0.0
+    ],
+    "guid": "e9a42cb0-3030-4600-b8a6-cfabc0c30bc2",
+    "kind": "curve",
+    "minimum_controls": 3,
+    "pick": [
+      9.0,
+      3.5,
+      0.0
+    ]
+  },
+  {
+    "edge": [
+      -9.0,
+      -2.0,
+      0.0
+    ],
+    "guid": "e53963fb-ec51-498c-9fe7-99cce8fc0c18",
+    "kind": "surface",
+    "minimum_controls": 4,
+    "pick": [
+      -9.0,
+      -3.0,
+      0.0
+    ]
+  },
+  {
+    "edge": [
+      -3.0,
+      -2.0,
+      0.2
+    ],
+    "guid": "10a5f5ff-2ef1-42c1-92db-43486fe722ad",
+    "kind": "brep",
+    "minimum_controls": 8,
+    "pick": [
+      -3.0,
+      -3.0,
+      0.2
+    ]
+  },
+  {
+    "edge": null,
+    "guid": "3cde5d77-4b09-4389-867d-473fe1108cb8",
+    "kind": "cloud",
+    "minimum_controls": 0,
+    "pick": [
+      3.0,
+      -3.0,
+      0.0
+    ]
+  }
+]

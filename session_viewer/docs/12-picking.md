@@ -1,199 +1,678 @@
 # 12 · maintained viewer shell and picking
-<!-- locator: off -->
 
 The seven-object fixture supports object and source-edge selection.
 
 ![A pointer release becomes a scissored ID window, an asynchronous bounded readback, a Scene lookup and a selected flag; stale generations are dropped.](illustrations/picking.svg)
 
-<!-- step-status: start -->
+Copy each file from the lesson folder to the path shown.
 
-**Does it compile yet?** `cargo check` passes after steps 1–13, 16 and 17; steps 14 and 15 fail and build again at step 16.
+Copy from `lessons/12/` (tooling this checkpoint needs but the course does not teach):
 
-<!-- step-status: end -->
+- `lessons/12/assets/pb/interaction.pb.json`
+- `lessons/12/src/selftest/lifecycle.rs`
+- `lessons/12/assets/pb/interaction.pb` (binary)
 
-Download each file to the path shown.
-<!-- supplied: 12 -->
 ## Step 1 · src/engine/gpu/device.rs
 
-Device setup chooses supported limits and reports GPU failures. Preserve the first error so follow-on failures do not hide its cause.
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-80 -->
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=81-113 -->
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=114-162 -->
-Download this part from its link to the path shown.
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=163-233 -->
+Device setup chooses supported limits and reports GPU failures.
+
+`lessons/12/src/engine/gpu/device.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/device.rs:step-1a"
+```
+
+`lessons/12/src/engine/gpu/device.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/device.rs:step-1b"
+```
+
+`lessons/12/src/engine/gpu/device.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/device.rs:step-1c"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/12/src/engine/gpu/device.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/device.rs:step-1d"
+```
+
 ## Step 2 · src/engine/gpu/present.rs
 
-Presentation acquires the frame and submits rendering work. Handle a lost surface before requesting another frame.
-<!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=1-65 -->
-<!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=66-82 -->
-Download this part from its link to the path shown.
-<!-- file: 12 session_viewer/src/engine/gpu/present.rs copy lines=83-182 -->
+Presentation acquires the frame and submits rendering work.
+
+`lessons/12/src/engine/gpu/present.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/present.rs:step-2a"
+```
+
+`lessons/12/src/engine/gpu/present.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/present.rs:step-2b"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/12/src/engine/gpu/present.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/present.rs:step-2c"
+```
+
 ## Step 3 · src/engine/gpu/render.rs
 
-The frame encoder orders face, ink, picking and overlay passes. Later passes must load the attachments written by earlier ones.
-<!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=1-54 -->
-<!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=55-131 -->
+The frame encoder orders face, ink, picking and overlay passes.
+
+`lessons/12/src/engine/gpu/render.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/render.rs:step-3a"
+```
+
+`lessons/12/src/engine/gpu/render.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/render.rs:step-3b"
+```
+
 ## Step 4 · src/app/input.rs
 
-Input routes gestures and keyboard actions to State. A moved pointer is a drag, not a selection click.
-<!-- file: 12 session_viewer/src/app/input.rs type lines=1-39 -->
-<!-- file: 12 session_viewer/src/app/input.rs type lines=40-74 -->
-<!-- file: 12 session_viewer/src/app/input.rs type lines=75-165 -->
-<!-- file: 12 session_viewer/src/app/input.rs type lines=166-195 -->
-Download this part from its link to the path shown.
-<!-- file: 12 session_viewer/src/app/input.rs copy lines=196-257 -->
+Input routes gestures and keyboard actions to State.
+
+`lessons/12/src/app/input.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/app/input.rs:step-4a"
+```
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/input.rs:step-4b"
+```
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/input.rs:step-4c"
+```
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/input.rs:step-4d"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/12/src/app/input.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/input.rs:step-4e"
+```
+
 ## Step 5 · src/app/touch.rs
 
-Download this file from its link to the path shown.
-<!-- file: 12 session_viewer/src/app/touch.rs copy lines=1-34 -->
-<!-- file: 12 session_viewer/src/app/touch.rs type lines=35-99 -->
-Download this part from its link to the path shown.
-<!-- file: 12 session_viewer/src/app/touch.rs copy lines=100-198 -->
+Copy this file from the lesson folder to the path shown.
+
+`lessons/12/src/app/touch.rs` · copy the file, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/app/touch.rs:step-5a"
+```
+
+`lessons/12/src/app/touch.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/touch.rs:step-5b"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/12/src/app/touch.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/touch.rs:step-5c"
+```
+
 ## Step 6 · src/app/scene.rs
 
-The scene owns source documents and maps their identities to GPU rows. Rebuild that mapping whenever rows are replaced.
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-48 -->
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=49-105 -->
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=106-167 -->
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=168-191 -->
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=192-260 -->
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=261-325 -->
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=326-340 -->
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=341-408 -->
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=409-492 -->
+The scene owns source documents and maps their identities to GPU rows.
+
+`lessons/12/src/app/scene.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:step-6a"
+```
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:step-6b"
+```
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:step-6c"
+```
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:step-6d"
+```
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:step-6e"
+```
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:step-6f"
+```
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:step-6g"
+```
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:step-6h"
+```
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:step-6i"
+```
+
 ## Step 7 · src/app/selection.rs
 
-Selection keeps original edge, face and control IDs under their parent object. Display mesh indices are not source IDs.
-<!-- file: 12 session_viewer/src/app/selection.rs type -->
+Selection keeps original edge, face and control IDs under their parent object.
+
+`lessons/12/src/app/selection.rs` · 32 lines · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/selection.rs"
+```
+
 ## Step 8 · src/app/walk/cloud.rs
 
-The cloud walk uploads point attributes and original IDs. Missing optional arrays must not shift the remaining attributes.
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-44 -->
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=45-80 -->
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=81-133 -->
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=134-195 -->
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=196-238 -->
+The cloud walk uploads point attributes and original IDs.
+
+`lessons/12/src/app/walk/cloud.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/app/walk/cloud.rs:step-8a"
+```
+
+`lessons/12/src/app/walk/cloud.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/walk/cloud.rs:step-8b"
+```
+
+`lessons/12/src/app/walk/cloud.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/walk/cloud.rs:step-8c"
+```
+
+`lessons/12/src/app/walk/cloud.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/walk/cloud.rs:step-8d"
+```
+
+`lessons/12/src/app/walk/cloud.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/walk/cloud.rs:step-8e"
+```
+
 ## Step 9 · src/app/walk/frames.rs
 
-Frame geometry turns planes and boxes into visible primitives. Apply the source placement once when constructing the upload.
-<!-- file: 12 session_viewer/src/app/walk/frames.rs type -->
+Frame geometry turns planes and boxes into visible primitives.
+
+`lessons/12/src/app/walk/frames.rs` · 86 lines · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/walk/frames.rs"
+```
+
 ## Step 10 · src/app/walk/points.rs
 
-Point conversion builds visible markers from source coordinates. Preserve the source object row for selection.
-<!-- file: 12 session_viewer/src/app/walk/points.rs type -->
+Point conversion builds visible markers from source coordinates.
+
+`lessons/12/src/app/walk/points.rs` · 22 lines · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/walk/points.rs"
+```
+
 ## Step 11 · src/app/stream.rs
 
-Streaming reads bounded chunks and keeps stable source addresses. Display prefixes do not limit source queries.
-<!-- file: 12 session_viewer/src/app/stream.rs type -->
+Streaming reads bounded chunks and keeps stable source addresses.
+
+`lessons/12/src/app/stream.rs` · 38 lines · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/stream.rs"
+```
+
 ## Step 12 · src/app/feedback.rs
 
-Feedback publishes status and panel information from the same application state. Return keyboard focus after dismissing an input panel.
-<!-- file: 12 session_viewer/src/app/feedback.rs type -->
+Feedback publishes status and panel information from the same application state.
+
+`lessons/12/src/app/feedback.rs` · 29 lines · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/feedback.rs"
+```
+
 ## Step 13 · src/app/inspection.rs
 
-Download this file from its link to the path shown.
-<!-- file: 12 session_viewer/src/app/inspection.rs copy -->
+Copy this file from the lesson folder to the path shown.
+
+`lessons/12/src/app/inspection.rs` · 112 lines · copy the file, new file
+
+```rust
+--8<-- "lessons/12/src/app/inspection.rs"
+```
+
 ## Step 14 · src/app/loader.rs
 
-The loader stages manifest and geometry work before publishing it. A cancelled generation must not post into the new scene.
-<!-- file: 12 session_viewer/src/app/loader.rs type -->
-<!-- check: 12 -->
+The loader stages manifest and geometry work before publishing it.
+
+`lessons/12/src/app/loader.rs` · 83 lines · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/loader.rs"
+```
+
+Run `cargo check` in `lessons/12/`.
+
 ## Step 15 · src/engine/gpu/pick.rs
 
-Picking reads an object and subobject ID asynchronously. Reject replies from a superseded request.
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-57 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=58-80 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=81-143 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=144-202 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=203-221 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=222-309 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=310-350 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=351-397 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=398-441 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=442-496 -->
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=497-567 -->
-Download this part from its link to the path shown.
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs copy lines=568-649 -->
+Picking reads an object and subobject ID asynchronously.
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15a"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15b"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15c"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15d"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15e"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15f"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15g"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15h"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15i"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15j"
+```
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15k"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/12/src/engine/gpu/pick.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:step-15l"
+```
+
 ## Step 16 · src/engine/gpu/render.rs
 
-The frame encoder orders face, ink, picking and overlay passes. Later passes must load the attachments written by earlier ones.
-<!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=132-213 -->
+The frame encoder orders face, ink, picking and overlay passes.
+
+`lessons/12/src/engine/gpu/render.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/render.rs:step-16"
+```
+
 ## Step 17 · src/engine/gpu/selection_outline.rs
 
-A selection mask draws a border around visible selected geometry. Clear or invalidate the mask when its object or camera changes.
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=1-70 -->
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=71-95 -->
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=96-165 -->
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=166-229 -->
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=230-244 -->
-Download this part from its link to the path shown.
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs copy lines=245-345 -->
+A selection mask draws a border around visible selected geometry.
+
+`lessons/12/src/engine/gpu/selection_outline.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17a"
+```
+
+`lessons/12/src/engine/gpu/selection_outline.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17b"
+```
+
+`lessons/12/src/engine/gpu/selection_outline.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17c"
+```
+
+`lessons/12/src/engine/gpu/selection_outline.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17d"
+```
+
+`lessons/12/src/engine/gpu/selection_outline.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17e"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/12/src/engine/gpu/selection_outline.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17f"
+```
+
 ## Step 18 · src/shaders/selection_outline.wgsl
 
-The selection outline expands the selected coverage mask. Depth must reject the portions hidden by foreground objects.
-<!-- file: 12 session_viewer/src/shaders/selection_outline.wgsl type -->
-<!-- check: 12 -->
+The selection outline expands the selected coverage mask.
+
+`lessons/12/src/shaders/selection_outline.wgsl` · 39 lines · type this, new file
+
+```wgsl
+--8<-- "lessons/12/src/shaders/selection_outline.wgsl"
+```
+
+Run `cargo check` in `lessons/12/`.
+
 ## Step 19 · src/state.rs
 
-State coordinates input, selection and frame requests. Cancel stale asynchronous results when the scene or camera changes.
-<!-- file: 12 session_viewer/src/state.rs type lines=1-39 -->
-<!-- file: 12 session_viewer/src/state.rs type lines=40-100 -->
-<!-- file: 12 session_viewer/src/state.rs type lines=101-149 -->
-<!-- file: 12 session_viewer/src/state.rs type lines=150-176 -->
-<!-- file: 12 session_viewer/src/state.rs type lines=177-196 -->
-<!-- file: 12 session_viewer/src/state.rs type lines=197-256 -->
-<!-- file: 12 session_viewer/src/state.rs type lines=257-317 -->
-<!-- file: 12 session_viewer/src/state.rs type lines=318-388 -->
-<!-- file: 12 session_viewer/src/state.rs type lines=389-441 -->
-<!-- file: 12 session_viewer/src/state.rs type lines=442-499 -->
-Download this part from its link to the path shown.
-<!-- file: 12 session_viewer/src/state.rs copy lines=500-525 -->
+State coordinates input, selection and frame requests.
+
+`lessons/12/src/state.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19a"
+```
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19b"
+```
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19c"
+```
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19d"
+```
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19e"
+```
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19f"
+```
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19g"
+```
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19h"
+```
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19i"
+```
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19j"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/12/src/state.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:step-19k"
+```
+
 ## Step 20 · src/engine/gpu/mod.rs
 
-The GPU owner connects buffers, pipelines and frame resources. Create resources before building the bind groups that refer to them.
-<!-- file: 12 session_viewer/src/engine/gpu/mod.rs type -->
-## Step 21 · src/engine/mod.rs
+The GPU owner connects buffers, pipelines and frame resources.
 
-The engine module exposes the rendering implementation. A missing module declaration leaves its file outside the build.
-<!-- file: 12 session_viewer/src/engine/mod.rs type -->
-## Step 22 · src/app/mod.rs
+`lessons/12/src/engine/gpu/mod.rs` · edit · type this
 
-The application module connects source loading and interaction helpers. Declare each file before importing it elsewhere.
-<!-- file: 12 session_viewer/src/app/mod.rs type -->
-## Step 23 · src/app/walk/mod.rs
+Replaces `mod frame` in `lessons/11/src/engine/gpu/mod.rs`
 
-The geometry walk dispatches source types into their render buffers. Keep object-row indices consistent across every output.
-<!-- file: 12 session_viewer/src/app/walk/mod.rs type hunks=2-2 -->
-<!-- file: 12 session_viewer/src/app/walk/mod.rs type hunks=1-1 -->
-## Step 24 · src/app/route.rs
+```rust
+--8<-- "lessons/12/src/engine/gpu/mod.rs:step-20a"
+```
 
-Route helpers read viewer options from the page URL. Missing options must retain usable defaults.
-<!-- file: 12 session_viewer/src/app/route.rs type -->
-## Step 25 · src/lib.rs
+Replaces the 12 lines from `view: view::View::from_env(),` in `fn new` of `lessons/11/src/engine/gpu/mod.rs`
 
-The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
-<!-- file: 12 session_viewer/src/lib.rs type whole lines=1-30 -->
-<!-- file: 12 session_viewer/src/lib.rs type whole lines=31-88 -->
-<!-- file: 12 session_viewer/src/lib.rs type whole lines=89-158 -->
-<!-- file: 12 session_viewer/src/lib.rs type whole lines=159-199 -->
-Download this part from its link to the path shown.
-<!-- file: 12 session_viewer/src/lib.rs copy whole lines=200-268 -->
-## Step 26 · index.html
+```rust
+--8<-- "lessons/12/src/engine/gpu/mod.rs:step-20b"
+```
 
-Download this file from its link to the path shown.
-<!-- file: 12 session_viewer/index.html copy -->
-## Step 27 · assets/view_local.yaml
+Replaces the 10 lines from `self.retarget(false);` in `fn set_scene` of `lessons/11/src/engine/gpu/mod.rs`
 
-Download this file from its link to the path shown.
-<!-- file: 12 session_viewer/assets/view_local.yaml copy -->
-## Step 28 · src/fixture.rs
+```rust
+--8<-- "lessons/12/src/engine/gpu/mod.rs:step-20c"
+```
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/mod.rs:step-20d"
+```
+
+Replaces the `self.text.retarget(&self.ctx, target);` line in `fn retarget` of `lessons/11/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/mod.rs:step-20e"
+```
+
+Replaces `fn rebase_anchor` in `lessons/11/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/mod.rs:step-20f"
+```
+
+## Step 21 · src/app/mod.rs
+
+The application module connects source loading and interaction helpers.
+
+`lessons/12/src/app/mod.rs` · edit · type this
+
+Replaces `mod knobs` in `lessons/11/src/app/mod.rs`
+
+```rust
+--8<-- "lessons/12/src/app/mod.rs:step-21"
+```
+
+## Step 22 · src/app/walk/mod.rs
+
+The geometry walk dispatches source types into their render buffers.
+
+`lessons/12/src/app/walk/mod.rs` · edit · type this
+
+Added at the top of `lessons/11/src/app/walk/mod.rs`
+
+```rust
+--8<-- "lessons/12/src/app/walk/mod.rs:step-22a"
+```
+
+`lessons/12/src/app/walk/mod.rs` · edit · type this
+
+Added after the `}` line of `lessons/11/src/app/walk/mod.rs`
+
+```rust
+--8<-- "lessons/12/src/app/walk/mod.rs:step-22b"
+```
+
+## Step 23 · src/app/route.rs
+
+Route helpers read viewer options from the page URL.
+
+`lessons/12/src/app/route.rs` · edit · type this
+
+Replaces `fn query` in `lessons/11/src/app/route.rs`
+
+```rust
+--8<-- "lessons/12/src/app/route.rs:step-23"
+```
+
+## Step 24 · src/lib.rs
+
+The crate entry point connects the camera, scene and GPU owners.
+
+`lessons/12/src/lib.rs` · type this, replace the whole file, start with these lines
+
+```rust
+--8<-- "lessons/12/src/lib.rs:step-24a"
+```
+
+`lessons/12/src/lib.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/lib.rs:step-24b"
+```
+
+`lessons/12/src/lib.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/lib.rs:step-24c"
+```
+
+`lessons/12/src/lib.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/lib.rs:step-24d"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/12/src/lib.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/lib.rs:step-24e"
+```
+
+## Step 25 · index.html
+
+Copy this file from the lesson folder to the path shown.
+
+`lessons/12/index.html` · edit · copy the file
+
+Replaces the 109 lines from `<!doctype html>` of `lessons/11/index.html`
+
+```html
+--8<-- "lessons/12/index.html:step-25"
+```
+
+## Step 26 · assets/view_local.yaml
+
+Copy this file from the lesson folder to the path shown.
+
+`lessons/12/assets/view_local.yaml` · 3 lines · copy the file, new file
+
+```yaml
+--8<-- "lessons/12/assets/view_local.yaml"
+```
+
+## Step 27 · src/fixture.rs
 
 Remove this file; its replacement is now part of the rendering modules.
-<!-- file: 12 session_viewer/src/fixture.rs -->
-<!-- check: 12 -->
+
+Delete `src/fixture.rs` (it exists in `lessons/11/`, not in `lessons/12/`).
+
+Run `cargo check` in `lessons/12/`.
+
 ## Check
 
-<!-- checkpoint: 12 -->
+Run `trunk serve` in `lessons/12/` and open <http://127.0.0.1:8770/>.
 
 Expected: The seven-object fixture supports object and source-edge selection; status: **7 objects**.
 
@@ -206,9 +685,91 @@ If it fails:
 
 ## What changed
 
-<!-- tree: 12 session_viewer/src -->
+```text
+lessons/12/src/
+├── app/
+│   ├── walk/
+│   │   ├── bounds.rs
+│   │   ├── brep.rs
+│   │   ├── brep_edges.rs
+│   │   ├── brep_orient.rs
+│   │   ├── cloud.rs  +
+│   │   ├── curves.rs
+│   │   ├── encode.rs
+│   │   ├── frames.rs  +
+│   │   ├── mesh.rs
+│   │   ├── mesh_ink.rs
+│   │   ├── mesh_topology.rs
+│   │   ├── mod.rs  ~
+│   │   └── points.rs  +
+│   ├── feedback.rs  +
+│   ├── input.rs  +
+│   ├── inspection.rs  +
+│   ├── knobs.rs
+│   ├── loader.rs  +
+│   ├── mod.rs  ~
+│   ├── route.rs  ~
+│   ├── scene.rs  +
+│   ├── selection.rs  +
+│   ├── stream.rs  +
+│   └── touch.rs  +
+├── engine/
+│   ├── gpu/
+│   │   ├── arena.rs
+│   │   ├── backdrop.rs
+│   │   ├── buffers.rs
+│   │   ├── cloud.rs
+│   │   ├── device.rs  +
+│   │   ├── frame.rs
+│   │   ├── glyphs.rs
+│   │   ├── instance.rs
+│   │   ├── lod.rs
+│   │   ├── mod.rs  ~
+│   │   ├── objects.rs
+│   │   ├── pick.rs  +
+│   │   ├── present.rs  +
+│   │   ├── render.rs  +
+│   │   ├── segments.rs
+│   │   ├── selection_outline.rs  +
+│   │   ├── splat.rs
+│   │   ├── targets.rs
+│   │   ├── text.rs
+│   │   ├── text_outline.rs
+│   │   ├── text_plane.rs
+│   │   ├── text_plate.rs
+│   │   ├── upload.rs
+│   │   └── view.rs
+│   ├── pipelines/
+│   │   ├── layouts.rs
+│   │   └── mod.rs
+│   ├── mod.rs  ~
+│   ├── performance.rs
+│   └── text.rs
+├── shaders/
+│   ├── background.wgsl
+│   ├── glyph.wgsl
+│   ├── grid.wgsl
+│   ├── ink_visibility.wgsl
+│   ├── normals.wgsl
+│   ├── physical.wgsl
+│   ├── ribbon.wgsl
+│   ├── scene.wgsl
+│   ├── selection_outline.wgsl  +
+│   ├── sphere.wgsl
+│   ├── splat.wgsl
+│   ├── splat_resolve.wgsl
+│   ├── text_outline.wgsl
+│   ├── text_plane.wgsl
+│   ├── text_plate.wgsl
+│   └── triangle.wgsl
+├── camera.rs
+├── lib.rs  ~
+└── state.rs  +
+```
 
-Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 12](../lessons/12/index.md).
+`+` new in this lesson · `~` changed in this lesson
+
+Every file at this point: `lessons/12/`.
 
 ## Next
 

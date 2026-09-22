@@ -1,9 +1,7 @@
 use super::brep_edges::EdgeChain;
 use session_rust::{BRep, Mesh};
 
-/// Whether a face of `fm` walks the directed edge `s -> n`: Some(true) when one does and none
-/// walks it back, Some(false) for the reverse, None when both or neither (an interior seam,
-/// or two keys that are not neighbours).
+/// Some(true) if a face walks `s -> n`, Some(false) if `n -> s`, else None.
 fn walks(fm: &Mesh, s: usize, n: usize) -> Option<bool> {
     let fwd = occupied_halfedge(fm, s, n);
     let back = occupied_halfedge(fm, n, s);
@@ -15,7 +13,7 @@ fn walks(fm: &Mesh, s: usize, n: usize) -> Option<bool> {
     }
 }
 
-/// Whether the directed halfedge exists and belongs to a face.
+/// True when the halfedge `from -> to` has a face.
 fn occupied_halfedge(fm: &Mesh, from: usize, to: usize) -> bool {
     let Some(neighbours) = fm.halfedge.get(&from) else {
         return false;
@@ -23,14 +21,13 @@ fn occupied_halfedge(fm: &Mesh, from: usize, to: usize) -> bool {
     matches!(neighbours.get(&to), Some(Some(_)))
 }
 
-/// The position of vertex `k` of `fm`.
+/// Position of vertex `k`.
 fn at(fm: &Mesh, k: usize) -> [f64; 3] {
     let v = &fm.vertex[&k];
     [v.x, v.y, v.z]
 }
 
-/// The neighbour of `s` in `fm` that leaves it most nearly along `dir`: the next sample of the
-/// same boundary curve. A maximum, not a threshold.
+/// Neighbour of `s` closest to direction `dir`.
 fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
     let p = at(fm, s);
     let mut best: Option<(f64, usize)> = None;
@@ -44,7 +41,7 @@ fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
             continue;
         }
 
-        let c = (d[0] * dir[0] + d[1] * dir[1] + d[2] * dir[2]) / l;
+        let c = (d[0] * dir[0] + d[1] * dir[1] + d[2] * dir[2]) / l; // cosine to `dir`
 
         if match best {
             Some((bc, bw)) => c > bc || (c == bc && w < bw),
@@ -57,11 +54,7 @@ fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
     Some(best?.1)
 }
 
-/// The vertex of `fm` nearest `p`: where the other face samples the shared edge's start. Two
-/// grid faces put that vertex down bit for bit and the distance is zero, but a CDT face
-/// re-evaluates the surface and lands an ULP off (the block with hole's rim: 80.0 against
-/// 80.00000000000001), so a minimum is taken rather than an equality - and a minimum, with an
-/// exact-distance tie broken by the smaller key, is still no tolerance.
+/// Vertex nearest to `p`, ties to the smaller key.
 fn vertex_at(fm: &Mesh, p: [f64; 3]) -> Option<usize> {
     let mut best: Option<(f64, usize)> = None;
 
@@ -79,28 +72,24 @@ fn vertex_at(fm: &Mesh, p: [f64; 3]) -> Option<usize> {
     Some(best?.1)
 }
 
-/// Do the owner and the other face walk the chain's first segment in opposite directions?
-/// Opposite is what consistent winding means; None when either side cannot say.
+/// True when the two faces walk the shared edge in opposite directions.
 fn opposed(fms: &[Mesh], c: &EdgeChain) -> Option<bool> {
     let other = c.other?;
     let (fa, fb) = (&fms[c.face], &fms[other]);
     let (s, n) = (c.keys[0], c.keys[1]);
-    let away_a = walks(fa, s, n)?;
+    let away_a = walks(fa, s, n)?; // owner's direction
     let (ps, pn) = (at(fa, s), at(fa, n));
     let dir = [pn[0] - ps[0], pn[1] - ps[1], pn[2] - ps[2]];
-    let sb = vertex_at(fb, ps)?;
-    let nb = neighbour_along(fb, sb, dir)?;
-    let away_b = walks(fb, sb, nb)?;
+    let sb = vertex_at(fb, ps)?; // same start on the other face
+    let nb = neighbour_along(fb, sb, dir)?; // same next point there
+    let away_b = walks(fb, sb, nb)?; // other face's direction
     Some(away_a != away_b)
 }
 
-/// Six times the signed volume the triangles of face mesh `fm` sweep about the origin. The
-/// faces are summed in key order because float addition is not associative: taken in the
-/// map's own order the total's bits, and near a flat group its sign, would depend on the
-/// hashing - the kernel's `compute_halfedges` was hardened the same way.
+/// Six times the signed volume under one face mesh.
 fn six_volume(fm: &Mesh) -> f64 {
     let mut keys: Vec<usize> = fm.face.keys().copied().collect();
-    keys.sort_unstable();
+    keys.sort_unstable(); // fixed order, fixed rounding
     let mut v = 0.0;
 
     for k in keys {
@@ -118,19 +107,16 @@ fn six_volume(fm: &Mesh) -> f64 {
     v
 }
 
-/// One `+1.0` or `-1.0` per face mesh: multiply the kernel's normal by it to point outward.
-/// A breadth-first walk over the faces through their shared edges makes neighbours agree;
-/// each connected group is then turned outward by the sign of the volume it encloses. Both
-/// steps read the tessellation, never `BRepOrientation`.
+/// +1 or -1 per face so every normal points outward.
 pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f64> {
     let nf = fms.len();
 
-    // An open shell has no enclosed-volume orientation; retain its authored face uses.
+    // an open shell keeps its authored normals
     if !b.is_solid() {
         return vec![1.0; nf];
     }
 
-    let mut adjacent: Vec<Vec<(usize, bool)>> = vec![Vec::new(); nf];
+    let mut adjacent: Vec<Vec<(usize, bool)>> = vec![Vec::new(); nf]; // per face: (neighbour, opposed)
 
     for c in chains.iter().flatten() {
         if let (Some(other), Some(opp)) = (c.other, opposed(fms, c)) {
@@ -139,7 +125,7 @@ pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f
         }
     }
 
-    let mut sign = vec![0.0f64; nf];
+    let mut sign = vec![0.0f64; nf]; // 0 = not visited
 
     for start in 0..nf {
         if sign[start] != 0.0 {
@@ -147,9 +133,10 @@ pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f
         }
 
         sign[start] = 1.0;
-        let mut group = vec![start];
+        let mut group = vec![start]; // connected faces
         let mut head = 0;
 
+        // breadth first: neighbours agree with each other
         while head < group.len() {
             let f = group[head];
             head += 1;
@@ -162,7 +149,7 @@ pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f
             }
         }
 
-        // Volume as the group's own winding sweeps it: negative means every face is inside out.
+        // negative volume: the whole group is inside out
         let mut volume = 0.0;
 
         for &face in &group {
@@ -186,14 +173,14 @@ mod tests {
     use crate::app::walk::brep_edges::edge_chains;
     use session_rust::brep::brep_reverse;
 
-    /// The signs of `b`'s faces at the viewer's quality.
+    /// Flip sign of every face of `b`.
     fn signs_of(b: &BRep) -> Vec<f64> {
         let fms = b.face_meshes_q(Some(QUALITY));
         let chains = edge_chains(b, &fms);
         face_signs(b, &fms, &chains)
     }
 
-    /// The probe's flip: the first two face uses of the first shell reversed (mk_brep_probe).
+    /// Reverse the first two face uses.
     fn flipped(mut b: BRep) -> BRep {
         for face in b.m_shells[0].faces.iter_mut().take(2) {
             face.orientation = brep_reverse(face.orientation);
@@ -202,7 +189,7 @@ mod tests {
         b
     }
 
-    /// A solid the kernel builds outward keeps every sign at +1.
+    /// Kernel solids need no face flipped.
     #[test]
     fn kernel_solids_keep_their_normals() {
         for b in [
@@ -215,6 +202,7 @@ mod tests {
         }
     }
 
+    /// An open shell has no face flipped.
     #[test]
     fn open_shell_preserves_authored_orientation() {
         let mut b = flipped(BRep::create_cylinder(150.0, 400.0));
@@ -222,9 +210,7 @@ mod tests {
         assert!(signs_of(&b).iter().all(|&sign| sign == 1.0));
     }
 
-    /// Reversing two of the cylinder's three face uses negates those two meshes' normals in
-    /// the kernel; the signs undo exactly that, so the outward normals the pipes read are the
-    /// same bits in both files.
+    /// A flipped face keeps the same outward normal.
     #[test]
     fn flipped_uses_change_no_outward_normal() {
         let ok = BRep::create_cylinder(150.0, 400.0);
@@ -254,8 +240,7 @@ mod tests {
         }
     }
 
-    /// The pipes of the ok and the flipped cylinder are the same rows: same ends, same
-    /// facing words - what the orbit check's mask diff measures at the pixel level.
+    /// A flipped cylinder draws the same pipes.
     #[test]
     fn flipped_uses_change_no_pipe() {
         use crate::app::walk::WalkCx;

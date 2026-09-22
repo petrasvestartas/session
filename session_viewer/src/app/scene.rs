@@ -15,134 +15,129 @@ use session_rust::{Geometry, Session, Xform};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-/// One loaded file: the kernel `Session` (kept for picking, editing and saving) plus the
-/// placement the manifest gave it.
+/// One loaded file and its placement.
 pub struct FileDoc {
-    pub name: String,
-    pub place: Xform,
-    pub session: Rc<Session>, // Shared placements detach through Rc::make_mut before editing source geometry.
-    pub point_px: f32,
-    pub display_only: bool, // True only for a streamed source descriptor with an empty Session shell. Full-file display_only hints retain geometry and become false after loading.
+    pub name: String,         // display name
+    pub place: Xform,         // world placement
+    pub session: Rc<Session>, // the kernel document, shared when a file is loaded twice
+    pub point_px: f32,        // point size override, 0 = the file's own
+    pub display_only: bool,   // a streamed shell with no kernel objects
 }
 
-/// A streamed cloud's first slice and what later slices need: its file's node table, how
-/// many points are resident, and the total.
+/// A streamed cloud's first slice.
 pub struct StreamedInit {
-    pub name: String,
-    pub url: String,
-    pub place: Xform,
-    pub rows: StreamRows,
-    pub lod: CloudLod,
-    pub fields: CloudFields, // Where the packed arrays sit in the file, so the next slices need no second probe.
-    pub resident: u32,
-    pub point_px: f32,
-    pub col_at: u64, // Where the colour run continues for the next slice.
+    pub name: String,        // display name
+    pub url: String,         // the cloud file
+    pub place: Xform,        // world placement
+    pub rows: StreamRows,    // the first points
+    pub lod: CloudLod,       // the whole node table
+    pub fields: CloudFields, // array positions in the file
+    pub resident: u32,       // points in this slice
+    pub point_px: f32,       // point size override
+    pub col_at: u64,         // byte position of the next colour
 }
 
-/// A bounded resident prefix plus the full source descriptor used by ranged F10 queries.
+/// A streamed cloud's slot in the scene.
 pub struct StreamedCloud {
-    pub name: String,
-    pub url: String,
-    pub row: u32,
-    pub lod: CloudLod,
-    pub fields: CloudFields,
-    pub place: Xform,
-    pub done_to: u32,
-    pub total: u32,
-    pub point_px: f32,
+    pub name: String,        // display name
+    pub url: String,         // the cloud file
+    pub row: u32,            // its object row
+    pub lod: CloudLod,       // the whole node table
+    pub fields: CloudFields, // array positions in the file
+    pub place: Xform,        // world placement
+    pub done_to: u32,        // points loaded so far
+    pub total: u32,          // points in the file
+    pub point_px: f32,       // point size override
 }
 
-/// A streamed sheet's first slice and what later slices need: the file layout, how many
-/// segments are resident, and where its side table is.
+/// A streamed sheet's first slice.
 pub struct SheetInit {
-    pub name: String,
-    pub url: String,
-    pub meta_url: Option<String>,
-    pub place: Xform,
-    pub rows: SheetRows,
-    pub fields: SheetFields,
-    pub resident: u32,
+    pub name: String,             // display name
+    pub url: String,              // the sheet file
+    pub meta_url: Option<String>, // its entity side table
+    pub place: Xform,             // world placement
+    pub rows: SheetRows,          // the first segments
+    pub fields: SheetFields,      // array positions in the file
+    pub resident: u32,            // segments in this slice
 }
 
-/// A sheet's slot: its one object row, the file layout later slices and picks read, and the
-/// entity a pick last resolved to (the nameplate names it).
+/// A sheet's slot in the scene.
 pub struct SheetBatch {
-    pub name: String,
-    pub url: String,
-    pub meta_url: Option<String>,
-    pub row: u32,
-    pub fields: SheetFields,
-    pub place: Xform,
-    pub done_to: u32,
-    pub total: u32,
-    pub resolved: Option<(u32, EntityMeta)>,
-    pub table: Option<SheetTable>, // The side table's validated head, read once.
+    pub name: String,                        // display name
+    pub url: String,                         // the sheet file
+    pub meta_url: Option<String>,            // its entity side table
+    pub row: u32,                            // its object row
+    pub fields: SheetFields,                 // array positions in the file
+    pub place: Xform,                        // world placement
+    pub done_to: u32,                        // segments loaded so far
+    pub total: u32,                          // segments in the file
+    pub resolved: Option<(u32, EntityMeta)>, // entity the last pick found
+    pub table: Option<SheetTable>,           // side table head, read once
 }
 
-/// What a pick resolved to: the document, the geometry's guid, its object row, for a cloud
-/// the point index and its stable id, and for a sheet the segment's entity id.
+/// What a pick landed on.
 #[derive(Clone, Debug)]
 pub struct Picked {
-    pub doc: String,
-    pub guid: String,
-    pub row: u32,
-    pub point: Option<PickedPoint>,
-    pub entity: Option<u32>,
+    pub doc: String,                // document name
+    pub guid: String,               // object guid
+    pub row: u32,                   // object row
+    pub point: Option<PickedPoint>, // the point, for a cloud
+    pub entity: Option<u32>,        // the entity id, for a sheet
 }
 
-/// A picked cloud point: the row-local index (this file version only) and the stable id.
+/// A picked cloud point.
 #[derive(Clone, Debug)]
 pub struct PickedPoint {
-    pub local: u32,
-    pub id: u32,
-    pub position: [f64; 3],
+    pub local: u32,         // index in the cloud
+    pub id: u32,            // the point's stable id
+    pub position: [f64; 3], // world position
 }
 
-/// Rows already uploaded, per table with global numbering.
+/// Rows already on the GPU, per table.
 #[derive(Default)]
 struct Bases {
-    vert: u32,
-    ribbon: u32,
-    obj: u32,
+    vert: u32,   // arena vertices
+    ribbon: u32, // ribbon segments
+    obj: u32,    // object rows
 }
 
-/// The open document set, the pending upload and the row bookkeeping.
+/// The open documents and their object rows.
 pub struct Scene {
-    pub docs: Vec<FileDoc>,
-    pub texts: Vec<SceneText>, // Every source text placement shares ordinary scene identity and visibility.
-    pub tables: Upload,
-    pub streamed: Vec<StreamedCloud>,
-    pub sheets: Vec<SheetBatch>,
-    pub hidden: HashSet<(usize, Rc<str>)>,
-    pub locked: HashSet<(usize, Rc<str>)>,
-    pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,
-    pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>,
-    pub selected: Option<u32>,
-    pub attributes: bool, // `Attributes On`: element features are walked into their element's row.
-    order: Vec<Rc<str>>,
-    owners: Vec<usize>,
-    edge_sources: Vec<(u32, u32)>, // Global pipe rows resolve to original parent/edge identities after upload.
-    ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,
-    guid_to_row: HashMap<(usize, Rc<str>), u32>,
-    bases: Bases,
-    uploaded: crate::engine::gpu::patch::Counts,
-    surface_previews: Vec<Option<crate::app::surface_preview::SurfacePreview>>,
-    pub(crate) mesh_previews: Vec<Option<crate::app::mesh_preview::MeshPreview>>,
-    pub(super) preview_spans: Vec<Option<crate::engine::gpu::patch::Span>>,
-    pub last_edited: Option<usize>, // Which document the last edit touched. Undo is per document, because the history is the document's; this is the only thing that says which one a bare Ctrl+Z means.
-    pub(crate) created_doc: Option<usize>,
-    pub(crate) row_revision: u64,
+    pub docs: Vec<FileDoc>,                            // loaded files
+    pub texts: Vec<SceneText>,                         // text objects
+    pub tables: Upload,                                // rows walked but not yet uploaded
+    pub streamed: Vec<StreamedCloud>,                  // streamed clouds
+    pub sheets: Vec<SheetBatch>,                       // streamed sheets
+    pub hidden: HashSet<(usize, Rc<str>)>,             // (document, guid) hidden
+    pub locked: HashSet<(usize, Rc<str>)>,             // (document, guid) not selectable
+    pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,    // face colour overrides
+    pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>, // edge colour overrides
+    pub selected: Option<u32>,                         // selected object row
+    pub attributes: bool,                              // element features drawn
+    order: Vec<Rc<str>>,                               // guid of each row
+    owners: Vec<usize>,                                // document of each row
+    edge_sources: Vec<(u32, u32)>,                     // (object row, edge index) of each pipe
+    ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,  // ribbon rows of each object
+    guid_to_row: HashMap<(usize, Rc<str>), u32>,       // (document, guid) to row
+    bases: Bases,                                      // rows already on the GPU
+    uploaded: crate::engine::gpu::patch::Counts,       // GPU row counts so far
+    surface_previews: Vec<Option<crate::app::surface_preview::SurfacePreview>>, // per row, for live surface edits
+    pub(crate) mesh_previews: Vec<Option<crate::app::mesh_preview::MeshPreview>>, // per row, for live mesh edits
+    pub(super) preview_spans: Vec<Option<crate::engine::gpu::patch::Span>>, // per row, its GPU range
+    pub last_edited: Option<usize>,                    // document undo applies to
+    pub(crate) created_doc: Option<usize>,             // the `Created` document
+    pub(crate) row_revision: u64,                      // bumped when rows change
 }
 
 impl Default for Scene {
-    /// Construct the same empty document and upload state as `Scene::new`.
+    /// Same as `new`.
     fn default() -> Self {
         Self::new()
     }
 }
 
 impl Scene {
-    /// Selection locks follow source identity across uploads and undo.
+    /// True when the row is not locked.
     pub fn selectable(&self, row: u32) -> bool {
         self.identity_of(row)
             .is_some_and(|id| !self.locked.contains(&id))
@@ -178,8 +173,7 @@ impl Scene {
         }
     }
 
-    /// Drop every document and its GPU rows, keeping the scene usable: a scene can be
-    /// REPLACED without tearing down `State` (camera, surface and pipelines survive).
+    /// Drop every document and its GPU rows.
     pub fn clear(&mut self, gpu: &mut Gpu) {
         self.created_doc = None;
         self.last_edited = None;
@@ -193,7 +187,7 @@ impl Scene {
         gpu.release();
     }
 
-    /// Forget every row and its identity; the documents and the hidden set are the caller's.
+    /// Forget every row.
     fn reset_rows(&mut self) {
         self.row_revision = self.row_revision.wrapping_add(1);
         self.tables = Upload::default();
@@ -212,8 +206,7 @@ impl Scene {
         self.mesh_previews.clear();
     }
 
-    /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch - the
-    /// path an edit commit takes. Streamed clouds and sheets cannot come back (no kernel object).
+    /// Walk every document again and upload from scratch.
     pub fn rebuild(&mut self, gpu: &mut Gpu) {
         let docs = std::mem::take(&mut self.docs);
         let texts = std::mem::take(&mut self.texts);
@@ -239,7 +232,7 @@ impl Scene {
         self.restore_text_visibility(gpu);
     }
 
-    /// Upload the walked tables, then FORGET the rows: the GPU is their only holder.
+    /// Upload the walked tables and clear them.
     pub fn upload_to(&mut self, gpu: &mut Gpu) {
         for (index, pipe) in self.tables.seg.pipes.iter().enumerate() {
             let edge = self
@@ -262,8 +255,7 @@ impl Scene {
         self.tables.drop_uploaded();
     }
 
-    /// The next object row and its guid bookkeeping.
-    /// One object row for `guid` owned by document `owner` (`usize::MAX` for a text object).
+    /// Add one object row for `guid` of document `owner`.
     pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Xform, flags: u32) -> u32 {
         self.row_revision = self.row_revision.wrapping_add(1);
         let row = self.bases.obj + self.tables.obj.rows.len() as u32;
@@ -297,8 +289,7 @@ impl Scene {
         row
     }
 
-    /// Walk one session into the tables: one object row per guid in the kernel's canonical
-    /// order (the row a guid gets is the row it keeps), then the per-file sweeps.
+    /// Add one document: one row per object, then the file sweeps.
     pub fn add_file(&mut self, doc: FileDoc) {
         self.row_revision = self.row_revision.wrapping_add(1);
         let FileDoc {
@@ -393,7 +384,7 @@ impl Scene {
         let extent = file_extent(&self.tables, &from);
         self.tables.bounds.union_with(&extent);
 
-        // Typed modeling geometry stays in the 3D workspace even when all its points are coplanar.
+        // a flat file is a drawing sheet, unless it was drawn here
         if self.created_doc != Some(self.docs.len()) && is_planar(&self.tables, &from, &place) {
             mark_sheet(&mut self.tables, &from);
         }
@@ -415,8 +406,7 @@ impl Scene {
         });
     }
 
-    /// Add a streamed cloud from its first slice and upload it at once, so the slot knows the
-    /// absolute row its point 0 landed on. Returns the slot index later slices address.
+    /// Add a streamed cloud from its first slice; returns its slot.
     pub fn add_streamed_cloud(&mut self, init: StreamedInit, gpu: &mut Gpu) -> usize {
         let StreamedInit {
             name,
@@ -468,7 +458,7 @@ impl Scene {
         self.streamed.len() - 1
     }
 
-    /// Append the next slice `[done_to, to)` of streamed cloud `idx` and upload it.
+    /// Add the next slice of streamed cloud `idx`.
     pub fn extend_streamed_cloud(&mut self, idx: usize, rows: StreamRows, to: u32, gpu: &mut Gpu) {
         let Some(sc) = self.streamed.get(idx) else {
             return;
@@ -496,9 +486,7 @@ impl Scene {
         self.upload_to(gpu);
     }
 
-    /// Add a streamed sheet from its first slice and upload it at once, so the slot knows the
-    /// row its segments land on. One planar object row: `FLAG_SHEET`, hairline pens as
-    /// authored, no `mark_sheet` sweep. Returns the slot index later slices address.
+    /// Add a streamed sheet from its first slice; returns its slot.
     pub fn add_sheet(&mut self, init: SheetInit, gpu: &mut Gpu) -> usize {
         let SheetInit {
             name,
@@ -546,7 +534,7 @@ impl Scene {
         self.sheets.len() - 1
     }
 
-    /// Append the next slice `[done_to, to)` of sheet `idx` and upload it.
+    /// Add the next slice of sheet `idx`.
     pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32, gpu: &mut Gpu) {
         let Some(sheet) = self.sheets.get(idx) else {
             return;
@@ -584,8 +572,7 @@ impl Scene {
         self.sheets.get(self.sheet_slot(row)?)
     }
 
-    /// What a pick means: the document, the guid, for a cloud the point behind the row, and
-    /// for a sheet the entity behind the ribbon.
+    /// What a GPU pick landed on.
     pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
         let guid = self.order.get(pick.row as usize)?.to_string();
         let mut point = None;
@@ -597,8 +584,7 @@ impl Scene {
         }
 
         let mut entity = None;
-        // Bit 31 marks a segment sub-id, set in ribbon.wgsl; the low 31 bits are already the
-        // global ribbon row, the decode having taken the shader's +1 off.
+        // bit 31 set: the sub id is a ribbon row
         let ribbon = pick.sub & 0x7fff_ffff;
 
         if pick.sub & 0x8000_0000 != 0
@@ -622,12 +608,12 @@ impl Scene {
         })
     }
 
-    /// An instance's exact owning document; duplicated GUIDs across files remain distinct.
+    /// The document a row belongs to.
     pub fn document(&self, row: u32) -> Option<&FileDoc> {
         self.docs.get(*self.owners.get(row as usize)?)
     }
 
-    /// Source geometry for controls, without scanning every document on a click.
+    /// The kernel geometry of a row.
     pub fn geometry(&self, row: u32) -> Option<&Geometry> {
         self.document(row)?
             .session
@@ -635,8 +621,7 @@ impl Scene {
             .get(self.order.get(row as usize)?.as_ref())
     }
 
-    /// The source object's name; unnamed geometry uses its type instead of its file name. A
-    /// sheet names the entity its last pick resolved to, else itself.
+    /// The row's name, or its type when unnamed.
     pub fn object_name(&self, row: u32) -> &str {
         if let Some(text) = self.text_at(row) {
             return &text.label.text;
@@ -668,7 +653,7 @@ impl Scene {
         if name.trim().is_empty() { kind } else { name }
     }
 
-    /// A segment pick in the edge-only pass resolves through retained producer metadata.
+    /// The edge index a pipe pick landed on.
     pub fn edge_at(&self, pick: Pick) -> Option<u32> {
         if pick.sub & 0x8000_0000 == 0 {
             return None;
@@ -678,8 +663,7 @@ impl Scene {
         (parent == pick.row && edge != u32::MAX).then_some(edge)
     }
 
-    /// The kernel point `local` of cloud `guid`: its stable id and position. `None` for a
-    /// released or streamed cloud (the GPU is then the only holder).
+    /// Point `local` of the cloud on `row`; None when streamed.
     pub fn point_at(&self, row: u32, local: u32) -> Option<PickedPoint> {
         let Some(Geometry::PointCloud(pc)) = self.geometry(row) else {
             return None;
@@ -698,13 +682,12 @@ impl Scene {
         })
     }
 
-    /// Global ribbon segment IDs belonging to one object row, retained after upload.
+    /// The ribbon rows of one object.
     pub fn ribbon_range(&self, row: u32) -> Option<std::ops::Range<u32>> {
         self.ribbon_ranges.get(row as usize).cloned().flatten()
     }
 
-    /// The guid of a row: what the hide set stores, because a guid survives the rebuild a
-    /// live reload does and a row number does not.
+    /// The document and guid of a row.
     pub fn identity_of(&self, row: u32) -> Option<(usize, Rc<str>)> {
         Some((
             *self.owners.get(row as usize)?,
@@ -712,8 +695,7 @@ impl Scene {
         ))
     }
 
-    /// The rows the hide set currently resolves to. A guid whose document has since closed
-    /// resolves to nothing and is simply skipped.
+    /// The rows currently hidden.
     pub fn hidden_rows(&self) -> Vec<u32> {
         let mut rows = Vec::new();
 
@@ -732,7 +714,7 @@ impl Scene {
     }
 }
 
-/// An object's placement: the manifest `place` times the session's own world xform for that guid.
+/// File placement times the object's own transform.
 fn placement(world: &HashMap<String, Xform>, place: &Xform, guid: &str) -> Xform {
     match world.get(guid) {
         Some(local) => place * local,
@@ -740,8 +722,7 @@ fn placement(world: &HashMap<String, Xform>, place: &Xform, guid: &str) -> Xform
     }
 }
 
-/// The guids under every `attributes` group: wood's baked copies of the element features. They
-/// never get a row; `Attributes On` draws the features inside the element's own row instead.
+/// Guids under an `attributes` group; they get no row.
 fn baked_attributes(session: &Session) -> HashSet<String> {
     let mut out = HashSet::new();
     let mut stack: Vec<_> = session
@@ -771,7 +752,7 @@ mod tests {
     use crate::app::selection::Controls;
     use session_rust::{BRep, Point};
 
-    /// Deliver a retained source using the same document boundary as the real loader.
+    /// A document at the origin.
     fn file(name: &str, session: Rc<Session>, display_only: bool) -> FileDoc {
         FileDoc {
             name: name.into(),
@@ -782,7 +763,7 @@ mod tests {
         }
     }
 
-    /// Identical source GUIDs in separate documents must retain distinct controls and hide targets.
+    /// The same guid in two documents stays two objects.
     #[test]
     fn duplicate_guids_keep_their_document_and_control_owners() {
         let first = Point::new(10.0, 0.0, 0.0);
@@ -809,9 +790,7 @@ mod tests {
         assert!(scene.document(2).is_none());
     }
 
-    /// One file placed twice hands both documents the same `Rc`. An edit must split it first:
-    /// `Rc::make_mut` clones while the count is above one, and the other placement keeps the
-    /// geometry it was drawn with. Without the split, moving one placement moves them all.
+    /// Two placements share one session until one is edited.
     #[test]
     fn an_edit_must_split_a_session_two_placements_share() {
         let mut source = Session::new("twice");
@@ -829,7 +808,7 @@ mod tests {
         assert_eq!(scene.docs[1].session.lookup.len(), 1);
     }
 
-    /// Legacy display hints must preserve original CAD controls without cloning the source.
+    /// The old `display_only` flag keeps the controls.
     #[test]
     fn legacy_display_only_hint_retains_source_controls() {
         let mut source = Session::new("retained CAD source");
@@ -845,8 +824,7 @@ mod tests {
         assert!(!scene.tables.arena.idx.is_empty());
     }
 
-    /// `Attributes On` draws an element's features in the element's own row, so one moved
-    /// placement carries them; `Off` walks them out again.
+    /// Element features draw in the element's row and move with it.
     #[test]
     fn attributes_share_the_element_row_and_its_placement() {
         use session_rust::element::ElementFeature;
@@ -882,8 +860,8 @@ mod tests {
         );
     }
 
+    /// Baked attribute copies never get a row.
     #[test]
-    /// Wood's baked copies under an `attributes` group get no row, with attributes off or on.
     fn baked_attributes_never_get_a_row() {
         use session_rust::{Element, Mesh, Polyline};
 
@@ -908,8 +886,7 @@ mod tests {
 }
 
 impl Scene {
-    /// Rewalk only the edited object and overwrite its existing GPU ranges when they fit.
-    /// Topology/count changes use the normal rebuild path without partially writing buffers.
+    /// Rewrite one object's GPU rows in place; false when they no longer fit.
     pub(crate) fn patch_preview(&mut self, row: u32, geometry: &Geometry, gpu: &mut Gpu) -> bool {
         use crate::engine::gpu::patch::Counts;
 
@@ -973,6 +950,7 @@ impl Scene {
 }
 
 impl Scene {
+    /// Memory held by the edit previews.
     pub fn preview_cache_bytes(&self) -> usize {
         self.surface_previews
             .iter()

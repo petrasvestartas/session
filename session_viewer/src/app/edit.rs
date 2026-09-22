@@ -3,13 +3,14 @@ use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
 
 impl Scene {
-    /// Compute all local transforms before writing, then record one transaction per document.
+    /// Move several rows by one world delta, one undo step per document.
     pub fn transform_rows(
         &mut self,
         rows: &[u32],
         delta: &Xform,
         label: &str,
     ) -> Option<Vec<(u32, Xform)>> {
+        // (document, guid, new local transform) per row
         let mut changes = rows
             .iter()
             .map(|&row| {
@@ -25,7 +26,7 @@ impl Scene {
             .iter()
             .map(|(doc, guid, _)| (*doc, guid.to_string()))
             .collect();
-        // A selected descendant inherits its selected ancestor's world delta exactly once.
+        // drop a child whose parent is also selected
         changes.retain(|(doc, guid, _)| {
             self.docs[*doc]
                 .session
@@ -40,7 +41,7 @@ impl Scene {
         });
         let mut docs: Vec<_> = changes.iter().map(|c| c.0).collect();
         docs.sort_unstable();
-        docs.dedup();
+        docs.dedup(); // each document once
         for doc in docs {
             let session = Rc::make_mut(&mut self.docs[doc].session);
             session.begin(label);
@@ -55,12 +56,7 @@ impl Scene {
             .collect()
     }
 
-    /// The document a row belongs to, made writable: the index and the guid, with this
-    /// placement's session already split off any it was sharing.
-    ///
-    /// Callers re-borrow the file and call `Rc::make_mut` again to get the `&mut Session` - the
-    /// second call is a no-op, because the split here left the count at one. The split is here
-    /// so that a caller which refuses later has still not written to a shared session.
+    /// The row's document and guid, with its session made private.
     fn writable(&mut self, row: u32) -> Option<(usize, Rc<str>)> {
         let (doc, guid) = self.identity_of(row)?;
         let file = self.docs.get_mut(doc)?;
@@ -69,23 +65,18 @@ impl Scene {
             return None;
         }
 
-        // The split happens HERE, before anything is written, and only for the document being
-        // edited: the other placements keep the session they were sharing.
+        // copy the session if another placement shares it
         Rc::make_mut(&mut file.session);
         Some((doc, guid))
     }
 
-    /// One row's LOCAL transform, the value a drag remembers before it starts moving.
+    /// One row's local transform.
     pub fn local_xform_of(&self, row: u32) -> Option<Xform> {
         let (doc, guid) = self.identity_of(row)?;
         Some(self.docs.get(doc)?.session.xform(&guid))
     }
 
-    /// Set one row's object to exactly this local transform, in one recorded transaction.
-    ///
-    /// A drag calls this ONCE, at the end, with the transform measured from where it grabbed.
-    /// Writing every intermediate frame into the session would fill the history with a hundred
-    /// ops that undo one gesture, and the GPU row is the right place for a preview.
+    /// Set one row's local transform in one undo step.
     pub fn set_row_xform(&mut self, row: u32, local: Xform, label: &str) -> Option<Xform> {
         let (doc, guid) = self.writable(row)?;
         let file = self.docs.get_mut(doc)?;
@@ -97,35 +88,22 @@ impl Scene {
         self.placement_of(row)
     }
 
-    /// The local transform that puts a WORLD-space `delta` on a row whose local transform is
-    /// `base`.
-    ///
-    /// The session stores an object's LOCAL transform, under its file's placement and its
-    /// ancestors'. Left-multiplying a world delta onto that gives P·A·D·L, which moves the
-    /// object in the PARENT's frame; the world meaning is D·P·A·L. Conjugating the delta by the
-    /// parent placement is the difference, and it is the difference between a drag that follows
-    /// the pointer and one that jumps when you let go of it.
-    ///
-    /// With an identity file placement and no tree ancestors the two agree, which is why this
-    /// is easy to miss.
+    /// The local transform that applies a world `delta` on top of `base`.
     pub fn local_for_world_delta(&self, row: u32, delta: &Xform, base: &Xform) -> Option<Xform> {
         let placed = self.placement_of(row)?;
-        let parent = &placed * &base.inverse()?;
+        let parent = &placed * &base.inverse()?; // everything above the object
         let back = parent.inverse()?;
-        Some(&(&back * &(delta * &parent)) * base)
+        Some(&(&back * &(delta * &parent)) * base) // delta moved into the parent frame
     }
 
-    /// Apply a WORLD-space `delta` to one row and report its new placement.
-    ///
-    /// The discrete form: a typed command. A drag uses `set_row_xform` with the transform it
-    /// measured from its grab, through the same conjugation.
+    /// Apply a world `delta` to one row; returns its new placement.
     pub fn transform_row(&mut self, row: u32, delta: &Xform, label: &str) -> Option<Xform> {
         let base = self.local_xform_of(row)?;
         let local = self.local_for_world_delta(row, delta, &base)?;
         self.set_row_xform(row, local, label)
     }
 
-    /// One row's full placement: the file's, composed with the object's cumulative transform.
+    /// One row's world placement: file placement times object transform.
     pub fn placement_of(&self, row: u32) -> Option<Xform> {
         let (doc, guid) = self.identity_of(row)?;
         let file = self.docs.get(doc)?;
@@ -133,10 +111,10 @@ impl Scene {
         Some(&file.place * &world)
     }
 
-    /// Remove one row's object from its document. The rows change, so the caller rebuilds.
+    /// Delete one row's object; the caller rebuilds the rows.
     pub fn delete_row(&mut self, row: u32) -> bool {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
-            return false;
+            return false; // streamed scenes are not editable
         }
 
         let Some((doc, guid)) = self.writable(row) else {
@@ -158,19 +136,17 @@ impl Scene {
         removed
     }
 
-    /// Undo the newest transaction in the document that was edited last.
-    ///
-    /// Per document, because the history is the document's: a viewer-wide stack would have to
-    /// invent an order between edits to two files that never interacted.
+    /// Undo the last edit in the last edited document.
     pub fn undo(&mut self) -> bool {
         self.step_history(true)
     }
 
-    /// Redo the newest undone transaction in the document that was edited last.
+    /// Redo the last undone edit in the last edited document.
     pub fn redo(&mut self) -> bool {
         self.step_history(false)
     }
 
+    /// Undo or redo in the last edited document.
     fn step_history(&mut self, back: bool) -> bool {
         let Some(doc) = self.last_edited else {
             return false;
@@ -185,12 +161,7 @@ impl Scene {
 }
 
 impl Scene {
-    /// Move one control point of a row's source geometry, in one recorded transaction.
-    ///
-    /// Sub-element editing goes through `Session::replace`, which records the whole object
-    /// before and after: the kernel's own undo step for a change that is not a placement. A
-    /// geometry whose control points the kernel cannot set is refused rather than silently
-    /// left alone.
+    /// Move one control point of a polyline or curve in one undo step.
     pub fn set_control_point(&mut self, row: u32, index: usize, to: &Point) -> bool {
         if !self.streamed.is_empty() || !self.sheets.is_empty() {
             return false;
@@ -199,7 +170,7 @@ impl Scene {
         let Some(back) = self.placement_of(row).and_then(|place| place.inverse()) else {
             return false;
         };
-        let local = to.transformed(&back);
+        let local = to.transformed(&back); // world point into the object's frame
         let to = &local;
         let Some((doc, guid)) = self.writable(row) else {
             return false;
@@ -251,6 +222,7 @@ mod tests {
     use crate::app::scene::FileDoc;
     use session_rust::{Point, Session};
 
+    /// One undo puts every moved row back.
     #[test]
     fn group_transform_undo_restores_every_member_in_one_document() {
         let mut source = Session::new("group");
@@ -270,6 +242,7 @@ mod tests {
         );
     }
 
+    /// A child of a moved parent is not moved twice.
     #[test]
     fn selected_child_inherits_the_selected_parents_delta_once() {
         let mut source = Session::new("nested");
@@ -289,6 +262,7 @@ mod tests {
         );
     }
 
+    /// A document at the origin.
     fn file(name: &str, session: Rc<Session>) -> FileDoc {
         FileDoc {
             name: name.into(),
@@ -299,6 +273,7 @@ mod tests {
         }
     }
 
+    /// One session placed twice.
     fn one_point_twice() -> Scene {
         let mut source = Session::new("twice");
         source.add_point(Point::new(1.0, 0.0, 0.0), None);
@@ -309,9 +284,7 @@ mod tests {
         scene
     }
 
-    /// The rule the whole module exists for. Two placements of one file share an `Rc`; moving
-    /// the first must not move the second, and the only thing that makes that true is the
-    /// `Rc::make_mut` before the write.
+    /// Moving one placement of a shared file leaves the other.
     #[test]
     fn moving_one_placement_leaves_the_other_where_it_was() {
         let mut scene = one_point_twice();
@@ -327,10 +300,7 @@ mod tests {
         assert_eq!([still.m[12], still.m[13], still.m[14]], [0.0, 0.0, 0.0]);
     }
 
-    /// The frame a delta is measured in. With a file placed away from the origin, a world move
-    /// must land where the pointer went, not where the file's own frame would put it. Applying
-    /// the delta straight to the local transform gives P·D·L; the world meaning is D·P·L, and
-    /// for a translation under a placement that scales, the two differ by that scale.
+    /// A world move lands in world units under a scaled placement.
     #[test]
     fn a_world_delta_moves_the_object_in_the_world() {
         let mut source = Session::new("placed");
@@ -339,7 +309,7 @@ mod tests {
         scene.add_file(FileDoc {
             name: "placed".into(),
             session: Rc::new(source),
-            // Ten times up, and shifted: the two frames disagree as loudly as possible.
+            // scaled ten times and shifted
             place: Xform::from_matrix([
                 10.0, 0.0, 0.0, 0.0, //
                 0.0, 10.0, 0.0, 0.0, //
@@ -365,8 +335,7 @@ mod tests {
         );
     }
 
-    /// Two moves compose rather than replace: dragging twice leaves the object where the two
-    /// drags put it, not where the second one alone would have.
+    /// Two moves add up.
     #[test]
     fn a_second_move_starts_from_the_first() {
         let mut scene = one_point_twice();
@@ -377,8 +346,7 @@ mod tests {
         assert_eq!([moved.m[12], moved.m[13], moved.m[14]], [5.0, 2.0, 0.0]);
     }
 
-    /// The move is in the document, so the document's own history reverses it. Undo without an
-    /// edit first does nothing rather than reaching into a document nobody touched.
+    /// Undo reverses a move; redo repeats it.
     #[test]
     fn undo_puts_the_object_back() {
         let mut scene = one_point_twice();
@@ -394,8 +362,7 @@ mod tests {
         assert_eq!([again.m[12], again.m[13], again.m[14]], [5.0, 0.0, 0.0]);
     }
 
-    /// A control-point edit is a replacement, so the whole object goes into the history and
-    /// undo puts the old one back - unlike a move, which records only the transform.
+    /// A control point edit undoes.
     #[test]
     fn a_control_point_moves_and_undoes() {
         use session_rust::Polyline;
@@ -422,6 +389,7 @@ mod tests {
         assert_eq!(line.get_point(1).expect("two points")[1], 0.0);
     }
 
+    /// A world point edit lands in local units under a placement.
     #[test]
     fn control_edit_converts_world_to_local_under_file_placement() {
         let mut source = Session::new("placed");
@@ -459,16 +427,14 @@ mod tests {
         assert_eq!(line.get_point(1).unwrap()[0], 1.0);
     }
 
-    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
-    /// a drag that appears to do nothing is a bug report waiting to happen.
+    /// A point has no control points to edit.
     #[test]
     fn a_kind_with_no_control_points_is_refused() {
         let mut scene = one_point_twice();
         assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
     }
 
-    /// A streamed source is a shell with no kernel object behind it: editing it would write
-    /// into an empty session and silently lose the edit, so it is refused.
+    /// A display-only document refuses edits.
     #[test]
     fn a_display_only_document_refuses_the_edit() {
         let mut scene = one_point_twice();
@@ -482,6 +448,7 @@ mod tests {
 }
 
 impl Scene {
+    /// Transform part of a row's geometry by a world `delta`.
     pub fn edit_subobject(
         &mut self,
         row: u32,
@@ -493,12 +460,13 @@ impl Scene {
             .placement_of(row)
             .ok_or("Source placement unavailable")?;
         let back = place.inverse().ok_or("Source placement is singular")?;
-        let local = &(&back * delta) * &place;
+        let local = &(&back * delta) * &place; // delta in the object's frame
         let geometry = self.geometry(row).ok_or("Source geometry unavailable")?;
         let edited = super::deform::transform(geometry, target, &local)?;
         self.commit_geometry(row, edited, label)
     }
 
+    /// Replace a row's geometry in one undo step.
     pub fn commit_geometry(
         &mut self,
         row: u32,
@@ -523,6 +491,7 @@ impl Scene {
         Ok(())
     }
 
+    /// Move one control point of an object to a world point.
     pub fn set_source_control(
         &mut self,
         row: u32,
@@ -547,7 +516,7 @@ impl Scene {
         )
     }
 
-    /// Only the render upload sees the preview. Retained source and undo history stay unchanged.
+    /// Show a geometry on the GPU without changing the document.
     pub fn preview_geometry(
         &mut self,
         row: u32,
@@ -561,9 +530,10 @@ impl Scene {
         let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
 
         if self.patch_preview(row, &geometry, gpu) {
-            return Ok(());
+            return Ok(()); // fast path: only vertices moved
         }
 
+        // swap in, rebuild the rows, swap back
         let original = Rc::make_mut(&mut self.docs[doc].session)
             .lookup
             .insert(guid.to_string(), geometry)

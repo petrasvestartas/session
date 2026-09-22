@@ -1,6 +1,6 @@
-/// Show a non-disruptive message in the focused viewer's status area.
+/// Show a message in the status line.
 pub fn status(message: &str) {
-    // A page that reloaded after a device loss keeps saying so whenever the line is cleared.
+    // an empty message shows the reload notice, if any
     #[cfg(target_arch = "wasm32")]
     let message = if message.is_empty() {
         super::route::recovered_notice().unwrap_or(message)
@@ -21,7 +21,7 @@ pub fn status(message: &str) {
     log::info!("{message}");
 }
 
-/// Preserve the page and expose an explicit reload action after initialization/device failure.
+/// Show the error panel with a reload button.
 pub fn error(message: &str) {
     #[cfg(target_arch = "wasm32")]
     if let Some(window) = web_sys::window()
@@ -38,6 +38,7 @@ pub fn error(message: &str) {
     log::error!("{message}");
 }
 
+/// Open or close the command line.
 #[cfg(target_arch = "wasm32")]
 pub fn command_line(open: bool) {
     super::ui::MODEL.with_borrow_mut(|model| {
@@ -50,9 +51,7 @@ pub fn command_line(open: bool) {
     });
 }
 
-/// Give the canvas the keyboard back. Every key binding is on the canvas, so anything that
-/// takes the focus - a click in a panel, a closing text box - has to hand it back or the
-/// viewer stops answering keys with no way to say so.
+/// Give the canvas keyboard focus.
 #[cfg(target_arch = "wasm32")]
 pub fn focus_canvas() {
     use wasm_bindgen::JsCast;
@@ -65,34 +64,37 @@ pub fn focus_canvas() {
     }
 }
 
+/// No canvas on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn focus_canvas() {}
 
-/// Native builds have no command box; the callers stay free of `cfg`.
+/// No command line on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn command_line(_open: bool) {}
 
-/// One row of the layers panel, as the panel needs it.
+/// One row of the layers panel.
 #[derive(Clone, Default, serde::Serialize)]
 pub struct LayerRow {
-    pub key: String,
-    pub label: String,
-    pub count: usize,
-    pub hidden: bool,
-    pub locked: bool,
-    pub selected: bool,
-    pub color: Option<[u8; 3]>,
-    pub edge_color: Option<[u8; 3]>,
-    pub has_faces: bool,
-    pub depth: usize,
-    pub expanded: Option<bool>,
+    pub key: String,                 // unique id of the row
+    pub label: String,               // text shown
+    pub count: usize,                // objects under it
+    pub hidden: bool,                // eye toggled off
+    pub locked: bool,                // not editable
+    pub selected: bool,              // highlighted
+    pub color: Option<[u8; 3]>,      // face colour swatch
+    pub edge_color: Option<[u8; 3]>, // edge colour swatch
+    pub has_faces: bool,             // shows a face swatch
+    pub depth: usize,                // indent level
+    pub expanded: Option<bool>,      // open, closed or no children
 }
 
+/// Replace the rows of the layers panel.
 #[cfg(target_arch = "wasm32")]
 pub fn layers_panel(rows: &[LayerRow]) {
     super::ui::MODEL.with_borrow_mut(|model| model.rows = rows.to_vec());
 }
 
+/// Show or hide the layers panel.
 #[cfg(target_arch = "wasm32")]
 pub fn layers_visible(open: bool) {
     super::ui::MODEL.with_borrow_mut(|model| {
@@ -104,18 +106,21 @@ pub fn layers_visible(open: bool) {
     });
 }
 
+/// Whether the layers panel is open.
 #[cfg(target_arch = "wasm32")]
 pub fn layers_open() -> bool {
     super::ui::MODEL.with_borrow(|model| model.layers_open)
 }
 
+/// No panel on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn layers_panel(_rows: &[LayerRow]) {}
 
-/// Native builds have no panel either; the one caller stays free of `cfg`.
+/// No panel on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn layers_visible(_open: bool) {}
 
+/// No panel on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn layers_open() -> bool {
     false

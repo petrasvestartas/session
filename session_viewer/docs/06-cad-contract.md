@@ -1,102 +1,302 @@
 # 06 · CAD face rules
-<!-- locator: off -->
 
 A shaded planar face shows four black boundaries with retained source identities.
 
 ![One face, three representations: BRep source in f64, kernel mesh with u,v, normals and boundary tags, viewer rows in f32 that keep the face and edge identities.](illustrations/cad-contract.svg)
 
-<!-- step-status: start -->
+Copy each file from the lesson folder to the path shown.
 
-**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
-
-<!-- step-status: end -->
-
-Download each file to the path shown.
-<!-- supplied: 06 -->
 ## Step 1 · session_rust/src/remesh_nurbssurface_grid.rs
 
-Read this source file from its link; the checkpoint already contains it.
-<!-- listing: 06 session_rust/src/remesh_nurbssurface_grid.rs -->
-<!-- check: 06 -->
+Read the kernel mesher; the lesson uses it, never changes it.
+
+??? example "`session_rust/src/remesh_nurbssurface_grid.rs` · read only · 812 lines"
+
+    ```rust
+    --8<-- "session_rust/src/remesh_nurbssurface_grid.rs"
+    ```
+    
+
+Run `cargo check` in `lessons/06/`.
+
 ## Step 2 · src/app/walk/encode.rs
 
-Encoding packs pen colors, widths and facing information for shaders. CPU and shader conventions must agree.
-<!-- file: 06 session_viewer/src/app/walk/encode.rs type -->
+New file: pen colour, width and facing packed for the shaders.
+
+`lessons/06/src/app/walk/encode.rs` · 78 lines · type this, new file
+
+```rust
+--8<-- "lessons/06/src/app/walk/encode.rs"
+```
+
 ## Step 3 · src/app/walk/mod.rs
 
-The geometry walk dispatches source types into their render buffers. Keep object-row indices consistent across every output.
-<!-- file: 06 session_viewer/src/app/walk/mod.rs type -->
+New file: the walk that turns each source object into GPU rows.
+
+`lessons/06/src/app/walk/mod.rs` · 38 lines · type this, new file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mod.rs"
+```
+
 ## Step 4 · src/app/walk/bounds.rs
 
-Bounds are collected from the rows added by one document. Start each sweep at its saved baseline so earlier documents do not affect it.
-<!-- file: 06 session_viewer/src/app/walk/bounds.rs type -->
+New file: bounds collected from the rows one document adds.
+
+`lessons/06/src/app/walk/bounds.rs` · 74 lines · type this, new file
+
+```rust
+--8<-- "lessons/06/src/app/walk/bounds.rs"
+```
+
 ## Step 5 · src/app/walk/mesh_topology.rs
 
-Topology records vertex and edge adjacency for mesh display. Sparse source vertex keys need an explicit slot map.
-<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=1-57 -->
-<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=58-86 -->
-<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=87-179 -->
+New file: vertex and edge adjacency of a mesh.
+
+`lessons/06/src/app/walk/mesh_topology.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_topology.rs:step-5a"
+```
+
+`lessons/06/src/app/walk/mesh_topology.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_topology.rs:step-5b"
+```
+
+`lessons/06/src/app/walk/mesh_topology.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_topology.rs:step-5c"
+```
+
 ## Step 6 · src/app/walk/mesh_ink.rs
 
-Mesh ink distinguishes authored boundaries from shared face edges. A triangulation diagonal is not automatically a visible edge.
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-60 -->
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=61-116 -->
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=117-168 -->
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=169-245 -->
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=246-320 -->
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=321-344 -->
-Download this part from its link to the path shown.
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs copy lines=345-402 -->
+New file: which mesh edges are drawn as ink.
+
+`lessons/06/src/app/walk/mesh_ink.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_ink.rs:step-6a"
+```
+
+`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_ink.rs:step-6b"
+```
+
+`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_ink.rs:step-6c"
+```
+
+`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_ink.rs:step-6d"
+```
+
+`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_ink.rs:step-6e"
+```
+
+`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_ink.rs:step-6f"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/06/src/app/walk/mesh_ink.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh_ink.rs:step-6g"
+```
+
 ## Step 7 · src/app/walk/mesh.rs
 
-The mesh walk uploads vertices, indices and source face IDs. Offset file-local indices only once.
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-46 -->
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=47-72 -->
-Download this part from its link to the path shown.
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=73-138 -->
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=139-250 -->
+New file: the mesh walk, vertices, indices and face ids.
+
+`lessons/06/src/app/walk/mesh.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh.rs:step-7a"
+```
+
+`lessons/06/src/app/walk/mesh.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh.rs:step-7b"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/06/src/app/walk/mesh.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh.rs:step-7c"
+```
+
+`lessons/06/src/app/walk/mesh.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/mesh.rs:step-7d"
+```
+
 ## Step 8 · src/app/walk/curves.rs
 
-Curve sampling builds connected strokes from source geometry. Keep segment endpoints shared so joints remain continuous.
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-64 -->
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=65-153 -->
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=154-155 -->
+New file: curves sampled into connected strokes.
+
+`lessons/06/src/app/walk/curves.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/06/src/app/walk/curves.rs:step-8a"
+```
+
+`lessons/06/src/app/walk/curves.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/curves.rs:step-8b"
+```
+
+`lessons/06/src/app/walk/curves.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/06/src/app/walk/curves.rs:step-8c"
+```
+
 ## Step 9 · src/app/walk/brep_edges.rs
 
-Boundary chains share samples between adjacent faces. Preserve oriented source edge IDs through the upload.
-<!-- file: 06 session_viewer/src/app/walk/brep_edges.rs type -->
+New file: boundary chains shared between faces.
+
+`lessons/06/src/app/walk/brep_edges.rs` · 18 lines · type this, new file
+
+```rust
+--8<-- "lessons/06/src/app/walk/brep_edges.rs"
+```
+
 ## Step 10 · src/app/walk/brep.rs
 
-The geometry walk uploads shaded faces and their source boundary edges. Tessellation diagonals must never become CAD edges.
-<!-- file: 06 session_viewer/src/app/walk/brep.rs type -->
+New file: the BRep walk, shaded faces and their edges.
+
+`lessons/06/src/app/walk/brep.rs` · 99 lines · type this, new file
+
+```rust
+--8<-- "lessons/06/src/app/walk/brep.rs"
+```
+
 ## Step 11 · src/app/knobs.rs
 
-Download this file from its link to the path shown.
-<!-- file: 06 session_viewer/src/app/knobs.rs copy -->
+Copy the file: tuning constants with their defaults.
+Copy this file from the lesson folder to the path shown.
+
+`lessons/06/src/app/knobs.rs` · 54 lines · copy the file, new file
+
+```rust
+--8<-- "lessons/06/src/app/knobs.rs"
+```
+
 ## Step 12 · src/app/mod.rs
 
-The application module connects source loading and interaction helpers. Declare each file before importing it elsewhere.
-<!-- file: 06 session_viewer/src/app/mod.rs type -->
-<!-- check: 06 -->
+The app module declares the walk.
+
+`lessons/06/src/app/mod.rs` · edit · type this
+
+Replaces the line `pub mod route;` in `lessons/05/src/app/mod.rs`
+
+```rust
+--8<-- "lessons/06/src/app/mod.rs:step-12"
+```
+
+Run `cargo check` in `lessons/06/`.
+
 ## Step 13 · src/fixture.rs
 
-Download this file from its link to the path shown.
-<!-- file: 06 session_viewer/src/fixture.rs copy -->
+Copy the test scene: CAD surfaces from the kernel.
+Copy this file from the lesson folder to the path shown.
+
+`lessons/06/src/fixture.rs` · edit · copy the file
+
+Replaces the `fn scene` lines in `lessons/05/src/fixture.rs`
+
+```rust
+--8<-- "lessons/06/src/fixture.rs:step-13"
+```
+
 ## Step 14 · src/lib.rs
 
-The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
-<!-- file: 06 session_viewer/src/lib.rs type -->
+The entry point runs the walk instead of the fixture.
+
+`lessons/06/src/lib.rs` · edit · type this
+
+Replaces the lines from `let mut upload = fixture::scene();` to `camera.unit = camera::Unit::Meters;` in `lessons/05/src/lib.rs`
+
+```rust
+--8<-- "lessons/06/src/lib.rs:step-14a"
+```
+
+Added below
+
+```rust
+            scale: 1.0,
+```
+
+```rust
+--8<-- "lessons/06/src/lib.rs:step-14b"
+```
+
+Replaces the line `Ok(serde_json::json!({"stage":5,"objects":self.gpu.object…` in `lessons/05/src/lib.rs`
+
+```rust
+--8<-- "lessons/06/src/lib.rs:step-14c"
+```
+
 ## Step 15 · src/shaders/triangle.wgsl
 
-The mesh shader places vertices and shades visible faces. Its instance row must be the row uploaded with that vertex.
-<!-- file: 06 session_viewer/src/shaders/triangle.wgsl type -->
+The mesh shader reads the packed facing.
+
+`lessons/06/src/shaders/triangle.wgsl` · edit · type this
+
+Replaces the line `o.normal = face_normal(inst.model, in.normal);` in `lessons/05/src/shaders/triangle.wgsl`
+
+```wgsl
+--8<-- "lessons/06/src/shaders/triangle.wgsl:step-15"
+```
+
 ## Step 16 · index.html
 
-Download this file from its link to the path shown.
-<!-- file: 06 session_viewer/index.html copy -->
+Copy the page: the status says checkpoint 06.
+Copy this file from the lesson folder to the path shown.
+
+`lessons/06/index.html` · edit · copy the file
+
+Replaces the line `<title>Session checkpoint 05</title>` in `lessons/05/index.html`
+
+```html
+--8<-- "lessons/06/index.html:step-16a"
+```
+
+Replaces the line `<output id="status">Starting checkpoint 05</output>` in `lessons/05/index.html`
+
+```html
+--8<-- "lessons/06/index.html:step-16b"
+```
+
+Replaces the line `document.getElementById('status').textContent = 'Checkpoi…` in `lessons/05/index.html`
+
+```html
+--8<-- "lessons/06/index.html:step-16c"
+```
+
 ## Check
 
-<!-- checkpoint: 06 -->
+Run `trunk serve` in `lessons/06/` and open <http://127.0.0.1:8770/>.
 
 Expected: A shaded planar face shows four black boundaries with retained source identities; status: **1 object**.
 
@@ -109,9 +309,26 @@ If it fails:
 
 ## What changed
 
-<!-- tree: 06 session_viewer/src/app -->
+```text
+lessons/06/src/app/
+├── walk/
+│   ├── bounds.rs  +
+│   ├── brep.rs  +
+│   ├── brep_edges.rs  +
+│   ├── curves.rs  +
+│   ├── encode.rs  +
+│   ├── mesh.rs  +
+│   ├── mesh_ink.rs  +
+│   ├── mesh_topology.rs  +
+│   └── mod.rs  +
+├── knobs.rs  +
+├── mod.rs  ~
+└── route.rs
+```
 
-Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 06](../lessons/06/index.md).
+`+` new in this lesson · `~` changed in this lesson
+
+Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: `lessons/06/`.
 
 ## Next
 

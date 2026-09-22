@@ -390,7 +390,6 @@ pub fn set_place(&mut self, ctx: &GpuCtx, row: u32, place: &Mat4, translate_only
 - `coords::parse`, `lookup` and the argument helpers are pure and test natively, with in-file `#[cfg(test)] mod tests` as `src/app/scene.rs` and `src/engine/gpu/objects.rs` do.
 - `State::command` cannot: `State::new` takes an `Arc<Window>` and is built only in the wasm loader (`src/app/loader.rs`), while the native harness builds `Scene`, `Gpu`, `Camera` directly (`src/selftest/lifecycle.rs`).
 - Publish `command_log`, `tool` and `history_depth` (`session_rust/src/history.rs:222`) in the `?inspect=1` snapshot (`src/app/inspection.rs:33-70`): `tests/interaction.cjs` and `tests/streamed-controls.cjs` drive the viewer through it.
-- `docs/locator.py` refuses to run when a taught file matches no zone, and `src/app/coords.rs` matches none (`docs/locator.py:43-84`). Add the path to `ZONES` first.
 
 ## The order that compiles
 
@@ -457,6 +456,6 @@ pub fn set_place(&mut self, ctx: &GpuCtx, row: u32, place: &Mat4, translate_only
 
 ## Expected viewer result
 
-Reference result from the supported [implementation tutorials](extend-implementation.md). The white egui command area shows a completed line command and its feedback, with the created geometry visible in the full viewer. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md).
+Reference result from the supported [implementation tutorials](extend-implementation.md). The white egui command area shows a completed line command and its feedback, with the created geometry visible in the full viewer. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
 
 [![Full viewer result for extend command line](screenshots/extensions-command-create.png)](screenshots/extensions-command-create.png)

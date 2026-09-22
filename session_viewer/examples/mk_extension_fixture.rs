@@ -1,3 +1,4 @@
+//! Fixture scene for the editing lessons: two beams, a joint and a placed polyline.
 use session_rust::Line;
 use session_rust::Point;
 use session_rust::Polyline;
@@ -5,6 +6,7 @@ use session_rust::Session;
 use session_rust::TreeNode;
 use session_rust::Xform;
 
+/// Write the fixture to `docs/extensions/nested.pb`.
 fn main() {
     let mut session = Session::new("Editing lessons");
     let assembly = session.add_group("Assembly");

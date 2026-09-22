@@ -4,30 +4,29 @@ use super::targets::Targets;
 use crate::engine::pipelines::Layouts;
 use session_rust::{AABB, Point, Xform};
 
-/// Re-anchor threshold band, world units: the table is rebased once the camera target drifts
-/// a quarter of the view distance from the anchor, clamped to [MIN, MAX].
+/// Smallest camera drift, world units, that moves the anchor.
 const REANCHOR_MIN: f64 = 1.0e3;
 
+/// Largest camera drift, world units, before the anchor must move.
 const REANCHOR_MAX: f64 = 1.0e5;
 
-/// Re-anchors are throttled to this interval so a wheel-zoom gesture does not rebuild every tick.
+/// Least time between two anchor moves, ms.
 const REANCHOR_THROTTLE_MS: f64 = 200.0;
 
-/// One object as the walk reports it: its true placement, tint, flags, mesh-local box
-/// (empty when the object has no volume the ink lanes care about) and vertex spacing.
+/// One object row as the CPU builds it.
 #[derive(Clone)]
 pub struct ObjectRow {
-    pub place: Xform,
-    pub color: [f32; 4],
-    pub edge_color: u32,
-    pub flags: u32,
-    pub bounds: AABB,
-    pub spacing: f32, // Meshes: the local vertex spacing; clouds: the point size in px. Read as a pen hint.
-    pub faces: bool,  // The row drew faces, so the per-frame inside test walks its box.
+    pub place: Xform, // world placement
+    pub color: [f32; 4], // rgba tint
+    pub edge_color: u32, // packed edge color
+    pub flags: u32, // Instance::FLAG_* bits
+    pub bounds: AABB, // box in the object's own space
+    pub spacing: f32, // vertex spacing, or point size for clouds
+    pub faces: bool, // true when the object drew faces
 }
 
 impl ObjectRow {
-    /// A row with the file placement, white tint and no columns filled yet.
+    /// A row with a placement and flags, everything else empty.
     pub fn new(place: Xform, flags: u32) -> Self {
         Self {
             place,
@@ -41,32 +40,32 @@ impl ObjectRow {
     }
 }
 
-/// The object rows of one upload - THIS upload's rows only; `Scene.bases.obj` numbers them.
+/// Object rows of one upload.
 #[derive(Default)]
 pub struct ObjectRows {
-    pub rows: Vec<ObjectRow>,
+    pub rows: Vec<ObjectRow>, // one per object
 }
 
-/// What one `rebase_anchor` call reports: the anchor in force, whether the table was just
-/// rebuilt, and whether a rebuild is due but throttled (the caller asks for another frame).
+/// Result of a `rebase_anchor` call.
 pub struct Rebase {
-    pub anchor: Point,
-    pub moved: bool,
-    pub pending: bool,
+    pub anchor: Point, // current scene origin
+    pub moved: bool, // true when the table was rebuilt now
+    pub pending: bool, // true when a rebuild waits on the throttle
 }
 
-/// A row that drew faces and carries a world box. The inside test walks these only.
+/// A row with faces and its world box, for the inside test.
 struct BoundedRow {
-    row: u32,
-    lo: [f64; 3],
-    hi: [f64; 3],
+    row: u32, // object row
+    lo: [f64; 3], // box minimum
+    hi: [f64; 3], // box maximum
 }
 
-/// The row's mesh-local box carried through its placement, in world units.
+/// The row's box in world space.
 fn world_box(r: &ObjectRow) -> AABB {
     r.bounds.transformed(&r.place)
 }
 
+/// SSAO contact radius: 5% of the box diagonal.
 fn ambient_radius(bounds: &AABB) -> f32 {
     if !bounds.is_valid() {
         return 0.0;
@@ -74,13 +73,11 @@ fn ambient_radius(bounds: &AABB) -> f32 {
     (0.05 * bounds.hx.hypot(bounds.hy).hypot(bounds.hz)).max(0.01) as f32
 }
 
-/// One row's GPU form under a placement: the model matrix with its translation column cleared,
-/// the true f64 translation taken out of that column, and the row's own box placed into the
-/// world. Split out of `set_placement` because it is the whole arithmetic of a move and a
-/// device is not needed to check it.
+/// Split a placement into matrix, translation and world box.
 fn placed_row(local: &AABB, place: &Xform) -> ([f32; 16], [f64; 3], AABB) {
     let world = local.transformed(place);
     let mut model = place.to_f32();
+    // translation goes in its own table
     model[12] = 0.0;
     model[13] = 0.0;
     model[14] = 0.0;
@@ -95,16 +92,7 @@ fn placed_row(local: &AABB, place: &Xform) -> ([f32; 16], [f64; 3], AABB) {
     )
 }
 
-/// The anchored translation the GPU reads: the true f64 world position minus the table's
-/// anchor, narrowed once at the end. Subtracting first is what keeps a small move: a
-/// millimetre is lost narrowing a world coordinate a kilometre out, and kept narrowing the
-/// ten metres that remain after the anchor comes off.
-///
-/// It is a pure function of the base and the anchor, which fixes where a placement CHANGE
-/// goes. `rebuild` recomputes every row from `translation`, so a delta added to the f32 this
-/// returned is erased by the next re-anchor. An edit adds its increment to the f64 base.
-/// `render_position` is the same boundary for geometry arriving from the kernel; this is the
-/// boundary for placement, and an edit crosses it in the other direction.
+/// Translation relative to the origin, as the GPU reads it.
 fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
     [
         (t[0] - origin[0]) as f32,
@@ -114,25 +102,24 @@ fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
     ]
 }
 
-/// The object rows as the GPU sees them, the TRUE f64 translation per row, and the sparse
-/// bounded rows. The anchored translations live in their own 16 B/row buffer.
+/// The object rows on the GPU and their exact positions on the CPU.
 pub struct InstanceTable {
-    geometry_revision: u64,
-    rows: Vec<Instance>,
-    translation: Vec<[f64; 3]>, // The TRUE world translation per row, in f64. The GPU never sees it: `anchored` narrows it against the current anchor. Every change to a placement is applied HERE, so the error of an edit is the error of the edit, not of the position it happens at.
-    local_bounds: Vec<AABB>, // Each row's box in its OWN space. `world_bounds` is this box under the current placement, so an edit that only moves the object recomputes the world box from here instead of walking the geometry again.
-    widget: Option<u32>, // The identity row the widgets draw against, once something has asked for it.
-    bounded: Vec<BoundedRow>,
-    world_bounds: Vec<AABB>, // Every row's world box, row order, so index = row; `AABB::empty()` where not finite.
-    last_origin: Option<Point>,
-    buffer: GrowBuf,
-    translations: GrowBuf,
-    last_rebase_ms: f64,
-    pub group: wgpu::BindGroup, // Group 2 of every instance-reading pipeline; rebuilt when either buffer grows.
-    pub ink_group: wgpu::BindGroup,
+    geometry_revision: u64, // bumps when anything moves or hides
+    rows: Vec<Instance>, // the rows, as uploaded
+    translation: Vec<[f64; 3]>, // exact world position per row
+    local_bounds: Vec<AABB>, // box per row, in the object's own space
+    widget: Option<u32>, // identity row the gumball draws with
+    bounded: Vec<BoundedRow>, // rows with faces, for the inside test
+    world_bounds: Vec<AABB>, // box per row in world space
+    last_origin: Option<Point>, // origin the GPU positions are measured from
+    buffer: GrowBuf, // Instance rows on the GPU
+    translations: GrowBuf, // positions minus the scene origin, on the GPU
+    last_rebase_ms: f64, // when the origin last moved
+    pub group: wgpu::BindGroup, // group 2: rows and translations
+    pub ink_group: wgpu::BindGroup, // group 2 for ink, with depth textures
 }
 
-/// Group 2: the rows at binding 0, the anchored translations at binding 1.
+/// Bind group 2: rows at binding 0, translations at 1.
 fn instance_group(
     ctx: &GpuCtx,
     l: &Layouts,
@@ -147,14 +134,13 @@ fn instance_group(
     )
 }
 
-/// The immutable physical depth bound beside each ink lane's instance columns.
+/// Textures and tiles the ink bind group reads.
 pub struct InkScene<'a> {
-    pub tiles: &'a super::triangle_tiles::TriangleTiles,
-    pub targets: &'a Targets,
+    pub tiles: &'a super::triangle_tiles::TriangleTiles, // screen tiles for visibility tests
+    pub targets: &'a Targets, // depth and gradient textures
 }
 
-/// Group 2 for ink: the instance columns, the physical depth and gradient at both sample
-/// counts, and the finite-visibility tables.
+/// Bind group 2 for ink lanes: rows, depth, gradient, tiles.
 fn ink_instance_group(
     ctx: &GpuCtx,
     l: &Layouts,
@@ -191,17 +177,14 @@ fn ink_instance_group(
 }
 
 impl InstanceTable {
-    /// Revision of placement, rebased translations or hidden state used by finite visibility.
     pub fn geometry_revision(&self) -> u64 {
         self.geometry_revision
     }
 
-    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
     pub fn allocated_bytes(&self) -> u64 {
         self.buffer.buf.size() + self.translations.buf.size()
     }
 
-    /// One placeholder row in both tables, so the first frame binds real buffers.
     pub fn new(ctx: &GpuCtx, l: &Layouts, scene: &InkScene) -> Self {
         let buffer = GrowBuf::new(
             ctx,
@@ -239,7 +222,7 @@ impl InstanceTable {
         }
     }
 
-    /// Refresh the depth and instance bindings after upload, resize, or release.
+    /// Rebuild the ink bind group.
     pub fn rebind_ink(&mut self, ctx: &GpuCtx, l: &Layouts, scene: &InkScene) {
         let t = scene.targets;
         self.ink_group = ink_instance_group(
@@ -253,7 +236,7 @@ impl InstanceTable {
         );
     }
 
-    /// Bind pixel-center picking depth separately from the multisampled display depth.
+    /// An ink bind group over the pick pass's own depth textures.
     pub fn pick_group(
         &self,
         ctx: &GpuCtx,
@@ -273,24 +256,18 @@ impl InstanceTable {
         )
     }
 
-    /// Append one upload's rows: cast once, keep the f64 translation, note the bounded ones,
-    /// send only the new rows. The next frame rebases the whole table.
+    /// Append one upload's rows.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &ObjectRows) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
 
-        // The widget row sits after every scene row, so a second file's rows would land after
-        // IT and every row number past it would be off by one. Drop it first; whoever wants it
-        // mints it again, at the new end.
+        // drop the widget row first; it must stay last
         if let Some(widget) = self.widget.take() {
             let keep = widget as usize;
             self.rows.truncate(keep);
             self.translation.truncate(keep);
             self.local_bounds.truncate(keep);
             self.world_bounds.truncate(keep);
-            // `GrowBuf` grows and resets; it cannot rewind by one. Both buffers are rewound to
-            // the kept rows by resetting and re-appending them, which keeps the capacity and
-            // leaves `buffer.len()` equal to `rows.len()` - the length the fresh-row slice
-            // below is measured against.
+            // rewind both buffers by re-appending the kept rows
             self.buffer.reset();
             self.translations.reset();
 
@@ -312,6 +289,7 @@ impl InstanceTable {
             }
         }
 
+        // first upload replaces the placeholder
         if self.translation.is_empty() {
             self.rows.clear();
             self.world_bounds.clear();
@@ -320,6 +298,7 @@ impl InstanceTable {
             self.translations.reset();
         }
 
+        // row number of the first new object
         let base = self.translation.len() as u32;
         self.rows.reserve(up.rows.len());
         self.translation.reserve(up.rows.len());
@@ -329,6 +308,7 @@ impl InstanceTable {
         for (i, r) in up.rows.iter().enumerate() {
             let world = world_box(r);
 
+            // rows with faces join the inside test
             if r.faces && world.is_valid() {
                 let lo = world.min_point();
                 let hi = world.max_point();
@@ -347,6 +327,7 @@ impl InstanceTable {
             self.local_bounds.push(r.bounds);
             self.translation
                 .push([r.place.m[12], r.place.m[13], r.place.m[14]]);
+            // matrix without translation
             let mut model = r.place.to_f32();
             model[12] = 0.0;
             model[13] = 0.0;
@@ -365,12 +346,14 @@ impl InstanceTable {
             self.rows.push(Instance::placeholder());
         }
 
+        // rows not yet on the GPU
         let fresh = &self.rows[self.buffer.len() as usize..];
 
         if fresh.is_empty() {
             return;
         }
 
+        // translations are filled by the next rebase
         let zeros = vec![[0.0f32; 4]; fresh.len()];
         let grew = self.buffer.append(ctx, fresh);
 
@@ -381,8 +364,7 @@ impl InstanceTable {
         self.last_origin = None;
     }
 
-    /// The anchor the table is rebased about. A rebuild runs only when the camera target
-    /// strays past the band from the current anchor; `origin` and `view_dist` are world units.
+    /// Move the scene origin when the camera drifted far enough.
     pub fn rebase_anchor(
         &mut self,
         ctx: &GpuCtx,
@@ -390,7 +372,9 @@ impl InstanceTable {
         view_dist: f64,
         now: f64,
     ) -> Rebase {
+        // a quarter of the view distance, clamped
         let thresh = (view_dist * 0.25).clamp(REANCHOR_MIN, REANCHOR_MAX);
+        // drifted past the threshold?
         let need = match &self.last_origin {
             None => true,
             Some(a) => {
@@ -398,6 +382,7 @@ impl InstanceTable {
                 (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt() > thresh
             }
         };
+        // rebuild now unless throttled
         let moved = need
             && (self.last_origin.is_none() || now - self.last_rebase_ms > REANCHOR_THROTTLE_MS);
 
@@ -407,16 +392,14 @@ impl InstanceTable {
         }
 
         Rebase {
-            // Safe in one step: `last_origin` being None makes `need` true and `moved` true,
-            // so `rebuild` above has just filled it. Otherwise it was already filled.
+            // set by rebuild above or earlier
             anchor: self.last_origin.clone().unwrap(),
             moved,
             pending: need && !moved,
         }
     }
 
-    /// Rebase every row's translation around `origin` in f64, cast, and rewrite the 16 B/row
-    /// translation table; the 96 B rows are not touched.
+    /// Recompute every relative translation for a new origin.
     fn rebuild(&mut self, ctx: &GpuCtx, origin: &Point) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
         self.last_origin = Some(origin.clone());
@@ -430,7 +413,7 @@ impl InstanceTable {
         self.translations.write_at(ctx, 0, &rebased);
     }
 
-    /// Row `i`'s model as a shader composes it: rotation/scale plus the anchored translation.
+    /// Row `i`'s full matrix as the shader composes it.
     pub fn anchored_model(&self, i: u32) -> Option<[f32; 16]> {
         let mut model = self.rows.get(i as usize)?.model;
 
@@ -444,8 +427,7 @@ impl InstanceTable {
         Some(model)
     }
 
-    /// Per-frame refresh of `FLAG_INSIDE` over the bounded rows only; a row is written back
-    /// only when its answer flips.
+    /// Set FLAG_INSIDE on rows whose box contains the eye.
     pub fn update_inside(&mut self, ctx: &GpuCtx, eye: [f32; 3], scene: &AABB) {
         if self.bounded.is_empty() {
             return;
@@ -454,6 +436,7 @@ impl InstanceTable {
         let Some(origin) = self.last_origin.clone() else {
             return;
         };
+        // eye in world space
         let ew = [
             origin[0] + eye[0] as f64,
             origin[1] + eye[1] as f64,
@@ -477,6 +460,7 @@ impl InstanceTable {
                 continue;
             };
 
+            // write only when the answer changed
             if (row.flags & Instance::FLAG_INSIDE != 0) == inside {
                 continue;
             }
@@ -486,24 +470,14 @@ impl InstanceTable {
         }
     }
 
-    /// The index of an identity row the widgets draw against, appending one the first time.
-    ///
-    /// A gizmo's geometry is already in world coordinates, so it needs an instance whose model
-    /// is the identity and whose translation is zero. Row 0 is a real object as soon as the
-    /// scene has one, so the widget cannot borrow it: it gets a row of its own, after every
-    /// scene row, minted once and cleared with the table.
-    /// Returns the row and whether the buffers moved; group 2 for INK binds the same two
-    /// buffers, so a caller that says true must rebind it or the widget lanes draw against a
-    /// buffer nobody owns any more.
+    /// Row the gumball draws with: identity, appended once, last.
     pub fn widget_row(&mut self, ctx: &GpuCtx, l: &Layouts) -> (u32, bool) {
         if let Some(row) = self.widget {
             return (row, false);
         }
 
         let row = self.rows.len() as u32;
-        // `placeholder`'s identity model and zero flags are what the widget wants; its mid-grey
-        // tint is not. Both lanes multiply their own row colour by the object's, so a grey
-        // instance would halve every colour the widget is recognised by.
+        // identity matrix, white tint
         self.rows.push(Instance {
             color: [1.0; 4],
             ..Instance::placeholder()
@@ -511,15 +485,12 @@ impl InstanceTable {
         self.translation.push([0.0; 3]);
         self.local_bounds.push(AABB::empty());
         self.world_bounds.push(AABB::empty());
-        // The widget's geometry is in absolute world coordinates and the frame is drawn about
-        // the anchor, so its anchored translation is what `anchored` gives a zero f64 base:
-        // minus the anchor. A literal zero draws the widget one whole anchor away from the
-        // object it belongs to, which is dead centre only at the world origin.
+        // world position zero, relative to the origin
         let translation = match &self.last_origin {
             Some(origin) => anchored([0.0; 3], origin),
             None => [0.0; 4],
         };
-        // `append` is what grows the buffer; writing past the end would be a validation error.
+        // append grows the buffers if needed
         let grew = self
             .buffer
             .append(ctx, std::slice::from_ref(&self.rows[row as usize]));
@@ -535,15 +506,7 @@ impl InstanceTable {
         (row, grew || grew_t)
     }
 
-    /// Replace one row's placement and write back only that row.
-    ///
-    /// Two small writes - 96 B of instance and 16 B of anchored translation - so a drag frame
-    /// costs the same whether the scene holds one object or a million. The true f64 translation
-    /// is what changes; the anchored f32 the GPU reads is derived from it, because a delta
-    /// written straight into the f32 is erased by the next re-anchor.
-    ///
-    /// The world box is recomputed from the row's own box, and `bounded` (the sparse list the
-    /// inside test walks) is kept in step. Returns false when the row does not exist.
+    /// Move one object; writes only its row.
     pub fn set_placement(&mut self, ctx: &GpuCtx, row: u32, place: &Xform) -> bool {
         let i = row as usize;
         let (Some(instance), Some(local)) = (self.rows.get_mut(i), self.local_bounds.get(i)) else {
@@ -555,6 +518,7 @@ impl InstanceTable {
         self.translation[i] = translation;
         self.world_bounds[i] = world;
 
+        // keep the inside-test box in step
         for b in &mut self.bounded {
             if b.row == row {
                 let lo = world.min_point();
@@ -578,7 +542,7 @@ impl InstanceTable {
         true
     }
 
-    /// Refresh the local box after source geometry changed, keeping its placement and identity.
+    /// Set a row's box and spacing after its geometry changed.
     pub(crate) fn set_geometry_bounds(
         &mut self,
         ctx: &GpuCtx,
@@ -592,7 +556,7 @@ impl InstanceTable {
         self.set_placement(ctx, row, place);
     }
 
-    /// Change display color without rebuilding geometry or placement.
+    /// Set a row's face or edge color; None restores its own.
     pub fn set_color(&mut self, ctx: &GpuCtx, row: u32, edge: bool, color: Option<[u8; 3]>) {
         if let Some(r) = self.rows.get_mut(row as usize) {
             let flag = if edge {
@@ -606,6 +570,7 @@ impl InstanceTable {
                 r.flags |= flag;
             }
 
+            // edge color is packed into the padding word
             if edge {
                 r._pad = color
                     .map(|c| u32::from_le_bytes([c[0], c[1], c[2], 255]))
@@ -627,7 +592,7 @@ impl InstanceTable {
         }
     }
 
-    /// Set or clear one flag bit on one row and write that row back.
+    /// Set or clear one flag bit on one row.
     pub fn set_flag(&mut self, ctx: &GpuCtx, row: u32, bit: u32, on: bool) {
         let Some(r) = self.rows.get_mut(row as usize) else {
             return;
@@ -647,11 +612,12 @@ impl InstanceTable {
         self.buffer.write_at(ctx, row, std::slice::from_ref(r));
     }
 
+    /// Note that geometry changed without a row edit.
     pub(crate) fn geometry_changed(&mut self) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
     }
 
-    /// Forget every row; the buffers keep their capacity.
+    /// Forget every row; keep the buffers.
     pub fn reset(&mut self) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
         self.widget = None;
@@ -665,7 +631,7 @@ impl InstanceTable {
         self.last_origin = None;
     }
 
-    /// Forget every row AND hand the memory back, both sides.
+    /// Forget every row and free the memory.
     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
         self.reset();
         self.rows.shrink_to_fit();
@@ -679,30 +645,30 @@ impl InstanceTable {
         self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
     }
 
-    /// One instance row as the GPU sees it.
+    /// Row `i` as uploaded.
     pub fn row(&self, i: u32) -> Option<&Instance> {
         self.rows.get(i as usize)
     }
 
-    /// Rows in the table - the frame's object count.
+    /// Row count.
     pub fn len(&self) -> u32 {
         self.rows.len() as u32
     }
 
-    /// Row `row`'s world box, `None` when the row has no volume (or does not exist).
+    /// World box of a row, None when it has none.
     pub fn row_bounds(&self, row: u32) -> Option<AABB> {
         let b = *self.world_bounds.get(row as usize)?;
         b.is_valid().then_some(b)
     }
 
-    /// Text has no solid volume; its shaped world box still supports fitting and annotations.
+    /// Set the world box of a text row.
     pub fn set_text_bounds(&mut self, row: u32, bounds: AABB) {
         if let Some(target) = self.world_bounds.get_mut(row as usize) {
             *target = bounds;
         }
     }
 
-    /// The precise origin required to project source-world labels into the rebased frame.
+    /// Scene origin in f64.
     pub fn anchor(&self) -> [f64; 3] {
         match &self.last_origin {
             Some(point) => [point[0], point[1], point[2]],
@@ -710,7 +676,7 @@ impl InstanceTable {
         }
     }
 
-    /// The anchor the rows are rebased about, as the shaders read it; zero before the first frame.
+    /// Scene origin in f32; zero before the first frame.
     pub fn anchor_f32(&self) -> [f32; 3] {
         match &self.last_origin {
             Some(origin) => [origin[0] as f32, origin[1] as f32, origin[2] as f32],
@@ -724,6 +690,7 @@ mod tests {
     use super::*;
 
     #[test]
+    /// The SSAO radius scales with the box, not with where it is.
     fn contact_radius_follows_object_size_not_position() {
         let small = AABB::new(0.0, 0.0, 0.0, 50.0, 50.0, 50.0);
         let moved = small.transformed(&Xform::translation(1.0e6, 0.0, 0.0));
@@ -750,8 +717,7 @@ mod tests {
         assert!(!world_box(&r).is_valid());
     }
 
-    /// A millimetre move a kilometre out survives subtraction against a near anchor and does
-    /// not survive narrowing the world coordinate itself. This is what the anchor is for.
+    /// A tiny move far from zero survives only relative to a near origin.
     #[test]
     fn the_anchor_is_what_keeps_a_small_move() {
         let world = 1.0e6_f64;
@@ -764,9 +730,7 @@ mod tests {
         assert_ne!(after, before);
     }
 
-    /// A move rewrites the f64 translation and the world box, and leaves the model matrix's
-    /// translation column at zero: the GPU adds the anchored translation itself, and a matrix
-    /// carrying the position twice would draw the object at twice its distance.
+    /// A move changes the translation and box, never the matrix.
     #[test]
     fn a_move_goes_into_the_translation_not_the_matrix() {
         let local = AABB::new(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
@@ -779,8 +743,7 @@ mod tests {
         assert_eq!(world.max_point(), Point::new(11.0, 21.0, 31.0));
     }
 
-    /// The write a drag frame makes, on a real device: one row moves, its neighbour does not,
-    /// and the widget row the gizmo draws against lands after both.
+    /// One row moves, its neighbour stays, the widget row stays last.
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     #[ignore = "requires a native GPU adapter"]
@@ -815,13 +778,12 @@ mod tests {
         assert_eq!(gpu.objects.row(0).unwrap().ao_radius, 2.0 * radius);
         assert_eq!(gpu.objects.row(1).unwrap().ao_radius, radius);
 
-        // The widget row is minted once, after every scene row, and stays where it was put.
+        // widget row comes after every object row
         let (widget, _) = gpu.objects.widget_row(&gpu.ctx, &gpu.layouts);
         assert_eq!(widget, 2);
         assert_eq!(gpu.objects.widget_row(&gpu.ctx, &gpu.layouts).0, widget);
 
-        // A second file arriving must not land after the widget row: every row number past it
-        // would be off by one, and a pick would name the wrong object for good.
+        // a later upload drops and remints the widget row
         let mut more = Upload::default();
         more.obj
             .rows
@@ -831,28 +793,25 @@ mod tests {
         assert_eq!(gpu.objects.widget_row(&gpu.ctx, &gpu.layouts).0, 3);
     }
 
-    /// A row with no volume keeps an empty box rather than an infinite one, so the inside test
-    /// and the fit never walk a box that answers yes to everything.
+    /// A row with no box stays empty, never infinite.
     #[test]
     fn a_row_with_no_box_stays_empty() {
         let (_, _, world) = placed_row(&AABB::empty(), &Xform::translation(1.0, 0.0, 0.0));
         assert!(!world.is_valid());
     }
 
-    /// The anchored value is a pure function of the f64 base and the anchor, so a placement
-    /// change written anywhere else is erased by the next re-anchor. An edit writes
-    /// `translation`; it never adds its delta to the f32 the GPU was given.
+    /// A move written to the f32 value is lost at the next rebase.
     #[test]
     fn an_edit_written_past_the_base_does_not_survive_a_rebase() {
         let base = [1.0e4, 0.0, 0.0];
         let first = Point::new(0.0, 0.0, 0.0);
         let step = 0.25_f32;
 
-        // An edit applied to the anchored value only.
+        // edit the relative value only
         let edited = anchored(base, &first)[0] + step;
         assert_eq!(edited, 1.0e4 + 0.25);
 
-        // The next re-anchor recomputes from `translation`, which never saw it.
+        // the rebase never saw the edit
         let second = Point::new(1.0e3, 0.0, 0.0);
         assert_eq!(anchored(base, &second)[0], 9.0e3);
     }

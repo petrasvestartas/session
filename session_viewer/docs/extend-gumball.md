@@ -356,6 +356,6 @@ Each step builds on its own.
 
 ## Expected viewer result
 
-Reference result from the supported [implementation tutorials](extend-implementation.md). Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md).
+Reference result from the supported [implementation tutorials](extend-implementation.md). Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
 
 [![Full viewer result for extend gumball](screenshots/extensions-gumball-overview.png)](screenshots/extensions-gumball-overview.png)

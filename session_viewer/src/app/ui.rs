@@ -4,53 +4,56 @@ use std::cell::RefCell;
 use std::collections::VecDeque;
 use winit::window::Window;
 
+/// Everything the panels show.
 #[derive(Default)]
 pub struct Model {
-    pub layers_open: bool,
-    pub rows: Vec<LayerRow>,
-    pub command_open: bool,
-    pub command: String,
-    pub drawing_prompt: String,
-    drawing_command: String,
-    pub focus_command: bool,
-    pub status: String,
-    history: VecDeque<String>,
-    command_expanded: bool, // The history above the prompt; closed until `+` opens it.
-    layers_collapsed: bool,
-    completion: usize,
-    completion_prefix: String,
-    inline_suffix: bool,
-    completion_visible: bool,
-    pub(crate) completion_rect: Option<egui::Rect>,
-    pub(crate) command_rect: Option<egui::Rect>,
+    pub layers_open: bool,                          // layers panel shown
+    pub rows: Vec<LayerRow>,                        // its rows
+    pub command_open: bool,                         // command line shown
+    pub command: String,                            // text in the command field
+    pub drawing_prompt: String,                     // prompt while drawing
+    drawing_command: String,                        // the drawing verb, e.g. polyline
+    pub focus_command: bool,                        // give the field focus next frame
+    pub status: String,                             // status line text
+    history: VecDeque<String>,                      // past commands and answers
+    command_expanded: bool,                         // history shown above the field
+    layers_collapsed: bool,                         // layers panel folded to its title
+    completion: usize,                              // highlighted completion index
+    completion_prefix: String,                      // text the completions match
+    inline_suffix: bool,                            // completion suffix shown in the field
+    completion_visible: bool,                       // completion list shown
+    pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
+    pub(crate) command_rect: Option<egui::Rect>,    // where the field is, for taps
 }
 
-thread_local! { pub static MODEL: RefCell<Model> = RefCell::default(); }
+thread_local! { pub static MODEL: RefCell<Model> = RefCell::default(); } // the one model
 
+/// One clickable control and where it was drawn, for browser tests.
 #[derive(serde::Serialize)]
 pub struct Control {
-    key: String,
-    label: String,
-    rect: [f32; 4],
+    key: String,    // what it does
+    label: String,  // text shown
+    rect: [f32; 4], // left, top, right, bottom
 }
 
+/// The egui interface over the canvas.
 pub struct Ui {
-    context: egui::Context,
-    input: egui_winit::State,
-    controls: Option<Vec<Control>>,
-    scene_rect: egui::Rect,
-    pointer: egui::Pos2,
-    ui_drag: bool,
-    touches: std::collections::HashSet<u64>,
+    context: egui::Context,                    // egui state
+    input: egui_winit::State,                  // winit events into egui
+    controls: Option<Vec<Control>>,            // controls drawn this frame, when inspecting
+    scene_rect: egui::Rect,                    // canvas area not covered by panels
+    pointer: egui::Pos2,                       // last pointer position
+    ui_drag: bool,                             // a drag started on a panel
+    touches: std::collections::HashSet<u64>,   // fingers on panels
     #[cfg(target_arch = "wasm32")]
-    agent_value: String, // The last value replayed from the hidden agent (app/agent.rs).
+    agent_value: String, // last text taken from the hidden input
 }
 
 impl Ui {
+    /// Set up egui with the light theme.
     pub fn new(window: &Window, _logical_width: f64) -> Self {
         let context = egui::Context::default();
-        // Command acceptance and suffix selection mutate external state. Replaying the
-        // same text events for a popup sizing pass would insert those characters twice.
+        // one layout pass, so text events are never replayed
         context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
         context.set_theme(egui::Theme::Light);
         context.set_visuals(visuals());
@@ -76,13 +79,13 @@ impl Ui {
         }
     }
 
+    /// Offer one event to the panels; (consumed, needs repaint).
     pub fn event(&mut self, window: &Window, event: &winit::event::WindowEvent) -> (bool, bool) {
         let response = self.input.on_window_event(window, event);
         let escape = matches!(event, winit::event::WindowEvent::KeyboardInput { event, .. }
             if event.logical_key == winit::keyboard::Key::Named(winit::keyboard::NamedKey::Escape))
             && MODEL.with_borrow(|model| model.command_open);
-        // Route the current pointer position, not egui's previous-frame hover. A quick tap
-        // from a toolbar to the scene must reach the picker on the very first attempt.
+        // use the current pointer, not last frame's hover
         use winit::event::{ElementState, TouchPhase, WindowEvent};
         let ratio = window.scale_factor() as f32;
         let mut consumed = response.consumed;
@@ -100,8 +103,7 @@ impl Ui {
             WindowEvent::MouseInput { state, .. } => {
                 if *state == ElementState::Pressed {
                     self.ui_drag = in_popup(self.pointer) || !scene_rect.contains(self.pointer);
-                    // A click and its first key can arrive before the next animation frame.
-                    // Grant focus now so neither egui nor the viewport drops that first letter.
+                    // focus now so the first key is not lost
                     let input = MODEL
                         .with_borrow(|m| m.command_rect.is_some_and(|r| r.contains(self.pointer)));
                     if input {
@@ -165,15 +167,7 @@ impl Ui {
         (consumed || escape, response.repaint || escape)
     }
 
-    /// Replay the hidden agent's typing into the egui field, which stays the one owner of the
-    /// text: each value is diffed against the last one replayed (not the field, which may be
-    /// frames behind), so a phone's word-wise composition arrives as the backspaces and the
-    /// text an ordinary keyboard would have sent.
-    ///
-    /// With the command box closed the keyboard is still up, and then the letters are the
-    /// viewport's own bindings, as on a desktop: they come back to the caller one by one and
-    /// never reach the field. Enter on an empty line closes the box without dropping the
-    /// keyboard, which is how a phone gets from typing commands to pressing keys.
+    /// Feed the hidden input's typing into the field; returns keys for the viewport.
     #[cfg(target_arch = "wasm32")]
     pub fn agent(&mut self, event: super::agent::AgentEvent) -> Vec<String> {
         use super::agent::AgentEvent;
@@ -244,10 +238,10 @@ impl Ui {
         Vec::new()
     }
 
+    /// Lay out and draw the panels; true when the frame must be redrawn.
     pub fn frame(&mut self, state: &mut State) -> bool {
         let mut input = self.input.take_egui_input(&state.window);
-        // Winit's web window size may describe the CSS canvas rather than its backing store.
-        // Layout and hit rectangles stay in CSS pixels; the renderer applies DPR exactly once.
+        // layout in CSS pixels
         let logical = state.logical_size();
         input.screen_rect = Some(egui::Rect::from_min_size(
             egui::Pos2::ZERO,
@@ -265,7 +259,7 @@ impl Ui {
             model.drawing_command = state.drawing_verb().to_owned();
         });
         let drawing = state.drawing_overlay();
-        // Preserve the order of clicks and keys when several arrive in one animation frame.
+        // keep clicks and keys in arrival order
         let mut batches = Vec::new();
         let mut events = Vec::new();
         let mut keyboard = None;
@@ -359,8 +353,7 @@ impl Ui {
         }
 
         self.publish();
-        // The field moved on its own - a completion, a history step, an executed line - so
-        // the agent follows it; while it is only catching up on replayed typing, they agree.
+        // the field changed on its own: the hidden input follows
         #[cfg(target_arch = "wasm32")]
         MODEL.with_borrow(|model| {
             if self.agent_value != model.command {
@@ -383,6 +376,7 @@ impl Ui {
         repaint
     }
 
+    /// Write the panel state onto the canvas for browser tests.
     fn publish(&self) {
         if self.controls.is_some()
             && let Some(canvas) = web_sys::window()
@@ -402,6 +396,7 @@ impl Ui {
     }
 }
 
+/// The white theme.
 fn visuals() -> egui::Visuals {
     let mut visuals = egui::Visuals::light();
     visuals.override_text_color = Some(egui::Color32::BLACK);
@@ -412,8 +407,7 @@ fn visuals() -> egui::Visuals {
     visuals.selection.bg_fill = egui::Color32::from_rgb(200, 222, 245);
     visuals.selection.stroke = egui::Stroke::new(1.0_f32, egui::Color32::BLACK);
     visuals.text_cursor.stroke = egui::Stroke::new(1.5_f32, egui::Color32::BLACK);
-    // The viewer renders on demand; a steady caret remains visible between input events.
-    visuals.text_cursor.blink = false;
+    visuals.text_cursor.blink = false; // frames are drawn on demand
     visuals.indent_has_left_vline = false;
 
     for widget in [
@@ -432,6 +426,7 @@ fn visuals() -> egui::Visuals {
     visuals
 }
 
+/// Remember one control's rectangle, when inspecting.
 fn record(controls: &mut Option<Vec<Control>>, key: &str, label: &str, response: &egui::Response) {
     let Some(controls) = controls.as_mut() else {
         return;
@@ -444,10 +439,11 @@ fn record(controls: &mut Option<Vec<Control>>, key: &str, label: &str, response:
     });
 }
 
+/// The layers panel; a click sets `action`.
 fn layers(
-    root: &mut egui::Ui,
-    model: &mut Model,
-    controls: &mut Option<Vec<Control>>,
+    root: &mut egui::Ui, // the panel area
+    model: &mut Model, // the panel state
+    controls: &mut Option<Vec<Control>>, // placed controls to draw
     action: &mut Option<String>,
 ) {
     if !model.layers_open {
@@ -473,6 +469,7 @@ fn layers(
     })
     .show_separator_line(false)
     .frame(
+        // the panel frame
         egui::Frame::new()
             .fill(egui::Color32::from_gray(245))
             .inner_margin(4),
@@ -496,6 +493,7 @@ fn layers(
         if collapsed {
             return;
         }
+        // one line per row
         egui::ScrollArea::vertical()
             .auto_shrink([false, false])
             .show(ui, |ui| {
@@ -577,6 +575,7 @@ fn layers(
     });
 }
 
+/// One icon of a layer row: eye, lock or arrow.
 fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
     let (rect, response) = ui.allocate_exact_size(egui::vec2(26., 28.), egui::Sense::click());
     let c = rect.center();
@@ -666,11 +665,12 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
     }
 }
 
+/// The colour swatches of a layer row.
 fn layer_color(
     ui: &mut egui::Ui,
     row: &LayerRow,
     index: &str,
-    controls: &mut Option<Vec<Control>>,
+    controls: &mut Option<Vec<Control>>, // placed controls to draw
     action: &mut Option<String>,
 ) {
     let mut color = row.color.unwrap_or([180, 180, 180]);
@@ -790,10 +790,11 @@ fn layer_color(
     );
 }
 
+/// The command dock; an executed line goes to `command`.
 fn commands(
-    root: &mut egui::Ui,
-    model: &mut Model,
-    controls: &mut Option<Vec<Control>>,
+    root: &mut egui::Ui, // the panel area
+    model: &mut Model, // the panel state
+    controls: &mut Option<Vec<Control>>, // placed controls to draw
     command: &mut Option<String>,
 ) {
     let previous_popup = model.completion_rect.take();
@@ -830,6 +831,7 @@ fn commands(
             ui.set_clip_rect(ui.max_rect().expand(6.0));
             ui.style_mut().override_font_id = Some(egui::FontId::proportional(14.0));
             ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
+            // the history above the field
             if model.command_expanded {
                 egui::ScrollArea::vertical()
                     .id_salt("command-history")
@@ -858,7 +860,7 @@ fn commands(
                             record(controls, "command/hint", &model.drawing_prompt, &response);
                         }
                     });
-                // One quiet divider separates recorded output from the active prompt.
+                // divider between history and the field
                 let (rect, _) = ui.allocate_exact_size(
                     egui::vec2(ui.available_width(), 1.0),
                     egui::Sense::hover(),
@@ -869,6 +871,7 @@ fn commands(
                     egui::Stroke::new(1.0_f32, egui::Color32::from_gray(210)),
                 );
             }
+            // Points / Rectangle / Polygon buttons while drawing a polyline
             if polyline_options {
                 ui.horizontal_wrapped(|ui| {
                     for (label, text) in [
@@ -889,7 +892,7 @@ fn commands(
                 });
             }
             ui.horizontal(|ui| {
-                // Leave the bottom-right documentation triangle clear.
+                // keep clear of the docs corner
                 ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                 ui.label("Command:");
                 let id = egui::Id::new("command-input");
@@ -901,6 +904,7 @@ fn commands(
                     }
                     model.command_open = true;
                 }
+                // mouse wheel over the field browses the completions
                 let wheel = ui.input_mut(|i| {
                     let over = i.pointer.hover_pos().is_some_and(|p| {
                         model.command_rect.is_some_and(|r| r.contains(p))
@@ -931,6 +935,7 @@ fn commands(
                     model.command_open = true;
                 }
                 let has_focus = ui.memory(|memory| memory.has_focus(id));
+                // wheel or arrow keys: -1 up, +1 down
                 let browse = if wheel != 0 {
                     wheel
                 } else if has_focus {
@@ -947,13 +952,13 @@ fn commands(
                     0
                 };
                 let enter = has_focus
-                    && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Enter));
+                    && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Enter)); // run the line
                 let tab = has_focus
-                    && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Tab));
+                    && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Tab)); // accept the completion
                 let deletes = ui.input(|i| {
                     i.key_pressed(egui::Key::Backspace) || i.key_pressed(egui::Key::Delete)
                 });
-                // A space accepts the highlighted suffix before starting the arguments.
+                // space accepts the completion
                 if model.inline_suffix
                     && has_focus
                     && ui.input(|i| {
@@ -999,7 +1004,7 @@ fn commands(
                             + 16.0
                     })
                     .sum();
-                // The options sit before the field, where the eye already is.
+                // options before the field
                 for name in inline_options {
                     let label = name.split_once(' ').map_or(*name, |(_, option)| option);
                     let selected = model.command.trim().eq_ignore_ascii_case(name)
@@ -1032,7 +1037,7 @@ fn commands(
                         .char_limit(2048)
                         .hint_text("Type a command"),
                 );
-                // Keep the empty field's caret visible when only the placeholder has a layout.
+                // caret visible on an empty field
                 if model.command_open && model.command.is_empty() {
                     let y = response.rect.center().y;
                     ui.painter().vline(
@@ -1052,7 +1057,7 @@ fn commands(
                     model.completion_visible = !model.command.is_empty();
                     model.completion_prefix.clone_from(&model.command);
                     model.inline_suffix = false;
-                    // Complete only an insertion at the end, never a deletion or a middle edit.
+                    // complete only when typing at the end
                     let at_end = egui::TextEdit::load_state(ui.ctx(), id)
                         .and_then(|state| state.cursor.char_range())
                         .is_some_and(|range| {
@@ -1080,8 +1085,9 @@ fn commands(
                 } else if !model.inline_suffix {
                     model.completion_prefix.clone_from(&model.command);
                 }
+                // the completion list
                 let choices = crate::app::command::browse(&model.completion_prefix);
-                let mut complete = None;
+                let mut complete = None; // completion chosen this frame
                 let opening_list = !model.completion_visible;
                 if browse != 0 || tab {
                     model.completion_visible = true;
@@ -1165,6 +1171,7 @@ fn commands(
                         model.completion_rect = Some(popup.response.rect);
                     }
                 }
+                // a chosen completion fills the field, maybe runs it
                 if let Some(name) = complete {
                     let (text, run) = crate::app::command::accept(name);
                     if run && !tab {
@@ -1177,6 +1184,7 @@ fn commands(
                     model.inline_suffix = false;
                     model.focus_command = true;
                 }
+                // Enter runs the line
                 if enter && (!model.command.trim().is_empty() || !model.drawing_prompt.is_empty()) {
                     let (text, run) =
                         crate::app::command::accept(&std::mem::take(&mut model.command));
@@ -1189,6 +1197,7 @@ fn commands(
                     model.inline_suffix = false;
                     model.focus_command = true;
                 }
+                // Escape clears the field
                 if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
                     model.command.clear();
                     model.completion_visible = false;
@@ -1199,6 +1208,7 @@ fn commands(
                     *command = Some("Escape".into());
                     crate::app::feedback::focus_canvas();
                 }
+                // the +/− button folds the history
                 let collapse = ui
                     .button(if model.command_expanded { "−" } else { "+" })
                     .on_hover_text("Collapse or expand history");
@@ -1229,11 +1239,13 @@ fn commands(
     }
 }
 
+/// Put the caret at the end of the field.
 fn command_cursor_end(context: &egui::Context, id: egui::Id, command: &str) {
     let end = command.chars().count();
     command_cursor_select(context, id, end, end);
 }
 
+/// Select `start..end` in the field.
 fn command_cursor_select(context: &egui::Context, id: egui::Id, start: usize, end: usize) {
     if let Some(mut state) = egui::TextEdit::load_state(context, id) {
         state

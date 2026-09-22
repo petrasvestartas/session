@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Session Viewer — text regression</title>
+<style>
+@font-face {font-family:'Noto Sans';src:url('./text/NotoSans-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:block}
+@font-face {font-family:'Noto Sans Symbols';src:url('./text/NotoSansSymbols-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:block}
+@font-face {font-family:'Noto Sans Symbols 2';src:url('./text/NotoSansSymbols2-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:block}
+* {box-sizing:border-box} body {margin:16px;background:#171717;color:#eee;font:14px system-ui}
+h1 {font-size:20px} .controls {display:flex;flex-wrap:wrap;gap:16px;margin:12px 0}
+.columns {display:grid;grid-template-columns:minmax(550px,1fr) minmax(550px,1fr);gap:16px}
+.panel {position:relative;background:#000;color:#fff;height:1040px;overflow:hidden}
+canvas {display:block;width:100%;height:1040px} #diagnostic-canvas {position:absolute;inset:0;pointer-events:none}
+.reference {position:absolute;white-space:pre;font-family:'Noto Sans','Noto Sans Symbols','Noto Sans Symbols 2';font-weight:400;font-style:normal;font-kerning:normal;font-variant-ligatures:common-ligatures;font-feature-settings:'kern' 1,'liga' 1,'clig' 1;letter-spacing:normal}
+pre {white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px} button,select {font:inherit}
+.caption {font-size:13px;margin:6px 0} .failure {color:#ff9d9d} #metric-result {padding:10px 0}
+</style>
+<h1>White-on-black text regression</h1>
+<p>Production WebGPU text beside browser text. Both use the bundled Noto Sans Regular (400), advanced shaping, default kerning and common ligatures. Sizes: 12, 14, 16, 18 and 24 CSS px; line height: 1.5. Inspect at normal size.</p>
+<div class="controls">
+<label>Specimen <select id="specimen"><option value="reference">Font comparison</option><option value="nameplate">Object nameplate</option></select></label>
+<label>Raster scale <select id="scale"><option value="0">Actual canvas / browser DPR</option><option>1</option><option>1.25</option><option>1.5</option><option>2</option></select></label>
+<label>Background <select id="background"><option value="0">Black</option><option value="8421504">Gray</option><option value="16777215">White</option></select></label>
+<label><input id="selected" type="checkbox">Selected yellow</label>
+<label><input id="diagnostics" type="checkbox">Baselines, origins and raster bounds</label>
+<button id="reset">Release resources and reload</button>
+<button id="download">Download diagnostic JSON</button>
+</div>
+<div class="columns"><div><p class="caption">WebGPU / Glyphon coverage atlas</p><div class="panel"><canvas id="text-quality-canvas"></canvas><canvas id="diagnostic-canvas"></canvas></div></div><div><p class="caption">Browser / same loaded font</p><div class="panel" id="reference"></div></div></div>
+<div id="metric-result" role="status">Loading fonts and WebGPU…</div>
+<details><summary>Environment, shaping and preparation counters</summary><pre id="metadata"></pre></details>
+<p>Unsupported font characters are shown as the font’s missing-glyph box and counted. Atlas packing, upload byte counts and allocation capacity are private to Glyphon; reported raster keys and active instance bytes are not substitutes for those measurements. Browser zoom should be tested separately from forced raster scale.</p>
+<script type="module">
+let fixture, rows, lastReport, lastDiagnostics, observer;
+const canvas=document.getElementById('text-quality-canvas');
+const reference=document.getElementById('reference');
+const status=document.getElementById('metric-result');
+
+/** Load the exact browser-reference fonts before opening the shared GPU text fixture. */
+async function start() {
+  if (!navigator.gpu) throw new Error('WebGPU is unavailable in this browser.');
+  await Promise.all([document.fonts.load('16px "Noto Sans"'),document.fonts.load('16px "Noto Sans Symbols 2"'),document.fonts.load('16px "Noto Sans Symbols"')]);
+  await document.fonts.ready;
+  const html=await fetch('./index.html',{cache:'no-store'}).then(readText);
+  const match=html.match(/(?:import[^;]*?from\s*|import\s*)["']([^"']*session_viewer[^"']*\.js)["']/);
+  if(!match) throw new Error('Cannot find the built viewer module in index.html. Build this fixture with Trunk.');
+  const module=await import(new URL(match[1],location.href).href);
+  const wasmMatch=html.match(/module_or_path:\s*["']([^"']+\.wasm)["']/);
+  if(!wasmMatch) throw new Error('Cannot find the built WASM path in index.html.');
+  await module.default({module_or_path:new URL(wasmMatch[1],location.href).href});
+  fixture=await module.TextQuality.create(canvas);
+  rows=JSON.parse(fixture.specimens());
+  buildReference();
+  render();
+  observer=new ResizeObserver(render);observer.observe(canvas);
+  window.addEventListener('resize',render);
+  document.getElementById('scale').addEventListener('change',render);
+  document.getElementById('specimen').addEventListener('change',render);
+  document.getElementById('background').addEventListener('change',render);
+  document.getElementById('selected').addEventListener('change',render);
+  document.getElementById('diagnostics').addEventListener('change',render);
+  document.getElementById('reset').addEventListener('click',reset);
+  document.getElementById('download').addEventListener('click',download);
+  window.addEventListener('pagehide',dispose,{once:true});
+  window.textQuality={
+    render,reset,fixture,
+    /** Read the last completed measurement without triggering another render. */
+    get report(){return lastReport},
+    /** Read the glyph origin/bitmap diagnostic from the same completed frame. */
+    get diagnostics(){return lastDiagnostics}
+  };
+}
+/** Reject failed build-asset fetches before parsing their contents. */
+function readText(response) { if(!response.ok) throw new Error(`Build asset HTTP ${response.status}`);return response.text(); }
+/** Place browser reference specimens at the same logical origins as GPU labels. */
+function buildReference() {
+  reference.replaceChildren();reference.dataset.specimen='reference';
+  for(const row of rows) {
+    const element=document.createElement('div');element.className='reference';element.dataset.id=row.id;
+    element.style.cssText=`left:${row.left}px;top:${row.top}px;font-size:${row.size}px;line-height:${row.lineHeight}px`;
+    element.textContent=row.text;reference.append(element);
+  }
+}
+/** Refresh text, metrics and diagnostics for the current fixture controls. */
+function render() {
+  if(!fixture) return;
+  try {
+    if(document.getElementById('specimen').value==='nameplate'){renderNameplate();return;}
+    if(reference.dataset.specimen!=='reference')buildReference();
+    const selected=document.getElementById('selected').checked;
+    const background=Number(document.getElementById('background').value);
+    const scale=Number(document.getElementById('scale').value);
+    const report=JSON.parse(fixture.render(scale,selected,background));
+    reference.style.background=`#${background.toString(16).padStart(6,'0')}`;
+    reference.style.color=selected?'#ffff00':'#ffffff';
+    lastDiagnostics=JSON.parse(fixture.diagnostics());
+    lastReport={...report,browser:navigator.userAgent,platform:navigator.platform,browserDpr:devicePixelRatio,fontsLoaded:document.fonts.check('16px "Noto Sans"'),lineMetrics:compareMetrics(lastDiagnostics)};
+    document.getElementById('metadata').textContent=JSON.stringify(lastReport,null,2);
+    const differences=lastReport.lineMetrics.map(widthDifference);
+    const maximum=Math.max(...differences);
+    status.className=report.stats.missing_glyphs?'failure':'';
+    status.textContent=`Ready. Maximum browser/shaper line-width difference: ${maximum.toFixed(3)} CSS px. Missing glyphs: ${report.stats.missing_glyphs}. Effective scale: ${report.effectiveScale}.`;
+    drawDiagnostics(lastDiagnostics);
+    document.documentElement.dataset.ready='true';
+  } catch(error) {fail(error)}
+}
+/** Keep a centered nameplate active through resize callbacks and compare its shaped width. */
+function renderNameplate() {
+  const scale=Number(document.getElementById('scale').value);
+  const report=JSON.parse(fixture.render_nameplate(scale));
+  reference.replaceChildren();reference.dataset.specimen='nameplate';reference.style.background='#ffffff';
+  const name=document.createElement('div');name.className='reference';name.textContent='Source sphere Ø25';
+  name.style.cssText='left:50%;top:50%;transform:translate(-50%,-50%);font-size:13.5px;line-height:19.5px;padding:3px 12.75px;border-radius:999px;background:#000;color:#fff';
+  reference.append(name);
+  lastDiagnostics=JSON.parse(fixture.diagnostics());
+  const glyph=lastDiagnostics.glyphs[0];
+  const lineMetrics=[{label:100,line:0,browser:name.getBoundingClientRect().width-25.5,shaper:glyph.line_width}];
+  lastReport={...report,browser:navigator.userAgent,browserDpr:devicePixelRatio,lineMetrics,nameplate:true};
+  document.getElementById('metadata').textContent=JSON.stringify(lastReport,null,2);
+  status.className=report.stats.missing_glyphs?'failure':'';
+  status.textContent=`Ready. Centered 13.5px rounded white-on-black nameplate. Width difference: ${widthDifference(lineMetrics[0]).toFixed(3)} CSS px. Effective scale: ${report.effectiveScale}.`;
+  drawDiagnostics({glyphs:[],bitmaps:[],scale:report.effectiveScale});
+  document.documentElement.dataset.ready='true';
+}
+/** Compare logical line advances without imposing rasterizer pixel equality. */
+function compareMetrics(diagnostics) {
+  const context=document.createElement('canvas').getContext('2d');
+  context.fontKerning='normal';const metrics=[];
+  for(const row of rows) {
+    context.font=`400 ${row.size}px "Noto Sans", "Noto Sans Symbols", "Noto Sans Symbols 2"`;
+    const lines=row.text.split('\n');
+    for(let line=0;line<lines.length;line++) {
+      let glyph;
+      for(const item of diagnostics.glyphs){if(item.label===row.id && item.line===line){glyph=item;break;}}
+      if(glyph) metrics.push({label:row.id,line,browser:context.measureText(lines[line]).width,shaper:glyph.line_width});
+    }
+  }
+  return metrics;
+}
+/** Express advance disagreement in CSS pixels. */
+function widthDifference(row){return Math.abs(row.browser-row.shaper)}
+/** Overlay original glyph baselines, origins and raster bounds. */
+function drawDiagnostics(data) {
+  const overlay=document.getElementById('diagnostic-canvas');overlay.width=canvas.width;overlay.height=canvas.height;
+  if(!document.getElementById('diagnostics').checked)return;
+  const ctx=overlay.getContext('2d');ctx.lineWidth=0.5;
+  for(const glyph of data.bitmaps){ctx.strokeStyle='#f8795270';ctx.strokeRect(...glyph.rect);ctx.fillStyle='#20dfff';ctx.fillRect(glyph.origin[0],glyph.origin[1]-2,1,4)}
+  ctx.strokeStyle='#20dfff70';
+  for(const row of rows){
+    const baselines=new Set();
+    for(const glyph of data.glyphs){if(glyph.label===row.id)baselines.add(glyph.baseline);}
+    for(const baseline of baselines){ctx.beginPath();ctx.moveTo(row.left*data.scale,(row.top+baseline)*data.scale);ctx.lineTo(canvas.width,(row.top+baseline)*data.scale);ctx.stroke()}
+  }
+}
+/** Exercise disposal and recreate the current document. */
+function reset(){fixture.reset();render()}
+/** Export the measured fixture contract for reproducible investigation. */
+function download(){const blob=new Blob([JSON.stringify({report:lastReport,diagnostics:lastDiagnostics},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='text-quality.json';a.click();URL.revokeObjectURL(url)}
+/** Release the fixture and every browser observer it owns. */
+function dispose(){observer?.disconnect();window.removeEventListener('resize',render);fixture?.free();fixture=null}
+/** Make fixture failures visible to both the reader and automated checks. */
+function fail(error){status.className='failure';status.textContent=String(error);document.documentElement.dataset.error=String(error);console.error(error)}
+start().catch(fail);
+</script>
+</html>

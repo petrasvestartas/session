@@ -12,7 +12,7 @@ A shorter function is useful when it also removes work or makes ownership cleare
 
 ## Starting point
 
-The 25 numbered lessons reconstruct a **frozen checkpoint**. Their code blocks come from verified patches. The [seven current-viewer checkpoints](extend-integrated-tutorial.md) continue checkpoint 21 to the maintained source; the [independent editing lessons](extend-implementation.md) teach optional features separately. Replay correctness and agreement with today's source are checked separately.
+The 25 numbered lessons each end at a **checkpoint**, a complete crate under `docs/lessons/<id>/`; their code blocks are included from those crates. The [current-viewer checkpoints](extend-integrated-tutorial.md) continue checkpoint 21 to the maintained source; the [independent editing lessons](extend-implementation.md) teach optional features separately.
 
 ## Step 1 · Name when the work runs
 
@@ -56,21 +56,18 @@ For a graph budget, check vertices against the remaining capacity **before** sub
 - Explain the principle once, then link later lessons to it.
 - Use the existing **You are building → Starting point → Steps → Check → What changed → Try → Questions and answers** structure.
 - A new lesson needs the complete wiring, its lifecycle cleanup and an observable check. “Copy the relevant methods” is an orientation guide, not a replayable lesson.
-- Frozen lesson edits must update their reconstruction patches and pass `course_pages.py --audit`. A production-only improvement belongs in a clearly labelled supplement until its lesson is regenerated.
+- A lesson edit changes the crate in `docs/lessons/<id>/` and the line ranges its page references. A production-only improvement belongs in a clearly labelled supplement until its lesson crate carries it.
 - Keep limitations beside commands: supported geometry, coordinate units, selection scope and memory limits.
 
 ## Check
 
 ```sh
-python3 docs/course_pages.py --audit
-python3 docs/check_citations.py
 cargo xtest -j4 --lib
 cargo clippy -j4 --lib -- -D warnings
 docs/serve.sh build --quiet
-python3 docs/check_site.py
 ```
 
-The replay audit checks every numbered lesson's coverage and recorded source hashes. It does not run the browser. Native tests do not prove browser interaction; browser checks need a usable WebGPU adapter.
+`docs/serve.sh build` fails on a lesson snippet that points at a missing file; `cargo check` inside `docs/lessons/<id>/` proves that lesson compiles. Neither runs the browser. Native tests do not prove browser interaction; browser checks need a usable WebGPU adapter.
 
 ## What changed
 

@@ -91,7 +91,7 @@ On a phone, tap the command field: the keyboard opens and what you type goes int
 
 `Opacity 0..1` sets how solid the shaded faces are: `Opacity 1` is opaque, `Opacity 0` is x-ray with only the edges left, and anything between is glass - the faces dim without hiding the linework inside or behind them. A document with elements opens at 0.7 so their features show through; the `Opacity` command or `?opacity=` in the address bar overrides that.
 
-The [capture record](extensions/screenshots.json) identifies the browser, GPU configuration and exact operations. The [verification record](extensions/README.md) covers repeated editing, resize, DPI and cleanup checks.
+The captions identify the browser, GPU configuration and exact operations.
 
 ## Selection commands, touch editing and saving
 

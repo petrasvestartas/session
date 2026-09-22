@@ -3,6 +3,7 @@ use session_rust::simple_split;
 use session_rust::{BRep, Geometry, NurbsCurve};
 use std::rc::Rc;
 
+/// True for a geometry that can cut: a line, polyline or curve.
 pub fn is_cutter(geometry: &Geometry) -> bool {
     matches!(
         geometry,
@@ -10,6 +11,7 @@ pub fn is_cutter(geometry: &Geometry) -> bool {
     )
 }
 
+/// The face to split: None for a curve, the selected face for a BRep.
 pub fn face_index(geometry: &Geometry, selected: Option<usize>) -> Result<Option<usize>, String> {
     match geometry {
         Geometry::Line(_)
@@ -27,6 +29,7 @@ pub fn face_index(geometry: &Geometry, selected: Option<usize>) -> Result<Option
     }
 }
 
+/// The selected face, or the only one.
 fn brep_face(brep: &BRep, selected: Option<usize>) -> Result<usize, String> {
     selected
         .or((brep.face_count() == 1).then_some(0))
@@ -36,6 +39,7 @@ fn brep_face(brep: &BRep, selected: Option<usize>) -> Result<usize, String> {
         })
 }
 
+/// A cutter as a NURBS curve.
 fn curve(geometry: &Geometry) -> Result<NurbsCurve, String> {
     match geometry {
         Geometry::Line(line) => Ok(NurbsCurve::create(
@@ -50,7 +54,7 @@ fn curve(geometry: &Geometry) -> Result<NurbsCurve, String> {
 }
 
 impl Scene {
-    /// Preserve the original object identity, placement and tree node; add curve pieces as siblings.
+    /// Split `target` by the cutters; returns how many pieces.
     pub fn split_rows(
         &mut self,
         target: u32,
@@ -80,8 +84,8 @@ impl Scene {
             .placement_of(target)
             .ok_or("Target has no placement")?
             .inverse()
-            .ok_or("Target placement is singular")?;
-        let mut tools = Vec::new();
+            .ok_or("Target placement is singular")?; // world into the target's frame
+        let mut tools = Vec::new(); // cutters in the target's frame
 
         for &row in cutters {
             if row == target || !self.selectable(row) {
@@ -104,6 +108,7 @@ impl Scene {
             .ok_or("Source geometry is unavailable")?;
         let face = face_index(source, face)?;
         let tolerance = 1e-6;
+        // the new geometries and how many regions the cut made
         let (mut pieces, regions) = match source {
             Geometry::Line(line) => {
                 let pieces: Vec<_> = simple_split::split_line_by_curves(line, &tools, tolerance)?
@@ -165,9 +170,10 @@ impl Scene {
         };
 
         if regions < 2 {
-            return Ok(1);
+            return Ok(1); // nothing was cut
         }
 
+        // the pieces inherit the parent, placement and colours
         let parent_name = file
             .session
             .tree
@@ -178,6 +184,7 @@ impl Scene {
         let color = self.colors.get(&(doc, Rc::clone(&guid))).copied();
         let edge_color = self.edge_colors.get(&(doc, Rc::clone(&guid))).copied();
 
+        // name the pieces `x (part 1)`, `x (part 2)`...
         if pieces.len() > 1 {
             let name = source.name();
 
@@ -193,12 +200,11 @@ impl Scene {
             }
         }
 
+        // the first piece replaces the target, the rest are added beside it
         let first = pieces.remove(0);
         let session = Rc::make_mut(&mut self.docs[doc].session);
-        // Resolve the parent after copy-on-write, inside the edited document's tree.
         let parent = parent_name.and_then(|name| session.tree.get_node_by_name(&name));
         session.begin("split");
-        // All fallible geometry work has completed; these validated pieces have at least two controls.
         let replaced = session.replace(&guid, first);
         debug_assert!(replaced);
 
@@ -238,6 +244,7 @@ mod tests {
     use session_rust::Xform;
     use session_rust::{Line, Point, Session};
 
+    /// Add one placed document.
     fn add(scene: &mut Scene, session: Rc<Session>, name: &str, place: Xform) {
         scene.add_file(FileDoc {
             name: name.into(),
@@ -248,6 +255,7 @@ mod tests {
         });
     }
 
+    /// A split keeps the group, placement and other placements; undo reverses it.
     #[test]
     fn split_preserves_tree_placement_and_other_shared_documents_and_undo() {
         let mut session = Session::new("shared");
@@ -313,6 +321,7 @@ mod tests {
         assert_eq!(restored.docs[0].session.objects.lines.len(), 2);
     }
 
+    /// A face split keeps the box solid; a bad cut changes nothing.
     #[test]
     fn split_face_keeps_solid_joined_and_invalid_cut_preserves_source() {
         let brep = BRep::create_box(10., 10., 10.);

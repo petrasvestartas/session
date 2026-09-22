@@ -19,23 +19,18 @@ For all features together, use the [ten sequential checkpoints](extend-integrate
 Run from the maintained repository:
 
 ```sh
-export COURSE_REPO="$PWD"
-bash "$COURSE_REPO/docs/serve.sh" build --quiet
-python3 docs/extensions.py --prepare "$HOME/viewer-modeling"
-cd "$HOME/viewer-modeling/session_viewer"
-export REGEN_PROTO=0
+cp -r docs/lessons/21 docs/lessons/my-modeling
+cd docs/lessons/my-modeling
 cargo check -j4 --lib
 ```
 
-The initializer copies checkpoint 21 and its kernel into a **new** folder. It does not apply an extension. Follow the lesson's visible code blocks to implement it yourself. Use a separate new folder for another lesson; all patches start from checkpoint 21.
+The copy is checkpoint 21 with no extension applied. Follow the lesson's visible code blocks to implement it yourself; the finished crates (`docs/lessons/modeling-1/`, `panels-1/` … `ui-1/`) are there to diff against. Use a separate copy for another lesson; every extension starts from checkpoint 21.
 
 ## What is verified
 
-`docs/extensions.py --verify --write` applies each lesson independently in a temporary workspace, proves that its visible snippets produce exactly the same source as its patch, compiles every complete step for WebAssembly, and runs the final native library tests. The measured step status appears beside each check; [verification.json](extensions/verification.json) records the patch hashes.
+Every step of every extension lesson is a complete crate under `docs/lessons/<chain>-<n>/`; `cargo check` inside it proves the step compiles, and `cargo xtest` in the last step of a chain runs its native library tests.
 
-The [five-round browser record](extensions/README.md) covers commands, all gumball gestures, control edits, nested/graph visibility and resource cleanup.
-
-The pictures in the lessons are captures of the running viewer using the supplied [fixture](extensions/nested.pb), not rendered design mockups. See the caption and [capture record](extensions/screenshots.json) for the browser configuration and operations.
+The pictures in the lessons are captures of the running viewer using the supplied [fixture](extensions/nested.pb), not rendered design mockups; each caption names the browser configuration and operations.
 
 ## What these lessons do—and their limits
 

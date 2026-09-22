@@ -5,25 +5,28 @@ use session_rust::AABB;
 use session_rust::{Geometry, NurbsSurface, RenderVertex};
 use std::collections::HashMap;
 
+/// Where one GPU vertex came from on its surface.
 #[derive(Clone, Copy)]
 pub struct Sample {
-    pub index: u32,
-    pub surface: u32,
-    pub uv: [f64; 2],
-    pub sign: f32,
+    pub index: u32,   // GPU vertex index
+    pub surface: u32, // surface index in the BRep
+    pub uv: [f64; 2], // parameter on that surface
+    pub sign: f32,    // +1 or -1 on the normal
 }
 
+/// Enough of a surface upload to re-evaluate it after a control moves.
 pub struct SurfacePreview {
-    samples: Vec<Sample>,
-    vertices: Vec<RenderVertex>,
-    controls: Vec<Vec<f64>>,
-    pipes: Vec<CylinderSegment>,
-    pipe_vertices: Vec<[usize; 2]>,
-    pipe_normals: Vec<[usize; 2]>,
-    chains: Vec<std::ops::Range<u32>>,
+    samples: Vec<Sample>,              // uv of every vertex
+    vertices: Vec<RenderVertex>,       // vertices as uploaded
+    controls: Vec<Vec<f64>>,           // control points at capture, per surface
+    pipes: Vec<CylinderSegment>,       // edge pipes as uploaded
+    pipe_vertices: Vec<[usize; 2]>,    // vertex index at each pipe end
+    pipe_normals: Vec<[usize; 2]>,     // vertex whose normal each pipe side uses
+    chains: Vec<std::ops::Range<u32>>, // joined pipe runs
 }
 
 impl SurfacePreview {
+    /// Remember the upload of one surface or BRep.
     pub(crate) fn capture(
         up: &Upload,
         span: Span,
@@ -35,10 +38,10 @@ impl SurfacePreview {
             || span.count.spheres != 0
             || span.count.dots != 0
         {
-            return None;
+            return None; // not a surface upload
         }
 
-        let first = local.verts as usize;
+        let first = local.verts as usize; // first vertex in the upload
         let end = first + span.count.verts as usize;
         let samples: Vec<_> = up
             .arena
@@ -49,9 +52,10 @@ impl SurfacePreview {
             .collect();
 
         if samples.len() != span.count.verts as usize {
-            return None;
+            return None; // a vertex without uv
         }
 
+        // vertices at each position
         let mut positions = HashMap::<[u32; 3], Vec<usize>>::new();
 
         for (i, vertex) in up.arena.verts[first..end].iter().enumerate() {
@@ -64,8 +68,7 @@ impl SurfacePreview {
         let start_pipe = local.pipes as usize;
         let end_pipe = start_pipe + span.count.pipes as usize;
         let pipes = up.seg.pipes[start_pipe..end_pipe].to_vec();
-        // Coincident points on distinct patches or poles have different UV identities.
-        // Retain the producer's endpoint indices; position matching can jump across a face.
+        // pipe ends by vertex index, not by position
         let boundary: HashMap<_, _> = up.arena.surface_boundaries.iter().copied().collect();
         let pipe_vertices = (start_pipe..end_pipe)
             .map(|pipe| {
@@ -73,6 +76,7 @@ impl SurfacePreview {
                 Some([ends[0] as usize - first, ends[1] as usize - first])
             })
             .collect::<Option<Vec<_>>>()?;
+        // a vertex on each side of the pipe, for its normals
         let pipe_normals = pipes
             .iter()
             .map(|p| {
@@ -104,8 +108,10 @@ impl SurfacePreview {
         })
     }
 
+    /// Re-evaluate the vertices and pipes for the edited geometry.
     pub fn evaluate(&self, geometry: &Geometry) -> Option<(Vec<RenderVertex>, SegRows, AABB)> {
         let surfaces = surfaces(geometry)?;
+        // surfaces whose controls moved
         let changed: Vec<_> = surfaces
             .iter()
             .enumerate()
@@ -117,6 +123,7 @@ impl SurfacePreview {
         for (sample, baseline) in self.samples.iter().zip(&self.vertices) {
             let surface = surfaces.get(sample.surface as usize)?;
 
+            // unchanged surface: keep the vertex
             if !changed[sample.surface as usize] {
                 bounds.union_with_point(
                     baseline.position[0] as f64,
@@ -172,6 +179,7 @@ impl SurfacePreview {
         Some((vertices, segments, bounds))
     }
 
+    /// Memory held by the preview.
     pub fn allocated_bytes(&self) -> usize {
         self.samples.capacity() * std::mem::size_of::<Sample>()
             + self.vertices.capacity() * std::mem::size_of::<RenderVertex>()
@@ -197,10 +205,11 @@ mod tests {
     use session_rust::{BRep, Xform};
     use std::rc::Rc;
 
+    /// Vertices at one point keep their own uv when pulled apart.
     #[test]
     fn coincident_boundary_samples_keep_their_own_uv_after_edit() {
         let mut surface = BRep::create_box(40.0, 30.0, 25.0).m_surfaces[0].clone();
-        // Collapse a whole boundary to one point, then open it during a gesture.
+        // collapse one edge to a point, then open it
         let pole = surface.get_cv(0, 0).unwrap();
         surface.set_cv(0, 1, &pole);
         let source = Geometry::NurbsSurface(Rc::new(surface.clone()));
@@ -242,6 +251,7 @@ mod tests {
         }
     }
 
+    /// A surface preview keeps its four edges joined.
     #[test]
     fn standalone_surface_preview_keeps_connectivity_and_only_four_boundary_ids() {
         let box_ = BRep::create_box(40.0, 30.0, 25.0);
@@ -289,6 +299,7 @@ mod tests {
         }
     }
 
+    /// A box preview moves with a face and restores on cancel.
     #[test]
     fn joined_shell_preview_moves_source_samples_and_cancel_restores_them() {
         let source = Geometry::BRep(Rc::new(BRep::create_box(10.0, 10.0, 10.0)));
@@ -350,6 +361,7 @@ mod tests {
     }
 }
 
+/// The surfaces inside a geometry.
 fn surfaces(geometry: &Geometry) -> Option<&[NurbsSurface]> {
     match geometry {
         Geometry::BRep(b) => Some(&b.m_surfaces),

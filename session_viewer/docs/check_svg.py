@@ -108,13 +108,11 @@ def measure(path):
 def generated(path):
     """True for a drawing a tool owns, which must stay byte-identical to what that tool writes.
 
-    Pinning one is not merely pointless - `diagrams.py --check` and `locator.py --check` compare
-    bytes, so a pinned diagram reports itself out of date for good. Only the hand-placed text of
+    Pinning one is not merely pointless - `diagrams.py --check` compares bytes, so a pinned
+    diagram reports itself out of date for good. Only the hand-placed text of
     draw.py needs a measured width written back.
     """
-    name = Path(path).name
-    return (name == "map.svg" or name.startswith(("locator-", "strip-"))
-            or "data-d2-version" in Path(path).read_text(errors="ignore")[:400])
+    return "data-d2-version" in Path(path).read_text(errors="ignore")[:400]
 
 
 def pin(path):

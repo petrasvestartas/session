@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- --8<-- [start:step-3a] -->
+    <title>Session checkpoint 02</title>
+    <!-- --8<-- [end:step-3a] -->
+    <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #171b23;
+        color: white;
+        font: 14px sans-serif;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+      #status {
+        position: fixed;
+        left: 12px;
+        top: 12px;
+        background: #171b23cc;
+        padding: 8px;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" tabindex="0"></canvas>
+    <!-- --8<-- [start:step-3b] -->
+    <output id="status">Starting checkpoint 02</output>
+    <!-- --8<-- [end:step-3b] -->
+    <script>
+      let tutorial;
+      let pointer;
+
+      /// Read the generated WASM exports after Trunk has initialized the module.
+      async function start() {
+        if (!window.wasmBindings) {
+          setTimeout(start, 20);
+          return;
+        }
+
+        try {
+          tutorial = await window.wasmBindings.Tutorial.create(document.getElementById('canvas'));
+          window.tutorial = tutorial;
+          render();
+        } catch (error) {
+          document.getElementById('status').textContent = String(error);
+          throw error;
+        }
+      }
+
+      /// Keep the framebuffer at the actual CSS size times browser device scale.
+      function render() {
+        const canvas = document.getElementById('canvas');
+        const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+        canvas.dataset.tutorialInspection = JSON.stringify(state);
+        // --8<-- [start:step-3c]
+        document.getElementById('status').textContent = 'Checkpoint 02 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+        // --8<-- [end:step-3c]
+      }
+
+      /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+      function down(event) {
+        pointer = [event.clientX, event.clientY];
+        event.target.setPointerCapture(event.pointerId);
+      }
+
+      /// Forward one CSS-pixel gesture to the production camera.
+      function move(event) {
+        if (!pointer)
+          return;
+        const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1];
+        pointer = [event.clientX, event.clientY];
+        tutorial.drag(dx, dy, event.shiftKey);
+        render();
+      }
+
+      /// End pointer ownership without retaining a stale gesture.
+      function up() {
+        pointer = undefined;
+      }
+
+      /// Normalize DOM wheel pixels to the production camera step, then dolly toward the actual cursor in the same physical-pixel space as the framebuffer.
+      function wheel(event) {
+        event.preventDefault();
+        tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY);
+        render();
+      }
+
+      /// Schedule a resize only after initialization completed.
+      function resize() {
+        if (tutorial)
+          render();
+      }
+
+      const canvas = document.getElementById('canvas');
+      canvas.addEventListener('pointerdown', down);
+      canvas.addEventListener('pointermove', move);
+      canvas.addEventListener('pointerup', up);
+      canvas.addEventListener('pointercancel', up);
+      canvas.addEventListener('wheel', wheel, { passive: false });
+      window.addEventListener('resize', resize);
+      start();
+    </script>
+  </body>
+</html>

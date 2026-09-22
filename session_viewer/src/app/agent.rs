@@ -1,30 +1,28 @@
-//! The hidden text agent: a 1x1 `<input>` a phone can type into. Keys reach egui only through
-//! the focused canvas, and no mobile browser raises its keyboard for a canvas; a tap on the
-//! command line focuses this input instead, and its value is replayed into the egui field.
+//! A hidden `<input>` that raises the phone keyboard for the command line.
 
 use super::ui::MODEL;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
 use winit::event_loop::EventLoopProxy;
 
-const AGENT: &str = "command-agent";
+const AGENT: &str = "command-agent"; // id of the hidden input
 
-/// What the agent reports: its whole value after every edit, or one of the editing keys the
-/// command line answers itself.
+/// One message from the hidden input.
 pub enum AgentEvent {
-    Text(String),
-    Key(egui::Key),
+    Text(String),   // the whole typed text
+    Key(egui::Key), // Enter, Tab, Escape or an arrow
 }
 
+/// The hidden input and its listeners.
 pub struct CommandAgent {
-    input: web_sys::HtmlInputElement,
-    canvas: web_sys::HtmlCanvasElement,
-    on_input: Closure<dyn FnMut(web_sys::Event)>,
-    on_key: Closure<dyn FnMut(web_sys::KeyboardEvent)>,
-    on_pointer: Closure<dyn FnMut(web_sys::PointerEvent)>,
+    input: web_sys::HtmlInputElement,                     // the hidden input
+    canvas: web_sys::HtmlCanvasElement,                   // the viewer canvas
+    on_input: Closure<dyn FnMut(web_sys::Event)>,         // text changed
+    on_key: Closure<dyn FnMut(web_sys::KeyboardEvent)>,   // editing key pressed
+    on_pointer: Closure<dyn FnMut(web_sys::PointerEvent)>, // tap on the canvas
 }
 
-/// The agent input, when the page has one.
+/// The hidden input element, if the page has one.
 fn element() -> Option<web_sys::HtmlInputElement> {
     web_sys::window()?
         .document()?
@@ -34,7 +32,7 @@ fn element() -> Option<web_sys::HtmlInputElement> {
 }
 
 impl CommandAgent {
-    /// Install once for the canvas lifetime; each callback only forwards a message.
+    /// Install the listeners; each one sends a message.
     pub fn new(
         canvas: web_sys::HtmlCanvasElement,
         proxy: EventLoopProxy<crate::Msg>,
@@ -65,8 +63,7 @@ impl CommandAgent {
                 },
             )
         };
-        // Only a focus inside the gesture raises the keyboard, so the tap is answered here,
-        // not on the next frame.
+        // a tap on the command line focuses the input, raising the keyboard
         let on_pointer = {
             let input = input.clone();
             Closure::<dyn FnMut(web_sys::PointerEvent)>::new(move |event: web_sys::PointerEvent| {
@@ -104,7 +101,7 @@ impl CommandAgent {
 }
 
 impl Drop for CommandAgent {
-    /// Detach before dropping the wasm callbacks so JavaScript cannot retain invalid handles.
+    /// Remove the listeners.
     fn drop(&mut self) {
         let _ = self
             .input
@@ -119,7 +116,7 @@ impl Drop for CommandAgent {
     }
 }
 
-/// Set the agent's value to the command line's; a programmatic set raises no `input` event.
+/// Copy the command line text into the hidden input.
 pub fn sync(command: &str) {
     if let Some(input) = element()
         && input.value() != command

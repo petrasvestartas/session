@@ -1,41 +1,156 @@
 # 02 · Camera
-<!-- locator: off -->
 
 The triangle orbits, pans and zooms toward the cursor.
 
 ![Orbit turns the orientation about the target, pan slides the target across the camera's own plane, and the wheel scales the distance; the view-projection is rebuilt from those three every frame.](illustrations/camera-basis.svg)
 
-<!-- step-status: start -->
-
-**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
-
-<!-- step-status: end -->
-
 ## Step 1 · src/camera.rs
 
-The camera owns orbit, pan, zoom and projection in the same file used by the finished viewer. Subtract the world anchor before converting the matrix to f32.
-<!-- file: 02 session_viewer/src/camera.rs type lines=1-48 -->
-<!-- file: 02 session_viewer/src/camera.rs type lines=49-110 -->
-<!-- file: 02 session_viewer/src/camera.rs type lines=111-146 -->
-<!-- file: 02 session_viewer/src/camera.rs type lines=147-217 -->
-<!-- file: 02 session_viewer/src/camera.rs type lines=218-291 -->
-<!-- file: 02 session_viewer/src/camera.rs type lines=292-319 -->
-<!-- file: 02 session_viewer/src/camera.rs type lines=320-377 -->
-<!-- file: 02 session_viewer/src/camera.rs type lines=378-442 -->
-Download this part from its link to the path shown.
-<!-- file: 02 session_viewer/src/camera.rs copy lines=443-535 -->
-<!-- check: 02 -->
+New file: the camera with orbit, pan, zoom and its view matrix.
+
+`lessons/02/src/camera.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/02/src/camera.rs:step-1a"
+```
+
+`lessons/02/src/camera.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/02/src/camera.rs:step-1b"
+```
+
+`lessons/02/src/camera.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/02/src/camera.rs:step-1c"
+```
+
+`lessons/02/src/camera.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/02/src/camera.rs:step-1d"
+```
+
+`lessons/02/src/camera.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/02/src/camera.rs:step-1e"
+```
+
+`lessons/02/src/camera.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/02/src/camera.rs:step-1f"
+```
+
+`lessons/02/src/camera.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/02/src/camera.rs:step-1g"
+```
+
+`lessons/02/src/camera.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/02/src/camera.rs:step-1h"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/02/src/camera.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/02/src/camera.rs:step-1i"
+```
+
+Run `cargo check` in `lessons/02/`.
+
 ## Step 2 · src/lib.rs
 
-The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
-<!-- file: 02 session_viewer/src/lib.rs type -->
+Wire the camera into the struct, the gestures and the uniform upload.
+
+`lessons/02/src/lib.rs` · edit · type this
+
+Replaces the lines from `use wasm_bindgen::prelude::*;` to `use wgpu::util::DeviceExt;` in `lessons/01/src/lib.rs`
+
+```rust
+--8<-- "lessons/02/src/lib.rs:step-2a"
+```
+
+Replaces the lines from `pipeline: wgpu::RenderPipeline,` to `scale: f64,` in `lessons/01/src/lib.rs`
+
+```rust
+--8<-- "lessons/02/src/lib.rs:step-2b"
+```
+
+Replaces the lines from `let _ = (dx, dy, pan);` to `let _ = (delta, x, y);` in `lessons/01/src/lib.rs`
+
+```rust
+--8<-- "lessons/02/src/lib.rs:step-2c"
+```
+
+Added below
+
+```rust
+            cache: None,
+        });
+```
+
+```rust
+--8<-- "lessons/02/src/lib.rs:step-2d"
+```
+
+Replaces the lines from `group,` to `scale: 1.0,` in `lessons/01/src/lib.rs`
+
+```rust
+--8<-- "lessons/02/src/lib.rs:step-2e"
+```
+
+Added above
+
+```rust
+        let output = match self.surface.get_current_texture() {
+```
+
+```rust
+--8<-- "lessons/02/src/lib.rs:step-2f"
+```
+
+Replaces the lines from `Ok(serde_json::json!({` to `}).to_string())` in `lessons/01/src/lib.rs`
+
+```rust
+--8<-- "lessons/02/src/lib.rs:step-2g"
+```
+
 ## Step 3 · index.html
 
-Download this file from its link to the path shown.
-<!-- file: 02 session_viewer/index.html copy -->
+Copy the page: the title and status say checkpoint 02.
+Copy this file from the lesson folder to the path shown.
+
+`lessons/02/index.html` · edit · copy the file
+
+Replaces the line `<title>Session checkpoint 01</title>` in `lessons/01/index.html`
+
+```html
+--8<-- "lessons/02/index.html:step-3a"
+```
+
+Replaces the line `<output id="status">Starting checkpoint 01</output>` in `lessons/01/index.html`
+
+```html
+--8<-- "lessons/02/index.html:step-3b"
+```
+
+Replaces the line `document.getElementById('status').textContent = 'Checkpoi…` in `lessons/01/index.html`
+
+```html
+--8<-- "lessons/02/index.html:step-3c"
+```
+
 ## Check
 
-<!-- checkpoint: 02 -->
+Run `trunk serve` in `lessons/02/` and open <http://127.0.0.1:8770/>.
 
 Expected: The triangle orbits, pans and zooms toward the cursor; status: **Checkpoint 02 · 1 objects**.
 
@@ -49,9 +164,17 @@ If it fails:
 
 ## What changed
 
-<!-- tree: 02 session_viewer/src -->
+```text
+lessons/02/src/
+├── shaders/
+│   └── first.wgsl
+├── camera.rs  +
+└── lib.rs  ~
+```
 
-Data flow: gesture → camera → anchored matrix → uniform → vertex. Every file at this point: [source at checkpoint 02](../lessons/02/index.md).
+`+` new in this lesson · `~` changed in this lesson
+
+Data flow: gesture → camera → anchored matrix → uniform → vertex. Every file at this point: `lessons/02/`.
 
 ## Next
 

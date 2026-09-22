@@ -248,6 +248,6 @@ impl Gpu { pub fn set_hidden_rows(&mut self, runs: &[Range<u32>], on: bool) }
 
 ## Expected viewer result
 
-Reference result from the supported [implementation tutorials](extend-implementation.md). The expanded Session layers panel shows Assembly → Nested; selecting Nested highlights its two beams together. This maintained-viewer capture uses egui styling; the independent panel lesson uses DOM buttons with the same hierarchy and selection behavior. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb); see the [capture instructions](extensions/README.md).
+Reference result from the supported [implementation tutorials](extend-implementation.md). The expanded Session layers panel shows Assembly → Nested; selecting Nested highlights its two beams together. This maintained-viewer capture uses egui styling; the independent panel lesson uses DOM buttons with the same hierarchy and selection behavior. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
 
 [![Full viewer result for extend panels](screenshots/extensions-panels.png)](screenshots/extensions-panels.png)

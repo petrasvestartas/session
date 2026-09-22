@@ -144,10 +144,10 @@ A few failures are environmental, and recognising them saves hours:
 
 ## Getting back to solid ground
 
-You can always rebuild any checkpoint exactly:
+Every checkpoint is a complete crate under `docs/lessons/<id>/`:
 
 ```bash
-python3 docs/reconstruction/replay.py --output /tmp/at-07 --through 07
+diff -r docs/lessons/07/src src
 ```
 
 Diff your tree against it. The first file that differs is where your lesson went sideways.

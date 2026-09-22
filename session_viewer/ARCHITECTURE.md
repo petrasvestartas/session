@@ -5,6 +5,7 @@ Reference for the finished viewer: one browser application, Rust compiled to Web
 ## Module graph
 
 ```mermaid
+%%{init: {"flowchart": {"useMaxWidth": false, "wrappingWidth": 320}, "themeVariables": {"primaryColor": "#ffffff", "primaryTextColor": "#111111", "primaryBorderColor": "#111111", "lineColor": "#ffffff", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#111111"}}}%%
 graph TD
     lib["lib.rs · App<br/>winit events, Msg handlers"] --> state["state.rs · State<br/>camera · selection · frame demand"]
     state --> camera["camera.rs"]
@@ -72,6 +73,7 @@ Selecting a source face (Ctrl+Shift) selects the face, not a tessellation triang
 `Gpu::encode_frame` in `gpu/render.rs`:
 
 ```mermaid
+%%{init: {"flowchart": {"useMaxWidth": false, "wrappingWidth": 320}, "themeVariables": {"primaryColor": "#ffffff", "primaryTextColor": "#111111", "primaryBorderColor": "#111111", "lineColor": "#ffffff", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#111111"}}}%%
 flowchart TD
     A["triangle_tile_pass<br/>project triangles, bin into screen tiles<br/>(only when camera or geometry changed)"] --> B["point_pass<br/>cloud splat prelude"]
     B --> C["begin_faces: backdrop, grid, opaque faces, cloud resolve<br/>writes Depth32Float + Rgba16Float gradient/primitive metadata"]

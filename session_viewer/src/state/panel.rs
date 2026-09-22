@@ -2,16 +2,20 @@ use crate::app::layers::Layer;
 use crate::state::State;
 
 impl State {
+    /// How many rows are selected together.
     pub fn selected_group_count(&self) -> usize {
         self.hierarchy.selected.len()
     }
 
+    /// A click in the layers panel, by its key.
     pub fn panel_action(&mut self, key: &str) {
+        // a layer row: hide or show it
         if let Some(layer) = Layer::from_key(key) {
             self.toggle_layer(layer);
             return;
         }
 
+        // color/<node>/<face|edge>/<hex or original>
         if let Some(value) = key.strip_prefix("color/") {
             let parts: Vec<_> = value.split('/').collect();
 
@@ -31,6 +35,7 @@ impl State {
                 };
 
                 for row in self.hierarchy.targets(index) {
+                    // an edge color needs faces to sit on
                     if edge
                         && !self.gpu.objects.row(row).is_some_and(|r| {
                             r.flags & crate::engine::gpu::Instance::FLAG_HAS_FACES != 0
@@ -63,6 +68,7 @@ impl State {
             return;
         }
 
+        // <action>/<node index>
         let Some((action, index)) = key.split_once('/') else {
             return;
         };
@@ -75,6 +81,7 @@ impl State {
         } else if index < self.hierarchy.nodes.len() {
             match action {
                 "open" => {
+                    // fold or unfold the node
                     if !self.hierarchy.open.remove(&index) {
                         self.hierarchy.open.insert(index);
                     }
@@ -82,6 +89,7 @@ impl State {
                 "select" | "add" => {
                     let rows = self.hierarchy.targets(index);
 
+                    // while splitting, a click picks cutters
                     if self.pending_split.is_some() {
                         for row in rows {
                             self.pick_split_cutter(row);
@@ -94,8 +102,9 @@ impl State {
                 }
                 "lock" => {
                     let rows = self.hierarchy.targets(index);
-                    let lock = rows.iter().any(|row| self.scene.selectable(*row));
+                    let lock = rows.iter().any(|row| self.scene.selectable(*row)); // anything unlocked: lock all
 
+                    // a locked row cannot stay selected
                     if lock
                         && (self
                             .scene
@@ -122,6 +131,7 @@ impl State {
                 }
                 "hide" => {
                     let rows = self.hierarchy.targets(index);
+                    // anything visible: hide all
                     let hide = rows.iter().any(|row| {
                         self.scene
                             .identity_of(*row)
@@ -138,8 +148,9 @@ impl State {
         self.touch();
     }
 
-    /// Apply visibility to sorted object rows while preserving unrelated selection.
+    /// Hide or show sorted rows.
     pub(super) fn set_rows_hidden(&mut self, rows: &[u32], hide: bool) {
+        // a hidden row cannot stay selected
         if hide
             && (self
                 .scene
@@ -174,26 +185,30 @@ impl State {
         self.touch();
     }
 
+    /// The rows of the layers panel for the current page.
     pub(super) fn hierarchy_labels(&mut self, rows: &mut Vec<crate::app::feedback::LayerRow>) {
         use crate::app::feedback::LayerRow;
         use crate::app::hierarchy::PAGE_SIZE;
-        let visible = self.hierarchy.visible();
+        let visible = self.hierarchy.visible(); // unfolded nodes
         self.hierarchy.page = self
             .hierarchy
             .page
-            .min(visible.len().saturating_sub(1) / PAGE_SIZE);
+            .min(visible.len().saturating_sub(1) / PAGE_SIZE); // keep the page in range
         let first = self.hierarchy.page * PAGE_SIZE;
 
+        // one panel row per visible node on this page
         for &index in visible.iter().skip(first).take(PAGE_SIZE) {
             let node = &self.hierarchy.nodes[index];
             let count = node.rows.len();
+            // every row hidden?
             let hidden = self.hierarchy.rows[node.rows.clone()].iter().all(|row| {
                 self.scene
                     .identity_of(*row)
                     .is_some_and(|id| self.scene.hidden.contains(&id))
             });
             let targets = &self.hierarchy.rows[node.rows.clone()];
-            let locked = targets.iter().all(|row| !self.scene.selectable(*row));
+            let locked = targets.iter().all(|row| !self.scene.selectable(*row)); // every row locked?
+            // the shared color, when every row has the same one
             let first_color = targets
                 .first()
                 .and_then(|row| self.scene.identity_of(*row))
@@ -206,7 +221,7 @@ impl State {
                 })
             });
             rows.push(LayerRow {
-                key: format!("select/{index}"),
+                key: format!("select/{index}"), // the select button key
                 label: node.label.clone(),
                 count,
                 hidden,
@@ -236,6 +251,7 @@ impl State {
             });
         }
 
+        // Previous and Next rows when there are more pages
         for (label, page) in [
             ("Previous", self.hierarchy.page.checked_sub(1)),
             (

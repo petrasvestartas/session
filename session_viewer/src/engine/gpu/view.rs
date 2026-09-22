@@ -1,27 +1,27 @@
-/// The knobs one frame reads.
+/// Display settings; most start from a `?query` or an env variable.
 pub struct View {
-    pub ssao: bool,
-    pub show_grid: bool, // The construction grid; disable for color-based visibility probes.
-    pub show_points: bool, // Point markers - the FLAT lane's dots. `Q`.
-    pub show_lines: bool, // Lines and polylines - the FLAT lane's ribbons. `W`.
-    pub show_mesh_edges: bool, // Mesh/BRep edges and their vertex markers - the SOLID lane. `E`.
-    pub show_outlines: bool, // Black visible-surface silhouettes, including unselected objects. Off by default: the coverage masks and compositor cost a full-screen pass per frame, which is slow on integrated GPUs (`?outlines=1` / `VIEWER_OUTLINES=1` starts with them on). `O`.
-    pub markers: bool, // Vertex markers on top of the solid ink; `BENCH_NO_MARKERS` turns them off for timing.
-    pub cloud_size: f32, // Global scale on per-cloud point sizes, `[` and `]` (`VIEWER_CLOUD_SCALE`).
-    pub edl_strength: f32, // Eye-Dome Lighting strength; 0 = off (`VIEWER_EDL`).
-    pub lod_px: f32, // Octree LOD cutoff in projected pixels; 0 = off, draw every cloud whole (`?lod=` / `VIEWER_LOD`).
-    pub thickness_px: f32, // Default source edge/line pen weight in CSS px (`?thickness=` / `VIEWER_THICKNESS`).
-    pub feather_px: f32, // Width of the antialiasing ramp on the DOT lanes, px (`?aa=` / `VIEWER_AA`). Only 1 is phase-invariant: a ramp of width f sampled at pixel centres spaced cos(angle) apart beats with the mark's subpixel offset unless f divides that spacing, and at 1.5 px against a 1.5 px pen the beat is 22% of the ink. The ribbons no longer read this at all - they integrate the pixel box exactly, which cannot beat at any width.
-    pub lit: bool, // Light the mesh faces with a camera headlight. Off by default: every face its flat colour, which reads as a drawing and is what a colour-based visibility probe needs; `D` (`?lit=1` / `VIEWER_LIT`) turns the headlight on when a curved surface needs its shading.
-    pub backface: bool, // Paint a face seen from behind red - the inside of an open solid, or a flipped normal. Off by default: it doubles as a selection-style highlight, not a warning, so it only shows once asked for, with `B` (`?backface=1` / `VIEWER_BACKFACE`).
-    pub opacity: f32, // Alpha on every closed shaded solid; 0 is x-ray, where every face is discarded and only edges remain. `P` toggles 1 <-> 0 (`?opacity=` / `VIEWER_OPACITY` set any value).
-    pub msaa_forced: Option<u32>, // Force the sample count (`?msaa=` / `VIEWER_MSAA`): 4 = 4x, anything else 1x.
-    pub perf: bool, // Continuous rendering with a frame line on the page (`?perf=1` / `VIEWER_PERF`).
-    pub spin: bool, // Orbit a little every frame - a moving-camera benchmark (`?spin=1`).
+    pub ssao: bool, // ambient occlusion on
+    pub show_grid: bool, // floor grid
+    pub show_points: bool, // point markers, `Q`
+    pub show_lines: bool, // lines and curves, `W`
+    pub show_mesh_edges: bool, // mesh edges and their vertex markers, `E`
+    pub show_outlines: bool, // black outlines around surfaces, `O`
+    pub markers: bool, // vertex markers on mesh edges
+    pub cloud_size: f32, // point size scale, `[` and `]`
+    pub edl_strength: f32, // eye-dome lighting strength; 0 = off
+    pub lod_px: f32, // cloud LOD cutoff, px; 0 = draw every point
+    pub thickness_px: f32, // pen width, CSS px
+    pub feather_px: f32, // edge softness of dots, px
+    pub lit: bool, // headlight on mesh faces, `D`
+    pub backface: bool, // back faces painted red, `B`
+    pub opacity: f32, // face alpha; 0 = x-ray, `P` toggles
+    pub msaa_forced: Option<u32>, // 4 forces 4x, other values 1x
+    pub perf: bool, // draw every frame and show timing
+    pub spin: bool, // orbit a little every frame
 }
 
 impl View {
-    /// Read every knob once.
+    /// Read every setting once at start.
     pub fn from_env() -> Self {
         Self {
             ssao: false,
@@ -46,9 +46,7 @@ impl View {
     }
 }
 
-/// Physical pixels per CSS pixel the canvas is rendered at: the browser's ratio, capped by the
-/// opt-in `?dpr=` knob for people who prefer memory over crispness (never raised above the
-/// browser's, never below 0.5). Native windows already report logical pixels.
+/// Framebuffer pixels per CSS pixel, capped by `?dpr=`.
 pub fn device_pixel_ratio() -> f64 {
     #[cfg(target_arch = "wasm32")]
     {
@@ -67,23 +65,20 @@ pub fn device_pixel_ratio() -> f64 {
     }
 }
 
+/// True once the page dropped to device scale 1 without MSAA.
 static REDUCED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-/// From now on the canvas renders at device scale 1 without antialiasing: after a run of slow
-/// interaction frames, or on the page a device loss reloaded into. In memory only, so a
-/// reload starts at full resolution again.
+/// Drop to device scale 1 without MSAA until reload.
 pub fn reduce() {
     REDUCED.store(true, std::sync::atomic::Ordering::Relaxed);
 }
 
-/// Whether the reduction is in force.
+/// True once `reduce` was called.
 pub fn reduced() -> bool {
     REDUCED.load(std::sync::atomic::Ordering::Relaxed)
 }
 
-/// Surface pixels per physical pixel winit reports: 1 until `?dpr=` caps the canvas below the
-/// browser's ratio, then the cap over the ratio. Cursor and touch positions arrive at the
-/// browser's ratio and every pick, zoom and drag reads them against the capped surface.
+/// Canvas pixels per browser pixel; below 1 when `?dpr=` caps it.
 pub fn surface_per_physical() -> f64 {
     #[cfg(target_arch = "wasm32")]
     {
@@ -99,7 +94,7 @@ pub fn surface_per_physical() -> f64 {
     }
 }
 
-/// One knob's raw text: the `?name=` query value on wasm, the `ENV` variable natively.
+/// One setting's text: `?query=` in the browser, `ENV` natively.
 pub fn knob(env: &str, query: &str) -> Option<String> {
     #[cfg(target_arch = "wasm32")]
     {
@@ -113,7 +108,7 @@ pub fn knob(env: &str, query: &str) -> Option<String> {
     }
 }
 
-/// A float knob; `default` when unset or unparsable.
+/// A float setting, or `default`.
 fn knob_f32(env: &str, query: &str, default: f32) -> f32 {
     let Some(raw) = knob(env, query) else {
         return default;
@@ -125,7 +120,7 @@ fn knob_f32(env: &str, query: &str, default: f32) -> f32 {
     }
 }
 
-/// An unsigned integer knob; absent or invalid text leaves the setting unspecified.
+/// An integer setting, or None.
 fn knob_u32(env: &str, query: &str) -> Option<u32> {
     knob(env, query)?.parse().ok()
 }

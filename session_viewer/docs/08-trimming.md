@@ -1,37 +1,90 @@
 # 08 · Trims, holes and periodic seams
-<!-- locator: off -->
 
 A trimmed patch has an empty hole and a torus keeps its periodic seams attached.
 
 ![Left: outer and inner loops select the face in u,v and the hole stays empty. Right: a cylinder's seam is one XYZ curve used at u=0 and u=1.](illustrations/trims-seams.svg)
 
-<!-- step-status: start -->
-
-**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
-
-<!-- step-status: end -->
-
 ## Step 1 · src/app/walk/brep.rs
 
-The geometry walk uploads shaded faces and their source boundary edges. Tessellation diagonals must never become CAD edges.
-<!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=1-1 -->
-<!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=2-2 -->
-<!-- check: 08 -->
+The BRep walk uses the cached trim mesh when the surface has one.
+
+`lessons/08/src/app/walk/brep.rs` · edit · type this
+
+Replaces the line `use session_rust::{BRep, Color, NurbsSurface, RenderMesh};` in `lessons/07/src/app/walk/brep.rs`
+
+```rust
+--8<-- "lessons/08/src/app/walk/brep.rs:step-1a"
+```
+
+`lessons/08/src/app/walk/brep.rs` · edit · type this
+
+Replaces the `fn walk_surface` lines in `lessons/07/src/app/walk/brep.rs`
+
+```rust
+--8<-- "lessons/08/src/app/walk/brep.rs:step-1b"
+```
+
+Run `cargo check` in `lessons/08/`.
+
 ## Step 2 · src/fixture.rs
 
-Download this file from its link to the path shown.
-<!-- file: 08 session_viewer/src/fixture.rs copy -->
+Copy the test scene: a trimmed patch and a torus.
+Copy this file from the lesson folder to the path shown.
+
+`lessons/08/src/fixture.rs` · edit · copy the file
+
+Replaces the line `use session_rust::{BRep, Color, Geometry, Xform};` in `lessons/07/src/fixture.rs`
+
+```rust
+--8<-- "lessons/08/src/fixture.rs:step-2a"
+```
+
+Replaces the lines from `let mut cylinder = BRep::create_cylinder(100.0, 220.0);` to `Xform::translation(220.0, 0.0, 0.0),` in `lessons/07/src/fixture.rs`
+
+```rust
+--8<-- "lessons/08/src/fixture.rs:step-2b"
+```
+
 ## Step 3 · src/lib.rs
 
-The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
-<!-- file: 08 session_viewer/src/lib.rs type -->
+The entry point reports the trimmed faces.
+
+`lessons/08/src/lib.rs` · edit · type this
+
+Replaces the line `Ok(serde_json::json!({"stage":7,"objects":self.gpu.object…` in `lessons/07/src/lib.rs`
+
+```rust
+--8<-- "lessons/08/src/lib.rs:step-3"
+```
+
 ## Step 4 · index.html
 
-Download this file from its link to the path shown.
-<!-- file: 08 session_viewer/index.html copy -->
+Copy the page: the status says checkpoint 08.
+Copy this file from the lesson folder to the path shown.
+
+`lessons/08/index.html` · edit · copy the file
+
+Replaces the line `<title>Session checkpoint 07</title>` in `lessons/07/index.html`
+
+```html
+--8<-- "lessons/08/index.html:step-4a"
+```
+
+Replaces the line `<output id="status">Starting checkpoint 07</output>` in `lessons/07/index.html`
+
+```html
+--8<-- "lessons/08/index.html:step-4b"
+```
+
+Replaces the line `document.getElementById('status').textContent = 'Checkpoi…` in `lessons/07/index.html`
+
+```html
+--8<-- "lessons/08/index.html:step-4c"
+```
+
 ## Check
 
-<!-- checkpoint: 08 -->
+Run `trunk serve` in `lessons/08/` and open <http://127.0.0.1:8770/>.
 
 Expected: A trimmed patch has an empty hole and a torus keeps its periodic seams attached; status: **2 objects**.
 
@@ -44,9 +97,27 @@ If it fails:
 
 ## What changed
 
-<!-- tree: 08 session_viewer/src/app -->
+```text
+lessons/08/src/app/
+├── walk/
+│   ├── bounds.rs
+│   ├── brep.rs  ~
+│   ├── brep_edges.rs
+│   ├── brep_orient.rs
+│   ├── curves.rs
+│   ├── encode.rs
+│   ├── mesh.rs
+│   ├── mesh_ink.rs
+│   ├── mesh_topology.rs
+│   └── mod.rs
+├── knobs.rs
+├── mod.rs
+└── route.rs
+```
 
-Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 08](../lessons/08/index.md).
+`+` new in this lesson · `~` changed in this lesson
+
+Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: `lessons/08/`.
 
 ## Next
 

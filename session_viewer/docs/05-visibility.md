@@ -1,108 +1,606 @@
 # 05 · Depth and visible ink
-<!-- locator: off -->
 
 A grey box shows its visible red edges and black corners while its faces hide the far edges.
 
 ![Reversed depth, and why a thick stroke must transfer the surface depth to its axis before comparing.](illustrations/ink-visibility.svg)
 
-<!-- step-status: start -->
-
-**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
-
-<!-- step-status: end -->
-
 ## Step 1 · src/shaders/physical.wgsl
 
-Physical outputs store depth information beside face color. The fragment output locations must match both attachments.
-<!-- file: 05 session_viewer/src/shaders/physical.wgsl type -->
+New file: the physical outputs, depth beside colour.
+
+`lessons/05/src/shaders/physical.wgsl` · 22 lines · type this, new file
+
+```wgsl
+--8<-- "lessons/05/src/shaders/physical.wgsl"
+```
+
 ## Step 2 · src/shaders/background.wgsl
 
-The background fills uncovered pixels. Leave the physical depth gradient empty because the backdrop is not scene geometry.
-<!-- file: 05 session_viewer/src/shaders/background.wgsl type -->
+New file: the background shader, one fullscreen triangle.
+
+`lessons/05/src/shaders/background.wgsl` · 21 lines · type this, new file
+
+```wgsl
+--8<-- "lessons/05/src/shaders/background.wgsl"
+```
+
 ## Step 3 · src/shaders/grid.wgsl
 
-The grid generates construction lines from vertex indices. Subtract the same camera anchor as the scene geometry.
-<!-- file: 05 session_viewer/src/shaders/grid.wgsl type -->
+New file: the grid shader, lines from vertex indices.
+
+`lessons/05/src/shaders/grid.wgsl` · 56 lines · type this, new file
+
+```wgsl
+--8<-- "lessons/05/src/shaders/grid.wgsl"
+```
+
 ## Step 4 · src/engine/gpu/backdrop.rs
 
-The backdrop draws the background and construction grid. It must not overwrite the depth of scene geometry.
-<!-- file: 05 session_viewer/src/engine/gpu/backdrop.rs type -->
-<!-- check: 05 -->
+New file: the backdrop lane, background and grid.
+
+`lessons/05/src/engine/gpu/backdrop.rs` · 111 lines · type this, new file
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/backdrop.rs"
+```
+
+Run `cargo check` in `lessons/05/`.
+
 ## Step 5 · src/shaders/ink_visibility.wgsl
 
-The ink test decides which stroke samples are covered by faces. Compare depth in the same coordinate space as the face pass.
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=1-41 -->
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=42-109 -->
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=110-150 -->
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=151-209 -->
-<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=210-282 -->
+Replace the ink test: fit the surface under a sample and compare depth.
+
+`lessons/05/src/shaders/ink_visibility.wgsl` · type this, replace the whole file, start with these lines
+
+```wgsl
+--8<-- "lessons/05/src/shaders/ink_visibility.wgsl:step-5a"
+```
+
+`lessons/05/src/shaders/ink_visibility.wgsl` · type this, append at the end of the file
+
+```wgsl
+--8<-- "lessons/05/src/shaders/ink_visibility.wgsl:step-5b"
+```
+
+`lessons/05/src/shaders/ink_visibility.wgsl` · type this, append at the end of the file
+
+```wgsl
+--8<-- "lessons/05/src/shaders/ink_visibility.wgsl:step-5c"
+```
+
+`lessons/05/src/shaders/ink_visibility.wgsl` · type this, append at the end of the file
+
+```wgsl
+--8<-- "lessons/05/src/shaders/ink_visibility.wgsl:step-5d"
+```
+
+`lessons/05/src/shaders/ink_visibility.wgsl` · type this, append at the end of the file
+
+```wgsl
+--8<-- "lessons/05/src/shaders/ink_visibility.wgsl:step-5e"
+```
+
 ## Step 6 · src/shaders/triangle.wgsl
 
-The mesh shader places vertices and shades visible faces. Its instance row must be the row uploaded with that vertex.
-<!-- file: 05 session_viewer/src/shaders/triangle.wgsl type -->
+The mesh shader writes physical depth and reads it back for ink.
+
+`lessons/05/src/shaders/triangle.wgsl` · edit · type this
+
+Added below
+
+```wgsl
+    @location(5) @interpolate(flat) mirrored: u32,
+```
+
+```wgsl
+--8<-- "lessons/05/src/shaders/triangle.wgsl:step-6a"
+```
+
+Added below
+
+```wgsl
+    dead.mirrored = 0u;
+```
+
+```wgsl
+--8<-- "lessons/05/src/shaders/triangle.wgsl:step-6b"
+```
+
+Added below
+
+```wgsl
+    o.inst_id = in.inst_id;
+```
+
+```wgsl
+--8<-- "lessons/05/src/shaders/triangle.wgsl:step-6c"
+```
+
+Replaces the `fn fs_id` lines in `lessons/04d/src/shaders/triangle.wgsl`
+
+```wgsl
+--8<-- "lessons/05/src/shaders/triangle.wgsl:step-6d"
+```
+
 ## Step 7 · src/shaders/splat.wgsl
 
-Point projection writes the nearest visible cloud samples. Keep source IDs attached to the winning samples.
-<!-- file: 05 session_viewer/src/shaders/splat.wgsl type -->
+The splat shader writes physical depth too.
+
+`lessons/05/src/shaders/splat.wgsl` · edit · type this
+
+Replaces the `fn fs_point_id` lines in `lessons/04d/src/shaders/splat.wgsl`
+
+```wgsl
+--8<-- "lessons/05/src/shaders/splat.wgsl:step-7"
+```
+
 ## Step 8 · src/shaders/splat_resolve.wgsl
 
-The resolve writes point color and depth into the scene. Background samples must leave geometry untouched.
-<!-- file: 05 session_viewer/src/shaders/splat_resolve.wgsl type -->
+The resolve writes point depth into the scene.
+
+`lessons/05/src/shaders/splat_resolve.wgsl` · edit · type this
+
+Added below
+
+```wgsl
+    @location(0) color: vec4<f32>,
+```
+
+```wgsl
+--8<-- "lessons/05/src/shaders/splat_resolve.wgsl:step-8a"
+```
+
+Added below
+
+```wgsl
+    o.depth = d;
+```
+
+```wgsl
+--8<-- "lessons/05/src/shaders/splat_resolve.wgsl:step-8b"
+```
+
 ## Step 9 · src/shaders/text_outline.wgsl
 
-The resolve rejoins the private pass to the shared one: reads the drawing module's own depth and colour, lights each point from its neighbours, and writes `frag_depth` for the scene's depth test.
-<!-- file: 05 session_viewer/src/shaders/text_outline.wgsl type -->
+Outline text takes the same depth test.
+
+`lessons/05/src/shaders/text_outline.wgsl` · edit · type this
+
+Added below
+
+```wgsl
+// Keep the exact source object row available to the shared identity pass.
+```
+
+```wgsl
+--8<-- "lessons/05/src/shaders/text_outline.wgsl:step-9"
+```
+
 ## Step 10 · src/engine/gpu/targets.rs
 
-Targets own the depth and color attachments for a frame. Reversed depth clears to zero and compares nearer values as greater.
-<!-- file: 05 session_viewer/src/engine/gpu/targets.rs type -->
+Targets gain the depth and gradient textures at 1x and 4x.
+
+`lessons/05/src/engine/gpu/targets.rs` · edit · type this
+
+Added above
+
+```rust
+/// The attachments of the frame's render pass and the sample count they were made at.
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/targets.rs:step-10a"
+```
+
+Added after the `depth_msaa` field of `struct Targets` in `lessons/04d/src/engine/gpu/targets.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/targets.rs:step-10b"
+```
+
+Replaces the line `Self {` in `lessons/04d/src/engine/gpu/targets.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/targets.rs:step-10c"
+```
+
+Replaces the `fn begin_faces` lines in `lessons/04d/src/engine/gpu/targets.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/targets.rs:step-10d"
+```
+
+Replaces the lines from `color_attachments: &[Some(wgpu::RenderPassColorAttachment {` to `})],` in `lessons/04d/src/engine/gpu/targets.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/targets.rs:step-10e"
+```
+
+Added below
+
+```rust
+    texture(ctx, label, spec).create_view(&wgpu::TextureViewDescriptor::default())
+}
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/targets.rs:step-10f"
+```
+
 ## Step 11 · src/engine/pipelines/mod.rs
 
-Pipeline descriptions keep color, depth and sample-count choices together. The attachment formats must match the render pass.
-<!-- file: 05 session_viewer/src/engine/pipelines/mod.rs type -->
+Pipelines gain the physical target and the sample count.
+
+`lessons/05/src/engine/pipelines/mod.rs` · edit · type this
+
+Added below
+
+```rust
+    pub scene_samples: Option<u32>,
+```
+
+```rust
+--8<-- "lessons/05/src/engine/pipelines/mod.rs:step-11a"
+```
+
+Added below
+
+```rust
+            scene_samples: None,
+```
+
+```rust
+--8<-- "lessons/05/src/engine/pipelines/mod.rs:step-11b"
+```
+
+Added above
+
+```rust
+    /// The same desc with another depth mode.
+```
+
+```rust
+--8<-- "lessons/05/src/engine/pipelines/mod.rs:step-11c"
+```
+
+Replaces the line `let source = format!("{}\n{}", source, include_str!("../.…` in `lessons/04d/src/engine/pipelines/mod.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/pipelines/mod.rs:step-11d"
+```
+
+Replaces the line `let targets = [Some(wgpu::ColorTargetState {` in `lessons/04d/src/engine/pipelines/mod.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/pipelines/mod.rs:step-11e"
+```
+
 ## Step 12 · src/engine/pipelines/layouts.rs
 
-Bind-group layouts describe the resources shared by the drawing modules. Binding numbers and shader stages must agree with WGSL.
-<!-- file: 05 session_viewer/src/engine/pipelines/layouts.rs type -->
+Layouts gain the depth and gradient bindings.
+
+`lessons/05/src/engine/pipelines/layouts.rs` · edit · type this
+
+Added before `fn ink_instance_layout` in `lessons/04d/src/engine/pipelines/layouts.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/pipelines/layouts.rs:step-12a"
+```
+
+Added below
+
+```rust
+            scene_depth(3, true),
+```
+
+```rust
+--8<-- "lessons/05/src/engine/pipelines/layouts.rs:step-12b"
+```
+
 ## Step 13 · src/engine/gpu/instance.rs
 
-Each object row carries placement, color and selection flags for later interaction. Rust field offsets must match the shader byte for byte.
-<!-- file: 05 session_viewer/src/engine/gpu/instance.rs type -->
+The object row gains its selection flag.
+
+`lessons/05/src/engine/gpu/instance.rs` · edit · type this
+
+Replaces the line `let source = format!("{source}\n{}", include_str!("../../…` in `lessons/04d/src/engine/gpu/instance.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/instance.rs:step-13"
+```
+
 ## Step 14 · src/engine/gpu/objects.rs
 
-The object table stores GPU rows separately from source identity. Rebase translations before converting to f32 so distant objects stay stable.
-<!-- file: 05 session_viewer/src/engine/gpu/objects.rs type -->
+The object table binds the new textures.
+
+`lessons/05/src/engine/gpu/objects.rs` · edit · type this
+
+Added after the `binding: 3` entry in `lessons/04d/src/engine/gpu/objects.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/objects.rs:step-14a"
+```
+
+Added below
+
+```rust
+        depths: [&wgpu::TextureView; 2],
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/objects.rs:step-14b"
+```
+
+Added above
+
+```rust
+            ],
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/objects.rs:step-14c"
+```
+
 ## Step 15 · src/engine/gpu/arena.rs
 
-The arena holds mesh vertices and indices across objects. Add the vertex base to local indices before appending a mesh.
-<!-- file: 05 session_viewer/src/engine/gpu/arena.rs type -->
+The arena draws a physical pass before the colour pass.
+
+`lessons/05/src/engine/gpu/arena.rs` · edit · type this
+
+Added below
+
+```rust
+    id_faces: wgpu::RenderPipeline,
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/arena.rs:step-15a"
+```
+
+Added above
+
+```rust
+    /// Sheet fills: same vertex table, depth write off, so a page's exactly coplanar regions
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/arena.rs:step-15b"
+```
+
+Replaces the line `.draw_ids(pass, b, &self.outline_buffers(&self.print))` in `lessons/04d/src/engine/gpu/arena.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/arena.rs:step-15c"
+```
+
+Replaces the lines from `faces: build(dev, target, &base.with("triangle", "fs_main…` to `id_faces: build(dev, Target::ID, &base.with("triangle.id"…` in `lessons/04d/src/engine/gpu/arena.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/arena.rs:step-15d"
+```
+
 ## Step 16 · src/engine/gpu/splat.rs
 
-The splat pass chooses visible points before compositing their color and depth. Invalidate cached results when the camera or point data changes.
-<!-- file: 05 session_viewer/src/engine/gpu/splat.rs type -->
+The splat pass runs against the physical depth.
+
+`lessons/05/src/engine/gpu/splat.rs` · edit · type this
+
+Added below
+
+```rust
+        .vertex("vs_point");
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/splat.rs:step-16a"
+```
+
+Added below
+
+```rust
+        .with("splat.resolve", "fs_main")
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/splat.rs:step-16b"
+```
+
 ## Step 17 · src/engine/gpu/text_outline.rs
 
-Outline text draws vector glyph geometry. Keep print fills separate from depth-writing solid faces.
-<!-- file: 05 session_viewer/src/engine/gpu/text_outline.rs type -->
+Outline text draws in both passes.
+
+`lessons/05/src/engine/gpu/text_outline.rs` · edit · type this
+
+Added below
+
+```rust
+    id: wgpu::RenderPipeline,
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17a"
+```
+
+Replaces the lines from `let (color, id) = pipelines(ctx, layouts, &shader, target);` to `(self.color, self.id) = pipelines(ctx, layouts, &self.sha…` in `lessons/04d/src/engine/gpu/text_outline.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17b"
+```
+
+Added above
+
+```rust
+    /// Preserve the existing exact object IDs and sheet depth comparison in the picking pass.
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17c"
+```
+
+Replaces the line `) -> (wgpu::RenderPipeline, wgpu::RenderPipeline) {` in `lessons/04d/src/engine/gpu/text_outline.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17d"
+```
+
+Replaces the line `(color, id)` in `lessons/04d/src/engine/gpu/text_outline.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17e"
+```
+
 ## Step 18 · src/engine/gpu/mod.rs
 
-The GPU owner connects buffers, pipelines and frame resources. Create resources before building the bind groups that refer to them.
-<!-- file: 05 session_viewer/src/engine/gpu/mod.rs type -->
+The GPU owner runs the physical pass, then every lane over it.
+
+`lessons/05/src/engine/gpu/mod.rs` · edit · type this
+
+Added below
+
+```rust
+pub mod arena;
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-18a"
+```
+
+Added below
+
+```rust
+pub use segments::CylinderSegment;
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-18b"
+```
+
+Added below
+
+```rust
+    pub objects: objects::InstanceTable,
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-18c"
+```
+
+Added below
+
+```rust
+        let objects = objects::InstanceTable::new(&ctx, &layouts, &InkScene { targets: &targets });
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-18d"
+```
+
+Added below
+
+```rust
+            objects,
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-18e"
+```
+
+Added below
+
+```rust
+        self.bounds.union_with(&up.bounds);
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-18f"
+```
+
+Replaces the lines from `self.targets = targets::Targets::new(` to `);` in `lessons/04d/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-18g"
+```
+
+Added below
+
+```rust
+            let mut pass = self.targets.begin_faces(&mut encoder, &target, input.clear);
+```
+
+```rust
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-18h"
+```
+
 ## Step 19 · src/fixture.rs
 
-Download this file from its link to the path shown.
-<!-- file: 05 session_viewer/src/fixture.rs copy -->
+Copy the test scene: a box with edges behind faces.
+Copy this file from the lesson folder to the path shown.
+
+`lessons/05/src/fixture.rs` · edit · copy the file
+
+Replaces the lines from `use crate::engine::gpu::{` to `facing_ext: [0xffffffff; 2],` in `lessons/04d/src/fixture.rs`
+
+```rust
+--8<-- "lessons/05/src/fixture.rs:step-19"
+```
+
 ## Step 20 · src/lib.rs
 
-The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
-<!-- file: 05 session_viewer/src/lib.rs type -->
+The entry point reports the sample count.
+
+`lessons/05/src/lib.rs` · edit · type this
+
+Replaces the line `camera.set_view(camera::View::Top);` in `lessons/04d/src/lib.rs`
+
+```rust
+--8<-- "lessons/05/src/lib.rs:step-20a"
+```
+
+Replaces the line `Ok(serde_json::json!({"stage":4,"objects":self.gpu.object…` in `lessons/04d/src/lib.rs`
+
+```rust
+--8<-- "lessons/05/src/lib.rs:step-20b"
+```
+
+Added below
+
+```rust
+    JsValue::from_str(&error.to_string())
+}
+```
+
+```rust
+--8<-- "lessons/05/src/lib.rs:step-20c"
+```
+
 ## Step 21 · index.html
 
-Download this file from its link to the path shown.
-<!-- file: 05 session_viewer/index.html copy -->
+Copy the page: the status says checkpoint 05.
+Copy this file from the lesson folder to the path shown.
+
+`lessons/05/index.html` · edit · copy the file
+
+Replaces the line `<title>Session checkpoint 04</title>` in `lessons/04d/index.html`
+
+```html
+--8<-- "lessons/05/index.html:step-21a"
+```
+
+Replaces the line `<output id="status">Starting checkpoint 04</output>` in `lessons/04d/index.html`
+
+```html
+--8<-- "lessons/05/index.html:step-21b"
+```
+
+Replaces the line `document.getElementById('status').textContent = 'Checkpoi…` in `lessons/04d/index.html`
+
+```html
+--8<-- "lessons/05/index.html:step-21c"
+```
+
 ## Check
 
-<!-- checkpoint: 05 -->
+Run `trunk serve` in `lessons/05/` and open <http://127.0.0.1:8770/>.
 
 Expected: A grey box shows its visible red edges and black corners while its faces hide the far edges; status: **Checkpoint 05 · 1 objects**.
 
@@ -115,9 +613,55 @@ If it fails:
 
 ## What changed
 
-<!-- tree: 05 session_viewer/src -->
+```text
+lessons/05/src/
+├── app/
+│   ├── mod.rs
+│   └── route.rs
+├── engine/
+│   ├── gpu/
+│   │   ├── arena.rs  ~
+│   │   ├── backdrop.rs  +
+│   │   ├── buffers.rs
+│   │   ├── cloud.rs
+│   │   ├── frame.rs
+│   │   ├── glyphs.rs
+│   │   ├── instance.rs  ~
+│   │   ├── lod.rs
+│   │   ├── mod.rs  ~
+│   │   ├── objects.rs  ~
+│   │   ├── segments.rs
+│   │   ├── splat.rs  ~
+│   │   ├── targets.rs  ~
+│   │   ├── text_outline.rs  ~
+│   │   ├── upload.rs
+│   │   └── view.rs
+│   ├── pipelines/
+│   │   ├── layouts.rs  ~
+│   │   └── mod.rs  ~
+│   └── mod.rs
+├── shaders/
+│   ├── background.wgsl  +
+│   ├── glyph.wgsl
+│   ├── grid.wgsl  +
+│   ├── ink_visibility.wgsl  ~
+│   ├── normals.wgsl
+│   ├── physical.wgsl  +
+│   ├── ribbon.wgsl
+│   ├── scene.wgsl
+│   ├── sphere.wgsl
+│   ├── splat.wgsl  ~
+│   ├── splat_resolve.wgsl  ~
+│   ├── text_outline.wgsl  ~
+│   └── triangle.wgsl  ~
+├── camera.rs
+├── fixture.rs  ~
+└── lib.rs  ~
+```
 
-Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 05](../lessons/05/index.md).
+`+` new in this lesson · `~` changed in this lesson
+
+Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: `lessons/05/`.
 
 ## Next
 

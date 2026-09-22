@@ -11,24 +11,19 @@ use crate::engine::gpu::arena::ArenaRows;
 use session_rust::AABB;
 use session_rust::{BRep, Color, Mesh, NurbsSurface, RenderMesh};
 
-/// How finely the VIEWER wants a surface tessellated: the normal may turn 5 degrees between
-/// samples and a chord may sag a thousandth of the object. The kernel's own default is 20
-/// degrees and 0.005, which turns a cylinder into an 18-sided prism with a visibly polygonal
-/// silhouette - tessellation quality is a display decision, so the display makes it.
-/// Measured on 25 extruded circles: 1650 -> 4050 faces, 1.6 -> 1.8 ms a frame.
+/// Mesh quality: 5° between samples, chord sag 0.001 of the size.
 pub const QUALITY: (f64, f64) = (5.0, 0.001);
 
-/// The positions and the file-local triangle indices of every face uploaded so far: what the
-/// thickness measure reads once all faces are in.
+/// Every face uploaded so far.
 struct Solid {
-    pos: Vec<[f32; 3]>,
-    tris: Vec<u32>,
-    bounds: AABB,
+    pos: Vec<[f32; 3]>, // vertex positions
+    tris: Vec<u32>,     // triangle indices into `pos`
+    bounds: AABB,       // box of all vertices
 }
 
-/// One face mesh into the arena under `cx.row`: its own vertices, its normals as the kernel
-/// evaluated them, its triangles based on the file's vertex base.
+/// Append one face mesh to the arena.
 fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut Solid, face: usize) {
+    // one source face address for every triangle
     let address = arena.face_sources.len() as u32;
     arena
         .face_sources
@@ -39,8 +34,8 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
     arena
         .face_ids
         .extend(std::iter::repeat_n(address, rm.indices.len() / 3));
-    let base = cx.vert_base + arena.verts.len() as u32;
-    let local = solid.pos.len() as u32;
+    let base = cx.vert_base + arena.verts.len() as u32; // first GPU vertex index
+    let local = solid.pos.len() as u32; // first index in `solid`
     arena.verts.reserve(rm.vertices.len());
     arena.vids.reserve(rm.vertices.len());
 
@@ -63,28 +58,25 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
     }
 }
 
-/// Tessellate a BRep face by face, upload each with its surface colour and normals, then ink
-/// its edges. The row is one object; `FLAG_SMOOTH` tells the marker lane the vertices are
-/// samples; `FLAG_OPEN` goes on when the BRep's own `is_solid` is FALSE, since an open shell
-/// shows its inside; `FLAG_SINGLE` when the whole thing is one face, which x-ray leaves shaded.
+/// A BRep: every face meshed and uploaded, then its edges.
 pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) -> Row {
-    let mut fms = b.face_meshes_q(Some(QUALITY));
-    let chains = edge_chains(b, &fms);
-    let signs = face_signs(b, &fms, &chains);
+    let mut fms = b.face_meshes_q(Some(QUALITY)); // one mesh per face
+    let chains = edge_chains(b, &fms); // edge polylines on the meshes
+    let signs = face_signs(b, &fms, &chains); // +1 or -1 per face
     let mut solid = Solid {
         pos: Vec::new(),
         tris: Vec::new(),
         bounds: AABB::empty(),
     };
-    let mut verts = 0;
-    let mut boundary_vertices = Vec::with_capacity(fms.len());
+    let mut verts = 0; // vertex total for spacing
+    let mut boundary_vertices = Vec::with_capacity(fms.len()); // per face: vertex key to GPU index
 
     for (fi, fm) in fms.iter_mut().enumerate() {
         fm.set_objectcolor(b.surfacecolor.clone());
         verts += fm.vertex.len();
         let mut rm = fm.to_render();
 
-        // Apply the same solid-orientation repair to shading, winding and boundary facing.
+        // an inside-out face: flip normals and winding
         if signs[fi] < 0.0 {
             for vertex in &mut rm.vertices {
                 for component in &mut vertex.normal {
@@ -106,11 +98,11 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
                 .collect::<std::collections::HashMap<_, _>>(),
         );
         let surface_index = b.m_faces[fi].surface_index as usize;
-        cache_samples(arena, fm, &rm, &b.m_surfaces[surface_index], surface_index);
+        cache_samples(arena, fm, &rm, &b.m_surfaces[surface_index], surface_index); // uv per vertex for live edits
         push_face(arena, &rm, cx, &mut solid, fi);
     }
 
-    let mut flags = Instance::FLAG_SMOOTH;
+    let mut flags = Instance::FLAG_SMOOTH; // vertices are samples
 
     if !b.is_solid() {
         flags |= Instance::FLAG_OPEN;
@@ -147,9 +139,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
     row
 }
 
-/// The solid's own edges, one chain per BRep edge off the tessellation (pipes, culled by the
-/// two adjacent faces); an edge no grid face owns is sampled off its 3D curve as a ribbon,
-/// today's path, until the kernel supplies every edge's polygon.
+/// Every BRep edge as pipes, or as a ribbon when no mesh owns it.
 fn walk_brep_edges(
     ink: &mut Ink,
     b: &BRep,
@@ -165,6 +155,7 @@ fn walk_brep_edges(
             Some(c) => {
                 let mut pipe = ink.seg.pipes.len() as u32;
                 push_edge_pipes(ink.seg, c, ep, bounds);
+                // remember which vertices each pipe joins
                 for pair in c.keys.windows(2) {
                     let ends = [
                         boundary_vertices[c.face][&pair[0]],
@@ -193,8 +184,7 @@ fn walk_brep_edges(
     }
 }
 
-/// The fallback for an edge with no grid face: the 3D curve sampled by turning angle, drawn as
-/// a ribbon with no facing (nothing exact is known about its neighbours).
+/// An edge sampled from its 3D curve as a ribbon.
 fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB)) {
     let edge = &b.m_edges[ei];
 
@@ -214,18 +204,18 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB))
     push_polyline(ink.seg, &points, out.0, out.1);
 }
 
-/// A fixed UV grid retains connectivity throughout a gesture. Only the four natural
-/// domain boundaries are ink; no triangle adjacency or angle threshold defines an edge.
+/// A NURBS surface as a fixed UV grid with its four border edges.
 pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
     let (Some((u0, u1)), Some((v0, v1))) = (s.domain(0), s.domain(1)) else {
         return Row::thin(AABB::empty());
     };
-    let nu = (s.m_cv_count[0] * 4).clamp(16, 96);
-    let nv = (s.m_cv_count[1] * 4).clamp(16, 96);
-    let first = arena.verts.len();
-    let base = cx.vert_base + first as u32;
+    let nu = (s.m_cv_count[0] * 4).clamp(16, 96); // grid steps in u
+    let nv = (s.m_cv_count[1] * 4).clamp(16, 96); // grid steps in v
+    let first = arena.verts.len(); // index of this surface's first vertex
+    let base = cx.vert_base + first as u32; // first GPU vertex index
     let color = s.facecolors.first().cloned().unwrap_or_default().to_f32();
     let mut bounds = AABB::empty();
+    // one vertex per grid point
     for i in 0..=nu {
         for j in 0..=nv {
             let u = u0 + (u1 - u0) * i as f64 / nu as f64;
@@ -256,6 +246,7 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
             parent: cx.row,
             face: 0,
         });
+    // two triangles per grid cell
     for i in 0..nu {
         for j in 0..nv {
             let a = base + (i * (nv + 1) + j) as u32;
@@ -266,6 +257,7 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
     }
     if !knobs::no_edges() {
         ink.seg.pipe_ids.resize(ink.seg.pipes.len(), u32::MAX);
+        // the four border edges, skipping a closed direction
         for edge in 0..4 {
             let direction = edge / 2;
             if s.is_closed(direction) {
@@ -312,7 +304,7 @@ mod tests {
     use crate::engine::gpu::glyphs::GlyphRows;
     use crate::engine::gpu::segments::SegRows;
 
-    /// The walked tables of one BRep at row 5: arena rows, pipes, ribbons, markers, flags.
+    /// Walk one BRep at row 5.
     fn walked(b: &BRep) -> (ArenaRows, SegRows, GlyphRows, Row) {
         let mut arena = ArenaRows::default();
         let mut seg = SegRows::default();
@@ -333,6 +325,7 @@ mod tests {
         (arena, seg, glyph, row)
     }
 
+    /// The teapot's pipes lie on its authored edge curves.
     #[test]
     fn teapot_ink_is_only_authored_patch_boundaries() {
         let scene = session_rust::Session::pb_load(concat!(
@@ -392,10 +385,7 @@ mod tests {
         }
     }
 
-    /// A cylinder uploads every face mesh's own vertices (no weld: the side's 146 plus the two
-    /// caps' 72 each, read from the kernel, not assumed), each with a unit normal, its
-    /// indices based on the file's vertex base, one pipe per chain segment and no ribbons,
-    /// no markers, FLAG_SMOOTH and not FLAG_OPEN.
+    /// A cylinder uploads unwelded faces with unit normals.
     #[test]
     fn cylinder_walks_unwelded_with_normals() {
         let b = BRep::create_cylinder(150.0, 400.0);
@@ -433,8 +423,7 @@ mod tests {
         assert!(row.bounds.diagonal() > 400.0);
     }
 
-    /// A single face pulled out of a solid is not solid: it is walked FLAG_OPEN so the facing
-    /// cull, whose premise is a closed surface, is skipped.
+    /// A shell without a solid is flagged open.
     #[test]
     fn open_brep_is_flagged_open() {
         let mut b = BRep::create_box(400.0, 300.0, 250.0);
@@ -443,6 +432,7 @@ mod tests {
         assert_ne!(row.flags & Instance::FLAG_OPEN, 0);
     }
 
+    /// Flipped face uses upload the same vertices and triangles.
     #[test]
     fn reversed_solid_uses_repair_faces_and_boundaries_together() {
         let b = BRep::create_cylinder(150.0, 400.0);
@@ -468,6 +458,7 @@ mod tests {
         }
     }
 
+    /// A surface's four border edges carry ids 0 to 3.
     #[test]
     fn surface_domain_edges_have_source_ids_and_open_visibility() {
         let b = BRep::create_box(40.0, 30.0, 25.0);
@@ -493,6 +484,7 @@ mod tests {
         assert_eq!(ids, vec![0, 1, 2, 3]);
     }
 
+    /// Sphere poles and box corners keep unit normals.
     #[test]
     fn poles_and_sharp_faces_keep_finite_unit_normals() {
         for b in [
@@ -532,11 +524,10 @@ mod tests {
         }
     }
 
-    /// A collapsed UV corner on a planar pyramid side retains that side's normal at its apex.
-    /// Check the final upload so later shading-vertex conversion cannot reintroduce face bleed.
+    /// Each pyramid side keeps its own normal at the apex.
     #[test]
     fn pyramid_planar_faces_keep_constant_normals_through_collapsed_apex() {
-        /// Compare normalized uploaded directions using the same f32 components as the GPU.
+        /// Dot product in f32.
         fn dot(a: [f32; 3], b: [f32; 3]) -> f32 {
             a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
         }
@@ -597,7 +588,7 @@ mod tests {
     }
 }
 
-/// Store only parameter provenance for live edits, without retaining mesh topology maps.
+/// Remember each vertex's uv on its surface.
 fn cache_samples(
     arena: &mut ArenaRows,
     mesh: &Mesh,
@@ -609,7 +600,7 @@ fn cache_samples(
     rows.sort_unstable_by_key(|&(key, _)| *key);
 
     if rows.len() != render.vertices.len() {
-        return;
+        return; // vertices were split, no mapping
     }
 
     for (offset, ((_, vertex), rendered)) in rows.into_iter().zip(&render.vertices).enumerate() {
@@ -617,6 +608,7 @@ fn cache_samples(
             continue;
         };
         let normal = surface.normal_at(u, v);
+        // sign flips when the rendered normal was reversed
         let dot = (0..3)
             .map(|d| normal[d] * rendered.normal[d] as f64)
             .sum::<f64>();

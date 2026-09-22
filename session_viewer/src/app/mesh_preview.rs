@@ -6,21 +6,24 @@ use crate::engine::gpu::{Gpu, Upload};
 use session_rust::{Geometry, Mesh, RenderVertex, Xform};
 use std::collections::{HashMap, HashSet};
 
+/// A mesh's GPU rows, each tagged with its source vertex key.
 pub struct MeshPreview {
-    vertices: Vec<(usize, RenderVertex)>,
-    pipes: Vec<([usize; 2], CylinderSegment)>,
-    spheres: Vec<(usize, GlyphPoint)>,
-    dots: Vec<(usize, GlyphPoint)>,
-    span: Span,
+    vertices: Vec<(usize, RenderVertex)>,       // (vertex key, GPU vertex)
+    pipes: Vec<([usize; 2], CylinderSegment)>, // (edge keys, GPU pipe)
+    spheres: Vec<(usize, GlyphPoint)>,         // (vertex key, vertex sphere)
+    dots: Vec<(usize, GlyphPoint)>,            // (vertex key, dot)
+    span: Span,                                // where the rows sit on the GPU
 }
 
+/// The GPU rows one drag touches.
 pub struct Gesture {
-    vertices: Vec<(u32, RenderVertex, bool)>,
-    pipes: Vec<(u32, CylinderSegment, [bool; 2])>,
-    spheres: Vec<(u32, GlyphPoint, bool)>,
-    dots: Vec<(u32, GlyphPoint, bool)>,
+    vertices: Vec<(u32, RenderVertex, bool)>,     // (GPU index, original, moves)
+    pipes: Vec<(u32, CylinderSegment, [bool; 2])>, // (GPU index, original, each end moves)
+    spheres: Vec<(u32, GlyphPoint, bool)>,        // (GPU index, original, moves)
+    dots: Vec<(u32, GlyphPoint, bool)>,           // (GPU index, original, moves)
 }
 
+/// The mesh inside a geometry, if any.
 pub fn mesh(geometry: &Geometry) -> Option<&Mesh> {
     match geometry {
         Geometry::Mesh(mesh) => Some(mesh),
@@ -33,6 +36,7 @@ pub fn mesh(geometry: &Geometry) -> Option<&Mesh> {
 }
 
 impl MeshPreview {
+    /// Match the uploaded rows back to the mesh's vertex keys.
     pub(crate) fn capture(
         up: &Upload,
         span: Span,
@@ -42,11 +46,12 @@ impl MeshPreview {
         let mesh = mesh(geometry)?;
 
         if span.count.ribbons != 0 {
-            return None;
+            return None; // not a plain mesh upload
         }
 
-        let mut keys = mesh.vertices();
+        let mut keys = mesh.vertices(); // one GPU vertex per key
 
+        // face colours split every triangle: keys per triangle corner
         if mesh.color_mode == session_rust::mesh::ColorMode::FACECOLORS
             && mesh.get_facecolors().len() == mesh.face.len()
         {
@@ -74,7 +79,7 @@ impl MeshPreview {
         }
 
         if keys.len() != span.count.verts as usize {
-            return None;
+            return None; // upload does not match
         }
 
         let vertices = keys
@@ -85,6 +90,7 @@ impl MeshPreview {
                     .copied(),
             )
             .collect();
+        // edges in the order the walk numbered them
         let mut seen = HashSet::new();
         let mut edges = Vec::new();
 
@@ -111,7 +117,7 @@ impl MeshPreview {
                 ))
             })
             .collect::<Option<Vec<_>>>()?;
-        // Marker provenance is accepted only when source positions are unambiguous.
+        // markers are matched by position; a shared position gives up
         let mut positions = HashMap::new();
 
         for (&key, v) in &mesh.vertex {
@@ -142,10 +148,11 @@ impl MeshPreview {
         })
     }
 
+    /// The rows a drag of `target` touches.
     pub fn begin(&self, geometry: &Geometry, target: Target) -> Option<Gesture> {
         let mesh = mesh(geometry)?;
-        let selected: HashSet<_> = mesh_keys(mesh, target).ok()?.into_iter().collect();
-        let mut affected = selected.clone();
+        let selected: HashSet<_> = mesh_keys(mesh, target).ok()?.into_iter().collect(); // keys that move
+        let mut affected = selected.clone(); // keys whose faces change
 
         for ring in mesh.face.values() {
             if ring.iter().any(|k| selected.contains(k)) {
@@ -189,6 +196,7 @@ impl MeshPreview {
         })
     }
 
+    /// Memory held by the preview.
     pub fn allocated_bytes(&self) -> usize {
         self.vertices.capacity() * std::mem::size_of::<(usize, RenderVertex)>()
             + self.pipes.capacity() * std::mem::size_of::<([usize; 2], CylinderSegment)>()
@@ -198,7 +206,9 @@ impl MeshPreview {
 }
 
 impl Gesture {
+    /// Patch the GPU rows with `delta` applied, or put them back.
     pub fn apply(&self, gpu: &mut Gpu, delta: &Xform, restore: bool) {
+        // transform a point by the 4x4 matrix
         let position = |p: [f32; 3]| {
             let m = &delta.m;
             std::array::from_fn(|r| {
@@ -213,7 +223,7 @@ impl Gesture {
                     v.position = position(v.position);
                 }
 
-                v.normal = [0.; 3];
+                v.normal = [0.; 3]; // flat shading while dragging
             }
 
             gpu.arena.patch_vertices(&gpu.ctx, index, &[v]);
@@ -229,8 +239,7 @@ impl Gesture {
                     p.p1 = position(p.p1);
                 }
 
-                // During a gesture, finite triangle visibility supplies the occlusion test.
-                p.facing = u32::MAX;
+                p.facing = u32::MAX; // always draw while dragging
             }
 
             gpu.segments.patch_pipes(
@@ -269,6 +278,7 @@ mod tests {
     use session_rust::Point;
     use std::rc::Rc;
 
+    /// A drag touches only the rows around the target.
     #[test]
     fn large_mesh_gesture_only_patches_local_neighborhood() {
         let mut mesh = Mesh::new();

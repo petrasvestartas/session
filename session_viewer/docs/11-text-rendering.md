@@ -1,91 +1,332 @@
 # 11 · Text rendering
-<!-- locator: off -->
 
 Screen-sized nameplates and a foreshortened scene label appear above the model.
 
 ![Five placements of one shaped line, and the same label rasterized once per device scale.](illustrations/text-placement.svg)
 
-<!-- step-status: start -->
+Copy each file from the lesson folder to the path shown.
 
-**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
+Copy from `lessons/11/` (tooling this checkpoint needs but the course does not teach):
 
-<!-- step-status: end -->
+- `lessons/11/src/text_quality.rs`
 
-Download each file to the path shown.
-<!-- supplied: 11 -->
 ## Step 1 · src/engine/gpu/text_plate.rs
 
-Text plates draw a backing around shaped labels. Include glyph overhang when measuring the padding.
-<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-76 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=77-104 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=105-152 -->
+Text plates draw a backing around shaped labels.
+
+`lessons/11/src/engine/gpu/text_plate.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plate.rs:step-1a"
+```
+
+`lessons/11/src/engine/gpu/text_plate.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plate.rs:step-1b"
+```
+
+`lessons/11/src/engine/gpu/text_plate.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plate.rs:step-1c"
+```
+
 ## Step 2 · src/shaders/text_plate.wgsl
 
-Text plates draw rounded backing shapes behind labels. Keep their screen-space dimensions consistent with the glyph scale.
-<!-- file: 11 session_viewer/src/shaders/text_plate.wgsl type -->
+Text plates draw rounded backing shapes behind labels.
+
+`lessons/11/src/shaders/text_plate.wgsl` · 27 lines · type this, new file
+
+```wgsl
+--8<-- "lessons/11/src/shaders/text_plate.wgsl"
+```
+
 ## Step 3 · src/engine/gpu/text_plane.rs
 
-Plane text projects labels through their scene placement. Its depth must participate in ordinary scene occlusion.
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=1-33 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=34-83 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=84-150 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=151-232 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=233-279 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=280-355 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=356-441 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=442-512 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=513-537 -->
+Plane text projects labels through their scene placement.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3a"
+```
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3b"
+```
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3c"
+```
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3d"
+```
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3e"
+```
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3f"
+```
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3g"
+```
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3h"
+```
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3i"
+```
+
 ## Step 4 · src/shaders/text_plane.wgsl
 
-Plane labels project shaped glyphs onto their scene plane. Preserve projected depth so solids can hide the label.
-<!-- file: 11 session_viewer/src/shaders/text_plane.wgsl type -->
+Plane labels project shaped glyphs onto their scene plane.
+
+`lessons/11/src/shaders/text_plane.wgsl` · 28 lines · type this, new file
+
+```wgsl
+--8<-- "lessons/11/src/shaders/text_plane.wgsl"
+```
+
 ## Step 5 · src/engine/gpu/text_plane.rs
 
-Download this file from its link to the path shown.
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs copy lines=538-637 -->
+Copy this file from the lesson folder to the path shown.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-5"
+```
+
 ## Step 6 · src/engine/gpu/text.rs
 
-The GPU text owner coordinates glyphs and label backgrounds. Apply the framebuffer scale once so glyphs remain sharp.
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=1-48 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=49-106 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=107-129 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=130-212 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=213-272 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=273-343 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=344-377 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=378-440 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=441-512 -->
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=513-563 -->
-Download this part from its link to the path shown.
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs copy lines=564-978 -->
-<!-- check: 11 -->
+The GPU text owner coordinates glyphs and label backgrounds.
+
+`lessons/11/src/engine/gpu/text.rs` · type this, new file, start with these lines
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6a"
+```
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6b"
+```
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6c"
+```
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6d"
+```
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6e"
+```
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6f"
+```
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6g"
+```
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6h"
+```
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6i"
+```
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6j"
+```
+
+Copy this part from the lesson folder to the path shown.
+
+`lessons/11/src/engine/gpu/text.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-6k"
+```
+
+Run `cargo check` in `lessons/11/`.
+
 ## Step 7 · src/engine/gpu/mod.rs
 
-The GPU owner connects buffers, pipelines and frame resources. Create resources before building the bind groups that refer to them.
-<!-- file: 11 session_viewer/src/engine/gpu/mod.rs type -->
+The GPU owner connects buffers, pipelines and frame resources.
+
+`lessons/11/src/engine/gpu/mod.rs` · edit · type this
+
+Added after the `pub mod targets;` line of `lessons/10/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-7a"
+```
+
+Added after the `pub glyphs: glyphs::GlyphLane,` line in `struct Gpu` of `lessons/10/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-7b"
+```
+
+Added after the `let glyphs = glyphs::GlyphLane::new(&ctx, &la…` line in `fn new` of `lessons/10/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-7c"
+```
+
+Added after the `glyphs,` line in `fn new` of `lessons/10/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-7d"
+```
+
+Added after the `self.glyphs.retarget(&self.ctx, &self.layouts…` line in `fn retarget` of `lessons/10/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-7e"
+```
+
+Replaces `fn write_frame_uniforms` in `lessons/10/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-7f"
+```
+
+Replaces the 5 lines from `}` in `impl Gpu` of `lessons/10/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-7g"
+```
+
+Added after the `self.arena.draw_text(&mut pass, &basic);` line in `fn render` of `lessons/10/src/engine/gpu/mod.rs`
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-7h"
+```
+
 ## Step 8 · src/lib.rs
 
-The crate entry point connects the camera, scene and GPU owners. Wire initialization and frame updates together so a new module actually runs.
-<!-- file: 11 session_viewer/src/lib.rs type -->
+The crate entry point connects the camera, scene and GPU owners.
+
+`lessons/11/src/lib.rs` · edit · type this
+
+Replaces `mod app` in `lessons/10/src/lib.rs`
+
+```rust
+--8<-- "lessons/11/src/lib.rs:step-8a"
+```
+
+Added after the `fixture.upload.drop_uploaded();` line in `fn create` of `lessons/10/src/lib.rs`
+
+```rust
+--8<-- "lessons/11/src/lib.rs:step-8b"
+```
+
+Replaces the `Ok(serde_json::json!({"stage":10,"objects":se…` line in `fn render` of `lessons/10/src/lib.rs`
+
+```rust
+--8<-- "lessons/11/src/lib.rs:step-8c"
+```
+
+Added after the `}` line of `lessons/10/src/lib.rs`
+
+```rust
+--8<-- "lessons/11/src/lib.rs:step-8d"
+```
+
 ## Step 9 · src/text_layout.rs
 
 Remove this file; its replacement is now part of the rendering modules.
-<!-- file: 11 session_viewer/src/text_layout.rs -->
+
+Delete `src/text_layout.rs` (it exists in `lessons/10/`, not in `lessons/11/`).
+
 ## Step 10 · assets/text-layout.html
 
 Remove this file; its replacement is now part of the rendering modules.
-<!-- file: 11 session_viewer/assets/text-layout.html -->
+
+Delete `assets/text-layout.html` (it exists in `lessons/10/`, not in `lessons/11/`).
+
 ## Step 11 · assets/text-quality.html
 
-Download this file from its link to the path shown.
-<!-- file: 11 session_viewer/assets/text-quality.html copy -->
+Copy this file from the lesson folder to the path shown.
+
+`lessons/11/assets/text-quality.html` · 166 lines · copy the file, new file
+
+```html
+--8<-- "lessons/11/assets/text-quality.html"
+```
+
 ## Step 12 · index.html
 
-Download this file from its link to the path shown.
-<!-- file: 11 session_viewer/index.html copy -->
+Copy this file from the lesson folder to the path shown.
+
+`lessons/11/index.html` · edit · copy the file
+
+Replaces the `<title>Session checkpoint 10</title>` line of `lessons/10/index.html`
+
+```html
+--8<-- "lessons/11/index.html:step-12a"
+```
+
+Replaces the 6 lines from `<link data-trunk rel="copy-file" href="assets…` of `lessons/10/index.html`
+
+```html
+--8<-- "lessons/11/index.html:step-12b"
+```
+
+Replaces the `document.getElementById('status').textContent…` line of `lessons/10/index.html`
+
+```html
+--8<-- "lessons/11/index.html:step-12c"
+```
+
 ## Check
 
-<!-- checkpoint: 11 -->
+Run `trunk serve` in `lessons/11/` and open <http://127.0.0.1:8770/>.
 
 Expected: Screen-sized nameplates and a foreshortened scene label appear above the model; status: **3 objects**.
 
@@ -98,9 +339,32 @@ If it fails:
 
 ## What changed
 
-<!-- tree: 11 session_viewer/src/engine/gpu -->
+```text
+lessons/11/src/engine/gpu/
+├── arena.rs
+├── backdrop.rs
+├── buffers.rs
+├── cloud.rs
+├── frame.rs
+├── glyphs.rs
+├── instance.rs
+├── lod.rs
+├── mod.rs  ~
+├── objects.rs
+├── segments.rs
+├── splat.rs
+├── targets.rs
+├── text.rs  +
+├── text_outline.rs
+├── text_plane.rs  +
+├── text_plate.rs  +
+├── upload.rs
+└── view.rs
+```
 
-Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: [source at checkpoint 11](../lessons/11/index.md).
+`+` new in this lesson · `~` changed in this lesson
+
+Every file at this point: `lessons/11/`.
 
 ## Next
 

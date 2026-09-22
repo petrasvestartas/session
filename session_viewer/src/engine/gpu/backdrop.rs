@@ -3,7 +3,7 @@ use super::frame::Binds;
 use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, scene_module};
 use wgpu::PrimitiveTopology::{LineList, TriangleList};
 
-/// The lane's shaders, for the mirror tests.
+/// Shader sources the tests compare against the files.
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[
     ("grid.wgsl", include_str!("../../shaders/grid.wgsl")),
@@ -13,19 +13,19 @@ pub const SHADERS: &[(&str, &str)] = &[
     ),
 ];
 
-/// Vertices the grid shader builds from the vertex index: 44 floor + 6 axis.
+/// Grid vertex count: 44 floor lines plus 6 axis lines.
 const GRID_VERTS: u32 = 50;
 
-/// The two backdrop pipelines and their shader modules.
+/// Draws the background color and the floor grid.
 pub struct BackdropLane {
-    background_shader: wgpu::ShaderModule,
-    grid_shader: wgpu::ShaderModule,
-    background: wgpu::RenderPipeline,
-    grid: wgpu::RenderPipeline,
+    background_shader: wgpu::ShaderModule, // fullscreen background shader
+    grid_shader: wgpu::ShaderModule, // floor grid shader
+    background: wgpu::RenderPipeline, // background pipeline
+    grid: wgpu::RenderPipeline, // grid pipeline
 }
 
 impl BackdropLane {
-    /// Compile both shaders once and build the pipelines for `target`.
+    /// Compile both shaders and build the pipelines.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
         let background_shader = scene_module(
             &ctx.device,
@@ -54,17 +54,17 @@ impl BackdropLane {
         self.grid = build_grid(ctx, l, &self.grid_shader, target);
     }
 
-    /// The background: one fullscreen triangle using the view lighting setting. Always 1 draw.
+    /// Draw the background as one fullscreen triangle.
     pub fn draw_background(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         pass.set_pipeline(&self.background);
         pass.set_bind_group(0, b.mvp, &[]);
         pass.set_bind_group(1, b.line, &[]);
+        // three vertices, the shader places them
         pass.draw(0..3, 0..1);
         1
     }
 
-    /// The grid draws before the geometry with depth writes off, so every object paints over
-    /// it. The line block carries the anchor it subtracts. Always 1 draw.
+    /// Draw the floor grid lines.
     pub fn draw_grid(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         pass.set_pipeline(&self.grid);
         pass.set_bind_group(0, b.mvp, &[]);
@@ -74,7 +74,7 @@ impl BackdropLane {
     }
 }
 
-/// The background pipeline: always drawn, never writes depth.
+/// Background pipeline: always passes the depth test.
 fn build_background(
     ctx: &GpuCtx,
     l: &Layouts,
@@ -93,7 +93,7 @@ fn build_background(
     )
 }
 
-/// The grid pipeline: depth-tested lines, no depth write.
+/// Grid pipeline: lines behind geometry are hidden.
 fn build_grid(
     ctx: &GpuCtx,
     l: &Layouts,

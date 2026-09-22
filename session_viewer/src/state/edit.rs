@@ -7,31 +7,28 @@ use crate::app::snap::{self, Snap, SnapKind};
 use crate::state::{SelectionMode, State};
 use session_rust::{Point, Vector, Xform};
 
-/// A drag in progress: the row, its transform when the drag started, and the handle.
+/// A gizmo drag in progress.
 pub struct GizmoDrag {
-    row: u32,
-    group: Vec<(u32, Xform)>,
-    base_place: Xform, // The full placement at the grab; each preview starts from this placement.
-    drag: Drag,
-    target: Option<crate::app::deform::Target>,
-    source: Option<session_rust::Geometry>,
-    origin: Point,
-    mesh_preview: Option<crate::app::mesh_preview::Gesture>,
+    row: u32,                                             // the main selected row
+    group: Vec<(u32, Xform)>,                             // every selected row and where it started
+    base_place: Xform,                                    // the main row's placement at the grab
+    drag: Drag,                                           // the handle and where it was grabbed
+    target: Option<crate::app::deform::Target>,           // a face, edge or control point being moved
+    source: Option<session_rust::Geometry>,               // the geometry before the drag
+    origin: Point,                                        // the gizmo center at the grab
+    mesh_preview: Option<crate::app::mesh_preview::Gesture>, // a GPU-side mesh preview
 }
 
 impl State {
-    /// Put the gizmo on the selected row's box centre, or take it away.
-    ///
-    /// A row whose box is empty gets no widget rather than one at the world origin: a streamed
-    /// cloud before its first slice lands, a sheet row, a row whose geometry produced no
-    /// finite bounds. A single point is NOT one of those - `walk_point` grows a box around it,
-    /// so min equals max and the widget sits on the point.
+    /// Put the gizmo at the center of the selection, or remove it.
     pub fn place_gizmo(&mut self, row: Option<u32>) {
+        // no box, no gizmo
         let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else {
             self.gizmo = None;
             self.upload_gizmo();
             return;
         };
+        // the box around every selected row
         let mut bounds = box_;
         if row.is_some() {
             for selected in &self.hierarchy.selected {
@@ -42,6 +39,7 @@ impl State {
         }
         let mut origin = bounds.center();
 
+        // a selected face, edge or control point: center on it instead
         if let Some(row) = row
             && let Some(target) = crate::app::deform::Target::selected(&self.selection)
             && let Some(geometry) = self.scene.geometry(row)
@@ -66,16 +64,17 @@ impl State {
         self.upload_gizmo();
     }
 
-    /// Try to grab a gizmo handle under the cursor. False means the click was not on the
-    /// widget and the caller should go on to pick.
+    /// Grab a gizmo handle under the mouse; false when the click missed it.
     pub fn begin_gizmo(&mut self, x: f64, y: f64) -> bool {
         self.begin_gizmo_with_radius(x, y, 8.0)
     }
 
+    /// Grab a gizmo handle under a finger, with a wider reach.
     pub fn begin_gizmo_touch(&mut self, x: f64, y: f64) -> bool {
         self.begin_gizmo_with_radius(x, y, 18.0)
     }
 
+    /// Grab a gizmo handle within `radius` CSS pixels.
     fn begin_gizmo_with_radius(&mut self, x: f64, y: f64, radius: f64) -> bool {
         let Some(row) = self.scene.selected else {
             return false;
@@ -83,12 +82,13 @@ impl State {
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
             return false;
         };
+        // every selected row with where it is now
         let group = self
             .selected_rows()
             .into_iter()
             .filter_map(|r| Some((r, self.scene.placement_of(r)?)))
             .collect();
-        let per_px = self.world_per_px();
+        let per_px = self.world_per_px(); // scene length of one pixel at the gizmo
         let Some(gizmo) = self.gizmo.as_mut() else {
             return false;
         };
@@ -102,6 +102,7 @@ impl State {
             return false;
         };
         let target = crate::app::deform::Target::selected(&self.selection);
+        // a mesh vertex drag previews on the GPU
         let mesh_preview = target.and_then(|target| {
             self.scene
                 .mesh_previews
@@ -123,7 +124,7 @@ impl State {
         true
     }
 
-    /// Move the object with the pointer. The document is not touched: this is a preview.
+    /// Move the selection with the pointer; a preview, the document is untouched.
     pub fn drag_gizmo(&mut self, x: f64, y: f64) -> bool {
         let Some(active) = self.dragging.as_ref() else {
             return false;
@@ -131,18 +132,20 @@ impl State {
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
             return false;
         };
+        // the transform the gesture means so far
         let Some(delta) = Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir)
         else {
             return false;
         };
 
+        // a face, edge or control point moves inside the object
         if let (Some(target), Some(source)) = (active.target, active.source.as_ref()) {
             let row = active.row;
             let place = active.base_place.clone();
             let Some(back) = place.inverse() else {
                 return false;
             };
-            let local = &(&back * &delta) * &place;
+            let local = &(&back * &delta) * &place; // the delta in the object's own frame
 
             if let Some(preview) = active.mesh_preview.as_ref() {
                 preview.apply(&mut self.gpu, &local, false);
@@ -185,6 +188,7 @@ impl State {
             return true;
         }
 
+        // whole objects: move every row's placement
         for (row, base) in &active.group {
             self.gpu
                 .objects
@@ -197,11 +201,12 @@ impl State {
         true
     }
 
-    /// Let go: the document records the whole gesture as one transaction.
+    /// Release: the document records the whole gesture as one undo step.
     pub fn end_gizmo(&mut self, x: f64, y: f64) -> bool {
         let Some(active) = self.dragging.take() else {
             return false;
         };
+        // put the preview back, the document applies the real move
         self.gpu
             .objects
             .set_placement(&self.gpu.ctx, active.row, &active.base_place);
@@ -239,6 +244,7 @@ impl State {
             return true;
         }
 
+        // the undo label
         let label = match active.drag.handle {
             Handle::Translate(_) => "move",
             Handle::Rotate(_) => "rotate",
@@ -253,12 +259,7 @@ impl State {
         true
     }
 
-    /// Abandon a gesture that will never be released - a cancelled pointer, a lost focus.
-    ///
-    /// The preview lives only in the row's GPU placement, and nothing was recorded that an undo
-    /// could take back, so the row is put back where the grab found it. Without this the object
-    /// stays where the pointer left it, with the document still holding the old placement, and
-    /// no key reaches that state.
+    /// Drop a drag that will never be released; everything goes back.
     pub fn cancel_gesture(&mut self) {
         if let Some(active) = self.dragging.take() {
             if let Some(preview) = active.mesh_preview.as_ref() {
@@ -297,7 +298,7 @@ impl State {
         }
     }
 
-    /// Delete the selection. The rows change, so every document is walked again.
+    /// Delete the selection.
     pub fn delete_selected(&mut self) {
         let Some(row) = self.scene.selected else {
             return;
@@ -311,7 +312,7 @@ impl State {
         self.after_history();
     }
 
-    /// Undo the last edit in the document that was edited last - Ctrl+Z.
+    /// Ctrl+Z: undo the last edit.
     pub fn undo(&mut self) {
         if !self.scene.streamed.is_empty() || !self.scene.sheets.is_empty() {
             self.status("Undo requires a scene without streamed sources");
@@ -323,7 +324,7 @@ impl State {
         }
     }
 
-    /// Redo it - Ctrl+Y, or Ctrl+Shift+Z.
+    /// Ctrl+Y: redo it.
     pub fn redo(&mut self) {
         if !self.scene.streamed.is_empty() || !self.scene.sheets.is_empty() {
             self.status("Redo requires a scene without streamed sources");
@@ -335,8 +336,7 @@ impl State {
         }
     }
 
-    /// An undo can bring an object back or take one away, so the rows are rebuilt rather than
-    /// patched. The selection is dropped because the row it named may not exist any more.
+    /// After an undo, redo or delete: rebuild the rows, drop the selection.
     pub(super) fn after_history(&mut self) {
         self.hierarchy.open.clear();
         self.hierarchy.page = 0;
@@ -349,13 +349,9 @@ impl State {
         self.touch();
     }
 
-    /// World length of one CSS pixel at the gizmo, for a widget that must feel the same however
-    /// far the camera is AND whatever the display's pixel ratio is.
-    ///
-    /// `viewport()` is the surface in PHYSICAL pixels, so the world-per-physical-pixel it gives
-    /// is multiplied back up by the physical-per-CSS ratio. Without that the widget is half
-    /// size on a 2x display - drawn half size, and grabbable only within half the radius.
+    /// Scene length of one CSS pixel at the gizmo.
     fn world_per_px(&self) -> f64 {
+        // at the gizmo: from its projected depth
         if let Some(gizmo) = self.gizmo.as_ref() {
             let anchor = self.camera.origin();
             let m = self.camera.view_proj_anchored(self.aspect(), &anchor).m;
@@ -364,8 +360,8 @@ impl State {
                 gizmo.origin[1] - anchor[1],
                 gizmo.origin[2] - anchor[2],
             ];
-            let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
-            let vertical = (m[1] * m[1] + m[5] * m[5] + m[9] * m[9]).sqrt();
+            let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15]; // clip w: the depth
+            let vertical = (m[1] * m[1] + m[5] * m[5] + m[9] * m[9]).sqrt(); // clip units per scene unit, vertical
             return 2.0 * w.abs() / (vertical * self.logical_size()[1]).max(1e-12);
         }
 
@@ -376,9 +372,7 @@ impl State {
         )
     }
 
-    /// Physical pixels per CSS pixel, from the surface and the canvas: 1 on a desktop monitor,
-    /// 2 or more on a phone. The marker lane wants physical pixels and the widget's sizes are
-    /// in CSS pixels, so this is the conversion between them.
+    /// Device pixels per CSS pixel: 1 on a monitor, 2 or more on a phone.
     pub(crate) fn pixel_scale(&self) -> f64 {
         let logical = self.logical_size()[0];
 
@@ -390,29 +384,20 @@ impl State {
     }
 }
 
-/// World length of one CSS pixel at `world_distance`, given the surface height in PHYSICAL
-/// pixels and how many physical pixels one CSS pixel is.
-///
-/// Every parameter carries its unit in its name, because the two the camera offers differ by a
-/// thousand: `Camera::distance_world`, never the `distance` field, which is internal metres. The lengths this scales are an arm and a ball in a millimetre
-/// scene, so the metres would draw the widget a thousand times too small.
-///
-/// Split out because the units are the whole of it: the frustum arithmetic answers in physical
-/// pixels, and every size a person sees - an arm, a ball, a grab radius - is in CSS pixels.
-/// Forgetting the last multiply makes the widget half size on a 2x display, drawn half size
-/// and grabbable only within half the radius.
+/// Scene length of one CSS pixel at `world_distance` from the eye.
 fn world_per_css_px(world_distance: f64, physical_height: f64, physical_per_css: f64) -> f64 {
     if physical_height <= 0.0 {
         return 1.0;
     }
 
+    // view height at that distance, over the pixels it covers
     let per_physical =
         2.0 * world_distance * (crate::camera::FOVY_DEG * 0.5).to_radians().tan() / physical_height;
     per_physical * physical_per_css
 }
 
 impl State {
-    /// Update the fixed mesh placement without rebuilding its vertices.
+    /// Tell the GPU where the gizmo is and which handle lights up.
     pub fn upload_gizmo(&mut self) {
         let Some(gizmo) = self.gizmo.as_ref() else {
             self.gpu.widget.clear();
@@ -420,13 +405,15 @@ impl State {
         };
         self.gpu.widget.placement = Some((
             [gizmo.origin[0], gizmo.origin[1], gizmo.origin[2]],
-            self.world_per_px(),
+            self.world_per_px(), // keeps the widget the same pixel size
         ));
+        // the dragged handle, else the hovered one
         let handle = self
             .dragging
             .as_ref()
             .map(|drag| drag.drag.handle)
             .or(gizmo.hovered);
+        // handle index for the shader: 0-2 move, 3-5 rotate, 6-8 scale, 9 uniform
         self.gpu.widget.active = match handle {
             Some(Handle::Translate(axis)) => axis as u32 as f32,
             Some(Handle::Rotate(axis)) => axis as u32 as f32 + 3.0,
@@ -436,6 +423,7 @@ impl State {
         };
     }
 
+    /// Light the gizmo handle under the pointer; true when it changed.
     pub fn hover_gizmo(&mut self, x: f64, y: f64) -> bool {
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
             return false;
@@ -457,17 +445,15 @@ impl State {
 }
 
 impl State {
-    /// Run one typed line. The string that comes back is what to show the person who typed it:
-    /// what happened, or why nothing did.
-    ///
-    /// Every arm calls an action the viewer already has, so a command cannot drift from the
-    /// key that does the same thing.
+    /// Run one command line; the answer is what to show the person.
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
         self.cancel_gesture();
+        // while drawing, points and Enter go to the draft
         if let Some(result) = self.drawing_command(line) {
             return result;
         }
         let command = crate::app::command::parse(line)?;
+        // any other command ends the draft
         if !matches!(command, Command::Snap(_)) {
             self.draft = None;
         }
@@ -482,6 +468,7 @@ impl State {
             return Err("this command requires a scene without streamed sources".into());
         }
 
+        // commands that act on the selection
         let needs_selection = matches!(
             command,
             Command::Move(_) | Command::Rotate { .. } | Command::Scale(_) | Command::Delete
@@ -537,6 +524,7 @@ impl State {
             }
             Command::Model(command) => {
                 use crate::app::modeling::Modeling;
+                // a new object, as opposed to an edit
                 let created = matches!(
                     command,
                     Modeling::Point(_)
@@ -548,6 +536,7 @@ impl State {
                 self.after_history();
 
                 if created {
+                    // select the new object: the last row of its document
                     if let Some(doc) = self.scene.created_doc {
                         let row = (0..self.gpu.objects.len())
                             .rev()
@@ -570,7 +559,7 @@ impl State {
             }
             Command::Move(d) => self.apply(Xform::translation(d[0], d[1], d[2]), "move"),
             Command::Rotate { axis, degrees } => {
-                let about = self.gizmo.as_ref().map(|g| g.origin.clone());
+                let about = self.gizmo.as_ref().map(|g| g.origin.clone()); // turn about the gizmo
                 let turn = rotation_about(axis, degrees, about.as_ref());
                 self.apply(turn, "rotate")
             }
@@ -631,12 +620,13 @@ impl State {
         }
     }
 
-    /// One recorded transform on the selection, with the row's placement written back.
+    /// Apply one transform to the selection and record it.
     fn apply(&mut self, delta: Xform, label: &str) -> Result<String, String> {
         let Some(row) = self.scene.selected else {
             return Err("nothing is selected".into());
         };
 
+        // a face, edge or control point moves inside the object
         if let Some(target) = crate::app::deform::Target::selected(&self.selection) {
             self.scene.edit_subobject(row, target, &delta, label)?;
             self.scene.rebuild(&mut self.gpu);
@@ -645,6 +635,7 @@ impl State {
             return Ok(label.into());
         }
 
+        // whole objects: the document moves them, the GPU follows
         let rows = self.selected_rows();
         let places = self
             .scene
@@ -661,9 +652,7 @@ impl State {
     }
 }
 
-/// A turn about a point rather than about the world origin: translate the point to the origin,
-/// turn, translate back. Without the centring, `rotate z 90` would swing the object around the
-/// file's origin, which is rarely where it is.
+/// A rotation about a point.
 fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
     let turn = match axis {
         Axis::X => Xform::rotation_x(degrees, true),
@@ -673,8 +662,7 @@ fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
     centred(turn, about)
 }
 
-/// The same centring for a scale. The kernel already has the centred form, so this only has to
-/// choose a centre: the widget's origin, or the world origin when there is no widget.
+/// A uniform scale about a point.
 fn scaling_about(factor: f64, about: Option<&Point>) -> Xform {
     match about {
         Some(p) => Xform::scale_uniform(p, factor),
@@ -682,6 +670,7 @@ fn scaling_about(factor: f64, about: Option<&Point>) -> Xform {
     }
 }
 
+/// Move `about` to the origin, apply `inner`, move back.
 fn centred(inner: Xform, about: Option<&Point>) -> Xform {
     let Some(p) = about else {
         return inner;
@@ -692,10 +681,7 @@ fn centred(inner: Xform, about: Option<&Point>) -> Xform {
 }
 
 impl State {
-    /// Hide or show everything one panel row controls, through the same hide set `H` writes.
-    ///
-    /// A layer with anything still visible hides; a layer wholly hidden comes back. That rule
-    /// makes one click enough on a half-hidden layer, which is what a person means by it.
+    /// Hide a layer, or show it when it is fully hidden.
     pub fn toggle_layer(&mut self, layer: Layer) {
         let rows = layers::of_layer(&self.scene, layer);
 
@@ -703,6 +689,7 @@ impl State {
             return;
         }
 
+        // anything still visible: hide the whole layer
         let hide = rows.iter().any(|&row| {
             self.scene
                 .identity_of(row)
@@ -711,7 +698,7 @@ impl State {
         self.set_rows_hidden(&rows, hide);
     }
 
-    /// Redraw the panel from the scene, when it is open.
+    /// Refill the layers panel, when it is open.
     pub fn refresh_layers(&mut self) {
         if !crate::app::feedback::layers_open() {
             return;
@@ -725,8 +712,7 @@ impl State {
 }
 
 impl State {
-    /// Open or close the layers panel - `L`. Opening fills it; closing leaves it empty, so a
-    /// scene change while it is shut costs nothing.
+    /// L: open or close the layers panel.
     pub fn toggle_layers_panel(&mut self) {
         let open = !crate::app::feedback::layers_open();
         crate::app::feedback::layers_visible(open);
@@ -739,19 +725,17 @@ impl State {
     }
 }
 
-/// A control point being dragged: which row and which control, and the plane it moves in.
+/// A control point drag in progress.
 pub struct ControlDrag {
-    parent: u32,
-    index: usize, // Index into `State.controls.points`, which is what the preview moves.
-    id: ControlId, // Which kernel control it is, which is what the commit moves.
-    plane: CPlane,
-    origin: Point,
+    parent: u32,   // the object's row
+    index: usize,  // which dot in `controls.points`
+    id: ControlId, // which control in the geometry
+    plane: CPlane, // the plane the point moves in
+    origin: Point, // where the point was at the grab
 }
 
 impl State {
-    /// Grab the selected control point, if the press is on it. A control drag is offered
-    /// before an object drag because the two gestures are the same press: in control mode the
-    /// object's own widget is not shown.
+    /// Grab the selected control point, if the press is on it.
     pub fn begin_control_drag(&mut self, x: f64, y: f64) -> bool {
         let SelectionMode::Controls {
             parent,
@@ -772,9 +756,7 @@ impl State {
         let Some((sx, sy)) = self.project([origin[0], origin[1], origin[2]]) else {
             return false;
         };
-        // `project` answers in physical pixels, so a CSS radius is converted the same way the
-        // widget's own sizes are.
-        let grab = GRAB_CSS * self.pixel_scale();
+        let grab = GRAB_CSS * self.pixel_scale(); // grab radius in device pixels
 
         if (sx - x).abs() > grab || (sy - y).abs() > grab {
             return false;
@@ -791,8 +773,7 @@ impl State {
         true
     }
 
-    /// Move the preview dot. The document is untouched until the drag ends, for the same
-    /// reason a gizmo drag does not touch it: one gesture is one undo step.
+    /// Move the control point with the pointer; a preview.
     pub fn drag_control(&mut self, x: f64, y: f64) -> bool {
         let Some(active) = self.control_drag.as_ref() else {
             return false;
@@ -807,10 +788,11 @@ impl State {
         else {
             return false;
         };
-        let point = point.transformed(&back);
+        let point = point.transformed(&back); // into the object's own frame
         let index = active.index;
         let parent = active.parent;
         let id = active.id;
+        // preview the geometry with the point moved
         if let Some(source) = self.scene.geometry(parent) {
             let target = crate::app::deform::Target::Control(id);
             if let Ok(points) = crate::app::deform::points(source, target)
@@ -830,8 +812,7 @@ impl State {
         true
     }
 
-    /// Commit: the kernel replaces the geometry, and the rows are walked again because the
-    /// shape changed rather than its placement.
+    /// Release: the geometry takes the moved control point.
     pub fn end_control_drag(&mut self, x: f64, y: f64) -> bool {
         let Some(active) = self.control_drag.take() else {
             return false;
@@ -864,17 +845,17 @@ impl State {
         true
     }
 
-    /// Where the pointer is, in the world: the construction plane the view is facing, with the
-    /// object's other control points offered as snaps.
+    /// Where the dragged control point lands: a snap, or the plane.
     fn control_target(&self, active: &ControlDrag, x: f64, y: f64) -> Option<Point> {
         let (from, dir) = self.camera.ray((x, y), self.viewport())?;
-        let free = active.plane.hit(&active.origin, &from, &dir)?;
+        let free = active.plane.hit(&active.origin, &from, &dir)?; // the plane point
         if !self.snap_enabled {
             return Some(free);
         }
         let place = self.scene.placement_of(active.parent)?;
         let mut candidates = Vec::new();
 
+        // the other control points are snap targets
         for (i, control) in self.controls.points.iter().enumerate() {
             if i == active.index {
                 continue;
@@ -892,7 +873,7 @@ impl State {
             });
         }
 
-        // The ranking is in SCREEN space, so the aperture means pixels wherever the camera is.
+        // nearest on screen, within the aperture
         let project = |p: &Point| self.project([p[0], p[1], p[2]]);
 
         match snap::best(
@@ -906,10 +887,11 @@ impl State {
         }
     }
 
-    /// A world point in framebuffer pixels, or `None` when it is behind the eye.
+    /// A scene point in device pixels, or `None` behind the eye.
     pub(super) fn project(&self, at: [f64; 3]) -> Option<(f64, f64)> {
         let (w, h) = self.viewport();
         let anchor = Point::new(at[0], at[1], at[2]);
+        // anchored at the point, its clip position is the translation
         let mvp = self.camera.view_proj_anchored(self.aspect(), &anchor);
         let clip = [mvp.m[12], mvp.m[13], mvp.m[14], mvp.m[15]];
 
@@ -924,19 +906,17 @@ impl State {
     }
 }
 
-/// How near the pointer must be to grab a control dot, in CSS pixels: the dot is drawn at
-/// 3.5 CSS px, and a grab radius smaller than the thing it grabs is a gesture people miss.
+/// Grab radius of a control dot, CSS pixels.
 const GRAB_CSS: f64 = 10.0;
 
-/// How far a snap reaches, in CSS pixels. Wide enough to catch what you meant, narrow enough
-/// that a point a centimetre away on screen is not "what you meant".
+/// Snap reach, CSS pixels.
 const SNAP_APERTURE_PX: f64 = 12.0;
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// GPU pixels contain all three axes and the widget owns no scene rows.
+    /// The widget draws three colored arms.
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     #[ignore = "requires a native GPU adapter"]
@@ -953,7 +933,7 @@ mod tests {
 
         let mut camera = Camera::new();
         camera.target = [0.0, 0.0, 0.0];
-        camera.distance = 0.2; // metres: 200 world units in a millimetre scene
+        camera.distance = 0.2; // meters: 200 scene units
         camera.update_position();
         let rebase = gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
         let input = FrameInput {
@@ -963,7 +943,7 @@ mod tests {
         };
         let before = gpu.render_offscreen(&input);
 
-        // 96 CSS px at 0.5 world units per pixel fits inside a 200-unit view.
+        // 96 pixels at 0.5 units per pixel fits the view
         gpu.widget.placement = Some(([0.0; 3], 0.5));
         let after = gpu.render_offscreen(&input);
 
@@ -996,9 +976,7 @@ mod tests {
         );
     }
 
-    /// The conversion the widget's size depends on. A 2x display has twice the physical pixels
-    /// for the same CSS pixel, so one CSS pixel is twice as much world - and the arm that is
-    /// 96 CSS pixels long stays 96 CSS pixels long.
+    /// A CSS pixel is the same scene length on a 1x and a 2x display.
     #[test]
     fn a_css_pixel_is_worth_more_world_on_a_denser_display() {
         let one_to_one = world_per_css_px(1000.0, 800.0, 1.0);
@@ -1010,8 +988,7 @@ mod tests {
 
         let closer = world_per_css_px(500.0, 800.0, 1.0);
         assert!(closer < one_to_one, "nearer camera, less world in a pixel");
-        // The unit trap: a metre distance where a millimetre one was meant shrinks every
-        // length the widget draws by a thousand.
+        // the answer scales with the distance
         assert!(
             world_per_css_px(1.0, 800.0, 1.0) * 1000.0 - world_per_css_px(1000.0, 800.0, 1.0)
                 < 1e-9,
@@ -1026,11 +1003,11 @@ mod tests {
 }
 
 impl State {
-    /// Rebuilds keep source identities while GPU addresses and highlighting are refreshed.
+    /// Reselect `row` after a rebuild, keeping the face, edge or control mode.
     fn restore_edit_selection(&mut self, row: u32) {
         let selection = self.selection.clone();
-        self.select(Some(row));
-        self.selection = selection;
+        self.select(Some(row)); // resets the mode
+        self.selection = selection; // put it back
 
         match self.selection {
             SelectionMode::Controls { .. } => {
@@ -1061,8 +1038,10 @@ impl State {
 }
 
 impl State {
+    /// Draw `row` from its document geometry again, dropping any preview.
     fn restore_source_render(&mut self, row: u32) {
         let geometry = self.scene.geometry(row).cloned();
+        // patch in place when possible, else rebuild everything
 
         if !geometry.is_some_and(|geometry| self.scene.patch_preview(row, &geometry, &mut self.gpu))
         {

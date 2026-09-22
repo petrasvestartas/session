@@ -8,23 +8,22 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use session_rust::Mesh;
 use session_rust::mesh::ColorMode;
 
-/// The two ink lanes a mesh reaches: pipes for its edges, spheres for its vertices.
+/// Where a mesh's edges and vertex dots go.
 pub struct Ink<'a> {
-    pub seg: &'a mut SegRows,
-    pub glyph: &'a mut GlyphRows,
+    pub seg: &'a mut SegRows,     // edge pipes
+    pub glyph: &'a mut GlyphRows, // vertex spheres
 }
 
-/// What the ink pass needs from the face pass: the object row, the f32 positions by slot,
-/// the key -> slot map, whether the mesh is a smooth tessellation, and the profiling clock.
+/// What the ink pass needs from the face pass.
 pub struct InkCx<'a> {
-    pub row: u32,
-    pub vpos: &'a [[f32; 3]],
-    pub slots: &'a SlotMap,
-    pub smooth: bool, // The mesh samples a smooth surface, so only its borders and creases are ink.
-    pub lap: &'a mut Lap,
+    pub row: u32,             // object row
+    pub vpos: &'a [[f32; 3]], // vertex positions by slot
+    pub slots: &'a SlotMap,   // vertex key to slot
+    pub smooth: bool,         // only borders and creases are ink
+    pub lap: &'a mut Lap,     // profiling timer
 }
 
-/// Edge `i`'s pen width: one entry broadcasts to every edge, an absent one is the 1.0 default.
+/// Pen width of edge `i`; one entry applies to all.
 fn width_at(w: &[f64], i: usize) -> f64 {
     if w.len() == 1 {
         w[0]
@@ -33,12 +32,12 @@ fn width_at(w: &[f64], i: usize) -> f64 {
     }
 }
 
-/// Width 0 = hidden: a triangulated fill asks for no wireframe.
+/// Width 0 hides the edge.
 fn hidden(w: &[f64], i: usize) -> bool {
     width_at(w, i) == 0.0
 }
 
-/// The normal of the face in slot `side` of an edge's pair; None past a border.
+/// Normal of one of an edge's two faces.
 fn normal_of(topo: &MeshTopo, faces: [u32; 2], side: usize) -> Option<[f64; 3]> {
     if faces[side] == u32::MAX {
         return None;
@@ -47,10 +46,7 @@ fn normal_of(topo: &MeshTopo, faces: [u32; 2], side: usize) -> Option<[f64; 3]> 
     topo.normals[faces[side] as usize]
 }
 
-/// The two normals the facing test compares for edge `ei`. When the pair's winding disagrees,
-/// meaning both faces walk the edge the same way, the second normal points into the solid, so
-/// it is negated here: the test wants two outward normals, and the traversal direction is the
-/// only local evidence of which of the two is the wrong way round.
+/// The two outward normals of edge `ei`.
 fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3]>) {
     let f = topo.edge_faces[ei];
     let n0 = normal_of(topo, f, 0);
@@ -60,21 +56,18 @@ fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3
         return (n0, n1);
     }
 
-    (n0, n1.map(reversed_normal))
+    (n0, n1.map(reversed_normal)) // badly wound: flip the second
 }
 
-/// The cosine between two unit face normals.
+/// Dot product of two vectors.
 fn dot3(a: &[f64; 3], b: &[f64; 3]) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
-/// On a smooth tessellation only two edges are geometry: the BORDER, where the surface ends,
-/// and the CREASE, where it genuinely folds. Everything between is the sampling grid, and
-/// drawing it draws the mesher's choices instead of the shape. A pair with an unknown normal
-/// is kept: a degenerate face proves nothing either way.
+/// True for a border or crease edge of a smooth mesh.
 fn smooth_feature(topo: &MeshTopo, ei: usize, pair: (Option<[f64; 3]>, Option<[f64; 3]>)) -> bool {
     if topo.edge_faces[ei][1] == u32::MAX {
-        return true;
+        return true; // border
     }
 
     match pair {
@@ -98,7 +91,7 @@ fn push_faces(edge_faces: &[[u32; 2]], ei: usize, fkeys: &mut Vec<usize>) {
     }
 }
 
-/// Word `k` of a marker's facing triple, by `pack_facing`'s rules.
+/// Two normal codes packed into word `k`.
 fn facing_word(codes: &[u32], k: usize) -> u32 {
     match (codes.get(2 * k).copied(), codes.get(2 * k + 1).copied()) {
         (Some(a), b) => {
@@ -110,11 +103,10 @@ fn facing_word(codes: &[u32], k: usize) -> u32 {
     }
 }
 
-/// The pipe loop: one segment per visible, non-coplanar edge - and on a smooth mesh, only
-/// where that edge is a border or a crease.
+/// One pipe per drawn edge.
 fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     let w = m.widths();
-    let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN;
+    let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN; // dense mesh: black edges
     ink.seg.pipes.reserve(topo.edges.len());
 
     for (i, (a, b, col)) in topo.edges.iter().enumerate() {
@@ -125,7 +117,7 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
             continue;
         }
 
-        // Interior tessellation: a diagonal across a flat region shares two coplanar faces.
+        // skip a diagonal inside a flat region
         if let (Some(n0), Some(n1)) = (na, nb)
             && dot3(&n0, &n1) >= COPLANAR_DOT
             && !knobs::all_edges()
@@ -139,7 +131,7 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
 
         ink.seg
             .pipe_ids
-            .push(if cx.smooth { u32::MAX } else { i as u32 });
+            .push(if cx.smooth { u32::MAX } else { i as u32 }); // edge id for picking
         ink.seg.pipes.push(CylinderSegment {
             p0: cx.vpos[cx.slots.slot(*a)],
             radius: encode_width(width_at(w, i)),
@@ -151,15 +143,14 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     }
 }
 
-/// Per vertex: the widest visible incident edge (its width and index), and the incident
-/// edge list as CSR (`vstart`, `vinc`). Hidden edges still count for adjacency.
+/// Which edges touch each vertex.
 struct Incidence {
-    best: Vec<(f64, usize)>,
-    vstart: Vec<u32>,
-    vinc: Vec<u32>,
+    best: Vec<(f64, usize)>, // per vertex: widest edge (width, index)
+    vstart: Vec<u32>,        // per vertex: start into `vinc`
+    vinc: Vec<u32>,          // edge indices, grouped by vertex
 }
 
-/// Build the incidence tables over the topology.
+/// Build the vertex to edge tables.
 fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
     let w = m.widths();
     let nv = cx.vpos.len();
@@ -181,6 +172,7 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
         }
     }
 
+    // count edges per vertex, then prefix sum
     let mut vstart = vec![0u32; nv + 1];
 
     for (a, b, _) in topo.edges.iter() {
@@ -192,6 +184,7 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
         vstart[i + 1] += vstart[i];
     }
 
+    // fill each vertex's edge list
     let mut vinc = vec![0u32; 2 * topo.edges.len()];
     let mut cur = vstart.clone();
 
@@ -206,26 +199,25 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
     Incidence { best, vstart, vinc }
 }
 
-/// What the marker loop reads: the ink context and the vertex incidence over the topology.
+/// What the marker loop reads.
 struct MarkerCx<'a, 'b> {
-    cx: &'a InkCx<'b>,
-    inc: &'a Incidence,
+    cx: &'a InkCx<'b>,  // ink context
+    inc: &'a Incidence, // vertex to edge tables
 }
 
-/// The marker loop: one glyph per vertex with a visible edge, carrying up to six incident
-/// face normals (widest edge's pair first) so the disc hugs every face at a corner.
+/// One dot per vertex with a visible edge.
 fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
     let (cx, inc) = (input.cx, input.inc);
     let pc = m.get_pointcolors();
-    let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices();
+    let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices(); // per-vertex colours
     let nv = cx.vpos.len();
-    let mut fkeys: Vec<usize> = Vec::new();
-    let mut codes: Vec<u32> = Vec::new();
+    let mut fkeys: Vec<usize> = Vec::new(); // faces around one vertex
+    let mut codes: Vec<u32> = Vec::new(); // packed normals of those faces
     ink.glyph.spheres.reserve(nv);
 
     for (i, &(vw, ei)) in inc.best.iter().enumerate().take(nv) {
         if vw == f64::NEG_INFINITY {
-            continue;
+            continue; // no visible edge
         }
 
         fkeys.clear();
@@ -255,7 +247,7 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
                 [0.1, 0.1, 0.1, 1.0]
             },
             instance_id: cx.row,
-            // A truncated normal list cannot prove every incident face points away.
+            // more than six faces: always draw
             facing: if codes.len() > 6 {
                 FACING_UNKNOWN
             } else {
@@ -270,7 +262,7 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
     }
 }
 
-/// Pipes, then markers unless VIEWER_NO_DOTS.
+/// Edges, then vertex dots.
 pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) {
     let inc = incidence(m, topo, cx);
     cx.lap.mark("incidence");
@@ -285,7 +277,7 @@ pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) 
     cx.lap.mark("markers");
 }
 
-/// Reverse the second incident face normal to match the corrected winding.
+/// The opposite direction.
 fn reversed_normal(n: [f64; 3]) -> [f64; 3] {
     [-n[0], -n[1], -n[2]]
 }
@@ -317,9 +309,7 @@ mod tests {
         segments.pipes.len()
     }
 
-    /// A 3x3 grid of quads on the bulge z = 2e-4 * (x^2 + y^2), 100 mm apart: 24 edges, of
-    /// which 12 are border. Adjacent facets turn a couple of degrees - far too little for the
-    /// packed 16-bit normals to tell apart, which is what put these seams on screen.
+    /// A slightly bulged 3x3 quad grid: 24 edges, 12 on the border.
     fn bulged_grid() -> Mesh {
         let mut points = Vec::with_capacity(16);
 
@@ -342,8 +332,7 @@ mod tests {
         Mesh::from_vertices_and_faces(points, faces)
     }
 
-    /// Two quads meeting at a right angle over the shared edge (1, 2): 7 edges, 6 of them
-    /// border and the seventh a fold no threshold can call sampling.
+    /// Two quads at a right angle: 7 edges, one a fold.
     fn folded_pair() -> Mesh {
         let points = vec![
             Point::new(0.0, 0.0, 0.0),
@@ -356,7 +345,7 @@ mod tests {
         Mesh::from_vertices_and_faces(points, vec![vec![0, 1, 2, 3], vec![1, 4, 5, 2]])
     }
 
-    /// A box wears twelve pipes and eight markers, every pipe with two known face normals.
+    /// A box has 12 edges and 8 dots.
     #[test]
     fn box_ink_rows() {
         let mesh = Mesh::create_box(10.0, 20.0, 30.0);
@@ -391,9 +380,7 @@ mod tests {
         }
     }
 
-    /// A smooth tessellation inks its border and its creases, nothing else: the bulged grid
-    /// keeps all 24 edges as an authored OBJECT and only its 12 border edges as a MODEL, and
-    /// the folded pair keeps its 6 border edges plus the fold.
+    /// A smooth mesh draws only borders and creases.
     #[test]
     fn smooth_mesh_inks_borders_and_creases_only() {
         let grid = bulged_grid();

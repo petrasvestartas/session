@@ -1,37 +1,36 @@
 use crate::app::coords;
 use crate::app::gizmo::Axis;
 
-/// What a line asked for.
+/// One parsed command line.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Command {
-    Model(crate::app::modeling::Modeling),
-    Move([f64; 3]), // Move the selection by a world offset, in millimetres.
+    Model(crate::app::modeling::Modeling), // create or edit geometry
+    Move([f64; 3]),                        // move the selection by mm
     Rotate {
-        // Turn the selection about one axis through its own centre, in degrees.
-        axis: Axis,
-        degrees: f64,
+        axis: Axis,   // world axis
+        degrees: f64, // turn about the selection centre
     },
-    Scale(f64), // Scale the selection about its own centre.
-    Split,
-    Save,
-    Open,
+    Scale(f64), // scale about the selection centre
+    Split,      // cut a curve or face
+    Save,       // download the scene
+    Open,       // load a scene file
     Delete,
     Undo,
     Redo,
-    Hide,
-    ShowAll,
-    Fit,
-    Layers(Option<bool>),
-    Opacity(f32), // Alpha on every closed solid: 0 x-ray, 1 solid, between them see-through.
-    Attributes(Option<bool>), // Draw or remove the element features - outlines, axes, sections - inside their element.
-    Selection(crate::app::selection::SelectionTool),
-    Controls,
-    Ssao(Option<bool>),
-    Snap(Option<bool>),
-    Escape, // Clear the selection.
+    Hide,                     // hide the selection
+    ShowAll,                  // show everything hidden
+    Fit,                      // zoom to selection or scene
+    Layers(Option<bool>),     // layer panel on, off or toggle
+    Opacity(f32),             // face alpha, 0 x-ray to 1 solid
+    Attributes(Option<bool>), // element features on, off or toggle
+    Selection(crate::app::selection::SelectionTool), // pick objects, edges or faces
+    Controls,                 // pick control points
+    Ssao(Option<bool>),       // contact shading on, off or toggle
+    Snap(Option<bool>),       // snapping on, off or toggle
+    Escape,                   // clear the selection
 }
 
-/// Contextual syntax shown while typing, including immediately usable examples.
+/// Help text for the verb being typed.
 pub fn hint(line: &str) -> &'static str {
     match line
         .split_whitespace()
@@ -71,7 +70,7 @@ pub fn hint(line: &str) -> &'static str {
     }
 }
 
-/// Parse one line. `Err` carries what to show the person who typed it.
+/// Parse one line; the error is the message to show.
 pub fn parse(line: &str) -> Result<Command, String> {
     if line.len() > 65536 {
         return Err("command exceeds 64 KiB".into());
@@ -85,7 +84,8 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
     let mut words = line.split_whitespace();
     let verb = words.next().unwrap_or_default().to_ascii_lowercase();
-    let rest: Vec<&str> = words.collect();
+    let rest: Vec<&str> = words.collect(); // the arguments
+    // verbs with a fixed argument count
     let expected = match verb.as_str() {
         "scale" | "s" => Some(1),
         "rotate" | "rot" => Some(2),
@@ -170,7 +170,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
     }
 }
 
-/// Finite choices appear as clickable words beside the prompt.
+/// Clickable choices for the verb being typed.
 pub fn options(line: &str) -> &'static [&'static str] {
     match line
         .split_whitespace()
@@ -191,7 +191,7 @@ pub fn options(line: &str) -> &'static [&'static str] {
     }
 }
 
-/// Discover commands before typing; options use the same scrollable completion list.
+/// Commands or options starting with the typed text.
 pub fn completions(line: &str) -> Vec<&'static str> {
     const COMMANDS: &[&str] = &[
         "Arctic",
@@ -226,6 +226,7 @@ pub fn completions(line: &str) -> Vec<&'static str> {
         "Undo",
     ];
     let lower = line.to_ascii_lowercase();
+    // after a space, complete the option instead
     let choices = if lower.contains(' ') {
         options(line)
     } else {
@@ -238,8 +239,7 @@ pub fn completions(line: &str) -> Vec<&'static str> {
         .collect()
 }
 
-/// Browsing keeps every command reachable; matching prefixes lead the list.
-/// Options belong to their command and never include unrelated verbs.
+/// Every command, matching ones first.
 pub fn browse(line: &str) -> Vec<&'static str> {
     if line.contains(' ') {
         return options(line).to_vec();
@@ -257,7 +257,7 @@ pub fn browse(line: &str) -> Vec<&'static str> {
         .collect()
 }
 
-/// Accept the first matching completion. False means keep a prompt for its arguments.
+/// Take the first completion; false when arguments are still needed.
 pub fn accept(line: &str) -> (String, bool) {
     if line.trim().is_empty() {
         return (String::new(), true);
@@ -265,6 +265,7 @@ pub fn accept(line: &str) -> (String, bool) {
     let choices = completions(line);
     let text = choices.first().copied().unwrap_or(line).trim();
     let words: Vec<_> = text.split_whitespace().collect();
+    // a verb with options, or `rotate <axis>`, waits for more
     if (!options(text).is_empty() && words.len() == 1 && !text.eq_ignore_ascii_case("polyline"))
         || (words.len() == 2
             && words[0].eq_ignore_ascii_case("rotate")
@@ -278,16 +279,10 @@ pub fn accept(line: &str) -> (String, bool) {
     }
 }
 
-/// `move` borrows the coordinate parser's SYNTAX - `10,0,0`, `@10,0` and `10<45` all parse -
-/// but not all of its meanings: a typed move is always an OFFSET, so absolute and relative
-/// collapse to the same thing here, and a bare distance is along +x rather than along a
-/// direction the caller established. Polar is in the world XY plane, not the construction one.
-///
-/// A command line is typed with spaces, and the coordinate syntax separates with commas, so
-/// spaces between the numbers become commas first. `@10 0` and `@10,0` are then the same line,
-/// which is what a person typing at speed expects.
+/// A move offset from `10 0 0`, `@10,0` or `10<45`.
 fn offset(words: &[&str]) -> Result<[f64; 3], String> {
     let joined = words.join(" ");
+    // spaces between numbers become commas
     let text = if joined.contains(',') || joined.contains('<') {
         joined.replace(' ', "")
     } else {
@@ -302,13 +297,15 @@ fn offset(words: &[&str]) -> Result<[f64; 3], String> {
             Ok([x, y, z.unwrap_or(0.0)])
         }
         coords::Typed::Polar { distance, degrees } => {
+            // polar in the world XY plane
             let r = degrees.to_radians();
             Ok([distance * r.cos(), distance * r.sin(), 0.0])
         }
-        coords::Typed::Distance(d) => Ok([d, 0.0, 0.0]),
+        coords::Typed::Distance(d) => Ok([d, 0.0, 0.0]), // a bare number moves along x
     }
 }
 
+/// An axis letter and a number.
 fn axis_and_number(words: &[&str], example: &str) -> Result<(Axis, f64), String> {
     let axis = match words.first().map(|w| w.to_ascii_lowercase()) {
         Some(a) if a == "x" => Axis::X,
@@ -319,6 +316,7 @@ fn axis_and_number(words: &[&str], example: &str) -> Result<(Axis, f64), String>
     Ok((axis, number(words.get(1).copied(), example)?))
 }
 
+/// A finite number, or a message with the example.
 fn number(word: Option<&str>, example: &str) -> Result<f64, String> {
     let Some(word) = word else {
         return Err(format!("missing a number; try `{example}`"));
@@ -334,6 +332,7 @@ fn number(word: Option<&str>, example: &str) -> Result<f64, String> {
 mod tests {
     use super::*;
 
+    /// Tab completes the verb, then its option.
     #[test]
     fn partial_entries_accept_commands_then_options() {
         assert_eq!(accept("Lay"), ("Layers ".into(), false));
@@ -353,6 +352,7 @@ mod tests {
         assert_eq!(browse("Layers o"), vec!["Layers On", "Layers Off"]);
     }
 
+    /// Completion and parsing ignore case.
     #[test]
     fn discovery_and_layer_options_are_case_insensitive() {
         assert_eq!(completions("la"), vec!["Layers"]);
@@ -370,6 +370,7 @@ mod tests {
         assert!(parse("Layers maybe").is_err());
     }
 
+    /// Short forms parse like the full verb.
     #[test]
     fn the_verbs_and_their_short_forms() {
         assert_eq!(parse("delete"), Ok(Command::Delete));
@@ -378,6 +379,7 @@ mod tests {
         assert_eq!(parse("fit"), Ok(Command::Fit));
     }
 
+    /// Move accepts every coordinate form.
     #[test]
     fn move_reads_the_same_coordinates_as_the_rest_of_the_viewer() {
         assert_eq!(parse("move 10 0 0"), Ok(Command::Move([10.0, 0.0, 0.0])));
@@ -388,8 +390,7 @@ mod tests {
         assert!((polar[1] - 10.0).abs() < 1e-9, "90 degrees is +y");
     }
 
-    /// A refusal names what was wrong, and a verb the viewer does not have is one of them: a
-    /// command line that swallows a typo teaches the typist nothing.
+    /// A bad line gets a message naming the problem.
     #[test]
     fn a_line_it_cannot_do_says_so() {
         assert_eq!(parse("fly 3"), Err("no command `fly`".into()));
@@ -403,6 +404,7 @@ mod tests {
         assert!(parse("move sideways").is_err());
     }
 
+    /// Modeling verbs check their point counts.
     #[test]
     fn modeling_commands_validate_arity_and_coordinates() {
         use crate::app::modeling::Modeling;
@@ -430,6 +432,7 @@ mod tests {
         assert!(parse(&"x".repeat(65537)).is_err());
     }
 
+    /// Rotate carries its axis.
     #[test]
     fn rotation_names_its_axis() {
         assert_eq!(
@@ -442,6 +445,7 @@ mod tests {
     }
 }
 
+/// A modeling command from its verb and points.
 fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, String> {
     use crate::app::modeling::Modeling;
 

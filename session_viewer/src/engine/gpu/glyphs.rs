@@ -6,92 +6,92 @@ use crate::engine::pipelines::{
 };
 use wgpu::PrimitiveTopology::TriangleList;
 
-/// The lane's shaders, for the mirror tests.
+/// Shader sources the tests compare against the files.
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[
     ("sphere.wgsl", include_str!("../../shaders/sphere.wgsl")),
     ("glyph.wgsl", include_str!("../../shaders/glyph.wgsl")),
 ];
 
-/// Vertices per dot: one triangle whose incircle is the disc.
+/// Vertices per dot: one triangle around the disc.
 const DOT_VERTS: u32 = 3;
 
-/// One marker or dot row, 48 B, the layout sphere.wgsl and glyph.wgsl declare. Offsets:
-/// center 0 (vec3, 16-aligned), radius 12, color 16, instance_id 32, facing 36, facing_ext 40.
+/// One marker or dot, 48 bytes, as the shaders read it.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct GlyphPoint {
-    pub center: [f32; 3],
-    pub radius: f32, // 0 = the screen-constant pen; > 0 = a world-mm radius; < 0 = exactly that many screen pixels, which is what the F10 control dots use so they hold their size at every zoom.
-    pub color: [f32; 4],
-    pub instance_id: u32,
-    pub facing: u32, // Up to SIX incident face normals as oct16 pairs, widest edge's two first; `FACING_UNKNOWN` = no adjacency / no more.
-    pub facing_ext: [u32; 2],
+    pub center: [f32; 3], // world position
+    pub radius: f32, // 0 = pen width; > 0 world mm; < 0 screen px
+    pub color: [f32; 4], // rgba
+    pub instance_id: u32, // object row
+    pub facing: u32, // packed normals of the faces around it
+    pub facing_ext: [u32; 2], // more packed normals
 }
 
 const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
 
-/// One upload's glyphs: the solid lane's vertex markers and the flat lane's dots.
+/// Marker and dot rows of one upload.
 #[derive(Default)]
 pub struct GlyphRows {
-    pub spheres: Vec<GlyphPoint>,
-    pub dots: Vec<GlyphPoint>,
+    pub spheres: Vec<GlyphPoint>, // vertex markers, shaded
+    pub dots: Vec<GlyphPoint>, // flat dots
 }
 
 impl GlyphRows {
-    /// Empty both tables and hand the allocations back.
+    /// Empty both tables and free their memory.
     pub fn drop_rows(&mut self) {
         drop_rows(&mut self.spheres);
         drop_rows(&mut self.dots);
     }
 }
 
-/// One glyph table on the GPU with the group 3 that binds it.
+/// One glyph buffer and its bind group.
 struct GlyphTable {
-    label: &'static str,
-    buf: GrowBuf,
-    group: wgpu::BindGroup,
+    label: &'static str, // name shown in GPU errors
+    buf: GrowBuf, // the rows
+    group: wgpu::BindGroup, // group 3, binds the rows
 }
 
 impl GlyphTable {
-    /// A one-row table and its bind group.
+    /// An empty table and its bind group.
     fn new(ctx: &GpuCtx, l: &Layouts, label: &'static str) -> Self {
         let buf = GrowBuf::new(ctx, label, std::mem::size_of::<GlyphPoint>() as u64, ROWS);
         let group = bind_group(ctx, &l.ink_rows, label, &[&buf.buf]);
         Self { label, buf, group }
     }
 
-    /// Rebind after the backing buffer changed.
+    /// Rebuild the bind group after the buffer moved.
     fn rebind(&mut self, ctx: &GpuCtx, l: &Layouts) {
         self.group = bind_group(ctx, &l.ink_rows, self.label, &[&self.buf.buf]);
     }
 }
 
-/// The two shader modules the lane's pipelines are built from.
+/// The two glyph shaders.
 struct GlyphShaders {
-    sphere: wgpu::ShaderModule,
-    dot: wgpu::ShaderModule,
+    sphere: wgpu::ShaderModule, // shaded markers
+    dot: wgpu::ShaderModule, // flat dots
 }
 
-/// The pipelines over the two tables.
+/// The five glyph pipelines.
 struct GlyphPipelines {
-    sphere: wgpu::RenderPipeline,
-    dot: wgpu::RenderPipeline,
-    id_sphere: wgpu::RenderPipeline,
-    id_dot: wgpu::RenderPipeline,
-    source_dot: wgpu::RenderPipeline,
+    sphere: wgpu::RenderPipeline, // markers in color
+    dot: wgpu::RenderPipeline, // dots in color
+    id_sphere: wgpu::RenderPipeline, // marker object ids
+    id_dot: wgpu::RenderPipeline, // dot object ids
+    source_dot: wgpu::RenderPipeline, // dot pick ids
 }
 
-/// The glyph lane on the GPU: two tables, the marker quad, the shaders, the pipelines.
+/// Markers and dots on the GPU.
 pub struct GlyphLane {
-    spheres: GlyphTable,
-    dots: GlyphTable,
-    template: Template,
-    shaders: GlyphShaders,
-    gpu: GlyphPipelines,
+    spheres: GlyphTable, // marker rows
+    dots: GlyphTable, // dot rows
+    template: Template, // one quad, drawn per marker
+    shaders: GlyphShaders, // shader modules
+    gpu: GlyphPipelines, // pipelines
 }
 
 impl GlyphLane {
+    /// Overwrite one marker or dot row.
     pub(crate) fn patch_marker(
         &mut self,
         ctx: &GpuCtx,
@@ -107,12 +107,13 @@ impl GlyphLane {
         table.buf.write_at(ctx, index, &[glyph]);
     }
 
+    /// Overwrite one object's rows in place.
     pub(crate) fn patch(&mut self, ctx: &GpuCtx, at: super::patch::Counts, up: &GlyphRows) {
         self.spheres.buf.write_at(ctx, at.spheres, &up.spheres);
         self.dots.buf.write_at(ctx, at.dots, &up.dots);
     }
 
-    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
+    /// Bytes reserved on the GPU by this lane.
     pub fn allocated_bytes(&self) -> u64 {
         self.spheres.buf.buf.size()
             + self.dots.buf.buf.size()
@@ -120,7 +121,7 @@ impl GlyphLane {
             + self.template.ibo.size()
     }
 
-    /// Two one-row tables, the marker quad, both shaders and the pipelines.
+    /// Create the lane: quad, shaders, pipelines, empty tables.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
         let (q_v, q_i) = unit_quad();
         let template = Template::new(ctx, "quad.template", &q_v, &q_i);
@@ -148,12 +149,12 @@ impl GlyphLane {
         }
     }
 
-    /// Rebuild the pipelines for a new sample count.
+    /// Rebuild the pipelines for a new MSAA sample count.
     pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
         self.gpu = build_pipelines(ctx, l, &self.shaders, target);
     }
 
-    /// Append one file's rows to both tables.
+    /// Append one upload's rows to both tables.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &GlyphRows) {
         if self.spheres.buf.append(ctx, &up.spheres) {
             self.spheres.rebind(ctx, l);
@@ -164,32 +165,32 @@ impl GlyphLane {
         }
     }
 
-    /// Vertex markers draw after mesh edges so their complete footprint remains on top.
+    /// Draw the markers in color.
     pub fn draw_spheres(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_markers(pass, b, &self.gpu.sphere)
     }
 
-    /// The flat lane's colour pass: SDF dots, three verts each, no template.
+    /// Draw the dots in color.
     pub fn draw_dots(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_dot_table(pass, b, &self.gpu.dot)
     }
 
-    /// The id pass for the markers: the template, opaque.
+    /// Draw marker object ids.
     pub fn draw_sphere_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_markers(pass, b, &self.gpu.id_sphere)
     }
 
-    /// The id pass for the dots: triangles, opaque.
+    /// Draw dot object ids.
     pub fn draw_dot_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_dot_table(pass, b, &self.gpu.id_dot)
     }
 
-    /// Opaque source candidates accumulate physical depth across bounded query pages.
+    /// Draw dot pick ids.
     pub fn draw_source_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_dot_table(pass, b, &self.gpu.source_dot)
     }
 
-    /// The marker table on the quad template through `pipeline`; 0 draws when empty.
+    /// Draw every marker with `pipeline`; returns the draw count.
     fn draw_markers(
         &self,
         pass: &mut wgpu::RenderPass<'_>,
@@ -204,11 +205,12 @@ impl GlyphLane {
         b.set(pass);
         pass.set_bind_group(3, &self.spheres.group, &[]);
         self.template.bind(pass);
+        // one quad per marker row
         pass.draw_indexed(0..self.template.index_count, 0, 0..self.spheres.buf.len());
         1
     }
 
-    /// The dot table through `pipeline`; 0 draws when empty.
+    /// Draw every dot with `pipeline`; returns the draw count.
     fn draw_dot_table(
         &self,
         pass: &mut wgpu::RenderPass<'_>,
@@ -222,17 +224,18 @@ impl GlyphLane {
         pass.set_pipeline(pipeline);
         b.set(pass);
         pass.set_bind_group(3, &self.dots.group, &[]);
+        // three vertices per dot, placed by the shader
         pass.draw(0..DOT_VERTS * self.dots.buf.len(), 0..1);
         1
     }
 
-    /// Forget every row; capacity stays.
+    /// Forget every row; keep the buffers.
     pub fn reset(&mut self) {
         self.spheres.buf.reset();
         self.dots.buf.reset();
     }
 
-    /// Hand both buffers back.
+    /// Free both buffers.
     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
         self.spheres.buf.release(ctx);
         self.dots.buf.release(ctx);
@@ -240,24 +243,26 @@ impl GlyphLane {
         self.dots.rebind(ctx, l);
     }
 
-    /// Solid-lane rows on the GPU - the MSAA policy reads it.
+    /// Marker rows on the GPU.
     pub fn sphere_count(&self) -> u32 {
         self.spheres.buf.len()
     }
 
-    /// Flat-lane rows on the GPU.
+    /// Dot rows on the GPU.
     pub fn dot_count(&self) -> u32 {
         self.dots.buf.len()
     }
 }
 
-/// Every glyph pipeline for `target`.
+/// Build the five glyph pipelines.
 fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &GlyphShaders, target: Target) -> GlyphPipelines {
     let groups = [&l.mvp, &l.line, &l.ink_instance, &l.ink_rows];
     let template = [template_layout()];
+    // markers: quad template, always drawn
     let marker = PipelineDesc::new(&s.sphere, &groups, &template, TriangleList)
         .scene_samples(target.samples)
         .depth(DepthMode::Always);
+    // dots: no vertex buffer, always drawn
     let disc = PipelineDesc::new(&s.dot, &groups, &[], TriangleList)
         .scene_samples(target.samples)
         .depth(DepthMode::Always);
@@ -296,7 +301,7 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &GlyphShaders, target: Target) 
     }
 }
 
-/// Camera-facing quad template for the markers; the fragment trims it to a circle.
+/// A square from -1 to 1; the shader cuts it to a circle.
 fn unit_quad() -> (Vec<[f32; 3]>, Vec<u32>) {
     let v = vec![
         [-1.0, -1.0, 0.0],
@@ -313,7 +318,7 @@ mod tests {
     use super::*;
     use crate::engine::gpu::instance::wgsl_fields;
 
-    /// sphere.wgsl and glyph.wgsl read the same 48 B glyph row.
+    /// Both shaders declare the same GlyphPoint fields.
     #[test]
     fn glyph_point_mirror() {
         let rust = [

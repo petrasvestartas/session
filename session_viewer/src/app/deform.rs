@@ -3,14 +3,16 @@ use session_rust::{Geometry, Mesh, NurbsSurface, Point, Xform};
 use std::collections::HashSet;
 use std::rc::Rc;
 
+/// The part of a geometry an edit applies to.
 #[derive(Clone, Copy, Debug)]
 pub enum Target {
-    Control(ControlId),
-    Edge(u32),
-    Face(usize),
+    Control(ControlId), // one control point or vertex
+    Edge(u32),          // one edge by index
+    Face(usize),        // one face by key
 }
 
 impl Target {
+    /// The target the current selection names, if any.
     pub fn selected(mode: &SelectionMode) -> Option<Self> {
         match *mode {
             SelectionMode::Controls {
@@ -23,6 +25,7 @@ impl Target {
     }
 }
 
+/// The mesh vertex keys a target covers.
 pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
     match target {
         Target::Control(ControlId::Vertex(key)) if mesh.vertex.contains_key(&key) => Ok(vec![key]),
@@ -30,7 +33,7 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
             let mut keys = mesh.face.get(&key).ok_or("Unknown mesh face")?.clone();
 
             if let Some(holes) = mesh.face_holes.get(&key) {
-                keys.extend(holes.iter().flatten());
+                keys.extend(holes.iter().flatten()); // hole rims move with the face
             }
 
             keys.sort_unstable();
@@ -38,7 +41,7 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
             Ok(keys)
         }
         Target::Edge(index) => {
-            // Match the producer's source-edge numbering: first occurrence while walking sorted faces.
+            // edges are numbered in order of first appearance
             let mut seen = HashSet::new();
             let mut at = 0;
 
@@ -65,8 +68,9 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
     }
 }
 
+/// The surface control (u, v) pairs a target covers.
 fn surface_keys(surface: &NurbsSurface, target: Target) -> Result<Vec<(usize, usize)>, String> {
-    let [nu, nv] = surface.m_cv_count;
+    let [nu, nv] = surface.m_cv_count; // control grid size
     let all = || (0..nu).flat_map(|u| (0..nv).map(move |v| (u, v))).collect();
 
     match target {
@@ -74,6 +78,7 @@ fn surface_keys(surface: &NurbsSurface, target: Target) -> Result<Vec<(usize, us
             Ok(vec![(u, v)])
         }
         Target::Face(0) => Ok(all()),
+        // edge 0..3: the four sides of the control grid
         Target::Edge(edge) if edge < 4 => Ok((0..nu)
             .flat_map(|u| (0..nv).map(move |v| (u, v)))
             .filter(|&(u, v)| match edge {
@@ -87,6 +92,7 @@ fn surface_keys(surface: &NurbsSurface, target: Target) -> Result<Vec<(usize, us
     }
 }
 
+/// The world points a target covers.
 pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String> {
     match geometry {
         Geometry::Mesh(mesh) => mesh_keys(mesh, target)?
@@ -138,6 +144,7 @@ pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String>
     }
 }
 
+/// One control point of any geometry.
 fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
     Controls::from_geometry(geometry)
         .points
@@ -147,6 +154,7 @@ fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
         .ok_or("Unknown source control".into())
 }
 
+/// A copy of the geometry with the target moved by `delta`.
 pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<Geometry, String> {
     if !delta.m.iter().all(|v| v.is_finite()) {
         return Err("Transform must be finite".into());
@@ -167,8 +175,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     .set_position(point);
             }
 
-            // A subobject move preserves connectivity, including authored hole triangulations.
-            mesh.clear_triangle_bvh();
+            mesh.clear_triangle_bvh(); // stale after moving vertices
             Geometry::Mesh(Rc::new(mesh))
         }
         Geometry::NurbsSurface(source) => {
@@ -185,7 +192,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                 }
             }
 
-            surface.m_mesh = None;
+            surface.m_mesh = None; // drop the cached mesh
             Geometry::NurbsSurface(Rc::new(surface))
         }
         Geometry::Polyline(source) => {
@@ -239,8 +246,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
         Geometry::BRep(source) => {
             let selected = points(geometry, target)?;
             let mut next = (**source).clone();
-            // Shared source positions move together across topology, edge curves and surface nets.
-            // This exactly preserves the boundary of compatible untrimmed NURBS patches.
+            // every vertex, curve or surface point at a selected position moves
             let matches = |p: &Point| {
                 selected
                     .iter()
@@ -253,8 +259,8 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                 }
             }
 
-            let mut changed_curves = HashSet::new();
-            let mut changed_surfaces = HashSet::new();
+            let mut changed_curves = HashSet::new(); // curves touched
+            let mut changed_surfaces = HashSet::new(); // surfaces touched
 
             for (curve_index, curve) in next.m_curves_3d.iter_mut().enumerate() {
                 for i in 0..curve.cv_count() {
@@ -280,7 +286,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                 }
 
                 if changed_surfaces.contains(&surface_index) {
-                    surface.m_mesh = None;
+                    surface.m_mesh = None; // drop the cached mesh
                 }
             }
 
@@ -317,8 +323,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
     Ok(edited)
 }
 
-/// Keep the topological edge curve on every incident surface. Unsupported trim changes refuse
-/// atomically instead of leaving a solid whose render mesh disagrees with its source geometry.
+/// Refuse an edit whose edges no longer lie on their surfaces.
 fn validate_boundaries(
     brep: &session_rust::BRep,
     changed_curves: &HashSet<usize>,
@@ -342,6 +347,7 @@ fn validate_boundaries(
         let curve = &brep.m_curves_3d[edge.curve_3d_index as usize];
         let (a, b) = curve.domain();
 
+        // sample the 3D edge against each surface's 2D curve
         for pc in &edge.pcurves {
             let surface = &brep.m_surfaces[pc.surface_index as usize];
 
@@ -377,6 +383,7 @@ fn validate_boundaries(
 mod tests {
     use super::*;
 
+    /// A quad and a triangle sharing an edge.
     fn mesh() -> Geometry {
         let mut mesh = Mesh::new();
 
@@ -395,6 +402,7 @@ mod tests {
         Geometry::Mesh(Rc::new(mesh))
     }
 
+    /// Moving a face moves its vertices only.
     #[test]
     fn mesh_face_moves_shared_source_vertices_not_unrelated_vertices() {
         let source = mesh();
@@ -416,6 +424,7 @@ mod tests {
         assert_eq!(original.vertex[&10].z, 0.);
     }
 
+    /// Edge numbering matches the display edges.
     #[test]
     fn edge_ids_match_the_display_producer_even_with_sparse_keys() {
         let Geometry::Mesh(mesh) = mesh() else {
@@ -441,6 +450,7 @@ mod tests {
         }
     }
 
+    /// Moving one surface edge keeps weights and the other edge.
     #[test]
     fn surface_boundary_preserves_weights_and_the_opposite_boundary() {
         let mut surface = NurbsSurface::create(
@@ -481,6 +491,7 @@ mod tests {
         assert_eq!(next.weight(1, 1), 2.);
     }
 
+    /// Moving a box face keeps the solid valid.
     #[test]
     fn moving_box_face_keeps_edges_on_incident_surfaces() {
         let source = Geometry::BRep(Rc::new(session_rust::BRep::create_box(10., 20., 30.)));

@@ -4,27 +4,27 @@ use crate::camera::View;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent};
 use winit::keyboard::{Key, NamedKey};
 
-/// A press that moves less than this (CSS px) before release is a click.
+/// A press moving less than this many pixels is a click.
 const CLICK_SLOP: f64 = 4.0;
 
-/// What the mouse is doing between events, plus the fingers.
+/// Mouse, keyboard and finger state between events.
 pub struct Input {
-    orbiting: bool,
-    panning: bool,
-    ctrl: bool,
-    shift: bool,
-    gizmo_drag: bool, // A gizmo handle is being dragged, so the pointer belongs to the widget and neither the camera nor the picker sees it until it is let go.
-    control_drag: bool, // A control point is being dragged: the same press, a different gesture.
-    last_cursor: (f64, f64),
-    left_down: Option<(f64, f64)>,
-    touch: Touches,
-    touch_edit: Option<u64>,
-    fingers: std::collections::HashSet<u64>,
-    touch_cancelled: bool,
+    orbiting: bool,                          // right button held
+    panning: bool,                           // middle button held
+    ctrl: bool,                              // Ctrl held
+    shift: bool,                             // Shift held
+    gizmo_drag: bool,                        // a gizmo handle is being dragged
+    control_drag: bool,                      // a control point is being dragged
+    last_cursor: (f64, f64),                 // last pointer position in pixels
+    left_down: Option<(f64, f64)>,           // where the left button went down
+    touch: Touches,                          // camera finger gestures
+    touch_edit: Option<u64>,                 // finger dragging a handle or control
+    fingers: std::collections::HashSet<u64>, // fingers on the screen
+    touch_cancelled: bool,                   // waiting for all fingers to lift
 }
 
 impl Default for Input {
-    /// Start with the same inactive gesture state as the explicit constructor.
+    /// Same as `new`.
     fn default() -> Self {
         Self::new()
     }
@@ -49,7 +49,7 @@ impl Input {
         }
     }
 
-    /// One key press (the caller filters repeats). True when the frame must be redrawn.
+    /// One key press; true when the frame must be redrawn.
     pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
         match key {
             Key::Named(NamedKey::Space) => state
@@ -69,13 +69,12 @@ impl Input {
             }
             Key::Named(NamedKey::F10) => state.enable_controls(),
             Key::Named(NamedKey::Delete) => state.delete_selected(),
-            // The colon opens the command box, the way a modal editor does. The box then holds
-            // the keyboard, so the letters typed into it never reach these bindings.
+            // colon opens the command line
             Key::Character(":") => {
                 crate::app::feedback::command_line(true);
             }
             Key::Character("l" | "L") => state.toggle_layers_panel(),
-            // Ctrl+Z back, Ctrl+Shift+Z or Ctrl+Y forward: the two spellings every editor takes.
+            // Ctrl+Z undo, Ctrl+Shift+Z redo
             Key::Character("z" | "Z") if self.ctrl => {
                 if self.shift {
                     state.redo()
@@ -116,7 +115,7 @@ impl Input {
         true
     }
 
-    /// Buttons, motion, wheel, modifiers and fingers. True when the frame must be redrawn.
+    /// One mouse or touch event; true when the frame must be redrawn.
     pub fn mouse(&mut self, state: &mut State, event: &WindowEvent) -> bool {
         let viewport = state.viewport();
 
@@ -145,7 +144,7 @@ impl Input {
                 ..
             } => self.left(state, *btn),
             WindowEvent::CursorMoved { position, .. } => {
-                let scale = crate::engine::gpu::view::surface_per_physical();
+                let scale = crate::engine::gpu::view::surface_per_physical(); // window to canvas pixels
                 let position =
                     winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
 
@@ -161,6 +160,7 @@ impl Input {
 
                 let dragging = self.orbiting || self.panning;
 
+                // camera moves in CSS pixels
                 if dragging {
                     let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
                     let dy = ((position.y - self.last_cursor.1) / device_pixel_ratio()) as f32;
@@ -209,6 +209,7 @@ impl Input {
                     self.fingers.insert(t.id);
                 }
 
+                // a second finger cancels a one-finger edit
                 if self.touch_edit.is_some()
                     && t.phase == TouchPhase::Started
                     && self.fingers.len() > 1
@@ -220,6 +221,7 @@ impl Input {
                     self.touch_cancelled = true;
                 }
 
+                // ignore everything until every finger lifts
                 if self.touch_cancelled {
                     if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
                         self.fingers.remove(&t.id);
@@ -234,6 +236,7 @@ impl Input {
                     return true;
                 }
 
+                // a first finger may grab a control or a handle
                 if t.phase == TouchPhase::Started && self.fingers.len() == 1 {
                     self.last_cursor = (t.location.x, t.location.y);
                     self.control_drag = state.begin_control_drag(t.location.x, t.location.y);
@@ -245,6 +248,7 @@ impl Input {
                     }
                 }
 
+                // the editing finger
                 if self.touch_edit == Some(t.id) {
                     self.last_cursor = (t.location.x, t.location.y);
 
@@ -285,6 +289,7 @@ impl Input {
 
                 state.interacting = matches!(t.phase, TouchPhase::Started | TouchPhase::Moved);
 
+                // otherwise the fingers move the camera
                 match self
                     .touch
                     .event(&mut state.camera, t, viewport, device_pixel_ratio())
@@ -305,7 +310,7 @@ impl Input {
         }
     }
 
-    /// Focus loss or pointer cancellation retires every incomplete mouse/touch gesture.
+    /// Forget every gesture in progress.
     pub fn cancel(&mut self) {
         self.orbiting = false;
         self.panning = false;
@@ -320,16 +325,11 @@ impl Input {
         self.touch_cancelled = false;
     }
 
-    /// The left button. A press is offered to the control drag, then to the gizmo, then kept
-    /// as the start of a click: both widgets sit over the object they move, so a press that
-    /// lands on one is never also a pick of what is behind it.
-    ///
-    /// Ctrl reserves the press for sub-selection, even when a handle overlaps the source.
-    /// A release within the slop is a click and asks the GPU what is under it. The picture is
-    /// unchanged until the answer lands, so a click never redraws by itself.
+    /// Left button: control drag, then gizmo drag, then a click.
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
             ElementState::Pressed => {
+                // while drawing, a press is only a click
                 if state.draft.is_some() {
                     self.left_down = Some(self.last_cursor);
                     return false;
@@ -374,13 +374,13 @@ impl Input {
                     .max((self.last_cursor.1 - down.1).abs());
 
                 if moved > CLICK_SLOP * device_pixel_ratio() {
-                    return false;
+                    return false; // a drag, not a click
                 }
 
                 if state.draft.is_some() {
                     return state.click_drawing(self.last_cursor.0, self.last_cursor.1);
                 }
-                state.additive_selection = self.shift && !self.ctrl;
+                state.additive_selection = self.shift && !self.ctrl; // Shift adds to the selection
                 state.request_selection(
                     self.last_cursor.0 as u32,
                     self.last_cursor.1 as u32,
@@ -393,19 +393,19 @@ impl Input {
     }
 }
 
-/// Winit handles touch cancellation; this owned listener also covers mouse and pen cancellation.
+/// A `pointercancel` listener on the canvas.
 #[cfg(target_arch = "wasm32")]
 pub struct PointerCancellation {
-    canvas: web_sys::HtmlCanvasElement,
-    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
+    canvas: web_sys::HtmlCanvasElement,                                 // the canvas listened to
+    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>, // the JS callback
 }
 
 #[cfg(target_arch = "wasm32")]
 impl PointerCancellation {
-    /// Install once for the canvas lifetime; the required callback only forwards a message.
+    /// Install the listener; it sends one message per event.
     pub fn new(
         canvas: web_sys::HtmlCanvasElement,
-        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
+        proxy: winit::event_loop::EventLoopProxy<crate::Msg>, // sends messages to the app
     ) -> Result<Self, wasm_bindgen::JsValue> {
         use wasm_bindgen::JsCast;
         let callback =
@@ -420,7 +420,7 @@ impl PointerCancellation {
 
 #[cfg(target_arch = "wasm32")]
 impl Drop for PointerCancellation {
-    /// Detach before dropping the wasm callback so JavaScript cannot retain an invalid handle.
+    /// Remove the listener.
     fn drop(&mut self) {
         use wasm_bindgen::JsCast;
         let _ = self.canvas.remove_event_listener_with_callback(
@@ -430,14 +430,13 @@ impl Drop for PointerCancellation {
     }
 }
 
-/// Pointer cancellation goes through the same event-loop owner as every other input change.
+/// Send the cancel message to the event loop.
 #[cfg(target_arch = "wasm32")]
 fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
     let _ = proxy.send_event(crate::Msg::CancelPointer);
 }
 
-/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone, the same capped
-/// ratio the canvas is rendered at. Native windows report logical pixels already.
+/// Physical pixels per CSS pixel.
 fn device_pixel_ratio() -> f64 {
     crate::engine::gpu::view::device_pixel_ratio()
 }

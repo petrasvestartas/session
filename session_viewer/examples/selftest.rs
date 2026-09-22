@@ -1,25 +1,26 @@
-// cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- <out.ppm> <scene.yaml | file.pb>...
-//
-// Renders one headless frame and prints the ink count; VIEWER_FRAMES=N times N frames first,
-// VIEWER_PICK="x,y" reports what the id pass finds under a pixel. VIEWER_W / VIEWER_H size it.
+//! Render one headless frame of the given scenes and print the ink count.
 
 use session_viewer::selftest::{SceneFile, render_scene};
 
-/// Keep adapter and validation diagnostics in the render log; GPU errors also abort the run.
+/// A logger that prints every record to stderr.
 struct StderrLog;
 
 impl log::Log for StderrLog {
+    /// Every level is on.
     fn enabled(&self, _: &log::Metadata) -> bool {
         true
     }
 
+    /// Print one record.
     fn log(&self, r: &log::Record) {
         eprintln!("[{}] {}", r.level(), r.args());
     }
 
+    /// Nothing is buffered.
     fn flush(&self) {}
 }
 
+/// Parse `<out.ppm> <scenes>...` and the VIEWER_W / VIEWER_H size, then render.
 fn main() {
     let _ = log::set_logger(&StderrLog);
     log::set_max_level(log::LevelFilter::Info);

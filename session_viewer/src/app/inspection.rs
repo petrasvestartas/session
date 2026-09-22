@@ -6,11 +6,11 @@ thread_local! {
     static SOURCE_MEMORY: std::cell::RefCell<source_memory::SourceCache> = Default::default();
 }
 
-/// Publish the last submitted frame and source selection for repeatable browser checks.
+/// Write the viewer state onto the canvas for browser tests.
 #[cfg(target_arch = "wasm32")]
 pub fn publish(state: &State) {
     if super::route::query("inspect").as_deref() != Some("1") {
-        return;
+        return; // only with ?inspect=1
     }
 
     let Some(window) = web_sys::window() else {
@@ -23,7 +23,6 @@ pub fn publish(state: &State) {
         return;
     };
     let (buffers, textures) = state.gpu.allocated_bytes();
-    // The thread-local adapter forwards only; geometry traversal occurs on document changes.
     let source_memory = SOURCE_MEMORY.with_borrow_mut(|cache| cache.snapshot(&state.scene.docs));
     let parent = state.scene.selected;
     let model = match parent {
@@ -103,7 +102,7 @@ pub fn publish(state: &State) {
     let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string());
 }
 
-/// Resolve the selected row through its owning document before copying the display GUID.
+/// Document index and guid of the selected row.
 #[cfg(target_arch = "wasm32")]
 fn selected_identity(state: &State) -> Option<(usize, String)> {
     let row = state.scene.selected?;
@@ -111,7 +110,7 @@ fn selected_identity(state: &State) -> Option<(usize, String)> {
     Some((document, guid.to_string()))
 }
 
-/// The entity the selected sheet's last pick resolved to, once its side-table record arrived.
+/// The picked entity of the selected sheet, if known.
 #[cfg(target_arch = "wasm32")]
 fn sheet_entity(state: &State) -> Option<serde_json::Value> {
     let (id, meta) = state
@@ -122,7 +121,7 @@ fn sheet_entity(state: &State) -> Option<serde_json::Value> {
     Some(serde_json::json!({"id": id, "guid": meta.guid, "name": meta.name, "kind": meta.kind}))
 }
 
-/// Expose the actual shaped label contract for centered-nameplate pixel regressions.
+/// Every drawn text label, as JSON.
 #[cfg(target_arch = "wasm32")]
 fn text_labels(state: &State) -> Vec<serde_json::Value> {
     use crate::engine::text::TextPlacement;

@@ -1,0 +1,276 @@
+# Maintained browser checks
+
+Serve the production build with `REGEN_PROTO=0 NO_COLOR=true trunk serve` on port 8770.
+Open `/text-quality.html` for the same-font white-on-black comparison. The displayed
+sizes and metrics come from the Rust fixture; the browser reference loads the same
+bundled font bytes and explicitly enables kerning/common ligatures.
+
+The text browser check needs Playwright 1.58.2 and Chrome. Dependencies and screenshots
+can live outside the repository:
+
+```sh
+npm install --prefix /tmp/viewer-browser-test playwright@1.58.2
+NODE_PATH=/tmp/viewer-browser-test/node_modules node tests/text-quality.cjs
+```
+
+`CHROME_BIN` selects an installed browser; `VIEWER_URL` selects the viewer origin;
+`VIEWER_TEST_OUTPUT` selects the capture directory (default `/tmp/session-viewer-text-quality`).
+`VIEWER_HEADLESS=1` is supported only where that browser exposes a usable WebGPU adapter.
+`VIEWER_CHROME_ARGS` accepts a JSON array for a recorded test-environment configuration;
+these flags are not application requirements.
+
+The check uses DPR 1, 1.25 and 2, then forces raster scales 1, 1.25, 1.5 and 2, verifies
+that changing scale does not reshape, exercises selection color, gray compositing,
+resource disposal and resize, and captures normal-size images and measured metrics.
+Same-font browser/shaper line widths must agree within 0.2 CSS pixels (floating-point
+font metric differences, not a raster similarity tolerance). There is no automatic
+claim about subjective clarity, real monitor changes, Firefox/Safari, world-label
+occlusion or imported PDF outlines. Inspect the captured normal-size images, and record
+those additional cases only when actually tested. Browser zoom and forced raster scale
+are different checks.
+
+`node tests/nameplate.cjs` selects the maintained object-nameplate specimen and checks
+13.5 CSS pixel white text, an opaque black background with maximum rounded corners,
+centering, DPR 1/2, cached preparation and release. `node tests/nameplate-scene.cjs`
+uses the interaction fixture below to verify square 18px document titles and rounded
+selected source names in the real canvas, including source bounds centers, zoom,
+F10/Escape restoration and the persistent T toggle for selected names. Both tests measure rendered pixels; annotations are GPU text
+projected from world anchors with an explicit overlay depth policy.
+
+`node tests/world-text.cjs` loads a manifest-authored fixed plane, verifies white glyphs
+on black, checks its world axes through camera changes at DPR 1/2, and confirms that
+`T` leaves it visible. The native ignored GPU test `fixed_plane_obeys_solid_depth_orientation_cache_and_release`
+checks actual solid occlusion, projection, cache reuse and texture release.
+
+`node tests/teapot.cjs` uses the intentionally retained `assets/pb/view_mixed_teapot.pb`:
+the existing 32-patch Utah teapot, preserved byte-for-byte from the archive worktree.
+It checks source hash, GUID, visible surfaces, all 512 surface controls at DPR 1/2, and,
+seen from below, that the concave foot boundary is drawn along its whole cubic outline.
+The asset has no verified 3ds Max export provenance. Its original four open shells are retained.
+
+Object counts in the browser checks include the document-title text object, which is a
+source row of its own: the seven-family interaction fixture reports eight objects and the
+teapot manifest two.
+
+Pixel oracles were measured with the 1.5 px pen. The viewer's default pen is now 1 px, so the
+checks whose thresholds depend on stroke coverage pin `VIEWER_THICKNESS=1.5` (natively) or
+`?thickness=1.5` (in the browser) rather than lowering their thresholds: the interaction
+fixture's yellow coverage, the stroke-join and selected-overlap captures, the triangle
+visibility counterexample, the depth gate's plate outline, the hidden-line probe matrix, the
+teapot back-face census, the joint stroke weights and the orbit probe. The close-up box and
+orbit probes rely on the default silhouette-off setting, because the black solid
+silhouette is near-black ink that belongs to a separate check. Two floors were re-measured
+after joined strokes gained one owner per shared sample: the joint-to-free weight ratio
+(minimum 82%, floor 78%) and the near-edge-on cross-section (59.7%, floor 56%); the
+orientation diff of the flipped BRep probe allows 0.5% of the near-black pixels, the few edge
+pixels whose winning triangle changes with triangle order under finite-triangle visibility.
+
+The native ignored GPU test `selected_silhouette_is_black_visible_only_and_releases_coverage`
+checks black selected-surface silhouettes against physical occlusion, unchanged picking
+IDs, 1x/4x transitions and immediate coverage-texture release when selection clears.
+
+Selected strokes must retain their yellow core over coincident mesh edges, other polylines
+and crossing strokes, while genuinely covered spans stay hidden:
+
+```sh
+REGEN_PROTO=0 cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_selection_overlap
+python3 tests/selection-overlap.py
+```
+
+The runner compares five fixtures with identical-geometry controls at four cameras and
+MSAA 1/4: forty cases, including both polyline upload orders and a tight crossing-point
+check. It requires at least 97% yellow-core retention and zero yellow in the covered span.
+The runner starts the renderer with `VIEWER_OUTLINES=1`, so the selected solid's black silhouette is present as designed. Captures, original source GUIDs and measurements
+go under `target/selection-overlap` (`--output` overrides it); `--renderer` and `--generator`
+accept separately built native executables. The generator also records exposed picking
+leads for manual or browser selection of the intended source.
+
+Joined strokes must cover shared vertices without getting darker when subdivided:
+
+```sh
+REGEN_PROTO=0 cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_stroke_joins
+python3 tests/stroke-joins.py
+```
+
+The runner makes 32 captures of a closed circle, acute bend, single straight segment and
+the same straight line split into 2048 segments, in top/perspective views, MSAA 1/4 and
+ordinary/selected states. Forty checks use projected source vertices (including the
+diagonal circle joint and closing seam) and require dense/single integrated ink between
+90% and 108%. This detects missing joint cores and repeated cap opacity without historical
+golden images. Output goes to `target/stroke-joins`; `--output`, `--renderer`, `--generator`
+and `--check-only` support isolated builds and rechecking retained captures.
+
+Generate the seven-object interaction source fixture outside the repository, then drive
+real canvas clicks and keyboard events against the opt-in read-only inspection snapshot:
+
+```sh
+REGEN_PROTO=0 cargo run --example interaction_fixture --target x86_64-unknown-linux-gnu -- /tmp/viewer-interaction.pb
+NODE_PATH=/tmp/viewer-browser-test/node_modules node tests/interaction.cjs
+```
+
+`VIEWER_INTERACTION_FIXTURE` can select another generated fixture path (the adjacent
+`.json` provides original source identities and world-space targets). The runner verifies
+mesh, line, polyline, NURBS curve/surface, BRep and resident cloud selection at DPR 1 and 2,
+visible yellow pixels, repeated F10 disposal behavior, Escape, parent replacement and
+five/ten-CSS-pixel edge tolerance. Ctrl edges apply to mesh, BRep and NURBS surface
+boundaries; standalone curves retain whole-object selection and source-control behavior,
+without inventing an edge for every displayed chord. This fixture is not a streamed-cloud completeness test.
+
+The runner foregrounds and focuses the canvas, then waits for a newer submitted observation
+with completed picking after each action. A fixed delay followed by an already-idle snapshot
+can otherwise observe the state before the browser dispatches the action.
+
+Native GPU regressions run explicitly on a machine with a supported adapter:
+
+```sh
+REGEN_PROTO=0 cargo xtest actual_glyph_coverage_obeys_depth_clip_motion_and_release -- --ignored
+REGEN_PROTO=0 cargo xtest continuous_world_scale_evicts_without_reshaping_or_stale_instances -- --ignored
+REGEN_PROTO=0 cargo xtest isolated_outline_keeps_coverage_selection_and_identity -- --ignored
+REGEN_PROTO=0 cargo xtest canceled_completion_is_discarded_and_next_pick_still_completes -- --ignored
+```
+
+These verify actual glyph occlusion/foreground/billboard/overlay coverage, clip bounds,
+placement changes without reshaping, cache eviction, release, exact imported outline IDs,
+selection/hidden behavior, legacy mixed-print equivalence, and canceled GPU completions.
+
+`node tests/loading.cjs` is the last-valid-scene, revision-race and malformed-payload check:
+a bad document keeps the previous scene, a stale revision is dropped, and the same replacement
+workload releases the GPU growth of the previous one. `node tests/lifecycle.cjs` covers focus,
+pointer cancellation, the hidden canvas and an unchanged framebuffer at a changed DPR. Both use
+the interaction fixture and the same Chrome/Playwright environment as `interaction.cjs`.
+
+`node tests/streamed-controls.cjs` serves a virtual ranged protobuf source with 6,065,539
+points and caps display residency at 250,000. It holds the second detail page to verify
+that an early visible hit is not committed before every eligible source page finishes.
+Overlapping points within and across pages must resolve to the frontmost source point;
+its original fixed32 ID is fetched with a four-byte range, and its exact source position
+remains as one yellow marker. A delayed range followed by Escape checks cancellation.
+The fixture writes no large point-cloud file and retains no full-cloud CPU/GPU copy.
+It uses the same Chrome/Playwright environment variables as the text checks; the default
+capture directory is `/tmp/session-viewer-streamed-controls-dpr1`. Run again with
+`VIEWER_DPR=2` to check physical/CSS conversion and point visibility at DPR 2. Display LOD and residency
+remain bounded while F10 source queries examine every intersecting source node.
+
+CAD fixtures use the production native render path and preserve source topology through
+rotated, mirrored and nonuniform instance transforms:
+
+```sh
+REGEN_PROTO=0 cargo build --target x86_64-unknown-linux-gnu --example selftest --example cad_fixture --example check_cad_fixture
+VIEWER_ADAPTER=Intel python3 tests/cad-quality.py
+```
+
+The runner writes twelve 700×520 PPM images, adapter/validation logs and metrics under
+`/tmp/cad-fixture`. Inspect the source and affine cylinder, sphere, hole and C0 patch at
+native size; the fill-only and unlit pairs distinguish shading from outlines. Numerical
+checks cover smooth sphere variation, unlit uniformity, reversed-face diagnostics and
+six post-upload source-edge mappings. Shared geometry minitests separately verify
+one-sided C0 normals, trimmed holes and exact shared boundary XYZ. This is a Session
+rendering regression, not an OCCT pixel comparison.
+
+`python3 tests/format.py` checks all handwritten Rust files under the viewer's `src/`
+and `examples/` with Rust 2024 defaults. Use `--write` to apply the same formatting.
+The script passes an explicit file list and `skip_children=true`, so it never traverses
+or reformats the shared Session packages.
+
+The maintained depth scripts are in `tests/depth/`; they moved out of the archived lessons.
+The focused finite-triangle counterexample is generated and checked with:
+
+```sh
+REGEN_PROTO=0 cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_triangle_visibility
+python3 tests/triangle-visibility.py
+```
+
+It requires all 766 exposed seam-core pixels beside a nearby non-occluding strip and
+zero black pixels anywhere behind the genuinely covering strip. All three captures use
+the default silhouette-off setting, so source ink is measured apart from the separately tested surface silhouettes.
+The nearby strip's infinite depth plane crosses the seam ray outside its finite triangle;
+this fixture fails when that extrapolated plane is allowed to hide the seam. Use
+`--renderer` for an independently built native executable and `--output` to override
+`target/triangle-visibility`; `results.json` records the fixed capture settings and counts.
+
+The strict hidden-ink matrix renders 54 combinations and the original floor census renders
+21 views, including distance ×16. Both require zero hidden ink in their stated masks:
+
+```sh
+python3 tests/depth/_probe_matrix.py SELFTEST MK_HIDDEN_LINE_PROBE /tmp/depth-probes
+python3 tests/depth/_hidden_line_matrix.py SELFTEST CENSUS_PLATES FLOOR.pb /tmp/depth-floor --require-zero
+python3 tests/depth/_closeup_box.py /tmp/grey-box.ppm
+```
+
+Use the built native `selftest`, `mk_hidden_line_probe` and `census_plates` example paths.
+The grey-box image comes from `HIDDEN_LINE_PROBE_CLOSEUP=1 mk_hidden_line_probe` followed
+by `selftest`; the checker requires retained red edge chains and seven attached black
+vertices. The full `tests/depth/_ink_suite.sh` additionally runs the older local-scene,
+shading, boundary and lifecycle checks. It needs the documented local assets and can fetch
+the public floor into `${SCRATCH:-/tmp}/pb`; `INK_SUITE_NO_FETCH=1` skips an absent floor,
+so use the explicit floor command above when complete floor validation is required.
+
+The CAD audit compares each original BRep edge polygon against every incident face's
+actual triangle edges, first in source f64 and then in the uploaded RenderMesh f32.
+It also records per-face planarity/normals and exports isolated source objects with
+unchanged GUIDs and per-object transforms. Omit the final PB argument to use only the
+four generated primitive controls:
+
+```sh
+REGEN_PROTO=0 cargo run --locked --target x86_64-unknown-linux-gnu \
+  --example cad_boundary_audit -- /tmp/cad-boundary-audit /absolute/path/scene.pb
+uv venv /tmp/cad-plot-env
+uv pip install --python /tmp/cad-plot-env/bin/python matplotlib
+/tmp/cad-plot-env/bin/python tests/cad-boundary-plot.py \
+  /tmp/cad-boundary-audit/geometry.json /tmp/cad-boundary-audit/meshing.png
+```
+
+The PNG/SVG shows exact triangles, original CAD boundary polygons and their mesh nodes;
+its transparent inspection view intentionally includes hidden edges and does not simulate
+the viewer's depth test. `geometry.json` distinguishes analytic curve-to-chord deviation
+from missing triangle-edge incidence. A nonzero chord deviation is expected on curved
+edges; a displayed chord must still be an exact edge of each incident triangle mesh.
+The planar pyramid upload and cone seam-facing regressions run with
+`cargo test --target x86_64-unknown-linux-gnu --lib app::walk::brep` (set `REGEN_PROTO=0`).
+The shared `Singular Planar Normal` cases cover both trimmed and U-collapsed grid surfaces
+in the kernels' own mini-tests (`bash/minitest.sh` in the parent directory).
+
+The BRep front-meridian unit regression ray-tests the teapot’s exposed authored edge against
+all face triangles; it fails with the earlier kernel that buried its lower-body chord.
+`cad_boundary_audit` additionally checks exact f64 and uploaded f32 incidence on each face.
+The shared finer-grid test retains original samples and checks local normal angles after
+canonical boundary refinement. Integer picking and visible lines consume matching physical
+depth-gradient attachments. The interaction fixture uses T to expose short selected strokes
+and accepts their antialiased yellow coverage; the separate nameplate fixture verifies
+the default centered white/black label and T persistence.
+
+`node tests/editing-extensions.cjs` runs five configurations against the supplied nested fixture: desktop, smaller viewport, perspective, 2× DPI and resize. Each checks tree/graph selection and hide/show, creation, trim/extend, explode/undo, all four gumball gestures, control commit/cancel and widget memory release. It writes `docs/extensions/rounds.json`; a browser without an adapter fails the run.
+
+`node docs/extensions/capture.cjs` records real tutorial screenshots and their inspection state in `docs/extensions/screenshots.json`. Both scripts use `CHROME_BIN`, `VIEWER_URL` and JSON `VIEWER_CHROME_ARGS`. They inherit GPU environment variables from the shell and close their own browser contexts.
+
+## Docked workspace and source edits
+
+`node tests/docked-workspace.cjs` checks the bottom command area, left toolbar and
+right Layers panel at desktop DPR 1/2 and a 390×844 phone viewport. It uses real
+browser touch events for gumball commit, cancellation and second-finger cancellation,
+and downloads then reopens a complete `.session` file. Captures and saved files go
+to `/tmp/viewer-docked-workspace` (`VIEWER_TEST_OUTPUT` overrides it).
+
+`node tests/source-editing.cjs` checks mesh, NURBS surface and BRep face/edge edits,
+then moves an original mesh vertex with the touch gumball and undoes the change.
+Every subobject edit preserves its parent placement. Generate its fixture first:
+
+```sh
+REGEN_PROTO=0 cargo run --target x86_64-unknown-linux-gnu --example interaction_fixture -- /tmp/viewer-interaction.pb
+node tests/source-editing.cjs
+```
+
+Both checks use the Chrome and environment settings described above. Mobile coverage
+uses Chrome touch emulation; physical iOS/Android devices have not been tested.
+Native `app::deform` and `app::session_io` tests cover sparse source mesh IDs,
+rational weights, joined BRep box boundaries, snapshot serialization and live undo.
+General BRep edits requiring trim reconstruction and exporting partially streamed
+scenes remain unsupported and return an error.
+
+`node tests/live-shell-editing.cjs` checks real Ctrl+Shift shell dragging and release, retained source edits, undo, and visible Point creation hints. `VIEWER_STRESS=1` also loads the bunny mesh and 342,000-point cloud to catch full-scene rebuilds during an edit.
+
+`node tests/layer-workspace.cjs` checks a single expandable layer tree, descendant visibility, selection locks and color changes, then saves/reopens the session and unlocks the same objects. Its full-viewer capture is written to `/tmp/viewer-layer-workspace/layers.png`.
+
+Run `node tests/splitting.cjs` with the same Playwright/Chrome environment for curve creation and Split, joined-face topology, touch confirmation, cancellation and Save/Open.
+
+`node tests/color-channels.cjs` checks rendered face and edge colors independently, Original resets, legacy-compatible Save/Open and captures the full viewer for current lesson 11. `node tests/large-object-dragging.cjs` loads the bundled bunny mesh and 342k-point lion, measures real pointer dragging and release, and verifies that the cloud image moves with a stationary camera. Use the same headed Chrome/WebGPU environment and `VIEWER_URL` as the other browser checks.

@@ -1,12 +1,10 @@
 # 00 · Empty project to a WASM message
 
-<!-- locator: off -->
-
 Five files and one command. At the end, the browser shows a line of text written by Rust. No GPU yet.
 
 ![Four tools and four artefacts: cargo produces a .wasm a browser cannot load on its own, wasm-bindgen writes the JavaScript that can, Trunk assembles the page around it, and the browser runs start().](illustrations/toolchain.svg)
 
-`cargo` compiles the Rust to a `.wasm` file. `wasm-bindgen` writes the JavaScript that loads it; Trunk runs it for you. `trunk` serves the page. The browser runs `start()`.
+`cargo` compiles to `.wasm`, Trunk wraps and serves it, the browser runs `start()`.
 
 ## Make the folder
 
@@ -18,33 +16,39 @@ cd session_view
 
 Every command below runs here.
 
-<!-- step-status: start -->
-
-**Does it compile yet?** `cargo check` passes after step 6; steps 1–5 fail and build again at step 6.
-
-<!-- step-status: end -->
-
 ## Step 1 · `Cargo.toml`
 
-What the crate is and what it uses. This lesson needs only `wasm-bindgen`, `web-sys` and `console_error_panic_hook`; the rest is for later lessons, listed once so the file never changes. Keep the package name `session_viewer` whatever the folder is called.
+The crate's name and every dependency it will ever need, listed once.
 
-<!-- file: 00 session_viewer/Cargo.toml type -->
+`lessons/00/Cargo.toml` · 72 lines · type this, new file
+
+```toml
+--8<-- "lessons/00/Cargo.toml"
+```
 
 ## Step 2 · `.cargo/config.toml`
 
-Makes the browser the default target of every `cargo` command, so you never type `--target`. `xtest` runs the tests natively; wasm has no test runner.
+Makes the browser the default target, and `cargo xtest` runs tests natively.
 
-<!-- file: 00 session_viewer/.cargo/config.toml type -->
+`lessons/00/.cargo/config.toml` · 11 lines · type this, new file
+
+```toml
+--8<-- "lessons/00/.cargo/config.toml"
+```
 
 ## Step 3 · `Trunk.toml`
 
-Optimized build, assets relative to the page, the dev server address. Lessons pass `--port 8780` on the command line so a maintained viewer on 8770 can run at the same time.
+Release build, page-relative assets, and the dev server address.
 
-<!-- file: 00 session_viewer/Trunk.toml type -->
+`lessons/00/Trunk.toml` · 8 lines · type this, new file
+
+```toml
+--8<-- "lessons/00/Trunk.toml"
+```
 
 ## Step 4 · `Cargo.lock`
 
-Cargo picks an exact version of every dependency and records it here. Never typed, never edited.
+Cargo's exact dependency versions; copy it, never edit it.
 
 ```sh
 cargo generate-lockfile
@@ -52,15 +56,23 @@ cargo generate-lockfile
 
 ## Step 5 · `index.html`
 
-The page. `<link data-trunk rel="rust">` is where Trunk puts the loader. `<output id="status">` is the element Rust overwrites.
+The page: Trunk fills the `rust` link, Rust writes into `status`.
 
-<!-- file: 00 session_viewer/index.html type -->
+`lessons/00/index.html` · 11 lines · type this, new file
+
+```html
+--8<-- "lessons/00/index.html"
+```
 
 ## Step 6 · `src/lib.rs`
 
-`#[wasm_bindgen(start)]` runs when the module has loaded. It turns panics into console messages, finds the element by id, writes the text and marks it with `data-checkpoint`.
+Runs when the module loads and writes one line into the page.
 
-<!-- file: 00 session_viewer/src/lib.rs type -->
+`lessons/00/src/lib.rs` · 18 lines · type this, new file
+
+```rust
+--8<-- "lessons/00/src/lib.rs"
+```
 
 ## Check
 
@@ -77,13 +89,24 @@ If it fails:
 
 - *failed to load manifest for dependency `session_rust`*: the folder is not next to `session_rust`.
 - An error naming a crate or feature: compare your `Cargo.toml` with step 1.
-- The page stays on *Loading WASM*: you opened the file from disk instead of `localhost:8780`, or the build has not finished. A misspelled id panics instead, and the console shows the `expect` message.
+- The page stays on *Loading WASM*: open `localhost:8780`, not the file, and wait for the build.
 
 ## What changed
 
-<!-- tree: 00 session_viewer -->
+```text
+lessons/00/session_viewer/
+├── .cargo/
+│   └── config.toml  +
+├── src/
+│   └── lib.rs  +
+├── Cargo.toml  +
+├── Trunk.toml  +
+└── index.html  +
+```
 
-Every file at this point: [source at checkpoint 00](../lessons/00/index.md).
+`+` new in this lesson · `~` changed in this lesson
+
+Every file at this point: `lessons/00/`.
 
 ## Next
 

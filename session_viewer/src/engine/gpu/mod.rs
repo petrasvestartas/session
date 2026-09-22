@@ -55,42 +55,41 @@ pub use segments::CylinderSegment;
 pub use upload::Upload;
 pub use view::View;
 
-/// Everything on the GPU side of the viewer: the floor, then one field per lane.
+/// Everything on the GPU: the device, the frame and one field per lane.
 pub struct Gpu {
-    pub surface: Option<wgpu::Surface<'static>>,
-    pub ctx: GpuCtx,
-    pub config: wgpu::SurfaceConfiguration,
-    pub layouts: Layouts,
-    pub frame: FrameUniforms,
-    pub targets: Targets,
-    pub view: View,
-    pub objects: InstanceTable,
-    pub backdrop: BackdropLane,
-    ssao: Option<ssao::Ssao>,
-    pub arena: ArenaLane,
-    pub segments: SegmentLane,
-    pub glyphs: GlyphLane,
-    pub controls: GlyphLane,
-    pub control_net: SegmentLane,
-    pub widget: widget::Widget, // A fixed mesh with independent depth for overlapping manipulation handles.
-    pub ui: Option<ui::Ui>,
-    pub text: text::TextLane,
-    pub selection_outline: surface_outline::SurfaceOutline,
-    pub solid_outline: surface_outline::SurfaceOutline,
-    pub selection_revision: u64, // Counts selection flag changes: part of the coverage masks' cache key.
-    pub logical_size: [f64; 2],
-    pub cloud: CloudLane,
-    pub splat: Splat,
-    pub pick: Picker,
-    pub performance: Performance,
-    pub bounds: AABB, // The world box of everything uploaded; the camera fits it and the inside test reads it.
-    device_type: wgpu::DeviceType, // What class of GPU is drawing; the antialiasing budget is spent against it.
-    pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>,
+    pub surface: Option<wgpu::Surface<'static>>, // the canvas; None when headless
+    pub ctx: GpuCtx, // device and queue
+    pub config: wgpu::SurfaceConfiguration, // canvas size and format
+    pub layouts: Layouts, // shared bind group layouts
+    pub frame: FrameUniforms, // per-frame uniform buffers
+    pub targets: Targets, // depth and color textures
+    pub view: View, // display settings
+    pub objects: InstanceTable, // one row per object
+    pub backdrop: BackdropLane, // background and grid
+    ssao: Option<ssao::Ssao>, // ambient occlusion, when on
+    pub arena: ArenaLane, // meshes
+    pub segments: SegmentLane, // lines
+    pub glyphs: GlyphLane, // markers and dots
+    pub controls: GlyphLane, // control point dots
+    pub control_net: SegmentLane, // control polygon lines
+    pub widget: widget::Widget, // gumball mesh, own depth
+    pub ui: Option<ui::Ui>, // egui overlay
+    pub text: text::TextLane, // labels
+    pub selection_outline: surface_outline::SurfaceOutline, // outline around the selection
+    pub solid_outline: surface_outline::SurfaceOutline, // outline around every solid
+    pub selection_revision: u64, // bumps on every selection change
+    pub logical_size: [f64; 2], // canvas size in CSS pixels
+    pub cloud: CloudLane, // point cloud buffers
+    pub splat: Splat, // point cloud drawing
+    pub pick: Picker, // reads object ids under the cursor
+    pub performance: Performance, // frame timing
+    pub bounds: AABB, // world box of everything uploaded
+    device_type: wgpu::DeviceType, // discrete, integrated or CPU
+    pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>, // first GPU error
 }
 
 impl Gpu {
-    /// Owned buffers and framebuffer texture arithmetic, not a physical VRAM measurement.
-    /// Glyphon/egui private capacities and browser swapchain allocations are separate.
+    /// Bytes reserved on the GPU: (buffers, textures).
     pub fn allocated_bytes(&self) -> (u64, u64) {
         let (splat_buffers, splat_textures) = self.splat.allocated_bytes();
         let (pick_buffers, pick_textures) = self.pick.allocated_bytes();
@@ -114,11 +113,7 @@ impl Gpu {
             + if self.ssao.is_some() { 144 } else { 0 };
         let pixels = u64::from(self.config.width) * u64::from(self.config.height);
         let samples = u64::from(self.targets.samples);
-        // 16 B a sample is the three physical attachments together: 4 for the MSAA colour, 4
-        // for depth32, 8 for the Rgba16Float gradient. At 1x there IS no MSAA colour target -
-        // the pass draws into the swapchain, which this process does not own - so a pixel
-        // costs 12. The constant that follows is the 1x1 placeholder pair `Targets::new` makes
-        // at the OTHER sample count: 4 x 12 while we are at 1x, 12 while we are at 4x.
+        // per sample: 4 color + 4 depth + 8 gradient; at 1x no color copy
         let frame_textures = pixels * if samples > 1 { samples * 16 } else { 12 }
             + if samples > 1 { 12 } else { 48 };
         (
@@ -134,18 +129,18 @@ impl Gpu {
         )
     }
 
-    /// The stack over a canvas window.
+    /// Open the GPU for a window.
     pub async fn new(window: std::sync::Arc<winit::window::Window>) -> anyhow::Result<Self> {
         let size = window.inner_size();
         Self::build(Some(window), (size.width, size.height)).await
     }
 
-    /// The same stack with no window and no surface, rendering into an offscreen texture.
+    /// Open the GPU with no window, drawing into a texture.
     pub async fn new_headless(width: u32, height: u32) -> anyhow::Result<Self> {
         Self::build(None, (width, height)).await
     }
 
-    /// Negotiate the device, make every layout, buffer, bind group and pipeline, start empty.
+    /// Open the device and create every lane, empty.
     async fn build(
         window: Option<std::sync::Arc<winit::window::Window>>,
         size: (u32, u32),
@@ -160,6 +155,7 @@ impl Gpu {
         } = device::open(window, size).await?;
         let ctx = GpuCtx { device, queue };
         let size = (config.width, config.height);
+        // start without MSAA; retarget flips it later
         let target = Target {
             format: config.format,
             samples: 1,
@@ -236,14 +232,14 @@ impl Gpu {
         })
     }
 
-    /// Append one upload to every lane. Every table is a DELTA; a bind group is rebuilt only
-    /// when its buffer grew. An MSAA flip rebuilds the targets and every pipeline.
+    /// Append one upload to every lane.
     pub fn set_scene(&mut self, up: &Upload) {
         self.objects.append(&self.ctx, &self.layouts, &up.obj);
         self.arena.append(&self.ctx, &up.arena);
         self.segments.append(&self.ctx, &self.layouts, &up.seg);
         self.glyphs.append(&self.ctx, &self.layouts, &up.glyph);
 
+        // a moved cloud buffer needs a new bind group
         if self.cloud.append(&self.ctx, &up.cloud) {
             self.splat
                 .rebind(&self.ctx, &self.layouts, self.cloud.buffers());
@@ -266,20 +262,14 @@ impl Gpu {
         self.rebind_ink();
     }
 
-    /// Grow the scene's bounds by a row that moved.
-    ///
-    /// `bounds` is the union every reader frames against - `fit`, and the far plane through
-    /// `grow_extent`. It is built by `set_scene` and nothing else touched it, so an object
-    /// dragged past the old extent used to fall outside what a fit would frame and, far
-    /// enough out, outside the far plane. Growing is enough: an edit that SHRINKS the scene
-    /// leaves the union generous, which costs depth precision and never correctness.
+    /// Grow the scene box to include object `row`.
     pub fn grew_bounds(&mut self, row: u32) {
         if let Some(box_) = self.objects.row_bounds(row) {
             self.bounds.union_with(&box_);
         }
     }
 
-    /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
+    /// Rebuild the ink bind group after targets or tiles moved.
     fn rebind_ink(&mut self) {
         self.objects.rebind_ink(
             &self.ctx,
@@ -291,7 +281,7 @@ impl Gpu {
         );
     }
 
-    /// The pass target the lanes are built for now.
+    /// Current color format and sample count.
     fn target(&self) -> Target {
         Target {
             format: self.config.format,
@@ -299,8 +289,7 @@ impl Gpu {
         }
     }
 
-    /// Bring the targets to the sample count the scene and canvas call for: on a change every
-    /// lane's pipelines follow; `resized` remakes the targets even at the same count.
+    /// Remake targets and pipelines when the sample count changes.
     fn retarget(&mut self, resized: bool) {
         let samples = self.msaa_now();
         let flip = samples != self.targets.samples;
@@ -333,14 +322,12 @@ impl Gpu {
         }
     }
 
-    /// How many pixels this adapter carries at 4x; the canvas is sized to fit inside it.
+    /// Pixels this GPU can afford at 4x MSAA.
     pub fn msaa_budget(&self) -> Option<u32> {
         Targets::msaa_budget(self.device_type)
     }
 
-    /// The sample count for what is ON the GPU now: 4x only with solid geometry (faces,
-    /// pipes, spheres), or imported sheet vectors, on a canvas within the memory budget.
-    /// Pure analytic strokes/clouds stay at 1x; vector lettering needs coverage samples.
+    /// MSAA samples for the current scene: 4x only with solid geometry.
     fn msaa_now(&self) -> u32 {
         let solid = self.arena.face_count() > 0
             || self.arena.sheet_count() > 0
@@ -355,8 +342,7 @@ impl Gpu {
         )
     }
 
-    /// The anchor the instance table is rebased about. A rebase moves every model, so the
-    /// point pass is stale. `now` is the frame's one timestamp (ms).
+    /// Move the scene origin near the camera when it drifted far.
     pub fn rebase_anchor(&mut self, origin: &Point, view_dist: f64, now: f64) -> Rebase {
         let rebase = self
             .objects
@@ -369,7 +355,7 @@ impl Gpu {
         rebase
     }
 
-    /// Reconfigure the surface and remake every size-bound target.
+    /// Resize the canvas and every texture that follows it.
     pub fn resize(&mut self, width: u32, height: u32) {
         if width == 0 || height == 0 {
             return;
@@ -387,7 +373,7 @@ impl Gpu {
         self.pick.resize();
     }
 
-    /// Forget every lane's rows so the next upload writes from row 0; capacity stays.
+    /// Forget every row; keep the buffers.
     pub fn reset(&mut self) {
         self.objects.reset();
         self.arena.reset(&self.ctx);
@@ -406,7 +392,7 @@ impl Gpu {
         self.bounds = AABB::empty();
     }
 
-    /// Forget every lane's rows AND hand the memory back, CPU mirrors and GPU buffers alike.
+    /// Forget every row and free the buffers.
     pub fn release(&mut self) {
         self.objects.release(&self.ctx, &self.layouts);
         self.arena.release(&self.ctx);
@@ -429,7 +415,7 @@ impl Gpu {
         self.rebind_ink();
     }
 
-    /// Flip the selection flag on one object row.
+    /// Select or deselect object `row`.
     pub fn set_selected(&mut self, row: u32, on: bool) {
         self.selection_revision = self.selection_revision.wrapping_add(1);
         self.segments.set_selected(row, on);
@@ -439,14 +425,13 @@ impl Gpu {
         self.splat.invalidate();
     }
 
+    /// Set the face or edge color of object `row`; None restores its own.
     pub fn set_object_color(&mut self, row: u32, edge: bool, color: Option<[u8; 3]>) {
         self.objects.set_color(&self.ctx, row, edge, color);
         self.splat.invalidate();
     }
 
-    /// Hide or show `row`. Every lane's vertex stage parks a hidden row outside the clip
-    /// volume, so it leaves the picture and the ID pass together; clouds are dropped on the
-    /// CPU when the splat records are rebuilt, hence the invalidate.
+    /// Hide or show object `row`.
     pub fn set_hidden(&mut self, row: u32, on: bool) {
         self.objects
             .set_flag(&self.ctx, row, Instance::FLAG_HIDDEN, on);
@@ -454,7 +439,7 @@ impl Gpu {
     }
 }
 
-/// Every lane's shaders, for the mirror tests: a lane joins by adding its `SHADERS` here.
+/// Every lane's shader sources, for the tests.
 #[cfg(test)]
 pub(crate) fn lane_shaders() -> Vec<(&'static str, &'static str)> {
     let mut out = Vec::new();

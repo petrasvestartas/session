@@ -5,8 +5,9 @@ use super::splat::RecordCx;
 use super::surface_outline;
 
 impl Gpu {
-    /// Reconstruct finite triangle visibility before color or ID ink samples it.
+    /// Compute which triangles cover which screen tiles.
     fn triangle_tile_pass(&mut self, encoder: &mut wgpu::CommandEncoder) {
+        // a moved tile buffer needs a new bind group
         if self.arena.tiles.prepare(
             &self.ctx,
             (self.config.width, self.config.height),
@@ -25,8 +26,7 @@ impl Gpu {
         );
     }
 
-    /// Encode the whole frame into `view`. Returns (draws, objects) for the perf counter.
-    /// Knows nothing about a surface, so it works headless.
+    /// Encode one frame into `view`; returns (draws, objects).
     pub fn encode_frame(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
@@ -36,11 +36,13 @@ impl Gpu {
         self.triangle_tile_pass(encoder);
         self.point_pass(encoder);
 
+        // pass 1: background, faces and clouds write depth
         let mut draws = {
             let b = self.frame.binds(&self.objects.group);
             let mut pass = self.targets.begin_faces(encoder, view, clear);
             self.face_list(&mut pass, &b)
         };
+        // pass 2: ambient occlusion over the faces
         if self.view.ssao && self.view.opacity > 0.0 && self.arena.face_count() > 0 {
             let target = crate::engine::pipelines::Target {
                 format: self.config.format,
@@ -65,8 +67,7 @@ impl Gpu {
             self.ssao = None;
         }
         let size = (self.config.width, self.config.height);
-        // No silhouettes in x-ray: with the faces gone they would only paint over the edges
-        // and vertices that are the picture.
+        // no outlines in x-ray
         let faces =
             self.view.show_outlines && self.view.opacity > 0.0 && self.arena.face_count() > 0;
         let selected = self.selection_outline.prepare(
@@ -83,8 +84,7 @@ impl Gpu {
             self.logical_size[0],
             faces,
         );
-        // The masks depend on the camera, the geometry, the selection and the highlighted
-        // source face; while those stand still the previous masks are composited again.
+        // redraw the outline masks only when something changed
         let key = surface_outline::MaskKey {
             mvp: self.frame.mvp_f32,
             geometry: self.objects.geometry_revision(),
@@ -100,13 +100,12 @@ impl Gpu {
 
         if stale {
             let b = self.frame.binds(&self.objects.group);
-            // The edges extend the coverage by their own footprint, tested against the same
-            // physical depth the ink pass reads, so the ring wraps them.
+            // edges widen the mask
             let ink = self.frame.binds(&self.objects.ink_group);
             let edges = self.view.show_mesh_edges;
 
             if solid && selected {
-                // One rasterization of the faces writes both masks.
+                // one pass writes both masks
                 let mut pass = surface_outline::SurfaceOutline::begin_masks(
                     &self.solid_outline,
                     &self.selection_outline,
@@ -148,14 +147,17 @@ impl Gpu {
         }
 
         {
+            // pass 3: lines, markers, outlines and text over the faces
             let mut pass = self.targets.begin_ink(encoder, view);
             draws += self.scene_list(&mut pass);
         }
 
+        // a click waiting: draw the id pass now
         if let Some(at) = self.pick.take_pending() {
             self.id_pass(encoder, Some(at));
         }
 
+        // gumball on top, with its own depth
         draws += self.widget.draw(encoder, view, &self.targets);
 
         if let Some(ui) = self.ui.as_ref() {
@@ -165,14 +167,14 @@ impl Gpu {
         (draws, self.objects.len())
     }
 
-    /// The point lane's own pass, skipped while the camera, the knobs and the tables are what
-    /// they were - a still cloud costs one fullscreen resolve.
+    /// Draw the point clouds; skipped while nothing changed.
     pub(super) fn point_pass(&mut self, encoder: &mut wgpu::CommandEncoder) {
         let cx = RecordCx {
             mvp: &self.frame.mvp_f32,
             ortho_h: self.frame.ortho_h,
             eye: self.frame.eye,
             size: (self.config.width, self.config.height),
+            // point size in framebuffer pixels
             cloud_size: self.view.cloud_size * self.config.width as f32
                 / self.logical_size[0].max(1.0) as f32,
             lod_px: self.view.lod_px,
@@ -189,7 +191,7 @@ impl Gpu {
         );
     }
 
-    /// Backdrop, physical faces and the cloud resolve write the depth every ink fragment reads.
+    /// Draws of the first pass: background, grid, faces, clouds.
     fn face_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         let mut draws = self.backdrop.draw_background(pass, b);
 
@@ -202,7 +204,7 @@ impl Gpu {
         draws
     }
 
-    /// Markers follow all strokes so their complete footprints remain on top.
+    /// Draws of the ink pass, back to front.
     fn scene_list(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
         let v = &self.view;
         let basic = self.frame.binds(&self.objects.group);
@@ -212,16 +214,14 @@ impl Gpu {
         draws += self
             .segments
             .draw_unselected(pass, &b, v.show_mesh_edges, v.show_lines);
-        // (pipes, ribbons): the selected object's mesh and BRep edges now; its standalone
-        // curves come after the silhouette below, so they are not cut by it.
+        // selected mesh edges now, its curves after the outline
         draws += self
             .segments
             .draw_selected(pass, &b, v.show_mesh_edges, false);
         draws += self
             .solid_outline
             .draw_combined(&self.selection_outline, pass);
-        // Standalone selected curves cover coincident mesh ink. Solid boundary strokes
-        // stay below the silhouette so their yellow fringe cannot narrow its black border.
+        // selected curves over the outline
         draws += self.segments.draw_selected(pass, &b, false, v.show_lines);
 
         if v.show_mesh_edges && v.markers {
@@ -241,19 +241,16 @@ impl Gpu {
         draws
     }
 
-    /// The id pass: the scene list again, opaque, at 1x, under the same toggles and in the
-    /// same order (what a lane hides it cannot pick), scissored to the pick window when there
-    /// is one (the vertex work stays; the fill is what a full frame would cost), which is then
-    /// copied out for `Picker`.
+    /// Draw object ids around the cursor for a pick, then copy them out.
     pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
         self.triangle_tile_pass(encoder);
         let size = (self.config.width, self.config.height);
         let mode = self.pick.mode;
-        // The pass draws the window about the cursor (plus the halo the plane fit reads) into
-        // an attachment of that size; the uniforms see the scene through that window.
+        // draw only the window around the cursor, plus its halo
         let window = at.map(|position| self.pick.window(position, size));
         let view = self.pick.view_for(at, size);
         self.frame.write_pick(&self.ctx, view, size);
+        // the window inside the drawn area
         let inner = window.map(|window| {
             (
                 window.x.saturating_sub(view.x),
@@ -264,6 +261,7 @@ impl Gpu {
         });
         let basic = self.frame.pick_binds(&self.objects.group);
 
+        // source point query: faces and clouds, then the source dots
         if self.pick.source_query() {
             if !self.pick.source_initialized() {
                 let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
@@ -295,8 +293,7 @@ impl Gpu {
         }
 
         {
-            // The whole attachment, halo included: the plane reconstruction reads neighbouring
-            // texels, which must be occlusion samples rather than cleared ones.
+            // faces and clouds over the whole area, halo included
             let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
 
             if mode == PickMode::Component {
@@ -307,6 +304,7 @@ impl Gpu {
 
             self.splat.draw_ids(&mut pass, &self.frame.pick_cloud_group);
         }
+        // ink ids test against the depth just drawn
         let depth = self.pick.depth().expect("physical ID pass creates depth");
         let group = self.objects.pick_group(
             &self.ctx,
@@ -323,6 +321,7 @@ impl Gpu {
                 pass.set_scissor_rect(x, y, w, h);
             }
 
+            // which ink may answer depends on the mode
             match mode {
                 PickMode::Edge | PickMode::Component => {
                     if self.view.show_mesh_edges {
@@ -354,7 +353,7 @@ impl Gpu {
                 }
             }
 
-            // Authored text covers geometry in every pick mode, just as its visible plane does.
+            // text ids in every mode
             self.text
                 .draw_ids(&mut pass, &self.frame.pick_transform_group);
         }

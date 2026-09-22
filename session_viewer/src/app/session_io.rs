@@ -5,40 +5,44 @@ use serde::{Deserialize, Serialize};
 use session_rust::{Session, Xform};
 use std::rc::Rc;
 
-const MAGIC: &[u8] = b"SESSION-VIEWER\x01\n";
+const MAGIC: &[u8] = b"SESSION-VIEWER\x01\n"; // file header
 
-const LIMIT: usize = 512 * 1024 * 1024;
+const LIMIT: usize = 512 * 1024 * 1024; // largest file, bytes
 
+/// The whole file after the header.
 #[derive(Clone, PartialEq, Message)]
 struct Archive {
     #[prost(bytes = "vec", repeated, tag = "1")]
-    documents: Vec<Vec<u8>>,
+    documents: Vec<Vec<u8>>, // one protobuf session per document
     #[prost(bytes = "vec", tag = "2")]
-    metadata: Vec<u8>,
+    metadata: Vec<u8>, // `Metadata` as JSON
 }
 
+/// Everything about the scene that is not a document.
 #[derive(Serialize, Deserialize)]
 struct Metadata {
     #[serde(default)]
-    created_doc: Option<usize>,
-    documents: Vec<Document>,
-    hidden: Vec<(usize, String)>,
+    created_doc: Option<usize>, // index of the `Created` document
+    documents: Vec<Document>,   // one per session
+    hidden: Vec<(usize, String)>, // (document, guid) hidden
     #[serde(default)]
-    locked: Vec<(usize, String)>,
+    locked: Vec<(usize, String)>, // (document, guid) locked
     #[serde(default)]
-    colors: Vec<(usize, String, [u8; 3])>,
+    colors: Vec<(usize, String, [u8; 3])>, // face colour overrides
     #[serde(default)]
-    edge_colors: Option<Vec<(usize, String, [u8; 3])>>,
-    texts: Vec<(String, TextLabel, bool)>,
+    edge_colors: Option<Vec<(usize, String, [u8; 3])>>, // edge colour overrides, None in old files
+    texts: Vec<(String, TextLabel, bool)>, // (key, label, active)
 }
 
+/// One document's name and placement.
 #[derive(Serialize, Deserialize)]
 struct Document {
-    name: String,
-    place: [f64; 16],
-    point_px: f32,
+    name: String,     // file name
+    place: [f64; 16], // placement matrix
+    point_px: f32,    // point size override
 }
 
+/// The scene as `.session` file bytes.
 pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
     if !scene.streamed.is_empty() || !scene.sheets.is_empty() {
         return Err("This scene contains streamed sources. Open complete source documents before saving an editable session.".into());
@@ -54,8 +58,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
             );
         }
 
-        // Serialize a snapshot: saving must not clear the live document's undo history.
-        let bytes = (*file.session).clone().pb_dumps();
+        let bytes = (*file.session).clone().pb_dumps(); // a copy keeps the undo history
         size = size.saturating_add(bytes.len());
 
         if size > LIMIT {
@@ -126,7 +129,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
     Ok(bytes)
 }
 
-/// Validate every document before returning a replacement scene. Failure preserves the live scene.
+/// A scene from `.session` file bytes.
 pub fn open(bytes: &[u8]) -> Result<Scene, String> {
     if bytes.len() > LIMIT {
         return Err("Session exceeds the 512 MiB file limit".into());
@@ -186,7 +189,7 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
         .into_iter()
         .map(|(doc, id)| (doc, Rc::from(id)))
         .collect();
-    // Older archives applied their single color to faces and edges alike.
+    // old files have one colour for faces and edges
     scene.edge_colors = metadata
         .edge_colors
         .unwrap_or_else(|| metadata.colors.clone())
@@ -230,6 +233,7 @@ export function chooseSession() {
         fn choose() -> js_sys::Promise;
     }
 
+    /// Open a file picker and install the chosen session.
     pub fn pick() {
         let promise = choose();
         wasm_bindgen_futures::spawn_local(async move {
@@ -257,6 +261,7 @@ mod tests {
     use crate::app::deform::Target;
     use session_rust::{Geometry, Mesh, Point};
 
+    /// A created line keeps its screen pen after reopening.
     #[test]
     fn created_curves_keep_visible_screen_pens_after_open() {
         let mut scene = Scene::new();
@@ -276,6 +281,7 @@ mod tests {
         );
     }
 
+    /// Edits, placements, hidden and colour state survive a save.
     #[test]
     fn edited_documents_placements_hidden_state_and_history_survive_save() {
         let mut source = Session::new("source");
@@ -351,6 +357,7 @@ mod tests {
         assert_eq!(first.face[&0], vec![0, 1, 2]);
     }
 
+    /// Junk and truncated files are refused.
     #[test]
     fn incomplete_or_foreign_files_are_rejected() {
         assert!(open(b"not a session").is_err());

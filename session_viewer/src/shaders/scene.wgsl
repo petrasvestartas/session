@@ -1,58 +1,62 @@
-@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-@group(1) @binding(0) var<uniform> line: LineUniform;
+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>; // camera matrix
+@group(1) @binding(0) var<uniform> line: LineUniform; // pen and view settings
 
-// One object row, 96 bytes: model 0, color 64, flags 80, AO radius 84, spacing 88 (engine/gpu/instance.rs).
+// One object row, 96 bytes; matches Instance in Rust.
 struct Instance {
-    model: mat4x4<f32>,
-    color: vec4<f32>,
-    flags: u32,
-    ao_radius: f32,
-    spacing: f32,
-    edge_color: u32,
+    model: mat4x4<f32>, // rotation and scale; translation is separate
+    color: vec4<f32>, // rgba tint
+    flags: u32, // FLAG_* bits
+    ao_radius: f32, // SSAO contact radius, world units
+    spacing: f32, // vertex spacing, world units
+    edge_color: u32, // packed edge color
 };
 
-@group(2) @binding(0) var<storage, read> instances: array<Instance>;
-@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
+@group(2) @binding(0) var<storage, read> instances: array<Instance>; // one row per object
+@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>; // position per object, minus the scene origin
 
-// The 80-byte frame block (engine/gpu/frame.rs): pen, projection, viewport, eye, anchor.
+// Pen and view settings, 80 bytes; matches LineUniform in Rust.
 struct LineUniform {
-    thickness: f32,
-    proj_y: f32,
-    ortho_h: f32,
-    vp_h: f32,
-    vp_w: f32,
-    eye_x: f32,
-    eye_y: f32,
-    eye_z: f32,
-    anchor: vec3<f32>,
-    feather: f32,
-    lit: f32,
-    backface: f32,
-    origin: vec2<f32>,
-    frame: vec2<f32>,
-    opacity: f32,
+    thickness: f32, // pen width, px
+    proj_y: f32, // perspective scale factor
+    ortho_h: f32, // ortho half-height; 0 = perspective
+    vp_h: f32, // target height, px
+    vp_w: f32, // target width, px
+    eye_x: f32, // camera position x
+    eye_y: f32, // camera position y
+    eye_z: f32, // camera position z
+    anchor: vec3<f32>, // scene origin
+    feather: f32, // edge softness of lines, px
+    lit: f32, // 0 flat, 1 lit, 2 lit with SSAO
+    backface: f32, // 1 = paint back faces red
+    origin: vec2<f32>, // top-left of this target in the canvas, px
+    frame: vec2<f32>, // canvas size, px
+    opacity: f32, // alpha of mesh faces
 };
 
-// Instance::FLAG_* bits.
-const FLAG_SELECTED: u32 = 1u;
-const FLAG_HIDDEN: u32 = 2u;
-const FLAG_INSIDE: u32 = 4u;
-const FLAG_PRINT: u32 = 8u;
-const FLAG_OPEN: u32 = 16u;
-const FLAG_SHEET: u32 = 32u;
-const FLAG_SMOOTH: u32 = 64u;
-const FLAG_SINGLE: u32 = 128u;
-const FLAG_COLOR: u32 = 256u;
+// Object flag bits; match Instance::FLAG_* in Rust.
+const FLAG_SELECTED: u32 = 1u; // selected: drawn tinted
+const FLAG_HIDDEN: u32 = 2u; // hidden: skipped
+const FLAG_INSIDE: u32 = 4u; // camera is inside the object
+const FLAG_PRINT: u32 = 8u; // sheet fill: flat color
+const FLAG_OPEN: u32 = 16u; // open mesh: no back-face culling
+const FLAG_SHEET: u32 = 32u; // part of a drawing sheet
+const FLAG_SMOOTH: u32 = 64u; // sampled surface: vertices are samples
+const FLAG_SINGLE: u32 = 128u; // single face: stays shaded in x-ray
+const FLAG_COLOR: u32 = 256u; // use the layer color
 
+// layer colour if FLAG_COLOR, else the authored one
 fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
     return select(authored * inst.color, vec4<f32>(inst.color.rgb, authored.a), (inst.flags & FLAG_COLOR) != 0u);
 }
 
+// Edge color: the layer edge color when set, else the face rule.
 fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
+    // no faces: edges follow the face rule
     if ((inst.flags & 1024u) == 0u) {
         return object_color(authored, inst);
     }
 
+    // layer edge color set
     if ((inst.flags & 512u) != 0u) {
         return vec4<f32>(unpack4x8unorm(inst.edge_color).rgb, authored.a);
     }
@@ -60,16 +64,19 @@ fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
     return authored;
 }
 
+// No face normals known: always drawn.
 const FACING_UNKNOWN: u32 = 0xffffffffu;
 
-// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
+// Bit that marks a pick id as a marker.
 const DISC_ID_TAG: u32 = 0x40000000u;
+// Selection yellow.
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
+// World millimetres to metres.
 const MM_TO_M: f32 = 0.001;
+// Thinnest lines never fade below this alpha.
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 
-// A point of object `i` in the anchored frame: rotation/scale from the row, translation
-// from the 16 B table a re-anchor rewrites.
+// A point of object `i` in scene space.
 fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
     return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
 }

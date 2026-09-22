@@ -30,16 +30,16 @@ pub mod mesh_topology;
 pub mod points;
 pub mod sheet;
 
-/// The lane tables a producer may write, borrowed from one `Upload` for one object.
+/// The four row tables one object writes into.
 pub struct Walk<'a> {
-    pub arena: &'a mut ArenaRows,
-    pub seg: &'a mut SegRows,
-    pub glyph: &'a mut GlyphRows,
-    pub cloud: &'a mut CloudRows,
+    pub arena: &'a mut ArenaRows, // triangles of faces
+    pub seg: &'a mut SegRows,     // line segments
+    pub glyph: &'a mut GlyphRows, // dots and labels
+    pub cloud: &'a mut CloudRows, // point cloud points
 }
 
 impl<'a> Walk<'a> {
-    /// Every lane table of `t`.
+    /// Borrow every table of one upload.
     pub fn of(t: &'a mut Upload) -> Self {
         Self {
             arena: &mut t.arena,
@@ -49,7 +49,7 @@ impl<'a> Walk<'a> {
         }
     }
 
-    /// The SOLID lane a tessellated surface reaches: the arena for its faces and the ink pair.
+    /// Tables a solid needs: faces plus its edge ink.
     fn solid(&mut self) -> (&mut ArenaRows, Ink<'_>) {
         (
             self.arena,
@@ -61,26 +61,24 @@ impl<'a> Walk<'a> {
     }
 }
 
-/// Where one object's rows land: the arena rows already on the GPU (`walk_mesh` bases its
-/// indices on it), the file's point-size override in px (0 = the pb's own) and the object row.
+/// Where one object's rows go.
 pub struct WalkCx {
-    pub vert_base: u32,
-    pub cloud_px: f32,
-    pub row: u32,
-    pub attributes: bool, // Draw each element's geometry features inside its own row.
+    pub vert_base: u32,   // arena vertices already on the GPU
+    pub cloud_px: f32,    // point size override in px, 0 = file's own
+    pub row: u32,         // this object's row index
+    pub attributes: bool, // draw element features inside its row
 }
 
-/// What a producer reports for its object row: the local box, the point/vertex spacing and
-/// the flags it earned.
+/// What a producer reports for one object row.
 pub struct Row {
-    pub bounds: AABB,
-    pub spacing: f32,
-    pub flags: u32,
-    pub faces: bool, // The row drew faces: the inside test (eye within the box) applies to it.
+    pub bounds: AABB, // local bounding box
+    pub spacing: f32, // point or vertex spacing
+    pub flags: u32,   // row flag bits
+    pub faces: bool,  // row drew faces
 }
 
 impl Row {
-    /// Linework, points, frames: a box, no spacing, no flags, no faces.
+    /// A row with only a box: lines, points, frames.
     pub fn thin(bounds: AABB) -> Self {
         Self {
             bounds,
@@ -91,14 +89,12 @@ impl Row {
     }
 }
 
-/// The feature types wood's `show_attributes` draws: what `Attributes On` shows on the element.
+/// Feature types `Attributes On` draws.
 const ATTRIBUTE_FEATURES: [&str; 3] = ["outline", "axis", "section"];
-const ATTRIBUTE_LINE_PX: f64 = 2.0; // Twice the 1 px default pen.
-const ATTRIBUTE_DOT_PX: f64 = 12.0; // Twice the 6 px standalone point.
+const ATTRIBUTE_LINE_PX: f64 = 2.0; // twice the 1 px pen
+const ATTRIBUTE_DOT_PX: f64 = 12.0; // twice the 6 px point
 
-/// The element's geometry features into the element's OWN row, so they select, hide and
-/// transform with it. A one-point outline is a dot, anything longer a polyline; all of it
-/// red and twice the default pen, so a feature never passes for an edge of the element.
+/// Draw an element's features, red and thick, into its own row.
 fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
     for feature in e.features() {
         if !ATTRIBUTE_FEATURES.contains(&feature.feature_type.as_str()) {
@@ -106,6 +102,7 @@ fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
         }
 
         for outline in &feature.outlines {
+            // one point is a dot, more is a polyline
             let r = if let (1, Some(mut p)) = (outline.point_count(), outline.get_point(0)) {
                 p.pointcolor = Color::red();
                 p.width = ATTRIBUTE_DOT_PX;
@@ -121,7 +118,7 @@ fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
     }
 }
 
-/// An `Element` with no geometry gets no row at all; everything else does.
+/// An element without geometry gets no row.
 pub fn is_drawable(geom: &Geometry) -> bool {
     match geom {
         Geometry::Element(e) => !matches!(e.geometry(), ElementGeometry::None),
@@ -129,8 +126,7 @@ pub fn is_drawable(geom: &Geometry) -> bool {
     }
 }
 
-/// One object into the tables. Meshes, BReps and surfaces take the SOLID lane; free linework
-/// and points the FLAT lane; every cloud the point lane.
+/// Write one object into the tables and report its row.
 pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
     match geom {
         Geometry::Mesh(m) => {
@@ -198,8 +194,7 @@ mod tests {
     use session_rust::Polyline;
     use session_rust::element::ElementFeature;
 
-    /// One element with a box, an `axis` polyline far outside it, a one-point `section` and a
-    /// `cut` that is not an attribute, walked with attributes on or off.
+    /// A box element with an axis, a section dot and a non-attribute cut.
     fn walk_element(attributes: bool) -> (Upload, Row) {
         let mut element = Element::new("beam");
         element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
@@ -224,6 +219,7 @@ mod tests {
         (up, row)
     }
 
+    /// Attributes add one ribbon and one dot to the element's own row.
     #[test]
     fn attributes_join_the_element_row() {
         let (off, row_off) = walk_element(false);

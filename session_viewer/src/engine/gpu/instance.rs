@@ -1,59 +1,54 @@
 use session_rust::Xform;
 
-/// One object row as the shaders see it: rotation/scale with a ZERO translation column (the
-/// anchored translation is the 16 B row at group 2 binding 1), tint, flag bits and two
-/// scalars the ink lanes read. 96 B, the storage stride.
+/// One object row as the shaders read it, 96 bytes.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Instance {
-    pub model: [f32; 16],
-    pub color: [f32; 4],
-    pub flags: u32,
-    pub ao_radius: f32, // Contact radius in world units; stays proportional to this object.
-    pub spacing: f32, // Vertex spacing, world units; markers thin once it projects small. 0 = unknown.
-    pub _pad: u32,
+    pub model: [f32; 16], // rotation and scale; translation is stored separately
+    pub color: [f32; 4], // rgba tint
+    pub flags: u32, // FLAG_* bits below
+    pub ao_radius: f32, // SSAO contact radius, world units
+    pub spacing: f32, // vertex spacing, world units; 0 = unknown
+    pub _pad: u32, // padding
 }
 
 const _: () = assert!(std::mem::size_of::<Instance>() == 96);
 
 impl Instance {
-    /// The row is the current selection: the shaders tint it. Bit 0.
+    /// Selected: drawn tinted.
     pub const FLAG_SELECTED: u32 = 1 << 0;
 
-    /// The row is skipped by every draw. Bit 1.
+    /// Hidden: skipped by every draw.
     pub const FLAG_HIDDEN: u32 = 1 << 1;
 
-    /// The eye is inside this object's bounds (per-frame CPU test): the edge lanes skip the
-    /// facing cull, since from inside a solid every face points away. Bit 2.
+    /// Camera is inside the object: no back-face culling.
     pub const FLAG_INSIDE: u32 = 1 << 2;
 
-    /// A print fill (zero edge width): lit flat, no wireframe. Bit 3.
+    /// Sheet fill: flat color, no edges.
     pub const FLAG_PRINT: u32 = 1 << 3;
 
-    /// An open mesh (border edges): the facing cull's premise is void, skipped like INSIDE. Bit 4.
+    /// Open mesh: no back-face culling.
     pub const FLAG_OPEN: u32 = 1 << 4;
 
-    /// A row of a planar drawing sheet: fills composite in document order. Bit 5.
+    /// Part of a drawing sheet.
     pub const FLAG_SHEET: u32 = 1 << 5;
 
-    /// A TESSELLATION, not an authored mesh: its interior seams are an artifact of how finely
-    /// the surface was sampled, not edges of the thing. The walk drops those seams before the
-    /// GPU sees them; this flag is what tells the marker lane its vertices are samples, not
-    /// corners. Bit 6.
+    /// Sampled surface: vertices are samples, not corners.
     pub const FLAG_SMOOTH: u32 = 1 << 6;
 
-    /// One face only (a NURBS surface, a one-face mesh or BRep): x-ray leaves it shaded, since
-    /// it has no interior to look into.
+    /// Single face: stays shaded in x-ray.
     pub const FLAG_SINGLE: u32 = 1 << 7;
 
-    /// Replace authored colors with the layer color.
+    /// Use the layer color instead of the object's.
     pub const FLAG_COLOR: u32 = 1 << 8;
 
+    /// Use the layer color for edges too.
     pub const FLAG_EDGE_COLOR: u32 = 1 << 9;
 
+    /// The object has faces, not only lines or points.
     pub const FLAG_HAS_FACES: u32 = 1 << 10;
 
-    /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
+    /// The one row an empty scene binds: identity, grey, no flags.
     pub fn placeholder() -> Self {
         Self {
             model: Xform::identity().to_f32(),
@@ -66,7 +61,7 @@ impl Instance {
     }
 }
 
-/// The field names of a WGSL `struct <name> { .. }`, in declaration order. Test-only.
+/// Field names of a WGSL struct, in order.
 #[cfg(test)]
 pub(crate) fn wgsl_fields(src: &str, struct_name: &str) -> Vec<String> {
     let at = src
@@ -92,8 +87,7 @@ mod tests {
     use crate::engine::gpu::frame::LineUniform;
     use crate::engine::gpu::lane_shaders;
 
-    /// Validate the actual shader modules and every storage member offset, not merely field
-    /// names: a valid Rust size alone does not prove WGSL's array stride.
+    /// Every shader compiles and its struct offsets match Rust.
     #[test]
     fn shader_validation_and_layouts() {
         use crate::engine::gpu::glyphs::GlyphPoint;
@@ -101,7 +95,7 @@ mod tests {
         use std::mem::{offset_of, size_of};
 
         for (name, source) in lane_shaders() {
-            // The backdrop declares no scene binding; every other lane is on the contract.
+            // shaders that use the camera get the shared scene code
             let scene = source.contains("mvp") || source.contains("line.");
             let mut source = source.to_string();
 
@@ -118,8 +112,7 @@ mod tests {
                 .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
             naga::valid::Validator::new(
                 naga::valid::ValidationFlags::all(),
-                // Core WGSL pack2x16float/unpack2x16float, also enabled unconditionally
-                // by wgpu-naga-bridge; this does not enable shader-f16.
+                // allows pack2x16float, as wgpu does
                 naga::valid::Capabilities::default()
                     | naga::valid::Capabilities::SHADER_FLOAT16_IN_FLOAT32,
             )
@@ -204,7 +197,7 @@ mod tests {
 
     use crate::engine::pipelines::SCENE;
 
-    /// The scene contract declares `Instance` with the Rust fields, in order.
+    /// The shared scene code declares Instance with the Rust fields.
     #[test]
     fn instance_mirror() {
         let rust = [
@@ -218,8 +211,7 @@ mod tests {
         assert_eq!(wgsl_fields(SCENE, "Instance"), rust, "Instance fields");
     }
 
-    /// Every shader that declares `LineUniform` lists the Rust fields; `eye: [f32; 3]` is
-    /// three scalars there.
+    /// The shared scene code declares LineUniform with the Rust fields.
     #[test]
     fn line_uniform_mirror() {
         let rust = [
@@ -247,8 +239,7 @@ mod tests {
         assert_eq!(std::mem::size_of::<LineUniform>(), 80);
     }
 
-    /// The translation table is bound at group 2 binding 1 and added through `place()`, never
-    /// to a direction; no lane declares its own copy of the contract.
+    /// Translations live in the shared code; no shader redeclares the structs.
     #[test]
     fn translations_mirror() {
         let binding = "@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;";

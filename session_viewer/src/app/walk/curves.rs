@@ -5,14 +5,13 @@ use crate::engine::gpu::segments::SegRows;
 use session_rust::AABB;
 use session_rust::{Line, NurbsCurve, Polyline};
 
-/// Segments between consecutive points, growing `bounds` as they go.
+/// One segment per pair of neighbours; grows `bounds`.
 pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut AABB) {
     let first = seg.ribbons.len() as u32;
     seg.ribbons.reserve(pts.len().saturating_sub(1));
 
     for w in pts.windows(2) {
-        // Imported closed contours may repeat a vertex. A zero-length neighbor has no
-        // join direction and must not split an otherwise continuous stroke.
+        // skip a repeated point
         if w[0] == w[1] {
             continue;
         }
@@ -23,18 +22,18 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
             p1: w[1],
             instance_id: pen.row,
             color: pen.color,
-            facing: FACING_UNKNOWN,
+            facing: FACING_UNKNOWN, // no face orientation
         });
     }
 
-    seg.ribbon_chains.push(first..seg.ribbons.len() as u32);
+    seg.ribbon_chains.push(first..seg.ribbons.len() as u32); // one joined stroke
 
     if let Some(last) = pts.last() {
         bounds.union_with_point(last[0] as f64, last[1] as f64, last[2] as f64);
     }
 }
 
-/// One ribbon segment; the ends are read by index (no kernel `Point` allocations).
+/// A line as one segment.
 pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
     let p0 = [l[0] as f32, l[1] as f32, l[2] as f32];
     let p1 = [l[3] as f32, l[4] as f32, l[5] as f32];
@@ -47,12 +46,12 @@ pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
         p1,
         instance_id: row,
         color: pack_rgba(l.linecolor.to_f32()),
-        facing: FACING_UNKNOWN,
+        facing: FACING_UNKNOWN, // no face orientation
     });
     Row::thin(bounds)
 }
 
-/// One segment per span, straight from the flat coordinate array.
+/// A polyline as one segment per span.
 pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
     let mut pts: Vec<[f32; 3]> = Vec::with_capacity(pl.coords.len() / 3);
 
@@ -70,12 +69,10 @@ pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
     Row::thin(bounds)
 }
 
-/// Degrees of turning one chord may hide. A chord across `a` degrees of arc sags by
-/// `r * (1 - cos(a/2))` of its own radius, so 5 degrees is a sag of 0.1% - under a pixel until
-/// the curve is a thousand pixels across, at any zoom and at any size in world units.
+/// Degrees of turning one chord may span.
 const CHORD_DEGREES: f64 = 5.0;
 
-/// Read one Euclidean control position using the curve's rational storage convention.
+/// Control point `i` with its weight divided out.
 fn control_position(c: &NurbsCurve, i: usize) -> Option<[f64; 3]> {
     let p = c.cv(i)?;
     let w = if c.m_is_rat && p.len() > 3 && p[3] != 0.0 {
@@ -86,13 +83,12 @@ fn control_position(c: &NurbsCurve, i: usize) -> Option<[f64; 3]> {
     Some([p[0] / w, p[1] / w, p[2] / w])
 }
 
-/// Convert sampled world coordinates only at the viewer's f32 upload boundary.
+/// f64 point to the f32 the GPU takes.
 pub(super) fn render_position(point: [f64; 3]) -> [f32; 3] {
     [point[0] as f32, point[1] as f32, point[2] as f32]
 }
 
-/// The control polygon turns by this much in total; a straight curve returns 0 and a full
-/// circle 360, whatever its radius. Curvature, not world size, is what a chord has to follow.
+/// Total turning of the control polygon in degrees.
 fn turning_degrees(c: &NurbsCurve) -> f64 {
     let mut total = 0.0;
     let mut prev: Option<[f64; 3]> = None;
@@ -108,11 +104,11 @@ fn turning_degrees(c: &NurbsCurve) -> f64 {
             continue;
         }
 
-        let u = [d[0] / len, d[1] / len, d[2] / len];
+        let u = [d[0] / len, d[1] / len, d[2] / len]; // unit direction
 
         if let Some(q) = prev {
             let dot = (q[0] * u[0] + q[1] * u[1] + q[2] * u[2]).clamp(-1.0, 1.0);
-            total += dot.acos().to_degrees();
+            total += dot.acos().to_degrees(); // angle between neighbours
         }
 
         prev = Some(u);
@@ -121,14 +117,14 @@ fn turning_degrees(c: &NurbsCurve) -> f64 {
     total
 }
 
-/// The curve's f64 samples, one chord per `CHORD_DEGREES` of turning.
+/// Sample the curve, one chord per `CHORD_DEGREES`.
 pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
     if c.m_cv_count < 2 {
         return Vec::new();
     }
 
     let spans = c.span_count().max(1);
-    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512);
+    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512); // chord count
 
     let (t0, t1) = c.domain();
     let mut pts: Vec<[f64; 3]> = Vec::with_capacity(n + 1);
@@ -141,7 +137,7 @@ pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
     pts
 }
 
-/// Sample the curve into a polyline whose segment count follows its size, then walk that.
+/// A curve as a sampled polyline.
 pub fn walk_nurbscurve(seg: &mut SegRows, c: &NurbsCurve, row: u32) -> Row {
     let pts: Vec<_> = sample_nurbscurve(c)
         .into_iter()
@@ -151,7 +147,7 @@ pub fn walk_nurbscurve(seg: &mut SegRows, c: &NurbsCurve, row: u32) -> Row {
         .linecolors
         .first()
         .map(session_rust::Color::to_f32)
-        .unwrap_or([0.0, 0.0, 0.0, 1.0]);
+        .unwrap_or([0.0, 0.0, 0.0, 1.0]); // black when unset
     let pen = Pen {
         row,
         radius: encode_width(c.width),

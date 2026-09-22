@@ -1,0 +1,12 @@
+[build]
+dist = "../../../target/lessons/04d/dist"
+release = true
+no_sri = true
+public_url = "./"
+
+[watch]
+watch = ["src", "Cargo.toml", "index.html", "assets", "../../../../session_rust/src"]
+
+[serve]
+port = 8770
+addresses = ["127.0.0.1"]

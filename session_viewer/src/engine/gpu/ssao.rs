@@ -1,30 +1,30 @@
 use super::{buffers::GpuCtx, targets::Targets};
 use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
 
-/// Hemisphere/contact lighting with two capped half-float textures.
-/// The hemisphere sampling pass is cached while camera and geometry remain unchanged.
+/// Screen-space ambient occlusion: soft shadows where surfaces meet.
 pub struct Ssao {
-    target: Target,
-    layout: wgpu::BindGroupLayout,
-    raw: wgpu::RenderPipeline,
-    composite: wgpu::RenderPipeline,
-    filter: [wgpu::RenderPipeline; 2],
-    filtered: wgpu::Texture,
-    filtered_view: wgpu::TextureView,
-    filtered_group: wgpu::BindGroup,
-    inverse: wgpu::Buffer,
-    texture: wgpu::Texture,
-    view: wgpu::TextureView,
-    sampled: wgpu::BindGroup,
-    size: (u32, u32),
-    cached: Option<([f32; 36], u64)>,
-    receiver_bounds: Option<(u64, session_rust::AABB, f32)>,
+    target: Target, // scene color format and samples
+    layout: wgpu::BindGroupLayout, // depth, uniform, gradient, triangles
+    raw: wgpu::RenderPipeline, // computes occlusion per pixel
+    composite: wgpu::RenderPipeline, // darkens the scene with it
+    filter: [wgpu::RenderPipeline; 2], // blur in x, then in y
+    filtered: wgpu::Texture, // half-blurred occlusion
+    filtered_view: wgpu::TextureView, // view of it
+    filtered_group: wgpu::BindGroup, // binds it
+    inverse: wgpu::Buffer, // inverse camera, camera, ground, size
+    texture: wgpu::Texture, // occlusion per pixel
+    view: wgpu::TextureView, // view of it
+    sampled: wgpu::BindGroup, // binds it
+    size: (u32, u32), // occlusion texture size, px
+    cached: Option<([f32; 36], u64)>, // uniform and geometry the occlusion was computed for
+    receiver_bounds: Option<(u64, session_rust::AABB, f32)>, // geometry revision, box of shadow receivers, largest radius
 }
 
 impl Ssao {
-    /// Hidden solids and non-surface drawings cannot lower the shadow receiver.
+    /// Ground height and contact radius from the visible solids.
     pub fn receiver(&mut self, objects: &super::objects::InstanceTable) -> [f32; 2] {
         let revision = objects.geometry_revision();
+        // recompute when the objects changed
         if self
             .receiver_bounds
             .as_ref()
@@ -46,10 +46,13 @@ impl Ssao {
         }
         let b = &self.receiver_bounds.as_ref().unwrap().1;
         let radius = self.receiver_bounds.as_ref().unwrap().2;
+        // bottom of the box, relative to the scene origin
         [(b.cz - b.hz - objects.anchor()[2]) as f32, radius]
     }
 
+    /// Create the pipelines and textures for a `full`-sized canvas.
     pub fn new(ctx: &GpuCtx, target: Target, full: (u32, u32)) -> Self {
+        // group 0: depth, uniform, gradient, projected triangles
         let layout = ctx
             .device
             .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -97,6 +100,7 @@ impl Ssao {
                     },
                 ],
             });
+        // group 1: one occlusion texture
         let sample_layout = ctx
             .device
             .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -113,6 +117,7 @@ impl Ssao {
                 }],
             });
         let shader = module(&ctx.device, "ambient", &shader_source(target.samples));
+        // occlusion into a one-channel half-float texture
         let raw = build(
             &ctx.device,
             Target {
@@ -128,6 +133,7 @@ impl Ssao {
             .with("ambient hemisphere", "fs_main")
             .depth(DepthMode::Detached),
         );
+        // two blur passes, one per axis
         let filter = ["fs_filter_x", "fs_filter_y"].map(|entry| {
             build(
                 &ctx.device,
@@ -145,6 +151,7 @@ impl Ssao {
                 .depth(DepthMode::Detached),
             )
         });
+        // multiply the scene by the occlusion
         let composite = build(
             &ctx.device,
             target,
@@ -158,12 +165,14 @@ impl Ssao {
             .depth(DepthMode::Detached)
             .color(ColorWrite::Blended),
         );
+        // 36 floats: inverse camera, camera, ground, size
         let inverse = ctx.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("ambient inverse and ground"),
             size: 144,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
+        // occlusion at most 1920 px wide
         let scale = 1.0_f64.min(1920.0 / f64::from(full.0.max(full.1).max(1)));
         let size = (
             (f64::from(full.0) * scale).ceil().max(1.0) as u32,
@@ -222,10 +231,12 @@ impl Ssao {
         }
     }
 
+    /// Bytes of the two occlusion textures.
     pub fn texture_bytes(&self) -> u64 {
         4 * u64::from(self.size.0) * u64::from(self.size.1)
     }
 
+    /// Compute occlusion if needed, then darken the scene; returns the draw count.
     #[allow(clippy::too_many_arguments)]
     pub fn draw(
         &mut self,
@@ -243,6 +254,7 @@ impl Ssao {
             targets.depth.texture().width(),
             targets.depth.texture().height(),
         );
+        // remake everything when format or size changed
         if self.target != target
             || self
                 .cached
@@ -250,6 +262,7 @@ impl Ssao {
         {
             *self = Self::new(ctx, target, size);
         }
+        // clip space back to view space
         let Some(inverse) = inverse_projection(mvp) else {
             return 0;
         };
@@ -259,6 +272,7 @@ impl Ssao {
         uniform[32..].copy_from_slice(&[ground[0], ground[1], size.0 as f32, size.1 as f32]);
         ctx.queue
             .write_buffer(&self.inverse, 0, bytemuck::cast_slice(&uniform));
+        // this frame's depth and gradient
         let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("ambient"),
             layout: &self.layout,
@@ -282,6 +296,7 @@ impl Ssao {
             ],
         });
         let mut draws = 1;
+        // recompute only when camera or geometry moved
         if self.cached != Some((uniform, revision)) {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("ambient horizons"),
@@ -303,6 +318,7 @@ impl Ssao {
             pass.set_bind_group(0, &group, &[]);
             pass.draw(0..3, 0..1);
             drop(pass);
+            // blur x into filtered, then y back into view
             for (pipeline, output, input) in [
                 (&self.filter[0], &self.filtered_view, &self.sampled),
                 (&self.filter[1], &self.view, &self.filtered_group),
@@ -331,6 +347,7 @@ impl Ssao {
             self.cached = Some((uniform, revision));
             draws += 3;
         }
+        // darken the scene color
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("ambient composite"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -355,13 +372,16 @@ impl Ssao {
     }
 }
 
+/// Free the textures now, not when the browser collects them.
 impl Drop for Ssao {
+    /// Remove the DOM listener.
     fn drop(&mut self) {
         self.texture.destroy();
         self.filtered.destroy();
     }
 }
 
+/// The shader text, rewritten for multisampled depth when needed.
 fn shader_source(samples: u32) -> String {
     let source = include_str!("../../shaders/ssao.wgsl");
     if samples > 1 {
@@ -381,8 +401,7 @@ fn shader_source(samples: u32) -> String {
     }
 }
 
-// Camera matrices include millimetre-to-metre conversion. Normalize each equation
-// before the kernel inverse's absolute determinant test, then undo the row scaling.
+/// Invert the camera matrix; rows are scaled first to keep precision.
 fn inverse_projection(matrix: [f32; 16]) -> Option<[f32; 16]> {
     let mut normalized = matrix.map(f64::from);
     let scales: [f64; 4] = std::array::from_fn(|row| {
@@ -412,6 +431,7 @@ mod tests {
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     #[ignore = "requires a native GPU adapter"]
+    /// Contact darkens pixels, far ground stays bright, memory returns.
     fn occlusion_darkens_contact_and_releases_its_small_uniform() {
         use crate::app::scene::{FileDoc, Scene};
         use crate::camera::Camera;
@@ -532,6 +552,7 @@ mod tests {
     }
 
     #[test]
+    /// The shader compiles at 1x and 4x.
     fn shader_validates_for_both_depth_sample_counts() {
         for samples in [1, 4] {
             let module = naga::front::wgsl::parse_str(&super::shader_source(samples)).unwrap();

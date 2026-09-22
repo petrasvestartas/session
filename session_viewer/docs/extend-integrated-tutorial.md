@@ -1,31 +1,20 @@
 # Combine the extensions into the current viewer
 
-## You are building
-
-Continue from checkpoint 21 through the maintained viewer. This sequence resolves shared wiring explicitly; the individual feature lessons remain independent alternatives.
+Sixteen lessons take checkpoint 21 to the maintained viewer.
 
 ![Running viewer: Combine the extensions into the current viewer.](screenshots/extensions-color-channels.png)
 
-Actual maintained viewer output. [Capture setup and five browser rounds](extensions/README.md).
-
 ## Starting point
 
-Start from a fresh checkpoint **21**, not from another extension lesson. The lessons can be implemented separately. Every code block below is complete; there are no omitted method bodies. Execute every edit within one step before its check.
-
-Use the tools installed in [00 · Environment](00-environment.md). From the maintained `session_viewer` repository, create your learning workspace once:
+Copy checkpoint 21 and work in the copy:
 
 ```bash
-export COURSE_REPO="$PWD"
-bash "$COURSE_REPO/docs/serve.sh" build --quiet
-python3 "$COURSE_REPO/docs/extensions.py" --prepare "$HOME/viewer-integrated"
-cd "$HOME/viewer-integrated/session_viewer"
-export REGEN_PROTO=0
+cp -r docs/lessons/21 docs/lessons/my-integrated
+cd docs/lessons/my-integrated
 cargo check -j4 --lib
 ```
 
-The build prepares the frozen checkpoint cache. The initializer copies its viewer and kernel into a new folder; it does **not** install the feature. Expected: `Finished` with no compiler errors. Keep this terminal in the new `session_viewer` directory. If the destination exists, use a new folder name.
-
-For **CURRENT → REPLACE WITH**, find the complete CURRENT block in the named file and replace it once. For **ADD BELOW**, keep the shown anchor and insert the new block directly after it. For **NEW FILE**, create the named path and paste its complete block. Apply blocks in page order; compile only at the check marker. All required code and answers are visible here.
+Each lesson's finished crate is `docs/lessons/current-N/`; diff against it whenever a check fails.
 
 ## Follow these checkpoints in order
 
@@ -40,11 +29,16 @@ For **CURRENT → REPLACE WITH**, find the complete CURRENT block in the named f
 9. [Keep source dragging live and build one layer tree](current-9.md)
 10. [Split curves and faces while keeping the shell joined](current-10.md)
 11. [Separate face and edge colors and keep large-object dragging live](current-11.md)
+12. [Contact shadows that follow object size](current-12.md)
+13. [Polyline options, ordered input and a remembered view](current-13.md)
+14. [Attributes On|Off and a phone keyboard](current-14.md)
+15. [Translucent faces and the Opacity command](current-15.md)
+16. [Attribute features in red and a one-row command dock](current-16.md)
 
-The final check compares every runtime source file, Cargo manifest, lockfile and browser entry point with the maintained viewer. Each checkpoint compiles for WebAssembly; the final one runs native library tests.
+`docs/lessons/current-16/src` is the maintained `src`.
 
 ## Expected viewer result
 
-The completed viewer has a command dock across the bottom, one right-hand layer tree with bulbs, selection locks and color swatches, and a left toolbar. Split keeps both face regions in the joined shell. The selected region has its gumball; Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
+A command dock across the bottom, a layer tree on the right, a toolbar on the left, and a gumball on the selection. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
 
 [![Full viewer result for extend integrated tutorial](screenshots/extensions-workspace-current-desktop.png)](screenshots/extensions-workspace-current-desktop.png)

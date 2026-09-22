@@ -1,23 +1,24 @@
+// One line segment with its neighbours, 48 bytes; matches StrokeSegment in Rust.
 struct StrokeSegment {
-    p0x: f32,
-    p0y: f32,
-    p0z: f32,
-    radius: f32,
-    p1x: f32,
-    p1y: f32,
-    p1z: f32,
-    instance_id: u32,
-    color: u32,
-    facing: u32,
-    previous: u32,
-    next: u32,
+    p0x: f32, // start point x
+    p0y: f32, // start point y
+    p0z: f32, // start point z
+    radius: f32, // 0 = pen; > 0 world mm; < 0 pen multiplier
+    p1x: f32, // end point x
+    p1y: f32, // end point y
+    p1z: f32, // end point z
+    instance_id: u32, // object row
+    color: u32, // packed rgba
+    facing: u32, // packed normals of the two faces beside it
+    previous: u32, // row of the segment before it, or none
+    next: u32, // row of the segment after it, or none
 }
 
-@group(3) @binding(0) var<storage, read> segments: array<StrokeSegment>;
-@group(3) @binding(1) var<storage, read> source_edges: array<u32>;
-@group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
+@group(3) @binding(0) var<storage, read> segments: array<StrokeSegment>; // one row per segment
+@group(3) @binding(1) var<storage, read> source_edges: array<u32>; // source edge per segment
+@group(3) @binding(2) var<uniform> edge_selection: vec4<u32>; // selected (object, edge)
 
-// An edge whose two faces both turn away from the eye is inside the solid: not drawn.
+// True when either face beside the edge faces the camera.
 fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
     if (facing == FACING_UNKNOWN) {
         return true;
@@ -26,7 +27,7 @@ fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32
     return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
 }
 
-// Negative radii encode screen pens; positive radii are physical sheet pens.
+// Half width in px at depth `w`, from the radius field.
 fn half_width_px(radius: f32, w: f32) -> f32 {
     if (radius < 0.0) { return -radius * line.thickness; }
     if (radius > 0.0) {
@@ -40,16 +41,10 @@ fn half_width_px(radius: f32, w: f32) -> f32 {
     return line.thickness * 0.5;
 }
 
-// Half a pixel's diagonal: the farthest a pixel's own area reaches from its centre along any
-// direction, so the exact filter below has no ink outside `half_width + this` and the quad
-// need not be expanded further.
+// Half a pixel's diagonal: how far a pixel reaches from its center.
 const FILTER_REACH: f32 = 0.70711;
 
-// The unit pixel square projected onto a direction is a trapezoid (a box of width |g.x|
-// convolved with one of |g.y|); this is that trapezoid's CDF.
-// `t` is the signed distance from the band's edge; the other four are that trapezoid's shape,
-// computed once in `band_area` from the gradient: `hi` half its base, `lo` half its flat top,
-// `m` its ramp scale (the larger of |g.x| and |g.y|) and `q` the quadratic tails' divisor.
+// Fraction of a pixel square lying below signed distance `t` from a line.
 fn box_cdf(t: f32, hi: f32, lo: f32, m: f32, q: f32) -> f32 {
     let s = clamp(t, -hi, hi);
     let e = hi - abs(s);
@@ -57,12 +52,7 @@ fn box_cdf(t: f32, hi: f32, lo: f32, m: f32, q: f32) -> f32 {
     return select(tail, 0.5 + s / m, abs(s) <= lo);
 }
 
-// The EXACT area of this pixel lying within `hw` of the axis, `d` from it, where `g` is the
-// unit gradient of the distance field. A ramp in `d` cannot do this: pixel centres sample it
-// at spacing cos(angle), and the sampled sum then beats with the line's subpixel phase - 22%
-// at a 1.5 px pen through a 1.5 px ramp, with a period of cot(angle) px, which is the banding
-// a shallow line shows. Pixel boxes tile the plane, so summing their true areas cannot beat:
-// measured 0.00% ripple here against 22.2% for the ramp, at every angle from 1 to 45 degrees.
+// Exact area of this pixel within `hw` of the line, `d` away, direction `g`.
 fn band_area(d: f32, hw: f32, g: vec2<f32>) -> f32 {
     let a = abs(g.x);
     let b = abs(g.y);
@@ -73,11 +63,12 @@ fn band_area(d: f32, hw: f32, g: vec2<f32>) -> f32 {
     return box_cdf(hw - d, hi, lo, m, q) + box_cdf(hw + d, hi, lo, m, q) - 1.0;
 }
 
-// Hairline rule: never thinner than 1 px, the deficit goes into alpha (floored).
+// Never thinner than one pixel.
 fn floor_hairline(px: f32) -> f32 {
     return max(px, 0.5);
 }
 
+// Alpha for a line thinner than a pixel.
 fn hairline_fade(px: f32) -> f32 {
     if (px < 0.5) {
         return max(px / 0.5, HAIRLINE_MIN_ALPHA);
@@ -86,39 +77,38 @@ fn hairline_fade(px: f32) -> f32 {
     return 1.0;
 }
 
+// What the vertex shader hands the fragment shader.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>,
-    @location(0) color: vec4<f32>,
-    @location(1) @interpolate(linear) p: vec2<f32>,
-    @location(2) @interpolate(flat) a: vec2<f32>,
-    @location(3) @interpolate(flat) b: vec2<f32>,
-    @location(4) @interpolate(flat) hw0: f32,
-    @location(5) @interpolate(flat) hw1: f32,
-    @location(6) @interpolate(flat) solid: f32,
-    @location(7) @interpolate(flat) inst_id: u32,
-    @location(8) @interpolate(flat) segment_index: u32,
-    @location(9) @interpolate(flat) end_depth: vec2<f32>,
-    @location(10) @interpolate(flat) source_edge: u32,
-    @location(11) @interpolate(flat) start_join: vec4<f32>,
-    @location(12) @interpolate(flat) end_join: vec4<f32>,
+    @builtin(position) pos: vec4<f32>, // clip position
+    @location(0) color: vec4<f32>, // rgba
+    @location(1) @interpolate(linear) p: vec2<f32>, // this corner, screen px
+    @location(2) @interpolate(flat) a: vec2<f32>, // start point, screen px
+    @location(3) @interpolate(flat) b: vec2<f32>, // end point, screen px
+    @location(4) @interpolate(flat) hw0: f32, // half width at the start, px
+    @location(5) @interpolate(flat) hw1: f32, // half width at the end, px
+    @location(6) @interpolate(flat) solid: f32, // 1 = a mesh edge, never fades
+    @location(7) @interpolate(flat) inst_id: u32, // object row
+    @location(8) @interpolate(flat) segment_index: u32, // segment row
+    @location(9) @interpolate(flat) end_depth: vec2<f32>, // depth at start and end
+    @location(10) @interpolate(flat) source_edge: u32, // source edge, or none
+    @location(11) @interpolate(flat) start_join: vec4<f32>, // cut plane at the start joint: normal, point
+    @location(12) @interpolate(flat) end_join: vec4<f32>, // cut plane at the end joint
 };
 
-// The fragment's half-width and fade at `h` along the segment. Resolved per pixel from the
-// two flat end values: a per-vertex width is projective over a trapezoid and the two
-// triangles disagree along the diagonal. Solid-lane wires never fade: they blend under a
-// depth write and half-alpha strokes resolve by draw-order luck.
+// (half width, alpha) at fraction `h` along the segment.
 fn resolve_width(in: VsOut, h: f32) -> vec2<f32> {
     let raw = mix(in.hw0, in.hw1, h);
     return vec2<f32>(floor_hairline(raw), select(hairline_fade(raw), 1.0, in.solid > 0.5));
 }
 
+// A vertex placed off screen, so nothing is drawn.
 fn dead_vertex() -> VsOut {
-    var dead: VsOut;  // zero-valued; only the position matters
+    var dead: VsOut; // all zero; only the position matters
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
     return dead;
 }
 
-// Which quad corner vertex `k` of 6 is: 0 = e0-, 1 = e0+, 2 = e1-, 3 = e1+.
+// Quad corner of vertex `k` of 6: 0 start-, 1 start+, 2 end-, 3 end+.
 fn corner_of(k: u32) -> u32 {
     if (k == 0u) {
         return 0u;
@@ -139,7 +129,7 @@ fn corner_of(k: u32) -> u32 {
     return 3u;
 }
 
-// A connected neighbor contributes only while its own physical facets can face the eye.
+// True when the segment is drawn: a face beside it faces the camera.
 fn neighbor_visible(seg: StrokeSegment) -> bool {
     let inst = instances[seg.instance_id];
 
@@ -154,10 +144,7 @@ fn neighbor_visible(seg: StrokeSegment) -> bool {
     return edge_faces_camera(seg.facing, n0, n1, toward_eye((p0+p1)*0.5));
 }
 
-// Both segments calculate this plane from the same ordered source pair and shared
-// projected vertex. Identical arithmetic makes the start-inclusive/end-exclusive
-// partition watertight, including pixels exactly on the angle bisector.
-// Zero disables a join at a clipped, reversed or invisible neighbor.
+// Cut plane between two joined segments: (normal, point), or zero for no joint.
 fn join_plane(before: u32, after: u32) -> vec4<f32> {
     if (before == 0xffffffffu || after == 0xffffffffu || before >= arrayLength(&segments) || after >= arrayLength(&segments)) {
         return vec4<f32>(0.0);
@@ -189,6 +176,7 @@ fn join_plane(before: u32, after: u32) -> vec4<f32> {
         return vec4<f32>(0.0);
     }
 
+    // bisector of the two directions
     let normal = normalize(d0)+normalize(d1);
 
     if (dot(normal, normal) < 1e-8) {
@@ -198,12 +186,13 @@ fn join_plane(before: u32, after: u32) -> vec4<f32> {
     return vec4<f32>(normalize(normal), p1);
 }
 
-// 0 includes all strokes (picking/control nets), 1 excludes selection, 2 is its final pass.
+// One quad corner of segment `vid / 6`; layer 0 all, 1 unselected, 2 selected.
 fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let iid = vid / 6u;
     let corner = corner_of(vid % 6u);
     let seg = segments[iid];
     let inst = instances[seg.instance_id];
+    // selected object, or the selected source edge
     let selected = (inst.flags & FLAG_SELECTED) != 0u ||
         (edge_selection.x == seg.instance_id && edge_selection.y != 0xffffffffu &&
          edge_selection.y == source_edges[iid]);
@@ -230,8 +219,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let at_end1 = corner >= 2u;
     let side = select(-1.0, 1.0, (corner & 1u) == 1u);
 
-    // Clip against the near plane (z - w = 0 in reverse-Z) BEFORE any divide: a hand divide
-    // behind the eye mirrors the point through the screen centre.
+    // clip to the near plane before dividing by w
     let f0 = c0.z - c0.w;
     let f1 = c1.z - c1.w;
 
@@ -243,6 +231,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
     let clip = select(e0, e1, at_end1);
 
+    // both ends in screen pixels
     let vp = vec2<f32>(line.vp_w, line.vp_h);
     let s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
     let s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
@@ -251,13 +240,11 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let dir = select(vec2<f32>(1.0, 0.0), d / len, len > 1e-6);
     let n = vec2<f32>(-dir.y, dir.x);
 
-    // The quad is a trapezoid under perspective: both end widths go down flat.
-    // A selected stroke has an opaque yellow core covering the ordinary black pen.
-    // Its axis and visibility test stay on the source geometry.
+    // half widths at both ends; a selected stroke is at least a full pen wide
     let raw0 = max(half_width_px(seg.radius, e0.w), select(0.0, line.thickness, selected));
     let raw1 = max(half_width_px(seg.radius, e1.w), select(0.0, line.thickness, selected));
     let px = floor_hairline(select(raw0, raw1, at_end1));
-    // Pen weight is independent of projected segment length and tessellation density.
+    // corner: sideways by the width, outward by the filter reach
     let along = select(-1.0, 1.0, at_end1);
     let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + FILTER_REACH);
 
@@ -301,23 +288,21 @@ fn vs_selected(@builtin(vertex_index) vid: u32) -> VsOut {
     return stroke_vertex(vid, 2u);
 }
 
-// Coverage of the capsule at this fragment, in [0, 1], times the hairline fade. The capsule's
-// gradient is the unit vector from its axis, which straightens the cap arc inside one pixel.
+// How much of this pixel the stroke covers, 0..1, times the hairline alpha.
 fn coverage(in: VsOut) -> f32 {
     let pixel = vec2<f32>(in.pos.x, line.vp_h-in.pos.y);
 
-    // The two halves of the join partition are half-open, `< 0` here and `>= 0` below, so a
-    // pixel on the plane belongs to exactly one segment. A disabled join is a ZERO plane and
-    // scores exactly 0: that already passes `< 0`, but it would satisfy `>= 0` and reject
-    // every fragment, which is why only the end test carries a guard. Not a missing one.
+    // past the start joint: the previous segment draws it
     if (dot(pixel-in.start_join.zw, in.start_join.xy) < 0.0) {
         return 0.0;
     }
 
+    // past the end joint: the next segment draws it
     if (any(in.end_join.xy != vec2<f32>(0.0)) && dot(pixel-in.end_join.zw, in.end_join.xy) >= 0.0) {
         return 0.0;
     }
 
+    // distance from the pixel to the segment
     let pa = in.p - in.a;
     let ba = in.b - in.a;
     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
@@ -328,8 +313,7 @@ fn coverage(in: VsOut) -> f32 {
     return clamp(band_area(d, hf.x, g), 0.0, 1.0) * hf.y;
 }
 
-// The stroke at this fragment: the closest axis point in framebuffer pixels (y down), its
-// depth (z/w is affine in screen space), the stroke direction and its depth slope per pixel.
+// The stroke's center line as this fragment sees it.
 fn ink_axis(in: VsOut) -> InkAxis {
     let ba = in.b - in.a;
     let len2 = max(dot(ba, ba), 1e-6);
@@ -342,6 +326,7 @@ fn ink_axis(in: VsOut) -> InkAxis {
 }
 
 @fragment
+// Color: the stroke, faded where geometry hides it.
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
     let hidden = !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u);
     let alpha = coverage(in) * through_glass(hidden);
@@ -353,8 +338,7 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
     return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
 }
 
-// Silhouette coverage: a visible stroke extends the mask by its own antialiased footprint,
-// so the black ring wraps the edges of a solid instead of running under them.
+// Visible stroke coverage into an outline mask.
 @fragment
 fn fs_mask(in: VsOut, @builtin(sample_index) sample: u32) -> @location(0) vec4<f32> {
     let alpha = coverage(in);
@@ -366,13 +350,13 @@ fn fs_mask(in: VsOut, @builtin(sample_index) sample: u32) -> @location(0) vec4<f
     return vec4<f32>(alpha);
 }
 
+// Output into both outline masks at once.
 struct MaskPair {
-    @location(0) solid: vec4<f32>,
-    @location(1) selected: vec4<f32>,
+    @location(0) solid: vec4<f32>, // every solid's mask
+    @location(1) selected: vec4<f32>, // the selection's mask
 };
 
-// Both masks from one rasterization: `fs_masks` for ordinary strokes, `fs_masks_selected`
-// for the strokes of a selected object, which also feed the selected mask.
+// Unselected stroke: into the solid mask only.
 @fragment
 fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
     let alpha = coverage(in);
@@ -385,6 +369,7 @@ fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
 }
 
 @fragment
+// Selected stroke: into both masks.
 fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
     let alpha = coverage(in);
 
@@ -395,13 +380,11 @@ fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair 
     return MaskPair(vec4<f32>(alpha), vec4<f32>(alpha));
 }
 
-// The sub id a stroke answers with: bit 31, which pick.rs calls the segment tag and
-// tests/depth/_stroke_weight.py reads back as SEGMENT_BIT. It is clear of FACE_TAG and of
-// DISC_ID_TAG so one pick channel carries all three.
+// Bit that marks a pick id as a stroke.
 const SEGMENT_BIT: u32 = 0x80000000u;
 
 @fragment
-// Keep visible hairlines pickable even when their coverage is shared across adjacent pixels.
+// Pick id: object row + 1 and tagged segment row + 1.
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     if (coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
@@ -410,17 +393,13 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | SEGMENT_BIT);
 }
 
-// Specialized edge picks exclude segments without a producer-provided source edge.
+// Pick id for edge picks; segments without a source edge are skipped.
 @fragment
 fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
     if (in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
-    // Bit 31 is the STROKE tag of the pick-id union `Pick::sub` documents (engine/gpu/pick.rs):
-    // the low 31 bits are the segment row + 1. Unlike FACE_TAG (faces.rs and triangle.wgsl) and
-    // DISC_ID_TAG (scene.wgsl) this tag has no named constant anywhere, so moving it means
-    // editing this line, fs_edge_id below, app/scene.rs (`resolve` and `edge_at`, which also
-    // strip with 0x7fff_ffff), selftest.rs, selftest/lifecycle.rs and pick.rs by hand.
+    // same tag as SEGMENT_BIT
     return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
 }
