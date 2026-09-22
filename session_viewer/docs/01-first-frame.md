@@ -118,7 +118,7 @@ Every file at this point: `lessons/01/`.
 
 ## Next
 
-[02 · Camera](02-camera.md): orbit, pan and zoom.
+[02 · Camera](02-camera.md)
 
 ## Expected viewer result
 

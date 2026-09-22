@@ -297,7 +297,7 @@ Data flow: source files → retained scene state → GPU buffers → visible res
 
 ## Next
 
-[10 · Text shaping](10-text-layout.md): fonts, glyph advances and clusters before any pixel is drawn.
+[10 · Text shaping](10-text-layout.md)
 
 ## Expected viewer result
 

@@ -429,7 +429,7 @@ Data flow: source files → retained scene state → GPU buffers → visible res
 
 ## Next
 
-[05 · Depth and visible ink](05-visibility.md): the physical pass, the surface-carry visibility rule, and multisampling.
+[05 · Depth and visible ink](05-visibility.md)
 
 ## Expected viewer result
 

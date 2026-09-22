@@ -391,7 +391,7 @@ Data flow: source files → retained scene state → GPU buffers → visible res
 
 ## Next
 
-[04d · Point clouds](04d-clouds.md): the cloud tables, the LOD walk, and the splat prelude that resolves into the face pass.
+[04d · Point clouds](04d-clouds.md)
 
 ## Expected viewer result
 

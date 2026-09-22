@@ -121,7 +121,7 @@ Every file at this point: `lessons/15/`.
 
 ## Next
 
-[16 · Resource accounting](16-accounting.md): what the viewer can and cannot measure about its own memory.
+[16 · Resource accounting](16-accounting.md)
 
 ## Expected viewer result
 

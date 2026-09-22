@@ -183,7 +183,7 @@ Every file at this point: `lessons/16/`.
 
 ## Next
 
-[17 · Faces, text objects and silhouettes](17-source-presentation.md): source-face selection, selectable authored text and one black outline.
+[17 · Source faces, text objects and one silhouette](17-source-presentation.md)
 
 ## Expected viewer result
 

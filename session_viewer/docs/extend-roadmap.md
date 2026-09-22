@@ -1,6 +1,6 @@
 # Extension roadmap and historical designs
 
-Current implementation and independent teaching steps: [Editing extensions](extend-implementation.md). The designs below are historical; use the supplement’s status table for supported operations and limits.
+Current implementation and independent teaching steps: [Editing extensions](22-runtime-helpers.md). The designs below are historical; use the supplement’s status table for supported operations and limits.
 
 The frozen lesson-21 viewer reads, draws, picks, streams, moves, deletes and edits. The maintained viewer also creates points, lines and polylines through typed commands. `session_viewer_archive` (~11,000 lines of `src/`) created too, in a different architecture.
 

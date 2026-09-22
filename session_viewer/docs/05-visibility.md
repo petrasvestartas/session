@@ -665,7 +665,7 @@ Data flow: source files → retained scene state → GPU buffers → visible res
 
 ## Next
 
-[06 · CAD face rules](06-cad-rules.md): BRep faces, surfaces and boundary records flow from the shared kernel into display data.
+[06 · CAD face rules](06-cad-contract.md)
 
 ## Expected viewer result
 

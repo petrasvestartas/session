@@ -1625,7 +1625,7 @@ Every file at this point: `lessons/17/`.
 
 ## Next
 
-[18 · Finite-triangle visibility](18-finite-visibility.md): why a neighbouring triangle's plane can hide a visible seam, and the tile index that fixes it.
+[18 · Finite-triangle visibility and maintained viewer convergence](18-finite-visibility.md)
 
 ## Expected viewer result
 

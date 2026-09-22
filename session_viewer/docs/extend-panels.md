@@ -1,12 +1,12 @@
 # Adding panels: tree, types and graph
 
-Current implementation and independent teaching steps: [Editing extensions](extend-implementation.md). The designs below are historical; use the supplement’s status table for supported operations and limits.
+Current implementation and independent teaching steps: [Editing extensions](22-runtime-helpers.md). The designs below are historical; use the supplement’s status table for supported operations and limits.
 
 !!! note "Built in lesson 21, in part"
     The types panel is `src/app/layers.rs` and `L` opens it; [lesson 21](21-editing.md) teaches
     it. That frozen checkpoint has flat layers. The maintained viewer adds nested and graph
-    selection/visibility through [the panel extension](extend-panels-tutorial.md), with the
-    [egui interface](extend-ui-tutorial.md).
+    selection/visibility through [the panel extension](26-nested-panel.md), with the
+    [egui interface](27-egui-interface.md).
 
 ## One visibility set, three filters
 
@@ -248,6 +248,6 @@ impl Gpu { pub fn set_hidden_rows(&mut self, runs: &[Range<u32>], on: bool) }
 
 ## Expected viewer result
 
-Reference result from the supported [implementation tutorials](extend-implementation.md). The expanded Session layers panel shows Assembly → Nested; selecting Nested highlights its two beams together. This maintained-viewer capture uses egui styling; the independent panel lesson uses DOM buttons with the same hierarchy and selection behavior. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
+Reference result from the supported [implementation tutorials](22-runtime-helpers.md). The expanded Session layers panel shows Assembly → Nested; selecting Nested highlights its two beams together. This maintained-viewer capture uses egui styling; the independent panel lesson uses DOM buttons with the same hierarchy and selection behavior. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
 
 [![Full viewer result for extend panels](screenshots/extensions-panels.png)](screenshots/extensions-panels.png)

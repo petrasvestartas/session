@@ -178,7 +178,7 @@ Data flow: gesture → camera → anchored matrix → uniform → vertex. Every 
 
 ## Next
 
-[03 · Object rows and identity](03-identity.md): a storage buffer of per-object rows, and why a GPU row is not a source identity.
+[03 · Object rows and identity](03-identity.md)
 
 ## Expected viewer result
 

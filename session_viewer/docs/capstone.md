@@ -1,6 +1,6 @@
 # Optional design reference · Section plane
 
-This proposed feature is not implemented in the current viewer. This page gives its design answers and acceptance criteria, not a code tutorial. For complete runnable code, follow [the current-viewer sequence](extend-integrated-tutorial.md).
+This proposed feature is not implemented in the current viewer. This page gives its design answers and acceptance criteria, not a code tutorial. For complete runnable code, follow the course through to [lesson 37](37-command-dock.md).
 
 The proposal is a **section plane**: a movable plane that cuts the scene, so faces, edges, markers and text on the far side disappear and a solid's interior becomes visible.
 
@@ -85,7 +85,7 @@ What is *not* in this design: no new lane, no new pipeline family, no trait, no 
 
 ## Acceptance criteria for the proposed feature
 
-This is a design reference for a future section plane, not a runnable implementation lesson. The current viewer does not implement it. Complete [the current-viewer sequence](extend-integrated-tutorial.md) for the full supported implementation; no section-plane code is needed to finish that sequence. A future implementation must satisfy these checks:
+This is a design reference for a future section plane, not a runnable implementation lesson. The current viewer does not implement it. Complete the course through [lesson 37](37-command-dock.md) for the full supported implementation; no section-plane code is needed to finish that sequence. A future implementation must satisfy these checks:
 
 - **It compiles at every step.** Add the field and the assertion first, and check. Then the contract function, unused, and check. Then one lane. Then the rest.
 - **It fails visibly when wrong.** Set the plane to cut through the middle of the fixture and orbit. A plane that moves with the camera means you tested in view space instead of world space.

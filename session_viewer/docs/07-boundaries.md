@@ -247,7 +247,7 @@ Data flow: source files → retained scene state → GPU buffers → visible res
 
 ## Next
 
-[08 · Trims and seams](08-trimming.md): holes, natural boundaries and repeated seam uses keep correct geometry and source IDs.
+[08 · Trims, holes and periodic seams](08-trimming.md)
 
 ## Expected viewer result
 

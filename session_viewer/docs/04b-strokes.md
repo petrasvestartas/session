@@ -367,7 +367,7 @@ Data flow: source files → retained scene state → GPU buffers → visible res
 
 ## Next
 
-[04c · Markers](04c-markers.md): vertex markers on a quad template and free dots as SDF triangles.
+[04c · Markers](04c-markers.md)
 
 ## Expected viewer result
 

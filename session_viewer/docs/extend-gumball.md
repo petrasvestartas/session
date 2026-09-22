@@ -1,6 +1,6 @@
 # Adding a gumball
 
-Start here: [Implement a solid gumball, step by step](extend-gumball-tutorial.md). It includes every code edit, the mesh shader and a real screenshot. The designs below are historical; use the supplement’s status table for supported operations and limits.
+Start here: [Implement a solid gumball, step by step](25-gumball.md). It includes every code edit, the mesh shader and a real screenshot. The designs below are historical; use the supplement’s status table for supported operations and limits.
 
 !!! note "Built in lesson 21"
     This was the design; `src/app/gizmo.rs` and `src/state/edit.rs` are what it became, and
@@ -356,6 +356,6 @@ Each step builds on its own.
 
 ## Expected viewer result
 
-Reference result from the supported [implementation tutorials](extend-implementation.md). Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
+Reference result from the supported [implementation tutorials](22-runtime-helpers.md). Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
 
 [![Full viewer result for extend gumball](screenshots/extensions-gumball-overview.png)](screenshots/extensions-gumball-overview.png)

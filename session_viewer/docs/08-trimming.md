@@ -121,7 +121,7 @@ Data flow: source files → retained scene state → GPU buffers → visible res
 
 ## Next
 
-[09 · Normals and shading](09-normals.md): analytic normals, singular fallbacks, C0 splits and the affine normal transform.
+[09 · Normals and shading](09-normals.md)
 
 ## Expected viewer result
 

@@ -363,7 +363,7 @@ Every file at this point: `lessons/14/`.
 
 ## Next
 
-[15 · Publication and streamed reads](15-publication.md): bounded metadata windows for streamed clouds, and the publication helpers.
+[15 · Publication and streamed reads](15-publication.md)
 
 ## Expected viewer result
 

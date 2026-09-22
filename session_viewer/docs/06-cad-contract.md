@@ -332,7 +332,7 @@ Data flow: source files → retained scene state → GPU buffers → visible res
 
 ## Next
 
-[07 · Shared boundaries](07-boundaries.md): one canonical chain per BRep edge, constrained into every incident face, drawn from the exact mesh nodes.
+[07 · Shared boundaries](07-boundaries.md)
 
 ## Expected viewer result
 

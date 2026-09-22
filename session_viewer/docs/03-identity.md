@@ -191,7 +191,7 @@ Every file at this point: `lessons/03/`.
 
 ## Next
 
-[04a · Meshes on the GPU](04a-meshes.md): vertex and index buffers, the mesh arena, the first real drawing module.
+[04a · Meshes on the GPU](04a-meshes.md)
 
 ## Expected viewer result
 

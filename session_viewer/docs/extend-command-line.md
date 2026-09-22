@@ -1,6 +1,6 @@
 # Adding a command line
 
-Use the [screenshot walkthrough](command-line-walkthrough.md), [geometry-command code lesson](extend-modeling-tutorial.md), and [egui interface lesson](extend-ui-tutorial.md). The design below is historical; the maintained interface uses egui rather than DOM inputs.
+Use the [screenshot walkthrough](command-line-walkthrough.md), [geometry-command code lesson](23-geometry-commands.md), and [egui interface lesson](27-egui-interface.md). The design below is historical; the maintained interface uses egui rather than DOM inputs.
 
 !!! note "Built in lesson 21"
     This was the design; `src/app/command.rs` parses and `State::run_command` dispatches, and
@@ -456,6 +456,6 @@ pub fn set_place(&mut self, ctx: &GpuCtx, row: u32, place: &Mat4, translate_only
 
 ## Expected viewer result
 
-Reference result from the supported [implementation tutorials](extend-implementation.md). The white egui command area shows a completed line command and its feedback, with the created geometry visible in the full viewer. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
+Reference result from the supported [implementation tutorials](22-runtime-helpers.md). The white egui command area shows a completed line command and its feedback, with the created geometry visible in the full viewer. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
 
 [![Full viewer result for extend command line](screenshots/extensions-command-create.png)](screenshots/extensions-command-create.png)

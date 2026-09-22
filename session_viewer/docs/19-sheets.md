@@ -616,7 +616,7 @@ Every file at this point: `lessons/19/`.
 
 ## Next
 
-[20 · The document](20-history.md): undo, redo and save in the kernel.
+[20 · The document: undo, redo and save](20-history.md)
 
 ## Expected viewer result
 

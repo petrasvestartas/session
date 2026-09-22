@@ -519,7 +519,7 @@ Every file at this point: `lessons/13/`.
 
 ## Next
 
-[14 · Loading scenes](14-loading.md): manifests, protobuf documents, validation and safe replacement through the real loader.
+[14 · Loading scenes](14-loading.md)
 
 ## Expected viewer result
 

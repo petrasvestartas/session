@@ -773,7 +773,7 @@ Every file at this point: `lessons/12/`.
 
 ## Next
 
-[13 · Source controls](13-controls.md): F10 shows original vertices and control points, and streamed clouds answer from every source page.
+[13 · Source controls](13-controls.md)
 
 ## Expected viewer result
 

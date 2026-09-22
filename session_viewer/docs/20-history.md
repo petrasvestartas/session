@@ -110,7 +110,7 @@ Every file at this point: `lessons/20/`.
 
 ## Next
 
-[21 · Editing](21-editing.md): add the gumball, commands and layer controls.
+[21 · Editing: the gumball, the command line and the layers panel](21-editing.md)
 
 ## Expected viewer result
 

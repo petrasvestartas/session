@@ -220,7 +220,7 @@ Every file at this point: `lessons/10/`.
 
 ## Next
 
-[11 · Text rendering](11-text-rendering.md): placement, raster scale, coverage atlas and the black plates.
+[11 · Text rendering](11-text-rendering.md)
 
 ## Expected viewer result
 

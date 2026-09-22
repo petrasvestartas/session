@@ -923,7 +923,7 @@ Every file at this point: `lessons/18/`.
 
 ## Next
 
-[19 · Sheets](19-sheets.md): drawings as one segment batch with lazy metadata.
+[19 · Sheets: batched drawings with lazy metadata](19-sheets.md)
 
 ## Expected viewer result
 

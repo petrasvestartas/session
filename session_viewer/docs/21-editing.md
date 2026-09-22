@@ -1084,7 +1084,7 @@ Every file at this point: `lessons/21/`.
 
 ## Next
 
-- The course's last checkpoint. `docs/capstone.md` walks the whole viewer once more.
+[22 · Refresh diagnostics and resource checks](22-runtime-helpers.md)
 
 ## Expected viewer result
 

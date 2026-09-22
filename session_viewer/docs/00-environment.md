@@ -110,7 +110,7 @@ Every file at this point: `lessons/00/`.
 
 ## Next
 
-[01 · First WebGPU frame](01-first-frame.md): one triangle.
+[01 · First WebGPU frame](01-first-frame.md)
 
 ## Expected viewer result
 

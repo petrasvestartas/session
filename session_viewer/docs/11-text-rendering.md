@@ -368,7 +368,7 @@ Every file at this point: `lessons/11/`.
 
 ## Next
 
-[12 · maintained viewer shell and picking](12-picking.md): the winit application, `State`, and GPU picking with an integer ID pass.
+[12 · maintained viewer shell and picking](12-picking.md)
 
 ## Expected viewer result
 

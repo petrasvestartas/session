@@ -12,7 +12,7 @@ A shorter function is useful when it also removes work or makes ownership cleare
 
 ## Starting point
 
-The 25 numbered lessons each end at a **checkpoint**, a complete crate under `docs/lessons/<id>/`; their code blocks are included from those crates. The [current-viewer checkpoints](extend-integrated-tutorial.md) continue checkpoint 21 to the maintained source; the [independent editing lessons](extend-implementation.md) teach optional features separately.
+Every lesson ends at a **checkpoint**, a complete crate under `docs/lessons/<id>/`; the code blocks are included from those crates. The course runs 00 to 37, from an empty project to the maintained viewer.
 
 ## Step 1 · Name when the work runs
 
