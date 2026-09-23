@@ -174,7 +174,7 @@ impl State {
         }
     }
 
-    /// Fill the section caps with black hatch or solid dark grey; `None` switches.
+    /// Fill the section caps with black hatch or solid light grey; `None` switches.
     pub(crate) fn set_clipping_fill(&mut self, solid: Option<bool>) -> String {
         let solid = solid.unwrap_or(self.gpu.clip.fill == 0);
         self.gpu.clip.fill = u32::from(solid);

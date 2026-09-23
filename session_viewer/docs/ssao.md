@@ -4,7 +4,7 @@ Type `Arctic`, press **Enter**, then choose **On** or **Off**. `Arctic On` and `
 
 Enabling Arctic also enables black surface outlines. Use `Outline Off` to hide them while keeping Arctic shading, or `Outline On` to show them independently. `Outline` offers clickable **On** and **Off** options; **O** remains the viewport shortcut. Enabling Arctic again restores outlines. Turning Arctic off leaves the outline setting unchanged.
 
-Clipping sections have their own black cut boundaries and use solid dark grey fill by default. `clipping_plane Fill Hatch` selects hatching; `clipping_plane Fill Solid` restores the solid fill. Cut boundaries remain visible with `Outline Off` and without Arctic.
+Clipping sections have their own black cut boundaries and use solid light grey fill by default. `clipping_plane Fill Hatch` selects hatching; `clipping_plane Fill Solid` restores the solid fill. Cut boundaries remain visible with `Outline Off` and without Arctic.
 
 Arctic keeps authored colors under neutral sky and ground lighting, with soft contact shadows on surfaces and a virtual floor beneath the lowest visible solid. Hidden objects, sheets and point clouds do not lower that floor. This screen-space approximation cannot include hidden or off-screen occluders.
 
@@ -63,3 +63,7 @@ Baseline references:
 The local default manifest cannot be checked because its five referenced `.pb` fixtures are missing. Published scenes provide the browser regression fixtures.
 
 Review captures and benchmark reports for this checkout are under `target/review/arctic/`; `before/` preserves the original executable, browser bundle and captures.
+
+For a horizontal cut at height 1200, use `clipping_plane XY 0,0,1200`; everything above is removed. `YZ` removes the +X side and `ZX` the +Y side. The default `Normal` mode takes two points: the first lies on the plane, and the direction from the first to the second is perpendicular to the plane, toward the side to remove. `clipping_plane Flip` reverses the selected plane.
+
+Interactive clipping and drawing gather nearby snapping targets on demand, sharing the bounded object-dragging cache. Opening a command no longer gathers snaps from the entire scene. Cutting and section filling use GPU shaders; the first cut still performs a one-time CPU closedness check for meshes. `tests/clipping-mixed.cjs` checks command startup and hover in the published mixed scene.

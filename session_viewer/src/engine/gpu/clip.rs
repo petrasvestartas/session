@@ -72,7 +72,7 @@ pub struct ClipUniform {
     pub sides: [[f32; 4]; 2],           // 384   32  side of each plane the eye is on
     pub count: u32,                     // 416    4  planes in use
     pub samples: u32,                   // 420    4  scene samples per pixel
-    pub fill: u32,                      // 424    4  0 hatch, 1 solid dark grey
+    pub fill: u32,                      // 424    4  0 hatch, 1 solid light grey
     pub spacing: f32,                   // 428    4  hatch spacing, px
     pub width: f32,                     // 432    4  hatch line width, px
     pub outline: f32,                  // 436    4  cut boundary width, px
@@ -129,7 +129,7 @@ pub struct Clip {
     planes: [ClipPlane; MAX_PLANES], // world planes, the first `count` in use
     count: usize,                    // planes in use
     pub enabled: bool,               // false shows everything, the planes stay
-    pub fill: u32,                   // 0 black hatch, 1 solid dark grey
+    pub fill: u32,                   // 0 black hatch, 1 solid light grey
     target: Target,                  // the scene's color format and samples
     pipes: Option<CapPipelines>,     // made on the first section, again after an MSAA flip
     pick_pipes: Option<PickPipelines>, // made on the first pick through a section
@@ -1458,7 +1458,7 @@ mod tests {
 
         #[test]
         #[ignore = "requires a native GPU adapter"]
-        fn sections_default_to_dark_grey_with_black_boundaries() {
+        fn sections_default_to_light_grey_with_black_boundaries() {
             let (mut gpu, scene) = solids(vec![block([-50.0; 3], [50.0; 3], Color::blue(), true)])
                 .expect("native GPU");
             gpu.clip.fill = super::super::Clip::new(gpu.target()).fill;
@@ -1478,8 +1478,8 @@ mod tests {
                             for x in center.0 - 8..=center.0 + 8 {
                                 let rgb = &rgba[(y * SIZE + x) * 4..][..3];
                                 assert!(
-                                    rgb.iter().all(|v| (96..=98).contains(v)),
-                                    "solid dark grey, without hatch: {rgb:?}"
+                                    rgb.iter().all(|v| (202..=204).contains(v)),
+                                    "solid light grey, without hatch: {rgb:?}"
                                 );
                             }
                         }

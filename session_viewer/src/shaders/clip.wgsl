@@ -7,7 +7,7 @@ struct ClipUniform {
     sides: array<vec4<f32>, 2>, // side of each plane the eye is on: 1 kept, -1 cut, 0 on it
     count: u32, // planes in use; 0 = nothing is cut
     samples: u32, // scene samples per pixel
-    fill: u32, // 0 black hatch, 1 solid dark grey
+    fill: u32, // 0 black hatch, 1 solid light grey
     spacing: f32, // hatch spacing, framebuffer px
     width: f32, // hatch line width, framebuffer px
     outline: f32, // cut boundary width, framebuffer px

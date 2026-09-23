@@ -49,7 +49,7 @@ struct Moving {
 }
 
 /// Snap points of the objects near the cursor, collected as the drag reaches them and binned on screen.
-struct Targets {
+pub(super) struct Targets {
     screen: Screen,                // the view the bins are made for
     rows: Bins,                    // object rows by screen cell
     moved: Vec<u32>,               // the dragged rows, which offer nothing
@@ -64,7 +64,7 @@ struct Targets {
 
 impl Targets {
     /// Nothing collected yet for this view.
-    fn new(screen: Screen, moved: Vec<u32>) -> Self {
+    pub(super) fn new(screen: Screen, moved: Vec<u32>) -> Self {
         Self {
             rows: Bins::new(screen.size, CELL),
             points: Bins::new(screen.size, CELL),
@@ -257,7 +257,7 @@ impl State {
             return false;
         };
         let snap = match moving.targets.as_mut() {
-            Some(targets) => self.snap_near(targets, &moving.base, cursor, &ray),
+            Some(targets) => self.snap_near(targets, Some(&moving.base), cursor, &ray),
             None => None,
         };
         let target = match &snap {
@@ -369,10 +369,10 @@ impl State {
     }
 
     /// The best snap among the objects near the cursor; the moved ones never offer any.
-    fn snap_near(
+    pub(super) fn snap_near(
         &self,
         targets: &mut Targets,
-        base: &Point,
+        base: Option<&Point>,
         cursor: (f64, f64),
         ray: &(Point, Vector),
     ) -> Option<Snap> {
@@ -415,7 +415,7 @@ impl State {
 
         for &wire in &near {
             let wires = &targets.wires[wire as usize..=wire as usize];
-            snap::along_wires(wires, ray, Some(base), self.snap_modes, &mut targets.found);
+            snap::along_wires(wires, ray, base, self.snap_modes, &mut targets.found);
         }
 
         targets.points.near(cursor, reach, &mut near);
@@ -479,7 +479,7 @@ impl State {
     }
 
     /// The view as it maps the scene to device pixels now.
-    fn screen(&self) -> Screen {
+    pub(super) fn screen(&self) -> Screen {
         let origin = self.camera.origin();
         let matrix = self.camera.view_proj_anchored(self.aspect(), &origin).m;
         Screen::new(matrix, [origin[0], origin[1], origin[2]], self.viewport())

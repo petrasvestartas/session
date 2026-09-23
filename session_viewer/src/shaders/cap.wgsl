@@ -18,7 +18,7 @@ fn vs_cap(@builtin(vertex_index) vertex: u32, @builtin(instance_index) plane: u3
 
 // A section cap fragment: color, triangle id, the plane's depth and the samples it covers.
 struct CapOut {
-    @location(0) color: vec4<f32>, // hatch or dark grey, with a black boundary
+    @location(0) color: vec4<f32>, // hatch or light grey, with a black boundary
     @location(1) primitive: vec2<u32>, // cap marker in 16-bit halves
     @builtin(frag_depth) depth: f32, // depth of the plane here
     @builtin(sample_mask) mask: u32, // samples inside a solid and kept by the other planes
@@ -128,7 +128,7 @@ fn fs_cap(in: CapVertex) -> CapOut {
 
     let paper = select(vec3<f32>(1.0), SELECT_COLOR, selected);
     let hatched = mix(paper, vec3<f32>(0.0), hatch_ink(u, slope));
-    let solid = select(vec3<f32>(0.12), SELECT_COLOR, selected);
+    let solid = select(vec3<f32>(0.6), SELECT_COLOR, selected);
     edge = max(edge, section_outline(in.pos.xy));
     let color = mix(select(hatched, solid, clipping.fill == 1u), vec3<f32>(0.0), edge);
     let marker = CAP_PRIMITIVE + i * 2u + select(0u, 1u, selected);

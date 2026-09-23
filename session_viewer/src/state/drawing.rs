@@ -1,8 +1,9 @@
 use super::State;
+use super::drag::Targets;
 use crate::app::{
     coords,
     cplane::CPlane,
-    snap::{self, Snap, SnapKind},
+    snap::{self, SnapKind},
 };
 use session_rust::{Point, Polyline, Vector};
 
@@ -16,8 +17,7 @@ pub(crate) struct Draft {
     sides: usize,                  // polygon side count
     points: Vec<Point>,            // the points placed so far
     plane: CPlane,                 // the plane clicks land on
-    candidates: Vec<Snap>,         // scene points the cursor can snap to
-    wires: Vec<(Vec<Point>, u32)>, // scene curves and edges for Near and Perp
+    targets: Option<Targets>,      // nearby scene snaps, collected on demand
     hover: Option<Point>,          // where the cursor is now, in the scene
     snapped: Option<SnapKind>,     // what the cursor snapped to
 }
@@ -44,7 +44,6 @@ impl State {
             self.cancel_split();
             // draw on the plane the camera faces most
             let plane = CPlane::facing(&self.camera.orientation.rotate_vector(Vector::y_axis()));
-            let (candidates, wires) = self.drawing_candidates();
             let needed = match verb.as_str() {
                 "point" => 1,
                 "line" => 2,
@@ -60,8 +59,7 @@ impl State {
                 sides: 6,
                 points: Vec::new(),
                 plane,
-                candidates,
-                wires,
+                targets: None,
                 hover: None,
                 snapped: None,
             });
@@ -118,7 +116,6 @@ impl State {
         self.cancel_split();
         // points land on the plane the camera faces most
         let plane = CPlane::facing(&self.camera.orientation.rotate_vector(Vector::y_axis()));
-        let (candidates, wires) = self.drawing_candidates();
         self.draft = Some(Draft {
             verb: verb.into(),
             prefix: prefix.into(),
@@ -128,49 +125,12 @@ impl State {
             sides: 6,
             points: Vec::new(),
             plane,
-            candidates,
-            wires,
+            targets: None,
             hover: None,
             snapped: None,
         });
         self.gpu.pick.cancel();
         self.drawing_prompt()
-    }
-
-    /// Every scene point the cursor can snap to, and the wires it can slide along.
-    fn drawing_candidates(&self) -> (Vec<Snap>, Vec<(Vec<Point>, u32)>) {
-        let mut out = Vec::new();
-        let mut wires = Vec::new();
-        // each document's object placements
-        let placements: Vec<_> = self
-            .scene
-            .docs
-            .iter()
-            .map(|doc| doc.session.world_xforms())
-            .collect();
-        for row in 0..self.gpu.objects.len() {
-            // skip hidden and display-only rows
-            if !self.scene.selectable(row)
-                || self.gpu.objects.row(row).is_some_and(|object| {
-                    object.flags & crate::engine::gpu::Instance::FLAG_HIDDEN != 0
-                })
-            {
-                continue;
-            }
-            let (Some(geometry), Some((doc, guid))) =
-                (self.scene.geometry(row), self.scene.identity_of(row))
-            else {
-                continue;
-            };
-            let file = &self.scene.docs[doc];
-            // the object's place in the world
-            let place = placements[doc]
-                .get(guid.as_ref())
-                .map_or_else(|| file.place.clone(), |world| &file.place * world);
-            let room = MAX_WIRES.saturating_sub(wires.len());
-            snap::of_geometry(geometry, &place, row, room, &mut out, &mut wires);
-        }
-        (out, wires)
     }
 
     /// Join the draft back to its first point and finish it.
@@ -341,15 +301,13 @@ impl State {
 
     /// Move the cursor while drawing: snap or land on the plane.
     pub fn hover_drawing(&mut self, x: f64, y: f64) -> bool {
-        let Some(draft) = &self.draft else {
+        let Some(mut draft) = self.draft.take() else {
             return false;
         };
         let ray = self.camera.ray((x, y), self.viewport());
         // the nearest snap point within 12 pixels
         let hit = if self.snap_enabled {
-            let origin = self.camera.origin();
-            let matrix = self.camera.view_proj_anchored(self.aspect(), &origin).m;
-            let (width, height) = self.viewport();
+            let screen = self.screen();
             // the draft's own points and segments, then the scene's
             let mut candidates = Vec::new();
             snap::from_polyline(&draft.points, false, OWN, &mut candidates);
@@ -362,38 +320,26 @@ impl State {
             }
             if let Some(ray) = &ray {
                 let own = [(draft.points.clone(), OWN)];
-                for wires in [&own[..], &draft.wires[..]] {
-                    snap::along_wires(
-                        wires,
-                        ray,
-                        draft.points.last(),
-                        self.snap_modes,
-                        &mut candidates,
-                    );
+                snap::along_wires(
+                    &own,
+                    ray,
+                    draft.points.last(),
+                    self.snap_modes,
+                    &mut candidates,
+                );
+                let targets = draft
+                    .targets
+                    .get_or_insert_with(|| Targets::new(screen.clone(), Vec::new()));
+                if let Some(hit) = self.snap_near(targets, draft.points.last(), (x, y), ray) {
+                    candidates.push(hit);
                 }
             }
-            candidates.extend(draft.candidates.iter().cloned());
             snap::best(
                 &candidates,
                 self.snap_modes,
                 (x, y),
                 12.0 * self.pixel_scale(),
-                |p| {
-                    // scene point to screen pixel
-                    let v = [p[0] - origin[0], p[1] - origin[1], p[2] - origin[2]];
-                    let clip: [f64; 4] = std::array::from_fn(|r| {
-                        matrix[r] * v[0]
-                            + matrix[r + 4] * v[1]
-                            + matrix[r + 8] * v[2]
-                            + matrix[r + 12]
-                    });
-                    (clip[3] > 0.0).then(|| {
-                        (
-                            (clip[0] / clip[3] * 0.5 + 0.5) * width,
-                            (0.5 - clip[1] / clip[3] * 0.5) * height,
-                        )
-                    })
-                },
+                |p| screen.point(p),
             )
         } else {
             None
@@ -406,9 +352,9 @@ impl State {
                 &d,
             )
         });
-        let draft = self.draft.as_mut().unwrap();
         draft.snapped = hit.as_ref().map(|s| s.kind);
         draft.hover = hit.map(|s| s.point).or(free);
+        self.draft = Some(draft);
         true
     }
 
@@ -466,7 +412,6 @@ impl State {
 }
 
 const OWN: u32 = u32::MAX; // owner of the draft's own snaps
-const MAX_WIRES: usize = 50_000; // mesh and BRep edges considered for Near
 
 /// The two axes of a construction plane.
 fn axes(plane: CPlane) -> (Vector, Vector) {

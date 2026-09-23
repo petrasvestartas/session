@@ -143,7 +143,7 @@ impl Action for Flip {
     }
 }
 
-/// Black hatch or solid dark grey caps; `None` switches.
+/// Black hatch or solid light grey caps; `None` switches.
 #[derive(Debug)]
 struct Fill(Option<bool>);
 

@@ -60,8 +60,8 @@ impl Mode {
     pub fn prompts(self) -> &'static [&'static str] {
         match self {
             Mode::Normal => &[
-                "Origin point (or 3Point, XY, YZ, ZX)",
-                "Normal point: the side to cut away (e.g. @0,0,1)",
+                "First point: a point on the cutting plane (or choose XY, YZ, ZX, 3Point)",
+                "Second point: toward the side to remove; origin-to-point sets the perpendicular direction (e.g. @0,0,1 removes above)",
             ],
             Mode::Points => &[
                 "First point",
