@@ -1,5 +1,7 @@
 use crate::State;
-use crate::app::feedback::LayerRow;
+use crate::app::feedback::{EdgeRow, LayerRow};
+use crate::app::gizmo::Handle;
+use crate::state::number_box::NumberPrompt;
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use winit::window::Window;
@@ -9,6 +11,11 @@ use winit::window::Window;
 pub struct Model {
     pub layers_open: bool,                          // layers panel shown
     pub rows: Vec<LayerRow>,                        // its rows
+    pub edges: Vec<EdgeRow>,                        // graph table rows
+    pub edge_total: usize,                          // graph edges, listed or not
+    pub(crate) graph_open: bool,                    // graph table unfolded
+    pub(crate) renaming: Option<Rename>,            // a layer name edited in its row
+    menu_open: bool,                                // a layer or colour menu is shown
     pub command_open: bool,                         // command line shown
     pub command: String,                            // text in the command field
     pub drawing_prompt: String,                     // prompt while drawing
@@ -24,9 +31,61 @@ pub struct Model {
     completion_visible: bool,                       // completion list shown
     pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
     pub(crate) command_rect: Option<egui::Rect>,    // where the field is, for taps
+    pub(crate) keyboard_rects: Vec<egui::Rect>,     // a layer name field or an item opening one
+    snap_bar: bool,                                 // snap toolbar under the field
+    snap_modes: u8,                                 // snap kinds switched on
+    agent_edit: Option<bool>,                       // phone keyboard set the text, true on delete
+    number_prompt: Option<NumberPrompt>,            // the gumball number box, when open
+    number_handle: Option<Handle>,                  // the handle the box was opened for
+    number: String,                                 // text typed into the box
+    number_error: String,                           // why the typed value was refused
+    pub(crate) number_rect: Option<egui::Rect>,     // where the box is, for taps
 }
 
 thread_local! { pub static MODEL: RefCell<Model> = RefCell::default(); } // the one model
+
+/// A text field the phone keyboard types into, besides the command line.
+struct TextField {
+    id: &'static str,                            // the egui id of its text edit
+    text: fn(&mut Model) -> Option<&mut String>, // its text, None while it is not shown
+}
+
+/// The fields that take the phone keyboard before the command line, the first open one.
+const FIELDS: &[TextField] = &[
+    // register:layer-rename
+    TextField {
+        id: "layer-rename",
+        text: |model| model.renaming.as_mut().map(|rename| &mut rename.text),
+    },
+    // register:number-box
+    TextField {
+        id: "number-input",
+        text: |model| model.number_prompt.is_some().then_some(&mut model.number),
+    },
+];
+
+/// The open field the phone keyboard types into, None for the command line.
+fn open_field(model: &mut Model) -> Option<&'static TextField> {
+    FIELDS.iter().find(|field| (field.text)(model).is_some())
+}
+
+/// A layer name being edited in its row.
+pub(crate) struct Rename {
+    pub node: String,  // the row's node index
+    pub text: String,  // the name typed so far
+    pub focused: bool, // the field has the keys
+    pub done: bool,    // kept by Enter or a click elsewhere, applied after the frame
+}
+
+/// True while a panel takes the keys: the command line, a layer rename, the number box or an open menu.
+pub fn keys_taken() -> bool {
+    MODEL.with_borrow(|model| {
+        model.command_open
+            || model.menu_open
+            || model.number_prompt.is_some()
+            || model.renaming.as_ref().is_some_and(|rename| rename.focused)
+    })
+}
 
 /// One clickable control and where it was drawn, for browser tests.
 #[derive(serde::Serialize)]
@@ -38,21 +97,51 @@ pub struct Control {
 
 /// The egui interface over the canvas.
 pub struct Ui {
-    context: egui::Context,                    // egui state
-    input: egui_winit::State,                  // winit events into egui
-    controls: Option<Vec<Control>>,            // controls drawn this frame, when inspecting
-    scene_rect: egui::Rect,                    // canvas area not covered by panels
-    pointer: egui::Pos2,                       // last pointer position
-    ui_drag: bool,                             // a drag started on a panel
-    touches: std::collections::HashSet<u64>,   // fingers on panels
+    context: egui::Context,                  // egui state
+    input: egui_winit::State,                // winit events into egui
+    controls: Option<Vec<Control>>,          // controls drawn this frame, when inspecting
+    scene_rect: egui::Rect,                  // canvas area not covered by panels
+    pointer: egui::Pos2,                     // last pointer position
+    ui_drag: bool,                           // a drag started on a panel
+    over_panel: bool,                        // the pointer was last over a panel or popup
+    touches: std::collections::HashSet<u64>, // fingers on panels
     #[cfg(target_arch = "wasm32")]
     agent_value: String, // last text taken from the hidden input
+    #[cfg(target_arch = "wasm32")]
+    field: Option<&'static str>, // the field the hidden input fed last frame, None for the command line
+}
+
+/// The panel fonts: egui's Ubuntu Light, then the label fonts for the symbols it lacks.
+fn fonts() -> egui::FontDefinitions {
+    let mut fonts = egui::FontDefinitions::empty();
+    let faces = [
+        ("Ubuntu-Light", epaint_default_fonts::UBUNTU_LIGHT),
+        ("Noto Sans", crate::engine::text::FONT_BYTES),
+        ("Noto Sans Symbols", crate::engine::text::SYMBOL_BYTES),
+        ("Noto Sans Symbols 2", crate::engine::text::FALLBACK_BYTES),
+    ];
+
+    for (name, bytes) in faces {
+        let data = std::sync::Arc::new(egui::FontData::from_static(bytes));
+        fonts.font_data.insert(name.to_owned(), data);
+
+        for family in [egui::FontFamily::Proportional, egui::FontFamily::Monospace] {
+            fonts
+                .families
+                .entry(family)
+                .or_default()
+                .push(name.to_owned());
+        }
+    }
+
+    fonts
 }
 
 impl Ui {
     /// Set up egui with the light theme.
     pub fn new(window: &Window, _logical_width: f64) -> Self {
         let context = egui::Context::default();
+        context.set_fonts(fonts());
         // one layout pass, so text events are never replayed
         context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
         context.set_theme(egui::Theme::Light);
@@ -73,9 +162,12 @@ impl Ui {
             scene_rect: egui::Rect::EVERYTHING,
             pointer: egui::Pos2::ZERO,
             ui_drag: false,
+            over_panel: false,
             touches: std::collections::HashSet::new(),
             #[cfg(target_arch = "wasm32")]
             agent_value: String::new(),
+            #[cfg(target_arch = "wasm32")]
+            field: None,
         }
     }
 
@@ -91,37 +183,35 @@ impl Ui {
         let mut consumed = response.consumed;
         let mut scene_rect = self.scene_rect;
         scene_rect.max.y -= 5.0;
-        let in_popup =
-            |point| MODEL.with_borrow(|m| m.completion_rect.is_some_and(|r| r.contains(point)));
+        let context = self.context.clone();
+        // the completion list, the number box, a context menu or a colour menu
+        let in_popup = |point| {
+            MODEL.with_borrow(|m| {
+                m.completion_rect.is_some_and(|r| r.contains(point))
+                    || m.number_rect.is_some_and(|r| r.contains(point))
+            }) || context
+                .layer_id_at(point)
+                .is_some_and(|layer| layer.order != egui::Order::Background)
+        };
 
         match event {
             WindowEvent::CursorMoved { position, .. } => {
                 self.pointer = egui::pos2(position.x as f32 / ratio, position.y as f32 / ratio);
-                consumed =
-                    self.ui_drag || in_popup(self.pointer) || !scene_rect.contains(self.pointer);
+                self.over_panel = in_popup(self.pointer) || !scene_rect.contains(self.pointer);
+                consumed = self.ui_drag || self.over_panel;
             }
-            WindowEvent::MouseInput { state, .. } => {
+            WindowEvent::MouseInput { state, button, .. } => {
                 if *state == ElementState::Pressed {
                     self.ui_drag = in_popup(self.pointer) || !scene_rect.contains(self.pointer);
-                    // focus now so the first key is not lost
-                    let input = MODEL
-                        .with_borrow(|m| m.command_rect.is_some_and(|r| r.contains(self.pointer)));
-                    if input {
-                        self.context.memory_mut(|memory| {
-                            memory.request_focus(egui::Id::new("command-input"))
-                        });
-                        MODEL.with_borrow_mut(|model| model.command_open = true);
-                    } else if !in_popup(self.pointer) {
-                        self.context.memory_mut(|memory| {
-                            memory.surrender_focus(egui::Id::new("command-input"))
-                        });
-                        MODEL.with_borrow_mut(|model| model.command_open = false);
-                    }
+                    self.over_panel = self.ui_drag;
+                    self.press();
                 }
 
                 consumed = self.ui_drag;
 
+                // a left drag from the scene let go over a panel is dropped, not applied
                 if *state == ElementState::Released {
+                    consumed |= *button == winit::event::MouseButton::Left && self.over_panel;
                     self.ui_drag = false;
                 }
             }
@@ -137,6 +227,7 @@ impl Ui {
                 if touch.phase == TouchPhase::Started {
                     if self.touches.is_empty() {
                         self.ui_drag = in_popup(self.pointer) || !scene_rect.contains(self.pointer);
+                        self.press();
                     }
 
                     self.touches.insert(touch.id);
@@ -159,12 +250,35 @@ impl Ui {
             _ => {}
         }
 
+        // an open menu or number box keeps the keys too, so Escape only closes it
         if matches!(event, WindowEvent::KeyboardInput { .. })
-            && MODEL.with_borrow(|model| model.command_open)
+            && MODEL.with_borrow(|model| {
+                model.command_open || model.menu_open || model.number_prompt.is_some()
+            })
         {
             consumed = true;
         }
         (consumed || escape, response.repaint || escape)
+    }
+
+    /// A press on the field opens it, anywhere else but the list closes it.
+    fn press(&mut self) {
+        let id = egui::Id::new("command-input");
+        let (input, popup) = MODEL.with_borrow(|m| {
+            (
+                m.command_rect.is_some_and(|r| r.contains(self.pointer)),
+                m.completion_rect.is_some_and(|r| r.contains(self.pointer)),
+            )
+        });
+
+        // focus now so the first key is not lost
+        if input {
+            self.context.memory_mut(|memory| memory.request_focus(id));
+            MODEL.with_borrow_mut(|model| model.command_open = true);
+        } else if !popup {
+            self.context.memory_mut(|memory| memory.surrender_focus(id));
+            MODEL.with_borrow_mut(|model| model.command_open = false);
+        }
     }
 
     /// Feed the hidden input's typing into the field; returns keys for the viewport.
@@ -172,7 +286,20 @@ impl Ui {
     pub fn agent(&mut self, event: super::agent::AgentEvent) -> Vec<String> {
         use super::agent::AgentEvent;
         let id = egui::Id::new("command-input");
-        let (open, empty) = MODEL.with_borrow(|m| (m.command_open, m.command.is_empty()));
+
+        // a layer name or the number box takes the typing before the command line
+        if let Some(field) = MODEL.with_borrow_mut(open_field) {
+            self.type_into(field, event);
+            return Vec::new();
+        }
+
+        // an empty line while drawing still finishes the shape
+        let (open, empty) = MODEL.with_borrow(|m| {
+            (
+                m.command_open,
+                m.command.is_empty() && m.drawing_prompt.is_empty(),
+            )
+        });
 
         match &event {
             AgentEvent::Text(value) if !open => {
@@ -206,28 +333,21 @@ impl Ui {
         let events = &mut self.input.egui_input_mut().events;
 
         match event {
+            // the input's whole text replaces the field, so keyboard composition cannot duplicate it
             AgentEvent::Text(value) => {
-                let shared = self
-                    .agent_value
-                    .chars()
-                    .zip(value.chars())
-                    .take_while(|(a, b)| a == b)
-                    .count();
-
-                for _ in shared..self.agent_value.chars().count() {
-                    events.push(key(egui::Key::Backspace, true));
-                    events.push(key(egui::Key::Backspace, false));
+                if value == self.agent_value {
+                    return Vec::new();
                 }
 
-                let added: String = value.chars().skip(shared).collect();
-
-                if !added.is_empty() {
-                    events.push(egui::Event::Text(added));
-                }
-
-                self.agent_value = value;
+                let deleted = value.chars().count() < self.agent_value.chars().count();
+                self.agent_value.clone_from(&value);
+                MODEL.with_borrow_mut(|model| {
+                    model.command = value;
+                    model.agent_edit = Some(deleted);
+                    model.command_open = true;
+                    model.focus_command = true;
+                });
                 self.context.memory_mut(|memory| memory.request_focus(id));
-                MODEL.with_borrow_mut(|model| model.command_open = true);
             }
             AgentEvent::Key(k) => {
                 events.push(key(k, true));
@@ -236,6 +356,43 @@ impl Ui {
         }
 
         Vec::new()
+    }
+
+    /// Feed the hidden input's typing into a field other than the command line.
+    #[cfg(target_arch = "wasm32")]
+    fn type_into(&mut self, field: &TextField, event: super::agent::AgentEvent) {
+        use super::agent::AgentEvent;
+        let id = egui::Id::new(field.id);
+
+        match event {
+            // the input's whole text replaces the field's, as for the command line
+            AgentEvent::Text(value) => {
+                command_cursor_end(&self.context, id, &value);
+                MODEL.with_borrow_mut(|model| {
+                    if let Some(text) = (field.text)(model) {
+                        text.clone_from(&value);
+                    }
+                });
+                self.agent_value = value;
+                self.context.memory_mut(|memory| memory.request_focus(id));
+            }
+            AgentEvent::Key(key) => {
+                // Enter keeps the text, Escape drops it; both lower the keyboard
+                if matches!(key, egui::Key::Enter | egui::Key::Escape) {
+                    super::agent::blur();
+                }
+
+                for pressed in [true, false] {
+                    self.input.egui_input_mut().events.push(egui::Event::Key {
+                        key,
+                        physical_key: None,
+                        pressed,
+                        repeat: false,
+                        modifiers: egui::Modifiers::NONE,
+                    });
+                }
+            }
+        }
     }
 
     /// Lay out and draw the panels; true when the frame must be redrawn.
@@ -254,11 +411,26 @@ impl Ui {
 
         let mut action = None;
         let mut command = None;
+        let mut typed = None; // a value Enter took from the number box
+        let mut closed = false; // the number box was closed without a value
+        let number_prompt = state.number_prompt();
+
+        // a box whose handle went behind the eye closes, so no unseen field keeps the keys
+        if number_prompt.is_none() {
+            state.close_number_box();
+        }
+
         MODEL.with_borrow_mut(|model| {
             model.drawing_prompt = state.drawing_prompt();
             model.drawing_command = state.drawing_verb().to_owned();
+            model.snap_bar = state.snap_bar;
+            model.snap_modes = state.snap_modes;
+            model.number_prompt = number_prompt;
         });
-        let drawing = state.drawing_overlay();
+        // a dragged object's snap, else the shape being drawn
+        let drawing = state
+            .drag_overlay()
+            .unwrap_or_else(|| state.drawing_overlay());
         // keep clicks and keys in arrival order
         let mut batches = Vec::new();
         let mut events = Vec::new();
@@ -288,6 +460,8 @@ impl Ui {
                 controls.clear();
             }
             MODEL.with_borrow_mut(|model| {
+                // first, so its Escape never reaches the command line
+                number_box(root, model, &mut self.controls, &mut typed, &mut closed);
                 commands(root, model, &mut self.controls, &mut command);
                 layers(root, model, &mut self.controls, &mut action);
             });
@@ -326,9 +500,39 @@ impl Ui {
         for batch in batches {
             output.append(self.context.run_ui(batch, &mut draw));
         }
+        MODEL.with_borrow_mut(|model| model.menu_open = egui::Popup::is_any_open(&self.context));
         self.input
             .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
-        let changed = action.is_some() || command.is_some();
+        // a kept layer name goes in before the click that ended its edit
+        let renamed = MODEL.with_borrow_mut(|model| model.renaming.take_if(|rename| rename.done));
+        let changed =
+            action.is_some() || command.is_some() || renamed.is_some() || typed.is_some() || closed;
+
+        if let Some(rename) = renamed {
+            state.panel_action(&format!("rename/{}/{}", rename.node, rename.text));
+        }
+
+        if closed {
+            state.close_number_box();
+        }
+
+        // Enter in the number box: one undo step, or the reason under the field
+        if let Some(text) = typed {
+            match state.type_number(&text) {
+                Ok(Some(done)) => {
+                    crate::app::feedback::status(&done);
+                    MODEL.with_borrow_mut(|model| {
+                        if model.history.len() == 200 {
+                            model.history.pop_front();
+                        }
+
+                        model.history.push_back(format!("> {done}"));
+                    });
+                }
+                Ok(None) => {}
+                Err(error) => MODEL.with_borrow_mut(|model| model.number_error = error),
+            }
+        }
 
         if let Some(key) = action {
             state.panel_action(&key);
@@ -355,8 +559,25 @@ impl Ui {
         self.publish();
         // the field changed on its own: the hidden input follows
         #[cfg(target_arch = "wasm32")]
-        MODEL.with_borrow(|model| {
-            if self.agent_value != model.command {
+        MODEL.with_borrow_mut(|model| {
+            let field = open_field(model).map(|field| field.id);
+
+            // a field that just opened takes the input, selected so typing replaces it
+            if field != self.field {
+                self.field = field;
+
+                if let Some(text) = open_field(model).and_then(|field| (field.text)(model)) {
+                    self.agent_value.clone_from(text);
+                    super::agent::edit(text);
+                }
+            }
+
+            // the input keeps what was typed: no completion suffix, no rewrite mid-word
+            if self.field.is_none()
+                && self.agent_value != model.command
+                && !model.inline_suffix
+                && !super::agent::composing()
+            {
                 self.agent_value.clone_from(&model.command);
                 super::agent::sync(&model.command);
             }
@@ -383,7 +604,7 @@ impl Ui {
                 .and_then(|window| window.document())
                 .and_then(|document| document.get_element_by_id("canvas"))
         {
-            let snapshot = MODEL.with_borrow(|model| serde_json::json!({"framework": "egui 0.34.3", "scene_rect": [self.scene_rect.min.x,self.scene_rect.min.y,self.scene_rect.max.x,self.scene_rect.max.y], "completion_rect": model.completion_rect.map(|r| [r.min.x,r.min.y,r.max.x,r.max.y]), "rows": model.rows, "controls": self.controls, "command_open": model.command_open, "layers_open": model.layers_open, "command": model.command, "history": model.history, "hint": crate::app::command::hint(&model.command)}));
+            let snapshot = MODEL.with_borrow(|model| serde_json::json!({"framework": "egui 0.34.3", "scene_rect": [self.scene_rect.min.x,self.scene_rect.min.y,self.scene_rect.max.x,self.scene_rect.max.y], "completion_rect": model.completion_rect.map(|r| [r.min.x,r.min.y,r.max.x,r.max.y]), "rows": model.rows, "edges": model.edges, "edge_total": model.edge_total, "controls": self.controls, "command_open": model.command_open, "layers_open": model.layers_open, "command": model.command, "history": model.history, "hint": crate::app::command::hint(&model.command), "number": model.number, "number_error": model.number_error, "number_rect": model.number_rect.map(|r| [r.min.x,r.min.y,r.max.x,r.max.y])}));
             let _ = canvas.set_attribute("data-viewer-ui", &snapshot.to_string());
         }
 
@@ -441,11 +662,13 @@ fn record(controls: &mut Option<Vec<Control>>, key: &str, label: &str, response:
 
 /// The layers panel; a click sets `action`.
 fn layers(
-    root: &mut egui::Ui, // the panel area
-    model: &mut Model, // the panel state
+    root: &mut egui::Ui,                 // the panel area
+    model: &mut Model,                   // the panel state
     controls: &mut Option<Vec<Control>>, // placed controls to draw
     action: &mut Option<String>,
 ) {
+    model.keyboard_rects.clear();
+
     if !model.layers_open {
         return;
     }
@@ -493,74 +716,37 @@ fn layers(
         if collapsed {
             return;
         }
+        let height = ui.text_style_height(&egui::TextStyle::Body); // one compact row
+        // the graph section sits below the tree, a table when unfolded
+        let graph = !model.rows.is_empty();
+        let rest = (ui.available_height() - if graph { height + 4. } else { 0. }).max(0.);
+        let tree = if graph && model.graph_open {
+            rest * 0.6
+        } else {
+            rest
+        };
         // one line per row
         egui::ScrollArea::vertical()
+            .id_salt("layer-rows")
+            .max_height(tree)
             .auto_shrink([false, false])
             .show(ui, |ui| {
-                for row in &model.rows {
-                    ui.horizontal(|ui| {
-                        if let Some((_, index)) = row.key.split_once('/')
-                            && row.key.starts_with("select/")
-                        {
-                            ui.spacing_mut().item_spacing.x = 2.;
-                            ui.add_space(row.depth.min(8) as f32 * 10.);
-                            let response = layer_icon(ui, "open", row);
-                            record(controls, &format!("open/{index}"), &row.label, &response);
+                ui.spacing_mut().item_spacing.y = 0.;
+                ui.spacing_mut().interact_size.y = height;
+                ui.spacing_mut().button_padding.y = 0.;
+                let Model {
+                    rows,
+                    renaming,
+                    keyboard_rects,
+                    ..
+                } = &mut *model;
 
-                            if response.clicked() && row.expanded.is_some() {
-                                *action = Some(format!("open/{index}"));
-                            }
-
-                            let width = (ui.available_width() - 86.).max(24.);
-                            let response = ui
-                                .add_sized(
-                                    [width, 28.],
-                                    egui::Button::new(&row.label)
-                                        .selected(row.selected)
-                                        .frame(row.selected)
-                                        .truncate(),
-                                )
-                                .on_hover_text(format!("{} · {} objects", row.label, row.count));
-                            record(
-                                controls,
-                                &row.key,
-                                &format!("Select {}", row.label),
-                                &response,
-                            );
-
-                            if response.clicked() {
-                                *action = Some(if ui.input(|i| i.modifiers.shift) {
-                                    row.key.replacen("select/", "add/", 1)
-                                } else {
-                                    row.key.clone()
-                                });
-                            }
-
-                            for kind in ["hide", "lock"] {
-                                let response = layer_icon(ui, kind, row);
-                                record(
-                                    controls,
-                                    &format!("{kind}/{index}"),
-                                    &format!(
-                                        "{} {}",
-                                        if kind == "hide" {
-                                            if row.hidden { "Show" } else { "Hide" }
-                                        } else if row.locked {
-                                            "Unlock"
-                                        } else {
-                                            "Lock"
-                                        },
-                                        row.label
-                                    ),
-                                    &response,
-                                );
-
-                                if response.clicked() {
-                                    *action = Some(format!("{kind}/{index}"));
-                                }
-                            }
-
-                            layer_color(ui, row, index, controls, action);
+                for row in rows.iter() {
+                    // painted under the row once its height is known
+                    let strip = ui.painter().add(egui::Shape::Noop);
+                    let line = ui.horizontal(|ui| {
+                        if let Some(index) = row.key.strip_prefix("select/") {
+                            layer_row(ui, row, index, height, controls, action, renaming)
                         } else {
                             let response = ui.button(&row.label);
                             record(controls, &row.key, &row.label, &response);
@@ -568,17 +754,385 @@ fn layers(
                             if response.clicked() {
                                 *action = Some(row.key.clone());
                             }
+
+                            Vec::new()
                         }
                     });
+                    keyboard_rects.extend(line.inner);
+
+                    // the whole strip, buttons included
+                    if row.selected {
+                        let rect = egui::Rect::from_x_y_ranges(
+                            ui.max_rect().x_range(),
+                            line.response.rect.y_range(),
+                        );
+                        ui.painter()
+                            .set(strip, egui::Shape::rect_filled(rect, 0., SELECTED));
+                    }
                 }
             });
+
+        if graph {
+            edges(ui, model, height, controls, action);
+        }
     });
 }
 
+/// The selection yellow, as in the scene.
+const SELECTED: egui::Color32 = egui::Color32::from_rgb(255, 255, 0);
+
+/// One tree row: arrow, name, bulb or check, lock, swatch; returns where a tap raises the keyboard.
+fn layer_row(
+    ui: &mut egui::Ui,
+    row: &LayerRow,
+    index: &str,
+    height: f32,
+    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    action: &mut Option<String>,
+    renaming: &mut Option<Rename>,
+) -> Vec<egui::Rect> {
+    let mut keyboard = Vec::new();
+    ui.spacing_mut().item_spacing.x = 2.;
+    ui.add_space(row.depth.min(8) as f32 * 10.);
+    let response = layer_icon(ui, "open", row, height);
+    record(controls, &format!("open/{index}"), &row.label, &response);
+
+    if response.clicked() && row.expanded.is_some() {
+        *action = Some(format!("open/{index}"));
+    }
+
+    // the name takes what the three icons leave
+    let width = (ui.available_width() - 3. * (height + 6.)).max(24.);
+
+    if let Some(rename) = renaming.as_mut()
+        && rename.node == index
+        && !rename.done
+    {
+        let edit = ui.add_sized(
+            [width, height],
+            egui::TextEdit::singleline(&mut rename.text)
+                .id(egui::Id::new("layer-rename"))
+                .margin(egui::vec2(2., 0.)),
+        );
+        record(controls, &format!("rename/{index}"), &row.label, &edit);
+        keyboard.push(edit.rect);
+
+        // the whole name selected, so typing replaces it
+        if !rename.focused {
+            edit.request_focus();
+            command_cursor_select(ui.ctx(), edit.id, 0, rename.text.chars().count());
+            rename.focused = true;
+        }
+
+        // Escape cancels; Enter or a click elsewhere keeps a changed name
+        if edit.lost_focus() {
+            if ui.input(|i| i.key_pressed(egui::Key::Escape)) || rename.text == row.label {
+                *renaming = None;
+            } else {
+                rename.done = true;
+            }
+        }
+    } else {
+        let (rect, response) =
+            ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::click());
+        let galley = egui::WidgetText::from(row.label.as_str()).into_galley(
+            ui,
+            Some(egui::TextWrapMode::Truncate),
+            width - 2.,
+            egui::TextStyle::Body,
+        );
+        let top = rect.center().y - galley.size().y / 2.;
+        ui.painter().galley(
+            egui::pos2(rect.left() + 2., top),
+            galley,
+            ui.visuals().text_color(),
+        );
+        let response = response.on_hover_text(format!("{} · {} objects", row.label, row.count));
+        record(
+            controls,
+            &row.key,
+            &format!("Select {}", row.label),
+            &response,
+        );
+
+        // egui counts a quick third click as a triple, not a double
+        if row.layer && (response.double_clicked() || response.triple_clicked()) {
+            *action = Some(format!("current/{index}"));
+        } else if response.clicked() {
+            *action = Some(if ui.input(|i| i.modifiers.shift) {
+                row.key.replacen("select/", "add/", 1)
+            } else {
+                row.key.clone()
+            });
+        }
+
+        if row.layer {
+            response.context_menu(|ui| {
+                layer_menu(ui, row, index, controls, action, renaming, &mut keyboard)
+            });
+        }
+    }
+
+    for kind in ["hide", "lock"] {
+        let response = layer_icon(ui, kind, row, height);
+        let verb = if kind == "hide" {
+            if row.current {
+                "Current"
+            } else if row.hidden {
+                "Show"
+            } else {
+                "Hide"
+            }
+        } else if row.locked {
+            "Unlock"
+        } else {
+            "Lock"
+        };
+        record(
+            controls,
+            &format!("{kind}/{index}"),
+            &format!("{verb} {}", row.label),
+            &response,
+        );
+
+        // the current layer cannot be hidden
+        if response.clicked() && !(kind == "hide" && row.current) {
+            *action = Some(format!("{kind}/{index}"));
+        }
+    }
+
+    layer_color(ui, row, index, height, controls, action);
+    keyboard
+}
+
+/// The right-click menu of a layer row; items that open a name field go to `keyboard`.
+fn layer_menu(
+    ui: &mut egui::Ui,
+    row: &LayerRow,
+    index: &str,
+    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    action: &mut Option<String>,
+    renaming: &mut Option<Rename>,
+    keyboard: &mut Vec<egui::Rect>, // a tap on these raises the phone keyboard
+) {
+    // the top layer of a document keeps its name and place
+    let root = row.root.then_some("The top layer of a document stays");
+
+    for (key, label) in [
+        ("current", "Set Current"),
+        ("new_layer", "New Layer"),
+        ("new_sublayer", "New Sublayer"),
+    ] {
+        let item = menu_item(ui, &format!("{key}/{index}"), label, None, controls, action);
+
+        // a new layer is named right away
+        if key != "current" {
+            keyboard.push(item.rect);
+        }
+    }
+
+    let response = ui
+        .add_enabled(root.is_none(), egui::Button::new("Rename Layer"))
+        .on_disabled_hover_text(root.unwrap_or_default());
+    record(
+        controls,
+        &format!("menu-rename/{index}"),
+        "Rename Layer",
+        &response,
+    );
+
+    if root.is_none() {
+        keyboard.push(response.rect);
+    }
+
+    if response.clicked() {
+        *renaming = Some(Rename {
+            node: index.to_string(),
+            text: row.label.clone(),
+            focused: false,
+            done: false,
+        });
+        ui.close();
+    }
+
+    let delete = format!("delete_layer/{index}");
+    let refusal = if row.current {
+        Some("The current layer cannot be deleted")
+    } else {
+        root
+    };
+
+    // a layer with objects asks first
+    if refusal.is_some() || row.count == 0 {
+        menu_item(ui, &delete, "Delete Layer", refusal, controls, action);
+    } else {
+        let response = ui
+            .menu_button("Delete Layer", |ui| {
+                let confirm = "Delete Layer and Objects";
+                ui.label(format!("Also deletes its {} objects", row.count));
+                menu_item(ui, &delete, confirm, None, controls, action);
+            })
+            .response;
+        record(
+            controls,
+            &format!("menu-delete/{index}"),
+            "Delete Layer",
+            &response,
+        );
+    }
+
+    let duplicate = format!("duplicate_layer/{index}");
+    menu_item(ui, &duplicate, "Duplicate Layer", root, controls, action);
+
+    for (key, label) in [
+        ("change_layer", "Change Object Layer"),
+        ("copy_layer", "Copy Object Layer"),
+    ] {
+        menu_item(ui, &format!("{key}/{index}"), label, None, controls, action);
+    }
+}
+
+/// One menu button, greyed with its reason when refused; a click sets `action` and closes the menu.
+fn menu_item(
+    ui: &mut egui::Ui,
+    key: &str,
+    label: &str,
+    refusal: Option<&str>,
+    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    action: &mut Option<String>,
+) -> egui::Response {
+    let response = ui
+        .add_enabled(refusal.is_none(), egui::Button::new(label))
+        .on_disabled_hover_text(refusal.unwrap_or_default());
+    record(controls, key, label, &response);
+
+    if response.clicked() {
+        *action = Some(key.to_string());
+        ui.close();
+    }
+
+    response
+}
+
+/// The graph section: a header folding a table of edges; a row click selects both objects.
+fn edges(
+    ui: &mut egui::Ui,
+    model: &Model,
+    height: f32,
+    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    action: &mut Option<String>,
+) {
+    let (rect, header) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), height + 4.),
+        egui::Sense::click(),
+    );
+    let ink = ui.visuals().text_color();
+    let c = rect.left_center() + egui::vec2(8., 0.);
+    // the same arrow as a tree row
+    let points = if model.graph_open {
+        vec![
+            c + egui::vec2(-4., -2.),
+            c + egui::vec2(4., -2.),
+            c + egui::vec2(0., 3.),
+        ]
+    } else {
+        vec![
+            c + egui::vec2(-2., -4.),
+            c + egui::vec2(-2., 4.),
+            c + egui::vec2(3., 0.),
+        ]
+    };
+    ui.painter()
+        .add(egui::Shape::convex_polygon(points, ink, egui::Stroke::NONE));
+    let plural = if model.edge_total == 1 { "" } else { "s" };
+    let title = format!("Graph · {} edge{plural}", model.edge_total);
+    ui.painter().text(
+        rect.left_center() + egui::vec2(18., 0.),
+        egui::Align2::LEFT_CENTER,
+        &title,
+        egui::TextStyle::Body.resolve(ui.style()),
+        ink,
+    );
+    record(controls, "graph/toggle", &title, &header);
+
+    if header.clicked() {
+        *action = Some("graph/toggle".into());
+    }
+
+    if !model.graph_open {
+        return;
+    }
+
+    let half = ui.available_width() / 2.;
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), height),
+        egui::Sense::hover(),
+    );
+
+    for (title, left) in [("From", rect.left()), ("To", rect.left() + half)] {
+        ui.painter().text(
+            egui::pos2(left + 2., rect.center().y),
+            egui::Align2::LEFT_CENTER,
+            title,
+            egui::TextStyle::Body.resolve(ui.style()),
+            egui::Color32::from_gray(110),
+        );
+    }
+
+    egui::ScrollArea::vertical()
+        .id_salt("graph-edges")
+        .auto_shrink([false, false])
+        .show_rows(ui, height, model.edges.len(), |ui, range| {
+            ui.spacing_mut().item_spacing.y = 0.;
+
+            for edge in &model.edges[range] {
+                let (rect, response) = ui.allocate_exact_size(
+                    egui::vec2(ui.available_width(), height),
+                    egui::Sense::click(),
+                );
+
+                if edge.selected {
+                    ui.painter().rect_filled(rect, 0., SELECTED);
+                }
+
+                // from and to, each truncated to its column
+                for (text, left) in [(&edge.from, rect.left()), (&edge.to, rect.left() + half)] {
+                    let galley = egui::WidgetText::from(text.as_str()).into_galley(
+                        ui,
+                        Some(egui::TextWrapMode::Truncate),
+                        half - 6.,
+                        egui::TextStyle::Body,
+                    );
+                    let top = rect.center().y - galley.size().y / 2.;
+                    ui.painter().galley(
+                        egui::pos2(left + 2., top),
+                        galley,
+                        ui.visuals().text_color(),
+                    );
+                }
+
+                let response = response.on_hover_text(&edge.guids);
+                record(
+                    controls,
+                    &edge.key,
+                    &format!("{} → {}", edge.from, edge.to),
+                    &response,
+                );
+
+                if response.clicked() {
+                    *action = Some(edge.key.clone());
+                }
+            }
+        });
+}
+
 /// One icon of a layer row: eye, lock or arrow.
-fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
-    let (rect, response) = ui.allocate_exact_size(egui::vec2(26., 28.), egui::Sense::click());
+fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow, height: f32) -> egui::Response {
+    let (rect, response) =
+        ui.allocate_exact_size(egui::vec2(height + 4., height), egui::Sense::click());
+    let scale = height / 18.; // drawn for an 18 pixel row
     let c = rect.center();
+    let at = |x: f32, y: f32| c + egui::vec2(x, y) * scale;
     let ink = ui.visuals().text_color();
     let stroke = egui::Stroke::new(1.4_f32, ink);
 
@@ -591,17 +1145,9 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
         "open" => {
             if let Some(open) = row.expanded {
                 let points = if open {
-                    vec![
-                        c + egui::vec2(-4., -2.),
-                        c + egui::vec2(4., -2.),
-                        c + egui::vec2(0., 3.),
-                    ]
+                    vec![at(-4., -2.), at(4., -2.), at(0., 3.)]
                 } else {
-                    vec![
-                        c + egui::vec2(-2., -4.),
-                        c + egui::vec2(-2., 4.),
-                        c + egui::vec2(3., 0.),
-                    ]
+                    vec![at(-2., -4.), at(-2., 4.), at(3., 0.)]
                 };
                 ui.painter()
                     .add(egui::Shape::convex_polygon(points, ink, egui::Stroke::NONE));
@@ -609,23 +1155,30 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
 
             response.on_hover_text("Expand or collapse")
         }
+        "hide" if row.current => {
+            // a check mark instead of the bulb
+            ui.painter().add(egui::Shape::line(
+                vec![at(-5., 0.), at(-1.5, 4.), at(5., -5.)],
+                egui::Stroke::new(2_f32, egui::Color32::BLACK),
+            ));
+
+            response.on_hover_text("Current layer: new objects go here")
+        }
         "hide" => {
             let fill = if row.hidden {
                 egui::Color32::TRANSPARENT
             } else {
                 egui::Color32::from_rgb(255, 216, 80)
             };
-            ui.painter()
-                .circle(c + egui::vec2(0., -3.), 5., fill, stroke);
+            ui.painter().circle(at(0., -2.), 4. * scale, fill, stroke);
 
-            for y in [3., 6.] {
-                ui.painter()
-                    .line_segment([c + egui::vec2(-3., y), c + egui::vec2(3., y)], stroke);
+            for y in [3., 5.5] {
+                ui.painter().line_segment([at(-2.5, y), at(2.5, y)], stroke);
             }
 
             if row.hidden {
                 ui.painter()
-                    .line_segment([c + egui::vec2(-7., 8.), c + egui::vec2(7., -9.)], stroke);
+                    .line_segment([at(-6., 7.), at(6., -8.)], stroke);
             }
 
             response.on_hover_text(if row.hidden {
@@ -636,7 +1189,7 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
         }
         _ => {
             ui.painter().rect(
-                egui::Rect::from_center_size(c + egui::vec2(0., 3.), egui::vec2(11., 9.)),
+                egui::Rect::from_center_size(at(0., 2.5), egui::vec2(10., 8.) * scale),
                 1.,
                 if row.locked {
                     egui::Color32::from_rgb(225, 180, 90)
@@ -649,10 +1202,10 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow) -> egui::Response {
             let x = if row.locked { 0. } else { 3. };
             ui.painter().add(egui::Shape::line(
                 vec![
-                    c + egui::vec2(-3. + x, -1.),
-                    c + egui::vec2(-3. + x, -6.),
-                    c + egui::vec2(3. + x, -6.),
-                    c + egui::vec2(3. + x, -1.),
+                    at(-2.5 + x, -1.5),
+                    at(-2.5 + x, -5.5),
+                    at(2.5 + x, -5.5),
+                    at(2.5 + x, -1.5),
                 ],
                 stroke,
             ));
@@ -670,18 +1223,28 @@ fn layer_color(
     ui: &mut egui::Ui,
     row: &LayerRow,
     index: &str,
+    height: f32,
     controls: &mut Option<Vec<Control>>, // placed controls to draw
     action: &mut Option<String>,
 ) {
     let mut color = row.color.unwrap_or([180, 180, 180]);
-    let response = egui::containers::menu::MenuButton::new(
-        egui::RichText::new("■").color(egui::Color32::from_rgb(color[0], color[1], color[2])),
-    )
-    .config(
-        egui::containers::menu::MenuConfig::default()
-            .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside),
-    )
-    .ui(ui, |ui| {
+    // one icon wide and unframed, so the row keeps its width and a selected strip shows through
+    let (rect, response) =
+        ui.allocate_exact_size(egui::vec2(height + 4., height), egui::Sense::click());
+
+    if response.hovered() {
+        ui.painter()
+            .rect_filled(rect.shrink(1.), 3., ui.visuals().widgets.hovered.bg_fill);
+    }
+
+    ui.painter().rect_filled(
+        egui::Rect::from_center_size(rect.center(), egui::Vec2::splat(height * 0.5)),
+        1.,
+        egui::Color32::from_rgb(color[0], color[1], color[2]),
+    );
+    let menu =
+        egui::Popup::menu(&response).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside);
+    menu.show(|ui| {
         let channel_id = egui::Id::new(("layer-color-channel", index));
         let mut edge = ui
             .ctx()
@@ -779,9 +1342,8 @@ fn layer_color(
                 color[0], color[1], color[2]
             ));
         }
-    })
-    .0
-    .on_hover_text("Change object and child colors");
+    });
+    let response = response.on_hover_text("Change object and child colors");
     record(
         controls,
         &format!("color/{index}"),
@@ -790,29 +1352,100 @@ fn layer_color(
     );
 }
 
+/// The gumball number box beside its handle; Enter hands the text to `typed`, Escape sets `closed`.
+fn number_box(
+    root: &mut egui::Ui,                 // the panel area
+    model: &mut Model,                   // the panel state
+    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    typed: &mut Option<String>,
+    closed: &mut bool,
+) {
+    let Some(prompt) = model.number_prompt.as_ref() else {
+        model.number_handle = None;
+        model.number_rect = None;
+        return;
+    };
+    let id = egui::Id::new("number-input");
+    let opened = model.number_handle != Some(prompt.handle);
+
+    // a new box starts empty, with the keys
+    if opened {
+        model.number_handle = Some(prompt.handle);
+        model.number.clear();
+        model.number_error.clear();
+        root.memory_mut(|memory| memory.request_focus(id));
+    }
+
+    let focused = root.memory(|memory| memory.focused());
+
+    // Escape, or another field taking the keys, closes it
+    if root.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
+        || focused.is_some_and(|other| other != id)
+    {
+        *closed = true;
+        return;
+    }
+
+    // a click in the scene dropped the focus: the box keeps the keys while it is open
+    if focused.is_none() {
+        root.memory_mut(|memory| memory.request_focus(id));
+    }
+
+    let enter = root.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Enter));
+    let area = egui::Area::new(egui::Id::new("number-box"))
+        .order(egui::Order::Foreground)
+        .pivot(egui::Align2::LEFT_BOTTOM)
+        .fixed_pos(egui::pos2(prompt.at[0] + 12.0, prompt.at[1] - 12.0))
+        .show(root.ctx(), |ui| {
+            egui::Frame::new()
+                .fill(egui::Color32::WHITE)
+                .stroke(egui::Stroke::new(1.0_f32, egui::Color32::from_gray(215)))
+                .inner_margin(5)
+                .show(ui, |ui| {
+                    ui.style_mut().override_font_id = Some(egui::FontId::proportional(14.0));
+                    ui.horizontal(|ui| {
+                        ui.label(&prompt.title);
+                        let edit = ui.add_sized(
+                            [72.0, 22.0],
+                            egui::TextEdit::singleline(&mut model.number)
+                                .id(id)
+                                .hint_text(prompt.hint)
+                                .char_limit(64),
+                        );
+                        record(controls, "number/input", &prompt.title, &edit);
+                        ui.label(prompt.unit);
+                    });
+
+                    if !model.number_error.is_empty() {
+                        ui.colored_label(egui::Color32::from_rgb(170, 30, 30), &model.number_error);
+                    }
+                });
+        });
+    model.number_rect = Some(area.response.rect);
+
+    if enter {
+        *typed = Some(model.number.clone());
+    }
+}
+
 /// The command dock; an executed line goes to `command`.
 fn commands(
-    root: &mut egui::Ui, // the panel area
-    model: &mut Model, // the panel state
+    root: &mut egui::Ui,                 // the panel area
+    model: &mut Model,                   // the panel state
     controls: &mut Option<Vec<Control>>, // placed controls to draw
     command: &mut Option<String>,
 ) {
     let previous_popup = model.completion_rect.take();
-    let polyline_options = model.drawing_command == "polyline";
+    let drawing_options = matches!(model.drawing_command.as_str(), "polyline" | "curve");
+    // each button row adds this much
+    let extra = 28.0 * (usize::from(drawing_options) + usize::from(model.snap_bar)) as f32;
     let panel = if !model.command_expanded {
-        egui::Panel::bottom("command-line-collapsed").exact_size(if polyline_options {
-            58.0
-        } else {
-            30.0
-        })
+        egui::Panel::bottom("command-line-collapsed").exact_size(30.0 + extra)
     } else {
         egui::Panel::bottom("command-line")
             .default_size(104.0)
             .resizable(true)
-            .size_range(
-                (if polyline_options { 92.0 } else { 64.0 })
-                    ..=(root.available_height() * 0.75).max(104.0),
-            )
+            .size_range((64.0 + extra)..=(root.available_height() * 0.75).max(104.0 + extra))
     };
     let panel_response = panel
         .show_separator_line(false)
@@ -838,10 +1471,7 @@ fn commands(
                     .auto_shrink([false, false])
                     .stick_to_bottom(true)
                     .min_scrolled_height(0.0)
-                    .max_height(
-                        (ui.available_height() - if polyline_options { 66.0 } else { 38.0 })
-                            .max(0.0),
-                    )
+                    .max_height((ui.available_height() - 38.0 - extra).max(0.0))
                     .show(ui, |ui| {
                         ui.set_max_width(ui.available_width());
                         for text in &model.history {
@@ -871,19 +1501,26 @@ fn commands(
                     egui::Stroke::new(1.0_f32, egui::Color32::from_gray(210)),
                 );
             }
-            // Points / Rectangle / Polygon buttons while drawing a polyline
-            if polyline_options {
-                ui.horizontal_wrapped(|ui| {
-                    for (label, text) in [
+            // construction buttons while drawing a polyline or curve
+            if drawing_options {
+                let polyline = model.drawing_command == "polyline";
+                let choices: &[(&str, &str)] = if polyline {
+                    &[
                         ("Points", "Polyline Points"),
                         ("Rectangle", "Polyline Rectangle"),
                         ("Polygon", "Polyline Polygon"),
+                        ("Close", "Close"),
                         ("Finish", ""),
-                    ] {
-                        let option = ui.button(label);
+                    ]
+                } else {
+                    &[("Close", "Close"), ("Finish", "")]
+                };
+                ui.horizontal_wrapped(|ui| {
+                    for (label, text) in choices {
+                        let option = ui.button(*label);
                         record(controls, &format!("command/option/{label}"), label, &option);
                         if option.clicked() {
-                            *command = Some(text.into());
+                            *command = Some((*text).into());
                             model.command.clear();
                             model.completion_visible = false;
                             model.focus_command = true;
@@ -1052,7 +1689,13 @@ fn commands(
                 if response.gained_focus() {
                     model.command_open = true;
                 }
-                if response.changed() {
+                let agent_edit = model.agent_edit.take();
+                // the : that opened the line is not part of the command
+                if (response.changed() || agent_edit.is_some()) && model.command.starts_with(':') {
+                    model.command.remove(0);
+                }
+                let deletes = deletes || agent_edit == Some(true);
+                if response.changed() || agent_edit.is_some() {
                     model.completion = 0;
                     model.completion_visible = !model.command.is_empty();
                     model.completion_prefix.clone_from(&model.command);
@@ -1197,8 +1840,11 @@ fn commands(
                     model.inline_suffix = false;
                     model.focus_command = true;
                 }
-                // Escape clears the field
-                if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+                // Escape clears the field, unless it closes a layer menu or cancels a rename
+                if ui.input(|i| i.key_pressed(egui::Key::Escape))
+                    && !model.menu_open
+                    && model.renaming.is_none()
+                {
                     model.command.clear();
                     model.completion_visible = false;
                     model.inline_suffix = false;
@@ -1223,6 +1869,19 @@ fn commands(
                     ui.ctx().request_repaint();
                 }
             });
+            // one toggle per snap kind, under the field
+            if model.snap_bar {
+                ui.horizontal_wrapped(|ui| {
+                    for (label, bit) in crate::app::snap::MODES {
+                        let toggle = ui.selectable_label(model.snap_modes & bit != 0, label);
+                        record(controls, &format!("snap/{label}"), label, &toggle);
+                        if toggle.clicked() {
+                            *command = Some(format!("Snap {label}"));
+                            model.focus_command = true;
+                        }
+                    }
+                });
+            }
         });
     if let Some(controls) = controls {
         let rect = panel_response.response.rect;

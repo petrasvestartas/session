@@ -11,6 +11,7 @@ struct CloudUniform {
 };
 
 @group(0) @binding(0) var<uniform> cloud: CloudUniform; // cloud settings
+@group(0) @binding(1) var<uniform> clipping: ClipUniform; // clipping planes
 
 // Words per record; the layout matches SplatRecord in Rust.
 const REC_WORDS: u32 = 40u;
@@ -77,7 +78,23 @@ fn project(gid: u32) -> Splat {
     );
     s.row = i;
     s.instance = table[base + 37u];
-    let clip = m * vec4<f32>(positions[i * 3u], positions[i * 3u + 1u], positions[i * 3u + 2u], 1.0);
+    let point = vec3<f32>(positions[i * 3u], positions[i * 3u + 1u], positions[i * 3u + 2u]);
+
+    // cut away by a clipping plane; the rotation columns end in the scene-space translation
+    if (clip_active()) {
+        let rot = mat3x3<f32>(
+            vec3<f32>(rec_f(base, 24u), rec_f(base, 25u), rec_f(base, 26u)),
+            vec3<f32>(rec_f(base, 28u), rec_f(base, 29u), rec_f(base, 30u)),
+            vec3<f32>(rec_f(base, 32u), rec_f(base, 33u), rec_f(base, 34u)),
+        );
+        let world = rot * point + vec3<f32>(rec_f(base, 27u), rec_f(base, 31u), rec_f(base, 35u));
+
+        if (clip_cut(table[base + 38u], world)) {
+            return s;
+        }
+    }
+
+    let clip = m * vec4<f32>(point, 1.0);
 
     if (clip.w <= 0.0) {
         return s;
@@ -201,5 +218,5 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
         discard;
     }
 
-    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec4<f32>(0.0));
+    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec2<u32>(0u));
 }

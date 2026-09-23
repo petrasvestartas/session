@@ -12,8 +12,8 @@ const PINCH_LOG: f64 = -0.105_360_515_657_826_28;
 /// Largest pinch ratio one event may apply.
 const PINCH_MAX: f64 = 2.0;
 
-/// A finger moving less than this many pixels is a tap.
-const TAP_SLOP: f64 = 12.0;
+/// A finger moving less than this many CSS pixels is a tap.
+pub(crate) const TAP_SLOP: f64 = 12.0;
 
 /// A finger lifting within this many ms is a tap.
 const TAP_MS: f64 = 300.0;

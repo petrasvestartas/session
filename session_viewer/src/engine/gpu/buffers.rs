@@ -4,13 +4,28 @@ use wgpu::util::DeviceExt;
 /// The GPU connection: device makes resources, queue runs commands.
 pub struct GpuCtx {
     pub device: wgpu::Device, // creates buffers, textures, pipelines
-    pub queue: wgpu::Queue, // uploads data and submits commands
+    pub queue: wgpu::Queue,   // uploads data and submits commands
+    pub cache: crate::engine::pipelines::Cache, // shaders, layouts and pipelines asked for so far
+}
+
+impl GpuCtx {
+    /// A connection with nothing compiled yet.
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {
+        Self {
+            device,
+            queue,
+            cache: Default::default(),
+        }
+    }
 }
 
 /// Usage flags for a storage buffer that grows.
 pub const ROWS: wgpu::BufferUsages = wgpu::BufferUsages::STORAGE
     .union(wgpu::BufferUsages::COPY_DST)
     .union(wgpu::BufferUsages::COPY_SRC);
+
+/// Most bytes one constant-row write sends.
+pub const WRITE_CHUNK: u64 = 4 * 1024 * 1024;
 
 /// Usage flags for a vertex buffer that grows.
 pub const VERTS: wgpu::BufferUsages = wgpu::BufferUsages::VERTEX
@@ -24,12 +39,12 @@ pub const INDICES: wgpu::BufferUsages = wgpu::BufferUsages::INDEX
 
 /// A GPU buffer that grows by half when full.
 pub struct GrowBuf {
-    pub buf: wgpu::Buffer, // the GPU buffer
-    len: u32, // rows in use
-    cap: u64, // rows allocated
-    stride: u64, // bytes per row
+    pub buf: wgpu::Buffer,     // the GPU buffer
+    len: u32,                  // rows in use
+    cap: u64,                  // rows allocated
+    stride: u64,               // bytes per row
     usage: wgpu::BufferUsages, // how the GPU may use it
-    label: &'static str, // name shown in GPU errors
+    label: &'static str,       // name shown in GPU errors
 }
 
 impl GrowBuf {
@@ -60,8 +75,7 @@ impl GrowBuf {
         let grew = need > self.cap;
 
         if grew {
-            // grow by at least half
-            self.grow(ctx, need.max(self.cap * 3 / 2));
+            self.grow(ctx, grown(self.cap, need, self.most(ctx)));
         }
 
         // write the new rows after the existing ones
@@ -103,6 +117,65 @@ impl GrowBuf {
         );
     }
 
+    /// Write `count` copies of `row` from row `first`, at most `WRITE_CHUNK` bytes per write.
+    pub fn fill<T: Pod>(&self, ctx: &GpuCtx, first: u32, count: u32, row: &T) {
+        debug_assert_eq!(std::mem::size_of::<T>() as u64, self.stride);
+        let per = (WRITE_CHUNK / self.stride).max(1) as u32; // rows per write
+        let rows = vec![*row; per.min(count) as usize];
+        let end = first + count;
+        let mut at = first;
+
+        while at < end {
+            let n = per.min(end - at);
+            self.write_at(ctx, at, &rows[..n as usize]);
+            at += n;
+        }
+    }
+
+    /// A buffer of only the `runs` (first row, rows) of this one, packed in order; the copies go into `encoder`.
+    pub fn packed(
+        &self,
+        ctx: &GpuCtx,
+        encoder: &mut wgpu::CommandEncoder,
+        runs: &[(u32, u32)],
+    ) -> GrowBuf {
+        let len: u32 = runs.iter().map(|run| run.1).sum();
+        let cap = u64::from(len).max(1);
+        let buf = zeroed_buffer(&ctx.device, self.label, cap * self.stride, self.usage);
+        let mut to = 0u64;
+
+        for &(first, rows) in runs {
+            if rows == 0 {
+                continue;
+            }
+
+            encoder.copy_buffer_to_buffer(
+                &self.buf,
+                u64::from(first) * self.stride,
+                &buf,
+                to * self.stride,
+                u64::from(rows) * self.stride,
+            );
+            to += u64::from(rows);
+        }
+
+        GrowBuf {
+            buf,
+            len,
+            cap,
+            stride: self.stride,
+            usage: self.usage,
+            label: self.label,
+        }
+    }
+
+    /// Take `fresh`'s buffer and rows; the old buffer is freed now.
+    pub fn swap_in(&mut self, fresh: GrowBuf) {
+        replace_buffer(&mut self.buf, fresh.buf);
+        self.len = fresh.len;
+        self.cap = fresh.cap;
+    }
+
     /// Forget the rows; keep the buffer.
     pub fn reset(&mut self) {
         self.len = 0;
@@ -116,6 +189,23 @@ impl GrowBuf {
         );
         self.len = 0;
         self.cap = 1;
+    }
+
+    /// Rows the largest buffer this device allows can hold.
+    fn most(&self, ctx: &GpuCtx) -> u64 {
+        let limits = ctx.device.limits();
+        let mut bytes = limits.max_buffer_size;
+
+        if self.usage.contains(wgpu::BufferUsages::STORAGE) {
+            bytes = bytes.min(limits.max_storage_buffer_binding_size);
+        }
+
+        bytes / self.stride
+    }
+
+    /// True when `more` rows still fit in the largest buffer this device allows.
+    pub fn fits(&self, ctx: &GpuCtx, more: u64) -> bool {
+        u64::from(self.len) + more <= self.most(ctx)
     }
 
     /// Rows in use.
@@ -133,7 +223,7 @@ impl GrowBuf {
 pub struct Template {
     pub vbo: wgpu::Buffer, // vertex positions
     pub ibo: wgpu::Buffer, // triangle indices
-    pub index_count: u32, // indices to draw
+    pub index_count: u32,  // indices to draw
 }
 
 impl Template {
@@ -218,4 +308,27 @@ pub fn bind_group(
         layout,
         entries: &entries,
     })
+}
+
+/// Rows to grow to: half again, or what is needed, never past `most` unless the need itself is larger.
+fn grown(cap: u64, need: u64, most: u64) -> u64 {
+    need.max(cap * 3 / 2).min(most.max(need))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::grown;
+
+    /// Growth takes half again, but stops at the device's largest buffer.
+    #[test]
+    fn growth_stops_at_the_largest_buffer() {
+        assert_eq!(grown(100, 101, 1000), 150);
+        assert_eq!(grown(100, 300, 1000), 300);
+        assert_eq!(grown(800, 900, 1000), 1000);
+        assert_eq!(
+            grown(800, 1200, 1000),
+            1200,
+            "a need past the limit is the caller's to refuse"
+        );
+    }
 }

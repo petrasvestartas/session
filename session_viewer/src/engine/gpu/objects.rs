@@ -92,6 +92,25 @@ fn placed_row(local: &AABB, place: &Xform) -> ([f32; 16], [f64; 3], AABB) {
     )
 }
 
+/// Add `row` to the sorted `rows`, or take it out.
+fn track_in(rows: &mut Vec<u32>, row: u32, on: bool) {
+    match (rows.binary_search(&row), on) {
+        (Err(at), true) => rows.insert(at, row),
+        (Ok(at), false) => {
+            rows.remove(at);
+        }
+        _ => {}
+    }
+}
+
+/// True when two boxes are the same, bit for bit.
+fn same_box(a: &AABB, b: &AABB) -> bool {
+    [a.cx, a.cy, a.cz, a.hx, a.hy, a.hz]
+        .iter()
+        .zip([b.cx, b.cy, b.cz, b.hx, b.hy, b.hz])
+        .all(|(x, y)| x.to_bits() == y.to_bits())
+}
+
 /// Translation relative to the origin, as the GPU reads it.
 fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
     [
@@ -110,7 +129,10 @@ pub struct InstanceTable {
     local_bounds: Vec<AABB>, // box per row, in the object's own space
     widget: Option<u32>, // identity row the gumball draws with
     bounded: Vec<BoundedRow>, // rows with faces, for the inside test
+    bounded_at: Vec<u32>, // index of each row in `bounded`, u32::MAX = none
     world_bounds: Vec<AABB>, // box per row in world space
+    clipping: Vec<u32>, // rows of clipping planes, sorted
+    closed: Vec<u32>, // rows of verified closed solids, sorted
     last_origin: Option<Point>, // origin the GPU positions are measured from
     buffer: GrowBuf, // Instance rows on the GPU
     translations: GrowBuf, // positions minus the scene origin, on the GPU
@@ -137,10 +159,10 @@ fn instance_group(
 /// Textures and tiles the ink bind group reads.
 pub struct InkScene<'a> {
     pub tiles: &'a super::triangle_tiles::TriangleTiles, // screen tiles for visibility tests
-    pub targets: &'a Targets, // depth and gradient textures
+    pub targets: &'a Targets, // depth and triangle id textures
 }
 
-/// Bind group 2 for ink lanes: rows, depth, gradient, tiles.
+/// Bind group 2 for ink lanes: rows, depth, triangle ids, tiles.
 fn ink_instance_group(
     ctx: &GpuCtx,
     l: &Layouts,
@@ -212,7 +234,10 @@ impl InstanceTable {
             local_bounds: Vec::new(),
             widget: None,
             bounded: Vec::new(),
+            bounded_at: Vec::new(),
             world_bounds: Vec::new(),
+            clipping: Vec::new(),
+            closed: Vec::new(),
             last_origin: None,
             buffer,
             translations,
@@ -267,6 +292,7 @@ impl InstanceTable {
             self.translation.truncate(keep);
             self.local_bounds.truncate(keep);
             self.world_bounds.truncate(keep);
+            self.bounded_at.truncate(keep);
             // rewind both buffers by re-appending the kept rows
             self.buffer.reset();
             self.translations.reset();
@@ -294,6 +320,7 @@ impl InstanceTable {
             self.rows.clear();
             self.world_bounds.clear();
             self.local_bounds.clear();
+            self.bounded_at.clear();
             self.buffer.reset();
             self.translations.reset();
         }
@@ -304,6 +331,7 @@ impl InstanceTable {
         self.translation.reserve(up.rows.len());
         self.world_bounds.reserve(up.rows.len());
         self.local_bounds.reserve(up.rows.len());
+        self.bounded_at.reserve(up.rows.len());
 
         for (i, r) in up.rows.iter().enumerate() {
             let world = world_box(r);
@@ -312,11 +340,14 @@ impl InstanceTable {
             if r.faces && world.is_valid() {
                 let lo = world.min_point();
                 let hi = world.max_point();
+                self.bounded_at.push(self.bounded.len() as u32);
                 self.bounded.push(BoundedRow {
                     row: base + i as u32,
                     lo: [lo[0], lo[1], lo[2]],
                     hi: [hi[0], hi[1], hi[2]],
                 });
+            } else {
+                self.bounded_at.push(u32::MAX);
             }
 
             self.world_bounds.push(if world.is_valid() {
@@ -325,6 +356,11 @@ impl InstanceTable {
                 AABB::empty()
             });
             self.local_bounds.push(r.bounds);
+
+            if r.flags & (Instance::FLAG_CLIPPING_PLANE | Instance::FLAG_CLOSED) != 0 {
+                self.track(base + i as u32, r.flags);
+            }
+
             self.translation
                 .push([r.place.m[12], r.place.m[13], r.place.m[14]]);
             // matrix without translation
@@ -347,20 +383,29 @@ impl InstanceTable {
         }
 
         // rows not yet on the GPU
-        let fresh = &self.rows[self.buffer.len() as usize..];
+        let first = self.buffer.len() as usize;
+        let fresh = &self.rows[first..];
 
         if fresh.is_empty() {
             return;
         }
 
-        // translations are filled by the next rebase
-        let zeros = vec![[0.0f32; 4]; fresh.len()];
+        // measured from the current origin; zeros wait for the first rebase
+        let translations: Vec<[f32; 4]> = (first..self.rows.len())
+            .map(|i| match (&self.last_origin, self.translation.get(i)) {
+                (Some(origin), Some(t)) => anchored(*t, origin),
+                _ => [0.0; 4],
+            })
+            .collect();
         let grew = self.buffer.append(ctx, fresh);
 
-        if self.translations.append(ctx, &zeros) || grew {
+        if self.translations.append(ctx, &translations) || grew {
             self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
         }
+    }
 
+    /// Measure from the camera again at the next frame, as after loading a document.
+    pub fn forget_anchor(&mut self) {
         self.last_origin = None;
     }
 
@@ -485,6 +530,7 @@ impl InstanceTable {
         self.translation.push([0.0; 3]);
         self.local_bounds.push(AABB::empty());
         self.world_bounds.push(AABB::empty());
+        self.bounded_at.push(u32::MAX);
         // world position zero, relative to the origin
         let translation = match &self.last_origin {
             Some(origin) => anchored([0.0; 3], origin),
@@ -519,13 +565,13 @@ impl InstanceTable {
         self.world_bounds[i] = world;
 
         // keep the inside-test box in step
-        for b in &mut self.bounded {
-            if b.row == row {
-                let lo = world.min_point();
-                let hi = world.max_point();
-                b.lo = [lo[0], lo[1], lo[2]];
-                b.hi = [hi[0], hi[1], hi[2]];
-            }
+        if let Some(&at) = self.bounded_at.get(i)
+            && let Some(b) = self.bounded.get_mut(at as usize)
+        {
+            let lo = world.min_point();
+            let hi = world.max_point();
+            b.lo = [lo[0], lo[1], lo[2]];
+            b.hi = [hi[0], hi[1], hi[2]];
         }
 
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
@@ -554,6 +600,221 @@ impl InstanceTable {
         self.local_bounds[row as usize] = bounds;
         self.rows[row as usize].spacing = spacing;
         self.set_placement(ctx, row, place);
+    }
+
+    /// Join or leave the inside test with `world`, in O(1).
+    fn set_bounded(&mut self, row: u32, on: bool, world: &AABB) {
+        let at = self.bounded_at[row as usize];
+
+        if on {
+            let lo = world.min_point();
+            let hi = world.max_point();
+            let entry = BoundedRow {
+                row,
+                lo: [lo[0], lo[1], lo[2]],
+                hi: [hi[0], hi[1], hi[2]],
+            };
+
+            if at == u32::MAX {
+                self.bounded_at[row as usize] = self.bounded.len() as u32;
+                self.bounded.push(entry);
+            } else {
+                self.bounded[at as usize] = entry;
+            }
+
+            return;
+        }
+
+        if at == u32::MAX {
+            return;
+        }
+
+        self.bounded.swap_remove(at as usize);
+        self.bounded_at[row as usize] = u32::MAX;
+
+        // the last entry moved into the gap
+        if let Some(moved) = self.bounded.get(at as usize) {
+            self.bounded_at[moved.row as usize] = at;
+        }
+    }
+
+    /// Write one row and its translation to the GPU.
+    fn write_row(&mut self, ctx: &GpuCtx, row: u32) {
+        let i = row as usize;
+        self.geometry_revision = self.geometry_revision.wrapping_add(1);
+        self.buffer
+            .write_at(ctx, row, std::slice::from_ref(&self.rows[i]));
+
+        if let Some(origin) = &self.last_origin {
+            let t = anchored(self.translation[i], origin);
+            self.translations
+                .write_at(ctx, row, std::slice::from_ref(&t));
+        }
+    }
+
+    /// Take a whole new row on an id that was free.
+    pub fn set_row(&mut self, ctx: &GpuCtx, row: u32, r: &ObjectRow) {
+        let i = row as usize;
+        let (model, translation, world) = placed_row(&r.bounds, &r.place);
+        self.rows[i] = Instance {
+            model,
+            color: r.color,
+            flags: r.flags,
+            ao_radius: ambient_radius(&world),
+            spacing: r.spacing,
+            _pad: r.edge_color,
+        };
+        self.translation[i] = translation;
+        self.local_bounds[i] = r.bounds;
+        self.world_bounds[i] = world;
+        self.set_bounded(row, r.faces && world.is_valid(), &world);
+        self.track(row, r.flags);
+        self.write_row(ctx, row);
+    }
+
+    /// Keep the clipping plane and closed solid rows in step with row `row`'s new flags.
+    fn track(&mut self, row: u32, flags: u32) {
+        let live = flags & Instance::FLAG_DEAD == 0;
+        track_in(
+            &mut self.clipping,
+            row,
+            live && flags & Instance::FLAG_CLIPPING_PLANE != 0,
+        );
+        track_in(&mut self.closed, row, live && flags & Instance::FLAG_CLOSED != 0);
+    }
+
+    /// Rows of clipping planes, hidden ones included.
+    pub fn clipping_rows(&self) -> &[u32] {
+        &self.clipping
+    }
+
+    /// Rows of verified closed solids, hidden ones included.
+    pub fn closed_rows(&self) -> &[u32] {
+        &self.closed
+    }
+
+    /// Row `row`'s placement as the GPU draws it, drag previews included.
+    pub fn placement(&self, row: u32) -> Option<Xform> {
+        let i = row as usize;
+        let (instance, translation) = (self.rows.get(i)?, self.translation.get(i)?);
+        let mut m = instance.model.map(f64::from);
+        m[12] = translation[0];
+        m[13] = translation[1];
+        m[14] = translation[2];
+        Some(Xform::from_matrix(m))
+    }
+
+    /// Take a redrawn row's box, spacing and drawing flags; selection, visibility and colors stay.
+    pub fn update_geometry(&mut self, ctx: &GpuCtx, row: u32, r: &ObjectRow) {
+        const KEEP: u32 = Instance::FLAG_SELECTED
+            | Instance::FLAG_HIDDEN
+            | Instance::FLAG_INSIDE
+            | Instance::FLAG_COLOR
+            | Instance::FLAG_EDGE_COLOR
+            | Instance::FLAG_DEAD;
+        let i = row as usize;
+        let (model, translation, world) = placed_row(&r.bounds, &r.place);
+        let before = self.rows[i];
+        let instance = &mut self.rows[i];
+        instance.model = model;
+        instance.flags = (instance.flags & KEEP) | (r.flags & !KEEP);
+        instance.ao_radius = ambient_radius(&world);
+        instance.spacing = r.spacing;
+        let bounded = r.faces && world.is_valid();
+        let flags = self.rows[i].flags;
+        self.track(row, flags);
+        let same = bytemuck::bytes_of(&before) == bytemuck::bytes_of(&self.rows[i])
+            && self.translation[i] == translation
+            && same_box(&self.local_bounds[i], &r.bounds)
+            && (self.bounded_at[i] != u32::MAX) == bounded;
+
+        // a compaction walks every row again; most come back unchanged
+        if same {
+            return;
+        }
+
+        self.translation[i] = translation;
+        self.local_bounds[i] = r.bounds;
+        self.world_bounds[i] = world;
+        self.set_bounded(row, bounded, &world);
+        self.write_row(ctx, row);
+    }
+
+    /// Hide rows for good and drop their boxes; contiguous rows share one write.
+    pub fn retire_many(&mut self, ctx: &GpuCtx, rows: &[u32]) {
+        if rows.is_empty() {
+            return;
+        }
+
+        let mut sorted = rows.to_vec();
+        sorted.sort_unstable();
+        sorted.dedup();
+
+        for &row in &sorted {
+            let i = row as usize;
+            let instance = &mut self.rows[i];
+            instance.flags = Instance::FLAG_HIDDEN | Instance::FLAG_DEAD;
+            instance.ao_radius = 0.0;
+            self.track(row, Instance::FLAG_DEAD);
+            self.local_bounds[i] = AABB::empty();
+            self.world_bounds[i] = AABB::empty();
+            self.set_bounded(row, false, &AABB::empty());
+        }
+
+        self.geometry_revision = self.geometry_revision.wrapping_add(1);
+
+        for run in sorted.chunk_by(|a, b| a + 1 == *b) {
+            let first = run[0] as usize;
+            self.buffer
+                .write_at(ctx, run[0], &self.rows[first..first + run.len()]);
+        }
+    }
+
+    /// Grow a row's own box by `bounds`, placed at `place`.
+    pub fn grow_local_bounds(&mut self, ctx: &GpuCtx, row: u32, bounds: &AABB, place: &Xform) {
+        let i = row as usize;
+
+        let Some(local) = self.local_bounds.get_mut(i) else {
+            return;
+        };
+
+        local.union_with(bounds);
+        let world = local.transformed(place);
+        let world = if world.is_valid() {
+            world
+        } else {
+            AABB::empty()
+        };
+        self.world_bounds[i] = world;
+        self.rows[i].ao_radius = ambient_radius(&world);
+        self.write_row(ctx, row);
+    }
+
+    /// World box of every row that is not dead.
+    pub fn live_world_bounds(&self) -> AABB {
+        let mut out = AABB::empty();
+
+        for (row, bounds) in self.rows.iter().zip(&self.world_bounds) {
+            if row.flags & Instance::FLAG_DEAD == 0 && bounds.is_valid() {
+                out.union_with(bounds);
+            }
+        }
+
+        out
+    }
+
+    /// True when row `row` already sits at `place`.
+    pub fn placement_matches(&self, row: u32, place: &Xform) -> bool {
+        let i = row as usize;
+        let (Some(instance), Some(translation)) = (self.rows.get(i), self.translation.get(i))
+        else {
+            return false;
+        };
+        let mut model = place.to_f32();
+        model[12] = 0.0;
+        model[13] = 0.0;
+        model[14] = 0.0;
+        instance.model == model && *translation == [place.m[12], place.m[13], place.m[14]]
     }
 
     /// Set a row's face or edge color; None restores its own.
@@ -592,11 +853,18 @@ impl InstanceTable {
         }
     }
 
-    /// Set or clear one flag bit on one row.
+    /// Set or clear one flag bit on one row; a dead row stays hidden and unselected.
     pub fn set_flag(&mut self, ctx: &GpuCtx, row: u32, bit: u32, on: bool) {
         let Some(r) = self.rows.get_mut(row as usize) else {
             return;
         };
+        let revive = (bit & Instance::FLAG_HIDDEN != 0 && !on)
+            || (bit & Instance::FLAG_SELECTED != 0 && on);
+
+        if r.flags & Instance::FLAG_DEAD != 0 && revive {
+            return;
+        }
+
         let was = r.flags & bit != 0;
 
         if was == on {
@@ -604,12 +872,17 @@ impl InstanceTable {
         }
 
         r.flags ^= bit;
+        let flags = r.flags;
 
         if bit & Instance::FLAG_HIDDEN != 0 {
             self.geometry_revision = self.geometry_revision.wrapping_add(1);
         }
 
         self.buffer.write_at(ctx, row, std::slice::from_ref(r));
+
+        if bit & Instance::FLAG_CLOSED != 0 {
+            self.track(row, flags);
+        }
     }
 
     /// Note that geometry changed without a row edit.
@@ -625,7 +898,10 @@ impl InstanceTable {
         self.translation.clear();
         self.local_bounds.clear();
         self.bounded.clear();
+        self.bounded_at.clear();
         self.world_bounds.clear();
+        self.clipping.clear();
+        self.closed.clear();
         self.buffer.reset();
         self.translations.reset();
         self.last_origin = None;
@@ -638,6 +914,7 @@ impl InstanceTable {
         self.translation.shrink_to_fit();
         self.local_bounds.shrink_to_fit();
         self.bounded.shrink_to_fit();
+        self.bounded_at.shrink_to_fit();
         self.world_bounds.shrink_to_fit();
         self.rows.push(Instance::placeholder());
         self.buffer.release(ctx);

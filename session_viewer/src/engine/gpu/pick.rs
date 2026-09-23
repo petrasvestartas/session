@@ -15,7 +15,7 @@ pub struct Pick {
 struct IdTargets {
     id: Attachment, // object and sub id per pixel
     depth: Attachment, // depth per pixel
-    gradient: Attachment, // depth slope per pixel
+    gradient: Attachment, // triangle index + 1 per pixel, 0 for none
     size: (u32, u32), // texture size, px
 }
 
@@ -350,10 +350,10 @@ impl Picker {
             );
             let gradient = Attachment::new(
                 ctx,
-                "pick.gradient",
+                "pick.primitive",
                 &TextureSpec {
                     size,
-                    format: wgpu::TextureFormat::Rgba16Float,
+                    format: wgpu::TextureFormat::Rg16Uint,
                     samples: 1,
                     usage: wgpu::TextureUsages::RENDER_ATTACHMENT
                         | wgpu::TextureUsages::TEXTURE_BINDING,
@@ -405,7 +405,7 @@ impl Picker {
         })
     }
 
-    /// The gradient texture of the id pass.
+    /// The triangle id texture of the id pass.
     pub fn gradient(&self) -> &wgpu::TextureView {
         &self.targets.as_ref().expect("physical ID targets").gradient
     }

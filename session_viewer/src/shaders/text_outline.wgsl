@@ -34,20 +34,37 @@ fn vs_main(vertex: Vertex) -> Fragment {
     return out;
 }
 
+// True when a clipping plane cuts this fragment away, tested in canvas clip space.
+fn cut(fragment: Fragment) -> bool {
+    return clip_active() && clip_cut_ndc(0u, clip_ndc(fragment.position.xy + line.origin, line.frame, fragment.position.z));
+}
+
 // Flat color.
 @fragment
 fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
+    if (cut(fragment)) {
+        discard;
+    }
+
     return fragment.color;
 }
 
-// Object id, writing depth slope too.
+// Object id; no triangle id.
 @fragment
 fn fs_physical_id(fragment: Fragment) -> PhysicalId {
- return PhysicalId(vec2<u32>(fragment.object+1u, 0u), vec4<f32>(0.0));
+    if (cut(fragment)) {
+        discard;
+    }
+
+ return PhysicalId(vec2<u32>(fragment.object+1u, 0u), vec2<u32>(0u));
 }
 
 @fragment
 // Object id.
 fn fs_id(fragment: Fragment) -> @location(0) vec2<u32> {
+    if (cut(fragment)) {
+        discard;
+    }
+
     return vec2<u32>(fragment.object + 1u, 0u);
 }

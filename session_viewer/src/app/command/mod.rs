@@ -22,11 +22,6 @@ pub trait Action: std::fmt::Debug {
     fn keeps_split(&self) -> bool {
         false
     }
-
-    /// True when it refuses a scene with streamed sources.
-    fn needs_complete_scene(&self) -> bool {
-        false
-    }
 }
 
 /// One verb: how it is typed, completed and parsed.
@@ -55,6 +50,7 @@ pub const REGISTRY: &[&Spec] = &[
     &verbs::line::SPEC,       // register:line
     &verbs::polyline::SPEC,   // register:polyline
     &verbs::curve::SPEC,      // register:curve
+    &verbs::close::SPEC,      // register:close
     &verbs::trim::SPEC,       // register:trim
     &verbs::extend::SPEC,     // register:extend
     &verbs::explode::SPEC,    // register:explode
@@ -81,6 +77,7 @@ pub const REGISTRY: &[&Spec] = &[
     &verbs::edge::SPEC,       // register:edge
     &verbs::face::SPEC,       // register:face
     &verbs::controls::SPEC,   // register:controls
+    &verbs::clipping_plane::SPEC, // register:clipping_plane
 ];
 
 /// The verb typed at the start of the line.
@@ -93,18 +90,16 @@ fn first_word(line: &str) -> String {
 
 /// The spec a typed word names, alias or not.
 fn spec(word: &str) -> Option<&'static Spec> {
-    REGISTRY
-        .iter()
-        .copied()
-        .find(|spec| spec.answers_to(word))
+    REGISTRY.iter().copied().find(|spec| spec.answers_to(word))
 }
 
 /// The spec whose canonical name is exactly this word.
 fn spec_by_name(word: &str) -> Option<&'static Spec> {
-    REGISTRY
-        .iter()
-        .copied()
-        .find(|spec| spec.names.iter().any(|name| name.eq_ignore_ascii_case(word)))
+    REGISTRY.iter().copied().find(|spec| {
+        spec.names
+            .iter()
+            .any(|name| name.eq_ignore_ascii_case(word))
+    })
 }
 
 /// Help text for the verb being typed.
@@ -158,7 +153,11 @@ pub fn completions(line: &str) -> Vec<&'static str> {
             .collect();
     }
 
-    let mut names: Vec<&'static str> = REGISTRY.iter().flat_map(|spec| spec.names).copied().collect();
+    let mut names: Vec<&'static str> = REGISTRY
+        .iter()
+        .flat_map(|spec| spec.names)
+        .copied()
+        .collect();
     names.sort_by_key(|name| name.to_ascii_lowercase());
     names.retain(|name| name.to_ascii_lowercase().starts_with(&lower));
     names
@@ -185,7 +184,9 @@ pub fn browse(line: &str) -> Vec<&'static str> {
 
 /// Take the first completion; false when arguments are still needed.
 pub fn accept(line: &str) -> (String, bool) {
-    if line.trim().is_empty() {
+    let line = line.trim_start(); // a stray leading space must not hide the verb
+
+    if line.is_empty() {
         return (String::new(), true);
     }
 
@@ -193,8 +194,7 @@ pub fn accept(line: &str) -> (String, bool) {
     let text = choices.first().copied().unwrap_or(line).trim();
     let words: Vec<_> = text.split_whitespace().collect();
     let typed = spec_by_name(words.first().copied().unwrap_or(""));
-    let bare_verb_waits =
-        words.len() == 1 && typed.is_some_and(|spec| spec.wait_for_option);
+    let bare_verb_waits = words.len() == 1 && typed.is_some_and(|spec| spec.wait_for_option);
     let option_waits = words.len() == 2
         && typed.is_some_and(|spec| spec.wait_after_option)
         && spec_option_continues(typed, words[1]);
@@ -350,6 +350,36 @@ mod tests {
         assert_eq!(browse("Layers o"), vec!["Layers On", "Layers Off"]);
     }
 
+    /// One Enter on a partial name runs the verb, or opens its options when it needs one.
+    #[test]
+    fn one_enter_runs_a_partial_verb_or_opens_its_options() {
+        assert_eq!(accept("Del"), ("Delete".into(), true));
+        assert_eq!(accept("clo"), ("Close".into(), true));
+        assert_eq!(accept(" clo"), ("Close".into(), true));
+        assert_eq!(accept("cur"), ("Curve".into(), true));
+        assert_eq!(accept("Sn"), ("Snap ".into(), false));
+        assert_eq!(accept("Snap ne"), ("Snap Near".into(), true));
+        assert_eq!(accept("Snap pe"), ("Snap Perp".into(), true));
+    }
+
+    /// Snap turns snapping on or off, or toggles one kind.
+    #[test]
+    fn snap_takes_a_switch_or_a_kind() {
+        assert_eq!(
+            parsed("Snap Off"),
+            Ok("Snap { on: Some(false), mode: 0 }".into())
+        );
+        assert_eq!(parsed("snap"), Ok("Snap { on: None, mode: 0 }".into()));
+        assert_eq!(parsed("Snap near"), Ok("Snap { on: None, mode: 2 }".into()));
+        assert_eq!(
+            parsed("Snap Center"),
+            Ok("Snap { on: None, mode: 8 }".into())
+        );
+        assert!(parsed("Snap sideways").is_err());
+        assert_eq!(parsed("Close"), Ok("Close".into()));
+        assert!(parsed("Close 3").is_err());
+    }
+
     /// Completion and parsing ignore case.
     #[test]
     fn discovery_and_layer_options_are_case_insensitive() {
@@ -357,7 +387,10 @@ mod tests {
         assert_eq!(completions("Layers "), vec!["Layers On", "Layers Off"]);
         assert!(completions("").contains(&"Controls"));
         assert_eq!(parsed("Layers OFF"), Ok("Layers(Some(false))".into()));
-        assert_eq!(parsed("Attributes off"), Ok("Attributes(Some(false))".into()));
+        assert_eq!(
+            parsed("Attributes off"),
+            Ok("Attributes(Some(false))".into())
+        );
         assert_eq!(parsed("Attributes"), Ok("Attributes(None)".into()));
         assert_eq!(parsed("Opacity 0.5"), Ok("Opacity(0.5)".into()));
         assert!(parsed("Opacity 2").is_err());
@@ -373,6 +406,8 @@ mod tests {
             vec![
                 "Arctic",
                 "Attributes",
+                "clipping_plane",
+                "Close",
                 "Controls",
                 "Curve",
                 "Delete",

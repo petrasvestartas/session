@@ -4,6 +4,8 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
     <title>Session Viewer</title>
+    <!-- Scenes come from this bucket: open the connection while the wasm downloads. -->
+    <link rel="preconnect" href="https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev" crossorigin>
     <style>
       #viewer-error:not([hidden]) {
         position: fixed;
@@ -108,8 +110,8 @@
       <button type="button" onclick="location.reload()">Reload viewer</button>
     </div>
     <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Click selects, Shift-click adds to selection, right drag orbits. Type Layers On in the command line to show layers. Enter executes and Escape cancels."></canvas>
-    <!-- A phone keyboard opens only for an editable element: this one takes the command line's typing (app/agent.rs). -->
-    <input id="command-agent" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" tabindex="-1" aria-hidden="true" style="position: fixed; bottom: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; pointer-events: none;">
+    <!-- A phone keyboard opens only for an editable element: this one takes the command line's typing (app/agent.rs). Below 16px iOS zooms the page on focus. -->
+    <input id="command-agent" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" tabindex="-1" aria-hidden="true" style="position: fixed; bottom: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; pointer-events: none;">
     <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
     <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
     <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>

@@ -9,26 +9,22 @@ pub struct Model(pub Modeling);
 impl Action for Model {
     /// Build or edit the geometry, then select what was created.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        // a new object, as opposed to an edit
-        let created = matches!(
-            self.0,
-            Modeling::Point(_) | Modeling::Line(..) | Modeling::Polyline(_) | Modeling::Curve(_)
-        );
-        state.scene.model(&self.0)?;
+        let made = state.scene.model(&self.0)?;
         state.after_history();
 
-        if !created {
+        // an edit, as opposed to a new object
+        let Some((doc, guid)) = made else {
             return Ok("geometry updated".into());
-        }
+        };
 
-        // select the new object: the last row of its document
-        if let Some(doc) = state.scene.created_doc {
-            let row = (0..state.gpu.objects.len())
-                .rev()
-                .find(|&row| state.scene.identity_of(row).is_some_and(|id| id.0 == doc));
-            state.select(row);
-        }
-
+        // select the new object, on the layer it went to
+        let row = state.scene.row_of(doc, &guid);
+        state.select(row);
+        let layer = row
+            .and_then(|row| state.scene.node_of(row))
+            .and_then(|(node, _)| node.borrow().parent())
+            .map(|parent| parent.borrow().name.clone())
+            .unwrap_or_default();
         let name = match self.0 {
             Modeling::Point(_) => "point",
             Modeling::Line(..) => "line",
@@ -36,7 +32,7 @@ impl Action for Model {
             _ => "polyline",
         };
         Ok(format!(
-            "Created and selected {name}. Type Fit to locate it; Undo to remove it."
+            "Created and selected {name} on {layer}. Type Fit to locate it; Undo to remove it."
         ))
     }
 }

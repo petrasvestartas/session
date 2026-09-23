@@ -1,5 +1,7 @@
 pub mod arctic;
 pub mod attributes;
+pub mod clipping_plane;
+pub mod close;
 pub mod controls;
 pub mod curve;
 pub mod delete;

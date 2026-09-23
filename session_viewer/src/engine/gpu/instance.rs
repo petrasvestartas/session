@@ -5,11 +5,11 @@ use session_rust::Xform;
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Instance {
     pub model: [f32; 16], // rotation and scale; translation is stored separately
-    pub color: [f32; 4], // rgba tint
-    pub flags: u32, // FLAG_* bits below
-    pub ao_radius: f32, // SSAO contact radius, world units
-    pub spacing: f32, // vertex spacing, world units; 0 = unknown
-    pub _pad: u32, // padding
+    pub color: [f32; 4],  // rgba tint
+    pub flags: u32,       // FLAG_* bits below
+    pub ao_radius: f32,   // SSAO contact radius, world units
+    pub spacing: f32,     // vertex spacing, world units; 0 = unknown
+    pub _pad: u32,        // padding
 }
 
 const _: () = assert!(std::mem::size_of::<Instance>() == 96);
@@ -47,6 +47,18 @@ impl Instance {
 
     /// The object has faces, not only lines or points.
     pub const FLAG_HAS_FACES: u32 = 1 << 10;
+
+    /// A retired or sink row; CPU only, always with FLAG_HIDDEN.
+    pub const FLAG_DEAD: u32 = 1 << 11;
+
+    /// A clipping plane: it cuts the scene and is never cut.
+    pub const FLAG_CLIPPING_PLANE: u32 = 1 << 12;
+
+    /// A verified closed solid: a cut through it gets a section cap.
+    pub const FLAG_CLOSED: u32 = 1 << 13;
+
+    /// A closed solid whose faces wind inward.
+    pub const FLAG_INWARD: u32 = 1 << 14;
 
     /// The one row an empty scene binds: identity, grey, no flags.
     pub fn placeholder() -> Self {
@@ -104,7 +116,11 @@ mod tests {
             }
 
             if scene {
-                source = format!("{source}\n{}", crate::engine::pipelines::SCENE);
+                source = format!(
+                    "{source}\n{}\n{}",
+                    crate::engine::pipelines::SCENE,
+                    crate::engine::pipelines::CLIP
+                );
             }
 
             let source = crate::engine::pipelines::shared(&source);

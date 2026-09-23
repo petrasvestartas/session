@@ -201,6 +201,15 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         faces: true,
     };
 
+    // closed and wound one way, checked once a clipping plane cut: a section caps it
+    let solid = (!print && crate::app::clipping::solids_verified())
+        .then(|| crate::app::clipping::solid_orientation(m))
+        .flatten();
+    let row = Row {
+        flags: row.flags | crate::app::clipping::solid_flags(solid),
+        ..row
+    };
+
     if !decorated || knobs::no_edges() {
         return row; // triangles only
     }

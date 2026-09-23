@@ -112,7 +112,7 @@ impl State {
             self.gpu.set_selected(row, false);
         }
 
-        let identity = self.scene.identity_of(pending.target); // to find the row again after the rebuild
+        let identity = self.scene.identity_of(pending.target); // to select it again after the sync
         let result = self
             .scene
             .split_rows(pending.target, pending.face, &pending.cutters);
@@ -120,10 +120,7 @@ impl State {
         match result {
             Ok(regions) if regions > 1 => {
                 self.after_history();
-                let row = identity.and_then(|id| {
-                    (0..self.scene.object_count() as u32)
-                        .find(|&row| self.scene.identity_of(row).as_ref() == Some(&id))
-                });
+                let row = identity.and_then(|(doc, guid)| self.scene.row_of(doc, &guid));
                 self.select(row);
                 Ok(format!(
                     "Split into {regions} regions. The BRep stays joined; Undo restores the original. Cutters are retained."

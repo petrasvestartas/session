@@ -108,6 +108,11 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
         flags |= Instance::FLAG_OPEN;
     }
 
+    // closed shells, faces turned outward: a clipping plane caps it
+    if b.is_solid() {
+        flags |= Instance::FLAG_CLOSED;
+    }
+
     if b.face_count() == 1 {
         flags |= Instance::FLAG_SINGLE;
     }

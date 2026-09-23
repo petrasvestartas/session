@@ -1,5 +1,7 @@
 use crate::app::scene::FileDoc;
 use crate::app::scene::Scene;
+use crate::app::scene::rows::DocState;
+use crate::app::scene::sync;
 use session_rust::Geometry;
 use session_rust::Line;
 use session_rust::Point;
@@ -24,14 +26,12 @@ pub enum Modeling {
 }
 
 impl Scene {
-    /// Run one geometry command as one undo step.
-    pub fn model(&mut self, command: &Modeling) -> Result<(), String> {
-        if !self.streamed.is_empty() || !self.sheets.is_empty() {
-            return Err("geometry edits require a scene without streamed sources".into());
-        }
-
+    /// Run one geometry command as one undo step; a new object's (document, guid) comes back.
+    pub fn model(&mut self, command: &Modeling) -> Result<Option<(usize, String)>, String> {
         match command {
-            Modeling::Point(p) => self.create_geometry(Geometry::Point(Rc::new(point(*p)?))),
+            Modeling::Point(p) => self
+                .create_geometry(Geometry::Point(Rc::new(point(*p)?)))
+                .map(Some),
             Modeling::Line(a, b) => {
                 let line = Line::from_points(&point(*a)?, &point(*b)?);
 
@@ -40,6 +40,7 @@ impl Scene {
                 }
 
                 self.create_geometry(Geometry::Line(Rc::new(line)))
+                    .map(Some)
             }
             Modeling::Polyline(points) => {
                 if !(2..=MAX_POINTS).contains(&points.len()) {
@@ -51,6 +52,7 @@ impl Scene {
                     .map(|p| point(*p))
                     .collect::<Result<Vec<_>, _>>()?;
                 self.create_geometry(Geometry::Polyline(Rc::new(Polyline::new(points))))
+                    .map(Some)
             }
             Modeling::Curve(points) => {
                 if !(2..=MAX_POINTS).contains(&points.len()) {
@@ -61,54 +63,71 @@ impl Scene {
                     .iter()
                     .map(|p| point(*p))
                     .collect::<Result<Vec<_>, _>>()?;
-                let curve =
-                    session_rust::NurbsCurve::create(false, (points.len() - 1).min(3), &points);
-                self.create_geometry(Geometry::NurbsCurve(Rc::new(curve)))
+                self.create_geometry(Geometry::NurbsCurve(Rc::new(curve(&points))))
+                    .map(Some)
             }
-            _ => self.edit_geometry(command),
+            _ => self.edit_geometry(command).map(|_| None),
         }
     }
 
-    /// Add a geometry to the `Created` document, making it if needed.
-    fn create_geometry(&mut self, geometry: Geometry) -> Result<(), String> {
-        let index = self.created_doc;
-        let doc = match index {
-            Some(index) => index,
-            None => {
-                self.docs.push(FileDoc {
-                    name: "Created".into(),
-                    session: Rc::new(Session::new("Created")),
-                    place: Xform::identity(),
-                    point_px: 0.0,
-                    display_only: false,
-                });
+    /// Add a geometry to the current layer, else the `Created` document, making it if needed.
+    pub(crate) fn create_geometry(
+        &mut self,
+        geometry: Geometry,
+    ) -> Result<(usize, String), String> {
+        let layer = self
+            .current_layer()
+            .filter(|(doc, _)| !self.docs[*doc].display_only);
+        let doc = match (&layer, self.created_doc) {
+            (Some((doc, _)), _) => *doc,
+            (None, Some(index)) => index,
+            (None, None) => {
+                let session = Rc::new(Session::new("Created"));
+                let nodes_from = sync::tree_key(&session);
+                self.push_doc(
+                    FileDoc {
+                        name: "Created".into(),
+                        session,
+                        place: Xform::identity(),
+                        point_px: 0.0,
+                        display_only: false,
+                    },
+                    DocState {
+                        sheet: None,
+                        nodes_from,
+                    },
+                );
+                self.created_doc = Some(self.docs.len() - 1);
                 self.docs.len() - 1
             }
         };
-        self.created_doc = Some(doc);
+        let place = self.docs[doc].place.clone();
         let session = Rc::make_mut(&mut self.docs[doc].session);
+        // the current layer, else the root
+        let parent = layer
+            .as_ref()
+            .and_then(|(_, name)| session.tree.get_node_by_name(name))
+            .or_else(|| session.tree.root())
+            .ok_or("this document has no tree")?;
+        let name = parent.borrow().name.clone();
         session.begin("create");
+        let node = super::layers::add(session, &geometry, &parent, true);
 
-        match geometry {
-            Geometry::Point(p) => {
-                session.add_point((*p).clone(), None);
-            }
-            Geometry::Line(line) => {
-                session.add_line((*line).clone(), None);
-            }
-            Geometry::Polyline(line) => {
-                let added = session.add_polyline((*line).clone(), None);
-                debug_assert!(added.is_some());
-            }
-            Geometry::NurbsCurve(curve) => {
-                session.add_nurbscurve((*curve).clone(), None);
-            }
-            _ => unreachable!(),
+        // world coordinates stay put under a placed document or layer
+        if let Some(node) = &node
+            && let Some(back) = super::layers::frame(session, &place, &name)
+        {
+            let guid = node.borrow().name.clone();
+            super::layers::place(session, &guid, &back, &Xform::identity());
         }
 
-        session.commit();
-        self.last_edited = Some(doc);
-        Ok(())
+        let notes = sync::commit(session);
+        self.noted(doc, notes);
+        let node = node.ok_or("the geometry is empty")?;
+        self.hint(doc, &node);
+        let guid = node.borrow().name.clone();
+        self.edited(&[doc]);
+        Ok((doc, guid))
     }
 
     /// Trim, extend or explode the selected object.
@@ -132,11 +151,9 @@ impl Scene {
                 return Err(format!("explode is limited to {MAX_POINTS} points"));
             }
 
-            if file
-                .session
-                .tree
-                .get_node_by_name(&guid)
-                .is_some_and(|node| !node.borrow().is_leaf())
+            if self
+                .node_of(row)
+                .is_some_and(|(node, _)| !node.borrow().is_leaf())
             {
                 return Err("explode requires an object without child geometry".into());
             }
@@ -154,6 +171,8 @@ impl Scene {
                 return Err("object no longer exists".into());
             }
 
+            let mut pieces = Vec::new();
+
             for pair in points.windows(2) {
                 let mut line = Line::from_points(&pair[0], &pair[1]);
                 line.width = width;
@@ -161,22 +180,29 @@ impl Scene {
                 line.linecolor = color.clone();
                 let node = session.add_line(line, None);
                 session.set_xform(&node.borrow().name, place.clone());
+                pieces.push(node);
             }
 
-            session.commit();
+            let notes = sync::commit(session);
+            self.noted(doc, notes);
+
+            for node in &pieces {
+                self.hint(doc, node);
+            }
         } else {
             let next = edited(source, command)?;
             let session = Rc::make_mut(&mut self.docs[doc].session);
             session.begin("edit geometry");
             let replaced = session.replace(&guid, next);
-            session.commit();
+            let notes = sync::commit(session);
+            self.noted(doc, notes);
 
             if !replaced {
                 return Err("object no longer exists".into());
             }
         }
 
-        self.last_edited = Some(doc);
+        self.edited(&[doc]);
         Ok(())
     }
 }
@@ -238,6 +264,18 @@ fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
         }
         _ => Err("trim and extend currently accept lines and NURBS curves".into()),
     }
+}
+
+/// A curve through control points; ending on the start closes it smoothly.
+fn curve(points: &[Point]) -> session_rust::NurbsCurve {
+    let count = points.len();
+    let closed = count >= 4 && points[0].distance(&points[count - 1], None) <= 1e-12;
+
+    if closed {
+        return session_rust::NurbsCurve::create(true, (count - 2).min(3), &points[..count - 1]);
+    }
+
+    session_rust::NurbsCurve::create(false, (count - 1).min(3), points)
 }
 
 #[cfg(test)]
@@ -310,6 +348,35 @@ mod tests {
         };
         assert!((curve.point_at_start()[0] - 2.0).abs() < 1e-9);
         assert!((curve.point_at_end()[0] - 8.0).abs() < 1e-9);
+    }
+
+    /// A curve that ends on its start closes without a kink.
+    #[test]
+    fn a_curve_ending_on_its_start_is_closed() {
+        let square = [
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(10.0, 0.0, 0.0),
+            Point::new(10.0, 10.0, 0.0),
+            Point::new(0.0, 10.0, 0.0),
+            Point::new(0.0, 0.0, 0.0),
+        ];
+        let closed = curve(&square);
+        assert!(closed.is_valid() && closed.is_closed());
+        assert!(
+            closed
+                .point_at_start()
+                .distance(&closed.point_at_end(), None)
+                < 1e-9
+        );
+        let triangle = curve(&[
+            square[0].clone(),
+            square[1].clone(),
+            square[2].clone(),
+            square[0].clone(),
+        ]);
+        assert!(triangle.is_valid() && triangle.is_closed());
+        let open = curve(&square[..4]);
+        assert!(open.is_valid() && !open.is_closed());
     }
 
     /// Explode is one undo step and keeps the placement.

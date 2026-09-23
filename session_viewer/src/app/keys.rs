@@ -61,6 +61,7 @@ const fn named(key: NamedKey, run: fn(&mut State)) -> Binding {
 pub const KEYS: &[Binding] = &[
     // register:projection
     named(NamedKey::Space, |s| {
+        s.refresh_bounds();
         s.camera.toggle_projection_framed(&s.gpu.bounds, s.aspect())
     }),
     // register:escape

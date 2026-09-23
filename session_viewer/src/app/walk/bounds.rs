@@ -30,14 +30,14 @@ pub fn file_extent(t: &Upload, from: &Baselines) -> AABB {
     out
 }
 
-/// True when every new row is flat at z = 0 of one placement.
-pub fn is_planar(t: &Upload, from: &Baselines, place: &Xform) -> bool {
+/// The z band [lowest, highest] of the new rows when every one is flat at one placement.
+pub fn planar_band(t: &Upload, from: &Baselines, place: &Xform) -> Option<[f64; 2]> {
     let mut lo = f64::INFINITY;
     let mut hi = f64::NEG_INFINITY;
 
     for r in t.obj.rows.iter().skip(from.obj) {
         if r.place != *place {
-            return false;
+            return None;
         }
 
         if !r.bounds.is_valid() {
@@ -48,7 +48,37 @@ pub fn is_planar(t: &Upload, from: &Baselines, place: &Xform) -> bool {
         hi = hi.max(r.bounds.cz + r.bounds.hz); // highest z
     }
 
-    lo.is_finite() && (hi - lo).abs() < 1e-3 // thinner than a micron
+    (lo.is_finite() && (hi - lo).abs() < 1e-3).then_some([lo, hi]) // thinner than a micron
+}
+
+/// True when one row lies flat inside a sheet's band, at the sheet's placement.
+pub fn in_band(band: [f64; 2], bounds: &AABB, place: &Xform, sheet: &Xform) -> bool {
+    if place != sheet {
+        return false;
+    }
+
+    if !bounds.is_valid() {
+        return true;
+    }
+
+    let lo = bounds.cz - bounds.hz;
+    let hi = bounds.cz + bounds.hz;
+    hi - lo < 1e-3 && lo >= band[0] - 1e-3 && hi <= band[1] + 1e-3
+}
+
+/// Give every pipe from `pipes` and ribbon from `ribbons` without a pen a 1 mm one.
+pub fn mark_pens_from(t: &mut Upload, pipes: usize, ribbons: usize) {
+    for s in t
+        .seg
+        .pipes
+        .iter_mut()
+        .skip(pipes)
+        .chain(t.seg.ribbons.iter_mut().skip(ribbons))
+    {
+        if s.radius <= 0.0 {
+            s.radius = 0.5; // half width in mm
+        }
+    }
 }
 
 /// Flag every new row as sheet content with a 1 mm pen.

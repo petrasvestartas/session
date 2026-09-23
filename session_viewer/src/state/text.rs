@@ -9,7 +9,7 @@ impl State {
         let mut bounds = AABB::empty();
 
         // the box around the new BReps and surfaces
-        for index in first_row..self.scene.object_count() {
+        for index in first_row..self.scene.row_count() {
             let row = index as u32;
             if matches!(
                 self.scene.geometry(row),

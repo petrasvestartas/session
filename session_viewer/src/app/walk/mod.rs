@@ -11,7 +11,6 @@ use mesh::{MeshCx, MeshOpts, walk_mesh};
 use mesh_ink::Ink;
 use points::walk_point;
 use session_rust::AABB;
-use session_rust::Color;
 use session_rust::Element;
 use session_rust::Geometry;
 use session_rust::element::ElementGeometry;
@@ -89,27 +88,24 @@ impl Row {
     }
 }
 
-/// Feature types `Attributes On` draws.
-const ATTRIBUTE_FEATURES: [&str; 3] = ["outline", "axis", "section"];
 const ATTRIBUTE_LINE_PX: f64 = 2.0; // twice the 1 px pen
 const ATTRIBUTE_DOT_PX: f64 = 12.0; // twice the 6 px point
 
-/// Draw an element's features, red and thick, into its own row.
+/// Draw an element's visible features, thick, into its own row.
 fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
     for feature in e.features() {
-        if !ATTRIBUTE_FEATURES.contains(&feature.feature_type.as_str()) {
+        if !feature.visible {
             continue;
         }
 
         for outline in &feature.outlines {
-            // one point is a dot, more is a polyline
+            // one point is a dot, more is a polyline, both in the outline's own colour
             let r = if let (1, Some(mut p)) = (outline.point_count(), outline.get_point(0)) {
-                p.pointcolor = Color::red();
+                p.pointcolor = outline.linecolor.clone();
                 p.width = ATTRIBUTE_DOT_PX;
                 walk_point(w.glyph, &p, cx.row)
             } else {
                 let mut outline = outline.clone();
-                outline.linecolor = Color::red();
                 outline.width = ATTRIBUTE_LINE_PX;
                 walk_polyline(w.seg, &outline, cx.row)
             };
@@ -152,6 +148,9 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
         Geometry::Line(l) => walk_line(w.seg, l, cx.row),
         Geometry::Polyline(pl) => walk_polyline(w.seg, pl, cx.row),
         Geometry::NurbsCurve(c) => walk_nurbscurve(w.seg, c, cx.row),
+        Geometry::Plane(p) if crate::app::clipping::is_clipping(p) => {
+            crate::app::clipping::walk(w.seg, p, cx.row)
+        }
         Geometry::Plane(p) => walk_plane(w.seg, p, cx.row),
         Geometry::OBB(b) => walk_obb(w.seg, b, cx.row),
         Geometry::Point(p) => walk_point(w.glyph, p, cx.row),
@@ -194,7 +193,7 @@ mod tests {
     use session_rust::Polyline;
     use session_rust::element::ElementFeature;
 
-    /// A box element with an axis, a section dot and a non-attribute cut.
+    /// A box element with an axis, a section dot, a joint and a hidden joint.
     fn walk_element(attributes: bool) -> (Upload, Row) {
         let mut element = Element::new("beam");
         element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
@@ -202,8 +201,12 @@ mod tests {
         element.add_feature(ElementFeature::new("axis", -1, vec![axis], "axis"));
         let dot = Polyline::new(vec![Point::new(5.0, 5.0, 5.0)]);
         element.add_feature(ElementFeature::new("section", -1, vec![dot], "section"));
-        let cut = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(0.0, 200.0, 0.0)]);
-        element.add_feature(ElementFeature::new("cut", 0, vec![cut], "cut"));
+        let joint = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(0.0, 0.0, 50.0)]);
+        element.add_feature(ElementFeature::new("joint", 0, vec![joint], "joint"));
+        let far = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(0.0, 200.0, 0.0)]);
+        let mut hidden = ElementFeature::new("joint", 1, vec![far], "hidden");
+        hidden.visible = false;
+        element.add_feature(hidden);
         let mut up = Upload::default();
         let cx = WalkCx {
             vert_base: 0,
@@ -219,12 +222,12 @@ mod tests {
         (up, row)
     }
 
-    /// Attributes add one ribbon and one dot to the element's own row.
+    /// Visible features add two ribbons and a dot to the element's own row; the hidden one adds nothing.
     #[test]
     fn attributes_join_the_element_row() {
         let (off, row_off) = walk_element(false);
         let (on, row_on) = walk_element(true);
-        assert_eq!(on.seg.ribbons.len(), off.seg.ribbons.len() + 1);
+        assert_eq!(on.seg.ribbons.len(), off.seg.ribbons.len() + 2);
         assert_eq!(on.glyph.dots.len(), off.glyph.dots.len() + 1);
         assert!(on.seg.ribbons.iter().all(|r| r.instance_id == 4));
         assert_eq!(on.glyph.dots.last().map(|d| d.instance_id), Some(4));

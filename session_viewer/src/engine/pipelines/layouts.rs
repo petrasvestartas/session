@@ -37,6 +37,18 @@ fn uniform_layout(
     })
 }
 
+/// Group 1: pen and view settings at binding 0, clipping planes at 1.
+fn line_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    let stages = wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE;
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("line.layout"),
+        entries: &[
+            buffer_entry(0, stages, wgpu::BufferBindingType::Uniform),
+            buffer_entry(1, stages, wgpu::BufferBindingType::Uniform),
+        ],
+    })
+}
+
 /// Group 2: object rows at binding 0, translations at 1.
 fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -70,13 +82,13 @@ fn scene_depth(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
     }
 }
 
-/// A float texture binding for the fragment stage, unfiltered.
+/// A triangle id texture binding for the fragment stage.
 fn scene_gradient(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
     wgpu::BindGroupLayoutEntry {
         binding,
         visibility: wgpu::ShaderStages::FRAGMENT,
         ty: wgpu::BindingType::Texture {
-            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+            sample_type: wgpu::TextureSampleType::Uint,
             view_dimension: wgpu::TextureViewDimension::D2,
             multisampled,
         },
@@ -84,7 +96,7 @@ fn scene_gradient(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntr
     }
 }
 
-/// Bind group 2 for ink: rows, depths, gradients, triangles, tiles.
+/// Bind group 2 for ink: rows, depths, triangle ids, triangles, tiles.
 fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("ink.instance.layout"),
@@ -190,7 +202,7 @@ fn resolve_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
 /// The bind group layouts every lane shares.
 pub struct Layouts {
     pub mvp: wgpu::BindGroupLayout, // group 0: camera matrix
-    pub line: wgpu::BindGroupLayout, // group 1: pen and view settings
+    pub line: wgpu::BindGroupLayout, // group 1: pen and view settings, clipping planes
     pub instance: wgpu::BindGroupLayout, // group 2: object rows
     pub ink_instance: wgpu::BindGroupLayout, // group 2 for ink, with depth textures
     pub ink_rows: wgpu::BindGroupLayout, // group 3 for markers and dots
@@ -208,11 +220,7 @@ impl Layouts {
                 "mvp.layout",
                 wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE,
             ),
-            line: uniform_layout(
-                device,
-                "line.layout",
-                wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE,
-            ),
+            line: line_layout(device),
             instance: instance_layout(device),
             ink_instance: ink_instance_layout(device),
             ink_rows: ink_rows_layout(device),

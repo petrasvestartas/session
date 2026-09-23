@@ -19,9 +19,9 @@ pub struct Targets {
     pub depth_single: wgpu::TextureView, // depth at 1x, or a 1x1 placeholder
     pub depth_msaa: wgpu::TextureView, // depth at 4x, or a 1x1 placeholder
     pub samples: u32, // MSAA samples, 1 or 4
-    pub gradient: Attachment, // depth slope per pixel
-    pub gradient_single: wgpu::TextureView, // gradient at 1x, or a placeholder
-    pub gradient_msaa: wgpu::TextureView, // gradient at 4x, or a placeholder
+    pub gradient: Attachment, // triangle index + 1 per sample in two 16-bit halves, 0 for none
+    pub gradient_single: wgpu::TextureView, // triangle ids at 1x, or a placeholder
+    pub gradient_msaa: wgpu::TextureView, // triangle ids at 4x, or a placeholder
     _placeholders: [Attachment; 2], // the 1x1 textures, freed with the rest
 }
 
@@ -58,15 +58,15 @@ impl Targets {
             (empty_depth.view.clone(), depth.view.clone())
         };
         let gradient = attachment(
-            "physical.gradient",
+            "physical.primitive",
             size,
-            wgpu::TextureFormat::Rgba16Float,
+            wgpu::TextureFormat::Rg16Uint,
             samples,
         );
         let empty_gradient = attachment(
-            "unused.gradient",
+            "unused.primitive",
             (1, 1),
-            wgpu::TextureFormat::Rgba16Float,
+            wgpu::TextureFormat::Rg16Uint,
             other_samples,
         );
         let (gradient_single, gradient_msaa) = if samples == 1 {
@@ -140,14 +140,19 @@ impl Targets {
         }
     }
 
-    /// Open the face pass: color and depth cleared.
+    /// Open the face pass: color and depth cleared, or kept when `clear` is None.
     pub fn begin_faces<'a>(
         &'a self,
         encoder: &'a mut wgpu::CommandEncoder,
         view: &'a wgpu::TextureView,
-        clear: wgpu::Color,
+        clear: Option<wgpu::Color>,
     ) -> wgpu::RenderPass<'a> {
         let target = self.msaa.as_deref().unwrap_or(view);
+        // a pass after the first keeps what the one before drew
+        let load = |color| match clear {
+            Some(_) => wgpu::LoadOp::Clear(color),
+            None => wgpu::LoadOp::Load,
+        };
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("physical face pass"),
             color_attachments: &[
@@ -156,7 +161,7 @@ impl Targets {
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(clear),
+                        load: load(clear.unwrap_or(wgpu::Color::TRANSPARENT)),
                         store: wgpu::StoreOp::Store,
                     },
                 }),
@@ -165,7 +170,7 @@ impl Targets {
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                        load: load(wgpu::Color::TRANSPARENT),
                         store: wgpu::StoreOp::Store,
                     },
                 }),
@@ -174,7 +179,10 @@ impl Targets {
                 view: &self.depth,
                 depth_ops: Some(wgpu::Operations {
                     // reverse-Z: 0 is the far plane
-                    load: wgpu::LoadOp::Clear(0.0),
+                    load: match clear {
+                        Some(_) => wgpu::LoadOp::Clear(0.0),
+                        None => wgpu::LoadOp::Load,
+                    },
                     store: wgpu::StoreOp::Store,
                 }),
                 stencil_ops: None,

@@ -1,8 +1,8 @@
 use super::buffers::{GpuCtx, GrowBuf};
 use super::frame::Binds;
 use crate::engine::pipelines::{
-    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, instance_id_layout, scene_module,
-    vertex_layout,
+    ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build,
+    instance_id_layout, scene_module, vertex_layout,
 };
 
 /// The three mesh buffers one sheet draw reads, borrowed from the arena.
@@ -14,17 +14,17 @@ pub struct OutlineBuffers<'a> {
 
 /// Draws sheet fills and lettering: flat color, no lighting.
 pub struct OutlineTextLane {
-    shader: wgpu::ShaderModule, // text outline shader
-    color: wgpu::RenderPipeline, // in color
-    id: wgpu::RenderPipeline, // object ids
-    physical_id: wgpu::RenderPipeline, // object ids with depth and gradient
+    shader: Shader, // text outline shader
+    color: Pipeline, // in color
+    id: Pipeline, // object ids
+    physical_id: Pipeline, // object ids with depth and gradient
 }
 
 impl OutlineTextLane {
     /// Compile the shader and build the three pipelines.
     pub fn new(ctx: &GpuCtx, layouts: &Layouts, target: Target) -> Self {
         let shader = scene_module(
-            &ctx.device,
+            ctx,
             "text-outline.shader",
             include_str!("../../shaders/text_outline.wgsl"),
         );
@@ -49,8 +49,7 @@ impl OutlineTextLane {
         binds: &Binds,
         buffers: &OutlineBuffers<'_>,
     ) -> u32 {
-        pass.set_pipeline(&self.color);
-        draw(pass, binds, buffers)
+        draw(pass, binds, buffers, &self.color)
     }
 
     /// Draw object ids, writing depth and gradient too.
@@ -60,8 +59,7 @@ impl OutlineTextLane {
         binds: &Binds,
         buffers: &OutlineBuffers<'_>,
     ) -> u32 {
-        pass.set_pipeline(&self.physical_id);
-        draw(pass, binds, buffers)
+        draw(pass, binds, buffers, &self.physical_id)
     }
 
     /// Draw object ids.
@@ -71,17 +69,22 @@ impl OutlineTextLane {
         binds: &Binds,
         buffers: &OutlineBuffers<'_>,
     ) -> u32 {
-        pass.set_pipeline(&self.id);
-        draw(pass, binds, buffers)
+        draw(pass, binds, buffers, &self.id)
     }
 }
 
-/// One indexed draw over the buffers; returns the draw count.
-fn draw(pass: &mut wgpu::RenderPass<'_>, binds: &Binds, buffers: &OutlineBuffers<'_>) -> u32 {
+/// One indexed draw over the buffers with `pipeline`; returns the draw count.
+fn draw(
+    pass: &mut wgpu::RenderPass<'_>,
+    binds: &Binds,
+    buffers: &OutlineBuffers<'_>,
+    pipeline: &Pipeline,
+) -> u32 {
     if buffers.indices.is_empty() {
         return 0;
     }
 
+    pass.set_pipeline(pipeline);
     binds.set(pass);
     pass.set_vertex_buffer(0, buffers.vertices.buf.slice(..));
     pass.set_vertex_buffer(1, buffers.objects.buf.slice(..));
@@ -94,12 +97,12 @@ fn draw(pass: &mut wgpu::RenderPass<'_>, binds: &Binds, buffers: &OutlineBuffers
 fn pipelines(
     ctx: &GpuCtx,
     layouts: &Layouts,
-    shader: &wgpu::ShaderModule,
+    shader: &Shader,
     target: Target,
 ) -> (
-    wgpu::RenderPipeline,
-    wgpu::RenderPipeline,
-    wgpu::RenderPipeline,
+    Pipeline,
+    Pipeline,
+    Pipeline,
 ) {
     let groups = [&layouts.mvp, &layouts.line, &layouts.instance];
     let vertices = [vertex_layout(), instance_id_layout()];
@@ -110,7 +113,7 @@ fn pipelines(
         wgpu::PrimitiveTopology::TriangleList,
     );
     let color = build(
-        &ctx.device,
+        ctx,
         target,
         &base
             .with("text-outline", "fs_main")
@@ -118,14 +121,14 @@ fn pipelines(
             .depth(DepthMode::ReadOnly),
     );
     let id = build(
-        &ctx.device,
+        ctx,
         Target::ID,
         &base
             .with("text-outline.id", "fs_id")
             .depth(DepthMode::ReadOnlyEqual),
     );
     let physical_id = build(
-        &ctx.device,
+        ctx,
         Target::ID,
         &base
             .with("text-outline.physical_id", "fs_physical_id")

@@ -58,8 +58,8 @@ async function cadence(page) {
     assert(grey.data[corner]<255 && grey.data[corner]>230,"Arctic on has a light grey background");
     assert(JSON.parse(await page.locator('canvas').getAttribute('data-viewer-ui')).command_open, 'Enter keeps the command field focused');
     const extraTextures = on.gpu_texture_estimate_bytes - off.gpu_texture_estimate_bytes;
-    assert(extraTextures > 0 && extraTextures <= 4 * 1920 * 1920, 'two capped half-float textures');
-    assert.equal(on.gpu_buffer_capacity_bytes - off.gpu_buffer_capacity_bytes, 144);
+    assert(extraTextures > 0 && extraTextures <= 12 * 1920 * 1920, 'capped occlusion, sums and ray positions: 12 bytes per pixel');
+    assert.equal(on.gpu_buffer_capacity_bytes - off.gpu_buffer_capacity_bytes, 256);
     const caret = PNG.sync.read(await page.screenshot());
     let darkestColumn = 0;
     for (let px = Math.floor(x)-1; px <= Math.ceil(x)+1; px++) {
@@ -110,7 +110,7 @@ async function cadence(page) {
     assert.equal(released.gpu_buffer_capacity_bytes, off.gpu_buffer_capacity_bytes);
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({result: 'PASS', vertices: on.vertices, extraTextures,
-      additionalUniformBytes: 144, frameCadenceFps: {off: fpsOff, on: fpsOn}, rotating: !!process.env.AMBIENT_SPIN}));
+      additionalUniformBytes: 256, frameCadenceFps: {off: fpsOff, on: fpsOn}, rotating: !!process.env.AMBIENT_SPIN}));
   } catch (error) {
     console.error(await page.locator('canvas').getAttribute('data-viewer-ui'));
     await page.screenshot({path: path.join(root, 'target/review/ambient-failure.png')});

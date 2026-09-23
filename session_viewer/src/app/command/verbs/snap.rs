@@ -1,29 +1,63 @@
 use crate::State;
 use crate::app::command::{Action, Spec, on_off};
+use crate::app::snap;
 
 pub const SPEC: Spec = Spec {
     names: &["Snap"],
     aliases: &[],
-    hint: "Snap (On Off): endpoints, vertices and midpoints within 12 pixels",
-    options: &["Snap On", "Snap Off"],
+    hint: "Snap (On Off): snapping and its toolbar · Snap End / Near / Mid / Center / Perp toggles one kind",
+    options: &[
+        "Snap On",
+        "Snap Off",
+        "Snap End",
+        "Snap Near",
+        "Snap Mid",
+        "Snap Center",
+        "Snap Perp",
+    ],
     arity: None,
     wait_for_option: true,
     wait_after_option: false,
     parse,
 };
 
-/// Turn snapping on or off while drawing.
+/// Turn snapping on or off, or toggle one snap kind.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
-    Ok(Box::new(Snap(on_off(rest, "Snap (On Off)")?)))
+    let usage = "Snap (On Off End Near Mid Center Perp)";
+
+    if let [word] = rest
+        && let Some(mode) = snap::mode(word)
+    {
+        return Ok(Box::new(Snap { on: None, mode }));
+    }
+
+    Ok(Box::new(Snap {
+        on: on_off(rest, usage)?,
+        mode: 0,
+    }))
 }
 
 #[derive(Debug)]
-struct Snap(Option<bool>);
+struct Snap {
+    on: Option<bool>, // snapping and its toolbar, None flips
+    mode: u8,         // one kind to toggle, 0 for none
+}
 
 impl Action for Snap {
-    /// Flip the flag the drawing code reads.
+    /// Flip the flags the drawing code and the toolbar read.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        state.snap_enabled = self.0.unwrap_or(!state.snap_enabled);
+        if self.mode != 0 {
+            state.snap_modes ^= self.mode;
+            let (label, _) = snap::MODES
+                .iter()
+                .find(|(_, bit)| *bit == self.mode)
+                .unwrap();
+            let on = state.snap_modes & self.mode != 0;
+            return Ok(format!("Snap {label} {}", if on { "On" } else { "Off" }));
+        }
+
+        state.snap_enabled = self.on.unwrap_or(!state.snap_enabled);
+        state.snap_bar = state.snap_enabled;
         Ok(format!(
             "Snap {}",
             if state.snap_enabled { "On" } else { "Off" }

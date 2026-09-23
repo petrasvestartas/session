@@ -1,7 +1,10 @@
-//! Check that resize, rebuild and reload draw the same pixels and ids.
+//! Check that resize, a second walk, edits undone and reload draw the same pixels and ids.
 
 use crate::{
-    app::scene::{FileDoc, Scene},
+    app::modeling::Modeling,
+    app::scene::{FileDoc, Scene, SheetInit, StreamedInit},
+    app::stream::{CloudFields, CloudLod, SheetFields},
+    app::walk::{cloud::StreamRows, sheet::SheetRows},
     camera::{Camera, View},
     engine::gpu::{FrameInput, Gpu, Pick},
 };
@@ -138,7 +141,7 @@ fn states(gpu: &mut Gpu, scene: &Scene, camera: &Camera) -> Vec<Frame> {
     frames
 }
 
-/// Load, rebuild and reload one scene; every state must draw the same.
+/// Load, walk again, edit and undo, and reload one scene; every state must draw the same.
 fn check(gpu: &mut Gpu, sources: &[Source], name: &str, out: &Path) {
     let mut scene = Scene::new();
     load(&mut scene, gpu, sources, false);
@@ -160,11 +163,17 @@ fn check(gpu: &mut Gpu, sources: &[Source], name: &str, out: &Path) {
         for (i, frame) in baseline.iter().enumerate() {
             write_frame(&out.join(format!("{name}_{view_name}_{i}.ppm")), frame);
         }
-        // rebuilt rows draw the same
-        scene.rebuild(gpu);
+        // rows walked again draw the same
+        scene.rewalk_editable(gpu);
         let rebuilt = states(gpu, &scene, &camera);
         for (i, (a, b)) in baseline.iter().zip(&rebuilt).enumerate() {
-            same(&format!("rebuild state{i}"), a, b);
+            same(&format!("rewalk state{i}"), a, b);
+        }
+        // an edit and its undo draw the same
+        edit_and_undo(&mut scene, gpu);
+        let undone = states(gpu, &scene, &camera);
+        for (i, (a, b)) in baseline.iter().zip(&undone).enumerate() {
+            same(&format!("edit and undo state{i}"), a, b);
         }
         // reloaded one file at a time draws the same
         scene.clear(gpu);
@@ -173,6 +182,101 @@ fn check(gpu: &mut Gpu, sources: &[Source], name: &str, out: &Path) {
         for (i, (a, b)) in baseline.iter().zip(&incremental).enumerate() {
             same(&format!("incremental after release state{i}"), a, b);
         }
+    }
+    scene.clear(gpu);
+}
+
+/// Delete the first object and draw a point, then undo both.
+fn edit_and_undo(scene: &mut Scene, gpu: &mut Gpu) {
+    let row = (0..scene.row_count() as u32)
+        .find(|&row| scene.geometry(row).is_some())
+        .expect("an object");
+    let (doc, guid) = scene.identity_of(row).expect("a live row");
+    assert!(scene.delete_row(row));
+    scene.sync();
+    scene.upload_to(gpu);
+    scene
+        .model(&Modeling::Point([0.0, 0.0, 0.0]))
+        .expect("a point");
+    scene.sync();
+    scene.upload_to(gpu);
+
+    // undo goes back across documents: the point, then the deleted object
+    for _ in 0..2 {
+        assert!(scene.undo());
+        scene.sync();
+        scene.upload_to(gpu);
+    }
+
+    assert!(
+        scene.row_of(doc, &guid).is_some(),
+        "the deleted object is back"
+    );
+}
+
+/// Lines beside a streamed sheet and a streamed cloud: edits undone draw as before.
+fn check_streamed(gpu: &mut Gpu) {
+    let mut scene = Scene::new();
+    load(&mut scene, gpu, &lines(), false);
+    scene.add_sheet(
+        SheetInit {
+            name: "sheet".into(),
+            url: "sheet.pb".into(),
+            meta_url: None,
+            place: Xform::translation(0.0, 400.0, 0.0),
+            rows: SheetRows {
+                positions: vec![
+                    -300.0, 0.0, 0.0, 300.0, 0.0, 0.0, 300.0, 0.0, 0.0, 300.0, 90.0, 0.0,
+                ],
+                colors: Vec::new(),
+                widths: vec![2.0, 2.0],
+                ids: vec![11, 12],
+            },
+            fields: SheetFields {
+                count: 2,
+                ..Default::default()
+            },
+            resident: 2,
+        },
+        gpu,
+    );
+    let positions: Vec<f32> = (0..200)
+        .flat_map(|i| [(i % 20) as f32 * 10.0, -400.0 - (i / 20) as f32 * 10.0, 0.0])
+        .collect();
+    scene.add_streamed_cloud(
+        StreamedInit {
+            name: "cloud".into(),
+            url: "cloud.pb".into(),
+            place: Xform::identity(),
+            rows: StreamRows {
+                positions,
+                colors: vec![0xff00_00ff; 200],
+            },
+            lod: CloudLod::default(),
+            fields: CloudFields {
+                end: 0,
+                coords_at: 0,
+                coords_len: 0,
+                colors_at: 0,
+                colors_len: 0,
+                count: 200,
+                ids_at: 0,
+                ids_len: 0,
+                revision: None,
+            },
+            resident: 200,
+            point_px: 4.0,
+            col_at: 0,
+        },
+        gpu,
+    );
+    let mut camera = Camera::new();
+    camera.fit(&gpu.bounds, 4.0 / 3.0);
+    let baseline = states(gpu, &scene, &camera);
+    edit_and_undo(&mut scene, gpu);
+    let undone = states(gpu, &scene, &camera);
+    for (i, (a, b)) in baseline.iter().zip(&undone).enumerate() {
+        same(&format!("streamed edit and undo state{i}"), a, b);
     }
     scene.clear(gpu);
 }
@@ -211,6 +315,7 @@ pub fn run() {
     let mut gpu = pollster::block_on(Gpu::new_headless(800, 600)).expect("headless GPU");
     gpu.view.show_grid = false;
     check(&mut gpu, &lines(), "lines", out);
+    check_streamed(&mut gpu);
     let files: Vec<_> = args
         .enumerate()
         .map(|(i, path)| {
@@ -226,6 +331,6 @@ pub fn run() {
         check(&mut gpu, &files, "meshes", out);
     }
     println!(
-        "lifecycle OK: no-face rendering, runtime MSAA toggles, resize, rebuild, release, incremental uploads and picking"
+        "lifecycle OK: no-face rendering, runtime MSAA toggles, resize, rewalk, edit and undo, streamed sources, release, incremental uploads and picking"
     );
 }

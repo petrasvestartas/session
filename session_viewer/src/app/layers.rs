@@ -1,4 +1,11 @@
-use crate::app::scene::Scene;
+use crate::app::scene::rows::{Note, PLACE, PRESENCE, SUBTREE};
+use crate::app::scene::{FileDoc, Scene, sync};
+use session_rust::{Geometry, History, Session, Tree, TreeNode, Xform};
+use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
+
+type Node = Rc<RefCell<TreeNode>>;
 
 /// What one panel row controls.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -13,9 +20,9 @@ pub enum Kind {
     Solids,   // BReps, boxes, elements
     Surfaces, // NURBS surfaces, planes
     Meshes,
-    Curves,   // lines, polylines, NURBS curves
+    Curves, // lines, polylines, NURBS curves
     Points,
-    Clouds,   // point clouds
+    Clouds, // point clouds
 }
 
 impl Kind {
@@ -93,7 +100,7 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
     let mut documents = vec![(0, 0); scene.docs.len()]; // (count, hidden) per document
     let mut kinds = [(0, 0); 6]; // (count, hidden) per kind
 
-    for row in 0..scene.object_count() as u32 {
+    for row in 0..scene.row_count() as u32 {
         let Some(identity) = scene.identity_of(row) else {
             continue;
         };
@@ -151,7 +158,7 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
 pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
     let mut rows = Vec::new();
 
-    for row in 0..scene.object_count() as u32 {
+    for row in 0..scene.row_count() as u32 {
         let matches = match layer {
             Layer::Document(index) => scene.identity_of(row).map(|(doc, _)| doc) == Some(index),
             Layer::Kind(kind) => scene.geometry(row).map(Kind::of) == Some(kind),
@@ -163,6 +170,921 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
     }
 
     rows
+}
+
+/// Tree nodes kept for undoing layer edits; past it the oldest edits can no longer be undone.
+const MAX_UNDO_NODES: usize = 500_000;
+
+/// A layer edit's tree in one document: the kernel history records no tree structure.
+pub struct LayerStep {
+    pub tree: Tree,  // before the edit while it is done, after it while undone
+    pub size: usize, // nodes in that tree
+    pub order: u64,  // when the edit was made
+    pub renamed: Option<(String, String)>, // (from, to) of a renamed layer
+    pub touched: Vec<String>, // objects and layers it moved in the tree without a recorded op
+}
+
+impl Scene {
+    /// The layer new objects go to: the chosen one while it exists, else the `Created` root.
+    pub fn current_layer(&self) -> Option<(usize, String)> {
+        if let Some((doc, name)) = &self.current_layer
+            && self.layer_node(*doc, name).is_ok()
+        {
+            return Some((*doc, name.clone()));
+        }
+
+        let doc = self.created_doc?;
+        let root = self.docs.get(doc)?.session.tree.root()?;
+        let name = root.borrow().name.clone();
+        Some((doc, name))
+    }
+
+    /// The one group node named `name` in a document; objects and groups inside objects are no layers.
+    fn layer_node(&self, doc: usize, name: &str) -> Result<Node, String> {
+        let file = self.docs.get(doc).ok_or("The layer's document is gone")?;
+        let session = &file.session;
+
+        if session.lookup.contains_key(name) {
+            return Err(format!("{name} is an object, not a layer"));
+        }
+
+        let mut found = session.tree.get_nodes_by_name(name).into_iter();
+        let Some(node) = found.next() else {
+            return Err(format!("Layer {name} is gone"));
+        };
+
+        // layers go by name, so a name several groups share must not pick one of them
+        if found.next().is_some() {
+            return Err(format!("Several layers are named {name}"));
+        }
+
+        let inside = node
+            .borrow()
+            .ancestors()
+            .iter()
+            .any(|ancestor| session.lookup.contains_key(&ancestor.borrow().name));
+
+        if inside {
+            return Err(format!("{name} is inside an object, not a layer"));
+        }
+
+        Ok(node)
+    }
+
+    /// Make a layer the one new objects go to.
+    pub fn set_current_layer(&mut self, doc: usize, name: &str) -> Result<(), String> {
+        self.layer_node(doc, name)?;
+
+        if self.docs[doc].display_only {
+            return Err("This document is display only".into());
+        }
+
+        self.current_layer = Some((doc, name.to_string()));
+        Ok(())
+    }
+
+    /// True when the layer is current or holds the current one.
+    pub fn holds_current(&self, doc: usize, name: &str) -> bool {
+        let Some((current_doc, current)) = self.current_layer() else {
+            return false;
+        };
+
+        if current_doc != doc {
+            return false;
+        }
+
+        current == name
+            || self.layer_node(doc, &current).is_ok_and(|node| {
+                node.borrow()
+                    .ancestors()
+                    .iter()
+                    .any(|ancestor| ancestor.borrow().name == name)
+            })
+    }
+
+    /// Add a layer beside `at`, or under it as a sublayer; returns its name.
+    pub fn new_layer(&mut self, doc: usize, at: &str, sublayer: bool) -> Result<String, String> {
+        self.layer_node(doc, at)?;
+        let key = self.step_key("new layer")?;
+
+        self.layer_step(doc, &key, |session| {
+            let node = group(session, at)?;
+            // beside the root means under it; the parent's own name may be shared
+            let parent = match node.borrow().parent() {
+                Some(parent) if !sublayer => parent,
+                _ => Rc::clone(&node),
+            };
+            let name = (1..)
+                .map(|i| format!("Layer {i:02}"))
+                .find(|name| !taken(session, name))
+                .unwrap_or_default();
+            session.add(&TreeNode::new(&name), Some(&parent));
+            Ok(name)
+        })
+    }
+
+    /// Rename a layer; names stay unique in their document.
+    pub fn rename_layer(&mut self, doc: usize, name: &str, to: &str) -> Result<(), String> {
+        let to = to.trim();
+        let node = self.layer_node(doc, name)?;
+
+        if node.borrow().parent().is_none() {
+            return Err("The root layer cannot be renamed".into());
+        }
+
+        if to == name {
+            return Ok(());
+        }
+
+        if to.is_empty() || to.contains('/') {
+            return Err("A layer name must be non-empty and without /".into());
+        }
+
+        if taken(&self.docs[doc].session, to) {
+            return Err(format!("{to} is already used in this document"));
+        }
+
+        let key = self.step_key("rename layer")?;
+        self.layer_step(doc, &key, |session| {
+            group(session, name)?.borrow_mut().name = to.to_string();
+
+            // a group transform follows its new name
+            if let Some(xform) = session.xforms.get(name).cloned() {
+                session.remove_xform(name);
+                session.set_xform(to, xform);
+            }
+
+            Ok(())
+        })?;
+
+        // renaming to or from `attributes` bakes or frees what the layer holds
+        let touched = if name == "attributes" || to == "attributes" {
+            vec![name.to_string(), to.to_string()]
+        } else {
+            Vec::new()
+        };
+        self.touched(doc, &touched);
+
+        if let Some(step) = self.layer_trees.get_mut(&(doc, key)) {
+            step.renamed = Some((name.to_string(), to.to_string()));
+            step.touched = touched;
+        }
+
+        if self.current_layer == Some((doc, name.to_string())) {
+            self.current_layer = Some((doc, to.to_string()));
+        }
+
+        Ok(())
+    }
+
+    /// Delete a layer, its sublayers and their objects; refused for the current layer.
+    pub fn delete_layer(&mut self, doc: usize, name: &str) -> Result<usize, String> {
+        let node = self.layer_node(doc, name)?;
+
+        if node.borrow().parent().is_none() {
+            return Err("The root layer cannot be deleted".into());
+        }
+
+        if self.holds_current(doc, name) {
+            return Err("The current layer cannot be deleted".into());
+        }
+
+        let key = self.step_key("delete layer")?;
+        self.layer_step(doc, &key, |session| {
+            let node = group(session, name)?;
+            Ok(delete(session, &node))
+        })
+    }
+
+    /// Copy a layer beside itself with its sublayers and objects; returns the copy's name.
+    pub fn duplicate_layer(&mut self, doc: usize, name: &str) -> Result<String, String> {
+        let node = self.layer_node(doc, name)?;
+
+        if node.borrow().parent().is_none() {
+            return Err("The root layer cannot be duplicated".into());
+        }
+
+        let key = self.step_key("duplicate layer")?;
+        let (copy, guids) = self.layer_step(doc, &key, |session| {
+            let node = group(session, name)?;
+            let parent = node.borrow().parent().ok_or("Not a layer")?;
+            let parts = parts(session, &node);
+            let (copy, guids) = build(session, &parts, &parent, true)?;
+            let name = copy.borrow().name.clone();
+            Ok((name, guids))
+        })?;
+
+        for (from, to) in guids {
+            self.inherit(&(doc, from.into()), &(doc, to.into()), true);
+        }
+
+        Ok(copy)
+    }
+
+    /// Move objects onto a layer, keeping them in place; returns their (document, guid) there.
+    pub fn change_object_layer(
+        &mut self,
+        rows: &[u32],
+        doc: usize,
+        name: &str,
+    ) -> Result<Vec<(usize, Rc<str>)>, String> {
+        let layer = self.layer_node(doc, name)?;
+        let mut objects = rows
+            .iter()
+            .map(|&row| self.identity_of(row).ok_or("Object is gone"))
+            .collect::<Result<Vec<_>, _>>()?;
+        objects.sort();
+        objects.dedup();
+
+        if objects.is_empty() {
+            return Err("Select objects first".into());
+        }
+
+        let chosen: HashSet<(usize, &str)> = objects
+            .iter()
+            .map(|(owner, guid)| (*owner, guid.as_ref()))
+            .collect();
+        let mut local = Vec::new(); // guids of this document
+        let mut moves: Vec<(usize, Vec<Rc<str>>)> = Vec::new(); // guids per other document
+        let mut nodes = HashMap::new(); // the tree of the document being looked at
+        let mut indexed = None; // which document that is
+
+        for (owner, guid) in &objects {
+            let file = self.docs.get(*owner).ok_or("Object is gone")?;
+
+            if file.display_only {
+                return Err("This document is display only".into());
+            }
+
+            if indexed != Some(*owner) {
+                nodes = index(&file.session);
+                indexed = Some(*owner);
+            }
+
+            let node = nodes.get(guid.as_ref()).cloned();
+
+            // an object goes along with a chosen parent object
+            if node.as_ref().is_some_and(|node| {
+                node.borrow()
+                    .ancestors()
+                    .iter()
+                    .any(|ancestor| chosen.contains(&(*owner, ancestor.borrow().name.as_str())))
+            }) {
+                continue;
+            }
+
+            if *owner != doc {
+                match moves.last_mut() {
+                    Some((last, guids)) if last == owner => guids.push(Rc::clone(guid)),
+                    _ => moves.push((*owner, vec![Rc::clone(guid)])),
+                }
+
+                continue;
+            }
+
+            // a layer is never inside an object, so it cannot end up below itself
+            let there = node.is_some_and(|node| {
+                node.borrow()
+                    .parent()
+                    .is_some_and(|parent| Rc::ptr_eq(&parent, &layer))
+            });
+
+            if !there {
+                local.push(Rc::clone(guid));
+            }
+        }
+
+        if local.is_empty() && moves.is_empty() {
+            return Err(format!("The objects are already on {name}"));
+        }
+
+        let key = self.step_key("change object layer")?;
+        let place_at = self.docs[doc].place.clone();
+        let reparented: Vec<String> = local.iter().map(|guid| guid.to_string()).collect();
+        let mut sources = Vec::new(); // documents already edited
+        let mut taken = Vec::new(); // (document, subtree, world placement) from other documents
+
+        for (owner, guids) in moves {
+            let from = self.docs[owner].place.clone();
+            let parts = self.layer_step(owner, &key, |session| {
+                let nodes = index(session);
+                Ok(guids
+                    .iter()
+                    .map(|guid| {
+                        let node = nodes.get(guid.as_ref());
+                        let world =
+                            node.map_or_else(|| session.xform(guid), |n| placement(session, n));
+                        (take(session, guid, node), &from * &world)
+                    })
+                    .collect::<Vec<_>>())
+            })?;
+            sources.push(owner);
+            taken.extend(
+                parts
+                    .into_iter()
+                    .map(|(parts, world)| (owner, parts, world)),
+            );
+        }
+
+        let result = self.layer_step(doc, &key, |session| {
+            let layer = group(session, name)?;
+            let inside =
+                frame(session, &Xform::identity(), name).ok_or("The layer is degenerate")?;
+            let outside = frame(session, &place_at, name).ok_or("The layer is degenerate")?;
+            let nodes = index(session);
+            let mut moved = Vec::new();
+            let mut guids = Vec::new(); // (document, old guid, new guid) of every object brought in
+
+            for guid in &local {
+                // an object outside the tree gets a node
+                let world = match nodes.get(guid.as_ref()) {
+                    Some(node) => {
+                        let world = placement(session, node);
+                        session.tree.remove(node);
+                        session.add(node, Some(&layer));
+                        world
+                    }
+                    None => {
+                        session.add(&TreeNode::new(guid), Some(&layer));
+                        session.xform(guid)
+                    }
+                };
+                place(session, guid, &inside, &world);
+                moved.push(guid.to_string());
+            }
+
+            for (owner, parts, world) in &taken {
+                let (top, renamed) = build(session, parts, &layer, false)?;
+                let guid = top.borrow().name.clone();
+                place(session, &guid, &outside, world);
+                moved.push(guid);
+                guids.extend(renamed.into_iter().map(|(from, to)| (*owner, from, to)));
+            }
+
+            Ok((moved, guids))
+        });
+
+        // the other documents give their objects back when this one fails
+        let (moved, guids) = match result {
+            Ok(done) => done,
+            Err(error) => {
+                for owner in sources {
+                    self.unstep(owner, &key);
+                }
+
+                return Err(error);
+            }
+        };
+
+        for (owner, from, to) in guids {
+            self.inherit(&(owner, from.into()), &(doc, to.into()), false);
+        }
+
+        // nodes moved within the document record no op
+        self.touched(doc, &reparented);
+
+        if let Some(step) = self.layer_trees.get_mut(&(doc, key)) {
+            step.touched = reparented;
+        }
+
+        Ok(moved.into_iter().map(|guid| (doc, guid.into())).collect())
+    }
+
+    /// Note objects or layers a tree edit moved: they and everything below are placed and judged again.
+    fn touched(&mut self, doc: usize, names: &[String]) {
+        let notes = names
+            .iter()
+            .map(|name| Note::new(name, PLACE | PRESENCE | SUBTREE))
+            .collect();
+        self.noted(doc, notes);
+    }
+
+    /// Copy objects onto a layer of any document, keeping them in place; returns the copies.
+    pub fn copy_object_layer(
+        &mut self,
+        rows: &[u32],
+        doc: usize,
+        name: &str,
+    ) -> Result<Vec<(usize, Rc<str>)>, String> {
+        self.layer_node(doc, name)?;
+        let place_at = self.docs[doc].place.clone();
+        // (identity, geometry, world placement) of each source
+        let sources: Vec<((usize, Rc<str>), Geometry, Xform)> = rows
+            .iter()
+            .filter_map(|&row| {
+                Some((
+                    self.identity_of(row)?,
+                    self.geometry(row)?.clone(),
+                    self.placement_of(row)?,
+                ))
+            })
+            .collect();
+
+        if sources.is_empty() {
+            return Err("Select objects first".into());
+        }
+
+        let key = self.step_key("copy object layer")?;
+        let copies = self.layer_step(doc, &key, |session| {
+            let layer = group(session, name)?;
+            let back = frame(session, &place_at, name).ok_or("The layer is degenerate")?;
+            let mut copies = Vec::new();
+
+            for (_, geometry, world) in &sources {
+                let node =
+                    add(session, geometry, &layer, false).ok_or("Cannot copy this object")?;
+                let guid = node.borrow().name.clone();
+                place(session, &guid, &back, world);
+                copies.push(guid);
+            }
+
+            Ok(copies)
+        })?;
+        let copies: Vec<(usize, Rc<str>)> =
+            copies.into_iter().map(|guid| (doc, guid.into())).collect();
+
+        for ((source, _, _), copy) in sources.iter().zip(&copies) {
+            self.inherit(source, copy, false);
+        }
+
+        Ok(copies)
+    }
+
+    /// Give a copy the colors of its original, and its lock and visibility when `all`.
+    fn inherit(&mut self, from: &(usize, Rc<str>), to: &(usize, Rc<str>), all: bool) {
+        if let Some(color) = self.colors.get(from).copied() {
+            self.colors.insert(to.clone(), color);
+        }
+
+        if let Some(color) = self.edge_colors.get(from).copied() {
+            self.edge_colors.insert(to.clone(), color);
+        }
+
+        if all && self.locked.contains(from) {
+            self.locked.insert(to.clone());
+        }
+
+        if all && self.hidden.contains(from) {
+            self.hidden.insert(to.clone());
+        }
+    }
+
+    /// A new undo label for one layer edit.
+    fn step_key(&mut self, label: &str) -> Result<String, String> {
+        self.layer_steps += 1;
+        Ok(format!("{label} #{}", self.layer_steps))
+    }
+
+    /// Run one layer edit of document `doc` as the undo step `key`, keeping its tree for undo.
+    fn layer_step<T>(
+        &mut self,
+        doc: usize,
+        key: &str,
+        edit: impl FnOnce(&mut Session) -> Result<T, String>,
+    ) -> Result<T, String> {
+        let file = self
+            .docs
+            .get_mut(doc)
+            .ok_or("The layer's document is gone")?;
+
+        if file.display_only {
+            return Err("This document is display only".into());
+        }
+
+        let session = Rc::make_mut(&mut file.session);
+        let before = session.tree.clone();
+        session.begin(key);
+        let result = edit(session);
+
+        if result.is_err() {
+            // nothing half done stays, and the redo steps survive
+            let redo = std::mem::take(&mut session.history.redo_stack);
+            session.commit();
+
+            if session
+                .history
+                .undo_stack
+                .last()
+                .is_some_and(|step| step.label == key)
+            {
+                session.tree = Tree::new("");
+                session.undo();
+            }
+
+            session.tree = before;
+            session.history.redo_stack = redo;
+            // the tree is a copy now: every cached node of this document is stale
+            self.forget_nodes(doc);
+            return result;
+        }
+
+        // a tree-only edit still needs one op to stay on the undo stack; this pair leaves nothing
+        session.set_xform(key, Xform::identity());
+        session.remove_xform(key);
+        let notes = sync::commit(session);
+        self.noted(doc, notes);
+        let size = before.nodes().len();
+        self.layer_trees.insert(
+            (doc, key.to_string()),
+            LayerStep {
+                tree: before,
+                size,
+                order: self.layer_steps,
+                renamed: None,
+                touched: Vec::new(),
+            },
+        );
+        self.edited(&[doc]);
+        self.row_revision = self.row_revision.wrapping_add(1);
+        self.forget_layer_steps(MAX_UNDO_NODES);
+        result
+    }
+
+    /// Take back a step just made in document `doc`, leaving nothing to redo.
+    fn unstep(&mut self, doc: usize, key: &str) {
+        let top = self.docs[doc].session.history.undo_stack.last();
+
+        if top.is_some_and(|step| step.label == key) && self.step_document(doc, true).is_some() {
+            let session = Rc::make_mut(&mut self.docs[doc].session);
+            session.history.redo_stack.pop();
+            self.layer_trees.remove(&(doc, key.to_string()));
+
+            // nor anything for undo to reach
+            if let Some(step) = self.undo_steps.last_mut() {
+                step.retain(|(held, label)| *held != doc || label != key);
+
+                if step.is_empty() {
+                    self.undo_steps.pop();
+                }
+            }
+        }
+    }
+
+    /// Forget trees whose step left every history, then the oldest edits past `budget` nodes.
+    fn forget_layer_steps(&mut self, budget: usize) {
+        // kept while any document holds the step, so no other one steps it alone
+        self.layer_trees
+            .retain(|(_, label), _| in_any_history(&self.docs, label));
+
+        for _ in 0..self.layer_trees.len() {
+            let size: usize = self.layer_trees.values().map(|step| step.size).sum();
+            let oldest = self
+                .layer_trees
+                .iter()
+                .min_by_key(|(_, step)| step.order)
+                .map(|((_, label), _)| label.clone());
+            let Some(label) = oldest.filter(|_| size > budget) else {
+                break;
+            };
+
+            // neither that edit nor anything before it can be undone, nor redone after it
+            for doc in 0..self.docs.len() {
+                if !in_history(&self.docs, doc, &label) {
+                    continue;
+                }
+
+                let history = &mut Rc::make_mut(&mut self.docs[doc].session).history;
+
+                if let Some(at) = history
+                    .undo_stack
+                    .iter()
+                    .position(|step| step.label == label)
+                {
+                    history.undo_stack.drain(..=at);
+                }
+
+                if let Some(at) = history
+                    .redo_stack
+                    .iter()
+                    .position(|step| step.label == label)
+                {
+                    history.redo_stack.drain(..=at);
+                }
+            }
+
+            self.layer_trees
+                .retain(|(_, label), _| in_any_history(&self.docs, label));
+        }
+    }
+
+    /// Undo or redo the newest step of document `doc`; returns its label.
+    pub(crate) fn step_document(&mut self, doc: usize, back: bool) -> Option<String> {
+        let session = Rc::make_mut(&mut self.docs.get_mut(doc)?.session);
+        let label = newest(&session.history, back)?.to_string();
+
+        let Some(step) = self.layer_trees.get_mut(&(doc, label.clone())) else {
+            let stepped = if back { session.undo() } else { session.redo() };
+            let notes = match stepped {
+                true => sync::stepped(&session.history, back, true),
+                false => Vec::new(),
+            };
+            self.noted(doc, notes);
+            return stepped.then_some(label);
+        };
+
+        // the kernel steps on an empty tree, then the kept tree comes in
+        let live = std::mem::replace(&mut session.tree, Tree::new(""));
+
+        if back {
+            session.undo();
+        } else {
+            session.redo();
+        }
+
+        session.tree = std::mem::replace(&mut step.tree, live);
+        step.size = step.tree.nodes().len();
+        // the swapped tree has nodes of its own: the notes carry none
+        let mut notes = sync::stepped(&session.history, back, false);
+        notes.extend(
+            step.touched
+                .iter()
+                .map(|name| Note::new(name, PLACE | PRESENCE | SUBTREE)),
+        );
+        let renamed = step.renamed.clone();
+
+        // a renamed current layer follows
+        if let Some((from, to)) = &renamed {
+            let (old, new) = if back { (to, from) } else { (from, to) };
+
+            if self.current_layer.as_ref() == Some(&(doc, old.clone())) {
+                self.current_layer = Some((doc, new.clone()));
+            }
+        }
+
+        self.noted(doc, notes);
+        self.forget_nodes(doc);
+        self.row_revision = self.row_revision.wrapping_add(1);
+        Some(label)
+    }
+}
+
+/// One node of a subtree being copied or moved.
+struct Part {
+    parent: Option<usize>,              // index of its parent part
+    name: String,                       // group label or object guid
+    geometry: Option<Geometry>,         // the object, None for a group
+    xform: Option<Xform>,               // its local transform
+    color: Option<session_rust::Color>, // its node color
+}
+
+/// True when document `doc` can still undo or redo the step `label`.
+fn in_history(docs: &[FileDoc], doc: usize, label: &str) -> bool {
+    docs.get(doc).is_some_and(|file| {
+        let history = &file.session.history;
+        history
+            .undo_stack
+            .iter()
+            .chain(&history.redo_stack)
+            .any(|step| step.label == label)
+    })
+}
+
+/// True when any document can still undo or redo the step `label`.
+fn in_any_history(docs: &[FileDoc], label: &str) -> bool {
+    (0..docs.len()).any(|doc| in_history(docs, doc, label))
+}
+
+/// The label of the step undo (`back`) or redo takes next.
+pub(crate) fn newest(history: &History, back: bool) -> Option<&str> {
+    let stack = if back {
+        &history.undo_stack
+    } else {
+        &history.redo_stack
+    };
+    stack.last().map(|step| step.label.as_str())
+}
+
+/// The group node `name` of a session.
+fn group(session: &Session, name: &str) -> Result<Node, String> {
+    if session.lookup.contains_key(name) {
+        return Err(format!("{name} is an object, not a layer"));
+    }
+
+    session
+        .tree
+        .get_node_by_name(name)
+        .ok_or_else(|| format!("Layer {name} is gone"))
+}
+
+/// True when a tree node or object already has this name.
+fn taken(session: &Session, name: &str) -> bool {
+    session.lookup.contains_key(name) || session.tree.get_node_by_name(name).is_some()
+}
+
+/// `base`, or `base 02`, `base 03` ... when it is taken.
+fn unique(session: &Session, base: &str) -> String {
+    if !taken(session, base) {
+        return base.to_string();
+    }
+
+    (2..)
+        .map(|i| format!("{base} {i:02}"))
+        .find(|name| !taken(session, name))
+        .unwrap_or_default()
+}
+
+/// The inverse of layer `name`'s world frame, in a document placed at `place`.
+pub(crate) fn frame(session: &Session, place: &Xform, name: &str) -> Option<Xform> {
+    (place * &session.world_xform(name)).inverse()
+}
+
+/// Give `guid` the local transform that puts it at `world` under a layer whose inverse frame is `back`.
+pub(crate) fn place(session: &mut Session, guid: &str, back: &Xform, world: &Xform) {
+    let local = back * world;
+    let current = session.xform(guid);
+
+    if local
+        .m
+        .iter()
+        .zip(current.m)
+        .any(|(a, b)| (a - b).abs() > 1e-12)
+    {
+        session.set_xform(guid, local);
+    }
+}
+
+/// Every node of a session by name; object guids are unique.
+fn index(session: &Session) -> HashMap<String, Node> {
+    let mut nodes = HashMap::new();
+
+    for node in session.tree.nodes() {
+        let name = node.borrow().name.clone();
+        nodes.insert(name, node);
+    }
+
+    nodes
+}
+
+/// A node's placement in its document: its own transform and every ancestor's.
+fn placement(session: &Session, node: &Node) -> Xform {
+    let node = node.borrow();
+    let mut world = session.xform(&node.name);
+
+    for ancestor in node.ancestors() {
+        if let Some(xform) = session.xforms.get(&ancestor.borrow().name) {
+            world = xform * &world;
+        }
+    }
+
+    world
+}
+
+/// A subtree, parents before children.
+fn parts(session: &Session, node: &Node) -> Vec<Part> {
+    let mut parts = Vec::new();
+    let mut stack = vec![(Rc::clone(node), None)];
+
+    while let Some((node, parent)) = stack.pop() {
+        let index = parts.len();
+        let node = node.borrow();
+        parts.push(Part {
+            parent,
+            name: node.name.clone(),
+            geometry: session.lookup.get(&node.name).cloned(),
+            xform: session.xforms.get(&node.name).cloned(),
+            color: node.color.clone(),
+        });
+
+        for child in node.children().into_iter().rev() {
+            stack.push((child, Some(index)));
+        }
+    }
+
+    parts
+}
+
+/// Take an object and everything under its node out of a session.
+fn take(session: &mut Session, guid: &str, node: Option<&Node>) -> Vec<Part> {
+    let Some(node) = node else {
+        // an object outside the tree goes alone
+        let part = Part {
+            parent: None,
+            name: guid.to_string(),
+            geometry: session.lookup.get(guid).cloned(),
+            xform: session.xforms.get(guid).cloned(),
+            color: None,
+        };
+        session.remove_object(guid);
+        return vec![part];
+    };
+    let parts = parts(session, node);
+    delete(session, node);
+    parts
+}
+
+/// Delete a node, everything under it and their objects; returns the objects deleted.
+fn delete(session: &mut Session, node: &Node) -> usize {
+    let mut nodes = vec![Rc::clone(node)];
+    nodes.extend(node.borrow().descendants());
+    let mut count = 0;
+
+    // deepest first, so a removed object never carries a child away
+    for member in nodes.iter().rev() {
+        let name = member.borrow().name.clone();
+
+        if session.lookup.contains_key(&name) {
+            count += usize::from(session.remove_object(&name));
+        } else {
+            session.remove_xform(&name);
+        }
+    }
+
+    session.tree.remove(node);
+    count
+}
+
+/// Rebuild parts under `parent`, new guids when `fresh`; returns the top node and (old, new) guids.
+fn build(
+    session: &mut Session,
+    parts: &[Part],
+    parent: &Node,
+    fresh: bool,
+) -> Result<(Node, Vec<(String, String)>), String> {
+    let mut nodes: Vec<Node> = Vec::with_capacity(parts.len());
+    let mut inside: Vec<bool> = Vec::with_capacity(parts.len()); // under an object
+    let mut guids = Vec::new();
+
+    for part in parts {
+        let under = part
+            .parent
+            .and_then(|index| nodes.get(index))
+            .unwrap_or(parent)
+            .clone();
+        let within = part
+            .parent
+            .is_some_and(|index| inside[index] || parts[index].geometry.is_some());
+        let node = match &part.geometry {
+            Some(geometry) => {
+                let keep = !fresh && !session.lookup.contains_key(&part.name);
+                let node = add(session, geometry, &under, keep).ok_or("Cannot copy this object")?;
+                guids.push((part.name.clone(), node.borrow().name.clone()));
+                node
+            }
+            None => {
+                // a group inside an object is no layer and keeps its name; `attributes` stay baked
+                let name = if within || part.name == "attributes" {
+                    part.name.clone()
+                } else if fresh {
+                    unique(session, &format!("{} copy", part.name))
+                } else {
+                    unique(session, &part.name)
+                };
+                let node = TreeNode::new(&name);
+                session.add(&node, Some(&under));
+                node
+            }
+        };
+        node.borrow_mut().color = part.color.clone();
+
+        if let Some(xform) = &part.xform {
+            let name = node.borrow().name.clone();
+            session.set_xform(&name, xform.clone());
+        }
+
+        inside.push(within);
+        nodes.push(node);
+    }
+
+    let top = nodes.first().cloned().ok_or("Nothing to copy")?;
+    Ok((top, guids))
+}
+
+/// Add a geometry under `parent`, keeping its guid or with a fresh one.
+pub(crate) fn add(
+    session: &mut Session,
+    geometry: &Geometry,
+    parent: &Node,
+    keep: bool,
+) -> Option<Node> {
+    let mut geometry = geometry.clone();
+
+    if !keep {
+        geometry.set_guid(TreeNode::new("").borrow().guid()); // a fresh uuid
+    }
+
+    let under = Some(parent);
+
+    match geometry {
+        Geometry::OBB(value) => {
+            // a box lands under the root first
+            let node = session.add_obb(Rc::unwrap_or_clone(value));
+            session.tree.remove(&node);
+            session.add(&node, under);
+            Some(node)
+        }
+        Geometry::BRep(value) => session.add_brep(Rc::unwrap_or_clone(value), under),
+        Geometry::Element(value) => Some(session.add_element(Rc::unwrap_or_clone(value), under)),
+        Geometry::Line(value) => Some(session.add_line(Rc::unwrap_or_clone(value), under)),
+        Geometry::Mesh(value) => session.add_mesh(Rc::unwrap_or_clone(value), under),
+        Geometry::NurbsCurve(value) => session.add_nurbscurve(Rc::unwrap_or_clone(value), under),
+        Geometry::NurbsSurface(value) => {
+            session.add_nurbssurface(Rc::unwrap_or_clone(value), under)
+        }
+        Geometry::Plane(value) => Some(session.add_plane(Rc::unwrap_or_clone(value), under)),
+        Geometry::Point(value) => Some(session.add_point(Rc::unwrap_or_clone(value), under)),
+        Geometry::PointCloud(value) => session.add_pointcloud(Rc::unwrap_or_clone(value), under),
+        Geometry::Polyline(value) => session.add_polyline(Rc::unwrap_or_clone(value), under),
+    }
 }
 
 #[cfg(test)]
@@ -263,5 +1185,492 @@ mod tests {
         let rows = rows(&scene);
         assert!(rows[1].hidden, "the whole of `right` is hidden");
         assert!(!rows[3].hidden, "only one of the two points is");
+    }
+
+    /// One document `site` with layer `walls` holding two joined points, and an empty layer `roof`.
+    fn site() -> Scene {
+        let mut session = Session::new("site");
+        let walls = session.add_group("walls");
+        session.add_group("roof");
+        let a = session.add_point(Point::new(0.0, 0.0, 0.0), Some(&walls));
+        let b = session.add_point(Point::new(1.0, 0.0, 0.0), Some(&walls));
+        session.add_edge(&a.borrow().name, &b.borrow().name, "joint");
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "site".into(),
+            session: Rc::new(session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        scene
+    }
+
+    /// The names of a layer's children.
+    fn children(scene: &Scene, doc: usize, name: &str) -> Vec<String> {
+        let node = scene.docs[doc].session.tree.get_node_by_name(name).unwrap();
+        node.borrow()
+            .children()
+            .iter()
+            .map(|child| child.borrow().name.clone())
+            .collect()
+    }
+
+    /// Every node of a document as (name, parent), for comparing trees.
+    fn shape(scene: &Scene, doc: usize) -> Vec<(String, String)> {
+        scene.docs[doc]
+            .session
+            .tree
+            .nodes()
+            .iter()
+            .map(|node| {
+                let node = node.borrow();
+                let parent = node.parent().map(|parent| parent.borrow().name.clone());
+                (node.name.clone(), parent.unwrap_or_default())
+            })
+            .collect()
+    }
+
+    /// True when two placements agree.
+    fn same(a: &Xform, b: &Xform) -> bool {
+        a.m.iter().zip(b.m).all(|(a, b)| (a - b).abs() < 1e-9)
+    }
+
+    /// A new layer and sublayer undo and redo as tree steps.
+    #[test]
+    fn new_layers_undo_and_redo() {
+        let mut scene = site();
+        assert_eq!(scene.new_layer(0, "roof", false).unwrap(), "Layer 01");
+        assert_eq!(scene.new_layer(0, "roof", true).unwrap(), "Layer 02");
+        assert_eq!(
+            children(&scene, 0, "site"),
+            vec!["walls", "roof", "Layer 01"]
+        );
+        assert_eq!(children(&scene, 0, "roof"), vec!["Layer 02"]);
+        assert!(scene.undo());
+        assert!(children(&scene, 0, "roof").is_empty());
+        assert!(scene.undo());
+        assert_eq!(children(&scene, 0, "site"), vec!["walls", "roof"]);
+        assert!(scene.redo());
+        assert!(scene.redo());
+        assert_eq!(children(&scene, 0, "roof"), vec!["Layer 02"]);
+        assert!(
+            scene.docs[0].session.xforms.is_empty(),
+            "the step marker leaves nothing"
+        );
+        assert!(scene.new_layer(0, "nowhere", false).is_err());
+    }
+
+    /// A rename keeps names unique; the current layer and a group transform follow it through undo.
+    #[test]
+    fn rename_keeps_names_unique_and_the_current_layer_follows() {
+        let mut scene = site();
+        Rc::make_mut(&mut scene.docs[0].session)
+            .set_xform("roof", Xform::translation(0.0, 0.0, 3.0));
+        scene.set_current_layer(0, "roof").unwrap();
+
+        for to in ["walls", " ", "a/b"] {
+            assert!(scene.rename_layer(0, "roof", to).is_err(), "{to}");
+        }
+
+        assert!(scene.rename_layer(0, "site", "other").is_err());
+        scene.rename_layer(0, "roof", " attic ").unwrap();
+        assert_eq!(scene.current_layer(), Some((0, "attic".to_string())));
+        assert!(scene.docs[0].session.xforms.contains_key("attic"));
+        assert!(scene.undo());
+        assert_eq!(children(&scene, 0, "site"), vec!["walls", "roof"]);
+        assert_eq!(scene.current_layer(), Some((0, "roof".to_string())));
+        assert!(scene.docs[0].session.xforms.contains_key("roof"));
+        assert!(scene.redo());
+        assert_eq!(scene.current_layer(), Some((0, "attic".to_string())));
+    }
+
+    /// The current layer and the root stay; another layer takes its objects, and undo brings them back.
+    #[test]
+    fn delete_refuses_the_current_layer_and_undo_restores_objects() {
+        let mut scene = site();
+        let before = shape(&scene, 0);
+        let guid = scene.identity_of(0).unwrap().1;
+        scene.set_current_layer(0, "walls").unwrap();
+        assert!(scene.delete_layer(0, "walls").is_err());
+        assert!(scene.delete_layer(0, "site").is_err());
+        assert!(scene.holds_current(0, "site"));
+        scene.set_current_layer(0, "roof").unwrap();
+        assert_eq!(scene.delete_layer(0, "walls").unwrap(), 2);
+        assert_eq!(children(&scene, 0, "site"), vec!["roof"]);
+        assert!(scene.docs[0].session.lookup.is_empty());
+        assert!(scene.undo());
+        assert_eq!(shape(&scene, 0), before);
+        assert_eq!(scene.docs[0].session.lookup.len(), 2);
+        assert_eq!(
+            scene.docs[0].session.get_neighbours(&guid).len(),
+            1,
+            "the joint is back"
+        );
+        assert!(scene.redo());
+        assert_eq!(children(&scene, 0, "site"), vec!["roof"]);
+        assert!(scene.docs[0].session.lookup.is_empty());
+    }
+
+    /// A duplicate holds copies with new guids and the colors of the originals.
+    #[test]
+    fn duplicate_copies_objects_with_new_guids() {
+        let mut scene = site();
+        scene
+            .colors
+            .insert(scene.identity_of(0).unwrap(), [255, 0, 0]);
+        assert_eq!(scene.duplicate_layer(0, "walls").unwrap(), "walls copy");
+        let copies = children(&scene, 0, "walls copy");
+        assert_eq!(copies.len(), 2);
+        assert!(
+            copies
+                .iter()
+                .all(|guid| !children(&scene, 0, "walls").contains(guid))
+        );
+        assert_eq!(scene.docs[0].session.lookup.len(), 4);
+        assert_eq!(scene.colors.len(), 2, "the copy keeps its color");
+        let after = shape(&scene, 0);
+        assert!(scene.undo());
+        assert_eq!(scene.docs[0].session.lookup.len(), 2);
+        assert_eq!(children(&scene, 0, "site"), vec!["walls", "roof"]);
+        assert!(scene.redo());
+        assert_eq!(shape(&scene, 0), after);
+        assert_eq!(scene.docs[0].session.lookup.len(), 4);
+        assert_eq!(scene.duplicate_layer(0, "walls").unwrap(), "walls copy 02");
+        assert!(scene.duplicate_layer(0, "site").is_err());
+    }
+
+    /// A group under an object keeps its name when copied or moved, so `attributes` get no rows.
+    #[test]
+    fn a_group_under_an_object_keeps_its_name_through_duplicate_and_move() {
+        let mut session = Session::new("site");
+        let walls = session.add_group("walls");
+        let beam = session.add_point(Point::new(0.0, 0.0, 0.0), Some(&walls));
+        let attributes = TreeNode::new("attributes");
+        session.add(&attributes, Some(&beam));
+        session.add_point(Point::new(0.0, 1.0, 0.0), Some(&attributes));
+        let beam = beam.borrow().name.clone();
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "site".into(),
+            session: Rc::new(session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        scene.duplicate_layer(0, "walls").unwrap();
+        let after = shape(&scene, 0);
+        let copy = children(&scene, 0, "walls copy")[0].clone();
+        assert_eq!(children(&scene, 0, &copy), vec!["attributes"]);
+        assert!(scene.undo());
+        assert!(scene.redo());
+        assert_eq!(shape(&scene, 0), after);
+        assert_eq!(scene.docs[0].session.lookup.len(), 4);
+
+        // into a document that has an `attributes` group of its own
+        let mut other = Session::new("other");
+        other.add_group("inbox");
+        other.add_group("attributes");
+        scene.add_file(FileDoc {
+            name: "other".into(),
+            session: Rc::new(other),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let row = scene.row_of(0, &beam).unwrap();
+        scene.change_object_layer(&[row], 1, "inbox").unwrap();
+        assert_eq!(children(&scene, 1, &beam), vec!["attributes"]);
+        let mut fresh = Scene::new();
+
+        for file in &scene.docs {
+            fresh.add_file(FileDoc {
+                name: file.name.clone(),
+                session: Rc::clone(&file.session),
+                place: Xform::identity(),
+                point_px: 0.0,
+                display_only: false,
+            });
+        }
+
+        assert_eq!(fresh.object_count(), 2, "beams only, no attributes");
+    }
+
+    /// A name several layers share picks none of them; a duplicate keeps `attributes` baked.
+    #[test]
+    fn a_shared_layer_name_is_refused_and_attributes_stay_baked() {
+        let mut session = Session::new("site");
+
+        // one group per element holding it and its `attributes`, as element files do
+        for element in ["plate_0", "beam_1"] {
+            let group = session.add_group(element);
+            session.add_point(Point::new(0.0, 0.0, 0.0), Some(&group));
+            let attributes = TreeNode::new("attributes");
+            session.add(&attributes, Some(&group));
+            session.add_point(Point::new(0.0, 1.0, 0.0), Some(&attributes));
+        }
+
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "site".into(),
+            session: Rc::new(session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        assert!(scene.delete_layer(0, "attributes").is_err());
+        assert!(scene.set_current_layer(0, "attributes").is_err());
+        assert!(scene.rename_layer(0, "attributes", "features").is_err());
+        assert_eq!(scene.docs[0].session.lookup.len(), 4);
+        scene.duplicate_layer(0, "plate_0").unwrap();
+        assert_eq!(children(&scene, 0, "plate_0 copy")[1], "attributes");
+        let mut fresh = Scene::new();
+        fresh.add_file(FileDoc {
+            name: "site".into(),
+            session: Rc::clone(&scene.docs[0].session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        assert_eq!(fresh.object_count(), 3, "elements only, no attributes");
+    }
+
+    /// Change Object Layer moves the node and keeps the world placement.
+    #[test]
+    fn change_object_layer_moves_and_keeps_placement() {
+        let mut scene = site();
+        let session = Rc::make_mut(&mut scene.docs[0].session);
+        session
+            .xforms
+            .insert("roof".into(), Xform::translation(0.0, 0.0, 10.0));
+        let before = scene.placement_of(0).unwrap();
+        let moved = scene.change_object_layer(&[0], 0, "roof").unwrap();
+        assert_eq!(moved, vec![scene.identity_of(0).unwrap()]);
+        assert_eq!(children(&scene, 0, "roof").len(), 1);
+        assert!(same(&scene.placement_of(0).unwrap(), &before));
+        assert!(
+            scene.change_object_layer(&[0], 0, "roof").is_err(),
+            "already there"
+        );
+        assert!(scene.undo());
+        assert!(children(&scene, 0, "roof").is_empty());
+        assert!(same(&scene.placement_of(0).unwrap(), &before));
+        assert!(scene.redo());
+        assert_eq!(children(&scene, 0, "roof").len(), 1);
+        assert!(same(&scene.placement_of(0).unwrap(), &before));
+        assert!(scene.change_object_layer(&[], 0, "roof").is_err());
+    }
+
+    /// Change Object Layer carries an object into another document; one undo puts it back.
+    #[test]
+    fn change_object_layer_across_documents_is_one_step() {
+        let mut scene = site();
+        let mut other = Session::new("other");
+        other.add_group("inbox");
+        scene.add_file(FileDoc {
+            name: "other".into(),
+            session: Rc::new(other),
+            place: Xform::translation(5.0, 0.0, 0.0),
+            point_px: 0.0,
+            display_only: false,
+        });
+        scene
+            .colors
+            .insert(scene.identity_of(1).unwrap(), [0, 0, 255]);
+        let guid = scene.identity_of(1).unwrap().1;
+        let moved = scene.change_object_layer(&[1], 1, "inbox").unwrap();
+        assert_eq!(
+            moved,
+            vec![(1, Rc::clone(&guid))],
+            "the object keeps its guid"
+        );
+        assert!(!scene.docs[0].session.lookup.contains_key(guid.as_ref()));
+        assert_eq!(children(&scene, 1, "inbox"), vec![guid.to_string()]);
+        let local = scene.docs[1].session.xform(&guid);
+        assert_eq!(
+            [local.m[12], local.m[13], local.m[14]],
+            [-5.0, 0.0, 0.0],
+            "same world spot"
+        );
+        assert_eq!(scene.colors.get(&(1, Rc::clone(&guid))), Some(&[0, 0, 255]));
+        assert!(scene.undo());
+        assert!(children(&scene, 1, "inbox").is_empty());
+        assert_eq!(children(&scene, 0, "walls").len(), 2);
+        assert_eq!(
+            scene.docs[0].session.get_neighbours(&guid).len(),
+            1,
+            "its joint is back"
+        );
+        assert!(scene.redo());
+        assert_eq!(children(&scene, 1, "inbox"), vec![guid.to_string()]);
+        assert_eq!(children(&scene, 0, "walls").len(), 1);
+    }
+
+    /// `site` with a second document `other` holding an empty layer `inbox`.
+    fn site_and_other() -> Scene {
+        let mut scene = site();
+        let mut other = Session::new("other");
+        other.add_group("inbox");
+        scene.add_file(FileDoc {
+            name: "other".into(),
+            session: Rc::new(other),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        scene
+    }
+
+    /// A move across documents undoes in both of them or in neither.
+    #[test]
+    fn a_move_across_documents_undoes_in_both_or_neither() {
+        let mut scene = site_and_other();
+        let guid = scene.identity_of(1).unwrap().1;
+        let point = scene.identity_of(0).unwrap().1;
+        scene.change_object_layer(&[1], 1, "inbox").unwrap();
+
+        // a later edit in each document, the one in `site` last
+        for (doc, moved) in [(1, &guid), (0, &point)] {
+            let session = Rc::make_mut(&mut scene.docs[doc].session);
+            session.begin("move");
+            session.set_xform(moved, Xform::translation(1.0, 0.0, 0.0));
+            session.commit();
+            scene.edited(&[doc]);
+        }
+
+        let owners = |scene: &Scene| {
+            [0, 1].map(|doc| scene.docs[doc].session.lookup.contains_key(guid.as_ref()))
+        };
+        assert!(scene.undo(), "the later edit in site");
+        assert!(scene.undo(), "then the later edit in other");
+        assert_eq!(owners(&scene), [false, true]);
+        assert!(scene.undo(), "then the move, in both documents");
+        assert_eq!(owners(&scene), [true, false]);
+        assert!(scene.redo());
+        assert_eq!(owners(&scene), [false, true]);
+    }
+
+    /// A move that one document can no longer step stays in the other too.
+    #[test]
+    fn a_move_one_document_forgot_is_not_undone_in_the_other() {
+        let mut scene = site_and_other();
+        let guid = scene.identity_of(1).unwrap().1;
+        scene.change_object_layer(&[1], 1, "inbox").unwrap();
+        let session = Rc::make_mut(&mut scene.docs[1].session);
+
+        // `other` drops the move from its full history, then a layer edit there forgets old trees
+        for step in 0..=session_rust::history::CAPACITY {
+            session.begin("move");
+            session.set_xform(&guid, Xform::translation(step as f64, 0.0, 0.0));
+            session.commit();
+        }
+
+        scene.new_layer(1, "inbox", false).unwrap();
+        assert!(scene.undo(), "the new layer");
+        assert!(!scene.undo(), "the move other forgot");
+        assert!(!scene.docs[0].session.lookup.contains_key(guid.as_ref()));
+        assert!(scene.docs[1].session.lookup.contains_key(guid.as_ref()));
+    }
+
+    /// Copy Object Layer reaches another document and keeps the world placement.
+    #[test]
+    fn copy_object_layer_crosses_documents() {
+        let mut scene = site();
+        let mut other = Session::new("other");
+        other.add_group("inbox");
+        scene.add_file(FileDoc {
+            name: "other".into(),
+            session: Rc::new(other),
+            place: Xform::translation(5.0, 0.0, 0.0),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let copies = scene.copy_object_layer(&[1], 1, "inbox").unwrap();
+        let guid = children(&scene, 1, "inbox")[0].clone();
+        assert_eq!(copies, vec![(1, Rc::from(guid.as_str()))]);
+        assert_ne!(guid, scene.identity_of(1).unwrap().1.to_string());
+        let local = scene.docs[1].session.xform(&guid);
+        assert_eq!(
+            [local.m[12], local.m[13], local.m[14]],
+            [-5.0, 0.0, 0.0],
+            "same world spot"
+        );
+        assert_eq!(scene.docs[0].session.lookup.len(), 2, "the original stays");
+        assert!(scene.undo());
+        assert!(children(&scene, 1, "inbox").is_empty());
+        assert!(scene.copy_object_layer(&[], 1, "inbox").is_err());
+    }
+
+    /// New objects go to the current layer, keeping the typed world coordinates.
+    #[test]
+    fn drawing_lands_on_the_current_layer() {
+        let mut scene = site();
+        Rc::make_mut(&mut scene.docs[0].session)
+            .xforms
+            .insert("roof".into(), Xform::translation(0.0, 0.0, 10.0));
+        scene.set_current_layer(0, "roof").unwrap();
+        let (doc, guid) = scene
+            .model(&crate::app::modeling::Modeling::Point([1.0, 2.0, 3.0]))
+            .unwrap()
+            .unwrap();
+        assert_eq!(doc, 0);
+        assert_eq!(children(&scene, 0, "roof"), vec![guid.clone()]);
+        let world = scene.docs[0].session.world_xform(&guid);
+        assert_eq!([world.m[12], world.m[13], world.m[14]], [0.0, 0.0, 0.0]);
+        assert!(scene.created_doc.is_none());
+        assert!(
+            scene.set_current_layer(0, &guid).is_err(),
+            "an object is not a layer"
+        );
+        let session = Rc::make_mut(&mut scene.docs[0].session);
+        let point = session.tree.get_node_by_name(&guid).unwrap();
+        session.add(&TreeNode::new("features"), Some(&point));
+        assert!(
+            scene.set_current_layer(0, "features").is_err(),
+            "nor a group inside an object"
+        );
+    }
+
+    /// A failed edit leaves the tree, the objects and the redo steps as they were.
+    #[test]
+    fn a_failed_layer_edit_leaves_no_trace() {
+        let mut scene = site();
+        scene.new_layer(0, "roof", false).unwrap();
+        assert!(scene.undo());
+        let before = shape(&scene, 0);
+        let result: Result<(), String> = scene.layer_step(0, "broken", |session| {
+            session.add_point(Point::new(9.0, 9.0, 9.0), None);
+            session.add_group("half");
+            Err("broken".into())
+        });
+        assert!(result.is_err());
+        assert_eq!(shape(&scene, 0), before);
+        assert_eq!(scene.docs[0].session.lookup.len(), 2);
+        assert!(scene.redo(), "the undone step can still be redone");
+        assert_eq!(
+            children(&scene, 0, "site"),
+            vec!["walls", "roof", "Layer 01"]
+        );
+    }
+
+    /// Past the node budget the oldest edits can no longer be undone; the rest still can.
+    #[test]
+    fn old_layer_edits_are_forgotten_past_the_budget() {
+        let mut scene = site();
+
+        for _ in 0..3 {
+            scene.new_layer(0, "roof", false).unwrap();
+        }
+
+        scene.forget_layer_steps(12);
+        let depth = scene.docs[0].session.history.undo_stack.len();
+        assert_eq!(depth, 1);
+        assert_eq!(scene.layer_trees.len(), 1);
+        assert!(scene.undo());
+        assert!(!scene.undo());
+        assert_eq!(
+            children(&scene, 0, "site"),
+            vec!["walls", "roof", "Layer 01", "Layer 02"]
+        );
     }
 }

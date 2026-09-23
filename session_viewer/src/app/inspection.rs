@@ -82,12 +82,28 @@ pub fn publish(state: &State) {
             .collect::<Vec<_>>()
     );
     snapshot["drawing"] = state.drawing_status();
+    snapshot["clipping"] = state.clipping_status();
+    snapshot["object_drag"] = state.object_drag_status();
+    snapshot["number_box"] = serde_json::json!(state.number_prompt().map(|prompt| {
+        serde_json::json!({"title": prompt.title, "unit": prompt.unit, "at": prompt.at})
+    }));
+    snapshot["undo_depth"] = serde_json::json!(
+        state
+            .scene
+            .docs
+            .iter()
+            .map(|doc| doc.session.history.depth())
+            .sum::<usize>()
+    );
     snapshot["snap_enabled"] = serde_json::json!(state.snap_enabled);
+    snapshot["snap_modes"] = serde_json::json!(state.snap_modes);
+    snapshot["snap_bar"] = serde_json::json!(state.snap_bar);
     snapshot["ssao"] = serde_json::json!(state.gpu.view.ssao);
     snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
     snapshot["color_count"] = serde_json::json!(state.scene.colors.len());
     snapshot["edge_color_count"] = serde_json::json!(state.scene.edge_colors.len());
     snapshot["split"] = serde_json::json!(state.split_status());
+    snapshot["current_layer"] = serde_json::json!(state.scene.current_layer());
     snapshot["source_faces"] =
         serde_json::json!(parent.and_then(|row| match state.scene.geometry(row)? {
             session_rust::Geometry::BRep(brep) => Some(brep.face_count()),
@@ -98,6 +114,13 @@ pub fn publish(state: &State) {
             _ => None,
         }));
     snapshot["scene_revision"] = serde_json::json!(state.scene.row_revision);
+    let (dead_rows, free_rows, dead_bytes, graves, compactions) = state.scene.row_counters();
+    snapshot["dead_rows"] = serde_json::json!(dead_rows);
+    snapshot["free_rows"] = serde_json::json!(free_rows);
+    snapshot["dead_bytes"] = serde_json::json!(dead_bytes);
+    snapshot["graves"] = serde_json::json!(graves);
+    snapshot["compactions"] = serde_json::json!(compactions);
+    snapshot["row_table_bytes"] = serde_json::json!(state.scene.row_table_bytes());
     snapshot["preview_cache_bytes"] = serde_json::json!(state.scene.preview_cache_bytes());
     let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string());
 }

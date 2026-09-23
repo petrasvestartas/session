@@ -68,6 +68,16 @@ pub fn focus_canvas() {
 #[cfg(not(target_arch = "wasm32"))]
 pub fn focus_canvas() {}
 
+/// Raise the phone keyboard over an empty field; works while a tap is handled.
+#[cfg(target_arch = "wasm32")]
+pub fn raise_keyboard() {
+    super::agent::raise();
+}
+
+/// No phone keyboard on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn raise_keyboard() {}
+
 /// No command line on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn command_line(_open: bool) {}
@@ -86,6 +96,19 @@ pub struct LayerRow {
     pub has_faces: bool,             // shows a face swatch
     pub depth: usize,                // indent level
     pub expanded: Option<bool>,      // open, closed or no children
+    pub layer: bool,                 // a group or document, not an object
+    pub current: bool,               // where new objects go
+    pub root: bool,                  // the top layer of its document
+}
+
+/// One row of the graph table: an edge between two objects.
+#[derive(Clone, Default, serde::Serialize)]
+pub struct EdgeRow {
+    pub key: String,    // `pair/<row>/<row>`
+    pub from: String,   // first object's name, else its short guid
+    pub to: String,     // second object's name, else its short guid
+    pub guids: String,  // both guids, for the tooltip
+    pub selected: bool, // both ends selected
 }
 
 /// Replace the rows of the layers panel.
@@ -93,6 +116,58 @@ pub struct LayerRow {
 pub fn layers_panel(rows: &[LayerRow]) {
     super::ui::MODEL.with_borrow_mut(|model| model.rows = rows.to_vec());
 }
+
+/// Replace the rows of the graph table; `total` counts the edges not listed too.
+#[cfg(target_arch = "wasm32")]
+pub fn graph_panel(edges: Vec<EdgeRow>, total: usize) {
+    super::ui::MODEL.with_borrow_mut(|model| {
+        model.edges = edges;
+        model.edge_total = total;
+    });
+}
+
+/// No panel on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn graph_panel(_edges: Vec<EdgeRow>, _total: usize) {}
+
+/// Whether the graph table is unfolded.
+#[cfg(target_arch = "wasm32")]
+pub fn graph_open() -> bool {
+    super::ui::MODEL.with_borrow(|model| model.graph_open)
+}
+
+/// Fold or unfold the graph table.
+#[cfg(target_arch = "wasm32")]
+pub fn toggle_graph() {
+    super::ui::MODEL.with_borrow_mut(|model| model.graph_open = !model.graph_open);
+}
+
+/// Start editing the name of layer row `index`.
+#[cfg(target_arch = "wasm32")]
+pub fn rename_row(index: usize, label: &str) {
+    super::ui::MODEL.with_borrow_mut(|model| {
+        model.renaming = Some(super::ui::Rename {
+            node: index.to_string(),
+            text: label.to_string(),
+            focused: false,
+            done: false,
+        });
+    });
+}
+
+/// No panel on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn graph_open() -> bool {
+    false
+}
+
+/// No panel on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn toggle_graph() {}
+
+/// No panel on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn rename_row(_index: usize, _label: &str) {}
 
 /// Show or hide the layers panel.
 #[cfg(target_arch = "wasm32")]
@@ -102,6 +177,7 @@ pub fn layers_visible(open: bool) {
 
         if !open {
             model.rows.clear();
+            model.edges.clear();
         }
     });
 }

@@ -30,8 +30,4 @@ impl Action for Undo {
         state.after_history();
         Ok("undone".into())
     }
-
-    fn needs_complete_scene(&self) -> bool {
-        true
-    }
 }

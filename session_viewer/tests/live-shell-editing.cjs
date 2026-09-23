@@ -16,13 +16,13 @@ async function settle(page){await page.waitForTimeout(120);await page.waitForFun
   await page.waitForFunction(()=>JSON.parse(document.querySelector('canvas')?.getAttribute('data-viewer-inspection')||'{}').objects>=7).catch(async e=>{console.log('LOAD', await state(page).catch(()=>null), errors);await page.screenshot({path:'/tmp/viewer-live-shell-load.png'});throw e;});
   if(stress)await page.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-viewer-inspection')).cloud_points>300000,{},{timeout:60000});
   await ui.button(page,'layers/close','Close layers');await page.locator('canvas').focus();await page.keyboard.press('5');await page.keyboard.press('f');await settle(page);
-  let s=await state(page);assert(s.preview_cache_bytes>0,'shell has live parameter samples');
+  let s=await state(page);assert.equal(s.preview_cache_bytes,0,'no preview is held before a drag');
   await page.keyboard.down('Control');await page.keyboard.down('Shift');await page.mouse.click(...project(s,stress?[-3000,-3000,200]:[-3,-3,.2]));await page.keyboard.up('Shift');await page.keyboard.up('Control');await settle(page);
   s=await state(page);assert(s.selection.Face,'Ctrl+Shift selects the original shell face');const revision=s.scene_revision;
   const [origin,scale]=s.widget;const start=project(s,[origin[0]+86*scale,origin[1],origin[2]]);
   await page.mouse.move(...start);await page.mouse.down();const started=Date.now();
   for(let i=1;i<=12;++i)await page.mouse.move(start[0]+i*2,start[1]);
-  await settle(page);const preview=await state(page);const dragMs=Date.now()-started;
+  await settle(page);const preview=await state(page);const dragMs=Date.now()-started;assert(preview.preview_cache_bytes>0,'the dragged shell has live parameter samples');
   assert.equal(preview.scene_revision,revision,'drag does not rebuild any document');assert.notDeepEqual(preview.widget[0],origin,'gumball follows each move');
   const releaseStart=Date.now();await page.mouse.up();await settle(page);const released=await state(page);const releaseMs=Date.now()-releaseStart;
   assert.equal(released.scene_revision,revision,'release commits without remeshing the scene');assert(released.selection.Face,'face selection survives commit');

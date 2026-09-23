@@ -214,6 +214,11 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
     let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
 
+    // one clipping plane cuts the whole segment away
+    if (clip_active() && clip_cut_both(inst.flags, w0, w1)) {
+        return dead_vertex();
+    }
+
     let c0 = mvp * vec4<f32>(w0, 1.0);
     let c1 = mvp * vec4<f32>(w1, 1.0);
     let at_end1 = corner >= 2u;
@@ -325,11 +330,28 @@ fn ink_axis(in: VsOut) -> InkAxis {
     return InkAxis(vec2<f32>(at.x, line.vp_h - at.y), mix(in.end_depth.x, in.end_depth.y, h), along, slope);
 }
 
+// True when a clipping plane cuts the center line away beside this fragment.
+fn axis_cut(in: VsOut) -> bool {
+    if (!clip_active()) {
+        return false;
+    }
+
+    let axis = ink_axis(in);
+    return clip_cut_ndc(instances[in.inst_id].flags, clip_ndc(axis.at + line.origin, line.frame, axis.depth));
+}
+
 @fragment
 // Color: the stroke, faded where geometry hides it.
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
+    let covered = coverage(in);
+
+    // no coverage: no depth reads
+    if (covered <= 0.0 || axis_cut(in)) {
+        discard;
+    }
+
     let hidden = !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u);
-    let alpha = coverage(in) * through_glass(hidden);
+    let alpha = covered * through_glass(hidden);
 
     if (alpha <= 0.0) {
         discard;
@@ -343,7 +365,7 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
 fn fs_mask(in: VsOut, @builtin(sample_index) sample: u32) -> @location(0) vec4<f32> {
     let alpha = coverage(in);
 
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (alpha <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -361,7 +383,7 @@ struct MaskPair {
 fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
     let alpha = coverage(in);
 
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (alpha <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -373,7 +395,7 @@ fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
 fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
     let alpha = coverage(in);
 
-    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (alpha <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -386,7 +408,7 @@ const SEGMENT_BIT: u32 = 0x80000000u;
 @fragment
 // Pick id: object row + 1 and tagged segment row + 1.
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -396,7 +418,7 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
 // Pick id for edge picks; segments without a source edge are skipped.
 @fragment
 fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 

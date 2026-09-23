@@ -82,10 +82,19 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         ..wgpu::Limits::default()
     };
 
+    // natively, `VIEWER_GPU_TIMING` asks for timestamps between passes
+    let timing =
+        !cfg!(target_arch = "wasm32") && super::view::knob("VIEWER_GPU_TIMING", "").is_some();
+    let timestamps =
+        wgpu::Features::TIMESTAMP_QUERY | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
     let (device, queue) = adapter
         .request_device(&wgpu::DeviceDescriptor {
             label: None,
-            required_features: wgpu::Features::empty(),
+            required_features: if timing {
+                adapter.features() & timestamps
+            } else {
+                wgpu::Features::empty()
+            },
             required_limits: limits,
             memory_hints: Default::default(),
             ..Default::default()

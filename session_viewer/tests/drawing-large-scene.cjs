@@ -55,7 +55,19 @@ async function command(page, text) {
       const after = await snapshot(page, 'inspection');
       assert.equal(after.objects, state.objects + 1, name + ' creates one object: ' + JSON.stringify({drawing: after.drawing, history: (await snapshot(page, 'ui')).history.slice(-4), command: (await snapshot(page, 'ui')).command}));
       assert.equal(after.drawing, null);
-      console.log(`PASS ${name}: ${state.objects} existing objects, ${Date.now() - started} ms including input waits`);
+      // the drawn object is selected: delete it, undo, redo, undo; each well under a quarter second
+      const timed = {};
+
+      for (const [verb, change] of [['Delete', -1], ['Undo', 1], ['Redo', -1], ['Undo', 1]]) {
+        const count = (await snapshot(page, 'inspection')).objects;
+        const began = Date.now();
+        await command(page, verb);
+        timed[verb] = Date.now() - began - 750; // settle waits 750 ms
+        assert.equal((await snapshot(page, 'inspection')).objects, count + change, verb);
+        assert(timed[verb] < 250, `${verb} took ${timed[verb]} ms`);
+      }
+
+      console.log(`PASS ${name}: ${state.objects} existing objects, ${Date.now() - started} ms including input waits; edit ms ${JSON.stringify(timed)}`);
     }
     assert.deepEqual(errors, []);
   } finally {

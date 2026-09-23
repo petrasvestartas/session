@@ -1,3 +1,4 @@
+pub mod clipping;
 pub mod cloud_query;
 pub mod command;
 pub mod coords;
@@ -5,6 +6,7 @@ pub mod cplane;
 pub mod deform;
 pub mod edit;
 pub mod feedback;
+pub mod gesture;
 pub mod gizmo;
 pub mod hierarchy;
 pub mod input;

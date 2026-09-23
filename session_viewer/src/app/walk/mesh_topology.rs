@@ -3,7 +3,7 @@ use session_rust::{Mesh, Tolerance};
 
 /// Vertex key to its position in the sorted key list.
 pub struct SlotMap {
-    dense: Vec<u32>,                                 // key indexes directly
+    dense: Vec<u32>,                               // key indexes directly
     sparse: std::collections::HashMap<usize, u32>, // used for sparse keys
 }
 

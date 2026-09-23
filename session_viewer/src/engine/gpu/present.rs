@@ -15,6 +15,14 @@ impl Gpu {
             pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
         };
         self.frame.write(&self.ctx, input, &cx);
+        let clip = self.clip.uniform(&super::clip::ClipView {
+            view_proj: &input.view_proj,
+            anchor: self.objects.anchor(),
+            height: size.1,
+            pixel_scale: f64::from(size.0) / self.logical_size[0].max(1.0),
+            samples: self.targets.samples,
+        });
+        self.frame.write_clip(&self.ctx, &clip);
         self.widget.prepare(
             &self.ctx,
             &input.view_proj,
@@ -30,11 +38,17 @@ impl Gpu {
             framebuffer: [size.0, size.1],
             logical: self.logical_size,
             ortho_half_height: self.frame.ortho_h,
+            clip: self.clip.world(),
         };
 
         if let Err(error) = self.text.prepare(&self.ctx, &frame) {
             log::warn!("text preparation: {error}");
         }
+    }
+
+    /// True while ambient occlusion still adds samples on a still view; not in a drag that skips it.
+    pub fn ambient_pending(&self) -> bool {
+        self.performance.drag_tier() < 2 && self.ssao.as_ref().is_some_and(|ssao| ssao.pending())
     }
 
     /// Draw one frame to the canvas; returns encode time in ms.
@@ -68,8 +82,32 @@ impl Gpu {
         self.pick.map();
         self.arena.tiles.map_report();
         output.present();
+
+        // startup marks; the GPU-side one also times the pipelines the first frames compiled
+        let geometry = self.live_faces() + self.live_sheet() > 0
+            || self.live_pipes() + self.live_ribbons() > 0
+            || self.live_spheres() + self.live_dots() > 0
+            || self.live_points() > 0;
+
+        if let Some(done) = self.performance.mark_startup(geometry) {
+            self.ctx
+                .queue
+                .on_submitted_work_done(move || crate::engine::performance::mark(done));
+        }
+
+        // compile ambient occlusion after the first frame with faces, so a toggle does not stall
+        if self.live_faces() > 0 {
+            let target = self.target();
+            super::ssao::cached(&mut self.ssao_pipes, &self.ctx, target);
+        }
         self.performance
             .frame(draws, objects, input.now_ms, self.view.perf);
+
+        // occlusion drawn at half resolution: the frame after the drag draws it in full
+        if self.ssao.as_ref().is_some_and(super::ssao::Ssao::half) {
+            self.performance.mark_rough();
+        }
+
         Some(encode_ms)
     }
 
@@ -138,6 +176,11 @@ impl Gpu {
                 depth_or_array_layers: 1,
             },
         );
+
+        if let Some(timer) = &self.timer {
+            timer.resolve(&mut encoder);
+        }
+
         self.ctx.queue.submit([encoder.finish()]);
         self.pick.map();
         self.arena.tiles.map_report();
@@ -161,6 +204,11 @@ impl Gpu {
 
         drop(data);
         readback.unmap();
+
+        if let Some(timer) = self.timer.as_mut() {
+            timer.collect(&self.ctx);
+        }
+
         out
     }
 

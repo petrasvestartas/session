@@ -29,10 +29,10 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     return o;
 }
 
-// Output: color, depth slope, and the depth written to the scene.
+// Output: color, triangle id, and the depth written to the scene.
 struct FsOut {
     @location(0) color: vec4<f32>, // rgba
-    @location(1) gradient: vec4<f32>, // depth slope; zero for points
+    @location(1) primitive: vec2<u32>, // triangle id; none for points
     @builtin(frag_depth) depth: f32, // point depth into the scene
 };
 
@@ -85,7 +85,7 @@ fn shade(in: VsOut) -> FsOut {
 
     o.color = vec4<f32>(rgb, 1.0);
     o.depth = d;
-    o.gradient = vec4<f32>(0.0);
+    o.primitive = vec2<u32>(0u);
     return o;
 }
 

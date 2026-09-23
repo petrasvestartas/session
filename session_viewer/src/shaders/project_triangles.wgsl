@@ -10,6 +10,7 @@ struct ProjectLine {
 };
 
 @group(1) @binding(0) var<uniform> line: ProjectLine; // view settings
+@group(1) @binding(1) var<uniform> clipping: ClipUniform; // clipping planes
 
 // Instance under another name; field order must match the Rust row.
 struct ProjectInstance {
@@ -22,7 +23,7 @@ struct ProjectInstance {
 
 @group(2) @binding(0) var<storage, read> instances: array<ProjectInstance>; // one row per object
 @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>; // position per object
-@group(3) @binding(0) var<storage, read> physical_vertices: array<f32>; // mesh vertices, ten floats each
+@group(3) @binding(0) var<storage, read> physical_vertices: array<f32>; // mesh vertices, five words each
 @group(3) @binding(1) var<storage, read> physical_objects: array<u32>; // object row per vertex
 @group(3) @binding(2) var<storage, read> physical_indices: array<u32>; // triangle indices
 @group(3) @binding(3) var<storage, read_write> projected: array<ProjectedTriangle>; // output: one record per triangle
@@ -99,15 +100,38 @@ struct ProjectedPolygon {
     count: u32, // corners; 0 = not drawn
 };
 
-// Vertex `index` of the mesh in clip space.
-fn physical_clip_corner(index: u32) -> vec4<f32> {
+// Vertex `index` of the mesh in scene space.
+fn physical_world_corner(index: u32) -> vec3<f32> {
     let vertex = physical_indices[index];
-    // ten floats per vertex: position, normal, color
-    let base = vertex * 10u;
+    // five words per vertex: position, normal, color
+    let base = vertex * 5u;
     let point = vec3<f32>(physical_vertices[base], physical_vertices[base+1u], physical_vertices[base+2u]);
     let owner = physical_objects[vertex];
-    let world = (instances[owner].model * vec4<f32>(point, 1.0)).xyz + translations[owner].xyz;
-    return mvp * vec4<f32>(world, 1.0);
+    return (instances[owner].model * vec4<f32>(point, 1.0)).xyz + translations[owner].xyz;
+}
+
+// Vertex `index` of the mesh in clip space.
+fn physical_clip_corner(index: u32) -> vec4<f32> {
+    return mvp * vec4<f32>(physical_world_corner(index), 1.0);
+}
+
+// True when one clipping plane cuts all three corners of the triangle at `base` away.
+fn physical_cut(base: u32, flags: u32) -> bool {
+    if (!clip_active() || (flags & FLAG_CLIPPING_PLANE) != 0u) {
+        return false;
+    }
+
+    let a = physical_world_corner(base);
+    let b = physical_world_corner(base+1u);
+    let c = physical_world_corner(base+2u);
+
+    for (var i = 0u; i < clipping.count; i++) {
+        if (clip_distance(i, a) < 0.0 && clip_distance(i, b) < 0.0 && clip_distance(i, c) < 0.0) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // Triangle `primitive` (one-based) projected and clipped to the near plane.
@@ -121,8 +145,8 @@ fn project_physical_triangle(primitive: u32) -> ProjectedPolygon {
     let base = (primitive-1u)*3u;
     let owner = physical_objects[physical_indices[base]];
 
-    // 2 = FLAG_HIDDEN; hidden objects do not occlude
-    if ((instances[owner].flags & 2u) != 0u) {
+    // 2 = FLAG_HIDDEN; hidden objects do not occlude, nor do triangles a clipping plane removed
+    if ((instances[owner].flags & 2u) != 0u || physical_cut(base, instances[owner].flags)) {
         return polygon;
     }
 

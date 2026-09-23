@@ -1,6 +1,6 @@
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use super::TextFrame;
-use crate::engine::pipelines::Target;
+use crate::engine::pipelines::{Pipeline, Target};
 use crate::engine::text::{TextDocument, TextLabel, TextPlacement, TextRun};
 use glyphon::{FontSystem, SwashCache, SwashContent};
 
@@ -32,8 +32,8 @@ pub(super) struct Planes {
     vertices: GrowBuf, // six vertices per label
     layout: wgpu::BindGroupLayout, // texture and sampler
     sampler: wgpu::Sampler, // linear filtering
-    pipeline: wgpu::RenderPipeline, // in color
-    id_pipeline: wgpu::RenderPipeline, // object ids
+    pipeline: Pipeline, // in color
+    id_pipeline: Pipeline, // object ids
     target: Target, // scene color format and samples
     pub(super) rasterizations: u64, // textures made so far
 }
@@ -121,6 +121,13 @@ impl Planes {
         for run in &document.runs {
             if !matches!(run.label.placement, TextPlacement::WorldPlane { .. })
                 || run.label.text.is_empty()
+            {
+                continue;
+            }
+
+            // cut away by a clipping plane
+            if let TextPlacement::WorldPlane { world, .. } = run.label.placement
+                && frame.cut(world)
             {
                 continue;
             }
@@ -263,7 +270,7 @@ impl Planes {
     }
 
     /// One quad per label with `pipeline`; returns the draw count.
-    fn draw_run(&self, pass: &mut wgpu::RenderPass<'_>, pipeline: &wgpu::RenderPipeline) -> u32 {
+    fn draw_run(&self, pass: &mut wgpu::RenderPass<'_>, pipeline: &Pipeline) -> u32 {
         if self.draws.is_empty() {
             return 0;
         }
@@ -573,36 +580,38 @@ fn append_quad(
     }
 }
 
-/// Build the color or id pipeline.
+/// The color or id pipeline, compiled on first use.
 fn pipeline(
     ctx: &GpuCtx,
     target: Target,
     layout: &wgpu::BindGroupLayout,
     ids: bool,
-) -> wgpu::RenderPipeline {
-    let shader = ctx
-        .device
-        .create_shader_module(wgpu::ShaderModuleDescriptor {
+) -> Pipeline {
+    let device = ctx.device.clone();
+    let layout = layout.clone();
+    let pick = crate::engine::gpu::frame::pick_transform_layout(ctx);
+    Pipeline::new(move || {
+        crate::engine::pipelines::count_shader();
+        crate::engine::pipelines::count_pipeline();
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("world text shader"),
             source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/text_plane.wgsl").into()),
         });
-    let pick = crate::engine::gpu::frame::pick_transform_layout(ctx);
-    let colour_groups = [Some(layout)];
-    let id_groups = [Some(layout), Some(&pick)];
-    let pipeline_layout = ctx
-        .device
-        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        let colour_groups = [Some(&layout)];
+        let id_groups = [Some(&layout), Some(&pick)];
+        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("world text"),
             bind_group_layouts: if ids { &id_groups } else { &colour_groups },
             immediate_size: 0,
         });
-    ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some("world text"), layout: Some(&pipeline_layout),
-        vertex: wgpu::VertexState { module: &shader, entry_point: Some(if ids { "vs_id" } else { "vs_main" }), buffers: &[wgpu::VertexBufferLayout { array_stride: 64, step_mode: wgpu::VertexStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32] }], compilation_options: Default::default() },
-        fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some(if ids { "fs_id" } else { "fs_main" }), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) }, write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
-        primitive: Default::default(), depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::GreaterEqual), stencil: Default::default(), bias: Default::default() }),
-        multisample: wgpu::MultisampleState { count: target.samples, ..Default::default() }, multiview_mask: None, cache: None,
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("world text"), layout: Some(&pipeline_layout),
+            vertex: wgpu::VertexState { module: &shader, entry_point: Some(if ids { "vs_id" } else { "vs_main" }), buffers: &[wgpu::VertexBufferLayout { array_stride: 64, step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32] }], compilation_options: Default::default() },
+            fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some(if ids { "fs_id" } else { "fs_main" }), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) }, write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
+            primitive: Default::default(), depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::GreaterEqual), stencil: Default::default(), bias: Default::default() }),
+            multisample: wgpu::MultisampleState { count: target.samples, ..Default::default() }, multiview_mask: None, cache: None,
+        })
     })
 }
 

@@ -4,7 +4,9 @@ use super::instance::Instance;
 use super::lod::{LodWalk, Projection, radius_factor};
 use super::objects::InstanceTable;
 use super::targets::{Attachment, TextureSpec};
-use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
+use crate::engine::pipelines::{
+    DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, module,
+};
 use session_rust::Xform;
 use wgpu::PrimitiveTopology::TriangleList;
 
@@ -30,7 +32,7 @@ pub struct SplatRecord {
     pub count: u32, // points in the run
     pub cum: u32, // points drawn before this run
     pub k: f32, // radius factor; the shader divides by depth
-    pub rot: [f32; 12], // object rotation, for the normals
+    pub rot: [f32; 12], // object rotation columns for the normals, each ending in the translation
     pub nrm_first: u32, // first normal row, or NO_NORMALS
     pub instance: u32, // object row
     pub flags: u32, // Instance::FLAG_* bits
@@ -135,10 +137,10 @@ pub struct Splat {
     key: Option<Key>, // what the last pass depended on
     targets: Option<SplatTargets>, // point textures
     points_group: wgpu::BindGroup, // records and point buffers, bound
-    resolve_shader: wgpu::ShaderModule, // resolve shader
-    point_pipeline: wgpu::RenderPipeline, // points in color
-    resolve_pipeline: wgpu::RenderPipeline, // point texture into the scene
-    id_pipeline: wgpu::RenderPipeline, // points as ids
+    resolve_shader: Shader, // resolve shader
+    point_pipeline: Pipeline, // points in color
+    resolve_pipeline: Pipeline, // point texture into the scene
+    id_pipeline: Pipeline, // points as ids
 }
 
 impl Splat {
@@ -161,12 +163,16 @@ impl Splat {
         );
         let points_group = points_group(ctx, l, &record_buf, &bufs);
         let point_shader = module(
-            &ctx.device,
+            ctx,
             "splat.shader",
-            include_str!("../../shaders/splat.wgsl"),
+            &format!(
+                "{}\n{}",
+                include_str!("../../shaders/splat.wgsl"),
+                crate::engine::pipelines::CLIP
+            ),
         );
         let resolve_shader = module(
-            &ctx.device,
+            ctx,
             "splat.resolve.shader",
             include_str!("../../shaders/splat_resolve.wgsl"),
         );
@@ -389,10 +395,10 @@ impl Splat {
             let m = (&Xform::from_matrix(cx.mvp.map(f64::from))
                 * &Xform::from_matrix(model.map(f64::from)))
                 .to_f32();
-            // rotation only, for the normals
+            // rotation for the normals; the fourth words place points for the clipping planes
             let rot = [
-                model[0], model[1], model[2], 0.0, model[4], model[5], model[6], 0.0, model[8],
-                model[9], model[10], 0.0,
+                model[0], model[1], model[2], model[12], model[4], model[5], model[6], model[13],
+                model[8], model[9], model[10], model[14],
             ];
             let scale = Xform::from_matrix(model.map(f64::from)).uniform_scale();
             let selected = row.flags & Instance::FLAG_SELECTED != 0;
@@ -499,9 +505,9 @@ fn points_group(
 fn build_point(
     ctx: &GpuCtx,
     l: &Layouts,
-    shader: &wgpu::ShaderModule,
+    shader: &Shader,
     v: &PointVariant,
-) -> wgpu::RenderPipeline {
+) -> Pipeline {
     let groups = [&l.line, &l.points];
     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
         .with(v.label, v.fs)
@@ -511,22 +517,22 @@ fn build_point(
     } else {
         desc
     };
-    build(&ctx.device, v.target, &desc)
+    build(ctx, v.target, &desc)
 }
 
 /// Resolve pipeline: a fullscreen triangle writing color and depth.
 fn build_resolve(
     ctx: &GpuCtx,
     l: &Layouts,
-    shader: &wgpu::ShaderModule,
+    shader: &Shader,
     target: Target,
-) -> wgpu::RenderPipeline {
+) -> Pipeline {
     let groups = [&l.line, &l.resolve];
     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
         .with("splat.resolve", "fs_main")
         .physical()
         .depth(DepthMode::Opaque);
-    build(&ctx.device, target, &desc)
+    build(ctx, target, &desc)
 }
 
 impl super::lane::Lane for Splat {

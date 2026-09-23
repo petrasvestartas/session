@@ -1,6 +1,8 @@
 use super::buffers::GpuCtx;
 use super::frame::Binds;
-use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, scene_module};
+use crate::engine::pipelines::{
+    DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, scene_module,
+};
 use wgpu::PrimitiveTopology::{LineList, TriangleList};
 
 /// Shader sources the tests compare against the files.
@@ -18,22 +20,22 @@ const GRID_VERTS: u32 = 50;
 
 /// Draws the background color and the floor grid.
 pub struct BackdropLane {
-    background_shader: wgpu::ShaderModule, // fullscreen background shader
-    grid_shader: wgpu::ShaderModule, // floor grid shader
-    background: wgpu::RenderPipeline, // background pipeline
-    grid: wgpu::RenderPipeline, // grid pipeline
+    background_shader: Shader, // fullscreen background shader
+    grid_shader: Shader, // floor grid shader
+    background: Pipeline, // background pipeline
+    grid: Pipeline, // grid pipeline
 }
 
 impl BackdropLane {
     /// Compile both shaders and build the pipelines.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
         let background_shader = scene_module(
-            &ctx.device,
+            ctx,
             "background.shader",
             include_str!("../../shaders/background.wgsl"),
         );
         let grid_shader = scene_module(
-            &ctx.device,
+            ctx,
             "grid.shader",
             include_str!("../../shaders/grid.wgsl"),
         );
@@ -78,13 +80,13 @@ impl BackdropLane {
 fn build_background(
     ctx: &GpuCtx,
     l: &Layouts,
-    shader: &wgpu::ShaderModule,
+    shader: &Shader,
     target: Target,
-) -> wgpu::RenderPipeline {
+) -> Pipeline {
     let groups = [&l.mvp, &l.line];
     let base = PipelineDesc::new(shader, &groups, &[], TriangleList);
     build(
-        &ctx.device,
+        ctx,
         target,
         &base
             .with("background", "fs_main")
@@ -97,13 +99,13 @@ fn build_background(
 fn build_grid(
     ctx: &GpuCtx,
     l: &Layouts,
-    shader: &wgpu::ShaderModule,
+    shader: &Shader,
     target: Target,
-) -> wgpu::RenderPipeline {
+) -> Pipeline {
     let groups = [&l.mvp, &l.line];
     let base = PipelineDesc::new(shader, &groups, &[], LineList);
     build(
-        &ctx.device,
+        ctx,
         target,
         &base
             .with("grid", "fs_main")

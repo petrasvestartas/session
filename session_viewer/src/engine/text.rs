@@ -4,14 +4,14 @@ use serde::Serialize;
 /// The font every label uses.
 pub const FONT_FAMILY: &str = "Noto Sans";
 
-/// The main font, bundled into the binary.
-pub const FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.ttf");
+/// The main font, bundled into the binary once: a static, where a const is copied per use.
+pub static FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.ttf");
 
 /// Symbol fallback font.
-pub const SYMBOL_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols-Regular.ttf");
+pub static SYMBOL_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols-Regular.ttf");
 
 /// Second symbol fallback font.
-pub const FALLBACK_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols2-Regular.ttf");
+pub static FALLBACK_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols2-Regular.ttf");
 
 /// Most text bytes in one label set.
 const MAX_TEXT_BYTES: usize = 256 * 1024;
@@ -248,12 +248,14 @@ pub struct GlyphDiagnostic {
     pub line_width: f32, // width of the whole line
 }
 
-/// The bundled fonts as a font system.
+/// The bundled fonts as a font system, read in place rather than copied.
 fn bundled_fonts() -> FontSystem {
     let mut db = fontdb::Database::new();
-    db.load_font_data(FONT_BYTES.to_vec());
-    db.load_font_data(FALLBACK_BYTES.to_vec());
-    db.load_font_data(SYMBOL_BYTES.to_vec());
+
+    for bytes in [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES] {
+        db.load_font_source(fontdb::Source::Binary(std::sync::Arc::new(bytes)));
+    }
+
     db.set_sans_serif_family(FONT_FAMILY);
     FontSystem::new_with_locale_and_db("en-US".into(), db)
 }

@@ -116,12 +116,12 @@ impl SheetFields {
 /// A cloud's octree node table.
 #[derive(Clone, Default)]
 pub struct CloudLod {
-    pub min: Vec<f64>,     // cube corner, three per node
-    pub size: Vec<f64>,    // cube size per node
-    pub spacing: Vec<f64>, // point spacing per node
-    pub level: Vec<i32>,   // depth per node
-    pub first: Vec<i32>,   // first point per node
-    pub count: Vec<i32>,   // points per node
+    pub min: Vec<f64>,      // cube corner, three per node
+    pub size: Vec<f64>,     // cube size per node
+    pub spacing: Vec<f64>,  // point spacing per node
+    pub level: Vec<i32>,    // depth per node
+    pub first: Vec<i32>,    // first point per node
+    pub count: Vec<i32>,    // points per node
     pub children: Vec<i32>, // eight child indices per node, -1 = none
 }
 
@@ -318,6 +318,11 @@ pub fn sheet_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
     let objects_end = descend_message(head, &mut at, None, 3)?;
     let end = descend_message(head, &mut at, Some(objects_end), 17)?;
     first_array(head, at, end)
+}
+
+/// True for a file whose first bytes show neither a cloud nor a sheet: it loads whole.
+pub fn plain(head: &[u8]) -> bool {
+    cloud_layout(head).is_none() && sheet_layout(head).is_none()
 }
 
 /// The `coords` field, which only small names may precede.
@@ -562,7 +567,7 @@ pub use web::*;
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
-    use crate::app::fetch::{GetOpts, fetch_range, get};
+    use crate::app::fetch::{GetOpts, Reply, fetch_range, get};
     use crate::app::walk::sheet::SheetRows;
 
     const POINT_BYTES: u64 = 24; // three doubles
@@ -609,8 +614,8 @@ mod web {
         Some(fetch_range(url, at, length, revision).await.ok()?.0)
     }
 
-    /// Find where a cloud's arrays are in the file.
-    pub async fn cloud_fields(url: &str) -> Option<CloudFields> {
+    /// The first 8 KB of a file, read once for every layout check and the file's size.
+    pub async fn probe(url: &str) -> Option<Reply> {
         let reply = get(
             url,
             &GetOpts {
@@ -621,12 +626,16 @@ mod web {
         )
         .await
         .ok()?;
+        (reply.bytes.len() <= 8192).then_some(reply)
+    }
 
-        if reply.status != 206 || reply.bytes.len() > 8192 {
+    /// Find where a cloud's arrays are in the file, from its `probe`.
+    pub async fn cloud_fields(url: &str, probe: &Reply) -> Option<CloudFields> {
+        if probe.status != 206 {
             return None;
         }
 
-        let (coords_at, coords_len, end) = cloud_layout(&reply.bytes)?;
+        let (coords_at, coords_len, end) = cloud_layout(&probe.bytes)?;
 
         if coords_len == 0 || !coords_len.is_multiple_of(POINT_BYTES) {
             return None;
@@ -636,7 +645,7 @@ mod web {
         let mut colors = (after, 0);
 
         if after < end {
-            let header = source_range(url, after, 16.min(end - after), &reply.etag).await?;
+            let header = source_range(url, after, 16.min(end - after), &probe.etag).await?;
             let (tag, used) = varint(&header, 0)?;
 
             if tag >> 3 == 4 && tag & 7 == 2 {
@@ -656,7 +665,7 @@ mod web {
             count: u32::try_from(coords_len / POINT_BYTES).ok()?,
             ids_at: 0,
             ids_len: 0,
-            revision: reply.etag,
+            revision: probe.etag.clone(),
         })
     }
 
@@ -790,24 +799,13 @@ mod web {
         Some((colors, body_end(at, used as u64, end)?))
     }
 
-    /// Find where a sheet's arrays are in the file.
-    pub async fn sheet_fields(url: &str) -> Option<SheetFields> {
-        let reply = get(
-            url,
-            &GetOpts {
-                range: Some((0, 8192)),
-                revalidate: true,
-                ..Default::default()
-            },
-        )
-        .await
-        .ok()?;
-
-        if reply.status != 206 || reply.bytes.len() > 8192 {
+    /// Find where a sheet's arrays are in the file, from its `probe`.
+    pub async fn sheet_fields(url: &str, probe: &Reply) -> Option<SheetFields> {
+        if probe.status != 206 {
             return None;
         }
 
-        let (coords_at, coords_len, end) = sheet_layout(&reply.bytes)?;
+        let (coords_at, coords_len, end) = sheet_layout(&probe.bytes)?;
 
         if coords_len == 0 || !coords_len.is_multiple_of(SheetFields::SEGMENT_BYTES) {
             return None;
@@ -818,7 +816,7 @@ mod web {
             coords_at,
             coords_len,
             count: u32::try_from(coords_len / SheetFields::SEGMENT_BYTES).ok()?,
-            revision: reply.etag,
+            revision: probe.etag.clone(),
             ..Default::default()
         };
         let mut at = body_end(coords_at, coords_len, end)?;
@@ -1145,8 +1143,14 @@ mod tests {
         assert_eq!(packed_f32(&file[fields.widths_at as usize..][..4]), [0.35]);
         assert_eq!(packed_u32(&file[fields.ids_at as usize..][..4]), [7]);
         assert_eq!(fields.ids_at + 4, end);
-        // a sheet is not a cloud; two objects are not one file
+        // a sheet is not a cloud, nor a file that loads whole; two objects are not one file
         assert!(walk_to_coords(&file).is_none());
+        assert!(!plain(&file));
+        assert!(!plain(&bytes_field(
+            3,
+            &bytes_field(8, &bytes_field(3, &[0; 24]))
+        )));
+        assert!(plain(&bytes_field(3, &bytes_field(1, b"mesh"))));
         let mut two = bytes_field(17, &file[4..]);
         two.extend(bytes_field(17, b""));
         assert!(sheet_layout(&bytes_field(3, &two)).is_none());

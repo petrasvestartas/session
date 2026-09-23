@@ -1,9 +1,11 @@
+use crate::app::layers::newest;
 use crate::app::scene::Scene;
+use crate::app::scene::sync;
 use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
 
 impl Scene {
-    /// Move several rows by one world delta, one undo step per document.
+    /// Move several rows by one world delta, one undo step for every document they belong to.
     pub fn transform_rows(
         &mut self,
         rows: &[u32],
@@ -28,11 +30,9 @@ impl Scene {
             .collect();
         // drop a child whose parent is also selected
         changes.retain(|(doc, guid, _)| {
-            self.docs[*doc]
-                .session
-                .tree
-                .get_node_by_name(guid)
-                .is_none_or(|node| {
+            self.row_of(*doc, guid)
+                .and_then(|row| self.node_of(row))
+                .is_none_or(|(node, _)| {
                     node.borrow()
                         .ancestors()
                         .iter()
@@ -42,14 +42,19 @@ impl Scene {
         let mut docs: Vec<_> = changes.iter().map(|c| c.0).collect();
         docs.sort_unstable();
         docs.dedup(); // each document once
-        for doc in docs {
+        for &doc in &docs {
             let session = Rc::make_mut(&mut self.docs[doc].session);
             session.begin(label);
             for (_, guid, local) in changes.iter().filter(|c| c.0 == doc) {
                 session.set_xform(guid, local.clone());
             }
-            session.commit();
-            self.last_edited = Some(doc);
+            let notes = sync::commit(session);
+            self.noted(doc, notes);
+        }
+        self.edited(&docs);
+        // a session copied for this edit has a tree of its own: cache it before a lookup per row
+        for &doc in &docs {
+            self.fresh_nodes(doc);
         }
         rows.iter()
             .map(|&row| Some((row, self.placement_of(row)?)))
@@ -83,8 +88,9 @@ impl Scene {
         let session = Rc::make_mut(&mut file.session);
         session.begin(label);
         session.set_xform(&guid, local);
-        session.commit();
-        self.last_edited = Some(doc);
+        let notes = sync::commit(session);
+        self.noted(doc, notes);
+        self.edited(&[doc]);
         self.placement_of(row)
     }
 
@@ -103,20 +109,19 @@ impl Scene {
         self.set_row_xform(row, local, label)
     }
 
-    /// One row's world placement: file placement times object transform.
+    /// One row's world placement: file placement times every transform down its tree path.
     pub fn placement_of(&self, row: u32) -> Option<Xform> {
         let (doc, guid) = self.identity_of(row)?;
-        let file = self.docs.get(doc)?;
-        let world = file.session.world_xform(&guid);
-        Some(&file.place * &world)
+        self.docs.get(doc)?;
+        let (node, in_tree) = match self.node_of(row) {
+            Some((node, in_tree)) => (Some(node), in_tree),
+            None => (None, false),
+        };
+        Some(self.world_place(doc, node.as_ref(), in_tree, &guid))
     }
 
-    /// Delete one row's object; the caller rebuilds the rows.
+    /// Delete one row's object; the caller syncs the rows.
     pub fn delete_row(&mut self, row: u32) -> bool {
-        if !self.streamed.is_empty() || !self.sheets.is_empty() {
-            return false; // streamed scenes are not editable
-        }
-
         let Some((doc, guid)) = self.writable(row) else {
             return false;
         };
@@ -126,47 +131,123 @@ impl Scene {
         let session = Rc::make_mut(&mut file.session);
         session.begin("delete");
         let removed = session.remove_object(&guid);
-        session.commit();
+        let notes = sync::commit(session);
+        self.noted(doc, notes);
 
         if removed {
-            self.last_edited = Some(doc);
+            self.edited(&[doc]);
             self.selected = None;
         }
 
         removed
     }
 
-    /// Undo the last edit in the last edited document.
+    /// Undo the newest edit, whichever documents it changed.
     pub fn undo(&mut self) -> bool {
         self.step_history(true)
     }
 
-    /// Redo the last undone edit in the last edited document.
+    /// Redo the newest undone edit.
     pub fn redo(&mut self) -> bool {
         self.step_history(false)
     }
 
-    /// Undo or redo in the last edited document.
-    fn step_history(&mut self, back: bool) -> bool {
-        let Some(doc) = self.last_edited else {
-            return false;
-        };
-        let Some(file) = self.docs.get_mut(doc) else {
-            return false;
-        };
-        let session = Rc::make_mut(&mut file.session);
+    /// The newest step of each of `docs` is one new edit: undo reaches it next, nothing is left to redo.
+    pub(crate) fn edited(&mut self, docs: &[usize]) {
+        let step: Vec<(usize, String)> = docs
+            .iter()
+            .filter_map(|&doc| {
+                let label = newest(&self.docs.get(doc)?.session.history, true)?;
+                Some((doc, label.to_string()))
+            })
+            .collect();
 
-        if back { session.undo() } else { session.redo() }
+        if step.is_empty() {
+            return;
+        }
+
+        self.redo_steps.clear();
+        // the documents of one layer edit share its label and undo together
+        let layer = step.iter().all(|key| self.layer_trees.contains_key(key));
+        let joins = layer
+            && self
+                .undo_steps
+                .last()
+                .is_some_and(|top| top.iter().any(|(_, label)| *label == step[0].1));
+
+        if joins && let Some(top) = self.undo_steps.last_mut() {
+            top.extend(step);
+            return;
+        }
+
+        self.undo_steps.push(step);
+
+        // the documents forgot anything this old
+        if self.undo_steps.len() > 2 * MAX_STEPS {
+            self.undo_steps.drain(..MAX_STEPS);
+        }
+    }
+
+    /// Undo or redo the newest edit in every document it changed; a layer edit one of them forgot stays.
+    fn step_history(&mut self, back: bool) -> bool {
+        loop {
+            let stack = if back {
+                &mut self.undo_steps
+            } else {
+                &mut self.redo_steps
+            };
+            let Some(step) = stack.pop() else {
+                return false;
+            };
+            // the documents still holding it on top; a full history drops its oldest edits
+            let held: Vec<(usize, String)> = step
+                .iter()
+                .filter(|(doc, label)| {
+                    self.docs
+                        .get(*doc)
+                        .and_then(|file| newest(&file.session.history, back))
+                        == Some(label.as_str())
+                })
+                .cloned()
+                .collect();
+
+            if held.is_empty() {
+                continue;
+            }
+
+            // stepping some documents of a layer edit alone would split it
+            if held.len() < step.len() && step.iter().any(|key| self.layer_trees.contains_key(key))
+            {
+                let stack = if back {
+                    &mut self.undo_steps
+                } else {
+                    &mut self.redo_steps
+                };
+                stack.push(step);
+                return false;
+            }
+
+            for (doc, _) in &held {
+                self.step_document(*doc, back);
+            }
+
+            let other = if back {
+                &mut self.redo_steps
+            } else {
+                &mut self.undo_steps
+            };
+            other.push(held);
+            return true;
+        }
     }
 }
+
+/// Edits undo keeps in order across documents; each document itself keeps its newest 64.
+const MAX_STEPS: usize = 4096;
 
 impl Scene {
     /// Move one control point of a polyline or curve in one undo step.
     pub fn set_control_point(&mut self, row: u32, index: usize, to: &Point) -> bool {
-        if !self.streamed.is_empty() || !self.sheets.is_empty() {
-            return false;
-        }
-
         let Some(back) = self.placement_of(row).and_then(|place| place.inverse()) else {
             return false;
         };
@@ -206,10 +287,11 @@ impl Scene {
         };
         session.begin("edit point");
         let replaced = session.replace(&guid, edited);
-        session.commit();
+        let notes = sync::commit(session);
+        self.noted(doc, notes);
 
         if replaced {
-            self.last_edited = Some(doc);
+            self.edited(&[doc]);
         }
 
         replaced
@@ -362,6 +444,47 @@ mod tests {
         assert_eq!([again.m[12], again.m[13], again.m[14]], [5.0, 0.0, 0.0]);
     }
 
+    /// Undo takes back the newest edit whichever document holds it; redo goes forward the same way.
+    #[test]
+    fn undo_and_redo_cross_documents_newest_first() {
+        let mut scene = one_point_twice();
+        let x = |scene: &Scene| [0, 1].map(|row| scene.placement_of(row).unwrap().m[12]);
+        scene.transform_row(0, &Xform::translation(5.0, 0.0, 0.0), "move");
+        scene.transform_row(1, &Xform::translation(7.0, 0.0, 0.0), "move");
+        scene.transform_row(0, &Xform::translation(1.0, 0.0, 0.0), "move");
+        assert_eq!(x(&scene), [6.0, 7.0]);
+
+        for expected in [[5.0, 7.0], [5.0, 0.0], [0.0, 0.0]] {
+            assert!(scene.undo());
+            assert_eq!(x(&scene), expected);
+        }
+
+        assert!(!scene.undo(), "nothing is left");
+        assert!(scene.redo());
+        assert!(scene.redo());
+        assert_eq!(x(&scene), [5.0, 7.0]);
+
+        // a new edit leaves nothing to redo
+        scene.transform_row(1, &Xform::translation(1.0, 0.0, 0.0), "move");
+        assert!(!scene.redo());
+        assert_eq!(x(&scene), [5.0, 8.0]);
+    }
+
+    /// Rows of two documents moved together come back together.
+    #[test]
+    fn a_move_across_documents_is_one_undo_step() {
+        let mut scene = one_point_twice();
+        let x = |scene: &Scene| [0, 1].map(|row| scene.placement_of(row).unwrap().m[12]);
+        scene
+            .transform_rows(&[0, 1], &Xform::translation(5.0, 0.0, 0.0), "move")
+            .unwrap();
+        assert!(scene.undo());
+        assert_eq!(x(&scene), [0.0, 0.0]);
+        assert!(!scene.undo());
+        assert!(scene.redo());
+        assert_eq!(x(&scene), [5.0, 5.0]);
+    }
+
     /// A control point edit undoes.
     #[test]
     fn a_control_point_moves_and_undoes() {
@@ -456,6 +579,11 @@ impl Scene {
         delta: &Xform,
         label: &str,
     ) -> Result<(), String> {
+        // a streamed shell has no source to edit
+        if self.display_only(row) {
+            return Err(super::scene::READ_ONLY.into());
+        }
+
         let place = self
             .placement_of(row)
             .ok_or("Source placement unavailable")?;
@@ -473,21 +601,18 @@ impl Scene {
         geometry: Geometry,
         label: &str,
     ) -> Result<(), String> {
-        if !self.streamed.is_empty() || !self.sheets.is_empty() {
-            return Err("Source edits require complete documents without streamed sources".into());
-        }
-
-        let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
+        let (doc, guid) = self.writable(row).ok_or(super::scene::READ_ONLY)?;
         let session = Rc::make_mut(&mut self.docs[doc].session);
         session.begin(label);
         let changed = session.replace(&guid, geometry);
-        session.commit();
+        let notes = sync::commit(session);
+        self.noted(doc, notes);
 
         if !changed {
             return Err("Cannot replace source geometry".into());
         }
 
-        self.last_edited = Some(doc);
+        self.edited(&[doc]);
         Ok(())
     }
 
@@ -498,6 +623,10 @@ impl Scene {
         id: super::selection::ControlId,
         to: &Point,
     ) -> Result<(), String> {
+        if self.display_only(row) {
+            return Err(super::scene::READ_ONLY.into());
+        }
+
         let geometry = self.geometry(row).ok_or("Source geometry unavailable")?;
         let target = super::deform::Target::Control(id);
         let point = super::deform::points(geometry, target)?
@@ -523,26 +652,19 @@ impl Scene {
         geometry: Geometry,
         gpu: &mut crate::engine::gpu::Gpu,
     ) -> Result<(), String> {
-        if !self.streamed.is_empty() || !self.sheets.is_empty() {
-            return Err("Source edits require complete documents without streamed sources".into());
+        let (doc, _) = self.identity_of(row).ok_or("Source is not editable")?;
+
+        if self.docs.get(doc).is_none_or(|file| file.display_only) {
+            return Err(super::scene::READ_ONLY.into());
         }
 
-        let (doc, guid) = self.writable(row).ok_or("Source is not editable")?;
-
-        if self.patch_preview(row, &geometry, gpu) {
-            return Ok(()); // fast path: only vertices moved
+        // fast path: only surface vertices moved
+        if self.patch_surface(row, &geometry, gpu) {
+            return Ok(());
         }
 
-        // swap in, rebuild the rows, swap back
-        let original = Rc::make_mut(&mut self.docs[doc].session)
-            .lookup
-            .insert(guid.to_string(), geometry)
-            .ok_or("Source geometry unavailable")?;
-        self.rebuild(gpu);
-        Rc::make_mut(&mut self.docs[doc].session)
-            .lookup
-            .insert(guid.to_string(), original);
-        self.selected = Some(row);
+        self.redraw(row, &geometry, true);
+        self.upload_to(gpu);
         Ok(())
     }
 }

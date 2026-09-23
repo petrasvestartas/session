@@ -2,7 +2,7 @@ use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
 use super::frame::Binds;
 use super::upload::drop_rows;
 use crate::engine::pipelines::{
-    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, ink_module,
+    ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
 };
 use std::collections::HashSet;
 use wgpu::PrimitiveTopology::TriangleList;
@@ -33,7 +33,7 @@ pub struct SegDraw {
     pub instance: u32, // object row of the sheet
     pub from: u32, // first segment index within the sheet
     pub count: u32, // segments in this batch
-    pub first: u32, // row of the first segment in the upload
+    pub first: u32, // row of the first segment in the upload's sheet rows
 }
 
 /// Segment rows of one upload.
@@ -45,7 +45,9 @@ pub struct SegRows {
     pub ribbon_chains: Vec<std::ops::Range<u32>>, // runs of ribbons that form one curve
     pub ribbons: Vec<CylinderSegment>, // standalone lines and curves
     pub ribbon_ids: Vec<u32>, // source entity per ribbon, or u32::MAX
-    pub sheets: Vec<SegDraw>, // sheet batches among the ribbons
+    pub sheet_rows: Vec<CylinderSegment>, // streamed sheet segments, kept apart from editable lines
+    pub sheet_ids: Vec<u32>, // source entity per sheet segment, or u32::MAX
+    pub sheets: Vec<SegDraw>, // sheet batches among the sheet rows
 }
 
 impl SegRows {
@@ -57,6 +59,8 @@ impl SegRows {
         drop_rows(&mut self.ribbon_chains);
         drop_rows(&mut self.ribbons);
         drop_rows(&mut self.ribbon_ids);
+        drop_rows(&mut self.sheet_rows);
+        drop_rows(&mut self.sheet_ids);
         drop_rows(&mut self.sheets);
     }
 }
@@ -227,22 +231,23 @@ impl SegTable {
 
 /// The nine segment pipelines.
 struct SegPipelines {
-    ribbon: wgpu::RenderPipeline, // plain lines in color
-    unselected: wgpu::RenderPipeline, // unselected objects' lines
-    selected: wgpu::RenderPipeline, // selected objects' lines
-    id_ribbon: wgpu::RenderPipeline, // object ids
-    id_edge: wgpu::RenderPipeline, // source edge ids
-    mask_unselected: wgpu::RenderPipeline, // unselected edges into the solid mask
-    mask_selected: wgpu::RenderPipeline, // selected edges into a mask
-    masks_unselected: wgpu::RenderPipeline, // unselected edges into both masks
-    masks_selected: wgpu::RenderPipeline, // selected edges into both masks
+    ribbon: Pipeline, // plain lines in color
+    unselected: Pipeline, // unselected objects' lines
+    selected: Pipeline, // selected objects' lines
+    id_ribbon: Pipeline, // object ids
+    id_edge: Pipeline, // source edge ids
+    mask_unselected: Pipeline, // unselected edges into the solid mask
+    mask_selected: Pipeline, // selected edges into a mask
+    masks_unselected: Pipeline, // unselected edges into both masks
+    masks_selected: Pipeline, // selected edges into both masks
 }
 
-/// Lines on the GPU: edges as pipes, curves as ribbons.
+/// Lines on the GPU: edges as pipes, curves as ribbons, streamed sheets in a table of their own.
 pub struct SegmentLane {
     pipes: SegTable, // mesh and solid edges
     ribbons: SegTable, // standalone lines and curves
-    shader: wgpu::ShaderModule, // ribbon shader
+    sheet_table: SegTable, // streamed sheet segments; never edited or released with the rest
+    shader: Shader, // ribbon shader
     gpu: SegPipelines, // pipelines
     selection: wgpu::Buffer, // selected edge (object, edge), read by shaders
     selected_rows: HashSet<u32>, // selected object rows
@@ -257,13 +262,15 @@ impl SegmentLane {
             + self.pipes.ids.buf.size()
             + self.ribbons.buf.buf.size()
             + self.ribbons.ids.buf.size()
+            + self.sheet_table.buf.buf.size()
+            + self.sheet_table.ids.buf.size()
             + self.selection.size()
     }
 
     /// Create the lane: shader, pipelines, empty tables.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
         let shader = ink_module(
-            &ctx.device,
+            ctx,
             "ribbon.shader",
             include_str!("../../shaders/ribbon.wgsl"),
         );
@@ -271,9 +278,11 @@ impl SegmentLane {
         let selection = uniform_buffer(&ctx.device, "edge.selection", &[u32::MAX; 4]);
         let pipes = SegTable::new(ctx, l, "pipes", &selection);
         let ribbons = SegTable::new(ctx, l, "ribbons", &selection);
+        let sheet_table = SegTable::new(ctx, l, "sheet segments", &selection);
         Self {
             pipes,
             ribbons,
+            sheet_table,
             shader,
             gpu,
             selection,
@@ -310,18 +319,67 @@ impl SegmentLane {
             self.ribbons.rebind(ctx, l, &self.selection);
         }
 
+        let sheet_base = self.sheet_table.buf.len();
+        let mut sheet_ids = up.sheet_ids.clone();
+        sheet_ids.resize(up.sheet_rows.len(), u32::MAX);
+        let sheet_rows = joined_rows(&up.sheet_rows, &[], sheet_base);
+        let sheets_changed = self.sheet_table.buf.append(ctx, &sheet_rows);
+
+        if self.sheet_table.ids.append(ctx, &sheet_ids) || sheets_changed {
+            self.sheet_table.rebind(ctx, l, &self.selection);
+        }
+
         // register the sheet batches
         for d in &up.sheets {
-            let Some(ids) = ribbon_ids.get(d.first as usize..(d.first + d.count) as usize) else {
+            let Some(ids) = sheet_ids.get(d.first as usize..(d.first + d.count) as usize) else {
                 continue;
             };
             let chunk = SegChunk {
                 from: d.from,
                 to: d.from + d.count,
-                row: ribbon_base + d.first,
+                row: sheet_base + d.first,
             };
             push_chunk(&mut self.sheets, d.instance, chunk, ids);
         }
+    }
+
+    /// Hand `count` pipe or ribbon rows from `first` to the hidden row `sink`.
+    pub(crate) fn kill(
+        &mut self,
+        ctx: &GpuCtx,
+        lane: super::patch::LaneId,
+        first: u32,
+        count: u32,
+        sink: u32,
+    ) {
+        let table = match lane {
+            super::patch::LaneId::Pipes => &self.pipes,
+            super::patch::LaneId::Ribbons => &self.ribbons,
+            _ => return,
+        };
+        let dead = StrokeSegment {
+            segment: CylinderSegment {
+                p0: [0.0; 3],
+                radius: 0.0,
+                p1: [0.0; 3],
+                instance_id: sink,
+                color: 0,
+                facing: u32::MAX, // FACING_UNKNOWN
+            },
+            previous: u32::MAX,
+            next: u32::MAX,
+        };
+        table.buf.fill(ctx, first, count, &dead);
+    }
+
+    /// Forget and free the editable pipes and ribbons; sheets, selection and the edge stay.
+    pub fn release_editable(&mut self, ctx: &GpuCtx, l: &Layouts) {
+        self.pipes.buf.release(ctx);
+        self.pipes.ids.release(ctx);
+        self.ribbons.buf.release(ctx);
+        self.ribbons.ids.release(ctx);
+        self.pipes.rebind(ctx, l, &self.selection);
+        self.ribbons.rebind(ctx, l, &self.selection);
     }
 
     /// Overwrite pipe rows starting at `first`.
@@ -392,6 +450,7 @@ impl SegmentLane {
 
         if ribbons {
             draws += self.draw_table(pass, b, &self.gpu.unselected, &self.ribbons);
+            draws += self.draw_table(pass, b, &self.gpu.unselected, &self.sheet_table);
         }
 
         draws
@@ -417,6 +476,7 @@ impl SegmentLane {
 
         if ribbons {
             draws += self.draw_table(pass, b, &self.gpu.selected, &self.ribbons);
+            draws += self.draw_table(pass, b, &self.gpu.selected, &self.sheet_table);
         }
 
         draws
@@ -451,6 +511,7 @@ impl SegmentLane {
     /// Draw the lines and curves in color.
     pub fn draw_ribbons(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_table(pass, b, &self.gpu.ribbon, &self.ribbons)
+            + self.draw_table(pass, b, &self.gpu.ribbon, &self.sheet_table)
     }
 
     /// Draw edge object ids.
@@ -466,6 +527,7 @@ impl SegmentLane {
     /// Draw line object ids.
     pub fn draw_ribbon_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_table(pass, b, &self.gpu.id_ribbon, &self.ribbons)
+            + self.draw_table(pass, b, &self.gpu.id_ribbon, &self.sheet_table)
     }
 
     /// Draw one table with `pipeline`; returns the draw count.
@@ -473,7 +535,7 @@ impl SegmentLane {
         &self,
         pass: &mut wgpu::RenderPass<'_>,
         b: &Binds,
-        pipeline: &wgpu::RenderPipeline,
+        pipeline: &Pipeline,
         table: &SegTable,
     ) -> u32 {
         if table.buf.is_empty() {
@@ -497,6 +559,8 @@ impl SegmentLane {
         self.pipes.ids.reset();
         self.ribbons.buf.reset();
         self.ribbons.ids.reset();
+        self.sheet_table.buf.reset();
+        self.sheet_table.ids.reset();
     }
 
     /// Forget every row and free the buffers.
@@ -508,8 +572,11 @@ impl SegmentLane {
         self.pipes.ids.release(ctx);
         self.ribbons.buf.release(ctx);
         self.ribbons.ids.release(ctx);
+        self.sheet_table.buf.release(ctx);
+        self.sheet_table.ids.release(ctx);
         self.pipes.rebind(ctx, l, &self.selection);
         self.ribbons.rebind(ctx, l, &self.selection);
+        self.sheet_table.rebind(ctx, l, &self.selection);
     }
 
     /// Pipe rows on the GPU.
@@ -517,8 +584,13 @@ impl SegmentLane {
         self.pipes.buf.len()
     }
 
-    /// Ribbon rows on the GPU.
+    /// Ribbon rows on the GPU, sheet segments included.
     pub fn ribbon_count(&self) -> u32 {
+        self.ribbons.buf.len() + self.sheet_table.buf.len()
+    }
+
+    /// Editable ribbon rows on the GPU.
+    pub fn editable_ribbon_count(&self) -> u32 {
         self.ribbons.buf.len()
     }
 }
@@ -527,7 +599,7 @@ impl SegmentLane {
 fn build_pipelines(
     ctx: &GpuCtx,
     l: &Layouts,
-    shader: &wgpu::ShaderModule,
+    shader: &Shader,
     target: Target,
 ) -> SegPipelines {
     let groups = [&l.mvp, &l.line, &l.ink_instance, &l.segment_rows];
@@ -540,11 +612,10 @@ fn build_pipelines(
         format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
         samples: target.samples,
     };
-    let dev = &ctx.device;
 
     SegPipelines {
         unselected: build(
-            dev,
+            ctx,
             target,
             &quad
                 .with("ribbon.unselected", "fs_main")
@@ -552,7 +623,7 @@ fn build_pipelines(
                 .color(ColorWrite::Blended),
         ),
         selected: build(
-            dev,
+            ctx,
             target,
             &quad
                 .with("ribbon.selected", "fs_main")
@@ -560,22 +631,22 @@ fn build_pipelines(
                 .color(ColorWrite::Blended),
         ),
         ribbon: build(
-            dev,
+            ctx,
             target,
             &quad.with("ribbon", "fs_main").color(ColorWrite::Blended),
         ),
         id_ribbon: build(
-            dev,
+            ctx,
             Target::ID,
             &quad.with("ribbon.id", "fs_id").scene_samples(1),
         ),
         id_edge: build(
-            dev,
+            ctx,
             Target::ID,
             &quad.with("edge.id", "fs_edge_id").scene_samples(1),
         ),
         mask_unselected: build(
-            dev,
+            ctx,
             mask,
             &quad
                 .with("ribbon.mask", "fs_mask")
@@ -583,7 +654,7 @@ fn build_pipelines(
                 .color(ColorWrite::Max),
         ),
         mask_selected: build(
-            dev,
+            ctx,
             mask,
             &quad
                 .with("ribbon.mask.selected", "fs_mask")
@@ -591,7 +662,7 @@ fn build_pipelines(
                 .color(ColorWrite::Max),
         ),
         masks_unselected: build(
-            dev,
+            ctx,
             mask,
             &quad
                 .with("ribbon.masks", "fs_masks")
@@ -599,7 +670,7 @@ fn build_pipelines(
                 .masks(),
         ),
         masks_selected: build(
-            dev,
+            ctx,
             mask,
             &quad
                 .with("ribbon.masks.selected", "fs_masks_selected")

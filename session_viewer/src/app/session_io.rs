@@ -23,7 +23,9 @@ struct Archive {
 struct Metadata {
     #[serde(default)]
     created_doc: Option<usize>, // index of the `Created` document
-    documents: Vec<Document>,   // one per session
+    #[serde(default)]
+    current_layer: Option<(usize, String)>, // (document, layer) new objects go to
+    documents: Vec<Document>,     // one per session
     hidden: Vec<(usize, String)>, // (document, guid) hidden
     #[serde(default)]
     locked: Vec<(usize, String)>, // (document, guid) locked
@@ -88,6 +90,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
     colors.sort();
     let metadata = Metadata {
         created_doc: scene.created_doc,
+        current_layer: scene.current_layer.clone(),
         documents: scene
             .docs
             .iter()
@@ -155,30 +158,7 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
 
     let mut scene = Scene::new();
     scene.created_doc = metadata.created_doc;
-
-    for (meta, bytes) in metadata.documents.into_iter().zip(archive.documents) {
-        if !meta.place.into_iter().all(f64::is_finite) || !meta.point_px.is_finite() {
-            return Err("Non-finite document placement".into());
-        }
-
-        let proto =
-            session_rust::proto::Session::decode(bytes.as_slice()).map_err(|e| e.to_string())?;
-        super::validate::session(&proto)?;
-        let session = Session::pb_loads(&bytes).map_err(|e| e.to_string())?;
-        super::validate::retained(&session)?;
-        scene.add_file(FileDoc {
-            name: meta.name,
-            place: Xform::from_matrix(meta.place),
-            point_px: meta.point_px,
-            display_only: false,
-            session: Rc::new(session),
-        });
-    }
-
-    for (key, label, active) in metadata.texts {
-        scene.register_text(key, label, active);
-    }
-
+    // identity state first, so each row is made hidden and colored
     scene.hidden = metadata
         .hidden
         .into_iter()
@@ -201,6 +181,37 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
         .into_iter()
         .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
         .collect();
+
+    for (meta, bytes) in metadata.documents.into_iter().zip(archive.documents) {
+        if !meta.place.into_iter().all(f64::is_finite) || !meta.point_px.is_finite() {
+            return Err("Non-finite document placement".into());
+        }
+
+        let proto =
+            session_rust::proto::Session::decode(bytes.as_slice()).map_err(|e| e.to_string())?;
+        super::validate::session(&proto)?;
+        drop(proto); // checked; the kernel decodes its own copy
+        let session = Session::pb_loads(&bytes).map_err(|e| e.to_string())?;
+        drop(bytes); // the document is converted; free its bytes before the walk
+        super::validate::retained(&session)?;
+        scene.add_file(FileDoc {
+            name: meta.name,
+            place: Xform::from_matrix(meta.place),
+            point_px: meta.point_px,
+            display_only: false,
+            session: Rc::new(session),
+        });
+    }
+
+    for (key, label, active) in metadata.texts {
+        scene.register_text(key, label, active);
+    }
+
+    // a layer that is gone is not restored
+    if let Some((doc, name)) = metadata.current_layer {
+        let _ = scene.set_current_layer(doc, &name);
+    }
+
     Ok(scene)
 }
 
@@ -271,8 +282,11 @@ mod tests {
                 [-3000., -1000., 200.],
             ))
             .unwrap();
+        Rc::make_mut(&mut scene.docs[0].session).add_group("roof");
+        scene.set_current_layer(0, "roof").unwrap();
         let restored = open(&save(&scene).unwrap()).unwrap();
         assert_eq!(restored.created_doc, Some(0));
+        assert_eq!(restored.current_layer(), Some((0, "roof".to_string())));
         assert_eq!(restored.tables.seg.ribbons.len(), 1);
         assert_eq!(restored.tables.seg.ribbons[0].radius, 0.);
         assert_eq!(
@@ -363,5 +377,57 @@ mod tests {
         assert!(open(b"not a session").is_err());
         let bytes = save(&Scene::new()).unwrap();
         assert!(open(&bytes[..bytes.len() - 1]).is_err());
+    }
+
+    /// Time and peak resident memory of opening the documents in VIEWER_SESSION_BENCH, saved.
+    #[cfg(target_os = "linux")]
+    #[test]
+    #[ignore = "benchmark; VIEWER_SESSION_BENCH lists .pb documents"]
+    fn bench_open() {
+        let Some(paths) = std::env::var_os("VIEWER_SESSION_BENCH") else {
+            return;
+        };
+        let mut scene = Scene::new();
+
+        for path in std::env::split_paths(&paths) {
+            let session = Session::pb_loads(&std::fs::read(&path).unwrap()).unwrap();
+            scene.add_file(FileDoc {
+                name: path.display().to_string(),
+                place: Xform::identity(),
+                session: Rc::new(session),
+                point_px: 0.,
+                display_only: false,
+            });
+        }
+
+        let bytes = save(&scene).unwrap();
+        drop(scene);
+        // resident MiB, or its peak since the reset below
+        let status = |key: &str| {
+            let text = std::fs::read_to_string("/proc/self/status").unwrap();
+            let line = text.lines().find(|line| line.starts_with(key)).unwrap();
+            line.split_whitespace()
+                .nth(1)
+                .unwrap()
+                .parse::<f64>()
+                .unwrap()
+                / 1024.
+        };
+        std::fs::write("/proc/self/clear_refs", "5").unwrap();
+        let start = status("VmRSS:");
+        let clock = std::time::Instant::now();
+        let restored = open(&bytes).unwrap();
+        let ms = clock.elapsed().as_secs_f64() * 1000.;
+        let peak = status("VmHWM:") - start;
+        std::fs::create_dir_all("target/review").unwrap();
+        std::fs::write(
+            "target/review/bench-open.txt",
+            format!(
+                "{:.0} MiB file, {} rows: {ms:.0} ms, peak +{peak:.0} MiB\n",
+                bytes.len() as f64 / 1_048_576.,
+                restored.row_count()
+            ),
+        )
+        .unwrap();
     }
 }

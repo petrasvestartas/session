@@ -21,6 +21,7 @@ pub struct TextFrame {
     pub framebuffer: [u32; 2], // canvas size, px
     pub logical: [f64; 2], // canvas size, CSS px
     pub ortho_half_height: f32, // ortho half-height; 0 = perspective
+    pub clip: [[f64; 4]; super::clip::MAX_PLANES], // clipping planes, world (normal, offset); zero cuts nothing
 }
 
 /// Text counters shown in the diagnostics panel.
@@ -126,11 +127,17 @@ impl TextLane {
 
     /// Place every label for this frame, unless nothing changed.
     pub fn prepare(&mut self, ctx: &GpuCtx, frame: &TextFrame) -> anyhow::Result<()> {
-        // skip when labels, fonts and camera are unchanged
+        // labels fixed on screen ignore the camera
+        let fixed = self
+            .document
+            .runs
+            .iter()
+            .all(|run| matches!(run.label.placement, TextPlacement::Screen { .. }));
+        // skip when labels, fonts and whatever they follow are unchanged
         let key = (
             self.document.revision,
             self.document.font_revision,
-            frame.clone(),
+            if fixed { frame.canvas() } else { frame.clone() },
         );
 
         if self.prepared.as_ref() == Some(&key) {
@@ -142,7 +149,7 @@ impl TextLane {
         self.anchored_count = 0;
         self.plates.reset();
         let scale = frame.scale()?;
-        let start = now_ms();
+        let start = crate::engine::performance::now_ms();
         let fonts_changed = self.atlas_font_revision != self.document.font_revision;
 
         // rebuild the atlas when fonts changed or it grew large
@@ -205,6 +212,16 @@ impl TextLane {
                 }
             }
 
+            // note whether each renderer has anything to draw
+            if !run.label.text.is_empty() {
+                match run.label.placement {
+                    TextPlacement::Screen { .. } | TextPlacement::Nameplate { .. } => {
+                        self.overlay_count = 1
+                    }
+                    _ => self.anchored_count = 1,
+                }
+            }
+
             if let Some(depth) = placed.depth {
                 depths.insert(run.label.id as usize, depth);
                 anchors.push(area);
@@ -234,19 +251,6 @@ impl TextLane {
             |id| depth_for(&depths, id),
         )?;
         self.plates.prepare(ctx, &plates, frame.framebuffer);
-
-        // note whether each renderer has anything to draw
-        for run in &self.document.runs {
-            if place(&run.label, frame, scale).is_some() && !run.label.text.is_empty() {
-                match run.label.placement {
-                    TextPlacement::Screen { .. } | TextPlacement::Nameplate { .. } => {
-                        self.overlay_count = 1
-                    }
-                    _ => self.anchored_count = 1,
-                }
-            }
-        }
-
         self.stats.raster_images = 0;
         self.stats.raster_image_capacity_bytes = 0;
 
@@ -268,7 +272,7 @@ impl TextLane {
         self.stats.world_plane_buffer_bytes = self.planes.buffer_bytes();
         self.stats.world_plane_texture_bytes = self.planes.texture_bytes();
         self.stats.world_plane_rasterizations = self.planes.rasterizations;
-        self.stats.preparation_ms = now_ms() - start;
+        self.stats.preparation_ms = crate::engine::performance::now_ms() - start;
         self.prepared = Some(key);
         Ok(())
     }
@@ -354,6 +358,24 @@ impl TextLane {
 }
 
 impl TextFrame {
+    /// This frame without its camera: all a label fixed on screen depends on.
+    fn canvas(&self) -> TextFrame {
+        TextFrame {
+            mvp: [0.0; 16],
+            origin: [0.0; 3],
+            ortho_half_height: 0.0,
+            clip: [[0.0; 4]; super::clip::MAX_PLANES],
+            ..self.clone()
+        }
+    }
+
+    /// True when a clipping plane cuts world point `p` away.
+    pub fn cut(&self, p: [f64; 3]) -> bool {
+        self.clip
+            .iter()
+            .any(|k| k[0] * p[0] + k[1] * p[1] + k[2] * p[2] + k[3] < 0.0)
+    }
+
     /// Framebuffer pixels per CSS pixel; fails on a stretched canvas.
     pub fn scale(&self) -> anyhow::Result<f32> {
         anyhow::ensure!(
@@ -405,6 +427,12 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
             world_height,
         } => (world, [0.0; 2], Some(world_height)),
     };
+
+    // cut away by a clipping plane: not drawn
+    if frame.cut(world) {
+        return None;
+    }
+
     let p = [
         (world[0] - frame.origin[0]) as f32,
         (world[1] - frame.origin[1]) as f32,
@@ -575,18 +603,6 @@ fn depth_for(depths: &HashMap<usize, f32>, id: usize) -> f32 {
     depths.get(&id).copied().unwrap_or(0.0)
 }
 
-/// Time in ms; 0 outside the browser.
-fn now_ms() -> f64 {
-    #[cfg(target_arch = "wasm32")]
-    if let Some(window) = web_sys::window()
-        && let Some(performance) = window.performance()
-    {
-        return performance.now();
-    }
-
-    0.0
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -601,6 +617,7 @@ mod tests {
             framebuffer: [(800.0 * scale) as u32, (600.0 * scale) as u32],
             logical: [800.0, 600.0],
             ortho_half_height: 1.0,
+            clip: [[0.0; 4]; crate::engine::gpu::clip::MAX_PLANES],
         }
     }
 

@@ -1,5 +1,6 @@
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>; // camera matrix
 @group(1) @binding(0) var<uniform> line: LineUniform; // pen and view settings
+@group(1) @binding(1) var<uniform> clipping: ClipUniform; // clipping planes
 
 // One object row, 96 bytes; matches Instance in Rust.
 struct Instance {

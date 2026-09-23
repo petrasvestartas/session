@@ -169,6 +169,8 @@ Loader routing state, live polling and the small UI model have one-page lifetime
 |---|---|
 | Left drag on handle / right drag / middle drag / wheel | Edit / orbit / pan / zoom toward the cursor |
 | Left click | Select or toggle one source object |
+| Left drag on an object | Move it or its selection on the ground, snapped when Snap is on; one undo step; Escape or a release over a panel puts it back |
+| Left click on a gumball handle | A number box beside it: Move mm, Rotate deg or Scale factor; Enter applies one undo step, Escape closes |
 | Ctrl + left click | Select an original mesh, BRep or NURBS edge |
 | Ctrl + Shift + left click | Select an original face; a nearby eligible edge wins |
 | F10 / Escape | Show the parent's original controls / leave the mode, then clear |
@@ -184,6 +186,6 @@ The gumball owns one fixed mesh and 96-byte uniform, plus a selected-only antial
 
 ## Adding a feature
 
-For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs; one line in `render.rs`; then exercise select, hide, replace and release. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and undo.
+For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs; one line in `render.rs`; then exercise select, hide, replace and release. For a new left-button tool: one file in `app/gesture/`, its `mod` line and one `// register:` line in `GESTURES`. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and undo.
 
 The CAD geometry contract (shared boundaries, trims, pcurves, provenance) is in the [CAD design record](docs/cad-design.md).

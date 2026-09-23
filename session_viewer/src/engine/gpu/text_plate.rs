@@ -1,5 +1,5 @@
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
-use crate::engine::pipelines::Target;
+use crate::engine::pipelines::{Pipeline, Target};
 
 /// One label background rectangle, in screen pixels.
 pub(super) struct Rectangle {
@@ -13,8 +13,8 @@ pub(super) struct Rectangle {
 /// Draws label backgrounds as rounded rectangles.
 pub(super) struct Plates {
     vertices: GrowBuf, // six vertices per rectangle
-    pipeline: wgpu::RenderPipeline, // in color
-    id_pipeline: wgpu::RenderPipeline, // object ids
+    pipeline: Pipeline, // in color
+    id_pipeline: Pipeline, // object ids
     physical_vertices: u32, // vertices of depth-tested plates; overlays follow
 }
 
@@ -154,24 +154,23 @@ impl Plates {
     }
 }
 
-/// Build the color or id pipeline; depth is read, not written.
-fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> wgpu::RenderPipeline {
-    let shader = ctx
-        .device
-        .create_shader_module(wgpu::ShaderModuleDescriptor {
+/// The color or id pipeline, compiled on first use; depth is read, not written.
+fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
+    let device = ctx.device.clone();
+    let pick = crate::engine::gpu::frame::pick_transform_layout(ctx);
+    Pipeline::new(move || {
+        crate::engine::pipelines::count_shader();
+        crate::engine::pipelines::count_pipeline();
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("text plate shader"),
             source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/text_plate.wgsl").into()),
         });
-    let pick = crate::engine::gpu::frame::pick_transform_layout(ctx);
-    let id_layout = ctx
-        .device
-        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        let id_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("text plate ids"),
             bind_group_layouts: &[Some(&pick)],
             immediate_size: 0,
         });
-    ctx.device
-        .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("text plates"),
             layout: if ids { Some(&id_layout) } else { None },
             vertex: wgpu::VertexState {
@@ -209,4 +208,5 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> wgpu::RenderPipeline {
             multiview_mask: None,
             cache: None,
         })
+    })
 }

@@ -1,8 +1,9 @@
-use super::buffers::{GpuCtx, GrowBuf, ROWS, Template, bind_group};
+use super::buffers::{bind_group, GpuCtx, GrowBuf, Template, ROWS};
 use super::frame::Binds;
 use super::upload::drop_rows;
 use crate::engine::pipelines::{
-    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, ink_module, template_layout,
+    build, ink_module, template_layout, ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc,
+    Shader, Target,
 };
 use wgpu::PrimitiveTopology::TriangleList;
 
@@ -20,11 +21,11 @@ const DOT_VERTS: u32 = 3;
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct GlyphPoint {
-    pub center: [f32; 3], // world position
-    pub radius: f32, // 0 = pen width; > 0 world mm; < 0 screen px
-    pub color: [f32; 4], // rgba
-    pub instance_id: u32, // object row
-    pub facing: u32, // packed normals of the faces around it
+    pub center: [f32; 3],     // world position
+    pub radius: f32,          // 0 = pen width; > 0 world mm; < 0 screen px
+    pub color: [f32; 4],      // rgba
+    pub instance_id: u32,     // object row
+    pub facing: u32,          // packed normals of the faces around it
     pub facing_ext: [u32; 2], // more packed normals
 }
 
@@ -34,7 +35,7 @@ const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
 #[derive(Default)]
 pub struct GlyphRows {
     pub spheres: Vec<GlyphPoint>, // vertex markers, shaded
-    pub dots: Vec<GlyphPoint>, // flat dots
+    pub dots: Vec<GlyphPoint>,    // flat dots
 }
 
 impl GlyphRows {
@@ -47,8 +48,8 @@ impl GlyphRows {
 
 /// One glyph buffer and its bind group.
 struct GlyphTable {
-    label: &'static str, // name shown in GPU errors
-    buf: GrowBuf, // the rows
+    label: &'static str,    // name shown in GPU errors
+    buf: GrowBuf,           // the rows
     group: wgpu::BindGroup, // group 3, binds the rows
 }
 
@@ -68,26 +69,26 @@ impl GlyphTable {
 
 /// The two glyph shaders.
 struct GlyphShaders {
-    sphere: wgpu::ShaderModule, // shaded markers
-    dot: wgpu::ShaderModule, // flat dots
+    sphere: Shader, // shaded markers
+    dot: Shader,    // flat dots
 }
 
 /// The five glyph pipelines.
 struct GlyphPipelines {
-    sphere: wgpu::RenderPipeline, // markers in color
-    dot: wgpu::RenderPipeline, // dots in color
-    id_sphere: wgpu::RenderPipeline, // marker object ids
-    id_dot: wgpu::RenderPipeline, // dot object ids
-    source_dot: wgpu::RenderPipeline, // dot pick ids
+    sphere: Pipeline,     // markers in color
+    dot: Pipeline,        // dots in color
+    id_sphere: Pipeline,  // marker object ids
+    id_dot: Pipeline,     // dot object ids
+    source_dot: Pipeline, // dot pick ids
 }
 
 /// Markers and dots on the GPU.
 pub struct GlyphLane {
-    spheres: GlyphTable, // marker rows
-    dots: GlyphTable, // dot rows
-    template: Template, // one quad, drawn per marker
+    spheres: GlyphTable,   // marker rows
+    dots: GlyphTable,      // dot rows
+    template: Template,    // one quad, drawn per marker
     shaders: GlyphShaders, // shader modules
-    gpu: GlyphPipelines, // pipelines
+    gpu: GlyphPipelines,   // pipelines
 }
 
 impl GlyphLane {
@@ -113,6 +114,16 @@ impl GlyphLane {
         self.dots.buf.write_at(ctx, at.dots, &up.dots);
     }
 
+    /// Hand `count` marker or dot rows from `first` to the hidden row `sink`.
+    pub(crate) fn kill(&mut self, ctx: &GpuCtx, spheres: bool, first: u32, count: u32, sink: u32) {
+        let table = if spheres { &self.spheres } else { &self.dots };
+        let dead = GlyphPoint {
+            instance_id: sink,
+            ..bytemuck::Zeroable::zeroed()
+        };
+        table.buf.fill(ctx, first, count, &dead);
+    }
+
     /// Bytes reserved on the GPU by this lane.
     pub fn allocated_bytes(&self) -> u64 {
         self.spheres.buf.buf.size()
@@ -127,12 +138,12 @@ impl GlyphLane {
         let template = Template::new(ctx, "quad.template", &q_v, &q_i);
         let shaders = GlyphShaders {
             sphere: ink_module(
-                &ctx.device,
+                ctx,
                 "sphere.shader",
                 include_str!("../../shaders/sphere.wgsl"),
             ),
             dot: ink_module(
-                &ctx.device,
+                ctx,
                 "glyph.shader",
                 include_str!("../../shaders/glyph.wgsl"),
             ),
@@ -191,12 +202,7 @@ impl GlyphLane {
     }
 
     /// Draw every marker with `pipeline`; returns the draw count.
-    fn draw_markers(
-        &self,
-        pass: &mut wgpu::RenderPass<'_>,
-        b: &Binds,
-        pipeline: &wgpu::RenderPipeline,
-    ) -> u32 {
+    fn draw_markers(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds, pipeline: &Pipeline) -> u32 {
         if self.spheres.buf.is_empty() {
             return 0;
         }
@@ -215,7 +221,7 @@ impl GlyphLane {
         &self,
         pass: &mut wgpu::RenderPass<'_>,
         b: &Binds,
-        pipeline: &wgpu::RenderPipeline,
+        pipeline: &Pipeline,
     ) -> u32 {
         if self.dots.buf.is_empty() {
             return 0;
@@ -266,31 +272,30 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &GlyphShaders, target: Target) 
     let disc = PipelineDesc::new(&s.dot, &groups, &[], TriangleList)
         .scene_samples(target.samples)
         .depth(DepthMode::Always);
-    let dev = &ctx.device;
 
     GlyphPipelines {
         sphere: build(
-            dev,
+            ctx,
             target,
             &marker.with("sphere", "fs_main").color(ColorWrite::Blended),
         ),
         dot: build(
-            dev,
+            ctx,
             target,
             &disc.with("glyph", "fs_main").color(ColorWrite::Blended),
         ),
         id_sphere: build(
-            dev,
+            ctx,
             Target::ID,
             &marker.with("sphere.id", "fs_id").scene_samples(1),
         ),
         id_dot: build(
-            dev,
+            ctx,
             Target::ID,
             &disc.with("glyph.id", "fs_id").scene_samples(1),
         ),
         source_dot: build(
-            dev,
+            ctx,
             Target::ID,
             &disc
                 .with("glyph.source", "fs_source_id")

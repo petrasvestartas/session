@@ -1,7 +1,9 @@
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::targets::{Attachment, Targets, TextureSpec};
 use super::widget_mesh;
-use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
+use crate::engine::pipelines::{
+    ColorWrite, DepthMode, Pipeline, PipelineDesc, Target, build, module,
+};
 use session_rust::Xform;
 use wgpu::util::DeviceExt;
 use crate::engine::pipelines::Layouts;
@@ -13,9 +15,9 @@ pub struct Widget {
     uniform: wgpu::Buffer, // matrix, screen box, active handle
     group: wgpu::BindGroup, // binds the uniform
     layout: wgpu::BindGroupLayout, // one uniform
-    pipeline: wgpu::RenderPipeline, // mesh into the tile
+    pipeline: Pipeline, // mesh into the tile
     tile: Option<Tile>, // textures the size of the gumball on screen
-    composite: wgpu::RenderPipeline, // tile over the frame
+    composite: Pipeline, // tile over the frame
     format: wgpu::TextureFormat, // canvas color format
     texture_layout: wgpu::BindGroupLayout, // texture and sampler
     visible: bool, // placed and on screen this frame
@@ -225,9 +227,9 @@ impl Drop for Widget {
 }
 
 /// The mesh pipeline: lit, depth-tested, 4x MSAA.
-fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgpu::RenderPipeline {
+fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> Pipeline {
     let shader = module(
-        &ctx.device,
+        ctx,
         "widget",
         include_str!("../../shaders/widget.wgsl"),
     );
@@ -237,7 +239,7 @@ fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgp
         attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Uint32, 2 => Uint32],
     };
     build(
-        &ctx.device,
+        ctx,
         target,
         &PipelineDesc::new(
             &shader,
@@ -357,9 +359,9 @@ fn composite_pipeline(
     layout: &wgpu::BindGroupLayout,
     texture: &wgpu::BindGroupLayout,
     format: wgpu::TextureFormat,
-) -> wgpu::RenderPipeline {
+) -> Pipeline {
     let shader = module(
-        &ctx.device,
+        ctx,
         "widget composite",
         include_str!("../../shaders/widget.wgsl"),
     );
@@ -369,7 +371,7 @@ fn composite_pipeline(
         .with("widget composite", "fs_composite")
         .depth(DepthMode::Detached)
         .color(ColorWrite::Blended);
-    build(&ctx.device, Target { format, samples: 1 }, &desc)
+    build(ctx, Target { format, samples: 1 }, &desc)
 }
 
 /// Screen box of the gumball: x, y, width, height; None when behind the camera.

@@ -2,7 +2,8 @@ use super::buffers::{GpuCtx, ROWS, bind_group, replace_buffer, uniform_buffer, z
 use super::frame::Binds;
 use super::targets::{Attachment, TextureSpec};
 use crate::engine::pipelines::{
-    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, pipeline_layout,
+    ColorWrite, DepthMode, Layouts, Lazy, Pipeline, PipelineDesc, Shader, Target, build,
+    count_pipeline, pipeline_layout, wgsl,
 };
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
@@ -155,6 +156,16 @@ impl PoolReport {
 }
 
 /// Next pool size: at least `floor`; doubled when the report overflowed.
+/// Records for a table of `need` triangles, None while `capacity` fits: exact after a load jump, an eighth spare after an edit.
+fn projected_records(need: u64, capacity: u64, most: u64) -> Option<u64> {
+    if need <= capacity && need * 4 >= capacity {
+        return None;
+    }
+
+    let spare = if need > capacity * 3 / 2 { 0 } else { need / 8 };
+    Some((need + spare).min(most).max(need))
+}
+
 fn next_pool_words(
     current: u64,
     floor: u64,
@@ -186,10 +197,10 @@ struct TilePipelines {
     project_layout: wgpu::BindGroupLayout, // vertices, rows, indices, projected, count
     raster_layout: wgpu::BindGroupLayout, // projected, tiles
     scan_layout: wgpu::BindGroupLayout, // tiles
-    project: wgpu::ComputePipeline, // triangles to screen space
-    count: wgpu::RenderPipeline, // count triangles per tile
-    fill: wgpu::RenderPipeline, // write triangle lists per tile
-    scans: [wgpu::ComputePipeline; 3], // prefix sum of the counts, three levels
+    project: Lazy<wgpu::ComputePipeline>, // triangles to screen space
+    count: Pipeline, // count triangles per tile
+    fill: Pipeline, // write triangle lists per tile
+    scans: [Lazy<wgpu::ComputePipeline>; 3], // prefix sum of the counts, three levels
 }
 
 /// Which triangles cover which screen tiles, rebuilt when the camera moves.
@@ -200,8 +211,12 @@ pub struct TriangleTiles {
     layout: Option<TileLayout>, // current grid, None when empty
     target: Option<Attachment>, // one pixel per tile, drawn into but never read
     live_count: wgpu::Buffer, // triangle count, for the shaders
-    key: Option<ProjectionKey>, // what the lists were built for
+    key: Option<ProjectionKey>, // what the projection was built for
+    binned: Option<ProjectionKey>, // what the tile lists were built for
     pipes: TilePipelines, // pipelines
+    project_group: Option<(wgpu::BindGroup, [wgpu::Buffer; 3])>, // projection bindings and the geometry they bind
+    raster: wgpu::BindGroup, // projected records and tiles, for binning
+    scan: wgpu::BindGroup, // tiles, for the prefix sum
     pool_words: u64, // reference pool size, words
     report: PoolReport, // readback of the words needed
 }
@@ -209,15 +224,23 @@ pub struct TriangleTiles {
 impl TriangleTiles {
     /// Create with tiny placeholder buffers.
     pub fn new(ctx: &GpuCtx, layouts: &Layouts) -> Self {
+        let buffer = zeroed_buffer(&ctx.device, "triangle.tiles", 16, ROWS);
+        let projected = zeroed_buffer(&ctx.device, "triangle.projected", PROJECTED_BYTES, ROWS);
+        let pipes = TilePipelines::new(ctx, layouts);
+        let (raster, scan) = pipes.groups(ctx, &buffer, &projected);
         Self {
-            buffer: zeroed_buffer(&ctx.device, "triangle.tiles", 16, ROWS),
-            projected: zeroed_buffer(&ctx.device, "triangle.projected", PROJECTED_BYTES, ROWS),
+            buffer,
+            projected,
             requested_triangles: 0,
             layout: None,
             target: None,
             live_count: uniform_buffer(&ctx.device, "triangle.project.count", &[0u32; 4]),
             key: None,
-            pipes: TilePipelines::new(ctx, layouts),
+            binned: None,
+            pipes,
+            project_group: None,
+            raster,
+            scan,
             pool_words: 0,
             report: PoolReport::new(ctx),
         }
@@ -236,6 +259,13 @@ impl TriangleTiles {
     /// Force a rebuild on the next frame.
     pub fn invalidate(&mut self) {
         self.key = None;
+        self.binned = None;
+    }
+
+    /// Rebind the tables after a buffer moved.
+    fn rebind(&mut self, ctx: &GpuCtx) {
+        (self.raster, self.scan) = self.pipes.groups(ctx, &self.buffer, &self.projected);
+        self.project_group = None;
     }
 
     /// Size the buffers for `size` and `triangles`; returns true if a buffer moved.
@@ -273,17 +303,25 @@ impl TriangleTiles {
         );
         let grow = pool_words > self.pool_words;
 
-        // new triangle count: new projected table
+        // new triangle count: a new table only when it no longer fits or is mostly empty
         if triangles != self.requested_triangles || self.layout.is_none() {
-            replace_buffer(
-                &mut self.projected,
-                zeroed_buffer(
-                    &ctx.device,
-                    "triangle.projected",
-                    triangles as u64 * PROJECTED_BYTES,
-                    ROWS,
-                ),
-            );
+            let capacity = self.projected.size() / PROJECTED_BYTES;
+
+            if let Some(records) =
+                projected_records(u64::from(triangles), capacity, limit / PROJECTED_BYTES)
+            {
+                replace_buffer(
+                    &mut self.projected,
+                    zeroed_buffer(
+                        &ctx.device,
+                        "triangle.projected",
+                        records * PROJECTED_BYTES,
+                        ROWS,
+                    ),
+                );
+                changed = true;
+            }
+
             ctx.queue.write_buffer(
                 &self.live_count,
                 0,
@@ -291,7 +329,6 @@ impl TriangleTiles {
             );
             self.requested_triangles = triangles;
             self.invalidate();
-            changed = true;
         }
 
         // new grid or bigger pool: new tile buffer
@@ -321,15 +358,21 @@ impl TriangleTiles {
             changed = true;
         }
 
+        if changed {
+            self.rebind(ctx);
+        }
+
         changed
     }
 
-    /// Rebuild the tile lists unless camera and objects are unchanged.
+    /// Reproject the triangles unless camera and objects are unchanged; bin them into the tile
+    /// lists too when `lists`.
     pub(super) fn encode(
         &mut self,
         ctx: &GpuCtx,
         encoder: &mut wgpu::CommandEncoder,
         input: TileInput<'_>,
+        lists: bool,
     ) {
         let Some(layout) = self.layout else {
             return;
@@ -339,54 +382,22 @@ impl TriangleTiles {
             objects: input.objects_revision,
         };
 
-        if self.key == Some(key) {
+        if self.key != Some(key) {
+            self.project(ctx, encoder, &input);
+            self.key = Some(key);
+        }
+
+        if !lists || self.binned == Some(key) {
             return;
         }
 
-        let group = bind_group(
-            ctx,
-            &self.pipes.project_layout,
-            "triangle.project.bindings",
-            &[
-                input.geometry[0],
-                input.geometry[1],
-                input.geometry[2],
-                &self.projected,
-                &self.live_count,
-            ],
-        );
-        {
-            // 1: project every triangle to the screen
-            let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
-                label: Some("triangle.project"),
-                timestamp_writes: None,
-            });
-            pass.set_pipeline(&self.pipes.project);
-            pass.set_bind_group(0, input.binds.mvp, &[]);
-            pass.set_bind_group(1, input.binds.line, &[]);
-            pass.set_bind_group(2, input.binds.instances, &[]);
-            pass.set_bind_group(3, &group, &[]);
-            pass.dispatch_workgroups(self.requested_triangles.div_ceil(64), 1, 1);
-        }
-        // 2: zero the tile headers
+        // zero the tile headers
         encoder.clear_buffer(&self.buffer, 0, Some(layout.header_records() * 16));
-        let raster = bind_group(
-            ctx,
-            &self.pipes.raster_layout,
-            "triangle.tiles.bindings",
-            &[&self.projected, &self.buffer],
-        );
-        // 3: count triangles per tile
-        self.bin(encoder, input.binds, &raster, &self.pipes.count);
-        let scan = bind_group(
-            ctx,
-            &self.pipes.scan_layout,
-            "triangle.scan.bindings",
-            &[&self.buffer],
-        );
+        // count triangles per tile
+        self.bin(encoder, input.binds, &self.pipes.count);
         let blocks = layout.count().div_ceil(256);
 
-        // 4: prefix sum gives each tile its list offset
+        // prefix sum gives each tile its list offset
         for (index, count) in [blocks, blocks.div_ceil(256), blocks]
             .into_iter()
             .enumerate()
@@ -397,14 +408,65 @@ impl TriangleTiles {
             });
             pass.set_pipeline(&self.pipes.scans[index]);
             pass.set_bind_group(0, input.binds.line, &[]);
-            pass.set_bind_group(1, &scan, &[]);
+            pass.set_bind_group(1, &self.scan, &[]);
             pass.dispatch_workgroups(count, 1, 1);
         }
 
-        // 5: write the triangle lists
-        self.bin(encoder, input.binds, &raster, &self.pipes.fill);
+        // write the triangle lists
+        self.bin(encoder, input.binds, &self.pipes.fill);
         self.report.copy(encoder, &self.buffer);
-        self.key = Some(key);
+        self.binned = Some(key);
+    }
+
+    /// Test ink against the fitted planes alone until the lists are built again.
+    pub(super) fn drop_lists(&mut self, encoder: &mut wgpu::CommandEncoder) {
+        // a zero first record reads as no lists; an invalidated buffer still holds the old ones
+        self.binned = None;
+        encoder.clear_buffer(&self.buffer, 0, Some(16));
+    }
+
+    /// Project every triangle to the screen.
+    fn project(
+        &mut self,
+        ctx: &GpuCtx,
+        encoder: &mut wgpu::CommandEncoder,
+        input: &TileInput<'_>,
+    ) {
+        // the geometry buffers move when the scene grows
+        let stale = self
+            .project_group
+            .as_ref()
+            .is_none_or(|(_, bound)| bound.iter().zip(input.geometry).any(|(a, b)| a != b));
+
+        if stale {
+            let group = bind_group(
+                ctx,
+                &self.pipes.project_layout,
+                "triangle.project.bindings",
+                &[
+                    input.geometry[0],
+                    input.geometry[1],
+                    input.geometry[2],
+                    &self.projected,
+                    &self.live_count,
+                ],
+            );
+            self.project_group = Some((group, input.geometry.map(|buffer| buffer.clone())));
+        }
+
+        let Some((group, _)) = &self.project_group else {
+            return;
+        };
+        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+            label: Some("triangle.project"),
+            timestamp_writes: None,
+        });
+        pass.set_pipeline(&self.pipes.project);
+        pass.set_bind_group(0, input.binds.mvp, &[]);
+        pass.set_bind_group(1, input.binds.line, &[]);
+        pass.set_bind_group(2, input.binds.instances, &[]);
+        pass.set_bind_group(3, group, &[]);
+        pass.dispatch_workgroups(self.requested_triangles.div_ceil(64), 1, 1);
     }
 
     /// Draw every triangle over the tile grid with `pipeline`.
@@ -412,8 +474,7 @@ impl TriangleTiles {
         &self,
         encoder: &mut wgpu::CommandEncoder,
         binds: &Binds,
-        group: &wgpu::BindGroup,
-        pipeline: &wgpu::RenderPipeline,
+        pipeline: &Pipeline,
     ) {
         let Some(view) = &self.target else {
             return;
@@ -436,9 +497,9 @@ impl TriangleTiles {
         });
         pass.set_pipeline(pipeline);
         binds.set(&mut pass);
-        pass.set_bind_group(3, group, &[]);
-        // a quad per triangle, covering its tiles
-        pass.draw(0..6, 0..self.requested_triangles);
+        pass.set_bind_group(3, &self.raster, &[]);
+        // a four-corner strip per triangle, covering its tiles
+        pass.draw(0..4, 0..self.requested_triangles);
     }
 
     /// Shrink the buffers back to placeholders; returns true if they were bigger.
@@ -457,6 +518,7 @@ impl TriangleTiles {
         );
         self.target = None;
         self.invalidate();
+        self.rebind(ctx);
         true
     }
 
@@ -535,9 +597,13 @@ impl TilePipelines {
             entries: &[entry(0, Stages::COMPUTE, Storage { read_only: false })],
         });
         let project_shader = shader(
-            device,
+            ctx,
             "triangle.project",
-            include_str!("../../shaders/project_triangles.wgsl"),
+            &format!(
+                "{}\n{}",
+                include_str!("../../shaders/project_triangles.wgsl"),
+                crate::engine::pipelines::CLIP
+            ),
         );
         let project_pipeline_layout = pipeline_layout(
             device,
@@ -549,10 +615,9 @@ impl TilePipelines {
                 &project_layout,
             ],
         );
-        let project =
-            compute_pipeline(device, &project_pipeline_layout, &project_shader, "cs_main");
+        let project = compute_pipeline(ctx, &project_pipeline_layout, &project_shader, "cs_main");
         let raster_shader = shader(
-            device,
+            ctx,
             "triangle.tiles",
             include_str!("../../shaders/triangle_tiles.wgsl"),
         );
@@ -567,7 +632,7 @@ impl TilePipelines {
             &raster_shader,
             &raster_groups,
             &[],
-            wgpu::PrimitiveTopology::TriangleList,
+            wgpu::PrimitiveTopology::TriangleStrip,
         )
         .depth(DepthMode::Detached)
         .color(ColorWrite::Nothing);
@@ -575,24 +640,19 @@ impl TilePipelines {
             format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
             samples: 1,
         };
-        let count = build(device, tile_target, &raster.with("fs_count", "fs_count"));
-        let fill = build(device, tile_target, &raster.with("fs_fill", "fs_fill"));
+        let count = build(ctx, tile_target, &raster.with("fs_count", "fs_count"));
+        let fill = build(ctx, tile_target, &raster.with("fs_fill", "fs_fill"));
         let scan_shader = shader(
-            device,
+            ctx,
             "triangle.scan",
             include_str!("../../shaders/scan_triangle_tiles.wgsl"),
         );
         let scan_pipeline_layout =
             pipeline_layout(device, "triangle.scan", &[&layouts.line, &scan_layout]);
         let scans = [
-            compute_pipeline(device, &scan_pipeline_layout, &scan_shader, "scan_tiles"),
-            compute_pipeline(device, &scan_pipeline_layout, &scan_shader, "scan_blocks"),
-            compute_pipeline(
-                device,
-                &scan_pipeline_layout,
-                &scan_shader,
-                "finish_offsets",
-            ),
+            compute_pipeline(ctx, &scan_pipeline_layout, &scan_shader, "scan_tiles"),
+            compute_pipeline(ctx, &scan_pipeline_layout, &scan_shader, "scan_blocks"),
+            compute_pipeline(ctx, &scan_pipeline_layout, &scan_shader, "finish_offsets"),
         ];
         Self {
             project_layout,
@@ -604,34 +664,54 @@ impl TilePipelines {
             scans,
         }
     }
+
+    /// The binning and scan bindings of `tiles` and `projected`.
+    fn groups(
+        &self,
+        ctx: &GpuCtx,
+        tiles: &wgpu::Buffer,
+        projected: &wgpu::Buffer,
+    ) -> (wgpu::BindGroup, wgpu::BindGroup) {
+        let raster = bind_group(
+            ctx,
+            &self.raster_layout,
+            "triangle.tiles.bindings",
+            &[projected, tiles],
+        );
+        let scan = bind_group(ctx, &self.scan_layout, "triangle.scan.bindings", &[tiles]);
+        (raster, scan)
+    }
 }
 
-/// Compile a shader with the shared projected-triangle code appended.
-fn shader(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+/// A shader with the shared projected-triangle code appended.
+fn shader(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
     let source = format!(
         "{source}\n{}",
         include_str!("../../shaders/projected_triangle.wgsl")
     );
-    device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some(label),
-        source: wgpu::ShaderSource::Wgsl(source.into()),
-    })
+    wgsl(ctx, label, source)
 }
 
-/// A compute pipeline for one entry point.
+/// A compute pipeline for one entry point, compiled on first use.
 fn compute_pipeline(
-    device: &wgpu::Device,
+    ctx: &GpuCtx,
     layout: &wgpu::PipelineLayout,
-    shader: &wgpu::ShaderModule,
-    entry: &str,
-) -> wgpu::ComputePipeline {
-    device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some(entry),
-        layout: Some(layout),
-        module: shader,
-        entry_point: Some(entry),
-        compilation_options: Default::default(),
-        cache: None,
+    shader: &Shader,
+    entry: &'static str,
+) -> Lazy<wgpu::ComputePipeline> {
+    let device = ctx.device.clone();
+    let layout = layout.clone();
+    let shader = shader.clone();
+    Lazy::new(move || {
+        count_pipeline();
+        device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+            label: Some(entry),
+            layout: Some(&layout),
+            module: &shader,
+            entry_point: Some(entry),
+            compilation_options: Default::default(),
+            cache: None,
+        })
     })
 }
 
@@ -639,6 +719,19 @@ fn compute_pipeline(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// One more triangle reuses the table; a load jump is exact; an emptied table shrinks.
+    #[test]
+    fn projected_grows_by_capacity() {
+        let most = u64::MAX;
+        assert_eq!(projected_records(1_000, 1, most), Some(1_000), "a load is exact");
+        assert_eq!(projected_records(1_001, 1_000, most), Some(1_126), "an edit spares an eighth");
+        assert_eq!(projected_records(1_002, 1_126, most), None, "the next one fits");
+        assert_eq!(projected_records(900, 1_126, most), None, "fewer still fit");
+        assert_eq!(projected_records(200, 1_126, most), Some(225), "a quarter full shrinks");
+        assert_eq!(projected_records(2_000, 1_000, 2_050), Some(2_000), "within the device limit");
+        assert_eq!(projected_records(1_010, 1_000, 1_050), Some(1_050));
+    }
 
     /// Past or at capacity doubles; below it keeps the pool.
     #[test]
@@ -769,12 +862,21 @@ mod tests {
             clear: wgpu::Color::WHITE,
             now_ms: 0.0,
         };
+        gpu.render_offscreen(&input);
+        assert!(
+            gpu.arena.tiles.key.is_none(),
+            "no stroke and no ambient occlusion: nothing is projected"
+        );
+        assert_eq!(gpu.arena.tiles.allocated_bytes(), initial, "nor allocated");
+        // ambient occlusion reads the projection, not the lists
+        gpu.view.ssao = true;
         let visible = gpu.render_offscreen(&input);
         let key = gpu
             .arena
             .tiles
             .key
             .expect("a populated scene prepares visibility");
+        assert!(gpu.arena.tiles.binned.is_none(), "no stroke: no tile lists");
         assert!(gpu.arena.tiles.allocated_bytes().0 > initial.0);
         assert_eq!(visible, gpu.render_offscreen(&input));
         assert_eq!(gpu.arena.tiles.key, Some(key));
@@ -807,13 +909,87 @@ mod tests {
             gpu.arena.tiles.key.is_none(),
             "same-count replacement invalidates projected positions"
         );
+        gpu.view.ssao = false;
         gpu.render_ids_offscreen(&input);
         assert!(
-            gpu.arena.tiles.key.is_some(),
-            "ID-only rendering prepares its own current geometry"
+            gpu.arena.tiles.key.is_some() && gpu.arena.tiles.binned == gpu.arena.tiles.key,
+            "ID-only rendering prepares its own current geometry and lists"
         );
         gpu.release();
         assert_eq!(gpu.arena.tiles.allocated_bytes(), initial);
         assert!(gpu.arena.tiles.key.is_none());
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    #[ignore = "requires a native GPU adapter"]
+    /// A slow drag drops the lists, also the ones a scene change left in the buffer.
+    fn a_slow_drag_drops_lists_a_scene_change_left_behind() {
+        use crate::engine::gpu::{CylinderSegment, FrameInput, Gpu, ObjectRow, Upload};
+        use session_rust::{RenderVertex, Xform};
+        let mut gpu = pollster::block_on(Gpu::new_headless(128, 128)).unwrap();
+        gpu.view.show_grid = false;
+        let mut upload = Upload::default();
+        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
+
+        for position in [[-0.7, -0.7, 0.5], [0.7, -0.7, 0.5], [0.0, 0.7, 0.5]] {
+            upload.arena.verts.push(RenderVertex {
+                position,
+                normal: [0.0, 0.0, 1.0],
+                color: [0.5; 4],
+            });
+            upload.arena.vids.push(0);
+        }
+
+        upload.arena.idx.extend([0, 1, 2]);
+        // a line over the triangle: its ink reads the lists
+        upload.seg.ribbons.push(CylinderSegment {
+            p0: [-0.5, 0.0, 0.6],
+            radius: 0.0,
+            p1: [0.5, 0.0, 0.6],
+            instance_id: 0,
+            color: 0xff00_0000,
+            facing: 0,
+        });
+        gpu.set_scene(&upload);
+        let input = FrameInput {
+            view_proj: Xform::identity(),
+            clear: wgpu::Color::WHITE,
+            now_ms: 0.0,
+        };
+        gpu.render_offscreen(&input);
+        assert_eq!(first_record(&gpu)[0], 1, "a line at rest reads the lists");
+        // the scene changes, then a slow drag draws
+        gpu.arena.tiles.invalidate();
+        gpu.performance.interacting = true;
+
+        for frame in 0..3 {
+            gpu.performance.frame(0, 0, 100.0 * f64::from(frame), false);
+        }
+
+        assert_eq!(gpu.performance.drag_tier(), 1);
+        gpu.render_offscreen(&input);
+        assert_eq!(first_record(&gpu)[0], 0, "a slow drag has no lists");
+    }
+
+    /// The first tile record, read back.
+    #[cfg(not(target_arch = "wasm32"))]
+    fn first_record(gpu: &crate::engine::gpu::Gpu) -> [u32; 4] {
+        let readback = gpu.ctx.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("test.tiles.readback"),
+            size: 16,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+        let mut encoder = gpu.ctx.device.create_command_encoder(&Default::default());
+        encoder.copy_buffer_to_buffer(&gpu.arena.tiles.buffer, 0, &readback, 0, 16);
+        gpu.ctx.queue.submit([encoder.finish()]);
+        readback.slice(..).map_async(wgpu::MapMode::Read, |_| {});
+        let _ = gpu.ctx.device.poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: None,
+        });
+        let bytes = readback.slice(..).get_mapped_range();
+        bytemuck::pod_read_unaligned(&bytes[..16])
     }
 }

@@ -14,7 +14,7 @@ pub fn walk_point(glyph: &mut GlyphRows, p: &Point, row: u32) -> Row {
         radius: if radius == 0.0 { -3.0 } else { radius }, // no pen: 3 px dot
         color: p.pointcolor.to_f32(),
         instance_id: row,
-        facing: FACING_UNKNOWN, // no face orientation
+        facing: FACING_UNKNOWN,          // no face orientation
         facing_ext: [FACING_UNKNOWN; 2], // no neighbour orientation
     });
     let mut bounds = AABB::empty();

@@ -206,7 +206,8 @@ impl ApplicationHandler<Msg> for App {
                 // replace the scene with the saved one
                 state.clear();
                 state.scene = *scene;
-                state.scene.rebuild(&mut state.gpu);
+                state.scene.upload_to(&mut state.gpu);
+                state.scene.restore_text_visibility(&mut state.gpu);
                 state.fit_all();
                 state.refresh_layers();
                 state.touch();
@@ -241,11 +242,9 @@ impl ApplicationHandler<Msg> for App {
         if let Some(ui) = self.ui.as_mut() {
             let (mut consumed, repaint) = ui.event(&state.window, &event);
 
-            // keys reach the viewer unless the command line is open
-            if matches!(event, WindowEvent::KeyboardInput { .. })
-                && !app::ui::MODEL.with_borrow(|model| model.command_open)
-            {
-                consumed = false;
+            // keys reach the viewer unless a text field or a menu has them; the number box from its click on
+            if matches!(event, WindowEvent::KeyboardInput { .. }) {
+                consumed = app::ui::keys_taken() || state.number_box_open();
             }
 
             if repaint {
@@ -381,6 +380,7 @@ fn desired_canvas_size() -> Option<(u32, u32)> {
 pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
     // panics print to the console
     console_error_panic_hook::set_once();
+    engine::performance::mark("wasm entry");
 
     // the text-quality page runs its own code
     if let Some(window) = web_sys::window()

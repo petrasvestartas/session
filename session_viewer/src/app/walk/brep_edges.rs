@@ -400,9 +400,9 @@ fn face_facets(mesh: &Mesh) -> std::collections::HashMap<FacetEdge, FacetPair> {
 
 /// What every edge pipe of one BRep needs.
 pub struct EdgePen<'a> {
-    pub fms: &'a [Mesh],                                         // face meshes
-    pub signs: &'a [f64],                                        // +1 or -1 per face
-    pub pen: Pen,                                                // row, width, colour
+    pub fms: &'a [Mesh],                                          // face meshes
+    pub signs: &'a [f64],                                         // +1 or -1 per face
+    pub pen: Pen,                                                 // row, width, colour
     facets: Vec<std::collections::HashMap<FacetEdge, FacetPair>>, // per face: triangles at each edge
 }
 

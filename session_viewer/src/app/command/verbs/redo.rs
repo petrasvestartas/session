@@ -30,8 +30,4 @@ impl Action for Redo {
         state.after_history();
         Ok("redone".into())
     }
-
-    fn needs_complete_scene(&self) -> bool {
-        true
-    }
 }

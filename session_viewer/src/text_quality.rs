@@ -153,7 +153,7 @@ impl TextQuality {
                 break;
             }
         }
-        let ctx = GpuCtx { device, queue };
+        let ctx = GpuCtx::new(device, queue);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format,
@@ -239,6 +239,7 @@ impl TextQuality {
             framebuffer: size,
             logical,
             ortho_half_height: 0.0,
+            clip: [[0.0; 4]; crate::engine::gpu::clip::MAX_PLANES],
         };
         self.lane.prepare(&self.ctx, &frame)?;
         let output = match self.surface.get_current_texture() {

@@ -20,7 +20,25 @@ fn network_error(error: JsValue) -> String {
 pub struct Reply {
     pub status: u16,          // HTTP status
     pub etag: Option<String>, // the ETag header
+    pub total: Option<u64>,   // the whole file's size, from Content-Range or Content-Length
     pub bytes: Vec<u8>,       // the body, empty unless wanted
+}
+
+impl Reply {
+    /// The whole file, when a range read got all of it.
+    pub fn whole(self) -> Option<Vec<u8>> {
+        (self.status == 206 && self.total == Some(self.bytes.len() as u64)).then_some(self.bytes)
+    }
+}
+
+/// The whole file's size: after the `/` of Content-Range for a range, else Content-Length.
+fn total_size(headers: &Headers, status: u16) -> Option<u64> {
+    if status == 206 {
+        let range = headers.get("Content-Range").ok().flatten()?;
+        return range.rsplit('/').next()?.parse().ok();
+    }
+
+    headers.get("Content-Length").ok().flatten()?.parse().ok()
 }
 
 /// Options for one GET.
@@ -34,6 +52,16 @@ pub struct GetOpts {
 
 /// GET `url`; any HTTP status is Ok, a network failure is Err.
 pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
+    let (mut reply, body) = get_buffer(url, opts).await?;
+    reply.bytes = body.map(|body| body.to_vec()).unwrap_or_default();
+    Ok(reply)
+}
+
+/// GET `url` with the body left in a JS buffer, outside wasm memory; the reply's bytes stay empty.
+pub async fn get_buffer(
+    url: &str,
+    opts: &GetOpts,
+) -> Result<(Reply, Option<js_sys::Uint8Array>), String> {
     let deadline = Deadline::new()?; // aborts after 90 s
     let init = RequestInit::new();
     init.set_signal(Some(&deadline.controller.signal()));
@@ -54,11 +82,13 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
 
     if let Some((start, len)) = opts.range {
         if len == 0 {
-            return Ok(Reply {
+            let reply = Reply {
                 status: 206,
                 etag: None,
+                total: None,
                 bytes: Vec::new(),
-            });
+            };
+            return Ok((reply, None));
         }
 
         headers
@@ -83,6 +113,7 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
         .map_err(describe)?;
     let etag = resp.headers().get("etag").ok().flatten();
     let status = resp.status();
+    let total = total_size(&resp.headers(), status);
     // read the body only when it is what was asked for
     let wanted = if opts.range.is_some() {
         status == 206
@@ -90,12 +121,15 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
         (200..300).contains(&status)
     };
 
+    let reply = Reply {
+        status,
+        etag,
+        total,
+        bytes: Vec::new(),
+    };
+
     if !wanted {
-        return Ok(Reply {
-            status,
-            etag,
-            bytes: Vec::new(),
-        });
+        return Ok((reply, None));
     }
 
     if let Ok(Some(length)) = resp.headers().get("Content-Length")
@@ -110,19 +144,15 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
     let buf = JsFuture::from(resp.array_buffer().map_err(describe)?)
         .await
         .map_err(describe)?;
-    let bytes = js_sys::Uint8Array::new(&buf).to_vec();
+    let body = js_sys::Uint8Array::new(&buf);
 
     if let Some((_, length)) = opts.range
-        && bytes.len() as u64 > length
+        && u64::from(body.length()) > length
     {
         return Err("range response exceeds requested bytes".to_string());
     }
 
-    Ok(Reply {
-        status,
-        etag,
-        bytes,
-    })
+    Ok((reply, Some(body)))
 }
 
 /// A file's size from a HEAD request, if the server says.
@@ -147,20 +177,20 @@ pub async fn content_length(url: &str) -> Option<u64> {
 
 /// GET a whole file; a non-2xx status is an error.
 pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
-    let r = get(
-        url,
-        &GetOpts {
-            revalidate: true,
-            ..GetOpts::default()
-        },
-    )
-    .await?;
+    Ok(fetch_buffer(url).await?.to_vec())
+}
 
-    if !(200..300).contains(&r.status) {
-        return Err(format!("HTTP {} for {url}", r.status));
+/// GET a whole file into a JS buffer, where it can wait outside wasm memory.
+pub async fn fetch_buffer(url: &str) -> Result<js_sys::Uint8Array, String> {
+    let opts = GetOpts {
+        revalidate: true,
+        ..GetOpts::default()
+    };
+
+    match get_buffer(url, &opts).await? {
+        (reply, Some(body)) if (200..300).contains(&reply.status) => Ok(body),
+        (reply, _) => Err(format!("HTTP {} for {url}", reply.status)),
     }
-
-    Ok(r.bytes)
 }
 
 /// GET a byte range; refuses a wrong length or a changed ETag.

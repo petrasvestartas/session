@@ -5,8 +5,39 @@ use super::splat::RecordCx;
 use super::surface_outline;
 
 impl Gpu {
-    /// Compute which triangles cover which screen tiles.
-    fn triangle_tile_pass(&mut self, encoder: &mut wgpu::CommandEncoder) {
+    /// Timestamp the GPU here when a bench installed a pass timer.
+    fn mark(&mut self, encoder: &mut wgpu::CommandEncoder, label: &'static str) {
+        if let Some(timer) = self.timer.as_mut() {
+            timer.mark(encoder, label);
+        }
+    }
+
+    /// What reads the triangle tables this frame: (the projection, the tile lists).
+    fn tile_readers(&self) -> (bool, bool) {
+        let v = &self.view;
+        // strokes test visibility against the lists; discs read depth only
+        let lists = (v.show_mesh_edges && self.live_pipes() > 0)
+            || (v.show_lines && self.live_ribbons() > 0)
+            || self.control_net.ribbon_count() > 0
+            || self.registered.iter().any(|lane| lane.reads_tiles(v));
+        // ambient occlusion reads each triangle's contact radius, except in a drag that skips it
+        let ambient =
+            v.ssao && v.opacity > 0.0 && self.live_faces() > 0 && self.performance.drag_tier() < 2;
+        (lists || ambient, lists)
+    }
+
+    /// Project the triangles, and bin them into screen tiles when `lists`; nothing when
+    /// `projection` is false, and the stale tables rebuild on the next frame that reads them.
+    fn triangle_tile_pass(
+        &mut self,
+        encoder: &mut wgpu::CommandEncoder,
+        projection: bool,
+        lists: bool,
+    ) {
+        if !projection {
+            return;
+        }
+
         // a moved tile buffer needs a new bind group
         if self.arena.tiles.prepare(
             &self.ctx,
@@ -23,6 +54,7 @@ impl Gpu {
             &b,
             self.frame.mvp_f32,
             self.objects.geometry_revision(),
+            lists,
         );
     }
 
@@ -33,28 +65,43 @@ impl Gpu {
         view: &wgpu::TextureView,
         clear: wgpu::Color,
     ) -> (u32, u32) {
-        self.triangle_tile_pass(encoder);
-        self.point_pass(encoder);
+        self.mark(encoder, "start");
+        let tier = self.performance.drag_tier();
+        let (projection, lists) = self.tile_readers();
+        // a slow drag tests ink against the fitted planes alone; the lists return when it ends
+        let rough = lists && tier >= 1;
+        self.triangle_tile_pass(encoder, projection, lists && !rough);
 
-        // pass 1: background, faces and clouds write depth
-        let mut draws = {
-            let b = self.frame.binds(&self.objects.group);
-            let mut pass = self.targets.begin_faces(encoder, view, clear);
-            self.face_list(&mut pass, &b)
-        };
-        // pass 2: ambient occlusion over the faces
-        if self.view.ssao && self.view.opacity > 0.0 && self.arena.face_count() > 0 {
-            let target = crate::engine::pipelines::Target {
-                format: self.config.format,
-                samples: self.targets.samples,
-            };
-            let ssao = self.ssao.get_or_insert_with(|| {
-                super::ssao::Ssao::new(&self.ctx, target, (self.config.width, self.config.height))
-            });
+        if rough {
+            self.arena.tiles.drop_lists(encoder);
+        }
+
+        self.mark(encoder, "tiles");
+        self.point_pass(encoder);
+        self.mark(encoder, "points");
+
+        // pass 1: background, section caps, faces and clouds write depth
+        let caps = self.cap_planes().1 > 0;
+        let mut draws = self.face_passes(encoder, view, clear);
+        self.mark(encoder, "faces");
+        // pass 2: ambient occlusion over the faces; a slow drag skips it and keeps its textures
+        let ambient = self.view.ssao && self.view.opacity > 0.0 && self.live_faces() > 0;
+
+        if ambient && tier < 2 {
+            let full = (self.config.width, self.config.height);
+            let target = self.target();
+            let pipes = super::ssao::cached(&mut self.ssao_pipes, &self.ctx, target);
+            // textures follow the canvas; pipelines stay
+            if self.ssao.as_ref().is_some_and(|ssao| !ssao.fits(pipes, full)) {
+                self.ssao = None;
+            }
+            let ssao = self
+                .ssao
+                .get_or_insert_with(|| super::ssao::Ssao::new(&self.ctx, pipes, full));
             let receiver = ssao.receiver(&self.objects);
             draws += ssao.draw(
                 &self.ctx,
-                target,
+                pipes,
                 &self.targets,
                 &self.arena.tiles.projected,
                 encoder,
@@ -62,14 +109,15 @@ impl Gpu {
                 self.frame.mvp_f32,
                 receiver,
                 self.objects.geometry_revision(),
+                self.performance.interacting,
             );
-        } else {
+        } else if !ambient {
             self.ssao = None;
         }
+        self.mark(encoder, "ssao");
         let size = (self.config.width, self.config.height);
         // no outlines in x-ray
-        let faces =
-            self.view.show_outlines && self.view.opacity > 0.0 && self.arena.face_count() > 0;
+        let faces = self.view.show_outlines && self.view.opacity > 0.0 && self.live_faces() > 0;
         let selected = self.selection_outline.prepare(
             &self.ctx,
             size,
@@ -84,6 +132,10 @@ impl Gpu {
             self.logical_size[0],
             faces,
         );
+        // the compositing outline holds the taps and alpha for both masks
+        let radius = surface_outline::radius(size, self.logical_size[0]);
+        self.solid_outline
+            .prepare_alpha(&self.ctx, (solid || selected).then_some(radius), size);
         // redraw the outline masks only when something changed
         let key = surface_outline::MaskKey {
             mvp: self.frame.mvp_f32,
@@ -92,17 +144,24 @@ impl Gpu {
             faces: self.arena.source_faces.revision(),
             size,
             samples: self.targets.samples,
-            edges: self.view.show_mesh_edges,
+            edges: self.view.show_mesh_edges && tier < 2,
+            rough,
             pen: self.view.thickness_px.to_bits(),
         };
         let stale = (solid && !self.solid_outline.is_valid(&key))
             || (selected && !self.selection_outline.is_valid(&key));
 
         if stale {
+            self.solid_outline.bind_faces(&self.ctx, &self.targets);
+
+            if caps {
+                self.clip.bind_primitives(&self.ctx, &self.targets);
+            }
+
             let b = self.frame.binds(&self.objects.group);
-            // edges widen the mask
+            // edges widen the mask, except in a slow drag
             let ink = self.frame.binds(&self.objects.ink_group);
-            let edges = self.view.show_mesh_edges;
+            let edges = key.edges && self.live_pipes() > 0;
 
             if solid && selected {
                 // one pass writes both masks
@@ -115,25 +174,35 @@ impl Gpu {
                 draws += self.arena.draw_masks(&mut pass, &b);
                 draws += self.arena.source_faces.draw_masks(&mut pass, &b);
 
+                if caps {
+                    draws += self.clip.draw_cap_masks(&mut pass, &b);
+                }
+
                 if edges {
                     draws += self.segments.draw_masks(&mut pass, &ink);
                 }
-            } else if solid {
+            } else if solid && edges {
+                // faces from the face pass's triangle ids, then the edges over them
                 let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
-                draws += self.arena.draw_solid_mask(&mut pass, &b);
-
-                if edges {
-                    draws += self.segments.draw_solid_mask(&mut pass, &ink);
-                }
+                draws += self.solid_outline.draw_faces(&mut pass);
+                draws += self.segments.draw_solid_mask(&mut pass, &ink);
+            } else if solid {
+                draws += self.solid_outline.encode_faces(encoder);
             } else if selected {
                 let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
                 draws += self.arena.draw_selection_mask(&mut pass, &b);
                 draws += self.arena.source_faces.draw_mask(&mut pass, &b);
 
+                if caps {
+                    draws += self.clip.draw_cap_selection(&mut pass, &b);
+                }
+
                 if edges {
                     draws += self.segments.draw_selection_mask(&mut pass, &ink);
                 }
             }
+
+            self.mark(encoder, "masks");
 
             if solid {
                 self.solid_outline.encode_pool(encoder);
@@ -144,13 +213,21 @@ impl Gpu {
                 self.selection_outline.encode_pool(encoder);
                 self.selection_outline.mark_valid(key);
             }
+
+            self.mark(encoder, "pool");
         }
+
+        self.solid_outline
+            .encode_alpha(&self.selection_outline, encoder, stale);
+        self.mark(encoder, "alpha");
 
         {
             // pass 3: lines, markers, outlines and text over the faces
             let mut pass = self.targets.begin_ink(encoder, view);
             draws += self.scene_list(&mut pass);
         }
+
+        self.mark(encoder, "ink");
 
         // a click waiting: draw the id pass now
         if let Some(at) = self.pick.take_pending() {
@@ -164,6 +241,7 @@ impl Gpu {
             ui.draw(encoder, view);
         }
 
+        self.mark(encoder, "end");
         (draws, self.objects.len())
     }
 
@@ -191,15 +269,77 @@ impl Gpu {
         );
     }
 
-    /// Draws of the first pass: background, grid, faces, clouds.
-    fn face_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+    /// The first pass; for each plane that crosses a closed solid, the crossings are counted
+    /// first and its section caps drawn before the faces, every plane but the last in a pass of its own.
+    fn face_passes(
+        &mut self,
+        encoder: &mut wgpu::CommandEncoder,
+        view: &wgpu::TextureView,
+        clear: wgpu::Color,
+    ) -> u32 {
+        let (planes, count) = self.cap_planes();
+        let size = (self.config.width, self.config.height);
+        let mut draws = 0;
+
+        if count > 0 {
+            self.clip.prepare_counts(&self.ctx, &self.layouts, size);
+        }
+
+        for (k, &plane) in planes[..count.saturating_sub(1)].iter().enumerate() {
+            let b = self.frame.binds(&self.objects.group);
+            draws += self.clip.encode_count(encoder, &self.arena, &b, plane);
+            let mut pass = self
+                .targets
+                .begin_faces(encoder, view, (k == 0).then_some(clear));
+
+            if k == 0 {
+                draws += self.backdrop_list(&mut pass, &b);
+            }
+
+            draws += self.clip.draw_cap(&mut pass, &b, plane);
+        }
+
+        if count > 0 {
+            let b = self.frame.binds(&self.objects.group);
+            draws += self
+                .clip
+                .encode_count(encoder, &self.arena, &b, planes[count - 1]);
+            self.mark(encoder, "counts");
+        }
+
+        let b = self.frame.binds(&self.objects.group);
+        let mut pass = self
+            .targets
+            .begin_faces(encoder, view, (count <= 1).then_some(clear));
+
+        if count <= 1 {
+            draws += self.backdrop_list(&mut pass, &b);
+        }
+
+        if count > 0 {
+            draws += self.clip.draw_cap(&mut pass, &b, planes[count - 1]);
+        }
+
+        draws + self.face_list(&mut pass, &b)
+    }
+
+    /// Draws of the backdrop: background and grid.
+    fn backdrop_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         let mut draws = self.backdrop.draw_background(pass, b);
 
         if self.view.show_grid {
             draws += self.backdrop.draw_grid(pass, b);
         }
 
-        draws += self.arena.draw_faces(pass, b);
+        draws
+    }
+
+    /// Draws of the first pass after the backdrop and caps: faces, clouds.
+    fn face_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        // at full opacity the blend returns the face color itself
+        let mut draws =
+            self.arena
+                .draw_faces(pass, b, self.view.opacity >= 1.0, self.clip.count() > 0);
         draws += self.splat.draw_resolve(pass, &self.frame.cloud_group);
         draws
     }
@@ -218,11 +358,12 @@ impl Gpu {
         draws += self
             .segments
             .draw_selected(pass, &b, v.show_mesh_edges, false);
-        draws += self
-            .solid_outline
-            .draw_combined(&self.selection_outline, pass);
+        draws += self.solid_outline.draw_combined(pass);
         // selected curves over the outline
         draws += self.segments.draw_selected(pass, &b, false, v.show_lines);
+        for lane in &self.registered {
+            draws += lane.draw_ink(pass, &b, v);
+        }
 
         if v.show_mesh_edges && v.markers {
             draws += self.glyphs.draw_spheres(pass, &b);
@@ -243,7 +384,8 @@ impl Gpu {
 
     /// Draw object ids around the cursor for a pick, then copy them out.
     pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
-        self.triangle_tile_pass(encoder);
+        // pick ink always tests against current lists
+        self.triangle_tile_pass(encoder, true, true);
         let size = (self.config.width, self.config.height);
         let mode = self.pick.mode;
         // draw only the window around the cursor, plus its halo
@@ -292,9 +434,27 @@ impl Gpu {
             return;
         }
 
+        // which solid each section cap pixel belongs to
+        let caps = self.cap_planes().1 > 0;
+
+        if caps {
+            self.clip.encode_pick(
+                &self.ctx,
+                &self.layouts,
+                encoder,
+                &self.arena,
+                &basic,
+                (view.w, view.h),
+            );
+        }
+
         {
-            // faces and clouds over the whole area, halo included
+            // caps, faces and clouds over the whole area, halo included
             let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
+
+            if caps {
+                self.clip.draw_cap_ids(&mut pass, &basic);
+            }
 
             if mode == PickMode::Component {
                 self.arena.draw_component_ids(&mut pass, &basic);
@@ -351,6 +511,10 @@ impl Gpu {
                         self.glyphs.draw_dot_ids(&mut pass, &ink);
                     }
                 }
+            }
+
+            for lane in &self.registered {
+                lane.draw_ids(&mut pass, &ink, &self.view, mode);
             }
 
             // text ids in every mode

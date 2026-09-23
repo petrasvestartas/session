@@ -10,9 +10,12 @@ use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
+mod clipping;
 mod cloud_query;
+mod drag;
 mod drawing;
 pub mod edit;
+pub(crate) mod number_box;
 mod panel;
 mod sheet_query;
 mod splitting;
@@ -50,6 +53,8 @@ pub struct State {
     pending_split: Option<splitting::Pending>,              // a split waiting for its cutter
     pub(crate) draft: Option<drawing::Draft>,               // a shape being drawn
     pub(crate) snap_enabled: bool,                          // snap to points while drawing
+    pub(crate) snap_modes: u8,                              // snap kinds switched on, app::snap bits
+    pub(crate) snap_bar: bool,                              // snap toolbar under the command line
     controls: Controls,                                     // control points of the selected object
     requested: PickMode,                                    // what the pending pick looks for
     pub(crate) additive_selection: bool,                    // Shift held: add to the selection
@@ -64,6 +69,8 @@ pub struct State {
     pub gizmo: Option<crate::app::gizmo::Gizmo>,            // the move/rotate/scale widget
     dragging: Option<edit::GizmoDrag>,                      // a gizmo drag in progress
     control_drag: Option<edit::ControlDrag>,                // a control point drag in progress
+    object_drag: Option<drag::ObjectDrag>,                  // a left drag moving objects
+    clip_hidden: usize,                                     // hidden clipping planes still cutting
 }
 
 impl State {
@@ -92,6 +99,8 @@ impl State {
             pending_split: None,
             draft: None,
             snap_enabled: true,
+            snap_modes: crate::app::snap::DEFAULT,
+            snap_bar: false,
             controls: Controls::default(),
             requested: PickMode::Object,
             additive_selection: false,
@@ -106,6 +115,8 @@ impl State {
             gizmo: None,
             dragging: None,
             control_drag: None,
+            object_drag: None,
+            clip_hidden: 0,
         })
     }
 
@@ -122,7 +133,7 @@ impl State {
     /// Add one loaded document to the scene.
     pub fn append(&mut self, doc: FileDoc) {
         let t0 = now_ms();
-        let first_row = self.scene.object_count(); // rows before this document
+        let first_row = self.scene.row_count(); // rows before this document
         self.scene.add_file(doc);
         let t1 = now_ms();
         // only the new rows go to the GPU
@@ -213,8 +224,20 @@ impl State {
         }
     }
 
+    /// Shrink the scene box to what is left, after objects were deleted or moved.
+    pub(crate) fn refresh_bounds(&mut self) {
+        if !self.scene.bounds_stale {
+            return;
+        }
+
+        self.scene.bounds_stale = false;
+        self.gpu.bounds = self.gpu.objects.live_world_bounds();
+        self.include_text_bounds();
+    }
+
     /// Fit the camera to everything loaded.
     pub fn fit_all(&mut self) {
+        self.refresh_bounds();
         let b = &self.gpu.bounds;
         log::info!("fit: bounds {} aspect {:.3}", b.str(), self.aspect());
         self.camera.fit(&self.gpu.bounds, self.aspect());
@@ -307,7 +330,9 @@ impl State {
         let row = row.filter(|row| self.scene.selectable(*row));
         self.cancel_gesture();
 
-        // unhighlight the old selection
+        // unhighlight the old selection and the clicked layers
+        self.hierarchy.active.clear();
+
         for old in self.hierarchy.selected.drain(..) {
             self.gpu.set_selected(old, false);
         }
@@ -405,7 +430,7 @@ impl State {
             return;
         };
         self.select(None);
-        self.scene.hidden.insert(guid); // by id, so a rebuild keeps it hidden
+        self.scene.hidden.insert(guid); // by id, so a new row of it stays hidden
         self.gpu.set_hidden(row, true);
         self.refresh_layers();
         self.update_label();
@@ -417,7 +442,7 @@ impl State {
         let show = value.unwrap_or(!self.scene.attributes);
         self.scene.attributes = show;
         self.select(None);
-        self.scene.rebuild(&mut self.gpu);
+        self.scene.rewalk_editable(&mut self.gpu);
         self.place_gizmo(None);
         self.refresh_layers();
         self.update_label();
@@ -433,7 +458,7 @@ impl State {
         }
 
         // does the new document have elements?
-        let elements = (first_row..self.scene.object_count()).any(|row| {
+        let elements = (first_row..self.scene.row_count()).any(|row| {
             matches!(
                 self.scene.geometry(row as u32),
                 Some(session_rust::Geometry::Element(_))
@@ -467,6 +492,11 @@ impl State {
 
     /// A pick answer arrived: select what it hit.
     fn apply_pick(&mut self, pick: Option<Pick>) {
+        // a drag asked what its press landed on
+        if self.take_drag_pick(pick) {
+            return;
+        }
+
         // a split is waiting for its cutter
         if self.pending_split.is_some() {
             if let Some(pick) = pick {
@@ -572,6 +602,14 @@ impl State {
 
     /// Draw one frame; a still scene asks for no more.
     pub fn render(&mut self) {
+        // every edit syncs its rows; one that did not is caught here
+        if self.scene.has_pending() {
+            log::warn!("an edit left its rows unsynced");
+            self.commit_rows();
+        }
+
+        self.update_clipping();
+
         self.upload_gizmo();
         let logical = self.logical_size();
 
@@ -635,7 +673,11 @@ impl State {
             clear: CLEAR,
             now_ms,
         };
-        self.dirty |= rebase.moved || self.gpu.view.perf || self.gpu.view.spin; // redraw reasons
+        self.dirty |= rebase.moved
+            || self.gpu.view.perf
+            || self.gpu.view.spin
+            || self.gpu.ambient_pending()
+            || (self.gpu.performance.rough() && !self.interacting); // redraw reasons
 
         let mut dropped = false;
 
@@ -645,7 +687,7 @@ impl State {
             self.gpu.performance.interacting = self.interacting;
             let drawn = self.gpu.present(&input); // encode time, None when the frame was dropped
 
-            // slow frames: drop to device scale 1 and no antialiasing
+            // slow even at the top drag tier: drop to device scale 1 and no antialiasing
             if self.gpu.performance.take_slow_interaction()
                 && (crate::engine::gpu::view::device_pixel_ratio() > 1.0
                     || self.gpu.targets.samples > 1)
@@ -672,12 +714,14 @@ impl State {
             self.gpu.pick_frame(&input, at);
         }
 
-        // reasons to draw again
+        // reasons to draw again; a drag frame is redrawn in full once the drag ends
         self.needs_frame |= dropped
             || rebase.pending
             || self.gpu.pick.busy()
             || self.gpu.view.perf
-            || self.gpu.view.spin;
+            || self.gpu.view.spin
+            || self.gpu.ambient_pending()
+            || self.gpu.performance.rough();
         #[cfg(target_arch = "wasm32")]
         crate::app::inspection::publish(self);
     }

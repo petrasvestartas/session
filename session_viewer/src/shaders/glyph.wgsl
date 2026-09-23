@@ -47,6 +47,12 @@ fn glyph_vertex(vid: u32) -> VsOut {
     }
 
     let world = place(g.instance_id, g.center);
+
+    // cut away by a clipping plane
+    if (clip_active() && clip_cut(inst.flags, world)) {
+        return dead_dot();
+    }
+
     let clip = mvp * vec4<f32>(world, 1.0);
 
     // behind the camera
@@ -119,8 +125,15 @@ fn coverage(in: VsOut) -> f32 {
 @fragment
 // Color: the disc, faded where geometry hides it.
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
+    let covered = coverage(in);
+
+    // no coverage: no depth reads
+    if (covered <= 0.0) {
+        discard;
+    }
+
     let hidden = !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample);
-    let alpha = coverage(in) * through_glass(hidden);
+    let alpha = covered * through_glass(hidden);
 
     if (alpha <= 0.0) {
         discard;

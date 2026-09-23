@@ -1,4 +1,5 @@
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
+use super::clip::ClipUniform;
 use super::view::View;
 use crate::camera::FOVY_DEG;
 use crate::engine::pipelines::Layouts;
@@ -159,6 +160,7 @@ pub struct FrameUniforms {
     mvp_buffer: wgpu::Buffer, // camera matrix
     line_buffer: wgpu::Buffer, // LineUniform
     cloud_buffer: wgpu::Buffer, // CloudUniform
+    clip_buffer: wgpu::Buffer, // ClipUniform, bound beside the line and cloud blocks
     pub mvp_group: wgpu::BindGroup, // group 0
     pub line_group: wgpu::BindGroup, // group 1
     pub cloud_group: wgpu::BindGroup, // group 1 of the point lane
@@ -172,6 +174,7 @@ pub struct FrameUniforms {
     pub pick_transform_group: wgpu::BindGroup, // text lanes' pick group
     line: LineUniform, // last written values
     cloud: CloudUniform, // last written values
+    clip: ClipUniform, // last written clipping planes
     pub mvp_f32: [f32; 16], // this frame's camera matrix
     pub ortho_h: f32, // ortho half-height; 0 = perspective
     pub eye: [f32; 3], // camera position this frame
@@ -205,6 +208,7 @@ impl FrameUniforms {
             + self.pick_line_buffer.size()
             + self.pick_cloud_buffer.size()
             + self.pick_transform_buffer.size()
+            + self.clip_buffer.size()
     }
 
     /// Create the buffers and bind groups with default values.
@@ -239,6 +243,8 @@ impl FrameUniforms {
             _pad: [0.0; 2],
         };
         let cloud_buffer = uniform_buffer(&ctx.device, "cloud.buffer", &cloud);
+        let clip = ClipUniform::default();
+        let clip_buffer = uniform_buffer(&ctx.device, "clip.buffer", &clip);
         let identity = Xform::identity().to_f32();
         let pick_mvp_buffer = uniform_buffer(&ctx.device, "pick.mvp.buffer", &identity);
         let pick_line_buffer = uniform_buffer(&ctx.device, "pick.line.buffer", &line);
@@ -246,13 +252,31 @@ impl FrameUniforms {
         let pick_transform_buffer = uniform_buffer(&ctx.device, "pick.transform.buffer", &identity);
 
         let mvp_group = bind_group(ctx, &l.mvp, "mvp.bind_group", &[&mvp_buffer]);
-        let line_group = bind_group(ctx, &l.line, "line.bind_group", &[&line_buffer]);
-        let cloud_group = bind_group(ctx, &l.line, "cloud.bind_group", &[&cloud_buffer]);
+        let line_group = bind_group(
+            ctx,
+            &l.line,
+            "line.bind_group",
+            &[&line_buffer, &clip_buffer],
+        );
+        let cloud_group = bind_group(
+            ctx,
+            &l.line,
+            "cloud.bind_group",
+            &[&cloud_buffer, &clip_buffer],
+        );
         let pick_mvp_group = bind_group(ctx, &l.mvp, "pick.mvp.bind_group", &[&pick_mvp_buffer]);
-        let pick_line_group =
-            bind_group(ctx, &l.line, "pick.line.bind_group", &[&pick_line_buffer]);
-        let pick_cloud_group =
-            bind_group(ctx, &l.line, "pick.cloud.bind_group", &[&pick_cloud_buffer]);
+        let pick_line_group = bind_group(
+            ctx,
+            &l.line,
+            "pick.line.bind_group",
+            &[&pick_line_buffer, &clip_buffer],
+        );
+        let pick_cloud_group = bind_group(
+            ctx,
+            &l.line,
+            "pick.cloud.bind_group",
+            &[&pick_cloud_buffer, &clip_buffer],
+        );
         let pick_transform_group = bind_group(
             ctx,
             &pick_transform_layout(ctx),
@@ -264,6 +288,7 @@ impl FrameUniforms {
             mvp_buffer,
             line_buffer,
             cloud_buffer,
+            clip_buffer,
             mvp_group,
             line_group,
             cloud_group,
@@ -277,6 +302,7 @@ impl FrameUniforms {
             pick_transform_group,
             line,
             cloud,
+            clip,
             mvp_f32: [0.0; 16],
             ortho_h: 0.0,
             eye: [0.0; 3],
@@ -331,6 +357,17 @@ impl FrameUniforms {
         ctx.queue
             .write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&cloud));
         self.cloud = cloud;
+    }
+
+    /// Write the clipping planes when they changed; the main frame and the pick share them.
+    pub fn write_clip(&mut self, ctx: &GpuCtx, clip: &ClipUniform) {
+        if bytemuck::bytes_of(&self.clip) == bytemuck::bytes_of(clip) {
+            return;
+        }
+
+        self.clip = *clip;
+        ctx.queue
+            .write_buffer(&self.clip_buffer, 0, bytemuck::bytes_of(clip));
     }
 
     /// Write the same settings for the pick window; call after `write`.

@@ -128,9 +128,26 @@ impl CloudLane {
         }
     }
 
+    /// True when `more` points fit in the largest buffers this device allows.
+    pub fn fits(&self, ctx: &GpuCtx, more: u32) -> bool {
+        let more = u64::from(more);
+        self.pos.fits(ctx, more * 3) && self.col.fits(ctx, more) && self.nrm.fits(ctx, more)
+    }
+
     /// Append one upload; returns true if a buffer was replaced.
     pub fn append(&mut self, ctx: &GpuCtx, up: &CloudRows) -> bool {
         debug_assert_eq!(up.col.len() * 3, up.pos.len());
+
+        // past the device's largest buffer the upload is dropped, not the device
+        if !self.fits(ctx, up.point_count()) {
+            log::warn!(
+                "{} cloud points do not fit beside the {} on the GPU; not drawn",
+                up.point_count(),
+                self.point_count
+            );
+            return false;
+        }
+
         // rows before this upload
         let point_base = self.point_count;
         let nrm_base = self.nrm.len();
@@ -199,6 +216,60 @@ impl CloudLane {
         }
 
         log::warn!("cloud chunk for row {instance} arrived before its cloud; dropped");
+    }
+
+    /// Stop drawing the cloud on object row `instance`; returns its resident points, now dead.
+    pub fn kill_instance(&mut self, instance: u32) -> u32 {
+        let Some(at) = self.clouds.iter().position(|c| c.instance == instance) else {
+            return 0;
+        };
+
+        self.clouds.remove(at).resident
+    }
+
+    /// Copy the live clouds' points, normals and nodes into buffers of exact size; the old ones are freed.
+    pub fn compact(&mut self, ctx: &GpuCtx) {
+        let mut pos = Vec::new(); // (first row, rows) runs to keep
+        let mut col = Vec::new();
+        let mut nrm = Vec::new();
+        let mut nodes = Vec::new();
+        let mut points = 0u32;
+        let mut normals = 0u32;
+
+        for cloud in &mut self.clouds {
+            for chunk in &mut cloud.chunks {
+                let count = chunk.to - chunk.from;
+                pos.push((chunk.row * 3, count * 3));
+                col.push((chunk.row, count));
+                chunk.row = points;
+                points += count;
+            }
+
+            if cloud.nrm_first != NO_NORMALS {
+                nrm.push((cloud.nrm_first, cloud.resident));
+                cloud.nrm_first = normals;
+                normals += cloud.resident;
+            }
+
+            let first = cloud.node_first as usize;
+            let end = (first + cloud.node_count as usize).min(self.nodes.len());
+            cloud.node_first = nodes.len() as u32;
+            nodes.extend_from_slice(&self.nodes[first.min(end)..end]);
+        }
+
+        let mut encoder = ctx.device.create_command_encoder(&Default::default());
+        let fresh = [
+            self.pos.packed(ctx, &mut encoder, &pos),
+            self.col.packed(ctx, &mut encoder, &col),
+            self.nrm.packed(ctx, &mut encoder, &nrm),
+        ];
+        ctx.queue.submit([encoder.finish()]);
+        let [p, c, n] = fresh;
+        self.pos.swap_in(p);
+        self.col.swap_in(c);
+        self.nrm.swap_in(n);
+        self.nodes = nodes;
+        self.point_count = points;
     }
 
     /// Cloud of a GPU point row: (object row, point index).

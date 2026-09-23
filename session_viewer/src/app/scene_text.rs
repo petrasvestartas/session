@@ -81,7 +81,7 @@ impl Scene {
             }
         }
 
-        let row = self.push_row(usize::MAX, &key, Xform::identity(), 0);
+        let row = self.push_row(super::rows::TEXT, &key, Xform::identity(), 0);
         label.id = row + 1;
         label.object = Some(TextObject {
             row,
@@ -96,7 +96,7 @@ impl Scene {
     }
 
     /// Hide inactive and hidden texts on the GPU.
-    pub(super) fn restore_text_visibility(&self, gpu: &mut Gpu) {
+    pub(crate) fn restore_text_visibility(&self, gpu: &mut Gpu) {
         for text in &self.texts {
             let hidden = self
                 .identity_of(text.row)
