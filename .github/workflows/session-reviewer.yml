@@ -1,11 +1,10 @@
-# Weekly session review: every Monday one randomly picked geometry-kernel class gets a
-# cross-language review (session_cpp / session_py / session_rust) covering performance,
-# memory, tests, readability, minimal verbosity, and 3-language alignment — and the safe,
-# test-verifiable findings get FIXED, not just filed. Fixes land as ONE review-ready PR per
-# submodule repo when the KERNEL_AUDIT_PUSH_TOKEN secret exists (a fine-grained PAT with
-# contents+pull-requests write on session_cpp/py/rust); without it, verified patches are
-# attached to the report issue. The review NEVER merges: the owner approves and merges, then
-# bumps the parent submodule pointers.
+# Weekly session review: every Monday one randomly picked geometry-kernel class is run through
+# the session-reviewer agent (wood_research/.claude/agents/session-reviewer.md, fetched at run
+# time): parity, identical tests and house style across session_cpp / session_py / session_rust,
+# fixed and verified green. Fixes land as ONE review-ready PR per submodule repo when the
+# KERNEL_AUDIT_PUSH_TOKEN secret exists; without it, verified patches are attached to the
+# report issue. The review NEVER merges: the owner approves and merges, then bumps the parent
+# submodule pointers.
 # Manual runs: Actions → session-reviewer → Run workflow (optionally naming a class).
 name: session-reviewer
 
@@ -110,6 +109,23 @@ jobs:
           echo "picked: $PICK"
           echo "class=$PICK" >> "$GITHUB_OUTPUT"
 
+      - name: Install the session-reviewer agent
+        env:
+          GH_TOKEN: ${{ secrets.KERNEL_AUDIT_PUSH_TOKEN || github.token }}
+        run: |
+          # The agent is maintained in wood_research/.claude/agents (public); this repo runs it.
+          mkdir -p .claude/agents .claude/skills
+          curl -fsSL https://raw.githubusercontent.com/petrasvestartas/wood_research/main/.claude/agents/session-reviewer.md \
+            -o .claude/agents/session-reviewer.md
+          # Its house-style skills live in the private petrasvestartas/skills repo; load them when the
+          # token can read it, otherwise the agent runs on its own text.
+          for s in session-format session-comments; do
+            mkdir -p ".claude/skills/$s"
+            gh api "repos/petrasvestartas/skills/contents/$s/SKILL.md" -H "Accept: application/vnd.github.raw" \
+              > ".claude/skills/$s/SKILL.md" 2>/dev/null || { rm -rf ".claude/skills/$s"; echo "skill $s not readable"; }
+          done
+          head -5 .claude/agents/session-reviewer.md
+
       - name: Ensure the review label exists
         env:
           GH_TOKEN: ${{ github.token }}
@@ -129,62 +145,29 @@ jobs:
           BASH_MAX_OUTPUT_LENGTH: "150000"
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: '--model claude-opus-5 --fallback-model claude-opus-4-8 --effort max --allowed-tools "Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
+          claude_args: '--model claude-opus-5 --fallback-model claude-opus-4-8 --effort max --allowed-tools "Task,Agent,Read,Edit,Write,Glob,Grep,Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(./bash/quicktest.sh:*),Bash(bash bash/quicktest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
           prompt: |
             ultrathink
 
-            You are the weekly session reviewer AND fixer for this multi-language geometry
-            kernel (C++ is ground truth; Python and Rust are ports that must mirror it — see
-            CLAUDE.md: identical APIs, variable names, test logic and line counts across
-            languages; least verbose style; Python floor is 3.9 (Rhino 8's embedded CPython)
-            with modern typing via mandatory `from __future__ import annotations` (X | None,
-            builtin generics), never typing.Union/Optional/List; NEVER add Claude/AI as a
-            git author or co-author).
+            You are the weekly session reviewer for this multi-language geometry kernel.
+            NEVER add Claude/AI as a git author or co-author.
 
             This week's class: **${{ steps.pick.outputs.class }}**
 
-            Its six files:
-            - session_cpp/src/${{ steps.pick.outputs.class }}.h and .cpp (+ ${{ steps.pick.outputs.class }}_test.cpp)
-            - session_py/src/session_py/${{ steps.pick.outputs.class }}.py (+ ${{ steps.pick.outputs.class }}_test.py)
-            - session_rust/src/${{ steps.pick.outputs.class }}.rs (+ ${{ steps.pick.outputs.class }}_test.rs)
-
-            EFFORT. This is a scheduled deep-review session: ultrathink on every step, at
-            maximum reasoning effort, with a budget of several hours — depth beats speed,
-            and finishing early is not a goal. Do not economize: read every line of all six files (no skimming),
-            trace the hot paths by hand, check EVERY public method against both ports, and
-            hand-verify each finding against the code before acting on it. After Phase 2,
-            run a SECOND full audit pass over the post-fix code; keep iterating until a
-            complete pass surfaces nothing new that is safe to fix. The existing guardrails
-            still apply on every pass: skip subjective, risky, or API-breaking changes.
-
-            PHASE 1 — AUDIT. Read all six files completely, then audit these dimensions:
-            1. PERFORMANCE — complexity of hot methods, avoidable allocations/clones in
-               loops, missed early-outs. Cite file:line for every claim.
-            2. MEMORY — struct layout, redundant cached state, String/Vec bloat, clone-happy
-               APIs.
-            3. TESTS — untested public methods, cross-language test parity, missing edge
-               cases (degenerate inputs, tolerance boundaries).
-            4. READABILITY — naming, function length, comments that state constraints rather
-               than narrate code.
-            5. MINIMAL VERBOSITY — dead code, redundant branches, logic that should be one
-               helper.
-            6. ALIGNMENT — public API deltas, behavioral drift, naming drift across the
-               three languages, as a table. The most valuable section.
-            Rank findings by impact. A clean dimension gets one line, no padding.
-
-            PHASE 2 — FIX. From the ranked findings, implement the ones that are SAFE and
-            TEST-VERIFIABLE: real bugs, quadratic algorithms with linear equivalents,
-            behavioral drift between languages (align Python/Rust to the C++ ground truth
-            unless C++ itself is the bug — then fix all three), and missing edge-case tests
-            for what you fixed. Keep three-language parity: a shared defect is fixed in all
-            three, identically. Skip anything subjective, risky, or API-breaking — leave
-            those in the report as recommendations.
-
-            VERIFY: run the affected languages' suites — `./bash/minitest.sh --rust --no-web`,
-            `--py --no-web`, `--cpp --no-web` (chmod +x bash scripts first if needed). Every
-            suite you touched must end green. REVERT any fix whose tests you cannot make
-            pass; a reverted fix goes back into the report as a recommendation with what you
-            learned.
+            PHASE 1+2 — REVIEW AND FIX. Hand the class to the `session-reviewer` subagent
+            (.claude/agents/session-reviewer.md) with exactly this task:
+            `fix ${{ steps.pick.outputs.class }}`
+            That agent defines the review: cross-language parity (C++ is ground truth),
+            identical test sets, and the house style, for this one class in all three kernels,
+            ending with its quicktest green in cpp, py and rust. Tell it these CI facts:
+            - The checkout is `session/` itself: drop the `session/` prefix from its paths.
+            - Its machine-local build limits (flock, systemd-run, MemoryMax, ~/.cache,
+              MINITEST_JOBS) do not exist here; run `./bash/quicktest.sh <class> --cpp|--py|--rust`
+              and `./bash/minitest.sh --<lang> --no-web` (chmod +x bash/*.sh first).
+            - Never edit session_viewer, wood or any other project; never delete code under a
+              `// WOOD:` banner; wood classes never belong in the kernel.
+            Wait for its report. If it left a suite red, revert that change and list it as a
+            recommendation. Every suite you touched must end green before delivery.
 
             WRITING RULES (apply to every PR title, PR body, commit message and the
             report issue). The audit is read by a human in a PR list, so keep it scannable:
@@ -237,8 +220,8 @@ jobs:
               then a final line `Review and merge: <repo>#<n>, <repo>#<n>, ...` followed by
               `then bump the parent submodule pointers.`
               In CAN_PUSH=0 mode this section instead carries one ```diff block per repo.
-            - `## Recommendations` — ranked, one line each, every line carrying a `file:line`.
-            - `## Audit` — the six dimensions, one line each, `file:line` for every claim;
-              a clean dimension is `- PERFORMANCE: clean.` and nothing more.
+            - `## Recommendations` — what the agent left, ranked, one line each, with `file:line`.
+            - `## Report` — the session-reviewer agent's report (parity / safety / tests /
+              style / ran / left), `file:line` for every claim.
             Citations survive the cap; prose does not. If it does not fit, cut sentences,
             never findings.
