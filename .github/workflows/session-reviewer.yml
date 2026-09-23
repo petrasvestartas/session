@@ -3,8 +3,8 @@
 # time): parity, identical tests and house style across session_cpp / session_py / session_rust,
 # fixed and verified green. Fixes land as ONE review-ready PR per submodule repo when the
 # KERNEL_AUDIT_PUSH_TOKEN secret exists; without it, verified patches are attached to the
-# report issue. The review NEVER merges: the owner approves and merges, then bumps the parent
-# submodule pointers.
+# report issue. Each PR is merged by the run once all its checks are green; a red PR stays
+# open. The owner bumps the parent submodule pointers.
 # Manual runs: Actions → session-reviewer → Run workflow (optionally naming a class).
 name: session-reviewer
 
@@ -145,7 +145,7 @@ jobs:
           BASH_MAX_OUTPUT_LENGTH: "150000"
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: '--model claude-opus-5 --fallback-model claude-opus-4-8 --effort max --allowed-tools "Task,Agent,Read,Edit,Write,Glob,Grep,Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(./bash/quicktest.sh:*),Bash(bash bash/quicktest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
+          claude_args: '--model claude-opus-5 --fallback-model claude-opus-4-8 --effort max --allowed-tools "Task,Agent,Read,Edit,Write,Glob,Grep,Bash(git:*),Bash(gh pr:*),Bash(gh run:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(./bash/quicktest.sh:*),Bash(bash bash/quicktest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
           prompt: |
             ultrathink
 
@@ -187,8 +187,8 @@ jobs:
             logical adjustment per repo (plain descriptive messages; repo rule: no AI
             co-author line). The environment variable CAN_PUSH tells you which mode:
             - CAN_PUSH=1: open ONE pull request per changed submodule repo — never more —
-              carrying every adjustment you made to that repo as separate commits, and leave
-              it OPEN for the repository owner to review, approve and merge. Per changed repo
+              carrying every adjustment you made to that repo as separate commits, and merge
+              it yourself once every one of its checks is green. Per changed repo
               (session_cpp / session_py / session_rust — authenticated checkouts):
                 1. branch `session-reviewer/${{ steps.pick.outputs.class }}-${{ github.run_id }}`
                    from origin/main carrying that repo's audit commits;
@@ -197,11 +197,15 @@ jobs:
                    that grows extra sections). A PR touching several adjustments gets one
                    `**Fix:**` line per adjustment and keeps the 600-character cap;
                 3. wait for that repo's CI with `gh pr checks <num> -R ... --watch` (skip the
-                   wait if the repo has no checks) and record the outcome for the report.
-              YOU DO NOT MERGE. Never `gh pr merge`, never `gh pr review --approve`, never
-              push to main, and never open a parent-repo pointer-bump PR — the submodule
-              pointers move only after the owner merges, which is their step, not yours.
-              A red PR is still delivered; say so in the report and leave it open.
+                   wait if the repo has no checks) and record the outcome for the report;
+                4. if EVERY check passed, merge it: `gh pr merge <num> -R petrasvestartas/<submodule>
+                   --rebase --delete-branch` (rebase keeps one commit per adjustment on main).
+                   Then watch the main-branch runs that the merge triggered (`gh run list`,
+                   `gh run watch --exit-status`) and record them.
+              Merge only green PRs. A red or pending PR stays OPEN: say so in the report.
+              Never `gh pr review --approve`, never push to main directly, never force-push,
+              and never open a parent-repo pointer-bump PR: the owner bumps the parent
+              submodule pointers.
             - CAN_PUSH=0: run `git diff` in each changed submodule and embed each diff in
               the issue body as a fenced ```diff block titled by repo, ready for `git apply`.
               Note in the issue that adding the KERNEL_AUDIT_PUSH_TOKEN secret upgrades
@@ -217,8 +221,8 @@ jobs:
               line entirely when every PR is green.
             - one line: `Proposed: <n> | Recommendations: <n> | Suites: cpp <N/N>, py <N/N>, rust <N/N>`
             - `## Proposed` — one line per adjustment: `- <one sentence> — <repo>#<n>`,
-              then a final line `Review and merge: <repo>#<n>, <repo>#<n>, ...` followed by
-              `then bump the parent submodule pointers.`
+              then a final line `Merged: <repo>#<n>, ... | Open (red): <repo>#<n>, ...`
+              followed by `then bump the parent submodule pointers.`
               In CAN_PUSH=0 mode this section instead carries one ```diff block per repo.
             - `## Recommendations` — what the agent left, ranked, one line each, with `file:line`.
             - `## Report` — the session-reviewer agent's report (parity / safety / tests /
