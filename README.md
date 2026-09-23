@@ -5,265 +5,111 @@
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white)
 ![WebGPU](https://img.shields.io/badge/WebGPU-005A9C?logo=webgpu&logoColor=white)
 
-Session is a multi-language geometry kernel implemented three times over — in Python, C++ and
-Rust — with identical APIs, shared protobuf schemas, and a test suite that runs the same
-assertions in every language. It covers 47 tested classes: points, curves, surfaces, meshes,
-BReps (OCCT-style topology), and spatial indices.
+A geometry kernel written three times, in C++, Python and Rust, with the same API, the same
+protobuf schemas and the same tests in every language. C++ is the ground truth.
 
-C++ is the ground truth; Python and Rust are ported from it with matching APIs, variable names
-and test logic.
+Documentation: <https://petrasvestartas.github.io/session/>
 
-See the [Session documentation](https://petrasvestartas.github.io/session/).
+## Classes
 
-## Repository layout
+| Group | Classes |
+|-------|---------|
+| Basics | `tolerance` `color` `matrix` `xform` `quaternion` `session_config` |
+| Points and vectors | `point` `vector` `plane` `line` `pointcloud` |
+| Curves | `polyline` `nurbsknot` `nurbscurve` |
+| Surfaces | `nurbssurface` `nurbssurface_trimmed` `remesh_nurbssurface_grid` `remesh_nurbssurface_adaptive` |
+| Meshes and solids | `mesh` `mesh_offset` `remesh_cdt` `convex_hull` `brep` `primitives` `simple_split` |
+| Algorithms | `intersection` `closest` `boolean_polyline` |
+| Bounding volumes and indices | `aabb` `obb` `spatial_aabbtree` `spatial_bvh` `spatial_kdtree` `spatial_octree` `spatial_rtree` |
+| Scene | `session` `objects` `element` `instance_ref` `graph` `tree` `history` |
+| Files | `file_encoders` `file_obj` `file_step` `io_xyz` |
 
-The three kernels and the shared schema/data live in Git submodules:
+Each class is `session_cpp/src/<class>.h|.cpp`, `session_py/src/session_py/<class>.py` and
+`session_rust/src/<class>.rs`, each with a `<class>_test` file holding the same tests.
 
-| Submodule | Description |
-|-----------|-------------|
-| [`session_cpp`](https://github.com/petrasvestartas/session_cpp) | C++ kernel — ground truth |
+## Repository
+
+| Path | Contents |
+|------|----------|
+| [`session_cpp`](https://github.com/petrasvestartas/session_cpp) | C++ kernel |
 | [`session_py`](https://github.com/petrasvestartas/session_py) | Python kernel |
 | [`session_rust`](https://github.com/petrasvestartas/session_rust) | Rust kernel |
 | [`session_proto`](https://github.com/petrasvestartas/session_proto) | Protobuf schemas shared by all three |
-| [`session_data`](https://github.com/petrasvestartas/session_data) | Geometry datasets used by tests and demos |
+| [`session_data`](https://github.com/petrasvestartas/session_data) | Test and demo datasets |
 | [`session_rhino`](https://github.com/petrasvestartas/session_rhino) | RhinoCommon converters |
+| `session_viewer` | WebGPU viewer (Rust to WASM) and its course in `docs/` |
+| `session_tests` | Web page showing the three languages' test results side by side |
+| `bash` | Build, test and git scripts |
 
-Everything else lives directly in this repository:
+## New PC
 
-| Directory | Description |
-|-----------|-------------|
-| `session_viewer` | Browser-only WebGPU CAD viewer (Rust → WASM via Trunk). Camera-relative f64, reverse-Z depth, CPU ray + BVH picking. `docs/` holds 100+ numbered lessons that build it from scratch. |
-| `session_tests` | Vue 3 test viewer — renders the per-class JSON results from all three languages side by side |
-| `bash` | Build, test and git automation — `minitest.sh` is the main entry point |
-| `serialization` | Round-trip artifacts written by the tests (gitignored) |
-| `session_compas` | COMPAS framework interop |
+### 1. Tools
 
-`uvsession/` (Python virtualenv) and build directories (`target/`, `build/`, `dist*/`) are local
-only and never committed.
+| Tool | Windows | macOS | Ubuntu |
+|------|---------|-------|--------|
+| Git + bash | [Git for Windows](https://git-scm.com/download/win) (use Git Bash for all commands below) | `xcode-select --install` | `sudo apt install git` |
+| C++ compiler | [Visual Studio 2022](https://visualstudio.microsoft.com/), "Desktop development with C++" | `xcode-select --install` | `sudo apt install build-essential` |
+| CMake 3.20+ | [cmake.org](https://cmake.org/download/) | `brew install cmake` | `sudo apt install cmake` |
+| Python 3.9+ and uv | [python.org](https://www.python.org/downloads/), then `powershell -c "irm https://astral.sh/uv/install.ps1 \| iex"` | `brew install python uv` | `sudo apt install python3 && curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| Rust | [rustup.rs](https://rustup.rs) | `curl https://sh.rustup.rs -sSf \| sh` | `curl https://sh.rustup.rs -sSf \| sh` |
+| Node 20+ (test page only) | [nodejs.org](https://nodejs.org) | `brew install node` | `sudo apt install nodejs npm` |
 
-## Key API files
-
-One file = one class, or one tightly-coupled group (`tree` contains `Tree` + `TreeNode`; `graph`
-contains `Graph` + `Vertex` + `Edge`).
-
-Status is computed from the latest test run: a class is ticked when all three languages
-emit the **same set of test names**. Currently **33 of 47** classes are at full parity.
-
-- [x] `aabb`
-- [x] `boolean_polyline`
-- [x] `brep`
-- [x] `closest`
-- [x] `color`
-- [x] `convex_hull`
-- [x] `element`
-- [x] `file_encoders`
-- [x] `file_obj`
-- [x] `file_step`
-- [x] `graph`
-- [x] `history`
-- [x] `instance_ref`
-- [ ] `intersection` — Python missing 1; C++ missing 1
-- [ ] `io_xyz` — Python missing 1; C++ missing 1 ("Read Colors"); "Import Minimal" (PDF) is Rust-only behind `--features pdf`
-- [x] `line`
-- [x] `matrix`
-- [x] `mesh`
-- [x] `mesh_offset`
-- [ ] `nurbscurve` — Python missing 1; Rust missing 3
-- [x] `nurbsknot`
-- [ ] `nurbssurface` — Python missing 1; Rust missing 1
-- [x] `nurbssurface_trimmed`
-- [x] `obb`
-- [ ] `objects` — Python missing 2; Rust missing 2; C++ missing 2
-- [x] `plane`
-- [x] `point`
-- [x] `pointcloud`
-- [x] `polyline`
-- [ ] `primitives` — Rust missing 5
-- [x] `quaternion`
-- [ ] `remesh_cdt` — Python missing 1; Rust missing 1
-- [ ] `remesh_nurbssurface_adaptive` — Rust missing 1
-- [x] `remesh_nurbssurface_grid`
-- [ ] `session` — Python missing 3; C++ missing 3
-- [x] `session_config`
-- [x] `spatial_aabbtree`
-- [x] `spatial_bvh`
-- [x] `spatial_kdtree`
-- [x] `spatial_rtree`
-- [x] `tolerance`
-- [x] `tree`
-- [ ] `vector` — Python/Rust carry a duplicate `interpolate_points` (see note below)
-- [x] `xform`
-
-Regenerate this status with `./bash/minitest.sh` — it rewrites the per-class JSON under
-`session_tests/<language>/` that the table above is derived from.
-
-Modules with no cross-language test set: `render_mesh` and `guid_serde` are Rust only.
-
-`vector`'s divergence is not a C++ gap. `Polyline::interpolate_points` exists and is tested under
-`Polyline` in all three languages. Python and Rust additionally keep a *second* copy of it as a
-free function in the `vector` module (`vector.py:1274`, `vector.rs:1338`) with its own
-`Vector / Interpolate Points` test. That copy is exported from neither `__init__.py` nor `lib.rs`
-and is referenced only by its own test — dead duplicate code that C++ never had.
-
-## Document workflow
-
-A `Session` is a CAD document: objects are added, edited, deleted, undone, saved to a file and
-opened again. Editing goes through `replace(guid, obj)`, which swaps the object stored under a
-guid for a new one and is the only edit history sees; mutating an object in place through
-`lookup` still works but is not recorded. Deleting with `remove_object` takes the object out of
-every live table at once — its typed list, `lookup`, its xform, its tree node with the subtree,
-its graph node and edges — and the removal record is the tombstone undo restores from.
-Undo/redo is grouped into transactions with `begin(label)` ... `commit()`; nothing is recorded
-outside one. History lives in memory only: it never crosses pb or JSON, every save
-(`pb_dump`, `pb_dumps`, `file_json_dump`, `file_json_dumps`) purges it, as Rhino does, and an
-opened file starts with an empty one. The buffer keeps the last 64 transactions.
-
-```python
-from session_py import Session, Point, Xform
-
-session = Session()
-a = Point(1.0, 0.0, 0.0)
-b = Point(2.0, 0.0, 0.0)
-c = Point(3.0, 0.0, 0.0)
-session.add_point(a)
-session.add_point(b)
-session.add_point(c)
-
-session.begin("edit")
-session.replace(b.guid, Point(20.0, 0.0, 0.0))
-session.remove_object(c.guid)
-session.set_xform(a.guid, Xform.translation(0.0, 5.0, 0.0))
-session.commit()
-
-session.undo()                      # c is back, b is (2, 0, 0) again, a has no xform
-session.redo()                      # the edit is applied again
-
-session.pb_dump("model.pb")         # purges the undo buffer
-opened = Session.pb_load("model.pb")
-opened.lookup[b.guid]               # Point(20, 0, 0); c.guid is absent
-```
-
-Rust and C++ use the same names: `begin`, `commit`, `undo`, `redo`, `replace`, `remove_object`,
-and a `History` with `can_undo`, `can_redo`, `depth`, `record`, `clear`.
-
-## Prerequisites
-
-| Tool | macOS | Ubuntu | Windows |
-|------|-------|--------|---------|
-| **CMake** | `brew install cmake` | `sudo apt install cmake` | [cmake.org](https://cmake.org/download/) |
-| **Python 3.11+** | `brew install python` | `sudo apt install python3` | [python.org](https://python.org) |
-| **Rust** | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` | same | [rustup.rs](https://rustup.rs) |
-| **Node 20+** | `brew install node` | `sudo apt install nodejs npm` | [nodejs.org](https://nodejs.org) |
-| **C++ compiler** | `xcode-select --install` | `sudo apt install build-essential` | [Visual Studio](https://visualstudio.microsoft.com/) |
-
-For `session_viewer` only:
-
-```bash
-rustup target add wasm32-unknown-unknown
-cargo install trunk
-```
-
-plus a WebGPU-capable browser (Chrome, Edge, Firefox, or Safari 18+).
-
-## Getting Started
-
-Clone with all submodules:
+### 2. Clone
 
 ```bash
 git clone --recurse-submodules https://github.com/petrasvestartas/session.git
 cd session
 ```
 
-If you already cloned without submodules:
+Already cloned without submodules: `git submodule update --init --recursive`.
+
+### 3. Build and test each language
+
+The same commands work on Windows (Git Bash), macOS and Ubuntu.
+
+**Python**
 
 ```bash
-git submodule update --init --recursive
-```
-
-## New PC Setup
-
-### 1. Install uv (Python package manager)
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-### 2. Create Python virtual environment
-
-```bash
-uv venv uvsession --python 3.11
-```
-
-### 3. Activate and install dependencies
-
-```bash
-# Windows (Git Bash)
-source uvsession/Scripts/activate
-
-# macOS/Linux
-source uvsession/bin/activate
-
-cd session_py && uv pip install -e . && cd ..
-```
-
-### 4. Run tests
-
-```bash
-# Python only (fastest)
+uv venv uvsession --python 3.9
+source uvsession/bin/activate            # Windows: source uvsession/Scripts/activate
+uv pip install -e "session_py[dev]"
 ./bash/minitest.sh --py --no-web
+```
 
-# All languages with web viewer
+**C++** (the first configure builds protobuf from source, which takes a few minutes)
+
+```bash
+cmake -S session_cpp -B session_cpp/build -DCMAKE_BUILD_TYPE=Release
+cmake --build session_cpp/build --config Release --parallel 4
+./bash/minitest.sh --cpp --no-web
+```
+
+**Rust**
+
+```bash
+cd session_rust && cargo build --lib --bin minitest && cd ..
+./bash/minitest.sh --rust --no-web
+```
+
+**All three, with the results page at <http://localhost:8769>**
+
+```bash
 ./bash/minitest.sh
 ```
 
-### Quick Reference
+One class only: `./bash/quicktest.sh <class> --py|--cpp|--rust`.
 
-| Command | Description |
-|---------|-------------|
-| `./bash/minitest.sh --py --no-web` | Python tests only |
-| `./bash/minitest.sh --rust --no-web` | Rust tests only |
-| `./bash/minitest.sh --cpp --no-web` | C++ tests only |
-| `./bash/minitest.sh --fast` | Skip dependency installs |
-| `./bash/minitest.sh` | Full test + web viewer at localhost:8769 |
-| `./bash/quicktest.sh <class> --py` | Single class test |
-
-Tests are meant to be identical across all three languages — same names, same logic, same line
-count — so any divergence shows up as a mismatched cell in the viewer. The
-[Key API files](#key-api-files) table tracks where that goal currently holds.
-
-## Working with submodules
-
-Pull the main repo and all submodules:
+### 4. Viewer (optional)
 
 ```bash
-./bash/git_pull.sh          # or: git pull && git submodule update --init --recursive
+rustup target add wasm32-unknown-unknown
+cargo install trunk
+cd session_viewer && trunk serve
 ```
 
-Commit and push changes across all submodules **and** the main repo in one step:
+Needs a WebGPU browser: Chrome, Edge, Firefox or Safari 18+.
 
-```bash
-./bash/git_push.sh "your commit message"
-```
+## Git
 
-Add a new submodule:
-
-```bash
-git submodule add <repo-url> <folder-name>
-git submodule update --init --recursive
-git commit -am "Add submodule <folder-name>"
-git push
-```
-
-## Breaking-Change Detection
-
-Breaking changes in `session-py` or protobuf schemas are caught before they ship:
-
-**Python API diff (`griffe`)** — runs in CI on every push to `main`. Compares the current branch
-against the last published PyPI version. Reports exactly which class, method, or parameter was
-removed or renamed with file path and line number.
-
-**Protobuf schema diff (`buf`)** — runs in `session_proto` CI on every push/PR. Catches removed
-fields, renamed messages, and changed field numbers before they break serialization silently.
-Config: `session_proto/buf.yaml`.
-
-CI runs the full minitest matrix on Ubuntu 22.04, macOS 15 (ARM64 and Intel) and Windows.
+Pull everything: `./bash/git_pull.sh`. Commit and push every submodule and this repo:
+`./bash/git_push.sh "message"`. Never add an AI as author or co-author.
