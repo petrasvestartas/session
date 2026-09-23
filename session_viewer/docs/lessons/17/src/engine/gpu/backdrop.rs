@@ -20,10 +20,10 @@ const GRID_VERTS: u32 = 50;
 
 /// Draws the background color and the floor grid.
 pub struct BackdropLane {
-    background_shader: wgpu::ShaderModule, // fullscreen background shader
-    grid_shader: wgpu::ShaderModule, // floor grid shader
-    background: wgpu::RenderPipeline, // background pipeline
-    grid: wgpu::RenderPipeline, // grid pipeline
+    background_shader: wgpu::ShaderModule,
+    grid_shader: wgpu::ShaderModule,
+    background: wgpu::RenderPipeline,
+    grid: wgpu::RenderPipeline,
 }
 
 impl BackdropLane {

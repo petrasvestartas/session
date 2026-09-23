@@ -34,7 +34,7 @@ pub struct Projection<'a> {
 pub struct LodWalk {
     pub ranges: Vec<Range>, // result: the runs to draw
     stack: Vec<(usize, usize)>, // nodes still to visit, with parent
-    visits: Vec<Visit>, // nodes visited
+    visits: Vec<Visit>,
 }
 
 impl LodWalk {

@@ -1,4 +1,5 @@
 // --8<-- [start:step-3a]
+//! Finds which cloud points are near the click by testing only the pages whose box the ray actually crosses.
 use super::stream::{CloudFields, CloudLod};
 use session_rust::Xform;
 use std::cell::Cell;
@@ -19,10 +20,10 @@ pub fn original_id(raw: &[u8]) -> Result<u32, String> {
 /// The click and the camera it was made with.
 #[derive(Clone)]
 pub struct QueryView {
-    pub matrix: Xform,  // cloud space to clip space
+    pub matrix: Xform, // cloud space to clip space
     pub size: [f64; 2], // viewport in pixels
-    pub at: [u32; 2],   // click pixel
-    pub radius: f64,    // pick radius in pixels
+    pub at: [u32; 2], // click pixel
+    pub radius: f64, // pick radius in pixels
 }
 
 impl QueryView {
@@ -152,7 +153,7 @@ fn grow_pixel_bounds(lo: &mut [f64; 2], hi: &mut [f64; 2], point: [f64; 2]) {
 /// One point near the click.
 #[derive(Clone, Debug)]
 pub struct Candidate {
-    pub local: u32,         // index in the source file
+    pub local: u32, // index in the source file
     pub position: [f64; 3], // exact source position
 }
 
@@ -234,20 +235,20 @@ pub fn eligible_ranges(lod: &CloudLod, total: u32, view: &QueryView) -> Vec<Rang
 // --8<-- [start:step-3e]
 /// One pick in a streamed cloud, page by page.
 pub struct Query {
-    pub id: u64,                    // pick number
-    pub parent: u32,                // the cloud's object row
-    pub url: String,                // the cloud file
-    pub fields: CloudFields,        // where the arrays are in the file
-    pub view: QueryView,            // the click
-    pub cancelled: Rc<Cell<bool>>,  // set when a newer pick replaces this
-    pub revision: Option<String>,   // file ETag every read must match
+    pub id: u64, // pick number
+    pub parent: u32, // the cloud's object row
+    pub url: String, // the cloud file
+    pub fields: CloudFields, // where the arrays are in the file
+    pub view: QueryView, // the click
+    pub cancelled: Rc<Cell<bool>>, // set when a newer pick replaces this
+    pub revision: Option<String>, // file ETag every read must match
     pub candidates: Vec<Candidate>, // points near the click so far
-    pub best: Option<u32>,          // winning candidate index so far
-    pub checked: u32,               // points examined so far
-    pub total: u32,                 // points to examine
-    ranges: Vec<Range<u32>>,        // pages still to read
-    next: usize,                    // next range
-    pub awaiting_gpu: bool,         // a page is on the GPU for ranking
+    pub best: Option<u32>, // winning candidate index so far
+    pub checked: u32, // points examined so far
+    pub total: u32, // points to examine
+    ranges: Vec<Range<u32>>, // pages still to read
+    next: usize,
+    pub awaiting_gpu: bool, // a page is on the GPU for ranking
 }
 
 impl Query {
@@ -309,12 +310,12 @@ impl Drop for Query {
 pub struct Batch {
     pub query: u64, // which pick
     pub count: u32, // points examined
-    pub result: Result<(Vec<Candidate>, Option<String>), String>, // candidates and the ETag
+    pub result: Result<(Vec<Candidate>, Option<String>), String>,
 }
 
 /// The final answer of a pick.
 pub struct Resolved {
-    pub query: u64,                                // which pick
+    pub query: u64, // which pick
     pub result: Result<(u32, [f64; 3]), String>, // original id and position
 }
 
@@ -329,11 +330,11 @@ mod web {
 
     /// What one page read needs from the pick.
     struct SourceRequest {
-        query: u64,                // which pick
-        url: String,               // the cloud file
-        fields: CloudFields,       // array positions
+        query: u64, // which pick
+        url: String, // the cloud file
+        fields: CloudFields, // array positions
         cancelled: Rc<Cell<bool>>, // the pick's cancel flag
-        revision: Option<String>,  // ETag to match
+        revision: Option<String>, // ETag to match
     }
 
     /// Copy what a page read needs.

@@ -4,22 +4,22 @@ const BACKFACE_COLOR: vec3<f32> = vec3<f32>(0.80, 0.05, 0.05);
 // One mesh vertex from the vertex buffers.
 struct VsIn {
     @location(0) position: vec3<f32>, // object-space position
-    @location(1) normal: vec3<f32>, // normal, or zero
+    @location(1) normal: vec3<f32>,
     @location(2) color: vec3<f32>, // rgb
     @location(3) inst_id: u32, // object row
 }
 
 // What the vertex shader hands the fragment shader.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>, // clip position
+    @builtin(position) pos: vec4<f32>,
     @location(0) color: vec3<f32>, // rgb, yellow when selected
     @location(1) world_pos: vec3<f32>, // scene-space position
     @location(2) normal: vec3<f32>, // scene-space normal
     @location(3) print: f32, // 1 for a sheet fill
     @location(4) @interpolate(flat) inst_id: u32, // object row
     @location(5) @interpolate(flat) mirrored: u32, // 1 when the object matrix flips handedness
-    @location(6) @interpolate(flat) selected: u32, // nonzero when selected
-    @location(7) @interpolate(flat) source_face: u32, // source face id, or none
+    @location(6) @interpolate(flat) selected: u32,
+    @location(7) @interpolate(flat) source_face: u32,
     @location(8) @interpolate(flat) primitive: u32, // triangle index + 1
     // closed solids take the opacity; open sheets stay opaque
     @location(9) @interpolate(flat) closed: u32,
@@ -78,9 +78,9 @@ fn vs_main(in: VsIn) -> VsOut {
 // Bit that marks a pick id as a face; matches FACE_TAG in Rust.
 const FACE_TAG: u32 = 0x20000000u;
 @group(3) @binding(1) var<storage, read> face_objects: array<u32>; // object row per vertex
-@group(3) @binding(2) var<storage, read> face_indices: array<u32>; // triangle indices
-@group(3) @binding(3) var<storage, read> source_faces: array<u32>; // source face per triangle
-@group(3) @binding(4) var<uniform> selected_face: vec4<u32>; // x: selected source face
+@group(3) @binding(2) var<storage, read> face_indices: array<u32>;
+@group(3) @binding(3) var<storage, read> source_faces: array<u32>;
+@group(3) @binding(4) var<uniform> selected_face: vec4<u32>;
 
 // Vertex `index` read from the storage buffers instead of vertex inputs.
 fn pull_triangle(index: u32) -> VsOut {

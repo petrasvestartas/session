@@ -70,7 +70,7 @@ fn world_box(r: &ObjectRow) -> AABB {
 // --8<-- [start:step-2a]
 }
 
-/// SSAO contact radius: 5% of the box diagonal.
+/// A small object needs a small contact shadow, so each object gets its own radius: 5% of its box diagonal.
 fn ambient_radius(bounds: &AABB) -> f32 {
     if !bounds.is_valid() {
         return 0.0;

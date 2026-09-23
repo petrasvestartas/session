@@ -161,7 +161,7 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB))
     push_polyline(ink.seg, &points, out.0, out.1);
 }
 
-/// A NURBS surface as a fixed UV grid with its four border edges.
+/// A NURBS surface is a smooth maths surface, so it has no triangles until it is sampled on a grid of u,v values.
 pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
     let mut sm = if let Some(mesh) = &s.m_mesh {
         mesh.clone()

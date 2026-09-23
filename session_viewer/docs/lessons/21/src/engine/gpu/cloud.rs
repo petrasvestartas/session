@@ -19,7 +19,7 @@ pub struct CloudDraw {
 /// One box of the cloud's octree.
 #[derive(Clone, Copy)]
 pub struct LodNode {
-    pub center: [f32; 3], // box center
+    pub center: [f32; 3],
     pub size: f32, // box edge length
     pub spacing: f32, // point spacing inside the box
     pub first: u32, // first point of the box, within the cloud
@@ -104,9 +104,9 @@ pub struct CloudLane {
     pos: GrowBuf, // positions
     col: GrowBuf, // colors
     nrm: GrowBuf, // normals
-    pub clouds: Vec<Cloud>, // one entry per cloud
+    pub clouds: Vec<Cloud>,
     pub nodes: Vec<LodNode>, // octree nodes of every cloud
-    pub point_count: u32, // points on the GPU
+    pub point_count: u32,
 }
 
 impl CloudLane {

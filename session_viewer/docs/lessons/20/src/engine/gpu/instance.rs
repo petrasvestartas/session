@@ -7,7 +7,7 @@ pub struct Instance {
     pub model: [f32; 16], // rotation and scale; translation is stored separately
     pub color: [f32; 4], // rgba tint
     pub flags: u32, // FLAG_* bits below
-    pub _pad0: f32,   // Unused; keeps `spacing` at offset 88 and the row at 96 bytes.
+    pub _pad0: f32, // Unused; keeps `spacing` at offset 88 and the row at 96 bytes.
     pub spacing: f32, // vertex spacing, world units; 0 = unknown
     pub _pad: u32, // padding
 }

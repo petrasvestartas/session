@@ -5,7 +5,7 @@
 struct Instance {
     model: mat4x4<f32>, // rotation and scale; translation is separate
     color: vec4<f32>, // rgba tint
-    flags: u32, // FLAG_* bits
+    flags: u32,
     _pad0: f32,
     spacing: f32, // vertex spacing, world units
 };
@@ -34,7 +34,7 @@ struct LineUniform {
 
 // Object flag bits; match Instance::FLAG_* in Rust.
 const FLAG_SELECTED: u32 = 1u; // selected: drawn tinted
-const FLAG_HIDDEN: u32 = 2u; // hidden: skipped
+const FLAG_HIDDEN: u32 = 2u;
 const FLAG_INSIDE: u32 = 4u; // camera is inside the object
 const FLAG_PRINT: u32 = 8u; // sheet fill: flat color
 const FLAG_OPEN: u32 = 16u; // open mesh: no back-face culling

@@ -1,7 +1,7 @@
 use super::brep_edges::EdgeChain;
 use session_rust::{BRep, Mesh};
 
-/// Some(true) if a face walks `s -> n`, Some(false) if `n -> s`, else None.
+/// Two faces sharing an edge must walk it in opposite directions; that is how a consistent outside is defined.
 fn walks(fm: &Mesh, s: usize, n: usize) -> Option<bool> {
     let fwd = occupied_halfedge(fm, s, n);
     let back = occupied_halfedge(fm, n, s);

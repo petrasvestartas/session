@@ -1,3 +1,4 @@
+//! Numbers about the running viewer - object counts, memory, timings - for the status line and the tests.
 #[cfg(target_arch = "wasm32")]
 use crate::State;
 // --8<-- [start:step-3a]

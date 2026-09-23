@@ -1,3 +1,4 @@
+//! Answers what a click hit on a sheet, the flat drawing page laid over the model.
 use serde::Deserialize;
 use std::cell::Cell;
 use std::rc::Rc;
@@ -17,19 +18,19 @@ pub struct EntityMeta {
     #[serde(default)]
     pub guid: String, // source object id
     #[serde(default)]
-    pub name: String, // display name
+    pub name: String,
     #[serde(default)]
     pub kind: String, // wall, door, ...
     #[serde(default)]
-    pub width: f32, // pen width
+    pub width: f32,
     #[serde(default)]
-    pub color: Vec<f32>, // pen colour
+    pub color: Vec<f32>,
 }
 
 /// The table head, cached per sheet.
 #[derive(Clone, Debug)]
 pub struct SheetTable {
-    pub count: u32,               // records in the table
+    pub count: u32, // records in the table
     pub revision: Option<String>, // ETag every read must match
 }
 
@@ -68,9 +69,9 @@ pub fn entity_from(raw: &[u8]) -> Result<EntityMeta, String> {
 
 /// One entity lookup in flight.
 pub struct Query {
-    pub id: u64,                   // lookup number
-    pub row: u32,                  // the sheet's object row
-    pub entity: u32,               // entity index in the sheet
+    pub id: u64, // lookup number
+    pub row: u32, // the sheet's object row
+    pub entity: u32, // entity index in the sheet
     pub cancelled: Rc<Cell<bool>>, // set when a newer lookup replaces this
 }
 
@@ -95,8 +96,8 @@ impl Drop for Query {
 
 /// The answer to one lookup.
 pub struct Resolved {
-    pub query: u64,                                        // which lookup
-    pub result: Result<(EntityMeta, SheetTable), String>, // the entity and the table head
+    pub query: u64, // which lookup
+    pub result: Result<(EntityMeta, SheetTable), String>,
 }
 
 #[cfg(target_arch = "wasm32")]

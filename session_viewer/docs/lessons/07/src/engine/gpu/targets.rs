@@ -9,13 +9,13 @@ const MSAA_PIXELS_SHARED: u32 = 2_500_000;
 /// Pixels at 4x when the GPU type is unknown; every browser lands here.
 const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
 
-/// The frame's depth and color textures at one sample count.
+/// The depth texture remembers how far away each pixel already is, which is what lets a nearer triangle cover a farther one.
 pub struct Targets {
     pub depth: wgpu::TextureView,
     pub msaa: Option<wgpu::TextureView>,
     pub depth_single: wgpu::TextureView, // depth at 1x, or a 1x1 placeholder
     pub depth_msaa: wgpu::TextureView, // depth at 4x, or a 1x1 placeholder
-    pub samples: u32, // MSAA samples, 1 or 4
+    pub samples: u32, // MSAA draws each pixel 4 times at slightly different spots and averages them, to soften edges
     pub gradient: wgpu::TextureView,
     pub gradient_single: wgpu::TextureView, // gradient at 1x, or a placeholder
     pub gradient_msaa: wgpu::TextureView, // gradient at 4x, or a placeholder

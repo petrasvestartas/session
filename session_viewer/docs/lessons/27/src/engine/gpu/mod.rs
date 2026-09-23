@@ -72,7 +72,7 @@ pub struct Gpu {
     pub control_net: SegmentLane, // control polygon lines
     pub widget: widget::Widget, // gumball mesh, own depth
     // --8<-- [start:step-7b]
-    pub ui: Option<ui::Ui>, // egui overlay
+    pub ui: Option<ui::Ui>,
     // --8<-- [end:step-7b]
     pub text: text::TextLane, // labels
     pub selection_outline: surface_outline::SurfaceOutline, // outline around the selection

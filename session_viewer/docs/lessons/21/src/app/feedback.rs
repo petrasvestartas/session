@@ -1,3 +1,5 @@
+//! Messages shown to the person using the viewer - what loaded, what failed, what is selected.
+
 /// Show a message in the status line.
 pub fn status(message: &str) {
     // an empty message shows the reload notice, if any
@@ -100,10 +102,10 @@ pub fn command_text() -> Option<String> {
 pub fn command_line(_open: bool) {}
 
 pub struct LayerRow {
-    pub key: String,                 // unique id of the row
-    pub label: String,               // text shown
-    pub count: usize,                // objects under it
-    pub hidden: bool,                // eye toggled off
+    pub key: String, // unique id of the row
+    pub label: String, // text shown
+    pub count: usize, // objects under it
+    pub hidden: bool, // eye toggled off
 }
 
 /// Replace the rows of the layers panel.

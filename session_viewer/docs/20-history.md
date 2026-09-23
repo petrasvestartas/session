@@ -8,22 +8,18 @@ The sheet scene stays visible while document edits gain undo, redo and history-f
 
 Read this source file from its link; the checkpoint already contains it.
 
-???
+??? example "`session_rust/src/history.rs` · read only"
 
-    ```rust
-    --8<-- "session_rust/src/history.rs"
-    ```
+    [Open the full listing](kernel/history.md)
     
 
 ## Step 2 · session_rust/src/session.rs
 
 Read this source file from its link; the checkpoint already contains it.
 
-???
+??? example "`session_rust/src/session.rs` · read only"
 
-    ```rust
-    --8<-- "session_rust/src/session.rs"
-    ```
+    [Open the full listing](kernel/session.md)
     
 
 Run `cargo check` in `lessons/20/`.

@@ -1,3 +1,4 @@
+//! Collects browser pointer, key and touch events into one state the viewer can ask questions of, instead of handling events everywhere.
 use super::touch::{Act, Touches};
 use crate::State;
 use crate::camera::View;
@@ -9,17 +10,17 @@ const CLICK_SLOP: f64 = 4.0;
 
 /// Mouse, keyboard and finger state between events.
 pub struct Input {
-    orbiting: bool,                          // right button held
-    panning: bool,                           // middle button held
-    ctrl: bool,                              // Ctrl held
-    shift: bool,                             // Shift held
+    orbiting: bool, // right button held
+    panning: bool, // middle button held
+    ctrl: bool,
+    shift: bool,
     // --8<-- [start:step-21a]
-    gizmo_drag: bool,                        // a gizmo handle is being dragged
-    control_drag: bool,                      // a control point is being dragged
+    gizmo_drag: bool,
+    control_drag: bool,
     // --8<-- [end:step-21a]
-    last_cursor: (f64, f64),                 // last pointer position in pixels
-    left_down: Option<(f64, f64)>,           // where the left button went down
-    touch: Touches,                          // camera finger gestures
+    last_cursor: (f64, f64), // last pointer position in pixels
+    left_down: Option<(f64, f64)>,
+    touch: Touches, // camera finger gestures
 }
 
 impl Default for Input {
@@ -285,8 +286,8 @@ impl Input {
 /// A `pointercancel` listener on the canvas.
 #[cfg(target_arch = "wasm32")]
 pub struct PointerCancellation {
-    canvas: web_sys::HtmlCanvasElement,                                 // the canvas listened to
-    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>, // the JS callback
+    canvas: web_sys::HtmlCanvasElement,
+    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -390,14 +391,14 @@ impl Drop for CommandKeys {
 #[cfg(target_arch = "wasm32")]
 /// Click listener installed on the layers panel.
 pub struct LayerClicks {
-    panel: web_sys::Element, // the layers panel element
+    panel: web_sys::Element,
     callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
 }
 
 #[cfg(target_arch = "wasm32")]
 impl LayerClicks {
     pub fn new(
-        panel: web_sys::Element, // the layers panel element
+        panel: web_sys::Element,
         proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
     ) -> Result<Self, wasm_bindgen::JsValue> {
         use wasm_bindgen::JsCast;

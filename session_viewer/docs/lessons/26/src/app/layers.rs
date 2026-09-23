@@ -117,7 +117,7 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
     for (index, &(count, hidden)) in documents.iter().enumerate() {
         if count > 0 {
             out.push(Row {
-                layer: Layer::Document(index), // one document as a layer
+                layer: Layer::Document(index),
                 label: scene.docs[index].name.clone(),
                 count,
                 hidden: hidden == count,

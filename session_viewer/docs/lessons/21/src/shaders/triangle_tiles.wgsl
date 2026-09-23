@@ -17,7 +17,7 @@ struct TileRecord {
     values: array<atomic<u32>, 4>
 };
 
-@group(3) @binding(1) var<storage, read_write> tile_records: array<TileRecord>; // tile records, then the reference pool
+@group(3) @binding(1) var<storage, read_write> tile_records: array<TileRecord>;
 
 // the triangle as the fragment shader sees it
 struct TileVertex {

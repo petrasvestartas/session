@@ -147,7 +147,7 @@ impl State {
             }
 
             rows.push(LayerRow {
-                key: format!("select/{index}"), // the select button key
+                key: format!("select/{index}"),
                 label: format!("{indent}Select {}", node.label), // select row text
                 count,
                 hidden,

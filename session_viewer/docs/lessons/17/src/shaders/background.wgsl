@@ -1,6 +1,6 @@
 // One vertex of the fullscreen triangle.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>, // clip position
+    @builtin(position) pos: vec4<f32>,
 }
 
 // One triangle that covers the whole screen.

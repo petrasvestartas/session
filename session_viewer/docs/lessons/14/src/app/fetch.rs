@@ -1,3 +1,4 @@
+//! One HTTP request through the browser, returning status, body and ETag so an unchanged file can be skipped next time.
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
@@ -18,18 +19,18 @@ fn network_error(error: JsValue) -> String {
 
 /// What a GET came back with.
 pub struct Reply {
-    pub status: u16,          // HTTP status
-    pub etag: Option<String>, // the ETag header
-    pub bytes: Vec<u8>,       // the body, empty unless wanted
+    pub status: u16,
+    pub etag: Option<String>,
+    pub bytes: Vec<u8>, // the body, empty unless wanted
 }
 
 /// Options for one GET.
 #[derive(Default)]
 pub struct GetOpts {
-    pub no_store: bool,                // skip the browser cache
-    pub revalidate: bool,              // ask the server if the cache is current
+    pub no_store: bool, // skip the browser cache
+    pub revalidate: bool, // ask the server if the cache is current
     pub if_none_match: Option<String>, // ETag for a conditional request
-    pub range: Option<(u64, u64)>,     // (start, length) of a byte range
+    pub range: Option<(u64, u64)>, // (start, length) of a byte range
 }
 
 /// GET `url`; any HTTP status is Ok, a network failure is Err.
@@ -215,9 +216,9 @@ pub async fn next_tick() {
 
 /// A timer that aborts a fetch.
 struct Deadline {
-    controller: web_sys::AbortController, // aborts the request
-    timer: i32,                           // the setTimeout handle
-    _callback: Closure<dyn FnMut()>,      // kept alive for the timer
+    controller: web_sys::AbortController,
+    timer: i32, // the setTimeout handle
+    _callback: Closure<dyn FnMut()>, // kept alive for the timer
 }
 
 impl Deadline {

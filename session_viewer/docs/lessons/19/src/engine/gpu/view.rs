@@ -1,6 +1,6 @@
 /// Display settings; most start from a `?query` or an env variable.
 pub struct View {
-    pub show_grid: bool, // floor grid
+    pub show_grid: bool,
     pub show_points: bool, // point markers, `Q`
     pub show_lines: bool, // lines and curves, `W`
     pub show_mesh_edges: bool, // mesh edges and their vertex markers, `E`

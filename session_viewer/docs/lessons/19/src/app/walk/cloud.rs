@@ -84,7 +84,7 @@ fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> AABB {
 /// Copy the cloud's octree nodes.
 fn push_nodes(rows: &mut CloudRows, pc: &PointCloud) {
     for k in 0..pc.lod_node_count() {
-        let (c, size) = pc.lod_cube(k); // node cube
+        let (c, size) = pc.lod_cube(k);
         let (nf, nc) = pc.lod_range(k); // its points
         let mut children = [-1i32; 8]; // -1 = no child
 
@@ -137,17 +137,17 @@ fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
 /// Raw point columns of one streamed slice.
 pub struct StreamRows {
     pub positions: Vec<f32>, // three floats per point
-    pub colors: Vec<u32>,    // packed RGBA per point
+    pub colors: Vec<u32>, // packed RGBA per point
 }
 
 /// One slice of a streamed cloud and where it goes.
 pub struct StreamSlice<'a> {
-    pub rows: StreamRows,  // the points
+    pub rows: StreamRows, // the points
     pub lod: &'a CloudLod, // the whole node table
-    pub from: u32,         // first point index in the cloud
-    pub to: u32,           // one past the last
-    pub row: u32,          // object row
-    pub point_px: f32,     // file's point size
+    pub from: u32, // first point index in the cloud
+    pub to: u32, // one past the last
+    pub row: u32,
+    pub point_px: f32, // file's point size
 }
 
 /// Append one streamed slice; return its box.

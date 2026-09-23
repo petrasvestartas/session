@@ -1,13 +1,13 @@
 // --8<-- [start:step-7a]
 use super::buffers::GpuCtx;
 
-/// The frame's depth and color textures at one sample count.
+/// The depth texture remembers how far away each pixel already is, which is what lets a nearer triangle cover a farther one.
 pub struct Targets {
     pub depth: wgpu::TextureView,
     pub msaa: Option<wgpu::TextureView>,
     pub depth_single: wgpu::TextureView, // depth at 1x, or a 1x1 placeholder
     pub depth_msaa: wgpu::TextureView, // depth at 4x, or a 1x1 placeholder
-    pub samples: u32, // MSAA samples, 1 or 4
+    pub samples: u32, // MSAA draws each pixel 4 times at slightly different spots and averages them, to soften edges
 }
 
 impl Targets {

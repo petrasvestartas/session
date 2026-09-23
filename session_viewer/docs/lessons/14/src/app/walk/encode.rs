@@ -72,7 +72,7 @@ pub fn pack_facing(n0: Option<&[f64; 3]>, n1: Option<&[f64; 3]>) -> u32 {
 
 /// One pen for a run of segments.
 pub struct Pen {
-    pub row: u32,    // object row
+    pub row: u32,
     pub radius: f32, // half width, negative = pixels
-    pub color: u32,  // packed RGBA
+    pub color: u32, // packed RGBA
 }

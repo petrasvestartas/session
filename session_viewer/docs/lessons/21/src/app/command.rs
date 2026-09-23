@@ -1,20 +1,21 @@
 // --8<-- [start:step-14a]
+//! Every verb the viewer can do, named once, so the command line and the buttons trigger exactly the same code.
 use crate::app::coords;
 use crate::app::gizmo::Axis;
 
 /// What a line asked for.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Command {
-    Move([f64; 3]),                        // move the selection by mm
+    Move([f64; 3]), // move the selection by mm
     Rotate { axis: Axis, degrees: f64 }, // Turn the selection about one axis through its own centre, in degrees.
     Scale(f64), // scale about the selection centre
     Delete,
     Undo,
     Redo,
-    Hide,                     // hide the selection
-    ShowAll,                  // show everything hidden
-    Fit,                      // zoom to selection or scene
-    Escape,                   // clear the selection
+    Hide,
+    ShowAll, // show everything hidden
+    Fit, // zoom to selection or scene
+    Escape, // clear the selection
 }
 
 // --8<-- [end:step-14a]

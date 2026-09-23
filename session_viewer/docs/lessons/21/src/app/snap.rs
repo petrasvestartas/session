@@ -1,22 +1,23 @@
 // --8<-- [start:step-7a]
+//! Pulls the cursor onto a meaningful point - an end, a vertex, a midpoint - so drawings connect exactly instead of nearly.
 use session_rust::Point;
 
 /// Kinds of snap point, best first.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum SnapKind {
-    End,    // end of an open line
+    End, // end of an open line
     Vertex, // interior or loop vertex
-    Mid,    // middle of a segment
-    Center, // centre of a shape
-    Near,   // nearest point on a segment
+    Mid, // middle of a segment
+    Center,
+    Near, // nearest point on a segment
 }
 
 /// One snap candidate.
 #[derive(Clone, Debug)]
 pub struct Snap {
-    pub point: Point,   // where it is
+    pub point: Point, // where it is
     pub kind: SnapKind, // what it is
-    pub owner: u32,     // object row it belongs to
+    pub owner: u32, // object row it belongs to
 }
 
 // --8<-- [end:step-7a]

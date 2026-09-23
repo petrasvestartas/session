@@ -1,13 +1,25 @@
 site_name: Build the Session Viewer
 site_description: A code-first course that reconstructs the Rust, WebAssembly, WebGPU and WGSL viewer step by step.
 docs_dir: target/docs/source
-# The lesson crates are read by the snippets extension, not copied into the site.
+# The lesson crates are read by the snippets extension, not copied into the site; the other
+# entries are build tools and sources that no page links to.
 exclude_docs: |
   docs/lessons/
+  docs/hooks/
+  docs/overrides/
+  docs/diagrams/
+  docs/**/__pycache__/
+  docs/*.py
+  docs/*.sh
+  docs/*.cjs
+  docs/illustrations/*.py
+  docs/stylesheets/*.py
+  docs/stylesheets/*.json
 site_dir: target/docs/site
 dev_addr: 127.0.0.1:8772
 theme:
   name: material
+  custom_dir: docs/overrides
   font: false
   palette:
     scheme: default
@@ -19,8 +31,13 @@ theme:
     - search.highlight
     - content.code.copy
     - content.code.annotate
+    - content.lazy
 plugins:
   - search
+# lean_html trims the rendered pages, service_worker writes sw.js; docs/performance-patterns.md, "Course site weight".
+hooks:
+  - docs/hooks/lean_html.py
+  - docs/hooks/service_worker.py
 validation:
   nav:
     omitted_files: ignore
@@ -37,8 +54,6 @@ markdown_extensions:
         - !relative $config_dir/..
       check_paths: true
   - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
       pygments_lang_class: true
       guess_lang: false
   - pymdownx.superfences:

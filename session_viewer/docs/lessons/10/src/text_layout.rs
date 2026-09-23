@@ -1,3 +1,4 @@
+//! Layout decides where a label sits - line breaks, alignment, the box it occupies - before a single pixel is drawn.
 use crate::engine::text::{FONT_FAMILY, TextDocument, TextLabel, TextPlacement};
 use wasm_bindgen::prelude::*;
 

@@ -15,16 +15,16 @@ struct ProjectLine {
 struct ProjectInstance {
     model: mat4x4<f32>, // rotation and scale
     color: vec4<f32>, // rgba tint
-    flags: u32, // FLAG_* bits
+    flags: u32,
     _pad0: f32,
-    spacing: f32, // vertex spacing
+    spacing: f32,
 };
 
 @group(2) @binding(0) var<storage, read> instances: array<ProjectInstance>; // one row per object
 @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>; // position per object
 @group(3) @binding(0) var<storage, read> physical_vertices: array<f32>; // mesh vertices, ten floats each
 @group(3) @binding(1) var<storage, read> physical_objects: array<u32>; // object row per vertex
-@group(3) @binding(2) var<storage, read> physical_indices: array<u32>; // triangle indices
+@group(3) @binding(2) var<storage, read> physical_indices: array<u32>;
 @group(3) @binding(3) var<storage, read_write> projected: array<ProjectedTriangle>; // output: one record per triangle
 @group(3) @binding(4) var<uniform> live_count: vec4<u32>; // x = triangle count
 

@@ -271,7 +271,7 @@ mod tests {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum SelectionTool {
     #[default]
-    Object, // whole objects
-    Edge,   // edges
-    Face,   // faces
+    Object,
+    Edge,
+    Face,
 }

@@ -1,3 +1,4 @@
+//! The silhouette: the outline where a curved surface turns away from the viewer, which no edge in the model describes.
 use std::collections::HashSet;
 
 use super::buffers::GpuCtx;
@@ -12,10 +13,10 @@ struct Mask {
     group: wgpu::BindGroup, // mask, radius and coarse mask, for the compositor
     coarse: Attachment, // max of each 16x16 block; empty blocks are skipped
     // --8<-- [end:step-28a]
-    coarse_size: (u32, u32), // coarse texture size
+    coarse_size: (u32, u32),
     pool_group: wgpu::BindGroup, // the mask, for the coarse pass
     size: (u32, u32), // mask size, px
-    samples: u32, // MSAA samples
+    samples: u32,
 }
 
 /// Mask pixels per coarse pixel; must match the shader.
@@ -29,16 +30,16 @@ pub struct MaskKey {
     pub selection: u64, // selection change count
     pub faces: u64, // face selection change count
     pub size: (u32, u32), // canvas size, px
-    pub samples: u32, // MSAA samples
-    pub edges: bool, // edges shown
+    pub samples: u32,
+    pub edges: bool,
     pub pen: u32, // pen width bits
 }
 
 /// Which surfaces the outline goes around.
 #[derive(Clone, Copy, PartialEq)]
 pub enum OutlineKind {
-    Selected, // selected objects only
-    AllSolids, // every solid
+    Selected,
+    AllSolids,
 }
 
 /// Draws a black outline around surfaces from a coverage mask.

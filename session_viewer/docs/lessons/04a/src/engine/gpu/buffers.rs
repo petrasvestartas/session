@@ -8,22 +8,22 @@ pub struct GpuCtx {
     pub queue: wgpu::Queue, // uploads data and submits commands
 }
 
-/// Usage flags for a storage buffer that grows.
+/// A storage buffer is a big array the shader indexes itself, used here for one row per object.
 pub const ROWS: wgpu::BufferUsages = wgpu::BufferUsages::STORAGE
     .union(wgpu::BufferUsages::COPY_DST)
     .union(wgpu::BufferUsages::COPY_SRC);
 
-/// Usage flags for a vertex buffer that grows.
+/// A vertex buffer holds the corner positions; the GPU walks it once per drawn vertex.
 pub const VERTS: wgpu::BufferUsages = wgpu::BufferUsages::VERTEX
     .union(wgpu::BufferUsages::COPY_DST)
     .union(wgpu::BufferUsages::COPY_SRC);
 
-/// Usage flags for an index buffer that grows.
+/// An index buffer lists which corners each triangle uses, so a shared corner is stored once instead of three times.
 pub const INDICES: wgpu::BufferUsages = wgpu::BufferUsages::INDEX
     .union(wgpu::BufferUsages::COPY_DST)
     .union(wgpu::BufferUsages::COPY_SRC);
 
-/// A GPU buffer that grows by half when full.
+/// GPU buffers have a fixed size, so growing means allocating a bigger one and copying; this adds half each time to make that rare.
 pub struct GrowBuf {
     pub buf: wgpu::Buffer, // the GPU buffer
     len: u32, // rows in use

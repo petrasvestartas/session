@@ -7,15 +7,15 @@ use crate::engine::pipelines::{
 
 /// The three mesh buffers one sheet draw reads, borrowed from the arena.
 pub struct OutlineBuffers<'a> {
-    pub vertices: &'a GrowBuf, // vertex positions
+    pub vertices: &'a GrowBuf,
     pub objects: &'a GrowBuf, // object row per vertex
-    pub indices: &'a GrowBuf, // triangle indices
+    pub indices: &'a GrowBuf,
 }
 
 /// Draws sheet fills and lettering: flat color, no lighting.
 pub struct OutlineTextLane {
     shader: wgpu::ShaderModule, // text outline shader
-    color: wgpu::RenderPipeline, // in color
+    color: wgpu::RenderPipeline,
     id: wgpu::RenderPipeline, // object ids
     physical_id: wgpu::RenderPipeline, // object ids with depth and gradient
 }

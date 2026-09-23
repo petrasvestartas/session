@@ -1,3 +1,5 @@
+//! The tree panel: rows grouped by document and kind, so one click can select or hide a whole branch.
+
 use crate::app::scene::Scene;
 #[cfg(test)]
 use session_rust::Session;

@@ -1,4 +1,5 @@
 // --8<-- [start:step-8a]
+//! Applies a change to the selection and remembers the state before it, which is what makes undo possible.
 use crate::app::scene::Scene;
 use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
@@ -43,7 +44,7 @@ impl Scene {
         let placed = self.placement_of(row)?;
         let parent = &placed * &base.inverse()?; // everything above the object
         let back = parent.inverse()?;
-        Some(&(&back * &(delta * &parent)) * base) // delta moved into the parent frame
+        Some(&(&back * &(delta * &parent)) * base)
     }
 
     /// Apply a world `delta` to one row; returns its new placement.

@@ -19,7 +19,7 @@ pub struct Input {
     left_down: Option<(f64, f64)>,           // where the left button went down
     touch: Touches,                          // camera finger gestures
     touch_edit: Option<u64>,                 // finger dragging a handle or control
-    fingers: std::collections::HashSet<u64>, // fingers on the screen
+    fingers: std::collections::HashSet<u64>,
     touch_cancelled: bool,                   // waiting for all fingers to lift
 }
 

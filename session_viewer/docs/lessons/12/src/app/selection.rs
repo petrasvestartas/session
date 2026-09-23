@@ -1,11 +1,13 @@
+//! What is selected: a whole object, or one edge inside it, which the outline pass and the commands both read.
+
 /// What is selected inside one object.
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize)]
 pub enum SelectionMode {
     #[default]
-    Object, // whole objects only
+    Object,
     Edge {
         parent: u32, // object row
-        edge: u32,   // edge index
+        edge: u32,
     },
 }
 

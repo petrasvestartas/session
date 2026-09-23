@@ -32,8 +32,8 @@ const MAX_RADIUS: u32 = 128;
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PickMode {
     #[default]
-    Object, // whole objects
-    Edge, // edges
+    Object,
+    Edge,
     Component, // edges first, else the visible face
     Controls { // control dots of one object
         parent: u32, // the object row

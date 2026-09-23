@@ -1,3 +1,4 @@
+//! Turns the raw bytes of a scene file into kernel objects.
 use super::fetch::next_tick;
 use prost::Message;
 use session_rust::proto;

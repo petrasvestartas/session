@@ -1,6 +1,6 @@
 use crate::engine::gpu::instance::Instance;
 
-/// A source object and its GPU instance.
+/// The guid names the object for the rest of its life; the revision says which version the GPU currently holds.
 pub struct SourceObject {
     pub guid: &'static str,
     pub revision: u64,

@@ -55,19 +55,19 @@ pub struct Gpu {
     pub ctx: GpuCtx, // device and queue
     pub config: wgpu::SurfaceConfiguration, // canvas size and format
     pub layouts: Layouts, // shared bind group layouts
-    pub frame: FrameUniforms, // per-frame uniform buffers
+    pub frame: FrameUniforms,
     pub targets: Targets, // depth and color textures
     pub view: View, // display settings
-    pub objects: InstanceTable, // one row per object
-    pub backdrop: BackdropLane, // background and grid
+    pub objects: InstanceTable,
+    pub backdrop: BackdropLane,
     pub arena: ArenaLane, // meshes
     pub segments: SegmentLane, // lines
     pub glyphs: GlyphLane, // markers and dots
     pub controls: GlyphLane, // control point dots
     pub control_net: SegmentLane, // control polygon lines
     pub text: text::TextLane, // labels
-    pub selection_outline: surface_outline::SurfaceOutline, // outline around the selection
-    pub solid_outline: surface_outline::SurfaceOutline, // outline around every solid
+    pub selection_outline: surface_outline::SurfaceOutline,
+    pub solid_outline: surface_outline::SurfaceOutline,
     pub selection_revision: u64, // bumps on every selection change
     pub logical_size: [f64; 2], // canvas size in CSS pixels
     pub cloud: CloudLane, // point cloud buffers

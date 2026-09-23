@@ -69,7 +69,7 @@ pub struct Gpu {
     pub objects: InstanceTable, // one row per object
     pub backdrop: BackdropLane, // background and grid
     // --8<-- [start:step-13b]
-    ssao: Option<ssao::Ssao>, // ambient occlusion, when on
+    ssao: Option<ssao::Ssao>,
     // --8<-- [end:step-13b]
     pub arena: ArenaLane, // meshes
     pub segments: SegmentLane, // lines
@@ -77,7 +77,7 @@ pub struct Gpu {
     pub controls: GlyphLane, // control point dots
     pub control_net: SegmentLane, // control polygon lines
     pub widget: widget::Widget, // gumball mesh, own depth
-    pub ui: Option<ui::Ui>, // egui overlay
+    pub ui: Option<ui::Ui>,
     pub text: text::TextLane, // labels
     pub selection_outline: surface_outline::SurfaceOutline, // outline around the selection
     pub solid_outline: surface_outline::SurfaceOutline, // outline around every solid

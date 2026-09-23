@@ -1,3 +1,4 @@
+//! Text that always faces the viewer at a fixed pixel size, for labels that must stay readable from any angle.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use crate::engine::pipelines::Target;
 
@@ -5,7 +6,7 @@ use crate::engine::pipelines::Target;
 pub(super) struct Rectangle {
     pub(super) bounds: [f32; 4], // left, top, right, bottom
     pub(super) clip: [f32; 4], // screen box it is cut to
-    pub(super) rounded: bool, // rounded corners
+    pub(super) rounded: bool,
     pub(super) depth: Option<f32>, // scene depth, or None for an overlay
     pub(super) object: Option<crate::engine::text::TextObject>, // object it belongs to, for picks
 }

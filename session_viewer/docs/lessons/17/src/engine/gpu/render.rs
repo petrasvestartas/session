@@ -1,3 +1,4 @@
+//! Records one frame: every pass in order into one encoder, then a single submit.
 use super::Gpu;
 use super::frame::Binds;
 use super::pick::PickMode;
@@ -18,7 +19,7 @@ impl Gpu {
             let b = Binds {
                 mvp: &self.frame.mvp_group, // the camera matrix
                 line: &self.frame.line_group, // pen settings
-                instances: &self.objects.group, // per-object rows
+                instances: &self.objects.group,
             };
             let mut pass = self.targets.begin_faces(encoder, view, clear);
             self.face_list(&mut pass, &b)
@@ -35,7 +36,7 @@ impl Gpu {
             let b = Binds {
                 mvp: &self.frame.mvp_group, // the camera matrix
                 line: &self.frame.line_group, // pen settings
-                instances: &self.objects.group, // per-object rows
+                instances: &self.objects.group,
             };
             {
                 let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
@@ -55,7 +56,7 @@ impl Gpu {
             let b = Binds {
                 mvp: &self.frame.mvp_group, // the camera matrix
                 line: &self.frame.line_group, // pen settings
-                instances: &self.objects.group, // per-object rows
+                instances: &self.objects.group,
             };
             {
                 let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);

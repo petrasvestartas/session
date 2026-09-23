@@ -37,15 +37,15 @@ pub enum View {
 
 /// Orbit camera: an orientation, a target and a distance.
 pub struct Camera {
-    pub target: [f64; 3],        // the point looked at, meters
-    pub distance: f64,           // eye to target, meters
+    pub target: [f64; 3], // the point looked at, meters
+    pub distance: f64, // eye to target, meters
     pub orientation: Quaternion, // where the camera faces
-    pub world_up: [f64; 3],      // the axis yaw turns around
-    pub position: [f64; 3],      // the eye, computed from the above
-    pub up: [f64; 3],            // the up direction, computed from the above
-    pub perspective: bool,       // false = orthographic
-    pub unit: Unit,              // the scene file unit
-    pub scene_extent: f64,       // scene radius in meters, keeps the far plane wide
+    pub world_up: [f64; 3], // the axis yaw turns around
+    pub position: [f64; 3], // the eye, computed from the above
+    pub up: [f64; 3], // the up direction, computed from the above
+    pub perspective: bool, // false = orthographic
+    pub unit: Unit, // the scene file unit
+    pub scene_extent: f64, // scene radius in meters, keeps the far plane wide
 }
 
 impl Camera {
@@ -127,7 +127,7 @@ impl Camera {
 
         for i in 0..3 {
             let cursor_off = right[i] * ndc_x * half_w + self.up[i] * ndc_y * half_h;
-            self.target[i] += cursor_off * (1.0 - k); // pull the target toward the cursor
+            self.target[i] += cursor_off * (1.0 - k);
         }
 
         self.distance = new_dist;

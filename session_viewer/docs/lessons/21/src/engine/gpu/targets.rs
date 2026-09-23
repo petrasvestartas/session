@@ -15,7 +15,7 @@ const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
 // --8<-- [start:step-24a]
 /// The frame's depth and color textures at one sample count.
 pub struct Targets {
-    pub depth: Attachment, // scene depth
+    pub depth: Attachment,
     pub msaa: Option<Attachment>, // multisampled color, only at 4x
     pub depth_single: wgpu::TextureView, // depth at 1x, or a 1x1 placeholder
     pub depth_msaa: wgpu::TextureView, // depth at 4x, or a 1x1 placeholder
@@ -241,7 +241,7 @@ impl Targets {
 pub struct TextureSpec {
     pub size: (u32, u32), // width and height, px
     pub format: wgpu::TextureFormat, // pixel format
-    pub samples: u32, // MSAA samples
+    pub samples: u32,
     pub usage: wgpu::TextureUsages, // how the GPU may use it
 }
 
@@ -266,8 +266,8 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
 // --8<-- [start:step-24j]
 /// A texture and its view; dropping it frees the memory at once.
 pub struct Attachment {
-    texture: wgpu::Texture, // the texture
-    pub view: wgpu::TextureView, // its default view
+    texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
 }
 
 impl Attachment {

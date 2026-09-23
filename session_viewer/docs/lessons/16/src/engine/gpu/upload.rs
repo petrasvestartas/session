@@ -7,11 +7,11 @@ use session_rust::AABB;
 
 /// Every lane's rows for one file, ready to upload.
 pub struct Upload {
-    pub obj: ObjectRows, // object rows
+    pub obj: ObjectRows,
     pub arena: ArenaRows, // meshes
     pub seg: SegRows, // lines
     pub glyph: GlyphRows, // markers and dots
-    pub cloud: CloudRows, // point clouds
+    pub cloud: CloudRows,
     pub bounds: AABB, // world box of this upload
 }
 

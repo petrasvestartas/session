@@ -1,4 +1,5 @@
 // --8<-- [start:step-5a]
+//! Turns raw touch points into one camera gesture: one finger orbits, two fingers pan and zoom.
 use winit::event::{Touch, TouchPhase};
 
 use crate::camera::Camera;
@@ -29,25 +30,25 @@ const DOUBLE_TAP_SLOP: f64 = 40.0;
 // --8<-- [start:step-5b]
 /// What one touch event asks the caller to do.
 pub enum Act {
-    None,            // nothing
-    Moved,           // the camera moved, redraw
-    Fit,             // double tap: fit the scene
+    None, // nothing
+    Moved, // the camera moved, redraw
+    Fit, // double tap: fit the scene
     Tap((f64, f64)), // single tap: pick at these pixels
 }
 
 /// One finger on the screen, in physical pixels.
 struct Finger {
-    id: u64,          // browser touch id
-    pos: (f64, f64),  // where it is now
+    id: u64, // browser touch id
+    pos: (f64, f64), // where it is now
     down: (f64, f64), // where it landed
-    t0: f64,          // when it landed, ms
+    t0: f64, // when it landed, ms
 }
 
 /// Every finger down and the last two-finger measurement.
 pub struct Touches {
-    fingers: Vec<Finger>,           // fingers on the screen
-    span: f64,                      // last distance between the first two, 0 = not yet measured
-    mid: (f64, f64),                // last midpoint of the first two
+    fingers: Vec<Finger>,
+    span: f64, // last distance between the first two, 0 = not yet measured
+    mid: (f64, f64), // last midpoint of the first two
     tap: Option<(f64, (f64, f64))>, // when and where the last tap lifted
 }
 

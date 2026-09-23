@@ -19,9 +19,9 @@ const CLEAR: wgpu::Color = wgpu::Color {
 
 /// One file to load.
 pub struct SceneFile {
-    pub path: String,       // the .pb file
-    pub place: Xform,       // where it goes in the scene
-    pub point_px: f32,      // point size, 0 for the default
+    pub path: String, // the .pb file
+    pub place: Xform, // where it goes in the scene
+    pub point_px: f32, // point size, 0 for the default
     pub display_only: bool, // drop the source after upload
 }
 

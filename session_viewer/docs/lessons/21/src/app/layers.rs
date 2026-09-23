@@ -1,22 +1,23 @@
 // --8<-- [start:step-16a]
+//! Groups objects so a whole set can be hidden or shown at once.
 use crate::app::scene::Scene;
 
 /// What one panel row controls.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Layer {
     Document(usize), // one loaded file, by index
-    Kind(Kind),      // every object of one kind
+    Kind(Kind),
 }
 
 /// The kinds the panel groups objects by.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Kind {
-    Solids,   // BReps, boxes, elements
+    Solids, // BReps, boxes, elements
     Surfaces, // NURBS surfaces, planes
     Meshes,
-    Curves,   // lines, polylines, NURBS curves
+    Curves, // lines, polylines, NURBS curves
     Points,
-    Clouds,   // point clouds
+    Clouds,
 }
 
 impl Kind {
@@ -85,10 +86,10 @@ impl Layer {
 
 /// One line of the panel.
 pub struct Row {
-    pub layer: Layer,  // what it controls
+    pub layer: Layer, // what it controls
     pub label: String, // text shown
-    pub count: usize,  // objects it controls
-    pub hidden: bool,  // all of them hidden
+    pub count: usize, // objects it controls
+    pub hidden: bool,
 }
 
 // --8<-- [end:step-16b]

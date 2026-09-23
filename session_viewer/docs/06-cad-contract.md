@@ -12,9 +12,7 @@ Read the kernel mesher; the lesson uses it, never changes it.
 
 ??? example "`session_rust/src/remesh_nurbssurface_grid.rs` · read only · 812 lines"
 
-    ```rust
-    --8<-- "session_rust/src/remesh_nurbssurface_grid.rs"
-    ```
+    [Open the full listing](kernel/remesh_nurbssurface_grid.md)
     
 
 Run `cargo check` in `lessons/06/`.

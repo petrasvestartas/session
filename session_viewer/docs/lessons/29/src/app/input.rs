@@ -20,7 +20,7 @@ pub struct Input {
     touch: Touches,                          // camera finger gestures
     // --8<-- [start:step-5a]
     touch_edit: Option<u64>,                 // finger dragging a handle or control
-    fingers: std::collections::HashSet<u64>, // fingers on the screen
+    fingers: std::collections::HashSet<u64>,
     touch_cancelled: bool,                   // waiting for all fingers to lift
     // --8<-- [end:step-5a]
 }

@@ -73,7 +73,7 @@ pub struct Gpu {
     pub controls: GlyphLane, // control point dots
     pub control_net: SegmentLane, // control polygon lines
     pub widget: widget::Widget, // gumball mesh, own depth
-    pub ui: Option<ui::Ui>, // egui overlay
+    pub ui: Option<ui::Ui>,
     pub text: text::TextLane, // labels
     pub selection_outline: surface_outline::SurfaceOutline, // outline around the selection
     pub solid_outline: surface_outline::SurfaceOutline, // outline around every solid

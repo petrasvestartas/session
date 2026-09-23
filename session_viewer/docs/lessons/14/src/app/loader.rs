@@ -1,4 +1,5 @@
 // --8<-- [start:step-6a]
+//! Loads a scene file and turns it into GPU rows a chunk at a time, so the page never freezes.
 use super::decode::session_from_bytes;
 use super::fetch::{fetch_bytes, sleep_ms};
 use super::live::LiveSource;
@@ -374,14 +375,14 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
 
 /// One staged item of a reload.
 enum PendingDocument {
-    Whole(FileDoc),              // a decoded file
+    Whole(FileDoc),
     Streamed(Box<StreamedInit>), // a cloud's first slice
 }
 
 /// Name and placement of a streamed document.
 struct Placement {
-    name: String,  // display name
-    place: Xform,  // world placement
+    name: String,
+    place: Xform,
     point_px: f32, // point size, clouds only
 }
 
@@ -440,11 +441,11 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
 /// Where a cloud's streaming continues.
 // --8<-- [end:step-6a]
 pub struct StreamCursor {
-    pub idx: usize,          // the cloud's slot in the scene
-    pub url: String,         // the cloud file
+    pub idx: usize, // the cloud's slot in the scene
+    pub url: String, // the cloud file
     pub fields: CloudFields, // array positions in the file
-    pub from: u32,           // next point to read
-    pub col_at: u64,         // byte position of its colour
+    pub from: u32, // next point to read
+    pub col_at: u64, // byte position of its colour
 }
 
 // --8<-- [start:step-6b]

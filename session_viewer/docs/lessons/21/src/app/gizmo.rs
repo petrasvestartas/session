@@ -1,4 +1,5 @@
 // --8<-- [start:step-6a]
+//! The handles drawn on the selection; dragging one moves, rotates or scales along a single axis.
 use session_rust::intersection::{line_line_parameters, line_plane};
 use session_rust::{Line, Plane, Point, Vector, Xform};
 
@@ -24,9 +25,9 @@ const MIN_SCALE: f64 = 0.01;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Handle {
     Translate(Axis), // an arm
-    Rotate(Axis),    // an arc
-    Scale(Axis),     // a ball on an arm
-    ScaleUniform,    // the centre ball
+    Rotate(Axis), // an arc
+    Scale(Axis), // a ball on an arm
+    ScaleUniform, // the centre ball
 }
 
 /// A world axis.
@@ -81,17 +82,17 @@ impl Handle {
 #[derive(Clone, Debug)]
 pub struct Drag {
     pub handle: Handle, // the handle being dragged
-    grabbed: Point,     // where the grab landed
-    angle: f64,         // grab angle about the axis, for rotate
-    reach: f64,         // grab distance from the centre, for scale
-    plane: Vector,      // plane normal a uniform scale is measured in
+    grabbed: Point,
+    angle: f64, // grab angle about the axis, for rotate
+    reach: f64, // grab distance from the centre, for scale
+    plane: Vector, // plane normal a uniform scale is measured in
 }
 
 /// The gizmo's position and state.
 pub struct Gizmo {
-    pub origin: Point,           // centre in world
+    pub origin: Point, // centre in world
     pub hovered: Option<Handle>, // handle under the pointer
-    pub drag: Option<Drag>,      // drag in progress
+    pub drag: Option<Drag>,
 }
 
 // --8<-- [end:step-6b]

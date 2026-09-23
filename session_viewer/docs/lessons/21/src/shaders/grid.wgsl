@@ -15,8 +15,8 @@ const BLUE: vec3<f32> = vec3<f32>(0.30, 0.45, 0.85);
 
 // One grid vertex.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>, // clip position
-    @location(0) color: vec3<f32>, // line color
+    @builtin(position) pos: vec4<f32>,
+    @location(0) color: vec3<f32>,
 }
 
 @vertex

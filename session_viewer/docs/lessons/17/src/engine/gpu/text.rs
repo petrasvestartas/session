@@ -1,3 +1,4 @@
+//! A glyph atlas is one texture holding each character once; drawing text is then quads that sample the right patch of it.
 use super::buffers::GpuCtx;
 #[path = "text_plane.rs"]
 mod plane;
@@ -50,7 +51,7 @@ pub struct TextLane {
     pub document: TextDocument, // the labels and their shaped glyphs
     pub stats: TextStats, // counters
     cache: Cache, // glyphon's shared GPU cache
-    atlas: TextAtlas, // glyph texture atlas
+    atlas: TextAtlas,
     viewport: Viewport, // canvas size for glyphon
     raster: SwashCache, // CPU glyph images
     overlay: TextRenderer, // labels always on top
@@ -387,8 +388,8 @@ impl TextFrame {
 
 /// Where a label lands on screen, in framebuffer pixels.
 struct PlacedText {
-    left: f32, // left edge
-    top: f32, // top edge
+    left: f32,
+    top: f32,
     scale: f32, // font pixels per font unit
     depth: Option<f32>, // scene depth; None = always on top
 }

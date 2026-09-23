@@ -1,3 +1,5 @@
+//! egui is immediate mode: the interface is rebuilt from this state every frame, so no widget object is kept in sync.
+
 use crate::State;
 use crate::app::feedback::LayerRow;
 use std::cell::RefCell;
@@ -5,26 +7,26 @@ use std::collections::VecDeque;
 use winit::window::Window;
 
 // --8<-- [start:step-10a]
-/// Everything the panels show.
+// Every panel reads and writes this one struct, because an immediate-mode frame keeps no widget state of its own.
 #[derive(Default)]
 pub struct Model {
     pub layers_open: bool,                          // layers panel shown
     pub rows: Vec<LayerRow>,                        // its rows
     pub command_open: bool,                         // command line shown
     pub command: String,                            // text in the command field
-    pub drawing_prompt: String,                     // prompt while drawing
+    pub drawing_prompt: String,
     // --8<-- [start:step-3a]
     drawing_command: String,                        // the drawing verb, e.g. polyline
     // --8<-- [end:step-3a]
     pub focus_command: bool,                        // give the field focus next frame
     pub status: String,                             // status line text
     history: VecDeque<String>,                      // past commands and answers
-    command_collapsed: bool, // dock folded to one row
-    layers_collapsed: bool,                         // layers panel folded to its title
+    command_collapsed: bool,
+    layers_collapsed: bool,
     completion: usize,                              // highlighted completion index
-    completion_prefix: String,                      // text the completions match
+    completion_prefix: String,
     inline_suffix: bool,                            // completion suffix shown in the field
-    completion_visible: bool,                       // completion list shown
+    completion_visible: bool,
     completion_rect: Option<egui::Rect>, // where the completion list was drawn
     command_rect: Option<egui::Rect>, // where the command field was drawn
     // --8<-- [end:step-10a]
@@ -394,9 +396,9 @@ fn record(controls: &mut Option<Vec<Control>>, key: &str, label: &str, response:
 
 /// The layers panel; a click sets `action`.
 fn layers(
-    root: &mut egui::Ui, // the panel area
-    model: &mut Model, // the panel state
-    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    root: &mut egui::Ui,
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
     action: &mut Option<String>,
 ) {
     if !model.layers_open {
@@ -625,7 +627,7 @@ fn layer_color(
     ui: &mut egui::Ui,
     row: &LayerRow,
     index: &str,
-    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    controls: &mut Option<Vec<Control>>,
     action: &mut Option<String>,
 ) {
     let mut color = row.color.unwrap_or([180, 180, 180]);
@@ -749,9 +751,9 @@ fn layer_color(
 
 /// The command dock; an executed line goes to `command`.
 fn commands(
-    root: &mut egui::Ui, // the panel area
-    model: &mut Model, // the panel state
-    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    root: &mut egui::Ui,
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
     command: &mut Option<String>,
 ) {
     // --8<-- [start:step-10n]

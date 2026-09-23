@@ -1,13 +1,13 @@
 use session_rust::Xform;
 
-/// One object row as the shaders read it, 96 bytes.
+/// One row per object, read by the shader, so one pipeline draws many objects; the GPU reads it by offset, so the layout must match WGSL exactly.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Instance {
     pub model: [f32; 16], // rotation and scale; translation is stored separately
     pub color: [f32; 4], // rgba tint
     pub flags: u32, // FLAG_* bits below
-    pub _pad0: f32,   // Padding; keeps the row at 96 bytes.
+    pub _pad0: f32, // Padding exists only to satisfy GPU alignment rules; without it the shader reads the wrong fields.
     pub spacing: f32, // vertex spacing, world units; 0 = unknown
     pub _pad: u32, // padding
 }

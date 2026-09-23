@@ -1,4 +1,5 @@
 // --8<-- [start:step-1a]
+//! The small index listing every file of a scene, read first so the viewer knows what to fetch.
 use serde::Deserialize;
 use session_rust::Xform;
 
@@ -21,24 +22,24 @@ pub struct Item {
 /// One text placed in the world.
 #[derive(Clone, Debug, Deserialize)]
 pub struct TextItem {
-    pub text: String, // the text
+    pub text: String,
     #[serde(default)]
     pub at: [f64; 3], // world origin of the text
     #[serde(default = "text_right")]
     pub right: [f64; 3], // unit direction of the text line
     #[serde(default = "text_up")]
     pub up: [f64; 3], // unit direction up the text
-    pub height: f64,  // letter height in world units
+    pub height: f64, // letter height in world units
 }
 
 /// The parsed scene file.
 #[derive(Clone, Deserialize)]
 pub struct Manifest {
     #[serde(default)]
-    pub name: String, // scene name
+    pub name: String,
     pub items: Vec<Item>, // geometry files
     #[serde(default)]
-    pub texts: Vec<TextItem>, // world texts
+    pub texts: Vec<TextItem>,
 }
 
 // --8<-- [end:step-1a]

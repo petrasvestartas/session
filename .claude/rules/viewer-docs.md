@@ -27,23 +27,45 @@ paths:
   the kernel is never annotated. The kernel is included through the `..` base path, never copied
   into a lesson. There is no generator: a change to step N is applied to every later crate by
   hand (`diff -r docs/lessons/N docs/lessons/N+1` shows what each step owns).
-- Page prose: ONE plain sentence per step, under 25 words, no parenthetical asides, no
-  cross-references to other steps or lessons. It says what the block does, not how Rust or wgpu
-  works. Example: "Append: create the GPU connection in four steps, instance → surface → adapter
-  → device and queue." Label "type this" / "copy the file" deliberately. Tests, examples and
-  parity ports are listed as files to copy from the lesson crate, never explained.
-- Code comments, in the lesson crates AND in production `session_viewer/src/`: every line a
-  first-time reader would ask "what is this?" about gets a comment: on the right for a field or argument, one line above for a statement. Under ten
-  words, plain words, present tense, no jargon the code does not already show. Say what the
-  thing IS or DOES, never why the API is designed that way. Good: `width: 1, // canvas size in
-  pixels`, `// no depth buffer yet`. Bad: anything that needs a second sentence, a "because",
-  or names a later lesson. Each step starts with one heading comment naming its part. A
-  comment must survive two readings: first as its author, then by a fresh agent with no
-  context (`Explore` or a plain fork) asked to explain the line from the comment alone; a
-  comment it cannot explain is rewritten, not extended. No comment of any kind spans more than one line, `///` included; a paragraph of
-  rationale is deleted, not shortened, and the code's own names carry the meaning.
-  A comment is the same text wherever the line exists: in production `src/` and in every lesson
-  crate that contains it, so a note written in one place is copied verbatim to the others.
+- A lesson is a SUBJECT, not a commit. Its job is to build one part of the viewer completely, in
+  final form, in the place that part belongs. The course is a decomposition of the finished
+  viewer by subject, never a replay of the order the work happened in.
+- WRITE ONCE. A lesson never rewrites, re-opens or patches code an earlier lesson taught; it only
+  adds new files and appends to files it already owns. A step anchor that says "Replaces …"
+  against a region an earlier lesson wrote is the defect this rule exists to prevent - the reader
+  is being marched back through a file they already finished. The check is mechanical and must
+  read zero: `grep -c Replaces docs/*.md` counting only anchors that name an earlier lesson.
+- A new feature goes where its subject already lives, and EXTENDS that lesson: `Attributes On|Off`
+  is a command, so it belongs in the command-line lesson, not in a lesson of its own at the end;
+  a per-object SSAO radius belongs in the shading lesson; a phone keyboard belongs in the input
+  lesson. Only a genuinely new subject - one no existing lesson owns - earns a new lesson, and it
+  is inserted at its place in the dependency order, not appended because it happened last.
+- This only holds if the code allows it: a feature must be one file plus one registration line, so
+  a later lesson can add it without touching what an earlier lesson wrote. When a feature cannot
+  be added that way, fix the architecture (a registry, a pass list, a command list), do not fall
+  back to teaching an edit of an earlier lesson's file.
+- Page prose: one plain sentence per step saying what the step builds, under 25 words. Example:
+  "Append: create the GPU connection in four steps, instance → surface → adapter → device and
+  queue." The teaching happens in the code comments, not here, so the page never repeats them.
+  Label "type this" / "copy the file" deliberately. Tests, examples and parity ports are listed
+  as files to copy from the lesson crate, never explained.
+- Code comments in the lesson crates: comment the CONCEPT, once, where it first appears; say
+  nothing anywhere else. A concept's first appearance earns a real sentence, 15-25 words, that
+  answers what the thing IS and why it exists - the part a reader cannot recover from the code.
+  The model is the reader's own lesson 01 (`session_view/src/lib.rs`): "The GPU does not execute
+  calls one by one, you record a list of commands and hand over this encoder.", "Create an
+  instance of the struct; Ok is needed to return also the error message Err(...).", "Convert the
+  logical size to real pixel size, e.g. width = 800, scale = 2.0." Rust and wgpu mechanics
+  (`Ok(Self)`, `?`, a second `impl` block, a borrow ending at a brace) ARE the lesson: explain
+  them. A concrete example with numbers beats an abstract phrase. A step may open with a short
+  glossary of the nouns it introduces, one `Noun = plain meaning` per line.
+  NEVER restate the identifier: `create_view` does not earn "a view of that texture"; if the only
+  thing a comment can say is the name again, delete it. Struct fields, obvious calls and
+  self-evident literals stay bare - a reader who met the concept two steps ago does not need a
+  label on every use. Still one line per comment, still no rationale paragraphs.
+  Production `session_viewer/src/` keeps the terse form: one short line only where a line is not
+  self-evident, no teaching, since it is read by someone who already knows the viewer. Where a
+  line exists in both, the lesson's teaching comment is the longer one and they may differ.
 - The only site check is `docs/serve.sh build` (MkDocs with `check_paths: true`: a snippet that
   names a missing file fails the build). The only code check is `cargo check -j4 --lib` inside
   the lesson directory, one lesson at a time.

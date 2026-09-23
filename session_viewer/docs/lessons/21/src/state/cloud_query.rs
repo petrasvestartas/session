@@ -64,7 +64,7 @@ impl State {
                 f64::from(self.gpu.config.width),
                 f64::from(self.gpu.config.height),
             ],
-            at: [x, y],                                                       // the click
+            at: [x, y], // the click
             radius: (self.selection_radius_css * scale).ceil().clamp(1.0, 128.0) + 3.5 * scale, // click tolerance plus a dot
         };
         self.cloud_query = Some(Query::new(self.query_generation, cloud, view));
@@ -146,8 +146,8 @@ impl State {
         for candidate in &query.candidates {
             glyphs.dots.push(GlyphPoint {
                 center: render_position(candidate.position),
-                radius: -3.5 * scale as f32,           // pixel size
-                color: [0.15, 0.35, 0.9, 1.0],         // blue
+                radius: -3.5 * scale as f32, // pixel size
+                color: [0.15, 0.35, 0.9, 1.0], // blue
                 instance_id: parent,
                 facing: FACING_UNKNOWN,
                 facing_ext: [candidate.local, FACING_UNKNOWN], // carries the point's row

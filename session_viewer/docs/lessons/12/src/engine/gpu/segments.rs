@@ -98,8 +98,8 @@ struct SegPipelines {
 pub struct SegmentLane {
     pipes: SegTable, // mesh and solid edges
     ribbons: SegTable, // standalone lines and curves
-    shader: wgpu::ShaderModule, // ribbon shader
-    gpu: SegPipelines, // pipelines
+    shader: wgpu::ShaderModule,
+    gpu: SegPipelines,
     selection: wgpu::Buffer, // selected edge (object, edge), read by shaders
 }
 

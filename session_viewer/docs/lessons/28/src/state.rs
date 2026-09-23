@@ -41,7 +41,7 @@ pub struct State {
     last_frame_ms: f64,                                     // when the last frame was drawn
     last_resize_ms: f64,                                    // when the last resize was applied
     pub selection: SelectionMode,                           // object, edge, face or control points
-    hierarchy: crate::app::hierarchy::Hierarchy,            // the tree panel state
+    hierarchy: crate::app::hierarchy::Hierarchy,
     controls: Controls,                                     // control points of the selected object
     requested: PickMode,                                    // what the pending pick looks for
     pub selection_radius_css: f64,                          // click tolerance in CSS pixels

@@ -1,9 +1,9 @@
 @group(0) @binding(0) var mask: texture_2d<f32>; // coverage of every solid
 @group(0) @binding(1) var<uniform> radius: vec4<f32>; // x: outline width, px; y: 1 for the selection mask
 @group(0) @binding(2) var coarse: texture_2d<f32>; // max of each 16x16 block of the mask
-@group(1) @binding(0) var selected_mask: texture_2d<f32>; // coverage of the selection
-@group(1) @binding(1) var<uniform> selected_radius: vec4<f32>; // same for the selection
-@group(1) @binding(2) var selected_coarse: texture_2d<f32>; // its coarse mask
+@group(1) @binding(0) var selected_mask: texture_2d<f32>;
+@group(1) @binding(1) var<uniform> selected_radius: vec4<f32>;
+@group(1) @binding(2) var selected_coarse: texture_2d<f32>;
 
 // Mask pixels per coarse pixel; must match the Rust POOL.
 const POOL: i32 = 16;

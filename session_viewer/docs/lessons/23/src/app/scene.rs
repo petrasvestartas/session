@@ -118,7 +118,7 @@ pub struct Scene {
     bases: Bases,                                      // rows already on the GPU
     pub last_edited: Option<usize>,                    // document undo applies to
     // --8<-- [start:step-4a]
-    pub(crate) created_doc: Option<usize>,             // the `Created` document
+    pub(crate) created_doc: Option<usize>,
     // --8<-- [end:step-4a]
 }
 

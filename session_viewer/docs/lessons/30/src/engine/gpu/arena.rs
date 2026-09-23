@@ -29,7 +29,7 @@ pub struct ArenaRows {
     pub face_ids: Vec<u32>, // source face of each solid triangle
     pub face_sources: Vec<super::faces::FaceSource>, // where each face came from
     // --8<-- [start:step-14a]
-    pub surface_samples: Vec<crate::app::surface_preview::Sample>, // surface points for previews
+    pub surface_samples: Vec<crate::app::surface_preview::Sample>,
     // --8<-- [end:step-14a]
 }
 

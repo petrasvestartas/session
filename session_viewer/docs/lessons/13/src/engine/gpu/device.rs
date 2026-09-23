@@ -1,3 +1,4 @@
+//! The adapter and device request, moved out of lib.rs now that the viewer is more than one file.
 use std::sync::Arc;
 use winit::window::Window;
 

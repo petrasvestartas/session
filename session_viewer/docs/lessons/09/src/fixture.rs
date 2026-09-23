@@ -216,7 +216,7 @@ fn query(name: &str) -> Option<String> {
     }
 }
 
-/// `?cad=sphere|cylinder|hole|crease&affine=1` selects a retained local source instance.
+/// Build the first source-face checkpoint entirely from local geometry.
 pub fn build() -> CadFixture {
     let mut scene = CadFixture::new();
     let kind = query("cad").unwrap_or("sphere".into());

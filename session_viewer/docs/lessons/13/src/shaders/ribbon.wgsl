@@ -13,8 +13,8 @@ struct CylinderSegment {
 }
 
 @group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
-@group(3) @binding(1) var<storage, read> source_edges: array<u32>; // source edge per segment
-@group(3) @binding(2) var<uniform> edge_selection: vec4<u32>; // selected (object, edge)
+@group(3) @binding(1) var<storage, read> source_edges: array<u32>;
+@group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
 
 // a wire shorter than this many pen widths thins
 const WIRE_MIN_PENS: f32 = 3.0;
@@ -80,7 +80,7 @@ fn hairline_fade(px: f32) -> f32 {
 
 // What the vertex shader hands the fragment shader.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>, // clip position
+    @builtin(position) pos: vec4<f32>,
     @location(0) color: vec4<f32>, // rgba
     @location(1) @interpolate(linear) p: vec2<f32>, // this corner, screen px
     @location(2) @interpolate(flat) a: vec2<f32>, // start point, screen px
@@ -89,9 +89,9 @@ struct VsOut {
     @location(5) @interpolate(flat) hw1: f32, // half width at the end, px
     @location(6) @interpolate(flat) solid: f32, // 1 = a mesh edge, never fades
     @location(7) @interpolate(flat) inst_id: u32, // object row
-    @location(8) @interpolate(flat) segment_index: u32, // segment row
-    @location(9) @interpolate(flat) end_depth: vec2<f32>, // depth at start and end
-    @location(10) @interpolate(flat) source_edge: u32, // source edge, or none
+    @location(8) @interpolate(flat) segment_index: u32,
+    @location(9) @interpolate(flat) end_depth: vec2<f32>,
+    @location(10) @interpolate(flat) source_edge: u32,
 };
 
 // (half width, alpha) at fraction `h` along the segment.

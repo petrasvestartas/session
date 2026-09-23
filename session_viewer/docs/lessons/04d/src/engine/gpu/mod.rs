@@ -195,8 +195,8 @@ impl Gpu {
     }
 
     // --8<-- [start:step-8g]
-    /// Clouds first, then faces, then ink.
     // --8<-- [end:step-8g]
+    /// Faces first, then ink over their depth.
     pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
         self.write_frame_uniforms(input);
         let output = match self.surface.get_current_texture() {

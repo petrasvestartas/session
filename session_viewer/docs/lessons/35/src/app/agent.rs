@@ -1,5 +1,5 @@
 // --8<-- [start:step-4]
-//! A hidden `<input>` that raises the phone keyboard for the command line.
+//! A phone raises its keyboard only for a focused DOM input, never a canvas, so this hidden `<input>` stands in.
 
 use super::ui::MODEL;
 use wasm_bindgen::JsCast;

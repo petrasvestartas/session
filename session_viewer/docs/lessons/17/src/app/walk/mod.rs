@@ -30,7 +30,7 @@ pub mod points;
 /// The four row tables one object writes into.
 pub struct Walk<'a> {
     pub arena: &'a mut ArenaRows, // triangles of faces
-    pub seg: &'a mut SegRows,     // line segments
+    pub seg: &'a mut SegRows, // line segments
     pub glyph: &'a mut GlyphRows, // dots and labels
     pub cloud: &'a mut CloudRows, // point cloud points
 }
@@ -60,17 +60,17 @@ impl<'a> Walk<'a> {
 
 /// Where one object's rows go.
 pub struct WalkCx {
-    pub vert_base: u32,   // arena vertices already on the GPU
-    pub cloud_px: f32,    // point size override in px, 0 = file's own
-    pub row: u32,         // this object's row index
+    pub vert_base: u32, // arena vertices already on the GPU
+    pub cloud_px: f32, // point size override in px, 0 = file's own
+    pub row: u32, // this object's row index
 }
 
 /// What a producer reports for one object row.
 pub struct Row {
     pub bounds: AABB, // local bounding box
     pub spacing: f32, // point or vertex spacing
-    pub flags: u32,   // row flag bits
-    pub faces: bool,  // row drew faces
+    pub flags: u32, // row flag bits
+    pub faces: bool, // row drew faces
 }
 
 impl Row {

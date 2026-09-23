@@ -1,3 +1,4 @@
+//! Text lying flat in the scene on a plane, so it turns and shrinks with the model like writing on paper.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use super::TextFrame;
 use crate::engine::pipelines::Target;

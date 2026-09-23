@@ -1,4 +1,5 @@
 // --8<-- [start:step-12a]
+//! Loads a scene file and turns it into GPU rows a chunk at a time, so the page never freezes.
 use super::scene::{FileDoc, Scene, StreamedInit};
 use super::stream::CloudFields;
 use super::walk::cloud::StreamRows;
@@ -124,11 +125,11 @@ async fn streamed_fixture() -> Result<(), String> {
 /// Where a cloud's streaming continues.
 // --8<-- [end:step-12c]
 pub struct StreamCursor {
-    pub idx: usize,          // the cloud's slot in the scene
-    pub url: String,         // the cloud file
+    pub idx: usize, // the cloud's slot in the scene
+    pub url: String, // the cloud file
     pub fields: CloudFields, // array positions in the file
-    pub from: u32,           // next point to read
-    pub col_at: u64,         // byte position of its colour
+    pub from: u32, // next point to read
+    pub col_at: u64, // byte position of its colour
 }
 
 /// Fixed display residency; F10 reads the source.

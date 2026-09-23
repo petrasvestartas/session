@@ -1,26 +1,28 @@
+//! Reads a file in ranges as it arrives, so a big scene starts drawing before the whole download has finished.
+
 /// Byte positions of a cloud's arrays in its file.
 #[derive(Clone, Debug)]
 pub struct CloudFields {
-    pub end: u64,                 // end of the cloud message
+    pub end: u64, // end of the cloud message
     pub coords_at: u64,
     pub coords_len: u64,
     pub colors_at: u64,
-    pub colors_len: u64,          // their length
-    pub count: u32,               // points in the cloud
-    pub ids_at: u64,              // start of the original ids, 0 = none
-    pub ids_len: u64,             // their length
+    pub colors_len: u64, // their length
+    pub count: u32, // points in the cloud
+    pub ids_at: u64, // start of the original ids, 0 = none
+    pub ids_len: u64, // their length
     pub revision: Option<String>, // file ETag every read must match
 }
 
 /// A cloud's octree node table.
 #[derive(Clone, Default)]
 pub struct CloudLod {
-    pub min: Vec<f64>,     // cube corner, three per node
-    pub size: Vec<f64>,    // cube size per node
+    pub min: Vec<f64>, // cube corner, three per node
+    pub size: Vec<f64>, // cube size per node
     pub spacing: Vec<f64>, // point spacing per node
-    pub level: Vec<i32>,   // depth per node
-    pub first: Vec<i32>,   // first point per node
-    pub count: Vec<i32>,   // points per node
+    pub level: Vec<i32>, // depth per node
+    pub first: Vec<i32>, // first point per node
+    pub count: Vec<i32>, // points per node
     pub children: Vec<i32>, // eight child indices per node, -1 = none
 }
 
@@ -330,12 +332,12 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
 }
 
 // --8<-- [start:step-1a]
-/// A cached slice of the file's header bytes.
+/// Each range request costs a network round trip, so read 64 KiB ahead and answer later small reads from memory.
 #[cfg(any(target_arch = "wasm32", test))]
 #[derive(Default)]
 struct MetadataWindow {
-    at: u64,        // file position of `bytes[0]`
-    bytes: Vec<u8>, // the cached bytes
+    at: u64, // file position of `bytes[0]`
+    bytes: Vec<u8>,
 }
 
 #[cfg(any(target_arch = "wasm32", test))]

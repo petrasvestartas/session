@@ -8,11 +8,9 @@ Two vector sheets stream into top view and clicking a segment resolves its sourc
 
 Read this source file from its link; the checkpoint already contains it.
 
-???
+??? example "`session_proto/sheet.proto` · read only"
 
-    ```text
-    --8<-- "session_proto/sheet.proto"
-    ```
+    [Open the full listing](kernel/sheet_proto.md)
     
 
 Copy each file from the lesson folder to the path shown.

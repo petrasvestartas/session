@@ -10,13 +10,13 @@ struct CloudUniform {
     frame: vec2<f32>, // canvas size, px
 };
 
-@group(0) @binding(0) var<uniform> cloud: CloudUniform; // cloud settings
+@group(0) @binding(0) var<uniform> cloud: CloudUniform;
 @group(1) @binding(0) var sdepth: texture_depth_2d; // nearest point depth per pixel
 @group(1) @binding(1) var scolor: texture_2d<f32>; // its color
 
 // One vertex of the fullscreen triangle.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>, // clip position
+    @builtin(position) pos: vec4<f32>,
 };
 
 @vertex

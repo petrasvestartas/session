@@ -1,15 +1,15 @@
 // What the vertex shader hands the fragment shader.
 struct Vertex {
-    @builtin(position) position: vec4<f32>, // clip position
+    @builtin(position) position: vec4<f32>,
     @location(0) uv: vec2<f32>, // texture coordinate
-    @location(1) color: vec4<f32>, // ink color
+    @location(1) color: vec4<f32>,
     @location(2) @interpolate(flat) clip: vec4<f32>, // screen box the label is cut to
     @location(3) @interpolate(flat) object: u32, // object row + 1, or 0
     @location(4) @interpolate(flat) selected: f32, // 1 when selected
 }
 
 @group(0) @binding(0) var coverage_texture: texture_2d<f32>; // rasterized glyphs
-@group(0) @binding(1) var coverage_sampler: sampler; // linear sampler
+@group(0) @binding(1) var coverage_sampler: sampler;
 
 // Canvas clip space to the pick window; id pass only.
 @group(1) @binding(0) var<uniform> pick: mat4x4<f32>;

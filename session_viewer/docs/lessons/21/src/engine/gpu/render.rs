@@ -1,3 +1,4 @@
+//! Records one frame: every pass in order into one encoder, then a single submit.
 use super::Gpu;
 use super::frame::Binds;
 use super::pick::PickMode;

@@ -7,8 +7,8 @@ use session_rust::RenderVertex;
 /// Where a pipeline draws: color format and MSAA sample count.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Target {
-    pub format: wgpu::TextureFormat, // color format
-    pub samples: u32, // MSAA samples
+    pub format: wgpu::TextureFormat,
+    pub samples: u32,
 }
 
 impl Target {
@@ -47,7 +47,7 @@ impl DepthMode {
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ColorWrite {
     Opaque, // overwrite
-    Blended, // alpha blend
+    Blended,
     Max, // keep the larger value; for masks
     Nothing, // write nothing; the fragment shader has side effects
 }
@@ -84,14 +84,14 @@ impl ColorWrite {
 #[derive(Clone)]
 pub struct PipelineDesc<'a> {
     pub label: &'a str, // name shown in GPU errors
-    pub shader: &'a wgpu::ShaderModule, // compiled shader
+    pub shader: &'a wgpu::ShaderModule,
     pub vs: &'a str, // vertex entry point
     pub fs: &'a str, // fragment entry point
-    pub groups: &'a [&'a wgpu::BindGroupLayout], // bind group layouts, in slot order
-    pub vertex_buffers: &'a [wgpu::VertexBufferLayout<'a>], // vertex buffer layouts
+    pub groups: &'a [&'a wgpu::BindGroupLayout],
+    pub vertex_buffers: &'a [wgpu::VertexBufferLayout<'a>],
     pub topology: wgpu::PrimitiveTopology, // triangles or lines
-    pub color: ColorWrite, // how color is written
-    pub depth: DepthMode, // how depth is used
+    pub color: ColorWrite,
+    pub depth: DepthMode,
     pub scene_samples: Option<u32>, // sets SCENE_MSAA in the shader
     pub physical: bool, // also writes the depth slope target
 }

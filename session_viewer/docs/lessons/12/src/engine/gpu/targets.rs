@@ -11,7 +11,7 @@ const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
 
 /// The frame's depth and color textures at one sample count.
 pub struct Targets {
-    pub depth: wgpu::TextureView, // scene depth
+    pub depth: wgpu::TextureView,
     pub msaa: Option<wgpu::TextureView>, // 4x color, if on
     pub depth_single: wgpu::TextureView, // depth at 1x, or a 1x1 placeholder
     pub depth_msaa: wgpu::TextureView, // depth at 4x, or a 1x1 placeholder
@@ -210,7 +210,7 @@ impl Targets {
 pub struct TextureSpec {
     pub size: (u32, u32), // width and height, px
     pub format: wgpu::TextureFormat, // pixel format
-    pub samples: u32, // MSAA samples
+    pub samples: u32,
     pub usage: wgpu::TextureUsages, // how the GPU may use it
 }
 

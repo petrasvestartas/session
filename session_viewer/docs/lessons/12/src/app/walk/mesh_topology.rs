@@ -3,7 +3,7 @@ use session_rust::{Mesh, Tolerance};
 
 /// Vertex key to its position in the sorted key list.
 pub struct SlotMap {
-    dense: Vec<u32>,                                 // key indexes directly
+    dense: Vec<u32>, // key indexes directly
     sparse: std::collections::HashMap<usize, u32>, // used for sparse keys
 }
 
@@ -51,10 +51,10 @@ impl SlotMap {
 /// Edges, faces and normals of one mesh.
 pub struct MeshTopo {
     pub edges: Vec<(usize, usize, u32)>, // (low key, high key, pen colour)
-    pub edge_faces: Vec<[u32; 2]>,       // two faces per edge, u32::MAX = none
-    pub opposed: Vec<bool>,              // per edge: faces wind opposite ways
-    pub normals: Vec<Option<[f64; 3]>>,  // per face, None when degenerate
-    pub closed: bool,                    // every edge has two faces
+    pub edge_faces: Vec<[u32; 2]>, // two faces per edge, u32::MAX = none
+    pub opposed: Vec<bool>, // per edge: faces wind opposite ways
+    pub normals: Vec<Option<[f64; 3]>>, // per face, None when degenerate
+    pub closed: bool, // every edge has two faces
 }
 
 /// Unit normal of one face, None when degenerate.

@@ -1,4 +1,5 @@
 // --8<-- [start:step-5a]
+//! Walks a sheet into GPU rows: a sheet is a 2D page of drawings, not geometry in the scene.
 use super::encode::{BLACK, FACING_UNKNOWN};
 use crate::engine::gpu::segments::{CylinderSegment, SegDraw, SegRows};
 use session_rust::AABB;
@@ -6,16 +7,16 @@ use session_rust::AABB;
 /// Raw segment columns of one streamed slice.
 pub struct SheetRows {
     pub positions: Vec<f32>, // six floats per segment
-    pub colors: Vec<u32>,    // packed RGBA per segment
-    pub widths: Vec<f32>,    // pen width in mm per segment
-    pub ids: Vec<u32>,       // entity id per segment
+    pub colors: Vec<u32>, // packed RGBA per segment
+    pub widths: Vec<f32>, // pen width in mm per segment
+    pub ids: Vec<u32>, // entity id per segment
 }
 
 /// One slice of a sheet and where it goes.
 pub struct SheetSlice {
     pub rows: SheetRows, // the segments
-    pub from: u32,       // first segment index in the sheet
-    pub row: u32,        // object row
+    pub from: u32, // first segment index in the sheet
+    pub row: u32,
 }
 
 /// Pen width in mm to a half width; 0 = hairline.

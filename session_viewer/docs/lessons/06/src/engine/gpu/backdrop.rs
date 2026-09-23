@@ -18,7 +18,7 @@ pub const SHADERS: &[(&str, &str)] = &[
 /// Grid vertex count: 44 floor lines plus 6 axis lines.
 const GRID_VERTS: u32 = 50;
 
-/// Draws the background color and the floor grid.
+/// Drawn before everything else with depth writing off, so every later object covers it.
 pub struct BackdropLane {
     background_shader: wgpu::ShaderModule, // fullscreen background shader
     grid_shader: wgpu::ShaderModule, // floor grid shader

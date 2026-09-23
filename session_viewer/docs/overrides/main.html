@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  <script>
+    (() => {
+      if (!HTMLScriptElement.supports || !HTMLScriptElement.supports("speculationrules"))
+        return;
+      // course pages only (never the viewer), added after load so matching every link stays off the first paint
+      const links = {href_matches: __md_scope.pathname + "*/"};
+      const rules = document.createElement("script");
+      rules.type = "speculationrules";
+      rules.textContent = JSON.stringify({prerender: [{where: links, eagerness: "moderate"}], prefetch: [{where: links, eagerness: "moderate"}]});
+      addEventListener("load", () => document.head.append(rules));
+    })();
+  </script>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    (() => {
+      const index = new URL("search/search_index.json", __md_scope).href;
+      const open = XMLHttpRequest.prototype.open;
+      const send = XMLHttpRequest.prototype.send;
+      const search = new WeakSet();
+      const waiting = [];
+      let wanted = new URLSearchParams(location.search).has("h");
+      const start = () => {
+        wanted = true;
+        for (const [request, body] of waiting.splice(0))
+          send.call(request, body);
+      };
+      XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+        if (new URL(url, location.href).href === index)
+          search.add(this);
+        return open.call(this, method, url, ...rest);
+      };
+      XMLHttpRequest.prototype.send = function (body) {
+        if (search.has(this) && !wanted)
+          waiting.push([this, body]);
+        else
+          send.call(this, body);
+      };
+      addEventListener("focusin", (event) => event.target.matches(".md-search__input") && start());
+      addEventListener("pointerover", (event) => event.target.closest(".md-search") && start());
+    })();
+  </script>
+  {{ super() }}
+  <script>
+    (() => {
+      if (!("serviceWorker" in navigator))
+        return;
+      let local = false;
+      try {
+        local = localStorage.getItem("course.sw") === "on";
+      } catch (error) {}
+      // a controlled page leaves updates to the browser's check on navigation, so a worker that just retired stays gone
+      if (location.protocol === "https:" || local)
+        addEventListener("load", () => navigator.serviceWorker.controller || navigator.serviceWorker.register(new URL("sw.js", __md_scope)));
+      else
+        navigator.serviceWorker.getRegistration(__md_scope.href).then((registration) => registration && registration.scope === __md_scope.href && registration.unregister());
+    })();
+  </script>
+{% endblock %}

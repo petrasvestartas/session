@@ -1,3 +1,4 @@
+//! The document the viewer shows: the objects, the rows they occupy on the GPU, and what is currently selected.
 use crate::app::knobs;
 use crate::app::stream::{CloudFields, CloudLod};
 use crate::app::walk::bounds::{Baselines, file_extent, is_planar, mark_sheet};
@@ -11,78 +12,78 @@ use std::rc::Rc;
 
 /// One loaded file and its placement.
 pub struct FileDoc {
-    pub name: String,         // display name
-    pub place: Xform,         // world placement
+    pub name: String,
+    pub place: Xform,
     pub session: Rc<Session>, // the kernel document, shared when a file is loaded twice
-    pub point_px: f32,        // point size override, 0 = the file's own
-    pub display_only: bool,   // a streamed shell with no kernel objects
+    pub point_px: f32, // point size override, 0 = the file's own
+    pub display_only: bool, // a streamed shell with no kernel objects
 }
 
 /// A streamed cloud's first slice.
 pub struct StreamedInit {
-    pub name: String,        // display name
-    pub url: String,         // the cloud file
-    pub place: Xform,        // world placement
-    pub rows: StreamRows,    // the first points
-    pub lod: CloudLod,       // the whole node table
+    pub name: String,
+    pub url: String, // the cloud file
+    pub place: Xform,
+    pub rows: StreamRows, // the first points
+    pub lod: CloudLod, // the whole node table
     pub fields: CloudFields, // array positions in the file
-    pub resident: u32,       // points in this slice
-    pub point_px: f32,       // point size override
-    pub col_at: u64,         // byte position of the next colour
+    pub resident: u32, // points in this slice
+    pub point_px: f32, // point size override
+    pub col_at: u64, // byte position of the next colour
 }
 
 /// A streamed cloud's slot in the scene.
 pub struct StreamedCloud {
-    pub name: String,        // display name
-    pub url: String,         // the cloud file
-    pub row: u32,            // its object row
-    pub lod: CloudLod,       // the whole node table
+    pub name: String,
+    pub url: String, // the cloud file
+    pub row: u32,
+    pub lod: CloudLod, // the whole node table
     pub fields: CloudFields, // array positions in the file
-    pub place: Xform,        // world placement
+    pub place: Xform,
     pub done_to: u32,
-    pub total: u32,          // points in the file
-    pub point_px: f32,       // point size override
+    pub total: u32, // points in the file
+    pub point_px: f32, // point size override
 }
 
 /// What a pick landed on.
 #[derive(Clone, Debug)]
 pub struct Picked {
-    pub doc: String,                // document name
-    pub guid: String,               // object guid
-    pub row: u32,                   // object row
-    pub point: Option<PickedPoint>, // the point, for a cloud
+    pub doc: String, // document name
+    pub guid: String,
+    pub row: u32,
+    pub point: Option<PickedPoint>,
 }
 
 /// A picked cloud point.
 #[derive(Clone, Debug)]
 pub struct PickedPoint {
-    pub local: u32,         // index in the cloud
-    pub id: u32,            // the point's stable id
-    pub position: [f64; 3], // world position
+    pub local: u32, // index in the cloud
+    pub id: u32, // the point's stable id
+    pub position: [f64; 3],
 }
 
 /// Rows already on the GPU, per table.
 #[derive(Default)]
 struct Bases {
-    vert: u32,   // arena vertices
-    ribbon: u32, // ribbon segments
-    obj: u32,    // object rows
+    vert: u32,
+    ribbon: u32,
+    obj: u32, // object rows
 }
 
 /// The open documents and their object rows.
 pub struct Scene {
-    pub docs: Vec<FileDoc>,                            // loaded files
+    pub docs: Vec<FileDoc>,
     pub texts: Vec<super::manifest::TextItem>, // Authored text on a world plane, from the manifest.
-    pub tables: Upload,                                // rows walked but not yet uploaded
-    pub streamed: Vec<StreamedCloud>,                  // streamed clouds
-    pub hidden: HashSet<(usize, Rc<str>)>,             // (document, guid) hidden
-    pub selected: Option<u32>,                         // selected object row
-    order: Vec<Rc<str>>,                               // guid of each row
-    owners: Vec<usize>,                                // document of each row
-    edge_sources: Vec<(u32, u32)>,                     // (object row, edge index) of each pipe
-    ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,  // ribbon rows of each object
-    guid_to_row: HashMap<(usize, Rc<str>), u32>,       // (document, guid) to row
-    bases: Bases,                                      // rows already on the GPU
+    pub tables: Upload, // rows walked but not yet uploaded
+    pub streamed: Vec<StreamedCloud>,
+    pub hidden: HashSet<(usize, Rc<str>)>, // (document, guid) hidden
+    pub selected: Option<u32>, // selected object row
+    order: Vec<Rc<str>>, // guid of each row
+    owners: Vec<usize>, // document of each row
+    edge_sources: Vec<(u32, u32)>, // (object row, edge index) of each pipe
+    ribbon_ranges: Vec<Option<std::ops::Range<u32>>>, // ribbon rows of each object
+    guid_to_row: HashMap<(usize, Rc<str>), u32>,
+    bases: Bases, // rows already on the GPU
 }
 
 impl Default for Scene {
@@ -152,7 +153,7 @@ impl Scene {
 
             self.add_file(FileDoc {
                 name: d.name, // the document's title
-                session: d.session, // the decoded session
+                session: d.session,
                 place: d.place, // where the document sits
                 point_px: d.point_px, // point size in CSS pixels
                 display_only: d.display_only, // streamed, not editable

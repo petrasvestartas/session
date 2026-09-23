@@ -14,33 +14,33 @@ pub use state::State;
 
 /// One more slice of streamed cloud `idx`.
 pub struct CloudChunk {
-    pub idx: usize,      // which cloud
+    pub idx: usize, // which cloud
     pub rows: StreamRows, // the new points
-    pub to: u32,          // rows loaded so far
+    pub to: u32, // rows loaded so far
 }
 
 /// One more slice of sheet `idx`.
 pub struct SheetChunk {
-    pub idx: usize,     // which sheet
+    pub idx: usize, // which sheet
     pub rows: SheetRows, // the new segments
-    pub to: u32,         // segments loaded so far
+    pub to: u32, // segments loaded so far
 }
 
 /// Messages the async loader sends to the event loop.
 pub enum Msg {
-    Ready(Box<State>),                            // GPU is up, here is the state
-    File(FileDoc),                                // one loaded file
-    Texts(Vec<app::manifest::TextItem>),          // text labels to place
-    Clear,                                        // empty the scene
-    Fit,                                          // frame the camera on everything
-    StreamedCloud(Box<StreamedInit>),             // a point cloud starts streaming
-    CloudChunk(CloudChunk),                       // more points arrived
-    CloudQueryBatch(app::cloud_query::Batch),     // points asked for on click
+    Ready(Box<State>), // GPU is up, here is the state
+    File(FileDoc),
+    Texts(Vec<app::manifest::TextItem>), // text labels to place
+    Clear, // empty the scene
+    Fit, // frame the camera on everything
+    StreamedCloud(Box<StreamedInit>),
+    CloudChunk(CloudChunk), // more points arrived
+    CloudQueryBatch(app::cloud_query::Batch), // points asked for on click
     CloudQueryResolved(app::cloud_query::Resolved), // those points answered
-    Sheet(Box<SheetInit>),                        // a drawing sheet starts streaming
-    SheetChunk(SheetChunk),                       // more segments arrived
-    SheetEntity(app::sheet_query::Resolved),      // a picked sheet entity answered
-    CancelPointer,                                // the browser lost the pointer
+    Sheet(Box<SheetInit>), // a drawing sheet starts streaming
+    SheetChunk(SheetChunk), // more segments arrived
+    SheetEntity(app::sheet_query::Resolved),
+    CancelPointer, // the browser lost the pointer
     // --8<-- [start:step-22a]
     Command(String), // A line typed into the command box, sent when Enter was pressed in it.
     ToggleLayer(String), // A layers-panel row was clicked, carrying its key.
@@ -63,9 +63,9 @@ use {
 /// The winit application: owns the state and the gestures.
 #[cfg(target_arch = "wasm32")]
 pub struct App {
-    state: Option<State>,                                       // everything drawn, once the GPU is up
-    proxy: Option<EventLoopProxy<Msg>>,                         // sends messages into the loop
-    input: Input,                                               // mouse and key gestures
+    state: Option<State>, // everything drawn, once the GPU is up
+    proxy: Option<EventLoopProxy<Msg>>, // sends messages into the loop
+    input: Input, // mouse and key gestures
     pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener
     // --8<-- [start:step-22b]
     command_keys: Option<app::input::CommandKeys>,

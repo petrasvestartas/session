@@ -1,3 +1,4 @@
+//! Text objects belonging to the document itself, not to the interface around it.
 use super::Scene;
 use crate::engine::gpu::Gpu;
 use crate::engine::text::{TextLabel, TextObject, TextPlacement};
@@ -5,8 +6,8 @@ use session_rust::Xform;
 
 /// One text object and its scene row.
 pub struct SceneText {
-    pub label: TextLabel,    // what to draw
-    pub row: u32,            // its object row
+    pub label: TextLabel, // what to draw
+    pub row: u32,
     pub(super) key: String,
     pub(super) active: bool,
 }

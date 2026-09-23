@@ -1,4 +1,5 @@
 // --8<-- [start:step-3a]
+//! The construction plane: the flat surface new geometry is drawn on, because a click only gives two screen numbers.
 use session_rust::{Point, Vector};
 
 /// A construction plane through two world axes.

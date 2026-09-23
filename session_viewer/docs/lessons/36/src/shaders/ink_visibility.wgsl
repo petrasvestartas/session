@@ -372,7 +372,7 @@ fn ink_decode_primitive(encoded: vec2<f32>) -> u32 {
 }
 
 // --8<-- [start:step-5]
-// Alpha of hidden ink: 0, or 1 - opacity through translucent faces.
+// Hidden ink behind a translucent face is dimmed to 1 - opacity, instead of being hidden outright.
 fn through_glass(hidden: bool) -> f32 {
     let glass = line.opacity > 0.0 && line.opacity < 1.0;
     return select(1.0, select(0.0, 1.0 - line.opacity, glass), hidden);

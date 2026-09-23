@@ -11,24 +11,24 @@ pub use state::State;
 
 /// One more slice of streamed cloud `idx`.
 pub struct CloudChunk {
-    pub idx: usize,      // which cloud
+    pub idx: usize, // which cloud
     pub rows: StreamRows, // the new points
-    pub to: u32,          // rows loaded so far
+    pub to: u32, // rows loaded so far
 }
 
 /// Messages the async loader sends to the event loop.
 pub enum Msg {
-    Ready(Box<State>),                            // GPU is up, here is the state
-    File(FileDoc),                                // one loaded file
-    Clear,                                        // empty the scene
-    Fit,                                          // frame the camera on everything
-    StreamedCloud(Box<StreamedInit>),             // a point cloud starts streaming
-    CloudChunk(CloudChunk),                       // more points arrived
+    Ready(Box<State>), // GPU is up, here is the state
+    File(FileDoc),
+    Clear, // empty the scene
+    Fit, // frame the camera on everything
+    StreamedCloud(Box<StreamedInit>),
+    CloudChunk(CloudChunk), // more points arrived
     // --8<-- [start:step-9a]
-    CloudQueryBatch(app::cloud_query::Batch),     // points asked for on click
+    CloudQueryBatch(app::cloud_query::Batch), // points asked for on click
     CloudQueryResolved(app::cloud_query::Resolved), // those points answered
     // --8<-- [end:step-9a]
-    CancelPointer,                                // the browser lost the pointer
+    CancelPointer, // the browser lost the pointer
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -47,9 +47,9 @@ use {
 /// The winit application: owns the state and the gestures.
 #[cfg(target_arch = "wasm32")]
 pub struct App {
-    state: Option<State>,                                       // everything drawn, once the GPU is up
-    proxy: Option<EventLoopProxy<Msg>>,                         // sends messages into the loop
-    input: Input,                                               // mouse and key gestures
+    state: Option<State>, // everything drawn, once the GPU is up
+    proxy: Option<EventLoopProxy<Msg>>, // sends messages into the loop
+    input: Input, // mouse and key gestures
     pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener
 }
 

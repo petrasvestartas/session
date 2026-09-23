@@ -9,7 +9,7 @@ pub mod mesh;
 pub mod mesh_ink;
 pub mod mesh_topology;
 
-/// Where one object's rows go.
+/// One walk over the document turns each object into GPU rows; this says where that object's rows land.
 pub struct WalkCx {
     pub vert_base: u32,   // arena vertices already on the GPU
     pub cloud_px: f32,    // point size override in px, 0 = file's own

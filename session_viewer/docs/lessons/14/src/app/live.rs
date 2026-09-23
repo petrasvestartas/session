@@ -1,4 +1,5 @@
 // --8<-- [start:step-5a]
+//! Reads the scene from a URL, so the published page shows current data without rebuilding the viewer.
 use super::decode::session_from_bytes;
 use super::fetch::{GetOpts, get};
 use super::manifest::Manifest;
@@ -28,8 +29,8 @@ const NOTIFY_TICK_MS: i32 = 100;
 
 /// An open relay connection.
 struct Notify {
-    _source: web_sys::EventSource,                         // the event stream
-    flag: Rc<RefCell<bool>>,                               // a message arrived
+    _source: web_sys::EventSource,
+    flag: Rc<RefCell<bool>>, // a message arrived
     _on_message: Closure<dyn FnMut(web_sys::MessageEvent)>, // the JS callback
 }
 
@@ -77,26 +78,26 @@ impl Drop for Notify {
 /// What one read found.
 enum Read {
     Changed(Vec<u8>), // new bytes
-    Same,             // unchanged since last time
-    Failed(String),   // the error
+    Same, // unchanged since last time
+    Failed(String), // the error
 }
 
 // --8<-- [end:step-5b]
 // --8<-- [start:step-5c]
 /// The watched scene and what was last seen of it.
 pub struct LiveSource {
-    pub url: String,                          // manifest URL
-    pub tick_ms: i32,                         // how often `check` runs
-    pub poll_ms: f64,                         // how often the network is read
-    last_read_ms: f64,                        // when it was last read
-    base: String,                             // prefix for the manifest's files
-    manifest: Option<Manifest>,               // last good manifest
-    etags: HashMap<String, String>,           // last ETag per URL
-    hashes: HashMap<String, u64>,             // last content hash per URL without ETag
-    sessions: HashMap<String, Rc<Session>>,   // decoded file per URL
-    last_warning: Option<String>,             // last message logged
-    pending: bool,                            // a change waits to be shown
-    notify: Option<Notify>,                   // relay connection
+    pub url: String,
+    pub tick_ms: i32, // how often `check` runs
+    pub poll_ms: f64, // how often the network is read
+    last_read_ms: f64,
+    base: String, // prefix for the manifest's files
+    manifest: Option<Manifest>, // last good manifest
+    etags: HashMap<String, String>, // last ETag per URL
+    hashes: HashMap<String, u64>, // last content hash per URL without ETag
+    sessions: HashMap<String, Rc<Session>>, // decoded file per URL
+    last_warning: Option<String>, // last message logged
+    pending: bool, // a change waits to be shown
+    notify: Option<Notify>, // relay connection
 }
 
 impl LiveSource {

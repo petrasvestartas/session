@@ -1,4 +1,5 @@
 // --8<-- [start:step-12a]
+//! Splits the screen into tiles and lists which triangles touch each tile, so a pixel tests a few triangles instead of all.
 use super::buffers::{GpuCtx, ROWS, bind_group, uniform_buffer, zeroed_buffer};
 use super::frame::Binds;
 use crate::engine::pipelines::{
@@ -181,7 +182,7 @@ fn next_pool_words(
 /// What the tile lists were built for; same key = reuse them.
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct ProjectionKey {
-    matrix: [f32; 16], // camera matrix
+    matrix: [f32; 16],
     // --8<-- [end:step-12c]
     // --8<-- [start:step-12d]
     objects: u64, // object change count
@@ -202,13 +203,13 @@ struct TilePipelines {
 pub struct TriangleTiles {
     pub buffer: wgpu::Buffer, // tile headers and reference pool
     pub projected: wgpu::Buffer, // one screen-space record per triangle
-    requested_triangles: u32, // triangles in the scene
+    requested_triangles: u32,
     layout: Option<TileLayout>, // current grid, None when empty
     target: Option<wgpu::TextureView>, // the tile texture, if any
     live_count: wgpu::Buffer, // triangle count, for the shaders
     key: Option<ProjectionKey>, // what the lists were built for
-    pipes: TilePipelines, // pipelines
-    pool_words: u64, // reference pool size, words
+    pipes: TilePipelines,
+    pool_words: u64,
     report: PoolReport, // readback of the words needed
 }
 
@@ -499,7 +500,7 @@ pub(super) struct TileInput<'a> {
     pub geometry: [&'a wgpu::Buffer; 3], // vertices, object rows, indices
     // --8<-- [end:step-12i]
     // --8<-- [start:step-12j]
-    pub matrix: [f32; 16], // camera matrix
+    pub matrix: [f32; 16],
     pub objects_revision: u64, // object change count
 }
 

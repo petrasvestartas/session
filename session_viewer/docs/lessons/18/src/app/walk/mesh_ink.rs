@@ -10,17 +10,17 @@ use session_rust::mesh::ColorMode;
 
 /// Where a mesh's edges and vertex dots go.
 pub struct Ink<'a> {
-    pub seg: &'a mut SegRows,     // edge pipes
+    pub seg: &'a mut SegRows, // edge pipes
     pub glyph: &'a mut GlyphRows, // vertex spheres
 }
 
 /// What the ink pass needs from the face pass.
 pub struct InkCx<'a> {
-    pub row: u32,             // object row
+    pub row: u32,
     pub vpos: &'a [[f32; 3]], // vertex positions by slot
-    pub slots: &'a SlotMap,   // vertex key to slot
-    pub smooth: bool,         // only borders and creases are ink
-    pub lap: &'a mut Lap,     // profiling timer
+    pub slots: &'a SlotMap, // vertex key to slot
+    pub smooth: bool, // only borders and creases are ink
+    pub lap: &'a mut Lap, // profiling timer
 }
 
 /// Pen width of edge `i`; one entry applies to all.
@@ -106,7 +106,7 @@ fn facing_word(codes: &[u32], k: usize) -> u32 {
 /// One pipe per drawn edge.
 fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     let w = m.widths();
-    let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN; // dense mesh: black edges
+    let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN;
     ink.seg.pipes.reserve(topo.edges.len());
 
     for (i, (a, b, col)) in topo.edges.iter().enumerate() {
@@ -146,8 +146,8 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
 /// Which edges touch each vertex.
 struct Incidence {
     best: Vec<(f64, usize)>, // per vertex: widest edge (width, index)
-    vstart: Vec<u32>,        // per vertex: start into `vinc`
-    vinc: Vec<u32>,          // edge indices, grouped by vertex
+    vstart: Vec<u32>, // per vertex: start into `vinc`
+    vinc: Vec<u32>, // edge indices, grouped by vertex
 }
 
 /// Build the vertex to edge tables.
@@ -201,7 +201,7 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
 
 /// What the marker loop reads.
 struct MarkerCx<'a, 'b> {
-    cx: &'a InkCx<'b>,  // ink context
+    cx: &'a InkCx<'b>,
     inc: &'a Incidence, // vertex to edge tables
 }
 
@@ -209,7 +209,7 @@ struct MarkerCx<'a, 'b> {
 fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
     let (cx, inc) = (input.cx, input.inc);
     let pc = m.get_pointcolors();
-    let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices(); // per-vertex colours
+    let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices();
     let nv = cx.vpos.len();
     let mut fkeys: Vec<usize> = Vec::new(); // faces around one vertex
     let mut codes: Vec<u32> = Vec::new(); // packed normals of those faces

@@ -1,3 +1,5 @@
+//! Messages shown to the person using the viewer - what loaded, what failed, what is selected.
+
 /// Show a message in the status line.
 pub fn status(message: &str) {
     // an empty message shows the reload notice, if any

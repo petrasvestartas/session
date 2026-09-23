@@ -52,11 +52,11 @@ pub struct State {
     last_resize_ms: f64,                                    // when the last resize was applied
     pub selection: SelectionMode,                           // object, edge, face or control points
     pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
-    hierarchy: crate::app::hierarchy::Hierarchy,            // the tree panel state
+    hierarchy: crate::app::hierarchy::Hierarchy,
     pending_split: Option<splitting::Pending>,              // a split waiting for its cutter
     // --8<-- [start:step-38b]
     pub(crate) draft: Option<drawing::Draft>,               // a shape being drawn
-    pub(crate) snap_enabled: bool,                          // snap to points while drawing
+    pub(crate) snap_enabled: bool,
     controls: Controls,                                     // control points of the selected object
     requested: PickMode,                                    // what the pending pick looks for
     pub(crate) additive_selection: bool,                    // Shift held: add to the selection

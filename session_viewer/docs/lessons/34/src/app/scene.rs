@@ -128,7 +128,7 @@ pub struct Scene {
     // --8<-- [end:step-7b]
     pub(super) preview_spans: Vec<Option<crate::engine::gpu::patch::Span>>, // per row, its GPU range
     pub last_edited: Option<usize>,                    // document undo applies to
-    pub(crate) created_doc: Option<usize>,             // the `Created` document
+    pub(crate) created_doc: Option<usize>,
     pub(crate) row_revision: u64,                      // bumped when rows change
 }
 

@@ -53,7 +53,7 @@ impl SegRows {
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub(super) struct StrokeSegment {
-    pub(super) segment: CylinderSegment, // the segment
+    pub(super) segment: CylinderSegment,
     pub(super) previous: u32, // row of the segment before it, or u32::MAX
     pub(super) next: u32, // row of the segment after it, or u32::MAX
 }
@@ -155,10 +155,10 @@ struct SegPipelines {
     id_ribbon: wgpu::RenderPipeline, // object ids
     id_edge: wgpu::RenderPipeline, // source edge ids
     // --8<-- [start:step-24a]
-    mask_unselected: wgpu::RenderPipeline, // unselected edges into the solid mask
-    mask_selected: wgpu::RenderPipeline, // selected edges into a mask
-    masks_unselected: wgpu::RenderPipeline, // unselected edges into both masks
-    masks_selected: wgpu::RenderPipeline, // selected edges into both masks
+    mask_unselected: wgpu::RenderPipeline,
+    mask_selected: wgpu::RenderPipeline,
+    masks_unselected: wgpu::RenderPipeline,
+    masks_selected: wgpu::RenderPipeline,
     // --8<-- [end:step-24a]
 }
 
@@ -166,11 +166,11 @@ struct SegPipelines {
 pub struct SegmentLane {
     pipes: SegTable, // mesh and solid edges
     ribbons: SegTable, // standalone lines and curves
-    shader: wgpu::ShaderModule, // ribbon shader
-    gpu: SegPipelines, // pipelines
+    shader: wgpu::ShaderModule,
+    gpu: SegPipelines,
     selection: wgpu::Buffer, // selected edge (object, edge), read by shaders
-    selected_rows: HashSet<u32>, // selected object rows
-    selected_edge: bool, // an edge is selected
+    selected_rows: HashSet<u32>,
+    selected_edge: bool,
 }
 
 impl SegmentLane {

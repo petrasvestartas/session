@@ -17,7 +17,7 @@ pub struct GizmoDrag {
     target: Option<crate::app::deform::Target>,           // a face, edge or control point being moved
     source: Option<session_rust::Geometry>,               // the geometry before the drag
     origin: Point,                                        // the gizmo center at the grab
-    mesh_preview: Option<crate::app::mesh_preview::Gesture>, // a GPU-side mesh preview
+    mesh_preview: Option<crate::app::mesh_preview::Gesture>,
     // --8<-- [end:step-20a]
 }
 

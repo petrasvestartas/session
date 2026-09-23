@@ -37,8 +37,8 @@ pub fn is_print_fill(m: &Mesh) -> bool {
 /// How one mesh is walked.
 pub struct MeshOpts {
     pub sheet_lanes: bool, // print fills go to the sheet runs
-    pub allow_open: bool,  // an open mesh may be flagged open
-    pub smooth: bool,      // a sampled surface, seams are not edges
+    pub allow_open: bool, // an open mesh may be flagged open
+    pub smooth: bool, // a sampled surface, seams are not edges
 }
 
 impl MeshOpts {
@@ -67,9 +67,9 @@ impl MeshOpts {
 /// A lap timer printing when profiling is on.
 #[cfg(not(target_arch = "wasm32"))]
 pub struct Lap {
-    on: bool,               // profiling enabled
+    on: bool, // profiling enabled
     at: std::time::Instant, // last mark
-    prefix: &'static str,   // caller name in each line
+    prefix: &'static str, // caller name in each line
 }
 
 /// No timer in the browser.
@@ -122,7 +122,7 @@ fn index_run<'a>(arena: &'a mut ArenaRows, m: &Mesh, sheet: bool) -> &'a mut Vec
 
 /// Context and options for one mesh.
 pub struct MeshCx<'a> {
-    pub cx: &'a WalkCx,     // where rows go
+    pub cx: &'a WalkCx, // where rows go
     pub opts: &'a MeshOpts, // how to walk
 }
 
@@ -136,7 +136,7 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
 
     let print = is_print_fill(m);
     let decorated = rm.indices.len() / 3 <= MESH_RAW_MIN && !print; // gets edges and dots
-    let keys = if decorated { m.vertices() } else { Vec::new() }; // sorted vertex keys
+    let keys = if decorated { m.vertices() } else { Vec::new() };
     let slots = SlotMap::new(&keys);
     let mut vpos64 = Vec::with_capacity(keys.len()); // positions by slot
     let mut vpos = Vec::with_capacity(keys.len()); // same in f32

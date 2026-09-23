@@ -7,7 +7,7 @@ use session_rust::Xform;
 /// What the caller gives each frame.
 pub struct FrameInput {
     pub view_proj: Xform, // camera matrix
-    pub clear: wgpu::Color, // background color
+    pub clear: wgpu::Color,
     pub now_ms: f64, // time of this frame, ms
 }
 
@@ -157,19 +157,19 @@ fn mat4_mul(left: &[f32; 16], right: &[f32; 16]) -> [f32; 16] {
 /// Uniform buffers and bind groups for a frame and its pick pass.
 pub struct FrameUniforms {
     mvp_buffer: wgpu::Buffer, // camera matrix
-    line_buffer: wgpu::Buffer, // LineUniform
-    cloud_buffer: wgpu::Buffer, // CloudUniform
+    line_buffer: wgpu::Buffer,
+    cloud_buffer: wgpu::Buffer,
     pub mvp_group: wgpu::BindGroup, // group 0
     pub line_group: wgpu::BindGroup, // group 1
     pub cloud_group: wgpu::BindGroup, // group 1 of the point lane
     pick_mvp_buffer: wgpu::Buffer, // same three blocks, for the pick window
-    pick_line_buffer: wgpu::Buffer, // LineUniform for the pick
-    pick_cloud_buffer: wgpu::Buffer, // CloudUniform for the pick
+    pick_line_buffer: wgpu::Buffer,
+    pick_cloud_buffer: wgpu::Buffer,
     pick_transform_buffer: wgpu::Buffer, // canvas-to-window matrix
     pub pick_mvp_group: wgpu::BindGroup, // group 0 for the pick
     pub pick_line_group: wgpu::BindGroup, // group 1 for the pick
     pub pick_cloud_group: wgpu::BindGroup, // point lane group 1 for the pick
-    pub pick_transform_group: wgpu::BindGroup, // text lanes' pick group
+    pub pick_transform_group: wgpu::BindGroup,
     line: LineUniform, // last written values
     cloud: CloudUniform, // last written values
     pub mvp_f32: [f32; 16], // this frame's camera matrix

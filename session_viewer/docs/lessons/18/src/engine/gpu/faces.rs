@@ -1,3 +1,4 @@
+//! Face geometry kept apart from edges, because a face needs shading and normals while an edge needs neither.
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::frame::Binds;
 // --8<-- [start:step-14a]
@@ -16,15 +17,15 @@ pub struct FaceSource {
 
 /// Solid faces: their source ids, the selected one, and the pipelines.
 pub struct Faces {
-    pub sources: Vec<FaceSource>, // one entry per face
+    pub sources: Vec<FaceSource>,
     ids: GrowBuf, // face id per triangle
     selected: wgpu::Buffer, // selected face id, read by shaders
     active: Option<u32>, // selected face id, if any
     // --8<-- [start:step-14b]
     revision: u64, // bumps on every selection change
-    layout: wgpu::BindGroupLayout, // shape of the face bind group
+    layout: wgpu::BindGroupLayout,
     group: Option<wgpu::BindGroup>, // the face buffers, bound
-    pipes: FacePipelines, // face pipelines
+    pipes: FacePipelines,
 }
 
 /// The six face pipelines.

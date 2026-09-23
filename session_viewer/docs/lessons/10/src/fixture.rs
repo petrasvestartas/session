@@ -18,7 +18,7 @@ pub struct CadFixture {
 #[derive(serde::Serialize)]
 /// One object: its GUID, kind and GPU row.
 pub struct SourceIdentity {
-    pub object_row: u32, // the GPU row
+    pub object_row: u32,
     pub guid: String,
     pub kind: &'static str, // mesh, polyline, point…
 }
@@ -30,7 +30,7 @@ impl CadFixture {
             upload: Upload::default(), // empty
             sources: Vec::new(),
             identities: Vec::new(), // no objects yet
-            pipe_source_edges: Vec::new(), // no pipes yet
+            pipe_source_edges: Vec::new(),
         }
     }
 
@@ -64,7 +64,7 @@ impl CadFixture {
             .extend_from_slice(&self.upload.seg.pipe_ids[first_pipe..]);
         self.push_row(prepared, place);
         self.identities.push(SourceIdentity {
-            object_row: row, // the GPU row
+            object_row: row,
             guid,
             kind,
         });

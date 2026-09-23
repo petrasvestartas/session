@@ -117,7 +117,7 @@ pub struct Scene {
     guid_to_row: HashMap<(usize, Rc<str>), u32>,       // (document, guid) to row
     bases: Bases,                                      // rows already on the GPU
     pub last_edited: Option<usize>,                    // document undo applies to
-    pub(crate) created_doc: Option<usize>,             // the `Created` document
+    pub(crate) created_doc: Option<usize>,
 }
 
 impl Default for Scene {

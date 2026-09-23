@@ -45,7 +45,7 @@ pub struct State {
     last_resize_ms: f64,                                    // when the last resize was applied
     pub selection: SelectionMode,                           // object, edge, face or control points
     pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
-    hierarchy: crate::app::hierarchy::Hierarchy,            // the tree panel state
+    hierarchy: crate::app::hierarchy::Hierarchy,
     // --8<-- [start:step-11b]
     pending_split: Option<splitting::Pending>,              // a split waiting for its cutter
     // --8<-- [end:step-11b]

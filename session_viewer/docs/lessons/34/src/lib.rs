@@ -64,7 +64,7 @@ pub struct App {
     proxy: Option<EventLoopProxy<Msg>>,                         // sends messages into the loop
     input: Input,                                               // mouse and key gestures
     pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener
-    ui: Option<app::ui::Ui>,                                    // the egui panels
+    ui: Option<app::ui::Ui>,
 }
 
 #[cfg(target_arch = "wasm32")]

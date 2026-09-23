@@ -1,4 +1,5 @@
 // --8<-- [start:step-1a]
+//! Text that always faces the viewer at a fixed pixel size, for labels that must stay readable from any angle.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use crate::engine::pipelines::Target;
 
@@ -6,7 +7,7 @@ use crate::engine::pipelines::Target;
 pub(super) struct Rectangle {
     pub(super) bounds: [f32; 4], // left, top, right, bottom
     pub(super) clip: [f32; 4], // screen box it is cut to
-    pub(super) rounded: bool, // rounded corners
+    pub(super) rounded: bool,
 }
 
 /// Draws label backgrounds as rounded rectangles.
@@ -20,7 +21,7 @@ impl Plates {
     pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
         Self {
             vertices: GrowBuf::new(ctx, "text.plates", 28, VERTS), // 7 floats per vertex
-            pipeline: pipeline(ctx, target), // the plate pipeline
+            pipeline: pipeline(ctx, target),
         }
     }
 
@@ -146,7 +147,7 @@ fn pipeline(ctx: &GpuCtx, target: Target) -> wgpu::RenderPipeline {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: Some(false),
-                depth_compare: Some(wgpu::CompareFunction::Always), // always on top
+                depth_compare: Some(wgpu::CompareFunction::Always),
                 stencil: Default::default(),
                 bias: Default::default(),
             }),

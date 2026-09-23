@@ -1,7 +1,7 @@
 /// Display settings; most start from a `?query` or an env variable.
 pub struct View {
     // --8<-- [start:step-34a]
-    pub ssao: bool, // ambient occlusion on
+    pub ssao: bool,
     // --8<-- [end:step-34a]
     pub show_grid: bool, // floor grid
     pub show_points: bool, // point markers, `Q`

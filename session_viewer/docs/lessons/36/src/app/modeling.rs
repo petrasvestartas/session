@@ -1,3 +1,5 @@
+//! A geometry command collects the points its verb needs, then builds one object and adds it to the scene.
+
 use crate::app::scene::FileDoc;
 use crate::app::scene::Scene;
 use session_rust::Geometry;

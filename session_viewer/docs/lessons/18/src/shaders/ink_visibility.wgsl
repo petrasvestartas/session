@@ -26,7 +26,7 @@ struct InkColor {
 // --8<-- [end:step-13a]
 struct InkAxis {
     at: vec2<f32>, // nearest point on the center line, screen px
-    depth: f32, // its depth
+    depth: f32,
     along: vec2<f32>, // stroke direction on screen, unit
     slope: f32, // depth change per pixel along it
 };
@@ -319,7 +319,7 @@ fn ink_primitive(pixel: vec2<f32>, sample: u32) -> u32 {
     return ink_decode_primitive(textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).zw);
 }
 
-@group(2) @binding(7) var<storage, read> triangle_tiles: array<vec4<u32>>; // which triangles cover each screen tile
+@group(2) @binding(7) var<storage, read> triangle_tiles: array<vec4<u32>>;
 
 /// Is this ink fragment in front of the surface.
 fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {

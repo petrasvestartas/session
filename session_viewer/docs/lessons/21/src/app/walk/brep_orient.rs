@@ -41,7 +41,7 @@ fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
             continue;
         }
 
-        let c = (d[0] * dir[0] + d[1] * dir[1] + d[2] * dir[2]) / l; // cosine to `dir`
+        let c = (d[0] * dir[0] + d[1] * dir[1] + d[2] * dir[2]) / l;
 
         if match best {
             Some((bc, bw)) => c > bc || (c == bc && w < bw),

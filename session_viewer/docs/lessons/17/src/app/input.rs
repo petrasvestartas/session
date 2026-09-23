@@ -1,3 +1,4 @@
+//! Collects browser pointer, key and touch events into one state the viewer can ask questions of, instead of handling events everywhere.
 use super::touch::{Act, Touches};
 use crate::State;
 use crate::camera::View;
@@ -11,15 +12,15 @@ const CLICK_SLOP: f64 = 4.0;
 
 /// Mouse, keyboard and finger state between events.
 pub struct Input {
-    orbiting: bool,                          // right button held
-    panning: bool,                           // middle button held
-    ctrl: bool,                              // Ctrl held
+    orbiting: bool, // right button held
+    panning: bool, // middle button held
+    ctrl: bool,
     // --8<-- [start:step-8b]
-    shift: bool,                             // Shift held
+    shift: bool,
     // --8<-- [end:step-8b]
-    last_cursor: (f64, f64),                 // last pointer position in pixels
-    left_down: Option<(f64, f64)>,           // where the left button went down
-    touch: Touches,                          // camera finger gestures
+    last_cursor: (f64, f64), // last pointer position in pixels
+    left_down: Option<(f64, f64)>,
+    touch: Touches, // camera finger gestures
 }
 
 impl Default for Input {
@@ -243,8 +244,8 @@ impl Input {
 /// A `pointercancel` listener on the canvas.
 #[cfg(target_arch = "wasm32")]
 pub struct PointerCancellation {
-    canvas: web_sys::HtmlCanvasElement,                                 // the canvas listened to
-    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>, // the JS callback
+    canvas: web_sys::HtmlCanvasElement,
+    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
 }
 
 #[cfg(target_arch = "wasm32")]

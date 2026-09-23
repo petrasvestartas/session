@@ -1,4 +1,5 @@
 // --8<-- [start:step-17a]
+//! Draws a border around the selected object by redrawing it slightly larger behind itself.
 use std::collections::HashSet;
 
 use super::buffers::GpuCtx;

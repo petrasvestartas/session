@@ -1,9 +1,12 @@
+//! egui is immediate mode: the interface is rebuilt from this state every frame, so no widget object is kept in sync.
+
 use crate::State;
 use crate::app::feedback::LayerRow;
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use winit::window::Window;
 
+// Every panel reads and writes this one struct, because an immediate-mode frame keeps no widget state of its own.
 pub struct Model {
     pub layers_open: bool,                          // layers panel shown
     pub rows: Vec<LayerRow>,                        // its rows
@@ -18,13 +21,13 @@ impl Default for Model {
     /// The panel state at start.
     fn default() -> Self {
         Self {
-            layers_open: true, // layers panel shown
-            rows: Vec::new(), // no layer rows yet
-            command_open: false, // command line hidden
-            command: String::new(), // nothing typed yet
-            focus_command: false, // no focus request
-            status: String::new(), // no status text
-            history: VecDeque::new(), // no past commands
+            layers_open: true,
+            rows: Vec::new(),
+            command_open: false,
+            command: String::new(),
+            focus_command: false,
+            status: String::new(),
+            history: VecDeque::new(),
         }
     }
 }
@@ -284,9 +287,9 @@ fn record(controls: &mut Option<Vec<Control>>, key: &str, label: &str, response:
 
 /// The layers panel; a click sets `action`.
 fn layers(
-    root: &mut egui::Ui, // the panel area
-    model: &mut Model, // the panel state
-    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    root: &mut egui::Ui,
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
     action: &mut Option<String>,
 ) {
     if !model.layers_open {
@@ -482,7 +485,7 @@ fn layer_color(
     ui: &mut egui::Ui,
     row: &LayerRow,
     index: &str,
-    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    controls: &mut Option<Vec<Control>>,
     action: &mut Option<String>,
 ) {
     let mut color = row.color.unwrap_or([180, 180, 180]);
@@ -559,9 +562,9 @@ fn layer_color(
 
 /// The command dock; an executed line goes to `command`.
 fn commands(
-    root: &mut egui::Ui, // the panel area
-    model: &mut Model, // the panel state
-    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    root: &mut egui::Ui,
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
     command: &mut Option<String>,
 ) {
     let height = if model.command_open { 160.0 } else { 104.0 };
@@ -665,9 +668,9 @@ const TOOLBAR: &[(&str, &str, &str)] = &[
 
 /// The button row above the command field.
 fn toolbar(
-    root: &mut egui::Ui, // the panel area
-    model: &mut Model, // the panel state
-    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    root: &mut egui::Ui,
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
     action: &mut Option<&'static str>, // the button pressed, if any
 ) {
     egui::Panel::left("tools")

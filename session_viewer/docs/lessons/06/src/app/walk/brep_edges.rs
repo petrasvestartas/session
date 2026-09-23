@@ -1,6 +1,6 @@
 use session_rust::brep::BRepOrientation;
 
-/// One use of an edge by a face.
+/// A BRep edge is shared: each of the two faces meeting there uses the same edge, once from each side.
 pub struct EdgeUse {
     pub edge: usize,                  // edge index
     pub face: usize,                  // face index

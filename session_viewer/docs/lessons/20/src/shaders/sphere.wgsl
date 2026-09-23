@@ -35,7 +35,7 @@ fn to_px(world: f32, w: f32) -> f32 {
 
 // What the vertex shader hands the fragment shader.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>, // clip position
+    @builtin(position) pos: vec4<f32>,
     @location(0) color: vec4<f32>, // rgba
     @location(1) corner: vec2<f32>, // -1..1 across the disc
     @location(2) @interpolate(flat) px: f32, // disc radius, px

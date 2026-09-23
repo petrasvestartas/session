@@ -1,4 +1,5 @@
 // --8<-- [start:step-2a]
+//! Checks a file before use, so a truncated download fails with a message instead of a wrong picture.
 use prost::Message;
 use session_rust::proto;
 

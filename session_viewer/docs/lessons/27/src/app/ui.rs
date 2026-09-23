@@ -1,10 +1,12 @@
+//! egui is immediate mode: the interface is rebuilt from this state every frame, so no widget object is kept in sync.
+
 use crate::State;
 use crate::app::feedback::LayerRow;
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use winit::window::Window;
 
-/// Everything the panels show.
+// Every panel reads and writes this one struct, because an immediate-mode frame keeps no widget state of its own.
 #[derive(Default)]
 pub struct Model {
     pub layers_open: bool,                          // layers panel shown
@@ -186,8 +188,8 @@ fn record(controls: &mut Option<Vec<Control>>, key: &str, label: &str, response:
 /// The layers panel; a click sets `action`.
 fn layers(
     context: &egui::Context, // the egui frame
-    model: &mut Model, // the panel state
-    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
     action: &mut Option<String>,
 ) {
     if !model.layers_open {
@@ -283,8 +285,8 @@ fn layer_button(ui: &mut egui::Ui, row: &LayerRow) -> egui::Response {
 /// The command dock; an executed line goes to `command`.
 fn commands(
     context: &egui::Context, // the egui frame
-    model: &mut Model, // the panel state
-    controls: &mut Option<Vec<Control>>, // placed controls to draw
+    model: &mut Model,
+    controls: &mut Option<Vec<Control>>,
     command: &mut Option<String>,
 ) {
     if !model.command_open {

@@ -33,8 +33,8 @@ fn parse_sample_index(value: &str) -> Option<usize> {
 
 /// One use of an edge by a face.
 pub struct EdgeUse {
-    pub edge: usize,                  // edge index
-    pub face: usize,                  // face index
+    pub edge: usize,
+    pub face: usize,
     pub orientation: BRepOrientation, // which way the face runs it
 }
 
@@ -173,9 +173,9 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
 
 /// The mesh vertices one BRep edge runs along.
 pub struct EdgeChain {
-    pub edge: usize,          // BRep edge index
-    pub face: usize,          // face mesh the keys belong to
-    pub keys: Vec<usize>,     // vertex keys along the edge
+    pub edge: usize, // BRep edge index
+    pub face: usize, // face mesh the keys belong to
+    pub keys: Vec<usize>, // vertex keys along the edge
     pub other: Option<usize>, // the face on the other side
 }
 
@@ -313,7 +313,7 @@ type FacetEdge = [[u64; 3]; 2];
 #[derive(Default)]
 struct FacetPair {
     normals: [Option<[f64; 3]>; 2], // first two triangle normals
-    count: usize,                   // how many triangles in total
+    count: usize, // how many triangles in total
 }
 
 /// Position as bits, -0 same as 0.
@@ -400,10 +400,10 @@ fn face_facets(mesh: &Mesh) -> std::collections::HashMap<FacetEdge, FacetPair> {
 
 /// What every edge pipe of one BRep needs.
 pub struct EdgePen<'a> {
-    pub fms: &'a [Mesh],                                         // face meshes
-    pub signs: &'a [f64],                                        // +1 or -1 per face
-    pub pen: Pen,                                                // row, width, colour
-    facets: Vec<std::collections::HashMap<FacetEdge, FacetPair>>, // per face: triangles at each edge
+    pub fms: &'a [Mesh],
+    pub signs: &'a [f64], // +1 or -1 per face
+    pub pen: Pen, // row, width, colour
+    facets: Vec<std::collections::HashMap<FacetEdge, FacetPair>>,
 }
 
 impl<'a> EdgePen<'a> {

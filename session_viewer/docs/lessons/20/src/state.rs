@@ -1,3 +1,4 @@
+//! One place for what the viewer knows between frames, so no pass has to reach into another pass's data.
 use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
 use crate::app::selection::{ControlId, Controls, SelectionMode};
 use crate::app::walk::cloud::StreamRows;
@@ -29,24 +30,24 @@ const SPIN_STEP: f32 = 0.004;
 
 /// Everything the viewer holds: window, GPU, camera, scene, selection.
 pub struct State {
-    pub window: Arc<Window>,                                // the winit window on the canvas
-    pub gpu: Gpu,                                           // device, buffers, pipelines
-    pub camera: Camera,                                     // the view
-    pub scene: Scene,                                       // the loaded documents
-    pub needs_frame: bool,                                  // draw again on the next redraw
-    pub interacting: bool,                                  // a drag or pinch is in progress
-    dirty: bool,                                            // the picture changed
-    last_frame_ms: f64,                                     // when the last frame was drawn
-    pub selection: SelectionMode,                           // object, edge, face or control points
-    controls: Controls,                                     // control points of the selected object
-    requested: PickMode,                                    // what the pending pick looks for
-    pub selection_radius_css: f64,                          // click tolerance in CSS pixels
-    show_selected_names: bool,                              // name label on the selection, T toggles
-    cloud_query: Option<crate::app::cloud_query::Query>,    // a point-cloud pick in flight
+    pub window: Arc<Window>, // the winit window on the canvas
+    pub gpu: Gpu, // device, buffers, pipelines
+    pub camera: Camera, // the view
+    pub scene: Scene, // the loaded documents
+    pub needs_frame: bool, // draw again on the next redraw
+    pub interacting: bool, // a drag or pinch is in progress
+    dirty: bool, // the picture changed
+    last_frame_ms: f64,
+    pub selection: SelectionMode, // object, edge, face or control points
+    controls: Controls, // control points of the selected object
+    requested: PickMode, // what the pending pick looks for
+    pub selection_radius_css: f64, // click tolerance in CSS pixels
+    show_selected_names: bool, // name label on the selection, T toggles
+    cloud_query: Option<crate::app::cloud_query::Query>, // a point-cloud pick in flight
     #[cfg(target_arch = "wasm32")]
-    query_generation: u64,                                  // counts cloud queries, old answers dropped
-    sheet_query: Option<crate::app::sheet_query::Query>,    // a sheet pick in flight
-    sheet_generation: u64,                                  // counts sheet queries, old answers dropped
+    query_generation: u64, // counts cloud queries, old answers dropped
+    sheet_query: Option<crate::app::sheet_query::Query>, // a sheet pick in flight
+    sheet_generation: u64, // counts sheet queries, old answers dropped
 }
 
 impl State {
@@ -452,7 +453,7 @@ impl State {
         let mut dropped = false;
 
         if self.dirty && !self.cloud_query_awaiting_gpu() {
-            let gap = now_ms - self.last_frame_ms; // time since the last frame
+            let gap = now_ms - self.last_frame_ms;
             self.last_frame_ms = now_ms;
             self.gpu.performance.interacting = self.interacting;
             let drawn = self.gpu.present(&input); // encode time, None when the frame was dropped

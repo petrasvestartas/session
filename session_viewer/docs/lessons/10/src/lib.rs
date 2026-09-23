@@ -13,7 +13,7 @@ use wasm_bindgen::prelude::*;
 /// The teaching viewer the page talks to.
 pub struct Tutorial {
     canvas: web_sys::HtmlCanvasElement,
-    gpu: Gpu, // every GPU object
+    gpu: Gpu,
     camera: camera::Camera, // orbit, pan, zoom
     scale: f64, // device pixel ratio
     fixture: fixture::CadFixture, // the built-in scene

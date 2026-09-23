@@ -1,9 +1,11 @@
+//! Dragging one face, edge or control point instead of the whole object; the drag is applied in the object's own frame.
+
 use super::selection::{ControlId, Controls, SelectionMode};
 use session_rust::{Geometry, Mesh, NurbsSurface, Point, Xform};
 use std::collections::HashSet;
 use std::rc::Rc;
 
-/// The part of a geometry an edit applies to.
+// A drag has to know what it grabbed: the whole object, one face, one edge, or a single control point.
 #[derive(Clone, Copy, Debug)]
 pub enum Target {
     Control(ControlId), // one control point or vertex

@@ -1,9 +1,11 @@
+//! Counters for frame time and memory, so a slow frame can be blamed on a number instead of a guess.
+
 /// Frame timing and the slow-interaction detector.
 pub struct Performance {
     prev_frame: f64, // time of the last frame, ms
     last_log: f64, // time of the last log line, ms
     frame_ms: f64, // smoothed frame time
-    pub frames: u64, // frames so far
+    pub frames: u64,
     pub draws: u32, // draw calls in the last frame
     pub interacting: bool, // a drag or pinch is in progress
     slow_run: u32, // slow interaction frames in a row

@@ -156,7 +156,7 @@ fn trimmed_surface() -> NurbsSurface {
     surface
 }
 
-/// A trimmed patch and a torus.
+/// Build the first source-face checkpoint entirely from local geometry.
 pub fn build() -> CadFixture {
     let mut scene = CadFixture::new();
     scene.add(

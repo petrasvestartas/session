@@ -3,28 +3,28 @@ pub mod camera;
 pub mod engine;
 pub mod fixture;
 use engine::gpu::{FrameInput, Gpu};
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::prelude::*; // Rust/WASM toolchain
 
-/// The canvas, the camera and the GPU.
+/// Everything needed to draw one frame: the browser owns the canvas, this struct owns the GPU.
 #[wasm_bindgen]
 pub struct Tutorial {
     canvas: web_sys::HtmlCanvasElement,
     gpu: Gpu,
-    camera: camera::Camera,
+    camera: camera::Camera, // orbit, pan and zoom state
     scale: f64,
     fixture: fixture::CadFixture,
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen] // Everything in this block is exported to JavaScript
 impl Tutorial {
-    /// Keeps the source objects; the GPU gets lane tables.
+    /// Negotiate a presentation compatible browser adapter and build the first pipeline.
     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
-        // panics print to the console
-        console_error_panic_hook::set_once();
+        console_error_panic_hook::set_once(); // Better error messages in the console
         let mut gpu = Gpu::new(canvas.clone()).await.map_err(js_error)?;
         let mut fixture = fixture::build();
         gpu.set_scene(&fixture.upload);
         fixture.upload.drop_uploaded();
+        // fit() picks the distance where this box fills the view, so the triangle is framed at startup.
         let mut camera = camera::Camera::new();
         camera.unit = camera::Unit::Millimeters;
         camera.set_view(camera::View::Iso);
@@ -46,6 +46,7 @@ impl Tutorial {
         gpu.view.show_mesh_edges = app::route::query("fill").is_none();
         gpu.view.markers = false;
         // --8<-- [end:step-7a]
+        // Create an instance of the struct, Ok is needed to return also the error message Err(...)
         Ok(Self {
             canvas,
             gpu,
@@ -55,7 +56,7 @@ impl Tutorial {
         })
     }
 
-    /// Orbit, or pan when `pan` is set.
+    /// Apply one camera gesture. The first GPU checkpoint intentionally has no camera yet.
     pub fn drag(&mut self, dx: f32, dy: f32, pan: bool) {
         if pan {
             self.camera.pan(dx, dy)
@@ -64,7 +65,7 @@ impl Tutorial {
         }
     }
 
-    /// Zoom at the cursor, in device pixels.
+    /// Apply one cursor-centered camera zoom when the camera checkpoint is installed.
     pub fn zoom(&mut self, delta: f32, x: f64, y: f64) {
         self.camera.zoom_at(
             delta,
@@ -73,7 +74,7 @@ impl Tutorial {
         );
     }
 
-    /// Resize if needed, then draw one frame.
+    /// Clear and draw one frame at full device-pixel resolution.
     pub fn render(&mut self, width: u32, height: u32, scale: f64) -> Result<String, JsValue> {
         if !scale.is_finite() || scale <= 0.0 {
             return Err(JsValue::from_str("invalid scale"));
@@ -119,7 +120,7 @@ fn window_time(window: web_sys::Window) -> Option<f64> {
     Some(window.performance()?.now())
 }
 
-/// Preserve a useful error string at the browser boundary.
+/// Keep initialization/render errors visible at the browser boundary.
 fn js_error(error: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&error.to_string())
 }

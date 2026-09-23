@@ -2,7 +2,7 @@
 use super::encode::{BLACK, pack_rgba};
 use session_rust::{Mesh, Tolerance};
 
-/// Vertex key to its position in the sorted key list.
+/// Two corners at the same spot are the same vertex; the key is that spot, so a shared corner is found by lookup.
 pub struct SlotMap {
     dense: Vec<u32>,                                 // key indexes directly
     sparse: std::collections::HashMap<usize, u32>, // used for sparse keys

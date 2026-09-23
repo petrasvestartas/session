@@ -120,7 +120,7 @@ pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
     }
 
     let spans = c.span_count().max(1);
-    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512); // chord count
+    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512);
 
     let (t0, t1) = c.domain();
     let mut pts: Vec<[f64; 3]> = Vec::with_capacity(n + 1);

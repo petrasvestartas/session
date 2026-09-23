@@ -1,4 +1,5 @@
 // --8<-- [start:step-2a]
+//! Adds up what the loaded document costs in memory, counting each Vec and String once, to explain the status-line number.
 use super::super::scene::FileDoc;
 use session_rust::{
     BRep, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, NurbsSurfaceTrimmed, OBB, Plane,
@@ -11,14 +12,14 @@ use std::rc::{Rc, Weak};
 /// Memory held by the loaded documents, by category.
 #[derive(Clone, Copy, Default, serde::Serialize)]
 pub(super) struct Payload {
-    pub vector_capacity_bytes: usize,    // Vec capacities
-    pub string_capacity_bytes: usize,    // String capacities
-    pub exposed_slice_bytes: usize,      // slices whose capacity is hidden
-    pub occupied_map_entry_bytes: usize, // map entries in use
-    pub shared_value_bytes: usize,       // each Rc value once
-    pub unique_sessions: usize,          // distinct sessions
-    pub unique_geometry_values: usize,   // distinct geometries
-    pub scans: u64,                      // how many times counted
+    pub vector_capacity_bytes: usize,
+    pub string_capacity_bytes: usize,
+    pub exposed_slice_bytes: usize, // slices whose capacity is hidden
+    pub occupied_map_entry_bytes: usize,
+    pub shared_value_bytes: usize, // each Rc value once
+    pub unique_sessions: usize,
+    pub unique_geometry_values: usize,
+    pub scans: u64, // how many times counted
 }
 
 impl Payload {
@@ -58,7 +59,7 @@ impl Payload {
 #[derive(Default)]
 pub(super) struct SourceCache {
     documents: Vec<Weak<Session>>, // sessions counted, without keeping them alive
-    payload: Payload,              // their count
+    payload: Payload, // their count
 }
 
 impl SourceCache {

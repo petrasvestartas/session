@@ -14,7 +14,7 @@ use wasm_bindgen::prelude::*;
 /// The teaching viewer the page talks to.
 pub struct Tutorial {
     canvas: web_sys::HtmlCanvasElement,
-    gpu: Gpu, // every GPU object
+    gpu: Gpu,
     camera: camera::Camera, // orbit, pan, zoom
     scale: f64, // device pixel ratio
     fixture: fixture::CadFixture, // the built-in scene
@@ -183,7 +183,7 @@ fn text_labels(bounds: &AABB) -> Vec<engine::text::TextLabel> {
                 ],
                 right: [1.0, 0.0, 0.0],
                 up: [0.0, 0.0, 1.0],
-                world_height: 16.0, // text height in world units
+                world_height: 16.0,
             },
             clip: None,
         },

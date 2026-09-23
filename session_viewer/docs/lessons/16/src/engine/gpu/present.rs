@@ -1,3 +1,4 @@
+//! Owns the surface and hands out the texture for this frame.
 use super::Gpu;
 use super::frame::{FrameCx, FrameInput};
 #[cfg(not(target_arch = "wasm32"))]

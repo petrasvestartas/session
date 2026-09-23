@@ -227,7 +227,7 @@ impl State {
                 })
             });
             rows.push(LayerRow {
-                key: format!("select/{index}"), // the select button key
+                key: format!("select/{index}"),
                 label: node.label.clone(),
                 count,
                 hidden,

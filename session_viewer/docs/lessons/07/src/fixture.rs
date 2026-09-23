@@ -86,7 +86,7 @@ impl CadFixture {
 }
 
 // --8<-- [start:step-7b]
-/// A cylinder and a block with a hole.
+/// Build the first source-face checkpoint entirely from local geometry.
 pub fn build() -> CadFixture {
     let mut scene = CadFixture::new();
     let mut cylinder = BRep::create_cylinder(100.0, 220.0);

@@ -30,13 +30,13 @@ enum Specimens {
 /// The page's own GPU setup and text lane.
 #[wasm_bindgen]
 pub struct TextQuality {
-    canvas: web_sys::HtmlCanvasElement, // the page canvas
-    surface: wgpu::Surface<'static>,    // where frames go
-    ctx: GpuCtx,                        // device and queue
+    canvas: web_sys::HtmlCanvasElement,
+    surface: wgpu::Surface<'static>, // where frames go
+    ctx: GpuCtx, // device and queue
     config: wgpu::SurfaceConfiguration, // canvas size and format
-    lane: TextLane,                     // the viewer's text renderer
-    depth: Attachment,                  // depth buffer
-    adapter: String,                    // GPU name, for the report
+    lane: TextLane, // the viewer's text renderer
+    depth: Attachment,
+    adapter: String, // GPU name, for the report
 }
 
 #[wasm_bindgen]

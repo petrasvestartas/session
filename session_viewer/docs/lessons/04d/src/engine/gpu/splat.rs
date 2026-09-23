@@ -15,7 +15,7 @@ pub const MAX_RECORDS: usize = 4096;
 /// Color format of the point texture.
 const COLOR_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
 
-/// Vertices per point: one quad, placed by the shader.
+/// Each cloud point is drawn as a small screen-facing square, so a point keeps its size however the camera turns.
 const POINT_VERTS: u32 = 6;
 
 /// Bytes before the records: record count, point total, 0, 0.

@@ -16,4 +16,4 @@ if [ "$viewer_docs_mode" = build ]; then
     exec 9>"$viewer_docs_root/target/docs/site-build.lock"
     flock 9
 fi
-exec uvx --with mkdocs-material==9.7.4 --with pygments==2.19.2 mkdocs==1.6.1 "$viewer_docs_mode" --config-file "$viewer_docs_root/mkdocs.yml" "$@"
+exec uvx --with mkdocs-material==9.7.4 --with pygments==2.19.2 --with pillow==12.1.1 mkdocs==1.6.1 "$viewer_docs_mode" --config-file "$viewer_docs_root/mkdocs.yml" "$@"

@@ -47,9 +47,9 @@ pub struct RecordCx<'a> {
     pub size: (u32, u32), // framebuffer size, px
     pub cloud_size: f32, // point size scale
     pub lod_px: f32, // split octree nodes wider than this
-    pub objects: &'a InstanceTable, // object rows
-    pub clouds: &'a [Cloud], // every cloud
-    pub nodes: &'a [LodNode], // every octree node
+    pub objects: &'a InstanceTable,
+    pub clouds: &'a [Cloud],
+    pub nodes: &'a [LodNode],
 }
 
 /// What the last point pass depended on; same key = skip it.
@@ -57,8 +57,8 @@ pub struct RecordCx<'a> {
 struct Key {
     mvp: [f32; 16], // camera matrix
     cloud_size: f32, // point size scale
-    lod_px: f32, // LOD cutoff
-    point_count: u32, // points uploaded
+    lod_px: f32,
+    point_count: u32,
 }
 
 /// Textures the point pass draws into, made when the first cloud arrives.
@@ -129,13 +129,13 @@ pub struct Splat {
     selected_point: Option<u32>, // highlighted point row
     records: Vec<SplatRecord>, // runs to draw this frame
     walk: LodWalk, // octree walk scratch
-    record_buf: wgpu::Buffer, // records on the GPU
+    record_buf: wgpu::Buffer,
     total: u32, // points drawn last pass
     key: Option<Key>, // what the last pass depended on
     targets: Option<SplatTargets>, // point textures
     points_group: wgpu::BindGroup, // records and point buffers, bound
-    resolve_shader: wgpu::ShaderModule, // resolve shader
-    point_pipeline: wgpu::RenderPipeline, // points in color
+    resolve_shader: wgpu::ShaderModule,
+    point_pipeline: wgpu::RenderPipeline,
     resolve_pipeline: wgpu::RenderPipeline, // point texture into the scene
     id_pipeline: wgpu::RenderPipeline, // points as ids
 }

@@ -18,8 +18,8 @@ pub const QUALITY: (f64, f64) = (5.0, 0.001);
 /// Every face uploaded so far.
 struct Solid {
     pos: Vec<[f32; 3]>, // vertex positions
-    tris: Vec<u32>,     // triangle indices into `pos`
-    bounds: AABB,       // box of all vertices
+    tris: Vec<u32>, // triangle indices into `pos`
+    bounds: AABB, // box of all vertices
 }
 
 // --8<-- [start:step-5a]
@@ -63,7 +63,7 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
 
 /// A BRep: every face meshed and uploaded, then its edges.
 pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) -> Row {
-    let mut fms = b.face_meshes_q(Some(QUALITY)); // one mesh per face
+    let mut fms = b.face_meshes_q(Some(QUALITY));
     let chains = edge_chains(b, &fms); // edge polylines on the meshes
     let signs = face_signs(b, &fms, &chains); // +1 or -1 per face
     let mut solid = Solid {
@@ -193,7 +193,7 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
         &sm,
         &MeshCx {
             cx,
-            opts: &MeshOpts::SURFACE, // mesh settings for a surface
+            opts: &MeshOpts::SURFACE,
         },
     );
     row.flags |= Instance::FLAG_SINGLE;

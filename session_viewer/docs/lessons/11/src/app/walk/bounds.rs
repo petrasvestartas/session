@@ -3,8 +3,8 @@ use session_rust::{AABB, Xform};
 
 /// Table lengths before a file is walked.
 pub struct Baselines {
-    pub obj: usize,    // object rows so far
-    pub pipe: usize,   // pipe segments so far
+    pub obj: usize, // object rows so far
+    pub pipe: usize, // pipe segments so far
     pub ribbon: usize, // ribbon segments so far
 }
 

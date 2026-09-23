@@ -1,3 +1,5 @@
+//! Splitting cuts one curve or face with another, so the first pick is held here until the cutter arrives.
+
 use super::scene::Scene;
 use session_rust::simple_split;
 use session_rust::{BRep, Geometry, NurbsCurve};

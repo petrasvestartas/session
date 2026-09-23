@@ -28,7 +28,7 @@ pub struct ArenaRows {
     pub idx_text: Vec<u32>, // triangle indices of sheet lettering
     pub face_ids: Vec<u32>, // source face of each solid triangle
     pub face_sources: Vec<super::faces::FaceSource>, // where each face came from
-    pub surface_samples: Vec<crate::app::surface_preview::Sample>, // surface points for previews
+    pub surface_samples: Vec<crate::app::surface_preview::Sample>,
 }
 
 impl ArenaRows {

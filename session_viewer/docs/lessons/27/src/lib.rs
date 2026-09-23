@@ -64,7 +64,7 @@ pub struct App {
     input: Input,                                               // mouse and key gestures
     pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener
     // --8<-- [start:step-10b]
-    ui: Option<app::ui::Ui>,                                    // the egui panels
+    ui: Option<app::ui::Ui>,
     // --8<-- [end:step-10b]
 }
 

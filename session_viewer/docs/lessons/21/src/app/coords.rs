@@ -1,4 +1,5 @@
 // --8<-- [start:step-4a]
+//! Turns a typed coordinate like 10,0,5 into a point, so the command line can place geometry exactly.
 use session_rust::{Point, Vector};
 
 /// A typed coordinate, not yet placed in the world.
@@ -6,8 +7,8 @@ use session_rust::{Point, Vector};
 pub enum Typed {
     Absolute { x: f64, y: f64, z: Option<f64> }, // `1,2,3` or `1,2` on the plane
     Relative { x: f64, y: f64, z: Option<f64> }, // `@1,2` from the previous point
-    Polar { distance: f64, degrees: f64 },       // `5<45` in the plane
-    Distance(f64),                               // `5` along the current direction
+    Polar { distance: f64, degrees: f64 }, // `5<45` in the plane
+    Distance(f64), // `5` along the current direction
 }
 
 // --8<-- [end:step-4a]

@@ -1,3 +1,4 @@
+//! Loads a scene file and turns it into GPU rows a chunk at a time, so the page never freezes.
 use super::decode::session_from_bytes;
 use super::fetch::{fetch_bytes, sleep_ms};
 use super::live::LiveSource;
@@ -456,16 +457,16 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
 // --8<-- [start:step-3j]
 /// One staged item of a reload.
 enum PendingDocument {
-    Whole(FileDoc),              // a decoded file
+    Whole(FileDoc),
     Streamed(Box<StreamedInit>), // a cloud's first slice
-    Sheet(Box<SheetInit>),       // a sheet's first slice
+    Sheet(Box<SheetInit>), // a sheet's first slice
 }
 
 /// Name and placement of a streamed document.
 // --8<-- [end:step-3j]
 struct Placement {
-    name: String,  // display name
-    place: Xform,  // world placement
+    name: String,
+    place: Xform,
     point_px: f32, // point size, clouds only
 }
 
@@ -568,10 +569,10 @@ async fn sheet_prefix(url: &str, slot: &Placement, share: u32) -> Option<SheetIn
 
 /// Where a sheet's streaming continues.
 pub struct SheetCursor {
-    pub idx: usize,          // the sheet's slot in the scene
-    pub url: String,         // the sheet file
+    pub idx: usize, // the sheet's slot in the scene
+    pub url: String, // the sheet file
     pub fields: SheetFields, // array positions in the file
-    pub from: u32,           // next segment to read
+    pub from: u32, // next segment to read
 }
 
 /// Keep reading a sheet's slices in the background.
@@ -626,11 +627,11 @@ async fn sheet_rest(c: SheetCursor) {
 /// Where a cloud's streaming continues.
 // --8<-- [end:step-3k]
 pub struct StreamCursor {
-    pub idx: usize,          // the cloud's slot in the scene
-    pub url: String,         // the cloud file
+    pub idx: usize, // the cloud's slot in the scene
+    pub url: String, // the cloud file
     pub fields: CloudFields, // array positions in the file
-    pub from: u32,           // next point to read
-    pub col_at: u64,         // byte position of its colour
+    pub from: u32, // next point to read
+    pub col_at: u64, // byte position of its colour
 }
 
 /// Keep reading a cloud's slices in the background.

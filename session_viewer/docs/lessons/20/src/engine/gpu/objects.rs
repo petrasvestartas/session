@@ -16,7 +16,7 @@ const REANCHOR_THROTTLE_MS: f64 = 200.0;
 /// One object row as the CPU builds it.
 #[derive(Clone)]
 pub struct ObjectRow {
-    pub place: Xform, // world placement
+    pub place: Xform,
     pub color: [f32; 4], // rgba tint
     pub flags: u32, // Instance::FLAG_* bits
     pub bounds: AABB, // box in the object's own space
@@ -41,7 +41,7 @@ impl ObjectRow {
 /// Object rows of one upload.
 #[derive(Default)]
 pub struct ObjectRows {
-    pub rows: Vec<ObjectRow>, // one per object
+    pub rows: Vec<ObjectRow>,
 }
 
 /// Result of a `rebase_anchor` call.
@@ -53,7 +53,7 @@ pub struct Rebase {
 
 /// A row with faces and its world box, for the inside test.
 struct BoundedRow {
-    row: u32, // object row
+    row: u32,
     lo: [f64; 3], // box minimum
     hi: [f64; 3], // box maximum
 }
@@ -76,7 +76,7 @@ fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
 /// The object rows on the GPU and their exact positions on the CPU.
 pub struct InstanceTable {
     geometry_revision: u64, // bumps when anything moves or hides
-    rows: Vec<Instance>, // the rows, as uploaded
+    rows: Vec<Instance>,
     translation: Vec<[f64; 3]>, // exact world position per row
     bounded: Vec<BoundedRow>, // rows with faces, for the inside test
     world_bounds: Vec<AABB>, // box per row in world space

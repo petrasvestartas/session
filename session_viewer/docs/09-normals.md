@@ -10,9 +10,7 @@ Read the kernel's trimmed surface normals; used as is.
 
 ??? example "`session_rust/src/nurbssurface_trimmed.rs` · read only · 3335 lines"
 
-    ```rust
-    --8<-- "session_rust/src/nurbssurface_trimmed.rs"
-    ```
+    [Open the full listing](kernel/nurbssurface_trimmed.md)
     
 
 Copy each file from the lesson folder to the path shown.

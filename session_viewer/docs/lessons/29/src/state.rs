@@ -44,7 +44,7 @@ pub struct State {
     // --8<-- [start:step-15a]
     pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
     // --8<-- [end:step-15a]
-    hierarchy: crate::app::hierarchy::Hierarchy,            // the tree panel state
+    hierarchy: crate::app::hierarchy::Hierarchy,
     controls: Controls,                                     // control points of the selected object
     requested: PickMode,                                    // what the pending pick looks for
     pub selection_radius_css: f64,                          // click tolerance in CSS pixels

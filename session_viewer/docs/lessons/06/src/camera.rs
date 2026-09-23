@@ -1,6 +1,6 @@
 use session_rust::{AABB, Point, Quaternion, Vector, Xform};
 
-/// Vertical field of view in degrees.
+/// Vertical field of view in degrees: how tall a cone the perspective camera sees, 60 is a normal lens.
 pub const FOVY_DEG: f64 = 60.0;
 
 /// The unit the scene file is written in.
@@ -20,7 +20,7 @@ impl Unit {
     }
 }
 
-/// Near plane distance as a fraction of the target distance.
+/// The near plane is the closest depth drawn, set as a fraction of the target distance so it scales with zoom.
 pub const NEAR_FRACTION: f64 = 1.0e-4;
 
 /// A named standard view.
@@ -35,7 +35,7 @@ pub enum View {
     Iso,
 }
 
-/// Orbit camera: an orientation, a target and a distance.
+/// An orbit camera never stores an eye point: it stores what you look AT, how far away, and which way it faces.
 pub struct Camera {
     pub target: [f64; 3],        // the point looked at, meters
     pub distance: f64,           // eye to target, meters
@@ -53,7 +53,7 @@ impl Camera {
     pub fn new() -> Self {
         use std::f64::consts::FRAC_PI_6;
 
-        // turn 30° about Z, then tilt 30° down
+        // A quaternion stores a rotation compactly: turn 30° about Z, then tilt 30° down.
         let yaw_q = Quaternion::from_axis_angle(Vector::z_axis(), -FRAC_PI_6);
         let rv = yaw_q.rotate_vector(Vector::x_axis());
         let pitch_q = Quaternion::from_axis_angle(rv, -FRAC_PI_6);
@@ -197,7 +197,7 @@ impl Camera {
         self.distance / self.unit.to_meters()
     }
 
-    /// The view-projection matrix, relative to the target.
+    /// One matrix, two jobs: view moves the world in front of the eye, projection flattens it onto the screen.
     pub fn view_proj(&self, aspect: f64) -> Xform {
         self.view_proj_anchored(aspect, &self.origin())
     }
@@ -210,7 +210,7 @@ impl Camera {
         // far plane reaches the whole scene
         let far = (dist * 10.0).max(dist + 2.0 * self.scene_extent);
         let projection = if self.perspective {
-            // far and near swapped: depth 1 is near (reverse-Z)
+            // Reverse-Z: far and near are swapped so depth 1 is near, which spends float precision near the eye.
             Xform::perspective(FOVY_DEG.to_radians(), aspect, far, dist * NEAR_FRACTION)
         } else {
             let h = dist * (FOVY_DEG * 0.5).to_radians().tan(); // half view height

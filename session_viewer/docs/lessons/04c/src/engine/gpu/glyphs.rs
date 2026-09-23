@@ -14,7 +14,7 @@ pub const SHADERS: &[(&str, &str)] = &[
     ("glyph.wgsl", include_str!("../../shaders/glyph.wgsl")),
 ];
 
-/// Vertices per dot: one triangle around the disc.
+/// A dot is a triangle big enough to contain the circle; the fragment shader discards the pixels outside it.
 const DOT_VERTS: u32 = 3;
 
 /// One marker or dot, 48 bytes, as the shaders read it.

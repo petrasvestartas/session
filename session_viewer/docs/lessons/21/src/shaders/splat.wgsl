@@ -10,7 +10,7 @@ struct CloudUniform {
     frame: vec2<f32>, // canvas size, px
 };
 
-@group(0) @binding(0) var<uniform> cloud: CloudUniform; // cloud settings
+@group(0) @binding(0) var<uniform> cloud: CloudUniform;
 
 // Words per record; the layout matches SplatRecord in Rust.
 const REC_WORDS: u32 = 40u;
@@ -26,7 +26,7 @@ struct Splat {
     r: f32, // radius, px
     z: f32, // depth, 0..1
     color: u32, // packed rgba, lit
-    row: u32, // point row
+    row: u32,
     instance: u32, // object row
     ok: bool, // false = off screen or behind the camera
 };
@@ -133,11 +133,11 @@ fn project(gid: u32) -> Splat {
 
 // What the vertex shader hands the fragment shader.
 struct PointOut {
-    @builtin(position) pos: vec4<f32>, // clip position
+    @builtin(position) pos: vec4<f32>,
     @location(0) @interpolate(flat) center: vec2<i32>, // center pixel
     @location(1) @interpolate(flat) rr: f32, // radius squared, px
     @location(2) @interpolate(flat) color: vec4<f32>, // rgba
-    @location(3) @interpolate(flat) row: u32, // point row
+    @location(3) @interpolate(flat) row: u32,
     @location(4) @interpolate(flat) instance: u32, // object row
 };
 

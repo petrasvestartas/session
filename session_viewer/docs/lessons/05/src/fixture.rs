@@ -4,7 +4,7 @@ use session_rust::AABB;
 use session_rust::Point;
 use session_rust::{RenderVertex, Xform};
 
-/// Pick a local test scene by name.
+/// Small test scenes built in code, no loading.
 pub fn scene() -> Upload {
     if crate::app::route::query("fixture").as_deref() == Some("floor") {
         floor()

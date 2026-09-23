@@ -38,8 +38,8 @@ pub struct Gpu {
     pub frame: frame::FrameUniforms, // camera and pen uniforms
     pub targets: targets::Targets, // depth and gradient textures
     pub view: view::View, // view settings from the URL
-    pub objects: objects::InstanceTable, // one row per object
-    pub backdrop: backdrop::BackdropLane, // the background
+    pub objects: objects::InstanceTable,
+    pub backdrop: backdrop::BackdropLane,
     pub arena: arena::ArenaLane, // faces
     pub segments: segments::SegmentLane, // lines
     pub glyphs: glyphs::GlyphLane, // markers
@@ -296,7 +296,7 @@ impl Gpu {
         let basic = frame::Binds {
             mvp: &self.frame.mvp_group, // the camera matrix
             line: &self.frame.line_group, // pen settings
-            instances: &self.objects.group, // per-object rows
+            instances: &self.objects.group,
         };
         {
             let mut pass = self.targets.begin_faces(&mut encoder, &target, input.clear);

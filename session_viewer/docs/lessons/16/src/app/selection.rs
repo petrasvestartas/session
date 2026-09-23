@@ -1,28 +1,29 @@
+//! What is selected: a whole object, or one edge inside it, which the outline pass and the commands both read.
 use session_rust::element::ElementGeometry;
 use session_rust::{Geometry, NurbsCurve, NurbsSurface, Point};
 
 /// One control point of a geometry.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
 pub enum ControlId {
-    Vertex(usize),                                 // mesh, polyline or BRep vertex
-    Curve { curve: usize, point: usize },          // curve control point
+    Vertex(usize), // mesh, polyline or BRep vertex
+    Curve { curve: usize, point: usize },
     Surface { surface: usize, u: usize, v: usize }, // surface control point
-    Point(u32),                                    // cloud point
+    Point(u32),
 }
 
 /// What is selected inside one object.
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize)]
 pub enum SelectionMode {
     #[default]
-    Object, // whole objects only
+    Object,
     Edge {
         parent: u32, // object row
-        edge: u32,   // edge index
+        edge: u32,
     },
     Controls {
-        parent: u32,                 // object row
-        selected: Option<ControlId>, // the picked control
-        cloud: bool,                 // parent is a point cloud
+        parent: u32, // object row
+        selected: Option<ControlId>,
+        cloud: bool, // parent is a point cloud
     },
 }
 
@@ -67,16 +68,16 @@ impl SelectionMode {
 /// One control point and where it is.
 #[derive(Clone, Debug)]
 pub struct Control {
-    pub id: ControlId,      // which control
-    pub position: [f64; 3], // world position
+    pub id: ControlId,
+    pub position: [f64; 3],
 }
 
 /// Every control of one object and the lines between them.
 #[derive(Default)]
 pub struct Controls {
-    pub points: Vec<Control>,   // the controls
+    pub points: Vec<Control>,
     pub links: Vec<[usize; 2]>, // control net lines, by index
-    pub cloud: bool,            // a point cloud, controls stay on the GPU
+    pub cloud: bool, // a point cloud, controls stay on the GPU
 }
 
 impl Controls {

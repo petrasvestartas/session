@@ -4,7 +4,7 @@ use session_rust::Xform;
 /// Clouds below this size always draw every point.
 const LOD_MIN_POINTS: u32 = 2_000_000;
 
-/// A run of points to draw, with their spacing.
+/// Level of detail: a distant cloud draws fewer, wider-spaced points, because the extra ones would land on the same pixel.
 pub struct Range {
     pub first: u32, // first point in the cloud
     pub count: u32, // points in the run
@@ -12,7 +12,7 @@ pub struct Range {
     pub tile: bool, // true = an octree node, not the whole cloud
 }
 
-/// One octree node seen during the walk.
+/// An octree splits space into eight boxes again and again, so a whole box can be skipped or coarsened in one test.
 struct Visit {
     first: u32, // first point in the cloud
     count: u32, // points in the node

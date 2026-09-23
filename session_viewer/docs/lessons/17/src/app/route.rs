@@ -17,7 +17,7 @@ pub fn is_local_url(url: &str) -> bool {
 /// Where a scene and its files are.
 pub struct SceneRoute {
     pub manifest: String, // the scene file URL
-    pub base: String,     // prefix for its `file` entries
+    pub base: String, // prefix for its `file` entries
 }
 
 /// The `?name=` value of the page URL.

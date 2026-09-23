@@ -1,6 +1,6 @@
 // What the vertex shader hands the fragment shader.
 struct PlateVertex {
-    @builtin(position) position: vec4<f32>, // clip position
+    @builtin(position) position: vec4<f32>,
     @location(0) local: vec2<f32>, // pixel offset from the plate center
     @location(1) half_size: vec2<f32>, // half width and height, px
     @location(2) radius: f32, // corner radius, px

@@ -24,8 +24,8 @@ fn transform_normal(model: mat3x3<f32>, normal: vec3<f32>) -> vec3<f32> {
 }
 
 // --8<-- [start:step-2b]
-// Rotate a normal by the object's 4x4 matrix.
 // --8<-- [end:step-2b]
+// Rotate a normal by the object's 4x4 matrix.
 fn face_normal(model: mat4x4<f32>, normal: vec3<f32>) -> vec3<f32> {
     return transform_normal(mat3x3<f32>(model[0].xyz, model[1].xyz, model[2].xyz), normal);
 }

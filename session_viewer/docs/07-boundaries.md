@@ -12,9 +12,7 @@ Read the kernel's trimmed surface; the lesson uses it as is.
 
 ??? example "`session_rust/src/nurbssurface_trimmed.rs` · read only · 3335 lines"
 
-    ```rust
-    --8<-- "session_rust/src/nurbssurface_trimmed.rs"
-    ```
+    [Open the full listing](kernel/nurbssurface_trimmed.md)
     
 
 ## Step 2 · session_rust/src/brep.rs
@@ -23,9 +21,7 @@ Read the kernel's BRep; the lesson uses it as is.
 
 ??? example "`session_rust/src/brep.rs` · read only · 2950 lines"
 
-    ```rust
-    --8<-- "session_rust/src/brep.rs"
-    ```
+    [Open the full listing](kernel/brep.md)
     
 
 Run `cargo check` in `lessons/07/`.

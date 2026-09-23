@@ -71,7 +71,7 @@ pub struct App {
     // --8<-- [start:step-16b]
     agent: Option<app::agent::CommandAgent>,                    // phone keyboard listener
     // --8<-- [end:step-16b]
-    ui: Option<app::ui::Ui>,                                    // the egui panels
+    ui: Option<app::ui::Ui>,
 }
 
 #[cfg(target_arch = "wasm32")]

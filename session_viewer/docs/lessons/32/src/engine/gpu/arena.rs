@@ -31,7 +31,7 @@ pub struct ArenaRows {
     // --8<-- [start:step-41a]
     pub surface_boundaries: Vec<(u32, [u32; 2])>, // pipe and sample range per surface edge
     // --8<-- [end:step-41a]
-    pub surface_samples: Vec<crate::app::surface_preview::Sample>, // surface points for previews
+    pub surface_samples: Vec<crate::app::surface_preview::Sample>,
 }
 
 impl ArenaRows {

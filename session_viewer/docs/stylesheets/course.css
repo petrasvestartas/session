@@ -7,22 +7,14 @@
    Equilibrium palette (navy, pink, green, yellow, pale bands), and a reader has to be able to
    carry a colour from a diagram to the running viewer. Those stay put. */
 
-/* Roboto is the viewer's own label font, so the course is set in it and the documentation reads
-   as the same thing as the running app. It is NOT the design system's choice - theme.json asks
-   for a display and a body serif and both are ignored; see the note in theme.css. Committed
-   under fonts/ with its URL and sha256 rather than hot-linked, and mkdocs.yml keeps
-   `font: false` so no CDN is contacted. One variable file covers the whole weight range. */
-@font-face {
-  font-family: "Roboto";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url("fonts/Roboto-latin.woff2") format("woff2");
+/* Text and code are set in the reader's system faces: no font is downloaded, so the first paint
+   is final and nothing reflows when a web font arrives. The design system's display and body
+   serifs are ignored (see theme.css), and mkdocs.yml keeps `font: false` so no CDN is contacted.
+   Code stays monospace at a size that fits a WGSL binding beside a code editor. */
+:root {
+  --md-text-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --md-code-font: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
 }
-
-/* Keep the course readable beside a code editor, including long shader declarations. Code is
-   never the design system's to set: it stays monospace at a size that fits a WGSL binding. */
-:root { --md-text-font: "Roboto", system-ui, sans-serif; --md-code-font: "DejaVu Sans Mono", "Liberation Mono", monospace; }
 .md-grid { max-width: 92rem; }
 .md-typeset { font-size: .84rem; line-height: calc(1.30 + var(--ds-density) * .25); }
 .md-typeset pre > code { font-size: .75rem; line-height: 1.55; }
@@ -138,6 +130,8 @@
   box-sizing: border-box;
 }
 .md-typeset img[src$=".svg"], .md-typeset img[src$=".png"] { display: block; }
+/* docs/hooks/lean_html.py wraps a PNG in a picture with its lossless WebP twin; the wrapper takes no box. */
+.md-typeset picture { display: contents; }
 
 /* A figure's caption is its alt text, set small under the plate. */
 .md-typeset p > img[src$=".svg"] + em, .md-typeset p > img[src$=".png"] + em { display: block; margin-top: .4rem; color: var(--ds-text); font-size: .78em; }

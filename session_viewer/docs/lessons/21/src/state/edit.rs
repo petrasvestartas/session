@@ -14,10 +14,10 @@ use session_rust::{Point, Vector, Xform};
 
 /// A gizmo drag in progress.
 pub struct GizmoDrag {
-    row: u32,                                             // the main selected row
+    row: u32, // the main selected row
     base_local: Xform, // local transform at the grab
-    base_place: Xform,                                    // the main row's placement at the grab
-    drag: Drag,                                           // the handle and where it was grabbed
+    base_place: Xform, // the main row's placement at the grab
+    drag: Drag, // the handle and where it was grabbed
 }
 
 impl State {
@@ -307,9 +307,9 @@ fn widget_rows(origin: &Point, per_px: f64, pixel_scale: f64, widget: u32) -> (S
             AXIS_COLORS[i],
         ));
         glyphs.dots.push(GlyphPoint {
-            center: render_position(at(ball)), // the ball's position
+            center: render_position(at(ball)),
             radius: -(BALL_PX * pixel_scale) as f32, // negative = physical pixels
-            color: unpack_color(AXIS_COLORS[i]), // the axis colour
+            color: unpack_color(AXIS_COLORS[i]),
             instance_id: widget, // the gizmo's row
             facing: FACING_UNKNOWN,
             facing_ext: [FACING_UNKNOWN; 2],
@@ -378,7 +378,7 @@ impl State {
         match command {
             Command::Move(d) => self.apply(Xform::translation(d[0], d[1], d[2]), "move"),
             Command::Rotate { axis, degrees } => {
-                let about = self.gizmo.as_ref().map(|g| g.origin.clone()); // turn about the gizmo
+                let about = self.gizmo.as_ref().map(|g| g.origin.clone());
                 let turn = rotation_about(axis, degrees, about.as_ref());
                 self.apply(turn, "rotate")
             }
@@ -518,7 +518,7 @@ impl State {
         let rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
             .into_iter()
             .map(|row| crate::app::feedback::LayerRow {
-                key: row.layer.key(), // the layer's key
+                key: row.layer.key(),
                 label: row.label, // the layer's name
                 count: row.count, // objects in the layer
                 hidden: row.hidden, // the checkbox state
@@ -546,9 +546,9 @@ impl State {
 
 /// A control point drag in progress.
 pub struct ControlDrag {
-    parent: u32,   // the object's row
-    index: usize,  // which dot in `controls.points`
-    id: ControlId, // which control in the geometry
+    parent: u32, // the object's row
+    index: usize, // which dot in `controls.points`
+    id: ControlId,
     plane: CPlane, // the plane the point moves in
 }
 

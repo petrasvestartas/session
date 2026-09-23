@@ -77,6 +77,25 @@ Applied: one-pass bucket counts, borrowed hierarchy lookups, one visibility writ
 
 Further work needs separate measurements: batch large flag updates into GPU writes and bound retained undo snapshots. The optional editing lessons are now individually replayable. Keep the existing lane and checkpoint machinery rather than introducing another framework.
 
+## Course site weight
+
+Most of the course is highlighted code, so a page weighs what the markup around each token weighs. Each change below was measured on the built site, in the order listed:
+
+| Change | Where | Before → after |
+|---|---|---|
+| No per-line anchors or line spans | `pymdownx.highlight` in `mkdocs.yml` | all pages 23.95 → 17.06 MB of HTML |
+| Whole kernel files on their own pages | `docs/kernel/*.md` | `07-boundaries` 2.01 → 0.35 MB, search index 3.04 → 2.54 MB |
+| `.w` and `.n` tokens unwrapped between tags | `docs/hooks/lean_html.py` | all pages 16.94 → 12.53 MB |
+| PNG screenshots sized, lazy unless first with no code above | `docs/hooks/lean_html.py` | `command-line-walkthrough` fetches 450 → 133 KB of images before scrolling; lessons 22-32 no longer fetch their end-of-page screenshot (18-91 KB) |
+| Build tools and sources not published | `exclude_docs` in `mkdocs.yml` | 226 fewer files, 687 → 461 |
+
+With the CPU slowed 4x in Chrome, `12-picking` (47,534 → 23,848 elements) reaches DOMContentLoaded in 790 ms instead of 1,862 ms, and `07-boundaries` in 332 ms instead of 1,698 ms. The rendered pages stayed pixel-identical and the copy button copies the same text.
+
+- A whole kernel file is a page under `docs/kernel/` with `search: exclude: true`, linked from the lesson; never include it inline.
+- The hook unwraps `.n` only because Material paints it in the plain code colour: if `--md-code-hl-name-color` is ever themed, stop unwrapping `.n`. A token next to plain text keeps its span, because one merged text run moves the glyphs after it by 1/64 px.
+- SVGs keep no size attribute and load eagerly: a size on a scaled SVG changes how Chrome rasterises it, and an unsized lazy image would move an anchor target.
+- Measured and left out: `navigation.instant` (the largest pages show their heading later, and a local build downloads every stylesheet twice) and a Roboto preload (first paint 0.1-0.2 s later on a slow connection).
+
 ## Try
 
 On a large local scene, open the panel and repeatedly hide/show a group. Index storage should stay stable until the scene structure changes. Compare a document with many small groups against one flat group; total bucket-counting work should depend on object count, not object count multiplied by group count.

@@ -116,7 +116,7 @@ pub struct Scene {
     // --8<-- [end:step-7a]
     pub selected: Option<u32>,                         // selected object row
     // --8<-- [start:step-6a]
-    pub attributes: bool,                              // element features drawn
+    pub attributes: bool,
     // --8<-- [end:step-6a]
     order: Vec<Rc<str>>,                               // guid of each row
     owners: Vec<usize>,                                // document of each row
@@ -131,7 +131,7 @@ pub struct Scene {
     // --8<-- [end:step-7b]
     pub(super) preview_spans: Vec<Option<crate::engine::gpu::patch::Span>>, // per row, its GPU range
     pub last_edited: Option<usize>,                    // document undo applies to
-    pub(crate) created_doc: Option<usize>,             // the `Created` document
+    pub(crate) created_doc: Option<usize>,
     pub(crate) row_revision: u64,                      // bumped when rows change
 }
 

@@ -13,7 +13,7 @@ type Source = (String, Rc<Session>, Xform); // name, session, placement
 /// One rendered frame: the picture and the id picture.
 #[derive(PartialEq, Eq)]
 struct Frame {
-    color: Vec<u8>,     // RGBA pixels
+    color: Vec<u8>, // RGBA pixels
     ids: Vec<[u32; 2]>, // object and segment id per pixel
 }
 

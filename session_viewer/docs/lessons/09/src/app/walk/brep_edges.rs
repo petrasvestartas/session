@@ -31,7 +31,7 @@ fn parse_sample_index(value: &str) -> Option<usize> {
     value.parse().ok()
 }
 
-/// One use of an edge by a face.
+/// A BRep edge is shared: each of the two faces meeting there uses the same edge, once from each side.
 pub struct EdgeUse {
     pub edge: usize,                  // edge index
     pub face: usize,                  // face index
@@ -317,7 +317,7 @@ struct FacetPair {
     count: usize,                   // how many triangles in total
 }
 
-/// Position as bits, -0 same as 0.
+/// Floats are compared as raw bits here, because two vertices at the same spot must hash to the same key.
 fn position_bits(position: [f64; 3]) -> [u64; 3] {
     let mut bits = [0; 3];
 
@@ -340,7 +340,7 @@ fn facet_edge(a: [f64; 3], b: [f64; 3]) -> FacetEdge {
     if a <= b { [a, b] } else { [b, a] }
 }
 
-/// Triangle normals at every edge of one face mesh.
+/// A normal is the direction a surface faces; comparing the two normals at an edge says whether it is a crease or flat.
 fn face_facets(mesh: &Mesh) -> std::collections::HashMap<FacetEdge, FacetPair> {
     let mut result = std::collections::HashMap::<FacetEdge, FacetPair>::new();
     let mut faces: Vec<_> = mesh.face.keys().copied().collect();

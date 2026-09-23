@@ -235,7 +235,7 @@ impl Gpu {
             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
     }
 
-    /// Clouds first, then faces, then ink.
+    /// Faces first, then ink over their depth.
     pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
         self.write_frame_uniforms(input);
         let output = match self.surface.get_current_texture() {

@@ -34,7 +34,7 @@ const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
 #[derive(Default)]
 pub struct GlyphRows {
     pub spheres: Vec<GlyphPoint>, // vertex markers, shaded
-    pub dots: Vec<GlyphPoint>, // flat dots
+    pub dots: Vec<GlyphPoint>,
 }
 
 impl GlyphRows {
@@ -68,7 +68,7 @@ impl GlyphTable {
 
 /// The two glyph shaders.
 struct GlyphShaders {
-    sphere: wgpu::ShaderModule, // shaded markers
+    sphere: wgpu::ShaderModule,
     dot: wgpu::ShaderModule, // flat dots
 }
 
@@ -86,8 +86,8 @@ pub struct GlyphLane {
     spheres: GlyphTable, // marker rows
     dots: GlyphTable, // dot rows
     template: Template, // one quad, drawn per marker
-    shaders: GlyphShaders, // shader modules
-    gpu: GlyphPipelines, // pipelines
+    shaders: GlyphShaders,
+    gpu: GlyphPipelines,
 }
 
 impl GlyphLane {

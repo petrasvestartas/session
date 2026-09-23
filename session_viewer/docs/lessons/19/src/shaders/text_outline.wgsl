@@ -2,14 +2,14 @@
 struct Vertex {
     @location(0) position: vec3<f32>, // object-space position
     @location(2) color: vec4<f32>, // rgba
-    @location(3) object: u32, // object row
+    @location(3) object: u32,
 }
 
 // What the vertex shader hands the fragment shader.
 struct Fragment {
-    @builtin(position) position: vec4<f32>, // clip position
+    @builtin(position) position: vec4<f32>,
     @location(0) color: vec4<f32>, // rgba
-    @location(1) @interpolate(flat) object: u32, // object row
+    @location(1) @interpolate(flat) object: u32,
 }
 
 // Place the vertex; color is flat, yellow when selected.

@@ -10,7 +10,7 @@ use wgpu::PrimitiveTopology::TriangleList;
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[("ribbon.wgsl", include_str!("../../shaders/ribbon.wgsl"))];
 
-/// Vertices per segment: two triangles, placed by the shader.
+/// GPUs only draw triangles, so a line becomes a thin rectangle: two triangles the shader builds from the two endpoints.
 const RIBBON_VERTS: u32 = 6;
 
 /// One line segment, 40 bytes, as the shaders read it.

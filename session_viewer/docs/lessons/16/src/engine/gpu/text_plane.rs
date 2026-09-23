@@ -1,3 +1,4 @@
+//! Text lying flat in the scene on a plane, so it turns and shrinks with the model like writing on paper.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use super::TextFrame;
 use crate::engine::pipelines::Target;
@@ -450,7 +451,7 @@ fn rasterize(
 
 /// Add the label's quad: six clip-space vertices.
 fn append_quad(
-    vertices: &mut Vec<[f32; 14]>, // output vertices
+    vertices: &mut Vec<[f32; 14]>,
     label: &TextLabel,
     extent: [f32; 4],
     frame: &TextFrame,

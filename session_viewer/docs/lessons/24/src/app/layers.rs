@@ -100,7 +100,7 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
         }
 
         out.push(Row {
-            layer: Layer::Document(index), // one document as a layer
+            layer: Layer::Document(index),
             label: doc.name.clone(), // the document name
             count: rows.len(), // objects on this layer
             hidden: all_hidden(scene, &rows), // every row hidden

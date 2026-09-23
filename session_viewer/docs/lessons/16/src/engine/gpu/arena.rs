@@ -21,7 +21,7 @@ pub const SHADERS: &[(&str, &str)] = &[
 /// Mesh rows of one upload, ready for the GPU.
 #[derive(Default)]
 pub struct ArenaRows {
-    pub verts: Vec<RenderVertex>, // one vertex per row
+    pub verts: Vec<RenderVertex>,
     pub vids: Vec<u32>, // object row of each vertex
     pub idx: Vec<u32>, // triangle indices of solid faces
     pub idx_print: Vec<u32>, // triangle indices of sheet fills
@@ -48,13 +48,13 @@ struct ArenaPipelines {
 
 /// All mesh geometry on the GPU, in five growing buffers.
 pub struct ArenaLane {
-    verts: GrowBuf, // vertex buffer
+    verts: GrowBuf,
     vids: GrowBuf, // object row per vertex
     faces: GrowBuf, // solid face indices
     print: GrowBuf, // sheet fill indices
     text: GrowBuf, // sheet lettering indices
-    shader: wgpu::ShaderModule, // triangle shader
-    pipes: ArenaPipelines, // mask pipelines
+    shader: wgpu::ShaderModule,
+    pipes: ArenaPipelines,
     outline_text: OutlineTextLane, // draws sheet fills and lettering
 }
 

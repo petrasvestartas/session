@@ -1,3 +1,4 @@
+//! Picking draws the scene into a hidden texture where every pixel is an object number, then reads back the one pixel under the cursor.
 use super::buffers::GpuCtx;
 use super::frame::PickView;
 use super::targets::{TextureSpec, texture, texture_view};
@@ -7,14 +8,14 @@ use std::sync::atomic::{AtomicU8, Ordering};
 /// What the pixel under the cursor holds.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Pick {
-    pub row: u32, // object row
+    pub row: u32,
     pub sub: u32, // 0 = the object; else a tagged edge, face, dot or point id
 }
 
 /// Textures the id pass draws into, sized to the pick window.
 struct IdTargets {
     id: wgpu::Texture, // one object id per pixel
-    id_view: wgpu::TextureView, // view of `id`
+    id_view: wgpu::TextureView,
     depth: wgpu::TextureView, // depth of the pick frame
     gradient: wgpu::TextureView, // depth slope of the pick frame
     size: (u32, u32), // texture size, px
@@ -33,8 +34,8 @@ const MAX_RADIUS: u32 = 128;
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PickMode {
     #[default]
-    Object, // whole objects
-    Edge, // edges
+    Object,
+    Edge,
     Component, // edges first, else the visible face
     Controls { // control dots of one object
         parent: u32, // the object row
@@ -46,7 +47,7 @@ pub enum PickMode {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SourcePhase {
     Inactive, // no query running
-    FirstPage, // first page clears the ids
+    FirstPage,
     MorePages, // later pages keep them
 }
 
@@ -118,7 +119,7 @@ pub struct Picker {
     radius: u32, // tolerance, framebuffer px
     source_phase: SourcePhase, // stage of a source point query
     readback: Option<wgpu::Buffer>, // CPU-readable copy of the window
-    targets: Option<IdTargets>, // id textures
+    targets: Option<IdTargets>,
     view: PickView, // where the textures sit in the canvas
 }
 

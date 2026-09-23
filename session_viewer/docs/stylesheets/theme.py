@@ -46,12 +46,11 @@ def render(theme):
         "   enough to carry link and heading text that the raw accent is too pale for.",
         "",
         "   Type is deliberately NOT taken from the design system. theme.json names a display and a",
-        "   body face; both are ignored. The course is set in Roboto, which is the viewer's own label",
-        "   font, so the documentation and the running app read as one thing. Only the heading WEIGHT",
-        "   is the system's. mkdocs.yml keeps `font: false`; fonts/ holds the committed file.",
+        "   body face; both are ignored. The course is set in the reader's system faces so no font is",
+        "   downloaded; only the heading WEIGHT is the system's. mkdocs.yml keeps `font: false`.",
         "",
         "   Switching systems is one export: pull another project's theme.json from claude.ai/design",
-        "   into this directory, run theme.py, and refetch the faces it names with fonts/fetch.sh. */",
+        "   into this directory and run theme.py. */",
         ":root {",
     ]
     for name, value in compute_tokens(theme).items():

@@ -22,7 +22,7 @@ struct InkColor {
 // The stroke's center line as one fragment sees it.
 struct InkAxis {
     at: vec2<f32>, // nearest point on the center line, screen px
-    depth: f32, // its depth
+    depth: f32,
     along: vec2<f32>, // stroke direction on screen, unit
     slope: f32, // depth change per pixel along it
 };
