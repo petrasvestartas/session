@@ -44,11 +44,19 @@ impl ClipPlane {
         dot(self.normal, p) + self.offset
     }
 
-    /// True when the plane passes through the box.
-    pub fn crosses(&self, b: &AABB) -> bool {
+    /// True when the plane passes through the box, or so near it, with the scene origin at
+    /// `anchor`, that f32 rounding on the GPU may cut a face lying on the plane.
+    pub fn crosses(&self, b: &AABB, anchor: [f64; 3]) -> bool {
         let reach =
             self.normal[0].abs() * b.hx + self.normal[1].abs() * b.hy + self.normal[2].abs() * b.hz;
-        self.distance([b.cx, b.cy, b.cz]).abs() <= reach
+        let center = [b.cx, b.cy, b.cz];
+        let size = b.hx + b.hy + b.hz;
+        let local: f64 = (0..3).map(|i| (center[i] - anchor[i]).abs()).sum();
+        let world: f64 = center.iter().map(|v| v.abs()).sum();
+        // 32 times CLIP_SLACK in clip.wgsl, plus the f32 rounding of the vertices themselves
+        let slack =
+            (local + size + self.distance(anchor).abs()) / 4096.0 + (world + size) / 1048576.0;
+        self.distance(center).abs() <= reach + slack
     }
 }
 
@@ -160,12 +168,16 @@ impl Clip {
         }
 
         self.runs_for = Some(revision);
+        let anchor = rows.anchor();
 
         for (plane, runs) in self.planes[..self.count].iter().zip(&mut self.runs) {
             runs.clear();
 
             for &row in rows.closed_rows() {
-                if !rows.row_bounds(row).is_some_and(|b| plane.crosses(&b)) {
+                if !rows
+                    .row_bounds(row)
+                    .is_some_and(|b| plane.crosses(&b, anchor))
+                {
                     continue;
                 }
 
@@ -1002,7 +1014,7 @@ mod tests {
         }
     }
 
-    /// Only a box the plane passes through can hold a section; touching counts.
+    /// Only a box the plane passes through can hold a section; touching counts, within rounding.
     #[test]
     fn a_plane_crosses_the_boxes_it_passes_through() {
         let plane = clip_plane(
@@ -1016,12 +1028,24 @@ mod tests {
         )
         .unwrap();
         let block = |z: f64| AABB::new(0.0, 0.0, z, 10.0, 10.0, 10.0);
-        assert!(plane.crosses(&block(45.0)));
-        assert!(plane.crosses(&block(60.0)), "touching from above");
-        assert!(!plane.crosses(&block(61.0)));
-        assert!(!plane.crosses(&block(-100.0)));
-        assert!(tilted.crosses(&block(0.0)));
-        assert!(!tilted.crosses(&AABB::new(40.0, 40.0, 40.0, 5.0, 5.0, 5.0)));
+        let origin = [0.0; 3];
+        assert!(plane.crosses(&block(45.0), origin));
+        assert!(plane.crosses(&block(60.0), origin), "touching from above");
+        assert!(!plane.crosses(&block(61.0), origin));
+        assert!(!plane.crosses(&block(-100.0), origin));
+        assert!(tilted.crosses(&block(0.0), origin));
+        assert!(!tilted.crosses(&AABB::new(40.0, 40.0, 40.0, 5.0, 5.0, 5.0), origin));
+
+        // a face on the plane whose box rounds a hair short of it still counts
+        let bottom = clip_plane(
+            &plane_from(Mode::Normal, &[[0.0, 0.0, 5.9], [0.0, 0.0, -4.1]], 10.0).unwrap(),
+            &Xform::identity(),
+        )
+        .unwrap();
+        let mut b = AABB::empty();
+        b.union_with_point(13.7, -21.3, 5.9 + 1e-9);
+        b.union_with_point(113.7, 58.7, 65.9);
+        assert!(bottom.crosses(&b, [63.7, 18.7, 35.9]));
     }
 
     /// No plane: an all-zero uniform, written once and never again.
@@ -1817,6 +1841,396 @@ mod tests {
                 };
                 assert_eq!(id([20.0, 0.0, 50.0])[0], 0, "cut away: nothing to pick");
                 assert_eq!(id([80.0, 0.0, 50.0])[0], 1, "kept: the cube");
+            }
+        }
+
+        /// Meshes and breps as one document placed at `place`, back faces red so an inside reads red.
+        fn placed(
+            meshes: Vec<Mesh>,
+            breps: Vec<session_rust::BRep>,
+            place: Xform,
+        ) -> Option<(Gpu, Scene)> {
+            crate::app::clipping::verify_solids();
+            let mut gpu = pollster::block_on(Gpu::new_headless(SIZE as u32, SIZE as u32)).ok()?;
+            gpu.view.show_grid = false;
+            gpu.view.show_mesh_edges = false;
+            gpu.view.show_points = false;
+            gpu.view.lit = false;
+            gpu.view.backface = true;
+            let mut session = Session::new("placed");
+
+            for mesh in meshes {
+                session.add_mesh(mesh, None);
+            }
+
+            for brep in breps {
+                session.add_brep(brep, None);
+            }
+
+            let mut scene = Scene::new();
+            scene.add_file(FileDoc {
+                name: "placed".into(),
+                session: Rc::new(session),
+                place,
+                point_px: 0.0,
+                display_only: false,
+            });
+            scene.upload_to(&mut gpu);
+            Some((gpu, scene))
+        }
+
+        /// Shares of neutral (section or background), blue, red and other pixels within `r` px of `at`.
+        fn tints(rgba: &[u8], at: (usize, usize), r: usize) -> [f64; 4] {
+            let mut counts = [0.0; 4];
+            let mut total = 0.0_f64;
+
+            for y in at.1.saturating_sub(r)..(at.1 + r + 1).min(SIZE) {
+                for x in at.0.saturating_sub(r)..(at.0 + r + 1).min(SIZE) {
+                    let p = &rgba[(y * SIZE + x) * 4..][..3];
+                    let spread = p.iter().max().unwrap() - p.iter().min().unwrap();
+                    let class = if spread < 40 {
+                        0
+                    } else if p[2] > 150 && p[0] < 110 && p[1] < 110 {
+                        1
+                    } else if p[0] > 150 && p[1] < 120 && p[2] < 120 {
+                        2
+                    } else {
+                        3
+                    };
+                    counts[class] += 1.0;
+                    total += 1.0;
+                }
+            }
+
+            counts.map(|count| count / total.max(1.0))
+        }
+
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        /// A plane lying on a face shows that face or the section, one of them, never a speckle.
+        fn a_plane_on_a_face_shows_one_thing() {
+            let lo = [13.7, -21.3, 5.9];
+            let hi = [113.7, 58.7, 65.9];
+            let Some((mut gpu, scene)) = placed(
+                vec![block(lo, hi, Color::blue(), true)],
+                vec![],
+                Xform::identity(),
+            ) else {
+                return;
+            };
+            let mid = [
+                (lo[0] + hi[0]) * 0.5,
+                (lo[1] + hi[1]) * 0.5,
+                (lo[2] + hi[2]) * 0.5,
+            ];
+            // the top, +x and bottom faces, each seen from the side its plane cuts away
+            let cases = [
+                (
+                    plane_from(Mode::Xy, &[[0.0, 0.0, hi[2]]], 300.0),
+                    [mid[0], mid[1], hi[2]],
+                    [mid[0] - 150.0, mid[1] - 200.0, hi[2] + 250.0],
+                ),
+                (
+                    plane_from(Mode::Yz, &[[hi[0], 0.0, 0.0]], 300.0),
+                    [hi[0], mid[1], mid[2]],
+                    [hi[0] + 250.0, mid[1] - 200.0, mid[2] + 150.0],
+                ),
+                (
+                    plane_from(
+                        Mode::Normal,
+                        &[[0.0, 0.0, lo[2]], [0.0, 0.0, lo[2] - 10.0]],
+                        300.0,
+                    ),
+                    [mid[0], mid[1], lo[2]],
+                    [mid[0] - 150.0, mid[1] - 200.0, lo[2] - 250.0],
+                ),
+            ];
+
+            for (plane, face, eye) in cases {
+                let plane = clip_plane(&plane.unwrap(), &Xform::identity()).unwrap();
+                cut(&mut gpu, &scene, &[plane]);
+                each_view(&mut gpu, eye, mid, &[true, false], |rgba, pixel, label| {
+                    let shares = tints(rgba, pixel(face), 12);
+                    let section = shares[0] > 0.99 && hatched(patch(rgba, pixel(face), 12, BLUE));
+                    assert!(
+                        section || shares[1] > 0.99,
+                        "{label}: the face or its section at {face:?}, not both: {shares:?}"
+                    );
+                });
+            }
+        }
+
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        /// Two boxes stacked and cut where they meet: one clean section, no speckle of either face.
+        fn stacked_boxes_cut_where_they_meet() {
+            let Some((mut gpu, scene)) = placed(
+                vec![
+                    block([0.0; 3], [100.0, 100.0, 50.0], Color::blue(), true),
+                    block([0.0, 0.0, 50.0], [100.0; 3], Color::red(), true),
+                ],
+                vec![],
+                Xform::identity(),
+            ) else {
+                return;
+            };
+            cut(&mut gpu, &scene, &[cut_above(50.0)]);
+            each_view(
+                &mut gpu,
+                [-80.0, -150.0, 300.0],
+                [40.0, 40.0, 40.0],
+                &[true, false],
+                |rgba, pixel, label| {
+                    let at = pixel([50.0, 50.0, 50.0]);
+                    let shares = tints(rgba, at, 12);
+                    let section = shares[0] > 0.99 && hatched(patch(rgba, at, 12, BLUE));
+                    assert!(
+                        section || shares[1] > 0.99 || shares[2] > 0.99,
+                        "{label}: one clean surface where the boxes meet: {shares:?}"
+                    );
+                },
+            );
+        }
+
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        /// A mirrored placement and inward faces flip the crossings, not the section.
+        fn mirrored_and_inward_solids_cap_like_any_other() {
+            let outward = block([-50.0; 3], [50.0; 3], Color::blue(), true);
+            let mut inward = block([-50.0; 3], [50.0; 3], Color::blue(), true);
+
+            for corners in inward.face.values_mut() {
+                corners.reverse();
+            }
+
+            for (mesh, place, name) in [
+                (outward, Xform::scale_xyz(-1.0, 1.0, 1.0), "mirrored"),
+                (inward, Xform::identity(), "inward"),
+            ] {
+                let Some((mut gpu, scene)) = placed(vec![mesh], vec![], place) else {
+                    return;
+                };
+                assert_ne!(gpu.objects.row(0).unwrap().flags & Instance::FLAG_CLOSED, 0);
+                cut(&mut gpu, &scene, &[cut_above(0.0)]);
+                each_view(
+                    &mut gpu,
+                    [100.0, -150.0, 250.0],
+                    [0.0; 3],
+                    &[true, false],
+                    |rgba, pixel, label| {
+                        let shares = tints(rgba, pixel([0.0; 3]), 12);
+                        let cap = patch(rgba, pixel([0.0; 3]), 12, BLUE);
+                        assert!(
+                            hatched(cap) && shares[0] > 0.99,
+                            "{name}, {label}: a clean section: {shares:?} {cap:?}"
+                        );
+                    },
+                );
+            }
+        }
+
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        /// Curved breps with seams and poles, and a block with a hole, cap without leaks.
+        fn brep_sections_are_watertight() {
+            use session_rust::BRep;
+
+            let solids: [(BRep, [f64; 3], [f64; 3], [f64; 3]); 4] = [
+                (
+                    BRep::create_sphere(50.0),
+                    [0.0; 3],
+                    [0.0; 3],
+                    [120.0, -160.0, 250.0],
+                ),
+                (
+                    BRep::create_torus(50.0, 20.0),
+                    [50.0, 0.0, 0.0],
+                    [0.0; 3],
+                    [120.0, -160.0, 250.0],
+                ),
+                (
+                    BRep::create_block_with_hole(120.0, 100.0, 80.0, 25.0),
+                    [-42.0, 0.0, 0.0],
+                    [0.0; 3],
+                    [60.0, -90.0, 320.0],
+                ),
+                (
+                    BRep::create_cylinder(40.0, 100.0),
+                    [0.0, 0.0, 50.0],
+                    [0.0; 3],
+                    [-220.0, 0.5, 120.0],
+                ),
+            ];
+
+            for (mut brep, inside, hole, eye) in solids {
+                brep.surfacecolor = Color::blue();
+                let name = brep.name.clone();
+                let Some((mut gpu, scene)) = placed(vec![], vec![brep], Xform::identity()) else {
+                    return;
+                };
+                assert_ne!(
+                    gpu.objects.row(0).unwrap().flags & Instance::FLAG_CLOSED,
+                    0,
+                    "{name} is closed"
+                );
+                // the cylinder stands on z = 0: cut through its axis, the rays leaving along its seam
+                let plane = if name == "cylinder" {
+                    let p = plane_from(Mode::Normal, &[[0.0; 3], [-10.0, 0.0, 0.0]], 300.0);
+                    clip_plane(&p.unwrap(), &Xform::identity()).unwrap()
+                } else {
+                    cut_above(0.0)
+                };
+                cut(&mut gpu, &scene, &[plane]);
+                each_view(
+                    &mut gpu,
+                    eye,
+                    inside,
+                    &[true, false],
+                    |rgba, pixel, label| {
+                        let shares = tints(rgba, pixel(inside), 6);
+                        let cap = patch(rgba, pixel(inside), 6, BLUE);
+                        assert!(
+                            hatched(cap) && shares[0] > 0.99,
+                            "{name}, {label}: a clean section at {inside:?}: {shares:?} {cap:?}"
+                        );
+
+                        // the torus and the block keep their hole open
+                        if name != "sphere" && name != "cylinder" {
+                            let open = patch(rgba, pixel(hole), 5, BLUE);
+                            assert!(
+                                open[0] < 0.02,
+                                "{name}, {label}: no hatch in the hole: {open:?}"
+                            );
+                        }
+                    },
+                );
+            }
+        }
+
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        /// Two planes cut a corner off: both sections hatched up to the edge they share, nothing leaks.
+        fn two_planes_cap_the_corner() {
+            let Some((mut gpu, scene)) = placed(
+                vec![block([-50.0; 3], [50.0; 3], Color::blue(), true)],
+                vec![],
+                Xform::identity(),
+            ) else {
+                return;
+            };
+            let yz = plane_from(Mode::Yz, &[[0.0; 3]], 300.0).unwrap();
+            cut(
+                &mut gpu,
+                &scene,
+                &[cut_above(0.0), clip_plane(&yz, &Xform::identity()).unwrap()],
+            );
+            each_view(
+                &mut gpu,
+                [200.0, -150.0, 250.0],
+                [0.0; 3],
+                &[true, false],
+                |rgba, pixel, label| {
+                    for at in [[-25.0, -10.0, 0.0], [0.0, -10.0, -25.0]] {
+                        let cap = patch(rgba, pixel(at), 8, BLUE);
+                        assert!(hatched(cap), "{label}: section at {at:?}: {cap:?}");
+                    }
+
+                    for at in [[-4.0, -10.0, 0.0], [0.0, -10.0, -4.0], [-4.0, 30.0, 0.0]] {
+                        let shares = tints(rgba, pixel(at), 2);
+                        assert!(
+                            shares[0] > 0.99,
+                            "{label}: nothing leaks at {at:?}: {shares:?}"
+                        );
+                    }
+                },
+            );
+        }
+
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        /// A millimetre box far from the origin: the cut and its section hold at f32.
+        fn far_from_the_origin_the_section_holds() {
+            let lo = [2.0e5, -1.0e5, 800.0];
+            let hi = [lo[0] + 3000.0, lo[1] + 2000.0, lo[2] + 1500.0];
+            let Some((mut gpu, scene)) = placed(
+                vec![block(lo, hi, Color::blue(), true)],
+                vec![],
+                Xform::identity(),
+            ) else {
+                return;
+            };
+            let mid = [
+                (lo[0] + hi[0]) * 0.5,
+                (lo[1] + hi[1]) * 0.5,
+                (lo[2] + hi[2]) * 0.5,
+            ];
+            cut(&mut gpu, &scene, &[cut_above(mid[2] + 0.3)]);
+            each_view(
+                &mut gpu,
+                [mid[0] + 3000.0, mid[1] - 4500.0, mid[2] + 6000.0],
+                mid,
+                &[true, false],
+                |rgba, pixel, label| {
+                    let at = [mid[0], mid[1], mid[2] + 0.3];
+                    let shares = tints(rgba, pixel(at), 12);
+                    let cap = patch(rgba, pixel(at), 12, BLUE);
+                    assert!(
+                        hatched(cap) && shares[0] > 0.99,
+                        "{label}: a clean section far out: {shares:?} {cap:?}"
+                    );
+                },
+            );
+        }
+
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        /// Where a dowel sits inside a beam, the section picks the dowel, the innermost solid.
+        fn a_nested_section_picks_the_innermost_solid() {
+            let Some((mut gpu, scene)) = placed(
+                vec![
+                    block(
+                        [-100.0, -50.0, -50.0],
+                        [100.0, 50.0, 50.0],
+                        Color::blue(),
+                        true,
+                    ),
+                    block(
+                        [-10.0, -150.0, -10.0],
+                        [10.0, 150.0, 10.0],
+                        Color::red(),
+                        true,
+                    ),
+                ],
+                vec![],
+                Xform::identity(),
+            ) else {
+                return;
+            };
+            cut(&mut gpu, &scene, &[cut_above(0.0)]);
+            gpu.view.msaa_forced = Some(1);
+            gpu.resize(SIZE as u32, SIZE as u32);
+
+            for perspective in [true, false] {
+                let (input, pixel) = frame(&mut gpu, [150.0, -250.0, 250.0], [0.0; 3], perspective);
+                let ids = gpu.render_ids_offscreen(&input);
+                let id = |p: [f64; 3]| {
+                    let (x, y) = pixel(p);
+                    ids[y * SIZE + x]
+                };
+
+                for at in [[0.0, 0.0, 0.0], [3.0, -30.0, 0.0], [-3.0, 30.0, 0.0]] {
+                    assert_eq!(
+                        id(at),
+                        [2, 0],
+                        "perspective {perspective}: the dowel at {at:?}"
+                    );
+                }
+
+                assert_eq!(
+                    id([40.0, 0.0, 0.0]),
+                    [1, 0],
+                    "perspective {perspective}: the beam"
+                );
             }
         }
     }

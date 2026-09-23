@@ -42,10 +42,15 @@ fn clip_active() -> bool {
     return CLIPPING && clipping.count != 0u;
 }
 
-// Signed distance of scene point `p` to plane `i`; below zero is cut away.
+// Share of a point's coordinates within which it lies on a plane: 2^-17, far above f32 rounding.
+const CLIP_SLACK: f32 = 7.62939453125e-6;
+
+// Signed distance of scene point `p` to plane `i`, below zero cut away; a face lying on the plane
+// is cut in every pass alike, so the section covers it instead of speckling with it.
 fn clip_distance(i: u32, p: vec3<f32>) -> f32 {
     let plane = clipping.planes[i];
-    return dot(plane.xyz, p) + plane.w;
+    let slack = CLIP_SLACK * (abs(p.x) + abs(p.y) + abs(p.z) + abs(plane.w));
+    return dot(plane.xyz, p) + plane.w - slack;
 }
 
 // True when a plane cuts scene point `p` away from an object with `flags`.

@@ -99,8 +99,14 @@ fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
         }
 
         for outline in &feature.outlines {
-            // one point is a dot, more is a polyline, both in the outline's own colour
-            let r = if let (1, Some(mut p)) = (outline.point_count(), outline.get_point(0)) {
+            // Coincident contact endpoints also represent a point.
+            let point = outline.get_point(0).filter(|p| {
+                outline
+                    .coords
+                    .chunks_exact(3)
+                    .all(|q| [q[0] as f32, q[1] as f32, q[2] as f32] == p.to_f32())
+            });
+            let r = if let Some(mut p) = point {
                 p.pointcolor = outline.linecolor.clone();
                 p.width = ATTRIBUTE_DOT_PX;
                 walk_point(w.glyph, &p, cx.row)
@@ -203,6 +209,10 @@ mod tests {
         element.add_feature(ElementFeature::new("section", -1, vec![dot], "section"));
         let joint = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(0.0, 0.0, 50.0)]);
         element.add_feature(ElementFeature::new("joint", 0, vec![joint], "joint"));
+        let contact = Polyline::new(vec![Point::new(2.0, 3.0, 5.0), Point::new(2.0, 3.0, 5.0)]);
+        element.add_feature(ElementFeature::new("contact", 0, vec![contact], "touch"));
+        let empty = Polyline::new(vec![]);
+        element.add_feature(ElementFeature::new("contact", 0, vec![empty], "empty"));
         let far = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(0.0, 200.0, 0.0)]);
         let mut hidden = ElementFeature::new("joint", 1, vec![far], "hidden");
         hidden.visible = false;
@@ -222,13 +232,13 @@ mod tests {
         (up, row)
     }
 
-    /// Visible features add two ribbons and a dot to the element's own row; the hidden one adds nothing.
+    /// Visible features add two ribbons and two dots to the element's own row; the hidden one adds nothing.
     #[test]
     fn attributes_join_the_element_row() {
         let (off, row_off) = walk_element(false);
         let (on, row_on) = walk_element(true);
         assert_eq!(on.seg.ribbons.len(), off.seg.ribbons.len() + 2);
-        assert_eq!(on.glyph.dots.len(), off.glyph.dots.len() + 1);
+        assert_eq!(on.glyph.dots.len(), off.glyph.dots.len() + 2);
         assert!(on.seg.ribbons.iter().all(|r| r.instance_id == 4));
         assert_eq!(on.glyph.dots.last().map(|d| d.instance_id), Some(4));
         assert_eq!(row_off.bounds.max_point()[0], 5.0);

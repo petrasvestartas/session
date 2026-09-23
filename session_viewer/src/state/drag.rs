@@ -83,9 +83,10 @@ impl Targets {
 impl State {
     /// A plain press dragged past the click slop: ask the GPU what the press landed on.
     pub(crate) fn start_object_drag(&mut self, down: (f64, f64), at: (f64, f64)) -> bool {
+        // F10 control points keep the left button
         if self.draft.is_some()
             || self.pending_split.is_some()
-            || self.selection != SelectionMode::Object
+            || matches!(self.selection, SelectionMode::Controls { .. })
             || self.selection_tool != SelectionTool::Object
         {
             return false;
@@ -175,8 +176,12 @@ impl State {
             return None;
         }
 
-        if !self.selected_rows().contains(&row) {
-            self.select_rows(vec![row], false);
+        // a selected edge, face or entity stays put; another object is grabbed whole
+        match self.selection.parent() {
+            Some(parent) if parent == row => return None,
+            Some(_) => self.select_rows(vec![row], false),
+            None if !self.selected_rows().contains(&row) => self.select_rows(vec![row], false),
+            None => {}
         }
 
         let rows = self.selected_rows();

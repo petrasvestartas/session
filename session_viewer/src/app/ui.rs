@@ -45,12 +45,14 @@ pub struct Model {
 thread_local! { pub static MODEL: RefCell<Model> = RefCell::default(); } // the one model
 
 /// A text field the phone keyboard types into, besides the command line.
+#[cfg(target_arch = "wasm32")]
 struct TextField {
     id: &'static str,                            // the egui id of its text edit
     text: fn(&mut Model) -> Option<&mut String>, // its text, None while it is not shown
 }
 
 /// The fields that take the phone keyboard before the command line, the first open one.
+#[cfg(target_arch = "wasm32")]
 const FIELDS: &[TextField] = &[
     // register:layer-rename
     TextField {
@@ -65,6 +67,7 @@ const FIELDS: &[TextField] = &[
 ];
 
 /// The open field the phone keyboard types into, None for the command line.
+#[cfg(target_arch = "wasm32")]
 fn open_field(model: &mut Model) -> Option<&'static TextField> {
     FIELDS.iter().find(|field| (field.text)(model).is_some())
 }
@@ -158,6 +161,9 @@ impl Ui {
         Self {
             context,
             input,
+            #[cfg(not(target_arch = "wasm32"))]
+            controls: Some(Vec::new()),
+            #[cfg(target_arch = "wasm32")]
             controls: (super::route::query("inspect").as_deref() == Some("1")).then(Vec::new),
             scene_rect: egui::Rect::EVERYTHING,
             pointer: egui::Pos2::ZERO,
@@ -377,8 +383,8 @@ impl Ui {
                 self.context.memory_mut(|memory| memory.request_focus(id));
             }
             AgentEvent::Key(key) => {
-                // Enter keeps the text, Escape drops it; both lower the keyboard
-                if matches!(key, egui::Key::Enter | egui::Key::Escape) {
+                // Escape drops the text and lowers the keyboard; Enter lowers it once the field closes
+                if key == egui::Key::Escape {
                     super::agent::blur();
                 }
 
@@ -564,6 +570,11 @@ impl Ui {
 
             // a field that just opened takes the input, selected so typing replaces it
             if field != self.field {
+                // a field that closed lowers the keyboard, unless the command line took it
+                if field.is_none() && !model.command_open {
+                    super::agent::blur();
+                }
+
                 self.field = field;
 
                 if let Some(text) = open_field(model).and_then(|field| (field.text)(model)) {
@@ -1616,7 +1627,7 @@ fn commands(
                 } else {
                     &model.command
                 };
-                let inline_options = if option_prefix.contains(' ')
+                let inline_options = if crate::app::command::choosing_option(option_prefix)
                     && !option_prefix
                         .trim_start()
                         .to_ascii_lowercase()
@@ -1629,7 +1640,7 @@ fn commands(
                 let option_width: f32 = inline_options
                     .iter()
                     .map(|name| {
-                        let label = name.split_once(' ').map_or(*name, |(_, option)| option);
+                        let label = crate::app::command::option_label(name);
                         ui.painter()
                             .layout_no_wrap(
                                 label.into(),
@@ -1643,10 +1654,10 @@ fn commands(
                     .sum();
                 // options before the field
                 for name in inline_options {
-                    let label = name.split_once(' ').map_or(*name, |(_, option)| option);
+                    let label = crate::app::command::option_label(name);
                     let selected = model.command.trim().eq_ignore_ascii_case(name)
                         || (model.command.ends_with(' ')
-                            && model.command.split_whitespace().count() == 1
+                            && !crate::app::command::choosing_option(model.command.trim_end())
                             && Some(name) == inline_options.first());
                     let option = ui.selectable_label(selected, label);
                     record(controls, &format!("command/option/{label}"), label, &option);
@@ -1737,8 +1748,16 @@ fn commands(
                 }
                 if focused && model.completion_visible && !choices.is_empty() {
                     model.completion = model.completion.min(choices.len() - 1);
+                    if crate::app::command::choosing_option(&model.completion_prefix)
+                        && let Some(index) = choices
+                            .iter()
+                            .position(|name| name.eq_ignore_ascii_case(model.command.trim()))
+                    {
+                        model.completion = index;
+                    }
                     if browse != 0 {
-                        model.completion = if opening_list && !model.completion_prefix.contains(' ')
+                        model.completion = if opening_list
+                            && !crate::app::command::choosing_option(&model.completion_prefix)
                         {
                             if browse < 0 { choices.len() - 1 } else { 0 }
                         } else {
@@ -1766,7 +1785,7 @@ fn commands(
                     if tab {
                         complete = Some(choices[model.completion]);
                     }
-                    if !model.completion_prefix.contains(' ') {
+                    if !crate::app::command::choosing_option(&model.completion_prefix) {
                         let popup_width =
                             (ui.ctx().content_rect().right() - response.rect.left() - 12.0)
                                 .clamp(60.0, 220.0);
@@ -1914,5 +1933,89 @@ fn command_cursor_select(context: &egui::Context, id: egui::Id, start: usize, en
                 egui::text::CCursor::new(end),
             )));
         egui::TextEdit::store_state(context, id, state);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn frame(context: &egui::Context, model: &mut Model, key: Option<egui::Key>) -> Option<String> {
+        let mut input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(1000.0, 700.0),
+            )),
+            ..Default::default()
+        };
+        if let Some(key) = key {
+            for pressed in [true, false] {
+                input.events.push(egui::Event::Key {
+                    key,
+                    physical_key: None,
+                    pressed,
+                    repeat: false,
+                    modifiers: egui::Modifiers::NONE,
+                });
+            }
+        }
+        let mut command = None;
+        let _ = context.run_ui(input, |ui| commands(ui, model, &mut None, &mut command));
+        command
+    }
+
+    #[test]
+    fn up_down_cycles_command_options_and_enter_accepts() {
+        for name in [
+            "Element Features",
+            "Layers",
+            "Arctic",
+            "SSAO",
+            "Snap",
+            "Rotate",
+        ] {
+            let context = egui::Context::default();
+            context.set_fonts(fonts());
+            context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
+            let mut model = Model {
+                command: name.into(),
+                focus_command: true,
+                ..Default::default()
+            };
+            frame(&context, &mut model, None);
+            assert_eq!(frame(&context, &mut model, Some(egui::Key::Enter)), None);
+            assert_eq!(model.command, format!("{name} "));
+            let options = crate::app::command::options(&model.command);
+            for key in [egui::Key::ArrowLeft, egui::Key::ArrowRight] {
+                frame(&context, &mut model, Some(key));
+                assert_eq!(model.command, format!("{name} "));
+            }
+            frame(&context, &mut model, Some(egui::Key::ArrowDown));
+            assert_eq!(model.command, options[1]);
+            frame(&context, &mut model, Some(egui::Key::ArrowDown));
+            assert_eq!(model.command, options[2 % options.len()]);
+            frame(&context, &mut model, Some(egui::Key::ArrowUp));
+            assert_eq!(model.command, options[1]);
+            let (expected, run) = crate::app::command::accept(options[1]);
+            let command = frame(&context, &mut model, Some(egui::Key::Enter));
+            assert_eq!(command, run.then_some(expected.clone()));
+            if !run {
+                assert_eq!(model.command, expected);
+            }
+        }
+    }
+
+    #[test]
+    fn browsing_starts_from_the_typed_option() {
+        let context = egui::Context::default();
+        context.set_fonts(fonts());
+        let mut model = Model {
+            command: "Snap Off".into(),
+            focus_command: true,
+            ..Default::default()
+        };
+        frame(&context, &mut model, None);
+        frame(&context, &mut model, Some(egui::Key::ArrowDown));
+        assert_eq!(model.command, "Snap End");
     }
 }

@@ -437,7 +437,7 @@ impl State {
         self.touch();
     }
 
-    /// Attributes On|Off: draw the features inside each element; `None` toggles.
+    /// Element Features On|Off: draw the features inside each element; `None` toggles.
     pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
         let show = value.unwrap_or(!self.scene.attributes);
         self.scene.attributes = show;

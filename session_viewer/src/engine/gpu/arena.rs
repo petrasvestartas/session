@@ -402,7 +402,12 @@ impl ArenaLane {
         pass.set_index_buffer(self.faces.buf.slice(..), wgpu::IndexFormat::Uint32);
 
         for run in runs {
-            pass.draw_indexed(run.start..run.end.min(self.faces.len()), 0, instance..instance + 1);
+            let end = run.end.min(self.faces.len());
+
+            // a run past a shrunk buffer would wrap the index count
+            if run.start < end {
+                pass.draw_indexed(run.start..end, 0, instance..instance + 1);
+            }
         }
 
         runs.len() as u32

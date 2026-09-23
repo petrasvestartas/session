@@ -42,7 +42,7 @@ pub mod route;
 #[cfg(any(target_arch = "wasm32", test))]
 pub mod inspection;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", test))]
 pub mod ui;
 
 pub mod surface_preview;

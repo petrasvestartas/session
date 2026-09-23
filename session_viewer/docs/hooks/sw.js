@@ -60,7 +60,8 @@ async function first(event, request, fixed) {
   const hit = await caches.match(request, fixed ? {} : {cacheName: CACHE});
   if (hit)
     return hit;
-  const response = await fetch(request);
+  // the HTTP cache may still hold the build before for max-age, and this build's cache would keep it
+  const response = await fetch(request, fixed ? {} : {cache: "no-cache"});
   event.waitUntil(Promise.resolve(keep(request, response)).catch(() => {}));
   return response;
 }

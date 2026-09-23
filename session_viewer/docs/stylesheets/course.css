@@ -134,7 +134,7 @@
 .md-typeset picture { display: contents; }
 
 /* A figure's caption is its alt text, set small under the plate. */
-.md-typeset p > img[src$=".svg"] + em, .md-typeset p > img[src$=".png"] + em { display: block; margin-top: .4rem; color: var(--ds-text); font-size: .78em; }
+.md-typeset p > img[src$=".svg"] + em, .md-typeset p > img[src$=".png"] + em, .md-typeset p > picture + em { display: block; margin-top: .4rem; color: var(--ds-text); font-size: .78em; }
 
 .md-typeset .md-button { border: 1px solid var(--ds-accent); background: transparent; color: var(--ds-accent-ink); border-radius: var(--ds-radius); }
 

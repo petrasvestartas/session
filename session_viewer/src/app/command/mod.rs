@@ -36,14 +36,6 @@ pub struct Spec {
     pub parse: fn(verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String>,
 }
 
-impl Spec {
-    /// True when this verb is typed as `word`.
-    fn answers_to(&self, word: &str) -> bool {
-        let same = |name: &&str| name.eq_ignore_ascii_case(word);
-        self.names.iter().any(same) || self.aliases.iter().any(same)
-    }
-}
-
 /// Every verb the command line knows.
 pub const REGISTRY: &[&Spec] = &[
     &verbs::point::SPEC,      // register:point
@@ -80,32 +72,41 @@ pub const REGISTRY: &[&Spec] = &[
     &verbs::clipping_plane::SPEC, // register:clipping_plane
 ];
 
-/// The verb typed at the start of the line.
-fn first_word(line: &str) -> String {
-    line.split_whitespace()
-        .next()
-        .unwrap_or("")
-        .to_ascii_lowercase()
+/// Match the longest command name, leaving its arguments untouched.
+fn command_words(words: &[&str]) -> Option<(&'static Spec, usize)> {
+    REGISTRY
+        .iter()
+        .flat_map(|spec| {
+            spec.names.iter().chain(spec.aliases).filter_map(|name| {
+                let count = name.split_whitespace().count();
+                (words.len() >= count
+                    && name
+                        .split_whitespace()
+                        .zip(words)
+                        .all(|(a, b)| a.eq_ignore_ascii_case(b)))
+                .then_some((*spec, count))
+            })
+        })
+        .max_by_key(|(_, count)| *count)
 }
 
-/// The spec a typed word names, alias or not.
-fn spec(word: &str) -> Option<&'static Spec> {
-    REGISTRY.iter().copied().find(|spec| spec.answers_to(word))
+/// True once the command name has been followed by a space or an option.
+pub fn choosing_option(line: &str) -> bool {
+    let words: Vec<_> = line.split_whitespace().collect();
+    command_words(&words).is_some_and(|(_, count)| words.len() > count || line.ends_with(' '))
 }
 
-/// The spec whose canonical name is exactly this word.
-fn spec_by_name(word: &str) -> Option<&'static Spec> {
-    REGISTRY.iter().copied().find(|spec| {
-        spec.names
-            .iter()
-            .any(|name| name.eq_ignore_ascii_case(word))
-    })
+/// The option without its command name, for the inline buttons.
+pub fn option_label(line: &str) -> &str {
+    let words: Vec<_> = line.split_whitespace().collect();
+    let count = command_words(&words).map_or(1, |(_, count)| count);
+    line.splitn(count + 1, ' ').last().unwrap_or(line)
 }
 
 /// Help text for the verb being typed.
 pub fn hint(line: &str) -> &'static str {
-    match spec(&first_word(line)) {
-        Some(spec) if !spec.hint.is_empty() => spec.hint,
+    match command_words(&line.split_whitespace().collect::<Vec<_>>()) {
+        Some((spec, _)) if !spec.hint.is_empty() => spec.hint,
         _ => "Type a command · Up/Down browse · Tab completes · Enter executes · Esc cancels",
     }
 }
@@ -122,30 +123,31 @@ pub fn parse(line: &str) -> Result<Box<dyn Action>, String> {
         return Err("nothing typed".into());
     }
 
-    let mut words = line.split_whitespace();
-    let verb = words.next().unwrap_or_default().to_ascii_lowercase();
-    let rest: Vec<&str> = words.collect(); // the arguments
-    let Some(spec) = spec(&verb) else {
-        return Err(format!("no command `{verb}`"));
+    let words: Vec<_> = line.split_whitespace().collect();
+    let Some((spec, count)) = command_words(&words) else {
+        return Err(format!("no command `{}`", words[0].to_ascii_lowercase()));
     };
+    let verb = words[..count].join(" ").to_ascii_lowercase();
+    let rest = &words[count..];
 
     if spec.arity.is_some_and(|count| rest.len() != count) {
         return Err(format!("wrong number of arguments for `{verb}`"));
     }
 
-    (spec.parse)(&verb, &rest)
+    (spec.parse)(&verb, rest)
 }
 
 /// Clickable choices for the verb being typed.
 pub fn options(line: &str) -> &'static [&'static str] {
-    spec(&first_word(line)).map_or(&[], |spec| spec.options)
+    command_words(&line.split_whitespace().collect::<Vec<_>>())
+        .map_or(&[], |(spec, _)| spec.options)
 }
 
 /// Commands or options starting with the typed text.
 pub fn completions(line: &str) -> Vec<&'static str> {
     let lower = line.to_ascii_lowercase();
     // after a space, complete the option instead
-    if lower.contains(' ') {
+    if choosing_option(line) {
         return options(line)
             .iter()
             .copied()
@@ -165,7 +167,7 @@ pub fn completions(line: &str) -> Vec<&'static str> {
 
 /// Every command, matching ones first.
 pub fn browse(line: &str) -> Vec<&'static str> {
-    if line.contains(' ') {
+    if choosing_option(line) {
         return options(line).to_vec();
     }
 
@@ -193,26 +195,23 @@ pub fn accept(line: &str) -> (String, bool) {
     let choices = completions(line);
     let text = choices.first().copied().unwrap_or(line).trim();
     let words: Vec<_> = text.split_whitespace().collect();
-    let typed = spec_by_name(words.first().copied().unwrap_or(""));
-    let bare_verb_waits = words.len() == 1 && typed.is_some_and(|spec| spec.wait_for_option);
-    let option_waits = words.len() == 2
-        && typed.is_some_and(|spec| spec.wait_after_option)
-        && spec_option_continues(typed, words[1]);
+    let typed = command_words(&words);
+    let bare_verb_waits =
+        typed.is_some_and(|(spec, count)| words.len() == count && spec.wait_for_option);
+    let option_waits = typed.is_some_and(|(spec, count)| {
+        words.len() == count + 1
+            && spec.wait_after_option
+            && spec
+                .options
+                .iter()
+                .any(|option| option.eq_ignore_ascii_case(text))
+    });
 
     if bare_verb_waits || option_waits {
         (format!("{text} "), false)
     } else {
         (text.to_owned(), true)
     }
-}
-
-/// True when the typed option is one this verb continues after.
-fn spec_option_continues(spec: Option<&'static Spec>, word: &str) -> bool {
-    spec.is_some_and(|spec| {
-        spec.options
-            .iter()
-            .any(|option| option.split_whitespace().nth(1) == Some(word))
-    })
 }
 
 /// A move offset from `10 0 0`, `@10,0` or `10<45`.
@@ -333,6 +332,21 @@ mod tests {
     /// Tab completes the verb, then its option.
     #[test]
     fn partial_entries_accept_commands_then_options() {
+        assert_eq!(completions("Element F"), vec!["Element Features"]);
+        assert_eq!(accept("Element F"), ("Element Features ".into(), false));
+        assert_eq!(
+            accept("Element Features "),
+            ("Element Features On".into(), true)
+        );
+        assert_eq!(
+            accept("Element Features of"),
+            ("Element Features Off".into(), true)
+        );
+        assert_eq!(
+            browse("Element Features Off"),
+            vec!["Element Features On", "Element Features Off"]
+        );
+        assert_eq!(option_label("Element Features Off"), "Off");
         assert_eq!(accept("Lay"), ("Layers ".into(), false));
         assert_eq!(accept("Layers "), ("Layers On".into(), true));
         assert_eq!(accept("Layers of"), ("Layers Off".into(), true));
@@ -388,10 +402,13 @@ mod tests {
         assert!(completions("").contains(&"Controls"));
         assert_eq!(parsed("Layers OFF"), Ok("Layers(Some(false))".into()));
         assert_eq!(
-            parsed("Attributes off"),
-            Ok("Attributes(Some(false))".into())
+            parsed("Element Features off"),
+            Ok("ElementFeatures(Some(false))".into())
         );
-        assert_eq!(parsed("Attributes"), Ok("Attributes(None)".into()));
+        assert_eq!(
+            parsed("Element Features"),
+            Ok("ElementFeatures(None)".into())
+        );
         assert_eq!(parsed("Opacity 0.5"), Ok("Opacity(0.5)".into()));
         assert!(parsed("Opacity 2").is_err());
         assert!(parsed("Opacity").is_err());
@@ -405,13 +422,13 @@ mod tests {
             completions(""),
             vec![
                 "Arctic",
-                "Attributes",
                 "clipping_plane",
                 "Close",
                 "Controls",
                 "Curve",
                 "Delete",
                 "Edge",
+                "Element Features",
                 "Escape",
                 "Explode",
                 "Extend",

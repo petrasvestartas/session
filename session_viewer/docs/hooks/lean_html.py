@@ -55,16 +55,21 @@ def get_webp(path, config):
         "webp",
         hashlib.sha256(png).hexdigest() + ".webp",
     )
-    if not os.path.exists(cache):
+    if os.path.exists(cache):
+        with open(cache, "rb") as file:
+            webp = file.read()
+    else:
         buffer = io.BytesIO()
         Image.open(io.BytesIO(png)).save(
             buffer, "WEBP", lossless=True, quality=90, method=5, exact=True
         )
+        webp = buffer.getvalue()
         os.makedirs(os.path.dirname(cache), exist_ok=True)
-        with open(cache, "wb") as file:
-            file.write(buffer.getvalue())
-    with open(cache, "rb") as file:
-        webp = file.read()
+        # renamed into place: a stopped or parallel build never leaves or reads a short file
+        partial = "%s.%d" % (cache, os.getpid())
+        with open(partial, "wb") as file:
+            file.write(webp)
+        os.replace(partial, cache)
     return webp if len(webp) < len(png) else None
 
 
