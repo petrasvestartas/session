@@ -49,8 +49,22 @@ jobs:
       # `assets/pb` is the LOCAL scene's geometry - untracked, and deliberately not deployed:
       # the published page reads its scene from R2, never from here. index.html still copies the
       # directory, so it has to exist; empty is exactly right.
+      # The published page alone gets whole-program LTO in one codegen unit; local builds keep the
+      # quick release profile.
       - name: Build
+        env:
+          CARGO_PROFILE_RELEASE_LTO: fat
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 1
         run: cd session_viewer && mkdir -p assets/pb && trunk build --release
+      # binaryen rewrites the hashed wasm in place, which is safe because Trunk.toml sets no_sri.
+      - name: Optimize the wasm
+        run: |
+          curl -sSL -o "$RUNNER_TEMP/binaryen.tar.gz" https://github.com/WebAssembly/binaryen/releases/download/version_123/binaryen-version_123-x86_64-linux.tar.gz
+          echo "e959f2170af4c20c552e9de3a0253704d6a9d2766e8fdb88e4d6ac4bae9388fe  $RUNNER_TEMP/binaryen.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/binaryen.tar.gz" -C "$RUNNER_TEMP"
+          for f in session_viewer/dist/*_bg.wasm; do
+            "$RUNNER_TEMP/binaryen-version_123/bin/wasm-opt" -O3 --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext --enable-reference-types --enable-mutable-globals "$f" -o "$f"
+          done
       # Scene data is NOT deployed with the site. The page reads it from the session-viewer-data
       # bucket on Cloudflare R2 (session_viewer/src/app/live.rs), so publishing geometry is an
       # upload to that bucket and nothing here has to run.
