@@ -4,9 +4,9 @@ The black triangle at the top right returns to the viewer. The viewer uses a whi
 
 ## 1. Focus and type
 
-The command area stays across the bottom and is ready for typing when the page opens. Enter a command first; its options appear only after you accept it with **Enter**, **Tab**, or **Space**. For example, type `SSAO`, press **Enter**, then click **On** or **Off** in the command row. Merely typing a matching prefix does not show options or change the shading.
+The command area stays across the bottom and is ready for typing when the page opens. Enter a command first; its options appear only after you accept it with **Enter**, **Tab**, or **Space**. For example, type `Arctic`, press **Enter**, then click **On** or **Off** in the command row. Merely typing a matching prefix does not show options or change the shading.
 
-Suggested command suffixes are selected inline. **Up/Down** or the mouse wheel browses the completion list; matching names come first and other commands remain available. **Escape** clears the pending command and returns focus to the scene. Complete commands such as `SSAO On` run directly with **Enter**.
+Suggested command suffixes are selected inline. **Up/Down** or the mouse wheel browses the completion list; matching names come first and other commands remain available. **Escape** clears the pending command and returns focus to the scene. Complete commands such as `Arctic On` run directly with **Enter**.
 
 ![Current command dock with an inline completion and the command list](screenshots/command-completion.png)
 
@@ -41,7 +41,7 @@ While Polyline is active, its submenu offers:
 - **Rectangle**: pick two opposite corners on the construction plane.
 - **Polygon**: pick a center and a radius point. The default is six sides; enter `Sides 5` before the radius point for a pentagon.
 
-`SSAO On` and `Arctic On` enable the same soft contact shading; `Off` disables it. **G** toggles it when the viewport has keyboard focus. These controls preserve the camera. See [SSAO quality and performance](ssao.md) for floor, plate and primitive examples.
+`Arctic On` enables the same soft contact shading; `Off` disables it. **G** toggles it when the viewport has keyboard focus. These controls preserve the camera. See [Arctic quality and performance](ssao.md) for floor, plate and primitive examples.
 
 `Snap On` and `Snap Off` control endpoint, vertex and midpoint snapping, including during a draft. The default capture distance is 12 screen pixels. A blue marker names the active snap. `Layers On` and `Layers Off` show or hide the layer tree, which starts hidden. `Rotate` offers **x**, **y**, and **z**, followed by an angle.
 

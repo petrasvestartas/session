@@ -16,7 +16,7 @@ const output=path.resolve(__dirname,'../target/review/ambient-floor');
  const ui=()=>page.locator('canvas').getAttribute('data-viewer-ui').then(JSON.parse);
  const settle=()=>page.waitForTimeout(800);
  const control=async key=>{const c=(await ui()).controls.find(c=>c.key===key);assert(c,key);const [x,y,r,b]=c.rect;await page.mouse.click((x+r)/2,(y+b)/2);await settle();};
- const command=async text=>{await control('command/input');await page.keyboard.press('Control+a');await page.keyboard.type(text);await page.keyboard.press('Enter');await page.waitForFunction(text=>{const u=JSON.parse(document.querySelector('canvas').getAttribute('data-viewer-ui'));return text==='SSAO'?u.command==='SSAO ':u.history.at(-1)?.startsWith('> '+text+'\n');},text,{timeout:30000});await settle();};
+ const command=async text=>{await control('command/input');await page.keyboard.press('Control+a');await page.keyboard.type(text);await page.keyboard.press('Enter');await page.waitForFunction(text=>{const u=JSON.parse(document.querySelector('canvas').getAttribute('data-viewer-ui'));return text==='Arctic'?u.command==='Arctic ':u.history.at(-1)?.startsWith('> '+text+'\n');},text,{timeout:30000});await settle();};
  try{
  await page.goto(new URL('/view_mixed?inspect=1&nogrid=1',process.env.VIEWER_URL||'http://127.0.0.1:8770/').href);
  await page.waitForFunction(()=>document.querySelector('canvas')?.getAttribute('data-viewer-inspection'),null,{timeout:120000});
@@ -28,14 +28,14 @@ const output=path.resolve(__dirname,'../target/review/ambient-floor');
  const floor=rows.find(r=>/floor model/i.test(r.label));assert(floor);
  await control(floor.key);assert.equal((await state()).selected_group_count,491);await command('Fit');await command('Escape');await command('Layers Off');
  const off=await state();const plain=PNG.sync.read(await page.screenshot({path:path.join(output,'off.png')}));
- await command('SSAO On');const on=await state();const shaded=PNG.sync.read(await page.screenshot({path:path.join(output,'on.png')}));
+ await command('Arctic On');const on=await state();const shaded=PNG.sync.read(await page.screenshot({path:path.join(output,'on.png')}));
 
  assert.deepEqual(on.mvp,off.mvp);
  release();
  await posted;await settle();
  assert.deepEqual((await state()).mvp,off.mvp,'late scene loading preserves the fitted floor view');
  for(const option of ['Off','On','Off','On']) {
-  await command('SSAO');await control('command/option/'+option);
+  await command('Arctic');await control('command/option/'+option);
   assert.equal((await state()).ssao,option==='On');
   assert.deepEqual((await state()).mvp,off.mvp,'clicking '+option+' preserves camera');
  }

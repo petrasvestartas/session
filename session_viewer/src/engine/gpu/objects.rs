@@ -199,6 +199,11 @@ fn ink_instance_group(
 }
 
 impl InstanceTable {
+    /// Instance rows for read-only GPU passes.
+    pub fn instance_buffer(&self) -> &wgpu::Buffer {
+        &self.buffer.buf
+    }
+
     pub fn geometry_revision(&self) -> u64 {
         self.geometry_revision
     }

@@ -46,9 +46,10 @@ impl Gpu {
         }
     }
 
-    /// True while ambient occlusion still adds samples on a still view; not in a drag that skips it.
+    /// Keep a requested Arctic view awake until its idle-compiled pipelines are ready.
     pub fn ambient_pending(&self) -> bool {
-        self.performance.drag_tier() < 2 && self.ssao.as_ref().is_some_and(|ssao| ssao.pending())
+        self.view.ssao && self.view.opacity > 0.0 && self.live_faces() > 0
+            && self.ssao_pipes[usize::from(self.targets.samples > 1)].is_none()
     }
 
     /// Draw one frame to the canvas; returns encode time in ms.
@@ -95,17 +96,15 @@ impl Gpu {
                 .on_submitted_work_done(move || crate::engine::performance::mark(done));
         }
 
-        // compile ambient occlusion after the first frame with faces, so a toggle does not stall
+        // Schedule compilation outside the frame, after the first geometry has been presented.
         if self.live_faces() > 0 {
             let target = self.target();
-            super::ssao::cached(&mut self.ssao_pipes, &self.ctx, target);
+            super::ssao::prewarm(&mut self.ssao_pipes, &self.ctx, target, !self.performance.interacting);
         }
         self.performance
             .frame(draws, objects, input.now_ms, self.view.perf);
-
-        // occlusion drawn at half resolution: the frame after the drag draws it in full
-        if self.ssao.as_ref().is_some_and(super::ssao::Ssao::half) {
-            self.performance.mark_rough();
+        if self.view.ssao {
+            self.performance.keep_arctic_quality();
         }
 
         Some(encode_ms)

@@ -20,9 +20,9 @@ const {PNG}=require('pngjs');
  try{
  await page.goto((process.env.VIEWER_URL||'http://127.0.0.1:8770')+'/view_mixed?inspect=1&nogrid=1');await ready;await settle();
  for(const [name,match] of [['primitives',/solids: BReps/],['plates',/plates \+ contact/],['floor',/floor model/]]){
-  await command('SSAO Off');await command('Layers On');const row=(await ui()).rows.find(r=>match.test(r.label));assert(row,name);await control(row.key);assert((await state()).selected_group_count>0);await command('Fit');await command('Escape');await command('Layers Off');
+  await command('Arctic Off');await command('Layers On');const row=(await ui()).rows.find(r=>match.test(r.label));assert(row,name);await control(row.key);assert((await state()).selected_group_count>0);await command('Fit');await command('Escape');await command('Layers Off');
   const off=await state();const plain=PNG.sync.read(await page.screenshot({path:output+'/'+name+'-off.png'}));
-  await command('SSAO On');const on=await state();assert.deepEqual(on.mvp,off.mvp);const shaded=PNG.sync.read(await page.screenshot({path:output+'/'+name+'-on.png'}));
+  await command('Arctic On');const on=await state();assert.deepEqual(on.mvp,off.mvp);const shaded=PNG.sync.read(await page.screenshot({path:output+'/'+name+'-on.png'}));
   assert.equal(off.ssao,false);assert.equal(on.ssao,true);
   if(name==='primitives') {
    for(const [label,rect,min,max] of [['cone',[325,630,435,740],50,1000],['torus',[520,560,630,660],100,2000]]) {

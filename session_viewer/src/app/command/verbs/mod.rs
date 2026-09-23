@@ -28,6 +28,5 @@ pub mod scale;
 pub mod show;
 pub mod snap;
 pub mod split;
-pub mod ssao;
 pub mod trim;
 pub mod undo;

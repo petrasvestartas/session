@@ -292,9 +292,15 @@ Run `node tests/splitting.cjs` with the same Playwright/Chrome environment for c
 `node tests/color-channels.cjs` checks rendered face and edge colors independently, Original resets, legacy-compatible Save/Open and captures the full viewer for current lesson 11. `node tests/large-object-dragging.cjs` loads the bundled bunny mesh and 342k-point lion, measures real pointer dragging and release, and verifies that the cloud image moves with a stationary camera. Use the same headed Chrome/WebGPU environment and `VIEWER_URL` as the other browser checks.
 
 `node tests/command-workspace.cjs` checks draggable command history, suggestion clicks,
-SSAO options, Point/Line/Polyline drawing, Rectangle/Polygon constructors, undo and narrow
+Arctic options, Point/Line/Polyline drawing, Rectangle/Polygon constructors, undo and narrow
 layouts. `node tests/drawing-large-scene.cjs` additionally uses the local manifest and its
 large sheet assets (over 100,000 retained objects). It starts and draws all three basic
 geometry commands, with a deadline that catches repeated whole-tree transform lookups
 while building snap targets. Both use the Playwright installation above; the large-scene
 check requires the local `view_local_*` assets.
+
+`node tests/ambient-scenes.cjs` checks Arctic toggles, camera preservation and WebGPU errors across the seven published scenes, saving still/drag/release images under `target/review/ambient-scenes`. Set `AO_SAMPLES=1` or `4`, `AO_DPR=1` or `2`, and `AO_PHONE=1` for the Pixel 7 viewport. These viewport tests use the host GPU. `VIEWER_URL` selects the build to review.
+
+`NO_IDLE_CALLBACK=1 node tests/ambient-lighting.cjs` checks Arctic startup and resource release without `requestIdleCallback`.
+
+`node tests/ambient-motion.cjs` records a 32-frame camera rotation of `view_live` with Arctic enabled. It checks camera continuity and WebGPU errors, and saves frames plus matrices for visual comparison. The ignored native test `rotation_reprojects_ground_shadows_without_erasing_them` measures temporal variation at fixed ground points and retains a spatial-only comparison.

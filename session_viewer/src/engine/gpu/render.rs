@@ -20,10 +20,7 @@ impl Gpu {
             || (v.show_lines && self.live_ribbons() > 0)
             || self.control_net.ribbon_count() > 0
             || self.registered.iter().any(|lane| lane.reads_tiles(v));
-        // ambient occlusion reads each triangle's contact radius, except in a drag that skips it
-        let ambient =
-            v.ssao && v.opacity > 0.0 && self.live_faces() > 0 && self.performance.drag_tier() < 2;
-        (lists || ambient, lists)
+        (lists, lists)
     }
 
     /// Project the triangles, and bin them into screen tiles when `lists`; nothing when
@@ -84,34 +81,37 @@ impl Gpu {
         let caps = self.cap_planes().1 > 0;
         let mut draws = self.face_passes(encoder, view, clear);
         self.mark(encoder, "faces");
-        // pass 2: ambient occlusion over the faces; a slow drag skips it and keeps its textures
+        // pass 2: ambient occlusion keeps the same quality throughout navigation
         let ambient = self.view.ssao && self.view.opacity > 0.0 && self.live_faces() > 0;
 
-        if ambient && tier < 2 {
+        if ambient {
             let full = (self.config.width, self.config.height);
+            let dpr = f64::from(full.0) / self.logical_size[0].max(1.0);
             let target = self.target();
-            let pipes = super::ssao::cached(&mut self.ssao_pipes, &self.ctx, target);
-            // textures follow the canvas; pipelines stay
-            if self.ssao.as_ref().is_some_and(|ssao| !ssao.fits(pipes, full)) {
-                self.ssao = None;
+            if let Some(pipes) = super::ssao::cached(&mut self.ssao_pipes, &self.ctx, target) {
+                // textures follow the canvas; pipelines stay
+                if self.ssao.as_ref().is_some_and(|ssao| !ssao.fits(pipes, full, dpr)) {
+                    self.ssao = None;
+                }
+                let ssao = self
+                    .ssao
+                    .get_or_insert_with(|| super::ssao::Ssao::new(&self.ctx, pipes, full, dpr));
+                let receiver = ssao.receiver(&self.objects);
+                let [vertices, owners, indices] = self.arena.geometry_buffers();
+                draws += ssao.draw(
+                    &self.ctx,
+                    pipes,
+                    &self.targets,
+                    [vertices, owners, indices, self.objects.instance_buffer()],
+                    encoder,
+                    view,
+                    self.frame.mvp_f32,
+                    receiver,
+                    self.objects.geometry_revision(),
+                    self.timer.as_mut(),
+                );
             }
-            let ssao = self
-                .ssao
-                .get_or_insert_with(|| super::ssao::Ssao::new(&self.ctx, pipes, full));
-            let receiver = ssao.receiver(&self.objects);
-            draws += ssao.draw(
-                &self.ctx,
-                pipes,
-                &self.targets,
-                &self.arena.tiles.projected,
-                encoder,
-                view,
-                self.frame.mvp_f32,
-                receiver,
-                self.objects.geometry_revision(),
-                self.performance.interacting,
-            );
-        } else if !ambient {
+        } else {
             self.ssao = None;
         }
         self.mark(encoder, "ssao");

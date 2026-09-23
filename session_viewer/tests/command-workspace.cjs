@@ -27,6 +27,7 @@ function project(s,p) { const v=p.map((n,i)=>n-s.origin[i]); const c=[0,1,2,3].m
  assert.equal((await ui(page)).layers_open,false);
  assert(!(await ui(page)).controls.some(c=>c.key.startsWith('toolbar/')||c.key==='command/run'||c.key==='command/close'));
  assert((await ui(page)).controls.find(c=>c.key==='command/input').rect[1]>680);
+ await control(page,'command/collapse');
  let resize=(await ui(page)).controls.find(c=>c.key==='command/resize').rect;
  const originalScene=(await ui(page)).scene_rect;
  await page.mouse.move(600,(resize[1]+resize[3])/2); await page.mouse.down(); await settle(page);
@@ -41,9 +42,8 @@ function project(s,p) { const v=p.map((n,i)=>n-s.origin[i]); const c=[0,1,2,3].m
  const optionLabels = async () => (await ui(page)).controls.filter(c=>c.key.startsWith('command/option/')).map(c=>c.label);
  assert.deepEqual(await optionLabels(),[], 'idle input has no options');
  for (const [prefix, name, key, options] of [
-   ['ss','SSAO','Enter',['On','Off']],
    ['La','Layers','Tab',['On','Off']],
-   ['Sn','Snap','Space',['On','Off']],
+   ['Sn','Snap','Space',['On','Off','End','Near','Mid','Center','Perp']],
    ['Ar','Arctic','Enter',['On','Off']],
    ['Ro','Rotate','Enter',['x','y','z']],
  ]) {
@@ -57,13 +57,13 @@ function project(s,p) { const v=p.map((n,i)=>n-s.origin[i]); const c=[0,1,2,3].m
    await page.keyboard.press('Escape'); await settle(page);
    assert.deepEqual(await optionLabels(),[], 'Escape clears options');
  }
- await control(page,'command/input'); await page.keyboard.type('SSAO'); await settle(page);
+ await control(page,'command/input'); await page.keyboard.type('Arctic'); await settle(page);
  assert.deepEqual(await optionLabels(),[], 'fully typed commands wait for acceptance');
  await page.keyboard.press('Enter'); await settle(page);
- assert.equal((await state(page)).ssao,false, 'accepting SSAO waits for an option');
+ assert.equal((await state(page)).ssao,false, 'accepting Arctic waits for an option');
  await control(page,'command/option/On'); assert.equal((await state(page)).ssao,true);
  assert.deepEqual(await optionLabels(),[], 'executing an option clears options');
- await page.keyboard.type('SSAO Off'); await page.keyboard.press('Enter'); await settle(page);
+ await page.keyboard.type('Arctic Off'); await page.keyboard.press('Enter'); await settle(page);
  assert.equal((await state(page)).ssao,false, 'complete commands still execute directly');
  await page.keyboard.type('Lay'); await settle(page); assert.equal((await ui(page)).command,'Layers', 'first-load inline completion'); assert(Math.abs((await ui(page)).completion_rect[3] - (await ui(page)).controls.find(c=>c.key==='command/input').rect[1]) < 2, 'popup touches the input field'); if(process.env.SCREENSHOTS) await page.screenshot({path:out+'/inline-completion.png'}); await page.keyboard.press('Backspace'); await settle(page); assert.equal((await ui(page)).command,'Lay', 'delete the suggested suffix'); await page.keyboard.type('ers'); await settle(page); assert.equal((await ui(page)).command,'Layers', 'typing replaces the suffix'); await page.keyboard.press('Tab'); await settle(page); assert.equal((await ui(page)).command,'Layers ',JSON.stringify(await ui(page)));
  let inline=await ui(page), inputRect=inline.controls.find(c=>c.key==='command/input').rect;
@@ -102,7 +102,7 @@ function project(s,p) { const v=p.map((n,i)=>n-s.origin[i]); const c=[0,1,2,3].m
  await enter('Line 0,250,0'); assert.deepEqual((await state(page)).drawing.points,[[0,250,0]]);
  s=await state(page); await page.mouse.click(...project(s,[100,180,0])); await settle(page); assert.equal((await state(page)).objects,original+1,'typed start and clicked endpoint');
  await enter('Point'); await page.mouse.click(470,280); await settle(page); assert.equal((await state(page)).objects,original+2,'Point accepts a canvas click');
- await enter('Polyline'); assert.deepEqual(await optionLabels(),['Points','Rectangle','Polygon','Finish']); await enter('0,270,0'); await enter('100,270,0'); await page.keyboard.press('Enter'); await settle(page); assert.equal((await state(page)).objects,original+3,'Enter finishes polyline: '+JSON.stringify((await ui(page)).history.slice(-5)));
+ await enter('Polyline'); assert.deepEqual(await optionLabels(),['Points','Rectangle','Polygon','Close','Finish']); await enter('0,270,0'); await enter('100,270,0'); await page.keyboard.press('Enter'); await settle(page); assert.equal((await state(page)).objects,original+3,'Enter finishes polyline: '+JSON.stringify((await ui(page)).history.slice(-5)));
  await enter('Line'); await enter('Snap Off'); assert.equal((await state(page)).snap_enabled,false); assert((await state(page)).drawing,'Snap preserves the draft');
  s=await state(page); end=project(s,[100,130,0]); await page.mouse.move(end[0]+3,end[1]+2); await settle(page); assert.equal((await state(page)).drawing.snap,null);
  await page.keyboard.press('Escape'); await settle(page); assert.equal((await state(page)).drawing,null); assert.equal((await state(page)).objects,original+3,'Escape does not create partial geometry');

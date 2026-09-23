@@ -30,7 +30,7 @@ const TIER_UP_MS: f64 = 33.0;
 /// A median drag frame faster than this takes the last tier back.
 const TIER_DOWN_MS: f64 = 20.0;
 
-/// Tiers: 1 tests ink against planes alone, 2 also drops ambient occlusion and edge outlines.
+/// Tiers: 1 tests ink against planes alone, 2 also drops edge outlines.
 pub const TOP_TIER: u8 = 2;
 
 /// A top-tier drag frame slower than this is slow.
@@ -80,6 +80,12 @@ impl Performance {
     /// True once when a run of slow frames was seen.
     pub fn take_slow_interaction(&mut self) -> bool {
         std::mem::take(&mut self.slow)
+    }
+
+    /// Keep Arctic's chosen canvas scale and MSAA during sustained slow navigation.
+    pub fn keep_arctic_quality(&mut self) {
+        self.slow = false;
+        self.slow_run = 0;
     }
 
     /// Quality tier for the frame being drawn: 0 at rest, the learned one while dragging.
@@ -375,5 +381,20 @@ mod tests {
         assert!(!frames(&mut perf, 1, 40.0, true), "a faster frame resets the run");
         assert!(frames(&mut perf, SLOW_FRAMES, 150.0, true), "the run fires");
         assert!(!frames(&mut perf, 10, 150.0, true), "and fires once");
+    }
+
+    #[test]
+    fn arctic_keeps_canvas_quality_through_a_slow_drag() {
+        let mut perf = Performance::new();
+        perf.interacting = true;
+        let mut now = perf.prev_frame;
+        for _ in 0..SLOW_FRAMES * 2 {
+            now += 150.0;
+            perf.frame(1, 1, now, false);
+            perf.keep_arctic_quality();
+            assert!(!perf.take_slow_interaction());
+        }
+        assert_eq!(perf.drag_tier(), TOP_TIER);
+        assert!(frames(&mut perf, SLOW_FRAMES, 150.0, true), "normal fallback resumes after Arctic is off");
     }
 }

@@ -133,6 +133,11 @@ pub struct ArenaLane {
 }
 
 impl ArenaLane {
+    /// Geometry buffers for read-only GPU passes: vertices, owners, solid indices.
+    pub fn geometry_buffers(&self) -> [&wgpu::Buffer; 3] {
+        [&self.verts.buf, &self.vids.buf, &self.faces.buf]
+    }
+
     /// Reproject the triangles for this camera; bin them into screen tiles too when `lists`.
     pub fn prepare_visibility(
         &mut self,

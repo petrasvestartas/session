@@ -868,40 +868,36 @@ mod tests {
             "no stroke and no ambient occlusion: nothing is projected"
         );
         assert_eq!(gpu.arena.tiles.allocated_bytes(), initial, "nor allocated");
-        // ambient occlusion reads the projection, not the lists
+        // Arctic reads geometry directly and needs no projected table or tile list.
         gpu.view.ssao = true;
         let visible = gpu.render_offscreen(&input);
-        let key = gpu
-            .arena
-            .tiles
-            .key
-            .expect("a populated scene prepares visibility");
-        assert!(gpu.arena.tiles.binned.is_none(), "no stroke: no tile lists");
-        assert!(gpu.arena.tiles.allocated_bytes().0 > initial.0);
+        assert!(gpu.arena.tiles.key.is_none());
+        assert_eq!(gpu.arena.tiles.allocated_bytes(), initial);
         assert_eq!(visible, gpu.render_offscreen(&input));
-        assert_eq!(gpu.arena.tiles.key, Some(key));
-        gpu.set_selected(0, true);
-        gpu.render_offscreen(&input);
-        assert_eq!(
-            gpu.arena.tiles.key,
-            Some(key),
-            "highlighting must not reproject source triangles"
-        );
         gpu.set_hidden(0, true);
-        let hidden = gpu.render_offscreen(&input);
-        assert_ne!(hidden, visible);
-        assert_ne!(
-            gpu.arena.tiles.key,
-            Some(key),
-            "a hidden occluder must leave the tile lists"
-        );
-        let hidden_key = gpu.arena.tiles.key;
+        assert_ne!(gpu.render_offscreen(&input), visible);
+        assert_eq!(gpu.arena.tiles.allocated_bytes(), initial);
         gpu.set_hidden(0, false);
         input.view_proj.m[12] = 0.1;
         gpu.render_offscreen(&input);
-        assert_ne!(gpu.arena.tiles.key, hidden_key);
         gpu.resize(160, 96);
         gpu.render_offscreen(&input);
+        assert_eq!(gpu.arena.tiles.allocated_bytes(), initial);
+
+        // Picking remains a reader and retains the normal invalidation rules.
+        gpu.render_ids_offscreen(&input);
+        let key = gpu.arena.tiles.key.expect("picking prepares visibility");
+        gpu.set_selected(0, true);
+        gpu.render_ids_offscreen(&input);
+        assert_eq!(gpu.arena.tiles.key, Some(key), "highlighting does not reproject");
+        gpu.set_hidden(0, true);
+        gpu.render_ids_offscreen(&input);
+        assert_ne!(gpu.arena.tiles.key, Some(key));
+        let hidden_key = gpu.arena.tiles.key;
+        gpu.set_hidden(0, false);
+        input.view_proj.m[12] = 0.2;
+        gpu.render_ids_offscreen(&input);
+        assert_ne!(gpu.arena.tiles.key, hidden_key);
         assert_eq!(gpu.arena.tiles.layout, Some(TileLayout::new((160, 96))));
         gpu.reset();
         gpu.set_scene(&upload);
