@@ -4,6 +4,8 @@ Type `Arctic`, press **Enter**, then choose **On** or **Off**. `Arctic On` and `
 
 Enabling Arctic also enables black surface outlines. Use `Outline Off` to hide them while keeping Arctic shading, or `Outline On` to show them independently. `Outline` offers clickable **On** and **Off** options; **O** remains the viewport shortcut. Enabling Arctic again restores outlines. Turning Arctic off leaves the outline setting unchanged.
 
+Clipping sections have their own black cut boundaries and use solid dark grey fill by default. `clipping_plane Fill Hatch` selects hatching; `clipping_plane Fill Solid` restores the solid fill. Cut boundaries remain visible with `Outline Off` and without Arctic.
+
 Arctic keeps authored colors under neutral sky and ground lighting, with soft contact shadows on surfaces and a virtual floor beneath the lowest visible solid. Hidden objects, sheets and point clouds do not lower that floor. This screen-space approximation cannot include hidden or off-screen occluders.
 
 ## Navigation

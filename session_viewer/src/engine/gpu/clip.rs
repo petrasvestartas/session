@@ -72,10 +72,11 @@ pub struct ClipUniform {
     pub sides: [[f32; 4]; 2],           // 384   32  side of each plane the eye is on
     pub count: u32,                     // 416    4  planes in use
     pub samples: u32,                   // 420    4  scene samples per pixel
-    pub fill: u32,                      // 424    4  0 hatch, 1 solid black
+    pub fill: u32,                      // 424    4  0 hatch, 1 solid dark grey
     pub spacing: f32,                   // 428    4  hatch spacing, px
     pub width: f32,                     // 432    4  hatch line width, px
-    pub pad: [f32; 3],                  // 436   12  -> 448
+    pub outline: f32,                  // 436    4  cut boundary width, px
+    pub pad: [f32; 2],                  // 440    8  -> 448
 }
 
 const _: () = assert!(std::mem::size_of::<ClipUniform>() == 448);
@@ -128,7 +129,7 @@ pub struct Clip {
     planes: [ClipPlane; MAX_PLANES], // world planes, the first `count` in use
     count: usize,                    // planes in use
     pub enabled: bool,               // false shows everything, the planes stay
-    pub fill: u32,                   // 0 black hatch, 1 solid black
+    pub fill: u32,                   // 0 black hatch, 1 solid dark grey
     target: Target,                  // the scene's color format and samples
     pipes: Option<CapPipelines>,     // made on the first section, again after an MSAA flip
     pick_pipes: Option<PickPipelines>, // made on the first pick through a section
@@ -146,7 +147,7 @@ impl Clip {
             planes: [ClipPlane::default(); MAX_PLANES],
             count: 0,
             enabled: true,
-            fill: 0,
+            fill: 1,
             target,
             pipes: None,
             pick_pipes: None,
@@ -593,6 +594,7 @@ pub fn clip_uniform(planes: &[ClipPlane], fill: u32, v: &ClipView) -> ClipUnifor
     u.fill = fill;
     u.spacing = spacing as f32;
     u.width = v.pixel_scale.max(1.5) as f32;
+    u.outline = (2.0 * v.pixel_scale) as f32;
 
     for (i, plane) in planes.iter().take(MAX_PLANES).enumerate() {
         let k = plane.normal;
@@ -930,10 +932,11 @@ mod tests {
             offset_of!(ClipUniform, fill),
             offset_of!(ClipUniform, spacing),
             offset_of!(ClipUniform, width),
+            offset_of!(ClipUniform, outline),
         ]
         .map(|offset| offset as u32);
-        assert_eq!(offsets[..10], rust);
-        assert_eq!(offsets[10..], [pad, pad + 4, pad + 8]);
+        assert_eq!(offsets[..11], rust);
+        assert_eq!(offsets[11..], [pad, pad + 4]);
         assert_eq!(*span as usize, size_of::<ClipUniform>());
 
         for (name, bit) in [
@@ -1266,7 +1269,7 @@ mod tests {
                 samples: 1,
             },
         );
-        assert_eq!((u.count, u.samples, u.spacing, u.width), (1, 1, 16.0, 2.0));
+        assert_eq!((u.count, u.samples, u.spacing, u.width, u.outline), (1, 1, 16.0, 2.0, 4.0));
     }
 
     /// A point or vector as three numbers.
@@ -1329,6 +1332,7 @@ mod tests {
         fn solids(meshes: Vec<Mesh>) -> Option<(Gpu, Scene)> {
             crate::app::clipping::verify_solids();
             let mut gpu = pollster::block_on(Gpu::new_headless(SIZE as u32, SIZE as u32)).ok()?;
+            gpu.clip.fill = 0; // existing hatch regressions explicitly choose Hatch
             gpu.view.show_grid = false;
             gpu.view.show_mesh_edges = false;
             gpu.view.show_points = false;
@@ -1448,6 +1452,62 @@ mod tests {
                     let rgba = gpu.render_offscreen(&input);
                     let label = format!("{samples}x, perspective {perspective}");
                     check(&rgba, &pixel, &label);
+                }
+            }
+        }
+
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        fn sections_default_to_dark_grey_with_black_boundaries() {
+            let (mut gpu, scene) = solids(vec![block([-50.0; 3], [50.0; 3], Color::blue(), true)])
+                .expect("native GPU");
+            gpu.clip.fill = super::super::Clip::new(gpu.target()).fill;
+            assert_eq!(gpu.clip.fill, 1);
+            cut(&mut gpu, &scene, &[cut_above(0.0)]);
+            for samples in [1, 4] {
+                gpu.view.msaa_forced = Some(samples);
+                gpu.resize(SIZE as u32, SIZE as u32);
+                for dpr in [1.0, 2.0] {
+                    gpu.logical_size = [SIZE as f64 / dpr; 2];
+                    for perspective in [false, true] {
+                        let (input, pixel) =
+                            frame(&mut gpu, [0.0, 0.0, 250.0], [0.0; 3], perspective);
+                        let rgba = gpu.render_offscreen(&input);
+                        let center = pixel([0.0; 3]);
+                        for y in center.1 - 8..=center.1 + 8 {
+                            for x in center.0 - 8..=center.0 + 8 {
+                                let rgb = &rgba[(y * SIZE + x) * 4..][..3];
+                                assert!(
+                                    rgb.iter().all(|v| (96..=98).contains(v)),
+                                    "solid dark grey, without hatch: {rgb:?}"
+                                );
+                            }
+                        }
+                        for edge in [
+                            [-50.0, 0.0, 0.0],
+                            [50.0, 0.0, 0.0],
+                            [0.0, -50.0, 0.0],
+                            [0.0, 50.0, 0.0],
+                        ] {
+                            let at = pixel(edge);
+                            let black = (at.1 - 4..=at.1 + 4)
+                                .flat_map(|y| {
+                                    (at.0 - 4..=at.0 + 4).map(move |x| (y * SIZE + x) * 4)
+                                })
+                                .filter(|at| rgba[*at..*at + 3].iter().all(|v| *v < 16))
+                                .count();
+                            assert!(
+                                black >= 5,
+                                "black cut edge: {edge:?}, {samples}x, DPR {dpr}, perspective {perspective}"
+                            );
+                        }
+                        let ids = gpu.render_ids_offscreen(&input);
+                        assert_eq!(
+                            ids[center.1 * SIZE + center.0][0],
+                            1,
+                            "the cap still picks its solid"
+                        );
+                    }
                 }
             }
         }
@@ -1852,6 +1912,7 @@ mod tests {
         ) -> Option<(Gpu, Scene)> {
             crate::app::clipping::verify_solids();
             let mut gpu = pollster::block_on(Gpu::new_headless(SIZE as u32, SIZE as u32)).ok()?;
+            gpu.clip.fill = 0;
             gpu.view.show_grid = false;
             gpu.view.show_mesh_edges = false;
             gpu.view.show_points = false;

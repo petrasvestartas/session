@@ -6,7 +6,7 @@ use crate::app::coords;
 pub const SPEC: Spec = Spec {
     names: &["clipping_plane"],
     aliases: &["ClippingPlane"],
-    hint: "clipping_plane: an origin, then a point on the side to cut away · 3Point · XY / YZ / ZX through a point · On / Off every cut · Flip the selected plane · Fill Hatch / Solid · Example: clipping_plane XY 0,0,1200",
+    hint: "clipping_plane: an origin, then a point on the side to cut away · 3Point · XY / YZ / ZX through a point · On / Off every cut · Flip the selected plane · Fill Hatch / Solid (default) · Example: clipping_plane XY 0,0,1200",
     options: &[
         "clipping_plane Normal",
         "clipping_plane 3Point",
@@ -143,7 +143,7 @@ impl Action for Flip {
     }
 }
 
-/// Black hatch or solid black caps; `None` switches.
+/// Black hatch or solid dark grey caps; `None` switches.
 #[derive(Debug)]
 struct Fill(Option<bool>);
 
