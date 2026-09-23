@@ -19,6 +19,7 @@ pub mod r#move;
 pub mod object;
 pub mod opacity;
 pub mod open;
+pub mod outline;
 pub mod point;
 pub mod polyline;
 pub mod redo;

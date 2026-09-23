@@ -21,6 +21,13 @@ pub struct View {
 }
 
 impl View {
+    pub fn set_arctic(&mut self, on: bool) {
+        self.ssao = on;
+        if on {
+            self.show_outlines = true;
+        }
+    }
+
     /// Read every setting once at start.
     pub fn from_env() -> Self {
         Self {

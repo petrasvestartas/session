@@ -142,7 +142,7 @@ pub const KEYS: &[Binding] = &[
         s.gpu.view.show_outlines = !s.gpu.view.show_outlines
     }),
     // register:ssao
-    plain(&["g", "G"], |s| s.gpu.view.ssao = !s.gpu.view.ssao),
+    plain(&["g", "G"], |s| s.gpu.view.set_arctic(!s.gpu.view.ssao)),
     // register:lit
     plain(&["d", "D"], |s| s.gpu.view.lit = !s.gpu.view.lit),
     // register:hide

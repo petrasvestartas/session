@@ -1970,6 +1970,7 @@ mod tests {
             "Element Features",
             "Layers",
             "Arctic",
+            "Outline",
             "Snap",
             "Rotate",
         ] {

@@ -1488,7 +1488,7 @@ mod tests {
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     #[ignore = "requires a native GPU adapter"]
-    /// Orbiting at every drag tier and stopping preserve the same complete AO image.
+    /// Arctic preserves shading, lines and outlines through slow drags and release.
     fn navigation_preserves_the_same_image_and_needs_no_settling() {
         for samples in [1, 4] {
             let (mut gpu, mut camera, anchor) = contact_scene(256, 256);
@@ -1496,7 +1496,7 @@ mod tests {
             gpu.resize(256, 256);
             gpu.view.ssao = false;
             let plain = timed(&mut gpu, &camera, &anchor).1;
-            gpu.view.ssao = true;
+            gpu.view.set_arctic(true);
             let still = timed(&mut gpu, &camera, &anchor).1;
             let memory = gpu.allocated_bytes();
 
@@ -1537,10 +1537,6 @@ mod tests {
             let restored = timed(&mut gpu, &camera, &anchor).1;
             assert!(!gpu.ambient_pending());
             assert!(restored == still, "the still image returns at {samples}x");
-            // Isolate AO from the independent ink/outline drag tiers.
-            gpu.view.show_lines = false;
-            gpu.view.show_mesh_edges = false;
-            gpu.view.show_outlines = false;
             for tier in 0..=2 {
                 gpu.performance.interacting = true;
                 if tier > 0 {
@@ -1556,9 +1552,9 @@ mod tests {
                 let moving = timed(&mut gpu, &camera, &anchor).1;
                 gpu.performance.interacting = false;
                 let stopped = timed(&mut gpu, &camera, &anchor).1;
-                assert_eq!(
-                    moving, stopped,
-                    "same camera during orbit and after release at tier {tier}"
+                assert!(
+                    moving == stopped,
+                    "Arctic lines, outlines and shadows stay unchanged after release at tier {tier}"
                 );
                 assert!(!gpu.ambient_pending());
                 assert_eq!(gpu.allocated_bytes(), memory);

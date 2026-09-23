@@ -63,7 +63,7 @@ impl Gpu {
         clear: wgpu::Color,
     ) -> (u32, u32) {
         self.mark(encoder, "start");
-        let tier = self.performance.drag_tier();
+        let tier = if self.view.ssao { 0 } else { self.performance.drag_tier() };
         let (projection, lists) = self.tile_readers();
         // a slow drag tests ink against the fitted planes alone; the lists return when it ends
         let rough = lists && tier >= 1;

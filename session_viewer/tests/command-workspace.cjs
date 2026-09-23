@@ -45,6 +45,7 @@ function project(s,p) { const v=p.map((n,i)=>n-s.origin[i]); const c=[0,1,2,3].m
    ['La','Layers','Tab',['On','Off']],
    ['Sn','Snap','Space',['On','Off','End','Near','Mid','Center','Perp']],
    ['Ar','Arctic','Enter',['On','Off']],
+   ['Out','Outline','Enter',['On','Off']],
    ['Ro','Rotate','Enter',['x','y','z']],
  ]) {
    await control(page,'command/input'); await page.keyboard.type(prefix); await settle(page);
@@ -62,9 +63,27 @@ function project(s,p) { const v=p.map((n,i)=>n-s.origin[i]); const c=[0,1,2,3].m
  await page.keyboard.press('Enter'); await settle(page);
  assert.equal((await state(page)).ssao,false, 'accepting Arctic waits for an option');
  await control(page,'command/option/On'); assert.equal((await state(page)).ssao,true);
+ assert.equal((await state(page)).outlines,true, 'Arctic enables outlines');
  assert.deepEqual(await optionLabels(),[], 'executing an option clears options');
  await page.keyboard.type('Arctic Off'); await page.keyboard.press('Enter'); await settle(page);
  assert.equal((await state(page)).ssao,false, 'complete commands still execute directly');
+ assert.equal((await state(page)).outlines,true, 'Arctic Off preserves outlines');
+ await command(page,'Outline Off'); assert.equal((await state(page)).outlines,false);
+ await command(page,'Outline On'); assert.equal((await state(page)).outlines,true); assert.equal((await state(page)).ssao,false);
+ await command(page,'Outline Off');
+ await command(page,'Arctic On'); assert.equal((await state(page)).outlines,true);
+ await command(page,'Outline Off'); assert.equal((await state(page)).outlines,false); assert.equal((await state(page)).ssao,true);
+ await page.mouse.move(650,450); await page.mouse.down({button:'right'}); await page.mouse.move(670,460,{steps:4}); await page.mouse.up({button:'right'}); await settle(page);
+ assert.equal((await state(page)).outlines,false, 'redrawing Arctic preserves Outline Off');
+ await command(page,'Arctic On'); assert.equal((await state(page)).outlines,true, 'Arctic On restores outlines');
+ await control(page,'command/input'); await page.keyboard.type('Outline'); await page.keyboard.press('Enter'); await settle(page); assert.deepEqual(await optionLabels(),['On','Off']);
+ await control(page,'command/option/Off'); assert.equal((await state(page)).outlines,false); assert.equal((await state(page)).ssao,true);
+ await command(page,'Arctic Off');
+ await page.mouse.click(650,500); await page.keyboard.press('Escape'); await settle(page); await page.keyboard.press('g'); await settle(page);
+ assert.equal((await state(page)).ssao,true); assert.equal((await state(page)).outlines,true, 'G enables outlines with Arctic');
+ await page.keyboard.press('o'); await settle(page); assert.equal((await state(page)).outlines,false); assert.equal((await state(page)).ssao,true);
+ await page.keyboard.press('g'); await settle(page); assert.equal((await state(page)).ssao,false); assert.equal((await state(page)).outlines,false);
+ await control(page,'command/input');
  await page.keyboard.type('Lay'); await settle(page); assert.equal((await ui(page)).command,'Layers', 'first-load inline completion'); assert(Math.abs((await ui(page)).completion_rect[3] - (await ui(page)).controls.find(c=>c.key==='command/input').rect[1]) < 2, 'popup touches the input field'); if(process.env.SCREENSHOTS) await page.screenshot({path:out+'/inline-completion.png'}); await page.keyboard.press('Backspace'); await settle(page); assert.equal((await ui(page)).command,'Lay', 'delete the suggested suffix'); await page.keyboard.type('ers'); await settle(page); assert.equal((await ui(page)).command,'Layers', 'typing replaces the suffix'); await page.keyboard.press('Tab'); await settle(page); assert.equal((await ui(page)).command,'Layers ',JSON.stringify(await ui(page)));
  let inline=await ui(page), inputRect=inline.controls.find(c=>c.key==='command/input').rect;
  assert.equal(inline.completion_rect,null,'suboptions stay in the command row');

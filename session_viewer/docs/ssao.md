@@ -2,11 +2,13 @@
 
 Type `Arctic`, press **Enter**, then choose **On** or **Off**. `Arctic On` and `Arctic Off` also run directly. **G** toggles the same lighting when the viewport has keyboard focus. The `SSAO` command has been removed. Arctic starts off and preserves the camera when toggled.
 
+Enabling Arctic also enables black surface outlines. Use `Outline Off` to hide them while keeping Arctic shading, or `Outline On` to show them independently. `Outline` offers clickable **On** and **Off** options; **O** remains the viewport shortcut. Enabling Arctic again restores outlines. Turning Arctic off leaves the outline setting unchanged.
+
 Arctic keeps authored colors under neutral sky and ground lighting, with soft contact shadows on surfaces and a virtual floor beneath the lowest visible solid. Hidden objects, sheets and point clouds do not lower that floor. This screen-space approximation cannot include hidden or off-screen occluders.
 
 ## Navigation
 
-The same occlusion calculation runs during orbit, pan, zoom and stationary redraws. Drag tiers never disable it or lower its resolution. Arctic also suppresses the automatic canvas-scale/MSAA downgrade after sustained slow frames. While the camera moves, the filter reprojects the previous shading onto the same surface points to reduce sampling shimmer. Depth and surface-type checks reject newly exposed geometry, and neighborhood clamping bounds reused shading. Geometry edits, toggles and resizes discard history. Releasing a drag holds the last image without a quality transition or additional settling frames; a stationary camera reuses it.
+The same occlusion calculation runs during orbit, pan, zoom and stationary redraws. Drag tiers never disable it or lower its resolution. Arctic also keeps exact line visibility and the complete outline mask during slow drags, preventing lines from thinning while moving and thickening again on release. It suppresses the automatic canvas-scale/MSAA downgrade after sustained slow frames. Preserving line quality can cost more than the approximate drag rendering, especially in line-heavy scenes. While the camera moves, the filter reprojects the previous shading onto the same surface points to reduce sampling shimmer. Depth and surface-type checks reject newly exposed geometry, and neighborhood clamping bounds reused shading. Geometry edits, toggles and resizes discard history. Releasing a drag holds the last image without a quality transition or additional settling frames; a stationary camera reuses it.
 
 Surface occlusion runs at `clamp(1 / DPR, 0.25, 0.5)` times the canvas dimensions. On high-DPI phones this approaches CSS-pixel resolution. The broad ground-shadow field uses half that resolution with more horizon samples, then interpolates into the surface pass. These resolutions remain fixed throughout navigation.
 
@@ -31,7 +33,7 @@ Faceted normals and contact radii come from the existing vertex, index, owner an
 
 ## Measurements
 
-Native GPU timestamp medians on the dragon at 1920×1080, DPR 1, **baseline → current**, in milliseconds. The local `petras` laptop has an Intel i9-13900HX with Raptor Lake-S UHD graphics and an NVIDIA RTX 4080 Laptop. These measurements do not establish performance on the separate work laptop.
+Native GPU timestamp medians on the dragon at 1920×1080, DPR 1, **baseline → current**, in milliseconds. These measurements and buffer totals were captured with outlines off; use `Outline Off` after enabling Arctic to reproduce that setup. The local `petras` laptop has an Intel i9-13900HX with Raptor Lake-S UHD graphics and an NVIDIA RTX 4080 Laptop. These measurements do not establish performance on the separate work laptop.
 
 | GPU | MSAA | Cached AO | Moved AO | Drag AO |
 | --- | ---: | ---: | ---: | ---: |

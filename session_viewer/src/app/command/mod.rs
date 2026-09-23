@@ -64,6 +64,7 @@ pub const REGISTRY: &[&Spec] = &[
     &verbs::attributes::SPEC, // register:attributes
     &verbs::snap::SPEC,       // register:snap
     &verbs::arctic::SPEC,     // register:arctic
+    &verbs::outline::SPEC,    // register:outline
     &verbs::object::SPEC,     // register:object
     &verbs::edge::SPEC,       // register:edge
     &verbs::face::SPEC,       // register:face
@@ -440,6 +441,7 @@ mod tests {
                 "Object",
                 "Opacity",
                 "Open",
+                "Outline",
                 "Point",
                 "Polyline",
                 "Redo",
