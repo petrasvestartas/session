@@ -29,7 +29,7 @@ pub struct SheetChunk {
 /// Messages the async loader sends to the event loop.
 pub enum Msg {
     Ready(Box<State>),                            // GPU is up, here is the state
-    File(FileDoc),                                // one loaded file
+    File(FileDoc, Option<String>),                // one loaded file; a display-only one names its file
     Texts(Vec<app::manifest::TextItem>),          // text labels to place
     Clear,                                        // empty the scene
     Fit,                                          // frame the camera on everything
@@ -44,6 +44,8 @@ pub enum Msg {
     #[cfg(target_arch = "wasm32")]
     Agent(app::agent::AgentEvent),                // a phone keyboard key
     SavedScene(Box<app::scene::Scene>),           // a saved session loaded
+    Hydrated(Box<app::scene::Hydrated>),          // a released document's objects are back
+    Fonts(Vec<Vec<u8>>),                          // the whole label fonts, main font first
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -168,7 +170,23 @@ impl ApplicationHandler<Msg> for App {
             Msg::Ready(_) => {}
             Msg::Clear => state.clear(),
             Msg::Fit => state.fit_loaded(),
-            Msg::File(doc) => state.append(doc),
+            Msg::File(doc, source) => state.append(doc, source),
+            Msg::Hydrated(back) => state.hydrated(*back),
+            Msg::Fonts(faces) => {
+                // kept for the page's life, shared by the labels and the panels
+                let faces: Vec<&'static [u8]> = faces
+                    .into_iter()
+                    .map(|face| &*Box::leak(face.into_boxed_slice()))
+                    .collect();
+
+                if let Ok(faces) = <[&'static [u8]; 3]>::try_from(faces) {
+                    state.use_fonts(faces);
+
+                    if let Some(ui) = self.ui.as_mut() {
+                        ui.use_fonts(faces);
+                    }
+                }
+            }
             Msg::Texts(texts) => state.set_texts(texts),
             Msg::StreamedCloud(init) => {
                 // add the first rows, keep loading the rest

@@ -72,22 +72,79 @@ pub const REGISTRY: &[&Spec] = &[
     &verbs::clipping_plane::SPEC, // register:clipping_plane
 ];
 
+/// A name lowercased without its spaces, so `clippingplane` spells `Clipping Plane`.
+fn compact(name: &str) -> String {
+    name.split_whitespace().collect::<String>().to_ascii_lowercase()
+}
+
+/// How many leading words spell `name`, ignoring case and the spaces inside it.
+fn spells(name: &str, words: &[&str]) -> Option<usize> {
+    let mut rest = compact(name);
+
+    for (index, word) in words.iter().enumerate() {
+        let word = word.to_ascii_lowercase();
+        let tail = rest.strip_prefix(word.as_str())?.to_owned();
+
+        if tail.is_empty() {
+            return Some(index + 1);
+        }
+
+        rest = tail;
+    }
+
+    None
+}
+
 /// Match the longest command name, leaving its arguments untouched.
 fn command_words(words: &[&str]) -> Option<(&'static Spec, usize)> {
     REGISTRY
         .iter()
         .flat_map(|spec| {
             spec.names.iter().chain(spec.aliases).filter_map(|name| {
-                let count = name.split_whitespace().count();
-                (words.len() >= count
-                    && name
-                        .split_whitespace()
-                        .zip(words)
-                        .all(|(a, b)| a.eq_ignore_ascii_case(b)))
-                .then_some((*spec, count))
+                spells(name, words).map(|count| (*spec, count, compact(name).len()))
             })
         })
-        .max_by_key(|(_, count)| *count)
+        .max_by_key(|(_, _, letters)| *letters)
+        .map(|(spec, count, _)| (spec, count))
+}
+
+/// The line with its command spelled as shown, e.g. `clippingplane xy` becomes `Clipping Plane XY`.
+pub fn canonical(line: &str) -> String {
+    let words: Vec<_> = line.split_whitespace().collect();
+    let Some((spec, count)) = command_words(&words) else {
+        return line.trim().to_owned();
+    };
+    let name = spec.names[0];
+    let mut text = name.to_owned();
+    let mut rest = &words[count..];
+    // the longest option the next words spell takes its shown case
+    let option = spec
+        .options
+        .iter()
+        .filter_map(|option| {
+            let tail: Vec<_> = option
+                .split_whitespace()
+                .skip(name.split_whitespace().count())
+                .collect();
+            (!tail.is_empty()
+                && rest.len() >= tail.len()
+                && tail.iter().zip(rest).all(|(a, b)| a.eq_ignore_ascii_case(b)))
+            .then_some(tail)
+        })
+        .max_by_key(|tail| tail.len());
+
+    if let Some(tail) = option {
+        text.push(' ');
+        text.push_str(&tail.join(" "));
+        rest = &rest[tail.len()..];
+    }
+
+    for word in rest {
+        text.push(' ');
+        text.push_str(word);
+    }
+
+    text
 }
 
 /// True once the command name has been followed by a space or an option.
@@ -127,14 +184,14 @@ pub fn parse(line: &str) -> Result<Box<dyn Action>, String> {
     let Some((spec, count)) = command_words(&words) else {
         return Err(format!("no command `{}`", words[0].to_ascii_lowercase()));
     };
-    let verb = words[..count].join(" ").to_ascii_lowercase();
+    let verb = spec.names[0];
     let rest = &words[count..];
 
     if spec.arity.is_some_and(|count| rest.len() != count) {
         return Err(format!("wrong number of arguments for `{verb}`"));
     }
 
-    (spec.parse)(&verb, rest)
+    (spec.parse)(verb, rest)
 }
 
 /// Clickable choices for the verb being typed.
@@ -145,23 +202,29 @@ pub fn options(line: &str) -> &'static [&'static str] {
 
 /// Commands or options starting with the typed text.
 pub fn completions(line: &str) -> Vec<&'static str> {
-    let lower = line.to_ascii_lowercase();
     // after a space, complete the option instead
     if choosing_option(line) {
+        let mut typed = canonical(line).to_ascii_lowercase();
+
+        if line.ends_with(' ') {
+            typed.push(' ');
+        }
+
         return options(line)
             .iter()
             .copied()
-            .filter(|name| name.to_ascii_lowercase().starts_with(&lower))
+            .filter(|name| name.to_ascii_lowercase().starts_with(&typed))
             .collect();
     }
 
+    let typed = compact(line);
     let mut names: Vec<&'static str> = REGISTRY
         .iter()
         .flat_map(|spec| spec.names)
         .copied()
         .collect();
     names.sort_by_key(|name| name.to_ascii_lowercase());
-    names.retain(|name| name.to_ascii_lowercase().starts_with(&lower));
+    names.retain(|name| compact(name).starts_with(&typed));
     names
 }
 
@@ -171,17 +234,11 @@ pub fn browse(line: &str) -> Vec<&'static str> {
         return options(line).to_vec();
     }
 
-    let all = completions("");
-    let lower = line.to_ascii_lowercase();
-    all.iter()
-        .copied()
-        .filter(|name| name.to_ascii_lowercase().starts_with(&lower))
-        .chain(
-            all.iter()
-                .copied()
-                .filter(|name| !name.to_ascii_lowercase().starts_with(&lower)),
-        )
-        .collect()
+    let typed = compact(line);
+    let (matching, rest): (Vec<_>, Vec<_>) = completions("")
+        .into_iter()
+        .partition(|name| compact(name).starts_with(&typed));
+    matching.into_iter().chain(rest).collect()
 }
 
 /// Take the first completion; false when arguments are still needed.
@@ -224,7 +281,7 @@ pub fn offset(words: &[&str]) -> Result<[f64; 3], String> {
         words.join(",").replacen("@,", "@", 1)
     };
     let Some(typed) = coords::parse(&text) else {
-        return Err(format!("`{joined}` is not an offset; try `move 10 0 0`"));
+        return Err(format!("`{joined}` is not an offset; try `Move 10 0 0`"));
     };
 
     match typed {
@@ -281,11 +338,13 @@ pub fn on_off(words: &[&str], usage: &str) -> Result<Option<bool>, String> {
 pub fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, String> {
     use crate::app::modeling::Modeling;
 
-    match verb {
+    let verb = verb.to_ascii_lowercase();
+
+    match verb.as_str() {
         "explode" if words.is_empty() => Ok(Modeling::Explode),
         "trim" | "extend" if words.len() == 2 => {
-            let a = number(words.first().copied(), "trim 0.2 0.8")?;
-            let b = number(words.get(1).copied(), "trim 0.2 0.8")?;
+            let a = number(words.first().copied(), "Trim 0.2 0.8")?;
+            let b = number(words.get(1).copied(), "Trim 0.2 0.8")?;
             Ok(if verb == "trim" {
                 Modeling::Trim(a, b)
             } else {
@@ -306,17 +365,17 @@ pub fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modelin
                 points.push([x, y, z.unwrap_or(0.0)]);
             }
 
-            match (verb, points.len()) {
+            match (verb.as_str(), points.len()) {
                 ("point", 1) => Ok(Modeling::Point(points[0])),
                 ("line", 2) => Ok(Modeling::Line(points[0], points[1])),
                 ("polyline", 2..) => Ok(Modeling::Polyline(points)),
                 ("curve", 2..) => Ok(Modeling::Curve(points)),
                 _ => {
-                    Err("point needs one coordinate; line two; polyline/curve at least two".into())
+                    Err("Point needs one coordinate, Line two, Polyline and Curve at least two".into())
                 }
             }
         }
-        _ => Err("try trim 0.2 0.8, extend -0.2 1.2, or explode".into()),
+        _ => Err("try Trim 0.2 0.8, Extend -0.2 1.2 or Explode".into()),
     }
 }
 
@@ -422,7 +481,7 @@ mod tests {
             completions(""),
             vec![
                 "Arctic",
-                "clipping_plane",
+                "Clipping Plane",
                 "Close",
                 "Controls",
                 "Curve",
@@ -455,6 +514,91 @@ mod tests {
                 "Undo",
             ]
         );
+    }
+
+    /// Every shown name is Title Case words: no underscores, each word capitalised.
+    #[test]
+    fn every_name_and_option_is_title_case_words() {
+        for spec in REGISTRY {
+            for name in spec.names.iter().chain(spec.options) {
+                assert!(!name.contains('_'), "{name}");
+                assert!(
+                    name.split_whitespace()
+                        .next()
+                        .is_some_and(|word| word.starts_with(|c: char| c.is_ascii_uppercase())),
+                    "{name}"
+                );
+            }
+
+            for name in spec.names {
+                assert!(
+                    name.split_whitespace()
+                        .all(|word| word.starts_with(|c: char| c.is_ascii_uppercase())),
+                    "{name}"
+                );
+            }
+        }
+    }
+
+    /// A several-word name parses with or without its spaces, in any case.
+    #[test]
+    fn several_word_names_ignore_case_and_spaces() {
+        for line in [
+            "Clipping Plane",
+            "clipping plane",
+            "ClippingPlane",
+            "clippingplane",
+            "CLIPPING PLANE",
+            "  clipping   plane ",
+        ] {
+            assert_eq!(parsed(line), Ok("Pick(Normal)".into()), "{line}");
+        }
+
+        assert_eq!(parsed("clippingplane off"), Ok("Switch(false)".into()));
+        assert_eq!(parsed("Clipping Plane Fill Solid"), Ok("Fill(Some(true))".into()));
+        assert_eq!(parsed("elementfeatures on"), Ok("ElementFeatures(Some(true))".into()));
+        assert_eq!(parsed("poly line"), parsed("Polyline"));
+        assert_eq!(parsed("clipping"), Err("no command `clipping`".into()));
+        assert_eq!(parsed("clipping_plane"), Err("no command `clipping_plane`".into()));
+        assert!(
+            parsed("Clipping Plane sideways").is_err(),
+            "the words after the name are its options"
+        );
+    }
+
+    /// The shown spelling replaces what was typed, for history lines.
+    #[test]
+    fn canonical_spells_the_command_as_shown() {
+        assert_eq!(canonical("clippingplane xy 0,0,1"), "Clipping Plane XY 0,0,1");
+        assert_eq!(canonical("clipping plane fill hatch"), "Clipping Plane Fill Hatch");
+        assert_eq!(canonical("  snap   near "), "Snap Near");
+        assert_eq!(canonical("m 10 0 0"), "Move 10 0 0");
+        assert_eq!(canonical("0,0,0"), "0,0,0");
+        assert_eq!(canonical(""), "");
+    }
+
+    /// Completion and one-Enter accept work on several-word names typed any way.
+    #[test]
+    fn several_word_names_complete() {
+        assert_eq!(completions("clip"), vec!["Clipping Plane"]);
+        assert_eq!(completions("clipping p"), vec!["Clipping Plane"]);
+        assert_eq!(completions("ClippingP"), vec!["Clipping Plane"]);
+        assert_eq!(completions("elementf"), vec!["Element Features"]);
+        assert_eq!(accept("clip"), ("Clipping Plane".into(), true));
+        assert_eq!(accept("clippingplane"), ("Clipping Plane".into(), true));
+        assert_eq!(accept("clippingplane x"), ("Clipping Plane XY".into(), true));
+        assert_eq!(accept("clipping plane fi"), ("Clipping Plane Fill".into(), true));
+        assert_eq!(
+            completions("clippingplane fill "),
+            vec!["Clipping Plane Fill Hatch", "Clipping Plane Fill Solid"]
+        );
+        assert_eq!(accept("elementf"), ("Element Features ".into(), false));
+        assert_eq!(browse("clip")[0], "Clipping Plane");
+        assert_eq!(browse("clippingplane o"), options("Clipping Plane"));
+        assert_eq!(hint("clippingplane"), hint("Clipping Plane"));
+        assert_eq!(option_label("Clipping Plane Fill Hatch"), "Fill Hatch");
+        assert!(choosing_option("clippingplane "));
+        assert!(!choosing_option("clipping"));
     }
 
     /// Short forms parse like the full verb.

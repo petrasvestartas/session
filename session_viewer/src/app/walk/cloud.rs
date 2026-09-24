@@ -138,6 +138,7 @@ fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
 pub struct StreamRows {
     pub positions: Vec<f32>, // three floats per point
     pub colors: Vec<u32>,    // packed RGBA per point
+    pub normals: Vec<u32>,   // packed normal per point, empty = none
 }
 
 /// One slice of a streamed cloud and where it goes.
@@ -176,6 +177,13 @@ pub fn walk_stream_slice(c: &mut CloudRows, s: &StreamSlice) -> AABB {
     c.col.extend_from_slice(colors);
     c.col.resize(first as usize + count as usize, 0xff00_0000); // pad with black
     c.pos.extend_from_slice(&s.rows.positions);
+    // normals only when the slice has one per point
+    let nrm_first = if s.rows.normals.len() == count as usize {
+        c.nrm.extend_from_slice(&s.rows.normals);
+        (c.nrm.len() - count as usize) as u32
+    } else {
+        NO_NORMALS
+    };
     c.draws.push(CloudDraw {
         instance: s.row,
         from: s.from,
@@ -184,7 +192,7 @@ pub fn walk_stream_slice(c: &mut CloudRows, s: &StreamSlice) -> AABB {
         spacing: resident_spacing(s.lod, s.to).unwrap_or(s.point_px.max(DEFAULT_SPACING)), // no whole node yet: guess
         node_first,
         node_count,
-        nrm_first: NO_NORMALS,
+        nrm_first,
     });
     bounds
 }

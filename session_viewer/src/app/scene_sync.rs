@@ -1029,7 +1029,12 @@ impl Scene {
     }
 
     /// Walk every editable document again into fresh lanes, in load order; ids and everything else stay.
-    pub fn rewalk_editable(&mut self, gpu: &mut Gpu) {
+    /// False, having asked for them, while a released document would lose its rows.
+    pub fn rewalk_editable(&mut self, gpu: &mut Gpu) -> bool {
+        if self.want_all() {
+            return false;
+        }
+
         self.sync();
         self.upload_to(gpu);
         gpu.release_editable();
@@ -1041,6 +1046,7 @@ impl Scene {
         }
 
         self.compactions += 1;
+        true
     }
 
     /// Forget where editable rows sit; the lanes are about to be walked again.
@@ -1548,6 +1554,7 @@ mod tests {
             rows: StreamRows {
                 positions: vec![0.0, 0.0, 0.0, 1.0, 1.0, 1.0],
                 colors: vec![u32::MAX; 2],
+                normals: Vec::new(),
             },
             lod: CloudLod::default(),
             fields: CloudFields {
@@ -1556,6 +1563,8 @@ mod tests {
                 coords_len: 0,
                 colors_at: 0,
                 colors_len: 0,
+                normals_at: 0,
+                normals_len: 0,
                 count: 2,
                 ids_at: 0,
                 ids_len: 0,
@@ -1564,6 +1573,7 @@ mod tests {
             resident: 2,
             point_px: 3.0,
             col_at: 0,
+            ceiling: 2,
         });
     }
 

@@ -1,5 +1,5 @@
 use crate::app::scene::rows::{Note, PLACE, PRESENCE, SUBTREE};
-use crate::app::scene::{FileDoc, Scene, sync};
+use crate::app::scene::{FileDoc, Scene, Shape, sync};
 use session_rust::{Geometry, History, Session, Tree, TreeNode, Xform};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -38,17 +38,15 @@ impl Kind {
         }
     }
 
-    /// The kind of one geometry.
-    fn of(geometry: &session_rust::Geometry) -> Self {
-        use session_rust::Geometry as G;
-
-        match geometry {
-            G::BRep(_) | G::OBB(_) | G::Element(_) => Kind::Solids,
-            G::NurbsSurface(_) | G::Plane(_) => Kind::Surfaces,
-            G::Mesh(_) => Kind::Meshes,
-            G::Line(_) | G::Polyline(_) | G::NurbsCurve(_) => Kind::Curves,
-            G::Point(_) => Kind::Points,
-            G::PointCloud(_) => Kind::Clouds,
+    /// The kind of one geometry type.
+    fn of(shape: Shape) -> Self {
+        match shape {
+            Shape::BRep | Shape::Box | Shape::Element => Kind::Solids,
+            Shape::Surface | Shape::Plane => Kind::Surfaces,
+            Shape::Mesh => Kind::Meshes,
+            Shape::Line | Shape::Polyline | Shape::Curve => Kind::Curves,
+            Shape::Point => Kind::Points,
+            Shape::Cloud => Kind::Clouds,
         }
     }
 }
@@ -111,8 +109,8 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
             count.1 += hidden;
         }
 
-        if let Some(geometry) = scene.geometry(row) {
-            let count = &mut kinds[Kind::of(geometry) as usize];
+        if let Some(shape) = scene.shape(row) {
+            let count = &mut kinds[Kind::of(shape) as usize];
             count.0 += 1;
             count.1 += hidden;
         }
@@ -161,7 +159,7 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
     for row in 0..scene.row_count() as u32 {
         let matches = match layer {
             Layer::Document(index) => scene.identity_of(row).map(|(doc, _)| doc) == Some(index),
-            Layer::Kind(kind) => scene.geometry(row).map(Kind::of) == Some(kind),
+            Layer::Kind(kind) => scene.shape(row).map(Kind::of) == Some(kind),
         };
 
         if matches {
@@ -234,6 +232,7 @@ impl Scene {
     /// Make a layer the one new objects go to.
     pub fn set_current_layer(&mut self, doc: usize, name: &str) -> Result<(), String> {
         self.layer_node(doc, name)?;
+        self.editable(doc)?; // a released document comes back first
 
         if self.docs[doc].display_only {
             return Err("This document is display only".into());
@@ -388,6 +387,7 @@ impl Scene {
         doc: usize,
         name: &str,
     ) -> Result<Vec<(usize, Rc<str>)>, String> {
+        self.editable_rows(rows, doc)?;
         let layer = self.layer_node(doc, name)?;
         let mut objects = rows
             .iter()
@@ -566,6 +566,7 @@ impl Scene {
         doc: usize,
         name: &str,
     ) -> Result<Vec<(usize, Rc<str>)>, String> {
+        self.editable_rows(rows, doc)?;
         self.layer_node(doc, name)?;
         let place_at = self.docs[doc].place.clone();
         // (identity, geometry, world placement) of each source
@@ -642,6 +643,7 @@ impl Scene {
         key: &str,
         edit: impl FnOnce(&mut Session) -> Result<T, String>,
     ) -> Result<T, String> {
+        self.editable(doc)?;
         let file = self
             .docs
             .get_mut(doc)

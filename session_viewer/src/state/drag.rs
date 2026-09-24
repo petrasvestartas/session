@@ -162,11 +162,13 @@ impl State {
             return None;
         }
 
-        // streamed sheets and clouds are looked at, never edited
-        if self.scene.display_only(row)
-            || self.scene.sheet_at(row).is_some()
-            || self.streamed_slot(row).is_some()
-        {
+        // streamed sheets and clouds are looked at, never edited; a released document comes back first
+        if let Some(reason) = self.locked_reason(&[row]) {
+            self.status(&reason);
+            return None;
+        }
+
+        if self.scene.sheet_at(row).is_some() || self.streamed_slot(row).is_some() {
             self.status(crate::app::scene::READ_ONLY);
             return None;
         }
@@ -186,8 +188,8 @@ impl State {
 
         let rows = self.selected_rows();
 
-        if rows.iter().any(|row| self.scene.display_only(*row)) {
-            self.status(crate::app::scene::READ_ONLY);
+        if let Some(reason) = self.locked_reason(&rows) {
+            self.status(&reason);
             return None;
         }
 
@@ -445,6 +447,7 @@ impl State {
         }
 
         let Some(geometry) = self.scene.geometry(row) else {
+            self.scene.ask(row); // a released document comes back for its snaps
             return;
         };
         let Some(place) = self.scene.placement_of(row) else {

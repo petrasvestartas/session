@@ -4,14 +4,25 @@ use serde::Serialize;
 /// The font every label uses.
 pub const FONT_FAMILY: &str = "Noto Sans";
 
-/// The main font, bundled into the binary once: a static, where a const is copied per use.
-pub static FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.ttf");
+/// The main font's Latin, Lithuanian, German and CAD subset, bundled into the binary once: a static,
+/// where a const is copied per use.
+pub static FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.subset.ttf");
 
-/// Symbol fallback font.
-pub static SYMBOL_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols-Regular.ttf");
+/// Symbol fallback font, only the symbols the viewer's own strings use.
+pub static SYMBOL_BYTES: &[u8] =
+    include_bytes!("../../assets/text/NotoSansSymbols-Regular.subset.ttf");
 
-/// Second symbol fallback font.
-pub static FALLBACK_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols2-Regular.ttf");
+/// Second symbol fallback font, only the symbols the viewer's own strings use.
+pub static FALLBACK_BYTES: &[u8] =
+    include_bytes!("../../assets/text/NotoSansSymbols2-Regular.subset.ttf");
+
+/// The whole fonts under `text/`, in the order of the bundled ones, fetched when a text needs them.
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
+pub const FULL_FONTS: [&str; 3] = [
+    "NotoSans-Regular.ttf",
+    "NotoSansSymbols2-Regular.ttf",
+    "NotoSansSymbols-Regular.ttf",
+];
 
 /// Most text bytes in one label set.
 const MAX_TEXT_BYTES: usize = 256 * 1024;
@@ -162,11 +173,20 @@ impl TextDocument {
 
     /// Replace the fonts and reshape everything; bad data changes nothing.
     pub fn replace_fonts(&mut self, sources: Vec<Vec<u8>>) -> anyhow::Result<()> {
+        let sources = sources
+            .into_iter()
+            .map(|bytes| fontdb::Source::Binary(std::sync::Arc::new(bytes)))
+            .collect();
+        self.replace_sources(sources)
+    }
+
+    /// `replace_fonts` from font sources, read in place.
+    pub fn replace_sources(&mut self, sources: Vec<fontdb::Source>) -> anyhow::Result<()> {
         let mut db = fontdb::Database::new();
 
-        for bytes in sources {
+        for source in sources {
             let before = db.faces().count();
-            db.load_font_data(bytes);
+            db.load_font_source(source);
             anyhow::ensure!(
                 db.faces().count() > before,
                 "font data contains no usable face"
@@ -246,6 +266,32 @@ pub struct GlyphDiagnostic {
     pub offset: [f32; 2], // shaping offset
     pub baseline: f32, // line baseline
     pub line_width: f32, // width of the whole line
+}
+
+/// True when the bundled fonts draw every character of `text`.
+pub fn covers(text: &str) -> bool {
+    text.is_ascii() || text.chars().all(|c| c.is_control() || bundled_glyph(c))
+}
+
+/// True when a bundled font maps `c` to a glyph; only the character maps are read.
+fn bundled_glyph(c: char) -> bool {
+    thread_local! {
+        static MAPS: Vec<ttf_parser::cmap::Table<'static>> = [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES]
+            .into_iter()
+            .filter_map(|bytes| {
+                let face = ttf_parser::RawFace::parse(bytes, 0).ok()?;
+                ttf_parser::cmap::Table::parse(face.table(ttf_parser::Tag::from_bytes(b"cmap"))?)
+            })
+            .collect();
+    }
+
+    MAPS.with(|maps| {
+        maps.iter().any(|map| {
+            map.subtables
+                .into_iter()
+                .any(|table| table.is_unicode() && table.glyph_index(u32::from(c)).is_some())
+        })
+    })
 }
 
 /// The bundled fonts as a font system, read in place rather than copied.
@@ -366,6 +412,38 @@ fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The bundled subsets draw the viewer's own strings and the specimen; the whole fonts the rest.
+    #[test]
+    fn bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest() {
+        for spec in crate::app::command::REGISTRY {
+            for text in spec.names.iter().chain(spec.aliases).chain(spec.options) {
+                assert!(covers(text), "{text}");
+            }
+
+            assert!(covers(spec.hint), "{}", spec.hint);
+        }
+
+        for text in [
+            "Ąą Čč Ęę Ėė Įį Šš Ųų Ūū Žž",
+            "Äußere Wände, Größe, Straße ẞ, „Zitat“ »Guillemets«",
+            "Ø 12 ± 0,5 mm, 45°, m² m³, µm",
+            "→ ■ ⏵ ◻ ⚙ ⏳ ⌘",
+            "+ –", // the panels' fold buttons
+        ] {
+            assert!(covers(text), "{text}");
+        }
+
+        assert!(!covers("Fixed Ω cube"));
+        let whole: Vec<Vec<u8>> = FULL_FONTS
+            .iter()
+            .map(|name| std::fs::read(format!("assets/text/{name}")).unwrap())
+            .collect();
+        let mut doc = TextDocument::new();
+        doc.replace_fonts(whole).unwrap();
+        doc.set_labels(vec![label("Fixed Ω cube")]).unwrap();
+        assert!(doc.diagnostics().iter().all(|glyph| glyph.glyph != 0));
+    }
 
     /// A screen label with fixed metrics.
     fn label(text: &str) -> TextLabel {

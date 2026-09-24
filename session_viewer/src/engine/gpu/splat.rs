@@ -426,10 +426,10 @@ impl Splat {
                         continue;
                     }
 
-                    let nrm_first = if c.nrm_first == NO_NORMALS {
+                    let nrm_first = if chunk.nrm == NO_NORMALS {
                         NO_NORMALS
                     } else {
-                        c.nrm_first + a
+                        chunk.nrm + (a - chunk.from)
                     };
                     self.records.push(SplatRecord {
                         mvp_model: m,

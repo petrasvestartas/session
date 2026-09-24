@@ -1,9 +1,18 @@
 # Bundled text fonts
 
 Noto Sans Regular, Noto Sans Symbols Regular and Noto Sans Symbols 2 Regular are distributed under the adjacent
-SIL Open Font License 1.1 (`OFL.txt`). All are embedded in the WASM text document;
-Trunk also copies these exact bytes for `text-quality.html`'s browser reference.
-No machine-installed font discovery or asynchronous placeholder font is used.
+SIL Open Font License 1.1 (`OFL.txt`). The WASM embeds only their `*.subset.ttf` files (hinted, `.notdef`
+outline and license names kept): Noto Sans cut to Latin, Lithuanian, German, the CAD specimen and every
+string the viewer draws itself (51 KB), the symbol fonts cut to the symbols those strings use (→ ⚙ and
+■ ⏵ ◻ ⏳ ⌘). Labels and panels (egui draws Noto Sans too; Ubuntu Light is gone) use the same faces.
+A label, document, layer or object name with a character outside the subsets fetches the three whole
+fonts once from `text/` and reshapes; until they arrive that character is a `.notdef` box (petras
+approved this async fallback, 2026-09-24). Trunk copies the whole fonts for that fetch and for
+`text-quality.html`'s browser reference. No machine-installed font discovery is used.
+The subsets are fontTools subsets (`pyftsubset <font> --unicodes=... --notdef-outline
+--name-IDs=0,1,2,3,4,5,6,13,14`, default layout features, hinting kept); glyph outlines, hinting
+programs and shaping of every covered string match the whole font. `engine::text` tests that the
+command strings and the Lithuanian, German and CAD samples stay covered.
 
 Upstream sources:
 - https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf

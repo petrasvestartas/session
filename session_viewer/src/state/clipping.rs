@@ -43,7 +43,7 @@ impl State {
         // a plane was just hidden: say it still cuts
         if hidden > self.clip_hidden {
             self.status(
-                "The clipping plane is hidden and still cuts · clipping_plane Off shows everything · Delete removes it",
+                "The clipping plane is hidden and still cuts · Clipping Plane Off shows everything · Delete removes it",
             );
         }
 
@@ -128,7 +128,7 @@ impl State {
         let row = self.scene.row_of(doc, &guid);
         self.select(row);
         Ok(
-            "Created clipping_plane · the gumball moves the cut · clipping_plane Off shows everything · Undo removes it"
+            "Created Clipping Plane · the gumball moves the cut · Clipping Plane Off shows everything · Undo removes it"
                 .into(),
         )
     }
@@ -168,9 +168,9 @@ impl State {
         self.touch();
 
         if on {
-            "clipping_plane On: the planes cut again".into()
+            "Clipping Plane On: the planes cut again".into()
         } else {
-            "clipping_plane Off: everything shows, the planes stay".into()
+            "Clipping Plane Off: everything shows, the planes stay".into()
         }
     }
 
@@ -180,7 +180,7 @@ impl State {
         self.gpu.clip.fill = u32::from(solid);
         self.touch();
         format!(
-            "clipping_plane Fill {}",
+            "Clipping Plane Fill {}",
             if solid { "Solid" } else { "Hatch" }
         )
     }

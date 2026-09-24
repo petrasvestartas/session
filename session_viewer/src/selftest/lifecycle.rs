@@ -251,6 +251,7 @@ fn check_streamed(gpu: &mut Gpu) {
             rows: StreamRows {
                 positions,
                 colors: vec![0xff00_00ff; 200],
+                normals: Vec::new(),
             },
             lod: CloudLod::default(),
             fields: CloudFields {
@@ -259,6 +260,8 @@ fn check_streamed(gpu: &mut Gpu) {
                 coords_len: 0,
                 colors_at: 0,
                 colors_len: 0,
+                normals_at: 0,
+                normals_len: 0,
                 count: 200,
                 ids_at: 0,
                 ids_len: 0,
@@ -267,6 +270,7 @@ fn check_streamed(gpu: &mut Gpu) {
             resident: 200,
             point_px: 4.0,
             col_at: 0,
+            ceiling: 200,
         },
         gpu,
     );

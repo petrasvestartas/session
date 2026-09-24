@@ -329,12 +329,13 @@ impl State {
             return;
         };
 
+        if let Some(reason) = self.locked_reason(&[row]) {
+            self.status(&reason);
+            return;
+        }
+
         if !self.scene.delete_row(row) {
-            self.status(if self.scene.display_only(row) {
-                crate::app::scene::READ_ONLY
-            } else {
-                "This object cannot be deleted"
-            });
+            self.status("This object cannot be deleted");
             return;
         }
 
@@ -372,8 +373,11 @@ impl State {
 
         // dead rows outweigh the live ones: walk the lanes again, ids stay
         if !gesture && self.scene.compaction_due() {
-            self.scene.rewalk_editable(&mut self.gpu);
-            self.reselect_face();
+            if self.scene.rewalk_editable(&mut self.gpu) {
+                self.reselect_face();
+            } else {
+                self.resume_after(super::hydrate::Resume::Rewalk);
+            }
         }
 
         if self.scene.cloud_compaction_due(&self.gpu) {
@@ -410,7 +414,7 @@ impl State {
     }
 
     /// Select the chosen source face again after its rows moved.
-    fn reselect_face(&mut self) {
+    pub(super) fn reselect_face(&mut self) {
         if let SelectionMode::Face { parent, face } = self.selection {
             let address = self.gpu.arena.source_faces.address(parent, face);
             self.gpu.arena.source_faces.select(&self.gpu.ctx, address);
@@ -516,6 +520,7 @@ impl State {
 impl State {
     /// Run one command line; the answer is what to show the person.
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
+        let line = &crate::app::command::canonical(line); // `poly line` runs Polyline
         self.cancel_gesture();
         // while drawing, points and Enter go to the draft
         if let Some(result) = self.drawing_command(line) {
@@ -544,6 +549,10 @@ impl State {
             return Err("nothing is selected".into());
         };
 
+        if let Some(reason) = self.locked_reason(&self.selected_rows()) {
+            return Err(reason);
+        }
+
         // a face, edge or control point moves inside the object
         if let Some(target) = crate::app::deform::Target::selected(&self.selection) {
             self.scene.edit_subobject(row, target, &delta, label)?;
@@ -555,11 +564,6 @@ impl State {
 
         // whole objects: the document moves them and every object below, the rows follow
         let rows = self.selected_rows();
-
-        if rows.iter().any(|row| self.scene.display_only(*row)) {
-            return Err(crate::app::scene::READ_ONLY.into());
-        }
-
         self.scene
             .transform_rows(&rows, &delta, label)
             .ok_or("this selection cannot be edited")?;

@@ -14,10 +14,10 @@ pub const SPEC: Spec = Spec {
 
 /// Grow or shrink the selection about the gizmo.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
-    let k = number(rest.first().copied(), "scale 2")?;
+    let k = number(rest.first().copied(), "Scale 2")?;
 
     if k <= 0.0 {
-        return Err("scale wants a factor above zero".into());
+        return Err("Scale wants a factor above zero".into());
     }
 
     Ok(Box::new(Scale(k)))

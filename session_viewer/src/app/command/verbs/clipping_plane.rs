@@ -4,21 +4,21 @@ use crate::app::command::{Action, Spec};
 use crate::app::coords;
 
 pub const SPEC: Spec = Spec {
-    names: &["clipping_plane"],
-    aliases: &["ClippingPlane"],
-    hint: "clipping_plane: an origin, then a point on the side to cut away · 3Point · XY / YZ / ZX through a point · On / Off every cut · Flip the selected plane · Fill Hatch / Solid (default) · Example: clipping_plane XY 0,0,1200",
+    names: &["Clipping Plane"],
+    aliases: &[],
+    hint: "Clipping Plane: an origin, then a point on the side to cut away · 3Point · XY / YZ / ZX through a point · On / Off every cut · Flip the selected plane · Fill Hatch / Solid (default) · Example: Clipping Plane XY 0,0,1200",
     options: &[
-        "clipping_plane Normal",
-        "clipping_plane 3Point",
-        "clipping_plane XY",
-        "clipping_plane YZ",
-        "clipping_plane ZX",
-        "clipping_plane Flip",
-        "clipping_plane On",
-        "clipping_plane Off",
-        "clipping_plane Fill", // before its values: the space after Fill must not take Hatch
-        "clipping_plane Fill Hatch",
-        "clipping_plane Fill Solid",
+        "Clipping Plane Normal",
+        "Clipping Plane 3Point",
+        "Clipping Plane XY",
+        "Clipping Plane YZ",
+        "Clipping Plane ZX",
+        "Clipping Plane Flip",
+        "Clipping Plane On",
+        "Clipping Plane Off",
+        "Clipping Plane Fill", // before its values: the space after Fill must not take Hatch
+        "Clipping Plane Fill Hatch",
+        "Clipping Plane Fill Solid",
     ],
     arity: None,
     wait_for_option: false,
@@ -29,7 +29,7 @@ pub const SPEC: Spec = Spec {
 /// A mode to pick points in, typed points, a switch, a flip or a fill.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     let usage =
-        "try clipping_plane, clipping_plane XY 0,0,1200, clipping_plane Off, Flip or Fill Solid";
+        "try Clipping Plane, Clipping Plane XY 0,0,1200, Clipping Plane Off, Flip or Fill Solid";
     let word = rest.first().map(|word| word.to_ascii_lowercase());
 
     match (word.as_deref(), rest.len()) {
@@ -43,7 +43,7 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
         (Some("fill"), 2) => match rest[1].to_ascii_lowercase().as_str() {
             "hatch" => Ok(Box::new(Fill(Some(false)))),
             "solid" => Ok(Box::new(Fill(Some(true)))),
-            _ => Err("clipping_plane Fill takes Hatch or Solid".into()),
+            _ => Err("Clipping Plane Fill takes Hatch or Solid".into()),
         },
         _ => {
             let mode = Mode::parse(rest[0]).ok_or(usage)?;
@@ -59,7 +59,7 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
 
             if points.len() != mode.points() {
                 return Err(format!(
-                    "clipping_plane {} takes {} point{}",
+                    "Clipping Plane {} takes {} point{}",
                     mode.word(),
                     mode.points(),
                     if mode.points() == 1 { "" } else { "s" }
@@ -171,34 +171,34 @@ mod tests {
     /// Modes, switches, flips, fills and typed points parse; nonsense is refused.
     #[test]
     fn clipping_plane_lines_parse() {
-        assert_eq!(parsed("clipping_plane"), Ok("Pick(Normal)".into()));
-        assert_eq!(parsed("clipping_plane xy"), Ok("Pick(Xy)".into()));
-        assert_eq!(parsed("clipping_plane 3point"), Ok("Pick(Points)".into()));
-        assert_eq!(parsed("clipping_plane Off"), Ok("Switch(false)".into()));
-        assert_eq!(parsed("clipping_plane on"), Ok("Switch(true)".into()));
-        assert_eq!(parsed("clipping_plane Flip"), Ok("Flip".into()));
+        assert_eq!(parsed("Clipping Plane"), Ok("Pick(Normal)".into()));
+        assert_eq!(parsed("Clipping Plane xy"), Ok("Pick(Xy)".into()));
+        assert_eq!(parsed("Clipping Plane 3point"), Ok("Pick(Points)".into()));
+        assert_eq!(parsed("Clipping Plane Off"), Ok("Switch(false)".into()));
+        assert_eq!(parsed("Clipping Plane on"), Ok("Switch(true)".into()));
+        assert_eq!(parsed("Clipping Plane Flip"), Ok("Flip".into()));
         assert_eq!(
-            parsed("clipping_plane Fill Solid"),
+            parsed("Clipping Plane Fill Solid"),
             Ok("Fill(Some(true))".into())
         );
         assert_eq!(
-            parsed("clipping_plane hatch"),
+            parsed("Clipping Plane hatch"),
             Ok("Fill(Some(false))".into())
         );
         assert_eq!(
-            parsed("clipping_plane XY 0,0,50"),
+            parsed("Clipping Plane XY 0,0,50"),
             Ok("Create { mode: Xy, points: [[0.0, 0.0, 50.0]] }".into())
         );
-        assert!(parsed("clipping_plane Normal 0,0,0 0,0,1").is_ok());
-        assert!(parsed("clipping_plane 3Point 0,0,0 1,0,0 0,1,0").is_ok());
+        assert!(parsed("Clipping Plane Normal 0,0,0 0,0,1").is_ok());
+        assert!(parsed("Clipping Plane 3Point 0,0,0 1,0,0 0,1,0").is_ok());
 
         for line in [
-            "clipping_plane Normal 0,0,0",
-            "clipping_plane XY @1,2",
-            "clipping_plane XY nan,0,0",
-            "clipping_plane XY 1e13,0,0",
-            "clipping_plane sideways",
-            "clipping_plane Fill blue",
+            "Clipping Plane Normal 0,0,0",
+            "Clipping Plane XY @1,2",
+            "Clipping Plane XY nan,0,0",
+            "Clipping Plane XY 1e13,0,0",
+            "Clipping Plane sideways",
+            "Clipping Plane Fill blue",
         ] {
             assert!(parsed(line).is_err(), "{line}");
         }
@@ -207,22 +207,22 @@ mod tests {
     /// Typing part of the name completes it; one Enter runs it.
     #[test]
     fn clipping_plane_completes() {
-        assert_eq!(accept("clip"), ("clipping_plane".into(), true));
+        assert_eq!(accept("clip"), ("Clipping Plane".into(), true));
         assert_eq!(
-            accept("clipping_plane x"),
-            ("clipping_plane XY".into(), true)
+            accept("Clipping Plane x"),
+            ("Clipping Plane XY".into(), true)
         );
-        assert_eq!(completions("clipping_plane ").len(), 11);
+        assert_eq!(completions("Clipping Plane ").len(), 11);
         // typed Fill completes to itself, so the space after it keeps the value open
-        assert_eq!(completions("clipping_plane Fill")[0], "clipping_plane Fill");
+        assert_eq!(completions("Clipping Plane Fill")[0], "Clipping Plane Fill");
         assert_eq!(
-            accept("clipping_plane Fill"),
-            ("clipping_plane Fill".into(), true)
+            accept("Clipping Plane Fill"),
+            ("Clipping Plane Fill".into(), true)
         );
-        assert_eq!(parsed("clipping_plane Fill"), Ok("Fill(None)".into()));
+        assert_eq!(parsed("Clipping Plane Fill"), Ok("Fill(None)".into()));
         assert_eq!(
-            completions("clipping_plane Fill S"),
-            ["clipping_plane Fill Solid"]
+            completions("Clipping Plane Fill S"),
+            ["Clipping Plane Fill Solid"]
         );
     }
 }

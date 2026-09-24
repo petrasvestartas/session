@@ -6,6 +6,7 @@ pub mod cplane;
 pub mod deform;
 pub mod edit;
 pub mod feedback;
+pub mod fonts;
 pub mod gesture;
 pub mod gizmo;
 pub mod hierarchy;
@@ -28,7 +29,7 @@ pub mod walk;
 
 #[cfg(target_arch = "wasm32")]
 pub mod agent;
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", test))]
 pub mod decode;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch;
@@ -41,6 +42,8 @@ pub mod route;
 
 #[cfg(any(target_arch = "wasm32", test))]
 pub mod inspection;
+#[cfg(any(target_arch = "wasm32", test))]
+pub mod range_gate;
 
 #[cfg(any(target_arch = "wasm32", test))]
 pub mod ui;

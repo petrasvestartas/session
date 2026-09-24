@@ -88,6 +88,18 @@ impl GrowBuf {
         grew
     }
 
+    /// Room for `rows` more rows; a full buffer grows to exactly `rows + spare` more. True if replaced.
+    pub fn reserve(&mut self, ctx: &GpuCtx, rows: u64, spare: u64) -> bool {
+        let need = u64::from(self.len) + rows;
+
+        if need <= self.cap {
+            return false;
+        }
+
+        self.grow(ctx, reserved(need, spare, self.most(ctx)));
+        true
+    }
+
     /// Move to a bigger buffer, copying the rows in use.
     fn grow(&mut self, ctx: &GpuCtx, new_cap: u64) {
         let nb = zeroed_buffer(&ctx.device, self.label, new_cap * self.stride, self.usage);
@@ -315,9 +327,27 @@ fn grown(cap: u64, need: u64, most: u64) -> u64 {
     need.max(cap * 3 / 2).min(most.max(need))
 }
 
+/// Rows to allocate for `need` rows plus `spare` known to follow, never past the largest buffer.
+fn reserved(need: u64, spare: u64, most: u64) -> u64 {
+    need.saturating_add(spare).min(most).max(need)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::grown;
+    use super::{grown, reserved};
+
+    /// A reserve is exact: the rows needed plus those known to follow, capped at the largest buffer.
+    #[test]
+    fn reserve_is_exact_and_stops_at_the_largest_buffer() {
+        assert_eq!(reserved(100, 0, 1000), 100);
+        assert_eq!(reserved(100, 250, 1000), 350);
+        assert_eq!(reserved(900, 250, 1000), 1000);
+        assert_eq!(
+            reserved(1200, 50, 1000),
+            1200,
+            "a need past the limit is the caller's to refuse"
+        );
+    }
 
     /// Growth takes half again, but stops at the device's largest buffer.
     #[test]

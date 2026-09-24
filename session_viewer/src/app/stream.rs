@@ -6,6 +6,8 @@ pub struct CloudFields {
     pub coords_len: u64,          // their length
     pub colors_at: u64,           // start of the colours
     pub colors_len: u64,          // their length
+    pub normals_at: u64,          // start of the normals, 0 = none
+    pub normals_len: u64,         // their length
     pub count: u32,               // points in the cloud
     pub ids_at: u64,              // start of the original ids, 0 = none
     pub ids_len: u64,             // their length
@@ -540,6 +542,22 @@ pub fn positions_from(raw: &[u8]) -> Vec<f32> {
     out
 }
 
+/// Packed doubles, three per point, as octahedral normals; a degenerate one becomes 0.
+pub fn normals_from(raw: &[u8]) -> Vec<u32> {
+    let mut out = Vec::with_capacity(raw.len() / 24);
+
+    for c in raw.chunks_exact(24) {
+        let n = [
+            f64::from_le_bytes(c[0..8].try_into().unwrap()),
+            f64::from_le_bytes(c[8..16].try_into().unwrap()),
+            f64::from_le_bytes(c[16..24].try_into().unwrap()),
+        ];
+        out.push(super::walk::encode::oct16(&n).unwrap_or(0));
+    }
+
+    out
+}
+
 /// `count` colours from packed varints, and where they ended.
 pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
     let mut out = Vec::with_capacity(count as usize);
@@ -567,12 +585,29 @@ pub use web::*;
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
-    use crate::app::fetch::{GetOpts, Reply, fetch_range, get};
+    use crate::app::fetch::{GetOpts, PROBE_BYTES, Reply, Task, fetch_range, get, retryable};
+    use crate::app::manifest::immutable_key;
+    use crate::app::range_gate::{RANGE_READS, RangeGate};
     use crate::app::walk::sheet::SheetRows;
+    use std::cell::RefCell;
+    use std::rc::Rc;
 
     const POINT_BYTES: u64 = 24; // three doubles
 
     const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024; // largest node table read
+
+    thread_local! {
+        /// The scene's streaming range reads queue here.
+        static GATE: RefCell<Rc<RangeGate>> = RefCell::new(RangeGate::new(RANGE_READS));
+    }
+
+    /// A new scene: turn the old scene's waiting reads away and start an empty queue.
+    pub fn reset_range_gate() {
+        GATE.with_borrow_mut(|gate| {
+            gate.close();
+            *gate = RangeGate::new(RANGE_READS);
+        });
+    }
 
     impl MetadataWindow {
         /// The bytes at `at`, reading more when not cached.
@@ -611,7 +646,28 @@ mod web {
             return Some(Vec::new());
         }
 
-        Some(fetch_range(url, at, length, revision).await.ok()?.0)
+        // the stall timer starts once the read holds a slot, so queued reads never time out
+        let gate = GATE.with_borrow(Rc::clone);
+        let _permit = gate.enter().await?;
+
+        match fetch_range(url, at, length, revision).await {
+            Ok((bytes, _)) => Some(bytes),
+            Err(error) if retryable(&error) && !gate.is_closed() => {
+                log::warn!("{url}: {error}; retrying the range once");
+                Some(fetch_range(url, at, length, revision).await.ok()?.0)
+            }
+            Err(_) => None,
+        }
+    }
+
+    /// Start reading one range of the file.
+    fn start_range(
+        url: &str,
+        (at, length): (u64, u64),
+        revision: &Option<String>,
+    ) -> Task<Option<Vec<u8>>> {
+        let (url, revision) = (url.to_string(), revision.clone());
+        Task::start(async move { source_range(&url, at, length, &revision).await })
     }
 
     /// The first 8 KB of a file, read once for every layout check and the file's size.
@@ -619,14 +675,14 @@ mod web {
         let reply = get(
             url,
             &GetOpts {
-                range: Some((0, 8192)),
-                revalidate: true,
+                range: Some((0, PROBE_BYTES)),
+                revalidate: !immutable_key(url),
                 ..Default::default()
             },
         )
         .await
         .ok()?;
-        (reply.bytes.len() <= 8192).then_some(reply)
+        (reply.bytes.len() as u64 <= PROBE_BYTES).then_some(reply)
     }
 
     /// Find where a cloud's arrays are in the file, from its `probe`.
@@ -662,6 +718,8 @@ mod web {
             coords_len,
             colors_at: colors.0,
             colors_len: colors.1,
+            normals_at: 0,
+            normals_len: 0,
             count: u32::try_from(coords_len / POINT_BYTES).ok()?,
             ids_at: 0,
             ids_len: 0,
@@ -676,6 +734,7 @@ mod web {
         let mut seen = [false; 7];
         let mut table_bytes = 0u64;
         let mut ids = None;
+        let mut normals = (0, 0);
         let mut window = MetadataWindow::default();
 
         while at < fields.end {
@@ -731,6 +790,10 @@ mod web {
                 seen[field - 8] = true;
             }
 
+            if field == 5 && length == fields.coords_len {
+                normals = (body, length);
+            }
+
             if field == 15 {
                 if length != u64::from(fields.count) * 4 || ids.is_some() {
                     return None;
@@ -747,6 +810,7 @@ mod web {
         }
 
         (fields.ids_at, fields.ids_len) = ids.unwrap_or((0, 0));
+        (fields.normals_at, fields.normals_len) = normals;
         Some(lod)
     }
 
@@ -772,6 +836,30 @@ mod web {
         )?;
         let raw = source_range(url, at, length, &fields.revision).await?;
         checked_positions(&raw, to - from)
+    }
+
+    /// Packed normals of points `[from, to)`; None when the cloud has none.
+    pub async fn fetch_normals(
+        url: &str,
+        fields: &CloudFields,
+        from: u32,
+        to: u32,
+    ) -> Option<Vec<u32>> {
+        if fields.normals_len == 0 || from > to || to > fields.count {
+            return None;
+        }
+
+        let at = fields
+            .normals_at
+            .checked_add(u64::from(from).checked_mul(POINT_BYTES)?)?;
+        let length = u64::from(to - from).checked_mul(POINT_BYTES)?;
+        body_end(
+            at,
+            length,
+            body_end(fields.normals_at, fields.normals_len, fields.end)?,
+        )?;
+        let raw = source_range(url, at, length, &fields.revision).await?;
+        (raw.len() as u64 == length).then(|| normals_from(&raw))
     }
 
     /// Colours of `count` points starting at byte `at`.
@@ -849,26 +937,25 @@ mod web {
         Some(fields)
     }
 
-    /// Entries `[from, to)` of one fixed-width array.
-    async fn sheet_array(
-        url: &str,
+    /// The byte range of entries `[from, to)` of one fixed-width array.
+    fn sheet_range(
         fields: &SheetFields,
         (at, len): (u64, u64),
         from: u32,
         to: u32,
         stride: u64,
-    ) -> Option<Vec<u8>> {
+    ) -> Option<(u64, u64)> {
         if len == 0 {
-            return Some(Vec::new());
+            return Some((0, 0));
         }
 
         let start = at.checked_add(u64::from(from).checked_mul(stride)?)?;
         let length = u64::from(to - from).checked_mul(stride)?;
         body_end(start, length, body_end(at, len, fields.end)?)?;
-        source_range(url, start, length, &fields.revision).await
+        Some((start, length))
     }
 
-    /// Segments `[from, to)` of a sheet, every array.
+    /// Segments `[from, to)` of a sheet, its four arrays read at once.
     pub async fn fetch_sheet_slice(
         url: &str,
         fields: &SheetFields,
@@ -880,17 +967,20 @@ mod web {
         }
 
         let coords = (fields.coords_at, fields.coords_len);
-        let raw = sheet_array(url, fields, coords, from, to, SheetFields::SEGMENT_BYTES).await?;
-        let positions = checked_doubles(&raw, u64::from(to - from) * 6)?;
+        let coords = sheet_range(fields, coords, from, to, SheetFields::SEGMENT_BYTES)?;
         // colour, width and id are 4 bytes a segment
-        let colors = (fields.colors_at, fields.colors_len);
-        let colors = packed_u32(&sheet_array(url, fields, colors, from, to, 4).await?);
-        let widths = (fields.widths_at, fields.widths_len);
-        let widths = packed_f32(&sheet_array(url, fields, widths, from, to, 4).await?);
-        let ids = (fields.ids_at, fields.ids_len);
-        let ids = packed_u32(&sheet_array(url, fields, ids, from, to, 4).await?);
+        let colors = sheet_range(fields, (fields.colors_at, fields.colors_len), from, to, 4)?;
+        let widths = sheet_range(fields, (fields.widths_at, fields.widths_len), from, to, 4)?;
+        let ids = sheet_range(fields, (fields.ids_at, fields.ids_len), from, to, 4)?;
+        let reads =
+            [coords, colors, widths, ids].map(|range| start_range(url, range, &fields.revision));
+        let [coords, colors, widths, ids] = reads;
+        let positions = checked_doubles(&coords.wait().await??, u64::from(to - from) * 6);
+        let colors = packed_u32(&colors.wait().await??);
+        let widths = packed_f32(&widths.wait().await??);
+        let ids = packed_u32(&ids.wait().await??);
         Some(SheetRows {
-            positions,
+            positions: positions?,
             colors,
             widths,
             ids,
@@ -901,6 +991,21 @@ mod web {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Normals pack per point and a zero normal stays 0.
+    #[test]
+    fn normals_pack_three_doubles_per_point() {
+        let mut raw = Vec::new();
+
+        for v in [0.0f64, 0.0, 1.0, 0.0, 0.0, 0.0] {
+            raw.extend_from_slice(&v.to_le_bytes());
+        }
+
+        let packed = normals_from(&raw);
+        assert_eq!(packed.len(), 2);
+        assert_eq!(packed[0], crate::app::walk::encode::oct16(&[0.0, 0.0, 1.0]).unwrap());
+        assert_eq!(packed[1], 0);
+    }
 
     /// The window serves nearby reads from cache.
     #[test]

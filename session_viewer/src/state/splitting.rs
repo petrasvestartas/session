@@ -28,6 +28,10 @@ impl State {
             .scene
             .selected
             .ok_or("Select a curve or Ctrl+Shift-select a face, then run Split")?;
+        if let Some(reason) = self.locked_reason(&[row]) {
+            return Err(reason);
+        }
+
         // a selected face, else the whole curve
         let selected = match self.selection {
             crate::app::selection::SelectionMode::Face { face, .. } => Some(face),
@@ -63,8 +67,10 @@ impl State {
             return;
         };
 
-        // only an unlocked curve, not the target
+        // a released curve comes back for the next click
+        self.scene.ask(row);
 
+        // only an unlocked curve, not the target
         if row == pending.target
             || !self.scene.selectable(row)
             || !self.scene.geometry(row).is_some_and(splitting::is_cutter)

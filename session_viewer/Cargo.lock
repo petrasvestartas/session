@@ -596,12 +596,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "epaint_default_fonts"
-version = "0.34.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8970033a4282a7bcf899b38b5ed3a58b732fe093d03785d58648515d8d309da"
-
-[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2319,7 +2313,6 @@ dependencies = [
  "egui",
  "egui-wgpu",
  "egui-winit",
- "epaint_default_fonts",
  "getrandom 0.2.17",
  "glyphon",
  "js-sys",
@@ -2332,6 +2325,7 @@ dependencies = [
  "serde_yaml_ng",
  "session_rust",
  "toml",
+ "ttf-parser",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

@@ -7,7 +7,7 @@ use session_rust::{AABB, Mesh, Plane, Point, Vector, Xform};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// The name that makes a plane a clipping plane.
-pub const NAME: &str = "clipping_plane";
+pub const NAME: &str = "Clipping Plane";
 
 /// Arrow length over the rectangle's smaller half size.
 const ARROW: f64 = 0.2;
@@ -77,7 +77,7 @@ impl Mode {
 
 /// True for a plane that cuts the scene.
 pub fn is_clipping(plane: &Plane) -> bool {
-    plane.name == NAME
+    plane.name == NAME || plane.name == "clipping_plane" // the name before 2026-09-24
 }
 
 /// Turn on the closedness check of meshes; true the first time.
@@ -94,7 +94,7 @@ pub fn solids_verified() -> bool {
 pub fn plane_from(mode: Mode, points: &[[f64; 3]], half: f64) -> Result<Plane, String> {
     if points.len() != mode.points() {
         return Err(format!(
-            "clipping_plane {} needs {} point{}",
+            "Clipping Plane {} needs {} point{}",
             mode.word(),
             mode.points(),
             if mode.points() == 1 { "" } else { "s" }

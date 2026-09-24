@@ -34,6 +34,7 @@ pub struct Chunk {
     pub from: u32, // first point index within the cloud
     pub to: u32, // one past the last point index
     pub row: u32, // GPU row of the first point
+    pub nrm: u32, // GPU row of its first normal, or NO_NORMALS
 }
 
 impl Chunk {
@@ -49,7 +50,6 @@ pub struct Cloud {
     pub spacing: f32, // typical distance between points
     pub node_first: u32, // first octree node
     pub node_count: u32, // octree nodes; 0 = no octree
-    pub nrm_first: u32, // first normal row, or NO_NORMALS
     pub resident: u32, // points uploaded so far
     pub chunks: Vec<Chunk>, // where those points live
 }
@@ -75,6 +75,8 @@ pub struct CloudRows {
     pub nrm: Vec<u32>, // packed normal per point
     pub draws: Vec<CloudDraw>, // point batches in this upload
     pub nodes: Vec<LodNode>, // octree nodes in this upload
+    pub expect: u32, // points known to follow this upload
+    pub expect_normals: u32, // normals known to follow this upload
 }
 
 impl CloudRows {
@@ -153,7 +155,12 @@ impl CloudLane {
         let nrm_base = self.nrm.len();
         let node_base = self.nodes.len() as u32;
 
-        let mut moved = self.pos.append(ctx, &up.pos);
+        // a full buffer grows to exactly the points known to come, not by half
+        let (expect, normals) = (u64::from(up.expect), u64::from(up.expect_normals));
+        let mut moved = self.pos.reserve(ctx, up.pos.len() as u64, expect * 3);
+        moved |= self.col.reserve(ctx, up.col.len() as u64, expect);
+        moved |= self.nrm.reserve(ctx, up.nrm.len() as u64, normals);
+        moved |= self.pos.append(ctx, &up.pos);
         moved |= self.col.append(ctx, &up.col);
         moved |= self.nrm.append(ctx, &up.nrm);
         self.point_count = self.pos.len() / 3;
@@ -164,6 +171,11 @@ impl CloudLane {
                 from: d.from,
                 to: d.from + d.count,
                 row: point_base + d.first,
+                nrm: if d.nrm_first == NO_NORMALS {
+                    NO_NORMALS
+                } else {
+                    nrm_base + d.nrm_first
+                },
             };
 
             // a later batch extends an existing cloud
@@ -172,18 +184,12 @@ impl CloudLane {
                 continue;
             }
 
-            let nrm_first = if d.nrm_first == NO_NORMALS {
-                NO_NORMALS
-            } else {
-                nrm_base + d.nrm_first
-            };
             // first batch opens a new cloud
             self.clouds.push(Cloud {
                 instance: d.instance,
                 spacing: d.spacing,
                 node_first: d.node_first + node_base,
                 node_count: d.node_count,
-                nrm_first,
                 resident: chunk.to,
                 chunks: vec![chunk],
             });
@@ -243,12 +249,12 @@ impl CloudLane {
                 col.push((chunk.row, count));
                 chunk.row = points;
                 points += count;
-            }
 
-            if cloud.nrm_first != NO_NORMALS {
-                nrm.push((cloud.nrm_first, cloud.resident));
-                cloud.nrm_first = normals;
-                normals += cloud.resident;
+                if chunk.nrm != NO_NORMALS {
+                    nrm.push((chunk.nrm, count));
+                    chunk.nrm = normals;
+                    normals += count;
+                }
             }
 
             let first = cloud.node_first as usize;

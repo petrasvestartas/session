@@ -11,15 +11,15 @@ session_rust = { path = "../session_rust", default-features = false } # no mini-
 anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml_ng = "0.10"
-toml = "=0.8.23"
+toml = { version = "=0.8.23", optional = true }
 serde_json = { version = "1.0", features = ["float_roundtrip"] }
 winit = "0.30"
 wgpu = "29.0"
 egui = { version = "=0.34.3", default-features = false }
-epaint_default_fonts = "=0.34.3" # Ubuntu Light alone: egui's other default fonts are 1 MB
 egui-wgpu = { version = "=0.34.3", default-features = false }
 egui-winit = { version = "=0.34.3", default-features = false }
 glyphon = "=0.11.0" # The maintained text renderer release compatible with wgpu 29.
+ttf-parser = { version = "0.25", default-features = false } # glyph coverage; already linked by the shaper
 log = "0.4"
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
@@ -49,6 +49,10 @@ web-sys = { version = "0.3", features = [
     "Headers",
     "AbortController",
     "AbortSignal",
+    "ReadableStream",
+    "ReadableStreamDefaultReader",
+    "ReadableWritablePair",
+    "Blob",
     ] }
 # No use site here: session_rust -> rand 0.8 -> getrandom 0.2, which refuses wasm32-unknown-unknown
 # without the `js` feature.
@@ -56,6 +60,11 @@ getrandom = { version = "0.2", features = ["js"] }
 js-sys = "0.3"
 prost = "0.14"
 bytemuck = { version = "1", features = ["derive"] }
+
+# Off in the page build: each costs over 30 KB gz of wasm (JSON sessions 105 KB, TOML manifests 60 KB).
+[features]
+json-sessions = []
+toml-manifests = ["dep:toml"]
 
 # Optimized dependencies keep debug builds fast enough to parse real scenes.
 [profile.dev.package."*"]

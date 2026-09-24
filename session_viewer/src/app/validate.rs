@@ -1,6 +1,19 @@
 use prost::Message;
 use session_rust::proto;
 
+/// Source objects a scene may hold.
+pub const MAX_OBJECTS: usize = 2_000_000;
+
+/// Why a scene with more objects is refused.
+pub const TOO_MANY: &str = "scene exceeds two million source objects";
+
+/// Deepest tree level a scene may have.
+pub const MAX_DEPTH: usize = 64;
+
+/// Why a scene with a deeper tree is refused.
+pub const TOO_DEEP: &str = "scene hierarchy exceeds 64 levels";
+
+#[cfg(any(feature = "json-sessions", test))]
 /// Check every NURBS record in session JSON before it is parsed.
 pub fn json(text: &str) -> Result<(), String> {
     let source: serde_json::Value = serde_json::from_str(text).map_err(json_error)?;
@@ -35,11 +48,13 @@ pub fn json(text: &str) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(any(feature = "json-sessions", test))]
 /// A JSON parse error as a message.
 fn json_error(error: serde_json::Error) -> String {
     format!("invalid session JSON: {error}")
 }
 
+#[cfg(any(feature = "json-sessions", test))]
 /// A count field, defaulted and capped.
 fn json_count(
     source: &serde_json::Value,
@@ -76,6 +91,7 @@ fn addressed_surface_controls(
         .checked_add(size)
 }
 
+#[cfg(any(feature = "json-sessions", test))]
 /// Check one JSON curve or surface's controls against its counts.
 fn json_controls(source: &serde_json::Value) -> Result<(), String> {
     let controls = source["control_points"]
@@ -120,6 +136,7 @@ fn json_controls(source: &serde_json::Value) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(any(feature = "json-sessions", test))]
 /// Check one JSON knot vector.
 fn json_axis(
     source: &serde_json::Value,
@@ -179,25 +196,20 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
             + objects.breps.len()
             + objects.elements.len();
 
-        if count > 2_000_000 {
-            return Err("scene exceeds two million source objects".into());
+        if count > MAX_OBJECTS {
+            return Err(TOO_MANY.into());
         }
 
-        for point in &objects.points {
-            finite(&[point.x, point.y, point.z, point.width], "point")?;
+        for item in &objects.points {
+            point(item)?;
         }
 
-        for line in &objects.lines {
-            if line.coords.len() != 6 {
-                return Err("line needs exactly two endpoint triples".into());
-            }
-
-            finite(&line.coords, "line coordinates")?;
-            finite(&line.dash, "line dashes")?;
+        for item in &objects.lines {
+            line(item)?;
         }
 
-        for polyline in &objects.polylines {
-            triples(&polyline.coords, "polyline coordinates")?;
+        for item in &objects.polylines {
+            polyline(item)?;
         }
 
         for item in &objects.meshes {
@@ -221,32 +233,12 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
         }
 
         for item in &objects.elements {
-            match item.geometry_type.as_str() {
-                "Mesh" => mesh(
-                    &proto::Mesh::decode(item.geometry_data.as_slice()).map_err(decode_error)?,
-                )?,
-                "BRep" => brep(
-                    &proto::BRep::decode(item.geometry_data.as_slice()).map_err(decode_error)?,
-                )?,
-                _ => {}
-            }
+            element(item)?;
         }
     }
 
     for entry in &source.xforms {
-        let Some(transform) = &entry.xform else {
-            return Err("missing object transform".into());
-        };
-        finite(&transform.matrix, "object transform")?;
-
-        if transform.matrix.len() != 16
-            || transform.matrix[3] != 0.0
-            || transform.matrix[7] != 0.0
-            || transform.matrix[11] != 0.0
-            || transform.matrix[15] != 1.0
-        {
-            return Err("object placement must be a sixteen-value affine matrix".into());
-        }
+        xform(entry)?;
     }
 
     if let Some(tree) = &source.tree
@@ -255,8 +247,8 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
         let mut pending = vec![(root, 0usize)];
 
         while let Some((node, depth)) = pending.pop() {
-            if depth > 64 {
-                return Err("scene hierarchy exceeds 64 levels".into());
+            if depth > MAX_DEPTH {
+                return Err(TOO_DEEP.into());
             }
 
             for child in &node.children {
@@ -265,6 +257,63 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
         }
     }
 
+    Ok(())
+}
+
+/// Check one protobuf point.
+pub fn point(source: &proto::Point) -> Result<(), String> {
+    finite(&[source.x, source.y, source.z, source.width], "point")
+}
+
+/// Check one protobuf line.
+pub fn line(source: &proto::Line) -> Result<(), String> {
+    if source.coords.len() != 6 {
+        return Err("line needs exactly two endpoint triples".into());
+    }
+
+    finite(&source.coords, "line coordinates")?;
+    finite(&source.dash, "line dashes")
+}
+
+/// Check one protobuf polyline.
+pub fn polyline(source: &proto::Polyline) -> Result<(), String> {
+    triples(&source.coords, "polyline coordinates")
+}
+
+/// Check one protobuf element's mesh or BRep.
+pub fn element(source: &proto::Element) -> Result<(), String> {
+    match source.geometry_type.as_str() {
+        "Mesh" => {
+            mesh(&proto::Mesh::decode(source.geometry_data.as_slice()).map_err(decode_error)?)
+        }
+        "BRep" => {
+            brep(&proto::BRep::decode(source.geometry_data.as_slice()).map_err(decode_error)?)
+        }
+        _ => Ok(()),
+    }
+}
+
+/// Check one object placement.
+pub fn xform(entry: &proto::XformEntry) -> Result<(), String> {
+    let Some(transform) = &entry.xform else {
+        return Err("missing object transform".into());
+    };
+    finite(&transform.matrix, "object transform")?;
+
+    if transform.matrix.len() != 16
+        || transform.matrix[3] != 0.0
+        || transform.matrix[7] != 0.0
+        || transform.matrix[11] != 0.0
+        || transform.matrix[15] != 1.0
+    {
+        return Err("object placement must be a sixteen-value affine matrix".into());
+    }
+
+    Ok(())
+}
+
+/// Nothing to check.
+pub fn any<T>(_: &T) -> Result<(), String> {
     Ok(())
 }
 
@@ -319,7 +368,7 @@ fn axis(order: i32, count: i32, knots: &[f64]) -> Result<usize, String> {
 }
 
 /// Check one protobuf curve.
-fn curve(source: &proto::NurbsCurve) -> Result<(), String> {
+pub fn curve(source: &proto::NurbsCurve) -> Result<(), String> {
     if !(2..=3).contains(&source.dimension) {
         return Err("NURBS curve dimension must be 2 or 3".into());
     }
@@ -335,7 +384,7 @@ fn curve(source: &proto::NurbsCurve) -> Result<(), String> {
 }
 
 /// Check one protobuf surface.
-fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
+pub fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
     if source.dimension != 3 {
         return Err("NURBS surface dimension must be 3".into());
     }
@@ -374,7 +423,7 @@ fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
 }
 
 /// Check one protobuf mesh.
-fn mesh(source: &proto::Mesh) -> Result<(), String> {
+pub fn mesh(source: &proto::Mesh) -> Result<(), String> {
     for (key, vertex) in &source.vertices {
         if *key > u32::MAX as u64 {
             return Err("mesh vertex key exceeds the browser index range".into());
@@ -424,7 +473,7 @@ fn mesh_indices(source: &proto::Mesh, indices: &[u64]) -> Result<(), String> {
 }
 
 /// Check one protobuf point cloud.
-fn cloud(source: &proto::PointCloud) -> Result<(), String> {
+pub fn cloud(source: &proto::PointCloud) -> Result<(), String> {
     triples(&source.coords, "point cloud")?;
     finite(&source.normals, "point normals")?;
     let points = source.coords.len() / 3;
@@ -472,7 +521,7 @@ fn cloud(source: &proto::PointCloud) -> Result<(), String> {
 }
 
 /// Check one protobuf BRep.
-fn brep(source: &proto::BRep) -> Result<(), String> {
+pub fn brep(source: &proto::BRep) -> Result<(), String> {
     for item in &source.curves_2d {
         curve(item)?;
     }

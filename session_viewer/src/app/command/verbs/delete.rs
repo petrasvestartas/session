@@ -25,8 +25,8 @@ impl Action for Delete {
     fn run(&self, state: &mut State) -> Result<String, String> {
         let row = state.scene.selected.ok_or("nothing is selected")?;
 
-        if state.scene.display_only(row) {
-            return Err(crate::app::scene::READ_ONLY.into());
+        if let Some(reason) = state.locked_reason(&[row]) {
+            return Err(reason);
         }
 
         if !state.scene.delete_row(row) {

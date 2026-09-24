@@ -10,7 +10,7 @@ use session_rust::{Point, Polyline, Vector};
 /// A shape being drawn, or points being picked for a command, not yet in the scene.
 pub(crate) struct Draft {
     verb: String,                  // point, line, polyline, curve, or the command asking
-    prefix: String,                // what the points complete, e.g. `clipping_plane XY`
+    prefix: String,                // what the points complete, e.g. `Clipping Plane XY`
     needed: usize,                 // points that finish it; 0 = Enter finishes
     prompts: &'static [&'static str], // what each point is for, when a command asked
     construction: String,          // points, rectangle or polygon
@@ -190,7 +190,10 @@ impl State {
             needed => needed,
         };
         if points.len() > limit {
-            return Err(format!("{} accepts at most {limit} points", draft.verb));
+            return Err(format!(
+                "{} accepts at most {limit} points",
+                crate::app::command::canonical(&draft.verb)
+            ));
         }
         let previous = std::mem::replace(&mut self.draft.as_mut().unwrap().points, points);
         let result = self.advance_drawing();
@@ -217,7 +220,11 @@ impl State {
 
         // a command asking for points takes all of them
         if !draft.prompts.is_empty() && draft.points.len() < draft.needed {
-            return Err(format!("{} needs {} points", draft.verb, draft.needed));
+            return Err(format!(
+                "{} needs {} points",
+                crate::app::command::canonical(&draft.verb),
+                draft.needed
+            ));
         }
 
         let points = draft.geometry_points()?;
@@ -260,7 +267,7 @@ impl State {
         {
             return format!(
                 "{}: {prompt} · click or type x,y,z · Snap {} · Esc cancels",
-                draft.verb,
+                crate::app::command::canonical(&draft.verb),
                 if self.snap_enabled { "On" } else { "Off" }
             );
         }
@@ -294,7 +301,7 @@ impl State {
         };
         format!(
             "{}: {point} · click or type x,y,z · Snap {}{finish} · Esc cancels",
-            draft.verb,
+            crate::app::command::canonical(&draft.verb),
             if self.snap_enabled { "On" } else { "Off" }
         )
     }

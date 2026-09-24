@@ -33,6 +33,21 @@ impl State {
         self.scene.set_document_title(label, &mut self.gpu);
     }
 
+    /// Draw the labels with the whole fonts, main font first.
+    pub fn use_fonts(&mut self, faces: [&'static [u8]; 3]) {
+        let sources = faces
+            .into_iter()
+            .map(|face| glyphon::fontdb::Source::Binary(std::sync::Arc::new(face)))
+            .collect();
+
+        if let Err(error) = self.gpu.text.document.replace_sources(sources) {
+            self.status(&format!("Text: {error}"));
+        }
+
+        self.update_label();
+        self.touch();
+    }
+
     /// Send the scene texts plus the selection's name label to the GPU.
     pub(super) fn update_label(&mut self) {
         let mut labels = self.scene.visible_texts();
@@ -48,6 +63,10 @@ impl State {
                 self.scene.object_name(row).to_string(),
                 label_center(&bounds),
             ));
+        }
+
+        for label in &labels {
+            crate::app::fonts::need(&label.text);
         }
 
         if let Err(error) = self.gpu.text.set_labels(labels) {

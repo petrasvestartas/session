@@ -134,6 +134,7 @@ impl Scene {
     fn edit_geometry(&mut self, command: &Modeling) -> Result<(), String> {
         let row = self.selected.ok_or("select one object first")?;
         let (doc, guid) = self.identity_of(row).ok_or("object no longer exists")?;
+        self.editable(doc)?; // a released document comes back first
         let file = self.docs.get(doc).ok_or("this object has no document")?;
 
         if file.display_only {
@@ -229,7 +230,7 @@ fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
     }
 
     if (trim && (a < 0.0 || b > 1.0)) || (!trim && (a > 0.0 || b < 1.0)) {
-        return Err("trim keeps 0 ≤ a < b ≤ 1; extend needs a ≤ 0 and b ≥ 1".into());
+        return Err("trim keeps 0 <= a < b <= 1; extend needs a <= 0 and b >= 1".into());
     }
 
     match source {

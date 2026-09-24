@@ -1,13 +1,13 @@
-use super::decode::session_from_bytes;
-use super::fetch::{Reply, fetch_buffer, fetch_bytes, sleep_ms};
+use super::decode::{Body, session_from_body};
+use super::fetch::{Reply, fetch_buffer, fetch_bytes, gunzip, sleep_ms};
 use super::live::LiveSource;
 use super::manifest::Manifest;
 use super::route::AUTO_GRID;
 use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
-use super::scene::{FileDoc, Scene, SheetInit, StreamedInit};
+use super::scene::{FileDoc, Hydrated, Scene, SheetInit, StreamedInit};
 use super::stream::{
-    CloudFields, SheetFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions,
-    fetch_sheet_slice, plain, probe, sheet_fields,
+    CloudFields, SheetFields, cloud_fields, cloud_lod, fetch_colors, fetch_normals,
+    fetch_positions, fetch_sheet_slice, plain, probe, reset_range_gate, sheet_fields,
 };
 use super::walk::cloud::StreamRows;
 use super::walk::sheet::SheetRows;
@@ -36,8 +36,8 @@ const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
 /// Fewest points a streamed cloud gets, even over budget.
 const STREAM_MIN_PREFIX: u32 = 250_000;
 
-/// Segments a sheet reads before its first frame.
-const SHEET_PREFIX_SEGMENTS: u32 = 500_000;
+/// Segments a sheet reads before its first frame, ~1.5 MB.
+const SHEET_PREFIX_SEGMENTS: u32 = 25_000;
 
 /// Segments per follow-up slice.
 const SHEET_CHUNK_SEGMENTS: u32 = 500_000;
@@ -60,11 +60,40 @@ thread_local! {
 
     /// Bumped on every reload request; older loads give up.
     static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
+
+    /// Manifest loads in progress; background sheet slices wait for them.
+    static LOADING: Cell<u32> = const { Cell::new(0) };
+}
+
+/// Counts one manifest load while alive.
+struct Loading;
+
+impl Loading {
+    /// Count a load.
+    fn start() -> Self {
+        LOADING.set(LOADING.get() + 1);
+        Loading
+    }
+}
+
+impl Drop for Loading {
+    /// The load ended, however it returned.
+    fn drop(&mut self) {
+        LOADING.set(LOADING.get().saturating_sub(1));
+    }
+}
+
+/// Let every file of the scene reach the screen before the remaining sheet slices take the network.
+async fn after_loads() {
+    while LOADING.get() > 0 {
+        sleep_ms(100).await;
+    }
 }
 
 /// Clear the scene and stop every stream.
 fn clear_scene() {
     GENERATION.set(GENERATION.get().wrapping_add(1));
+    reset_range_gate();
     RESIDENT.set(0);
     SHEET_RESIDENT.set(0);
     post(Msg::Clear);
@@ -167,7 +196,7 @@ async fn post_live(src: &mut LiveSource) -> bool {
     clear_scene();
 
     for doc in docs {
-        post(Msg::File(doc));
+        post(Msg::File(doc, None));
     }
 
     post(Msg::Texts(texts));
@@ -232,6 +261,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
         Some(generation) => generation,
         None => LOAD_GENERATION.get(),
     };
+    let _loading = Loading::start();
     let mut pending = Vec::new(); // staged items of a reload
     let mut failed = false;
     let budget = scene_budget_bytes(); // whole-file bytes allowed
@@ -285,17 +315,22 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
         let url = join(&route.base, &item.file);
         let place = manifest.place(i, AUTO_GRID);
         let point_px = item.point_size as f32;
-        // the first 8 KB, read once: the cloud and sheet checks and the size come from it
+        let encoded = item.encoded_size();
+        // the first 8 KB, read once: the cloud and sheet checks and the size come from it;
+        // an encoded file is never range-read
         let (head, body) = match ahead.take() {
             Some(read) => read.wait().await,
-            None if url.ends_with(".pb") => (probe(&url).await, None),
+            None if url.ends_with(".pb") && encoded.is_none() => (probe(&url).await, None),
             None => (None, None),
         };
 
         if let Some(next) = manifest.items.get(i + 1)
             && next.file.ends_with(".pb")
         {
-            ahead = Some(Ahead::start(join(&route.base, &next.file)));
+            ahead = Some(Ahead::start(
+                join(&route.base, &next.file),
+                next.encoded_size(),
+            ));
         }
 
         if let Some(head) = &head {
@@ -366,10 +401,11 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
             }
         }
 
-        // skip a file the device cannot hold
-        let length = match head.as_ref().and_then(|head| head.total) {
-            Some(total) => total,
-            None => super::fetch::content_length(&url).await.unwrap_or(0),
+        // skip a file the device cannot hold, by its decoded size
+        let length = match (encoded, head.as_ref().and_then(|head| head.total)) {
+            (Some(size), _) => size,
+            (None, Some(total)) => total,
+            (None, None) => super::fetch::content_length(&url).await.unwrap_or(0),
         };
 
         if spent + length > budget {
@@ -383,15 +419,19 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
             continue;
         }
 
-        spent += length;
         let f0 = now_ms();
-        // read ahead, or no larger than the probe, or read now
+        // read ahead, or no larger than the probe, or read now; a failed read-ahead is not retried
         let fetched = match (body, head.and_then(Reply::whole)) {
-            (Some(body), _) => Ok(body.to_vec()),
-            (None, Some(bytes)) => Ok(bytes),
-            (None, None) => fetch_bytes(&url).await,
+            (Some(body), _) => body.map(Body::Js),
+            (None, Some(bytes)) => Ok(Body::Bytes(bytes)),
+            (None, None) => fetch_buffer(&url).await.map(Body::Js),
         };
-        let bytes = match fetched {
+        let fetched = match fetched {
+            // a host that did not mark the file encoded hands over the packed bytes
+            Ok(body) if encoded.is_some() && packed(&body) => unpack(body).await,
+            fetched => fetched,
+        };
+        let body = match fetched {
             Ok(b) => b,
             Err(e) => {
                 super::feedback::status(&format!("Unable to load {}: {e}", item.file));
@@ -399,15 +439,16 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
                 continue;
             }
         };
+        spent += length.max(body.size());
 
         // the next body downloads while this one decodes, not while this one downloads
         if let Some(next) = ahead.as_mut() {
             next.read_body(budget.saturating_sub(spent));
         }
 
-        let n = bytes.len();
+        let n = body.size();
         let f1 = now_ms();
-        let session = match session_from_bytes(&url, bytes).await {
+        let session = match session_from_body(&url, body, !item.display_only).await {
             Ok(session) => session,
             Err(error) => {
                 super::feedback::status(&format!("Cannot decode {}: {error}", item.file));
@@ -440,11 +481,13 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
             point_px,
             display_only: item.display_only,
         };
+        // a display-only document drops its objects after the walk and fetches them for an edit
+        let source = item.display_only.then(|| url.clone());
 
         if replacement.is_some() {
-            pending.push(PendingDocument::Whole(doc));
+            pending.push(PendingDocument::Whole(doc, source));
         } else {
-            post(Msg::File(doc));
+            post(Msg::File(doc, source));
         }
     }
 
@@ -466,8 +509,8 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
 
         for document in pending {
             match document {
-                PendingDocument::Whole(doc) => {
-                    post(Msg::File(doc));
+                PendingDocument::Whole(doc, source) => {
+                    post(Msg::File(doc, source));
                 }
                 PendingDocument::Streamed(stream) => {
                     post(Msg::StreamedCloud(stream));
@@ -493,30 +536,35 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
     crate::engine::performance::mark("scene posted");
 }
 
-/// A file's probe and, when read ahead, its whole body in a JS buffer.
-type Read = (Option<Reply>, Option<js_sys::Uint8Array>);
+/// A file's probe and, when read ahead, its whole body in a JS buffer or why it failed.
+type Read = (Option<Reply>, Option<Result<js_sys::Uint8Array, String>>);
 
 /// The next file of a manifest: probed while the one before it loads, its body read while that
 /// one decodes, so the two downloads never share the connection.
 struct Ahead {
     url: String,                   // the next file
+    encoded: Option<u64>,          // decoded size of an encoded file, which is not probed
     probed: js_sys::Promise,       // settles when the probe finished
     body: Option<js_sys::Promise>, // settles when the body read finished
     read: Rc<RefCell<Read>>,       // what they read
 }
 
 impl Ahead {
-    /// Start probing `url`.
-    fn start(url: String) -> Self {
+    /// Start probing `url`, unless it is stored encoded.
+    fn start(url: String, encoded: Option<u64>) -> Self {
         let read = Rc::new(RefCell::new((None, None)));
         let (slot, target) = (read.clone(), url.clone());
         let probed = wasm_bindgen_futures::future_to_promise(async move {
-            let head = probe(&target).await;
-            slot.borrow_mut().0 = head;
+            if encoded.is_none() {
+                let head = probe(&target).await;
+                slot.borrow_mut().0 = head;
+            }
+
             Ok(JsValue::UNDEFINED)
         });
         Self {
             url,
+            encoded,
             probed,
             body: None,
             read,
@@ -526,19 +574,23 @@ impl Ahead {
     /// Once probed, read the body of a plain file of at most `room` bytes.
     fn read_body(&mut self, room: u64) {
         let (probed, slot, url) = (self.probed.clone(), self.read.clone(), self.url.clone());
+        let encoded = self.encoded;
         self.body = Some(wasm_bindgen_futures::future_to_promise(async move {
             let _ = wasm_bindgen_futures::JsFuture::from(probed).await;
-            let whole = slot.borrow().0.as_ref().is_some_and(|head| {
-                head.status == 206
-                    && plain(&head.bytes)
-                    && head
-                        .total
-                        .is_some_and(|total| total > head.bytes.len() as u64 && total <= room)
-            });
+            let whole = match encoded {
+                Some(size) => size <= room,
+                None => slot.borrow().0.as_ref().is_some_and(|head| {
+                    head.status == 206
+                        && plain(&head.bytes)
+                        && head
+                            .total
+                            .is_some_and(|total| total > head.bytes.len() as u64 && total <= room)
+                }),
+            };
 
             if whole {
-                let body = fetch_buffer(&url).await.ok();
-                slot.borrow_mut().1 = body;
+                let body = fetch_buffer(&url).await;
+                slot.borrow_mut().1 = Some(body);
             }
 
             Ok(JsValue::UNDEFINED)
@@ -557,9 +609,28 @@ impl Ahead {
 
 /// One staged item of a reload.
 enum PendingDocument {
-    Whole(FileDoc),              // a decoded file
-    Streamed(Box<StreamedInit>), // a cloud's first slice
-    Sheet(Box<SheetInit>),       // a sheet's first slice
+    Whole(FileDoc, Option<String>), // a decoded file and, when display-only, its file
+    Streamed(Box<StreamedInit>),    // a cloud's first slice
+    Sheet(Box<SheetInit>),          // a sheet's first slice
+}
+
+/// True when a body starts with the gzip magic.
+fn packed(body: &Body) -> bool {
+    match body {
+        Body::Bytes(bytes) => bytes.starts_with(&[0x1f, 0x8b]),
+        Body::Js(array) => {
+            array.length() >= 2 && array.get_index(0) == 0x1f && array.get_index(1) == 0x8b
+        }
+    }
+}
+
+/// A packed body unpacked; the bytes stay in JS.
+async fn unpack(body: Body) -> Result<Body, String> {
+    let array = match body {
+        Body::Bytes(bytes) => js_sys::Uint8Array::from(bytes.as_slice()),
+        Body::Js(array) => array,
+    };
+    gunzip(&array).await.map(Body::Js)
 }
 
 /// Name and placement of a streamed document.
@@ -597,17 +668,22 @@ async fn stream_prefix(
             rows: StreamRows {
                 positions: Vec::new(),
                 colors: Vec::new(),
+                normals: Vec::new(),
             },
             lod,
             col_at: fields.colors_at,
             fields,
             resident: 0,
             point_px,
+            ceiling: max_points(),
         });
     };
     let (colors, col_at) = fetch_colors(url, &fields, fields.colors_at, resident)
         .await
         .unwrap_or((Vec::new(), fields.colors_at));
+    let normals = fetch_normals(url, &fields, 0, resident)
+        .await
+        .unwrap_or_default();
     log::info!(
         "streamed '{name}': {resident} of {} points on screen, {} nodes",
         fields.count,
@@ -617,12 +693,17 @@ async fn stream_prefix(
         name: name.to_string(),
         url: url.to_string(),
         place,
-        rows: StreamRows { positions, colors },
+        rows: StreamRows {
+            positions,
+            colors,
+            normals,
+        },
         lod,
         fields,
         resident,
         point_px,
         col_at,
+        ceiling: max_points(),
     })
 }
 
@@ -688,6 +769,7 @@ async fn sheet_rest(c: SheetCursor) {
     let (url, idx, fields) = (c.url, c.idx, c.fields);
     let generation = GENERATION.get();
     let mut at = c.from;
+    after_loads().await;
 
     while at < fields.count {
         if GENERATION.get() != generation {
@@ -777,6 +859,9 @@ async fn stream_rest(c: StreamCursor) {
             .await
             .unwrap_or((Vec::new(), col_at));
         col_at = next;
+        let normals = fetch_normals(&url, &fields, at, to)
+            .await
+            .unwrap_or_default();
 
         if GENERATION.get() != generation {
             return;
@@ -784,7 +869,11 @@ async fn stream_rest(c: StreamCursor) {
 
         if !post(Msg::CloudChunk(CloudChunk {
             idx,
-            rows: StreamRows { positions, colors },
+            rows: StreamRows {
+                positions,
+                colors,
+                normals,
+            },
             to,
         })) {
             return;
@@ -822,10 +911,28 @@ fn skipped_notice(skipped: &[String], budget: u64) -> String {
     )
 }
 
+/// Fetch and decode a released document again; the answer comes back as `Msg::Hydrated`.
+pub fn spawn_hydrate(doc: usize, url: String, token: u64) {
+    wasm_bindgen_futures::spawn_local(async move {
+        let t0 = now_ms();
+        let session = match fetch_buffer(&url).await {
+            Ok(array) => session_from_body(&url, Body::Js(array), true).await,
+            Err(error) => Err(error),
+        };
+        post(Msg::Hydrated(Box::new(Hydrated {
+            doc,
+            token,
+            session,
+            ms: now_ms() - t0,
+        })));
+    });
+}
+
 /// Show a scene opened from a `.session` file.
 pub(super) fn install_saved_scene(scene: super::scene::Scene) {
     LOAD_GENERATION.set(LOAD_GENERATION.get().wrapping_add(1));
     GENERATION.set(GENERATION.get().wrapping_add(1));
+    reset_range_gate();
     RESIDENT.set(0);
     SHEET_RESIDENT.set(0);
     post(Msg::SavedScene(Box::new(scene)));

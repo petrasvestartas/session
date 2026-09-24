@@ -206,7 +206,10 @@ impl Input {
                     self.last_cursor = at;
                     self.touch_down = at;
                     self.dragged = false;
-                    self.gesture = gesture::press(state, at, TOUCH_REACH);
+                    // while drawing, a tap is only a point, like a mouse press
+                    if state.draft.is_none() {
+                        self.gesture = gesture::press(state, at, TOUCH_REACH);
+                    }
 
                     if self.gesture.is_some() {
                         self.touch_edit = Some(t.id);
@@ -262,6 +265,11 @@ impl Input {
                     Act::None => false,
                     Act::Moved => true,
                     Act::Tap(at) => {
+                        // a command waiting for a point takes the tap, like a mouse click
+                        if state.draft.is_some() {
+                            return state.click_drawing(at.0, at.1);
+                        }
+
                         state.request_selection(at.0 as u32, at.1 as u32, false, false);
                         false
                     }

@@ -114,17 +114,19 @@ pub struct Ui {
     field: Option<&'static str>, // the field the hidden input fed last frame, None for the command line
 }
 
-/// The panel fonts: egui's Ubuntu Light, then the label fonts for the symbols it lacks.
-fn fonts() -> egui::FontDefinitions {
-    let mut fonts = egui::FontDefinitions::empty();
-    let faces = [
-        ("Ubuntu-Light", epaint_default_fonts::UBUNTU_LIGHT),
-        ("Noto Sans", crate::engine::text::FONT_BYTES),
-        ("Noto Sans Symbols", crate::engine::text::SYMBOL_BYTES),
-        ("Noto Sans Symbols 2", crate::engine::text::FALLBACK_BYTES),
-    ];
+/// The bundled label fonts, main font first.
+const BUNDLED: [&[u8]; 3] = [
+    crate::engine::text::FONT_BYTES,
+    crate::engine::text::FALLBACK_BYTES,
+    crate::engine::text::SYMBOL_BYTES,
+];
 
-    for (name, bytes) in faces {
+/// The panel fonts: the label fonts, Noto Sans first, then its symbol fallbacks.
+fn fonts(faces: [&'static [u8]; 3]) -> egui::FontDefinitions {
+    let mut fonts = egui::FontDefinitions::empty();
+    let names = ["Noto Sans", "Noto Sans Symbols 2", "Noto Sans Symbols"];
+
+    for (name, bytes) in names.into_iter().zip(faces) {
         let data = std::sync::Arc::new(egui::FontData::from_static(bytes));
         fonts.font_data.insert(name.to_owned(), data);
 
@@ -141,10 +143,15 @@ fn fonts() -> egui::FontDefinitions {
 }
 
 impl Ui {
+    /// Draw the panels with the whole fonts, main font first.
+    pub fn use_fonts(&mut self, faces: [&'static [u8]; 3]) {
+        self.context.set_fonts(fonts(faces));
+    }
+
     /// Set up egui with the light theme.
     pub fn new(window: &Window, _logical_width: f64) -> Self {
         let context = egui::Context::default();
-        context.set_fonts(fonts());
+        context.set_fonts(fonts(BUNDLED));
         // one layout pass, so text events are never replayed
         context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
         context.set_theme(egui::Theme::Light);
@@ -552,7 +559,10 @@ impl Ui {
                     model.history.pop_front();
                 }
 
-                model.history.push_back(format!("> {text}\n{message}"));
+                model.history.push_back(format!(
+                    "> {}\n{message}",
+                    crate::app::command::canonical(&text)
+                ));
                 if !model.command_open && !model.focus_command {
                     self.context.memory_mut(|memory| {
                         memory.surrender_focus(egui::Id::new("command-input"))
@@ -712,7 +722,7 @@ fn layers(
     .show_inside(root, |ui| {
         ui.set_min_width(ui.available_width());
         let collapse = ui
-            .button(if collapsed { "+" } else { "−" })
+            .button(if collapsed { "+" } else { "–" })
             .on_hover_text("Collapse or expand panel");
         record(
             controls,
@@ -1873,9 +1883,9 @@ fn commands(
                     *command = Some("Escape".into());
                     crate::app::feedback::focus_canvas();
                 }
-                // the +/− button folds the history
+                // the +/– button folds the history
                 let collapse = ui
-                    .button(if model.command_expanded { "−" } else { "+" })
+                    .button(if model.command_expanded { "–" } else { "+" })
                     .on_hover_text("Collapse or expand history");
                 record(
                     controls,
@@ -1975,7 +1985,7 @@ mod tests {
             "Rotate",
         ] {
             let context = egui::Context::default();
-            context.set_fonts(fonts());
+            context.set_fonts(fonts(BUNDLED));
             context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
             let mut model = Model {
                 command: name.into(),
@@ -2008,7 +2018,7 @@ mod tests {
     #[test]
     fn browsing_starts_from_the_typed_option() {
         let context = egui::Context::default();
-        context.set_fonts(fonts());
+        context.set_fonts(fonts(BUNDLED));
         let mut model = Model {
             command: "Snap Off".into(),
             focus_command: true,

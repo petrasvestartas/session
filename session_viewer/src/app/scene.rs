@@ -8,7 +8,9 @@ pub(crate) mod rows;
 #[path = "scene_sync.rs"]
 pub(crate) mod sync;
 
-use crate::app::knobs;
+#[path = "scene_release.rs"]
+mod release;
+
 use crate::app::sheet_query::{EntityMeta, SheetTable};
 use crate::app::stream::{CloudFields, CloudLod, SheetFields};
 use crate::app::walk::bounds::{Baselines, file_extent, mark_sheet, planar_band};
@@ -48,6 +50,7 @@ pub struct StreamedInit {
     pub resident: u32,       // points in this slice
     pub point_px: f32,       // point size override
     pub col_at: u64,         // byte position of the next colour
+    pub ceiling: u32,        // most streamed points on the page
 }
 
 /// A streamed cloud's slot in the scene.
@@ -106,6 +109,86 @@ pub struct PickedPoint {
     pub position: [f64; 3], // world position
 }
 
+/// A geometry's type, kept for the rows of a released document.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Shape {
+    Box,
+    BRep,
+    Element,
+    Line,
+    Mesh,
+    Curve,
+    Surface,
+    Plane,
+    Point,
+    Cloud,
+    Polyline,
+}
+
+impl Shape {
+    /// The type of one geometry.
+    pub fn of(geometry: &Geometry) -> Self {
+        match geometry {
+            Geometry::OBB(_) => Shape::Box,
+            Geometry::BRep(_) => Shape::BRep,
+            Geometry::Element(_) => Shape::Element,
+            Geometry::Line(_) => Shape::Line,
+            Geometry::Mesh(_) => Shape::Mesh,
+            Geometry::NurbsCurve(_) => Shape::Curve,
+            Geometry::NurbsSurface(_) => Shape::Surface,
+            Geometry::Plane(_) => Shape::Plane,
+            Geometry::Point(_) => Shape::Point,
+            Geometry::PointCloud(_) => Shape::Cloud,
+            Geometry::Polyline(_) => Shape::Polyline,
+        }
+    }
+
+    /// The name shown for an unnamed object.
+    pub fn label(self) -> &'static str {
+        match self {
+            Shape::Box => "Box",
+            Shape::BRep => "BRep",
+            Shape::Element => "Element",
+            Shape::Line => "Line",
+            Shape::Mesh => "Mesh",
+            Shape::Curve => "NURBS curve",
+            Shape::Surface => "NURBS surface",
+            Shape::Plane => "Plane",
+            Shape::Point => "Point",
+            Shape::Cloud => "Point cloud",
+            Shape::Polyline => "Polyline",
+        }
+    }
+}
+
+/// Where a released document's kernel objects come back from.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Fetch {
+    Idle,    // nothing asked for it
+    Wanted,  // an edit needs it
+    Loading, // on its way
+    Failed,  // the last fetch failed; only an edit asks again
+}
+
+/// A document whose kernel objects were dropped after the walk; its rows stay drawn.
+pub struct Released {
+    pub url: String,            // the file, fetched again to edit it
+    pub token: u64,             // this release; an older fetch is ignored
+    first: u32,                 // its first row
+    shapes: Vec<Option<Shape>>, // type of each row from `first`
+    names: Vec<u32>,            // name of each row from `first`, in `table`
+    table: Vec<Box<str>>,       // the distinct object names
+    pub fetch: Fetch,           // whether it is being fetched
+}
+
+/// A released document fetched and decoded again.
+pub struct Hydrated {
+    pub doc: usize,                       // the document
+    pub token: u64,                       // the release it answers
+    pub session: Result<Session, String>, // its objects, or why not
+    pub ms: f64,                          // fetch and decode time
+}
+
 /// The open documents and their object rows; a row id stays with its object for the object's life.
 pub struct Scene {
     pub docs: Vec<FileDoc>,                              // loaded files
@@ -150,6 +233,9 @@ pub struct Scene {
     pub(crate) current_layer: Option<(usize, String)>, // (document, tree node) new objects go to
     pub(crate) layer_trees: HashMap<(usize, String), crate::app::layers::LayerStep>, // kept tree per (document, layer step)
     pub(crate) layer_steps: u64, // layer steps made, for unique labels
+    pub(crate) released: HashMap<usize, Released>, // documents drawn without their kernel objects
+    asked: RefCell<Vec<usize>>,  // released documents a read-only path needs
+    stream_ceiling: u32,         // most streamed points on the page
     #[cfg(test)]
     pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
     #[cfg(test)]
@@ -215,6 +301,9 @@ impl Scene {
             current_layer: None,
             layer_trees: HashMap::new(),
             layer_steps: 0,
+            released: HashMap::new(),
+            asked: RefCell::new(Vec::new()),
+            stream_ceiling: 0,
             #[cfg(test)]
             ledger: HashMap::new(),
             #[cfg(test)]
@@ -229,6 +318,8 @@ impl Scene {
         self.redo_steps.clear();
         self.current_layer = None;
         self.layer_trees.clear();
+        self.released.clear();
+        self.asked.borrow_mut().clear();
         self.docs.clear();
         self.doc_state.clear();
         self.texts.clear();
@@ -332,6 +423,7 @@ impl Scene {
                 self.compact_clouds(gpu);
             }
 
+            (self.tables.cloud.expect, self.tables.cloud.expect_normals) = self.stream_expect();
             gpu.set_scene(&self.tables);
 
             // a loaded document re-centres the origin at the camera, as it always did; an edit keeps it
@@ -366,6 +458,26 @@ impl Scene {
 
         gpu.set_dead(self.dead, self.dead_points);
         gpu.refresh_samples();
+    }
+
+    /// Streamed points and normals still to come after the rows walked so far, within the ceiling.
+    fn stream_expect(&self) -> (u32, u32) {
+        let mut done = 0u32;
+        let mut points = 0u32;
+        let mut normals = 0u32;
+
+        for cloud in &self.streamed {
+            let left = cloud.total.saturating_sub(cloud.done_to);
+            done = done.saturating_add(cloud.done_to);
+            points = points.saturating_add(left);
+
+            if cloud.fields.normals_len > 0 {
+                normals = normals.saturating_add(left);
+            }
+        }
+
+        let room = self.stream_ceiling.saturating_sub(done);
+        (points.min(room), normals.min(room))
     }
 
     /// True when nothing waits to be appended.
@@ -446,7 +558,7 @@ impl Scene {
             session,
             place,
             point_px,
-            display_only,
+            display_only: _,
         } = doc;
         let index = self.docs.len();
         let from = Baselines::capture(&self.tables);
@@ -532,12 +644,6 @@ impl Scene {
 
         lap.mark("sweeps");
 
-        if display_only || knobs::drop_sessions() {
-            log::info!(
-                "'{name}': retaining source geometry for controls; the legacy display_only/drop_sessions hint no longer releases it"
-            );
-        }
-
         let nodes_from = sync::tree_key(&session);
         self.push_doc(
             FileDoc {
@@ -570,7 +676,9 @@ impl Scene {
             resident,
             point_px,
             col_at: _,
+            ceiling,
         } = init;
+        self.stream_ceiling = ceiling;
         let total = fields.count;
         let row = self.push_row(self.docs.len(), &format!("stream:{url}"), place.clone(), 0);
         let slice = StreamSlice {
@@ -819,7 +927,10 @@ impl Scene {
             Some(Geometry::Point(value)) => (value.name.as_str(), "Point"),
             Some(Geometry::PointCloud(value)) => (value.name.as_str(), "Point cloud"),
             Some(Geometry::Polyline(value)) => (value.name.as_str(), "Polyline"),
-            None => ("", "Object"),
+            None => (
+                self.released_name(row).unwrap_or(""),
+                self.shape(row).map_or("Object", Shape::label),
+            ),
         };
 
         if name.trim().is_empty() { kind } else { name }
@@ -974,6 +1085,59 @@ mod tests {
             point_px: 0.0,
             display_only,
         }
+    }
+
+    /// A streamed cloud's first slice of `resident` of `count` points, normals when `normals`.
+    fn streamed(count: u32, resident: u32, normals: bool, ceiling: u32) -> StreamedInit {
+        StreamedInit {
+            name: "scan".into(),
+            url: "scan.pb".into(),
+            place: Xform::identity(),
+            rows: StreamRows {
+                positions: vec![0.0; resident as usize * 3],
+                colors: Vec::new(),
+                normals: Vec::new(),
+            },
+            lod: CloudLod::default(),
+            fields: CloudFields {
+                end: 0,
+                coords_at: 0,
+                coords_len: 0,
+                colors_at: 0,
+                colors_len: 0,
+                normals_at: 0,
+                normals_len: u64::from(normals),
+                count,
+                ids_at: 0,
+                ids_len: 0,
+                revision: None,
+            },
+            resident,
+            point_px: 1.0,
+            col_at: 0,
+            ceiling,
+        }
+    }
+
+    /// The points still to stream are what the files hold, but never past the page's ceiling.
+    #[test]
+    fn stream_expect_is_the_rest_of_the_files_within_the_ceiling() {
+        let mut scene = Scene::new();
+        scene.stream_cloud(streamed(10, 4, false, 100));
+        assert_eq!(scene.stream_expect(), (6, 0));
+
+        scene.stream_cloud(streamed(50, 5, true, 100));
+        assert_eq!(scene.stream_expect(), (51, 45));
+
+        scene.stream_cloud(streamed(1000, 10, false, 20));
+        assert_eq!(scene.stream_expect(), (1, 1));
+
+        scene.stream_cloud(streamed(1000, 10, false, 20));
+        assert_eq!(
+            scene.stream_expect(),
+            (0, 0),
+            "a floor past the ceiling expects nothing more"
+        );
     }
 
     /// The same guid in two documents stays two objects.

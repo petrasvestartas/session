@@ -15,7 +15,7 @@ pub const SPEC: Spec = Spec {
 
 /// Turn the selection about a world axis.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
-    let (axis, degrees) = axis_and_number(rest, "rotate x 90")?;
+    let (axis, degrees) = axis_and_number(rest, "Rotate x 90")?;
     Ok(Box::new(Rotate { axis, degrees }))
 }
 

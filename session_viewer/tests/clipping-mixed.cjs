@@ -42,7 +42,7 @@ const {chromium} = require('playwright');
     await page.waitForTimeout(500);
     assert.equal((await state()).clipping.fill, 'Solid');
     // Exercise the shared lazy snap collection while requesting the first point.
-    for (const verb of ['clipping_plane', 'Line']) {
+    for (const verb of ['Clipping Plane', 'Line']) {
       await command(verb);
       for (const [x, y] of [[250, 250], [550, 350], [800, 450], [551, 351]]) {
         await page.mouse.move(x, y);
@@ -53,17 +53,17 @@ const {chromium} = require('playwright');
     }
     await command('Arctic On');
     const box = (await state()).clipping.scene_box;
-    await command(`clipping_plane XY ${box.slice(0, 3).join(',')}`);
+    await command(`Clipping Plane XY ${box.slice(0, 3).join(',')}`);
     await command('Escape');
     assert.equal((await state()).clipping.count, 1);
-    await command('clipping_plane Fill Hatch');
+    await command('Clipping Plane Fill Hatch');
     assert.equal((await state()).clipping.fill, 'Hatch');
-    await command('clipping_plane Fill Solid');
+    await command('Clipping Plane Fill Solid');
     assert.equal((await state()).clipping.fill, 'Solid');
     await command('Outline Off');
     assert.equal((await state()).outlines, false);
     assert.equal((await state()).ssao, true);
-    await command('clipping_plane Off');
+    await command('Clipping Plane Off');
     assert.equal((await state()).clipping.enabled, false);
     assert.deepEqual(errors, []);
     console.log('PASS mixed-scene clipping startup, drawing hover, fill options and independent outlines');

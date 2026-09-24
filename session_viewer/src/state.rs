@@ -15,6 +15,7 @@ mod cloud_query;
 mod drag;
 mod drawing;
 pub mod edit;
+mod hydrate;
 pub(crate) mod number_box;
 mod panel;
 mod sheet_query;
@@ -37,40 +38,41 @@ const ELEMENT_OPACITY: f32 = 0.7; // default element opacity
 
 /// Everything the viewer holds: window, GPU, camera, scene, selection.
 pub struct State {
-    pub window: Arc<Window>,                                // the winit window on the canvas
-    pub gpu: Gpu,                                           // device, buffers, pipelines
-    pub camera: Camera,                                     // the view
-    load_camera: crate::camera::CameraPose,                 // the view before loading started
-    pub scene: Scene,                                       // the loaded documents
-    pub needs_frame: bool,                                  // draw again on the next redraw
-    pub interacting: bool,                                  // a drag or pinch is in progress
-    dirty: bool,                                            // the picture changed
-    last_frame_ms: f64,                                     // when the last frame was drawn
-    last_resize_ms: f64,                                    // when the last resize was applied
-    pub selection: SelectionMode,                           // object, edge, face or control points
+    pub window: Arc<Window>,                // the winit window on the canvas
+    pub gpu: Gpu,                           // device, buffers, pipelines
+    pub camera: Camera,                     // the view
+    load_camera: crate::camera::CameraPose, // the view before loading started
+    pub scene: Scene,                       // the loaded documents
+    pub needs_frame: bool,                  // draw again on the next redraw
+    pub interacting: bool,                  // a drag or pinch is in progress
+    dirty: bool,                            // the picture changed
+    last_frame_ms: f64,                     // when the last frame was drawn
+    last_resize_ms: f64,                    // when the last resize was applied
+    pub selection: SelectionMode,           // object, edge, face or control points
     pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
-    hierarchy: crate::app::hierarchy::Hierarchy,            // the tree panel state
-    pending_split: Option<splitting::Pending>,              // a split waiting for its cutter
-    pub(crate) draft: Option<drawing::Draft>,               // a shape being drawn
-    pub(crate) snap_enabled: bool,                          // snap to points while drawing
-    pub(crate) snap_modes: u8,                              // snap kinds switched on, app::snap bits
-    pub(crate) snap_bar: bool,                              // snap toolbar under the command line
-    controls: Controls,                                     // control points of the selected object
-    requested: PickMode,                                    // what the pending pick looks for
-    pub(crate) additive_selection: bool,                    // Shift held: add to the selection
-    pub selection_radius_css: f64,                          // click tolerance in CSS pixels
-    show_selected_names: bool,                              // name label on the selection, T toggles
-    opacity_chosen: bool,                                   // an Opacity command was given
-    cloud_query: Option<crate::app::cloud_query::Query>,    // a point-cloud pick in flight
+    hierarchy: crate::app::hierarchy::Hierarchy, // the tree panel state
+    pending_split: Option<splitting::Pending>, // a split waiting for its cutter
+    pub(crate) draft: Option<drawing::Draft>, // a shape being drawn
+    pub(crate) snap_enabled: bool,          // snap to points while drawing
+    pub(crate) snap_modes: u8,              // snap kinds switched on, app::snap bits
+    pub(crate) snap_bar: bool,              // snap toolbar under the command line
+    controls: Controls,                     // control points of the selected object
+    requested: PickMode,                    // what the pending pick looks for
+    pub(crate) additive_selection: bool,    // Shift held: add to the selection
+    pub selection_radius_css: f64,          // click tolerance in CSS pixels
+    show_selected_names: bool,              // name label on the selection, T toggles
+    opacity_chosen: bool,                   // an Opacity command was given
+    cloud_query: Option<crate::app::cloud_query::Query>, // a point-cloud pick in flight
     #[cfg(target_arch = "wasm32")]
-    query_generation: u64,                                  // counts cloud queries, old answers dropped
-    sheet_query: Option<crate::app::sheet_query::Query>,    // a sheet pick in flight
-    sheet_generation: u64,                                  // counts sheet queries, old answers dropped
-    pub gizmo: Option<crate::app::gizmo::Gizmo>,            // the move/rotate/scale widget
-    dragging: Option<edit::GizmoDrag>,                      // a gizmo drag in progress
-    control_drag: Option<edit::ControlDrag>,                // a control point drag in progress
-    object_drag: Option<drag::ObjectDrag>,                  // a left drag moving objects
-    clip_hidden: usize,                                     // hidden clipping planes still cutting
+    query_generation: u64, // counts cloud queries, old answers dropped
+    sheet_query: Option<crate::app::sheet_query::Query>, // a sheet pick in flight
+    sheet_generation: u64,                  // counts sheet queries, old answers dropped
+    pub gizmo: Option<crate::app::gizmo::Gizmo>, // the move/rotate/scale widget
+    dragging: Option<edit::GizmoDrag>,      // a gizmo drag in progress
+    control_drag: Option<edit::ControlDrag>, // a control point drag in progress
+    object_drag: Option<drag::ObjectDrag>,  // a left drag moving objects
+    clip_hidden: usize,                     // hidden clipping planes still cutting
+    resume: Vec<hydrate::Resume>,           // edits waiting for released documents
 }
 
 impl State {
@@ -117,6 +119,7 @@ impl State {
             control_drag: None,
             object_drag: None,
             clip_hidden: 0,
+            resume: Vec::new(),
         })
     }
 
@@ -131,9 +134,11 @@ impl State {
     }
 
     /// Add one loaded document to the scene.
-    pub fn append(&mut self, doc: FileDoc) {
+    pub fn append(&mut self, doc: FileDoc, source: Option<String>) {
         let t0 = now_ms();
         let first_row = self.scene.row_count(); // rows before this document
+        let index = self.scene.docs.len();
+        crate::app::fonts::need_names(&doc.name, &doc.session);
         self.scene.add_file(doc);
         let t1 = now_ms();
         // only the new rows go to the GPU
@@ -141,6 +146,12 @@ impl State {
         self.camera.grow_extent(&self.gpu.bounds);
         self.annotate_document(first_row);
         self.dim_elements(first_row);
+
+        // a display-only document keeps its rows and tree, not its objects
+        if let Some(url) = source {
+            self.scene.release(index, first_row as u32, url);
+        }
+
         // the layer panel lists the new rows
         self.refresh_layers();
         self.update_label();
@@ -210,6 +221,7 @@ impl State {
         self.sheet_query = None;
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
+        self.resume.clear(); // a waiting Save or F10 belonged to the old scene
         self.scene.clear(&mut self.gpu);
         self.place_gizmo(None);
         self.refresh_layers();
@@ -318,6 +330,7 @@ impl State {
 
     /// Something changed: drop pending picks, draw again.
     pub fn touch(&mut self) {
+        self.fetch_wanted();
         self.cancel_cloud_query();
         self.gpu.pick.cancel();
         self.dirty = true;
@@ -442,7 +455,11 @@ impl State {
         let show = value.unwrap_or(!self.scene.attributes);
         self.scene.attributes = show;
         self.select(None);
-        self.scene.rewalk_editable(&mut self.gpu);
+
+        if !self.scene.rewalk_editable(&mut self.gpu) {
+            self.resume_after(hydrate::Resume::Rewalk);
+        }
+
         self.place_gizmo(None);
         self.refresh_layers();
         self.update_label();
@@ -606,6 +623,11 @@ impl State {
         if self.scene.has_pending() {
             log::warn!("an edit left its rows unsynced");
             self.commit_rows();
+        }
+
+        // snapping asked for a released document
+        if self.scene.wanting() {
+            self.fetch_wanted();
         }
 
         self.update_clipping();
@@ -798,6 +820,17 @@ impl State {
         {
             return;
         }
+        // a released document comes back first
+        if let Some(doc) = self.scene.released_doc(parent) {
+            self.scene.want(doc);
+            self.status(&format!(
+                "Loading '{}' for its control points",
+                self.scene.docs[doc].name
+            ));
+            self.resume_after(hydrate::Resume::Controls(parent));
+            return;
+        }
+
         // the points come from the source geometry
         let controls = match self.scene.geometry(parent) {
             Some(geometry) => Controls::from_geometry(geometry),
@@ -865,7 +898,7 @@ impl State {
                 radius: -3.5 * scale as f32, // negative: a pixel size, not a world size
                 color,
                 instance_id: parent,
-                facing: FACING_UNKNOWN, // no face orientation
+                facing: FACING_UNKNOWN,          // no face orientation
                 facing_ext: [FACING_UNKNOWN; 2], // no neighbour orientation
             });
         }
