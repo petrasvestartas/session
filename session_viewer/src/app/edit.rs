@@ -1,5 +1,6 @@
 use crate::app::layers::newest;
 use crate::app::scene::Scene;
+use crate::app::scene::rows::TEXT;
 use crate::app::scene::sync;
 use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
@@ -122,6 +123,10 @@ impl Scene {
 
     /// Delete one row's object; the caller syncs the rows.
     pub fn delete_row(&mut self, row: u32) -> bool {
+        if self.delete_text(row) {
+            return true;
+        }
+
         let Some((doc, guid)) = self.writable(row) else {
             return false;
         };
@@ -188,6 +193,16 @@ impl Scene {
         }
     }
 
+    /// A text made or deleted is one new edit; `label` is `+key` or `-key`.
+    pub(crate) fn text_edited(&mut self, label: String) {
+        self.redo_steps.clear();
+        self.undo_steps.push(vec![(TEXT, label)]);
+
+        if self.undo_steps.len() > 2 * MAX_STEPS {
+            self.undo_steps.drain(..MAX_STEPS);
+        }
+    }
+
     /// Undo or redo the newest edit in every document it changed; a layer edit one of them forgot stays.
     fn step_history(&mut self, back: bool) -> bool {
         loop {
@@ -203,10 +218,12 @@ impl Scene {
             let held: Vec<(usize, String)> = step
                 .iter()
                 .filter(|(doc, label)| {
-                    self.docs
-                        .get(*doc)
-                        .and_then(|file| newest(&file.session.history, back))
-                        == Some(label.as_str())
+                    *doc == TEXT
+                        || self
+                            .docs
+                            .get(*doc)
+                            .and_then(|file| newest(&file.session.history, back))
+                            == Some(label.as_str())
                 })
                 .cloned()
                 .collect();
@@ -227,8 +244,12 @@ impl Scene {
                 return false;
             }
 
-            for (doc, _) in &held {
-                self.step_document(*doc, back);
+            for (doc, label) in &held {
+                if *doc == TEXT {
+                    self.step_text(label, back);
+                } else {
+                    self.step_document(*doc, back);
+                }
             }
 
             let other = if back {
@@ -299,7 +320,7 @@ impl Scene {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use crate::app::scene::FileDoc;
     use session_rust::{Point, Session};
@@ -557,6 +578,81 @@ mod tests {
         assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
     }
 
+    /// A plane text standing at `x`.
+    pub(crate) fn text(x: f64) -> crate::engine::text::TextLabel {
+        crate::engine::text::TextLabel {
+            id: 0,
+            object: None,
+            text: "Hello".into(),
+            font_size: 18.0,
+            line_height: 26.0,
+            color: [255; 4],
+            placement: crate::engine::text::TextPlacement::WorldPlane {
+                world: [x, 0.0, 0.0],
+                right: [1.0, 0.0, 0.0],
+                up: [0.0, 1.0, 0.0],
+                world_height: 2.0,
+            },
+            clip: None,
+        }
+    }
+
+    /// Undo and redo take a text away and back; Delete retires it as one more step.
+    #[test]
+    fn a_created_text_undoes_redoes_and_deletes() {
+        let mut scene = one_point_twice();
+        let row = scene.add_text(text(1.0));
+        assert_eq!(scene.texts.last().unwrap().key, "created-text/0");
+        assert_eq!(scene.visible_texts().len(), 1);
+        scene.transform_row(0, &Xform::translation(5.0, 0.0, 0.0), "move");
+
+        assert!(scene.undo(), "the move");
+        assert!(scene.undo(), "the text");
+        assert!(scene.visible_texts().is_empty());
+        assert!(scene.redo());
+        assert_eq!(scene.visible_texts().len(), 1);
+
+        assert!(scene.delete_row(row));
+        assert!(scene.visible_texts().is_empty());
+        assert!(!scene.redo(), "a delete leaves nothing to redo");
+        assert!(scene.undo());
+        assert_eq!(scene.visible_texts().len(), 1);
+        assert_eq!(
+            scene.text_rows.len(),
+            5,
+            "every step flags its row for the GPU"
+        );
+        scene.add_text(text(2.0));
+        assert_eq!(scene.texts.last().unwrap().key, "created-text/1");
+    }
+
+    /// Rows of one document replaced together come back with one undo.
+    #[test]
+    fn replace_rows_is_one_undo_step_per_document() {
+        let mut source = Session::new("two");
+        source.add_point(Point::new(0.0, 0.0, 5.0), None);
+        source.add_point(Point::new(1.0, 0.0, 7.0), None);
+        let mut scene = Scene::new();
+        scene.add_file(file("two", Rc::new(source)));
+        let z = |scene: &Scene, row: u32| match scene.geometry(row) {
+            Some(Geometry::Point(point)) => point[2],
+            _ => f64::NAN,
+        };
+        let flat = |x: f64| Geometry::Point(Rc::new(Point::new(x, 0.0, 0.0)));
+        assert_eq!(
+            scene.replace_rows(vec![(0, flat(0.0)), (1, flat(1.0))], "project"),
+            Ok(2)
+        );
+        assert_eq!([z(&scene, 0), z(&scene, 1)], [0.0, 0.0]);
+        assert!(scene.undo());
+        assert_eq!([z(&scene, 0), z(&scene, 1)], [5.0, 7.0]);
+        assert!(!scene.undo(), "one step");
+        assert!(scene.redo());
+        assert_eq!([z(&scene, 0), z(&scene, 1)], [0.0, 0.0]);
+        scene.docs[0].display_only = true;
+        assert!(scene.replace_rows(vec![(0, flat(0.0))], "project").is_err());
+    }
+
     /// A display-only document refuses edits.
     #[test]
     fn a_display_only_document_refuses_the_edit() {
@@ -614,6 +710,41 @@ impl Scene {
 
         self.edited(&[doc]);
         Ok(())
+    }
+
+    /// Replace the geometry of several rows, one undo step for every document they belong to.
+    pub fn replace_rows(
+        &mut self,
+        edits: Vec<(u32, Geometry)>,
+        label: &str,
+    ) -> Result<usize, String> {
+        let mut changes = Vec::new();
+
+        for (row, geometry) in edits {
+            let (doc, guid) = self.writable(row).ok_or(super::scene::READ_ONLY)?;
+            changes.push((doc, guid, geometry));
+        }
+
+        changes.sort_by_key(|(doc, _, _)| *doc);
+        let mut docs: Vec<usize> = changes.iter().map(|(doc, _, _)| *doc).collect();
+        docs.dedup(); // each document once
+        let count = changes.len();
+        let mut changes = changes.into_iter().peekable();
+
+        for &doc in &docs {
+            let session = Rc::make_mut(&mut self.docs[doc].session);
+            session.begin(label);
+
+            while let Some((_, guid, geometry)) = changes.next_if(|(at, _, _)| *at == doc) {
+                session.replace(&guid, geometry);
+            }
+
+            let notes = sync::commit(session);
+            self.noted(doc, notes);
+        }
+
+        self.edited(&docs);
+        Ok(count)
     }
 
     /// Move one control point of an object to a world point.

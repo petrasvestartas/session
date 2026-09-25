@@ -132,7 +132,7 @@ impl Planes {
                 continue;
             }
             // resolution the label needs on screen now
-            let em_pixels = raster_em(&run.label, frame);
+            let em_pixels = raster_em(&run.label, frame).min(fitting_em(run));
             let mut index = None;
 
             for (at, cached) in self.cached.iter().enumerate() {
@@ -394,6 +394,24 @@ fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
     bucket
 }
 
+/// The largest pixels per em, a power of two from 32 to 256, whose raster fits the texture limit.
+fn fitting_em(run: &TextRun) -> u32 {
+    let mut size = 0.0f32;
+
+    for line in run.buffer.layout_runs() {
+        size = size.max(line.line_w).max(line.line_top + line.line_height);
+    }
+
+    let ems = size / run.label.font_size + 3.0; // plus the plate padding and glyph overhang
+    let mut em = 256;
+
+    while em > 32 && ems * em as f32 > 4000.0 {
+        em /= 2;
+    }
+
+    em
+}
+
 /// Draw the label's glyphs into one coverage image.
 fn rasterize(
     run: &TextRun,
@@ -620,6 +638,36 @@ mod tests {
     use super::*;
     use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
     use session_rust::{RenderVertex, Xform};
+
+    /// A long label rasterizes at a resolution that fits; a short one keeps the sharpest.
+    #[test]
+    fn long_labels_rasterize_within_the_texture_limit() {
+        let label = |id: u32, text: &str| TextLabel {
+            object: None,
+            id,
+            text: text.into(),
+            font_size: 18.0,
+            line_height: 26.0,
+            color: [255; 4],
+            placement: TextPlacement::WorldPlane {
+                world: [0.0; 3],
+                right: [1.0, 0.0, 0.0],
+                up: [0.0, 1.0, 0.0],
+                world_height: 1.0,
+            },
+            clip: None,
+        };
+        let mut document = TextDocument::new();
+        document
+            .set_labels(vec![label(1, &"W".repeat(80)), label(2, "Hi")])
+            .unwrap();
+        let (long, short) = (&document.runs[0], &document.runs[1]);
+        let em = fitting_em(long);
+        let mut raster = SwashCache::new();
+        let (_, size, _) = rasterize(long, &mut document.fonts, &mut raster, em).unwrap();
+        assert!(size[0] <= 4096 && size[1] <= 4096, "{size:?} at {em}");
+        assert_eq!(fitting_em(short), 256);
+    }
 
     #[test]
     #[ignore = "requires a native GPU adapter"]

@@ -1,6 +1,6 @@
 use crate::app::scene::rows::{Note, PLACE, PRESENCE, SUBTREE};
 use crate::app::scene::{FileDoc, Scene, Shape, sync};
-use session_rust::{Geometry, History, Session, Tree, TreeNode, Xform};
+use session_rust::{Edge, Geometry, History, Session, Tree, TreeNode, Xform};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -183,6 +183,12 @@ pub struct LayerStep {
 }
 
 impl Scene {
+    /// The tree node holding the object `guid` of `doc`, when it hangs from the tree.
+    pub(crate) fn parent_of(&self, doc: usize, guid: &str) -> Option<Node> {
+        let (node, in_tree) = self.node_of(self.row_of(doc, guid)?)?;
+        in_tree.then(|| node.borrow().parent()).flatten()
+    }
+
     /// The layer new objects go to: the chosen one while it exists, else the `Created` root.
     pub fn current_layer(&self) -> Option<(usize, String)> {
         if let Some((doc, name)) = &self.current_layer
@@ -240,6 +246,37 @@ impl Scene {
 
         self.current_layer = Some((doc, name.to_string()));
         Ok(())
+    }
+
+    /// The rows a viewport click on `row` selects: every object of its outermost group, else the row.
+    pub fn group_rows(&self, row: u32) -> Vec<u32> {
+        if self.groups.is_empty() {
+            return vec![row];
+        }
+
+        let Some((doc, _)) = self.identity_of(row) else {
+            return vec![row];
+        };
+        let Some((node, true)) = self.node_of(row) else {
+            return vec![row];
+        };
+        // ancestors run parent first, so the last group found is the outermost
+        let outer = node.borrow().ancestors().into_iter().rev().find(|ancestor| {
+            let ancestor = ancestor.borrow();
+            ancestor.has_guid() && self.groups.contains(&(doc, Rc::from(ancestor.guid())))
+        });
+        let Some(outer) = outer else {
+            return vec![row];
+        };
+        let mut rows: Vec<u32> = outer
+            .borrow()
+            .descendants()
+            .iter()
+            .filter_map(|member| self.row_of(doc, &member.borrow().name))
+            .collect();
+        rows.sort_unstable();
+        rows.dedup();
+        rows
     }
 
     /// True when the layer is current or holds the current one.
@@ -551,7 +588,7 @@ impl Scene {
     }
 
     /// Note objects or layers a tree edit moved: they and everything below are placed and judged again.
-    fn touched(&mut self, doc: usize, names: &[String]) {
+    pub(crate) fn touched(&mut self, doc: usize, names: &[String]) {
         let notes = names
             .iter()
             .map(|name| Note::new(name, PLACE | PRESENCE | SUBTREE))
@@ -612,7 +649,7 @@ impl Scene {
     }
 
     /// Give a copy the colors of its original, and its lock and visibility when `all`.
-    fn inherit(&mut self, from: &(usize, Rc<str>), to: &(usize, Rc<str>), all: bool) {
+    pub(crate) fn inherit(&mut self, from: &(usize, Rc<str>), to: &(usize, Rc<str>), all: bool) {
         if let Some(color) = self.colors.get(from).copied() {
             self.colors.insert(to.clone(), color);
         }
@@ -631,13 +668,13 @@ impl Scene {
     }
 
     /// A new undo label for one layer edit.
-    fn step_key(&mut self, label: &str) -> Result<String, String> {
+    pub(crate) fn step_key(&mut self, label: &str) -> Result<String, String> {
         self.layer_steps += 1;
         Ok(format!("{label} #{}", self.layer_steps))
     }
 
     /// Run one layer edit of document `doc` as the undo step `key`, keeping its tree for undo.
-    fn layer_step<T>(
+    pub(crate) fn layer_step<T>(
         &mut self,
         doc: usize,
         key: &str,
@@ -776,6 +813,13 @@ impl Scene {
 
         let Some(step) = self.layer_trees.get_mut(&(doc, label.clone())) else {
             let stepped = if back { session.undo() } else { session.redo() };
+
+            // the kernel records no graph edit: the added edge goes or comes back here
+            if stepped && let Some(step) = self.edge_steps.get(&(doc, label.clone())) {
+                put_edge(session, step, back);
+                self.row_revision = self.row_revision.wrapping_add(1);
+            }
+
             let notes = match stepped {
                 true => sync::stepped(&session.history, back, true),
                 false => Vec::new(),
@@ -829,8 +873,65 @@ struct Part {
     color: Option<session_rust::Color>, // its node color
 }
 
+/// The graph edge one Add Edge step made, and the vertices it made for it.
+#[derive(Debug)]
+pub(crate) struct EdgeStep {
+    pub edge: Edge,            // the edge, its guid kept for redo
+    pub vertices: Vec<String>, // vertices the step added, in order
+}
+
+/// Take away the edge a step added and its new vertices (`back`), or put them back.
+fn put_edge(session: &mut Session, step: &EdgeStep, back: bool) {
+    let graph = &mut session.graph;
+    let (from, to) = (step.edge.v0.as_str(), step.edge.v1.as_str());
+
+    if !back {
+        for vertex in &step.vertices {
+            graph.add_node(vertex, "");
+        }
+
+        let mut edge = step.edge.clone();
+        edge.index = graph.edge_count;
+        graph
+            .edges
+            .entry(to.to_string())
+            .or_default()
+            .insert(from.to_string(), edge.clone());
+        graph
+            .edges
+            .entry(from.to_string())
+            .or_default()
+            .insert(to.to_string(), edge);
+        graph.edge_count += 1;
+        return;
+    }
+
+    let index = graph
+        .edges
+        .get(from)
+        .and_then(|edges| edges.get(to))
+        .map(|edge| edge.index);
+
+    // the newest edge leaves without renumbering the others
+    if index == Some(graph.edge_count - 1) {
+        for (a, b) in [(from, to), (to, from)] {
+            if let Some(edges) = graph.edges.get_mut(a) {
+                edges.remove(b);
+            }
+        }
+
+        graph.edge_count -= 1;
+    } else {
+        graph.remove_edge((from, to));
+    }
+
+    for vertex in &step.vertices {
+        graph.remove_node(vertex);
+    }
+}
+
 /// True when document `doc` can still undo or redo the step `label`.
-fn in_history(docs: &[FileDoc], doc: usize, label: &str) -> bool {
+pub(crate) fn in_history(docs: &[FileDoc], doc: usize, label: &str) -> bool {
     docs.get(doc).is_some_and(|file| {
         let history = &file.session.history;
         history
@@ -906,7 +1007,7 @@ pub(crate) fn place(session: &mut Session, guid: &str, back: &Xform, world: &Xfo
 }
 
 /// Every node of a session by name; object guids are unique.
-fn index(session: &Session) -> HashMap<String, Node> {
+pub(crate) fn index(session: &Session) -> HashMap<String, Node> {
     let mut nodes = HashMap::new();
 
     for node in session.tree.nodes() {
@@ -918,7 +1019,7 @@ fn index(session: &Session) -> HashMap<String, Node> {
 }
 
 /// A node's placement in its document: its own transform and every ancestor's.
-fn placement(session: &Session, node: &Node) -> Xform {
+pub(crate) fn placement(session: &Session, node: &Node) -> Xform {
     let node = node.borrow();
     let mut world = session.xform(&node.name);
 
@@ -1049,6 +1150,40 @@ fn build(
 
     let top = nodes.first().cloned().ok_or("Nothing to copy")?;
     Ok((top, guids))
+}
+
+/// `node` as a node of `session`: a session copied for the edit has nodes of its own, found by their path.
+pub(crate) fn owned(session: &Session, node: Option<Node>) -> Option<Node> {
+    let node = node?;
+    let mut path = Vec::new(); // child indices from the root down
+    let mut top = Rc::clone(&node);
+
+    loop {
+        let parent = top.borrow().parent();
+        let Some(parent) = parent else {
+            break;
+        };
+        let index = parent
+            .borrow()
+            .children()
+            .iter()
+            .position(|child| Rc::ptr_eq(child, &top))?;
+        path.push(index);
+        top = parent;
+    }
+
+    let mut found = session.tree.root()?;
+
+    if Rc::ptr_eq(&found, &top) {
+        return Some(node);
+    }
+
+    for &index in path.iter().rev() {
+        let child = found.borrow().children().get(index).cloned()?;
+        found = child;
+    }
+
+    Some(found)
 }
 
 /// Add a geometry under `parent`, keeping its guid or with a fresh one.

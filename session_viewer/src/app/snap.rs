@@ -254,7 +254,7 @@ pub fn of_geometry(
             from_loop(&points, owner, out);
             wires.push((points, owner));
         }
-        Geometry::Mesh(_) | Geometry::BRep(_) | Geometry::NurbsSurface(_) => {
+        Geometry::Mesh(_) | Geometry::BRep(_) | Geometry::NurbsSurface(_) | Geometry::Element(_) => {
             let controls = Controls::from_geometry(geometry);
             let points: Vec<_> = controls
                 .points
@@ -281,22 +281,30 @@ pub fn of_geometry(
 pub fn control_count(geometry: &Geometry) -> usize {
     match geometry {
         Geometry::Mesh(mesh) => mesh.vertex.len(),
-        Geometry::BRep(brep) => {
-            brep.m_vertices.len()
-                + brep
-                    .m_curves_3d
-                    .iter()
-                    .map(NurbsCurve::cv_count)
-                    .sum::<usize>()
-                + brep
-                    .m_surfaces
-                    .iter()
-                    .map(NurbsSurface::cv_count_total)
-                    .sum::<usize>()
-        }
+        Geometry::BRep(brep) => brep_control_count(brep),
         Geometry::NurbsSurface(surface) => surface.cv_count_total(),
+        Geometry::Element(element) => match element.geometry() {
+            session_rust::element::ElementGeometry::Mesh(mesh) => mesh.vertex.len(),
+            session_rust::element::ElementGeometry::BRep(brep) => brep_control_count(brep),
+            session_rust::element::ElementGeometry::None => 0,
+        },
         _ => 0,
     }
+}
+
+/// Control points a BRep offers: vertices, then curve and surface nets.
+fn brep_control_count(brep: &session_rust::BRep) -> usize {
+    brep.m_vertices.len()
+        + brep
+            .m_curves_3d
+            .iter()
+            .map(NurbsCurve::cv_count)
+            .sum::<usize>()
+        + brep
+            .m_surfaces
+            .iter()
+            .map(NurbsSurface::cv_count_total)
+            .sum::<usize>()
 }
 
 /// The best candidate of an enabled mode within `aperture` pixels of the cursor.
@@ -396,6 +404,12 @@ impl Screen {
     /// A world point in pixels, None behind the eye.
     pub fn point(&self, p: &Point) -> Option<(f64, f64)> {
         let clip = self.clip([p[0], p[1], p[2]]);
+        (clip[3] > 0.0).then(|| self.pixel(clip))
+    }
+
+    /// World coordinates in pixels, None behind the eye.
+    pub fn xyz(&self, p: [f64; 3]) -> Option<(f64, f64)> {
+        let clip = self.clip(p);
         (clip[3] > 0.0).then(|| self.pixel(clip))
     }
 

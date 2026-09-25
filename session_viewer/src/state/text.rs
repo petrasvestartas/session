@@ -33,6 +33,15 @@ impl State {
         self.scene.set_document_title(label, &mut self.gpu);
     }
 
+    /// Add a text object as one undo step and draw it.
+    pub(crate) fn add_text(&mut self, label: TextLabel) {
+        self.scene.add_text(label);
+        self.scene.upload_to(&mut self.gpu);
+        self.scene.flag_texts(&mut self.gpu);
+        self.update_label();
+        self.touch();
+    }
+
     /// Draw the labels with the whole fonts, main font first.
     pub fn use_fonts(&mut self, faces: [&'static [u8]; 3]) {
         let sources = faces
@@ -49,7 +58,7 @@ impl State {
     }
 
     /// Send the scene texts plus the selection's name label to the GPU.
-    pub(super) fn update_label(&mut self) {
+    pub(crate) fn update_label(&mut self) {
         let mut labels = self.scene.visible_texts();
 
         // the name of the selected object, at its center

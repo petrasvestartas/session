@@ -226,6 +226,7 @@ impl ApplicationHandler<Msg> for App {
                 state.scene = *scene;
                 state.scene.upload_to(&mut state.gpu);
                 state.scene.restore_text_visibility(&mut state.gpu);
+                state.update_label(); // the saved texts reach the GPU
                 state.fit_all();
                 state.refresh_layers();
                 state.touch();
@@ -269,7 +270,18 @@ impl ApplicationHandler<Msg> for App {
                 state.request_frame();
             }
 
-            if consumed {
+            // a command following a left drag, e.g. a lasso, keeps the pointer over panels too
+            let held = self.input.tool_held()
+                && matches!(
+                    event,
+                    WindowEvent::CursorMoved { .. }
+                        | WindowEvent::MouseInput {
+                            button: winit::event::MouseButton::Left,
+                            ..
+                        }
+                );
+
+            if consumed && !held {
                 // a release inside a panel ends any viewer drag
                 if matches!(
                     event,

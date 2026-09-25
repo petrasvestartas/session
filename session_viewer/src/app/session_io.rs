@@ -34,6 +34,8 @@ struct Metadata {
     #[serde(default)]
     edge_colors: Option<Vec<(usize, String, [u8; 3])>>, // edge colour overrides, None in old files
     texts: Vec<(String, TextLabel, bool)>, // (key, label, active)
+    #[serde(default)]
+    groups: Vec<(usize, String)>, // (document, tree node guid) of each group
 }
 
 /// One document's name and placement.
@@ -88,6 +90,12 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
         .map(|((doc, id), color)| (*doc, id.to_string(), *color))
         .collect();
     colors.sort();
+    let mut groups: Vec<_> = scene
+        .groups
+        .iter()
+        .map(|(doc, id)| (*doc, id.to_string()))
+        .collect();
+    groups.sort();
     let metadata = Metadata {
         created_doc: scene.created_doc,
         current_layer: scene.current_layer.clone(),
@@ -117,6 +125,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
             .iter()
             .map(|t| (t.key.clone(), t.label.clone(), t.active))
             .collect(),
+        groups,
     };
     let archive = Archive {
         documents,
@@ -166,6 +175,11 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
         .collect();
     scene.locked = metadata
         .locked
+        .into_iter()
+        .map(|(doc, id)| (doc, Rc::from(id)))
+        .collect();
+    scene.groups = metadata
+        .groups
         .into_iter()
         .map(|(doc, id)| (doc, Rc::from(id)))
         .collect();
@@ -271,6 +285,28 @@ mod tests {
     use super::*;
     use crate::app::deform::Target;
     use session_rust::{Geometry, Mesh, Point};
+
+    /// A created text keeps its key, placement and shown flag; an undone one reopens hidden.
+    #[test]
+    fn a_created_text_survives_save_and_open() {
+        let mut scene = Scene::new();
+        scene.add_text(crate::app::edit::tests::text(1.0));
+        scene.add_text(crate::app::edit::tests::text(2.0));
+        assert!(scene.undo());
+        let restored = open(&save(&scene).unwrap()).unwrap();
+        let texts: Vec<_> = restored
+            .texts
+            .iter()
+            .map(|text| (text.key.as_str(), &text.label.placement, text.active))
+            .collect();
+        let shown: Vec<_> = scene
+            .texts
+            .iter()
+            .map(|text| (text.key.as_str(), &text.label.placement, text.active))
+            .collect();
+        assert_eq!(texts, shown);
+        assert_eq!(restored.visible_texts().len(), 1);
+    }
 
     /// A created line keeps its screen pen after reopening.
     #[test]

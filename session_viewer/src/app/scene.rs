@@ -232,10 +232,13 @@ pub struct Scene {
     pub(crate) row_revision: u64,                     // bumped when rows come or go
     pub(crate) current_layer: Option<(usize, String)>, // (document, tree node) new objects go to
     pub(crate) layer_trees: HashMap<(usize, String), crate::app::layers::LayerStep>, // kept tree per (document, layer step)
-    pub(crate) layer_steps: u64, // layer steps made, for unique labels
+    pub(crate) layer_steps: u64,    // layer steps made, for unique labels
+    pub(crate) edge_steps: HashMap<(usize, String), crate::app::layers::EdgeStep>, // edge each (document, step) added
+    pub(crate) groups: HashSet<(usize, Rc<str>)>, // (document, tree node guid) of each group
+    pub(crate) text_rows: Vec<u32>, // text rows an undo, redo or delete showed or hid, for the GPU
     pub(crate) released: HashMap<usize, Released>, // documents drawn without their kernel objects
-    asked: RefCell<Vec<usize>>,  // released documents a read-only path needs
-    stream_ceiling: u32,         // most streamed points on the page
+    asked: RefCell<Vec<usize>>,     // released documents a read-only path needs
+    stream_ceiling: u32,            // most streamed points on the page
     #[cfg(test)]
     pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
     #[cfg(test)]
@@ -301,6 +304,9 @@ impl Scene {
             current_layer: None,
             layer_trees: HashMap::new(),
             layer_steps: 0,
+            edge_steps: HashMap::new(),
+            groups: HashSet::new(),
+            text_rows: Vec::new(),
             released: HashMap::new(),
             asked: RefCell::new(Vec::new()),
             stream_ceiling: 0,
@@ -318,11 +324,14 @@ impl Scene {
         self.redo_steps.clear();
         self.current_layer = None;
         self.layer_trees.clear();
+        self.edge_steps.clear();
+        self.groups.clear();
         self.released.clear();
         self.asked.borrow_mut().clear();
         self.docs.clear();
         self.doc_state.clear();
         self.texts.clear();
+        self.text_rows.clear();
         self.hidden.clear();
         self.locked.clear();
         self.colors.clear();
@@ -1085,6 +1094,14 @@ mod tests {
             point_px: 0.0,
             display_only,
         }
+    }
+
+    /// A created text is an edit: the GPU anchor stays where it was.
+    #[test]
+    fn a_created_text_keeps_the_anchor() {
+        let mut scene = Scene::new();
+        scene.add_text(crate::app::edit::tests::text(1.0));
+        assert!(!scene.loaded);
     }
 
     /// A streamed cloud's first slice of `resident` of `count` points, normals when `normals`.

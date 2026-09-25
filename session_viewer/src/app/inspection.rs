@@ -82,6 +82,8 @@ pub fn publish(state: &State) {
             .collect::<Vec<_>>()
     );
     snapshot["drawing"] = state.drawing_status();
+    snapshot["tool"] = state.tool_status();
+    snapshot["mark"] = state.mark_status();
     snapshot["clipping"] = state.clipping_status();
     snapshot["object_drag"] = state.object_drag_status();
     snapshot["number_box"] = serde_json::json!(state.number_prompt().map(|prompt| {
@@ -113,6 +115,14 @@ pub fn publish(state: &State) {
             },
             _ => None,
         }));
+    snapshot["selected_kind"] = serde_json::json!(
+        parent.and_then(|row| state.scene.geometry(row).map(kind))
+    );
+    snapshot["selected_bounds"] = serde_json::json!(parent.and_then(|row| {
+        let b = state.gpu.objects.row_bounds(row)?;
+        Some([[b.cx - b.hx, b.cy - b.hy, b.cz - b.hz], [b.cx + b.hx, b.cy + b.hy, b.cz + b.hz]])
+    }));
+    snapshot["selected_geometry"] = parent.map_or(serde_json::Value::Null, |row| shape(state, row));
     snapshot["scene_revision"] = serde_json::json!(state.scene.row_revision);
     let (dead_rows, free_rows, dead_bytes, graves, compactions) = state.scene.row_counters();
     snapshot["dead_rows"] = serde_json::json!(dead_rows);
@@ -123,6 +133,37 @@ pub fn publish(state: &State) {
     snapshot["row_table_bytes"] = serde_json::json!(state.scene.row_table_bytes());
     snapshot["preview_cache_bytes"] = serde_json::json!(state.scene.preview_cache_bytes());
     let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string());
+}
+
+/// A surface's degrees, control counts, closure and world middle; a BRep's faces and solidity.
+#[cfg(target_arch = "wasm32")]
+fn shape(state: &State, row: u32) -> serde_json::Value {
+    let place = state.scene.placement_of(row).unwrap_or_default();
+
+    match state.scene.geometry(row) {
+        Some(session_rust::Geometry::NurbsSurface(surface)) => {
+            let middle = surface.domain(0).zip(surface.domain(1)).and_then(|(u, v)| {
+                surface.point_at((u.0 + u.1) / 2.0, (v.0 + v.1) / 2.0)
+            });
+            serde_json::json!({
+                "kind": "NurbsSurface",
+                "degree": [surface.degree(0), surface.degree(1)],
+                "cv_count": [surface.cv_count(0), surface.cv_count(1)],
+                "closed": [surface.is_closed(0), surface.is_closed(1)],
+                "mid": middle.map(|p| {
+                    let p = p.transformed(&place);
+                    [p[0], p[1], p[2]]
+                }),
+            })
+        }
+        Some(session_rust::Geometry::BRep(brep)) => serde_json::json!({
+            "kind": "BRep",
+            "faces": brep.face_count(),
+            "solid": brep.is_solid(),
+        }),
+        Some(geometry) => serde_json::json!({ "kind": kind(geometry) }),
+        None => serde_json::Value::Null,
+    }
 }
 
 /// Document index and guid of the selected row.
@@ -192,4 +233,24 @@ fn text_labels(state: &State) -> Vec<serde_json::Value> {
     }
 
     labels
+}
+
+/// The geometry's variant name, e.g. `BRep`.
+#[cfg(target_arch = "wasm32")]
+fn kind(geometry: &session_rust::Geometry) -> &'static str {
+    use session_rust::Geometry;
+
+    match geometry {
+        Geometry::OBB(_) => "OBB",
+        Geometry::BRep(_) => "BRep",
+        Geometry::Element(_) => "Element",
+        Geometry::Line(_) => "Line",
+        Geometry::Mesh(_) => "Mesh",
+        Geometry::NurbsCurve(_) => "NurbsCurve",
+        Geometry::NurbsSurface(_) => "NurbsSurface",
+        Geometry::Plane(_) => "Plane",
+        Geometry::Point(_) => "Point",
+        Geometry::PointCloud(_) => "PointCloud",
+        Geometry::Polyline(_) => "Polyline",
+    }
 }

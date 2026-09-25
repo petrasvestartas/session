@@ -12,7 +12,7 @@ pub const SPEC: Spec = Spec {
     parse,
 };
 
-/// Clear the selection.
+/// Cancel the running command, else clear the selection.
 fn parse(_verb: &str, _rest: &[&str]) -> Result<Box<dyn Action>, String> {
     Ok(Box::new(Escape))
 }
@@ -21,9 +21,19 @@ fn parse(_verb: &str, _rest: &[&str]) -> Result<Box<dyn Action>, String> {
 struct Escape;
 
 impl Action for Escape {
-    /// Drop the selection and any gesture.
+    /// Cancel a running command and keep the selection; with none running, drop the selection.
     fn run(&self, state: &mut State) -> Result<String, String> {
+        if state.draft.is_some() {
+            state.cancel_drawing();
+            return Ok("cancelled".into());
+        }
+
         state.escape_selection();
         Ok("selection cleared".into())
+    }
+
+    /// The draft is its to cancel.
+    fn keeps_draft(&self) -> bool {
+        true
     }
 }

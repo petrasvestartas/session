@@ -21,6 +21,7 @@ pub struct GizmoDrag {
 impl State {
     /// Put the gizmo at the center of the selection, or remove it.
     pub fn place_gizmo(&mut self, row: Option<u32>) {
+        let row = row.filter(|_| !self.tool_running()); // hidden while a tool asks for points
         // no box, no gizmo
         let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else {
             self.gizmo = None;
@@ -282,6 +283,7 @@ impl State {
     /// Drop a drag that will never be released; everything goes back.
     pub fn cancel_gesture(&mut self) {
         self.cancel_object_drag();
+        self.tool_abandon(); // a running tool's drag, e.g. a lasso loop
 
         if let Some(active) = self.dragging.take() {
             if let Some(preview) = active.mesh_preview.as_ref() {
@@ -358,9 +360,15 @@ impl State {
 
     /// After an undo, redo or delete: sync the rows, drop the selection.
     pub(crate) fn after_history(&mut self) {
+        // a tool's preview and bases belong to the documents as they were
+        if self.tool_running() {
+            self.cancel_drawing();
+        }
+
         self.hierarchy.page = 0;
         self.selection = SelectionMode::Object;
         self.select(None);
+        self.scene.flag_texts(&mut self.gpu);
         self.commit_rows();
         self.place_gizmo(None);
     }
@@ -522,6 +530,7 @@ impl State {
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
         let line = &crate::app::command::canonical(line); // `poly line` runs Polyline
         self.cancel_gesture();
+        self.mark = None;
         // while drawing, points and Enter go to the draft
         if let Some(result) = self.drawing_command(line) {
             return result;
@@ -529,15 +538,16 @@ impl State {
         let action = crate::app::command::parse(line)?;
 
         if !action.keeps_draft() {
-            self.draft = None;
+            self.cancel_drawing();
         }
 
         if !action.keeps_split() {
             self.cancel_split();
         }
 
+        // Rhino-like: pick the objects first, Enter runs the command
         if action.needs_selection() && self.scene.selected.is_none() {
-            return Err("nothing is selected".into());
+            return self.ask_for_objects(line);
         }
 
         action.run(self)
@@ -638,11 +648,6 @@ impl State {
                 .map(|id| id.1)
                 .unwrap_or_default()
         };
-        // the object's own name, else the start of its guid; kernel defaults are no names
-        let label = |row| match self.scene.geometry(row).map(session_rust::Geometry::name) {
-            Some(name) if !name.trim().is_empty() && !name.starts_with("my_") => name.to_string(),
-            _ => guid(row).chars().take(8).collect(),
-        };
         // rows only while the table is unfolded
         let open = crate::app::feedback::graph_open();
         let edges = self
@@ -652,14 +657,25 @@ impl State {
             .take(if open { MAX_EDGE_ROWS } else { 0 })
             .map(|&[from, to]| crate::app::feedback::EdgeRow {
                 key: format!("pair/{from}/{to}"),
-                from: label(from),
-                to: label(to),
+                from: edge_label(&self.scene, from),
+                to: edge_label(&self.scene, to),
                 guids: format!("From {}\nTo {}", guid(from), guid(to)), // the panel font has no arrow
                 selected: selected.binary_search(&from).is_ok()
                     && selected.binary_search(&to).is_ok(),
             })
             .collect();
         crate::app::feedback::graph_panel(edges, self.hierarchy.edges.len());
+    }
+}
+
+/// An edge end in the graph table: the object's own name, else the start of its guid.
+fn edge_label(scene: &crate::app::scene::Scene, row: u32) -> String {
+    match scene.geometry(row).map(session_rust::Geometry::name) {
+        Some(name) if !name.trim().is_empty() => name.to_string(),
+        _ => scene
+            .identity_of(row)
+            .map(|id| id.1.chars().take(8).collect())
+            .unwrap_or_default(),
     }
 }
 
@@ -939,6 +955,31 @@ mod tests {
             red > 10 && green > 10 && blue > 10,
             "three coloured arms: red {red}, green {green}, blue {blue}, of {changed} changed"
         );
+    }
+
+    /// The graph table shows an object's name as the tree does, and a short guid when it has none.
+    #[test]
+    fn an_edge_end_is_named_like_its_tree_row() {
+        use crate::app::scene::{FileDoc, Scene};
+        use session_rust::Session;
+        use std::rc::Rc;
+
+        let mut session = Session::new("site");
+        session.add_point(Point::new(0.0, 0.0, 0.0), None);
+        let mut blank = Point::new(1.0, 0.0, 0.0);
+        blank.name = String::new();
+        session.add_point(blank, None);
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "site".into(),
+            session: Rc::new(session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        assert_eq!(edge_label(&scene, 0), "my_point");
+        let guid = scene.identity_of(1).unwrap().1;
+        assert_eq!(edge_label(&scene, 1), guid[..8]);
     }
 
     /// A CSS pixel is the same scene length on a 1x and a 2x display.

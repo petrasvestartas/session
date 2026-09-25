@@ -46,7 +46,7 @@ function project(s,p) { const v=p.map((n,i)=>n-s.origin[i]); const c=[0,1,2,3].m
    ['Sn','Snap','Space',['On','Off','End','Near','Mid','Center','Perp']],
    ['Ar','Arctic','Enter',['On','Off']],
    ['Out','Outline','Enter',['On','Off']],
-   ['Ro','Rotate','Enter',['x','y','z']],
+   ['Op','Opacity','Enter',['1','0.7','0.4','0']],
  ]) {
    await control(page,'command/input'); await page.keyboard.type(prefix); await settle(page);
    assert.equal((await ui(page)).command,name);

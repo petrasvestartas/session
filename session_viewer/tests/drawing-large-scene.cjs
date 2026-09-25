@@ -8,7 +8,8 @@ async function settle(page) {
   await page.waitForTimeout(750);
   await page.waitForFunction(() => !JSON.parse(document.querySelector('canvas').getAttribute('data-viewer-inspection')).pick_busy);
 }
-async function command(page, text) {
+/** Type a command and press Enter; with `objects`, return the ms from Enter until the scene holds that many. */
+async function command(page, text, objects) {
   await page.bringToFront();
   await page.locator('canvas').focus();
   const input = (await snapshot(page, 'ui')).controls.find(c => c.key === 'command/input').rect;
@@ -16,8 +17,14 @@ async function command(page, text) {
   await settle(page);
   await page.keyboard.press('Control+a');
   await page.keyboard.type(text);
+  const entered = Date.now();
   await page.keyboard.press('Enter');
+  if (objects !== undefined) {
+    await page.waitForFunction(n => JSON.parse(document.querySelector('canvas').getAttribute('data-viewer-inspection')).objects === n, objects, {polling: 'raf'});
+  }
+  const elapsed = Date.now() - entered;
   await settle(page);
+  return elapsed;
 }
 
 (async () => {
@@ -60,9 +67,7 @@ async function command(page, text) {
 
       for (const [verb, change] of [['Delete', -1], ['Undo', 1], ['Redo', -1], ['Undo', 1]]) {
         const count = (await snapshot(page, 'inspection')).objects;
-        const began = Date.now();
-        await command(page, verb);
-        timed[verb] = Date.now() - began - 750; // settle waits 750 ms
+        timed[verb] = await command(page, verb, count + change);
         assert.equal((await snapshot(page, 'inspection')).objects, count + change, verb);
         assert(timed[verb] < 250, `${verb} took ${timed[verb]} ms`);
       }

@@ -5,21 +5,52 @@ use crate::app::{
     cplane::CPlane,
     snap::{self, SnapKind},
 };
-use session_rust::{Point, Polyline, Vector};
+use crate::app::command::tool::Tool;
+use session_rust::{Plane, Point, Polyline, Vector, Xform};
 
 /// A shape being drawn, or points being picked for a command, not yet in the scene.
 pub(crate) struct Draft {
-    verb: String,                  // point, line, polyline, curve, or the command asking
-    prefix: String,                // what the points complete, e.g. `Clipping Plane XY`
-    needed: usize,                 // points that finish it; 0 = Enter finishes
+    pub(super) verb: String, // point, line, polyline, curve, select, or the command asking
+    prefix: String,          // what the points complete, e.g. `Clipping Plane XY`
+    needed: usize,           // points that finish it; 0 = Enter finishes
     prompts: &'static [&'static str], // what each point is for, when a command asked
-    construction: String,          // points, rectangle or polygon
-    sides: usize,                  // polygon side count
-    points: Vec<Point>,            // the points placed so far
-    plane: CPlane,                 // the plane clicks land on
-    targets: Option<Targets>,      // nearby scene snaps, collected on demand
-    hover: Option<Point>,          // where the cursor is now, in the scene
-    snapped: Option<SnapKind>,     // what the cursor snapped to
+    construction: String,    // points, rectangle or polygon
+    sides: usize,            // polygon side count
+    pub(super) points: Vec<Point>, // the points placed so far
+    plane: CPlane,           // the plane clicks land on
+    pub(super) frame: Plane, // that plane as axes, z toward the viewer
+    pub(super) targets: Option<Targets>, // nearby scene snaps, collected on demand
+    pub(super) hover: Option<Point>, // where the cursor is now, in the scene
+    pub(super) snapped: Option<SnapKind>, // what the cursor snapped to
+    pub(super) tool: Option<Box<dyn Tool>>, // the command asking, when it is a tool
+    pub(super) then: Option<String>, // a `select` draft runs this line once objects are picked
+    pub(super) group: Vec<(u32, Xform)>, // rows a tool previews and their placements
+    pub(super) moved: bool,  // those rows show a preview
+}
+
+impl Draft {
+    /// Nothing placed yet, points landing on `plane`.
+    pub(super) fn new(verb: &str, prefix: &str, plane: CPlane) -> Self {
+        let (x, y) = axes(plane);
+        Self {
+            verb: verb.into(),
+            prefix: prefix.into(),
+            needed: 0,
+            prompts: &[],
+            construction: "points".into(),
+            sides: 6,
+            points: Vec::new(),
+            plane,
+            frame: Plane::new(Point::new(0.0, 0.0, 0.0), x, y),
+            targets: None,
+            hover: None,
+            snapped: None,
+            tool: None,
+            then: None,
+            group: Vec::new(),
+            moved: false,
+        }
+    }
 }
 
 impl State {
@@ -41,28 +72,19 @@ impl State {
             && (construction.is_some() || words.len() < if verb == "point" { 2 } else { 3 })
         {
             let start = if construction.is_some() { 2 } else { 1 }; // where the points begin
+            self.cancel_drawing();
             self.cancel_split();
-            // draw on the plane the camera faces most
-            let plane = CPlane::facing(&self.camera.orientation.rotate_vector(Vector::y_axis()));
             let needed = match verb.as_str() {
                 "point" => 1,
                 "line" => 2,
                 _ if construction.as_deref().is_some_and(|kind| kind != "points") => 2,
                 _ => 0,
             };
-            self.draft = Some(Draft {
-                prefix: verb.clone(),
-                verb,
-                needed,
-                prompts: &[],
-                construction: construction.unwrap_or_else(|| "points".into()),
-                sides: 6,
-                points: Vec::new(),
-                plane,
-                targets: None,
-                hover: None,
-                snapped: None,
-            });
+            // draw on the plane the camera faces most
+            let mut draft = Draft::new(&verb, &verb, self.facing());
+            draft.needed = needed;
+            draft.construction = construction.unwrap_or_else(|| "points".into());
+            self.draft = Some(draft);
             self.gpu.pick.cancel();
             // points typed on the same line count already
             return Some(if words.len() > start {
@@ -71,7 +93,14 @@ impl State {
                 Ok(self.drawing_prompt())
             });
         }
-        let draft = self.draft.as_ref()?; // not drawing: not ours
+        self.draft.as_ref()?; // not drawing: not ours
+
+        // a tool or an object pick takes its own words
+        if let Some(result) = self.tool_command(text) {
+            return Some(result);
+        }
+
+        let draft = self.draft.as_ref()?;
 
         // one word naming an option of the verb asking switches to it, e.g. XY
         if let [word] = words.as_slice()
@@ -113,24 +142,20 @@ impl State {
         prefix: &str,
         prompts: &'static [&'static str],
     ) -> String {
+        self.cancel_drawing();
         self.cancel_split();
         // points land on the plane the camera faces most
-        let plane = CPlane::facing(&self.camera.orientation.rotate_vector(Vector::y_axis()));
-        self.draft = Some(Draft {
-            verb: verb.into(),
-            prefix: prefix.into(),
-            needed: prompts.len(),
-            prompts,
-            construction: "points".into(),
-            sides: 6,
-            points: Vec::new(),
-            plane,
-            targets: None,
-            hover: None,
-            snapped: None,
-        });
+        let mut draft = Draft::new(verb, prefix, self.facing());
+        draft.needed = prompts.len();
+        draft.prompts = prompts;
+        self.draft = Some(draft);
         self.gpu.pick.cancel();
         self.drawing_prompt()
+    }
+
+    /// The construction plane the camera faces most.
+    pub(super) fn facing(&self) -> CPlane {
+        CPlane::facing(&self.camera.orientation.rotate_vector(Vector::y_axis()))
     }
 
     /// Join the draft back to its first point and finish it.
@@ -155,7 +180,7 @@ impl State {
     }
 
     /// Add typed coordinates to the draft.
-    fn accept_coordinates(&mut self, text: &str) -> Result<String, String> {
+    pub(super) fn accept_coordinates(&mut self, text: &str) -> Result<String, String> {
         // check every word before adding any
         let draft = self.draft.as_ref().unwrap();
         let mut points = draft.points.clone();
@@ -207,6 +232,11 @@ impl State {
     /// Finish when the draft has all its points, else prompt for the next.
     fn advance_drawing(&mut self) -> Result<String, String> {
         let draft = self.draft.as_ref().unwrap();
+
+        if draft.tool.is_some() {
+            return self.tool_placed();
+        }
+
         if draft.needed > 0 && draft.points.len() == draft.needed {
             self.finish_drawing()
         } else {
@@ -247,12 +277,7 @@ impl State {
         let Some(draft) = &self.draft else {
             return serde_json::Value::Null;
         };
-        serde_json::json!({"command":draft.verb,"construction":draft.construction,"sides":draft.sides,"points":draft.points.iter().map(|p| [p[0],p[1],p[2]]).collect::<Vec<_>>(),"hover":draft.hover.as_ref().map(|p| [p[0],p[1],p[2]]),"snap":draft.snapped.map(|k| format!("{k:?}"))})
-    }
-
-    /// The verb being drawn, or empty.
-    pub fn drawing_verb(&self) -> &str {
-        self.draft.as_ref().map_or("", |draft| draft.verb.as_str())
+        serde_json::json!({"command":draft.verb,"tool":draft.tool.is_some(),"construction":draft.construction,"sides":draft.sides,"points":draft.points.iter().map(|p| [p[0],p[1],p[2]]).collect::<Vec<_>>(),"hover":draft.hover.as_ref().map(|p| [p[0],p[1],p[2]]),"snap":draft.snapped.map(|k| format!("{k:?}"))})
     }
 
     /// The status line text while drawing.
@@ -260,6 +285,11 @@ impl State {
         let Some(draft) = &self.draft else {
             return String::new();
         };
+
+        if let Some(prompt) = self.tool_prompt() {
+            return prompt;
+        }
+
         // a command's own prompt for the next point
         if let Some(prompt) = draft
             .prompts
@@ -308,9 +338,18 @@ impl State {
 
     /// Move the cursor while drawing: snap or land on the plane.
     pub fn hover_drawing(&mut self, x: f64, y: f64) -> bool {
-        let Some(mut draft) = self.draft.take() else {
+        // a tool that follows the cursor itself
+        if let Some(changed) = self.tool_hover(x, y) {
+            return changed;
+        }
+
+        // picking objects: the cursor is only a cursor
+        if self.draft.as_ref().is_none_or(|draft| draft.then.is_some()) {
             return false;
-        };
+        }
+
+        let mut draft = self.draft.take().unwrap();
+        let tool = draft.tool.is_some();
         let ray = self.camera.ray((x, y), self.viewport());
         // the nearest snap point within 12 pixels
         let hit = if self.snap_enabled {
@@ -322,11 +361,12 @@ impl State {
             candidates.retain(|c| {
                 c.kind == SnapKind::Mid || c.point.distance(&draft.points[0], None) <= 1e-12
             });
-            if draft.points.len() < 2 {
+            // a tool's own points close nothing
+            if draft.points.len() < 2 || tool {
                 candidates.clear();
             }
             if let Some(ray) = &ray {
-                let own = [(draft.points.clone(), OWN)];
+                let own = [(if tool { Vec::new() } else { draft.points.clone() }, OWN)];
                 snap::along_wires(
                     &own,
                     ray,
@@ -362,11 +402,28 @@ impl State {
         draft.snapped = hit.as_ref().map(|s| s.kind);
         draft.hover = hit.map(|s| s.point).or(free);
         self.draft = Some(draft);
+
+        if tool {
+            self.preview_tool();
+        }
+
         true
     }
 
     /// Click while drawing: place a point.
     pub fn click_drawing(&mut self, x: f64, y: f64) -> bool {
+        // a tool that picks objects or takes clicks itself
+        if let Some(redraw) = self.tool_click(x, y) {
+            return redraw;
+        }
+
+        // picking objects for a command: each click adds one; false, since a redraw would cancel the pick
+        if self.draft.as_ref().is_some_and(|draft| draft.then.is_some()) {
+            self.additive_selection = true;
+            self.request_selection(x as u32, y as u32, false, false);
+            return false;
+        }
+
         if !self.hover_drawing(x, y) {
             return false;
         }
@@ -380,7 +437,11 @@ impl State {
             return true;
         }
         // the start point again closes the shape
-        if draft.needed == 0 && draft.points.len() >= 2 && draft.points[0].distance(&p, None) <= 1e-12 {
+        if draft.needed == 0
+            && draft.tool.is_none()
+            && draft.points.len() >= 2
+            && draft.points[0].distance(&p, None) <= 1e-12
+        {
             let message = self.close_drawing().unwrap_or_else(|e| e);
             self.status(&message);
             crate::app::feedback::command_line(true);
@@ -402,6 +463,11 @@ impl State {
         let Some(draft) = &self.draft else {
             return (Vec::new(), String::new());
         };
+
+        if let Some(overlay) = self.tool_overlay() {
+            return overlay;
+        }
+
         // the placed points plus the cursor
         let mut preview = draft.points.clone();
         preview.extend(draft.hover.iter().cloned());
@@ -416,12 +482,36 @@ impl State {
             draft.snapped.map(|k| format!("{k:?}")).unwrap_or_default(),
         )
     }
+
+    /// Buttons under the command line while drawing: (label, line it runs); "" is Enter.
+    pub fn drawing_options(&self) -> &'static [(&'static str, &'static str)] {
+        let Some(draft) = &self.draft else {
+            return &[];
+        };
+
+        if let Some(tool) = &draft.tool {
+            return tool.options();
+        }
+
+        match draft.verb.as_str() {
+            "select" => &[("Done", ""), ("Cancel", "Escape")],
+            "polyline" => &[
+                ("Points", "Polyline Points"),
+                ("Rectangle", "Polyline Rectangle"),
+                ("Polygon", "Polyline Polygon"),
+                ("Close", "Close"),
+                ("Finish", ""),
+            ],
+            "curve" => &[("Close", "Close"), ("Finish", "")],
+            _ => &[],
+        }
+    }
 }
 
 const OWN: u32 = u32::MAX; // owner of the draft's own snaps
 
-/// The two axes of a construction plane.
-fn axes(plane: CPlane) -> (Vector, Vector) {
+/// The two axes of a construction plane; x × y faces the viewer in Top, Front and Right.
+pub(super) fn axes(plane: CPlane) -> (Vector, Vector) {
     match plane {
         CPlane::Xy => (Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)),
         CPlane::Xz => (Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0)),

@@ -41,6 +41,7 @@ pub struct Hierarchy {
     pub edges: Vec<[u32; 2]>, // graph edges between object rows, from and to
     pub active: Vec<usize>,   // clicked layer nodes
     revision: Option<u64>,    // scene revision this was built from
+    away: HashSet<(usize, String)>, // open nodes an undo took away, open again when they return
 }
 
 impl Hierarchy {
@@ -60,7 +61,8 @@ impl Hierarchy {
     fn build(&mut self, scene: &Scene, objects: bool) {
         self.revision = Some(scene.row_revision);
         // open and clicked nodes by name, so a rebuilt tree keeps them
-        let open = self.names(self.open.iter());
+        let mut open = self.names(self.open.iter());
+        open.extend(self.away.drain());
         let active = self.names(self.active.iter());
         self.active.clear();
         self.nodes.clear();
@@ -93,11 +95,14 @@ impl Hierarchy {
             }
         }
 
+        let mut back = HashSet::new(); // open nodes found again
+
         for (index, node) in self.nodes.iter().enumerate() {
             let name = (node.doc, node.name.clone());
 
             if open.contains(&name) {
                 self.open.insert(index);
+                back.insert(name.clone());
             }
 
             if node.layer && active.contains(&name) {
@@ -105,6 +110,8 @@ impl Hierarchy {
             }
         }
 
+        open.retain(|name| !back.contains(name));
+        self.away = open;
         self.connect(scene, &lookup);
     }
 

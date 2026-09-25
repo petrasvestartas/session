@@ -181,8 +181,8 @@ impl State {
         // a selected edge, face or entity stays put; another object is grabbed whole
         match self.selection.parent() {
             Some(parent) if parent == row => return None,
-            Some(_) => self.select_rows(vec![row], false),
-            None if !self.selected_rows().contains(&row) => self.select_rows(vec![row], false),
+            Some(_) => self.select_picked(row, false),
+            None if !self.selected_rows().contains(&row) => self.select_picked(row, false),
             None => {}
         }
 

@@ -28,7 +28,7 @@ const DOUBLE_TAP_SLOP: f64 = 40.0;
 pub enum Act {
     None,            // nothing
     Moved,           // the camera moved, redraw
-    Fit,             // double tap: fit the scene
+    Fit((f64, f64)), // double tap: fit the scene, or a point while a command waits
     Tap((f64, f64)), // single tap: pick at these pixels
 }
 
@@ -149,7 +149,7 @@ impl Touches {
         };
 
         if second {
-            return Act::Fit; // double tap
+            return Act::Fit(p); // double tap
         }
 
         self.tap = Some((now, p));

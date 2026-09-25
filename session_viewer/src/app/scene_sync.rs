@@ -1859,8 +1859,7 @@ mod tests {
                 let _ = scene.model(&Modeling::Extend(-0.5, 1.2));
             }
             8 if !rows.is_empty() => {
-                scene.selected = Some(pick(dice));
-                let _ = scene.model(&Modeling::Explode);
+                let _ = scene.explode_rows(&[pick(dice)]);
             }
             9 if !rows.is_empty() => {
                 let picked = [pick(dice), pick(dice)];
@@ -2231,8 +2230,7 @@ mod tests {
         scene.model(&Modeling::Trim(0.1, 0.9)).unwrap();
         check(&mut scene);
         let polyline = find(&scene, |g| matches!(g, Geometry::Polyline(_))).unwrap();
-        scene.selected = Some(polyline);
-        scene.model(&Modeling::Explode).unwrap();
+        scene.explode_rows(&[polyline]).unwrap();
         check(&mut scene);
         let (doc, _) = scene.identity_of(line).unwrap();
         let made = scene.new_layer(doc, "roof", false).unwrap();

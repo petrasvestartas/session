@@ -127,6 +127,15 @@ impl State {
                 "select" | "add" => {
                     let rows = self.hierarchy.targets(index);
 
+                    // a tool picking objects takes the rows
+                    if self.tool_picks() {
+                        for row in rows {
+                            self.tool_picked(Some(row));
+                        }
+
+                        return;
+                    }
+
                     // while splitting, a click picks cutters
                     if self.pending_split.is_some() {
                         for row in rows {
@@ -219,6 +228,20 @@ impl State {
 
         self.refresh_layers();
         self.touch();
+    }
+
+    /// Unfold the panel down to layer `name` of `doc` and open it, while the panel is shown.
+    pub(crate) fn reveal_layer(&mut self, doc: usize, name: &str) {
+        if !crate::app::feedback::layers_open() {
+            return;
+        }
+
+        self.hierarchy.refresh(&self.scene);
+
+        if let Some(node) = self.hierarchy.index_of(doc, name) {
+            self.hierarchy.reveal(node);
+            self.hierarchy.open.insert(node);
+        }
     }
 
     /// The (document, tree node) of a layer row.

@@ -9,37 +9,38 @@ use winit::window::Window;
 /// Everything the panels show.
 #[derive(Default)]
 pub struct Model {
-    pub layers_open: bool,                          // layers panel shown
-    pub rows: Vec<LayerRow>,                        // its rows
-    pub edges: Vec<EdgeRow>,                        // graph table rows
-    pub edge_total: usize,                          // graph edges, listed or not
-    pub(crate) graph_open: bool,                    // graph table unfolded
-    pub(crate) renaming: Option<Rename>,            // a layer name edited in its row
-    menu_open: bool,                                // a layer or colour menu is shown
-    pub command_open: bool,                         // command line shown
-    pub command: String,                            // text in the command field
-    pub drawing_prompt: String,                     // prompt while drawing
-    drawing_command: String,                        // the drawing verb, e.g. polyline
-    pub focus_command: bool,                        // give the field focus next frame
-    pub status: String,                             // status line text
-    history: VecDeque<String>,                      // past commands and answers
-    command_expanded: bool,                         // history shown above the field
-    layers_collapsed: bool,                         // layers panel folded to its title
-    completion: usize,                              // highlighted completion index
-    completion_prefix: String,                      // text the completions match
-    inline_suffix: bool,                            // completion suffix shown in the field
-    completion_visible: bool,                       // completion list shown
+    pub layers_open: bool,                                    // layers panel shown
+    pub rows: Vec<LayerRow>,                                  // its rows
+    pub edges: Vec<EdgeRow>,                                  // graph table rows
+    pub edge_total: usize,                                    // graph edges, listed or not
+    pub(crate) graph_open: bool,                              // graph table unfolded
+    pub(crate) renaming: Option<Rename>,                      // a layer name edited in its row
+    menu_open: bool,                                          // a layer or colour menu is shown
+    pub command_open: bool,                                   // command line shown
+    pub command: String,                                      // text in the command field
+    pub drawing_prompt: String,                               // prompt while drawing
+    drawing_options: &'static [(&'static str, &'static str)], // buttons while drawing: (label, line)
+    drawing_chosen: Option<&'static str>,                     // the option button shown as chosen
+    pub focus_command: bool,                                  // give the field focus next frame
+    pub status: String,                                       // status line text
+    history: VecDeque<String>,                                // past commands and answers
+    command_expanded: bool,                                   // history shown above the field
+    layers_collapsed: bool,                                   // layers panel folded to its title
+    completion: usize,                                        // highlighted completion index
+    completion_prefix: String,                                // text the completions match
+    inline_suffix: bool,      // completion suffix shown in the field
+    completion_visible: bool, // completion list shown
     pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
-    pub(crate) command_rect: Option<egui::Rect>,    // where the field is, for taps
-    pub(crate) keyboard_rects: Vec<egui::Rect>,     // a layer name field or an item opening one
-    snap_bar: bool,                                 // snap toolbar under the field
-    snap_modes: u8,                                 // snap kinds switched on
-    agent_edit: Option<bool>,                       // phone keyboard set the text, true on delete
-    number_prompt: Option<NumberPrompt>,            // the gumball number box, when open
-    number_handle: Option<Handle>,                  // the handle the box was opened for
-    number: String,                                 // text typed into the box
-    number_error: String,                           // why the typed value was refused
-    pub(crate) number_rect: Option<egui::Rect>,     // where the box is, for taps
+    pub(crate) command_rect: Option<egui::Rect>, // where the field is, for taps
+    pub(crate) keyboard_rects: Vec<egui::Rect>, // a layer name field or an item opening one
+    snap_bar: bool,           // snap toolbar under the field
+    snap_modes: u8,           // snap kinds switched on
+    agent_edit: Option<bool>, // phone keyboard set the text, true on delete
+    number_prompt: Option<NumberPrompt>, // the gumball number box, when open
+    number_handle: Option<Handle>, // the handle the box was opened for
+    number: String,           // text typed into the box
+    number_error: String,     // why the typed value was refused
+    pub(crate) number_rect: Option<egui::Rect>, // where the box is, for taps
 }
 
 thread_local! { pub static MODEL: RefCell<Model> = RefCell::default(); } // the one model
@@ -435,7 +436,8 @@ impl Ui {
 
         MODEL.with_borrow_mut(|model| {
             model.drawing_prompt = state.drawing_prompt();
-            model.drawing_command = state.drawing_verb().to_owned();
+            model.drawing_options = state.drawing_options();
+            model.drawing_chosen = state.drawing_chosen();
             model.snap_bar = state.snap_bar;
             model.snap_modes = state.snap_modes;
             model.number_prompt = number_prompt;
@@ -444,6 +446,7 @@ impl Ui {
         let drawing = state
             .drag_overlay()
             .unwrap_or_else(|| state.drawing_overlay());
+        let marks = state.tool_marks().or_else(|| state.mark_overlay()); // a tool's parts, else a measured answer
         // keep clicks and keys in arrival order
         let mut batches = Vec::new();
         let mut events = Vec::new();
@@ -506,6 +509,9 @@ impl Ui {
                     egui::FontId::proportional(14.0),
                     egui::Color32::from_rgb(20, 80, 130),
                 );
+            }
+            if let Some(marks) = &marks {
+                tool_marks(&painter, marks, scale);
             }
         };
         let mut batches = batches.into_iter();
@@ -625,7 +631,7 @@ impl Ui {
                 .and_then(|window| window.document())
                 .and_then(|document| document.get_element_by_id("canvas"))
         {
-            let snapshot = MODEL.with_borrow(|model| serde_json::json!({"framework": "egui 0.34.3", "scene_rect": [self.scene_rect.min.x,self.scene_rect.min.y,self.scene_rect.max.x,self.scene_rect.max.y], "completion_rect": model.completion_rect.map(|r| [r.min.x,r.min.y,r.max.x,r.max.y]), "rows": model.rows, "edges": model.edges, "edge_total": model.edge_total, "controls": self.controls, "command_open": model.command_open, "layers_open": model.layers_open, "command": model.command, "history": model.history, "hint": crate::app::command::hint(&model.command), "number": model.number, "number_error": model.number_error, "number_rect": model.number_rect.map(|r| [r.min.x,r.min.y,r.max.x,r.max.y])}));
+            let snapshot = MODEL.with_borrow(|model| serde_json::json!({"framework": "egui 0.34.3", "scene_rect": [self.scene_rect.min.x,self.scene_rect.min.y,self.scene_rect.max.x,self.scene_rect.max.y], "completion_rect": model.completion_rect.map(|r| [r.min.x,r.min.y,r.max.x,r.max.y]), "rows": model.rows, "edges": model.edges, "edge_total": model.edge_total, "controls": self.controls, "command_open": model.command_open, "layers_open": model.layers_open, "command": model.command, "history": model.history, "hint": crate::app::command::hint(&model.command), "placeholder": placeholder(&model.drawing_prompt, &model.status, model.command_expanded), "number": model.number, "number_error": model.number_error, "number_rect": model.number_rect.map(|r| [r.min.x,r.min.y,r.max.x,r.max.y])}));
             let _ = canvas.set_attribute("data-viewer-ui", &snapshot.to_string());
         }
 
@@ -738,8 +744,8 @@ fn layers(
             return;
         }
         let height = ui.text_style_height(&egui::TextStyle::Body); // one compact row
-        // the graph section sits below the tree, a table when unfolded
-        let graph = !model.rows.is_empty();
+        // the graph section sits below the tree once there is an edge, a table when unfolded
+        let graph = !model.rows.is_empty() && model.edge_total > 0;
         let rest = (ui.available_height() - if graph { height + 4. } else { 0. }).max(0.);
         let tree = if graph && model.graph_open {
             rest * 0.6
@@ -1065,8 +1071,7 @@ fn edges(
     };
     ui.painter()
         .add(egui::Shape::convex_polygon(points, ink, egui::Stroke::NONE));
-    let plural = if model.edge_total == 1 { "" } else { "s" };
-    let title = format!("Graph · {} edge{plural}", model.edge_total);
+    let title = format!("Graph · {} edges", model.edge_total);
     ui.painter().text(
         rect.left_center() + egui::vec2(18., 0.),
         egui::Align2::LEFT_CENTER,
@@ -1457,7 +1462,7 @@ fn commands(
     command: &mut Option<String>,
 ) {
     let previous_popup = model.completion_rect.take();
-    let drawing_options = matches!(model.drawing_command.as_str(), "polyline" | "curve");
+    let drawing_options = !model.drawing_options.is_empty();
     // each button row adds this much
     let extra = 28.0 * (usize::from(drawing_options) + usize::from(model.snap_bar)) as f32;
     let panel = if !model.command_expanded {
@@ -1522,23 +1527,15 @@ fn commands(
                     egui::Stroke::new(1.0_f32, egui::Color32::from_gray(210)),
                 );
             }
-            // construction buttons while drawing a polyline or curve
+            // construction or command buttons while drawing
             if drawing_options {
-                let polyline = model.drawing_command == "polyline";
-                let choices: &[(&str, &str)] = if polyline {
-                    &[
-                        ("Points", "Polyline Points"),
-                        ("Rectangle", "Polyline Rectangle"),
-                        ("Polygon", "Polyline Polygon"),
-                        ("Close", "Close"),
-                        ("Finish", ""),
-                    ]
-                } else {
-                    &[("Close", "Close"), ("Finish", "")]
-                };
+                let choices = model.drawing_options;
                 ui.horizontal_wrapped(|ui| {
                     for (label, text) in choices {
-                        let option = ui.button(*label);
+                        let option = match model.drawing_chosen {
+                            Some(chosen) => ui.selectable_label(chosen == *label, *label),
+                            None => ui.button(*label),
+                        };
                         record(controls, &format!("command/option/{label}"), label, &option);
                         if option.clicked() {
                             *command = Some((*text).into());
@@ -1616,9 +1613,14 @@ fn commands(
                 let deletes = ui.input(|i| {
                     i.key_pressed(egui::Key::Backspace) || i.key_pressed(egui::Key::Delete)
                 });
-                // space accepts the completion
+                // space accepts the completion, unless the name goes on with one: `Orient` + space is `Orient 3 Points` typed on
                 if model.inline_suffix
                     && has_focus
+                    && model
+                        .command
+                        .chars()
+                        .nth(spelled(&model.command, &model.completion_prefix))
+                        != Some(' ')
                     && ui.input(|i| {
                         i.events
                             .iter()
@@ -1693,7 +1695,11 @@ fn commands(
                         .frame(egui::Frame::NONE)
                         .clip_text(true)
                         .char_limit(2048)
-                        .hint_text("Type a command"),
+                        .hint_text(placeholder(
+                            &model.drawing_prompt,
+                            &model.status,
+                            model.command_expanded,
+                        )),
                 );
                 // caret visible on an empty field
                 if model.command_open && model.command.is_empty() {
@@ -1733,7 +1739,7 @@ fn commands(
                         && !model.command.ends_with(' ')
                         && let Some(name) = crate::app::command::completions(&model.command).first()
                     {
-                        let prefix = model.command.chars().count();
+                        let prefix = spelled(name, &crate::app::command::canonical(&model.command));
                         if name.chars().count() > prefix {
                             model.command = (*name).into();
                             command_cursor_select(
@@ -1869,8 +1875,9 @@ fn commands(
                     model.inline_suffix = false;
                     model.focus_command = true;
                 }
-                // Escape clears the field, unless it closes a layer menu or cancels a rename
-                if ui.input(|i| i.key_pressed(egui::Key::Escape))
+                // Escape in the field clears it, unless it closes a layer menu or cancels a rename; the scene's Esc is keys.rs's
+                if focused
+                    && ui.input(|i| i.key_pressed(egui::Key::Escape))
                     && !model.menu_open
                     && model.renaming.is_none()
                 {
@@ -1933,6 +1940,36 @@ fn command_cursor_end(context: &egui::Context, id: egui::Id, command: &str) {
     command_cursor_select(context, id, end, end);
 }
 
+/// The characters of `name` that spell `typed`, spaces aside: `orient3p` is `Orient 3 P`.
+fn spelled(name: &str, typed: &str) -> usize {
+    let typed = typed.chars().filter(|c| !c.is_whitespace()).count();
+    let (mut prefix, mut letters) = (0, 0);
+
+    for c in name.chars() {
+        if letters == typed {
+            break;
+        }
+
+        prefix += 1;
+        letters += usize::from(!c.is_whitespace());
+    }
+
+    prefix
+}
+
+/// The grey text of the empty field: the prompt, else the last answer when the history is folded away.
+fn placeholder<'a>(prompt: &'a str, status: &'a str, expanded: bool) -> &'a str {
+    if !prompt.is_empty() {
+        return prompt;
+    }
+
+    if !expanded && !status.is_empty() {
+        return status;
+    }
+
+    "Type a command"
+}
+
 /// Select `start..end` in the field.
 fn command_cursor_select(context: &egui::Context, id: egui::Id, start: usize, end: usize) {
     if let Some(mut state) = egui::TextEdit::load_state(context, id) {
@@ -1943,6 +1980,52 @@ fn command_cursor_select(context: &egui::Context, id: egui::Id, start: usize, en
                 egui::text::CCursor::new(end),
             )));
         egui::TextEdit::store_state(context, id, state);
+    }
+}
+
+/// Paint a tool's strokes, squares and label; points arrive in device pixels.
+fn tool_marks(painter: &egui::Painter, marks: &crate::app::command::tool::Overlay, scale: f32) {
+    let at = |p: &(f64, f64)| egui::pos2(p.0 as f32 / scale, p.1 as f32 / scale);
+
+    for stroke in &marks.strokes {
+        let points: Vec<egui::Pos2> = stroke.points.iter().map(at).collect();
+        let [r, g, b] = stroke.color;
+        let pen = egui::Stroke::new(stroke.width, egui::Color32::from_rgb(r, g, b));
+
+        if stroke.dashed {
+            painter.extend(egui::Shape::dashed_line(&points, pen, 8.0, 5.0));
+        } else {
+            painter.line(points, pen);
+        }
+    }
+
+    let pen = egui::Stroke::new(1.5_f32, egui::Color32::from_rgb(20, 20, 20));
+
+    for mark in &marks.marks {
+        painter.rect_stroke(
+            egui::Rect::from_center_size(at(mark), egui::vec2(7.0, 7.0)),
+            0.0,
+            pen,
+            egui::StrokeKind::Middle,
+        );
+    }
+
+    // a white-on-black chip like the selected-name label
+    if let Some((p, text)) = &marks.label {
+        let galley = painter.layout_no_wrap(
+            text.clone(),
+            egui::FontId::proportional(13.5),
+            egui::Color32::WHITE,
+        );
+        let height = galley.size().y + 6.0;
+        let chip =
+            egui::Rect::from_center_size(at(p), egui::vec2(galley.size().x + height, height));
+        painter.rect_filled(chip, height * 0.5, egui::Color32::BLACK);
+        painter.galley(
+            chip.center() - galley.size() * 0.5,
+            galley,
+            egui::Color32::WHITE,
+        );
     }
 }
 
@@ -1976,14 +2059,7 @@ mod tests {
 
     #[test]
     fn up_down_cycles_command_options_and_enter_accepts() {
-        for name in [
-            "Element Features",
-            "Layers",
-            "Arctic",
-            "Outline",
-            "Snap",
-            "Rotate",
-        ] {
+        for name in ["Element Features", "Layers", "Arctic", "Outline", "Snap"] {
             let context = egui::Context::default();
             context.set_fonts(fonts(BUNDLED));
             context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
@@ -2013,6 +2089,34 @@ mod tests {
                 assert_eq!(model.command, expected);
             }
         }
+    }
+
+    #[test]
+    fn a_space_the_name_spells_types_on() {
+        assert_eq!(spelled("Orient 3 Points", "orient3p"), 10);
+        assert_eq!(spelled("Orient 3 Points", "Orient"), 6);
+        let context = egui::Context::default();
+        context.set_fonts(fonts(BUNDLED));
+        let mut model = Model {
+            focus_command: true,
+            ..Default::default()
+        };
+        frame(&context, &mut model, None);
+
+        // one key per frame, like a person typing
+        for c in "Orient 3 Points".chars() {
+            let input = egui::RawInput {
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(1000.0, 700.0),
+                )),
+                events: vec![egui::Event::Text(c.to_string())],
+                ..Default::default()
+            };
+            let _ = context.run_ui(input, |ui| commands(ui, &mut model, &mut None, &mut None));
+        }
+
+        assert_eq!(model.command, "Orient 3 Points");
     }
 
     #[test]

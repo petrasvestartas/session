@@ -65,9 +65,13 @@ pub const KEYS: &[Binding] = &[
         s.camera.toggle_projection_framed(&s.gpu.bounds, s.aspect())
     }),
     // register:escape
+    // the first Esc cancels the command and keeps the selection, the next one clears it
     named(NamedKey::Escape, |s| {
-        s.draft = None;
-        s.escape_selection();
+        if s.draft.is_some() {
+            s.cancel_drawing();
+        } else {
+            s.escape_selection();
+        }
     }),
     // register:enter
     named(NamedKey::Enter, |s| {

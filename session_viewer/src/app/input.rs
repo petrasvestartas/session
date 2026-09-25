@@ -29,6 +29,7 @@ pub struct Input {
     touch_down: (f64, f64),  // where that finger landed
     fingers: std::collections::HashSet<u64>, // fingers on the screen
     touch_cancelled: bool,   // waiting for all fingers to lift
+    tool_held: bool,         // a running command follows this drag, e.g. a lasso
 }
 
 impl Default for Input {
@@ -56,6 +57,7 @@ impl Input {
             touch_down: (0.0, 0.0),
             fingers: std::collections::HashSet::new(),
             touch_cancelled: false,
+            tool_held: false,
         }
     }
 
@@ -106,6 +108,12 @@ impl Input {
                         > CLICK_SLOP * device_pixel_ratio()
                 {
                     self.dragged = true;
+                }
+
+                // a running command draws with the button held
+                if self.tool_held {
+                    self.last_cursor = at;
+                    return state.tool_drag(at.0, at.1);
                 }
 
                 // a plain press dragged past the slop may start a tool, once
@@ -182,6 +190,7 @@ impl Input {
                     state.cancel_gesture();
                     self.touch_edit = None;
                     self.gesture = None;
+                    self.tool_held = false;
                     self.touch_cancelled = true;
                 }
 
@@ -211,7 +220,9 @@ impl Input {
                         self.gesture = gesture::press(state, at, TOUCH_REACH);
                     }
 
-                    if self.gesture.is_some() {
+                    self.tool_held = state.tool_press(at.0, at.1);
+
+                    if self.gesture.is_some() || self.tool_held {
                         self.touch_edit = Some(t.id);
                     }
                 }
@@ -223,6 +234,12 @@ impl Input {
                     self.dragged |= moved / device_pixel_ratio() > TAP_SLOP; // once away, a drag even if it comes back
 
                     match (t.phase, self.gesture) {
+                        (TouchPhase::Moved, None) if self.tool_held => {
+                            state.tool_drag(at.0, at.1);
+                        }
+                        (TouchPhase::Ended, None) if self.tool_held => {
+                            state.tool_release(false, false);
+                        }
                         (TouchPhase::Moved, Some(active)) => {
                             (active.drag)(state, at);
                         }
@@ -244,6 +261,7 @@ impl Input {
                         self.fingers.remove(&t.id);
                         self.touch_edit = None;
                         self.gesture = None;
+                        self.tool_held = false;
                         self.touch = Touches::new();
                     }
 
@@ -273,7 +291,9 @@ impl Input {
                         state.request_selection(at.0 as u32, at.1 as u32, false, false);
                         false
                     }
-                    Act::Fit => {
+                    // a command waiting for points takes both taps
+                    Act::Fit(at) if state.draft.is_some() => state.click_drawing(at.0, at.1),
+                    Act::Fit(_) => {
                         state.fit_all();
                         true
                     }
@@ -281,6 +301,11 @@ impl Input {
             }
             _ => false,
         }
+    }
+
+    /// True while a running command follows a left drag, e.g. a lasso.
+    pub fn tool_held(&self) -> bool {
+        self.tool_held
     }
 
     /// Forget every gesture in progress.
@@ -297,6 +322,7 @@ impl Input {
         self.touch_edit = None;
         self.fingers.clear();
         self.touch_cancelled = false;
+        self.tool_held = false;
     }
 
     /// Left button: a tool from the registry, else a click.
@@ -306,6 +332,14 @@ impl Input {
                 let closed = state.close_number_box(); // a press in the scene closes the number box
                 self.left_down = Some(self.last_cursor);
                 self.dragged = false;
+                // a running command that draws with the button, e.g. a lasso
+                self.tool_held = state.tool_press(self.last_cursor.0, self.last_cursor.1);
+
+                if self.tool_held {
+                    self.plain = false;
+                    return true;
+                }
+
                 // while drawing, a press is only a click
                 self.plain = !self.ctrl && !self.shift && state.draft.is_none();
 
@@ -318,6 +352,11 @@ impl Input {
             ElementState::Released => {
                 let down = self.left_down.take();
                 self.plain = false;
+
+                if self.tool_held {
+                    self.tool_held = false;
+                    return state.tool_release(self.shift, self.ctrl);
+                }
 
                 // the tool in charge takes the release; a press that never left the slop is a click
                 if let Some(active) = self.gesture.take() {

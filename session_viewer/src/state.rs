@@ -21,6 +21,7 @@ mod panel;
 mod sheet_query;
 mod splitting;
 mod text;
+mod tool;
 use std::sync::Arc;
 use winit::window::Window;
 
@@ -59,6 +60,7 @@ pub struct State {
     controls: Controls,                     // control points of the selected object
     requested: PickMode,                    // what the pending pick looks for
     pub(crate) additive_selection: bool,    // Shift held: add to the selection
+    selection_order: Vec<u32>,              // selected rows in pick order
     pub selection_radius_css: f64,          // click tolerance in CSS pixels
     show_selected_names: bool,              // name label on the selection, T toggles
     opacity_chosen: bool,                   // an Opacity command was given
@@ -73,6 +75,7 @@ pub struct State {
     object_drag: Option<drag::ObjectDrag>,  // a left drag moving objects
     clip_hidden: usize,                     // hidden clipping planes still cutting
     resume: Vec<hydrate::Resume>,           // edits waiting for released documents
+    pub(crate) mark: Option<crate::app::command::verbs::measure::Mark>, // a measured answer drawn until the next command
 }
 
 impl State {
@@ -106,6 +109,7 @@ impl State {
             controls: Controls::default(),
             requested: PickMode::Object,
             additive_selection: false,
+            selection_order: Vec::new(),
             selection_radius_css: 6.0,
             show_selected_names: true,
             opacity_chosen: false,
@@ -120,6 +124,7 @@ impl State {
             object_drag: None,
             clip_hidden: 0,
             resume: Vec::new(),
+            mark: None,
         })
     }
 
@@ -216,6 +221,7 @@ impl State {
         self.load_camera = self.camera.pose(); // remember the view
         self.cancel_split();
         self.cancel_gesture();
+        self.draft = None; // its rows are gone
         self.hierarchy = Default::default();
         self.selection = SelectionMode::Object;
         self.sheet_query = None;
@@ -369,6 +375,7 @@ impl State {
         }
 
         self.scene.selected = row;
+        self.selection_order = row.into_iter().collect();
         self.refresh_layers();
         self.place_gizmo(row);
         self.update_label();
@@ -384,10 +391,15 @@ impl State {
         }
     }
 
+    /// The selected rows in the order they were picked.
+    pub(crate) fn ordered_rows(&self) -> Vec<u32> {
+        ordered(&self.selection_order, &self.selected_rows())
+    }
+
     /// Select several rows, added to the selection or replacing it.
     pub(crate) fn select_rows(&mut self, rows: Vec<u32>, additive: bool) {
         let mut selected = if additive {
-            self.selected_rows()
+            self.ordered_rows()
         } else {
             Vec::new()
         };
@@ -399,9 +411,11 @@ impl State {
                     .identity_of(*r)
                     .is_some_and(|id| !self.scene.hidden.contains(&id))
         }));
+        let order = selected.clone();
         selected.sort_unstable();
         selected.dedup();
         self.select(None);
+        self.selection_order = ordered(&order, &selected);
         self.scene.selected = selected.first().copied(); // the first is the main one
         for &row in &selected {
             self.gpu.set_selected(row, true);
@@ -413,6 +427,12 @@ impl State {
         self.refresh_layers();
         self.update_label();
         self.touch();
+    }
+
+    /// Select what a viewport click on `row` reaches: its whole group, when it is in one.
+    pub(crate) fn select_picked(&mut self, row: u32, additive: bool) {
+        let rows = self.scene.group_rows(row);
+        self.select_rows(rows, additive);
     }
 
     /// T: show or hide the name label on the selection.
@@ -514,6 +534,12 @@ impl State {
             return;
         }
 
+        // a tool asked for this object
+        if self.tool_picks() {
+            self.tool_picked(pick.map(|pick| pick.row));
+            return;
+        }
+
         // a split is waiting for its cutter
         if self.pending_split.is_some() {
             if let Some(pick) = pick {
@@ -611,7 +637,7 @@ impl State {
                     return;
                 }
 
-                self.select_rows(vec![hit.row], self.additive_selection);
+                self.select_picked(hit.row, self.additive_selection);
             }
             None => log::info!("pick: row {} sub {} (no document)", p.row, p.sub),
         }
@@ -769,7 +795,7 @@ impl State {
 
     /// Ask what is under a pixel: an object, an edge (Ctrl) or a face (Ctrl+Shift).
     pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
-        let splitting = self.pending_split.is_some(); // a split wants a plain object
+        let splitting = self.pending_split.is_some() || self.tool_picks(); // a split or a tool wants a plain object
         let face = !splitting
             && (face || self.selection_tool == crate::app::selection::SelectionTool::Face);
         let edge = !splitting
@@ -869,6 +895,7 @@ impl State {
     pub fn escape_selection(&mut self) {
         let parent = self.selection.escape();
         self.select(parent);
+        self.mark = None;
         self.status("");
     }
 
@@ -1011,4 +1038,32 @@ impl State {
 /// A position as the f32 the GPU takes.
 pub(crate) fn render_position(position: [f64; 3]) -> [f32; 3] {
     [position[0] as f32, position[1] as f32, position[2] as f32]
+}
+
+/// `selected` in the pick order `order`, first picks first; rows the order misses come last.
+fn ordered(order: &[u32], selected: &[u32]) -> Vec<u32> {
+    let mut left: std::collections::HashSet<u32> = selected.iter().copied().collect();
+    let mut rows: Vec<u32> = Vec::with_capacity(selected.len());
+
+    for row in order.iter().chain(selected) {
+        if left.remove(row) {
+            rows.push(*row);
+        }
+    }
+
+    rows
+}
+
+#[cfg(test)]
+mod order_tests {
+    use super::ordered;
+
+    /// Picks keep their order; a dropped row goes, an unknown one comes last.
+    #[test]
+    fn the_selection_keeps_pick_order() {
+        assert_eq!(ordered(&[9, 2, 5], &[2, 5, 9]), vec![9, 2, 5]);
+        assert_eq!(ordered(&[9, 2, 5], &[2, 9]), vec![9, 2]);
+        assert_eq!(ordered(&[9, 2], &[1, 2, 9]), vec![9, 2, 1]);
+        assert_eq!(ordered(&[3, 3, 1], &[1, 3]), vec![3, 1]);
+    }
 }
