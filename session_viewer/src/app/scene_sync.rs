@@ -1,5 +1,7 @@
 use super::Scene;
-use super::rows::{Cap, FREE, Footprint, GEOMETRY, Note, PLACE, PRESENCE, SINK, SUBTREE};
+use super::rows::{
+    Cap, FREE, Footprint, GEOMETRY, Note, PLACE, PRESENCE, SINK, SUBTREE, TOMB, Tomb,
+};
 use crate::app::mesh_preview::MeshPreview;
 use crate::app::surface_preview::SurfacePreview;
 use crate::app::walk::bounds::{in_band, mark_pens_from};
@@ -9,9 +11,9 @@ use crate::engine::gpu::glyphs::GlyphPoint;
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::segments::CylinderSegment;
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Upload};
-use session_rust::history::{Op, Transaction};
+use session_rust::history::{self, Op, Transaction};
 use session_rust::session::PURGE_WORK;
-use session_rust::{Geometry, History, Session, TreeNode, Xform};
+use session_rust::{Collection, Geometry, History, Session, TreeNode, Xform};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::{Rc, Weak};
@@ -26,6 +28,12 @@ const COMPACT_MIN: u64 = 16 * 1024 * 1024;
 
 /// Dead cloud points that start a cloud compaction, at least.
 const CLOUD_COMPACT_MIN: u32 = 2_000_000;
+
+/// Lane bytes deleted objects may keep on the GPU for an undo; past it the oldest are released.
+pub(crate) const TOMB_CAP: u64 = 256 * 1024 * 1024;
+
+/// GPU bytes of one cloud point: position, colour and packed normal.
+const CLOUD_POINT_BYTES: u64 = 20;
 
 /// Commit the open transaction; its ops name the objects it touched. Every viewer edit commits here.
 pub(crate) fn commit(session: &mut Session) -> Vec<Note> {
@@ -55,6 +63,7 @@ fn tree_note(t: &session_rust::history::TreeOp) -> Note {
         what: PLACE | PRESENCE | SUBTREE | if colored { GEOMETRY } else { 0 },
         node: Some(Rc::downgrade(&t.node)),
         parent: None,
+        tomb: None,
     }
 }
 
@@ -70,6 +79,7 @@ fn applied(transaction: &Transaction) -> Vec<Note> {
                 what: PRESENCE | GEOMETRY,
                 node: t.node.as_ref().map(Rc::downgrade),
                 parent: t.parent_guid.clone().map(|parent| (parent, t.index)),
+                tomb: Some(Rc::downgrade(&t.tomb)),
             },
             // its node stays in the tree, dead, with every node below it
             Op::Remove(t) => Note {
@@ -77,6 +87,7 @@ fn applied(transaction: &Transaction) -> Vec<Note> {
                 what: PRESENCE | SUBTREE,
                 node: t.node.as_ref().map(Rc::downgrade),
                 parent: None,
+                tomb: Some(Rc::downgrade(&t.tomb)),
             },
             Op::Replace(r) => Note::new(&r.guid, GEOMETRY),
             // the marker pair an Add Edge step leaves
@@ -101,6 +112,7 @@ fn reverted(transaction: &Transaction) -> Vec<Note> {
                 what: PRESENCE,
                 node: t.node.as_ref().map(Rc::downgrade),
                 parent: None,
+                tomb: Some(Rc::downgrade(&t.tomb)),
             },
             // its node came back live with every node below it
             Op::Remove(t) => Note {
@@ -108,6 +120,7 @@ fn reverted(transaction: &Transaction) -> Vec<Note> {
                 what: PRESENCE | GEOMETRY | SUBTREE,
                 node: t.node.as_ref().map(Rc::downgrade),
                 parent: None,
+                tomb: Some(Rc::downgrade(&t.tomb)),
             },
             Op::Replace(r) => Note::new(&r.guid, GEOMETRY),
             Op::Xform(x) if x.guid == transaction.label => continue,
@@ -120,6 +133,65 @@ fn reverted(transaction: &Transaction) -> Vec<Note> {
     notes
 }
 
+/// The address of the object a geometry wraps.
+fn address(geometry: &Geometry) -> usize {
+    match geometry {
+        Geometry::OBB(g) => Rc::as_ptr(g) as usize,
+        Geometry::BRep(g) => Rc::as_ptr(g) as usize,
+        Geometry::Element(g) => Rc::as_ptr(g) as usize,
+        Geometry::Line(g) => Rc::as_ptr(g) as usize,
+        Geometry::Mesh(g) => Rc::as_ptr(g) as usize,
+        Geometry::NurbsCurve(g) => Rc::as_ptr(g) as usize,
+        Geometry::NurbsSurface(g) => Rc::as_ptr(g) as usize,
+        Geometry::Plane(g) => Rc::as_ptr(g) as usize,
+        Geometry::Point(g) => Rc::as_ptr(g) as usize,
+        Geometry::PointCloud(g) => Rc::as_ptr(g) as usize,
+        Geometry::Polyline(g) => Rc::as_ptr(g) as usize,
+    }
+}
+
+/// The address of the object in a kernel tomb's slot, dead or alive; None for a definition or a node.
+fn slot_address(session: &Session, record: &history::Tomb) -> Option<usize> {
+    if record.definition {
+        return None;
+    }
+
+    let slot = record.slot.get();
+    let objects = &session.objects;
+
+    match record.collection.as_str() {
+        "points" => held(&objects.points, slot),
+        "lines" => held(&objects.lines, slot),
+        "planes" => held(&objects.planes, slot),
+        "bboxes" => held(&objects.bboxes, slot),
+        "polylines" => held(&objects.polylines, slot),
+        "pointclouds" => held(&objects.pointclouds, slot),
+        "meshes" => held(&objects.meshes, slot),
+        "nurbscurves" => held(&objects.nurbscurves, slot),
+        "nurbssurfaces" => held(&objects.nurbssurfaces, slot),
+        "breps" => held(&objects.breps, slot),
+        "elements" => held(&objects.elements, slot),
+        _ => None,
+    }
+}
+
+/// Points of the cloud in a kernel tomb's slot; None for any other kind.
+fn cloud_points(session: &Session, record: &history::Tomb) -> Option<u64> {
+    let slot = record.slot.get();
+    let clouds = &session.objects.pointclouds;
+
+    if record.definition || record.collection != "pointclouds" || slot >= clouds.number_of_slots() {
+        return None;
+    }
+
+    Some(clouds.get_item(slot).len() as u64)
+}
+
+/// The address of the object in `slot` of `list`.
+fn held<T>(list: &Collection<Rc<T>>, slot: usize) -> Option<usize> {
+    (slot < list.number_of_slots()).then(|| Rc::as_ptr(list.get_item(slot)) as usize)
+}
+
 /// One identity a sync looks at.
 struct Work {
     doc: usize,                            // its document
@@ -127,6 +199,7 @@ struct Work {
     what: u8,                              // the note bits, merged
     weak: Option<Weak<RefCell<TreeNode>>>, // the node a note named
     parent: Option<(String, usize)>,       // where an added object was put
+    tomb: Option<Weak<history::Tomb>>,     // the kernel tomb of its newest add or remove
     node: Option<Node>,                    // its tree node, once resolved
     in_tree: bool,                         // that node hangs from the document's root
 }
@@ -144,6 +217,10 @@ fn merge(work: &mut Vec<Work>, at: &mut HashMap<(usize, Rc<str>), usize>, item: 
 
             if entry.parent.is_none() {
                 entry.parent = item.parent;
+            }
+
+            if item.tomb.is_some() {
+                entry.tomb = item.tomb;
             }
 
             if entry.node.is_none() && item.node.is_some() {
@@ -283,6 +360,7 @@ impl Scene {
                 what: note.what,
                 weak: note.node,
                 parent: note.parent,
+                tomb: note.tomb,
                 node: None,
                 in_tree: false,
             };
@@ -302,6 +380,7 @@ impl Scene {
             changed |= self.reconcile(item);
         }
 
+        self.settle_tombs();
         self.ids.settle();
 
         if changed {
@@ -500,6 +579,7 @@ impl Scene {
                         what: PLACE | PRESENCE,
                         weak: None,
                         parent: None,
+                        tomb: None,
                         node: Some(Rc::clone(&child)),
                         in_tree,
                     };
@@ -528,11 +608,18 @@ impl Scene {
 
         match (row, geometry) {
             (Some(row), _) if !wanted => {
-                self.kill(row);
+                match self.record_of(row, item) {
+                    Some(record) => self.bury(row, record, item),
+                    None => self.kill(row),
+                }
+
                 true
             }
             (None, Some(geometry)) if wanted => {
-                self.create(item, geometry);
+                if !self.revive(item, geometry) {
+                    self.create(item, geometry);
+                }
+
                 true
             }
             (Some(row), Some(geometry)) => {
@@ -995,6 +1082,206 @@ impl Scene {
         }
     }
 
+    /// The kernel tomb of a dead object whose uploaded rows can wait for an undo: exact rows or a whole cloud.
+    fn record_of(&self, row: u32, item: &Work) -> Option<Weak<history::Tomb>> {
+        let i = row as usize;
+        let foot = self.feet[i];
+        let session = &self.docs[item.doc].session;
+
+        if row >= self.object_rows
+            || foot == Footprint::None
+            || self.caps.contains_key(&row)
+            || session.lookup.contains_key(item.guid.as_ref())
+        {
+            return None;
+        }
+
+        // the op's own tomb, else the one pinning its dead node
+        let record = match item.tomb.as_ref().and_then(Weak::upgrade) {
+            Some(record) => record,
+            None => {
+                let node = item.node.clone().or_else(|| self.nodes[i].upgrade())?;
+                let node = node.borrow();
+
+                if !node.is_dead() || node.name != *item.guid {
+                    return None;
+                }
+
+                node.get_tomb()?
+            }
+        };
+
+        slot_address(session, &record)?;
+        Some(Rc::downgrade(&record))
+    }
+
+    /// Hide a deleted object's row; its lane rows and id wait for an undo.
+    fn bury(&mut self, row: u32, record: Weak<history::Tomb>, item: &Work) {
+        let i = row as usize;
+        let place = self.doc_state[item.doc]
+            .sheet
+            .map(|_| self.world_place(item.doc, item.node.as_ref(), item.in_tree, &item.guid));
+        let guid = std::mem::replace(&mut self.order[i], Rc::clone(&self.empty));
+        let key = (self.owners[i], guid);
+
+        // a twin buried under the same identity before
+        if let Some(old) = self.tombs.remove(&key) {
+            self.free_tomb(&key, old, false);
+        }
+
+        let foot = self.feet[i];
+        let points = match foot {
+            Footprint::Cloud => record
+                .upgrade()
+                .and_then(|record| cloud_points(&self.docs[item.doc].session, &record))
+                .unwrap_or(0),
+            _ => 0,
+        };
+        self.tombed = self.tombed.plus(self.spans.span(foot).count);
+        self.tomb_points += points;
+        self.burials += 1;
+        self.staged.bury.push(row);
+        self.guid_to_row.remove(&key);
+        self.owners[i] = TOMB;
+        self.nodes[i] = Weak::new();
+        self.bounds_stale = true;
+        let born = self.burials;
+        self.tombs.insert(
+            key,
+            Tomb {
+                row,
+                foot,
+                record,
+                born,
+                place,
+                attributes: self.attributes,
+                points,
+            },
+        );
+
+        if self.preview.as_ref().is_some_and(|(held, _)| *held == row) {
+            self.preview = None;
+        }
+    }
+
+    /// Show a buried identity again when its tomb holds this very object walked the same way; false when it walks anew.
+    fn revive(&mut self, item: &Work, geometry: &Geometry) -> bool {
+        let key = (item.doc, Rc::clone(&item.guid));
+
+        if !self.tombs.contains_key(&key) {
+            return false;
+        }
+
+        let place = self.world_place(item.doc, item.node.as_ref(), item.in_tree, &item.guid);
+        let session = &self.docs[item.doc].session;
+        let bits = |x: &Xform| x.m.map(f64::to_bits);
+        let same = self.tombs.get(&key).is_some_and(|tomb| {
+            tomb.attributes == self.attributes
+                && tomb
+                    .place
+                    .as_ref()
+                    .is_none_or(|held| bits(held) == bits(&place))
+                && tomb
+                    .record
+                    .upgrade()
+                    .and_then(|record| slot_address(session, &record))
+                    == Some(address(geometry))
+        });
+
+        let Some(tomb) = self.tombs.remove(&key) else {
+            return false;
+        };
+
+        // walked anew: its old rows wait as the identity's grave
+        if !same {
+            self.free_tomb(&key, tomb, true);
+            return false;
+        }
+
+        let i = tomb.row as usize;
+        self.tombed = self.tombed.minus(self.spans.span(tomb.foot).count);
+        self.tomb_points -= tomb.points;
+        self.order[i] = Rc::clone(&item.guid);
+        self.owners[i] = item.doc;
+        self.nodes[i] = item.node.as_ref().map(Rc::downgrade).unwrap_or_default();
+        let hidden = if self.hidden.contains(&key) {
+            Instance::FLAG_HIDDEN
+        } else {
+            0
+        };
+        let object = self.object_row(item.doc, &item.guid, place, hidden);
+        self.guid_to_row.insert(key, tomb.row);
+        self.staged.unbury.push((tomb.row, object));
+        true
+    }
+
+    /// Hand a tomb's lane rows to the sink and its id back; its allocation waits as the identity's grave when `grave`.
+    fn free_tomb(&mut self, key: &(usize, Rc<str>), tomb: Tomb, grave: bool) {
+        let i = tomb.row as usize;
+        let span = self.spans.span(tomb.foot);
+        self.tombed = self.tombed.minus(span.count);
+        self.tomb_points -= tomb.points;
+
+        // a buried cloud's points die with it
+        if tomb.foot == Footprint::Cloud {
+            self.staged.clouds.push(tomb.row);
+        } else {
+            self.retire(span, grave, key, tomb.foot);
+        }
+
+        self.staged.retire.push(tomb.row);
+        self.owners[i] = FREE;
+        self.feet[i] = Footprint::None;
+        self.ids.give(tomb.row);
+    }
+
+    /// GPU bytes the tombs hold: their lane rows and cloud points.
+    fn tomb_bytes(&self) -> u64 {
+        self.tombed.bytes() + self.tomb_points * CLOUD_POINT_BYTES
+    }
+
+    /// Release the tombs no undo reaches any more, then the oldest while they hold more than the cap.
+    fn settle_tombs(&mut self) {
+        if self.tombs.is_empty() {
+            return;
+        }
+
+        let gone: Vec<_> = self
+            .tombs
+            .iter()
+            .filter(|(_, tomb)| tomb.record.strong_count() == 0)
+            .map(|(key, _)| key.clone())
+            .collect();
+
+        for key in gone {
+            if let Some(tomb) = self.tombs.remove(&key) {
+                self.free_tomb(&key, tomb, false);
+            }
+        }
+
+        if self.tomb_bytes() <= self.tomb_cap {
+            return;
+        }
+
+        // oldest first, sorted once: a large delete past the cap stays O(n log n)
+        let mut oldest: Vec<_> = self
+            .tombs
+            .iter()
+            .map(|(key, tomb)| (tomb.born, key.clone()))
+            .collect();
+        oldest.sort_unstable_by_key(|(born, _)| *born);
+
+        for (_, key) in oldest {
+            if self.tomb_bytes() <= self.tomb_cap {
+                break;
+            }
+
+            if let Some(tomb) = self.tombs.remove(&key) {
+                self.free_tomb(&key, tomb, true);
+            }
+        }
+    }
+
     /// The hidden row dead lane rows point at, made at the first kill.
     fn sink_row(&mut self) -> u32 {
         if let Some(sink) = self.sink {
@@ -1031,11 +1318,12 @@ impl Scene {
         self.redraw_row(row, doc, &guid, geometry, place, preview);
     }
 
-    /// True when the dead editable rows outweigh the live ones and 16 MiB.
+    /// True when the dead editable rows pass 16 MiB and, with the tombs, outweigh the live ones.
     pub(crate) fn compaction_due(&self) -> bool {
         let dead = self.dead.bytes();
-        let live = self.uploaded.bytes().saturating_sub(dead);
-        dead > 0 && dead >= COMPACT_MIN.max(live)
+        let tombs = self.tombed.bytes();
+        let live = self.uploaded.bytes().saturating_sub(dead + tombs);
+        dead >= COMPACT_MIN && dead + tombs >= live
     }
 
     /// Spend one idle kernel purge step on every document that owes one; true while a cycle is unfinished.
@@ -1104,6 +1392,21 @@ impl Scene {
         self.caps.clear();
         self.graves.clear();
         self.preview = None;
+
+        // the fresh lanes hold no tomb: an undo walks the object again
+        for (_, tomb) in std::mem::take(&mut self.tombs) {
+            if tomb.foot == Footprint::Cloud {
+                self.staged.clouds.push(tomb.row);
+            }
+
+            self.staged.retire.push(tomb.row);
+            self.owners[tomb.row as usize] = FREE;
+            self.feet[tomb.row as usize] = Footprint::None;
+            self.ids.give(tomb.row);
+        }
+
+        self.tombed = Counts::default();
+        self.tomb_points = 0;
 
         for foot in &mut self.feet {
             if *foot != Footprint::Cloud {
@@ -1297,6 +1600,12 @@ impl Scene {
             + (self.guid_to_row.capacity() + self.graves.capacity()) * identity
     }
 
+    /// Tombs for the inspection: (deleted objects kept on the GPU, their lane bytes).
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn tomb_counters(&self) -> (usize, u64) {
+        (self.tombs.len(), self.tomb_bytes())
+    }
+
     /// Row-level counters for the inspection: (dead lane rows, free ids, dead bytes, graves, compactions).
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn row_counters(&self) -> (u64, usize, u64, usize, u32) {
@@ -1321,10 +1630,23 @@ impl Scene {
             | Instance::FLAG_COLOR
             | Instance::FLAG_EDGE_COLOR
             | Instance::FLAG_DEAD;
+        const OWN: u32 = Instance::FLAG_SELECTED
+            | Instance::FLAG_HIDDEN
+            | Instance::FLAG_COLOR
+            | Instance::FLAG_EDGE_COLOR
+            | Instance::FLAG_DEAD;
         let staged = std::mem::take(&mut self.staged);
 
         for row in &staged.retire {
             self.ledger.remove(row);
+        }
+
+        for row in &staged.bury {
+            if let Some(held) = self.ledger.get_mut(row) {
+                held.flags = (held.flags & !Instance::FLAG_SELECTED)
+                    | Instance::FLAG_HIDDEN
+                    | Instance::FLAG_DEAD;
+            }
         }
 
         for (lane, first, count) in super::runs(staged.kills) {
@@ -1369,6 +1691,15 @@ impl Scene {
                 held.bounds = object.bounds;
                 held.spacing = object.spacing;
                 held.faces = object.faces;
+            }
+        }
+
+        for (row, object) in staged.unbury {
+            if let Some(held) = self.ledger.get_mut(&row) {
+                held.flags = (held.flags & !OWN) | (object.flags & OWN);
+                held.color = object.color;
+                held.edge_color = object.edge_color;
+                held.place = object.place;
             }
         }
 
@@ -1459,8 +1790,8 @@ impl Scene {
                 "{id:?} spacing"
             );
             assert_eq!(held.faces, want.faces, "{id:?} faces");
-            let judged =
-                self.doc_state[id.0].sheet.is_some() == fresh.doc_state[id.0].sheet.is_some();
+            // a sheet band is judged once, at load: a fresh walk of edited content may judge another
+            let judged = self.doc_state[id.0].sheet == fresh.doc_state[id.0].sheet;
             let mask = if judged {
                 u32::MAX
             } else {
@@ -1480,14 +1811,27 @@ impl Scene {
             assert!(
                 owner == u32::MAX
                     || self.identity_of(owner).is_some()
+                    || self.owners.get(owner as usize) == Some(&TOMB)
                     || self.instancing.is_batch(owner),
                 "a pipe names dead row {owner}"
             );
         }
 
+        let mut tombed = Counts::default();
+
+        for tomb in self.tombs.values() {
+            assert_eq!(
+                self.owners[tomb.row as usize], TOMB,
+                "row {} is a tomb",
+                tomb.row
+            );
+            tombed = tombed.plus(self.spans.span(tomb.foot).count);
+        }
+
+        assert!(tombed == self.tombed, "tomb rows add up");
         assert!(
-            self.dead.fits(&self.uploaded),
-            "dead rows are uploaded rows"
+            self.dead.plus(self.tombed).fits(&self.uploaded),
+            "dead and buried rows are uploaded rows"
         );
         assert_eq!(self.pending.len(), 0);
     }
@@ -1760,7 +2104,7 @@ mod tests {
         }
     }
 
-    /// A deleted line and mesh keep their rows as graves; undo gives the same ids and rows back.
+    /// A deleted line and mesh stay on the GPU, hidden; undo shows the same ids and rows with nothing written.
     #[test]
     fn delete_then_undo_restores_id_and_footprint() {
         let mut scene = scene();
@@ -1776,13 +2120,19 @@ mod tests {
         check(&mut scene);
         assert!(scene.delete_row(mesh));
         check(&mut scene);
-        assert_eq!(scene.graves.len(), 2);
+        assert_eq!(scene.tombs.len(), 2);
+        assert!(
+            scene.graves.is_empty() && scene.dead.is_empty(),
+            "nothing retired"
+        );
         assert!(scene.identity_of(line).is_none() && scene.identity_of(mesh).is_none());
+        assert!(scene.ledger[&mesh].flags & Instance::FLAG_HIDDEN != 0);
 
         assert!(scene.undo());
         scene.sync();
-        assert_eq!(scene.staged.patches.len(), 1, "written back at its grave");
-        assert!(scene.staged.kills.is_empty());
+        assert_eq!(scene.staged.unbury.len(), 1, "shown again");
+        assert!(scene.staged.patches.is_empty() && scene.staged.kills.is_empty());
+        assert!(scene.tables_empty(), "nothing uploaded");
         scene.settle();
         scene.verify();
         assert_eq!(scene.identity_of(mesh), Some(ids.1.clone()), "same id");
@@ -1795,12 +2145,255 @@ mod tests {
         check(&mut scene);
         assert_eq!(scene.identity_of(line), Some(ids.0.clone()));
         assert_eq!(scene.spans.span(scene.feet[line as usize]), spans.0);
-        assert!(scene.graves.is_empty());
+        assert!(scene.tombs.is_empty() && scene.tombed.is_empty());
 
         assert!(scene.redo());
         check(&mut scene);
         assert!(scene.identity_of(line).is_none());
-        assert_eq!(scene.graves.len(), 1);
+        assert_eq!(scene.tombs.len(), 1);
+        assert!(scene.graves.is_empty());
+    }
+
+    /// A tomb no record reaches is released: a dropped redo branch, a cleared history, then the ids are reused.
+    #[test]
+    fn unreachable_tombs_are_released() {
+        let mut scene = scene();
+        scene.model(&Modeling::Point([1.0, 2.0, 3.0])).unwrap();
+        check(&mut scene);
+        assert!(scene.undo());
+        check(&mut scene);
+        assert_eq!(scene.tombs.len(), 1, "an undone add waits for its redo");
+
+        scene
+            .model(&Modeling::Line([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]))
+            .unwrap();
+        check(&mut scene);
+        assert!(scene.tombs.is_empty(), "the redo branch is gone");
+        assert!(scene.tombed.is_empty() && !scene.dead.is_empty());
+        assert_eq!(scene.ids.len(), 1, "its id is free again");
+
+        let line = find(&scene, |g| matches!(g, Geometry::Line(_))).unwrap();
+        let doc = scene.identity_of(line).unwrap().0;
+        assert!(scene.delete_row(line));
+        check(&mut scene);
+        assert_eq!(scene.tombs.len(), 1);
+        Rc::make_mut(&mut scene.docs[doc].session).purge();
+        check(&mut scene);
+        assert!(
+            scene.tombs.is_empty(),
+            "a purge drops the history that held it"
+        );
+    }
+
+    /// An edit in another document ends the redo branch there too: the undone add's tomb is released.
+    #[test]
+    fn an_edit_elsewhere_releases_a_redo_tomb() {
+        let mut scene = scene();
+        scene.model(&Modeling::Point([1.0, 2.0, 3.0])).unwrap();
+        check(&mut scene);
+        assert!(scene.undo());
+        check(&mut scene);
+        let created = scene.created_doc.unwrap();
+        assert!(scene.tombs.keys().all(|(doc, _)| *doc == created));
+        assert_eq!(scene.tombs.len(), 1, "an undone add waits for its redo");
+
+        let row = find(&scene, |g| matches!(g, Geometry::Line(_))).unwrap();
+        assert_ne!(scene.identity_of(row).unwrap().0, created);
+        assert!(scene.delete_row(row));
+        check(&mut scene);
+        assert!(!scene.docs[created].session.history.can_redo());
+        assert!(
+            scene.tombs.keys().all(|(doc, _)| *doc != created),
+            "the dropped redo branch no longer holds the point"
+        );
+
+        while scene.purge_step() {}
+        assert!(
+            !scene.docs[created].session.purge_due(),
+            "the idle purge freed it"
+        );
+    }
+
+    /// Past the cap the oldest tombs are released first; an undo of those walks the object again.
+    #[test]
+    fn tombs_past_the_cap_release_the_oldest() {
+        let mut scene = scene();
+        let line = find(&scene, |g| matches!(g, Geometry::Line(_))).unwrap();
+        let mesh = find(&scene, |g| matches!(g, Geometry::Mesh(_))).unwrap();
+        let size =
+            |scene: &Scene, row: u32| scene.spans.span(scene.feet[row as usize]).count.bytes();
+        scene.tomb_cap = size(&scene, mesh);
+        assert!(scene.delete_row(line));
+        check(&mut scene);
+        assert!(scene.delete_row(mesh));
+        check(&mut scene);
+        assert_eq!(scene.tombs.len(), 1, "the line went first");
+        assert!(scene.tombed.bytes() <= scene.tomb_cap);
+        assert_eq!(scene.graves.len(), 1, "its rows wait for its return");
+
+        assert!(scene.undo());
+        check(&mut scene);
+        assert!(scene.tombs.is_empty());
+        assert!(scene.undo());
+        scene.sync();
+        assert_eq!(scene.staged.patches.len(), 1, "written back at its grave");
+        scene.settle();
+        scene.verify();
+        assert!(scene.identity_of(line).is_some());
+    }
+
+    /// A deleted cloud keeps its points for an undo and counts toward the cap; past it its points die.
+    #[test]
+    fn a_deleted_cloud_waits_in_its_tomb() {
+        use session_rust::{Color, PointCloud, Vector};
+
+        let mut scene = scene();
+        let mut session = Session::new("cloud");
+        let points: Vec<Point> = (0..100).map(|i| p(i as f64, 0.0, 0.0)).collect();
+        let normals = vec![Vector::new(0.0, 0.0, 1.0); points.len()];
+        let colors = vec![Color::red(); points.len()];
+        session.add_pointcloud(PointCloud::new(points, normals, colors), None);
+        scene.add_file(file("cloud", session, Xform::identity()));
+        scene.settle();
+        let cloud = find(&scene, |g| matches!(g, Geometry::PointCloud(_))).unwrap();
+
+        assert!(scene.delete_row(cloud));
+        scene.sync();
+        assert_eq!(scene.staged.bury, [cloud], "hidden, its points kept");
+        assert!(scene.staged.clouds.is_empty());
+        scene.settle();
+        assert_eq!(scene.tomb_bytes(), 100 * CLOUD_POINT_BYTES);
+
+        assert!(scene.undo());
+        scene.sync();
+        assert_eq!(
+            scene.staged.unbury.len(),
+            1,
+            "drawn again, nothing uploaded"
+        );
+        scene.settle();
+        scene.verify();
+        assert_eq!(scene.tomb_bytes(), 0);
+
+        scene.tomb_cap = 100 * CLOUD_POINT_BYTES - 1;
+        assert!(scene.delete_row(cloud));
+        scene.sync();
+        assert!(scene.tombs.is_empty(), "past the cap it is released");
+        assert_eq!(scene.staged.clouds, [cloud], "its points die");
+        scene.settle();
+    }
+
+    /// A compaction walks the lanes again without the tombs; undo walks the object anew.
+    #[test]
+    fn compaction_drops_the_tombs() {
+        let mut scene = scene();
+        let mesh = find(&scene, |g| matches!(g, Geometry::Mesh(_))).unwrap();
+        let id = scene.identity_of(mesh).unwrap();
+        assert!(scene.delete_row(mesh));
+        check(&mut scene);
+        assert_eq!(scene.tombs.len(), 1);
+        scene.rewalk_cpu();
+        scene.verify();
+        assert!(scene.tombs.is_empty() && scene.tombed.is_empty());
+        assert!(scene.undo());
+        check(&mut scene);
+        assert!(live(&scene).iter().any(|(_, held)| *held == id));
+    }
+
+    /// Every object of several documents goes in one step; one undo brings them all back, one redo takes them again.
+    #[test]
+    fn delete_rows_is_one_step() {
+        let mut scene = scene();
+        let before = live(&scene);
+        let rows: Vec<u32> = before.iter().map(|(row, _)| *row).collect();
+        let ids: HashSet<_> = before.iter().map(|(_, id)| id.clone()).collect();
+        let docs: HashSet<usize> = ids.iter().map(|id| id.0).collect();
+        let held = |scene: &Scene| {
+            live(scene)
+                .into_iter()
+                .filter(|(_, id)| ids.contains(id))
+                .count()
+        };
+        assert!(docs.len() > 1);
+        let steps = scene.undo_steps.len();
+        assert!(scene.delete_rows(&rows) > 1);
+        check(&mut scene);
+        assert_eq!(scene.undo_steps.len(), steps + 1, "one step");
+        assert_eq!(held(&scene), 0);
+
+        assert!(scene.undo());
+        check(&mut scene);
+        assert_eq!(held(&scene), ids.len(), "one undo brings all");
+        assert!(scene.tombs.is_empty());
+        assert!(scene.redo());
+        check(&mut scene);
+        assert_eq!(held(&scene), 0, "one redo takes all");
+        assert!(scene.undo());
+        check(&mut scene);
+        assert_eq!(held(&scene), ids.len());
+    }
+
+    /// An object outside the tree is buried by its op's own tomb and shown again by undo.
+    #[test]
+    fn a_tree_less_object_is_buried_by_its_op() {
+        let mut session = Session::new("loose");
+        session.add_mesh(Mesh::create_box(1.0, 1.0, 1.0), None);
+        session.node_lookup.clear();
+        session.tree = session_rust::Tree::new("loose");
+        let mut scene = Scene::new();
+        scene.add_file(file("loose", session, Xform::identity()));
+        scene.settle();
+        assert!(scene.delete_row(0));
+        check(&mut scene);
+        assert_eq!(scene.tombs.len(), 1);
+        assert!(scene.undo());
+        scene.sync();
+        assert_eq!(scene.staged.unbury.len(), 1);
+        assert!(scene.tables_empty(), "nothing uploaded");
+        scene.settle();
+        scene.verify();
+    }
+
+    /// A thousand boxes deleted together hide in one step and come back in one, nothing uploaded either way.
+    #[test]
+    fn a_thousand_boxes_delete_and_undo_in_place() {
+        let mut session = Session::new("boxes");
+
+        for i in 0..1000 {
+            let node = session
+                .add_mesh(Mesh::create_box(1.0, 1.0, 1.0), None)
+                .unwrap();
+            let guid = node.borrow().name.clone();
+            session.set_xform(
+                &guid,
+                Xform::translation(f64::from(i % 40) * 2.0, f64::from(i / 40) * 2.0, 0.0),
+            );
+        }
+
+        let mut scene = Scene::new();
+        scene.add_file(file("boxes", session, Xform::identity()));
+        scene.settle();
+        let rows: Vec<u32> = live(&scene).into_iter().map(|(row, _)| row).collect();
+        assert_eq!(rows.len(), 1000);
+        assert_eq!(scene.delete_rows(&rows), 1000);
+        scene.sync();
+        assert_eq!(scene.staged.bury.len(), 1000);
+        assert!(scene.staged.kills.is_empty() && scene.tables_empty());
+        scene.settle();
+        scene.verify();
+        assert_eq!(scene.object_count(), 0);
+
+        assert!(scene.undo());
+        scene.sync();
+        assert_eq!(scene.staged.unbury.len(), 1000);
+        assert!(
+            scene.staged.patches.is_empty() && scene.tables_empty(),
+            "nothing uploaded"
+        );
+        scene.settle();
+        scene.verify();
+        assert_eq!(scene.object_count(), 1000);
+        assert!(!scene.undo(), "one step");
     }
 
     /// Delete, undo, redo, undo ten times hands the same 10k-vertex mesh back: tombs flip in place, the purge keeps the dead few.
@@ -1938,8 +2531,12 @@ mod tests {
                 [x, x, 2.0],
                 [0.0, x, 1.0],
             ]))),
-            4 | 5 if !rows.is_empty() => {
+            4 if !rows.is_empty() => {
                 scene.delete_row(pick(dice));
+            }
+            5 if !rows.is_empty() => {
+                let picked = [pick(dice), pick(dice), pick(dice)];
+                scene.delete_rows(&picked);
             }
             6 if !rows.is_empty() => {
                 scene.selected = Some(pick(dice));
@@ -2030,6 +2627,28 @@ mod tests {
                 edit(&mut scene, &mut dice);
                 scene.sync();
                 scene.settle();
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| scene.verify()))
+                    .unwrap_or_else(|_| panic!("seed {seed} step {step}"));
+            }
+        }
+    }
+
+    /// Random edits with a tomb cap of a few rows: releases, graves and re-walks on undo match a fresh walk.
+    #[test]
+    fn tombs_under_a_small_cap_match_fresh_oracle() {
+        for seed in [3, 11, 14] {
+            let mut scene = scene();
+            scene.tomb_cap = 4096;
+            let mut dice = Dice(seed);
+
+            for step in 0..150 {
+                edit(&mut scene, &mut dice);
+                scene.sync();
+                scene.settle();
+                assert!(
+                    scene.tombed.bytes() <= scene.tomb_cap,
+                    "seed {seed} step {step} cap"
+                );
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| scene.verify()))
                     .unwrap_or_else(|_| panic!("seed {seed} step {step}"));
             }
@@ -3050,6 +3669,28 @@ mod tests {
             };
             let entities = entity(&gpu);
             assert_eq!(entities.len(), 2);
+
+            // a document cloud dies and comes back from its tomb, nothing uploaded; purged, its points are dead
+            let row = find(&scene, |g| matches!(g, Geometry::PointCloud(_))).unwrap();
+            let resident = gpu.cloud.point_count;
+
+            for _ in 0..3 {
+                assert!(scene.delete_row(row));
+                commit(&mut scene, &mut gpu);
+                assert!(scene.undo());
+                commit(&mut scene, &mut gpu);
+            }
+
+            assert_eq!(
+                gpu.cloud.point_count, resident,
+                "an undo draws the buried cloud again"
+            );
+            let doc = scene.identity_of(row).unwrap().0;
+            assert!(scene.delete_row(row));
+            Rc::make_mut(&mut scene.docs[doc].session).purge();
+            commit(&mut scene, &mut gpu);
+            assert!(scene.dead_points > 0);
+
             let mut dice = Dice(21);
 
             for _ in 0..40 {
@@ -3057,17 +3698,6 @@ mod tests {
                 commit(&mut scene, &mut gpu);
             }
 
-            // a document cloud dies and comes back until its points outweigh the rest
-            for _ in 0..3 {
-                if let Some(row) = find(&scene, |g| matches!(g, Geometry::PointCloud(_))) {
-                    assert!(scene.delete_row(row));
-                    commit(&mut scene, &mut gpu);
-                    assert!(scene.undo());
-                    commit(&mut scene, &mut gpu);
-                }
-            }
-
-            assert!(scene.dead_points > 0);
             scene.compact_clouds(&mut gpu);
             scene.rewalk_editable(&mut gpu);
             assert_eq!(points(&gpu), before, "the streamed cloud keeps its points");

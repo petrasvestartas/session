@@ -775,6 +775,60 @@ impl InstanceTable {
         }
     }
 
+    /// Hide rows whose objects an undo may bring back; their drawing flags and own boxes stay for `unbury`.
+    pub fn bury_many(&mut self, ctx: &GpuCtx, rows: &[u32]) {
+        if rows.is_empty() {
+            return;
+        }
+
+        let mut sorted = rows.to_vec();
+        sorted.sort_unstable();
+        sorted.dedup();
+
+        for &row in &sorted {
+            let i = row as usize;
+            let instance = &mut self.rows[i];
+            instance.flags = (instance.flags & !Instance::FLAG_SELECTED)
+                | Instance::FLAG_HIDDEN
+                | Instance::FLAG_DEAD;
+            self.track(row, Instance::FLAG_DEAD);
+            self.world_bounds[i] = AABB::empty();
+            self.set_bounded(row, false, &AABB::empty());
+        }
+
+        self.geometry_revision = self.geometry_revision.wrapping_add(1);
+
+        for run in sorted.chunk_by(|a, b| a + 1 == *b) {
+            let first = run[0] as usize;
+            self.buffer
+                .write_at(ctx, run[0], &self.rows[first..first + run.len()]);
+        }
+    }
+
+    /// Show a buried row again at `r`'s placement with its colors and hidden bit; the walk's flags and box stay.
+    pub fn unbury(&mut self, ctx: &GpuCtx, row: u32, r: &ObjectRow) {
+        const OWN: u32 = Instance::FLAG_SELECTED
+            | Instance::FLAG_HIDDEN
+            | Instance::FLAG_COLOR
+            | Instance::FLAG_EDGE_COLOR
+            | Instance::FLAG_DEAD;
+        let i = row as usize;
+        let (model, translation, world) = placed_row(&self.local_bounds[i], &r.place);
+        let instance = &mut self.rows[i];
+        instance.model = model;
+        instance.color = r.color;
+        instance.flags = (instance.flags & !OWN) | (r.flags & OWN);
+        instance.ao_radius = ambient_radius(&world);
+        instance._pad = r.edge_color;
+        let flags = instance.flags;
+        self.translation[i] = translation;
+        self.world_bounds[i] = world;
+        let bounded = flags & Instance::FLAG_HAS_FACES != 0 && world.is_valid();
+        self.set_bounded(row, bounded, &world);
+        self.track(row, flags);
+        self.write_row(ctx, row);
+    }
+
     /// Grow a row's own box by `bounds`, placed at `place`.
     pub fn grow_local_bounds(&mut self, ctx: &GpuCtx, row: u32, bounds: &AABB, place: &Xform) {
         let i = row as usize;

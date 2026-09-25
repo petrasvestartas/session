@@ -132,6 +132,9 @@ pub fn publish(state: &State) {
     snapshot["dead_bytes"] = serde_json::json!(dead_bytes);
     snapshot["graves"] = serde_json::json!(graves);
     snapshot["compactions"] = serde_json::json!(compactions);
+    let (tombs, tomb_bytes) = state.scene.tomb_counters();
+    snapshot["tombs"] = serde_json::json!(tombs);
+    snapshot["tomb_bytes"] = serde_json::json!(tomb_bytes);
     snapshot["row_table_bytes"] = serde_json::json!(state.scene.row_table_bytes());
     snapshot["preview_cache_bytes"] = serde_json::json!(state.scene.preview_cache_bytes());
     let docs = &state.scene.docs;

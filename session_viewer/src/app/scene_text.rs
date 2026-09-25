@@ -118,19 +118,24 @@ impl Scene {
 
     /// Retire the active text on `row` as one undo step; false when no text is there.
     pub(crate) fn delete_text(&mut self, row: u32) -> bool {
-        let Some(text) = self
-            .texts
-            .iter_mut()
-            .find(|text| text.active && text.row == row)
-        else {
+        let Some(label) = self.retire_text(row) else {
             return false;
         };
+        self.text_edited(label);
+        true
+    }
+
+    /// Retire the active text on `row`; its undo label, None when no text is there.
+    pub(crate) fn retire_text(&mut self, row: u32) -> Option<String> {
+        let text = self
+            .texts
+            .iter_mut()
+            .find(|text| text.active && text.row == row)?;
         text.active = false;
         let label = format!("-{}", text.key);
-        self.text_edited(label);
         self.text_rows.push(row);
         self.selected = None;
-        true
+        Some(label)
     }
 
     /// Show or hide the text an undo step `label` made or deleted.

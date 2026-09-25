@@ -1,6 +1,6 @@
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::{ObjectRow, Upload};
-use session_rust::{TreeNode, Xform};
+use session_rust::{TreeNode, Xform, history};
 use std::cell::RefCell;
 use std::rc::Weak;
 
@@ -12,6 +12,9 @@ pub(crate) const FREE: usize = usize::MAX - 1;
 
 /// Owner of the hidden row that dead lane rows point at.
 pub(crate) const SINK: usize = usize::MAX - 2;
+
+/// Owner of a deleted object's row whose lane rows stay resident, hidden, for an undo.
+pub(crate) const TOMB: usize = usize::MAX - 3;
 
 /// The note bits: what one edit did to one object.
 pub(crate) const GEOMETRY: u8 = 1; // walk it again
@@ -54,6 +57,7 @@ pub(crate) struct Note {
     pub what: u8,                              // GEOMETRY | PLACE | PRESENCE | SUBTREE
     pub node: Option<Weak<RefCell<TreeNode>>>, // its tree node, when the edit knows it
     pub parent: Option<(String, usize)>,       // (parent name, child index) of an added object
+    pub tomb: Option<Weak<history::Tomb>>,     // the kernel tomb of an add or remove
 }
 
 impl Note {
@@ -64,14 +68,28 @@ impl Note {
             what,
             node: None,
             parent: None,
+            tomb: None,
         }
     }
+}
+
+/// A deleted object's rows, left on the GPU and hidden while history can bring it back.
+pub(crate) struct Tomb {
+    pub row: u32,                    // its row id, kept from reuse
+    pub foot: Footprint,             // its lane rows, untouched
+    pub record: Weak<history::Tomb>, // the kernel tomb; gone when no undo reaches it
+    pub born: u64,                   // burial order, oldest released first
+    pub place: Option<Xform>,        // its placement in a sheet document, whose pens hang on it
+    pub attributes: bool,            // whether element features were drawn
+    pub points: u64,                 // cloud points it keeps on the GPU, 0 for other kinds
 }
 
 /// GPU work of one sync, O(changed); `Scene::upload_to` drains it in this order.
 #[derive(Default)]
 pub(crate) struct Staged {
     pub retire: Vec<u32>,                    // object rows to hide for good
+    pub bury: Vec<u32>,                      // object rows hidden with their lane rows kept
+    pub unbury: Vec<(u32, ObjectRow)>,       // buried rows shown again
     pub clouds: Vec<u32>,                    // object rows whose cloud entry is dropped
     pub kills: Vec<(LaneId, u32, u32)>,      // (lane, first, count) handed to the sink
     pub tails: Vec<(LaneId, u32, u32, u32)>, // (face, print or text lane, first, count, vertex) emptied

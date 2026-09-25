@@ -108,6 +108,7 @@ pub struct CloudLane {
     col: GrowBuf, // colors
     nrm: GrowBuf, // normals
     pub clouds: Vec<Cloud>, // one entry per cloud
+    pub buried: Vec<Cloud>, // deleted clouds an undo may draw again, points kept
     pub nodes: Vec<LodNode>, // octree nodes of every cloud
     pub point_count: u32, // points on the GPU
 }
@@ -125,6 +126,7 @@ impl CloudLane {
             col: GrowBuf::new(ctx, "points.col.buffer", 4, ROWS),
             nrm: GrowBuf::new(ctx, "points.nrm.buffer", 4, ROWS),
             clouds: Vec::new(),
+            buried: Vec::new(),
             nodes: Vec::new(),
             point_count: 0,
         }
@@ -200,7 +202,7 @@ impl CloudLane {
 
     /// Add a batch to the cloud on object row `instance`.
     fn extend(&mut self, instance: u32, chunk: Chunk) {
-        for cloud in &mut self.clouds {
+        for cloud in self.clouds.iter_mut().chain(self.buried.iter_mut()) {
             if cloud.instance != instance {
                 continue;
             }
@@ -224,13 +226,38 @@ impl CloudLane {
         log::warn!("cloud chunk for row {instance} arrived before its cloud; dropped");
     }
 
-    /// Stop drawing the cloud on object row `instance`; returns its resident points, now dead.
+    /// Stop drawing the cloud on object row `instance`, buried or not; returns its resident points, now dead.
     pub fn kill_instance(&mut self, instance: u32) -> u32 {
+        if let Some(at) = self.clouds.iter().position(|c| c.instance == instance) {
+            return self.clouds.remove(at).resident;
+        }
+
+        match self.buried.iter().position(|c| c.instance == instance) {
+            Some(at) => self.buried.remove(at).resident,
+            None => 0,
+        }
+    }
+
+    /// Stop drawing the cloud on object row `instance` but keep its points for an undo; false when none is drawn.
+    pub fn bury_instance(&mut self, instance: u32) -> bool {
         let Some(at) = self.clouds.iter().position(|c| c.instance == instance) else {
-            return 0;
+            return false;
         };
 
-        self.clouds.remove(at).resident
+        let cloud = self.clouds.remove(at);
+        self.buried.push(cloud);
+        true
+    }
+
+    /// Draw a buried cloud again; false when none is buried on that row.
+    pub fn unbury_instance(&mut self, instance: u32) -> bool {
+        let Some(at) = self.buried.iter().position(|c| c.instance == instance) else {
+            return false;
+        };
+
+        let cloud = self.buried.remove(at);
+        self.clouds.push(cloud);
+        true
     }
 
     /// Copy the live clouds' points, normals and nodes into buffers of exact size; the old ones are freed.
@@ -242,7 +269,8 @@ impl CloudLane {
         let mut points = 0u32;
         let mut normals = 0u32;
 
-        for cloud in &mut self.clouds {
+        // buried clouds move too: an undo still finds their points
+        for cloud in self.clouds.iter_mut().chain(self.buried.iter_mut()) {
             for chunk in &mut cloud.chunks {
                 let count = chunk.to - chunk.from;
                 pos.push((chunk.row * 3, count * 3));
@@ -318,6 +346,7 @@ impl CloudLane {
         self.nrm.reset();
         self.point_count = 0;
         self.clouds.clear();
+        self.buried.clear();
         self.nodes.clear();
     }
 
@@ -328,6 +357,7 @@ impl CloudLane {
         self.col.release(ctx);
         self.nrm.release(ctx);
         self.clouds.shrink_to_fit();
+        self.buried.shrink_to_fit();
         self.nodes.shrink_to_fit();
     }
 }

@@ -147,6 +147,62 @@ impl Scene {
         removed
     }
 
+    /// Delete the objects and texts of `rows` as one undo step across their documents; how many went.
+    pub fn delete_rows(&mut self, rows: &[u32]) -> usize {
+        let mut texts = Vec::new();
+        let mut objects = Vec::new();
+
+        for &row in rows {
+            match self.retire_text(row) {
+                Some(label) => texts.push((TEXT, label)),
+                None => objects.extend(self.writable(row)),
+            }
+        }
+
+        let mut docs = Vec::new();
+        let mut count = texts.len();
+
+        for doc in 0..self.docs.len() {
+            if objects.iter().all(|(owner, _)| *owner != doc) {
+                continue;
+            }
+
+            let session = Rc::make_mut(&mut self.docs[doc].session);
+            session.begin("delete");
+            let before = count;
+
+            for (_, guid) in objects.iter().filter(|(owner, _)| *owner == doc) {
+                count += usize::from(session.remove_object(guid));
+            }
+
+            let notes = sync::commit(session);
+            self.noted(doc, notes);
+
+            if count > before {
+                docs.push(doc);
+            }
+        }
+
+        self.edited(&docs);
+
+        // texts join the documents' step, so one undo brings everything back
+        if !texts.is_empty() {
+            match self.undo_steps.last_mut() {
+                Some(top) if !docs.is_empty() => top.extend(texts),
+                _ => {
+                    self.forget_redo();
+                    self.undo_steps.push(texts);
+                }
+            }
+        }
+
+        if count > 0 {
+            self.selected = None;
+        }
+
+        count
+    }
+
     /// Undo the newest edit, whichever documents it changed.
     pub fn undo(&mut self) -> bool {
         self.step_history(true)
@@ -171,7 +227,7 @@ impl Scene {
             return;
         }
 
-        self.redo_steps.clear();
+        self.forget_redo();
         // the documents of one layer edit share its label and undo together
         let layer = step.iter().all(|(_, label)| is_layer_key(label));
         let joins = layer
@@ -193,9 +249,27 @@ impl Scene {
         }
     }
 
+    /// A new edit ends the redo branch in every document, so the purge frees what only it reached.
+    fn forget_redo(&mut self) {
+        self.redo_steps.clear();
+
+        for file in &mut self.docs {
+            if !file.session.history.can_redo() {
+                continue;
+            }
+
+            let history = &mut Rc::make_mut(&mut file.session).history;
+
+            for undone in history.redo_stack.drain(..) {
+                history.dropped += undone.ops.len();
+                history.bytes = history.bytes.saturating_sub(undone.bytes);
+            }
+        }
+    }
+
     /// A text made or deleted is one new edit; `label` is `+key` or `-key`.
     pub(crate) fn text_edited(&mut self, label: String) {
-        self.redo_steps.clear();
+        self.forget_redo();
         self.undo_steps.push(vec![(TEXT, label)]);
 
         if self.undo_steps.len() > 2 * MAX_STEPS {

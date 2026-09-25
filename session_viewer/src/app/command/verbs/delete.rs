@@ -12,7 +12,7 @@ pub const SPEC: Spec = Spec {
     parse,
 };
 
-/// Remove the selected object.
+/// Remove the selected objects.
 fn parse(_verb: &str, _rest: &[&str]) -> Result<Box<dyn Action>, String> {
     Ok(Box::new(Delete))
 }
@@ -21,20 +21,9 @@ fn parse(_verb: &str, _rest: &[&str]) -> Result<Box<dyn Action>, String> {
 struct Delete;
 
 impl Action for Delete {
-    /// Drop the selected row from its document.
+    /// Drop every selected row from its document, one undo step.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        let row = state.scene.selected.ok_or("nothing is selected")?;
-
-        if let Some(reason) = state.locked_reason(&[row]) {
-            return Err(reason);
-        }
-
-        if !state.scene.delete_row(row) {
-            return Err("This object cannot be deleted".into());
-        }
-
-        state.after_history();
-        Ok("deleted".into())
+        state.delete_selection()
     }
 
     fn needs_selection(&self) -> bool {

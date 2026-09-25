@@ -325,23 +325,52 @@ impl State {
         }
     }
 
-    /// Delete the selection.
+    /// Delete key: the whole selection.
     pub fn delete_selected(&mut self) {
-        let Some(row) = self.scene.selected else {
-            return;
-        };
-
-        if let Some(reason) = self.locked_reason(&[row]) {
-            self.status(&reason);
+        if self.selected_rows().is_empty() {
             return;
         }
 
-        if !self.scene.delete_row(row) {
-            self.status("This object cannot be deleted");
-            return;
+        match self.delete_selection() {
+            Ok(message) | Err(message) => self.status(&message),
+        }
+    }
+
+    /// Delete every selected object as one undo step; streamed and not yet editable ones stay, named.
+    pub(crate) fn delete_selection(&mut self) -> Result<String, String> {
+        let rows = self.selected_rows();
+
+        if rows.is_empty() {
+            return Err("nothing is selected".into());
+        }
+
+        let mut free = Vec::with_capacity(rows.len());
+        let mut reason = None;
+
+        for &row in &rows {
+            match self.locked_reason(&[row]) {
+                Some(why) => reason = Some(why),
+                None => free.push(row),
+            }
+        }
+
+        let skipped = rows.len() - free.len();
+        let deleted = self.scene.delete_rows(&free);
+
+        if deleted == 0 {
+            return Err(reason.unwrap_or_else(|| "This object cannot be deleted".into()));
         }
 
         self.after_history();
+        let message = match deleted {
+            1 => "deleted".to_string(),
+            _ => format!("deleted {deleted} objects"),
+        };
+
+        match reason {
+            Some(why) => Ok(format!("{message}; skipped {skipped}: {why}")),
+            None => Ok(message),
+        }
     }
 
     /// Ctrl+Z: undo the last edit.

@@ -20,7 +20,7 @@ use crate::app::walk::sheet::{SheetRows, SheetSlice, walk_sheet_slice};
 use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
-use rows::{Cap, DocState, FREE, Footprint, Ids, Note, SINK, Spans, Staged};
+use rows::{Cap, DocState, FREE, Footprint, Ids, Note, SINK, Spans, Staged, TOMB, Tomb};
 use session_rust::{Geometry, Session, TreeNode, Xform};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -238,6 +238,11 @@ pub struct Scene {
     pub(crate) released: HashMap<usize, Released>, // documents drawn without their kernel objects
     asked: RefCell<Vec<usize>>,     // released documents a read-only path needs
     stream_ceiling: u32,            // most streamed points on the page
+    tombs: HashMap<(usize, Rc<str>), Tomb>, // deleted objects whose rows stay on the GPU, hidden
+    tombed: Counts,                 // lane rows the tombs hold
+    tomb_points: u64,               // cloud points the tombs hold
+    burials: u64,                   // tombs made, for their order
+    tomb_cap: u64,                  // lane bytes the tombs may hold
     pub(crate) instancing: sync::instances::Instancing, // definitions drawn once, placed by instance rows
     #[cfg(test)]
     pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
@@ -280,6 +285,11 @@ impl Scene {
             spans: Spans::default(),
             caps: HashMap::new(),
             graves: HashMap::new(),
+            tombs: HashMap::new(),
+            tombed: Counts::default(),
+            tomb_points: 0,
+            burials: 0,
+            tomb_cap: sync::TOMB_CAP,
             ids: Ids::default(),
             sink: None,
             empty: Rc::from(""),
@@ -352,6 +362,9 @@ impl Scene {
         self.spans.clear();
         self.caps.clear();
         self.graves.clear();
+        self.tombs.clear();
+        self.tombed = Counts::default();
+        self.tomb_points = 0;
         self.ids.clear();
         self.sink = None;
         self.pending.clear();
@@ -390,6 +403,16 @@ impl Scene {
                 gpu.set_selected(row, false);
             }
         }
+
+        for &row in &staged.bury {
+            gpu.set_selected(row, false);
+
+            if gpu.cloud.bury_instance(row) {
+                gpu.splat.invalidate();
+            }
+        }
+
+        gpu.objects.bury_many(&gpu.ctx, &staged.bury);
 
         for &row in &staged.clouds {
             self.dead_points += gpu.cloud.kill_instance(row);
@@ -450,6 +473,15 @@ impl Scene {
             gpu.grew_bounds(*row);
         }
 
+        for (row, object) in &staged.unbury {
+            gpu.objects.unbury(&gpu.ctx, *row, object);
+            gpu.grew_bounds(*row);
+
+            if gpu.cloud.unbury_instance(*row) {
+                gpu.splat.invalidate();
+            }
+        }
+
         for (row, object) in &staged.geometry {
             gpu.objects.update_geometry(&gpu.ctx, *row, object);
             gpu.grew_bounds(*row);
@@ -466,7 +498,7 @@ impl Scene {
         }
 
         self.upload_instances(gpu);
-        gpu.set_dead(self.dead, self.dead_points);
+        gpu.set_dead(self.dead.plus(self.tombed), self.dead_points);
         gpu.refresh_samples();
     }
 
@@ -1003,7 +1035,7 @@ impl Scene {
     pub fn identity_of(&self, row: u32) -> Option<(usize, Rc<str>)> {
         let owner = *self.owners.get(row as usize)?;
 
-        if owner == FREE || owner == SINK {
+        if owner == FREE || owner == SINK || owner == TOMB {
             return None;
         }
 
@@ -1032,6 +1064,7 @@ impl Scene {
     pub fn object_count(&self) -> usize {
         self.order.len()
             - self.ids.len()
+            - self.tombs.len()
             - usize::from(self.sink.is_some())
             - self.instancing.batch_rows()
     }
