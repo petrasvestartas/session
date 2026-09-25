@@ -52,7 +52,7 @@ PROTOC_VERSION="$(sed -n 's/^[[:space:]]*set(PROTOC_VERSION[[:space:]]*"\([0-9.]
 PROTOC_CACHE="${REPO_ROOT}/session_cpp/.protoc/${PROTOC_VERSION}"
 SESSION_PROTOC="${SESSION_PROTOC:-}"   # explicit override, checked first
 
-# Prints just the version number, e.g. "33.6" from "libprotoc 33.6".
+# Prints just the version number, e.g. "36.2" from "libprotoc 36.2".
 protoc_version_of() {
     "$1" --version 2>/dev/null | awk '{print $2}'
 }
@@ -80,7 +80,7 @@ download_pinned_protoc() {
     command -v curl >/dev/null 2>&1 || return 1
     command -v unzip >/dev/null 2>&1 || return 1
 
-    echo "[gen_proto] caching protoc ${PROTOC_VERSION} -> ${PROTOC_CACHE#${REPO_ROOT}/}"
+    echo "[gen_proto] caching protoc ${PROTOC_VERSION} -> ${PROTOC_CACHE#${REPO_ROOT}/}" >&2
     tmp="$(mktemp -d)"
     if ! curl -fsSL "$url" -o "${tmp}/protoc.zip"; then
         echo "[gen_proto] download failed: ${url}" >&2
@@ -92,6 +92,41 @@ download_pinned_protoc() {
     rm -rf "$tmp"
     chmod +x "${PROTOC_CACHE}/bin/protoc" 2>/dev/null || true
     [[ "$(protoc_version_of "${PROTOC_CACHE}/bin/protoc")" == "$PROTOC_VERSION" ]]
+}
+
+# Prints the path of a protoc at exactly PROTOC_VERSION, downloading it if needed, or nothing.
+find_pinned_protoc() {
+    local candidate found_version
+    [[ -n "$PROTOC_VERSION" ]] || return 0
+    for candidate in \
+        "$SESSION_PROTOC" \
+        "${PROTOC_CACHE}/bin/protoc" \
+        "$(command -v protoc 2>/dev/null)" \
+        "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/Release/protoc.exe" \
+        "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/protoc"; do
+        [[ -n "$candidate" && -x "$candidate" ]] || continue
+        found_version="$(protoc_version_of "$candidate")"
+        if [[ "$found_version" == "$PROTOC_VERSION" ]]; then
+            echo "$candidate"
+            return 0
+        fi
+        echo "[gen_proto] skipping ${candidate} (libprotoc ${found_version:-unknown}, need ${PROTOC_VERSION})" >&2
+    done
+    download_pinned_protoc && echo "${PROTOC_CACHE}/bin/protoc"
+    return 0
+}
+
+# Removes outputs whose .proto is gone, so a renamed schema leaves no stale twin behind.
+prune_stale_outputs() {
+    local dir="$1" suffix="$2" out base
+    for out in "$dir"/*"$suffix"; do
+        [[ -f "$out" ]] || continue
+        base="$(basename "$out" "$suffix")"
+        if [[ ! -f "${PROTO_DIR}/${base}.proto" ]]; then
+            echo "[gen_proto] removing stale ${out#${REPO_ROOT}/}"
+            rm -f "$out"
+        fi
+    done
 }
 
 DO_PY=true
@@ -128,6 +163,7 @@ if $DO_PY; then
         exit 1
     fi
     echo "[gen_proto] Python -> ${PY_OUT#${REPO_ROOT}/}  (using ${PYTHON_BIN})"
+    prune_stale_outputs "$PY_OUT" "_pb2.py"
     "$PYTHON_BIN" -m grpc_tools.protoc \
         --python_out="$PY_OUT" \
         -I "$PROTO_DIR" \
@@ -149,35 +185,17 @@ if $DO_CPP; then
     echo "[gen_proto] C++    -> ${CPP_OUT#${REPO_ROOT}/}"
 
     # The generated C++ carries an EXACT runtime assertion
-    # (`#if PROTOBUF_VERSION != 6033006`), so it must be produced by exactly the
+    # (`#if PROTOBUF_VERSION != 7036002`), so it must be produced by exactly the
     # protoc that session_cpp/CMakeLists.txt fetches — nothing else will link.
     # Any other protoc on PATH (Ubuntu's snap ships 3.14.0) silently rewrites all
-    # 27 .pb.{h,cc} with incompatible gencode and breaks the build, so every
+    # the .pb.{h,cc} with incompatible gencode and breaks the build, so every
     # candidate is version-checked and a mismatch is fatal, never a fallback.
     if [[ -z "$PROTOC_VERSION" ]]; then
         echo "ERROR: could not read PROTOC_VERSION from session_cpp/CMakeLists.txt" >&2
         exit 1
     fi
 
-    PROTOC=""
-    for candidate in \
-        "$SESSION_PROTOC" \
-        "${PROTOC_CACHE}/bin/protoc" \
-        "$(command -v protoc 2>/dev/null)" \
-        "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/Release/protoc.exe" \
-        "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/protoc"; do
-        [[ -n "$candidate" && -x "$candidate" ]] || continue
-        found_version="$(protoc_version_of "$candidate")"
-        if [[ "$found_version" == "$PROTOC_VERSION" ]]; then
-            PROTOC="$candidate"
-            break
-        fi
-        echo "[gen_proto] skipping ${candidate} (libprotoc ${found_version:-unknown}, need ${PROTOC_VERSION})"
-    done
-
-    if [[ -z "$PROTOC" ]]; then
-        download_pinned_protoc && PROTOC="${PROTOC_CACHE}/bin/protoc"
-    fi
+    PROTOC="$(find_pinned_protoc)"
 
     if [[ -z "$PROTOC" ]]; then
         echo "ERROR: no protoc ${PROTOC_VERSION} available for C++ codegen." >&2
@@ -189,15 +207,23 @@ if $DO_CPP; then
         exit 1
     fi
     echo "[gen_proto] using protoc ${PROTOC_VERSION} at ${PROTOC}"
+    prune_stale_outputs "$CPP_OUT" ".pb.cc"
+    prune_stale_outputs "$CPP_OUT" ".pb.h"
     "$PROTOC" --cpp_out="$CPP_OUT" --proto_path="$PROTO_DIR" $(printf '%s\n' "$PROTO_DIR"/*.proto | LC_ALL=C sort | tr '\n' ' ')
 fi
 
 # ---- Rust -----------------------------------------------------------------
 if $DO_RUST; then
     echo "[gen_proto] Rust   -> session_rust/src/proto/"
-    # session_rust/build.rs regenerates into src/proto/ on every build using
-    # the protoc-bin-vendored crate. A no-op compile is enough.
-    (cd "${REPO_ROOT}/session_rust" && cargo build --lib --quiet)
+    # session_rust/build.rs regenerates into src/proto/ on every build. PROTOC hands it the
+    # pinned protoc; without one it falls back to protoc-bin-vendored. A no-op compile is enough.
+    RUST_PROTOC="$(find_pinned_protoc)"
+    if [[ -n "$RUST_PROTOC" ]]; then
+        echo "[gen_proto] using protoc ${PROTOC_VERSION} at ${RUST_PROTOC}"
+        (cd "${REPO_ROOT}/session_rust" && PROTOC="$RUST_PROTOC" cargo build --lib --quiet)
+    else
+        (cd "${REPO_ROOT}/session_rust" && cargo build --lib --quiet)
+    fi
 fi
 
 # ---- Freshness check (CI) -------------------------------------------------

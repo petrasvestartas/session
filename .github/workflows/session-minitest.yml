@@ -48,11 +48,24 @@ jobs:
     # Prebuilt protoc — only needed on Linux for the 'Check committed proto
     # bindings are fresh' step. Generated code is platform-independent, so
     # all OSes read the committed artefacts without installing protoc.
+    # The versions come from the pinned kernels (session_cpp's PROTOC_VERSION, session_py's
+    # `proto` group), so this check follows a kernel's protobuf bump without an edit here.
+    - name: Read protobuf pins from the kernels
+      id: proto_pins
+      if: matrix.language == 'full'
+      shell: bash
+      run: |
+        protoc=$(sed -n 's/^set(PROTOC_VERSION .\([0-9.]*\).)$/\1/p' session_cpp/CMakeLists.txt)
+        grpcio_tools=$(sed -n 's/^proto = \[.\(grpcio-tools==[0-9.]*\).\]$/\1/p' session_py/pyproject.toml)
+        echo "protoc ${protoc:?no PROTOC_VERSION in session_cpp}, ${grpcio_tools:?no grpcio-tools pin in session_py}"
+        echo "protoc=$protoc" >> "$GITHUB_OUTPUT"
+        echo "grpcio_tools=$grpcio_tools" >> "$GITHUB_OUTPUT"
+
     - name: Set up protoc (Linux — for freshness check)
       if: runner.os == 'Linux' && matrix.language == 'full'
       uses: arduino/setup-protoc@v3
       with:
-        version: '33.6'
+        version: ${{ steps.proto_pins.outputs.protoc }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
     # ============ CACHING ============
@@ -171,9 +184,9 @@ jobs:
         # dependency: it ships no pure-Python wheel, which made session_py uninstallable
         # under Pyodide/micropip. It lives in the `proto` dependency-group instead, which
         # a plain install does not pull, so this check has to bring its own. The pin
-        # matches session_py's group exactly - protoc stamps its version into the
+        # is read from session_py's group - protoc stamps its version into the
         # generated files, so a different one fails the diff it is here to run.
-        pip install "grpcio-tools==1.80.0"
+        pip install "${{ steps.proto_pins.outputs.grpcio_tools }}"
         ./bash/gen_proto.sh --check
 
     - name: Verify dist exists
