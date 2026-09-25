@@ -2,7 +2,7 @@
 # Shared functions for minitest system
 
 # Single source of truth for class names (sorted alphabetically)
-CLASS_NAMES=("aabb" "bench" "boolean_polyline" "brep" "closest" "collection" "color" "convex_hull" "element" "file_encoders" "file_obj" "file_step" "graph" "history" "intersection" "io_xyz" "nurbsknot" "line" "instance_ref" "interaction" "matrix" "mesh" "mesh_offset" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "simple_split" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_octree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform")
+CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "collection" "color" "convex_hull" "element" "file_encoders" "file_obj" "file_step" "graph" "history" "intersection" "io_xyz" "nurbsknot" "line" "instance_ref" "interaction" "matrix" "mesh" "mesh_offset" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "simple_split" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_octree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform")
 
 # Classes with NO test source in a given language, so they legitimately produce no json.
 # These are reported as SKIP; every other class in CLASS_NAMES must still emit json or the
@@ -10,8 +10,8 @@ CLASS_NAMES=("aabb" "bench" "boolean_polyline" "brep" "closest" "collection" "co
 # Delete an entry the moment its test file lands (C++: src/<cls>_test.cpp,
 # Python: src/session_py/<cls>_test.py, Rust: src/<cls>_test.rs).
 # ("pdf" is not a class: the Rust-only PDF importer is covered by `cargo test --features pdf`.)
-NOT_IMPLEMENTED_cpp="bench collection"
-NOT_IMPLEMENTED_py="bench collection"
+NOT_IMPLEMENTED_cpp="collection"
+NOT_IMPLEMENTED_py="collection"
 NOT_IMPLEMENTED_rust=""
 
 # Resolve repo root from script location
