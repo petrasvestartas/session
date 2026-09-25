@@ -1013,17 +1013,7 @@ impl Scene {
 
         // half a trim is taken back before anything is drawn
         if let Some(reason) = refused {
-            let wrote = session
-                .history
-                .current
-                .as_ref()
-                .is_some_and(|transaction| !transaction.ops.is_empty());
-            session.commit();
-
-            if wrote {
-                session.undo();
-                session.history.redo_stack.pop();
-            }
+            session.abort();
 
             return Err(reason.into());
         }

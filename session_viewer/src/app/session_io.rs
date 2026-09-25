@@ -62,7 +62,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
             );
         }
 
-        let bytes = (*file.session).clone().pb_dumps(); // a copy keeps the undo history
+        let bytes = file.session.to_proto().encode_to_vec(); // live entries, history kept, nothing copied
         size = size.saturating_add(bytes.len());
 
         if size > LIMIT {
@@ -373,7 +373,9 @@ mod tests {
         scene
             .edge_colors
             .insert(scene.identity_of(1).unwrap(), [30, 80, 240]);
+        let count = Rc::strong_count(&scene.docs[1].session);
         let bytes = save(&scene).unwrap();
+        assert_eq!(Rc::strong_count(&scene.docs[1].session), count, "no copy");
         assert!(scene.undo(), "saving leaves live undo available");
         let restored = open(&bytes).unwrap();
         assert_eq!(restored.docs.len(), 2);

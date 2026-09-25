@@ -1,6 +1,5 @@
-use crate::app::scene::rows::{Note, PLACE, PRESENCE, SUBTREE};
 use crate::app::scene::{FileDoc, Scene, Shape, sync};
-use session_rust::{Edge, Geometry, History, Session, Tree, TreeNode, Xform};
+use session_rust::{Edge, Geometry, History, Session, TreeNode, Xform};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -170,18 +169,6 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
     rows
 }
 
-/// Tree nodes kept for undoing layer edits; past it the oldest edits can no longer be undone.
-const MAX_UNDO_NODES: usize = 500_000;
-
-/// A layer edit's tree in one document: the kernel history records no tree structure.
-pub struct LayerStep {
-    pub tree: Tree,  // before the edit while it is done, after it while undone
-    pub size: usize, // nodes in that tree
-    pub order: u64,  // when the edit was made
-    pub renamed: Option<(String, String)>, // (from, to) of a renamed layer
-    pub touched: Vec<String>, // objects and layers it moved in the tree without a recorded op
-}
-
 impl Scene {
     /// The tree node holding the object `guid` of `doc`, when it hangs from the tree.
     pub(crate) fn parent_of(&self, doc: usize, guid: &str) -> Option<Node> {
@@ -342,7 +329,11 @@ impl Scene {
 
         let key = self.step_key("rename layer")?;
         self.layer_step(doc, &key, |session| {
-            group(session, name)?.borrow_mut().name = to.to_string();
+            let node = group(session, name)?;
+
+            if !session.rename_node(&node, to) {
+                return Err("This layer cannot be renamed".into());
+            }
 
             // a group transform follows its new name
             if let Some(xform) = session.xforms.get(name).cloned() {
@@ -352,19 +343,6 @@ impl Scene {
 
             Ok(())
         })?;
-
-        // renaming to or from `attributes` bakes or frees what the layer holds
-        let touched = if name == "attributes" || to == "attributes" {
-            vec![name.to_string(), to.to_string()]
-        } else {
-            Vec::new()
-        };
-        self.touched(doc, &touched);
-
-        if let Some(step) = self.layer_trees.get_mut(&(doc, key)) {
-            step.renamed = Some((name.to_string(), to.to_string()));
-            step.touched = touched;
-        }
 
         if self.current_layer == Some((doc, name.to_string())) {
             self.current_layer = Some((doc, to.to_string()));
@@ -497,7 +475,6 @@ impl Scene {
 
         let key = self.step_key("change object layer")?;
         let place_at = self.docs[doc].place.clone();
-        let reparented: Vec<String> = local.iter().map(|guid| guid.to_string()).collect();
         let mut sources = Vec::new(); // documents already edited
         let mut taken = Vec::new(); // (document, subtree, world placement) from other documents
 
@@ -537,7 +514,6 @@ impl Scene {
                 let world = match nodes.get(guid.as_ref()) {
                     Some(node) => {
                         let world = placement(session, node);
-                        session.tree.remove(node);
                         session.add(node, Some(&layer));
                         world
                     }
@@ -577,23 +553,7 @@ impl Scene {
             self.inherit(&(owner, from.into()), &(doc, to.into()), false);
         }
 
-        // nodes moved within the document record no op
-        self.touched(doc, &reparented);
-
-        if let Some(step) = self.layer_trees.get_mut(&(doc, key)) {
-            step.touched = reparented;
-        }
-
         Ok(moved.into_iter().map(|guid| (doc, guid.into())).collect())
-    }
-
-    /// Note objects or layers a tree edit moved: they and everything below are placed and judged again.
-    pub(crate) fn touched(&mut self, doc: usize, names: &[String]) {
-        let notes = names
-            .iter()
-            .map(|name| Note::new(name, PLACE | PRESENCE | SUBTREE))
-            .collect();
-        self.noted(doc, notes);
     }
 
     /// Copy objects onto a layer of any document, keeping them in place; returns the copies.
@@ -673,7 +633,7 @@ impl Scene {
         Ok(format!("{label} #{}", self.layer_steps))
     }
 
-    /// Run one layer edit of document `doc` as the undo step `key`, keeping its tree for undo.
+    /// Run one layer edit of document `doc` as the undo step `key`; a failed edit is aborted and leaves nothing.
     pub(crate) fn layer_step<T>(
         &mut self,
         doc: usize,
@@ -691,51 +651,24 @@ impl Scene {
         }
 
         let session = Rc::make_mut(&mut file.session);
-        let before = session.tree.clone();
         session.begin(key);
         let result = edit(session);
 
         if result.is_err() {
             // nothing half done stays, and the redo steps survive
-            let redo = std::mem::take(&mut session.history.redo_stack);
-            session.commit();
-
-            if session
-                .history
-                .undo_stack
-                .last()
-                .is_some_and(|step| step.label == key)
-            {
-                session.tree = Tree::new("");
-                session.undo();
-            }
-
-            session.tree = before;
-            session.history.redo_stack = redo;
-            // the tree is a copy now: every cached node of this document is stale
-            self.forget_nodes(doc);
+            session.abort();
             return result;
         }
 
-        // a tree-only edit still needs one op to stay on the undo stack; this pair leaves nothing
-        session.set_xform(key, Xform::identity());
-        session.remove_xform(key);
         let notes = sync::commit(session);
+        let stepped = newest(&session.history, true) == Some(key);
         self.noted(doc, notes);
-        let size = before.nodes().len();
-        self.layer_trees.insert(
-            (doc, key.to_string()),
-            LayerStep {
-                tree: before,
-                size,
-                order: self.layer_steps,
-                renamed: None,
-                touched: Vec::new(),
-            },
-        );
-        self.edited(&[doc]);
+
+        if stepped {
+            self.edited(&[doc]);
+        }
+
         self.row_revision = self.row_revision.wrapping_add(1);
-        self.forget_layer_steps(MAX_UNDO_NODES);
         result
     }
 
@@ -746,7 +679,6 @@ impl Scene {
         if top.is_some_and(|step| step.label == key) && self.step_document(doc, true).is_some() {
             let session = Rc::make_mut(&mut self.docs[doc].session);
             session.history.redo_stack.pop();
-            self.layer_trees.remove(&(doc, key.to_string()));
 
             // nor anything for undo to reach
             if let Some(step) = self.undo_steps.last_mut() {
@@ -759,109 +691,59 @@ impl Scene {
         }
     }
 
-    /// Forget trees whose step left every history, then the oldest edits past `budget` nodes.
-    fn forget_layer_steps(&mut self, budget: usize) {
-        // kept while any document holds the step, so no other one steps it alone
-        self.layer_trees
-            .retain(|(_, label), _| in_any_history(&self.docs, label));
-
-        for _ in 0..self.layer_trees.len() {
-            let size: usize = self.layer_trees.values().map(|step| step.size).sum();
-            let oldest = self
-                .layer_trees
-                .iter()
-                .min_by_key(|(_, step)| step.order)
-                .map(|((_, label), _)| label.clone());
-            let Some(label) = oldest.filter(|_| size > budget) else {
-                break;
-            };
-
-            // neither that edit nor anything before it can be undone, nor redone after it
-            for doc in 0..self.docs.len() {
-                if !in_history(&self.docs, doc, &label) {
-                    continue;
-                }
-
-                let history = &mut Rc::make_mut(&mut self.docs[doc].session).history;
-
-                if let Some(at) = history
-                    .undo_stack
-                    .iter()
-                    .position(|step| step.label == label)
-                {
-                    history.undo_stack.drain(..=at);
-                }
-
-                if let Some(at) = history
-                    .redo_stack
-                    .iter()
-                    .position(|step| step.label == label)
-                {
-                    history.redo_stack.drain(..=at);
-                }
-            }
-
-            self.layer_trees
-                .retain(|(_, label), _| in_any_history(&self.docs, label));
-        }
-    }
-
     /// Undo or redo the newest step of document `doc`; returns its label.
     pub(crate) fn step_document(&mut self, doc: usize, back: bool) -> Option<String> {
         let session = Rc::make_mut(&mut self.docs.get_mut(doc)?.session);
         let label = newest(&session.history, back)?.to_string();
+        let stepped = if back { session.undo() } else { session.redo() };
 
-        let Some(step) = self.layer_trees.get_mut(&(doc, label.clone())) else {
-            let stepped = if back { session.undo() } else { session.redo() };
-
-            // the kernel records no graph edit: the added edge goes or comes back here
-            if stepped && let Some(step) = self.edge_steps.get(&(doc, label.clone())) {
-                put_edge(session, step, back);
-                self.row_revision = self.row_revision.wrapping_add(1);
-            }
-
-            let notes = match stepped {
-                true => sync::stepped(&session.history, back, true),
-                false => Vec::new(),
-            };
-            self.noted(doc, notes);
-            return stepped.then_some(label);
-        };
-
-        // the kernel steps on an empty tree, then the kept tree comes in
-        let live = std::mem::replace(&mut session.tree, Tree::new(""));
-
-        if back {
-            session.undo();
-        } else {
-            session.redo();
+        if !stepped {
+            return None;
         }
 
-        session.tree = std::mem::replace(&mut step.tree, live);
-        step.size = step.tree.nodes().len();
-        // the swapped tree has nodes of its own: the notes carry none
-        let mut notes = sync::stepped(&session.history, back, false);
-        notes.extend(
-            step.touched
-                .iter()
-                .map(|name| Note::new(name, PLACE | PRESENCE | SUBTREE)),
-        );
-        let renamed = step.renamed.clone();
+        // the kernel records no graph edit: the added edge goes or comes back here
+        if let Some(step) = self.edge_steps.get(&(doc, label.clone())) {
+            put_edge(session, step, back);
+        }
+
+        let notes = sync::stepped(&session.history, back);
 
         // a renamed current layer follows
-        if let Some((from, to)) = &renamed {
+        if let Some((from, to)) = renamed(&session.history, back) {
             let (old, new) = if back { (to, from) } else { (from, to) };
 
-            if self.current_layer.as_ref() == Some(&(doc, old.clone())) {
-                self.current_layer = Some((doc, new.clone()));
+            if self.current_layer.as_ref() == Some(&(doc, old)) {
+                self.current_layer = Some((doc, new));
             }
         }
 
         self.noted(doc, notes);
-        self.forget_nodes(doc);
         self.row_revision = self.row_revision.wrapping_add(1);
         Some(label)
     }
+}
+
+/// True for the label of a layer step, `<verb> #<n>` from `step_key`.
+pub(crate) fn is_layer_key(label: &str) -> bool {
+    label
+        .rsplit_once(" #")
+        .is_some_and(|(_, n)| n.parse::<u64>().is_ok())
+}
+
+/// The (from, to) names of a layer the step undo (`back`) or redo just took renamed.
+fn renamed(history: &History, back: bool) -> Option<(String, String)> {
+    let stack = if back {
+        &history.redo_stack
+    } else {
+        &history.undo_stack
+    };
+
+    stack.last()?.ops.iter().find_map(|op| match op {
+        session_rust::history::Op::Tree(t) if t.name_before != t.name_after => {
+            Some((t.name_before.clone(), t.name_after.clone()))
+        }
+        _ => None,
+    })
 }
 
 /// One node of a subtree being copied or moved.
@@ -940,11 +822,6 @@ pub(crate) fn in_history(docs: &[FileDoc], doc: usize, label: &str) -> bool {
             .chain(&history.redo_stack)
             .any(|step| step.label == label)
     })
-}
-
-/// True when any document can still undo or redo the step `label`.
-fn in_any_history(docs: &[FileDoc], label: &str) -> bool {
-    (0..docs.len()).any(|doc| in_history(docs, doc, label))
 }
 
 /// The label of the step undo (`back`) or redo takes next.
@@ -1092,7 +969,7 @@ fn delete(session: &mut Session, node: &Node) -> usize {
         }
     }
 
-    session.tree.remove(node);
+    session.remove_group(node);
     count
 }
 
@@ -1133,11 +1010,15 @@ fn build(
                     unique(session, &part.name)
                 };
                 let node = TreeNode::new(&name);
+                node.borrow_mut().color = part.color.clone();
                 session.add(&node, Some(&under));
                 node
             }
         };
-        node.borrow_mut().color = part.color.clone();
+
+        if part.geometry.is_some() {
+            node.borrow_mut().color = part.color.clone();
+        }
 
         if let Some(xform) = &part.xform {
             let name = node.borrow().name.clone();
@@ -1203,9 +1084,8 @@ pub(crate) fn add(
 
     match geometry {
         Geometry::OBB(value) => {
-            // a box lands under the root first
+            // a box lands under the root first, then moves
             let node = session.add_obb(Rc::unwrap_or_clone(value));
-            session.tree.remove(&node);
             session.add(&node, under);
             Some(node)
         }
@@ -1790,19 +1670,18 @@ mod tests {
         );
     }
 
-    /// Past the node budget the oldest edits can no longer be undone; the rest still can.
+    /// Past the history budget the oldest edits can no longer be undone; the rest still can.
     #[test]
     fn old_layer_edits_are_forgotten_past_the_budget() {
         let mut scene = site();
+        Rc::make_mut(&mut scene.docs[0].session).history.budget = 1;
 
         for _ in 0..3 {
             scene.new_layer(0, "roof", false).unwrap();
         }
 
-        scene.forget_layer_steps(12);
         let depth = scene.docs[0].session.history.undo_stack.len();
         assert_eq!(depth, 1);
-        assert_eq!(scene.layer_trees.len(), 1);
         assert!(scene.undo());
         assert!(!scene.undo());
         assert_eq!(

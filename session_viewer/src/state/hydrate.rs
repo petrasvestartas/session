@@ -86,6 +86,15 @@ impl State {
         self.touch();
     }
 
+    /// Idle work between edits: one kernel purge step, frames kept coming until the cycle ends.
+    pub(crate) fn purge_idle(&mut self) {
+        let gesture = self.dragging.is_some() || self.control_drag.is_some();
+
+        if !gesture && self.scene.purge_step() {
+            self.needs_frame = true;
+        }
+    }
+
     /// Run one waiting edit when its documents are back, else keep it.
     fn run_resume(&mut self, resume: Resume) {
         match resume {

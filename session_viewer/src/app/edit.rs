@@ -1,4 +1,4 @@
-use crate::app::layers::newest;
+use crate::app::layers::{is_layer_key, newest};
 use crate::app::scene::Scene;
 use crate::app::scene::rows::TEXT;
 use crate::app::scene::sync;
@@ -173,7 +173,7 @@ impl Scene {
 
         self.redo_steps.clear();
         // the documents of one layer edit share its label and undo together
-        let layer = step.iter().all(|key| self.layer_trees.contains_key(key));
+        let layer = step.iter().all(|(_, label)| is_layer_key(label));
         let joins = layer
             && self
                 .undo_steps
@@ -233,8 +233,7 @@ impl Scene {
             }
 
             // stepping some documents of a layer edit alone would split it
-            if held.len() < step.len() && step.iter().any(|key| self.layer_trees.contains_key(key))
-            {
+            if held.len() < step.len() && step.iter().any(|(_, label)| is_layer_key(label)) {
                 let stack = if back {
                     &mut self.undo_steps
                 } else {

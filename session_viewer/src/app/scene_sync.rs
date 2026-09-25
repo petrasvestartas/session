@@ -10,6 +10,7 @@ use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::segments::CylinderSegment;
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Upload};
 use session_rust::history::{Op, Transaction};
+use session_rust::session::PURGE_WORK;
 use session_rust::{Geometry, History, Session, TreeNode, Xform};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -29,48 +30,59 @@ const CLOUD_COMPACT_MIN: u32 = 2_000_000;
 /// Commit the open transaction; its ops name the objects it touched. Every viewer edit commits here.
 pub(crate) fn commit(session: &mut Session) -> Vec<Note> {
     let notes = match &session.history.current {
-        Some(transaction) => applied(transaction, true),
+        Some(transaction) => applied(transaction),
         None => Vec::new(),
     };
     session.commit();
     notes
 }
 
-/// Notes of the transaction an undo (`back`) or redo just stepped; `nodes` false after a tree swap.
-pub(crate) fn stepped(history: &History, back: bool, nodes: bool) -> Vec<Note> {
+/// Notes of the transaction an undo (`back`) or redo just stepped.
+pub(crate) fn stepped(history: &History, back: bool) -> Vec<Note> {
     let notes = if back {
-        history.redo_stack.last().map(|t| reverted(t, nodes))
+        history.redo_stack.last().map(reverted)
     } else {
-        history.undo_stack.last().map(|t| applied(t, nodes))
+        history.undo_stack.last().map(applied)
     };
     notes.unwrap_or_default()
 }
 
+/// The note of a tree op: its node is placed and judged again with everything below; a colour change redraws.
+fn tree_note(t: &session_rust::history::TreeOp) -> Note {
+    let colored = t.color_before != t.color_after;
+    Note {
+        guid: t.node.borrow().name.as_str().into(),
+        what: PLACE | PRESENCE | SUBTREE | if colored { GEOMETRY } else { 0 },
+        node: Some(Rc::downgrade(&t.node)),
+        parent: None,
+    }
+}
+
 /// Notes of a transaction done or redone.
-fn applied(transaction: &Transaction, nodes: bool) -> Vec<Note> {
+fn applied(transaction: &Transaction) -> Vec<Note> {
     let mut notes = Vec::with_capacity(transaction.ops.len());
 
     for op in &transaction.ops {
         let note = match op {
+            // its own node, the same one after a redo: no search for it
             Op::Add(t) => Note {
                 guid: t.guid.as_str().into(),
                 what: PRESENCE | GEOMETRY,
-                node: None,
+                node: t.node.as_ref().map(Rc::downgrade),
                 parent: t.parent_guid.clone().map(|parent| (parent, t.index)),
             },
-            // its node left the tree with every node below it
+            // its node stays in the tree, dead, with every node below it
             Op::Remove(t) => Note {
                 guid: t.guid.as_str().into(),
                 what: PRESENCE | SUBTREE,
-                node: t.node.as_ref().filter(|_| nodes).map(Rc::downgrade),
+                node: t.node.as_ref().map(Rc::downgrade),
                 parent: None,
             },
             Op::Replace(r) => Note::new(&r.guid, GEOMETRY),
-            // the marker pair a tree-only layer step leaves
+            // the marker pair an Add Edge step leaves
             Op::Xform(x) if x.guid == transaction.label => continue,
             Op::Xform(x) => Note::new(&x.guid, PLACE | SUBTREE),
-            // a definition owns no row; its instances are drawn again
-            Op::Definition(d) => Note::new(&d.guid, GEOMETRY),
+            Op::Tree(t) => tree_note(t),
         };
         notes.push(note);
     }
@@ -79,24 +91,28 @@ fn applied(transaction: &Transaction, nodes: bool) -> Vec<Note> {
 }
 
 /// Notes of a transaction undone, in the order its ops were reverted.
-fn reverted(transaction: &Transaction, nodes: bool) -> Vec<Note> {
+fn reverted(transaction: &Transaction) -> Vec<Note> {
     let mut notes = Vec::with_capacity(transaction.ops.len());
 
     for op in transaction.ops.iter().rev() {
         let note = match op {
-            Op::Add(t) => Note::new(&t.guid, PRESENCE),
-            // its node came back with every node below it
+            Op::Add(t) => Note {
+                guid: t.guid.as_str().into(),
+                what: PRESENCE,
+                node: t.node.as_ref().map(Rc::downgrade),
+                parent: None,
+            },
+            // its node came back live with every node below it
             Op::Remove(t) => Note {
                 guid: t.guid.as_str().into(),
                 what: PRESENCE | GEOMETRY | SUBTREE,
-                node: t.node.as_ref().filter(|_| nodes).map(Rc::downgrade),
+                node: t.node.as_ref().map(Rc::downgrade),
                 parent: None,
             },
             Op::Replace(r) => Note::new(&r.guid, GEOMETRY),
             Op::Xform(x) if x.guid == transaction.label => continue,
             Op::Xform(x) => Note::new(&x.guid, PLACE | SUBTREE),
-            // a definition owns no row; its instances are drawn again
-            Op::Definition(d) => Note::new(&d.guid, GEOMETRY),
+            Op::Tree(t) => tree_note(t),
         };
         notes.push(note);
     }
@@ -249,7 +265,7 @@ impl Scene {
         }
     }
 
-    /// Fix only the rows named by `commit`, `stepped` and `LayerStep::touched`; the GPU work waits in `staged`.
+    /// Fix only the rows named by `commit` and `stepped`; the GPU work waits in `staged`.
     pub(crate) fn sync(&mut self) {
         let pending = std::mem::take(&mut self.pending);
         let hints = std::mem::take(&mut self.hints);
@@ -434,6 +450,7 @@ impl Scene {
     }
 
     /// The tree of `doc` was replaced: its cached nodes refill on the next use.
+    #[cfg(test)]
     pub(crate) fn forget_nodes(&mut self, doc: usize) {
         if let Some(state) = self.doc_state.get_mut(doc) {
             state.nodes_from = 0;
@@ -589,12 +606,8 @@ impl Scene {
         }
 
         let (doc, guid) = self.identity_of(row)?;
-        self.docs
-            .get(doc)?
-            .session
-            .tree
-            .get_node_by_name(&guid)
-            .map(|node| (node, true))
+        let session = &self.docs.get(doc)?.session;
+        check(session, session.get_node(&guid)?, &guid)
     }
 
     /// One object walked on its own at vertex 0: its rows and its object row without colors.
@@ -1023,6 +1036,24 @@ impl Scene {
         let dead = self.dead.bytes();
         let live = self.uploaded.bytes().saturating_sub(dead);
         dead > 0 && dead >= COMPACT_MIN.max(live)
+    }
+
+    /// Spend one idle kernel purge step on every document that owes one; true while a cycle is unfinished.
+    pub(crate) fn purge_step(&mut self) -> bool {
+        let mut running = false;
+
+        for file in &mut self.docs {
+            let owed = file.session.purge_due() || file.session.is_purging();
+
+            // a shared session waits: purging it would copy it and drop its history
+            if !owed || Rc::strong_count(&file.session) > 1 {
+                continue;
+            }
+
+            running |= Rc::make_mut(&mut file.session).purge_step(PURGE_WORK);
+        }
+
+        running
     }
 
     /// True when the dropped cloud points outweigh the live ones and two million.
@@ -1693,14 +1724,10 @@ mod tests {
 
         assert!(session.undo()); // the marker
         assert!(session.undo()); // the delete
-        let back = stepped(&session.history, true, true);
+        let back = stepped(&session.history, true);
         assert_eq!(back[0].what, PRESENCE | GEOMETRY | SUBTREE);
         assert!(session.redo());
-        assert_eq!(
-            stepped(&session.history, false, true)[0].what,
-            PRESENCE | SUBTREE
-        );
-        assert!(stepped(&session.history, false, false)[0].node.is_none());
+        assert_eq!(stepped(&session.history, false)[0].what, PRESENCE | SUBTREE);
     }
 
     /// A new point takes one row after the others; every other object keeps its id.
@@ -1774,6 +1801,51 @@ mod tests {
         check(&mut scene);
         assert!(scene.identity_of(line).is_none());
         assert_eq!(scene.graves.len(), 1);
+    }
+
+    /// Delete, undo, redo, undo ten times hands the same 10k-vertex mesh back: tombs flip in place, the purge keeps the dead few.
+    #[test]
+    fn delete_undo_reuses_the_mesh_without_a_copy() {
+        let mut session = Session::new("heavy");
+        let points: Vec<Point> = (0..10_000)
+            .map(|i| p(f64::from(i % 100), f64::from(i / 100), 0.0))
+            .collect();
+        let faces: Vec<Vec<usize>> = (0..99 * 99)
+            .map(|i| {
+                let corner = i / 99 * 100 + i % 99;
+                vec![corner, corner + 1, corner + 101, corner + 100]
+            })
+            .collect();
+        session.add_mesh(Mesh::from_vertices_and_faces(points, faces), None);
+        let mut scene = Scene::new();
+        scene.add_file(file("heavy", session, Xform::identity()));
+        scene.settle();
+        let (doc, guid) = scene.identity_of(0).unwrap();
+        let mesh = |scene: &Scene| match scene.docs[doc].session.lookup.get(guid.as_ref()) {
+            Some(Geometry::Mesh(mesh)) => Rc::as_ptr(mesh),
+            _ => panic!("the mesh is live"),
+        };
+        let held = mesh(&scene);
+
+        for _ in 0..10 {
+            assert!(scene.delete_row(0));
+            check(&mut scene);
+            assert!(scene.undo());
+            check(&mut scene);
+            assert_eq!(mesh(&scene), held, "the same mesh, not a copy");
+            assert!(scene.redo());
+            check(&mut scene);
+            assert!(scene.undo());
+            check(&mut scene);
+            assert_eq!(mesh(&scene), held, "the same mesh, not a copy");
+
+            while scene.purge_step() {}
+
+            let session = &scene.docs[doc].session;
+            assert!(!session.purge_due(), "the idle purge ran");
+            assert!(session.history.bytes <= session.history.budget);
+            assert!(session.number_of_dead() <= 2, "only pinned entries stay");
+        }
     }
 
     /// A trim that keeps the counts writes in place; one that changes them moves and leaves a grave.
@@ -2169,20 +2241,20 @@ mod tests {
         scene.verify();
     }
 
-    /// Layer undo and redo swap whole trees: the node cache refills once per step, rows stay right.
+    /// Layer undo and redo flip nodes in place: no tree walk, rows stay right.
     #[test]
-    fn layer_step_tree_swaps_refill_the_cache() {
+    fn layer_steps_walk_no_tree() {
         let mut scene = scene();
         let line = find(&scene, |g| matches!(g, Geometry::Line(_))).unwrap();
         let (doc, _) = scene.identity_of(line).unwrap();
         scene.change_object_layer(&[line], doc, "roof").unwrap();
         check(&mut scene);
+        let searches = scene.searches;
 
         for back in [true, false, true] {
-            let searches = scene.searches;
             assert!(if back { scene.undo() } else { scene.redo() });
             check(&mut scene);
-            assert_eq!(scene.searches, searches + 1, "one refill");
+            assert_eq!(scene.searches, searches, "no tree walk");
         }
 
         scene.delete_layer(doc, "walls").unwrap();

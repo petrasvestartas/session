@@ -90,27 +90,15 @@ impl Scene {
 
         let guids: Vec<Rc<str>> = objects.into_iter().map(|(_, guid)| guid).collect();
         let key = self.step_key("add group")?;
-        let (id, name, moved) =
+        let (id, name) =
             self.layer_step(doc, &key, |session| group(session, &guids, name.trim()))?;
-
-        // nodes moved within the document record no op
-        self.touched(doc, &moved);
-
-        if let Some(step) = self.layer_trees.get_mut(&(doc, key)) {
-            step.touched = moved;
-        }
-
         self.groups.insert((doc, Rc::from(id)));
         Ok((doc, name, guids.len()))
     }
 }
 
-/// Hang `guids` under a new node in their deepest shared layer, in place; returns (guid, name, moved).
-fn group(
-    session: &mut Session,
-    guids: &[Rc<str>],
-    name: &str,
-) -> Result<(String, String, Vec<String>), String> {
+/// Hang `guids` under a new node in their deepest shared layer, in place; returns (guid, name).
+fn group(session: &mut Session, guids: &[Rc<str>], name: &str) -> Result<(String, String), String> {
     let nodes = index(session);
     let taken = |name: &str| nodes.contains_key(name) || session.lookup.contains_key(name);
     let name = if name.is_empty() {
@@ -186,22 +174,17 @@ fn group(
     let group = TreeNode::new(&name);
     let id = group.borrow().guid().to_string();
     session.add(&group, Some(&parent));
-    let mut moved = Vec::with_capacity(members.len());
 
     for ((guid, node), world) in members.iter().zip(&worlds) {
         match node {
-            Some(node) => {
-                session.tree.remove(node);
-                session.add(node, Some(&group));
-            }
+            Some(node) => session.add(node, Some(&group)),
             None => session.add(&TreeNode::new(guid), Some(&group)),
         }
 
         place(session, guid, &back, world);
-        moved.push(guid.to_string());
     }
 
-    Ok((id, name, moved))
+    Ok((id, name))
 }
 
 #[cfg(test)]

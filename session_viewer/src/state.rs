@@ -703,6 +703,7 @@ impl State {
         }
 
         self.needs_frame = false;
+        self.purge_idle();
 
         if self.gpu.view.spin {
             self.cancel_cloud_query();

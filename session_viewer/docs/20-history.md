@@ -2,6 +2,8 @@
 
 The sheet scene stays visible while document edits gain undo, redo and history-free saving.
 
+A removal marks the object dead in place, so undo revives the same object without a copy; checkpoints purge what history can no longer reach.
+
 ![Edits group into transactions and a removal leaves a tombstone to restore from; the cursor moves back and forward through them, and a save purges the whole buffer because history never crosses pb or JSON.](illustrations/history.svg)
 
 ## Step 1 · session_rust/src/history.rs

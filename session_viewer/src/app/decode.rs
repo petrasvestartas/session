@@ -367,6 +367,8 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
         s.tree = read_tree(&mut r, f)?;
     }
 
+    s.reindex();
+
     Ok(s)
 }
 

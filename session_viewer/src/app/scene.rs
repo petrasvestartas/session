@@ -231,8 +231,7 @@ pub struct Scene {
     pub(crate) created_doc: Option<usize>,            // the `Created` document
     pub(crate) row_revision: u64,                     // bumped when rows come or go
     pub(crate) current_layer: Option<(usize, String)>, // (document, tree node) new objects go to
-    pub(crate) layer_trees: HashMap<(usize, String), crate::app::layers::LayerStep>, // kept tree per (document, layer step)
-    pub(crate) layer_steps: u64,    // layer steps made, for unique labels
+    pub(crate) layer_steps: u64,                      // layer steps made, for unique labels
     pub(crate) edge_steps: HashMap<(usize, String), crate::app::layers::EdgeStep>, // edge each (document, step) added
     pub(crate) groups: HashSet<(usize, Rc<str>)>, // (document, tree node guid) of each group
     pub(crate) text_rows: Vec<u32>, // text rows an undo, redo or delete showed or hid, for the GPU
@@ -303,7 +302,6 @@ impl Scene {
             created_doc: None,
             row_revision: 0,
             current_layer: None,
-            layer_trees: HashMap::new(),
             layer_steps: 0,
             edge_steps: HashMap::new(),
             groups: HashSet::new(),
@@ -325,7 +323,6 @@ impl Scene {
         self.undo_steps.clear();
         self.redo_steps.clear();
         self.current_layer = None;
-        self.layer_trees.clear();
         self.edge_steps.clear();
         self.groups.clear();
         self.released.clear();

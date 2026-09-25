@@ -377,6 +377,7 @@ impl State {
     pub(crate) fn commit_rows(&mut self) {
         self.scene.sync();
         self.scene.upload_to(&mut self.gpu);
+        self.purge_idle();
         let gesture = self.dragging.is_some() || self.control_drag.is_some();
 
         // dead rows outweigh the live ones: walk the lanes again, ids stay

@@ -1,6 +1,6 @@
 use super::super::scene::FileDoc;
 use session_rust::{
-    BRep, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, NurbsSurfaceTrimmed, OBB, Plane,
+    BRep, Collection, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, NurbsSurfaceTrimmed, OBB, Plane,
     Point, PointCloud, Polyline, Session,
 };
 use std::collections::{HashMap, HashSet};
@@ -17,6 +17,8 @@ pub(super) struct Payload {
     pub shared_value_bytes: usize,       // each Rc value once
     pub unique_sessions: usize,          // distinct sessions
     pub unique_geometry_values: usize,   // distinct geometries
+    pub dead_slots: usize,               // slots of removed objects not yet purged
+    pub history_bytes: usize,            // bytes undo and redo pin
     pub scans: u64,                      // how many times counted
 }
 
@@ -33,6 +35,11 @@ impl Payload {
     /// Add a Vec's capacity.
     fn vector<T>(&mut self, value: &Vec<T>) {
         self.vector_capacity_bytes += value.capacity() * size_of::<T>();
+    }
+
+    /// Add a Collection's slots, dead ones included.
+    fn collection<T>(&mut self, value: &Collection<T>) {
+        self.vector_capacity_bytes += value.number_of_slots() * size_of::<T>();
     }
 
     /// Add a slice's length.
@@ -99,14 +106,14 @@ impl SourceCache {
     }
 }
 
-/// Add a Vec of Rc values, each value once.
+/// Add a Collection of Rc values, each live value once.
 fn shared_all<T>(
-    values: &Vec<Rc<T>>,
+    values: &Collection<Rc<T>>,
     payload: &mut Payload,
     seen: &mut HashSet<usize>,
     children: fn(&T, &mut Payload),
 ) {
-    payload.vector(values);
+    payload.collection(values);
 
     for value in values {
         shared(value, payload, seen, children);
@@ -143,10 +150,17 @@ fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>
     shared_all(&objects.meshes, p, seen, mesh_payload);
     shared_all(&objects.nurbscurves, p, seen, curve_payload);
     shared_all(&objects.nurbssurfaces, p, seen, surface_payload);
-    shared_all(&objects.nurbssurfacetrimmeds, p, seen, trimmed_payload);
+    p.vector(&objects.nurbssurfacetrimmeds);
+
+    for value in &objects.nurbssurfacetrimmeds {
+        shared(value, p, seen, trimmed_payload);
+    }
+
     shared_all(&objects.breps, p, seen, brep_payload);
     shared_all(&objects.elements, p, seen, element_payload);
-    p.vector(&objects.components);
+    p.collection(&objects.components);
+    p.dead_slots += session.number_of_dead();
+    p.history_bytes += session.history.bytes;
 
     for component in &objects.components {
         p.string(&component.name);
