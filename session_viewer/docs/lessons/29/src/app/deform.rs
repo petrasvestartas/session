@@ -455,7 +455,7 @@ mod tests {
             ],
         )
         .unwrap();
-        assert!(surface.make_rational());
+        assert!(surface.to_rational());
 
         for u in 0..2 {
             for v in 0..2 {
