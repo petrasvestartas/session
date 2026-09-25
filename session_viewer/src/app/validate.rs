@@ -260,6 +260,61 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
     Ok(())
 }
 
+/// Check every definition record, and the definitions with `instances` within the cap.
+pub fn definitions(d: &proto::Objects, instances: usize) -> Result<(), String> {
+    let count = d.points.len()
+        + d.lines.len()
+        + d.polylines.len()
+        + d.meshes.len()
+        + d.pointclouds.len()
+        + d.nurbscurves.len()
+        + d.nurbssurfaces.len()
+        + d.breps.len()
+        + d.elements.len();
+
+    if count + instances > MAX_OBJECTS {
+        return Err(TOO_MANY.into());
+    }
+
+    for item in &d.points {
+        point(item)?;
+    }
+
+    for item in &d.lines {
+        line(item)?;
+    }
+
+    for item in &d.polylines {
+        polyline(item)?;
+    }
+
+    for item in &d.meshes {
+        mesh(item)?;
+    }
+
+    for item in &d.pointclouds {
+        cloud(item)?;
+    }
+
+    for item in &d.nurbscurves {
+        curve(item)?;
+    }
+
+    for item in &d.nurbssurfaces {
+        surface(item)?;
+    }
+
+    for item in &d.breps {
+        brep(item)?;
+    }
+
+    for item in &d.elements {
+        element(item)?;
+    }
+
+    Ok(())
+}
+
 /// Check one protobuf point.
 pub fn point(source: &proto::Point) -> Result<(), String> {
     finite(&[source.x, source.y, source.z, source.width], "point")

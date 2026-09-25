@@ -17,6 +17,9 @@ use std::rc::{Rc, Weak};
 
 type Node = Rc<RefCell<TreeNode>>;
 
+#[path = "scene_instances.rs"]
+pub(crate) mod instances;
+
 /// Dead editable bytes that start a compaction, at least.
 const COMPACT_MIN: u64 = 16 * 1024 * 1024;
 
@@ -66,8 +69,8 @@ fn applied(transaction: &Transaction, nodes: bool) -> Vec<Note> {
             // the marker pair a tree-only layer step leaves
             Op::Xform(x) if x.guid == transaction.label => continue,
             Op::Xform(x) => Note::new(&x.guid, PLACE | SUBTREE),
-            // definitions own no row until instances are drawn
-            Op::Definition(_) => continue,
+            // a definition owns no row; its instances are drawn again
+            Op::Definition(d) => Note::new(&d.guid, GEOMETRY),
         };
         notes.push(note);
     }
@@ -92,8 +95,8 @@ fn reverted(transaction: &Transaction, nodes: bool) -> Vec<Note> {
             Op::Replace(r) => Note::new(&r.guid, GEOMETRY),
             Op::Xform(x) if x.guid == transaction.label => continue,
             Op::Xform(x) => Note::new(&x.guid, PLACE | SUBTREE),
-            // definitions own no row until instances are drawn
-            Op::Definition(_) => continue,
+            // a definition owns no row; its instances are drawn again
+            Op::Definition(d) => Note::new(&d.guid, GEOMETRY),
         };
         notes.push(note);
     }
@@ -226,6 +229,11 @@ impl Scene {
                 self.pending
                     .push((doc, Note::new(&guid, PRESENCE | GEOMETRY | PLACE)));
             }
+
+            for instance in &session.objects.instances {
+                self.pending
+                    .push((doc, Note::new(instance.guid(), PRESENCE | GEOMETRY | PLACE)));
+            }
         }
 
         // rows whose object is gone
@@ -309,7 +317,9 @@ impl Scene {
                 .or_else(|| self.beside_parent(item, &session));
 
             // an object gone from its document only loses its row: no tree walk for it
-            let gone = item.what & SUBTREE == 0 && !session.lookup.contains_key(item.guid.as_ref());
+            let gone = item.what & SUBTREE == 0
+                && !session.lookup.contains_key(item.guid.as_ref())
+                && !session.instance_lookup.contains_key(item.guid.as_ref());
 
             match found {
                 Some((node, in_tree)) => {
@@ -465,7 +475,8 @@ impl Scene {
             while let Some(child) = stack.pop() {
                 let name = child.borrow().name.clone();
 
-                if session.lookup.contains_key(&name) {
+                if session.lookup.contains_key(&name) || session.instance_lookup.contains_key(&name)
+                {
                     let item = Work {
                         doc,
                         guid: name.as_str().into(),
@@ -485,6 +496,10 @@ impl Scene {
 
     /// Kill, create, redraw or move the row of one identity; true when a row came or went.
     fn reconcile(&mut self, item: &Work) -> bool {
+        if let Some(changed) = self.reconcile_instance(item) {
+            return changed;
+        }
+
         let session = Rc::clone(&self.docs[item.doc].session);
         let geometry = session.lookup.get(item.guid.as_ref());
         let under = item.in_tree && item.node.as_ref().is_some_and(baked);
@@ -1134,6 +1149,8 @@ impl Scene {
             });
             self.staged.geometry.push((row, object));
         }
+
+        self.rewalk_instances(doc);
     }
 
     /// Capture the drag previews of `row` from a walk of it alone; nothing when its rows differ.
@@ -1430,7 +1447,9 @@ impl Scene {
 
         for &(owner, _) in &self.edge_sources {
             assert!(
-                owner == u32::MAX || self.identity_of(owner).is_some(),
+                owner == u32::MAX
+                    || self.identity_of(owner).is_some()
+                    || self.instancing.is_batch(owner),
                 "a pipe names dead row {owner}"
             );
         }

@@ -67,10 +67,17 @@ fn transform_vertex(in: VsIn) -> VsOut {
     return o;
 }
 
+// The row a vertex draws with: its instance's in an instanced draw, else its own.
+fn slot_row(own: u32, slot: u32) -> u32 {
+    return select(slot, own, slot == OWN_ROW);
+}
+
 @vertex
-// Vertices from the vertex buffers.
-fn vs_main(in: VsIn) -> VsOut {
-    return transform_vertex(in);
+// Vertices from the vertex buffers; `slot` is the instance's row in an instanced draw.
+fn vs_main(in: VsIn, @location(4) slot: u32) -> VsOut {
+    var placed = in;
+    placed.inst_id = slot_row(in.inst_id, slot);
+    return transform_vertex(placed);
 }
 
 @group(3) @binding(0) var<storage, read> face_vertices: array<u32>; // mesh vertices, five words each
@@ -82,27 +89,40 @@ const FACE_TAG: u32 = 0x20000000u;
 @group(3) @binding(3) var<storage, read> source_faces: array<u32>; // source face per triangle
 @group(3) @binding(4) var<uniform> selected_face: vec4<u32>; // x: selected source face
 
-// Vertex `index` read from the storage buffers instead of vertex inputs.
-fn pull_triangle(index: u32) -> VsOut {
+// Slot value that keeps the vertex's own row; matches OWN_ROW in Rust.
+const OWN_ROW: u32 = 0xffffffffu;
+
+// True when rows `a` and `b` have the same rotation and scale.
+fn same_turn(a: u32, b: u32) -> bool {
+    let x = instances[a].model;
+    let y = instances[b].model;
+    return all(x[0] == y[0]) && all(x[1] == y[1]) && all(x[2] == y[2]);
+}
+
+// Vertex `index` read from the storage buffers instead of vertex inputs, drawn with `slot`'s row;
+// `empty` is the id a turned instance's triangle reports.
+fn pull_triangle(index: u32, slot: u32, empty: u32) -> VsOut {
     let vertex = face_indices[index];
     let start = vertex * 5u; // five words per vertex: position, octahedral normal, rgba bytes
     let position = bitcast<vec3<f32>>(vec3<u32>(face_vertices[start], face_vertices[start+1u], face_vertices[start+2u]));
     let color = unpack4x8unorm(face_vertices[start+4u]);
-    var out = transform_vertex(VsIn(position, face_vertices[start+3u], color, face_objects[vertex]));
-    out.primitive = index/3u+1u;
+    let own = face_objects[vertex];
+    var out = transform_vertex(VsIn(position, face_vertices[start+3u], color, slot_row(own, slot)));
+    // readers of the id see the shared row's matrix: a turned instance reports its definition's empty triangle
+    out.primitive = select(empty, index/3u+1u, slot == OWN_ROW || same_turn(own, slot));
     return out;
 }
 
 @vertex
 // Vertices read by index; object ids.
-fn vs_triangle(@builtin(vertex_index) index: u32) -> VsOut {
-    return pull_triangle(index);
+fn vs_triangle(@builtin(vertex_index) index: u32, @location(0) slot: u32, @location(1) empty: u32) -> VsOut {
+    return pull_triangle(index, slot, empty);
 }
 
 @vertex
 // Vertices read by index, with the source face and its selection.
-fn vs_face(@builtin(vertex_index) index: u32) -> VsOut {
-    var out=pull_triangle(index);
+fn vs_face(@builtin(vertex_index) index: u32, @location(0) slot: u32, @location(1) empty: u32) -> VsOut {
+    var out=pull_triangle(index, slot, empty);
     out.source_face = source_faces[index/3u];
     out.selected = select(0u, 1u, out.source_face != 0xffffffffu && out.source_face == selected_face.x);
 

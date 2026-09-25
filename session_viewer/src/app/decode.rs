@@ -7,6 +7,7 @@ use session_rust::{
     BRep, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, OBB, Plane, Point, PointCloud,
     Polyline, Session, Xform,
 };
+use session_rust::{InstanceRef, Objects};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -245,6 +246,8 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
     let mut objects = Vec::new(); // Objects messages
     let mut xforms = Vec::new(); // XformEntry messages
     let (mut tree, mut graph) = (None, None);
+    let mut definitions = None; // the Objects message instances place
+    let mut folds = Vec::new(); // (instance guid, stored placement), folded into xforms
     let mut at = 0;
 
     while at < r.size {
@@ -257,6 +260,7 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
             4 => tree = Some(f),
             5 => graph = Some(f),
             7 => xforms.push(f),
+            8 => definitions = Some(f),
             _ => {}
         }
 
@@ -319,6 +323,7 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
                 15 => {
                     object!(fallible s, r, f, proto::Element, validate::element, Element, elements)
                 }
+                18 => instance(&mut s, &mut r, f, &mut folds)?,
                 _ => continue,
             }
 
@@ -344,6 +349,12 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
         }
 
         s.xforms.insert(entry.guid, xform);
+    }
+
+    fold(&mut s, folds);
+
+    if let Some(f) = definitions {
+        define(&mut s, &mut r, f)?;
     }
 
     if let Some(f) = graph {
@@ -374,6 +385,11 @@ fn count(r: &mut Reader, objects: &[Field]) -> Result<[usize; 16], String> {
                 *n += 1;
             }
 
+            // instances, field 18, are past the table: counted in slot 0, which no field uses
+            if f.number == 18 {
+                counts[0] += 1;
+            }
+
             at = f.next;
         }
     }
@@ -386,6 +402,10 @@ fn count(r: &mut Reader, objects: &[Field]) -> Result<[usize; 16], String> {
         .sum();
 
     if capped > validate::MAX_OBJECTS {
+        return Err(validate::TOO_MANY.into());
+    }
+
+    if capped + counts[0] > validate::MAX_OBJECTS {
         return Err(validate::TOO_MANY.into());
     }
 
@@ -408,6 +428,8 @@ fn reserve(s: &mut Session, counts: &[usize; 16]) {
     o.elements.reserve_exact(counts[15]);
     s.lookup
         .reserve(OBJECT_FIELDS.iter().map(|field| counts[*field]).sum());
+    s.objects.instances.reserve_exact(counts[0]);
+    s.instance_lookup.reserve(counts[0]);
 }
 
 /// The graph message `f`; without `vertices` only the edges and the vertices they name.
@@ -533,6 +555,72 @@ fn read_node(r: &mut Reader, f: Field) -> Result<Rc<RefCell<TreeNode>>, String> 
     }
 
     Ok(root)
+}
+
+/// One instance: added with its lookup; a stored placement waits in `folds` for the xforms.
+fn instance(
+    s: &mut Session,
+    r: &mut Reader,
+    f: Field,
+    folds: &mut Vec<(String, Xform)>,
+) -> Result<(), String> {
+    let mut source: proto::InstanceRef = r.message(f)?;
+
+    if let Some(xform) = source.xform.take() {
+        let entry = proto::XformEntry {
+            guid: source.guid.clone(),
+            xform: Some(xform),
+        };
+        validate::xform(&entry)?;
+        folds.push((entry.guid, Xform::from_proto(entry.xform.unwrap_or_default())));
+    }
+
+    let instance = Rc::new(InstanceRef::from_proto(source));
+    s.instance_lookup
+        .insert(instance.guid().to_string(), Rc::clone(&instance));
+    s.objects.instances.push(instance);
+    Ok(())
+}
+
+/// Stored instance placements moved into `xforms`, as the kernel loaders fold them.
+fn fold(s: &mut Session, folds: Vec<(String, Xform)>) {
+    for (guid, xform) in folds {
+        if !xform.is_identity() && !guid.is_empty() {
+            let folded = &s.xform(&guid) * &xform;
+            s.xforms.insert(guid, folded);
+        }
+    }
+}
+
+/// The definitions message `f`, checked, with its lookup.
+fn define(s: &mut Session, r: &mut Reader, f: Field) -> Result<(), String> {
+    let source: proto::Objects = r.message(f)?;
+    validate::definitions(&source, s.objects.instances.len())?;
+    s.definitions = Objects::from_proto(source).map_err(|e| format!("invalid definitions: {e}"))?;
+    let d = &s.definitions;
+    let lookup = &mut s.definition_lookup;
+    macro_rules! index {
+        ($($list:ident => $variant:ident),*) => {
+            $(for g in &d.$list {
+                lookup.insert(g.guid().to_string(), Geometry::$variant(Rc::clone(g)));
+            })*
+        };
+    }
+
+    index!(
+        points => Point,
+        lines => Line,
+        planes => Plane,
+        bboxes => OBB,
+        polylines => Polyline,
+        pointclouds => PointCloud,
+        meshes => Mesh,
+        nurbscurves => NurbsCurve,
+        nurbssurfaces => NurbsSurface,
+        breps => BRep,
+        elements => Element
+    );
+    Ok(())
 }
 
 /// A session from JSON text.
@@ -734,6 +822,46 @@ mod tests {
             decoded(s.pb_dumps(), true).err().as_deref(),
             Some(validate::TOO_DEEP)
         );
+    }
+
+    /// A box defined once and placed three times, the last under a moved group.
+    fn placed() -> Session {
+        let mut s = Session::new("placed");
+        let definition = s.add_definition(Geometry::Mesh(Rc::new(Mesh::create_box(1.0, 1.0, 1.0))));
+        let group = s.add_group("row");
+        s.set_xform("row", Xform::translation(0.0, 10.0, 0.0));
+
+        for i in 0..3 {
+            let name = format!("box_{i}");
+            let place = Xform::translation(i as f64 * 3.0, 0.0, 0.0);
+            let instance =
+                session_rust::InstanceRef::with_name(&name, &definition, Xform::identity());
+            s.add_instance(instance, place, (i == 2).then_some(&group));
+        }
+
+        s
+    }
+
+    /// Definitions and instances come back with their lookups and world placements.
+    #[test]
+    fn instances_survive_the_window_decode() {
+        let mut source = placed();
+        let d = decoded(source.pb_dumps(), true).unwrap();
+        assert_eq!(d.objects.instances.len(), 3);
+        assert_eq!(d.instance_lookup.len(), 3);
+        assert_eq!(d.definitions.meshes.len(), 1);
+        assert_eq!(d.definition_lookup.len(), 1);
+
+        for instance in &source.objects.instances {
+            let guid = instance.guid();
+            assert_eq!(d.world_xform(guid).m, source.world_xform(guid).m, "{guid}");
+            assert!(d.definition_of(guid).is_some());
+        }
+
+        let mut bytes = source.pb_dumps();
+        // a definitions field whose length runs past the end
+        bytes.extend_from_slice(&[0x42, 0x7f, 0x00]);
+        assert!(decoded(bytes, true).is_err());
     }
 
     /// The same session the whole-message path read, for every local file.

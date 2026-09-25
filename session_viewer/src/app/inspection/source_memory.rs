@@ -174,6 +174,7 @@ fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>
         }
     }
 
+    instances_payload(session, p, seen);
     p.map(&session.xforms);
 
     for name in session.xforms.keys() {
@@ -190,6 +191,62 @@ fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>
 
     for value in &session.cached_boxes {
         box_payload(value, p);
+    }
+}
+
+/// Add the definitions, each value once, and the instances placing them.
+fn instances_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>) {
+    let d = &session.definitions;
+    macro_rules! each {
+        ($($list:ident => $children:ident),*) => {
+            $(for value in &d.$list {
+                p.vector_capacity_bytes += size_of_val(value);
+                shared(value, p, seen, $children);
+            })*
+        };
+    }
+
+    each!(
+        points => point_payload,
+        lines => line_payload,
+        planes => plane_payload,
+        bboxes => box_payload,
+        polylines => polyline_payload,
+        pointclouds => cloud_payload,
+        meshes => mesh_payload,
+        nurbscurves => curve_payload,
+        nurbssurfaces => surface_payload,
+        breps => brep_payload,
+        elements => element_payload
+    );
+    p.map(&session.definition_lookup);
+    p.map(&session.instance_lookup);
+
+    for instance in &session.objects.instances {
+        p.vector_capacity_bytes += size_of_val(instance);
+        shared(instance, p, seen, |value, p| {
+            p.string(&value.name);
+            p.string(&value.definition_guid);
+            p.vector(&value.features);
+
+            for feature in &value.features {
+                p.string(&feature.name);
+                p.string(&feature.feature_type);
+                p.vector(&feature.outlines);
+
+                for outline in &feature.outlines {
+                    polyline_payload(outline, p);
+                }
+            }
+        });
+    }
+
+    for name in session
+        .definition_lookup
+        .keys()
+        .chain(session.instance_lookup.keys())
+    {
+        p.string(name);
     }
 }
 

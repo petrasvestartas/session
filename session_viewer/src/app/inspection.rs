@@ -115,6 +115,8 @@ pub fn publish(state: &State) {
             },
             _ => None,
         }));
+    snapshot["selected_instance"] =
+        serde_json::json!(parent.and_then(|row| state.scene.instance_name(row)));
     snapshot["selected_kind"] = serde_json::json!(
         parent.and_then(|row| state.scene.geometry(row).map(kind))
     );
@@ -132,6 +134,16 @@ pub fn publish(state: &State) {
     snapshot["compactions"] = serde_json::json!(compactions);
     snapshot["row_table_bytes"] = serde_json::json!(state.scene.row_table_bytes());
     snapshot["preview_cache_bytes"] = serde_json::json!(state.scene.preview_cache_bytes());
+    let docs = &state.scene.docs;
+    let slots = &state.gpu.arena.source_faces.slots;
+    snapshot["instancing"] = serde_json::json!({
+        "definitions": docs.iter().map(|d| d.session.definition_lookup.len()).sum::<usize>(),
+        "instances": docs.iter().map(|d| d.session.instance_lookup.len()).sum::<usize>(),
+        "definition_uploads": state.scene.instancing.batch_rows(),
+        "shared_instance_rows": state.scene.instancing.shared_rows(),
+        "gpu_draws": slots.draws().len(),
+        "gpu_instances": slots.instances(),
+    });
     let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string());
 }
 

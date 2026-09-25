@@ -239,6 +239,7 @@ pub struct Scene {
     pub(crate) released: HashMap<usize, Released>, // documents drawn without their kernel objects
     asked: RefCell<Vec<usize>>,     // released documents a read-only path needs
     stream_ceiling: u32,            // most streamed points on the page
+    pub(crate) instancing: sync::instances::Instancing, // definitions drawn once, placed by instance rows
     #[cfg(test)]
     pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
     #[cfg(test)]
@@ -310,6 +311,7 @@ impl Scene {
             released: HashMap::new(),
             asked: RefCell::new(Vec::new()),
             stream_ceiling: 0,
+            instancing: Default::default(),
             #[cfg(test)]
             ledger: HashMap::new(),
             #[cfg(test)]
@@ -368,6 +370,7 @@ impl Scene {
         self.selected = None;
         self.object_rows = 0;
         self.uploaded = Counts::default();
+        self.instancing = Default::default();
         #[cfg(test)]
         self.ledger.clear();
     }
@@ -465,6 +468,7 @@ impl Scene {
             self.bounds_stale = true;
         }
 
+        self.upload_instances(gpu);
         gpu.set_dead(self.dead, self.dead_points);
         gpu.refresh_samples();
     }
@@ -573,7 +577,7 @@ impl Scene {
         let from = Baselines::capture(&self.tables);
         let world = session.world_xforms();
         let mut lap = Lap::start("walk");
-        let count = session.lookup.len();
+        let count = session.lookup.len() + session.instance_lookup.len();
         self.tables.obj.rows.reserve(count);
         self.order.reserve(count);
         self.guid_to_row.reserve(count);
@@ -627,6 +631,7 @@ impl Scene {
             }
         }
 
+        self.add_instances(index, &session, &place, &world, &mut placed);
         lap.mark("objects");
 
         // each row remembers the tree node it was placed from
@@ -924,6 +929,10 @@ impl Scene {
             };
         }
 
+        if let Some(name) = self.instance_name(row) {
+            return name;
+        }
+
         let (name, kind) = match self.geometry(row) {
             Some(Geometry::OBB(value)) => (value.name.as_str(), "Box"),
             Some(Geometry::BRep(value)) => (value.name.as_str(), "BRep"),
@@ -1024,7 +1033,10 @@ impl Scene {
 
     /// Rows holding an object, a text or a streamed shell.
     pub fn object_count(&self) -> usize {
-        self.order.len() - self.ids.len() - usize::from(self.sink.is_some())
+        self.order.len()
+            - self.ids.len()
+            - usize::from(self.sink.is_some())
+            - self.instancing.batch_rows()
     }
 }
 

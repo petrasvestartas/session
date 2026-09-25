@@ -496,8 +496,11 @@ impl State {
 
         // does the new document have elements?
         let elements = (first_row..self.scene.row_count()).any(|row| {
+            let row = row as u32;
             matches!(
-                self.scene.geometry(row as u32),
+                self.scene
+                    .geometry(row)
+                    .or_else(|| self.scene.instance_definition(row)),
                 Some(session_rust::Geometry::Element(_))
             )
         });

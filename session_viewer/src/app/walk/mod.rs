@@ -13,7 +13,7 @@ use points::walk_point;
 use session_rust::AABB;
 use session_rust::Element;
 use session_rust::Geometry;
-use session_rust::element::ElementGeometry;
+use session_rust::element::{ElementFeature, ElementGeometry};
 
 pub mod bounds;
 pub mod brep;
@@ -93,7 +93,12 @@ const ATTRIBUTE_DOT_PX: f64 = 12.0; // twice the 6 px point
 
 /// Draw an element's visible features, thick, into its own row.
 fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
-    for feature in e.features() {
+    walk_features(w, cx, e.features(), bounds);
+}
+
+/// Draw visible features, thick, into the row of `cx`: an element's own or an instance's.
+pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bounds: &mut AABB) {
+    for feature in features {
         if !feature.visible {
             continue;
         }

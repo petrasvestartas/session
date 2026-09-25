@@ -1,5 +1,6 @@
 use super::buffers::{GpuCtx, GrowBuf, INDICES, VERTS};
 use super::frame::Binds;
+use super::instanced::{arena_slot_layout, clamp};
 use super::text_outline::{OutlineBuffers, OutlineTextLane};
 use super::upload::drop_rows;
 use crate::engine::pipelines::{
@@ -148,6 +149,8 @@ impl ArenaLane {
         objects_revision: u64,
         lists: bool,
     ) {
+        // instanced triangles are in no tile list: their ink tests the fitted planes alone
+        let instanced = self.source_faces.slots.any();
         self.tiles.encode(
             ctx,
             encoder,
@@ -157,8 +160,12 @@ impl ArenaLane {
                 matrix,
                 objects_revision,
             },
-            lists,
+            lists && !instanced,
         );
+
+        if lists && instanced {
+            self.tiles.drop_lists(encoder);
+        }
     }
 
     /// Bytes reserved on the GPU by this lane.
@@ -376,9 +383,22 @@ impl ArenaLane {
         b.set(pass);
         pass.set_vertex_buffer(0, self.verts.buf.slice(..));
         pass.set_vertex_buffer(1, self.vids.buf.slice(..));
+        self.source_faces.slots.bind(pass, 2);
         pass.set_index_buffer(run.buf.slice(..), wgpu::IndexFormat::Uint32);
         pass.draw_indexed(0..run.len(), 0, 0..1);
-        1
+        let mut draws = 1;
+
+        // each definition once more per instance, its rows from the slots
+        for draw in self.source_faces.slots.draws() {
+            let faces = clamp(&draw.faces, run.len());
+
+            if !faces.is_empty() {
+                pass.draw_indexed(faces, 0, draw.slots.clone());
+                draws += 1;
+            }
+        }
+
+        draws
     }
 
     /// Draw the solid face index `runs` with `pipeline` as instance `instance`, with an optional group 3.
@@ -460,8 +480,8 @@ fn build_pipelines(
 ) -> ArenaPipelines {
     // bind groups every mask pipeline uses
     let groups = [&l.mvp, &l.line, &l.instance];
-    // vertex buffer 0: vertices, 1: object rows
-    let buffers = [vertex_layout(), instance_id_layout()];
+    // vertex buffer 0: vertices, 1: object rows, 2: instance slots
+    let buffers = [vertex_layout(), instance_id_layout(), arena_slot_layout()];
     let base = PipelineDesc::new(shader, &groups, &buffers, TriangleList);
 
     ArenaPipelines {

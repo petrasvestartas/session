@@ -36,7 +36,17 @@ impl Scene {
                 true => session.lookup.get(self.order[row].as_ref()),
                 false => None,
             };
-            let name = geometry.map_or("", Geometry::name);
+            // an instance row keeps its definition's shape and its own name
+            let instance = (self.owners[row] == doc)
+                .then(|| session.instance_lookup.get(self.order[row].as_ref()))
+                .flatten();
+            let geometry = geometry.or_else(|| {
+                instance.and_then(|i| session.definition_lookup.get(&i.definition_guid))
+            });
+            let name = match instance {
+                Some(instance) => instance.name.as_str(),
+                None => geometry.map_or("", Geometry::name),
+            };
             let at = *index.entry(name).or_insert_with(|| {
                 table.push(name.into());
                 table.len() as u32 - 1
@@ -87,7 +97,7 @@ impl Scene {
 
     /// The geometry type of a row, from its object or, when released, from the walk.
     pub fn shape(&self, row: u32) -> Option<Shape> {
-        if let Some(geometry) = self.geometry(row) {
+        if let Some(geometry) = self.geometry(row).or_else(|| self.instance_definition(row)) {
             return Some(Shape::of(geometry));
         }
 

@@ -1,5 +1,6 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::frame::Binds;
+use super::instanced::{Slots, clamp, slot_layout};
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build,
 };
@@ -24,6 +25,7 @@ pub struct Faces {
     layout: wgpu::BindGroupLayout, // shape of the face bind group
     group: Option<wgpu::BindGroup>, // the face buffers, bound
     pipes: FacePipelines, // face pipelines
+    pub slots: Slots, // instance slots and the per-definition draws
 }
 
 /// The face pipelines.
@@ -87,6 +89,7 @@ impl Faces {
             layout,
             group: None,
             pipes,
+            slots: Slots::new(ctx),
         }
     }
 
@@ -286,14 +289,28 @@ impl Faces {
         pass.set_pipeline(pipeline);
         binds.set(pass);
         pass.set_bind_group(3, group, &[]);
+        self.slots.bind(pass, 0);
         // three vertices per triangle, read by index in the shader
         pass.draw(0..self.ids.len() * 3, 0..1);
-        1
+        let mut draws = 1;
+
+        // each definition once more per instance, its rows from the slots
+        for draw in self.slots.draws() {
+            let faces = clamp(&draw.faces, self.ids.len() * 3);
+
+            if !faces.is_empty() {
+                pass.draw(faces, draw.slots.clone());
+                draws += 1;
+            }
+        }
+
+        draws
     }
 
     /// Forget every face; keep the buffers.
     pub fn reset(&mut self, ctx: &GpuCtx) {
         self.select(ctx, None);
+        self.slots.clear_draws();
         self.ids.reset();
         self.sources.clear();
         self.group = None;
@@ -302,13 +319,14 @@ impl Faces {
     /// Forget every face and free the buffers.
     pub fn release(&mut self, ctx: &GpuCtx) {
         self.reset(ctx);
+        self.slots.clear(ctx, true);
         self.ids.release(ctx);
         self.sources.shrink_to_fit();
     }
 
     /// Bytes reserved on the GPU by this struct.
     pub fn allocated_bytes(&self) -> u64 {
-        self.ids.buf.size() + self.selected.size()
+        self.ids.buf.size() + self.selected.size() + self.slots.allocated_bytes()
     }
 }
 
@@ -321,9 +339,15 @@ fn pipelines(
     layout: &wgpu::BindGroupLayout,
 ) -> FacePipelines {
     let groups = [&layouts.mvp, &layouts.line, &layouts.instance, layout];
-    // no vertex buffers: the shader reads vertices by index
-    let base = PipelineDesc::new(shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
-        .vertex("vs_face");
+    // the shader reads vertices by index; the one vertex buffer is the instance slots
+    let slots = [slot_layout()];
+    let base = PipelineDesc::new(
+        shader,
+        &groups,
+        &slots,
+        wgpu::PrimitiveTopology::TriangleList,
+    )
+    .vertex("vs_face");
     let pick = build(
         ctx,
         Target::ID,

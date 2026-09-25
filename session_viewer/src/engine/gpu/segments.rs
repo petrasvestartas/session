@@ -1,5 +1,6 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
 use super::frame::Binds;
+use super::instanced::{Slots, clamp, row_slot_layout};
 use super::upload::drop_rows;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
@@ -253,6 +254,7 @@ pub struct SegmentLane {
     selected_rows: HashSet<u32>, // selected object rows
     selected_edge: bool, // an edge is selected
     sheets: Vec<SegSheet>, // drawing sheets
+    pub slots: Slots, // instance slots and the per-definition draws
 }
 
 impl SegmentLane {
@@ -265,6 +267,7 @@ impl SegmentLane {
             + self.sheet_table.buf.buf.size()
             + self.sheet_table.ids.buf.size()
             + self.selection.size()
+            + self.slots.allocated_bytes()
     }
 
     /// Create the lane: shader, pipelines, empty tables.
@@ -289,6 +292,7 @@ impl SegmentLane {
             selected_rows: HashSet::new(),
             selected_edge: false,
             sheets: Vec::new(),
+            slots: Slots::new(ctx),
         }
     }
 
@@ -374,6 +378,7 @@ impl SegmentLane {
 
     /// Forget and free the editable pipes and ribbons; sheets, selection and the edge stay.
     pub fn release_editable(&mut self, ctx: &GpuCtx, l: &Layouts) {
+        self.slots.clear_draws();
         self.pipes.buf.release(ctx);
         self.pipes.ids.release(ctx);
         self.ribbons.buf.release(ctx);
@@ -545,13 +550,37 @@ impl SegmentLane {
         pass.set_pipeline(pipeline);
         b.set(pass);
         pass.set_bind_group(3, &table.group, &[]);
+        self.slots.bind(pass, 0);
         // six vertices per segment, placed by the shader
         pass.draw(0..RIBBON_VERTS * table.buf.len(), 0..1);
-        1
+        let mut draws = 1;
+
+        // each definition once more per instance, its rows from the slots
+        for draw in self.slots.draws() {
+            let rows = if std::ptr::eq(table, &self.pipes) {
+                &draw.pipes
+            } else if std::ptr::eq(table, &self.ribbons) {
+                &draw.ribbons
+            } else {
+                continue;
+            };
+            let rows = clamp(rows, table.buf.len());
+
+            if !rows.is_empty() {
+                pass.draw(
+                    RIBBON_VERTS * rows.start..RIBBON_VERTS * rows.end,
+                    draw.slots.clone(),
+                );
+                draws += 1;
+            }
+        }
+
+        draws
     }
 
     /// Forget every row; keep the buffers.
     pub fn reset(&mut self) {
+        self.slots.clear_draws();
         self.selected_rows.clear();
         self.selected_edge = false;
         self.sheets.clear();
@@ -565,6 +594,7 @@ impl SegmentLane {
 
     /// Forget every row and free the buffers.
     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
+        self.slots.clear(ctx, true);
         self.selected_rows.clear();
         self.selected_edge = false;
         self.sheets = Vec::new();
@@ -603,8 +633,9 @@ fn build_pipelines(
     target: Target,
 ) -> SegPipelines {
     let groups = [&l.mvp, &l.line, &l.ink_instance, &l.segment_rows];
-    // no vertex buffer, always drawn; the shader tests depth
-    let quad = PipelineDesc::new(shader, &groups, &[], TriangleList)
+    // always drawn, the shader tests depth; the one vertex buffer is the instance slots
+    let slots = [row_slot_layout()];
+    let quad = PipelineDesc::new(shader, &groups, &slots, TriangleList)
         .scene_samples(target.samples)
         .depth(DepthMode::Always);
     // masks are one-channel textures

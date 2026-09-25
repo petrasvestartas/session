@@ -357,7 +357,7 @@ impl LiveSource {
             }
         };
 
-        if session.lookup.is_empty() {
+        if session.lookup.is_empty() && session.instance_lookup.is_empty() {
             self.forget(url, format!("{url} holds no geometry ({n} bytes); skipped"));
             return;
         }

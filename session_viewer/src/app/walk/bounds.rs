@@ -24,7 +24,10 @@ pub fn file_extent(t: &Upload, from: &Baselines) -> AABB {
     let mut out = AABB::empty();
 
     for r in t.obj.rows.iter().skip(from.obj) {
-        out.union_with(&r.bounds.transformed(&r.place));
+        // a dead row is never drawn: the sink, or a definition its instances place
+        if r.flags & Instance::FLAG_DEAD == 0 {
+            out.union_with(&r.bounds.transformed(&r.place));
+        }
     }
 
     out
@@ -36,6 +39,10 @@ pub fn planar_band(t: &Upload, from: &Baselines, place: &Xform) -> Option<[f64; 
     let mut hi = f64::NEG_INFINITY;
 
     for r in t.obj.rows.iter().skip(from.obj) {
+        if r.flags & Instance::FLAG_DEAD != 0 {
+            continue;
+        }
+
         if r.place != *place {
             return None;
         }

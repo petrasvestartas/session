@@ -144,14 +144,24 @@ fn neighbor_visible(seg: StrokeSegment) -> bool {
     return edge_faces_camera(seg.facing, n0, n1, toward_eye((p0+p1)*0.5));
 }
 
+// Object row of an instanced draw, or none; set by the vertex entry points.
+var<private> slot_row: u32 = 0xffffffffu;
+
+// Segment `index` as drawn: in an instanced draw its row is the instance's.
+fn placed_segment(index: u32) -> StrokeSegment {
+    var seg = segments[index];
+    seg.instance_id = select(slot_row, seg.instance_id, slot_row == 0xffffffffu);
+    return seg;
+}
+
 // Cut plane between two joined segments: (normal, point), or zero for no joint.
 fn join_plane(before: u32, after: u32) -> vec4<f32> {
     if (before == 0xffffffffu || after == 0xffffffffu || before >= arrayLength(&segments) || after >= arrayLength(&segments)) {
         return vec4<f32>(0.0);
     }
 
-    let a = segments[before];
-    let b = segments[after];
+    let a = placed_segment(before);
+    let b = placed_segment(after);
 
     if (!neighbor_visible(a) || !neighbor_visible(b)) {
         return vec4<f32>(0.0);
@@ -190,7 +200,7 @@ fn join_plane(before: u32, after: u32) -> vec4<f32> {
 fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let iid = vid / 6u;
     let corner = corner_of(vid % 6u);
-    let seg = segments[iid];
+    let seg = placed_segment(iid);
     let inst = instances[seg.instance_id];
     // selected object, or the selected source edge
     let selected = (inst.flags & FLAG_SELECTED) != 0u ||
@@ -279,17 +289,20 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
 }
 
 @vertex
-fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+fn vs_main(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
+    slot_row = slot;
     return stroke_vertex(vid, 0u);
 }
 
 @vertex
-fn vs_unselected(@builtin(vertex_index) vid: u32) -> VsOut {
+fn vs_unselected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
+    slot_row = slot;
     return stroke_vertex(vid, 1u);
 }
 
 @vertex
-fn vs_selected(@builtin(vertex_index) vid: u32) -> VsOut {
+fn vs_selected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
+    slot_row = slot;
     return stroke_vertex(vid, 2u);
 }
 
