@@ -10,7 +10,8 @@
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { marked } from 'marked';
-import { getHighlighter, LANGS, THEME } from '../highlighter';
+import { getHighlighter, LANGS } from '../highlighter';
+import { renderCode } from '../codeTheme';
 import { sections } from '../installSections';
 
 const route = useRoute();
@@ -29,7 +30,7 @@ const renderedHtml = computed(() => {
   return s ? (marked.parse(s.raw) as string) : '';
 });
 
-// Highlight fenced code blocks with Shiki (VS Code quality) after the HTML lands in the DOM.
+// Highlight fenced code blocks with the site code colours after the HTML lands in the DOM.
 const highlightAll = async () => {
   const el = contentEl.value;
   if (!el) return;
@@ -38,8 +39,7 @@ const highlightAll = async () => {
   for (const code of blocks) {
     const lang = (code.className.match(/language-(\w+)/) || [])[1] || 'text';
     if (!LANGS.includes(lang)) continue; // unknown language → leave the plain block
-    const html = hl.codeToHtml(code.textContent || '', { lang, theme: THEME });
-    code.parentElement!.outerHTML = html; // replace <pre> with Shiki's highlighted <pre>
+    code.innerHTML = renderCode(hl, code.textContent || '', lang);
   }
 };
 watch(renderedHtml, () => nextTick(highlightAll));
@@ -56,9 +56,9 @@ onMounted(() => nextTick(highlightAll));
 .markdown :deep(h2) { font-size: 18px; font-weight: 600; margin: 24px 0 8px; }
 .markdown :deep(blockquote) { border-left: 3px solid var(--rule); margin: 10px 0; padding: 4px 14px; color: var(--muted); }
 .markdown :deep(p) { margin: 9px 0; }
-/* Pill only for INLINE code; code blocks keep Shiki's single background. */
+/* Pill only for INLINE code; code blocks have one background. */
 .markdown :deep(:not(pre) > code) { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 13px; }
-.markdown :deep(pre) { border-radius: 4px; padding: 14px 16px; overflow-x: auto; font-size: 13px; }
+.markdown :deep(pre) { background: var(--code-bg); border-radius: 4px; padding: 14px 16px; overflow-x: auto; font-size: 13px; }
 .markdown :deep(pre code) { background: transparent; padding: 0; }
 .markdown :deep(a) { color: var(--fg); text-underline-offset: 2px; text-decoration-color: #b8b8b8; }
 </style>

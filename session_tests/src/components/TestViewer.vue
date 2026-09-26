@@ -227,7 +227,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import type { HighlighterCore } from 'shiki/core'
-import { getHighlighter, THEME } from '../highlighter'
+import { getHighlighter } from '../highlighter'
+import { renderCode } from '../codeTheme'
 
 const base = import.meta.env.BASE_URL
 
@@ -268,9 +269,9 @@ const highlightGap = (text: string, lang: string): string => {
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i]
     if (t.ws) { result += t.ws; continue }
-    if (t.bracket) { result += `<span class="ts-pb">${escapeHtml(t.bracket)}</span>`; continue }
-    if (t.delim) { result += `<span class="ts-pd">${escapeHtml(t.delim)}</span>`; continue }
-    if (t.op) { result += `<span class="ts-op">${escapeHtml(t.op)}</span>`; continue }
+    if (t.bracket) { result += `<span class="ho">${escapeHtml(t.bracket)}</span>`; continue }
+    if (t.delim) { result += `<span class="ho">${escapeHtml(t.delim)}</span>`; continue }
+    if (t.op) { result += `<span class="ho">${escapeHtml(t.op)}</span>`; continue }
     if (t.word) {
       // Look ahead past whitespace for (
       let nextSym = null
@@ -296,17 +297,21 @@ const highlightGap = (text: string, lang: string): string => {
       const isPascal = /^[A-Z][a-zA-Z0-9]+$/.test(t.word)
 
       if (kw.has(t.word)) {
-        result += `<span class="ts-kw">${escapeHtml(t.word)}</span>`
+        result += `<span class="hk">${escapeHtml(t.word)}</span>`
       } else if (afterModuleKw && !followedByParen) {
-        result += `<span class="ts-mod">${escapeHtml(t.word)}</span>`
+        result += `<span class="hu">${escapeHtml(t.word)}</span>`
       } else if (isPascal) {
-        result += `<span class="ts-ty">${escapeHtml(t.word)}</span>`
+        result += `<span class="ht">${escapeHtml(t.word)}</span>`
       } else if (followedByParen && afterDot) {
-        result += `<span class="ts-mt">${escapeHtml(t.word)}</span>`
+        result += `<span class="hf">${escapeHtml(t.word)}</span>`
       } else if (followedByParen) {
-        result += `<span class="ts-fn">${escapeHtml(t.word)}</span>`
+        result += `<span class="hf">${escapeHtml(t.word)}</span>`
       } else if (/^[A-Z][A-Z0-9_]+$/.test(t.word)) {
-        result += `<span class="ts-cb">${escapeHtml(t.word)}</span>`
+        result += `<span class="hn">${escapeHtml(t.word)}</span>`
+      } else if (/^\d/.test(t.word)) {
+        result += `<span class="hn">${escapeHtml(t.word)}</span>`
+      } else if (lang === 'proto' && nextSym && nextSym.op === '=') {
+        result += `<span class="hm">${escapeHtml(t.word)}</span>`
       } else {
         result += escapeHtml(t.word)
       }
@@ -317,15 +322,14 @@ const highlightGap = (text: string, lang: string): string => {
   return result
 }
 
-// Highlight a snippet → inner token HTML (Shiki's outer <pre><code> stripped so the existing
-// block/inline wrappers keep working). Falls back to escaped text until the highlighter loads.
+// Highlight a snippet → inner token HTML with the site code classes (codeTheme.ts). Falls back to
+// escaped text until the highlighter loads.
 const highlight = (code: string, lang: string): string => {
   const h = hl.value
   if (!h) return escapeHtml(code)
   try {
-    const out = h.codeToHtml(code, { lang: LANG_MAP[lang] || 'text', theme: THEME })
-    const inner = out.replace(/^<pre[^>]*><code[^>]*>/, '').replace(/<\/code><\/pre>\s*$/, '')
-    return inner
+    const id = LANG_MAP[lang]
+    return id ? renderCode(h, code, id) : escapeHtml(code)
   } catch {
     return escapeHtml(code)
   }
@@ -498,7 +502,7 @@ const formatProto = (content) => {
     if (commentIdx >= 0) {
       const before = line.slice(0, commentIdx)
       const comment = line.slice(commentIdx)
-      return highlightGap(before, 'proto') + `<span class="ts-c">${escapeHtml(comment)}</span>`
+      return highlightGap(before, 'proto') + `<span class="hc">${escapeHtml(comment)}</span>`
     }
     return highlightGap(line, 'proto')
   }).join('\n')
@@ -753,12 +757,7 @@ pre {
 </style>
 
 <style>
-/* Proto schema highlight (TestViewer highlightGap): greyscale like the Shiki theme. */
-.ts-kw, .ts-dir { color: #000000; font-weight: 600; }
-.ts-c { color: #8a8a8a; font-style: italic; }
-.ts-s, .ts-n, .ts-cb { color: #5c5c5c; }
-.ts-ty, .ts-tyb, .ts-tyd, .ts-fn, .ts-fnd, .ts-mt, .ts-mc, .ts-v, .ts-vb, .ts-pm, .ts-pl, .ts-pr,
-.ts-op, .ts-mod, .ts-lb, .ts-dec, .ts-pb, .ts-pd { color: #1a1a1a; }
+/* Proto schemas (highlightGap) use the site code colours in App.vue. */
 .inline-code pre { display: inline; margin: 0; padding: 0; }
 .inline-code code { display: inline; }
 </style>

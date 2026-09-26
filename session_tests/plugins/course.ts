@@ -1,7 +1,7 @@
 // Vite plugin: the viewer course (session_viewer/docs/*.md) as lazy Vue routes.
 // Resolves every --8<-- include the way pymdownx.snippets does (named sections and line ranges,
 // against the MkDocs base paths docs/ and ..), strips marker lines, fails the build naming the page
-// and include when a file or section is missing, renders with marked + a greyscale Shiki theme,
+// and include when a file or section is missing, renders with marked + Shiki and the site code colours (src/codeTheme.ts),
 // copies the images and files the pages link to, and builds the search index.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,7 +10,7 @@ import type { Plugin, ViteDevServer } from 'vite';
 import { Marked, type Tokens } from 'marked';
 import { createHighlighter, type Highlighter } from 'shiki';
 import MiniSearch from 'minisearch';
-import { greyTheme, tokenClass, THEME_NAME } from '../src/greyTheme';
+import { codeTheme, renderCode } from '../src/codeTheme';
 import { SEARCH_OPTIONS } from '../src/searchOptions';
 import { kernelClasses } from './kernel';
 
@@ -213,28 +213,7 @@ export default function coursePlugin(): Plugin {
   const highlight = (code: string, lang: string): string => {
     const id = ALIAS[lang] ?? lang;
     if (!hl || !LANGS.includes(id)) return esc(code);
-    const { tokens } = hl.codeToTokens(code, { lang: id as any, theme: THEME_NAME });
-    return tokens
-      .map((line) => {
-        let out = '';
-        let cls = '';
-        let buf = '';
-        const flush = () => {
-          if (buf) out += cls ? `<span class="${cls}">${esc(buf)}</span>` : esc(buf);
-          buf = '';
-        };
-        for (const t of line) {
-          const c = tokenClass(t.color);
-          if (c !== cls) {
-            flush();
-            cls = c;
-          }
-          buf += t.content;
-        }
-        flush();
-        return out;
-      })
-      .join('\n');
+    return renderCode(hl as any, code, id);
   };
 
   const renderPage = (file: string, slug: string, bySlug: Map<string, string>, links: Link[], errors: string[]): Page => {
@@ -376,7 +355,7 @@ export default function coursePlugin(): Plugin {
   };
 
   const renderAll = async () => {
-    hl ??= await createHighlighter({ themes: [greyTheme as any], langs: LANGS as any });
+    hl ??= await createHighlighter({ themes: [codeTheme as any], langs: LANGS as any });
     const t0 = Date.now();
     const files = listPages();
     sources = new Set([...files, path.join(VIEWER, 'mkdocs.yml'), path.join(DOCS, 'lessons/SERIES.txt')]);

@@ -10,16 +10,15 @@ import python from '@shikijs/langs/python';
 import json from '@shikijs/langs/json';
 import bash from '@shikijs/langs/bash';
 import toml from '@shikijs/langs/toml';
-import { greyTheme, THEME_NAME } from './greyTheme';
+import { codeTheme } from './codeTheme';
 
-export const THEME = THEME_NAME;
 export const LANGS = ['rust', 'cpp', 'python', 'json', 'bash', 'toml'];
 
 let promise: Promise<HighlighterCore> | null = null;
 
 export function getHighlighter(): Promise<HighlighterCore> {
   return (promise ??= createHighlighterCore({
-    themes: [greyTheme],
+    themes: [codeTheme],
     langs: [rust, cpp, python, json, bash, toml],
     engine: createOnigurumaEngine(import('shiki/wasm')),
   }));

@@ -49,8 +49,17 @@ kbd {
   font-family: var(--mono);
 }
 
-/* Greyscale code classes written by the course build (plugins/course.ts). */
-pre .c { color: #8a8a8a; font-style: italic; }
-pre .s { color: #5c5c5c; }
-pre .k { color: #000000; font-weight: 600; }
+/* Code colours (src/codeTheme.ts), only code is coloured; each is at least 4.7:1 on #f6f6f6. */
+pre { color: #1f2328; }
+.hk { color: #8b1fc4; }                      /* keyword */
+.ht, .hu, .ha { color: #00758a; }            /* type or class, module, attribute or decorator */
+.hf { color: #0550ae; }                      /* function or method */
+.hx { color: #0550ae; font-weight: 600; }    /* macro */
+.hv { color: #0a3069; }                      /* variable */
+.hp { color: #8a6200; font-style: italic; }  /* parameter */
+.hm { color: #c4262e; }                      /* field */
+.hn { color: #8a6200; }                      /* number or constant */
+.hs { color: #067d17; }                      /* string */
+.hc { color: #5e7263; font-style: italic; }  /* comment */
+.ho { color: #57606a; }                      /* operator or punctuation */
 </style>
