@@ -1,0 +1,32 @@
+const e={title:"CAD representation and meshing decisions",html:`<h1 id="cad-representation-and-meshing-decisions">CAD representation and meshing decisions<a class="anchor" href="#/course/cad-design#cad-representation-and-meshing-decisions" aria-label="Link to this section">#</a></h1>
+<p>This design record explains the shared geometry producer behind chapters 06–09. <a href="#/course/18-finite-visibility">Chapter 18</a>&#39;s finite-triangle correction changes screen-space visibility, not this contract.</p>
+<h2 id="producer-contract">Producer contract<a class="anchor" href="#/course/cad-design#producer-contract" aria-label="Link to this section">#</a></h2>
+<p>Session&#39;s producer is the independent C++/Rust/Python NURBS and constrained-Delaunay implementation in the sibling geometry packages; it does not call an OCCT runtime. The <strong>OCCT V8_0_1</strong> sources below are an implementation reference, not a claim of pixel comparison against an OCCT renderer.</p>
+<table>
+<thead>
+<tr>
+<th>Actual OCCT reference</th>
+<th>Relevant contract</th>
+<th>Session implementation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="https://github.com/Open-Cascade-SAS/OCCT/blob/V8_0_1/src/Visualization/TKV3d/StdPrs/StdPrs_ShadedShape.cxx" target="_blank" rel="noopener"><code>StdPrs_ShadedShape.cxx</code>, <code>fillFaceBoundaries</code> and <code>fillTriangles</code></a></td>
+<td>Use topological edges and ordered polygon nodes belonging to the face triangulation; coordinate winding, face orientation and mirrored placement.</td>
+<td><code>session_{cpp,rust,py}</code> BRep <code>face_meshes_q</code>; viewer <code>app/walk/brep_edges.rs</code>, <code>brep_orient.rs</code>, <code>brep.rs</code>; <code>shaders/normals.wgsl</code> and <code>triangle.wgsl</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Open-Cascade-SAS/OCCT/blob/V8_0_1/src/ModelingAlgorithms/TKTopAlgo/BRepLib/BRepLib_ToolTriangulatedShape.cxx" target="_blank" rel="noopener"><code>BRepLib_ToolTriangulatedShape.cxx</code>, <code>ComputeNormals</code></a></td>
+<td>Preserve valid normals; derive them from the supporting surface and UVs, with a triangulation fallback when necessary.</td>
+<td>Shared <code>remesh_nurbssurface_grid</code> and <code>nurbssurface_trimmed</code>: analytic normals, deterministic incident-face fallback at singularities, one-sided C0 normals and separate shading vertices.</td>
+</tr>
+</tbody></table>
+<p><code>TrimLoops</code> carries outer and inner UV polygons, the optional XYZ position each vertex lifts to, and optional interior seeds. Original nodes keep <code>boundary/{loop}/{sample}</code> provenance; added knot intersections keep <code>boundary_interval/{loop}/{segment}</code> fractions, polygon intervals and <strong>not</strong> CAD curve parameters. BRep turns that provenance into edge-table indices and repeated-use identities, and both shading copies at a true crease keep theirs. The viewer strokes boundaries from exact face-mesh nodes, and every subdivision of one edge keeps its source edge ID through <code>SegRows.pipe_ids</code> and <code>Scene::edge_at</code>. Unavailable provenance stays unavailable; an explicitly warned analytic fallback never manufactures a topology ID.</p>
+<p>The first incident grid gives the canonical shared-edge polygon; a later grid whose boundary samples differ is rebuilt through the constrained mesher from that polygon and its previous interior UV seeds, sorted to remove map-order dependence. Shared boundaries take their angular/chord refinement before curved constrained faces refine interiors, and every incident face then gets that same polygon, its original samples exact. The producing face keeps its pcurve parameters; an adjoining face maps the shared XYZ onto its own pcurve and checks the lifted position against edge/face tolerances, falling back to a bounded one-dimensional search on that pcurve when surface inversion reaches the wrong periodic branch. Interior C0 knot lines stay constrained inside the trim, their shading normals taken from each incident side.</p>
+<p>This fixes a geometry defect visible on the teapot: interior centroids refined onto the curved surface crowded the fixed coarse boundary chords and buried them, and sharing endpoint vertices was not enough. The teapot&#39;s bytes, GUID, 32 patches and 512 controls are unchanged — the existing Newell/GLUT Utah NURBS asset, with no established 3ds Max export provenance.</p>
+<p>The additional <a href="https://github.com/compas-dev/compas_occ/blob/8dc35a32e447bb053b236f0836c2a92d8900f784/src/compas_occ/brep/brep.py#L1232" target="_blank" rel="noopener">COMPAS OCC tessellation comparison</a> confirms the same polygon-on-triangulation contract: boundary indices reuse face triangulation nodes. The viewer&#39;s facing test reads exact incident triangle normals, both uses of a periodic seam included, and never substitutes a shading normal at a singular pole. Planar BRep face normals stay independent across faces. Raw derivatives are checked before an analytic normal is accepted, so a +Z fallback sentinel cannot masquerade as a cone or sphere pole derivative.</p>
+<p>Quality is a normal-angle target in degrees and a chord factor of the surface bounding-box diagonal: the viewer asks for <code>(5°, 0.001)</code>, the shared default is <code>(20°, 0.005)</code>. Interior refinement stops at eight passes and 200000 vertices; BRep boundary refinement stops at eight split levels and 4096 added nodes per edge, with the caller&#39;s original samples exact. These are bounded heuristics, not a certified global chord bound. <code>mesh_loops</code> returns an empty mesh for invalid input, lost original boundary provenance or an unconstrained C0 crossing.</p>
+<p><img src="/session/docs/course/docs/illustrations/ownership.svg" alt="Source geometry preparation and physical visibility have separate owners." loading="lazy" decoding="async"></p>
+<p>Text alternative: one shared tessellation supplies the visible surface and its edge chains; analytic normals and crease splits govern shading; instance normal transforms and shared physical depth keep both drawing paths aligned; retained source identity answers a pick.</p>
+<p>The same producer exists in Rust, C++ and Python; the viewer builds against the Rust one, and the course installs the other two as supplied files.</p>
+`,toc:[{level:2,id:"producer-contract",text:"Producer contract"}]};export{e as default};
