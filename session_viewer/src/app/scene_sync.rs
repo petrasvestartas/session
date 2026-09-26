@@ -1839,8 +1839,9 @@ impl Scene {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::app::command::verbs::{curve, line, point, polyline};
     use crate::app::hierarchy::Hierarchy;
-    use crate::app::modeling::Modeling;
+    use crate::app::modeling::Interval;
     use crate::app::scene::{FileDoc, SheetInit, StreamedInit};
     use crate::app::stream::{CloudFields, CloudLod, SheetFields};
     use crate::app::walk::cloud::StreamRows;
@@ -2081,10 +2082,7 @@ mod tests {
             .map(|row| scene.identity_of(row))
             .collect();
         let revision = scene.row_revision;
-        let (doc, guid) = scene
-            .model(&Modeling::Point([1.0, 2.0, 3.0]))
-            .unwrap()
-            .unwrap();
+        let (doc, guid) = scene.model(&point::SPEC, &[[1.0, 2.0, 3.0]]).unwrap();
         scene.sync();
         assert!(scene.staged.patches.is_empty() && scene.staged.kills.is_empty());
         assert_eq!(scene.tables.obj.rows.len(), 1, "one object row, appended");
@@ -2157,14 +2155,14 @@ mod tests {
     #[test]
     fn unreachable_tombs_are_released() {
         let mut scene = scene();
-        scene.model(&Modeling::Point([1.0, 2.0, 3.0])).unwrap();
+        scene.model(&point::SPEC, &[[1.0, 2.0, 3.0]]).unwrap();
         check(&mut scene);
         assert!(scene.undo());
         check(&mut scene);
         assert_eq!(scene.tombs.len(), 1, "an undone add waits for its redo");
 
         scene
-            .model(&Modeling::Line([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]))
+            .model(&line::SPEC, &[[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]])
             .unwrap();
         check(&mut scene);
         assert!(scene.tombs.is_empty(), "the redo branch is gone");
@@ -2188,7 +2186,7 @@ mod tests {
     #[test]
     fn an_edit_elsewhere_releases_a_redo_tomb() {
         let mut scene = scene();
-        scene.model(&Modeling::Point([1.0, 2.0, 3.0])).unwrap();
+        scene.model(&point::SPEC, &[[1.0, 2.0, 3.0]]).unwrap();
         check(&mut scene);
         assert!(scene.undo());
         check(&mut scene);
@@ -2447,7 +2445,7 @@ mod tests {
         let line = find(&scene, |g| matches!(g, Geometry::Line(_))).unwrap();
         let revision = scene.row_revision;
         scene.selected = Some(line);
-        scene.model(&Modeling::Trim(0.2, 0.8)).unwrap();
+        scene.edit_interval(Interval::Trim(0.2, 0.8)).unwrap();
         scene.sync();
         assert_eq!(scene.staged.patches.len(), 1);
         assert!(scene.staged.kills.is_empty() && scene.tables_empty());
@@ -2458,7 +2456,7 @@ mod tests {
         let curve = find(&scene, |g| matches!(g, Geometry::NurbsCurve(_))).unwrap();
         let before = scene.spans.span(scene.feet[curve as usize]);
         scene.selected = Some(curve);
-        scene.model(&Modeling::Extend(-0.5, 1.5)).unwrap();
+        scene.edit_interval(Interval::Extend(-0.5, 1.5)).unwrap();
         scene.sync();
         assert_eq!(scene.staged.kills.len(), 1, "the old rows die");
         assert!(
@@ -2517,19 +2515,16 @@ mod tests {
         let x = dice.roll(100) as f64;
 
         match dice.roll(20) {
-            0 => drop(scene.model(&Modeling::Point([x, 1.0, 2.0]))),
-            1 => drop(scene.model(&Modeling::Line([x, 0.0, 0.0], [x, 5.0, 1.0]))),
-            2 => drop(scene.model(&Modeling::Polyline(vec![
-                [0.0, 0.0, 0.0],
-                [x, 1.0, 0.0],
-                [x, x, 0.0],
-            ]))),
-            3 => drop(scene.model(&Modeling::Curve(vec![
-                [0.0, 0.0, 0.0],
-                [x, 3.0, 0.0],
-                [x, x, 2.0],
-                [0.0, x, 1.0],
-            ]))),
+            0 => drop(scene.model(&point::SPEC, &[[x, 1.0, 2.0]])),
+            1 => drop(scene.model(&line::SPEC, &[[x, 0.0, 0.0], [x, 5.0, 1.0]])),
+            2 => drop(scene.model(
+                &polyline::SPEC,
+                &[[0.0, 0.0, 0.0], [x, 1.0, 0.0], [x, x, 0.0]],
+            )),
+            3 => drop(scene.model(
+                &curve::SPEC,
+                &[[0.0, 0.0, 0.0], [x, 3.0, 0.0], [x, x, 2.0], [0.0, x, 1.0]],
+            )),
             4 if !rows.is_empty() => {
                 scene.delete_row(pick(dice));
             }
@@ -2539,11 +2534,11 @@ mod tests {
             }
             6 if !rows.is_empty() => {
                 scene.selected = Some(pick(dice));
-                let _ = scene.model(&Modeling::Trim(0.1, 0.6));
+                let _ = scene.edit_interval(Interval::Trim(0.1, 0.6));
             }
             7 if !rows.is_empty() => {
                 scene.selected = Some(pick(dice));
-                let _ = scene.model(&Modeling::Extend(-0.5, 1.2));
+                let _ = scene.edit_interval(Interval::Extend(-0.5, 1.2));
             }
             8 if !rows.is_empty() => {
                 let _ = scene.explode_rows(&[pick(dice)]);
@@ -2702,7 +2697,7 @@ mod tests {
         assert_eq!(scene.searches, searches, "no tree walk");
 
         // undo of a create drops a node the tree no longer has: no walk looks for it
-        scene.model(&Modeling::Point([1.0, 2.0, 3.0])).unwrap();
+        scene.model(&point::SPEC, &[[1.0, 2.0, 3.0]]).unwrap();
         check(&mut scene);
         let searches = scene.searches;
         assert!(scene.undo());
@@ -2918,14 +2913,11 @@ mod tests {
             )
         };
         let before = shell(&scene);
-        let (point_doc, point) = scene
-            .model(&Modeling::Point([1.0, 1.0, 1.0]))
-            .unwrap()
-            .unwrap();
+        let (point_doc, point) = scene.model(&point::SPEC, &[[1.0, 1.0, 1.0]]).unwrap();
         check(&mut scene);
         let point = scene.row_of(point_doc, &point).unwrap();
         scene
-            .model(&Modeling::Line([0.0, 0.0, 0.0], [4.0, 4.0, 0.0]))
+            .model(&line::SPEC, &[[0.0, 0.0, 0.0], [4.0, 4.0, 0.0]])
             .unwrap();
         check(&mut scene);
         assert!(scene.delete_row(point));
@@ -2936,7 +2928,7 @@ mod tests {
         check(&mut scene);
         let line = find(&scene, |g| matches!(g, Geometry::Line(_))).unwrap();
         scene.selected = Some(line);
-        scene.model(&Modeling::Trim(0.1, 0.9)).unwrap();
+        scene.edit_interval(Interval::Trim(0.1, 0.9)).unwrap();
         check(&mut scene);
         let polyline = find(&scene, |g| matches!(g, Geometry::Polyline(_))).unwrap();
         scene.explode_rows(&[polyline]).unwrap();
@@ -2999,13 +2991,9 @@ mod tests {
         assert!(scene.doc_state[0].sheet.is_some());
         scene.current_layer = Some((0, "plan".into()));
         let (_, line) = scene
-            .model(&Modeling::Line([0.0, 9.0, 0.0], [10.0, 9.0, 0.0]))
-            .unwrap()
+            .model(&line::SPEC, &[[0.0, 9.0, 0.0], [10.0, 9.0, 0.0]])
             .unwrap();
-        let (_, point) = scene
-            .model(&Modeling::Point([0.0, 0.0, 50.0]))
-            .unwrap()
-            .unwrap();
+        let (_, point) = scene.model(&point::SPEC, &[[0.0, 0.0, 50.0]]).unwrap();
         scene.sync();
         let pens: Vec<f32> = scene.tables.seg.ribbons.iter().map(|s| s.radius).collect();
         assert_eq!(pens, vec![0.5], "the flat line takes the sheet pen");
@@ -3021,8 +3009,7 @@ mod tests {
 
         scene.current_layer = None;
         let (doc, created) = scene
-            .model(&Modeling::Line([0.0, 0.0, 0.0], [1.0, 0.0, 0.0]))
-            .unwrap()
+            .model(&line::SPEC, &[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
             .unwrap();
         check(&mut scene);
         assert_eq!(
@@ -3079,10 +3066,7 @@ mod tests {
     fn hierarchy_follows_edits() {
         let mut scene = scene();
         let mut panel = Hierarchy::default();
-        let (doc, guid) = scene
-            .model(&Modeling::Point([1.0, 1.0, 1.0]))
-            .unwrap()
-            .unwrap();
+        let (doc, guid) = scene.model(&point::SPEC, &[[1.0, 1.0, 1.0]]).unwrap();
         check(&mut scene);
         panel.refresh(&scene);
         let row = scene.row_of(doc, &guid).unwrap();
@@ -3128,10 +3112,7 @@ mod tests {
             let started = std::time::Instant::now();
 
             for i in 0..40 {
-                let (doc, guid) = scene
-                    .model(&Modeling::Point([i as f64, 5.0, 0.0]))
-                    .unwrap()
-                    .unwrap();
+                let (doc, guid) = scene.model(&point::SPEC, &[[i as f64, 5.0, 0.0]]).unwrap();
                 scene.sync();
                 scene.settle();
                 let row = scene.row_of(doc, &guid).unwrap();
@@ -3488,7 +3469,7 @@ mod tests {
                 commit(&mut scene, &mut gpu);
                 same(&mut gpu, "delete, undo");
 
-                scene.model(&Modeling::Point([5.0, 5.0, 5.0])).unwrap();
+                scene.model(&point::SPEC, &[[5.0, 5.0, 5.0]]).unwrap();
                 commit(&mut scene, &mut gpu);
                 assert!(scene.undo());
                 commit(&mut scene, &mut gpu);
@@ -3496,7 +3477,7 @@ mod tests {
 
                 let curve = find(&scene, |g| matches!(g, Geometry::NurbsCurve(_))).unwrap();
                 scene.selected = Some(curve);
-                scene.model(&Modeling::Extend(-0.5, 1.5)).unwrap();
+                scene.edit_interval(Interval::Extend(-0.5, 1.5)).unwrap();
                 commit(&mut scene, &mut gpu);
                 assert!(scene.undo());
                 commit(&mut scene, &mut gpu);
@@ -3739,8 +3720,7 @@ mod tests {
             for round in 0..5 {
                 let t = std::time::Instant::now();
                 let (doc, guid) = scene
-                    .model(&Modeling::Point([round as f64, 0.0, 0.0]))
-                    .unwrap()
+                    .model(&point::SPEC, &[[round as f64, 0.0, 0.0]])
                     .unwrap();
                 let kernel = ms(t);
                 let t = std::time::Instant::now();

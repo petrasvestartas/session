@@ -377,3 +377,6 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
     }
     return base;
 }
+
+#include "ambient_geometry.wgsl"
+#include "slot_table.wgsl"

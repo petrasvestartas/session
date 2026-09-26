@@ -1,10 +1,12 @@
+use super::geometry::{Edit, range};
 use crate::State;
 use crate::app::command::tool::cut::{
     Cutter, as_curve, as_plane, fence_plane, nearest_px, plane_moved, unit_ray,
 };
 use crate::app::command::tool::{Next, Overlay, Stroke, Tool};
-use crate::app::command::{Action, Spec, model};
+use crate::app::command::{Action, Spec};
 use crate::app::cplane::CPlane;
+use crate::app::modeling::Interval;
 use parts::{Blade, Parts};
 use session_rust::{Geometry, Line, Plane, Point, Vector, Xform, intersection};
 
@@ -26,12 +28,13 @@ const BLUE: [u8; 3] = [30, 110, 170];
 const RED: [u8; 3] = [210, 40, 40];
 
 /// Trim interactively, or keep the part of a curve between two parameters.
-fn parse(verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
+fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     if rest.is_empty() {
         return Ok(Box::new(Trim));
     }
 
-    Ok(Box::new(super::geometry::Model(model(verb, rest)?)))
+    let (a, b) = range(rest)?;
+    Ok(Box::new(Edit(Interval::Trim(a, b))))
 }
 
 /// Start trimming; selected objects are the targets.
@@ -711,7 +714,7 @@ mod tests {
     #[test]
     fn trim_parses_both_forms() {
         assert_eq!(parsed("Trim"), Ok("Trim".into()));
-        assert_eq!(parsed("trim 0.2 0.8"), Ok("Model(Trim(0.2, 0.8))".into()));
+        assert_eq!(parsed("trim 0.2 0.8"), Ok("Edit(Trim(0.2, 0.8))".into()));
         assert!(parsed("trim 0 1 extra").is_err());
         assert_eq!(completions("Tr"), vec!["Trim"]);
         assert_eq!(accept("Tri"), ("Trim".into(), true));

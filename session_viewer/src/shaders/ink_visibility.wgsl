@@ -401,3 +401,5 @@ fn through_glass(hidden: bool) -> f32 {
     let glass = line.opacity > 0.0 && line.opacity < 1.0;
     return select(1.0, select(0.0, 1.0 - line.opacity, glass), hidden);
 }
+
+#include "projected_triangle.wgsl"

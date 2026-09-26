@@ -23,7 +23,7 @@ struct Escape;
 impl Action for Escape {
     /// Cancel a running command and keep the selection; with none running, drop the selection.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        if state.draft.is_some() {
+        if state.features.draft.is_some() {
             state.cancel_drawing();
             return Ok("cancelled".into());
         }

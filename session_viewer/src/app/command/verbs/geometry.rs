@@ -1,31 +1,133 @@
 use crate::State;
-use crate::app::command::Action;
-use crate::app::modeling::Modeling;
+use crate::app::command::{Action, Spec, Verb};
+use crate::app::coords;
+use crate::app::modeling::{Interval, MAX_POINTS};
+use session_rust::{Geometry, Point};
+use std::ops::RangeInclusive;
 
-/// Geometry created or edited by one of the modeling verbs.
-#[derive(Debug)]
-pub struct Model(pub Modeling);
+/// A verb that makes one geometry from picked or typed points.
+pub struct Draw {
+    pub spec: Spec,                                       // how it is typed
+    pub points: RangeInclusive<usize>, // how many; a fixed count finishes by itself
+    pub what: &'static str,            // named in the answer, e.g. `NURBS curve`
+    pub buttons: &'static [(&'static str, &'static str)], // under the command line while drawing
+    pub build: fn(&[Point]) -> Result<Geometry, String>, // the checked points into geometry
+}
 
-impl Action for Model {
-    /// Build or edit the geometry, then select what was created.
-    fn run(&self, state: &mut State) -> Result<String, String> {
-        let made = state.scene.model(&self.0)?;
-        state.after_history();
-
-        // an edit, as opposed to a new object
-        let Some((doc, guid)) = made else {
-            return Ok("geometry updated".into());
-        };
-
-        let name = match self.0 {
-            Modeling::Point(_) => "point",
-            Modeling::Line(..) => "line",
-            Modeling::Arrow(..) => "arrow",
-            Modeling::Curve(_) => "NURBS curve",
-            _ => "polyline",
-        };
-        Ok(created(state, doc, &guid, name))
+impl Verb for Draw {
+    fn spec(&self) -> &Spec {
+        &self.spec
     }
+
+    fn draw(&self) -> Option<&Draw> {
+        Some(self)
+    }
+}
+
+impl Draw {
+    /// True when Enter finishes it, e.g. Polyline.
+    pub fn open(&self) -> bool {
+        self.points.start() != self.points.end()
+    }
+
+    /// The typed points as a creation, or what is wrong with them.
+    pub fn parse(&'static self, words: &[&str]) -> Result<Box<dyn Action>, String> {
+        if words.len() > MAX_POINTS {
+            return Err("too many points".into());
+        }
+
+        let mut points = Vec::new();
+
+        for word in words {
+            let Some(coords::Typed::Absolute { x, y, z }) = coords::parse(word) else {
+                return Err("use world coordinates x,y,z separated by spaces".into());
+            };
+            points.push([x, y, z.unwrap_or(0.0)]);
+        }
+
+        if !self.points.contains(&points.len()) {
+            return Err(self.count());
+        }
+
+        Ok(Box::new(Create { draw: self, points }))
+    }
+
+    /// The geometry these points make, after checking them.
+    pub fn geometry(&self, points: &[[f64; 3]]) -> Result<Geometry, String> {
+        if !self.points.contains(&points.len()) {
+            return Err(self.count());
+        }
+
+        let points = points
+            .iter()
+            .map(|p| point(*p))
+            .collect::<Result<Vec<_>, _>>()?;
+        (self.build)(&points)
+    }
+
+    /// How many points it needs, as a message.
+    fn count(&self) -> String {
+        let name = self.spec.names[0];
+
+        match (*self.points.start(), self.open()) {
+            (1, false) => format!("{name} needs one point"),
+            (count, false) => format!("{name} needs {count} points"),
+            (count, true) => format!("{name} needs at least {count} points"),
+        }
+    }
+}
+
+/// A point from finite, reasonable coordinates.
+fn point(p: [f64; 3]) -> Result<Point, String> {
+    if p.iter().any(|v| !v.is_finite() || v.abs() > 1e12) {
+        return Err("coordinates must be finite and within ±1e12".into());
+    }
+
+    Ok(Point::new(p[0], p[1], p[2]))
+}
+
+/// One geometry from a drawing verb and its points.
+pub struct Create {
+    draw: &'static Draw,   // the verb
+    points: Vec<[f64; 3]>, // its checked count of world points
+}
+
+impl std::fmt::Debug for Create {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Create({}, {:?})", self.draw.spec.names[0], self.points)
+    }
+}
+
+impl Action for Create {
+    /// Build the geometry, then select it.
+    fn run(&self, state: &mut State) -> Result<String, String> {
+        let (doc, guid) = state.scene.model(self.draw, &self.points)?;
+        state.after_history();
+        Ok(created(state, doc, &guid, self.draw.what))
+    }
+}
+
+/// The selected curve trimmed or extended over a part of its length.
+#[derive(Debug)]
+pub struct Edit(pub Interval);
+
+impl Action for Edit {
+    /// Replace the curve as one undo step.
+    fn run(&self, state: &mut State) -> Result<String, String> {
+        state.scene.edit_interval(self.0)?;
+        state.after_history();
+        Ok("geometry updated".into())
+    }
+}
+
+/// Two numbers `a b` for Trim or Extend.
+pub fn range(words: &[&str]) -> Result<(f64, f64), String> {
+    let [a, b] = words else {
+        return Err("try Trim 0.2 0.8 or Extend -0.2 1.2".into());
+    };
+    let a = crate::app::command::number(Some(a), "Trim 0.2 0.8")?;
+    let b = crate::app::command::number(Some(b), "Trim 0.2 0.8")?;
+    Ok((a, b))
 }
 
 /// Add `geometry` to the current layer as one undo step and select it; `what` names it.
@@ -65,4 +167,60 @@ fn created(state: &mut State, doc: usize, guid: &str, what: &str) -> String {
         .map(|parent| parent.borrow().name.clone())
         .unwrap_or_default();
     format!("Created and selected {what} on {layer}. Type Fit to locate it; Undo to remove it.")
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    use crate::app::command::{Spec, completions, drawing, parse};
+    use crate::app::scene::Scene;
+    use session_rust::Polyline;
+    use std::rc::Rc;
+
+    /// A drawing verb that exists only here and in one `#[cfg(test)]` registry line.
+    pub const SPEC: Draw = Draw {
+        spec: Spec {
+            names: &["Wedge"],
+            aliases: &[],
+            hint: "Wedge · three corners",
+            options: &[],
+            arity: None,
+            wait_for_option: false,
+            wait_after_option: false,
+            parse: |_, rest| Draw::parse(&SPEC, rest),
+        },
+        points: 3..=3,
+        what: "wedge",
+        buttons: &[("Cancel", "Escape")],
+        build: |points| {
+            let mut corners = points.to_vec();
+            corners.push(points[0].clone());
+            Ok(Geometry::Polyline(Rc::new(Polyline::new(corners))))
+        },
+    };
+
+    /// A new drawing verb is found, parsed, drafted and built from its own file alone.
+    #[test]
+    fn a_drawing_verb_registers_in_one_file() {
+        assert!(completions("we").contains(&"Wedge"));
+        let (draw, count) = drawing(&["wedge", "0,0,0"]).unwrap();
+        assert_eq!(
+            (draw.spec.names[0], count, draw.open()),
+            ("Wedge", 1, false)
+        );
+        assert_eq!(
+            format!("{:?}", parse("wedge 0,0,0 1,0,0 0,1,0").unwrap()),
+            "Create(Wedge, [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])"
+        );
+        assert_eq!(
+            parse("wedge 0,0,0 1,0,0").unwrap_err(),
+            "Wedge needs 3 points"
+        );
+        let mut scene = Scene::new();
+        scene
+            .model(&SPEC, &[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
+            .unwrap();
+        assert_eq!(scene.docs[0].session.lookup.len(), 1);
+        assert!(scene.model(&SPEC, &[[0.0, 0.0, 0.0]]).is_err());
+    }
 }

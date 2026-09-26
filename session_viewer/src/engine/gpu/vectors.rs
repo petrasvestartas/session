@@ -265,12 +265,7 @@ mod tests {
         let (_, src) = SHADERS[0];
         assert_eq!(wgsl_fields(src, "VectorRow"), rust, "VectorRow fields");
 
-        let source = crate::engine::pipelines::shared(&format!(
-            "{src}\n{}\n{}\n{}",
-            crate::engine::pipelines::INK,
-            crate::engine::pipelines::SCENE,
-            crate::engine::pipelines::CLIP
-        ));
+        let source = crate::engine::pipelines::shared(&crate::engine::pipelines::ink_source(src));
         let module = naga::front::wgsl::parse_str(&source)
             .unwrap_or_else(|error| panic!("{}", error.emit_to_string(&source)));
         let (_, ty) = module

@@ -1032,3 +1032,22 @@ mod tests {
         assert!(space.follow(10_000) == Change::default());
     }
 }
+
+/// The pass that keeps the instance slots following the arena.
+pub struct Instanced;
+
+impl super::lane::Lane for Instanced {}
+
+impl super::pass::Pass for Instanced {
+    fn prepare(&mut self, g: &mut super::Gpu, _encoder: &mut wgpu::CommandEncoder) {
+        g.follow_arena();
+    }
+}
+
+/// The instancing pass.
+pub fn pass(
+    _ctx: &GpuCtx,
+    _target: crate::engine::pipelines::Target,
+) -> Box<dyn super::pass::Pass> {
+    Box::new(Instanced)
+}

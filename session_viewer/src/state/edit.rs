@@ -24,14 +24,14 @@ impl State {
         let row = row.filter(|_| !self.tool_running()); // hidden while a tool asks for points
         // no box, no gizmo
         let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else {
-            self.gizmo = None;
+            self.features.gizmo = None;
             self.upload_gizmo();
             return;
         };
         // the box around every selected row
         let mut bounds = box_;
         if row.is_some() {
-            for selected in &self.hierarchy.selected {
+            for selected in &self.features.hierarchy.selected {
                 if let Some(b) = self.gpu.objects.row_bounds(*selected) {
                     bounds.union_with(&b);
                 }
@@ -56,9 +56,9 @@ impl State {
             .transformed(&place);
         }
 
-        match self.gizmo.as_mut() {
+        match self.features.gizmo.as_mut() {
             Some(gizmo) => gizmo.set_origin(origin),
-            None => self.gizmo = Some(Gizmo::new(origin)),
+            None => self.features.gizmo = Some(Gizmo::new(origin)),
         }
 
         self.upload_gizmo();
@@ -79,7 +79,7 @@ impl State {
             .filter_map(|r| Some((r, self.scene.placement_of(r)?)))
             .collect();
         let per_px = self.world_per_px(); // scene length of one pixel at the gizmo
-        let Some(gizmo) = self.gizmo.as_mut() else {
+        let Some(gizmo) = self.features.gizmo.as_mut() else {
             return false;
         };
         let Some(handle) = gizmo.hit_with_radius(&from, &dir, per_px, radius) else {
@@ -105,7 +105,7 @@ impl State {
                 .begin(self.scene.geometry(row)?, target)
         });
 
-        self.dragging = Some(GizmoDrag {
+        self.features.dragging = Some(GizmoDrag {
             group,
             row,
             base_place,
@@ -120,7 +120,7 @@ impl State {
 
     /// Move the selection with the pointer; a preview, the document is untouched.
     pub fn drag_gizmo(&mut self, x: f64, y: f64) -> bool {
-        let Some(active) = self.dragging.as_ref() else {
+        let Some(active) = self.features.dragging.as_ref() else {
             return false;
         };
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
@@ -148,7 +148,7 @@ impl State {
                     .bounds
                     .union_with_point(origin[0], origin[1], origin[2]);
 
-                if let Some(gizmo) = self.gizmo.as_mut() {
+                if let Some(gizmo) = self.features.gizmo.as_mut() {
                     gizmo.origin = origin;
                 }
 
@@ -173,7 +173,7 @@ impl State {
 
             self.update_label();
 
-            if let Some(gizmo) = self.gizmo.as_mut() {
+            if let Some(gizmo) = self.features.gizmo.as_mut() {
                 gizmo.origin = origin;
             }
 
@@ -197,7 +197,7 @@ impl State {
 
     /// Release: the document records the whole gesture as one undo step.
     pub fn end_gizmo(&mut self, x: f64, y: f64) -> bool {
-        let Some(active) = self.dragging.take() else {
+        let Some(active) = self.features.dragging.take() else {
             return false;
         };
         // put the preview back, the document applies the real move
@@ -212,7 +212,7 @@ impl State {
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
             return false;
         };
-        let Some(gizmo) = self.gizmo.as_mut() else {
+        let Some(gizmo) = self.features.gizmo.as_mut() else {
             return false;
         };
         gizmo.drag = None;
@@ -262,11 +262,16 @@ impl State {
 
     /// A click on a handle: nothing moves, its number box opens.
     pub fn click_gizmo(&mut self) -> bool {
-        let Some(handle) = self.dragging.as_ref().map(|active| active.drag.handle) else {
+        let Some(handle) = self
+            .features
+            .dragging
+            .as_ref()
+            .map(|active| active.drag.handle)
+        else {
             return false;
         };
         self.cancel_gesture();
-        let Some(gizmo) = self.gizmo.as_mut() else {
+        let Some(gizmo) = self.features.gizmo.as_mut() else {
             return false;
         };
         gizmo.typing = Some(handle);
@@ -285,7 +290,7 @@ impl State {
         self.cancel_object_drag();
         self.tool_abandon(); // a running tool's drag, e.g. a lasso loop
 
-        if let Some(active) = self.dragging.take() {
+        if let Some(active) = self.features.dragging.take() {
             if let Some(preview) = active.mesh_preview.as_ref() {
                 preview.apply(&mut self.gpu, &Xform::identity(), true);
                 self.scene.drop_preview();
@@ -300,7 +305,7 @@ impl State {
                 .objects
                 .set_placement(&self.gpu.ctx, active.row, &active.base_place);
 
-            if let Some(gizmo) = self.gizmo.as_mut() {
+            if let Some(gizmo) = self.features.gizmo.as_mut() {
                 gizmo.drag = None;
             }
 
@@ -313,7 +318,7 @@ impl State {
             self.touch();
         }
 
-        if let Some(active) = self.control_drag.take() {
+        if let Some(active) = self.features.control_drag.take() {
             self.restore_source_render(active.parent);
             self.scene.drop_preview();
             if let Some(geometry) = self.scene.geometry(active.parent) {
@@ -394,7 +399,7 @@ impl State {
             self.cancel_drawing();
         }
 
-        self.hierarchy.page = 0;
+        self.features.hierarchy.page = 0;
         self.selection = SelectionMode::Object;
         self.select(None);
         self.scene.flag_texts(&mut self.gpu);
@@ -407,7 +412,7 @@ impl State {
         self.scene.sync();
         self.scene.upload_to(&mut self.gpu);
         self.purge_idle();
-        let gesture = self.dragging.is_some() || self.control_drag.is_some();
+        let gesture = self.features.dragging.is_some() || self.features.control_drag.is_some();
 
         // dead rows outweigh the live ones: walk the lanes again, ids stay
         if !gesture && self.scene.compaction_due() {
@@ -426,6 +431,7 @@ impl State {
         let scene = &self.scene;
         let gone = |row: &u32| scene.identity_of(*row).is_none();
         let split = self
+            .features
             .pending_split
             .as_ref()
             .is_some_and(|split| gone(&split.target) || split.cutters.iter().any(gone));
@@ -462,7 +468,7 @@ impl State {
     /// Scene length of one CSS pixel at the gizmo.
     pub(super) fn world_per_px(&self) -> f64 {
         // at the gizmo: from its projected depth
-        if let Some(gizmo) = self.gizmo.as_ref() {
+        if let Some(gizmo) = self.features.gizmo.as_ref() {
             let anchor = self.camera.origin();
             let m = self.camera.view_proj_anchored(self.aspect(), &anchor).m;
             let p = [
@@ -509,7 +515,7 @@ fn world_per_css_px(world_distance: f64, physical_height: f64, physical_per_css:
 impl State {
     /// Tell the GPU where the gizmo is and which handle lights up.
     pub fn upload_gizmo(&mut self) {
-        let Some(gizmo) = self.gizmo.as_ref() else {
+        let Some(gizmo) = self.features.gizmo.as_ref() else {
             self.gpu.widget.clear();
             return;
         };
@@ -519,6 +525,7 @@ impl State {
         ));
         // the dragged handle, else the one being typed for, else the hovered one
         let handle = self
+            .features
             .dragging
             .as_ref()
             .map(|drag| drag.drag.handle)
@@ -540,7 +547,7 @@ impl State {
             return false;
         };
         let per_px = self.world_per_px();
-        let Some(gizmo) = self.gizmo.as_mut() else {
+        let Some(gizmo) = self.features.gizmo.as_mut() else {
             return false;
         };
         let hovered = gizmo.hit(&from, &dir, per_px);
@@ -560,7 +567,7 @@ impl State {
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
         let line = &crate::app::command::canonical(line); // `poly line` runs Polyline
         self.cancel_gesture();
-        self.mark = None;
+        self.features.mark = None;
         // while drawing, points and Enter go to the draft
         if let Some(result) = self.drawing_command(line) {
             return result;
@@ -667,7 +674,7 @@ impl State {
             return;
         }
 
-        self.hierarchy.refresh(&self.scene);
+        self.features.hierarchy.refresh(&self.scene);
         let mut rows = Vec::new();
         self.hierarchy_labels(&mut rows);
         crate::app::feedback::layers_panel(&rows);
@@ -681,6 +688,7 @@ impl State {
         // rows only while the table is unfolded
         let open = crate::app::feedback::graph_open();
         let edges = self
+            .features
             .hierarchy
             .edges
             .iter()
@@ -694,7 +702,7 @@ impl State {
                     && selected.binary_search(&to).is_ok(),
             })
             .collect();
-        crate::app::feedback::graph_panel(edges, self.hierarchy.edges.len());
+        crate::app::feedback::graph_panel(edges, self.features.hierarchy.edges.len());
     }
 }
 
@@ -762,7 +770,7 @@ impl State {
 
         let forward = self.camera.orientation.rotate_vector(Vector::y_axis());
         self.scene.capture_preview(parent);
-        self.control_drag = Some(ControlDrag {
+        self.features.control_drag = Some(ControlDrag {
             parent,
             index,
             id,
@@ -774,7 +782,7 @@ impl State {
 
     /// Move the control point with the pointer; a preview.
     pub fn drag_control(&mut self, x: f64, y: f64) -> bool {
-        let Some(active) = self.control_drag.as_ref() else {
+        let Some(active) = self.features.control_drag.as_ref() else {
             return false;
         };
         let Some(point) = self.control_target(active, x, y) else {
@@ -813,7 +821,7 @@ impl State {
 
     /// Release: the geometry takes the moved control point.
     pub fn end_control_drag(&mut self, x: f64, y: f64) -> bool {
-        let Some(active) = self.control_drag.take() else {
+        let Some(active) = self.features.control_drag.take() else {
             return false;
         };
         let result = match self.control_target(&active, x, y) {
@@ -857,7 +865,7 @@ impl State {
     fn control_target(&self, active: &ControlDrag, x: f64, y: f64) -> Option<Point> {
         let (from, dir) = self.camera.ray((x, y), self.viewport())?;
         let free = active.plane.hit(&active.origin, &from, &dir)?; // the plane point
-        if !self.snap_enabled {
+        if !self.features.snap.enabled {
             return Some(free);
         }
         let place = self.scene.placement_of(active.parent)?;
@@ -886,7 +894,7 @@ impl State {
 
         match snap::best(
             &candidates,
-            self.snap_modes,
+            self.features.snap.modes,
             (x, y),
             SNAP_APERTURE_PX * self.pixel_scale(),
             project,

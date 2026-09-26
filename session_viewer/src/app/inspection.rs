@@ -97,9 +97,9 @@ pub fn publish(state: &State) {
             .map(|doc| doc.session.history.depth())
             .sum::<usize>()
     );
-    snapshot["snap_enabled"] = serde_json::json!(state.snap_enabled);
-    snapshot["snap_modes"] = serde_json::json!(state.snap_modes);
-    snapshot["snap_bar"] = serde_json::json!(state.snap_bar);
+    snapshot["snap_enabled"] = serde_json::json!(state.features.snap.enabled);
+    snapshot["snap_modes"] = serde_json::json!(state.features.snap.modes);
+    snapshot["snap_bar"] = serde_json::json!(state.features.snap.bar);
     snapshot["ssao"] = serde_json::json!(state.gpu.view.ssao);
     snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
     snapshot["color_count"] = serde_json::json!(state.scene.colors.len());

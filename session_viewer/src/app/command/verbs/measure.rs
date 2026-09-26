@@ -196,7 +196,7 @@ pub fn skipped_text(count: usize) -> String {
 impl State {
     /// Draw `label` along world `points` until the next command, Esc or a change of rows.
     pub(crate) fn set_mark(&mut self, points: Vec<Point>, label: String) {
-        self.mark = Some(Mark {
+        self.features.mark = Some(Mark {
             points,
             label,
             revision: self.scene.row_revision,
@@ -221,7 +221,7 @@ impl State {
 
     /// The mark as a black line with end squares and a chip between the points, or a chip below one point.
     pub fn mark_overlay(&self) -> Option<Overlay> {
-        let mark = self.mark.as_ref()?;
+        let mark = self.features.mark.as_ref()?;
 
         if mark.revision != self.scene.row_revision {
             return None;
@@ -261,7 +261,7 @@ impl State {
 
     /// The mark as JSON, for the inspection tests.
     pub fn mark_status(&self) -> serde_json::Value {
-        match &self.mark {
+        match &self.features.mark {
             Some(mark) if mark.revision == self.scene.row_revision => serde_json::json!({
                 "points": mark.points.iter().map(|p| [p[0], p[1], p[2]]).collect::<Vec<_>>(),
                 "label": mark.label,

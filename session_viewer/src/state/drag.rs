@@ -84,15 +84,15 @@ impl State {
     /// A plain press dragged past the click slop: ask the GPU what the press landed on.
     pub(crate) fn start_object_drag(&mut self, down: (f64, f64), at: (f64, f64)) -> bool {
         // F10 control points keep the left button
-        if self.draft.is_some()
-            || self.pending_split.is_some()
+        if self.features.draft.is_some()
+            || self.features.pending_split.is_some()
             || matches!(self.selection, SelectionMode::Controls { .. })
             || self.selection_tool != SelectionTool::Object
         {
             return false;
         }
 
-        self.object_drag = Some(ObjectDrag {
+        self.features.object_drag = Some(ObjectDrag {
             down,
             cursor: at,
             moving: None,
@@ -117,7 +117,7 @@ impl State {
 
     /// The pointer moved: the grabbed objects follow; false while the pick is out.
     pub(crate) fn drag_object(&mut self, cursor: (f64, f64)) -> bool {
-        let Some(drag) = self.object_drag.as_mut() else {
+        let Some(drag) = self.features.object_drag.as_mut() else {
             return false;
         };
         drag.cursor = cursor;
@@ -139,19 +139,19 @@ impl State {
     /// The pick answered: take hold of what it hit; false when no drag was asking.
     pub(super) fn take_drag_pick(&mut self, pick: Option<Pick>) -> bool {
         // out of `self` while selecting, which would cancel it
-        let Some(mut drag) = self.object_drag.take() else {
+        let Some(mut drag) = self.features.object_drag.take() else {
             return false;
         };
 
         if drag.moving.is_some() || drag.missed {
-            self.object_drag = Some(drag);
+            self.features.object_drag = Some(drag);
             return false;
         }
 
         drag.moving = pick.and_then(|pick| self.grab(pick.row, drag.down));
         drag.missed = drag.moving.is_none();
         let cursor = drag.cursor;
-        self.object_drag = Some(drag);
+        self.features.object_drag = Some(drag);
         self.follow(cursor); // the pointer is already past the slop
         true
     }
@@ -202,7 +202,7 @@ impl State {
         let plane = drag_plane(&self.camera.orientation.rotate_vector(Vector::y_axis()));
         let screen = self.screen();
         // with snaps on, the press takes the objects' own point under it
-        let own = if self.snap_enabled {
+        let own = if self.features.snap.enabled {
             self.own_snap(&group, &screen, down, &ray)
         } else {
             None
@@ -211,7 +211,7 @@ impl State {
         let base = match own {
             Some(snap) => snap.point,
             None => {
-                let origin = match self.gizmo.as_ref() {
+                let origin = match self.features.gizmo.as_ref() {
                     Some(gizmo) => gizmo.origin.clone(),
                     None => self.gpu.objects.row_bounds(main)?.center(),
                 };
@@ -219,7 +219,7 @@ impl State {
             }
         };
         let moved = group.iter().map(|(row, _)| *row).collect();
-        let targets = self.snap_enabled.then(|| Targets::new(screen, moved));
+        let targets = self.features.snap.enabled.then(|| Targets::new(screen, moved));
         Some(Moving {
             row: main,
             group,
@@ -234,7 +234,7 @@ impl State {
     /// Put the grab point under the cursor, snapped or on the plane, and show the objects there.
     fn follow(&mut self, cursor: (f64, f64)) -> bool {
         let Some(mut moving) = self
-            .object_drag
+            .features.object_drag
             .as_mut()
             .and_then(|drag| drag.moving.take())
         else {
@@ -246,7 +246,7 @@ impl State {
             self.show(&moving, &moving.target);
         }
 
-        if let Some(drag) = self.object_drag.as_mut() {
+        if let Some(drag) = self.features.object_drag.as_mut() {
             drag.moving = Some(moving);
         }
 
@@ -292,7 +292,7 @@ impl State {
 
     /// Release: the document moves the objects by the whole drag in one undo step.
     pub(crate) fn end_object_drag(&mut self) -> bool {
-        let Some(drag) = self.object_drag.take() else {
+        let Some(drag) = self.features.object_drag.take() else {
             return false;
         };
         let Some(moving) = drag.moving else {
@@ -319,7 +319,7 @@ impl State {
 
     /// Drop a drag that will never be released; everything goes back.
     pub(super) fn cancel_object_drag(&mut self) {
-        let Some(drag) = self.object_drag.take() else {
+        let Some(drag) = self.features.object_drag.take() else {
             return;
         };
 
@@ -364,8 +364,8 @@ impl State {
             }
         }
 
-        snap::along_wires(&wires, ray, None, self.snap_modes, &mut found);
-        snap::best_in(snaps.iter().chain(&found), self.snap_modes, down, reach, |p| {
+        snap::along_wires(&wires, ray, None, self.features.snap.modes, &mut found);
+        snap::best_in(snaps.iter().chain(&found), self.features.snap.modes, down, reach, |p| {
             screen.point(p)
         })
     }
@@ -417,14 +417,14 @@ impl State {
 
         for &wire in &near {
             let wires = &targets.wires[wire as usize..=wire as usize];
-            snap::along_wires(wires, ray, base, self.snap_modes, &mut targets.found);
+            snap::along_wires(wires, ray, base, self.features.snap.modes, &mut targets.found);
         }
 
         targets.points.near(cursor, reach, &mut near);
         let points = near.iter().map(|&index| &targets.snaps[index as usize]);
         let best = snap::best_in(
             points.chain(&targets.found),
-            self.snap_modes,
+            self.features.snap.modes,
             cursor,
             reach,
             |p| targets.screen.point(p),
@@ -490,7 +490,7 @@ impl State {
 
     /// The snap marker while dragging: the grab point on screen and the kind it snapped to.
     pub fn drag_overlay(&self) -> Option<(Vec<(f64, f64)>, String)> {
-        let moving = self.object_drag.as_ref()?.moving.as_ref()?;
+        let moving = self.features.object_drag.as_ref()?.moving.as_ref()?;
         let kind = moving.snapped?;
         let at = &moving.target;
         Some((
@@ -501,7 +501,7 @@ impl State {
 
     /// The drag as JSON, for the inspection tests.
     pub fn object_drag_status(&self) -> serde_json::Value {
-        let Some(drag) = &self.object_drag else {
+        let Some(drag) = &self.features.object_drag else {
             return serde_json::Value::Null;
         };
         let Some(moving) = &drag.moving else {

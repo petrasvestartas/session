@@ -313,10 +313,10 @@ mod tests {
     fn created_curves_keep_visible_screen_pens_after_open() {
         let mut scene = Scene::new();
         scene
-            .model(&crate::app::modeling::Modeling::Line(
-                [-3000., -5000., 200.],
-                [-3000., -1000., 200.],
-            ))
+            .model(
+                &crate::app::command::verbs::line::SPEC,
+                &[[-3000., -5000., 200.], [-3000., -1000., 200.]],
+            )
             .unwrap();
         Rc::make_mut(&mut scene.docs[0].session).add_group("roof");
         scene.set_current_layer(0, "roof").unwrap();

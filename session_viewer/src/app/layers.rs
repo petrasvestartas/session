@@ -1627,8 +1627,7 @@ mod tests {
             .insert("roof".into(), Xform::translation(0.0, 0.0, 10.0));
         scene.set_current_layer(0, "roof").unwrap();
         let (doc, guid) = scene
-            .model(&crate::app::modeling::Modeling::Point([1.0, 2.0, 3.0]))
-            .unwrap()
+            .model(&crate::app::command::verbs::point::SPEC, &[[1.0, 2.0, 3.0]])
             .unwrap();
         assert_eq!(doc, 0);
         assert_eq!(children(&scene, 0, "roof"), vec![guid.clone()]);

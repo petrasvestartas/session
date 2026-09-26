@@ -249,7 +249,7 @@ impl Picker {
 
     /// Open a pass for one query page; the first page clears the ids.
     pub fn begin_source<'a>(
-        &'a mut self,
+        &mut self,
         encoder: &'a mut wgpu::CommandEncoder,
     ) -> wgpu::RenderPass<'a> {
         let first = self.source_phase == SourcePhase::FirstPage;
@@ -316,7 +316,7 @@ impl Picker {
 
     /// Open the id pass over textures sized to `view`, cleared.
     pub fn begin_pass<'a>(
-        &'a mut self,
+        &mut self,
         ctx: &GpuCtx,
         encoder: &'a mut wgpu::CommandEncoder,
         view: PickView,

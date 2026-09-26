@@ -15,6 +15,7 @@ mod cloud_query;
 mod drag;
 mod drawing;
 pub mod edit;
+mod features;
 mod hydrate;
 pub(crate) mod number_box;
 mod panel;
@@ -22,6 +23,7 @@ mod sheet_query;
 mod splitting;
 mod text;
 mod tool;
+use features::Features;
 use std::sync::Arc;
 use winit::window::Window;
 
@@ -51,31 +53,18 @@ pub struct State {
     last_resize_ms: f64,                    // when the last resize was applied
     pub selection: SelectionMode,           // object, edge, face or control points
     pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
-    hierarchy: crate::app::hierarchy::Hierarchy, // the tree panel state
-    pending_split: Option<splitting::Pending>, // a split waiting for its cutter
-    pub(crate) draft: Option<drawing::Draft>, // a shape being drawn
-    pub(crate) snap_enabled: bool,          // snap to points while drawing
-    pub(crate) snap_modes: u8,              // snap kinds switched on, app::snap bits
-    pub(crate) snap_bar: bool,              // snap toolbar under the command line
     controls: Controls,                     // control points of the selected object
     requested: PickMode,                    // what the pending pick looks for
     pub(crate) additive_selection: bool,    // Shift held: add to the selection
     selection_order: Vec<u32>,              // selected rows in pick order
     pub selection_radius_css: f64,          // click tolerance in CSS pixels
     show_selected_names: bool,              // name label on the selection, T toggles
-    opacity_chosen: bool,                   // an Opacity command was given
     cloud_query: Option<crate::app::cloud_query::Query>, // a point-cloud pick in flight
     #[cfg(target_arch = "wasm32")]
     query_generation: u64, // counts cloud queries, old answers dropped
     sheet_query: Option<crate::app::sheet_query::Query>, // a sheet pick in flight
     sheet_generation: u64,                  // counts sheet queries, old answers dropped
-    pub gizmo: Option<crate::app::gizmo::Gizmo>, // the move/rotate/scale widget
-    dragging: Option<edit::GizmoDrag>,      // a gizmo drag in progress
-    control_drag: Option<edit::ControlDrag>, // a control point drag in progress
-    object_drag: Option<drag::ObjectDrag>,  // a left drag moving objects
-    clip_hidden: usize,                     // hidden clipping planes still cutting
-    resume: Vec<hydrate::Resume>,           // edits waiting for released documents
-    pub(crate) mark: Option<crate::app::command::verbs::measure::Mark>, // a measured answer drawn until the next command
+    pub(crate) features: Features,          // what each feature keeps, features.rs
 }
 
 impl State {
@@ -100,31 +89,18 @@ impl State {
             last_resize_ms: f64::NEG_INFINITY,
             selection: SelectionMode::Object,
             selection_tool: crate::app::selection::SelectionTool::default(),
-            hierarchy: Default::default(),
-            pending_split: None,
-            draft: None,
-            snap_enabled: true,
-            snap_modes: crate::app::snap::DEFAULT,
-            snap_bar: false,
             controls: Controls::default(),
             requested: PickMode::Object,
             additive_selection: false,
             selection_order: Vec::new(),
             selection_radius_css: 6.0,
             show_selected_names: true,
-            opacity_chosen: false,
             cloud_query: None,
             #[cfg(target_arch = "wasm32")]
             query_generation: 0,
             sheet_query: None,
             sheet_generation: 0,
-            gizmo: None,
-            dragging: None,
-            control_drag: None,
-            object_drag: None,
-            clip_hidden: 0,
-            resume: Vec::new(),
-            mark: None,
+            features: Features::default(),
         })
     }
 
@@ -221,13 +197,13 @@ impl State {
         self.load_camera = self.camera.pose(); // remember the view
         self.cancel_split();
         self.cancel_gesture();
-        self.draft = None; // its rows are gone
-        self.hierarchy = Default::default();
+        self.features.draft = None; // its rows are gone
+        self.features.hierarchy = Default::default();
         self.selection = SelectionMode::Object;
         self.sheet_query = None;
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
-        self.resume.clear(); // a waiting Save or F10 belonged to the old scene
+        self.features.resume.clear(); // a waiting Save or F10 belonged to the old scene
         self.scene.clear(&mut self.gpu);
         self.place_gizmo(None);
         self.refresh_layers();
@@ -350,9 +326,9 @@ impl State {
         self.cancel_gesture();
 
         // unhighlight the old selection and the clicked layers
-        self.hierarchy.active.clear();
+        self.features.hierarchy.active.clear();
 
-        for old in self.hierarchy.selected.drain(..) {
+        for old in self.features.hierarchy.selected.drain(..) {
             self.gpu.set_selected(old, false);
         }
 
@@ -384,10 +360,10 @@ impl State {
 
     /// Every selected row.
     pub(crate) fn selected_rows(&self) -> Vec<u32> {
-        if self.hierarchy.selected.is_empty() {
+        if self.features.hierarchy.selected.is_empty() {
             self.scene.selected.into_iter().collect()
         } else {
-            self.hierarchy.selected.clone()
+            self.features.hierarchy.selected.clone()
         }
     }
 
@@ -421,7 +397,7 @@ impl State {
             self.gpu.set_selected(row, true);
         }
         if selected.len() > 1 {
-            self.hierarchy.selected = selected;
+            self.features.hierarchy.selected = selected;
         }
         self.place_gizmo(self.scene.selected);
         self.refresh_layers();
@@ -445,8 +421,8 @@ impl State {
     /// H: hide the selection.
     pub fn hide_selected(&mut self) {
         // several rows selected
-        if !self.hierarchy.selected.is_empty() {
-            let rows = std::mem::take(&mut self.hierarchy.selected);
+        if !self.features.hierarchy.selected.is_empty() {
+            let rows = std::mem::take(&mut self.features.hierarchy.selected);
 
             for row in &rows {
                 self.gpu.set_selected(*row, false);
@@ -490,7 +466,7 @@ impl State {
     /// Make elements slightly see-through the first time they arrive.
     fn dim_elements(&mut self, first_row: usize) {
         // an opacity was already chosen
-        if self.opacity_chosen || self.gpu.view.opacity < 1.0 {
+        if self.features.opacity_chosen || self.gpu.view.opacity < 1.0 {
             return;
         }
 
@@ -507,14 +483,14 @@ impl State {
 
         if elements {
             self.gpu.view.opacity = ELEMENT_OPACITY;
-            self.opacity_chosen = true;
+            self.features.opacity_chosen = true;
         }
     }
 
     /// Opacity <value>: 0 is x-ray, 1 is solid.
     pub fn set_opacity(&mut self, value: f32) {
         self.gpu.view.opacity = value.clamp(0.0, 1.0);
-        self.opacity_chosen = true;
+        self.features.opacity_chosen = true;
         self.touch();
     }
 
@@ -544,7 +520,7 @@ impl State {
         }
 
         // a split is waiting for its cutter
-        if self.pending_split.is_some() {
+        if self.features.pending_split.is_some() {
             if let Some(pick) = pick {
                 self.pick_split_cutter(pick.row);
             }
@@ -582,7 +558,10 @@ impl State {
                 {
                     self.select(Some(source.parent));
                     self.gpu.set_selected(source.parent, false);
-                    self.gpu.selection_outline.set_selected(source.parent, true);
+                    self.gpu
+                        .pass_mut::<crate::engine::gpu::surface_outline::Outline>()
+                        .selection
+                        .set_selected(source.parent, true);
                     self.selection = SelectionMode::Face {
                         parent: source.parent,
                         face: source.face,
@@ -659,7 +638,9 @@ impl State {
             self.fetch_wanted();
         }
 
-        self.update_clipping();
+        for hook in features::BEFORE_PICKS {
+            hook(self);
+        }
 
         self.upload_gizmo();
         let logical = self.logical_size();
@@ -703,7 +684,10 @@ impl State {
         }
 
         self.needs_frame = false;
-        self.purge_idle();
+
+        for hook in features::AFTER_PICKS {
+            hook(self);
+        }
 
         if self.gpu.view.spin {
             self.cancel_cloud_query();
@@ -799,7 +783,8 @@ impl State {
 
     /// Ask what is under a pixel: an object, an edge (Ctrl) or a face (Ctrl+Shift).
     pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
-        let splitting = self.pending_split.is_some() || self.tool_picks(); // a split or a tool wants a plain object
+        // a split or a tool wants a plain object
+        let splitting = self.features.pending_split.is_some() || self.tool_picks();
         let face = !splitting
             && (face || self.selection_tool == crate::app::selection::SelectionTool::Face);
         let edge = !splitting
@@ -899,7 +884,7 @@ impl State {
     pub fn escape_selection(&mut self) {
         let parent = self.selection.escape();
         self.select(parent);
-        self.mark = None;
+        self.features.mark = None;
         self.status("");
     }
 

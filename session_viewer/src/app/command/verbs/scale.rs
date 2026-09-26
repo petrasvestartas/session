@@ -39,7 +39,7 @@ struct Scale(f64);
 impl Action for Scale {
     /// Scale about the gizmo centre, or the world origin without one.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        let about = state.gizmo.as_ref().map(|g| g.origin.clone());
+        let about = state.features.gizmo.as_ref().map(|g| g.origin.clone());
         state.apply(
             crate::state::edit::scaling_about(self.0, about.as_ref()),
             "scale",

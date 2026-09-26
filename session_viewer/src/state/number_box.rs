@@ -13,14 +13,15 @@ pub struct NumberPrompt {
 impl State {
     /// True while a number box waits for its value.
     pub fn number_box_open(&self) -> bool {
-        self.gizmo
+        self.features
+            .gizmo
             .as_ref()
             .is_some_and(|gizmo| gizmo.typing.is_some())
     }
 
     /// The open number box, pinned to its handle wherever the view puts it.
     pub fn number_prompt(&self) -> Option<NumberPrompt> {
-        let gizmo = self.gizmo.as_ref()?;
+        let gizmo = self.features.gizmo.as_ref()?;
         let handle = gizmo.typing?;
         let point = gizmo.handle_point(handle, self.world_per_px());
         let (x, y) = self.project([point[0], point[1], point[2]])?;
@@ -37,7 +38,12 @@ impl State {
 
     /// Close the number box; true when one was open.
     pub fn close_number_box(&mut self) -> bool {
-        let Some(gizmo) = self.gizmo.as_mut().filter(|gizmo| gizmo.typing.is_some()) else {
+        let Some(gizmo) = self
+            .features
+            .gizmo
+            .as_mut()
+            .filter(|gizmo| gizmo.typing.is_some())
+        else {
             return false;
         };
         gizmo.typing = None;
@@ -48,7 +54,7 @@ impl State {
 
     /// Enter in the number box: the value becomes one undo step; `Ok(None)` when nothing changed.
     pub fn type_number(&mut self, text: &str) -> Result<Option<String>, String> {
-        let Some(gizmo) = self.gizmo.as_ref() else {
+        let Some(gizmo) = self.features.gizmo.as_ref() else {
             return Ok(None);
         };
         let Some(handle) = gizmo.typing else {

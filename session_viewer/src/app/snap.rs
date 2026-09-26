@@ -25,6 +25,23 @@ pub const CENTER: u8 = 8; // centres of closed shapes
 pub const PERP: u8 = 16; // perpendicular from the last point
 pub const DEFAULT: u8 = END | NEAR | MID | CENTER; // modes on at start
 
+/// The snap switch, its kinds and its toolbar.
+pub struct Snapping {
+    pub enabled: bool, // snap to points while drawing
+    pub modes: u8,     // kinds switched on, the bits above
+    pub bar: bool,     // toolbar under the command line
+}
+
+impl Default for Snapping {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            modes: DEFAULT,
+            bar: false,
+        }
+    }
+}
+
 /// The toolbar buttons, by label and mode bit.
 pub const MODES: [(&str, u8); 5] = [
     ("End", END),

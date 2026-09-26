@@ -12,7 +12,8 @@ impl State {
     /// The pending split, for the inspection tests.
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn split_status(&self) -> Option<(u32, Option<usize>, &[u32])> {
-        self.pending_split
+        self.features
+            .pending_split
             .as_ref()
             .map(|p| (p.target, p.face, p.cutters.as_slice()))
     }
@@ -20,7 +21,7 @@ impl State {
     /// Split: start choosing cutters, or finish when they are chosen.
     pub(crate) fn split_command(&mut self) -> Result<String, String> {
         // Split again finishes
-        if self.pending_split.is_some() {
+        if self.features.pending_split.is_some() {
             return self.finish_split();
         }
 
@@ -41,7 +42,7 @@ impl State {
             self.scene.geometry(row).ok_or("Source unavailable")?,
             selected,
         )?;
-        self.pending_split = Some(Pending {
+        self.features.pending_split = Some(Pending {
             target: row,
             face,
             cutters: vec![],
@@ -54,7 +55,7 @@ impl State {
 
     /// Drop the pending split and its cutter highlights.
     pub(crate) fn cancel_split(&mut self) {
-        if let Some(pending) = self.pending_split.take() {
+        if let Some(pending) = self.features.pending_split.take() {
             for row in pending.cutters {
                 self.gpu.set_selected(row, false);
             }
@@ -63,7 +64,7 @@ impl State {
 
     /// Add a clicked row to the cutters, or remove it again.
     pub(super) fn pick_split_cutter(&mut self, row: u32) {
-        let Some(pending) = self.pending_split.as_mut() else {
+        let Some(pending) = self.features.pending_split.as_mut() else {
             return;
         };
 
@@ -98,7 +99,7 @@ impl State {
 
     /// Enter: finish the split.
     pub fn confirm_split(&mut self) {
-        if self.pending_split.is_some() {
+        if self.features.pending_split.is_some() {
             let message = self.finish_split().unwrap_or_else(|error| error);
             self.status(&message);
             self.touch();
@@ -107,10 +108,14 @@ impl State {
 
     /// Run the split with the chosen cutters.
     fn finish_split(&mut self) -> Result<String, String> {
-        let pending = self.pending_split.take().ok_or("Start Split first")?;
+        let pending = self
+            .features
+            .pending_split
+            .take()
+            .ok_or("Start Split first")?;
 
         if pending.cutters.is_empty() {
-            self.pending_split = Some(pending);
+            self.features.pending_split = Some(pending);
             return Err("Select at least one cutter curve, then press Enter".into());
         }
 

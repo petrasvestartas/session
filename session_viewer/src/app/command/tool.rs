@@ -14,7 +14,7 @@ pub enum Next {
     Done(String),   // finished, with the message to show
 }
 
-/// A command that asks for points; `state.draft` is empty while its methods run.
+/// A command that asks for points; `state.features.draft` is empty while its methods run.
 pub trait Tool: std::fmt::Debug {
     /// The command shown while it runs, e.g. `Move`.
     fn name(&self) -> &'static str;

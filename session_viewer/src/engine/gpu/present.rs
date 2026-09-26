@@ -15,14 +15,7 @@ impl Gpu {
             pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
         };
         self.frame.write(&self.ctx, input, &cx);
-        let clip = self.clip.uniform(&super::clip::ClipView {
-            view_proj: &input.view_proj,
-            anchor: self.objects.anchor(),
-            height: size.1,
-            pixel_scale: f64::from(size.0) / self.logical_size[0].max(1.0),
-            samples: self.targets.samples,
-        });
-        self.frame.write_clip(&self.ctx, &clip);
+        self.each_pass(|pass, g| pass.write_frame(g, input));
         self.widget.prepare(
             &self.ctx,
             &input.view_proj,
@@ -38,7 +31,7 @@ impl Gpu {
             framebuffer: [size.0, size.1],
             logical: self.logical_size,
             ortho_half_height: self.frame.ortho_h,
-            clip: self.clip.world(),
+            clip: self.pass::<super::clip::Clip>().world(),
         };
 
         if let Err(error) = self.text.prepare(&self.ctx, &frame) {
@@ -48,8 +41,7 @@ impl Gpu {
 
     /// Keep a requested Arctic view awake until its idle-compiled pipelines are ready.
     pub fn ambient_pending(&self) -> bool {
-        self.view.ssao && self.view.opacity > 0.0 && self.live_faces() > 0
-            && self.ssao_pipes[usize::from(self.targets.samples > 1)].is_none()
+        self.passes.iter().any(|pass| pass.pending(self))
     }
 
     /// Draw one frame to the canvas; returns encode time in ms.
@@ -96,11 +88,8 @@ impl Gpu {
                 .on_submitted_work_done(move || crate::engine::performance::mark(done));
         }
 
-        // Schedule compilation outside the frame, after the first geometry has been presented.
-        if self.live_faces() > 0 {
-            let target = self.target();
-            super::ssao::prewarm(&mut self.ssao_pipes, &self.ctx, target, !self.performance.interacting);
-        }
+        // compile ahead outside the frame, after the first geometry has been presented
+        self.each_pass(|pass, g| pass.after_present(g));
         self.performance
             .frame(draws, objects, input.now_ms, self.view.perf);
         if self.view.ssao {

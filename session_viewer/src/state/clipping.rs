@@ -1,7 +1,7 @@
 use super::State;
 use crate::app::clipping::{self, Mode};
 use crate::engine::gpu::Instance;
-use crate::engine::gpu::clip::{ClipPlane, MAX_PLANES};
+use crate::engine::gpu::clip::{Clip, ClipPlane, MAX_PLANES};
 use session_rust::element::ElementGeometry;
 use session_rust::{Geometry, Plane};
 use std::collections::HashMap;
@@ -13,9 +13,10 @@ impl State {
         let mut planes = [ClipPlane::default(); MAX_PLANES];
         let mut count = 0;
         let mut hidden = 0;
+        let enabled = self.gpu.pass::<Clip>().enabled;
 
         for &row in self.gpu.objects.clipping_rows() {
-            if !self.gpu.clip.enabled || count == MAX_PLANES {
+            if !enabled || count == MAX_PLANES {
                 break;
             }
 
@@ -42,13 +43,13 @@ impl State {
         }
 
         // a plane was just hidden: say it still cuts
-        if hidden > self.clip_hidden {
+        if hidden > self.features.clip_hidden {
             self.status(
                 "The clipping plane is hidden and still cuts · Clipping Plane Off shows everything · Delete removes it",
             );
         }
 
-        self.clip_hidden = hidden;
+        self.features.clip_hidden = hidden;
 
         // the first cut: every mesh walked so far is checked for closedness, once
         if count > 0 && clipping::verify_solids() {
@@ -57,9 +58,7 @@ impl State {
 
         self.gpu.set_clip_planes(&planes[..count]);
         let scene = &self.scene;
-        self.gpu
-            .clip
-            .find_solids(&self.gpu.objects, |row| scene.solid_faces(row));
+        self.gpu.find_solids(|row| scene.solid_faces(row));
     }
 
     /// Flag every mesh walked so far as closed or not, once; open edges already say not.
@@ -177,7 +176,7 @@ impl State {
 
     /// Turn every cut on or off; the planes stay either way.
     pub(crate) fn set_clipping(&mut self, on: bool) -> String {
-        self.gpu.clip.enabled = on;
+        self.gpu.pass_mut::<Clip>().enabled = on;
         self.touch();
 
         if on {
@@ -189,8 +188,9 @@ impl State {
 
     /// Fill the section caps with black hatch or solid light grey; `None` switches.
     pub(crate) fn set_clipping_fill(&mut self, solid: Option<bool>) -> String {
-        let solid = solid.unwrap_or(self.gpu.clip.fill == 0);
-        self.gpu.clip.fill = u32::from(solid);
+        let clip = self.gpu.pass_mut::<Clip>();
+        let solid = solid.unwrap_or(clip.fill == 0);
+        clip.fill = u32::from(solid);
         self.touch();
         format!(
             "Clipping Plane Fill {}",
@@ -200,20 +200,19 @@ impl State {
 
     /// The clipping planes as JSON, for the inspection tests.
     pub fn clipping_status(&self) -> serde_json::Value {
-        let planes: Vec<[f64; 4]> = self
-            .gpu
-            .clip
+        let clip = self.gpu.pass::<Clip>();
+        let planes: Vec<[f64; 4]> = clip
             .planes()
             .iter()
             .map(|p| [p.normal[0], p.normal[1], p.normal[2], p.offset])
             .collect();
         serde_json::json!({
-            "enabled": self.gpu.clip.enabled,
-            "fill": if self.gpu.clip.fill == 1 { "Solid" } else { "Hatch" },
+            "enabled": clip.enabled,
+            "fill": if clip.fill == 1 { "Solid" } else { "Hatch" },
             "count": planes.len(),
             "planes": planes,
             "rows": self.gpu.objects.clipping_rows(),
-            "hidden": self.clip_hidden,
+            "hidden": self.features.clip_hidden,
             "scene_box": [
                 self.gpu.bounds.cx,
                 self.gpu.bounds.cy,

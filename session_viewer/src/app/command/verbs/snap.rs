@@ -47,20 +47,24 @@ impl Action for Snap {
     /// Flip the flags the drawing code and the toolbar read.
     fn run(&self, state: &mut State) -> Result<String, String> {
         if self.mode != 0 {
-            state.snap_modes ^= self.mode;
+            state.features.snap.modes ^= self.mode;
             let (label, _) = snap::MODES
                 .iter()
                 .find(|(_, bit)| *bit == self.mode)
                 .unwrap();
-            let on = state.snap_modes & self.mode != 0;
+            let on = state.features.snap.modes & self.mode != 0;
             return Ok(format!("Snap {label} {}", if on { "On" } else { "Off" }));
         }
 
-        state.snap_enabled = self.on.unwrap_or(!state.snap_enabled);
-        state.snap_bar = state.snap_enabled;
+        state.features.snap.enabled = self.on.unwrap_or(!state.features.snap.enabled);
+        state.features.snap.bar = state.features.snap.enabled;
         Ok(format!(
             "Snap {}",
-            if state.snap_enabled { "On" } else { "Off" }
+            if state.features.snap.enabled {
+                "On"
+            } else {
+                "Off"
+            }
         ))
     }
 

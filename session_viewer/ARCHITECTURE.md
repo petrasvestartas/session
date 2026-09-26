@@ -44,7 +44,7 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | `app/selection.rs` | `SelectionMode`, `ControlId`, `Controls` |
 | `app/modeling.rs`, `app/edit.rs` | Validated source transactions and placed control edits |
 | `app/hierarchy.rs`, `state/panel.rs` | Bounded tree/graph index and shared select/hide actions |
-| `app/ui.rs`, `gpu/ui.rs` | egui input/widget state, then GPU buffers and font textures |
+| `app/ui/`, `gpu/ui.rs` | egui input/widget state, then GPU buffers and font textures |
 | `app/gizmo.rs`, `gpu/widget.rs` | Handle hit tests and one reusable unlit mesh with a temporary antialiasing tile |
 | `app/walk/` | Source geometry → typed `Upload` rows with source identity and bounds |
 | `engine/gpu/mod.rs::Gpu` | One device and queue, layouts, frame uniforms, targets, every lane |
@@ -86,6 +86,8 @@ flowchart TD
 ```
 
 Order matters twice in the ink pass: selected solid strokes go below the silhouette so their yellow fringe cannot narrow its black border, and selected standalone curves go above it so a coincident mesh edge cannot erase them. Both obey physical occlusion.
+
+Section caps, ambient occlusion and the outline masks are passes: each owns its GPU state in one file, impls `Pass` (`gpu/pass.rs`: hooks before, in and after the face pass, the masks, the ink and the id pass) and is named once in `pass::PASSES`, which `render.rs` walks in order. Shared WGSL is included once: `pipelines::PRELUDE` ends every scene shader, and `build.rs` expands `#include "file.wgsl"` lines in the compute and point shaders.
 
 The gumball tile is rendered and composited after scene ink; egui draws the final interface. Both overlays use their own layouts and avoid writing scene depth. Their sample counts do not depend on scene MSAA.
 
@@ -180,12 +182,12 @@ Loader routing state, live polling and the small UI model have one-page lifetime
 
 ## Editing overlays
 
-`app/ui.rs` owns the egui context and translates winit input into panel actions and commands. `engine/gpu/ui.rs` owns its renderer and font textures and draws after the scene. Text input takes keyboard focus while the command window is open; scene shortcuts resume after closing it. The white/black visuals follow the archive customization. The old DOM command and layer listeners are removed.
+`app/ui/mod.rs` owns the egui context and translates winit input into panel actions and commands; each panel (number box, command line, layers) is one file under `app/ui/` named once in `PANELS`, and reports through one `Output`. `engine/gpu/ui.rs` owns its renderer and font textures and draws after the scene. Text input takes keyboard focus while the command window is open; scene shortcuts resume after closing it. The white/black visuals follow the archive customization. The old DOM command and layer listeners are removed.
 
 The gumball owns one fixed mesh and 96-byte uniform, plus a selected-only antialiasing tile capped at 1024×1024. Its shader uses unlit colors; the tile uses 4× MSAA and 2× resolution before compositing. Deselect destroys the tile. Neither overlay owns document geometry. UI hit-box snapshots are opt-in with `?inspect=1`.
 
 ## Adding a feature
 
-For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs; one line in `render.rs`; then exercise select, hide, replace and release. For a new left-button tool: one file in `app/gesture/`, its `mod` line and one `// register:` line in `GESTURES`. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and undo.
+For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs; one line in `render.rs`; then exercise select, hide, replace and release. For a new left-button tool: one file in `app/gesture/`, its `mod` line and one `// register:` line in `GESTURES`. For new per-feature state: one field line in `state/features.rs` (`Features`, reached as `state.features`), its per-frame work one line in `BEFORE_PICKS` or `AFTER_PICKS`. For a new panel: one file in `app/ui/`, its `mod` line and one line in `PANELS`. For a new optional pass: one `Pass` impl in `gpu/` and one `// register:` line in `pass::PASSES`; shared WGSL goes in one file, named in `PRELUDE` or `#include`d. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and undo.
 
 The CAD geometry contract (shared boundaries, trims, pcurves, provenance) is in the [CAD design record](docs/cad-design.md).

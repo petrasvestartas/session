@@ -1,7 +1,6 @@
 //! Check that resize, a second walk, edits undone and reload draw the same pixels and ids.
 
 use crate::{
-    app::modeling::Modeling,
     app::scene::{FileDoc, Scene, SheetInit, StreamedInit},
     app::stream::{CloudFields, CloudLod, SheetFields},
     app::walk::{cloud::StreamRows, sheet::SheetRows},
@@ -196,7 +195,7 @@ fn edit_and_undo(scene: &mut Scene, gpu: &mut Gpu) {
     scene.sync();
     scene.upload_to(gpu);
     scene
-        .model(&Modeling::Point([0.0, 0.0, 0.0]))
+        .model(&crate::app::command::verbs::point::SPEC, &[[0.0, 0.0, 0.0]])
         .expect("a point");
     scene.sync();
     scene.upload_to(gpu);

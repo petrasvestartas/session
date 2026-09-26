@@ -37,8 +37,25 @@ pub struct Spec {
     pub parse: fn(verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String>,
 }
 
+/// A registry entry: a Spec, or a verb that carries one.
+pub trait Verb {
+    /// How it is typed, completed and parsed.
+    fn spec(&self) -> &Spec;
+
+    /// What it draws from points, for a drawing verb.
+    fn draw(&self) -> Option<&verbs::geometry::Draw> {
+        None
+    }
+}
+
+impl Verb for Spec {
+    fn spec(&self) -> &Spec {
+        self
+    }
+}
+
 /// Every verb the command line knows.
-pub const REGISTRY: &[&Spec] = &[
+pub const REGISTRY: &[&dyn Verb] = &[
     &verbs::point::SPEC,      // register:point
     &verbs::line::SPEC,       // register:line
     &verbs::arrow::SPEC,      // register:arrow
@@ -111,6 +128,8 @@ pub const REGISTRY: &[&Spec] = &[
     &verbs::volume::SPEC, // register:volume
     &verbs::add_group::SPEC, // register:add_group
     &verbs::add_edge::SPEC, // register:add_edge
+    #[cfg(test)]
+    &verbs::geometry::tests::SPEC, // register:wedge
 ];
 
 /// A name lowercased without its spaces, so `clippingplane` spells `Clipping Plane`.
@@ -137,16 +156,28 @@ fn spells(name: &str, words: &[&str]) -> Option<usize> {
 }
 
 /// Match the longest command name, leaving its arguments untouched.
-fn command_words(words: &[&str]) -> Option<(&'static Spec, usize)> {
+fn verb_words(words: &[&str]) -> Option<(&'static dyn Verb, usize)> {
     REGISTRY
         .iter()
-        .flat_map(|spec| {
+        .flat_map(|verb| {
+            let spec = verb.spec();
             spec.names.iter().chain(spec.aliases).filter_map(|name| {
-                spells(name, words).map(|count| (*spec, count, compact(name).len()))
+                spells(name, words).map(|count| (*verb, count, compact(name).len()))
             })
         })
         .max_by_key(|(_, _, letters)| *letters)
-        .map(|(spec, count, _)| (spec, count))
+        .map(|(verb, count, _)| (verb, count))
+}
+
+/// The Spec of the longest command name and how many words spell it.
+fn command_words(words: &[&str]) -> Option<(&'static Spec, usize)> {
+    verb_words(words).map(|(verb, count)| (verb.spec(), count))
+}
+
+/// The drawing verb the words start with, and how many words spell it.
+pub fn drawing(words: &[&str]) -> Option<(&'static verbs::geometry::Draw, usize)> {
+    let (verb, count) = verb_words(words)?;
+    Some((verb.draw()?, count))
 }
 
 /// The line with its command spelled as shown, e.g. `clippingplane xy` becomes `Clipping Plane XY`.
@@ -192,6 +223,11 @@ pub fn canonical(line: &str) -> String {
 pub fn choosing_option(line: &str) -> bool {
     let words: Vec<_> = line.split_whitespace().collect();
     command_words(&words).is_some_and(|(_, count)| words.len() > count || line.ends_with(' '))
+}
+
+/// True when the line starts with a drawing verb.
+pub fn draws(line: &str) -> bool {
+    drawing(&line.split_whitespace().collect::<Vec<_>>()).is_some()
 }
 
 /// The option without its command name, for the inline buttons.
@@ -266,7 +302,7 @@ pub fn completions(line: &str) -> Vec<&'static str> {
     let typed = compact(line);
     let mut names: Vec<&'static str> = REGISTRY
         .iter()
-        .flat_map(|spec| spec.names)
+        .flat_map(|verb| verb.spec().names)
         .copied()
         .collect();
     names.sort_unstable_by_key(|name| name.to_ascii_lowercase());
@@ -386,51 +422,6 @@ pub fn on_off(words: &[&str], usage: &str) -> Result<Option<bool>, String> {
         [value] if value.eq_ignore_ascii_case("on") => Ok(Some(true)),
         [value] if value.eq_ignore_ascii_case("off") => Ok(Some(false)),
         _ => Err(usage.into()),
-    }
-}
-
-/// A modeling command from its verb and points.
-pub fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modeling, String> {
-    use crate::app::modeling::Modeling;
-
-    let verb = verb.to_ascii_lowercase();
-
-    match verb.as_str() {
-        "trim" | "extend" if words.len() == 2 => {
-            let a = number(words.first().copied(), "Trim 0.2 0.8")?;
-            let b = number(words.get(1).copied(), "Trim 0.2 0.8")?;
-            Ok(if verb == "trim" {
-                Modeling::Trim(a, b)
-            } else {
-                Modeling::Extend(a, b)
-            })
-        }
-        "point" | "line" | "arrow" | "polyline" | "curve" => {
-            let mut points = Vec::new();
-
-            if words.len() > crate::app::modeling::MAX_POINTS {
-                return Err("too many points".into());
-            }
-
-            for word in words {
-                let Some(coords::Typed::Absolute { x, y, z }) = coords::parse(word) else {
-                    return Err("use world coordinates x,y,z separated by spaces".into());
-                };
-                points.push([x, y, z.unwrap_or(0.0)]);
-            }
-
-            match (verb.as_str(), points.len()) {
-                ("point", 1) => Ok(Modeling::Point(points[0])),
-                ("line", 2) => Ok(Modeling::Line(points[0], points[1])),
-                ("arrow", 2) => Ok(Modeling::Arrow(points[0], points[1])),
-                ("polyline", 2..) => Ok(Modeling::Polyline(points)),
-                ("curve", 2..) => Ok(Modeling::Curve(points)),
-                _ => {
-                    Err("Point needs one coordinate, Line and Arrow two, Polyline and Curve at least two".into())
-                }
-            }
-        }
-        _ => Err("try Trim 0.2 0.8 or Extend -0.2 1.2".into()),
     }
 }
 
@@ -607,6 +598,7 @@ mod tests {
                 "Trim",
                 "Undo",
                 "Volume",
+                "Wedge", // the test-only verb in verbs/geometry.rs
             ]
         );
     }
@@ -614,7 +606,9 @@ mod tests {
     /// Every shown name is Title Case words: no underscores, each word capitalised or a number.
     #[test]
     fn every_name_and_option_is_title_case_words() {
-        for spec in REGISTRY {
+        for verb in REGISTRY {
+            let spec = verb.spec();
+
             for name in spec.names.iter().chain(spec.options) {
                 assert!(!name.contains('_'), "{name}");
                 assert!(
@@ -734,13 +728,13 @@ mod tests {
     fn modeling_commands_validate_arity_and_coordinates() {
         assert_eq!(
             parsed("point 1,2,3"),
-            Ok("Model(Point([1.0, 2.0, 3.0]))".into())
+            Ok("Create(Point, [[1.0, 2.0, 3.0]])".into())
         );
         assert_eq!(
             parsed("arrow 0,0,0 1,0,0"),
-            Ok("Model(Arrow([0.0, 0.0, 0.0], [1.0, 0.0, 0.0]))".into())
+            Ok("Create(Arrow, [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])".into())
         );
-        assert_eq!(parsed("trim 0.2 0.8"), Ok("Model(Trim(0.2, 0.8))".into()));
+        assert_eq!(parsed("trim 0.2 0.8"), Ok("Edit(Trim(0.2, 0.8))".into()));
         assert_eq!(parsed("explode"), Ok("Explode".into()));
 
         for line in [

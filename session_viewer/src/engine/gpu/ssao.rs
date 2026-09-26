@@ -1,4 +1,5 @@
-use super::{buffers::GpuCtx, targets::Targets};
+use super::pass::{Frame, Pass};
+use super::{Gpu, buffers::GpuCtx, targets::Targets};
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Pipeline, PipelineDesc, Target, build, module, pipeline_layout,
 };
@@ -1036,13 +1037,7 @@ fn projected_bounds(matrix: [f32; 16], bounds: [f32; 6], full: (u32, u32)) -> [f
 }
 
 fn shader_source(samples: u32) -> String {
-    let source = concat!(
-        shader!("ssao.wgsl"),
-        "\n",
-        shader!("ambient_geometry.wgsl"),
-        "\n",
-        shader!("slot_table.wgsl")
-    );
+    let source = shader!("ssao.wgsl");
     if samples > 1 {
         source
             .replace("const MSAA: bool = false;", "const MSAA: bool = true;")
@@ -1246,8 +1241,8 @@ mod tests {
             assert_eq!(
                 gpu.allocated_bytes(),
                 (
-                    memory.0 + gpu.ssao.as_ref().unwrap().buffer_bytes(),
-                    memory.1 + gpu.ssao.as_ref().unwrap().texture_bytes()
+                    memory.0 + gpu.pass::<super::Ambient>().ambient().buffer_bytes(),
+                    memory.1 + gpu.pass::<super::Ambient>().ambient().texture_bytes()
                 )
             );
             gpu.view.ssao = false;
@@ -1362,7 +1357,7 @@ mod tests {
             "samples={samples} buffers={} textures={} ao_textures={}\n",
             gpu.allocated_bytes().0,
             gpu.allocated_bytes().1,
-            gpu.ssao.as_ref().unwrap().texture_bytes()
+            gpu.pass::<super::Ambient>().ambient().texture_bytes()
         );
         for mode in ["still", "moved", "drag"] {
             gpu.performance.interacting = mode == "drag";
@@ -1604,7 +1599,7 @@ mod tests {
             }
             gpu.set_hidden(1, true);
             let hidden = timed(&mut gpu, &camera, &anchor).1;
-            gpu.ssao = None;
+            gpu.pass_mut::<super::Ambient>().ssao = None;
             assert_eq!(
                 hidden,
                 timed(&mut gpu, &camera, &anchor).1,
@@ -1634,7 +1629,11 @@ mod tests {
             gpu.resize(512, 512);
             gpu.view.ssao = true;
             timed(&mut gpu, &camera, &anchor);
-            gpu.ssao.as_mut().unwrap().history_enabled = history;
+            gpu.pass_mut::<super::Ambient>()
+                .ssao
+                .as_mut()
+                .unwrap()
+                .history_enabled = history;
             let mut frames = Vec::new();
             for _ in 0..32 {
                 camera.orbit(1.0, 0.0);
@@ -1775,11 +1774,90 @@ mod tests {
     }
 }
 
-impl super::lane::Lane for Option<Ssao> {
+/// Ambient occlusion over the faces; its pipelines at 1x and 4x stay while it is off.
+pub struct Ambient {
+    ssao: Option<Ssao>,                 // the textures and buffers, when on
+    pipes: [Option<SsaoPipelines>; 2], // at 1x and 4x
+}
+
+/// The ambient pass, off.
+pub fn pass(_ctx: &GpuCtx, _target: Target) -> Box<dyn Pass> {
+    Box::new(Ambient {
+        ssao: None,
+        pipes: [None, None],
+    })
+}
+
+impl Ambient {
+    /// The pass's textures and buffers; it must be on.
+    #[cfg(test)]
+    fn ambient(&self) -> &Ssao {
+        self.ssao.as_ref().expect("ambient occlusion is on")
+    }
+}
+
+impl super::lane::Lane for Ambient {
     fn bytes(&self) -> (u64, u64) {
         (
-            self.as_ref().map_or(0, Ssao::buffer_bytes),
-            self.as_ref().map_or(0, Ssao::texture_bytes),
+            self.ssao.as_ref().map_or(0, Ssao::buffer_bytes),
+            self.ssao.as_ref().map_or(0, Ssao::texture_bytes),
         )
+    }
+}
+
+impl Pass for Ambient {
+    /// The same quality throughout navigation.
+    fn after_faces(&mut self, g: &mut Gpu, encoder: &mut wgpu::CommandEncoder, f: &Frame) -> u32 {
+        let ambient = g.view.ssao && g.view.opacity > 0.0 && g.live_faces() > 0;
+        let mut draws = 0;
+
+        if ambient {
+            let full = (g.config.width, g.config.height);
+            let dpr = f64::from(full.0) / g.logical_size[0].max(1.0);
+            let target = g.target();
+            if let Some(pipes) = cached(&mut self.pipes, &g.ctx, target) {
+                // textures follow the canvas; pipelines stay
+                if self.ssao.as_ref().is_some_and(|ssao| !ssao.fits(pipes, full, dpr)) {
+                    self.ssao = None;
+                }
+                let ssao = self
+                    .ssao
+                    .get_or_insert_with(|| Ssao::new(&g.ctx, pipes, full, dpr));
+                let receiver = ssao.receiver(&g.objects);
+                let [vertices, owners, indices] = g.arena.geometry_buffers();
+                draws += ssao.draw(
+                    &g.ctx,
+                    pipes,
+                    &g.targets,
+                    [vertices, owners, indices, g.objects.instance_buffer()],
+                    &g.arena.table.view,
+                    encoder,
+                    f.view,
+                    g.frame.mvp_f32,
+                    receiver,
+                    g.objects.geometry_revision(),
+                    g.timer.as_mut(),
+                );
+            }
+        } else {
+            self.ssao = None;
+        }
+
+        g.mark(encoder, "ssao");
+        draws
+    }
+
+    fn pending(&self, g: &Gpu) -> bool {
+        g.view.ssao
+            && g.view.opacity > 0.0
+            && g.live_faces() > 0
+            && self.pipes[usize::from(g.targets.samples > 1)].is_none()
+    }
+
+    fn after_present(&mut self, g: &mut Gpu) {
+        if g.live_faces() > 0 {
+            let target = g.target();
+            prewarm(&mut self.pipes, &g.ctx, target, !g.performance.interacting);
+        }
     }
 }

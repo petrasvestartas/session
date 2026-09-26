@@ -67,7 +67,7 @@ pub const KEYS: &[Binding] = &[
     // register:escape
     // the first Esc cancels the command and keeps the selection, the next one clears it
     named(NamedKey::Escape, |s| {
-        if s.draft.is_some() {
+        if s.features.draft.is_some() {
             s.cancel_drawing();
         } else {
             s.escape_selection();
@@ -75,7 +75,7 @@ pub const KEYS: &[Binding] = &[
     }),
     // register:enter
     named(NamedKey::Enter, |s| {
-        if s.draft.is_some() {
+        if s.features.draft.is_some() {
             let result = s.run_command("");
             crate::app::feedback::status(&result.unwrap_or_else(|e| e));
         } else {

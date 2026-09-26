@@ -110,23 +110,18 @@ mod tests {
         use std::mem::{offset_of, size_of};
 
         for (name, source) in lane_shaders() {
+            use crate::engine::pipelines::{ink_source, scene_source, shared};
             // shaders that use the camera get the shared scene code
             let scene = source.contains("mvp") || source.contains("line.");
-            let mut source = source.to_string();
+            let source = if source.contains("-> InkColor") {
+                ink_source(source)
+            } else if scene {
+                scene_source(source)
+            } else {
+                source.to_string()
+            };
 
-            if source.contains("-> InkColor") {
-                source = format!("{source}\n{}", crate::engine::pipelines::INK);
-            }
-
-            if scene {
-                source = format!(
-                    "{source}\n{}\n{}",
-                    crate::engine::pipelines::SCENE,
-                    crate::engine::pipelines::CLIP
-                );
-            }
-
-            let source = crate::engine::pipelines::shared(&source);
+            let source = shared(&source);
             let module = naga::front::wgsl::parse_str(&source)
                 .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
             naga::valid::Validator::new(

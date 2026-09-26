@@ -1,9 +1,11 @@
+use super::geometry::{Edit, range};
 use crate::State;
 use crate::app::command::tool::cut::{
     Cutter, as_curve, as_plane, plane_moved, samples, segment_px,
 };
 use crate::app::command::tool::{Next, Overlay, Stroke, Tool, typed_number};
-use crate::app::command::{Action, Spec, model, number};
+use crate::app::command::{Action, Spec, number};
+use crate::app::modeling::Interval;
 use crate::app::scene::Shape;
 use reach::{End, Grown, Reach};
 use session_rust::{AABB, Geometry, Mesh, Plane, Point, Xform};
@@ -27,7 +29,7 @@ const MAX_SAMPLES: usize = 200_000; // points kept for finding curves under the 
 const RED: [u8; 3] = [210, 40, 40];
 
 /// Grow curve ends to boundaries or by a length, or stretch a curve's domain.
-fn parse(verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
+fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     let distance = |word: &str| word.eq_ignore_ascii_case("distance");
 
     match rest {
@@ -47,7 +49,10 @@ fn parse(verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
             distance: Some(length(value)?),
             asking: false,
         })),
-        _ => Ok(Box::new(super::geometry::Model(model(verb, rest)?))),
+        _ => {
+            let (a, b) = range(rest)?;
+            Ok(Box::new(Edit(Interval::Extend(a, b))))
+        }
     }
 }
 
@@ -759,7 +764,7 @@ mod tests {
         assert!(parsed("Extend Distance 0").is_err());
         assert_eq!(
             parsed("Extend -0.2 1.2"),
-            Ok("Model(Extend(-0.2, 1.2))".into())
+            Ok("Edit(Extend(-0.2, 1.2))".into())
         );
         assert_eq!(accept("Extend Dis"), ("Extend Distance ".into(), false));
     }

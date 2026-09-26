@@ -118,3 +118,5 @@ fn fs_fill(v: TileVertex) -> @location(0) f32 {
     atomicStore(&tile_records[(offset+1u)/4u].values[(offset+1u)%4u], bitcast<u32>(bound));
     return 0.0;
 }
+
+#include "projected_triangle.wgsl"

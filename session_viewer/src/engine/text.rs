@@ -416,7 +416,7 @@ mod tests {
     /// The bundled subsets draw the viewer's own strings and the specimen; the whole fonts the rest.
     #[test]
     fn bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest() {
-        for spec in crate::app::command::REGISTRY {
+        for spec in crate::app::command::REGISTRY.iter().map(|verb| verb.spec()) {
             for text in spec.names.iter().chain(spec.aliases).chain(spec.options) {
                 assert!(covers(text), "{text}");
             }

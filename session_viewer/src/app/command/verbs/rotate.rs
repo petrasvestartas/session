@@ -39,7 +39,7 @@ struct Rotate {
 impl Action for Rotate {
     /// Turn about the gizmo centre, or the world origin without one.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        let about = state.gizmo.as_ref().map(|g| g.origin.clone()); // turn about the gizmo
+        let about = state.features.gizmo.as_ref().map(|g| g.origin.clone()); // turn about the gizmo
         let turn = crate::state::edit::rotation_about(self.axis, self.degrees, about.as_ref());
         state.apply(turn, "rotate")
     }

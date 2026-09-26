@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 
+use super::Gpu;
 use super::buffers::GpuCtx;
+use super::frame::Binds;
+use super::pass::{Frame, Pass};
 use super::targets::{Attachment, Targets, TextureSpec};
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Pipeline, PipelineDesc, Target, build, module,
@@ -1090,13 +1093,13 @@ mod tests {
             gpu.set_hidden(1, true);
             let selected = gpu.render_offscreen(&input);
             // with only the selected mask the picture is the same
-            gpu.solid_outline.kind = super::OutlineKind::Selected;
+            gpu.pass_mut::<super::Outline>().solid.kind = super::OutlineKind::Selected;
             assert_eq!(
                 selected,
                 gpu.render_offscreen(&input),
                 "selection must not receive a second overlapping outline"
             );
-            gpu.solid_outline.kind = super::OutlineKind::AllSolids;
+            gpu.pass_mut::<super::Outline>().solid.kind = super::OutlineKind::AllSolids;
             let black = selected
                 .chunks_exact(4)
                 .filter(|p| p[..3].iter().all(|c| *c < 8))
@@ -1114,14 +1117,14 @@ mod tests {
                 "the original selection fill stays yellow: {yellow}"
             );
             let selected_ids = gpu.render_ids_offscreen(&input);
-            let capacity = gpu.selection_outline.allocated_bytes().1;
+            let capacity = gpu.pass::<super::Outline>().selection.allocated_bytes().1;
             assert_eq!(
                 capacity,
                 200 * 200 * if samples > 1 { 5 } else { 1 } + 2 * 50 * 50
             );
             gpu.set_selected(0, false);
             assert_eq!(
-                gpu.selection_outline.allocated_bytes().1,
+                gpu.pass::<super::Outline>().selection.allocated_bytes().1,
                 0,
                 "clearing selection releases coverage immediately"
             );
@@ -1154,8 +1157,15 @@ mod tests {
         }
 
         gpu.release();
-        assert_eq!(gpu.selection_outline.allocated_bytes(), (16, 0));
-        assert_eq!(gpu.solid_outline.allocated_bytes(), (16, 0), "release frees the outline alpha");
+        assert_eq!(
+            gpu.pass::<super::Outline>().selection.allocated_bytes(),
+            (16, 0)
+        );
+        assert_eq!(
+            gpu.pass::<super::Outline>().solid.allocated_bytes(),
+            (16, 0),
+            "release frees the outline alpha"
+        );
     }
 
     #[test]
@@ -1254,7 +1264,7 @@ mod tests {
     /// 0: `o` only, 1: `o` and a selection, 2: the selection only, 3: no outline.
     fn outline_mode(gpu: &mut Gpu, mode: usize) {
         gpu.view.show_outlines = mode != 3;
-        gpu.solid_outline.kind = if mode == 2 {
+        gpu.pass_mut::<super::Outline>().solid.kind = if mode == 2 {
             super::OutlineKind::Selected
         } else {
             super::OutlineKind::AllSolids
@@ -1367,5 +1377,142 @@ impl super::lane::Lane for SurfaceOutline {
 
     fn bytes(&self) -> (u64, u64) {
         self.allocated_bytes()
+    }
+}
+
+/// The outlines around the selection and around every solid.
+pub struct Outline {
+    pub selection: SurfaceOutline, // around the selection
+    pub solid: SurfaceOutline,     // around every solid; also composites both
+}
+
+/// The outline pass.
+pub fn pass(ctx: &GpuCtx, target: Target) -> Box<dyn Pass> {
+    Box::new(Outline {
+        selection: SurfaceOutline::new(ctx, target, OutlineKind::Selected),
+        solid: SurfaceOutline::new(ctx, target, OutlineKind::AllSolids),
+    })
+}
+
+impl super::lane::Lane for Outline {
+    fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
+        self.selection.on_retarget(ctx, layouts, target);
+        self.solid.on_retarget(ctx, layouts, target);
+    }
+
+    fn on_reset(&mut self, ctx: &GpuCtx) {
+        self.selection.on_reset(ctx);
+        self.solid.on_reset(ctx);
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        let (a, b) = self.selection.bytes();
+        let (c, d) = self.solid.bytes();
+        (a + c, b + d)
+    }
+}
+
+impl Pass for Outline {
+    /// Redraw the masks only when something changed, then search them into the alpha texture.
+    fn after_faces(&mut self, g: &mut Gpu, encoder: &mut wgpu::CommandEncoder, f: &Frame) -> u32 {
+        let size = (g.config.width, g.config.height);
+        // no outlines in x-ray
+        let faces = g.view.show_outlines && g.view.opacity > 0.0 && g.live_faces() > 0;
+        let selected = self.selection.prepare(
+            &g.ctx,
+            size,
+            g.targets.samples,
+            g.logical_size[0],
+            faces,
+        );
+        let solid = self
+            .solid
+            .prepare(&g.ctx, size, g.targets.samples, g.logical_size[0], faces);
+        // the compositing outline holds the taps and alpha for both masks
+        let radius = radius(size, g.logical_size[0]);
+        self.solid
+            .prepare_alpha(&g.ctx, (solid || selected).then_some(radius), size);
+        let key = MaskKey {
+            mvp: g.frame.mvp_f32,
+            geometry: g.objects.geometry_revision(),
+            selection: g.selection_revision,
+            faces: g.arena.source_faces.revision(),
+            size,
+            samples: g.targets.samples,
+            edges: g.view.show_mesh_edges && f.tier < 2,
+            rough: f.rough,
+            pen: g.view.thickness_px.to_bits(),
+        };
+        let stale = (solid && !self.solid.is_valid(&key))
+            || (selected && !self.selection.is_valid(&key));
+        let mut draws = 0;
+
+        if stale {
+            self.solid.bind_faces(&g.ctx, &g.targets);
+            g.each_pass(|pass, g| pass.bind_masks(g));
+            let b = g.frame.binds(&g.objects.group);
+            // edges widen the mask, except in a slow drag
+            let ink = g.frame.binds(&g.objects.ink_group);
+            let edges = key.edges && g.live_pipes() > 0;
+
+            if solid && selected {
+                // one pass writes both masks
+                let mut pass =
+                    SurfaceOutline::begin_masks(&self.solid, &self.selection, encoder, &g.targets);
+                draws += g.arena.draw_masks(&mut pass, &b);
+                draws += g.arena.source_faces.draw_masks(&mut pass, &b);
+                for other in &g.passes {
+                    draws += other.in_masks(g, &mut pass, &b, true);
+                }
+
+                if edges {
+                    draws += g.segments.draw_masks(&mut pass, &ink);
+                }
+            } else if solid && edges {
+                // faces from the face pass's triangle ids, then the edges over them
+                let mut pass = self.solid.begin_mask(encoder, &g.targets);
+                draws += self.solid.draw_faces(&mut pass);
+                draws += g.segments.draw_solid_mask(&mut pass, &ink);
+            } else if solid {
+                draws += self.solid.encode_faces(encoder);
+            } else if selected {
+                let mut pass = self.selection.begin_mask(encoder, &g.targets);
+                draws += g.arena.draw_selection_mask(&mut pass, &b);
+                draws += g.arena.source_faces.draw_mask(&mut pass, &b);
+                for other in &g.passes {
+                    draws += other.in_masks(g, &mut pass, &b, false);
+                }
+
+                if edges {
+                    draws += g.segments.draw_selection_mask(&mut pass, &ink);
+                }
+            }
+
+            g.mark(encoder, "masks");
+
+            if solid {
+                self.solid.encode_pool(encoder);
+                self.solid.mark_valid(key);
+            }
+
+            if selected {
+                self.selection.encode_pool(encoder);
+                self.selection.mark_valid(key);
+            }
+
+            g.mark(encoder, "pool");
+        }
+
+        self.solid.encode_alpha(&self.selection, encoder, stale);
+        g.mark(encoder, "alpha");
+        draws
+    }
+
+    fn over_ink(&self, _g: &Gpu, pass: &mut wgpu::RenderPass<'_>, _b: &Binds) -> u32 {
+        self.solid.draw_combined(pass)
+    }
+
+    fn on_select(&mut self, row: u32, on: bool) {
+        self.selection.set_selected(row, on);
     }
 }

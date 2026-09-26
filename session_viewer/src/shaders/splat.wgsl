@@ -220,3 +220,5 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
 
     return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec2<u32>(0u));
 }
+
+#include "clip.wgsl"

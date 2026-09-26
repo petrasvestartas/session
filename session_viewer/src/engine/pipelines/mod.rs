@@ -307,9 +307,20 @@ pub const SCENE: &str = shader!("scene.wgsl");
 /// Shared WGSL: the clipping planes and their tests; the includer binds `clipping`.
 pub const CLIP: &str = shader!("clip.wgsl");
 
+/// WGSL every scene shader ends with. A shared snippet is one file and one line here.
+pub const PRELUDE: &[&str] = &[
+    SCENE, // register:scene
+    CLIP,  // register:clip
+];
+
+/// A scene shader's full text: its own code, then the prelude.
+pub fn scene_source(source: &str) -> String {
+    PRELUDE.iter().fold(source.to_owned(), |text, part| format!("{text}\n{part}"))
+}
+
 /// A shader with the shared scene and clipping code appended.
 pub fn scene_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
-    module(ctx, label, &format!("{source}\n{SCENE}\n{CLIP}"))
+    module(ctx, label, &scene_source(source))
 }
 
 /// One u32 at location 3: the object row.
@@ -407,16 +418,17 @@ pub fn layout(
         .clone()
 }
 
-/// Shared WGSL for ink: the visibility test and projected triangles.
-pub const INK: &str = concat!(
-    shader!("ink_visibility.wgsl"),
-    "\n",
-    shader!("projected_triangle.wgsl")
-);
+/// Shared WGSL for ink: the visibility test and the projected triangles it reads.
+pub const INK: &str = shader!("ink_visibility.wgsl");
+
+/// An ink shader's full text: its own code, the ink code, then the prelude.
+pub fn ink_source(source: &str) -> String {
+    scene_source(&format!("{source}\n{INK}"))
+}
 
 /// An ink shader: scene code plus the ink code.
 pub fn ink_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
-    scene_module(ctx, label, &format!("{source}\n{INK}"))
+    module(ctx, label, &ink_source(source))
 }
 
 /// A pipeline layout over `groups`, in slot order.

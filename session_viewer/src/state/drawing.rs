@@ -1,16 +1,18 @@
 use super::State;
 use super::drag::Targets;
+use crate::app::command::tool::Tool;
+use crate::app::command::verbs::geometry::Draw;
 use crate::app::{
     coords,
     cplane::CPlane,
     snap::{self, SnapKind},
 };
-use crate::app::command::tool::Tool;
 use session_rust::{Plane, Point, Polyline, Vector, Xform};
 
 /// A shape being drawn, or points being picked for a command, not yet in the scene.
 pub(crate) struct Draft {
     pub(super) verb: String, // point, line, polyline, curve, select, or the command asking
+    draw: Option<&'static Draw>, // the drawing verb, when one draws
     prefix: String,          // what the points complete, e.g. `Clipping Plane XY`
     needed: usize,           // points that finish it; 0 = Enter finishes
     prompts: &'static [&'static str], // what each point is for, when a command asked
@@ -34,6 +36,7 @@ impl Draft {
         let (x, y) = axes(plane);
         Self {
             verb: verb.into(),
+            draw: None,
             prefix: prefix.into(),
             needed: 0,
             prompts: &[],
@@ -58,49 +61,52 @@ impl State {
     pub(super) fn drawing_command(&mut self, text: &str) -> Option<Result<String, String>> {
         let words: Vec<_> = text.split_whitespace().collect();
         let verb = words.first().copied().unwrap_or("").to_ascii_lowercase();
-        // Polyline Rectangle / Polygon / Points
-        let construction = if verb == "polyline" {
-            words
-                .get(1)
-                .map(|word| word.to_ascii_lowercase())
-                .filter(|word| matches!(word.as_str(), "points" | "rectangle" | "polygon"))
-        } else {
-            None
-        };
+
         // a drawing verb with too few points starts a draft
-        if matches!(verb.as_str(), "point" | "line" | "arrow" | "polyline" | "curve")
-            && (construction.is_some() || words.len() < if verb == "point" { 2 } else { 3 })
-        {
-            let start = if construction.is_some() { 2 } else { 1 }; // where the points begin
-            self.cancel_drawing();
-            self.cancel_split();
-            let needed = match verb.as_str() {
-                "point" => 1,
-                "line" | "arrow" => 2,
-                _ if construction.as_deref().is_some_and(|kind| kind != "points") => 2,
-                _ => 0,
-            };
-            // draw on the plane the camera faces most
-            let mut draft = Draft::new(&verb, &verb, self.facing());
-            draft.needed = needed;
-            draft.construction = construction.unwrap_or_else(|| "points".into());
-            self.draft = Some(draft);
-            self.gpu.pick.cancel();
-            // points typed on the same line count already
-            return Some(if words.len() > start {
-                self.accept_coordinates(&words[start..].join(" "))
-            } else {
-                Ok(self.drawing_prompt())
-            });
+        if let Some((draw, count)) = crate::app::command::drawing(&words) {
+            // one of its options names a construction, e.g. Polyline Rectangle
+            let construction = words
+                .get(count)
+                .filter(|word| {
+                    draw.spec.options.iter().any(|option| {
+                        option.eq_ignore_ascii_case(&format!("{} {word}", draw.spec.names[0]))
+                    })
+                })
+                .map(|word| word.to_ascii_lowercase());
+            let start = count + usize::from(construction.is_some()); // where the points begin
+
+            if construction.is_some() || words.len() - count < *draw.points.start() {
+                self.cancel_drawing();
+                self.cancel_split();
+                let needed = match &construction {
+                    _ if !draw.open() => *draw.points.start(),
+                    Some(kind) if kind != "points" => 2,
+                    _ => 0,
+                };
+                let verb = words[..count].join(" ").to_ascii_lowercase();
+                // draw on the plane the camera faces most
+                let mut draft = Draft::new(&verb, &verb, self.facing());
+                draft.draw = Some(draw);
+                draft.needed = needed;
+                draft.construction = construction.unwrap_or_else(|| "points".into());
+                self.features.draft = Some(draft);
+                self.gpu.pick.cancel();
+                // points typed on the same line count already
+                return Some(if words.len() > start {
+                    self.accept_coordinates(&words[start..].join(" "))
+                } else {
+                    Ok(self.drawing_prompt())
+                });
+            }
         }
-        self.draft.as_ref()?; // not drawing: not ours
+        self.features.draft.as_ref()?; // not drawing: not ours
 
         // a tool or an object pick takes its own words
         if let Some(result) = self.tool_command(text) {
             return Some(result);
         }
 
-        let draft = self.draft.as_ref()?;
+        let draft = self.features.draft.as_ref()?;
 
         // one word naming an option of the verb asking switches to it, e.g. XY
         if let [word] = words.as_slice()
@@ -112,11 +118,11 @@ impl State {
         }
 
         // Sides N sets the polygon side count
-        if verb == "sides" && self.draft.as_ref()?.construction == "polygon" {
+        if verb == "sides" && self.features.draft.as_ref()?.construction == "polygon" {
             return Some(match words.as_slice() {
                 [_, count] => match count.parse::<usize>() {
                     Ok(count) if (3..crate::app::modeling::MAX_POINTS).contains(&count) => {
-                        self.draft.as_mut().unwrap().sides = count;
+                        self.features.draft.as_mut().unwrap().sides = count;
                         Ok(self.drawing_prompt())
                     }
                     _ => Err("Polygon sides must be between 3 and 4095".into()),
@@ -148,7 +154,7 @@ impl State {
         let mut draft = Draft::new(verb, prefix, self.facing());
         draft.needed = prompts.len();
         draft.prompts = prompts;
-        self.draft = Some(draft);
+        self.features.draft = Some(draft);
         self.gpu.pick.cancel();
         self.drawing_prompt()
     }
@@ -160,10 +166,10 @@ impl State {
 
     /// Join the draft back to its first point and finish it.
     pub(crate) fn close_drawing(&mut self) -> Result<String, String> {
-        let Some(draft) = self.draft.as_mut() else {
+        let Some(draft) = self.features.draft.as_mut() else {
             return Err("Close works while drawing a polyline or curve".into());
         };
-        if !matches!(draft.verb.as_str(), "polyline" | "curve") || draft.construction != "points" {
+        if !draft.draw.is_some_and(Draw::open) || draft.construction != "points" {
             return Err("Close works while drawing a polyline or curve".into());
         }
         if draft.points.len() < 3 {
@@ -174,7 +180,7 @@ impl State {
         let result = self.finish_drawing();
         // a failed finish drops the closing point
         if result.is_err() {
-            self.draft.as_mut().unwrap().points.pop();
+            self.features.draft.as_mut().unwrap().points.pop();
         }
         result
     }
@@ -182,7 +188,7 @@ impl State {
     /// Add typed coordinates to the draft.
     pub(super) fn accept_coordinates(&mut self, text: &str) -> Result<String, String> {
         // check every word before adding any
-        let draft = self.draft.as_ref().unwrap();
+        let draft = self.features.draft.as_ref().unwrap();
         let mut points = draft.points.clone();
         let (x, y) = axes(draft.plane);
         for word in text.split_whitespace() {
@@ -220,18 +226,18 @@ impl State {
                 crate::app::command::canonical(&draft.verb)
             ));
         }
-        let previous = std::mem::replace(&mut self.draft.as_mut().unwrap().points, points);
+        let previous = std::mem::replace(&mut self.features.draft.as_mut().unwrap().points, points);
         let result = self.advance_drawing();
         // a failed finish keeps the old points
         if result.is_err() {
-            self.draft.as_mut().unwrap().points = previous;
+            self.features.draft.as_mut().unwrap().points = previous;
         }
         result
     }
 
     /// Finish when the draft has all its points, else prompt for the next.
     fn advance_drawing(&mut self) -> Result<String, String> {
-        let draft = self.draft.as_ref().unwrap();
+        let draft = self.features.draft.as_ref().unwrap();
 
         if draft.tool.is_some() {
             return self.tool_placed();
@@ -246,7 +252,7 @@ impl State {
 
     /// Turn the draft into a typed command and run it.
     fn finish_drawing(&mut self) -> Result<String, String> {
-        let draft = self.draft.as_ref().unwrap();
+        let draft = self.features.draft.as_ref().unwrap();
 
         // a command asking for points takes all of them
         if !draft.prompts.is_empty() && draft.points.len() < draft.needed {
@@ -258,7 +264,7 @@ impl State {
         }
 
         let points = draft.geometry_points()?;
-        let draft = self.draft.take().unwrap();
+        let draft = self.features.draft.take().unwrap();
         // "line 0,0,0 1,1,1"
         let mut command = draft.prefix.clone();
         for p in &points {
@@ -267,14 +273,14 @@ impl State {
         // same path as a typed command: checks, selection, undo
         let result = crate::app::command::parse(&command).and_then(|_| self.run_command(&command));
         if result.is_err() {
-            self.draft = Some(draft);
+            self.features.draft = Some(draft);
         }
         result
     }
 
     /// The draft as JSON, for the inspection tests.
     pub fn drawing_status(&self) -> serde_json::Value {
-        let Some(draft) = &self.draft else {
+        let Some(draft) = &self.features.draft else {
             return serde_json::Value::Null;
         };
         serde_json::json!({"command":draft.verb,"tool":draft.tool.is_some(),"construction":draft.construction,"sides":draft.sides,"points":draft.points.iter().map(|p| [p[0],p[1],p[2]]).collect::<Vec<_>>(),"hover":draft.hover.as_ref().map(|p| [p[0],p[1],p[2]]),"snap":draft.snapped.map(|k| format!("{k:?}"))})
@@ -282,7 +288,7 @@ impl State {
 
     /// The status line text while drawing.
     pub fn drawing_prompt(&self) -> String {
-        let Some(draft) = &self.draft else {
+        let Some(draft) = &self.features.draft else {
             return String::new();
         };
 
@@ -298,7 +304,7 @@ impl State {
             return format!(
                 "{}: {prompt} · click or type x,y,z · Snap {} · Esc cancels",
                 crate::app::command::canonical(&draft.verb),
-                if self.snap_enabled { "On" } else { "Off" }
+                if self.features.snap.enabled { "On" } else { "Off" }
             );
         }
         // rectangle and polygon ask for two special points
@@ -324,7 +330,7 @@ impl State {
         } else {
             "Next point"
         };
-        let finish = if matches!(draft.verb.as_str(), "curve" | "polyline") {
+        let finish = if draft.draw.is_some_and(Draw::open) {
             " · Enter finishes"
         } else {
             ""
@@ -332,7 +338,7 @@ impl State {
         format!(
             "{}: {point} · click or type x,y,z · Snap {}{finish} · Esc cancels",
             crate::app::command::canonical(&draft.verb),
-            if self.snap_enabled { "On" } else { "Off" }
+            if self.features.snap.enabled { "On" } else { "Off" }
         )
     }
 
@@ -344,15 +350,15 @@ impl State {
         }
 
         // picking objects: the cursor is only a cursor
-        if self.draft.as_ref().is_none_or(|draft| draft.then.is_some()) {
+        if self.features.draft.as_ref().is_none_or(|draft| draft.then.is_some()) {
             return false;
         }
 
-        let mut draft = self.draft.take().unwrap();
+        let mut draft = self.features.draft.take().unwrap();
         let tool = draft.tool.is_some();
         let ray = self.camera.ray((x, y), self.viewport());
         // the nearest snap point within 12 pixels
-        let hit = if self.snap_enabled {
+        let hit = if self.features.snap.enabled {
             let screen = self.screen();
             // the draft's own points and segments, then the scene's
             let mut candidates = Vec::new();
@@ -371,7 +377,7 @@ impl State {
                     &own,
                     ray,
                     draft.points.last(),
-                    self.snap_modes,
+                    self.features.snap.modes,
                     &mut candidates,
                 );
                 let targets = draft
@@ -383,7 +389,7 @@ impl State {
             }
             snap::best(
                 &candidates,
-                self.snap_modes,
+                self.features.snap.modes,
                 (x, y),
                 12.0 * self.pixel_scale(),
                 |p| screen.point(p),
@@ -401,7 +407,7 @@ impl State {
         });
         draft.snapped = hit.as_ref().map(|s| s.kind);
         draft.hover = hit.map(|s| s.point).or(free);
-        self.draft = Some(draft);
+        self.features.draft = Some(draft);
 
         if tool {
             self.preview_tool();
@@ -418,7 +424,7 @@ impl State {
         }
 
         // picking objects for a command: each click adds one; false, since a redraw would cancel the pick
-        if self.draft.as_ref().is_some_and(|draft| draft.then.is_some()) {
+        if self.features.draft.as_ref().is_some_and(|draft| draft.then.is_some()) {
             self.additive_selection = true;
             self.request_selection(x as u32, y as u32, false, false);
             return false;
@@ -427,7 +433,7 @@ impl State {
         if !self.hover_drawing(x, y) {
             return false;
         }
-        let draft = self.draft.as_mut().unwrap();
+        let draft = self.features.draft.as_mut().unwrap();
         let Some(p) = draft.hover.clone() else {
             self.status("Point is outside the construction plane");
             return true;
@@ -449,7 +455,7 @@ impl State {
         }
         draft.points.push(p);
         let message = self.advance_drawing().unwrap_or_else(|e| {
-            self.draft.as_mut().unwrap().points.pop(); // a failed finish drops the point
+            self.features.draft.as_mut().unwrap().points.pop(); // a failed finish drops the point
 
             e
         });
@@ -460,7 +466,7 @@ impl State {
 
     /// The draft as screen points for the preview, plus the snap name.
     pub fn drawing_overlay(&self) -> (Vec<(f64, f64)>, String) {
-        let Some(draft) = &self.draft else {
+        let Some(draft) = &self.features.draft else {
             return (Vec::new(), String::new());
         };
 
@@ -485,7 +491,7 @@ impl State {
 
     /// Buttons under the command line while drawing: (label, line it runs); "" is Enter.
     pub fn drawing_options(&self) -> &'static [(&'static str, &'static str)] {
-        let Some(draft) = &self.draft else {
+        let Some(draft) = &self.features.draft else {
             return &[];
         };
 
@@ -493,18 +499,11 @@ impl State {
             return tool.options();
         }
 
-        match draft.verb.as_str() {
-            "select" => &[("Done", ""), ("Cancel", "Escape")],
-            "polyline" => &[
-                ("Points", "Polyline Points"),
-                ("Rectangle", "Polyline Rectangle"),
-                ("Polygon", "Polyline Polygon"),
-                ("Close", "Close"),
-                ("Finish", ""),
-            ],
-            "curve" => &[("Close", "Close"), ("Finish", "")],
-            _ => &[],
+        if draft.verb == "select" {
+            return &[("Done", ""), ("Cancel", "Escape")];
         }
+
+        draft.draw.map_or(&[], |draw| draw.buttons)
     }
 }
 

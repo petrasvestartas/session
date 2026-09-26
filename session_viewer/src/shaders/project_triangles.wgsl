@@ -210,3 +210,7 @@ fn physical_polygon_area(polygon: ProjectedPolygon) -> f32 {
     // zero only for a degenerate polygon
     return physical_cross(polygon.points[1].xy-polygon.points[0].xy, polygon.points[2].xy-polygon.points[0].xy);
 }
+
+#include "slot_table.wgsl"
+#include "clip.wgsl"
+#include "projected_triangle.wgsl"

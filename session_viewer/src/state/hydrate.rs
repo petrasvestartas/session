@@ -21,7 +21,7 @@ impl State {
 
     /// Run `resume` once the documents it needs are back.
     pub(crate) fn resume_after(&mut self, resume: Resume) {
-        self.resume.push(resume);
+        self.features.resume.push(resume);
         self.fetch_wanted();
     }
 
@@ -70,13 +70,13 @@ impl State {
             Ok(()) => self.status(&format!("'{name}' is editable ({:.0} ms)", back.ms)),
             Err(error) => {
                 self.scene.fetch_failed(back.doc, back.token);
-                self.resume.clear();
+                self.features.resume.clear();
                 self.status(&format!("Cannot edit '{name}': {error}"));
                 return;
             }
         }
 
-        let waiting = std::mem::take(&mut self.resume);
+        let waiting = std::mem::take(&mut self.features.resume);
 
         for resume in waiting {
             self.run_resume(resume);
@@ -88,7 +88,7 @@ impl State {
 
     /// Idle work between edits: one kernel purge step, frames kept coming until the cycle ends.
     pub(crate) fn purge_idle(&mut self) {
-        let gesture = self.dragging.is_some() || self.control_drag.is_some();
+        let gesture = self.features.dragging.is_some() || self.features.control_drag.is_some();
 
         if !gesture && self.scene.purge_step() {
             self.needs_frame = true;
@@ -123,7 +123,7 @@ impl State {
                 self.place_gizmo(None);
                 self.update_label();
             }
-            waiting => self.resume.push(waiting),
+            waiting => self.features.resume.push(waiting),
         }
     }
 }

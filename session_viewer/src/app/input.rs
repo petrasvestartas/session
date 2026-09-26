@@ -216,7 +216,7 @@ impl Input {
                     self.touch_down = at;
                     self.dragged = false;
                     // while drawing, a tap is only a point, like a mouse press
-                    if state.draft.is_none() {
+                    if state.features.draft.is_none() {
                         self.gesture = gesture::press(state, at, TOUCH_REACH);
                     }
 
@@ -284,7 +284,7 @@ impl Input {
                     Act::Moved => true,
                     Act::Tap(at) => {
                         // a command waiting for a point takes the tap, like a mouse click
-                        if state.draft.is_some() {
+                        if state.features.draft.is_some() {
                             return state.click_drawing(at.0, at.1);
                         }
 
@@ -292,7 +292,9 @@ impl Input {
                         false
                     }
                     // a command waiting for points takes both taps
-                    Act::Fit(at) if state.draft.is_some() => state.click_drawing(at.0, at.1),
+                    Act::Fit(at) if state.features.draft.is_some() => {
+                        state.click_drawing(at.0, at.1)
+                    }
                     Act::Fit(_) => {
                         state.fit_all();
                         true
@@ -341,7 +343,7 @@ impl Input {
                 }
 
                 // while drawing, a press is only a click
-                self.plain = !self.ctrl && !self.shift && state.draft.is_none();
+                self.plain = !self.ctrl && !self.shift && state.features.draft.is_none();
 
                 if self.plain {
                     self.gesture = gesture::press(state, self.last_cursor, MOUSE_REACH);
@@ -374,7 +376,7 @@ impl Input {
                     return false; // a drag, not a click
                 }
 
-                if state.draft.is_some() {
+                if state.features.draft.is_some() {
                     return state.click_drawing(self.last_cursor.0, self.last_cursor.1);
                 }
                 state.additive_selection = self.shift && !self.ctrl; // Shift adds to the selection

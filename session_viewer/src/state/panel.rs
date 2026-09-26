@@ -5,7 +5,7 @@ use std::rc::Rc;
 impl State {
     /// How many rows are selected together.
     pub fn selected_group_count(&self) -> usize {
-        self.hierarchy.selected.len()
+        self.features.hierarchy.selected.len()
     }
 
     /// A click in the layers panel, by its key.
@@ -22,7 +22,7 @@ impl State {
 
             if parts.len() == 3
                 && let Ok(index) = parts[0].parse::<usize>()
-                && index < self.hierarchy.nodes.len()
+                && index < self.features.hierarchy.nodes.len()
                 && matches!(parts[1], "face" | "edge")
             {
                 let edge = parts[1] == "edge";
@@ -35,7 +35,7 @@ impl State {
                     Some([(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8])
                 };
 
-                for row in self.hierarchy.targets(index) {
+                for row in self.features.hierarchy.targets(index) {
                     // an edge color needs faces to sit on
                     if edge
                         && !self.gpu.objects.row(row).is_some_and(|r| {
@@ -79,7 +79,7 @@ impl State {
                 let keep = self.selected_identities();
                 let result = self.scene.rename_layer(doc, &name, &to).map(|_| {
                     // the fold and the highlight follow the new name
-                    self.hierarchy.nodes[index].name.clone_from(&to);
+                    self.features.hierarchy.nodes[index].name.clone_from(&to);
                     format!("Renamed {name} to {to}")
                 });
                 self.after_layer_edit(result, keep);
@@ -115,17 +115,17 @@ impl State {
         };
 
         if action == "page" {
-            self.hierarchy.page = index;
-        } else if index < self.hierarchy.nodes.len() {
+            self.features.hierarchy.page = index;
+        } else if index < self.features.hierarchy.nodes.len() {
             match action {
                 "open" => {
                     // fold or unfold the node
-                    if !self.hierarchy.open.remove(&index) {
-                        self.hierarchy.open.insert(index);
+                    if !self.features.hierarchy.open.remove(&index) {
+                        self.features.hierarchy.open.insert(index);
                     }
                 }
                 "select" | "add" => {
-                    let rows = self.hierarchy.targets(index);
+                    let rows = self.features.hierarchy.targets(index);
 
                     // a tool picking objects takes the rows
                     if self.tool_picks() {
@@ -137,7 +137,7 @@ impl State {
                     }
 
                     // while splitting, a click picks cutters
-                    if self.pending_split.is_some() {
+                    if self.features.pending_split.is_some() {
                         for row in rows {
                             self.pick_split_cutter(row);
                         }
@@ -147,20 +147,20 @@ impl State {
 
                     // the clicked layers stay highlighted; any other selection drops them
                     let mut active = if action == "add" {
-                        std::mem::take(&mut self.hierarchy.active)
+                        std::mem::take(&mut self.features.hierarchy.active)
                     } else {
                         Vec::new()
                     };
 
-                    if self.hierarchy.nodes[index].layer {
+                    if self.features.hierarchy.nodes[index].layer {
                         active.push(index);
                     }
 
                     self.select_rows(rows, action == "add");
-                    self.hierarchy.active = active;
+                    self.features.hierarchy.active = active;
                 }
                 "lock" => {
-                    let rows = self.hierarchy.targets(index);
+                    let rows = self.features.hierarchy.targets(index);
                     let lock = rows.iter().any(|row| self.scene.selectable(*row)); // anything unlocked: lock all
 
                     // a locked row cannot stay selected
@@ -170,6 +170,7 @@ impl State {
                             .selected
                             .is_some_and(|row| rows.binary_search(&row).is_ok())
                             || self
+                                .features
                                 .hierarchy
                                 .selected
                                 .iter()
@@ -194,7 +195,7 @@ impl State {
                     return;
                 }
                 "hide" => {
-                    let node = &self.hierarchy.nodes[index];
+                    let node = &self.features.hierarchy.nodes[index];
                     // the current layer, a layer holding it or its document line
                     let holds = match self.layer_of(index) {
                         Some((doc, name)) => self.scene.holds_current(doc, &name),
@@ -212,7 +213,7 @@ impl State {
                         return;
                     }
 
-                    let rows = self.hierarchy.targets(index);
+                    let rows = self.features.hierarchy.targets(index);
                     // anything visible: hide all
                     let hide = rows.iter().any(|row| {
                         self.scene
@@ -236,17 +237,17 @@ impl State {
             return;
         }
 
-        self.hierarchy.refresh(&self.scene);
+        self.features.hierarchy.refresh(&self.scene);
 
-        if let Some(node) = self.hierarchy.index_of(doc, name) {
-            self.hierarchy.reveal(node);
-            self.hierarchy.open.insert(node);
+        if let Some(node) = self.features.hierarchy.index_of(doc, name) {
+            self.features.hierarchy.reveal(node);
+            self.features.hierarchy.open.insert(node);
         }
     }
 
     /// The (document, tree node) of a layer row.
     fn layer_of(&self, index: usize) -> Option<(usize, String)> {
-        let node = self.hierarchy.nodes.get(index)?;
+        let node = self.features.hierarchy.nodes.get(index)?;
         node.layer.then(|| (node.doc, node.name.clone()))
     }
 
@@ -261,7 +262,7 @@ impl State {
         let mut made = None; // a new layer, named right away
         let result = match action {
             "current" => self.scene.set_current_layer(doc, &name).map(|_| {
-                let rows = self.hierarchy.targets(index);
+                let rows = self.features.hierarchy.targets(index);
 
                 // a hidden layer comes back when made current
                 if !rows.is_empty()
@@ -297,7 +298,7 @@ impl State {
                     .change_object_layer(&rows, doc, &name)
                     .map(|moved| {
                         let message = format!("Moved {} objects to {name}", moved.len());
-                        self.hierarchy.active.clear(); // the clicked layers no longer hold them
+                        self.features.hierarchy.active.clear(); // the clicked layers no longer hold them
                         keep = moved;
                         message
                     })
@@ -311,9 +312,9 @@ impl State {
 
         // a new layer is named right away
         if let Some(layer) = made
-            && let Some(node) = self.hierarchy.index_of(doc, &layer)
+            && let Some(node) = self.features.hierarchy.index_of(doc, &layer)
         {
-            self.hierarchy.reveal(node);
+            self.features.hierarchy.reveal(node);
             self.refresh_layers();
             crate::app::feedback::rename_row(node, &layer);
         }
@@ -333,10 +334,11 @@ impl State {
             Ok(message) => {
                 // the clicked layers by name, found again in the rebuilt panel
                 let active: Vec<(usize, String)> = self
+                    .features
                     .hierarchy
                     .active
                     .iter()
-                    .filter_map(|index| self.hierarchy.nodes.get(*index))
+                    .filter_map(|index| self.features.hierarchy.nodes.get(*index))
                     .map(|node| (node.doc, node.name.clone()))
                     .collect();
                 self.commit_rows();
@@ -351,9 +353,9 @@ impl State {
                     self.select_rows(rows, false);
                 }
 
-                self.hierarchy.active = active
+                self.features.hierarchy.active = active
                     .iter()
-                    .filter_map(|(doc, name)| self.hierarchy.index_of(*doc, name))
+                    .filter_map(|(doc, name)| self.features.hierarchy.index_of(*doc, name))
                     .collect();
                 self.status(&message);
             }
@@ -377,6 +379,7 @@ impl State {
                 .selected
                 .is_some_and(|row| rows.binary_search(&row).is_ok())
                 || self
+                    .features
                     .hierarchy
                     .selected
                     .iter()
@@ -409,15 +412,17 @@ impl State {
     pub(super) fn hierarchy_labels(&mut self, rows: &mut Vec<crate::app::feedback::LayerRow>) {
         use crate::app::feedback::LayerRow;
         use crate::app::hierarchy::PAGE_SIZE;
-        let visible = self.hierarchy.visible(); // unfolded nodes
-        self.hierarchy.page = self
+        let visible = self.features.hierarchy.visible(); // unfolded nodes
+        self.features.hierarchy.page = self
+            .features
             .hierarchy
             .page
             .min(visible.len().saturating_sub(1) / PAGE_SIZE); // keep the page in range
-        let first = self.hierarchy.page * PAGE_SIZE;
+        let first = self.features.hierarchy.page * PAGE_SIZE;
         let current = self.scene.current_layer();
         let chosen = |row: &u32| {
-            self.scene.selected == Some(*row) || self.hierarchy.selected.binary_search(row).is_ok()
+            self.scene.selected == Some(*row)
+                || self.features.hierarchy.selected.binary_search(row).is_ok()
         };
         let hidden = |row: &u32| {
             self.scene
@@ -427,9 +432,9 @@ impl State {
 
         // one panel row per visible node on this page
         for &index in visible.iter().skip(first).take(PAGE_SIZE) {
-            let node = &self.hierarchy.nodes[index];
+            let node = &self.features.hierarchy.nodes[index];
             let count = node.rows.len();
-            let targets = &self.hierarchy.rows[node.rows.clone()];
+            let targets = &self.features.hierarchy.rows[node.rows.clone()];
             let locked = count > 0 && targets.iter().all(|row| !self.scene.selectable(*row)); // every row locked?
             // the shared color, when every row has the same one
             let first_color = targets
@@ -444,11 +449,10 @@ impl State {
                 })
             });
             // a clicked layer or sublayer while all it can select is, an object while it is selected
-            let clicked = self
-                .hierarchy
-                .active
-                .iter()
-                .any(|&layer| layer <= index && index < self.hierarchy.nodes[layer].end);
+            let clicked =
+                self.features.hierarchy.active.iter().any(|&layer| {
+                    layer <= index && index < self.features.hierarchy.nodes[layer].end
+                });
             let selected = if node.layer {
                 clicked
                     && targets
@@ -482,7 +486,8 @@ impl State {
                     })
                 }),
                 depth: node.depth,
-                expanded: (node.end > index + 1).then(|| self.hierarchy.open.contains(&index)),
+                expanded: (node.end > index + 1)
+                    .then(|| self.features.hierarchy.open.contains(&index)),
                 layer: node.layer,
                 current: node.layer
                     && current
@@ -499,10 +504,10 @@ impl State {
 
         // Previous and Next rows when there are more pages
         for (label, page) in [
-            ("Previous", self.hierarchy.page.checked_sub(1)),
+            ("Previous", self.features.hierarchy.page.checked_sub(1)),
             (
                 "Next",
-                (first + PAGE_SIZE < visible.len()).then_some(self.hierarchy.page + 1),
+                (first + PAGE_SIZE < visible.len()).then_some(self.features.hierarchy.page + 1),
             ),
         ] {
             if let Some(page) = page {
@@ -516,7 +521,7 @@ impl State {
             }
         }
 
-        if self.hierarchy.truncated {
+        if self.features.hierarchy.truncated {
             rows.push(LayerRow {
                 key: String::new(),
                 label: "Tree exceeds panel capacity".into(),

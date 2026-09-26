@@ -1,8 +1,11 @@
+use super::Gpu;
 use super::arena::ArenaLane;
 use super::buffers::{GpuCtx, zeroed_buffer};
-use super::frame::Binds;
+use super::frame::{Binds, FrameInput};
 use super::objects::InstanceTable;
+use super::pass::{Frame, Pass};
 use super::targets::{Attachment, Targets, TextureSpec};
+use super::view::View;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Target, build, instance_id_layout,
     layout, scene_module, vertex_layout,
@@ -654,40 +657,159 @@ impl Clip {
     }
 }
 
-impl super::Gpu {
-    /// Cut the scene with `planes`; the cached passes run again only when they changed, and the
-    /// ink pipelines swap to their clip tests when cutting starts and back when it stops.
-    pub fn set_clip_planes(&mut self, planes: &[ClipPlane]) {
-        if !self.clip.set(planes) {
-            return;
-        }
-
-        self.objects.geometry_changed();
-        let cutting = self.clip.count > 0;
-
-        if self.ctx.cache.clipping.replace(cutting) != cutting {
-            self.rebuild_pipelines();
-        }
-    }
-
+impl Clip {
     /// The planes whose sections this frame draws, and how many: each crosses a closed solid.
-    pub(super) fn cap_planes(&self) -> ([u32; MAX_PLANES], usize) {
+    fn cap_planes(&self, view: &View) -> ([u32; MAX_PLANES], usize) {
         let mut planes = [0; MAX_PLANES];
         let mut count = 0;
 
         // x-ray draws no faces, so no sections either
-        if self.view.opacity <= 0.0 {
+        if view.opacity <= 0.0 {
             return (planes, 0);
         }
 
-        for plane in 0..self.clip.count {
-            if self.clip.cuts(plane) {
+        for plane in 0..self.count {
+            if self.cuts(plane) {
                 planes[count] = plane as u32;
                 count += 1;
             }
         }
 
         (planes, count)
+    }
+}
+
+impl super::Gpu {
+    /// Cut the scene with `planes`; the cached passes run again only when they changed, and the
+    /// ink pipelines swap to their clip tests when cutting starts and back when it stops.
+    pub fn set_clip_planes(&mut self, planes: &[ClipPlane]) {
+        if !self.pass_mut::<Clip>().set(planes) {
+            return;
+        }
+
+        self.objects.geometry_changed();
+        let cutting = self.pass::<Clip>().count > 0;
+
+        if self.ctx.cache.clipping.replace(cutting) != cutting {
+            self.rebuild_pipelines();
+        }
+    }
+
+    /// Find, per plane, the closed solids it crosses; `faces` names a row's face indices.
+    pub fn find_solids(&mut self, faces: impl Fn(u32) -> Option<(Range<u32>, bool)>) {
+        super::pass::find_mut::<Clip>(&mut self.passes).find_solids(&self.objects, faces);
+    }
+}
+
+/// The clip pass, without planes.
+pub fn pass(_ctx: &GpuCtx, target: Target) -> Box<dyn Pass> {
+    Box::new(Clip::new(target))
+}
+
+impl Pass for Clip {
+    fn write_frame(&mut self, g: &mut Gpu, input: &FrameInput) {
+        let size = (g.config.width, g.config.height);
+        let clip = self.uniform(&ClipView {
+            view_proj: &input.view_proj,
+            anchor: g.objects.anchor(),
+            height: size.1,
+            pixel_scale: f64::from(size.0) / g.logical_size[0].max(1.0),
+            samples: g.targets.samples,
+        });
+        g.frame.write_clip(&g.ctx, &clip);
+    }
+
+    /// For each plane that crosses a closed solid, the crossings are counted first and its
+    /// section caps drawn before the faces; every plane but the last in a face pass of its own.
+    fn before_faces(
+        &mut self,
+        g: &mut Gpu,
+        encoder: &mut wgpu::CommandEncoder,
+        f: &Frame,
+        drew: &mut bool,
+    ) -> u32 {
+        let (planes, count) = self.cap_planes(&g.view);
+        let size = (g.config.width, g.config.height);
+        let mut draws = 0;
+
+        if count > 0 {
+            self.prepare_counts(&g.ctx, &g.layouts, size);
+        }
+
+        for &plane in &planes[..count.saturating_sub(1)] {
+            let b = g.frame.binds(&g.objects.group);
+            draws += self.encode_count(encoder, &g.arena, &b, plane);
+            let mut pass = g
+                .targets
+                .begin_faces(encoder, f.view, (!*drew).then_some(f.clear));
+
+            if !*drew {
+                draws += g.backdrop_list(&mut pass, &b);
+            }
+
+            *drew = true;
+            draws += self.draw_cap(&mut pass, &b, plane);
+        }
+
+        if count > 0 {
+            let b = g.frame.binds(&g.objects.group);
+            draws += self.encode_count(encoder, &g.arena, &b, planes[count - 1]);
+            g.mark(encoder, "counts");
+        }
+
+        draws
+    }
+
+    /// The last plane's caps, into the face pass the faces follow in.
+    fn in_faces(&self, g: &Gpu, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        let (planes, count) = self.cap_planes(&g.view);
+
+        if count == 0 {
+            return 0;
+        }
+
+        self.draw_cap(pass, b, planes[count - 1])
+    }
+
+    fn clips(&self) -> bool {
+        self.count() > 0
+    }
+
+    fn bind_masks(&mut self, g: &Gpu) {
+        if self.cap_planes(&g.view).1 > 0 {
+            self.bind_primitives(&g.ctx, &g.targets);
+        }
+    }
+
+    fn in_masks(&self, g: &Gpu, pass: &mut wgpu::RenderPass<'_>, b: &Binds, both: bool) -> u32 {
+        if self.cap_planes(&g.view).1 == 0 {
+            0
+        } else if both {
+            self.draw_cap_masks(pass, b)
+        } else {
+            self.draw_cap_selection(pass, b)
+        }
+    }
+
+    /// Which solid each section cap pixel belongs to.
+    fn before_ids(
+        &mut self,
+        g: &Gpu,
+        encoder: &mut wgpu::CommandEncoder,
+        b: &Binds,
+        size: (u32, u32),
+    ) {
+        if self.cap_planes(&g.view).1 > 0 {
+            self.encode_pick(&g.ctx, &g.layouts, encoder, &g.arena, b, size);
+        }
+    }
+
+    fn in_ids(&self, g: &Gpu, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        if self.cap_planes(&g.view).1 == 0 {
+            return 0;
+        }
+
+        self.draw_cap_ids(pass, b)
     }
 }
 
@@ -1148,8 +1270,8 @@ mod tests {
     /// tables: the layouts show each binding to those stages only, and WebGPU rejects the pipeline.
     #[test]
     fn every_stage_stays_within_its_bindings() {
-        use crate::engine::pipelines::{CLIP, SCENE, shared};
-        let scene = |source: &str| shared(&format!("{source}\n{SCENE}\n{CLIP}"));
+        use crate::engine::pipelines::{scene_source, shared};
+        let scene = |source: &str| shared(&scene_source(source));
         // (group, binding) of the storage each stage may not use, per shader
         let triangle: &[((u32, u32), naga::ShaderStage)] = &[
             ((2, 0), naga::ShaderStage::Fragment),
@@ -1525,7 +1647,7 @@ mod tests {
         fn solids(meshes: Vec<Mesh>) -> Option<(Gpu, Scene)> {
             crate::app::clipping::verify_solids();
             let mut gpu = pollster::block_on(Gpu::new_headless(SIZE as u32, SIZE as u32)).ok()?;
-            gpu.clip.fill = 0; // existing hatch regressions explicitly choose Hatch
+            gpu.pass_mut::<super::super::Clip>().fill = 0; // existing hatch regressions explicitly choose Hatch
             gpu.view.show_grid = false;
             gpu.view.show_mesh_edges = false;
             gpu.view.show_points = false;
@@ -1551,8 +1673,7 @@ mod tests {
         /// Cut with `planes` and find the solids they cross, as a frame of the viewer does.
         fn cut(gpu: &mut Gpu, scene: &Scene, planes: &[ClipPlane]) {
             gpu.set_clip_planes(planes);
-            gpu.clip
-                .find_solids(&gpu.objects, |row| scene.solid_faces(row));
+            gpu.find_solids(|row| scene.solid_faces(row));
         }
 
         /// The world XY plane through height `z`, everything above cut away.
@@ -1654,8 +1775,8 @@ mod tests {
         fn sections_default_to_light_grey_with_black_boundaries() {
             let (mut gpu, scene) = solids(vec![block([-50.0; 3], [50.0; 3], Color::blue(), true)])
                 .expect("native GPU");
-            gpu.clip.fill = super::super::Clip::new(gpu.target()).fill;
-            assert_eq!(gpu.clip.fill, 1);
+            gpu.pass_mut::<super::super::Clip>().fill = super::super::Clip::new(gpu.target()).fill;
+            assert_eq!(gpu.pass::<super::super::Clip>().fill, 1);
             cut(&mut gpu, &scene, &[cut_above(0.0)]);
             for samples in [1, 4] {
                 gpu.view.msaa_forced = Some(samples);
@@ -1853,12 +1974,16 @@ mod tests {
             };
             cut(&mut gpu, &scene, &[cut_above(500.0)]);
             assert_eq!(
-                gpu.cap_planes().1,
+                gpu.pass::<super::super::Clip>().cap_planes(&gpu.view).1,
                 0,
                 "a plane above both boxes draws no section pass"
             );
             cut(&mut gpu, &scene, &[cut_above(0.0)]);
-            assert_eq!(gpu.cap_planes().1, 1, "the plane through both boxes does");
+            assert_eq!(
+                gpu.pass::<super::super::Clip>().cap_planes(&gpu.view).1,
+                1,
+                "the plane through both boxes does"
+            );
             each_view(
                 &mut gpu,
                 [100.0, -250.0, 250.0],
@@ -2106,7 +2231,7 @@ mod tests {
         ) -> Option<(Gpu, Scene)> {
             crate::app::clipping::verify_solids();
             let mut gpu = pollster::block_on(Gpu::new_headless(SIZE as u32, SIZE as u32)).ok()?;
-            gpu.clip.fill = 0;
+            gpu.pass_mut::<super::super::Clip>().fill = 0;
             gpu.view.show_grid = false;
             gpu.view.show_mesh_edges = false;
             gpu.view.show_points = false;
@@ -2528,7 +2653,11 @@ mod tests {
             want.view.backface = false;
             cut(&mut gpu, &scene, &[cut_above(0.0)]);
             cut(&mut want, &want_scene, &[cut_above(0.0)]);
-            assert_eq!(gpu.clip.placed.records.len(), 3, "every instance is cut");
+            assert_eq!(
+                gpu.pass::<super::super::Clip>().placed.records.len(),
+                3,
+                "every instance is cut"
+            );
             let centers = [[-60.0, 0.0, 0.0], [60.0, 0.0, 0.0], [0.0, 70.0, 0.0]];
 
             for samples in [1, 4] {
@@ -2592,7 +2721,7 @@ mod tests {
         fn shown(session: Session) -> Option<(Gpu, Scene)> {
             crate::app::clipping::verify_solids();
             let mut gpu = pollster::block_on(Gpu::new_headless(SIZE as u32, SIZE as u32)).ok()?;
-            gpu.clip.fill = 0;
+            gpu.pass_mut::<super::super::Clip>().fill = 0;
             gpu.view.show_grid = false;
             gpu.view.show_mesh_edges = false;
             gpu.view.show_points = false;

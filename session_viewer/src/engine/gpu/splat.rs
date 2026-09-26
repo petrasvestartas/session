@@ -162,15 +162,7 @@ impl Splat {
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
         );
         let points_group = points_group(ctx, l, &record_buf, &bufs);
-        let point_shader = module(
-            ctx,
-            "splat.shader",
-            &format!(
-                "{}\n{}",
-                shader!("splat.wgsl"),
-                crate::engine::pipelines::CLIP
-            ),
-        );
+        let point_shader = module(ctx, "splat.shader", shader!("splat.wgsl"));
         let resolve_shader = module(
             ctx,
             "splat.resolve.shader",

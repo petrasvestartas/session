@@ -640,15 +640,10 @@ impl TilePipelines {
             label: Some("triangle.scan.layout"),
             entries: &[entry(0, Stages::COMPUTE, Storage { read_only: false })],
         });
-        let project_shader = shader(
+        let project_shader = wgsl(
             ctx,
             "triangle.project",
-            &format!(
-                "{}\n{}\n{}",
-                shader!("project_triangles.wgsl"),
-                shader!("slot_table.wgsl"),
-                crate::engine::pipelines::CLIP
-            ),
+            shader!("project_triangles.wgsl").to_owned(),
         );
         let project_pipeline_layout = pipeline_layout(
             device,
@@ -661,10 +656,10 @@ impl TilePipelines {
             ],
         );
         let project = compute_pipeline(ctx, &project_pipeline_layout, &project_shader, "cs_main");
-        let raster_shader = shader(
+        let raster_shader = wgsl(
             ctx,
             "triangle.tiles",
-            shader!("triangle_tiles.wgsl"),
+            shader!("triangle_tiles.wgsl").to_owned(),
         );
         // the fragment shader writes buffers, not pixels
         let raster_groups = [
@@ -687,10 +682,10 @@ impl TilePipelines {
         };
         let count = build(ctx, tile_target, &raster.with("fs_count", "fs_count"));
         let fill = build(ctx, tile_target, &raster.with("fs_fill", "fs_fill"));
-        let scan_shader = shader(
+        let scan_shader = wgsl(
             ctx,
             "triangle.scan",
-            shader!("scan_triangle_tiles.wgsl"),
+            shader!("scan_triangle_tiles.wgsl").to_owned(),
         );
         let scan_pipeline_layout =
             pipeline_layout(device, "triangle.scan", &[&layouts.line, &scan_layout]);
@@ -728,15 +723,6 @@ impl TilePipelines {
     }
 }
 
-/// A shader with the shared projected-triangle code appended.
-fn shader(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
-    let source = format!(
-        "{source}\n{}",
-        shader!("projected_triangle.wgsl")
-    );
-    wgsl(ctx, label, source)
-}
-
 /// A compute pipeline for one entry point, compiled on first use.
 fn compute_pipeline(
     ctx: &GpuCtx,
@@ -764,6 +750,25 @@ fn compute_pipeline(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Each tile shader carries what it includes and validates on its own.
+    #[test]
+    fn tile_shaders_validate() {
+        for (name, source) in [
+            ("project_triangles.wgsl", shader!("project_triangles.wgsl")),
+            ("triangle_tiles.wgsl", shader!("triangle_tiles.wgsl")),
+            ("scan_triangle_tiles.wgsl", shader!("scan_triangle_tiles.wgsl")),
+        ] {
+            let module = naga::front::wgsl::parse_str(source)
+                .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(source)));
+            naga::valid::Validator::new(
+                naga::valid::ValidationFlags::all(),
+                naga::valid::Capabilities::all(),
+            )
+            .validate(&module)
+            .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(source)));
+        }
+    }
 
     /// Past 65535 workgroups the projection wraps into rows, covering every triangle once.
     #[test]

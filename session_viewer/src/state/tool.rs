@@ -31,7 +31,7 @@ impl State {
         }
 
         draft.tool = Some(tool);
-        self.draft = Some(draft);
+        self.features.draft = Some(draft);
         self.gpu.pick.cancel();
         self.place_gizmo(None);
         Ok(self.drawing_prompt())
@@ -43,7 +43,7 @@ impl State {
         self.cancel_split();
         let mut draft = Draft::new(tool.name(), tool.name(), self.facing());
         draft.tool = Some(tool);
-        self.draft = Some(draft);
+        self.features.draft = Some(draft);
         self.gpu.pick.cancel();
         self.place_gizmo(None);
         crate::app::feedback::command_line(true);
@@ -56,20 +56,21 @@ impl State {
 
     /// Call the running tool with it taken out of `self`; None when no tool runs.
     fn with_tool<T>(&mut self, call: impl FnOnce(&mut dyn Tool, &mut State) -> T) -> Option<T> {
-        let mut draft = self.draft.take()?;
+        let mut draft = self.features.draft.take()?;
         let Some(mut tool) = draft.tool.take() else {
-            self.draft = Some(draft);
+            self.features.draft = Some(draft);
             return None;
         };
         let answer = call(tool.as_mut(), self);
         draft.tool = Some(tool);
-        self.draft = Some(draft);
+        self.features.draft = Some(draft);
         Some(answer)
     }
 
     /// True while the running tool wants an object pick.
     pub(super) fn tool_picks(&self) -> bool {
-        self.draft
+        self.features
+            .draft
             .as_ref()
             .and_then(|draft| draft.tool.as_ref())
             .is_some_and(|tool| tool.picks())
@@ -85,7 +86,7 @@ impl State {
 
         let answer = self.call_tool(|tool, state, _, _| tool.clicked(state, (x, y)))?;
         self.status(&answer.unwrap_or_else(|error| error));
-        crate::app::feedback::command_line(self.draft.is_some());
+        crate::app::feedback::command_line(self.features.draft.is_some());
         Some(true)
     }
 
@@ -141,22 +142,23 @@ impl State {
 
     /// What the running tool draws over the scene.
     pub fn tool_marks(&self) -> Option<Overlay> {
-        self.draft.as_ref()?.tool.as_ref()?.marks(self)
+        self.features.draft.as_ref()?.tool.as_ref()?.marks(self)
     }
 
     /// The option button the running tool shows as chosen.
     pub fn drawing_chosen(&self) -> Option<&'static str> {
-        self.draft.as_ref()?.tool.as_ref()?.chosen()
+        self.features.draft.as_ref()?.tool.as_ref()?.chosen()
     }
 
     /// Where the cursor is in the scene while drawing.
     pub(crate) fn drawing_cursor(&self) -> Option<&Point> {
-        self.draft.as_ref()?.hover.as_ref()
+        self.features.draft.as_ref()?.hover.as_ref()
     }
 
     /// The running tool as JSON, null when none runs.
     pub fn tool_status(&self) -> serde_json::Value {
-        self.draft
+        self.features
+            .draft
             .as_ref()
             .and_then(|draft| draft.tool.as_ref())
             .map_or(serde_json::Value::Null, |tool| tool.status())
@@ -173,14 +175,14 @@ impl State {
         self.cancel_split();
         let mut draft = Draft::new("select", "select", self.facing());
         draft.then = Some(line.to_owned());
-        self.draft = Some(draft);
+        self.features.draft = Some(draft);
         self.place_gizmo(None);
         Ok(self.drawing_prompt())
     }
 
     /// A command line entry for a running tool or object pick; None when it is some other command.
     pub(super) fn tool_command(&mut self, text: &str) -> Option<Result<String, String>> {
-        let draft = self.draft.as_ref()?;
+        let draft = self.features.draft.as_ref()?;
 
         // picking objects: Enter runs the command on them
         if let Some(line) = draft.then.clone() {
@@ -209,7 +211,12 @@ impl State {
 
         for word in text.split_whitespace() {
             // a tool that finished takes no more words
-            if self.draft.as_ref().is_none_or(|draft| draft.tool.is_none()) {
+            if self
+                .features
+                .draft
+                .as_ref()
+                .is_none_or(|draft| draft.tool.is_none())
+            {
                 break;
             }
 
@@ -243,9 +250,9 @@ impl State {
         &mut self,
         call: impl FnOnce(&mut dyn Tool, &mut State, &[Point], &Plane) -> Option<Result<Next, String>>,
     ) -> Option<Result<String, String>> {
-        let mut draft = self.draft.take()?;
+        let mut draft = self.features.draft.take()?;
         let Some(mut tool) = draft.tool.take() else {
-            self.draft = Some(draft);
+            self.features.draft = Some(draft);
             return None;
         };
 
@@ -258,7 +265,7 @@ impl State {
         let answer = call(tool.as_mut(), self, &draft.points, &draft.frame);
         draft.tool = Some(tool);
         let Some(answer) = answer else {
-            self.draft = Some(draft);
+            self.features.draft = Some(draft);
             self.preview_tool();
             return None;
         };
@@ -269,14 +276,14 @@ impl State {
     fn resume(&mut self, mut draft: Draft, answer: Result<Next, String>) -> Result<String, String> {
         match answer {
             Ok(Next::More) => {
-                self.draft = Some(draft);
+                self.features.draft = Some(draft);
                 self.preview_tool();
                 Ok(self.drawing_prompt())
             }
             Ok(Next::Repeat(message)) => {
                 draft.points.truncate(1);
                 draft.targets = None; // what it made offers snaps too
-                self.draft = Some(draft);
+                self.features.draft = Some(draft);
                 self.place_gizmo(None);
                 Ok(format!("{message} · {}", self.drawing_prompt()))
             }
@@ -287,7 +294,7 @@ impl State {
                 Ok(message)
             }
             Err(error) => {
-                self.draft = Some(draft);
+                self.features.draft = Some(draft);
                 self.preview_tool();
                 Err(error)
             }
@@ -296,7 +303,7 @@ impl State {
 
     /// The prompt of a running tool or object pick.
     pub(super) fn tool_prompt(&self) -> Option<String> {
-        let draft = self.draft.as_ref()?;
+        let draft = self.features.draft.as_ref()?;
 
         if let Some(line) = &draft.then {
             return Some(format!(
@@ -319,13 +326,17 @@ impl State {
             "{}: {} · click or type x,y,z · Snap {} · Esc cancels",
             tool.name(),
             tool.prompt(&draft.points),
-            if self.snap_enabled { "On" } else { "Off" }
+            if self.features.snap.enabled {
+                "On"
+            } else {
+                "Off"
+            }
         ))
     }
 
     /// The rubber band on screen and the text beside the cursor.
     pub(super) fn tool_overlay(&self) -> Option<(Vec<(f64, f64)>, String)> {
-        let draft = self.draft.as_ref()?;
+        let draft = self.features.draft.as_ref()?;
 
         if draft.then.is_some() {
             return Some((Vec::new(), String::new()));
@@ -352,7 +363,7 @@ impl State {
 
     /// Show the selection where the tool would put it for the cursor; only GPU placements change.
     pub(super) fn preview_tool(&mut self) {
-        let Some(draft) = self.draft.as_ref() else {
+        let Some(draft) = self.features.draft.as_ref() else {
             return;
         };
         let (Some(tool), Some(cursor)) = (draft.tool.as_ref(), draft.hover.as_ref()) else {
@@ -370,10 +381,10 @@ impl State {
             return;
         }
 
-        let mut draft = self.draft.take().unwrap();
+        let mut draft = self.features.draft.take().unwrap();
         self.show_group(&draft.group, delta.as_ref());
         draft.moved = delta.is_some();
-        self.draft = Some(draft);
+        self.features.draft = Some(draft);
     }
 
     /// Place `group` at `delta` times its placement, or back at its placement.
@@ -394,7 +405,7 @@ impl State {
 
     /// Esc or another command: drop the draft; a previewed selection goes back, the selection stays.
     pub(crate) fn cancel_drawing(&mut self) {
-        let Some(mut draft) = self.draft.take() else {
+        let Some(mut draft) = self.features.draft.take() else {
             return;
         };
         self.additive_selection = false;
@@ -416,7 +427,8 @@ impl State {
 
     /// True while a tool or an object pick runs: the gumball stays hidden.
     pub(crate) fn tool_running(&self) -> bool {
-        self.draft
+        self.features
+            .draft
             .as_ref()
             .is_some_and(|draft| draft.tool.is_some() || draft.then.is_some())
     }

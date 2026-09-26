@@ -14,6 +14,7 @@ pub mod lod;
 pub mod objects;
 
 pub mod lane;
+pub mod pass;
 pub(crate) mod patch;
 pub mod pick;
 pub mod present;
@@ -47,6 +48,7 @@ use frame::FrameUniforms;
 use glyphs::GlyphLane;
 use lane::{Lane, RowLane};
 use objects::{InkScene, InstanceTable};
+use pass::Pass;
 use pick::Picker;
 use segments::SegmentLane;
 use splat::Splat;
@@ -73,8 +75,6 @@ pub struct Gpu {
     pub view: View, // display settings
     pub objects: InstanceTable, // one row per object
     pub backdrop: BackdropLane, // background and grid
-    ssao: Option<ssao::Ssao>, // ambient occlusion, when on
-    ssao_pipes: [Option<ssao::SsaoPipelines>; 2], // ambient pipelines at 1x and 4x, kept when off
     pub arena: ArenaLane, // meshes
     pub segments: SegmentLane, // lines
     pub glyphs: GlyphLane, // markers and dots
@@ -83,16 +83,14 @@ pub struct Gpu {
     pub widget: widget::Widget, // gumball mesh, own depth
     pub ui: Option<ui::Ui>, // egui overlay
     pub text: text::TextLane, // labels
-    pub selection_outline: surface_outline::SurfaceOutline, // outline around the selection
-    pub solid_outline: surface_outline::SurfaceOutline, // outline around every solid
     pub selection_revision: u64, // bumps on every selection change
     pub logical_size: [f64; 2], // canvas size in CSS pixels
     pub cloud: CloudLane, // point cloud buffers
     registered: Vec<Box<dyn RowLane>>, // lanes from lane::REGISTRY
+    passes: Vec<Box<dyn Pass>>, // passes from pass::PASSES, in frame order
     dead: patch::Counts, // editable rows retired and not yet reclaimed
     dead_points: u32, // cloud points retired and not yet reclaimed
     pub splat: Splat, // point cloud drawing
-    pub clip: clip::Clip, // clipping planes and their section caps
     pub pick: Picker, // reads object ids under the cursor
     pub performance: Performance, // frame timing
     pub timer: Option<timing::PassTimer>, // GPU time per pass, when a bench installs it
@@ -115,13 +113,9 @@ macro_rules! lane_list {
             control_net,       // register:control_net
             widget,            // register:widget
             text,              // register:text
-            selection_outline, // register:selection_outline
-            solid_outline,     // register:solid_outline
             cloud,             // register:cloud
             splat,             // register:splat
-            clip,              // register:clip
-            pick,              // register:pick
-            ssao               // register:ssao
+            pick               // register:pick
         )
     };
 }
@@ -148,6 +142,11 @@ impl Gpu {
         }
         for lane in &self.registered {
             let (b, t) = lane.bytes();
+            buffers += b;
+            textures += t;
+        }
+        for pass in &self.passes {
+            let (b, t) = pass.bytes();
             buffers += b;
             textures += t;
         }
@@ -211,23 +210,13 @@ impl Gpu {
         let control_net = SegmentLane::new(&ctx, &layouts, target);
         let widget = widget::Widget::new(&ctx, target);
         let text = text::TextLane::new(&ctx, target);
-        let selection_outline = surface_outline::SurfaceOutline::new(
-            &ctx,
-            target,
-            surface_outline::OutlineKind::Selected,
-        );
-        let solid_outline = surface_outline::SurfaceOutline::new(
-            &ctx,
-            target,
-            surface_outline::OutlineKind::AllSolids,
-        );
         let cloud = CloudLane::new(&ctx);
         let splat = Splat::new(&ctx, &layouts, target, cloud.buffers());
-        let clip = clip::Clip::new(target);
         let registered = lane::REGISTRY
             .iter()
             .map(|lane| (lane.make)(&ctx, &layouts, target))
             .collect();
+        let passes = pass::PASSES.iter().map(|make| make(&ctx, target)).collect();
 
         log::info!(
             "viewer init OK - surface {}x{}, format {:?}",
@@ -246,8 +235,6 @@ impl Gpu {
             view: View::from_env(),
             objects,
             backdrop,
-            ssao: None,
-            ssao_pipes: [None, None],
             arena,
             segments,
             glyphs,
@@ -256,16 +243,14 @@ impl Gpu {
             widget,
             ui: None,
             text,
-            selection_outline,
-            solid_outline,
             selection_revision: 0,
             logical_size: [size.0 as f64, size.1 as f64],
             cloud,
             registered,
+            passes,
             dead: patch::Counts::default(),
             dead_points: 0,
             splat,
-            clip,
             pick: Picker::new(),
             performance: Performance::new(),
             timer: None,
@@ -328,7 +313,7 @@ impl Gpu {
     }
 
     /// Current color format and sample count.
-    fn target(&self) -> Target {
+    pub(super) fn target(&self) -> Target {
         Target {
             format: self.config.format,
             samples: self.targets.samples,
@@ -367,6 +352,9 @@ impl Gpu {
         }
         for lane in &mut self.registered {
             lane.on_retarget(ctx, layouts, target);
+        }
+        for pass in &mut self.passes {
+            pass.on_retarget(ctx, layouts, target);
         }
     }
 
@@ -545,6 +533,9 @@ impl Gpu {
         for lane in &mut self.registered {
             lane.on_reset(ctx);
         }
+        for pass in &mut self.passes {
+            pass.on_reset(ctx);
+        }
         self.segments.set_edge(&self.ctx, None);
         self.bounds = AABB::empty();
         self.dead = patch::Counts::default();
@@ -561,6 +552,9 @@ impl Gpu {
         for lane in &mut self.registered {
             lane.on_release(ctx, layouts);
         }
+        for pass in &mut self.passes {
+            pass.on_release(ctx, layouts);
+        }
         self.segments.set_edge(&self.ctx, None);
         // a freed cloud buffer needs a new bind group
         self.splat
@@ -576,7 +570,9 @@ impl Gpu {
     pub fn set_selected(&mut self, row: u32, on: bool) {
         self.selection_revision = self.selection_revision.wrapping_add(1);
         self.segments.set_selected(row, on);
-        self.selection_outline.set_selected(row, on);
+        for pass in &mut self.passes {
+            pass.on_select(row, on);
+        }
         self.objects
             .set_flag(&self.ctx, row, Instance::FLAG_SELECTED, on);
         self.splat.invalidate();
