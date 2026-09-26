@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   minitest:
@@ -199,12 +199,18 @@ jobs:
         fi
         ls -la session_tests/dist
 
-    - name: Upload mini-test website as artifact
+    # The one Pages deploy (viewer-pages.yml) reads the newest successful copy of this from main
+    # and builds the Kernel API page of the docs site from it.
+    - name: Upload kernel test results
       if: matrix.language == 'full'
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
-        name: session-mini-tests-website-${{ matrix.os }}
-        path: session_tests/dist
+        name: kernel-test-results
+        path: |
+          session_tests/public/testData.js
+          session_tests/session_cpp/*_test.json
+          session_tests/session_py/*_test.json
+          session_tests/session_rust/*_test.json
         if-no-files-found: error
 
   api-check:
@@ -236,25 +242,3 @@ jobs:
           echo "No published version found, skipping API diff"
         fi
 
-  deploy:
-    needs: [minitest]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    concurrency:
-      group: gh-pages-deploy
-      cancel-in-progress: false
-
-    steps:
-    - name: Download Ubuntu artifact
-      uses: actions/download-artifact@v8
-      with:
-        name: session-mini-tests-website-ubuntu-22.04
-        path: dist
-
-    - name: Deploy mini-test website to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./dist
-        publish_branch: gh-pages
-        force_orphan: true

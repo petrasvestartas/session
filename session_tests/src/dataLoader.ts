@@ -16,7 +16,15 @@ function injectOnce(file: string): Promise<void> {
   });
 }
 
+// Missing or broken results leave an empty data set, so the Kernel API page shows its empty state.
 export async function ensureTestData(): Promise<unknown> {
-  if (typeof (window as any).TEST_DATA === 'undefined') await injectOnce('testData.js');
+  if (typeof (window as any).TEST_DATA === 'undefined') {
+    try {
+      await injectOnce('testData.js');
+    } catch (e) {
+      console.warn((e as Error).message);
+    }
+  }
+  if (typeof (window as any).TEST_DATA === 'undefined') (window as any).TEST_DATA = {};
   return (window as any).TEST_DATA;
 }

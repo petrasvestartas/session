@@ -1,6 +1,6 @@
-# Build the session_viewer wasm app with trunk and publish it as the repo's GitHub Pages site.
-# The dist is fully relative (Trunk.toml public_url = "./"), so it serves cleanly from
-# https://petrasvestartas.github.io/session/ without any path rewriting.
+# The one GitHub Pages deploy: the session_viewer wasm app at https://petrasvestartas.github.io/session/
+# and the docs site (session_tests: course, Kernel API, install) at /session/docs/.
+# The viewer dist is fully relative (Trunk.toml public_url = "./"), so it serves from /session/ as is.
 name: viewer-pages
 
 on:
@@ -8,13 +8,20 @@ on:
     branches: [main]
     paths:
       - 'session_viewer/**'
+      - 'session_tests/**'
       - '.github/workflows/viewer-pages.yml'
+  # Fresh kernel test results reach the Kernel API page without a docs push.
+  workflow_run:
+    workflows: ["Session mini tests"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 # One Pages deploy at a time; a queued deploy waits rather than being cancelled.
 concurrency:
@@ -26,6 +33,7 @@ jobs:
   # reusable workflow: a compartment that does not compile or does not pass
   # `cargo xtest` never reaches the deploy.
   check:
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     uses: ./.github/workflows/viewer-check.yml
 
   build:
@@ -33,19 +41,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # session_rust is the viewer's build dependency, session_proto holds the one
-      # schema lesson 19 includes; the other submodules are dead weight for this job.
-      - name: Checkout the submodules the course needs
-        run: git submodule update --init --depth 1 session_rust session_proto
+      # session_rust is the viewer's build dependency, session_proto holds the one schema
+      # lesson 19 includes, session_cpp gives the docs site its kernel class list and
+      # descriptions; the other submodules are dead weight for this job.
+      - name: Checkout the submodules the site needs
+        run: git submodule update --init --depth 1 session_rust session_proto session_cpp
       - name: Add wasm target
         run: rustup target add wasm32-unknown-unknown
       - name: Install trunk
         run: curl -sL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf- -C "$HOME/.cargo/bin"
-      # The course site is served next to the viewer at /docs/. docs/build_site.sh (Trunk's
-      # pre-build hook) needs uvx to render MkDocs; without it the hook writes a placeholder.
-      - uses: astral-sh/setup-uv@v6
-      - name: Build the course site
-        run: cd session_viewer && docs/serve.sh build --quiet
+      # The docs site replaces dist/docs below, so Trunk's MkDocs hook (docs/build_site.sh) is
+      # skipped: a stamp newer than every source makes it a no-op.
+      - name: Skip the MkDocs course build
+        run: mkdir -p session_viewer/target/docs/site && touch session_viewer/target/docs/site/index.html
       # `assets/pb` is the LOCAL scene's geometry - untracked, and deliberately not deployed:
       # the published page reads its scene from R2, never from here. index.html still copies the
       # directory, so it has to exist; empty is exactly right.
@@ -73,6 +81,45 @@ jobs:
       # Making that a copy of the built index.html is what turns a 404 into the viewer.
       - name: Serve any path with the app (short scene URLs)
         run: cp session_viewer/dist/index.html session_viewer/dist/404.html
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: session_tests/package-lock.json
+      # The Kernel API page reads testData.js, the kernel test results the newest successful
+      # "Session mini tests" run on main uploaded. Before the first such run it gets an empty
+      # data set and shows an empty state instead of failing the deploy.
+      - name: Fetch the newest kernel test results
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          out=session_tests/public/testData.js
+          mkdir -p session_tests/public
+          run=""
+          for id in $(gh run list -R "$GITHUB_REPOSITORY" --workflow session-minitest.yml --branch main --event push --status success --limit 30 --json databaseId --jq '.[].databaseId'); do
+            n=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/artifacts?name=kernel-test-results" --jq '[.artifacts[] | select(.expired | not)] | length')
+            if [ "$n" -gt 0 ]; then
+              run=$id
+              break
+            fi
+          done
+          if [ -n "$run" ]; then
+            gh run download "$run" -R "$GITHUB_REPOSITORY" -n kernel-test-results -D "$RUNNER_TEMP/results"
+            cp "$RUNNER_TEMP/results/public/testData.js" "$out"
+            echo "kernel test results from run $run"
+          else
+            echo 'window.TEST_DATA = {};' > "$out"
+            echo "::notice::No kernel test results on main yet; the Kernel API page shows an empty state."
+          fi
+      # Base /session/docs/ (vite.config.ts); it replaces the MkDocs copy Trunk made at dist/docs.
+      - name: Build the docs site
+        run: |
+          cd session_tests
+          npm ci
+          npm run build
+          cd ..
+          rm -rf session_viewer/dist/docs
+          cp -r session_tests/dist session_viewer/dist/docs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: session_viewer/dist

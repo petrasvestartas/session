@@ -168,8 +168,9 @@
         </tbody>
       </table>
 
-      <div v-else>
-        No test results loaded yet. Make sure you ran <code>minitest.sh</code>.
+      <div v-else class="no-results">
+        No kernel test results yet. They appear after the next <code>Session mini tests</code> run on main;
+        locally, run <code>bash/minitest.sh</code>.
       </div>
 
       <!-- JSON Artifacts Section -->
@@ -698,6 +699,11 @@ pre {
   font-size: 0.8rem;
   color: var(--faint);
   font-style: italic;
+}
+
+.no-results {
+  padding: 1rem 0.75rem;
+  color: var(--muted);
 }
 .test-name-row td {
   padding-top: 0.75rem;
