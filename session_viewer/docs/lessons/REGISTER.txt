@@ -67,6 +67,7 @@ src/state.rs anchor 04a
 src/state.rs camera 04a
 src/state.rs fit 04a
 src/state.rs perf 04a
+src/state.rs resize 04a
 src/state.rs spin 04a
 src/engine/gpu/lane.rs vectors 04b
 src/engine/gpu/mod.rs ink 04b

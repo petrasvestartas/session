@@ -86,7 +86,7 @@ const SPIN_STEP: f32 = 0.004; // register:spin
 impl State {
     /// Draw one frame; a still scene asks for no more.
     pub fn render(&mut self) {
-        self.follow_logical_size();
+        self.follow_logical_size(); // register:resize
 
         if self.gpu_failed() {
             return;

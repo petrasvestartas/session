@@ -77,7 +77,6 @@ const CLEAR: wgpu::Color = wgpu::Color {
 impl State {
     /// Draw one frame; a still scene asks for no more.
     pub fn render(&mut self) {
-        self.follow_logical_size();
 
         if self.gpu_failed() {
             return;

@@ -141,7 +141,7 @@ impl State {
     pub fn render(&mut self) {
         self.before_picks(); // register:features
         self.upload_gizmo(); // register:gumball
-        self.follow_logical_size();
+        self.follow_logical_size(); // register:resize
 
         if self.gpu_failed() {
             return;

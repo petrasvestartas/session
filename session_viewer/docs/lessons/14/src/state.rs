@@ -124,7 +124,7 @@ impl State {
     /// Draw one frame; a still scene asks for no more.
     pub fn render(&mut self) {
         self.before_picks(); // register:features
-        self.follow_logical_size();
+        self.follow_logical_size(); // register:resize
 
         if self.gpu_failed() {
             return;
