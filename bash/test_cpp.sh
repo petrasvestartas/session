@@ -46,7 +46,7 @@ cd "$CPP_DIR"
 # Skip configure if build exists (use --clean to force reconfigure)
 if [[ ! -d "build" ]] || [[ "$FORCE_CLEAN" == "true" ]]; then
     log_lang "cpp" "Configuring CMake..."
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | grep -vE "^-- |^MSBuild|Completed '|Performing|No .* step"
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | { grep -vE "^-- |^MSBuild|Completed '|Performing|No .* step" || true; }
 fi
 
 TARGET_ARGS=()

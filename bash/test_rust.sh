@@ -58,8 +58,11 @@ if [[ "$DEV_MODE" == "true" ]]; then
     log_lang "rust" "Building and running minitest (dev mode)..."
     cargo run --bin minitest "${PDF_FEATURE[@]}" -j "$JOBS"
 else
-    log_lang "rust" "Building and running minitest (release)..."
-    cargo run --release --bin minitest "${PDF_FEATURE[@]}" -j "$JOBS"
+    # CI keeps the full release build; local runs use the quick profile (no LTO link)
+    PROFILE=quick
+    [[ -n "${CI:-}" ]] && PROFILE=release
+    log_lang "rust" "Building and running minitest ($PROFILE)..."
+    cargo run --profile "$PROFILE" --bin minitest "${PDF_FEATURE[@]}" -j "$JOBS"
 fi
 
 if [[ $? -ne 0 ]]; then
