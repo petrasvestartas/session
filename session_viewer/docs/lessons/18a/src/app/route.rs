@@ -1,4 +1,6 @@
-/// The public bucket scenes come from.
+// --8<-- [start:route-consts]
+// A scene route = the URL of a scene file plus the prefix its `file` entries are joined to.
+/// The public bucket scenes come from: R2 is Cloudflare's file storage, served over plain HTTPS.
 pub const DATA_BASE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/";
 
 /// The scene a local `trunk serve` shows.
@@ -20,12 +22,14 @@ pub struct SceneRoute {
     pub manifest: String, // the scene file URL
     pub base: String,     // prefix for its `file` entries
 }
+// --8<-- [end:route-consts]
 
+// --8<-- [start:route-query]
 pub use crate::engine::gpu::view::query;
 
 /// An integer knob from the query string.
 pub fn knob_u32(name: &str) -> Option<u32> {
-    query(name)?.parse().ok()
+    query(name)?.parse().ok() // `?` returns None early; `.ok()` turns the parse Result into an Option
 }
 
 /// True when the page is served from localhost.
@@ -57,6 +61,7 @@ pub fn path_scene() -> Option<String> {
 pub fn query_scene() -> Option<String> {
     let decoded = query("scene")?;
 
+    // `?scene=../x` would reach outside the scene tree
     for segment in decoded.split('/') {
         if segment == ".." {
             return None;
@@ -69,7 +74,9 @@ pub fn query_scene() -> Option<String> {
         && !decoded.contains(':');
     safe.then_some(decoded)
 }
+// --8<-- [end:route-query]
 
+// --8<-- [start:route-scene]
 /// The data URL prefix: `?data=`, `off` for this origin, else the bucket.
 pub fn data_base() -> String {
     let base = match query("data") {
@@ -132,7 +139,10 @@ pub fn scene_route() -> Option<SceneRoute> {
         None
     }
 }
+// --8<-- [end:route-scene]
 
+// --8<-- [start:route-recovery]
+// A lost device = the browser took the GPU away, e.g. after a driver reset; the page reloads once, lighter.
 /// Reload once at reduced quality after a lost GPU device.
 #[cfg(target_arch = "wasm32")]
 pub fn recover_from_device_loss(message: &str) -> bool {
@@ -222,3 +232,4 @@ pub fn adopt_recovery() -> Option<&'static str> {
 pub fn recovered_notice() -> Option<&'static str> {
     RECOVERED.get().map(String::as_str)
 }
+// --8<-- [end:route-recovery]

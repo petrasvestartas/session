@@ -1,367 +1,321 @@
 # 11 · Text rendering
 
-Screen-sized nameplates and a foreshortened scene label appear above the model.
+Glyphon draws screen and anchored labels from one glyph atlas, rounded plates sit behind them, and a label lying on a plane gets a texture of its own. The camera moves labels every frame, but a label is shaped only once.
 
 ![Five placements of one shaped line, and the same label rasterized once per device scale.](illustrations/text-placement.svg)
 
-Copy each file from the lesson folder to the path shown.
+## Step 1 · src/engine/gpu/text.rs
 
-Copy from `lessons/11/` (tooling this checkpoint needs but the course does not teach):
+New file: the camera, canvas and clipping planes the text lane reads each frame, all planes zero until 18b, and its counters.
 
-- `lessons/11/src/text_quality.rs`
-
-## Step 1 · src/engine/gpu/text_plate.rs
-
-New file: the plate behind a nameplate, two triangles per plate, cut to the label's clip box.
-
-`lessons/11/src/engine/gpu/text_plate.rs` · type this, new file, start with these lines
+`lessons/11/src/engine/gpu/text.rs` · type this, new file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text_plate.rs:step-1a"
+--8<-- "lessons/11/src/engine/gpu/text.rs:frame"
 ```
 
-`lessons/11/src/engine/gpu/text_plate.rs` · type this, append at the end of the file
+## Step 2 · src/engine/gpu/text.rs
+
+The lane: one glyph atlas, two glyphon renderers that differ only in their depth test, the plates and the planes.
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text_plate.rs:step-1b"
+--8<-- "lessons/11/src/engine/gpu/text.rs:lane"
 ```
 
-`lessons/11/src/engine/gpu/text_plate.rs` · type this, append at the end of the file
+## Step 3 · src/engine/gpu/text.rs
+
+Open `impl TextLane`: create the atlas and both renderers, and rebuild them when the MSAA sample count changes.
+
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text_plate.rs:step-1c"
+--8<-- "lessons/11/src/engine/gpu/text.rs:lane-new"
 ```
 
-## Step 2 · src/shaders/text_plate.wgsl
+## Step 4 · src/engine/gpu/text.rs
 
-New shader: a rounded-box distance gives each plate a soft edge one pixel wide at any size.
+Prepare a frame: skip it when nothing moved, otherwise place every label, collect its plate and hand glyphon the text areas.
 
-`lessons/11/src/shaders/text_plate.wgsl` · 28 lines · type this, new file
-
-```wgsl
---8<-- "lessons/11/src/shaders/text_plate.wgsl"
-```
-
-## Step 3 · src/engine/gpu/text_plane.rs
-
-New file: text lying on a world plane, rasterized once into its own texture and drawn as one quad.
-
-`lessons/11/src/engine/gpu/text_plane.rs` · type this, new file, start with these lines
+`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3a"
-```
-
-`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3b"
-```
-
-`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3c"
-```
-
-`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3d"
-```
-
-`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3e"
-```
-
-`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3f"
-```
-
-`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3g"
-```
-
-`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3h"
-```
-
-`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-3i"
-```
-
-## Step 4 · src/shaders/text_plane.wgsl
-
-New shader: read the label's coverage texture and cut it to the clip box.
-
-`lessons/11/src/shaders/text_plane.wgsl` · 31 lines · type this, new file
-
-```wgsl
---8<-- "lessons/11/src/shaders/text_plane.wgsl"
+--8<-- "lessons/11/src/engine/gpu/text.rs:prepare"
 ```
 
 ## Step 5 · src/engine/gpu/text.rs
 
-New file: the text lane places every label each frame, then draws planes, depth-tested text, plates and overlays.
-
-`lessons/11/src/engine/gpu/text.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5a"
-```
+Draw planes, plates and glyphs in layering order, and free everything on release; the impl block closes.
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5b"
+--8<-- "lessons/11/src/engine/gpu/text.rs:draw"
 ```
+
+## Step 6 · src/engine/gpu/text.rs
+
+Project a label's world point to pixels, drop it when clipped or behind the camera, and size world text by distance.
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5c"
+--8<-- "lessons/11/src/engine/gpu/text.rs:place"
 ```
+
+## Step 7 · src/engine/gpu/text.rs
+
+The plate behind a nameplate or an object's label, centred and padded, and a label's clip box in framebuffer pixels.
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5d"
+--8<-- "lessons/11/src/engine/gpu/text.rs:rectangle"
 ```
+
+## Step 8 · src/engine/gpu/text.rs
+
+A glyphon renderer with a given depth test, and an atlas that matches the canvas colour format.
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5e"
+--8<-- "lessons/11/src/engine/gpu/text.rs:glyphon"
 ```
+
+## Step 9 · src/engine/gpu/text.rs
+
+Tests: the device scale is applied once, anchored labels keep their depth, and three GPU tests draw real glyphs.
+
+`lessons/11/src/engine/gpu/text.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/11/src/engine/gpu/text.rs:tests"
+```
+
+## Step 10 · src/engine/gpu/text.rs
+
+The `Lane` trait, so the Gpu retargets, resets and releases the text lane together with every other lane.
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5f"
+--8<-- "lessons/11/src/engine/gpu/text.rs:lane-trait"
 ```
 
-`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+## Step 11 · src/engine/gpu/text_plate.rs
+
+New file: a plate rectangle in screen pixels, and the buffer and two pipelines that draw the plates.
+
+`lessons/11/src/engine/gpu/text_plate.rs` · type this, new file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5g"
+--8<-- "lessons/11/src/engine/gpu/text_plate.rs:plate-rows"
 ```
 
-`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+## Step 12 · src/engine/gpu/text_plate.rs
+
+Six clip-space vertices per plate, depth-tested plates first and overlays after, drawn as two ranges of one buffer.
+
+`lessons/11/src/engine/gpu/text_plate.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5h"
+--8<-- "lessons/11/src/engine/gpu/text_plate.rs:plate-impl"
 ```
 
-`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+## Step 13 · src/engine/gpu/text_plate.rs
+
+The colour and id pipelines of the plates, compiled on first use; they read depth and never write it.
+
+`lessons/11/src/engine/gpu/text_plate.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5i"
+--8<-- "lessons/11/src/engine/gpu/text_plate.rs:plate-pipeline"
 ```
 
-`lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
+## Step 14 · src/shaders/text_plate.wgsl
+
+New file: the plate vertex, passed on as clip space, or mapped into the pick window for the id pass.
+
+`lessons/11/src/shaders/text_plate.wgsl` · type this, new file
+
+```wgsl
+--8<-- "lessons/11/src/shaders/text_plate.wgsl:plate-vertex"
+```
+
+## Step 15 · src/shaders/text_plate.wgsl
+
+A signed distance to the rounded edge gives a one-pixel soft border; the id pass keeps only pixels inside.
+
+`lessons/11/src/shaders/text_plate.wgsl` · type this, append at the end of the file
+
+```wgsl
+--8<-- "lessons/11/src/shaders/text_plate.wgsl:plate-fragment"
+```
+
+## Step 16 · src/engine/gpu/text_plane.rs
+
+New file: a plane label cached as its own coverage texture, freed on drop, and the set of those labels.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, new file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5j"
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:plane-cache"
 ```
 
-Copy this part from the lesson folder to the path shown.
+## Step 17 · src/engine/gpu/text_plane.rs
 
-`lessons/11/src/engine/gpu/text.rs` · copy the file, append at the end of the file
+Open `impl Planes`: the texture-and-sampler layout, a linear sampler and both pipelines.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-5k"
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:plane-new"
 ```
 
-Run `cargo check` in `lessons/11/`.
+## Step 18 · src/engine/gpu/text_plane.rs
 
-## Step 6 · src/engine/gpu/mod.rs
+Keep the textures of labels that still exist, repaint one only when its text, font or needed sharpness changed, then place the quads.
 
-The GPU owner connects buffers, pipelines and frame resources.
-
-`lessons/11/src/engine/gpu/mod.rs` · edit · type this
-
-Added after the `pub mod targets;` line of `lessons/10/src/engine/gpu/mod.rs`
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-6a"
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:plane-prepare"
 ```
 
-Added after the `pub glyphs: glyphs::GlyphLane,` line in `struct Gpu` of `lessons/10/src/engine/gpu/mod.rs`
+## Step 19 · src/engine/gpu/text_plane.rs
+
+One draw per label, since each has its own texture; reset, release and byte counts close the impl block.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-6b"
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:plane-draw"
 ```
 
-Added after the `let glyphs = glyphs::GlyphLane::new(&ctx, &la…` line in `fn new` of `lessons/10/src/engine/gpu/mod.rs`
+## Step 20 · src/engine/gpu/text_plane.rs
+
+Pick the texture's pixels per em from the label's size on screen, rounded up to a power of two.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-6c"
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:plane-raster"
 ```
 
-Added after the `glyphs,` line in `fn new` of `lessons/10/src/engine/gpu/mod.rs`
+## Step 21 · src/engine/gpu/text_plane.rs
+
+Paint every glyph of the label into one coverage image, padded for the plate around it.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-6d"
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:plane-rasterize"
 ```
 
-Added after the `self.glyphs.retarget(&self.ctx, &self.layouts…` line in `fn retarget` of `lessons/10/src/engine/gpu/mod.rs`
+## Step 22 · src/engine/gpu/text_plane.rs
+
+Six vertices spanning the label on its plane, projected on the CPU, with the ink made linear for an sRGB canvas.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-6e"
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:plane-quad"
 ```
 
-Replaces `fn write_frame_uniforms` in `lessons/10/src/engine/gpu/mod.rs`
+## Step 23 · src/engine/gpu/text_plane.rs
+
+The colour and id pipelines of the plane labels: 64-byte vertices, depth read and never written.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-6f"
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:plane-pipeline"
 ```
 
-Replaces the 5 lines from `}` in `impl Gpu` of `lessons/10/src/engine/gpu/mod.rs`
+## Step 24 · src/engine/gpu/text_plane.rs
+
+Tests: a long label fits the texture limit, and on a GPU a plane label hides behind a solid.
+
+`lessons/11/src/engine/gpu/text_plane.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-6g"
+--8<-- "lessons/11/src/engine/gpu/text_plane.rs:plane-tests"
 ```
 
-Added after the `self.arena.draw_text(&mut pass, &basic);` line in `fn render` of `lessons/10/src/engine/gpu/mod.rs`
+## Step 25 · src/shaders/text_plane.wgsl
+
+New file: the plane vertex with its texture coordinate and clip box, and the coverage texture it samples.
+
+`lessons/11/src/shaders/text_plane.wgsl` · type this, new file
+
+```wgsl
+--8<-- "lessons/11/src/shaders/text_plane.wgsl:plane-vertex"
+```
+
+## Step 26 · src/shaders/text_plane.wgsl
+
+Mix the ink over the plate colour by glyph coverage, cut to the clip box and the plate's rounded edge.
+
+`lessons/11/src/shaders/text_plane.wgsl` · type this, append at the end of the file
+
+```wgsl
+--8<-- "lessons/11/src/shaders/text_plane.wgsl:plane-fragment"
+```
+
+## Step 27 · src/engine/gpu/present.rs
+
+A second `impl Gpu` block fills the frame facts from the camera and prepares the labels before the frame is drawn.
+
+`lessons/11/src/engine/gpu/present.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-6h"
+--8<-- "lessons/11/src/engine/gpu/present.rs:prepare-text"
 ```
 
-## Step 7 · src/lib.rs
+## Step 28 · src/text_quality.rs
 
-The crate entry point connects the camera, scene and GPU owners.
+Copy the check page's wasm export: it draws six sample lines at five sizes with the text lane.
 
-`lessons/11/src/lib.rs` · edit · type this
-
-Replaces `mod app` in `lessons/10/src/lib.rs`
+`lessons/11/src/text_quality.rs` · copy the file, new file
 
 ```rust
---8<-- "lessons/11/src/lib.rs:step-7a"
+--8<-- "lessons/11/src/text_quality.rs"
 ```
 
-Added after the `fixture.upload.drop_uploaded();` line in `fn create` of `lessons/10/src/lib.rs`
+## Step 29 · src/lib.rs
+
+Declare the check page's module, compiled for the browser only.
+
+`lessons/11/src/lib.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/lib.rs:step-7b"
+--8<-- "lessons/11/src/lib.rs:text-quality-mod"
 ```
 
-Replaces the `Ok(serde_json::json!({"stage":10,"objects":se…` line in `fn render` of `lessons/10/src/lib.rs`
+## Step 30 · assets/text-quality.html
 
-```rust
---8<-- "lessons/11/src/lib.rs:step-7c"
-```
+Copy the check page: the text lane on the left, the browser's own text in the same font on the right.
 
-Added after the `}` line of `lessons/10/src/lib.rs`
-
-```rust
---8<-- "lessons/11/src/lib.rs:step-7d"
-```
-
-## Step 8 · src/text_layout.rs
-
-Delete lesson 10's shaping check; the text-quality page below replaces it.
-
-Delete `src/text_layout.rs` (it exists in `lessons/10/`, not in `lessons/11/`).
-
-## Step 9 · assets/text-layout.html
-
-Delete its check page too.
-
-Delete `assets/text-layout.html` (it exists in `lessons/10/`, not in `lessons/11/`).
-
-## Step 10 · assets/text-quality.html
-
-Copy the test page that draws GPU text beside browser text at five sizes and any device scale.
-
-`lessons/11/assets/text-quality.html` · 167 lines · copy the file, new file
+`lessons/11/assets/text-quality.html` · copy the file, new file
 
 ```html
 --8<-- "lessons/11/assets/text-quality.html"
 ```
 
-## Step 11 · index.html
+## Step 31 · registration lines
 
-Copy this file from the lesson folder to the path shown.
+Copy the lines tagged `register:text` from these files of `lessons/11/`:
 
-`lessons/11/index.html` · edit · copy the file
+- `src/engine/gpu/mod.rs`: the module, the lane field and its creation.
+- `src/engine/gpu/present.rs`: the call that prepares the labels.
+- `src/engine/gpu/render.rs`: the draw call.
 
-Replaces the `<title>Session checkpoint 10</title>` line of `lessons/10/index.html`
-
-```html
---8<-- "lessons/11/index.html:step-11a"
-```
-
-Replaces the 7 lines from `<link data-trunk rel="copy-file" href="assets…` of `lessons/10/index.html`
-
-```html
---8<-- "lessons/11/index.html:step-11b"
-```
-
-Replaces the `document.getElementById('status').textContent…` line of `lessons/10/index.html`
-
-```html
---8<-- "lessons/11/index.html:step-11c"
-```
+Run `cargo check` in `lessons/11/`.
 
 ## Check
 
-Run `trunk serve` in `lessons/11/` and open <http://127.0.0.1:8770/>.
+Run `cargo xtest --lib text` in `lessons/11/`, then `trunk serve` and open <http://127.0.0.1:8770/text-quality.html>: both columns show the same lines, and the status line reports their largest width difference in CSS pixels.
 
-Expected: Screen-sized nameplates and a foreshortened scene label appear above the model; status: **3 objects**.
-
-![Checkpoint 11: two nameplates above the sphere, one rounded, and a fixed-plane label foreshortened on its own plane.](screenshots/11.png)
-
-If it fails:
-
-- Letters blur at one zoom level: the text frame scale disagrees with the framebuffer.
-- The last glyph clips: plate padding excludes the glyph overhang.
-
-## What changed
-
-```text
-lessons/11/src/engine/gpu/
-├── arena.rs
-├── backdrop.rs
-├── buffers.rs
-├── cloud.rs
-├── frame.rs
-├── glyphs.rs
-├── instance.rs
-├── lod.rs
-├── mod.rs  ~
-├── objects.rs
-├── segments.rs
-├── splat.rs
-├── targets.rs
-├── text.rs  +
-├── text_outline.rs
-├── text_plane.rs  +
-├── text_plate.rs  +
-├── upload.rs
-└── view.rs
-```
-
-`+` new in this lesson · `~` changed in this lesson
-
-Every file at this point: `lessons/11/`.
-
-## Next
-
-[12 · maintained viewer shell and picking](12-picking.md)
-
-## Expected viewer result
-
-Checkpoint 11: two nameplates above the sphere, one rounded, and a fixed-plane label foreshortened on its own plane.
-
-[![Full viewer result for 11 text rendering](screenshots/11.png)](screenshots/11.png)
+![The text-quality page: the text lane on the left, browser text in the same font on the right.](screenshots/11-text-quality.png)

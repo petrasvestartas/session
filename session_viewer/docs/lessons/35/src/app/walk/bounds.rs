@@ -1,8 +1,9 @@
+// --8<-- [start:bounds-baselines]
 use crate::engine::gpu::vectors::VectorRows;
 use crate::engine::gpu::{Instance, Upload};
 use session_rust::{AABB, Xform};
 
-/// Table lengths before a file is walked.
+/// Table lengths before a file is walked, so the rows it added can be found afterwards.
 #[derive(Default)]
 pub struct Baselines {
     pub obj: usize,    // object rows so far
@@ -36,7 +37,10 @@ pub fn file_extent(t: &Upload, from: &Baselines) -> AABB {
 
     out
 }
+// --8<-- [end:bounds-baselines]
 
+// --8<-- [start:bounds-bands]
+// Band = the thin z range a flat drawing lies in; rows inside a sheet's band belong to that sheet (lesson 19).
 /// The z band [lowest, highest] of the new rows when every one is flat at one placement.
 pub fn planar_band(t: &Upload, from: &Baselines, place: &Xform) -> Option<[f64; 2]> {
     let mut lo = f64::INFINITY;
@@ -76,7 +80,9 @@ pub fn in_band(band: [f64; 2], bounds: &AABB, place: &Xform, sheet: &Xform) -> b
     let hi = bounds.cz + bounds.hz;
     hi - lo < 1e-3 && lo >= band[0] - 1e-3 && hi <= band[1] + 1e-3
 }
+// --8<-- [end:bounds-bands]
 
+// --8<-- [start:bounds-pens]
 /// Give every pipe, ribbon and arrowhead added since `from` without a pen a 1 mm one.
 pub fn mark_pens_from(t: &mut Upload, from: &Baselines) {
     for s in t
@@ -117,3 +123,4 @@ pub fn mark_sheet(t: &mut Upload, from: &Baselines) {
 
     mark_pens_from(t, from);
 }
+// --8<-- [end:bounds-pens]

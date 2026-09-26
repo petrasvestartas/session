@@ -1,3 +1,4 @@
+// --8<-- [start:cloud-walk]
 use super::encode::oct16;
 use super::{Row, WalkCx};
 use crate::engine::gpu::cloud::CloudRows;
@@ -43,7 +44,9 @@ pub fn walk_cloud(c: &mut CloudRows, pc: &PointCloud, cx: &WalkCx) -> Row {
         faces: false,
     }
 }
+// --8<-- [end:cloud-walk]
 
+// --8<-- [start:cloud-copy]
 /// Copy positions, colours and normals into the rows.
 fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> AABB {
     let coords = pc.coords();
@@ -80,6 +83,7 @@ fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> AABB {
     bounds
 }
 
+// Octree node = a cube with the points inside it, split into up to 8 child cubes (lesson 04d).
 /// Copy the cloud's octree nodes.
 fn push_nodes(rows: &mut CloudRows, pc: &PointCloud) {
     for k in 0..pc.lod_node_count() {
@@ -124,6 +128,7 @@ fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
         (2.0 * bounds.hz) as f32,
     ];
     e.sort_unstable_by(descending_extent);
+    // points spread over the two longest sides: 1 000 000 points on 10 m x 10 m are 10 mm apart
     let area = e[0] as f64 * e[1] as f64; // two longest sides
 
     if area <= 0.0 || !area.is_finite() {
@@ -137,8 +142,10 @@ fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
 fn descending_extent(a: &f32, b: &f32) -> std::cmp::Ordering {
     b.partial_cmp(a).unwrap()
 }
+// --8<-- [end:cloud-copy]
 
-// --8<-- [start:15]
+// --8<-- [start:15-stream-slice]
+// --8<-- [start:stream-slice]
 use crate::app::stream::CloudLod;
 
 /// Raw point columns of one streamed slice.
@@ -242,4 +249,5 @@ fn lod_node(lod: &CloudLod, k: usize) -> LodNode {
     }
 }
 
-// --8<-- [end:15]
+// --8<-- [end:stream-slice]
+// --8<-- [end:15-stream-slice]

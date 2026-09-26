@@ -1,11 +1,13 @@
+// --8<-- [start:plate-rows]
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use crate::engine::pipelines::{Pipeline, Target};
 
 /// One label background rectangle, in screen pixels.
+// pub(super) = visible to the parent module text.rs and nowhere else.
 pub(super) struct Rectangle {
-    pub(super) bounds: [f32; 4],   // left, top, right, bottom
-    pub(super) clip: [f32; 4],     // screen box it is cut to
-    pub(super) rounded: bool,      // rounded corners
+    pub(super) bounds: [f32; 4], // left, top, right, bottom
+    pub(super) clip: [f32; 4],   // screen box it is cut to
+    pub(super) rounded: bool,
     pub(super) depth: Option<f32>, // scene depth, or None for an overlay
     pub(super) object: Option<crate::engine::text::TextObject>, // object it belongs to, for picks
 }
@@ -17,7 +19,9 @@ pub(super) struct Plates {
     id_pipeline: Pipeline,  // object ids
     physical_vertices: u32, // vertices of depth-tested plates; overlays follow
 }
+// --8<-- [end:plate-rows]
 
+// --8<-- [start:plate-impl]
 impl Plates {
     /// Create the buffer and pipelines.
     pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
@@ -36,6 +40,7 @@ impl Plates {
     }
 
     /// Build six vertices per rectangle; depth-tested ones first.
+    // One buffer, two ranges: the depth-tested plates, then the overlays, so each draw is one call.
     pub(super) fn prepare(&mut self, ctx: &GpuCtx, rectangles: &[Rectangle], size: [u32; 2]) {
         self.vertices.reset();
         let mut vertices = Vec::with_capacity(rectangles.len() * 6);
@@ -51,6 +56,7 @@ impl Plates {
                 let [left, top, right, bottom] = rectangle.bounds;
                 let half = [(right - left) * 0.5, (bottom - top) * 0.5];
                 let center = [(left + right) * 0.5, (top + bottom) * 0.5];
+                // the largest radius, half the height, turns the short ends into half circles
                 let radius = if rectangle.rounded {
                     half[0].min(half[1]).max(0.0)
                 } else {
@@ -75,6 +81,7 @@ impl Plates {
                     [right, bottom],
                     [right, top],
                 ] {
+                    // pixels to clip space: x from 0..width to -1..1, y flipped because pixel rows go down
                     vertices.push([
                         2.0 * x / size[0] as f32 - 1.0,
                         1.0 - 2.0 * y / size[1] as f32,
@@ -84,6 +91,7 @@ impl Plates {
                         half[0],
                         half[1],
                         radius,
+                        // from_bits stores the u32 row unchanged in an f32 slot; the shader reads it back as Uint32
                         f32::from_bits(rectangle.object.map_or(0, |object| object.row + 1)),
                         if rectangle.object.is_some_and(|object| object.selected) {
                             1.0
@@ -153,9 +161,12 @@ impl Plates {
         self.vertices.buf.size()
     }
 }
+// --8<-- [end:plate-impl]
 
+// --8<-- [start:plate-pipeline]
 /// The color or id pipeline, compiled on first use; depth is read, not written.
 fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
+    // the closure owns clones of what it needs, because it runs later, on the first draw
     let device = ctx.device.clone();
     let pick = crate::engine::gpu::frame::pick_transform_layout(ctx);
     Pipeline::new(move || {
@@ -172,6 +183,7 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
         });
         device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("text plates"),
+            // None asks wgpu to derive the layout from the shader; the colour pass binds nothing
             layout: if ids { Some(&id_layout) } else { None },
             vertex: wgpu::VertexState {
                 module: &shader,
@@ -179,6 +191,7 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
                 buffers: &[wgpu::VertexBufferLayout {
                     array_stride: 40,
                     step_mode: wgpu::VertexStepMode::Vertex,
+                    // 3 + 2 + 2 + 1 + 1 + 1 four-byte values = 40 bytes
                     attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x2, 3 => Float32, 4 => Uint32, 5 => Float32],
                 }],
                 compilation_options: Default::default(),
@@ -210,3 +223,4 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
         })
     })
 }
+// --8<-- [end:plate-pipeline]

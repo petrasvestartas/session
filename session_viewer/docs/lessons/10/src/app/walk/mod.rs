@@ -1,3 +1,5 @@
+// --8<-- [start:walk-mods]
+// Walk = turn one kernel object into rows of the GPU tables: triangles, pipes, ribbons, dots and cloud points.
 use crate::engine::gpu::Upload;
 use crate::engine::gpu::arena::ArenaRows;
 use crate::engine::gpu::cloud::CloudRows;
@@ -30,7 +32,9 @@ pub mod mesh_ink;
 pub mod mesh_topology;
 pub mod plane;
 pub mod points;
+// --8<-- [end:walk-mods]
 
+// --8<-- [start:walk-tables]
 /// The row tables one object writes into.
 pub struct Walk<'a> {
     pub arena: &'a mut ArenaRows, // triangles of faces
@@ -52,6 +56,7 @@ impl<'a> Walk<'a> {
         }
     }
 
+    // Two `&mut` borrows at once are fine here: they are different fields, and the borrow checker tracks fields separately.
     /// Tables a solid needs: faces plus its edge ink.
     fn solid(&mut self) -> (&mut ArenaRows, Ink<'_>) {
         (
@@ -91,7 +96,10 @@ impl Row {
         }
     }
 }
+// --8<-- [end:walk-tables]
 
+// --8<-- [start:walk-features]
+// Feature = a line or point an element carries besides its shape, e.g. a beam's axis or a joint's contact.
 const ATTRIBUTE_LINE_PX: f64 = 2.0; // twice the 1 px pen
 const ATTRIBUTE_DOT_PX: f64 = 12.0; // twice the 6 px point
 
@@ -129,7 +137,9 @@ pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bou
         }
     }
 }
+// --8<-- [end:walk-features]
 
+// --8<-- [start:walk-geometry]
 /// An element without geometry gets no row.
 pub fn is_drawable(geom: &Geometry) -> bool {
     match geom {
@@ -140,6 +150,7 @@ pub fn is_drawable(geom: &Geometry) -> bool {
 
 /// Write one object into the tables and report its row.
 pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
+    // One arm per kind of geometry; `match` must cover every kind, so a new kind fails to compile until it has an arm.
     match geom {
         Geometry::Mesh(m) => {
             let (arena, mut ink) = w.solid();
@@ -164,6 +175,7 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
         Geometry::Line(l) => walk_line(w.seg, w.lanes, l, cx.row),
         Geometry::Polyline(pl) => walk_polyline(w.seg, w.lanes, pl, cx.row),
         Geometry::NurbsCurve(c) => walk_nurbscurve(w.seg, w.lanes, c, cx.row),
+        // a match guard: this arm wins for a plane named "Clipping Plane", the next arm takes the rest
         Geometry::Plane(p) if plane::is_clipping(p) => plane::walk(w.seg, p, cx.row),
         Geometry::Plane(p) => walk_plane(w.seg, p, cx.row),
         Geometry::OBB(b) => walk_obb(w.seg, b, cx.row),
@@ -198,7 +210,9 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
         }
     }
 }
+// --8<-- [end:walk-geometry]
 
+// --8<-- [start:walk-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -254,3 +268,4 @@ mod tests {
         assert_eq!(row_on.bounds.max_point()[1], 5.0);
     }
 }
+// --8<-- [end:walk-tests]

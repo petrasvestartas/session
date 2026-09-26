@@ -1,229 +1,106 @@
 # 10 · Text shaping
 
-The text specimen page compares five shaped text sizes against browser text.
+Shaping turns a string into glyphs placed on a line, with kerning, ligatures and fallback fonts. This lesson builds the CPU half of text: fonts, labels, and a document that reshapes only the labels whose text changed.
 
 ![Shape once, place per frame, raster per device scale, then a plate pass and a glyph pass.](illustrations/text-pipeline.svg)
 
-Copy each file from the lesson folder to the path shown.
+## Step 1 · assets/text/
 
-Copy from `lessons/10/` (tooling this checkpoint needs but the course does not teach):
+The three Noto fonts, their small subsets that go into the wasm, the font license and the notes on where they came from.
 
-- `lessons/10/assets/text/NotoSans-Regular.ttf` (binary)
-- `lessons/10/assets/text/NotoSansSymbols-Regular.ttf` (binary)
-- `lessons/10/assets/text/NotoSansSymbols2-Regular.ttf` (binary)
+`lessons/10/assets/text/` · copy the files
 
-## Step 1 · assets/text/OFL.txt
+- `NotoSans-Regular.ttf`, `NotoSans-Regular.subset.ttf`
+- `NotoSansSymbols-Regular.ttf`, `NotoSansSymbols-Regular.subset.ttf`
+- `NotoSansSymbols2-Regular.ttf`, `NotoSansSymbols2-Regular.subset.ttf`
+- `OFL.txt`, `README.md`
 
-Copy this file from the lesson folder to the path shown.
+## Step 2 · src/engine/text.rs
 
-`lessons/10/assets/text/OFL.txt` · 94 lines · copy the file, new file
+New file: the three font subsets compiled into the wasm, and the whole fonts that lesson 14 fetches only when a label needs them.
 
-```text
---8<-- "lessons/10/assets/text/OFL.txt"
-```
-
-## Step 2 · assets/text/README.md
-
-Copy the font notes: license, sources, and why glyphon is pinned to 0.11.
-
-`lessons/10/assets/text/README.md` · 32 lines · copy the file, new file
-
-```markdown
---8<-- "lessons/10/assets/text/README.md"
-```
-
-## Step 3 · src/engine/performance.rs
-
-New file: frame time and memory counters, and a flag raised when a drag runs below 25 frames per second.
-
-`lessons/10/src/engine/performance.rs` · 206 lines · type this, new file
+`lessons/10/src/engine/text.rs` · type this, new file
 
 ```rust
---8<-- "lessons/10/src/engine/performance.rs"
+--8<-- "lessons/10/src/engine/text.rs:fonts"
+```
+
+## Step 3 · src/engine/text.rs
+
+A label: its text, size, colour, one of five placements, and the object it belongs to.
+
+`lessons/10/src/engine/text.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/10/src/engine/text.rs:labels"
 ```
 
 ## Step 4 · src/engine/text.rs
 
-Text layout retains shaped glyph positions for rendering.
-
-`lessons/10/src/engine/text.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/10/src/engine/text.rs:step-4a"
-```
+Open `impl TextDocument`: shape a new label set, reusing the glyphs of every label whose text and size did not change.
 
 `lessons/10/src/engine/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/10/src/engine/text.rs:step-4b"
+--8<-- "lessons/10/src/engine/text.rs:document"
 ```
+
+## Step 5 · src/engine/text.rs
+
+Swap the font set and reshape, list every glyph for the tests; the impl block closes, then `Default` and the glyph record follow.
 
 `lessons/10/src/engine/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/10/src/engine/text.rs:step-4c"
+--8<-- "lessons/10/src/engine/text.rs:font-swap"
 ```
+
+## Step 6 · src/engine/text.rs
+
+Ask whether the bundled subsets can draw a string, and load them as the font system.
 
 `lessons/10/src/engine/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/10/src/engine/text.rs:step-4d"
+--8<-- "lessons/10/src/engine/text.rs:coverage"
 ```
+
+## Step 7 · src/engine/text.rs
+
+Reject a label whose size, position or clip box is not finite or out of range.
 
 `lessons/10/src/engine/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/10/src/engine/text.rs:step-4e"
+--8<-- "lessons/10/src/engine/text.rs:validate"
 ```
+
+## Step 8 · src/engine/text.rs
+
+Shape one label with cosmic-text: no wrapping, advanced shaping, and the label id carried along as metadata.
 
 `lessons/10/src/engine/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/10/src/engine/text.rs:step-4f"
+--8<-- "lessons/10/src/engine/text.rs:shape"
 ```
 
-`lessons/10/src/engine/text.rs` · type this, append at the end of the file
+## Step 9 · src/engine/text.rs
+
+Tests: ligatures, accents and symbols shape to real glyphs, and moving or recolouring a label never reshapes it.
+
+`lessons/10/src/engine/text.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/10/src/engine/text.rs:step-4g"
+--8<-- "lessons/10/src/engine/text.rs:tests"
 ```
 
-Copy this part from the lesson folder to the path shown.
+## Step 10 · registration lines
 
-`lessons/10/src/engine/text.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/10/src/engine/text.rs:step-4h"
-```
-
-## Step 5 · src/engine/mod.rs
-
-The engine module exposes the rendering implementation.
-
-`lessons/10/src/engine/mod.rs` · edit · type this
-
-Replaces `mod pipelines` in `lessons/09/src/engine/mod.rs`
-
-```rust
---8<-- "lessons/10/src/engine/mod.rs:step-5"
-```
+Copy the line tagged `register:text` from `lessons/10/src/engine/mod.rs`: it declares the new module.
 
 Run `cargo check` in `lessons/10/`.
 
-## Step 6 · src/text_layout.rs
-
-Copy the wasm export that shapes one string at five sizes and returns every glyph as JSON.
-
-`lessons/10/src/text_layout.rs` · 67 lines · copy the file, new file
-
-```rust
---8<-- "lessons/10/src/text_layout.rs"
-```
-
-## Step 7 · src/lib.rs
-
-The crate entry point connects the camera, scene and GPU owners.
-
-`lessons/10/src/lib.rs` · edit · type this
-
-Added after the `pub mod fixture;` line of `lessons/09/src/lib.rs`
-
-```rust
---8<-- "lessons/10/src/lib.rs:step-7a"
-```
-
-Replaces the `Ok(serde_json::json!({"stage":9,"objects":sel…` line in `fn render` of `lessons/09/src/lib.rs`
-
-```rust
---8<-- "lessons/10/src/lib.rs:step-7b"
-```
-
-## Step 8 · assets/text-layout.html
-
-Copy the check page: it sets the same string in browser text and fails when a width differs.
-
-`lessons/10/assets/text-layout.html` · 46 lines · copy the file, new file
-
-```html
---8<-- "lessons/10/assets/text-layout.html"
-```
-
-## Step 9 · index.html
-
-Copy this file from the lesson folder to the path shown.
-
-`lessons/10/index.html` · edit · copy the file
-
-Replaces the `<title>Session checkpoint 09</title>` line of `lessons/09/index.html`
-
-```html
---8<-- "lessons/10/index.html:step-9a"
-```
-
-Replaces the 4 lines from `</head>` of `lessons/09/index.html`
-
-```html
---8<-- "lessons/10/index.html:step-9b"
-```
-
-Replaces the `document.getElementById('status').textContent…` line of `lessons/09/index.html`
-
-```html
---8<-- "lessons/10/index.html:step-9c"
-```
-
 ## Check
 
-Run `trunk serve` in `lessons/10/` and open <http://127.0.0.1:8770/>.
-
-Expected: The text specimen page compares five shaped text sizes against browser text; status: **PASS**.
-
-![Checkpoint 10: the reference page shapes one string at five sizes; the browser row behind each specimen has the same width, and the report lists every glyph with its cluster, advance and baseline.](screenshots/10-text-layout.png)
-
-If it fails:
-
-- The specimen widths differ: font bytes, size or kerning settings differ.
-- Glyph order is wrong: character order replaces the shaped glyph sequence.
-
-## What changed
-
-```text
-lessons/10/src/engine/
-├── gpu/
-│   ├── arena.rs
-│   ├── backdrop.rs
-│   ├── buffers.rs
-│   ├── cloud.rs
-│   ├── frame.rs
-│   ├── glyphs.rs
-│   ├── instance.rs
-│   ├── lod.rs
-│   ├── mod.rs
-│   ├── objects.rs
-│   ├── segments.rs
-│   ├── splat.rs
-│   ├── targets.rs
-│   ├── text_outline.rs
-│   ├── upload.rs
-│   └── view.rs
-├── pipelines/
-│   ├── layouts.rs
-│   └── mod.rs
-├── mod.rs  ~
-├── performance.rs  +
-└── text.rs  +
-```
-
-`+` new in this lesson · `~` changed in this lesson
-
-Every file at this point: `lessons/10/`.
-
-## Next
-
-[11 · Text rendering](11-text-rendering.md)
-
-## Expected viewer result
-
-Checkpoint 10: the canvas itself is unchanged.
-
-[![Full viewer result for 10 text layout](screenshots/10.png)](screenshots/10.png)
+Run `cargo xtest --lib engine::text` in `lessons/10/`: five tests pass, and nothing on the canvas changes yet, because lesson 11 draws the labels.

@@ -1,3 +1,9 @@
+// --8<-- [start:brep-solid]
+// BRep = a solid or shell described by its boundary: surface patches and the curves where they meet.
+// Face = one patch of one surface, cut to shape by trim loops drawn in that surface's own (u, v) coordinates.
+// Edge = the curve two faces share; both face meshes must put vertices on the same points of it, or cracks and double lines appear.
+// Seam = the edge where a closed surface meets itself, e.g. a cylinder's u = 0 and u = 2π.
+// Hidden line = ink a face covers; the walk only records each edge's faces and normals, lesson 05's test hides it per pixel.
 use super::brep_edges::{EdgeChain, EdgePen, edge_chains, push_edge_pipes};
 use super::brep_orient::face_signs;
 use super::curves::{push_polyline, sample_nurbscurve};
@@ -11,7 +17,7 @@ use crate::engine::gpu::arena::ArenaRows;
 use session_rust::AABB;
 use session_rust::{BRep, Color, Mesh, NurbsSurface, RenderMesh};
 
-/// Mesh quality: 5° between samples, chord sag 0.001 of the size.
+/// Mesh quality: 5° between samples, chord sag 0.001 of the size, e.g. at most 0.1 mm on a 100 mm cylinder.
 pub const QUALITY: (f64, f64) = (5.0, 0.001);
 
 /// Every face uploaded so far.
@@ -20,7 +26,9 @@ struct Solid {
     tris: Vec<u32>,     // triangle indices into `pos`
     bounds: AABB,       // box of all vertices
 }
+// --8<-- [end:brep-solid]
 
+// --8<-- [start:brep-face]
 /// Append one face mesh to the arena.
 fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut Solid, face: usize) {
     // one source face address for every triangle
@@ -57,10 +65,12 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
         solid.tris.push(local + i);
     }
 }
+// --8<-- [end:brep-face]
 
+// --8<-- [start:brep-walk]
 /// A BRep: every face meshed and uploaded, then its edges.
 pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) -> Row {
-    let mut fms = b.face_meshes_q(Some(QUALITY)); // one mesh per face
+    let mut fms = b.face_meshes_q(Some(QUALITY)); // one mesh per face, meshed by the kernel
     let chains = edge_chains(b, &fms); // edge polylines on the meshes
     let signs = face_signs(b, &fms, &chains); // +1 or -1 per face
     let mut solid = Solid {
@@ -76,7 +86,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
         verts += fm.vertex.len();
         let mut rm = fm.to_render();
 
-        // an inside-out face: flip normals and winding
+        // an inside-out face (sign -1, lesson 09): flip normals and winding, so its front faces out of the solid
         if signs[fi] < 0.0 {
             for vertex in &mut rm.vertices {
                 for component in &mut vertex.normal {
@@ -143,7 +153,9 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
 
     row
 }
+// --8<-- [end:brep-walk]
 
+// --8<-- [start:brep-edges]
 /// Every BRep edge as pipes, or as a ribbon when no mesh owns it.
 fn walk_brep_edges(
     ink: &mut Ink,
@@ -208,7 +220,10 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB))
 
     push_polyline(ink.seg, &points, out.0, out.1);
 }
+// --8<-- [end:brep-edges]
 
+// --8<-- [start:brep-surface]
+// A bare NURBS surface has no trims and no BRep edges: a (u, v) grid, 4 steps per control point, 16 to 96 each way.
 /// A NURBS surface as a fixed UV grid with its four border edges.
 pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
     let (Some((u0, u1)), Some((v0, v1))) = (s.domain(0), s.domain(1)) else {
@@ -300,7 +315,9 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
         faces: true,
     }
 }
+// --8<-- [end:brep-surface]
 
+// --8<-- [start:brep-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -593,7 +610,9 @@ mod tests {
         }
     }
 }
+// --8<-- [end:brep-tests]
 
+// --8<-- [start:brep-samples]
 /// Remember each vertex's uv on its surface.
 fn cache_samples(
     arena: &mut ArenaRows,
@@ -628,3 +647,4 @@ fn cache_samples(
             });
     }
 }
+// --8<-- [end:brep-samples]

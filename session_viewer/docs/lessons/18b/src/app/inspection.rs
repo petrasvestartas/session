@@ -1,3 +1,5 @@
+// --8<-- [start:inspection-publish]
+// Inspection = a JSON snapshot of the viewer written onto the canvas, so browser tests read counters without a debugger.
 #[cfg(target_arch = "wasm32")]
 use crate::State;
 mod source_memory; // register:release
@@ -26,6 +28,7 @@ pub fn publish(state: &State) {
         None => None,
     };
     let identity = selected_identity(state);
+    // `json!` builds a JSON value in JSON syntax; any Rust expression can fill a value slot
     let mut snapshot = serde_json::json!({
         "submitted_at_ms": crate::engine::performance::now_ms(),
         "frames": state.gpu.performance.frames,
@@ -104,9 +107,11 @@ pub fn publish(state: &State) {
         "gpu_draws": slots.draws().len(),
         "gpu_instances": slots.instances(),
     });
-    let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string());
+    let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string()); // a test reads it with getAttribute
 }
+// --8<-- [end:inspection-publish]
 
+// --8<-- [start:inspection-helpers]
 /// Document index and guid of the selected row.
 #[cfg(target_arch = "wasm32")]
 fn selected_identity(state: &State) -> Option<(usize, String)> {
@@ -184,9 +189,12 @@ fn kind(geometry: &session_rust::Geometry) -> &'static str {
         Geometry::Polyline(_) => "Polyline",
     }
 }
+// --8<-- [end:inspection-helpers]
 
-// --8<-- [start:16]
+// --8<-- [start:16-source-memory]
+// --8<-- [start:source-memory]
 thread_local! {
     static SOURCE_MEMORY: std::cell::RefCell<source_memory::SourceCache> = Default::default();
 }
-// --8<-- [end:16]
+// --8<-- [end:source-memory]
+// --8<-- [end:16-source-memory]

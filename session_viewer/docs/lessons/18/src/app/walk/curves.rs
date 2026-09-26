@@ -1,3 +1,4 @@
+// --8<-- [start:curve-segments]
 use super::Row;
 use super::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
 use crate::engine::gpu::lane::LaneRows;
@@ -28,13 +29,16 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
         });
     }
 
-    seg.ribbon_chains.push(first..seg.ribbons.len() as u32); // one joined stroke
+    seg.ribbon_chains.push(first..seg.ribbons.len() as u32); // one joined stroke; `a..b` is a Range value, ribbons a to b - 1
 
     if let Some(last) = pts.last() {
         bounds.union_with_point(last[0] as f64, last[1] as f64, last[2] as f64);
     }
 }
+// --8<-- [end:curve-segments]
 
+// --8<-- [start:curve-heads]
+// Arrowhead = a head-only vector row (lesson 04b) at a curve's end; the ribbon under it is marked so it stops at the head's base.
 /// A head-only vector row at the end of `segment`, aimed along it.
 fn head_row(segment: &CylinderSegment) -> VectorRow {
     VectorRow {
@@ -57,6 +61,7 @@ fn push_heads(seg: &mut SegRows, lanes: &mut LaneRows, first: usize, arrowhead: 
         Arrowhead::END => (false, true),
         Arrowhead::BOTH => (true, true),
     };
+    // let-else: bind both values or leave the function through the `else` block
     let (Some(&head), Some(&tail)) = (seg.ribbons.get(first), seg.ribbons.last()) else {
         return 0;
     };
@@ -66,13 +71,14 @@ fn push_heads(seg: &mut SegRows, lanes: &mut LaneRows, first: usize, arrowhead: 
         return 0;
     }
 
+    // the vector table, created on first use: a scene without arrows never allocates one
     let rows = &mut lanes.get_mut::<VectorRows>().rows;
 
     if start {
         let flipped = CylinderSegment {
             p0: head.p1,
             p1: head.p0,
-            ..head
+            ..head // struct update: every field not named above is copied from `head`
         };
         rows.push(head_row(&flipped));
         seg.ribbon_heads.push((first as u32, VectorRow::HEAD_START));
@@ -86,7 +92,9 @@ fn push_heads(seg: &mut SegRows, lanes: &mut LaneRows, first: usize, arrowhead: 
 
     Instance::FLAG_HEADS
 }
+// --8<-- [end:curve-heads]
 
+// --8<-- [start:curve-walks]
 /// A line as one segment.
 pub fn walk_line(seg: &mut SegRows, lanes: &mut LaneRows, l: &Line, row: u32) -> Row {
     let p0 = [l[0] as f32, l[1] as f32, l[2] as f32];
@@ -130,11 +138,13 @@ pub fn walk_polyline(seg: &mut SegRows, lanes: &mut LaneRows, pl: &Polyline, row
         ..Row::thin(bounds)
     }
 }
+// --8<-- [end:curve-walks]
 
+// --8<-- [start:curve-sampling]
 /// Degrees of turning one chord may span.
 const CHORD_DEGREES: f64 = 5.0;
 
-/// Control point `i` with its weight divided out.
+/// Control point `i` with its weight divided out: a rational curve stores x*w, y*w, z*w and w.
 fn control_position(c: &NurbsCurve, i: usize) -> Option<[f64; 3]> {
     let p = c.cv(i)?;
     let w = if c.m_is_rat && p.len() > 3 && p[3] != 0.0 {
@@ -186,6 +196,7 @@ pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
     }
 
     let spans = c.span_count().max(1);
+    // e.g. a quarter circle turns 90°: 18 chords; never fewer than one per span, never more than 512
     let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512); // chord count
 
     let (t0, t1) = c.domain();
@@ -223,7 +234,9 @@ pub fn walk_nurbscurve(seg: &mut SegRows, lanes: &mut LaneRows, c: &NurbsCurve, 
         ..Row::thin(bounds)
     }
 }
+// --8<-- [end:curve-sampling]
 
+// --8<-- [start:curve-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -337,3 +350,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:curve-tests]

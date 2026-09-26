@@ -1,3 +1,4 @@
+// --8<-- [start:state-struct]
 use crate::app::scene::{FileDoc, Scene};
 use crate::app::selection::{ControlId, Controls, SelectionMode};
 use crate::app::walk::encode::FACING_UNKNOWN;
@@ -8,6 +9,7 @@ use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
+// Each `mod` line below carries a `register` tag naming its feature; the course adds the line in that feature's lesson.
 mod clipping; // register:clipping
 mod cloud_query; // register:cloud_query
 mod drag; // register:drag
@@ -54,9 +56,12 @@ pub struct State {
     highlighted: Vec<u32>,                  // rows highlighted, when several are selected
     pub selection_radius_css: f64,          // click tolerance in CSS pixels
     show_selected_names: bool,              // name label on the selection, T toggles
+    // Features = one sub-struct where every later feature keeps its state, so this struct never grows a field per feature.
     pub(crate) features: Features,          // what each feature keeps, features.rs
 }
+// --8<-- [end:state-struct]
 
+// --8<-- [start:state-new]
 impl State {
     /// Open the GPU and upload the scene.
     pub async fn new(window: Arc<Window>, mut scene: Scene) -> anyhow::Result<Self> {
@@ -86,10 +91,12 @@ impl State {
             highlighted: Vec::new(),
             selection_radius_css: 6.0,
             show_selected_names: true,
-            features: Features::default(),
+            features: Features::default(), // every feature starts from its Default
         })
     }
+// --8<-- [end:state-new]
 
+// --8<-- [start:state-scene]
     /// Width over height of the canvas.
     pub fn aspect(&self) -> f64 {
         self.gpu.config.width.max(1) as f64 / self.gpu.config.height.max(1) as f64
@@ -171,6 +178,7 @@ impl State {
     /// Fit the camera to the selection, or to everything.
     pub fn fit_selected_or_all(&mut self) {
         // the box of every selected row
+        // `filter_map` keeps the rows that have a box and unwraps them in one step
         let mut bounds = self
             .selected_rows()
             .into_iter()
@@ -191,7 +199,10 @@ impl State {
         self.camera.grow_extent(&self.gpu.bounds);
         self.touch();
     }
+// --8<-- [end:state-scene]
 
+// --8<-- [start:state-resize]
+    // A `const` inside `impl` is an associated constant, read as `Self::RESIZE_HOLD_MS`.
     /// Minimum time between two resizes.
     const RESIZE_HOLD_MS: f64 = 100.0;
 
@@ -248,7 +259,9 @@ impl State {
         self.dirty = true;
         self.needs_frame = true;
     }
+// --8<-- [end:state-resize]
 
+// --8<-- [start:state-select]
     /// Select one row, or nothing.
     pub fn select(&mut self, row: Option<u32>) {
         let row = row.filter(|row| self.scene.selectable(*row));
@@ -315,6 +328,7 @@ impl State {
                     .is_some_and(|id| !self.scene.hidden.contains(&id))
         }));
         let order = selected.clone();
+        // `dedup` only drops neighbours that repeat, so sort first
         selected.sort_unstable();
         selected.dedup();
         self.select(None);
@@ -333,6 +347,7 @@ impl State {
 
     /// Select what a viewport click on `row` reaches: its whole group, when it is in one.
     pub(crate) fn select_picked(&mut self, row: u32, additive: bool) {
+        // CLICK_ROWS is a hook list in features.rs: an array of functions, one per feature; the first answer wins
         let rows = features::CLICK_ROWS
             .iter()
             .find_map(|widen| widen(self, row))
@@ -383,7 +398,9 @@ impl State {
         self.update_label(); // register:scene_text
         self.touch();
     }
+// --8<-- [end:state-select]
 
+// --8<-- [start:state-apply-pick]
     /// A pick answer arrived: select what it hit.
     fn apply_pick(&mut self, pick: Option<Pick>) {
         // a feature waiting for this answer takes it: a drag, a tool, a split, a point-cloud query
@@ -464,9 +481,12 @@ impl State {
             None => log::info!("pick: row {} sub {} (no document)", p.row, p.sub),
         }
     }
+// --8<-- [end:state-apply-pick]
 
+// --8<-- [start:state-render]
     /// Draw one frame; a still scene asks for no more.
     pub fn render(&mut self) {
+        // hooks from features.rs run first: a feature adds itself here with one line in that file
         for hook in features::BEFORE_PICKS {
             hook(self);
         }
@@ -541,6 +561,7 @@ impl State {
             || (self.gpu.performance.rough() && !self.interacting); // redraw reasons
 
         let mut dropped = false;
+        // starts false; a later feature ORs in its own reason on a line of its own, so this line never changes
         let mut waiting = false;
         waiting |= self.cloud_query_awaiting_gpu(); // a point-cloud query waits for its answer; register:cloud_query
 
@@ -588,7 +609,9 @@ impl State {
         #[cfg(target_arch = "wasm32")]
         crate::app::inspection::publish(self);
     }
+// --8<-- [end:state-render]
 
+// --8<-- [start:state-request]
     /// Canvas size in CSS pixels; device pixels natively.
     pub(crate) fn logical_size(&self) -> [f64; 2] {
         #[cfg(target_arch = "wasm32")]
@@ -684,11 +707,15 @@ impl State {
         crate::engine::performance::perf_line(&line);
     }
 
+    // Two versions of one function, chosen by `#[cfg]`: natively it does nothing.
     /// Natively the perf line goes nowhere.
     #[cfg(not(target_arch = "wasm32"))]
     fn perf_line(&self, _gap_ms: f64, _encode_ms: f64) {}
 }
+// --8<-- [end:state-request]
 
+// --8<-- [start:state-inspect]
+// A second `impl State` block, compiled only for the browser build.
 #[cfg(target_arch = "wasm32")]
 impl State {
     /// The control points as JSON, for the inspection tests.
@@ -707,7 +734,9 @@ impl State {
 pub(crate) fn render_position(position: [f64; 3]) -> [f32; 3] {
     [position[0] as f32, position[1] as f32, position[2] as f32]
 }
+// --8<-- [end:state-inspect]
 
+// --8<-- [start:state-order]
 /// `selected` in the pick order `order`, first picks first; rows the order misses come last.
 fn ordered(order: &[u32], selected: &[u32]) -> Vec<u32> {
     let mut left: std::collections::HashSet<u32> = selected.iter().copied().collect();
@@ -721,7 +750,9 @@ fn ordered(order: &[u32], selected: &[u32]) -> Vec<u32> {
 
     rows
 }
+// --8<-- [end:state-order]
 
+// --8<-- [start:state-tests]
 #[cfg(test)]
 mod order_tests {
     use super::ordered;
@@ -735,8 +766,12 @@ mod order_tests {
         assert_eq!(ordered(&[3, 3, 1], &[1, 3]), vec![3, 1]);
     }
 }
+// --8<-- [end:state-tests]
 
-// --8<-- [start:13]
+// --8<-- [start:13-controls]
+// --8<-- [start:enable-controls]
+// Control point = a point that shapes a curve, surface or mesh; moving it reshapes the geometry.
+// Control net = the thin lines joining neighbouring control points.
 impl State {
     /// F10: show the control points of the selected object.
     pub fn enable_controls(&mut self) {
@@ -746,6 +781,7 @@ impl State {
         };
 
         // already on
+        // `matches!` tests a pattern, here with an `if` guard, and returns a bool
         if matches!(self.selection, SelectionMode::Controls { parent: active, .. } if active == parent)
         {
             return;
@@ -779,6 +815,7 @@ impl State {
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.gpu.segments.set_edge(&self.gpu.ctx, None);
         self.gpu.set_selected(parent, false);
+        // `then_some` turns true into Some(parent) and false into None
         self.gpu
             .splat
             .set_controls(controls.cloud.then_some(parent));
@@ -788,7 +825,9 @@ impl State {
         self.status("Control points: click to select; Esc to leave");
         self.touch();
     }
+// --8<-- [end:enable-controls]
 
+// --8<-- [start:upload-controls]
     /// Send the control dots and their links to the GPU.
     pub(crate) fn upload_controls(&mut self) {
         // start empty, so nothing doubles
@@ -841,7 +880,9 @@ impl State {
             .control_net
             .append(&self.gpu.ctx, &self.gpu.layouts, &segments);
     }
+// --8<-- [end:upload-controls]
 
+// --8<-- [start:apply-control]
     /// A control point was clicked: select it.
     fn apply_control(&mut self, pick: Pick, cloud: bool) {
         let SelectionMode::Controls { parent, .. } = self.selection else {
@@ -890,9 +931,11 @@ impl State {
         self.touch();
     }
 }
-// --8<-- [end:13]
+// --8<-- [end:apply-control]
+// --8<-- [end:13-controls]
 
-// --8<-- [start:15]
+// --8<-- [start:15-stream-state]
+// --8<-- [start:stream-state]
 use crate::app::scene::StreamedInit;
 use crate::app::walk::cloud::StreamRows;
 
@@ -917,9 +960,11 @@ impl State {
         self.touch();
     }
 }
-// --8<-- [end:15]
+// --8<-- [end:stream-state]
+// --8<-- [end:15-stream-state]
 
-// --8<-- [start:16]
+// --8<-- [start:16-release-state]
+// --8<-- [start:release-state]
 impl State {
     /// A display-only document keeps its rows and tree, not its objects.
     pub(super) fn release_display_only(
@@ -933,9 +978,11 @@ impl State {
         }
     }
 }
-// --8<-- [end:16]
+// --8<-- [end:release-state]
+// --8<-- [end:16-release-state]
 
-// --8<-- [start:17]
+// --8<-- [start:17-pick-face]
+// --8<-- [start:pick-face]
 impl State {
     /// A face pick in Component mode: select the face.
     fn pick_face(&mut self, pick: Option<Pick>) {
@@ -962,9 +1009,11 @@ impl State {
         }
     }
 }
-// --8<-- [end:17]
+// --8<-- [end:pick-face]
+// --8<-- [end:17-pick-face]
 
-// --8<-- [start:19]
+// --8<-- [start:19-sheet-state]
+// --8<-- [start:sheet-state]
 use crate::app::scene::SheetInit;
 use crate::app::walk::sheet::SheetRows;
 
@@ -988,4 +1037,5 @@ impl State {
         self.touch();
     }
 }
-// --8<-- [end:19]
+// --8<-- [end:sheet-state]
+// --8<-- [end:19-sheet-state]

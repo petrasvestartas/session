@@ -1,3 +1,5 @@
+// `pub mod x;` makes src/app/x.rs part of the crate; each lesson adds the one line of the module it teaches.
+// `#[cfg(target_arch = "wasm32")]` above a line compiles that module for the browser only.
 pub mod cloud_query; // register:cloud_query
 #[cfg(any(target_arch = "wasm32", test))] // register:decode
 pub mod decode; // register:decode

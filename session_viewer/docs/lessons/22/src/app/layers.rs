@@ -1,10 +1,11 @@
+// --8<-- [start:layer-model]
 use crate::app::scene::{FileDoc, Scene, Shape, sync};
 use session_rust::{Edge, Geometry, History, Session, TreeNode, Xform};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-type Node = Rc<RefCell<TreeNode>>;
+type Node = Rc<RefCell<TreeNode>>; // a `type` alias names a long type once
 
 /// What one panel row controls.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -14,7 +15,7 @@ pub enum Layer {
 }
 
 /// The kinds the panel groups objects by.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)] // Ord: kinds sort in the order written
 pub enum Kind {
     Solids,   // BReps, boxes, elements
     Surfaces, // NURBS surfaces, planes
@@ -91,7 +92,9 @@ pub struct Row {
     pub count: usize,  // objects it controls
     pub hidden: bool,  // all of them hidden
 }
+// --8<-- [end:layer-model]
 
+// --8<-- [start:layer-rows]
 /// The panel rows: documents, then the kinds present.
 pub fn rows(scene: &Scene) -> Vec<Row> {
     let mut documents = vec![(0, 0); scene.docs.len()]; // (count, hidden) per document
@@ -109,6 +112,7 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
         }
 
         if let Some(shape) = scene.shape(row) {
+            // `as usize` on a plain enum gives its position: Solids = 0 ... Clouds = 5
             let count = &mut kinds[Kind::of(shape) as usize];
             count.0 += 1;
             count.1 += hidden;
@@ -168,7 +172,9 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
 
     rows
 }
+// --8<-- [end:layer-rows]
 
+// --8<-- [start:layer-current]
 impl Scene {
     /// The tree node holding the object `guid` of `doc`, when it hangs from the tree.
     pub(crate) fn parent_of(&self, doc: usize, guid: &str) -> Option<Node> {
@@ -289,7 +295,9 @@ impl Scene {
                     .any(|ancestor| ancestor.borrow().name == name)
             })
     }
+// --8<-- [end:layer-current]
 
+// --8<-- [start:layer-edit]
     /// Add a layer beside `at`, or under it as a sublayer; returns its name.
     pub fn new_layer(&mut self, doc: usize, at: &str, sublayer: bool) -> Result<String, String> {
         self.layer_node(doc, at)?;
@@ -399,7 +407,9 @@ impl Scene {
 
         Ok(copy)
     }
+// --8<-- [end:layer-edit]
 
+// --8<-- [start:layer-move]
     /// Move objects onto a layer, keeping them in place; returns their (document, guid) there.
     pub fn change_object_layer(
         &mut self,
@@ -631,7 +641,9 @@ impl Scene {
             self.hidden.insert(to.clone());
         }
     }
+// --8<-- [end:layer-move]
 
+// --8<-- [start:layer-steps]
     /// A new undo label for one layer edit.
     pub(crate) fn step_key(&mut self, label: &str) -> Result<String, String> {
         self.layer_steps += 1;
@@ -639,6 +651,7 @@ impl Scene {
     }
 
     /// Run one layer edit of document `doc` as the undo step `key`; a failed edit is aborted and leaves nothing.
+    // the edit arrives as a closure that runs once and may return any value `T`
     pub(crate) fn layer_step<T>(
         &mut self,
         doc: usize,
@@ -655,7 +668,7 @@ impl Scene {
             return Err("This document is display only".into());
         }
 
-        let session = Rc::make_mut(&mut file.session);
+        let session = Rc::make_mut(&mut file.session); // copies the session only while another placement shares it
         session.begin(key);
         let result = edit(session);
 
@@ -727,7 +740,9 @@ impl Scene {
         Some(label)
     }
 }
+// --8<-- [end:layer-steps]
 
+// --8<-- [start:layer-history]
 /// True for the label of a layer step, `<verb> #<n>` from `step_key`.
 pub(crate) fn is_layer_key(label: &str) -> bool {
     label
@@ -850,7 +865,9 @@ fn group(session: &Session, name: &str) -> Result<Node, String> {
         .get_node_by_name(name)
         .ok_or_else(|| format!("Layer {name} is gone"))
 }
+// --8<-- [end:layer-history]
 
+// --8<-- [start:layer-tree]
 /// True when a tree node or object already has this name.
 fn taken(session: &Session, name: &str) -> bool {
     session.lookup.contains_key(name) || session.tree.get_node_by_name(name).is_some()
@@ -1108,7 +1125,9 @@ pub(crate) fn add(
         Geometry::Polyline(value) => session.add_polyline(Rc::unwrap_or_clone(value), under),
     }
 }
+// --8<-- [end:layer-tree]
 
+// --8<-- [start:layer-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1665,3 +1684,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:layer-tests]

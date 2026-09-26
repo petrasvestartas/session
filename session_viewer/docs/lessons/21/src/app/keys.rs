@@ -1,3 +1,4 @@
+// --8<-- [start:keys-binding]
 use crate::State;
 use crate::camera::View;
 use winit::keyboard::{Key, NamedKey};
@@ -6,7 +7,7 @@ use winit::keyboard::{Key, NamedKey};
 pub struct Binding {
     pub trigger: Trigger,    // the key itself
     pub ctrl: bool,          // Ctrl must be held
-    pub shift: Option<bool>, // Shift must be held, or must not
+    pub shift: Option<bool>, // Some(true) = Shift held, Some(false) = not held, None = either
     pub run: fn(&mut State), // what it does
 }
 
@@ -36,7 +37,10 @@ pub fn binding(key: &Key<&str>, ctrl: bool, shift: bool) -> Option<&'static Bind
     KEYS.iter()
         .find(|binding| binding.matches(key, ctrl, shift))
 }
+// --8<-- [end:keys-binding]
 
+// --8<-- [start:keys-builders]
+// A `const fn` can run at compile time, so the KEYS table below exists before the program starts.
 /// A press with no modifier requirement.
 const fn plain(chars: &'static [&'static str], run: fn(&mut State)) -> Binding {
     Binding {
@@ -56,7 +60,9 @@ const fn named(key: NamedKey, run: fn(&mut State)) -> Binding {
         run,
     }
 }
+// --8<-- [end:keys-builders]
 
+// --8<-- [start:keys-table]
 /// Every keyboard shortcut, first match wins.
 pub const KEYS: &[Binding] = &[
     // register:projection
@@ -122,8 +128,10 @@ pub const KEYS: &[Binding] = &[
     // register:cloud-bigger
     plain(&["]"], |s| s.set_cloud_size(s.gpu.view.cloud_size + 0.25)),
 ];
+// --8<-- [end:keys-table]
 
-// --8<-- [start:21]
+// --8<-- [start:21-ctrl-key]
+// --8<-- [start:ctrl-key]
 /// A press with Ctrl held, and Shift held, not held or either.
 const fn ctrl(chars: &'static [&'static str], shift: Option<bool>, run: fn(&mut State)) -> Binding {
     Binding {
@@ -133,4 +141,5 @@ const fn ctrl(chars: &'static [&'static str], shift: Option<bool>, run: fn(&mut 
         run,
     }
 }
-// --8<-- [end:21]
+// --8<-- [end:ctrl-key]
+// --8<-- [end:21-ctrl-key]

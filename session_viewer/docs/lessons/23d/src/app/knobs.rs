@@ -1,3 +1,4 @@
+// Knob = a debug switch read from an environment variable, e.g. `VIEWER_NO_EDGES=1 cargo xtest`; the browser has none, so every knob reads false there.
 use std::sync::OnceLock;
 
 /// True when the environment variable is set; read once.
@@ -10,6 +11,7 @@ fn read_environment_flag(name: &str) -> bool {
     std::env::var(name).is_ok()
 }
 
+// A `static` lives as long as the program; a OnceLock inside it is filled on the first read and never again.
 static PROFILE: OnceLock<bool> = OnceLock::new();
 
 static DROP_SESSIONS: OnceLock<bool> = OnceLock::new();

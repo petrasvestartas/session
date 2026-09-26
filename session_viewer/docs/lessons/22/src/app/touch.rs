@@ -1,3 +1,4 @@
+// --8<-- [start:touch-types]
 use winit::event::{Touch, TouchPhase};
 
 use crate::camera::Camera;
@@ -47,7 +48,9 @@ pub struct Touches {
     mid: (f64, f64),                // last midpoint of the first two
     tap: Option<(f64, (f64, f64))>, // when and where the last tap lifted
 }
+// --8<-- [end:touch-types]
 
+// --8<-- [start:touch-event]
 impl Touches {
     /// No fingers down, no tap pending.
     pub fn new() -> Self {
@@ -84,7 +87,9 @@ impl Touches {
             }
         }
     }
+// --8<-- [end:touch-event]
 
+// --8<-- [start:touch-moved]
     /// One finger orbits; two pan by their midpoint and zoom by their distance.
     fn moved(&mut self, cam: &mut Camera, id: u64, p: (f64, f64), vp: (f64, f64), dpr: f64) -> Act {
         let Some(i) = self.finger_index(id) else {
@@ -116,13 +121,15 @@ impl Touches {
             ((mid.1 - self.mid.1) * PAN_PER_PX / h) as f32,
         );
         let r = (span / self.span).clamp(1.0 / PINCH_MAX, PINCH_MAX);
-        cam.zoom_at((-r.ln() / PINCH_LOG) as f32, mid, vp);
+        cam.zoom_at((-r.ln() / PINCH_LOG) as f32, mid, vp); // spreading to twice the distance = 6.6 wheel steps
 
         self.span = span;
         self.mid = mid;
         Act::Moved
     }
+// --8<-- [end:touch-moved]
 
+// --8<-- [start:touch-lifted]
     /// A finger lifted; the last one up may be a tap.
     fn lifted(&mut self, id: u64, p: (f64, f64), dpr: f64) -> Act {
         let Some(f) = self.drop_finger(id) else {
@@ -174,10 +181,13 @@ impl Touches {
         Some(self.fingers.remove(i))
     }
 }
+// --8<-- [end:touch-lifted]
 
+// --8<-- [start:touch-default]
 impl Default for Touches {
     /// Same as `new`.
     fn default() -> Self {
         Self::new()
     }
 }
+// --8<-- [end:touch-default]

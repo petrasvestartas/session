@@ -1,3 +1,4 @@
+// --8<-- [start:input-struct]
 use super::gesture::{self, Gesture};
 use super::touch::{Act, TAP_SLOP, Touches};
 use crate::State;
@@ -19,6 +20,7 @@ pub struct Input {
     panning: bool,                           // middle button held
     ctrl: bool,                              // Ctrl held
     shift: bool,                             // Shift held
+    // `&'static` = a reference that lives as long as the program: an entry of the GESTURES table
     gesture: Option<&'static Gesture>,       // the left-button tool in charge
     last_cursor: (f64, f64),                 // last pointer position in pixels
     left_down: Option<(f64, f64)>,           // where the left button went down
@@ -31,7 +33,9 @@ pub struct Input {
     touch_cancelled: bool,   // waiting for all fingers to lift
     tool_held: bool,         // a running command follows this drag, e.g. a lasso
 }
+// --8<-- [end:input-struct]
 
+// --8<-- [start:input-new]
 impl Default for Input {
     /// Same as `new`.
     fn default() -> Self {
@@ -60,22 +64,27 @@ impl Input {
             tool_held: false,
         }
     }
+// --8<-- [end:input-new]
 
+// --8<-- [start:input-key]
     /// One key press; true when the frame must be redrawn.
     pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
         let Some(binding) = super::keys::binding(&key, self.ctrl, self.shift) else {
             return false;
         };
-        (binding.run)(state);
+        (binding.run)(state); // the parentheses call the function stored in the field
         true
     }
+// --8<-- [end:input-key]
 
+// --8<-- [start:mouse-buttons]
     /// One mouse or touch event; true when the frame must be redrawn.
     pub fn mouse(&mut self, state: &mut State, event: &WindowEvent) -> bool {
         let viewport = state.viewport();
 
         match event {
             WindowEvent::MouseInput {
+                // `state: btn` renames the event's field so it does not hide our `state`; `..` skips the rest
                 state: btn,
                 button: MouseButton::Right,
                 ..
@@ -150,7 +159,10 @@ impl Input {
                 redraw = redraw || state.hover_drawing(at.0, at.1); // register:commands
                 redraw
             }
+// --8<-- [end:mouse-buttons]
+// --8<-- [start:mouse-wheel]
             WindowEvent::MouseWheel { delta, .. } => {
+                // a mouse wheel reports lines, a touchpad pixels: 100 px count as one line
                 let amount = match delta {
                     MouseScrollDelta::LineDelta(_, y) => *y,
                     MouseScrollDelta::PixelDelta(p) => p.y as f32 / 100.0,
@@ -169,6 +181,8 @@ impl Input {
                 state.interacting = false;
                 true
             }
+// --8<-- [end:mouse-wheel]
+// --8<-- [start:mouse-touch]
             WindowEvent::Touch(t) => {
                 let scale = crate::engine::gpu::view::surface_per_physical();
                 let t = &winit::event::Touch {
@@ -176,7 +190,7 @@ impl Input {
                         t.location.x * scale,
                         t.location.y * scale,
                     ),
-                    ..*t
+                    ..*t // every other field copied from the original touch
                 };
                 let at = (t.location.x, t.location.y);
 
@@ -306,7 +320,9 @@ impl Input {
             _ => false,
         }
     }
+// --8<-- [end:mouse-touch]
 
+// --8<-- [start:input-cancel]
     /// True while a running command follows a left drag, e.g. a lasso.
     pub fn tool_held(&self) -> bool {
         self.tool_held
@@ -328,7 +344,9 @@ impl Input {
         self.touch_cancelled = false;
         self.tool_held = false;
     }
+// --8<-- [end:input-cancel]
 
+// --8<-- [start:input-left]
     /// Left button: a tool from the registry, else a click.
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
@@ -399,11 +417,15 @@ impl Input {
         }
     }
 }
+// --8<-- [end:input-left]
 
+// --8<-- [start:pointer-cancel]
+// The browser may take a pointer away mid-drag, e.g. to scroll the page; winit never reports that.
 /// A `pointercancel` listener on the canvas.
 #[cfg(target_arch = "wasm32")]
 pub struct PointerCancellation {
     canvas: web_sys::HtmlCanvasElement, // the canvas listened to
+    // a `Closure` lets JavaScript call Rust; it must live as long as the listener, so the struct keeps it
     callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>, // the JS callback
 }
 
@@ -419,6 +441,7 @@ impl PointerCancellation {
             wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |_| {
                 cancel_pointer(&proxy)
             });
+        // `unchecked_ref` presents the closure as the JS function type the DOM expects
         canvas
             .add_event_listener_with_callback("pointercancel", callback.as_ref().unchecked_ref())?;
         Ok(Self { canvas, callback })
@@ -442,8 +465,11 @@ impl Drop for PointerCancellation {
 fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
     let _ = proxy.send_event(crate::Msg::CancelPointer);
 }
+// --8<-- [end:pointer-cancel]
 
+// --8<-- [start:input-dpr]
 /// Physical pixels per CSS pixel.
 fn device_pixel_ratio() -> f64 {
     crate::engine::gpu::view::device_pixel_ratio()
 }
+// --8<-- [end:input-dpr]

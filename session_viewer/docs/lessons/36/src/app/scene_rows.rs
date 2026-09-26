@@ -1,9 +1,13 @@
+// --8<-- [start:rows-owners]
+// Row = one object's line in the GPU object table; its number is the id the pick pass writes.
+// Lane = one family of GPU rows, e.g. faces or ribbons; an object's rows across the lanes are its footprint.
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::{ObjectRow, Upload};
 use session_rust::{TreeNode, Xform, history};
 use std::cell::RefCell;
 use std::rc::Weak;
 
+// Owners are document indexes; the largest usize values are free to mean these special owners.
 /// Owner of a text row.
 pub(crate) const TEXT: usize = usize::MAX;
 
@@ -16,13 +20,16 @@ pub(crate) const SINK: usize = usize::MAX - 2;
 /// Owner of a deleted object's row whose lane rows stay resident, hidden, for an undo.
 pub(crate) const TOMB: usize = usize::MAX - 3;
 
-/// The note bits: what one edit did to one object.
+/// The note bits: what one edit did to one object; GEOMETRY | PLACE = 3 means both.
 pub(crate) const GEOMETRY: u8 = 1; // walk it again
 pub(crate) const PLACE: u8 = 2; // compute its placement again
 pub(crate) const PRESENCE: u8 = 4; // decide again whether it is drawn
 pub(crate) const SUBTREE: u8 = 8; // every object below its tree node too
+// --8<-- [end:rows-owners]
 
+// --8<-- [start:rows-footprint]
 /// Where one object's rows sit; most objects use one lane.
+// An enum takes its largest variant plus a tag: `One` makes every footprint 12 bytes.
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub(crate) enum Footprint {
     #[default]
@@ -53,8 +60,10 @@ pub(crate) struct DocState {
 /// What one edit did to one object.
 #[derive(Clone, Debug)]
 pub(crate) struct Note {
+    // `Rc<str>` shares one guid string between tables instead of copying it
     pub guid: std::rc::Rc<str>,                // the object or group
     pub what: u8,                              // GEOMETRY | PLACE | PRESENCE | SUBTREE
+    // a `Weak` points at shared data without keeping it alive; `upgrade()` gives None once it is gone
     pub node: Option<Weak<RefCell<TreeNode>>>, // its tree node, when the edit knows it
     pub parent: Option<(String, usize)>,       // (parent name, child index) of an added object
     pub tomb: Option<Weak<history::Tomb>>,     // the kernel tomb of an add or remove
@@ -72,7 +81,9 @@ impl Note {
         }
     }
 }
+// --8<-- [end:rows-footprint]
 
+// --8<-- [start:rows-staged]
 /// A deleted object's rows, left on the GPU and hidden while history can bring it back.
 pub(crate) struct Tomb {
     pub row: u32,                    // its row id, kept from reuse
@@ -98,7 +109,9 @@ pub(crate) struct Staged {
     pub geometry: Vec<(u32, ObjectRow)>,     // redrawn rows: box, spacing and walk flags
     pub places: Vec<(u32, Xform)>,           // moved rows
 }
+// --8<-- [end:rows-staged]
 
+// --8<-- [start:rows-spans]
 /// The side table of footprints that span several lanes; slots are reused.
 #[derive(Default)]
 pub(crate) struct Spans {
@@ -173,7 +186,9 @@ impl Spans {
         self.spans.capacity() * std::mem::size_of::<Span>() + self.free.capacity() * 4
     }
 }
+// --8<-- [end:rows-spans]
 
+// --8<-- [start:rows-ids]
 /// Row ids nothing holds, handed out last-freed first; an id freed in one sync waits for its end.
 #[derive(Default)]
 pub(crate) struct Ids {
@@ -208,7 +223,9 @@ impl Ids {
         self.freed = Vec::new();
     }
 }
+// --8<-- [end:rows-ids]
 
+// --8<-- [start:rows-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -279,3 +296,4 @@ mod tests {
         assert_eq!(ids.take(), None);
     }
 }
+// --8<-- [end:rows-tests]

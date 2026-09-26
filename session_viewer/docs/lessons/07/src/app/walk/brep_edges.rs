@@ -1,3 +1,4 @@
+// --8<-- [start:edge-order]
 use session_rust::Mesh;
 use session_rust::brep::{BRep, BRepOrientation};
 
@@ -6,6 +7,7 @@ use crate::engine::gpu::CylinderSegment;
 use crate::engine::gpu::segments::SegRows;
 use session_rust::AABB;
 
+// f64 has no total order because of NaN: partial_cmp returns None for it, total_cmp puts NaN in a fixed place.
 /// Order two floats, NaN counts as equal.
 fn sample_order(a: &f64, b: &f64) -> std::cmp::Ordering {
     a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)
@@ -30,7 +32,10 @@ fn same_parameter(a: &mut (f64, usize), b: &mut (f64, usize)) -> bool {
 fn parse_sample_index(value: &str) -> Option<usize> {
     value.parse().ok()
 }
+// --8<-- [end:edge-order]
 
+// --8<-- [start:edge-use]
+// Each face that borders an edge uses it in its own direction, forward or reversed.
 /// One use of an edge by a face.
 pub struct EdgeUse {
     pub edge: usize,                  // edge index
@@ -38,7 +43,7 @@ pub struct EdgeUse {
     pub orientation: BRepOrientation, // which way the face runs it
 }
 
-/// The two UV ends of a straight pcurve.
+/// The two UV ends of a straight pcurve. Pcurve = the edge drawn in one face's (u, v) coordinates.
 fn pcurve_ends(b: &BRep, eu: &EdgeUse) -> Option<([f64; 2], [f64; 2])> {
     let ci = b.pcurve_index(eu.edge, eu.face, eu.orientation);
 
@@ -57,7 +62,7 @@ fn pcurve_ends(b: &BRep, eu: &EdgeUse) -> Option<([f64; 2], [f64; 2])> {
     Some(([p0[0], p0[1]], [p1[0], p1[1]]))
 }
 
-/// Sorted distinct values of one vertex attribute.
+/// Sorted distinct values of one vertex attribute; the kernel mesher tags each vertex with its "u" and "v".
 fn sample_values(fm: &Mesh, name: &str) -> Vec<f64> {
     let mut vals = Vec::new();
 
@@ -72,7 +77,7 @@ fn sample_values(fm: &Mesh, name: &str) -> Vec<f64> {
     vals
 }
 
-/// The sample value nearest `target`, also across a wrap.
+/// The sample value nearest `target`, also across a wrap: on a closed direction u = end is u = start.
 fn nearest_sample(vals: &[f64], target: f64, wrap: Option<(f64, f64)>) -> Option<f64> {
     let mut best: Option<(f64, f64)> = None;
 
@@ -93,7 +98,10 @@ fn nearest_sample(vals: &[f64], target: f64, wrap: Option<(f64, f64)>) -> Option
 
     Some(best?.1)
 }
+// --8<-- [end:edge-use]
 
+// --8<-- [start:iso-chain]
+// Iso line = a line of constant u or v; a seam or a grid border runs along one, and its vertices sit exactly on it.
 /// Vertex keys along a grid edge, in parameter order.
 pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
     let e = b.m_edges.get(eu.edge)?;
@@ -170,7 +178,9 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
 
     Some(keys)
 }
+// --8<-- [end:iso-chain]
 
+// --8<-- [start:constrained-chain]
 /// The mesh vertices one BRep edge runs along.
 pub struct EdgeChain {
     pub edge: usize,          // BRep edge index
@@ -179,9 +189,10 @@ pub struct EdgeChain {
     pub other: Option<usize>, // the face on the other side
 }
 
-/// Vertex keys along edge `edge` from the mesher's labels.
+/// Vertex keys along edge `edge` from the mesher's labels: a vertex it put on edge 7, use 0, sample 3 carries `brep_edge/7/0/3`.
 fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
     let prefix = format!("brep_edge/{edge}/");
+    // BTreeMap keeps its keys sorted, so the samples come out in order
     let mut uses =
         std::collections::BTreeMap::<usize, std::collections::BTreeMap<usize, usize>>::new(); // use id -> sample -> key
 
@@ -254,7 +265,10 @@ fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
 
     None
 }
+// --8<-- [end:constrained-chain]
 
+// --8<-- [start:edge-chains]
+// Shared boundary: the chain is read from one face's mesh; the other face was meshed on the same edge samples, so one run of pipes serves both.
 /// One chain per BRep edge, None when no mesh carries it.
 pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
     let mut out = Vec::with_capacity(b.m_edges.len());
@@ -305,7 +319,10 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 
     out
 }
+// --8<-- [end:edge-chains]
 
+// --8<-- [start:facets]
+// Facet = one triangle of a face mesh. Two face meshes share positions, not vertex keys, so an edge is found by the bits of its two end positions.
 /// A triangle edge keyed by its two end positions.
 type FacetEdge = [[u64; 3]; 2];
 
@@ -316,7 +333,7 @@ struct FacetPair {
     count: usize,                   // how many triangles in total
 }
 
-/// Position as bits, -0 same as 0.
+/// Position as bits; -0.0 equals 0.0 but has other bits, so it is mapped to 0.
 fn position_bits(position: [f64; 3]) -> [u64; 3] {
     let mut bits = [0; 3];
 
@@ -397,7 +414,9 @@ fn face_facets(mesh: &Mesh) -> std::collections::HashMap<FacetEdge, FacetPair> {
 
     result
 }
+// --8<-- [end:facets]
 
+// --8<-- [start:edge-pen]
 /// What every edge pipe of one BRep needs.
 pub struct EdgePen<'a> {
     pub fms: &'a [Mesh],                                          // face meshes
@@ -423,7 +442,7 @@ impl<'a> EdgePen<'a> {
         }
     }
 
-    /// Facing word of one pipe; unknown when ambiguous.
+    /// Facing word of one pipe: the normals of the triangle on each side, one per face; unknown when ambiguous.
     fn facing(&self, chain: &EdgeChain, a: [f64; 3], b: [f64; 3]) -> u32 {
         let key = facet_edge(a, b);
         let Some(owner) = self.facets[chain.face].get(&key) else {
@@ -459,7 +478,9 @@ fn scaled_normal(normal: Option<[f64; 3]>, sign: f64) -> Option<[f64; 3]> {
     let n = normal?;
     Some([n[0] * sign, n[1] * sign, n[2] * sign])
 }
+// --8<-- [end:edge-pen]
 
+// --8<-- [start:edge-pipes]
 /// One pipe per chain segment; returns how many were pushed.
 pub fn push_edge_pipes(
     seg: &mut SegRows,
@@ -495,6 +516,7 @@ pub fn push_edge_pipes(
             color: ep.pen.color,
             facing: ep.facing(chain, p0, p1),
         });
+        // try_from fails above u32::MAX; unwrap_or turns that into "no edge id"
         seg.pipe_ids
             .push(u32::try_from(chain.edge).unwrap_or(u32::MAX)); // edge id for picking
         count += 1;
@@ -503,7 +525,9 @@ pub fn push_edge_pipes(
     seg.pipe_chains.push(first..seg.pipes.len() as u32); // one joined stroke
     count
 }
+// --8<-- [end:edge-pipes]
 
+// --8<-- [start:edge-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -970,3 +994,4 @@ mod tests {
         }
     }
 }
+// --8<-- [end:edge-tests]

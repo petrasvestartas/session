@@ -1,3 +1,4 @@
+// --8<-- [start:scene-types]
 #[path = "scene_instances.rs"] // register:instancing
 pub(crate) mod instances; // register:instancing
 #[path = "scene_release.rs"] // register:release
@@ -53,13 +54,16 @@ pub struct PickedPoint {
 }
 
 /// Names a row has before its geometry's own: a text's, a sheet entity's, an instance's, a released row's.
+// `for<'a>`: each function takes any borrow of the scene and returns a name that lives as long as that borrow.
 const NAMERS: &[for<'a> fn(&'a Scene, u32) -> Option<&'a str>] = &[
     Scene::text_name,            // register:scene_text
     Scene::sheet_name,           // register:sheets
     Scene::instance_name,        // register:instancing
     Scene::released_object_name, // register:release
 ];
+// --8<-- [end:scene-types]
 
+// --8<-- [start:scene-struct]
 /// The open documents and their object rows; a row id stays with its object for the object's life.
 pub struct Scene {
     pub docs: Vec<FileDoc>,                              // loaded files
@@ -127,7 +131,9 @@ impl Default for Scene {
         Self::new()
     }
 }
+// --8<-- [end:scene-struct]
 
+// --8<-- [start:scene-new]
 impl Scene {
     /// True when the row is not locked.
     pub fn selectable(&self, row: u32) -> bool {
@@ -261,9 +267,12 @@ impl Scene {
         self.docs.push(doc);
         self.doc_state.push(state);
     }
+// --8<-- [end:scene-new]
 
+// --8<-- [start:scene-upload]
     /// Write what the last sync staged, then append the walked tables and clear them.
     pub fn upload_to(&mut self, gpu: &mut Gpu) {
+        // staged edits first (hide, kill, rewrite rows in place), then brand-new rows appended at the end
         let staged = std::mem::take(&mut self.staged);
         let sink = self.sink.unwrap_or(u32::MAX);
 
@@ -405,7 +414,9 @@ impl Scene {
             }
         }
     }
+// --8<-- [end:scene-upload]
 
+// --8<-- [start:scene-add]
     /// An object row with the colors its identity was given.
     fn object_row(&self, owner: usize, guid: &Rc<str>, place: Xform, flags: u32) -> ObjectRow {
         let mut object = ObjectRow::new(place, flags);
@@ -448,6 +459,7 @@ impl Scene {
     /// Add one document: one row per object, then the file sweeps.
     pub fn add_file(&mut self, doc: FileDoc) {
         self.row_revision = self.row_revision.wrapping_add(1);
+        // destructuring moves each field of `doc` into its own variable; `_` drops the one not needed
         let FileDoc {
             name,
             session,
@@ -491,8 +503,9 @@ impl Scene {
                 row,
                 attributes: self.attributes,
             };
+            // lane counts before and after the walk bracket the rows this object added
             let start = self.uploaded.plus(Counts::of(&self.tables));
-            let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
+            let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom); // lessons 06-09: geometry to GPU rows
             let end = self.uploaded.plus(Counts::of(&self.tables));
             self.feet[row as usize] = if matches!(geom, Geometry::PointCloud(_)) {
                 Footprint::Cloud
@@ -552,7 +565,9 @@ impl Scene {
             DocState { sheet, nodes_from },
         );
     }
+// --8<-- [end:scene-add]
 
+// --8<-- [start:scene-lookup]
     /// What a GPU pick landed on.
     pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
         let (_, guid) = self.identity_of(pick.row)?;
@@ -626,6 +641,7 @@ impl Scene {
 
     /// The edge index a pipe pick landed on; an instance's edges are its definition's.
     pub fn edge_at(&self, pick: Pick) -> Option<u32> {
+        // bit 31 marks a pipe pick, a mesh edge; the other 31 bits are the pipe's row
         if pick.sub & 0x8000_0000 == 0 {
             return None;
         }
@@ -718,8 +734,10 @@ impl Scene {
             - usize::from(self.sink.is_some())
             - self.instancing.batch_rows() // register:instancing
     }
+// --8<-- [end:scene-lookup]
 }
 
+// --8<-- [start:scene-helpers]
 /// File placement times the object's own transform.
 fn placement(world: &HashMap<String, Xform>, place: &Xform, guid: &str) -> Xform {
     match world.get(guid) {
@@ -770,7 +788,9 @@ fn runs(mut kills: Vec<(LaneId, u32, u32)>) -> Vec<(LaneId, u32, u32)> {
 
     out
 }
+// --8<-- [end:scene-helpers]
 
+// --8<-- [start:scene-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -869,7 +889,9 @@ mod tests {
         );
     }
 }
+// --8<-- [end:scene-tests]
 
+// --8<-- [start:scene-tree-key]
 /// The tree a node cache is filled from, by its root's address; a session moved by `Rc::make_mut` keeps it.
 pub(crate) fn tree_key(session: &Session) -> usize {
     session
@@ -877,8 +899,11 @@ pub(crate) fn tree_key(session: &Session) -> usize {
         .root()
         .map_or(0, |root| Rc::as_ptr(&root) as usize)
 }
+// --8<-- [end:scene-tree-key]
 
-// --8<-- [start:15]
+// --8<-- [start:15-streamed]
+// --8<-- [start:streamed-types]
+// A streamed cloud is drawn slice by slice as its bytes arrive; its shell document holds no kernel objects.
 use crate::app::stream::{CloudFields, CloudLod, SheetFields};
 
 use crate::app::walk::cloud::{StreamRows, StreamSlice, walk_stream_slice};
@@ -909,7 +934,9 @@ pub struct StreamedCloud {
     pub total: u32,          // points in the file
     pub point_px: f32,       // point size override
 }
+// --8<-- [end:streamed-types]
 
+// --8<-- [start:streamed-scene]
 impl Scene {
     /// Streamed points and normals still to come after the rows walked so far, within the ceiling.
     fn stream_expect(&self) -> (u32, u32) {
@@ -1024,7 +1051,9 @@ impl Scene {
             .grow_local_bounds(&gpu.ctx, row, &bounds, &place);
     }
 }
+// --8<-- [end:streamed-scene]
 
+// --8<-- [start:stream-tests]
 #[cfg(test)]
 mod stream_tests {
     use super::*;
@@ -1082,9 +1111,11 @@ mod stream_tests {
         );
     }
 }
-// --8<-- [end:15]
+// --8<-- [end:stream-tests]
+// --8<-- [end:15-streamed]
 
-// --8<-- [start:16]
+// --8<-- [start:16-released]
+// --8<-- [start:released]
 /// A geometry's type, kept for the rows of a released document.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Shape {
@@ -1157,9 +1188,11 @@ pub struct Released {
     pub fetch: Fetch,           // whether it is being fetched
 }
 
-// --8<-- [end:16]
+// --8<-- [end:released]
+// --8<-- [end:16-released]
 
-// --8<-- [start:19]
+// --8<-- [start:19-sheets]
+// --8<-- [start:sheet-types]
 use crate::app::sheet_query::{EntityMeta, SheetTable};
 
 use crate::app::walk::sheet::{SheetRows, SheetSlice, walk_sheet_slice};
@@ -1188,7 +1221,9 @@ pub struct SheetBatch {
     pub resolved: Option<(u32, EntityMeta)>, // entity the last pick found
     pub table: Option<SheetTable>,           // side table head, read once
 }
+// --8<-- [end:sheet-types]
 
+// --8<-- [start:sheet-scene]
 impl Scene {
     /// Add a streamed sheet from its first slice; returns its slot.
     pub fn add_sheet(&mut self, init: SheetInit, gpu: &mut Gpu) -> usize {
@@ -1317,9 +1352,11 @@ impl Scene {
         None
     }
 }
-// --8<-- [end:19]
+// --8<-- [end:sheet-scene]
+// --8<-- [end:19-sheets]
 
-// --8<-- [start:20]
+// --8<-- [start:20-document-tests]
+// --8<-- [start:document-tests]
 #[cfg(test)]
 mod document_tests {
     use super::tests::file;
@@ -1348,9 +1385,11 @@ mod document_tests {
         assert_eq!(scene.object_count(), 1);
     }
 }
-// --8<-- [end:20]
+// --8<-- [end:document-tests]
+// --8<-- [end:20-document-tests]
 
-// --8<-- [start:21]
+// --8<-- [start:21-editing]
+// --8<-- [start:editing-tests]
 #[cfg(test)]
 mod editing_tests {
     use super::tests::file;
@@ -1400,7 +1439,9 @@ mod editing_tests {
         );
     }
 }
+// --8<-- [end:editing-tests]
 
+// --8<-- [start:hydrated]
 /// A released document fetched and decoded again.
 pub struct Hydrated {
     pub doc: usize,                       // the document
@@ -1408,4 +1449,5 @@ pub struct Hydrated {
     pub session: Result<Session, String>, // its objects, or why not
     pub ms: f64,                          // fetch and decode time
 }
-// --8<-- [end:21]
+// --8<-- [end:hydrated]
+// --8<-- [end:21-editing]

@@ -1,3 +1,5 @@
+// --8<-- [start:query-id]
+// Cloud query = finding the clicked point of a streamed cloud by reading exact positions from its file, page by page.
 use super::stream::{CloudFields, CloudLod};
 use session_rust::Xform;
 use std::cell::Cell;
@@ -9,12 +11,15 @@ pub const PAGE_POINTS: u32 = 65_536;
 
 /// A point's original id from its four stored bytes.
 pub fn original_id(raw: &[u8]) -> Result<u32, String> {
+    // `try_into` makes a fixed 4-byte array, or fails when the slice has another length
     let Ok(bytes): Result<[u8; 4], _> = raw.try_into() else {
         return Err("Original point ID range must contain exactly four bytes".to_string());
     };
     Ok(u32::from_le_bytes(bytes))
 }
+// --8<-- [end:query-id]
 
+// --8<-- [start:query-view]
 /// The click and the camera it was made with.
 #[derive(Clone)]
 pub struct QueryView {
@@ -25,7 +30,7 @@ pub struct QueryView {
 }
 
 impl QueryView {
-    /// A point in clip space, before the divide.
+    /// A point in clip space, before the divide: on screen when x/w and y/w lie in -1..1.
     fn clip(&self, point: [f64; 3]) -> [f64; 4] {
         let mut clip = [0.0; 4];
 
@@ -54,7 +59,7 @@ impl QueryView {
         ])
     }
 
-    /// True when the cube may reach the click window.
+    /// True when the cube may reach the click window; unsure means true, so a point is never missed.
     fn intersects(&self, min: [f64; 3], size: f64) -> bool {
         if !size.is_finite() || size < 0.0 || !min.into_iter().all(f64::is_finite) {
             return true;
@@ -104,7 +109,9 @@ impl QueryView {
         true
     }
 }
+// --8<-- [end:query-view]
 
+// --8<-- [start:query-clip]
 /// True when a clip point is not finite.
 fn invalid_clip(point: &[f64; 4]) -> bool {
     !point.iter().copied().all(f64::is_finite)
@@ -141,7 +148,9 @@ fn grow_pixel_bounds(lo: &mut [f64; 2], hi: &mut [f64; 2], point: [f64; 2]) {
         hi[axis] = hi[axis].max(point[axis]);
     }
 }
+// --8<-- [end:query-clip]
 
+// --8<-- [start:query-ranges]
 /// One point near the click.
 #[derive(Clone, Debug)]
 pub struct Candidate {
@@ -222,7 +231,9 @@ pub fn eligible_ranges(lod: &CloudLod, total: u32, view: &QueryView) -> Vec<Rang
 
     merge(eligible)
 }
+// --8<-- [end:query-ranges]
 
+// --8<-- [start:query-pages]
 /// One pick in a streamed cloud, page by page.
 pub struct Query {
     pub id: u64,                    // pick number
@@ -287,6 +298,7 @@ impl Query {
     }
 }
 
+// Dropping the query sets the shared flag, so pages still in flight post nothing.
 impl Drop for Query {
     /// Cancel the pick.
     fn drop(&mut self) {
@@ -306,7 +318,10 @@ pub struct Resolved {
     pub query: u64,                              // which pick
     pub result: Result<(u32, [f64; 3]), String>, // original id and position
 }
+// --8<-- [end:query-pages]
 
+// --8<-- [start:query-web]
+// The browser-only half: `#[cfg]` on a module drops all of it from the native build.
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
@@ -363,7 +378,7 @@ mod web {
         view: &QueryView,
         page: Range<u32>,
     ) -> Result<(Vec<Candidate>, Option<String>), String> {
-        let at = source.fields.coords_at + u64::from(page.start) * 24;
+        let at = source.fields.coords_at + u64::from(page.start) * 24; // a position is three f64, 24 bytes
         let length = u64::from(page.end - page.start) * 24;
         let (raw, revision) = range(&source.url, at, length, &source.revision).await?;
 
@@ -476,7 +491,9 @@ mod web {
 }
 #[cfg(target_arch = "wasm32")]
 pub use web::{fetch_page, resolve_id};
+// --8<-- [end:query-web]
 
+// --8<-- [start:query-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -624,3 +641,4 @@ mod tests {
         assert!(token.get());
     }
 }
+// --8<-- [end:query-tests]

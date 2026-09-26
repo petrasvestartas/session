@@ -1,6 +1,8 @@
+// --8<-- [start:slot-map]
 use super::encode::{BLACK, pack_rgba};
 use session_rust::{Mesh, Tolerance};
 
+// Slot = a vertex's place in the sorted key list; kernel keys may have gaps (0, 5, 900), slots never do.
 /// Vertex key to its position in the sorted key list.
 pub struct SlotMap {
     dense: Vec<u32>,                               // key indexes directly
@@ -47,7 +49,9 @@ impl SlotMap {
         }
     }
 }
+// --8<-- [end:slot-map]
 
+// --8<-- [start:mesh-topo]
 /// Edges, faces and normals of one mesh.
 pub struct MeshTopo {
     pub edges: Vec<(usize, usize, u32)>, // (low key, high key, pen colour)
@@ -63,7 +67,7 @@ fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64;
         return None;
     }
 
-    // Newell normal: sums over every edge
+    // Newell's method: sum over every edge, so a five-corner face that is slightly bent still gets a sound normal
     let mut n = [0.0f64; 3];
 
     for i in 0..vs.len() {
@@ -87,7 +91,9 @@ fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64;
 fn face_key(face: &(usize, &Vec<usize>)) -> usize {
     face.0
 }
+// --8<-- [end:mesh-topo]
 
+// --8<-- [start:mesh-edges]
 /// Collect unique edges, their faces and the face normals.
 pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> MeshTopo {
     let mut faces: Vec<(usize, &Vec<usize>)> = Vec::with_capacity(m.face.len());
@@ -107,6 +113,7 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
     let mut edge_faces: Vec<[u32; 2]> = Vec::new();
     let mut dir0: Vec<u8> = Vec::new(); // direction the first face walked each edge
     let mut opposed: Vec<bool> = Vec::new();
+    // one linked list of edges per low vertex, kept in two flat Vecs instead of a HashMap
     let mut head: Vec<u32> = vec![u32::MAX; keys.len()]; // first edge at each low vertex
     let mut next: Vec<u32> = Vec::new(); // next edge at the same low vertex
 
@@ -163,6 +170,7 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
                         dir0[ei as usize] = dir;
                     } else if ef[1] == u32::MAX && ef[0] != fs as u32 {
                         ef[1] = fs as u32;
+                        // two faces that agree on winding walk their shared edge in opposite directions
                         opposed[ei as usize] = dir != dir0[ei as usize];
                     }
                 }
@@ -187,7 +195,9 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
         closed,
     }
 }
+// --8<-- [end:mesh-edges]
 
+// --8<-- [start:topology-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -268,3 +278,4 @@ mod tests {
         assert!(!topo.closed);
     }
 }
+// --8<-- [end:topology-tests]

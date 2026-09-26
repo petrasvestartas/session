@@ -5,7 +5,7 @@ use crate::engine::gpu::segments::SegRows;
 use session_rust::AABB;
 use session_rust::{OBB, Plane, Point, Vector};
 
-/// Half size of the square drawn for a plane, mm.
+/// Half size of the square drawn for a plane, mm: a plane is infinite, so it is drawn as a 1 m square.
 const PLANE_SIZE: f64 = 500.0;
 
 /// The 12 box edges, corners bottom 0-3 then top 4-7.
@@ -43,6 +43,7 @@ fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pe
         bounds.union_with_point(p[0] as f64, p[1] as f64, p[2] as f64);
     }
 
+    // `&[i, j]` unpacks each two-index edge as the loop takes it
     for &[i, j] in edges {
         seg.ribbons.push(CylinderSegment {
             p0: pts[i],

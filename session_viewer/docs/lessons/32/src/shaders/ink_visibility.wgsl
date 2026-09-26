@@ -1,3 +1,6 @@
+// --8<-- [start:ink-inputs]
+// Ink = everything drawn over the faces: edges, curves, markers, dots and arrows.
+// Every ink fragment asks this file one question: does a face lie in front of me here?
 @group(2) @binding(2) var scene_depth_single: texture_depth_2d; // scene depth at 1x
 @group(2) @binding(3) var scene_depth_msaa: texture_depth_multisampled_2d; // scene depth at 4x
 
@@ -5,13 +8,13 @@ override SCENE_MSAA: bool = false; // which depth texture is live
 @group(2) @binding(4) var scene_primitive_single: texture_2d<u32>; // triangle index + 1 at 1x, in 16-bit halves
 @group(2) @binding(5) var scene_primitive_msaa: texture_multisampled_2d<u32>; // the same at 4x
 
-// Depth tolerance as a fraction of the depth.
+// 2^-19 of the depth: two depths this close count as the same surface.
 const DEPTH_REL_TOL: f32 = 1.9073486e-6;
 
 // Vertex snapping error, px: 1/256.
 const SLOPE_PX: f32 = 0.00390625;
 
-// How much two slopes may differ and still be one surface.
+// Two neighbouring slopes within 1/32 of each other still count as one flat surface.
 const KINK: f32 = 0.03125;
 
 // Depth change per pixel from which a slope carries no plane: 65504 / 65536.
@@ -29,7 +32,9 @@ struct InkAxis {
     along: vec2<f32>, // stroke direction on screen, unit
     slope: f32, // depth change per pixel along it
 };
+// --8<-- [end:ink-inputs]
 
+// --8<-- [start:ink-fit]
 // Scene depth at a pixel; 0 outside the screen or where nothing was drawn.
 fn ink_depth(pixel: vec2<f32>, sample: u32) -> f32 {
     if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w, line.vp_h))) {
@@ -50,7 +55,7 @@ fn ink_tolerance(depth: f32, slope: f32, lever: f32) -> f32 {
     return abs(depth) * DEPTH_REL_TOL + abs(slope) * SLOPE_PX * (1.0 + lever);
 }
 
-// True when the pixel and its neighbour along `dir` are on one surface.
+// Plane fit = read the depth one and two pixels along `dir`; three depths on one straight line are one flat surface.
 fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> bool {
     let z_side = ink_depth(pixel + dir, sample);
 
@@ -72,7 +77,7 @@ fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> boo
     return abs(g_far - g) <= abs(z) * DEPTH_REL_TOL + KINK * (abs(g) + abs(g_far));
 }
 
-// Is the ink visible, given the surface depth carried to its center?
+// Carry = extend the face's depth from this pixel along its slope to another point; `predicted` is that depth.
 fn ink_carry_visible(predicted: f32, z: f32, depth: f32, tolerance: f32) -> bool {
     // pixel nearer than the ink: only its own surface may show it
     if (z > depth + abs(depth) * DEPTH_REL_TOL) {
@@ -93,8 +98,11 @@ fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
 
     return select(step, -step, dot(pixel - axis.at, step) < 0.0);
 }
+// --8<-- [end:ink-fit]
 
-// stroke visibility: fit the surface, carry to the axis
+// --8<-- [start:ink-axis]
+// A 6 px edge on a curved face covers pixels where the face is nearer than the edge's center line,
+// so comparing depth there would hide half the stroke: carry the face's depth to the center line first.
 fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
 
@@ -116,7 +124,7 @@ fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     }
 
     let z_side = ink_depth(pixel + side, sample);
-    // offset to the center line as a * along + b * side
+    // write the offset to the center line as a * along + b * side and solve the 2x2 system (Cramer's rule)
     let e = axis.at - pixel;
     let det = axis.along.x * side.y - axis.along.y * side.x;
     let a = (e.x * side.y - e.y * side.x) / det;
@@ -126,8 +134,10 @@ fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let predicted = z + a * axis.slope + b * g;
     return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b)));
 }
+// --8<-- [end:ink-axis]
 
-// disc visibility: fit the surface, carry to the centre
+// --8<-- [start:ink-discs]
+// A disc (marker or dot) has no direction, so the fit runs along x and y and carries to its centre.
 fn ink_disc_fragment_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
 
@@ -228,8 +238,10 @@ fn ink_disc_source_hidden(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sampl
 
     return false;
 }
+// --8<-- [end:ink-discs]
 
-// Like ink_axis_visible, but using the depth slope of the triangle under the pixel.
+// --8<-- [start:ink-plane]
+// The face pass stores which triangle it drew at each pixel; that triangle's exact slope beats a fit from neighbours.
 fn ink_visible_plane(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
 
@@ -282,7 +294,10 @@ fn ink_primitive(pixel: vec2<f32>, sample: u32) -> u32 {
 }
 
 @group(2) @binding(7) var<storage, read> triangle_tiles: array<vec4<u32>>; // which triangles cover each screen tile
+// --8<-- [end:ink-plane]
 
+// --8<-- [start:ink-cuts]
+// Section cap = the flat face a clipping plane draws where it cuts a closed solid (lesson 18b).
 // True when a clipping plane removed the triangle point hit at canvas point `at`, depth `depth`.
 fn ink_hit_cut(at: vec2<f32>, depth: f32) -> bool {
     return clip_active() && clip_cut_ndc(0u, clip_ndc(at, line.frame, depth));
@@ -294,8 +309,11 @@ fn ink_cap_visible(plane: u32, axis: InkAxis) -> bool {
     let depth = clip_plane_depth(plane, clip_ndc(axis.at + line.origin, line.frame, 0.0).xy);
     return depth <= axis.depth + ink_tolerance(axis.depth, abs(slope.x) + abs(slope.y), 1.0);
 }
+// --8<-- [end:ink-cuts]
 
-// plane fit first, then the exact triangles
+// --8<-- [start:ink-exact]
+// Exact test = ask a triangle itself, by its edge lines and depth plane, whether it covers the center point in front of the ink.
+// `boundary` = the stroke is a surface's own border, where a plane fit is least sure, so the exact tests always run.
 fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> bool {
     // a section cap is flat on its plane: exact where it lies under the center line
     var fit_at = pixel;
@@ -319,6 +337,7 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
         return true;
     }
 
+    // Tile = a square of screen pixels listing every triangle that touches it; lesson 18 builds the lists.
     // no tile lists: the plane fit decides
     if (triangle_tiles[0].x==0u) {
         return plane_visible;
@@ -395,11 +414,15 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
 
     return true;
 }
+// --8<-- [end:ink-exact]
 
+// --8<-- [start:ink-glass]
 // Alpha of hidden ink: 0, or 1 - opacity through translucent faces.
 fn through_glass(hidden: bool) -> f32 {
     let glass = line.opacity > 0.0 && line.opacity < 1.0;
     return select(1.0, select(0.0, 1.0 - line.opacity, glass), hidden);
 }
 
+// Not WGSL: build.rs pastes the named file in place of this line before the shader compiles.
 #include "projected_triangle.wgsl"
+// --8<-- [end:ink-glass]

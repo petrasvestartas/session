@@ -1,3 +1,4 @@
+// --8<-- [start:fetch-errors]
 use super::manifest::immutable_key;
 use crate::engine::performance::now_ms;
 use std::cell::{Cell, RefCell};
@@ -36,7 +37,9 @@ fn network_error(error: JsValue) -> String {
 pub fn retryable(error: &str) -> bool {
     error.starts_with("network error")
 }
+// --8<-- [end:fetch-errors]
 
+// --8<-- [start:fetch-reply]
 /// What a GET came back with.
 pub struct Reply {
     pub status: u16,          // HTTP status
@@ -70,7 +73,9 @@ pub struct GetOpts {
     pub if_none_match: Option<String>, // ETag for a conditional request
     pub range: Option<(u64, u64)>,     // (start, length) of a byte range
 }
+// --8<-- [end:fetch-reply]
 
+// --8<-- [start:fetch-get]
 /// GET `url`; any HTTP status is Ok, a network failure is Err.
 pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
     let (mut reply, body) = get_buffer(url, opts).await?;
@@ -78,6 +83,7 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
     Ok(reply)
 }
 
+// wasm memory only grows, never shrinks, so a large body waits in a JS buffer until it is decoded.
 /// GET `url` with the body left in a JS buffer, outside wasm memory; the reply's bytes stay empty.
 pub async fn get_buffer(
     url: &str,
@@ -98,6 +104,7 @@ pub async fn get_buffer(
         None => start(url, opts)?,
     };
     let mut deadline = Deadline::new(controller)?;
+    // `JsFuture::from` turns a JS promise into a Rust future; `.await` waits without blocking the page
     let resp: Response = match JsFuture::from(pending).await {
         Ok(value) => value.dyn_into().map_err(describe)?,
         Err(error) => return Err(deadline.failure(error)),
@@ -147,10 +154,12 @@ pub async fn get_buffer(
 
     Ok((reply, Some(body)))
 }
+// --8<-- [end:fetch-get]
 
+// --8<-- [start:fetch-start]
 /// Send the GET; the controller aborts it.
 fn start(url: &str, opts: &GetOpts) -> Result<(web_sys::AbortController, js_sys::Promise), String> {
-    let controller = web_sys::AbortController::new().map_err(describe)?;
+    let controller = web_sys::AbortController::new().map_err(describe)?; // cancels the fetch through its signal
     let init = RequestInit::new();
     init.set_signal(Some(&controller.signal()));
     init.set_method("GET");
@@ -168,6 +177,7 @@ fn start(url: &str, opts: &GetOpts) -> Result<(web_sys::AbortController, js_sys:
         headers.set("If-None-Match", tag).map_err(describe)?;
     }
 
+    // `bytes=0-8191` asks for the first 8192 bytes; the server answers 206 Partial Content
     if let Some((start, len)) = opts.range {
         headers
             .set(
@@ -187,6 +197,7 @@ fn start(url: &str, opts: &GetOpts) -> Result<(web_sys::AbortController, js_sys:
     Ok((controller, window.fetch_with_request(&request)))
 }
 
+// index.html starts the first fetches while the wasm still downloads and parks them on `window.__viewerEarly`.
 /// A GET index.html started while the wasm downloaded, taken once: `url` whole or `url#probe`.
 fn early(url: &str, opts: &GetOpts) -> Option<(web_sys::AbortController, js_sys::Promise)> {
     let key = match opts.range {
@@ -211,7 +222,9 @@ fn early(url: &str, opts: &GetOpts) -> Option<(web_sys::AbortController, js_sys:
     let promise = js_sys::Reflect::get(&entry, &"r".into()).ok()?;
     Some((controller.dyn_into().ok()?, promise.dyn_into().ok()?))
 }
+// --8<-- [end:fetch-start]
 
+// --8<-- [start:fetch-body]
 /// The body, read as it arrives, so only a stall trips the deadline.
 async fn read_body(
     resp: &Response,
@@ -252,6 +265,7 @@ async fn read_body(
             return Err("payload exceeds the 512 MiB whole-file limit".to_string());
         }
 
+        // doubling keeps copies rare: 64 KiB, 128 KiB, 256 KiB ...
         if end > u64::from(body.length()) {
             let room = (end as u32).max(body.length().saturating_mul(2));
             let grown = js_sys::Uint8Array::new_with_length(room.min(MAX_BODY as u32));
@@ -273,7 +287,10 @@ async fn read_body(
         Ok(body.slice(0, filled))
     }
 }
+// --8<-- [end:fetch-body]
 
+// --8<-- [start:fetch-gunzip]
+// An `extern` block declares JavaScript items; wasm-bindgen writes the glue that calls them.
 #[wasm_bindgen::prelude::wasm_bindgen]
 extern "C" {
     /// The browser's `DecompressionStream`, stable everywhere but not yet in web-sys.
@@ -296,7 +313,9 @@ pub async fn gunzip(packed: &js_sys::Uint8Array) -> Result<js_sys::Uint8Array, S
         .map_err(describe)?;
     Ok(js_sys::Uint8Array::new(&buf))
 }
+// --8<-- [end:fetch-gunzip]
 
+// --8<-- [start:fetch-helpers]
 /// A file's size from a HEAD request, if the server says.
 pub async fn content_length(url: &str) -> Option<u64> {
     let init = RequestInit::new();
@@ -366,7 +385,9 @@ pub async fn fetch_range(
 
     Ok((reply.bytes, reply.etag))
 }
+// --8<-- [end:fetch-helpers]
 
+// --8<-- [start:fetch-timers]
 /// Call `resolve` after `ms` milliseconds.
 fn schedule(resolve: js_sys::Function, ms: i32) {
     if let Some(w) = web_sys::window() {
@@ -391,12 +412,13 @@ pub struct Task<T> {
     out: Rc<RefCell<Option<T>>>, // its result
 }
 
+// `T: 'static`: the result holds no borrowed data, because the work may outlive this call.
 impl<T: 'static> Task<T> {
     /// Start `work` now.
     pub fn start(work: impl Future<Output = T> + 'static) -> Self {
         let out = Rc::new(RefCell::new(None));
         let slot = out.clone();
-        let done = wasm_bindgen_futures::future_to_promise(async move {
+        let done = wasm_bindgen_futures::future_to_promise(async move { // starts now, so two downloads overlap
             let value = work.await;
             *slot.borrow_mut() = Some(value);
             Ok(JsValue::UNDEFINED)
@@ -410,7 +432,9 @@ impl<T: 'static> Task<T> {
         self.out.take()
     }
 }
+// --8<-- [end:fetch-timers]
 
+// --8<-- [start:fetch-deadline]
 /// A timer that aborts a fetch once its bytes stop.
 struct Deadline {
     controller: web_sys::AbortController, // aborts the request
@@ -479,7 +503,9 @@ impl Drop for Deadline {
         }
     }
 }
+// --8<-- [end:fetch-deadline]
 
+// --8<-- [start:fetch-progress]
 /// A long download's line in the status bar.
 struct Progress {
     name: String,       // the file
@@ -529,3 +555,4 @@ impl Progress {
         }
     }
 }
+// --8<-- [end:fetch-progress]

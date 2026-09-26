@@ -1,791 +1,849 @@
-# 12 · maintained viewer shell and picking
+# 12 · The viewer shell and picking
 
-The seven-object fixture supports object and source-edge selection.
+Picking draws each object's row number instead of its colour into a small window around the cursor and reads that window back a frame later. Around it this lesson builds the shell: the scene's row tables, State, keys, mouse and touch.
 
 ![A pointer release becomes a scissored ID window, an asynchronous bounded readback, a Scene lookup and a selected flag; stale generations are dropped.](illustrations/picking.svg)
 
-Copy each file from the lesson folder to the path shown.
+## Step 1 · src/engine/gpu/pick.rs
 
-Copy from `lessons/12/` (tooling this checkpoint needs but the course does not teach):
+The pick answer, the id textures, and the small window of pixels around the cursor that one pick reads.
 
-- `lessons/12/assets/pb/interaction.pb.json`
-- `lessons/12/src/selftest/lifecycle.rs`
-- `lessons/12/assets/pb/interaction.pb` (binary)
-
-## Step 1 · src/engine/gpu/device.rs
-
-New file: open the GPU as in lesson 01, now with adapter choice, a larger buffer limit and stored errors.
-
-`lessons/12/src/engine/gpu/device.rs` · type this, new file, start with these lines
+`lessons/12/src/engine/gpu/pick.rs` · type this, new file
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/device.rs:step-1a"
+--8<-- "lessons/12/src/engine/gpu/pick.rs:pick-window"
 ```
 
-`lessons/12/src/engine/gpu/device.rs` · type this, append at the end of the file
+## Step 2 · src/engine/gpu/pick.rs
+
+The Picker: one request at a time, a generation counter against late answers, and a readback buffer made on first use.
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/device.rs:step-1b"
+--8<-- "lessons/12/src/engine/gpu/pick.rs:picker"
 ```
 
-`lessons/12/src/engine/gpu/device.rs` · type this, append at the end of the file
+## Step 3 · src/engine/gpu/pick.rs
+
+A native-only copy of the whole id frame, which the offscreen tests wait for and read.
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/device.rs:step-1c"
+--8<-- "lessons/12/src/engine/gpu/pick.rs:id-readback"
 ```
 
-Copy this part from the lesson folder to the path shown.
+## Step 4 · src/engine/gpu/pick.rs
 
-`lessons/12/src/engine/gpu/device.rs` · copy the file, append at the end of the file
+Open `impl Picker`: request, configure, cancel, the paged source point query and the pending request.
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/device.rs:step-1d"
+--8<-- "lessons/12/src/engine/gpu/pick.rs:picker-request"
 ```
 
-## Step 2 · src/engine/gpu/present.rs
+## Step 5 · src/engine/gpu/pick.rs
 
-New file: draw a frame to the canvas, run a pick-only frame, or render off-screen for native tests.
+The id pass targets, sized to the window, and a second pass that adds ink ids over them.
 
-`lessons/12/src/engine/gpu/present.rs` · type this, new file, start with these lines
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/present.rs:step-2a"
+--8<-- "lessons/12/src/engine/gpu/pick.rs:picker-passes"
 ```
+
+## Step 6 · src/engine/gpu/pick.rs
+
+Copy the window out, map it after submit and poll for the answer frames later; the brace closes the impl.
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:picker-readback"
+```
+
+## Step 7 · src/engine/gpu/pick.rs
+
+Choose the hit, ink before faces and then the nearest pixel; ids are one-based, so 0 means nothing.
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:pick-helpers"
+```
+
+## Step 8 · src/engine/gpu/pick.rs
+
+Tests: the window stays inside the canvas, and ink beats faces before distance counts.
+
+`lessons/12/src/engine/gpu/pick.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:pick-tests"
+```
+
+## Step 9 · src/engine/gpu/pick.rs
+
+Implement the `Lane` trait, so the GPU resets the picker and counts its memory with the lanes.
+
+`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/pick.rs:pick-lane"
+```
+
+## Step 10 · src/engine/gpu/render.rs
+
+The id pass: faces and clouds over the window and its halo, then ink tested against that depth, then the copy.
+
+`lessons/12/src/engine/gpu/render.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/engine/gpu/render.rs:id-pass"
+```
+
+## Step 11 · src/engine/gpu/present.rs
+
+A frame that runs only the id pass for a pick, and a whole-frame id render for native tests.
 
 `lessons/12/src/engine/gpu/present.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/present.rs:step-2b"
+--8<-- "lessons/12/src/engine/gpu/present.rs:pick-frame"
 ```
 
-Copy this part from the lesson folder to the path shown.
+## Step 12 · src/app/selection.rs
 
-`lessons/12/src/engine/gpu/present.rs` · copy the file, append at the end of the file
+What is selected inside one object: the whole object, one edge, one face or its control points.
+
+`lessons/12/src/app/selection.rs` · type this, new file
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/present.rs:step-2c"
+--8<-- "lessons/12/src/app/selection.rs:selection-mode"
 ```
 
-## Step 3 · src/engine/gpu/render.rs
+## Step 13 · src/app/selection.rs
 
-The frame encoder orders face, ink, picking and overlay passes.
+One control point, an object's list of them with their net lines, and the start of `impl Controls`.
 
-`lessons/12/src/engine/gpu/render.rs` · type this, new file, start with these lines
+`lessons/12/src/app/selection.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/render.rs:step-3a"
+--8<-- "lessons/12/src/app/selection.rs:controls"
 ```
 
-`lessons/12/src/engine/gpu/render.rs` · type this, append at the end of the file
+## Step 14 · src/app/selection.rs
+
+Collect the controls of each geometry kind, from line ends and polyline vertices to elements.
+
+`lessons/12/src/app/selection.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/render.rs:step-3b"
+--8<-- "lessons/12/src/app/selection.rs:controls-geometry"
 ```
 
-## Step 4 · src/app/input.rs
+## Step 15 · src/app/selection.rs
 
-Input routes gestures and keyboard actions to State.
+Mesh vertices, BRep parts, and the control polygons and nets of curves and surfaces; the brace closes the impl.
 
-`lessons/12/src/app/input.rs` · type this, new file, start with these lines
+`lessons/12/src/app/selection.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:step-4a"
+--8<-- "lessons/12/src/app/selection.rs:controls-nets"
 ```
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+## Step 16 · src/app/selection.rs
+
+Tests: a new parent replaces a sub-selection, and a line's controls are its two ends.
+
+`lessons/12/src/app/selection.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:step-4b"
+--8<-- "lessons/12/src/app/selection.rs:selection-tests"
 ```
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+## Step 17 · src/app/selection.rs
+
+What a click selects: whole objects, edges or faces.
+
+`lessons/12/src/app/selection.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:step-4c"
+--8<-- "lessons/12/src/app/selection.rs:selection-tool"
 ```
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+## Step 18 · src/app/scene_rows.rs
+
+Special row owners, and the note bits an edit uses to say what it changed.
+
+`lessons/12/src/app/scene_rows.rs` · type this, new file
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:step-4d"
+--8<-- "lessons/12/src/app/scene_rows.rs:rows-owners"
 ```
 
-Copy this part from the lesson folder to the path shown.
+## Step 19 · src/app/scene_rows.rs
 
-`lessons/12/src/app/input.rs` · copy the file, append at the end of the file
+Where an object's rows sit in the lanes, spare capacity, per-document state and one edit's note.
+
+`lessons/12/src/app/scene_rows.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:step-4e"
+--8<-- "lessons/12/src/app/scene_rows.rs:rows-footprint"
 ```
 
-## Step 5 · src/app/touch.rs
+## Step 20 · src/app/scene_rows.rs
 
-New file: one finger orbits, two fingers pan and pinch, a tap picks and a double tap fits.
+A deleted object's hidden rows, and the GPU work one sync stages.
 
-`lessons/12/src/app/touch.rs` · copy the file, new file, start with these lines
+`lessons/12/src/app/scene_rows.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/touch.rs:step-5a"
+--8<-- "lessons/12/src/app/scene_rows.rs:rows-staged"
 ```
+
+## Step 21 · src/app/scene_rows.rs
+
+The side table for footprints that span several lanes, with slots that are reused.
+
+`lessons/12/src/app/scene_rows.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene_rows.rs:rows-spans"
+```
+
+## Step 22 · src/app/scene_rows.rs
+
+Freed row ids, handed out again only after the sync that freed them.
+
+`lessons/12/src/app/scene_rows.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene_rows.rs:rows-ids"
+```
+
+## Step 23 · src/app/scene_rows.rs
+
+Tests: a footprint is 12 bytes, and freed ids come back last-freed first after the sync.
+
+`lessons/12/src/app/scene_rows.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene_rows.rs:rows-tests"
+```
+
+## Step 24 · src/app/scene.rs
+
+The row modules, a loaded file, what a pick landed on, and the list of row namers.
+
+`lessons/12/src/app/scene.rs` · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:scene-types"
+```
+
+## Step 25 · src/app/scene.rs
+
+The Scene: documents, hidden, locked and coloured objects, and the tables that map row ids to objects.
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:scene-struct"
+```
+
+## Step 26 · src/app/scene.rs
+
+Open `impl Scene`: an empty scene, clearing it, and forgetting every row.
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:scene-new"
+```
+
+## Step 27 · src/app/scene.rs
+
+Upload: the staged edits first, then the newly walked rows appended to the GPU.
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:scene-upload"
+```
+
+## Step 28 · src/app/scene.rs
+
+Add a file: one row per drawable object, walked into GPU rows, then the flat-sheet test.
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:scene-add"
+```
+
+## Step 29 · src/app/scene.rs
+
+Questions about a row: what a pick hit, its document, geometry, name, edge, faces and cloud point; the brace closes the impl.
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:scene-lookup"
+```
+
+## Step 30 · src/app/scene.rs
+
+An object's placement, the attribute copies that get no row, and kills joined into runs per lane.
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:scene-helpers"
+```
+
+## Step 31 · src/app/scene.rs
+
+Tests: duplicate guids stay two objects, shared sessions split on edit, and kills merge into runs.
+
+`lessons/12/src/app/scene.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:scene-tests"
+```
+
+## Step 32 · src/app/scene.rs
+
+The key of the tree a node cache was filled from.
+
+`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/scene.rs:scene-tree-key"
+```
+
+## Step 33 · src/app/feedback.rs
+
+The status line, download progress and the error panel, all plain elements of the page.
+
+`lessons/12/src/app/feedback.rs` · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/feedback.rs:feedback-status"
+```
+
+## Step 34 · src/app/feedback.rs
+
+Give the canvas keyboard focus; natively there is nothing to focus.
+
+`lessons/12/src/app/feedback.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/feedback.rs:feedback-focus"
+```
+
+## Step 35 · src/app/feedback.rs
+
+The rows of the layers panel and of the graph table.
+
+`lessons/12/src/app/feedback.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/feedback.rs:feedback-rows"
+```
+
+## Step 36 · src/app/route.rs
+
+Where scenes come from: the public bucket, the local scene, and a scene route.
+
+`lessons/12/src/app/route.rs` · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/route.rs:route-consts"
+```
+
+## Step 37 · src/app/route.rs
+
+Read the page URL: integer knobs, localhost, the scene in the path, and a safe `?scene=`.
+
+`lessons/12/src/app/route.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/route.rs:route-query"
+```
+
+## Step 38 · src/app/route.rs
+
+Turn a scene name into its manifest URL and the prefix of its files.
+
+`lessons/12/src/app/route.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/route.rs:route-scene"
+```
+
+## Step 39 · src/app/route.rs
+
+After a lost GPU device, reload once at device scale 1 and show the reason.
+
+`lessons/12/src/app/route.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/route.rs:route-recovery"
+```
+
+## Step 40 · src/state/features.rs
+
+The Features sub-struct, empty for now: each later feature adds one field line here.
+
+`lessons/12/src/state/features.rs` · type this, new file
+
+```rust
+--8<-- "lessons/12/src/state/features.rs:features-struct"
+```
+
+## Step 41 · src/state/features.rs
+
+Four hook lists, also empty: before picks, after picks, pick takers and click wideners.
+
+`lessons/12/src/state/features.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state/features.rs:features-hooks"
+```
+
+## Step 42 · src/state.rs
+
+State holds the window, GPU, camera, scene and selection, plus the Features sub-struct.
+
+`lessons/12/src/state.rs` · type this, new file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-struct"
+```
+
+## Step 43 · src/state.rs
+
+Open `impl State`: open the GPU and upload the scene rows once.
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-new"
+```
+
+## Step 44 · src/state.rs
+
+Canvas size, appending and clearing documents, and fitting the camera to everything or the selection.
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-scene"
+```
+
+## Step 45 · src/state.rs
+
+Resize at most every 100 ms, cloud point size, x-ray, and `touch` after any change.
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-resize"
+```
+
+## Step 46 · src/state.rs
+
+Select one row, several rows or a click's whole group; hide the selection and show everything.
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-select"
+```
+
+## Step 47 · src/state.rs
+
+Apply a pick answer: waiting features first, then an edge, face, control or object selection.
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-apply-pick"
+```
+
+## Step 48 · src/state.rs
+
+One frame: hooks, GPU errors, the pick answer, the anchored camera, present, then a waiting pick frame.
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-render"
+```
+
+## Step 49 · src/state.rs
+
+Request a pick of the right kind, Esc, the status line and the perf line; the brace closes the impl.
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-request"
+```
+
+## Step 50 · src/state.rs
+
+The control points as JSON for browser tests, and a position as the f32 the GPU takes.
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-inspect"
+```
+
+## Step 51 · src/state.rs
+
+Keep the selected rows in the order they were picked.
+
+`lessons/12/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-order"
+```
+
+## Step 52 · src/state.rs
+
+Test: the selection keeps pick order.
+
+`lessons/12/src/state.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/state.rs:state-tests"
+```
+
+## Step 53 · src/app/keys.rs
+
+A key binding: the key, the modifiers it needs and the function it runs.
+
+`lessons/12/src/app/keys.rs` · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/keys.rs:keys-binding"
+```
+
+## Step 54 · src/app/keys.rs
+
+Two builders for the table: a plain character press and a named key.
+
+`lessons/12/src/app/keys.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/keys.rs:keys-builders"
+```
+
+## Step 55 · src/app/keys.rs
+
+Every shortcut, first match wins: projection, standard views, display toggles, hide, show and x-ray.
+
+`lessons/12/src/app/keys.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/keys.rs:keys-table"
+```
+
+## Step 56 · src/app/gesture/mod.rs
+
+The Gesture registry: left-button tools tried in order, empty until lesson 21.
+
+`lessons/12/src/app/gesture/mod.rs` · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/gesture/mod.rs:gesture-table"
+```
+
+## Step 57 · src/app/gesture/mod.rs
+
+Find the first tool that takes a press, or a plain press dragged past the click slop.
+
+`lessons/12/src/app/gesture/mod.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/gesture/mod.rs:gesture-find"
+```
+
+## Step 58 · src/app/gesture/mod.rs
+
+Test: the tools are tried control, gizmo, object.
+
+`lessons/12/src/app/gesture/mod.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/12/src/app/gesture/mod.rs:gesture-tests"
+```
+
+## Step 59 · src/app/touch.rs
+
+Touch thresholds, what one touch event asks for, and the fingers on the screen.
+
+`lessons/12/src/app/touch.rs` · type this, new file
+
+```rust
+--8<-- "lessons/12/src/app/touch.rs:touch-types"
+```
+
+## Step 60 · src/app/touch.rs
+
+Open `impl Touches`: a finger lands, moves, lifts or is taken away by the browser.
 
 `lessons/12/src/app/touch.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/touch.rs:step-5b"
+--8<-- "lessons/12/src/app/touch.rs:touch-event"
 ```
 
-Copy this part from the lesson folder to the path shown.
+## Step 61 · src/app/touch.rs
 
-`lessons/12/src/app/touch.rs` · copy the file, append at the end of the file
+One finger orbits; two pan by their midpoint and zoom by their distance.
+
+`lessons/12/src/app/touch.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/touch.rs:step-5c"
+--8<-- "lessons/12/src/app/touch.rs:touch-moved"
 ```
 
-## Step 6 · src/app/scene.rs
+## Step 62 · src/app/touch.rs
 
-The scene owns source documents and maps their identities to GPU rows.
+A lift may be a tap or a double tap; the brace closes the impl.
 
-`lessons/12/src/app/scene.rs` · type this, new file, start with these lines
+`lessons/12/src/app/touch.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:step-6a"
+--8<-- "lessons/12/src/app/touch.rs:touch-lifted"
 ```
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+## Step 63 · src/app/touch.rs
+
+`Default` for Touches, the same as `new`.
+
+`lessons/12/src/app/touch.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:step-6b"
+--8<-- "lessons/12/src/app/touch.rs:touch-default"
 ```
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+## Step 64 · src/app/input.rs
+
+Mouse, keyboard and finger state kept between events.
+
+`lessons/12/src/app/input.rs` · type this, new file
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:step-6c"
+--8<-- "lessons/12/src/app/input.rs:input-struct"
 ```
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+## Step 65 · src/app/input.rs
+
+`Default`, and `impl Input` opened with nothing held.
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:step-6d"
+--8<-- "lessons/12/src/app/input.rs:input-new"
 ```
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+## Step 66 · src/app/input.rs
+
+A key press runs the first binding that matches it.
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:step-6e"
+--8<-- "lessons/12/src/app/input.rs:input-key"
 ```
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+## Step 67 · src/app/input.rs
+
+Right orbits, middle pans, left goes to `left`; a move past the slop turns a press into a drag.
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:step-6f"
+--8<-- "lessons/12/src/app/input.rs:mouse-buttons"
 ```
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+## Step 68 · src/app/input.rs
+
+Wheel zoom at the cursor, the modifier keys, and losing focus.
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:step-6g"
+--8<-- "lessons/12/src/app/input.rs:mouse-wheel"
 ```
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+## Step 69 · src/app/input.rs
+
+Fingers: one may run a tool and a second cancels it; otherwise they move the camera, tap to pick, double tap to fit.
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:step-6h"
+--8<-- "lessons/12/src/app/input.rs:mouse-touch"
 ```
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+## Step 70 · src/app/input.rs
+
+Forget every gesture in progress.
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:step-6i"
+--8<-- "lessons/12/src/app/input.rs:input-cancel"
 ```
 
-## Step 7 · src/app/selection.rs
+## Step 71 · src/app/input.rs
 
-New file: what inside the picked object is selected, nothing or one edge.
+Left press and release: a tool, a gesture, or a click that requests a pick; the brace closes the impl.
 
-`lessons/12/src/app/selection.rs` · 31 lines · type this, new file
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/selection.rs"
+--8<-- "lessons/12/src/app/input.rs:input-left"
 ```
 
-## Step 8 · src/app/walk/cloud.rs
+## Step 72 · src/app/input.rs
 
-New file: walk a point cloud, or one streamed slice of it, into point rows, octree nodes and one draw.
+Listen for the browser's `pointercancel` and send it into the event loop as a message.
 
-`lessons/12/src/app/walk/cloud.rs` · type this, new file, start with these lines
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/walk/cloud.rs:step-8a"
+--8<-- "lessons/12/src/app/input.rs:pointer-cancel"
 ```
 
-`lessons/12/src/app/walk/cloud.rs` · type this, append at the end of the file
+## Step 73 · src/app/input.rs
+
+Physical pixels per CSS pixel.
+
+`lessons/12/src/app/input.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/walk/cloud.rs:step-8b"
+--8<-- "lessons/12/src/app/input.rs:input-dpr"
 ```
 
-`lessons/12/src/app/walk/cloud.rs` · type this, append at the end of the file
+## Step 74 · src/lib.rs
+
+Bring in State and define the messages the loader sends into the event loop.
+
+`lessons/12/src/lib.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/walk/cloud.rs:step-8c"
+--8<-- "lessons/12/src/lib.rs:state-msg"
 ```
 
-`lessons/12/src/app/walk/cloud.rs` · type this, append at the end of the file
+## Step 75 · src/lib.rs
+
+The App that winit calls with every event.
+
+`lessons/12/src/lib.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/walk/cloud.rs:step-8d"
+--8<-- "lessons/12/src/lib.rs:app-struct"
 ```
 
-`lessons/12/src/app/walk/cloud.rs` · type this, append at the end of the file
+## Step 76 · src/lib.rs
+
+Start the event loop, adopt the ready state, and ask for a redraw only when something changed.
+
+`lessons/12/src/lib.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/walk/cloud.rs:step-8e"
+--8<-- "lessons/12/src/lib.rs:app-run"
 ```
 
-## Step 9 · src/app/walk/frames.rs
+## Step 77 · src/lib.rs
 
-New file: draw a plane as a 1 m square and a box as its 12 edges.
+Handle the window once it exists, each loader message, and each window event.
 
-`lessons/12/src/app/walk/frames.rs` · 86 lines · type this, new file
+`lessons/12/src/lib.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/walk/frames.rs"
+--8<-- "lessons/12/src/lib.rs:app-events"
 ```
 
-## Step 10 · src/app/walk/points.rs
+## Step 78 · src/lib.rs
 
-New file: draw a point as one dot.
+Canvas helpers: find it, check its focus, check the tab is visible, read its pixel size.
 
-`lessons/12/src/app/walk/points.rs` · 22 lines · type this, new file
+`lessons/12/src/lib.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/walk/points.rs"
+--8<-- "lessons/12/src/lib.rs:canvas"
 ```
 
-## Step 11 · src/app/stream.rs
+## Step 79 · src/lib.rs
 
-Streaming reads bounded chunks and keeps stable source addresses.
+Start the viewer, showing the notice first if the page reloaded after a lost device.
 
-`lessons/12/src/app/stream.rs` · 38 lines · type this, new file
+`lessons/12/src/lib.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/stream.rs"
+--8<-- "lessons/12/src/lib.rs:start"
 ```
 
-## Step 12 · src/app/feedback.rs
+## Step 80 · src/app/inspection.rs
 
-New file: status messages, and the error panel with its reload button.
+With `?inspect=1`, write a JSON snapshot of the viewer onto the canvas for browser tests.
 
-`lessons/12/src/app/feedback.rs` · 29 lines · type this, new file
+`lessons/12/src/app/inspection.rs` · type this, new file
 
 ```rust
---8<-- "lessons/12/src/app/feedback.rs"
+--8<-- "lessons/12/src/app/inspection.rs:inspection-publish"
 ```
 
-## Step 13 · src/app/inspection.rs
+## Step 81 · src/app/inspection.rs
 
-Copy the file: with ?inspect=1, a JSON snapshot of counts and memory for the browser tests.
+The selected identity, every drawn text label, and a geometry's kind name.
 
-`lessons/12/src/app/inspection.rs` · 113 lines · copy the file, new file
+`lessons/12/src/app/inspection.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/inspection.rs"
+--8<-- "lessons/12/src/app/inspection.rs:inspection-helpers"
 ```
 
-## Step 14 · src/app/loader.rs
+## Step 82 · src/engine/gpu/text_outline.rs
 
-The loader stages manifest and geometry work before publishing it.
+GPU tests from lesson 04a that need the id pass: an outlined glyph keeps its coverage, id and selection colour.
 
-`lessons/12/src/app/loader.rs` · 83 lines · type this, new file
+`lessons/12/src/engine/gpu/text_outline.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/12/src/app/loader.rs"
+--8<-- "lessons/12/src/engine/gpu/text_outline.rs:outline-tests"
 ```
+
+## Step 83 · tests and assets
+
+Copy these files and test modules from `lessons/12/`; they are checked, not explained.
+
+- `src/engine/gpu/vectors.rs`: the test module `shell_tests` at the end, which draws, selects, hides and picks one arrow on a headless GPU.
+- `tests/selection.cjs`: the browser selection test.
+- `assets/view_local.yaml`: the scene a local `trunk serve` loads from lesson 14 on.
+
+## Step 84 · registration lines
+
+Copy the lines tagged `register:shell`, `register:pick`, `register:features` and the module tags below from these files of `lessons/12/`:
+
+- `src/app/mod.rs`: the modules `feedback`, `gesture`, `input`, `inspection`, `keys`, `route`, `scene`, `selection` and `touch`.
+- `src/engine/gpu/mod.rs`: the `pick` module, the picker and the two control lanes, their creation, and the picker reset on resize.
+- `src/engine/gpu/present.rs` and `render.rs`: mapping the pick after submit, the waiting id pass, and the control draws.
+- `src/lib.rs`: the call to `start`.
+- `src/state.rs`: the `features` module.
 
 Run `cargo check` in `lessons/12/`.
-
-## Step 15 · src/engine/gpu/pick.rs
-
-Picking reads an object and subobject ID asynchronously.
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15a"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15b"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15c"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15d"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15e"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15f"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15g"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15h"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15i"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15j"
-```
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15k"
-```
-
-Copy this part from the lesson folder to the path shown.
-
-`lessons/12/src/engine/gpu/pick.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:step-15l"
-```
-
-## Step 16 · src/engine/gpu/render.rs
-
-The frame encoder orders face, ink, picking and overlay passes.
-
-`lessons/12/src/engine/gpu/render.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/render.rs:step-16"
-```
-
-## Step 17 · src/engine/gpu/selection_outline.rs
-
-A selection mask draws a border around visible selected geometry.
-
-`lessons/12/src/engine/gpu/selection_outline.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17a"
-```
-
-`lessons/12/src/engine/gpu/selection_outline.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17b"
-```
-
-`lessons/12/src/engine/gpu/selection_outline.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17c"
-```
-
-`lessons/12/src/engine/gpu/selection_outline.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17d"
-```
-
-`lessons/12/src/engine/gpu/selection_outline.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17e"
-```
-
-Copy this part from the lesson folder to the path shown.
-
-`lessons/12/src/engine/gpu/selection_outline.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/selection_outline.rs:step-17f"
-```
-
-## Step 18 · src/shaders/selection_outline.wgsl
-
-The selection outline expands the selected coverage mask.
-
-`lessons/12/src/shaders/selection_outline.wgsl` · 39 lines · type this, new file
-
-```wgsl
---8<-- "lessons/12/src/shaders/selection_outline.wgsl"
-```
-
-Run `cargo check` in `lessons/12/`.
-
-## Step 19 · src/state.rs
-
-State coordinates input, selection and frame requests.
-
-`lessons/12/src/state.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19a"
-```
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19b"
-```
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19c"
-```
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19d"
-```
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19e"
-```
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19f"
-```
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19g"
-```
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19h"
-```
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19i"
-```
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19j"
-```
-
-Copy this part from the lesson folder to the path shown.
-
-`lessons/12/src/state.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/state.rs:step-19k"
-```
-
-## Step 20 · src/engine/gpu/mod.rs
-
-The GPU owner connects buffers, pipelines and frame resources.
-
-`lessons/12/src/engine/gpu/mod.rs` · edit · type this
-
-Replaces `mod frame` in `lessons/11/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/12/src/engine/gpu/mod.rs:step-20a"
-```
-
-Replaces the 12 lines from `view: view::View::from_env(),` in `fn new` of `lessons/11/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/12/src/engine/gpu/mod.rs:step-20b"
-```
-
-Replaces the 10 lines from `self.retarget(false);` in `fn set_scene` of `lessons/11/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/12/src/engine/gpu/mod.rs:step-20c"
-```
-
-```rust
---8<-- "lessons/12/src/engine/gpu/mod.rs:step-20d"
-```
-
-Replaces the `self.text.retarget(&self.ctx, target);` line in `fn retarget` of `lessons/11/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/12/src/engine/gpu/mod.rs:step-20e"
-```
-
-Replaces `fn rebase_anchor` in `lessons/11/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/12/src/engine/gpu/mod.rs:step-20f"
-```
-
-## Step 21 · src/app/mod.rs
-
-The application module connects source loading and interaction helpers.
-
-`lessons/12/src/app/mod.rs` · edit · type this
-
-Replaces `mod knobs` in `lessons/11/src/app/mod.rs`
-
-```rust
---8<-- "lessons/12/src/app/mod.rs:step-21"
-```
-
-## Step 22 · src/app/walk/mod.rs
-
-The geometry walk dispatches source types into their render buffers.
-
-`lessons/12/src/app/walk/mod.rs` · edit · type this
-
-Added at the top of `lessons/11/src/app/walk/mod.rs`
-
-```rust
---8<-- "lessons/12/src/app/walk/mod.rs:step-22a"
-```
-
-`lessons/12/src/app/walk/mod.rs` · edit · type this
-
-Added after the `}` line of `lessons/11/src/app/walk/mod.rs`
-
-```rust
---8<-- "lessons/12/src/app/walk/mod.rs:step-22b"
-```
-
-## Step 23 · src/app/route.rs
-
-Route helpers read viewer options from the page URL.
-
-`lessons/12/src/app/route.rs` · edit · type this
-
-Replaces `fn query` in `lessons/11/src/app/route.rs`
-
-```rust
---8<-- "lessons/12/src/app/route.rs:step-23"
-```
-
-## Step 24 · src/lib.rs
-
-The crate entry point connects the camera, scene and GPU owners.
-
-`lessons/12/src/lib.rs` · type this, replace the whole file, start with these lines
-
-```rust
---8<-- "lessons/12/src/lib.rs:step-24a"
-```
-
-`lessons/12/src/lib.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/lib.rs:step-24b"
-```
-
-`lessons/12/src/lib.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/lib.rs:step-24c"
-```
-
-`lessons/12/src/lib.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/lib.rs:step-24d"
-```
-
-Copy this part from the lesson folder to the path shown.
-
-`lessons/12/src/lib.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/lib.rs:step-24e"
-```
-
-## Step 25 · index.html
-
-Copy this file from the lesson folder to the path shown.
-
-`lessons/12/index.html` · edit · copy the file
-
-Replaces the 109 lines from `<!doctype html>` of `lessons/11/index.html`
-
-```html
---8<-- "lessons/12/index.html:step-25"
-```
-
-## Step 26 · assets/view_local.yaml
-
-Copy this file from the lesson folder to the path shown.
-
-`lessons/12/assets/view_local.yaml` · 3 lines · copy the file, new file
-
-```yaml
---8<-- "lessons/12/assets/view_local.yaml"
-```
-
-## Step 27 · src/fixture.rs
-
-Remove this file; its replacement is now part of the rendering modules.
-
-Delete `src/fixture.rs` (it exists in `lessons/11/`, not in `lessons/12/`).
-
-## Step 28 · tests that need a headless GPU
-
-Copy the tests that wait for this lesson: they open `Gpu::new_headless` or read `lane_shaders()`, both new here.
-
-- `lessons/12/src/engine/gpu/instance.rs` · copy the file
-- `lessons/12/src/engine/gpu/text_outline.rs` · copy the file
-- `lessons/12/src/engine/gpu/text_plane.rs` · copy the file
-- `lessons/12/src/engine/gpu/text.rs` · copy the file
-
-Run `cargo check` and `cargo xtest` in `lessons/12/`.
 
 ## Check
 
-Run `trunk serve` in `lessons/12/` and open <http://127.0.0.1:8770/>.
-
-Expected: The seven-object fixture supports object and source-edge selection; status: **7 objects**.
-
-![Checkpoint 12: the seven-object interaction fixture in the production shell, nothing selected.](screenshots/12.png)
-
-If it fails:
-
-- The highlight and GUID disagree: the row-to-identity map is wrong.
-- Orbiting selects an old object: a stale asynchronous pick is accepted.
-
-## What changed
-
-```text
-lessons/12/src/
-├── app/
-│   ├── walk/
-│   │   ├── bounds.rs
-│   │   ├── brep.rs
-│   │   ├── brep_edges.rs
-│   │   ├── brep_orient.rs
-│   │   ├── cloud.rs  +
-│   │   ├── curves.rs
-│   │   ├── encode.rs
-│   │   ├── frames.rs  +
-│   │   ├── mesh.rs
-│   │   ├── mesh_ink.rs
-│   │   ├── mesh_topology.rs
-│   │   ├── mod.rs  ~
-│   │   └── points.rs  +
-│   ├── feedback.rs  +
-│   ├── input.rs  +
-│   ├── inspection.rs  +
-│   ├── knobs.rs
-│   ├── loader.rs  +
-│   ├── mod.rs  ~
-│   ├── route.rs  ~
-│   ├── scene.rs  +
-│   ├── selection.rs  +
-│   ├── stream.rs  +
-│   └── touch.rs  +
-├── engine/
-│   ├── gpu/
-│   │   ├── arena.rs
-│   │   ├── backdrop.rs
-│   │   ├── buffers.rs
-│   │   ├── cloud.rs
-│   │   ├── device.rs  +
-│   │   ├── frame.rs
-│   │   ├── glyphs.rs
-│   │   ├── instance.rs
-│   │   ├── lod.rs
-│   │   ├── mod.rs  ~
-│   │   ├── objects.rs
-│   │   ├── pick.rs  +
-│   │   ├── present.rs  +
-│   │   ├── render.rs  +
-│   │   ├── segments.rs
-│   │   ├── selection_outline.rs  +
-│   │   ├── splat.rs
-│   │   ├── targets.rs
-│   │   ├── text.rs
-│   │   ├── text_outline.rs
-│   │   ├── text_plane.rs
-│   │   ├── text_plate.rs
-│   │   ├── upload.rs
-│   │   └── view.rs
-│   ├── pipelines/
-│   │   ├── layouts.rs
-│   │   └── mod.rs
-│   ├── mod.rs  ~
-│   ├── performance.rs
-│   └── text.rs
-├── shaders/
-│   ├── background.wgsl
-│   ├── glyph.wgsl
-│   ├── grid.wgsl
-│   ├── ink_visibility.wgsl
-│   ├── normals.wgsl
-│   ├── physical.wgsl
-│   ├── ribbon.wgsl
-│   ├── scene.wgsl
-│   ├── selection_outline.wgsl  +
-│   ├── sphere.wgsl
-│   ├── splat.wgsl
-│   ├── splat_resolve.wgsl
-│   ├── text_outline.wgsl
-│   ├── text_plane.wgsl
-│   ├── text_plate.wgsl
-│   └── triangle.wgsl
-├── camera.rs
-├── lib.rs  ~
-└── state.rs  +
-```
-
-`+` new in this lesson · `~` changed in this lesson
-
-Every file at this point: `lessons/12/`.
-
-## Next
-
-[13 · Source controls](13-controls.md)
-
-## Expected viewer result
-
-Checkpoint 12: the seven-object interaction fixture in the production shell, nothing selected.
-
-[![Full viewer result for 12 picking](screenshots/12.png)](screenshots/12.png)
+`cargo check` compiles, and in `lessons/12/` the commands `cargo xtest --lib gpu::pick`, `cargo xtest --lib selection` and `cargo xtest --lib scene` pass this lesson's unit tests. The browser still shows an empty canvas: the loader that opens the GPU and sends `Ready` arrives in lesson 14.

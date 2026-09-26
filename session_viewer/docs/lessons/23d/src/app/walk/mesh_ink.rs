@@ -1,3 +1,4 @@
+// --8<-- [start:ink-context]
 use super::encode::{BLACK, FACING_UNKNOWN, encode_width, oct16, pack_facing};
 use super::mesh::{COPLANAR_DOT, CREASE_COS, Lap, WIREFRAME_BLACK_MIN};
 use super::mesh_topology::{MeshTopo, SlotMap};
@@ -22,7 +23,9 @@ pub struct InkCx<'a> {
     pub smooth: bool,         // only borders and creases are ink
     pub lap: &'a mut Lap,     // profiling timer
 }
+// --8<-- [end:ink-context]
 
+// --8<-- [start:ink-edge-rules]
 /// Pen width of edge `i`; one entry applies to all.
 fn width_at(w: &[f64], i: usize) -> f64 {
     if w.len() == 1 {
@@ -64,6 +67,7 @@ fn dot3(a: &[f64; 3], b: &[f64; 3]) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
+// Crease = an edge where a smooth surface turns more than 25°; it is drawn like a real edge.
 /// True for a border or crease edge of a smooth mesh.
 fn smooth_feature(topo: &MeshTopo, ei: usize, pair: (Option<[f64; 3]>, Option<[f64; 3]>)) -> bool {
     if topo.edge_faces[ei][1] == u32::MAX {
@@ -102,7 +106,9 @@ fn facing_word(codes: &[u32], k: usize) -> u32 {
         _ => FACING_UNKNOWN,
     }
 }
+// --8<-- [end:ink-edge-rules]
 
+// --8<-- [start:ink-pipes]
 /// One pipe per drawn edge.
 fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     let w = m.widths();
@@ -117,7 +123,7 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
             continue;
         }
 
-        // skip a diagonal inside a flat region
+        // skip a diagonal inside a flat region, e.g. the one that splits a flat quad into two triangles
         if let (Some(n0), Some(n1)) = (na, nb)
             && dot3(&n0, &n1) >= COPLANAR_DOT
             && !knobs::all_edges()
@@ -142,7 +148,9 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
         });
     }
 }
+// --8<-- [end:ink-pipes]
 
+// --8<-- [start:ink-incidence]
 /// Which edges touch each vertex.
 struct Incidence {
     best: Vec<(f64, usize)>, // per vertex: widest edge (width, index)
@@ -172,7 +180,8 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
         }
     }
 
-    // count edges per vertex, then prefix sum
+    // count edges per vertex, then prefix sum: counts 2, 3, 1 become starts 0, 2, 5, 6,
+    // so vertex v's edges sit in vinc[vstart[v]..vstart[v + 1]]
     let mut vstart = vec![0u32; nv + 1];
 
     for (a, b, _) in topo.edges.iter() {
@@ -198,7 +207,10 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
 
     Incidence { best, vstart, vinc }
 }
+// --8<-- [end:ink-incidence]
 
+// --8<-- [start:ink-markers]
+// Two lifetimes: the struct borrows an InkCx for 'a, and that InkCx borrows mesh data for 'b.
 /// What the marker loop reads.
 struct MarkerCx<'a, 'b> {
     cx: &'a InkCx<'b>,  // ink context
@@ -230,6 +242,7 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
         codes.clear();
 
         for fk in &fkeys {
+            // let chain: `if let ... && let ... && cond` binds and tests in one condition
             if let Some(n) = topo.normals[*fk]
                 && let Some(code) = oct16(&n)
                 && !codes.contains(&code)
@@ -261,7 +274,9 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
         });
     }
 }
+// --8<-- [end:ink-markers]
 
+// --8<-- [start:ink-entry]
 /// Edges, then vertex dots.
 pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) {
     let inc = incidence(m, topo, cx);
@@ -281,7 +296,9 @@ pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) 
 fn reversed_normal(n: [f64; 3]) -> [f64; 3] {
     [-n[0], -n[1], -n[2]]
 }
+// --8<-- [end:ink-entry]
 
+// --8<-- [start:ink-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -389,3 +406,4 @@ mod tests {
         assert_eq!(walk_pipes(&folded_pair(), &MeshOpts::SURFACE), 7);
     }
 }
+// --8<-- [end:ink-tests]

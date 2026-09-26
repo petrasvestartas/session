@@ -1,4 +1,5 @@
-// One triangle in screen space, 96 bytes.
+// --8<-- [start:projected-triangle]
+// One triangle in screen space, 96 bytes; an edge line equation a*x + b*y + c is positive inside.
 struct ProjectedTriangle {
     edge0: vec4<f32>, // xyz: edge line equation; w: reference x
     edge1: vec4<f32>, // xyz: edge line equation; w: reference y
@@ -34,6 +35,8 @@ fn projected_triangle_at(triangle: ProjectedTriangle, at: vec2<f32>) -> vec2<f32
     let depth = triangle.edge2.w+dot(triangle.gradient.xy, at-vec2<f32>(triangle.edge0.w, triangle.edge1.w));
     return vec2<f32>(depth, 1.0);
 }
+// --8<-- [end:projected-triangle]
+// --8<-- [start:tile-span]
 // Pixels per tile side for a canvas; must match TileLayout in Rust.
 
 fn visibility_tile_span_of(width: u32, height: u32) -> u32 {
@@ -50,3 +53,4 @@ fn visibility_tile_span_of(width: u32, height: u32) -> u32 {
 fn visibility_tile_span() -> u32 {
     return visibility_tile_span_of(u32(line.vp_w), u32(line.vp_h));
 }
+// --8<-- [end:tile-span]

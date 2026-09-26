@@ -1,3 +1,5 @@
+// --8<-- [start:inspection-publish]
+// Inspection = a JSON snapshot of the viewer written onto the canvas, so browser tests read counters without a debugger.
 #[cfg(target_arch = "wasm32")]
 use crate::State;
 mod source_memory; // register:release
@@ -26,6 +28,7 @@ pub fn publish(state: &State) {
         None => None,
     };
     let identity = selected_identity(state);
+    // `json!` builds a JSON value in JSON syntax; any Rust expression can fill a value slot
     let mut snapshot = serde_json::json!({
         "submitted_at_ms": crate::engine::performance::now_ms(),
         "frames": state.gpu.performance.frames,
@@ -135,9 +138,11 @@ pub fn publish(state: &State) {
         "gpu_draws": slots.draws().len(),
         "gpu_instances": slots.instances(),
     });
-    let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string());
+    let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string()); // a test reads it with getAttribute
 }
+// --8<-- [end:inspection-publish]
 
+// --8<-- [start:inspection-helpers]
 /// Document index and guid of the selected row.
 #[cfg(target_arch = "wasm32")]
 fn selected_identity(state: &State) -> Option<(usize, String)> {
@@ -215,14 +220,18 @@ fn kind(geometry: &session_rust::Geometry) -> &'static str {
         Geometry::Polyline(_) => "Polyline",
     }
 }
+// --8<-- [end:inspection-helpers]
 
-// --8<-- [start:16]
+// --8<-- [start:16-source-memory]
+// --8<-- [start:source-memory]
 thread_local! {
     static SOURCE_MEMORY: std::cell::RefCell<source_memory::SourceCache> = Default::default();
 }
-// --8<-- [end:16]
+// --8<-- [end:source-memory]
+// --8<-- [end:16-source-memory]
 
-// --8<-- [start:19]
+// --8<-- [start:19-sheet-entity]
+// --8<-- [start:sheet-entity]
 /// The picked entity of the selected sheet, if known.
 #[cfg(target_arch = "wasm32")]
 fn sheet_entity(state: &State) -> Option<serde_json::Value> {
@@ -233,9 +242,11 @@ fn sheet_entity(state: &State) -> Option<serde_json::Value> {
         .as_ref()?;
     Some(serde_json::json!({"id": id, "guid": meta.guid, "name": meta.name, "kind": meta.kind}))
 }
-// --8<-- [end:19]
+// --8<-- [end:sheet-entity]
+// --8<-- [end:19-sheet-entity]
 
-// --8<-- [start:20]
+// --8<-- [start:20-undo-depth]
+// --8<-- [start:undo-depth]
 /// Undo steps held by every document.
 #[cfg(target_arch = "wasm32")]
 fn undo_depth(state: &State) -> serde_json::Value {
@@ -248,9 +259,11 @@ fn undo_depth(state: &State) -> serde_json::Value {
             .sum::<usize>()
     )
 }
-// --8<-- [end:20]
+// --8<-- [end:undo-depth]
+// --8<-- [end:20-undo-depth]
 
-// --8<-- [start:21]
+// --8<-- [start:21-edit-snapshot]
+// --8<-- [start:edit-snapshot]
 /// The open number box: its title, unit and place.
 #[cfg(target_arch = "wasm32")]
 fn number_box(state: &State) -> serde_json::Value {
@@ -290,4 +303,5 @@ fn shape(state: &State, row: u32) -> serde_json::Value {
         None => serde_json::Value::Null,
     }
 }
-// --8<-- [end:21]
+// --8<-- [end:edit-snapshot]
+// --8<-- [end:21-edit-snapshot]

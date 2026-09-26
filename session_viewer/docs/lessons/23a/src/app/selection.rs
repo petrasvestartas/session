@@ -1,3 +1,4 @@
+// --8<-- [start:selection-mode]
 use session_rust::element::ElementGeometry;
 use session_rust::{Geometry, NurbsCurve, NurbsSurface, Point};
 
@@ -5,7 +6,7 @@ use session_rust::{Geometry, NurbsCurve, NurbsSurface, Point};
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
 pub enum ControlId {
     Vertex(usize),                                  // mesh, polyline or BRep vertex
-    Curve { curve: usize, point: usize },           // curve control point
+    Curve { curve: usize, point: usize },           // a variant may hold named fields, like a small struct
     Surface { surface: usize, u: usize, v: usize }, // surface control point
     Point(u32),                                     // cloud point
 }
@@ -13,7 +14,7 @@ pub enum ControlId {
 /// What is selected inside one object.
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize)]
 pub enum SelectionMode {
-    #[default]
+    #[default] // the variant `SelectionMode::default()` returns
     Object, // whole objects only
     Edge {
         parent: u32, // object row
@@ -35,6 +36,7 @@ impl SelectionMode {
     pub fn parent(&self) -> Option<u32> {
         match self {
             Self::Object => None,
+            // `|` joins patterns that bind the same names
             Self::Edge { parent, .. }
             | Self::Face { parent, .. }
             | Self::Controls { parent, .. } => Some(*parent),
@@ -43,7 +45,7 @@ impl SelectionMode {
 
     /// Select one edge.
     pub fn select_edge(&mut self, parent: u32, edge: u32) {
-        *self = Self::Edge { parent, edge };
+        *self = Self::Edge { parent, edge }; // replaces the whole value, whatever variant it was
     }
 
     /// Show controls of `parent`; false when nothing changed.
@@ -69,7 +71,9 @@ impl SelectionMode {
         parent
     }
 }
+// --8<-- [end:selection-mode]
 
+// --8<-- [start:controls]
 /// One control point and where it is.
 #[derive(Clone, Debug)]
 pub struct Control {
@@ -90,7 +94,7 @@ impl Controls {
     pub fn cloud() -> Self {
         Self {
             cloud: true,
-            ..Self::default()
+            ..Self::default() // every field not named takes its default
         }
     }
 
@@ -98,6 +102,7 @@ impl Controls {
     fn push(&mut self, id: ControlId, point: &Point) -> Option<usize> {
         let position = [point[0], point[1], point[2]];
 
+        // a NaN control would poison the GPU box, so it is skipped
         if !position.into_iter().all(f64::is_finite) {
             return None;
         }
@@ -113,7 +118,9 @@ impl Controls {
         controls.append_geometry(geometry);
         controls
     }
+// --8<-- [end:controls]
 
+// --8<-- [start:controls-geometry]
     /// Add the controls of one geometry.
     fn append_geometry(&mut self, geometry: &Geometry) {
         match geometry {
@@ -129,6 +136,7 @@ impl Controls {
             Geometry::Polyline(polyline) => {
                 let mut previous = None;
 
+                // coords is flat, x0 y0 z0 x1 y1 z1 ..., so it is read three at a time
                 for (index, coords) in polyline.coords.chunks_exact(3).enumerate() {
                     let current = self.push(
                         ControlId::Vertex(index),
@@ -157,7 +165,9 @@ impl Controls {
             Geometry::Plane(_) | Geometry::OBB(_) => {}
         }
     }
+// --8<-- [end:controls-geometry]
 
+// --8<-- [start:controls-nets]
     /// Every mesh vertex.
     fn mesh(&mut self, mesh: &session_rust::Mesh) {
         for key in mesh.vertices() {
@@ -230,6 +240,7 @@ impl Controls {
                     None => None,
                 };
 
+                // link each point to its neighbour in u (above) and in v (last)
                 if let (Some(start), Some(end)) = (*above, current) {
                     self.links.push([start, end]);
                 }
@@ -244,7 +255,9 @@ impl Controls {
         }
     }
 }
+// --8<-- [end:controls-nets]
 
+// --8<-- [start:selection-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -274,7 +287,9 @@ mod tests {
         assert_eq!(controls.links, [[0, 1]]);
     }
 }
+// --8<-- [end:selection-tests]
 
+// --8<-- [start:selection-tool]
 /// What a click picks.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum SelectionTool {
@@ -283,3 +298,4 @@ pub enum SelectionTool {
     Edge, // edges
     Face, // faces
 }
+// --8<-- [end:selection-tool]

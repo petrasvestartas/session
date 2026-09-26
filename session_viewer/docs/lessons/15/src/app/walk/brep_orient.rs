@@ -1,3 +1,5 @@
+// --8<-- [start:halfedges]
+// Halfedge = one direction of an edge, a -> b; a face walking its border uses one halfedge per side.
 use super::brep_edges::EdgeChain;
 use session_rust::{BRep, Mesh};
 
@@ -20,7 +22,9 @@ fn occupied_halfedge(fm: &Mesh, from: usize, to: usize) -> bool {
     };
     matches!(neighbours.get(&to), Some(Some(_)))
 }
+// --8<-- [end:halfedges]
 
+// --8<-- [start:vertex-search]
 /// Position of vertex `k`.
 fn at(fm: &Mesh, k: usize) -> [f64; 3] {
     let v = &fm.vertex[&k];
@@ -71,8 +75,10 @@ fn vertex_at(fm: &Mesh, p: [f64; 3]) -> Option<usize> {
 
     Some(best?.1)
 }
+// --8<-- [end:vertex-search]
 
-/// True when the two faces walk the shared edge in opposite directions.
+// --8<-- [start:face-agreement]
+/// True when the two faces walk the shared edge in opposite directions, which is how two faces with the same winding meet.
 fn opposed(fms: &[Mesh], c: &EdgeChain) -> Option<bool> {
     let other = c.other?;
     let (fa, fb) = (&fms[c.face], &fms[other]);
@@ -86,7 +92,7 @@ fn opposed(fms: &[Mesh], c: &EdgeChain) -> Option<bool> {
     Some(away_a != away_b)
 }
 
-/// Six times the signed volume under one face mesh.
+/// Six times the signed volume under one face mesh, as in plane.rs.
 fn six_volume(fm: &Mesh) -> f64 {
     let mut keys: Vec<usize> = fm.face.keys().copied().collect();
     keys.sort_unstable(); // fixed order, fixed rounding
@@ -106,7 +112,9 @@ fn six_volume(fm: &Mesh) -> f64 {
 
     v
 }
+// --8<-- [end:face-agreement]
 
+// --8<-- [start:face-signs]
 /// +1 or -1 per face so every normal points outward.
 pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f64> {
     let nf = fms.len();
@@ -136,7 +144,7 @@ pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f
         let mut group = vec![start]; // connected faces
         let mut head = 0;
 
-        // breadth first: neighbours agree with each other
+        // breadth-first search: each neighbour takes the sign that agrees with the face it was reached from
         while head < group.len() {
             let f = group[head];
             head += 1;
@@ -165,7 +173,9 @@ pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f
 
     sign
 }
+// --8<-- [end:face-signs]
 
+// --8<-- [start:orient-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -284,3 +294,4 @@ mod tests {
         assert_eq!(pipes[0], pipes[1]);
     }
 }
+// --8<-- [end:orient-tests]

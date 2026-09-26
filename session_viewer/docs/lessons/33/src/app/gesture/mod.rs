@@ -1,12 +1,15 @@
+// --8<-- [start:gesture-table]
 mod control; // register:control-drag
 mod gizmo; // register:gizmo-drag
 mod object; // register:object-drag
 
 use crate::State;
 
+// Gesture = one left-button tool, e.g. dragging an object; each lives in its own file beside this one.
 /// One left-button tool: which presses it takes, how it follows the pointer, how it ends.
 pub struct Gesture {
     pub name: &'static str, // what tests call it
+    // `Option<fn ...>`: a tool without this step leaves it None and never takes such a press
     pub press: Option<fn(&mut State, (f64, f64), f64) -> bool>, // takes a press on its target, reach in CSS px
     pub start: Option<fn(&mut State, (f64, f64), (f64, f64)) -> bool>, // takes a plain press once it leaves the click slop
     pub drag: fn(&mut State, (f64, f64)) -> bool, // the pointer moved; true redraws
@@ -14,12 +17,15 @@ pub struct Gesture {
 }
 
 /// Every left-button tool, tried in this order.
+// Empty at lesson 12; lesson 21 adds the control, gizmo and object drags, one line each.
 pub const GESTURES: &[&Gesture] = &[
     &control::GESTURE, // register:control-drag
     &gizmo::GESTURE,   // register:gizmo-drag
     &object::GESTURE,  // register:object-drag
 ];
+// --8<-- [end:gesture-table]
 
+// --8<-- [start:gesture-find]
 /// The first tool that takes a press at `at`.
 pub fn press(state: &mut State, at: (f64, f64), reach: f64) -> Option<&'static Gesture> {
     GESTURES
@@ -35,7 +41,9 @@ pub fn start(state: &mut State, down: (f64, f64), at: (f64, f64)) -> Option<&'st
         .copied()
         .find(|gesture| gesture.start.is_some_and(|take| take(state, down, at)))
 }
+// --8<-- [end:gesture-find]
 
+// --8<-- [start:gesture-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -55,3 +63,4 @@ mod tests {
         assert_eq!(started, [false, false, true]);
     }
 }
+// --8<-- [end:gesture-tests]

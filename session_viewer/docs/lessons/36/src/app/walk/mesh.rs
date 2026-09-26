@@ -1,3 +1,4 @@
+// --8<-- [start:mesh-limits]
 use super::mesh_ink::{Ink, InkCx, edges_and_dots};
 use super::mesh_topology::{SlotMap, mesh_topology};
 use super::{Row, WalkCx};
@@ -32,7 +33,9 @@ pub(super) fn mesh_spacing(bounds: &AABB, verts: usize) -> f32 {
 pub fn is_print_fill(m: &Mesh) -> bool {
     m.widths().len() == 1 && m.widths()[0] == 0.0
 }
+// --8<-- [end:mesh-limits]
 
+// --8<-- [start:mesh-opts]
 /// How one mesh is walked.
 pub struct MeshOpts {
     pub sheet_lanes: bool, // print fills go to the sheet runs
@@ -62,7 +65,10 @@ impl MeshOpts {
         smooth: false,
     };
 }
+// --8<-- [end:mesh-opts]
 
+// --8<-- [start:mesh-lap]
+// Two definitions of `Lap`, one per target: `#[cfg]` keeps exactly one, so callers never test the target.
 /// A lap timer printing when profiling is on.
 #[cfg(not(target_arch = "wasm32"))]
 pub struct Lap {
@@ -105,7 +111,10 @@ impl Lap {
     /// No clock on wasm32.
     pub fn mark(&mut self, _name: &str) {}
 }
+// --8<-- [end:mesh-lap]
 
+// --8<-- [start:mesh-walk]
+// The returned list borrows from `arena`, so both carry the same lifetime 'a.
 /// The index list this mesh's triangles join.
 fn index_run<'a>(arena: &'a mut ArenaRows, m: &Mesh, sheet: bool) -> &'a mut Vec<u32> {
     if !sheet {
@@ -173,6 +182,7 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         idx.push(base + i);
     }
 
+    // Source face = the kernel face a triangle came from; picking (lesson 12) maps a triangle back to it.
     if !(o.sheet_lanes && print) {
         // a smooth surface is one source face
         append_face_ids(arena, m, cx.row, o.smooth, rm.indices.len() / 3);
@@ -202,6 +212,7 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     };
 
     // closed and wound one way, checked once a clipping plane cut: a section caps it
+    // bool.then(f) is Some(f()) when true; flatten turns Option<Option<T>> into Option<T>
     let solid = (!print && super::plane::solids_verified())
         .then(|| super::plane::solid_orientation(m))
         .flatten();
@@ -236,7 +247,9 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         ..row
     }
 }
+// --8<-- [end:mesh-walk]
 
+// --8<-- [start:mesh-face-ids]
 /// One source face address per triangle.
 fn append_face_ids(
     arena: &mut ArenaRows,
@@ -245,6 +258,7 @@ fn append_face_ids(
     surface: bool,
     triangles: usize,
 ) {
+    // a `use` inside a function is visible only in that function
     use crate::engine::gpu::faces::FaceSource;
 
     // a surface is one face
@@ -288,3 +302,4 @@ fn append_face_ids(
         "source face IDs must match the kernel triangle stream"
     );
 }
+// --8<-- [end:mesh-face-ids]

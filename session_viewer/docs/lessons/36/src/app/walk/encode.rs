@@ -1,5 +1,6 @@
 /// Pen width to a radius: negative = pixels, 0 = default pen.
 pub fn encode_width(w: f64) -> f32 {
+    // e.g. width 3.0 -> -1.5, half of 3 px; width 1.0 is the default pen and travels as 0
     if w.is_finite() && w > 0.0 && (w - 1.0).abs() > 1e-9 {
         -(w as f32) * 0.5
     } else {
@@ -27,7 +28,7 @@ fn quant_snorm8(v: f64) -> u32 {
     (((v.clamp(-1.0, 1.0) * 127.0).round() as i32) as u32) & 0xff
 }
 
-/// A direction packed into 16 bits.
+/// A direction packed into 16 bits: lesson 04a's octahedral packing at 8 bits per coordinate, enough to tell which way a face looks.
 pub fn oct16(n: &[f64; 3]) -> Option<u32> {
     let l = n[0].abs() + n[1].abs() + n[2].abs();
 
@@ -52,6 +53,7 @@ pub const BLACK: u32 = 0xff00_0000;
 /// Facing code for "always draw".
 pub const FACING_UNKNOWN: u32 = u32::MAX;
 
+// Facing word = the normals of the two faces beside an edge; the ribbon shader hides the edge when both look away.
 /// Two face normals in one word; one face is used twice.
 pub fn pack_facing(n0: Option<&[f64; 3]>, n1: Option<&[f64; 3]>) -> u32 {
     let pair = match (n0, n1) {

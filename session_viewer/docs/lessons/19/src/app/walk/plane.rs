@@ -1,3 +1,5 @@
+// --8<-- [start:plane-walk]
+// Clipping plane = a plane object that cuts the scene; the walk draws it as a rectangle with an arrow toward the side it removes.
 use crate::app::walk::Row;
 use crate::app::walk::encode::{FACING_UNKNOWN, encode_width, pack_rgba};
 use crate::engine::gpu::segments::SegRows;
@@ -11,7 +13,7 @@ pub const NAME: &str = "Clipping Plane";
 /// Arrow length over the rectangle's smaller half size.
 const ARROW: f64 = 0.2;
 
-/// Set by the first cut: from then on every mesh is checked for closedness as it is walked.
+/// Set by the first cut: from then on every mesh is checked for closedness as it is walked; an atomic may change without `mut` or a lock.
 static SOLIDS: AtomicBool = AtomicBool::new(false);
 
 /// True for a plane that cuts the scene.
@@ -21,6 +23,7 @@ pub fn is_clipping(plane: &Plane) -> bool {
 
 /// Turn on the closedness check of meshes; true the first time.
 pub fn verify_solids() -> bool {
+    // swap stores true and returns the old value, so only the first caller sees false
     !SOLIDS.swap(true, Ordering::Relaxed)
 }
 
@@ -77,7 +80,10 @@ pub fn walk(seg: &mut SegRows, plane: &Plane, row: u32) -> Row {
         ..Row::thin(bounds)
     }
 }
+// --8<-- [end:plane-walk]
 
+// --8<-- [start:solid-orientation]
+// A section cap (lesson 18b) can only close a solid: every edge walked once in each direction by its two faces.
 /// Closed and wound one way, every edge walked as often each way: Some(inward), else None.
 pub fn solid_orientation(mesh: &Mesh) -> Option<bool> {
     if mesh.vertex.is_empty() {
@@ -105,13 +111,14 @@ pub fn solid_orientation(mesh: &Mesh) -> Option<bool> {
                 return mesh.is_closed().then(|| six_volume(mesh) < 0.0);
             }
 
-            // the edge, then which way this face walks it
+            // one u64 per use: low key in bits 33 and up, high key in bits 1-32, direction in bit 0, so a sort groups each edge
             edges.push((lo as u64) << 33 | (hi as u64) << 1 | u64::from(a > b));
         }
     }
 
     edges.sort_unstable();
 
+    // chunk_by yields runs of neighbours with the same edge key
     for run in edges.chunk_by(|a, b| a >> 1 == b >> 1) {
         let forward = run.iter().filter(|edge| *edge & 1 == 0).count();
 
@@ -132,7 +139,7 @@ pub fn solid_flags(solid: Option<bool>) -> u32 {
     }
 }
 
-/// Six times the signed volume a mesh's faces enclose, fanned from each face's first corner.
+/// Six times the signed volume a mesh's faces enclose, fanned from each face's first corner: a · (b × c) per triangle, negative when the faces wind inward.
 fn six_volume(mesh: &Mesh) -> f64 {
     let mut volume = 0.0;
 
@@ -151,8 +158,11 @@ fn six_volume(mesh: &Mesh) -> f64 {
 
     volume
 }
+// --8<-- [end:solid-orientation]
 
-/// A point or vector as three numbers.
+// --8<-- [start:plane-math]
+// `pub(crate)`: visible anywhere in this crate, not to other crates.
+/// A point or vector as three numbers; generic over any type indexed by a number that gives f64, such as Point and Vector.
 pub(crate) fn array<T: std::ops::Index<usize, Output = f64>>(v: &T) -> [f64; 3] {
     [v[0], v[1], v[2]]
 }
@@ -197,3 +207,4 @@ pub(crate) fn unit(a: [f64; 3]) -> [f64; 3] {
 
     if l > 0.0 { scale(a, 1.0 / l) } else { a }
 }
+// --8<-- [end:plane-math]

@@ -1,6 +1,8 @@
+// --8<-- [start:feedback-status]
 /// Show a message in the status line.
 pub fn status(message: &str) {
     // an empty message shows the reload notice, if any
+    // `#[cfg]` on a `let`: this shadowing line exists only in the browser build
     #[cfg(target_arch = "wasm32")]
     let message = if message.is_empty() {
         super::route::recovered_notice().unwrap_or(message)
@@ -8,6 +10,7 @@ pub fn status(message: &str) {
         message
     };
 
+    // the status line is a plain element of index.html, not drawn by the GPU
     #[cfg(target_arch = "wasm32")]
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()
@@ -50,7 +53,9 @@ pub fn error(message: &str) {
 
     log::error!("{message}");
 }
+// --8<-- [end:feedback-status]
 
+// --8<-- [start:feedback-focus]
 /// Give the canvas keyboard focus.
 #[cfg(target_arch = "wasm32")]
 pub fn focus_canvas() {
@@ -67,7 +72,10 @@ pub fn focus_canvas() {
 /// No canvas on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn focus_canvas() {}
+// --8<-- [end:feedback-focus]
 
+// --8<-- [start:feedback-rows]
+// The rows the layers panel shows: this lesson fills them, lesson 30 draws the panel.
 /// One row of the layers panel.
 #[derive(Clone, Default, serde::Serialize)]
 pub struct LayerRow {
@@ -96,3 +104,4 @@ pub struct EdgeRow {
     pub guids: String,  // both guids, for the tooltip
     pub selected: bool, // both ends selected
 }
+// --8<-- [end:feedback-rows]

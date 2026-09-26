@@ -1,3 +1,4 @@
+// --8<-- [start:features-struct]
 use super::State;
 use super::drag; // register:object_drag
 use super::drawing; // register:drawing
@@ -10,6 +11,7 @@ use crate::app::hierarchy::Hierarchy; // register:hierarchy
 use crate::app::snap::Snapping; // register:snap
 
 /// What each feature keeps between frames; a feature adds its own file and one line here.
+// Every field starts from its Default, so `State::new` never names one.
 #[derive(Default)]
 pub(crate) struct Features {
     pub(super) cloud_query: Option<crate::app::cloud_query::Query>, // a point-cloud pick in flight; register:cloud_query
@@ -30,7 +32,11 @@ pub(crate) struct Features {
     pub(super) pending_split: Option<splitting::Pending>, // register:split
     pub(super) opacity_chosen: bool,  // register:opacity
 }
+// --8<-- [end:features-struct]
 
+// --8<-- [start:features-hooks]
+// Each list starts empty; a later lesson adds one line per hook.
+// `fn(&mut State)` is a function pointer; a method such as `State::purge_idle` is one, with `self` as its first argument.
 /// Feature work on every frame, before the pick answers are applied.
 pub(super) const BEFORE_PICKS: &[fn(&mut State)] = &[
     State::catch_unsynced,   // register:editing
@@ -56,3 +62,4 @@ pub(super) const TAKE_PICK: &[fn(&mut State, Option<crate::engine::gpu::Pick>) -
 pub(super) const CLICK_ROWS: &[fn(&State, u32) -> Option<Vec<u32>>] = &[
     State::group_of, // register:editing
 ];
+// --8<-- [end:features-hooks]

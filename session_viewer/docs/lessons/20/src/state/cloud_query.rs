@@ -1,10 +1,13 @@
+// --8<-- [start:query-state]
 use super::State;
+// `super` is state.rs: these are its imports, reused here.
 #[cfg(target_arch = "wasm32")]
 use super::{
     ControlId, FACING_UNKNOWN, GlyphPoint, GlyphRows, Pick, PickMode, SelectionMode,
     render_position,
 };
 
+// A child module of state.rs may add its own `impl State` and read State's private fields: a feature stays one file.
 impl State {
     /// True while a cloud query waits for the GPU pick.
     pub(super) fn cloud_query_awaiting_gpu(&self) -> bool {
@@ -33,7 +36,9 @@ impl State {
             self.status("Point query cancelled because the view or selection changed");
         }
     }
+// --8<-- [end:query-state]
 
+// --8<-- [start:query-start]
     /// Start a click query on a streamed cloud's source points.
     #[cfg(target_arch = "wasm32")]
     pub(super) fn start_cloud_query(&mut self, x: u32, y: u32) -> bool {
@@ -102,7 +107,9 @@ impl State {
 
         self.upload_controls();
     }
+// --8<-- [end:query-start]
 
+// --8<-- [start:query-batch]
     /// One page of source points arrived: draw them for the GPU to pick.
     #[cfg(target_arch = "wasm32")]
     pub fn cloud_query_batch(&mut self, batch: crate::app::cloud_query::Batch) {
@@ -185,7 +192,9 @@ impl State {
         };
         self.advance_cloud_query();
     }
+// --8<-- [end:query-batch]
 
+// --8<-- [start:query-resolved]
     /// The winner's source id and position arrived: select it.
     #[cfg(target_arch = "wasm32")]
     pub fn cloud_query_resolved(&mut self, resolved: crate::app::cloud_query::Resolved) {
@@ -225,7 +234,9 @@ impl State {
         self.touch();
     }
 }
+// --8<-- [end:query-resolved]
 
+// --8<-- [start:query-hooks]
 impl State {
     /// A point-cloud query takes the pick of a selectable row.
     #[cfg(target_arch = "wasm32")]
@@ -260,3 +271,4 @@ impl State {
         }
     }
 }
+// --8<-- [end:query-hooks]

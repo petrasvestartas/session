@@ -1,3 +1,7 @@
+// --8<-- [start:pick-window]
+// Picking = finding the object under the cursor.
+// Id pass = a draw that writes each object's row number instead of its colour.
+// Readback = copying those pixels from the GPU into memory the CPU can read.
 use super::buffers::GpuCtx;
 use super::frame::PickView;
 use super::targets::{Attachment, TextureSpec};
@@ -60,7 +64,9 @@ impl Window {
     pub fn with_radius(at: (u32, u32), size: (u32, u32), radius: u32) -> Self {
         let radius = radius.min(MAX_RADIUS);
         let size = (size.0.max(1), size.1.max(1));
+        // 2 * 6 + 1 = 13 pixels wide at the default radius, fewer on a tiny canvas
         let (w, h) = ((2 * radius + 1).min(size.0), (2 * radius + 1).min(size.1));
+        // near the right or bottom edge the window slides back inside
         let x = at.0.saturating_sub(radius).min(size.0 - w);
         let y = at.1.saturating_sub(radius).min(size.1 - h);
         Self {
@@ -89,8 +95,10 @@ impl Window {
         }
     }
 }
+// --8<-- [end:pick-window]
 
-/// Bytes per row of the readback buffer, 256-aligned as wgpu requires.
+// --8<-- [start:picker]
+/// A copy into a buffer needs rows padded to 256 bytes: (2 * 128 + 1) * 8 = 2056 bytes becomes 2304.
 const ROW_BYTES: u32 = ((2 * MAX_RADIUS + 1) * 8).div_ceil(256) * 256;
 
 /// Runs picks: request, draw, copy, map, read.
@@ -99,7 +107,9 @@ pub struct Picker {
     inflight: bool,                 // a copy is on the GPU
     window: Window,                 // window of the copy in flight
     copied: bool,                   // a copy was encoded this frame, map it after submit
+    // An atomic is a number the map callback and `poll` share safely without a lock; Arc lets both hold it.
     ready: Arc<AtomicU8>,           // 0 waiting, 1 mapped, 2 failed
+    // A late answer carries an old generation and is dropped, so a slow readback never selects the wrong thing.
     generation: u64,                // bumps on every request or cancel
     submitted: u64,                 // generation of the copy in flight
     pub mode: PickMode,             // what to answer with
@@ -109,7 +119,9 @@ pub struct Picker {
     targets: Option<IdTargets>,     // id textures
     view: PickView,                 // where the textures sit in the canvas
 }
+// --8<-- [end:picker]
 
+// --8<-- [start:id-readback]
 /// A whole-frame id copy, native only.
 #[cfg(not(target_arch = "wasm32"))]
 pub(super) struct IdReadback {
@@ -122,12 +134,14 @@ pub(super) struct IdReadback {
 impl IdReadback {
     /// Wait for the copy and return (object, sub) per pixel.
     pub(super) fn read(self, ctx: &GpuCtx) -> Vec<[u32; 2]> {
+        // a channel carries the map result from the callback back to this thread
         let (send, receive) = std::sync::mpsc::sync_channel(1);
         self.buffer
             .slice(..)
             .map_async(wgpu::MapMode::Read, move |result| {
                 send_id_map(&send, result)
             });
+        // natively the GPU runs callbacks only while polled; Wait blocks until the copy is done
         ctx.device
             .poll(wgpu::PollType::Wait {
                 submission_index: None,
@@ -152,12 +166,15 @@ impl IdReadback {
             }
         }
 
+        // the mapped bytes borrow the buffer: drop them before `unmap`
         drop(bytes);
         self.buffer.unmap();
         ids
     }
 }
+// --8<-- [end:id-readback]
 
+// --8<-- [start:picker-request]
 impl Picker {
     /// Bytes reserved on the GPU: (buffer, textures).
     pub fn allocated_bytes(&self) -> (u64, u64) {
@@ -208,6 +225,7 @@ impl Picker {
     /// Set the mode and the tolerance in CSS pixels.
     pub fn configure(&mut self, mode: PickMode, radius_css: f64, scale: f64) {
         self.mode = mode;
+        // 6 CSS px at scale 2.0 are 12 framebuffer px
         self.radius = (radius_css * scale)
             .ceil()
             .clamp(1.0, f64::from(MAX_RADIUS)) as u32;
@@ -237,6 +255,7 @@ impl Picker {
     }
 
     /// Open a pass for one query page; the first page clears the ids.
+    // The pass borrows the encoder for `'a`: nothing else may record into it until the pass is dropped.
     pub fn begin_source<'a>(
         &mut self,
         encoder: &'a mut wgpu::CommandEncoder,
@@ -302,7 +321,9 @@ impl Picker {
             self.pending.take()
         }
     }
+// --8<-- [end:picker-request]
 
+// --8<-- [start:picker-passes]
     /// Open the id pass over textures sized to `view`, cleared.
     pub fn begin_pass<'a>(
         &mut self,
@@ -321,7 +342,7 @@ impl Picker {
                 "pick.id",
                 &TextureSpec {
                     size,
-                    format: wgpu::TextureFormat::Rg32Uint,
+                    format: wgpu::TextureFormat::Rg32Uint, // two u32 per pixel: row + 1 and sub id + 1
                     samples: 1,
                     usage,
                 },
@@ -342,7 +363,7 @@ impl Picker {
                 "pick.primitive",
                 &TextureSpec {
                     size,
-                    format: wgpu::TextureFormat::Rg16Uint,
+                    format: wgpu::TextureFormat::Rg16Uint, // triangle id, for the ink visibility test
                     samples: 1,
                     usage: wgpu::TextureUsages::RENDER_ATTACHMENT
                         | wgpu::TextureUsages::TEXTURE_BINDING,
@@ -359,6 +380,7 @@ impl Picker {
         let t = self.targets.as_ref().unwrap();
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("pick pass"),
+            // two colour targets: the fragment shader writes location 0 and location 1 at once
             color_attachments: &[
                 Some(wgpu::RenderPassColorAttachment {
                     view: &t.id,
@@ -426,7 +448,7 @@ impl Picker {
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &targets.depth,
-                depth_ops: None,
+                depth_ops: None, // ink tests against the faces' depth but never writes it
                 stencil_ops: None,
             }),
             timestamp_writes: None,
@@ -434,7 +456,9 @@ impl Picker {
             multiview_mask: None,
         })
     }
+// --8<-- [end:picker-passes]
 
+// --8<-- [start:picker-readback]
     /// Copy the window around `at` into the readback buffer.
     pub fn copy_window(
         &mut self,
@@ -451,6 +475,7 @@ impl Picker {
         }
 
         let buf = self.readback.as_ref().expect("readback initialized above");
+        // a texture cannot be mapped, so the window is copied into a buffer that can
         encoder.copy_texture_to_buffer(
             wgpu::TexelCopyTextureInfo {
                 texture: t.id.texture(),
@@ -535,13 +560,14 @@ impl Picker {
         self.copied = false;
         let Some(buf) = &self.readback else { return };
         let flag = self.ready.clone();
+        // `map_async` hands the buffer to the CPU once the submitted work is done; the callback fires frames later
         buf.slice(..)
             .map_async(wgpu::MapMode::Read, move |result| finish_map(&flag, result));
     }
 
-    /// Result of the last pick: None while in flight, Some(None) for background.
+    /// Outer None = no answer yet; Some(None) = the click hit the background.
     pub fn poll(&mut self) -> Option<Option<Pick>> {
-        let status = self.ready.load(Ordering::Acquire);
+        let status = self.ready.load(Ordering::Acquire); // pairs with the callback's Release: the bytes are ready
 
         if !self.inflight || status == 0 {
             return None;
@@ -578,7 +604,9 @@ impl Picker {
         self.targets = None;
     }
 }
+// --8<-- [end:picker-readback]
 
+// --8<-- [start:pick-helpers]
 /// Best pixel in the window: ink before faces, then nearest to the cursor.
 fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
     let mut best: Option<(bool, u64, u32, u32)> = None;
@@ -601,6 +629,7 @@ fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
                 continue;
             }
 
+            // faces carry FACE_TAG in their top three bits; everything else is ink
             let face = sub == 0 || sub.wrapping_sub(1) & 0xe000_0000 == super::faces::FACE_TAG;
             // smallest tuple wins: ink first, then nearest
             let key = (face, distance, object, sub);
@@ -651,7 +680,9 @@ fn decode_pick((object, sub): (u32, u32)) -> Pick {
 fn hit_ids((_, _, object, sub): (bool, u64, u32, u32)) -> (u32, u32) {
     (object, sub)
 }
+// --8<-- [end:pick-helpers]
 
+// --8<-- [start:pick-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -734,7 +765,10 @@ mod tests {
         assert_eq!(nearest_hit(&texels(win, &[]), win), None);
     }
 }
+// --8<-- [end:pick-tests]
 
+// --8<-- [start:pick-lane]
+// The `Lane` trait from lesson 04a lets the GPU reset and count the picker like any lane.
 impl super::lane::Lane for Picker {
     fn on_reset(&mut self, _ctx: &GpuCtx) {
         self.cancel();
@@ -744,3 +778,4 @@ impl super::lane::Lane for Picker {
         self.allocated_bytes()
     }
 }
+// --8<-- [end:pick-lane]
