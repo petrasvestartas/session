@@ -27,7 +27,7 @@ page.on('response', (r) => {
 
 const t0 = Date.now();
 await page.goto(root, { waitUntil: 'load' });
-await page.waitForSelector('.home');
+await page.waitForSelector('.tests-view'); // the site opens on the Kernel API
 const paint = await page.evaluate(() => {
   const fcp = performance.getEntriesByName('first-contentful-paint')[0];
   const nav = performance.getEntriesByType('navigation')[0];
@@ -131,7 +131,7 @@ const deep = await (async () => {
 })().catch((e) => ({ error: String(e) }));
 if (deep.error || deep.top < 0 || deep.top > 400 || !deep.about) problems.push(`kernel deep link: ${JSON.stringify(deep)}`);
 
-// Phone: 390 px wide, touch; no sideways scroll on the home, a lesson and the kernel page.
+// Phone: 390 px wide, touch; no sideways scroll on the landing Kernel API, a lesson and a kernel class.
 const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
 const pp = await phone.newPage();
 pp.on('pageerror', (e) => consoleErrors.push(`phone pageerror: ${e.message}`));
@@ -139,10 +139,10 @@ const phoneWidths = {};
 for (const route of ['', '#/course/12-picking', '#/tests?suite=point_test']) {
   await pp.goto(root + route);
   await pp.waitForTimeout(1200);
-  phoneWidths[route || 'home'] = await pp.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
-  const [sw, iw] = phoneWidths[route || 'home'];
-  if (sw > iw) problems.push(`phone: sideways scroll on ${route || 'home'} (${sw} > ${iw})`);
-  if (shots) await pp.screenshot({ path: `${shots}/phone-${(route || 'home').replace(/[^a-z0-9]+/gi, '_')}.png` });
+  phoneWidths[route || 'landing'] = await pp.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+  const [sw, iw] = phoneWidths[route || 'landing'];
+  if (sw > iw) problems.push(`phone: sideways scroll on ${route || 'landing'} (${sw} > ${iw})`);
+  if (shots) await pp.screenshot({ path: `${shots}/phone-${(route || 'landing').replace(/[^a-z0-9]+/gi, '_')}.png` });
 }
 if (shots) {
   await page.goto(root + '#/course/12-picking');
