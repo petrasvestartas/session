@@ -500,13 +500,13 @@ fn build_point(
     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
         .with(v.label, v.fs)
         .vertex("vs_point");
-    // --8<-- [start:step-16a]
+    // --8<-- [start:step-15a]
     let desc = if v.target == Target::ID {
         desc.physical()
     } else {
         desc
     };
-    // --8<-- [end:step-16a]
+    // --8<-- [end:step-15a]
     build(&ctx.device, v.target, &desc)
 }
 
@@ -520,9 +520,9 @@ fn build_resolve(
     let groups = [&l.line, &l.resolve];
     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
         .with("splat.resolve", "fs_main")
-        // --8<-- [start:step-16b]
+        // --8<-- [start:step-15b]
         .physical()
-        // --8<-- [end:step-16b]
+        // --8<-- [end:step-15b]
         .depth(DepthMode::Opaque);
     build(&ctx.device, target, &desc)
 }

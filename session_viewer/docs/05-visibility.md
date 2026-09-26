@@ -297,19 +297,7 @@ Added below
 --8<-- "lessons/05/src/engine/pipelines/layouts.rs:step-12b"
 ```
 
-## Step 13 · src/engine/gpu/instance.rs
-
-The object row gains its selection flag.
-
-`lessons/05/src/engine/gpu/instance.rs` · edit · type this
-
-Replaces the line `let source = format!("{source}\n{}", include_str!("../../…` in `lessons/04d/src/engine/gpu/instance.rs`
-
-```rust
---8<-- "lessons/05/src/engine/gpu/instance.rs:step-13"
-```
-
-## Step 14 · src/engine/gpu/objects.rs
+## Step 13 · src/engine/gpu/objects.rs
 
 The object table binds the new textures.
 
@@ -318,7 +306,7 @@ The object table binds the new textures.
 Added after the `binding: 3` entry in `lessons/04d/src/engine/gpu/objects.rs`
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/objects.rs:step-14a"
+--8<-- "lessons/05/src/engine/gpu/objects.rs:step-13a"
 ```
 
 Added below
@@ -328,7 +316,7 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/objects.rs:step-14b"
+--8<-- "lessons/05/src/engine/gpu/objects.rs:step-13b"
 ```
 
 Added above
@@ -338,10 +326,10 @@ Added above
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/objects.rs:step-14c"
+--8<-- "lessons/05/src/engine/gpu/objects.rs:step-13c"
 ```
 
-## Step 15 · src/engine/gpu/arena.rs
+## Step 14 · src/engine/gpu/arena.rs
 
 The arena draws a physical pass before the colour pass.
 
@@ -354,7 +342,7 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/arena.rs:step-15a"
+--8<-- "lessons/05/src/engine/gpu/arena.rs:step-14a"
 ```
 
 Added above
@@ -364,22 +352,22 @@ Added above
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/arena.rs:step-15b"
+--8<-- "lessons/05/src/engine/gpu/arena.rs:step-14b"
 ```
 
 Replaces the line `.draw_ids(pass, b, &self.outline_buffers(&self.print))` in `lessons/04d/src/engine/gpu/arena.rs`
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/arena.rs:step-15c"
+--8<-- "lessons/05/src/engine/gpu/arena.rs:step-14c"
 ```
 
 Replaces the lines from `faces: build(dev, target, &base.with("triangle", "fs_main…` to `id_faces: build(dev, Target::ID, &base.with("triangle.id"…` in `lessons/04d/src/engine/gpu/arena.rs`
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/arena.rs:step-15d"
+--8<-- "lessons/05/src/engine/gpu/arena.rs:step-14d"
 ```
 
-## Step 16 · src/engine/gpu/splat.rs
+## Step 15 · src/engine/gpu/splat.rs
 
 The splat pass runs against the physical depth.
 
@@ -392,7 +380,7 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/splat.rs:step-16a"
+--8<-- "lessons/05/src/engine/gpu/splat.rs:step-15a"
 ```
 
 Added below
@@ -402,10 +390,10 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/splat.rs:step-16b"
+--8<-- "lessons/05/src/engine/gpu/splat.rs:step-15b"
 ```
 
-## Step 17 · src/engine/gpu/text_outline.rs
+## Step 16 · src/engine/gpu/text_outline.rs
 
 Outline text draws in both passes.
 
@@ -418,13 +406,13 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17a"
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-16a"
 ```
 
 Replaces the lines from `let (color, id) = pipelines(ctx, layouts, &shader, target);` to `(self.color, self.id) = pipelines(ctx, layouts, &self.sha…` in `lessons/04d/src/engine/gpu/text_outline.rs`
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17b"
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-16b"
 ```
 
 Added above
@@ -434,22 +422,22 @@ Added above
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17c"
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-16c"
 ```
 
 Replaces the line `) -> (wgpu::RenderPipeline, wgpu::RenderPipeline) {` in `lessons/04d/src/engine/gpu/text_outline.rs`
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17d"
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-16d"
 ```
 
 Replaces the line `(color, id)` in `lessons/04d/src/engine/gpu/text_outline.rs`
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-17e"
+--8<-- "lessons/05/src/engine/gpu/text_outline.rs:step-16e"
 ```
 
-## Step 18 · src/engine/gpu/mod.rs
+## Step 17 · src/engine/gpu/mod.rs
 
 The GPU owner runs the physical pass, then every lane over it.
 
@@ -462,7 +450,7 @@ pub mod arena;
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/mod.rs:step-18a"
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-17a"
 ```
 
 Added below
@@ -472,7 +460,7 @@ pub use segments::CylinderSegment;
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/mod.rs:step-18b"
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-17b"
 ```
 
 Added below
@@ -482,7 +470,7 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/mod.rs:step-18c"
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-17c"
 ```
 
 Added below
@@ -492,7 +480,7 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/mod.rs:step-18d"
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-17d"
 ```
 
 Added below
@@ -502,7 +490,7 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/mod.rs:step-18e"
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-17e"
 ```
 
 Added below
@@ -512,13 +500,13 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/mod.rs:step-18f"
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-17f"
 ```
 
 Replaces the lines from `self.targets = targets::Targets::new(` to `);` in `lessons/04d/src/engine/gpu/mod.rs`
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/mod.rs:step-18g"
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-17g"
 ```
 
 Added below
@@ -528,10 +516,10 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/engine/gpu/mod.rs:step-18h"
+--8<-- "lessons/05/src/engine/gpu/mod.rs:step-17h"
 ```
 
-## Step 19 · src/fixture.rs
+## Step 18 · src/fixture.rs
 
 Copy the test scene: a box with edges behind faces.
 Copy this file from the lesson folder to the path shown.
@@ -541,10 +529,10 @@ Copy this file from the lesson folder to the path shown.
 Replaces the lines from `use crate::engine::gpu::{` to `facing_ext: [0xffffffff; 2],` in `lessons/04d/src/fixture.rs`
 
 ```rust
---8<-- "lessons/05/src/fixture.rs:step-19"
+--8<-- "lessons/05/src/fixture.rs:step-18"
 ```
 
-## Step 20 · src/lib.rs
+## Step 19 · src/lib.rs
 
 The entry point reports the sample count.
 
@@ -553,13 +541,13 @@ The entry point reports the sample count.
 Replaces the line `camera.set_view(camera::View::Top);` in `lessons/04d/src/lib.rs`
 
 ```rust
---8<-- "lessons/05/src/lib.rs:step-20a"
+--8<-- "lessons/05/src/lib.rs:step-19a"
 ```
 
 Replaces the line `Ok(serde_json::json!({"stage":4,"objects":self.gpu.object…` in `lessons/04d/src/lib.rs`
 
 ```rust
---8<-- "lessons/05/src/lib.rs:step-20b"
+--8<-- "lessons/05/src/lib.rs:step-19b"
 ```
 
 Added below
@@ -570,10 +558,10 @@ Added below
 ```
 
 ```rust
---8<-- "lessons/05/src/lib.rs:step-20c"
+--8<-- "lessons/05/src/lib.rs:step-19c"
 ```
 
-## Step 21 · index.html
+## Step 20 · index.html
 
 Copy the page: the status says checkpoint 05.
 Copy this file from the lesson folder to the path shown.
@@ -583,19 +571,19 @@ Copy this file from the lesson folder to the path shown.
 Replaces the line `<title>Session checkpoint 04</title>` in `lessons/04d/index.html`
 
 ```html
---8<-- "lessons/05/index.html:step-21a"
+--8<-- "lessons/05/index.html:step-20a"
 ```
 
 Replaces the line `<output id="status">Starting checkpoint 04</output>` in `lessons/04d/index.html`
 
 ```html
---8<-- "lessons/05/index.html:step-21b"
+--8<-- "lessons/05/index.html:step-20b"
 ```
 
 Replaces the line `document.getElementById('status').textContent = 'Checkpoi…` in `lessons/04d/index.html`
 
 ```html
---8<-- "lessons/05/index.html:step-21c"
+--8<-- "lessons/05/index.html:step-20c"
 ```
 
 ## Check

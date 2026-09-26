@@ -1,4 +1,4 @@
-// --8<-- [start:step-7a]
+// --8<-- [start:step-6a]
 use super::buffers::GpuCtx;
 
 /// The depth texture remembers how far away each pixel already is, which is what lets a nearer triangle cover a farther one.
@@ -65,8 +65,8 @@ impl Targets {
         }
     }
 
-// --8<-- [end:step-7a]
-    // --8<-- [start:step-7b]
+// --8<-- [end:step-6a]
+    // --8<-- [start:step-6b]
     /// Open the face pass: color and depth cleared.
     pub fn begin_faces<'a>(
         &'a self,
@@ -134,8 +134,8 @@ impl Targets {
     }
 }
 
-// --8<-- [end:step-7b]
-// --8<-- [start:step-7c]
+// --8<-- [end:step-6b]
+// --8<-- [start:step-6c]
 /// Settings for one 2D texture.
 pub struct TextureSpec {
     pub size: (u32, u32), // width and height, px
@@ -166,4 +166,4 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
 pub fn texture_view(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::TextureView {
     texture(ctx, label, spec).create_view(&wgpu::TextureViewDescriptor::default())
 }
-// --8<-- [end:step-7c]
+// --8<-- [end:step-6c]

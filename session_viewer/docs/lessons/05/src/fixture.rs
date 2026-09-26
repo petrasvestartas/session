@@ -1,4 +1,4 @@
-// --8<-- [start:step-19]
+// --8<-- [start:step-18]
 use crate::engine::gpu::{CylinderSegment, GlyphPoint, ObjectRow, Upload};
 use session_rust::AABB;
 use session_rust::Point;
@@ -157,6 +157,6 @@ fn marker(upload: &mut Upload, row: u32, center: [f32; 3], color: [f32; 4]) {
         instance_id: row,
         facing: u32::MAX,
         facing_ext: [u32::MAX; 2],
-        // --8<-- [end:step-19]
+        // --8<-- [end:step-18]
     });
 }

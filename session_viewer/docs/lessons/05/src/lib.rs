@@ -17,6 +17,7 @@ pub struct Tutorial {
 #[wasm_bindgen] // Everything in this block is exported to JavaScript
 impl Tutorial {
     /// Negotiate a presentation compatible browser adapter and build the first pipeline.
+    #[cfg(target_arch = "wasm32")]
     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
         console_error_panic_hook::set_once(); // Better error messages in the console
         let mut gpu = Gpu::new(canvas.clone()).await.map_err(js_error)?;
@@ -26,7 +27,7 @@ impl Tutorial {
         // fit() picks the distance where this box fills the view, so the triangle is framed at startup.
         let mut camera = camera::Camera::new();
         camera.unit = camera::Unit::Meters;
-        // --8<-- [start:step-20a]
+        // --8<-- [start:step-19a]
         camera.set_view(camera::View::Iso);
         camera.fit(&gpu.bounds, 1.5);
 
@@ -42,7 +43,7 @@ impl Tutorial {
         }
 
         gpu.view.show_grid = false;
-        // --8<-- [end:step-20a]
+        // --8<-- [end:step-19a]
         // Create an instance of the struct, Ok is needed to return also the error message Err(...)
         Ok(Self {
             canvas,
@@ -104,9 +105,9 @@ impl Tutorial {
             now_ms: now,
         };
         self.gpu.render(&input).map_err(js_error)?;
-        // --8<-- [start:step-20b]
+        // --8<-- [start:step-19b]
         Ok(serde_json::json!({"stage":5,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"samples":self.gpu.targets.samples,
-        // --8<-- [end:step-20b]
+        // --8<-- [end:step-19b]
             "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
     }
 }
@@ -120,11 +121,11 @@ fn window_time(window: web_sys::Window) -> Option<f64> {
 fn js_error(error: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&error.to_string())
 }
-// --8<-- [start:step-20c]
+// --8<-- [start:step-19c]
 
 /// Clamp the test distance to its range.
 fn parse_distance(value: String) -> Option<f64> {
     let value = value.parse::<f64>().ok()?;
     (value.is_finite() && (1.0..=16.0).contains(&value)).then_some(value)
 }
-// --8<-- [end:step-20c]
+// --8<-- [end:step-19c]

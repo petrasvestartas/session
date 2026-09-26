@@ -43,9 +43,9 @@ impl ArenaRows {
 struct ArenaPipelines {
     faces: wgpu::RenderPipeline,
     id_faces: wgpu::RenderPipeline,
-    // --8<-- [start:step-15a]
+    // --8<-- [start:step-14a]
     selection_mask: wgpu::RenderPipeline, // marks selected faces
-    // --8<-- [end:step-15a]
+    // --8<-- [end:step-14a]
 }
 
 /// All mesh geometry on the GPU, in five growing buffers.
@@ -116,13 +116,13 @@ impl ArenaLane {
         self.draw_run(pass, b, &self.pipes.faces, &self.faces)
     }
 
-    // --8<-- [start:step-15b]
+    // --8<-- [start:step-14b]
     /// Draw the selected faces into a mask.
     pub fn draw_selection_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_run(pass, b, &self.pipes.selection_mask, &self.faces)
     }
 
-// --8<-- [end:step-15b]
+// --8<-- [end:step-14b]
     /// Draw sheet fills.
     pub fn draw_print(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.outline_text
@@ -140,9 +140,9 @@ impl ArenaLane {
         self.draw_run(pass, b, &self.pipes.id_faces, &self.faces)
             + self
                 .outline_text
-                // --8<-- [start:step-15c]
+                // --8<-- [start:step-14c]
                 .draw_physical_ids(pass, b, &self.outline_buffers(&self.print))
-                // --8<-- [end:step-15c]
+                // --8<-- [end:step-14c]
     }
 
     /// Draw object ids of sheet lettering.
@@ -230,7 +230,7 @@ fn build_pipelines(
     let dev = &ctx.device;
 
     ArenaPipelines {
-        // --8<-- [start:step-15d]
+        // --8<-- [start:step-14d]
         faces: build(dev, target, &base.with("triangle", "fs_main").physical()),
         id_faces: build(
             dev,
@@ -247,6 +247,6 @@ fn build_pipelines(
                 .with("triangle.selection_mask", "fs_selection_mask")
                 .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual),
         ),
-        // --8<-- [end:step-15d]
+        // --8<-- [end:step-14d]
     }
 }

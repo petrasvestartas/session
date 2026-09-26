@@ -52,6 +52,14 @@ Copy this part from the lesson folder to the path shown.
 --8<-- "lessons/04b/src/engine/gpu/segments.rs:step-1g"
 ```
 
+The test reads a shader struct's field names with a small helper; it lives beside `Instance`.
+
+`lessons/04b/src/engine/gpu/instance.rs` · copy the file, append at the end of the file
+
+```rust
+--8<-- "lessons/04b/src/engine/gpu/instance.rs:step-1h"
+```
+
 ## Step 2 · src/shaders/ink_visibility.wgsl
 
 New file: the test that hides a stroke sample behind a face.

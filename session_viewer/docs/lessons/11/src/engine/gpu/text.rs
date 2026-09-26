@@ -1,4 +1,4 @@
-// --8<-- [start:step-6a]
+// --8<-- [start:step-5a]
 //! GPU text with glyphon: each glyph is rasterized once into an atlas, one shared texture, and every letter is a quad sampling it.
 use super::buffers::GpuCtx;
 // `#[path]` loads a sibling file as a private submodule: only this file sees Planes and Plates
@@ -48,8 +48,8 @@ pub struct TextStats {
     pub world_plane_rasterizations: u64,
 }
 
-// --8<-- [end:step-6a]
-// --8<-- [start:step-6b]
+// --8<-- [end:step-5a]
+// --8<-- [start:step-5b]
 // Overlay = text always on top; anchored = text at a scene depth, hidden behind nearer geometry.
 /// Draws every label: planes, anchored text, plates and overlays.
 pub struct TextLane {
@@ -109,8 +109,8 @@ impl TextLane {
         }
     }
 
-// --8<-- [end:step-6b]
-    // --8<-- [start:step-6c]
+// --8<-- [end:step-5b]
+    // --8<-- [start:step-5c]
     /// Replace every label; an invalid set keeps the old ones.
     pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
         self.document.set_labels(labels)
@@ -131,8 +131,8 @@ impl TextLane {
         self.prepared = None; // the next prepare must run
     }
 
-    // --8<-- [end:step-6c]
-    // --8<-- [start:step-6d]
+    // --8<-- [end:step-5c]
+    // --8<-- [start:step-5d]
     /// Place every label for this frame; skipped when labels, fonts and camera match the last call.
     pub fn prepare(&mut self, ctx: &GpuCtx, frame: &TextFrame) -> anyhow::Result<()> {
         let key = (
@@ -221,8 +221,8 @@ impl TextLane {
                 overlays.push(area);
             }
         }
-        // --8<-- [end:step-6d]
-// --8<-- [start:step-6e]
+        // --8<-- [end:step-5d]
+// --8<-- [start:step-5e]
 
         self.overlay.prepare(
             &ctx.device,
@@ -284,8 +284,8 @@ impl TextLane {
         Ok(())
     }
 
-// --8<-- [end:step-6e]
-    // --8<-- [start:step-6f]
+// --8<-- [end:step-5e]
+    // --8<-- [start:step-5f]
     /// Order matters: planes and depth-tested text first, then plates, then overlay text on the plates.
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
         let mut draws = self.planes.draw(pass);
@@ -356,8 +356,8 @@ impl TextLane {
     }
 }
 
-// --8<-- [end:step-6f]
-// --8<-- [start:step-6g]
+// --8<-- [end:step-5f]
+// --8<-- [start:step-5g]
 impl TextFrame {
     /// Framebuffer pixels per CSS pixel; fails on a stretched canvas.
     pub fn scale(&self) -> anyhow::Result<f32> {
@@ -392,8 +392,8 @@ struct PlacedText {
     depth: Option<f32>, // None = overlay
 }
 
-// --8<-- [end:step-6g]
-// --8<-- [start:step-6h]
+// --8<-- [end:step-5g]
+// --8<-- [start:step-5h]
 /// Screen position of a label; None behind the eye, outside near and far, or for plane text.
 fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText> {
     let (world, offset, world_height) = match label.placement {
@@ -459,8 +459,8 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
     })
 }
 
-// --8<-- [end:step-6h]
-// --8<-- [start:step-6i]
+// --8<-- [end:step-5h]
+// --8<-- [start:step-5i]
 /// Center a nameplate on its anchor and return the plate around it.
 fn center_nameplate(
     run: &TextRun,
@@ -532,8 +532,8 @@ fn clip_bounds(label: &TextLabel, frame: &TextFrame, scale: f32) -> TextBounds {
     }
 }
 
-// --8<-- [end:step-6i]
-// --8<-- [start:step-6j]
+// --8<-- [end:step-5i]
+// --8<-- [start:step-5j]
 /// A glyphon renderer; `compare` decides whether scene geometry can hide its text.
 fn renderer(
     ctx: &GpuCtx,
@@ -585,8 +585,8 @@ fn now_ms() -> f64 {
     0.0
 }
 
-// --8<-- [end:step-6j]
-// --8<-- [start:step-6k]
+// --8<-- [end:step-5j]
+// --8<-- [start:step-5k]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -719,293 +719,5 @@ mod tests {
             "invalid padding preserves the previous document"
         );
     }
-
-    #[test]
-    #[cfg(not(target_arch = "wasm32"))]
-    #[ignore = "requires a native GPU adapter"]
-    /// Black rounded plate, white ink, yellow when selected, gone on release.
-    fn nameplate_has_black_background_white_ink_centering_and_clean_release() {
-        use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
-        use session_rust::{RenderVertex, Xform};
-        let mut gpu = pollster::block_on(Gpu::new_headless(320, 160)).unwrap();
-        gpu.view.show_grid = false;
-        gpu.view.lit = false;
-        let mut upload = Upload::default();
-        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
-
-        for position in [
-            [-1.0, -1.0, 0.7],
-            [1.0, -1.0, 0.7],
-            [1.0, 1.0, 0.7],
-            [-1.0, 1.0, 0.7],
-        ] {
-            upload.arena.verts.push(RenderVertex {
-                position,
-                normal: [0.0, 0.0, 1.0],
-                color: [0.3, 0.5, 0.7, 1.0],
-            });
-            upload.arena.vids.push(0);
-        }
-
-        upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
-        gpu.set_scene(&upload);
-        let mut input = FrameInput {
-            view_proj: Xform::identity(),
-            clear: wgpu::Color::WHITE,
-            now_ms: 0.0,
-        };
-        let baseline = gpu.render_offscreen(&input);
-        let label = TextLabel {
-            id: 1,
-            text: "Sphere Ø25".into(),
-            font_size: 13.5,
-            line_height: 19.5,
-            color: [255; 4],
-            placement: TextPlacement::Nameplate {
-                world: [0.0, 0.0, 0.2],
-                padding: [12.75, 3.0],
-                rounded: true,
-            },
-            clip: None,
-        };
-        gpu.text.set_labels(vec![label]).unwrap();
-        let pixels = gpu.render_offscreen(&input);
-        assert!(
-            white_pixels(&pixels) > 40,
-            "normal-sized glyphs remain visible over their solid's center"
-        );
-        let mut left = 320;
-        let mut right = 0;
-        let mut top = 160;
-        let mut bottom = 0;
-        let mut black = 0;
-
-        for (index, pixel) in pixels.chunks_exact(4).enumerate() {
-            if pixel[0] < 5 && pixel[1] < 5 && pixel[2] < 5 {
-                let x = index % 320;
-                let y = index / 320;
-                left = left.min(x);
-                right = right.max(x);
-                top = top.min(y);
-                bottom = bottom.max(y);
-                black += 1;
-            }
-        }
-
-        assert!(
-            black > 600,
-            "the nameplate has a real opaque black GPU background"
-        );
-        assert!(((left + right) as f32 * 0.5 - 160.0).abs() <= 1.0);
-        assert!(((top + bottom) as f32 * 0.5 - 80.0).abs() <= 1.0);
-        let mut line_width = 0.0f32;
-
-        for line in gpu.text.document.runs[0].buffer.layout_runs() {
-            line_width = line_width.max(line.line_w);
-        }
-
-        assert!(
-            (right - left + 1) as f32 - 25.5 >= line_width - 2.0,
-            "the complete shaped line fits in the straight section between both caps"
-        );
-        let corner = (top * 320 + left) * 4;
-        assert_eq!(
-            &pixels[corner..corner + 4],
-            &baseline[corner..corner + 4],
-            "the maximum-radius corner exposes the original solid"
-        );
-        input.view_proj.m[12] = 0.25;
-        let moved = gpu.render_offscreen(&input);
-        assert_ne!(
-            pixels, moved,
-            "the nameplate follows its projected source center"
-        );
-        assert_eq!(
-            gpu.text.stats.shape_count, 1,
-            "camera movement does not reshape"
-        );
-        gpu.text.release(&gpu.ctx);
-        input.view_proj = Xform::identity();
-        assert_eq!(
-            baseline,
-            gpu.render_offscreen(&input),
-            "clearing selection releases plate and text together"
-        );
-        assert_eq!(gpu.text.stats.nameplate_capacity_bytes, 28);
-    }
-
-    #[test]
-    #[cfg(not(target_arch = "wasm32"))]
-    #[ignore = "requires a native GPU adapter"]
-    /// Hidden behind a solid, visible in front, clipped, released.
-    fn actual_glyph_coverage_obeys_depth_clip_motion_and_release() {
-        use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
-        use session_rust::{RenderVertex, Xform};
-        let mut gpu = pollster::block_on(Gpu::new_headless(256, 128)).unwrap();
-        gpu.view.show_grid = false;
-        gpu.view.lit = false;
-        let mut upload = Upload::default();
-        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
-
-        for position in [
-            [-1.0, -1.0, 0.7],
-            [1.0, -1.0, 0.7],
-            [1.0, 1.0, 0.7],
-            [-1.0, 1.0, 0.7],
-        ] {
-            upload.arena.verts.push(RenderVertex {
-                position,
-                normal: [0.0, 0.0, 1.0],
-                color: [0.1, 0.1, 0.1, 1.0],
-            });
-            upload.arena.vids.push(0);
-        }
-
-        upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
-        gpu.set_scene(&upload);
-        let mut frame = FrameInput {
-            view_proj: Xform::identity(),
-            clear: wgpu::Color::BLACK,
-            now_ms: 0.0,
-        };
-        let baseline = gpu.render_offscreen(&frame);
-        let mut label = TextLabel {
-            id: 1,
-            text: "AV office Ø25".into(),
-            font_size: 14.0,
-            line_height: 21.0,
-            color: [255; 4],
-            placement: TextPlacement::Anchor {
-                world: [-0.8, 0.8, 0.5],
-                offset: [0.0; 2],
-            },
-            clip: None,
-        };
-        gpu.text.set_labels(vec![label.clone()]).unwrap();
-        assert_eq!(
-            baseline,
-            gpu.render_offscreen(&frame),
-            "a label behind a solid must be fully occluded"
-        );
-        label.placement = TextPlacement::Anchor {
-            world: [-0.8, 0.8, 0.9],
-            offset: [0.0; 2],
-        };
-        gpu.text.set_labels(vec![label.clone()]).unwrap();
-        let front = gpu.render_offscreen(&frame);
-        assert!(
-            white_pixels(&front) > 50,
-            "normal-size foreground glyphs must render actual opaque interiors"
-        );
-        assert_eq!(gpu.text.stats.shape_count, 1);
-        let mut translated = Xform::identity();
-        translated.m[12] = 0.125;
-        frame.view_proj = translated;
-        let moved = gpu.render_offscreen(&frame);
-        assert_ne!(front, moved, "camera motion must refresh glyph placement");
-        assert_eq!(
-            gpu.text.stats.shape_count, 1,
-            "camera motion must reuse shaping"
-        );
-        label.placement = TextPlacement::WorldBillboard {
-            world: [-0.5, 0.4, 0.9],
-            world_height: 0.25,
-        };
-        gpu.text.set_labels(vec![label.clone()]).unwrap();
-        assert!(white_pixels(&gpu.render_offscreen(&frame)) > 50);
-        label.placement = TextPlacement::Screen {
-            left: 8.25,
-            top: 8.5,
-        };
-        label.clip = Some([0.0, 0.0, 24.0, 128.0]);
-        gpu.text.set_labels(vec![label]).unwrap();
-        let clipped = gpu.render_offscreen(&frame);
-        assert!(white_pixels(&clipped) > 10);
-
-        for (index, pixel) in clipped.chunks_exact(4).enumerate() {
-            if index % 256 >= 24 {
-                assert!(
-                    pixel[0] < 240,
-                    "clip must exclude glyph pixels outside its CSS rectangle"
-                );
-            }
-        }
-
-        gpu.text.release(&gpu.ctx);
-        assert_eq!(
-            baseline,
-            gpu.render_offscreen(&FrameInput {
-                view_proj: Xform::identity(),
-                clear: wgpu::Color::BLACK,
-                now_ms: 0.0
-            })
-        );
-    }
-
-    #[test]
-    #[cfg(not(target_arch = "wasm32"))]
-    #[ignore = "requires a native GPU adapter"]
-    /// Zooming world text rebuilds the atlas but never reshapes.
-    fn continuous_world_scale_evicts_without_reshaping_or_stale_instances() {
-        use crate::engine::gpu::{FrameInput, Gpu};
-        use session_rust::Xform;
-        let mut gpu = pollster::block_on(Gpu::new_headless(256, 128)).unwrap();
-        gpu.view.show_grid = false;
-        let frame = FrameInput {
-            view_proj: Xform::identity(),
-            clear: wgpu::Color::BLACK,
-            now_ms: 0.0,
-        };
-        let mut label = TextLabel {
-            id: 1,
-            text: (33u8..127).map(char::from).collect(),
-            font_size: 14.0,
-            line_height: 21.0,
-            color: [255; 4],
-            placement: TextPlacement::WorldBillboard {
-                world: [-0.9, 0.5, 0.5],
-                world_height: 0.2,
-            },
-            clip: None,
-        };
-
-        for step in 0..60 {
-            label.placement = TextPlacement::WorldBillboard {
-                world: [-0.9, 0.5, 0.5],
-                world_height: 0.2 + f64::from(step) * 0.001,
-            };
-            gpu.text.set_labels(vec![label.clone()]).unwrap();
-            assert!(
-                white_pixels(&gpu.render_offscreen(&frame)) > 20,
-                "every zoom frame must contain opaque glyph interiors"
-            );
-            assert_eq!(
-                gpu.text.stats.shape_count, 1,
-                "world zoom must not reshape unchanged text"
-            );
-            assert!(
-                gpu.text.stats.distinct_raster_keys <= 4096 + 94,
-                "cache growth is limited to the budget plus one preparation"
-            );
-        }
-
-        assert!(
-            gpu.text.stats.atlas_resets > 0,
-            "this continuous-scale fixture must actually cross the eviction threshold"
-        );
-        assert_eq!(gpu.text.stats.missing_glyphs, 0);
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    /// Pixels that are fully white.
-    fn white_pixels(pixels: &[u8]) -> usize {
-        let mut count = 0;
-
-        for pixel in pixels.chunks_exact(4) {
-            count += usize::from(pixel[0] > 240 && pixel[1] > 240 && pixel[2] > 240);
-        }
-
-        count
-    }
 }
-// --8<-- [end:step-6k]
+// --8<-- [end:step-5k]

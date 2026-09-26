@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <!-- Without this a phone lays the page out 980 px wide and shrinks it to fit. -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- --8<-- [start:step-12a] -->
+    <!-- --8<-- [start:step-11a] -->
     <title>Session checkpoint 11</title>
-    <!-- --8<-- [end:step-12a] -->
+    <!-- --8<-- [end:step-11a] -->
     <!-- data-target-name = the crate to compile, the name in Cargo.toml. -->
     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
     <style>
@@ -34,7 +34,7 @@
       }
     </style>
     <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
-    <!-- --8<-- [start:step-12b] -->
+    <!-- --8<-- [start:step-11b] -->
     <link data-trunk rel="copy-file" href="assets/text-quality.html">
   </head>
   <body>
@@ -42,7 +42,7 @@
     <canvas id="canvas" tabindex="0"></canvas>
     <a href="./text-quality.html" style="position: fixed; right: 12px; top: 12px; color: white;">Compare GPU text</a>
     <output id="status">Starting checkpoint 11</output>
-    <!-- --8<-- [end:step-12b] -->
+    <!-- --8<-- [end:step-11b] -->
     <script>
       let tutorial; // the Rust Tutorial, once create() has finished
       let pointer; // [x, y] of the last event while dragging, else undefined
@@ -70,9 +70,9 @@
         const canvas = document.getElementById('canvas');
         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
         canvas.dataset.tutorialInspection = JSON.stringify(state); // kept on the canvas for automated checks
-        // --8<-- [start:step-12c]
+        // --8<-- [start:step-11c]
         document.getElementById('status').textContent = 'Checkpoint 11 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-        // --8<-- [end:step-12c]
+        // --8<-- [end:step-11c]
       }
 
       function down(event) {

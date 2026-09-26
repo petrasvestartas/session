@@ -29,6 +29,7 @@ pub struct Tutorial {
 #[wasm_bindgen] // every pub fn in this block becomes a JavaScript method
 impl Tutorial {
     /// async: JavaScript receives a Promise, because asking the browser for a GPU takes a moment.
+    #[cfg(target_arch = "wasm32")] // build this only for the browser: a PC has no canvas, and `cargo xtest` builds for the PC
     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
         console_error_panic_hook::set_once();
         Self::open(canvas).await.map_err(js_error) // JavaScript cannot read a Rust error, so it becomes text
@@ -61,6 +62,7 @@ impl Tutorial {
 // A second impl block without #[wasm_bindgen]: these helpers return Rust errors JavaScript cannot see.
 impl Tutorial {
     /// anyhow::Result = Ok(value) or Err(any error with a message).
+    #[cfg(target_arch = "wasm32")]
     async fn open(canvas: web_sys::HtmlCanvasElement) -> anyhow::Result<Self> {
         // Instance = the WebGPU API itself
         // Surface  = the canvas, as something the GPU can draw into

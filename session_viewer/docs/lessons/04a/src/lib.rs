@@ -1,4 +1,4 @@
-// --8<-- [start:step-21a]
+// --8<-- [start:step-20a]
 pub mod app;
 pub mod camera;
 pub mod engine;
@@ -18,6 +18,7 @@ pub struct Tutorial {
 #[wasm_bindgen] // Everything in this block is exported to JavaScript
 impl Tutorial {
     /// Negotiate a presentation compatible browser adapter and build the first pipeline.
+    #[cfg(target_arch = "wasm32")]
     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
         console_error_panic_hook::set_once(); // Better error messages in the console
         let mut gpu = Gpu::new(canvas.clone()).await.map_err(js_error)?;
@@ -55,8 +56,8 @@ impl Tutorial {
             (self.gpu.config.width as f64, self.gpu.config.height as f64),
         );
     }
-    // --8<-- [end:step-21a]
-// --8<-- [start:step-21b]
+    // --8<-- [end:step-20a]
+// --8<-- [start:step-20b]
 
     /// Clear and draw one frame at full device-pixel resolution.
     pub fn render(&mut self, width: u32, height: u32, scale: f64) -> Result<String, JsValue> {
@@ -106,4 +107,4 @@ fn window_time(window: web_sys::Window) -> Option<f64> {
 fn js_error(error: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&error.to_string())
 }
-// --8<-- [end:step-21b]
+// --8<-- [end:step-20b]

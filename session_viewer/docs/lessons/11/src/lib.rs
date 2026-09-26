@@ -1,11 +1,12 @@
-// --8<-- [start:step-8a]
+// --8<-- [start:step-7a]
 use session_rust::AABB;
 pub mod app;
 pub mod camera;
 pub mod engine;
 pub mod fixture;
+#[cfg(target_arch = "wasm32")]
 pub mod text_quality;
-// --8<-- [end:step-8a]
+// --8<-- [end:step-7a]
 use engine::gpu::{FrameInput, Gpu};
 use wasm_bindgen::prelude::*;
 
@@ -23,6 +24,7 @@ pub struct Tutorial {
 #[wasm_bindgen]
 impl Tutorial {
     /// Retain local CAD sources while handing only prepared lane tables to the GPU.
+    #[cfg(target_arch = "wasm32")]
     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
         // panics print to the console
         console_error_panic_hook::set_once();
@@ -30,11 +32,11 @@ impl Tutorial {
         let mut fixture = fixture::build();
         gpu.set_scene(&fixture.upload);
         fixture.upload.drop_uploaded();
-        // --8<-- [start:step-8b]
+        // --8<-- [start:step-7b]
         gpu.text
             .set_labels(text_labels(&gpu.bounds))
             .map_err(js_error)?;
-            // --8<-- [end:step-8b]
+            // --8<-- [end:step-7b]
         let mut camera = camera::Camera::new();
         camera.unit = camera::Unit::Millimeters;
         camera.set_view(camera::View::Iso);
@@ -115,9 +117,9 @@ impl Tutorial {
             now_ms: now,
         };
         self.gpu.render(&input).map_err(js_error)?;
-        // --8<-- [start:step-8c]
+        // --8<-- [start:step-7c]
         Ok(serde_json::json!({"stage":11,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"text":self.gpu.text.stats,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
-        // --8<-- [end:step-8c]
+        // --8<-- [end:step-7c]
             "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
     }
 }
@@ -137,7 +139,7 @@ fn parse_distance(value: String) -> Option<f64> {
     let value = value.parse::<f64>().ok()?;
     (value.is_finite() && (1.0..=16.0).contains(&value)).then_some(value)
 }
-// --8<-- [start:step-8d]
+// --8<-- [start:step-7d]
 
 /// Overlay text (CSS size) or world label (scene depth).
 fn text_labels(bounds: &AABB) -> Vec<engine::text::TextLabel> {
@@ -189,4 +191,4 @@ fn text_labels(bounds: &AABB) -> Vec<engine::text::TextLabel> {
         },
     ]
 }
-// --8<-- [end:step-8d]
+// --8<-- [end:step-7d]

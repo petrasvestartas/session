@@ -1,4 +1,4 @@
-// --8<-- [start:step-14a]
+// --8<-- [start:step-13a]
 use super::buffers::{GpuCtx, GrowBuf, INDICES, VERTS};
 use super::frame::Binds;
 use super::text_outline::{OutlineBuffers, OutlineTextLane};
@@ -58,8 +58,8 @@ pub struct ArenaLane {
     outline_text: OutlineTextLane, // draws sheet fills and lettering
 }
 
-// --8<-- [end:step-14a]
-// --8<-- [start:step-14b]
+// --8<-- [end:step-13a]
+// --8<-- [start:step-13b]
 impl ArenaLane {
     /// Bytes reserved on the GPU by this lane.
     pub fn allocated_bytes(&self) -> u64 {
@@ -111,8 +111,8 @@ impl ArenaLane {
         self.text.append(ctx, &up.idx_text);
     }
 
-// --8<-- [end:step-14b]
-    // --8<-- [start:step-14c]
+// --8<-- [end:step-13b]
+    // --8<-- [start:step-13c]
     /// Draw the solid faces.
     pub fn draw_faces(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_run(pass, b, &self.pipes.faces, &self.faces)
@@ -158,8 +158,8 @@ impl ArenaLane {
         self.text.len().saturating_add(self.print.len())
     }
 
-// --8<-- [end:step-14c]
-    // --8<-- [start:step-14d]
+// --8<-- [end:step-13c]
+    // --8<-- [start:step-13d]
     /// Draw one index buffer with `pipeline`; returns the draw count.
     fn draw_run(
         &self,
@@ -229,4 +229,4 @@ fn build_pipelines(
         id_faces: build(dev, Target::ID, &base.with("triangle.id", "fs_id")),
     }
 }
-// --8<-- [end:step-14d]
+// --8<-- [end:step-13d]

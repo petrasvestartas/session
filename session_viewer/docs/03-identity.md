@@ -12,18 +12,10 @@ The same triangle drawn twice, each with its own placement and colour.
 
 New file: one 96-byte row per object, matrix, colour, flags.
 
-`lessons/03/src/engine/gpu/instance.rs` · type this, new file, start with these lines
+`lessons/03/src/engine/gpu/instance.rs` · type this, new file
 
 ```rust
---8<-- "lessons/03/src/engine/gpu/instance.rs:step-1a"
-```
-
-The rest of the file is a test; copy it.
-
-`lessons/03/src/engine/gpu/instance.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/03/src/engine/gpu/instance.rs:step-1b"
+--8<-- "lessons/03/src/engine/gpu/instance.rs"
 ```
 
 ## Step 2 · `src/engine/gpu/mod.rs` and `src/engine/mod.rs`

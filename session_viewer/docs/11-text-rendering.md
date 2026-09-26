@@ -110,78 +110,68 @@ New shader: read the label's coverage texture and cut it to the clip box.
 --8<-- "lessons/11/src/shaders/text_plane.wgsl"
 ```
 
-## Step 5 · src/engine/gpu/text_plane.rs
-
-Copy the GPU test for plane text to the end of the file.
-
-`lessons/11/src/engine/gpu/text_plane.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/11/src/engine/gpu/text_plane.rs:step-5"
-```
-
-## Step 6 · src/engine/gpu/text.rs
+## Step 5 · src/engine/gpu/text.rs
 
 New file: the text lane places every label each frame, then draws planes, depth-tested text, plates and overlays.
 
 `lessons/11/src/engine/gpu/text.rs` · type this, new file, start with these lines
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6a"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5a"
 ```
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6b"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5b"
 ```
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6c"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5c"
 ```
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6d"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5d"
 ```
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6e"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5e"
 ```
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6f"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5f"
 ```
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6g"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5g"
 ```
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6h"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5h"
 ```
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6i"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5i"
 ```
 
 `lessons/11/src/engine/gpu/text.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6j"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5j"
 ```
 
 Copy this part from the lesson folder to the path shown.
@@ -189,12 +179,12 @@ Copy this part from the lesson folder to the path shown.
 `lessons/11/src/engine/gpu/text.rs` · copy the file, append at the end of the file
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/text.rs:step-6k"
+--8<-- "lessons/11/src/engine/gpu/text.rs:step-5k"
 ```
 
 Run `cargo check` in `lessons/11/`.
 
-## Step 7 · src/engine/gpu/mod.rs
+## Step 6 · src/engine/gpu/mod.rs
 
 The GPU owner connects buffers, pipelines and frame resources.
 
@@ -203,52 +193,52 @@ The GPU owner connects buffers, pipelines and frame resources.
 Added after the `pub mod targets;` line of `lessons/10/src/engine/gpu/mod.rs`
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-7a"
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-6a"
 ```
 
 Added after the `pub glyphs: glyphs::GlyphLane,` line in `struct Gpu` of `lessons/10/src/engine/gpu/mod.rs`
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-7b"
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-6b"
 ```
 
 Added after the `let glyphs = glyphs::GlyphLane::new(&ctx, &la…` line in `fn new` of `lessons/10/src/engine/gpu/mod.rs`
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-7c"
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-6c"
 ```
 
 Added after the `glyphs,` line in `fn new` of `lessons/10/src/engine/gpu/mod.rs`
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-7d"
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-6d"
 ```
 
 Added after the `self.glyphs.retarget(&self.ctx, &self.layouts…` line in `fn retarget` of `lessons/10/src/engine/gpu/mod.rs`
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-7e"
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-6e"
 ```
 
 Replaces `fn write_frame_uniforms` in `lessons/10/src/engine/gpu/mod.rs`
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-7f"
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-6f"
 ```
 
 Replaces the 5 lines from `}` in `impl Gpu` of `lessons/10/src/engine/gpu/mod.rs`
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-7g"
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-6g"
 ```
 
 Added after the `self.arena.draw_text(&mut pass, &basic);` line in `fn render` of `lessons/10/src/engine/gpu/mod.rs`
 
 ```rust
---8<-- "lessons/11/src/engine/gpu/mod.rs:step-7h"
+--8<-- "lessons/11/src/engine/gpu/mod.rs:step-6h"
 ```
 
-## Step 8 · src/lib.rs
+## Step 7 · src/lib.rs
 
 The crate entry point connects the camera, scene and GPU owners.
 
@@ -257,40 +247,40 @@ The crate entry point connects the camera, scene and GPU owners.
 Replaces `mod app` in `lessons/10/src/lib.rs`
 
 ```rust
---8<-- "lessons/11/src/lib.rs:step-8a"
+--8<-- "lessons/11/src/lib.rs:step-7a"
 ```
 
 Added after the `fixture.upload.drop_uploaded();` line in `fn create` of `lessons/10/src/lib.rs`
 
 ```rust
---8<-- "lessons/11/src/lib.rs:step-8b"
+--8<-- "lessons/11/src/lib.rs:step-7b"
 ```
 
 Replaces the `Ok(serde_json::json!({"stage":10,"objects":se…` line in `fn render` of `lessons/10/src/lib.rs`
 
 ```rust
---8<-- "lessons/11/src/lib.rs:step-8c"
+--8<-- "lessons/11/src/lib.rs:step-7c"
 ```
 
 Added after the `}` line of `lessons/10/src/lib.rs`
 
 ```rust
---8<-- "lessons/11/src/lib.rs:step-8d"
+--8<-- "lessons/11/src/lib.rs:step-7d"
 ```
 
-## Step 9 · src/text_layout.rs
+## Step 8 · src/text_layout.rs
 
 Delete lesson 10's shaping check; the text-quality page below replaces it.
 
 Delete `src/text_layout.rs` (it exists in `lessons/10/`, not in `lessons/11/`).
 
-## Step 10 · assets/text-layout.html
+## Step 9 · assets/text-layout.html
 
 Delete its check page too.
 
 Delete `assets/text-layout.html` (it exists in `lessons/10/`, not in `lessons/11/`).
 
-## Step 11 · assets/text-quality.html
+## Step 10 · assets/text-quality.html
 
 Copy the test page that draws GPU text beside browser text at five sizes and any device scale.
 
@@ -300,7 +290,7 @@ Copy the test page that draws GPU text beside browser text at five sizes and any
 --8<-- "lessons/11/assets/text-quality.html"
 ```
 
-## Step 12 · index.html
+## Step 11 · index.html
 
 Copy this file from the lesson folder to the path shown.
 
@@ -309,19 +299,19 @@ Copy this file from the lesson folder to the path shown.
 Replaces the `<title>Session checkpoint 10</title>` line of `lessons/10/index.html`
 
 ```html
---8<-- "lessons/11/index.html:step-12a"
+--8<-- "lessons/11/index.html:step-11a"
 ```
 
 Replaces the 7 lines from `<link data-trunk rel="copy-file" href="assets…` of `lessons/10/index.html`
 
 ```html
---8<-- "lessons/11/index.html:step-12b"
+--8<-- "lessons/11/index.html:step-11b"
 ```
 
 Replaces the `document.getElementById('status').textContent…` line of `lessons/10/index.html`
 
 ```html
---8<-- "lessons/11/index.html:step-12c"
+--8<-- "lessons/11/index.html:step-11c"
 ```
 
 ## Check

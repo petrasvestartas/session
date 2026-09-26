@@ -11,9 +11,9 @@ pub mod objects;
 pub mod segments;
 pub mod splat;
 pub mod targets;
-// --8<-- [start:step-7a]
+// --8<-- [start:step-6a]
 pub mod text;
-// --8<-- [end:step-7a]
+// --8<-- [end:step-6a]
 pub mod text_outline;
 pub mod upload;
 pub mod view;
@@ -43,9 +43,9 @@ pub struct Gpu {
     pub arena: arena::ArenaLane, // faces
     pub segments: segments::SegmentLane, // lines
     pub glyphs: glyphs::GlyphLane, // markers
-    // --8<-- [start:step-7b]
+    // --8<-- [start:step-6b]
     pub text: text::TextLane, // labels
-    // --8<-- [end:step-7b]
+    // --8<-- [end:step-6b]
     pub cloud: cloud::CloudLane,
     pub splat: splat::Splat, // composites lanes onto the frame
     pub bounds: AABB, // world box of everything uploaded
@@ -55,6 +55,7 @@ pub struct Gpu {
 
 impl Gpu {
     /// Open WebGPU on the teaching canvas.
+    #[cfg(target_arch = "wasm32")]
     pub async fn new(canvas: web_sys::HtmlCanvasElement) -> anyhow::Result<Self> {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::BROWSER_WEBGPU,
@@ -100,9 +101,9 @@ impl Gpu {
         let arena = arena::ArenaLane::new(&ctx, &layouts, target);
         let segments = segments::SegmentLane::new(&ctx, &layouts, target);
         let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
-        // --8<-- [start:step-7c]
+        // --8<-- [start:step-6c]
         let text = text::TextLane::new(&ctx, target);
-        // --8<-- [end:step-7c]
+        // --8<-- [end:step-6c]
         let cloud = cloud::CloudLane::new(&ctx);
         let splat = splat::Splat::new(&ctx, &layouts, target, cloud.buffers());
         Ok(Self {
@@ -118,9 +119,9 @@ impl Gpu {
             arena,
             segments,
             glyphs,
-            // --8<-- [start:step-7d]
+            // --8<-- [start:step-6d]
             text,
-            // --8<-- [end:step-7d]
+            // --8<-- [end:step-6d]
             cloud,
             splat,
             bounds: AABB::empty(),
@@ -191,9 +192,9 @@ impl Gpu {
             self.arena.retarget(&self.ctx, &self.layouts, target);
             self.segments.retarget(&self.ctx, &self.layouts, target);
             self.glyphs.retarget(&self.ctx, &self.layouts, target);
-            // --8<-- [start:step-7e]
+            // --8<-- [start:step-6e]
             self.text.retarget(&self.ctx, target);
-            // --8<-- [end:step-7e]
+            // --8<-- [end:step-6e]
             self.splat.retarget(&self.ctx, &self.layouts, target);
             log::info!("msaa: {}x", samples);
         }
@@ -234,10 +235,10 @@ impl Gpu {
         result
     }
 
-    // --8<-- [start:step-7f]
+    // --8<-- [start:step-6f]
     /// Write the camera and pen scale for every lane.
     pub fn write_frame_uniforms(&mut self, input: &FrameInput) -> anyhow::Result<()> {
-    // --8<-- [end:step-7f]
+    // --8<-- [end:step-6f]
         self.frame.write(
             &self.ctx,
             input,
@@ -250,7 +251,7 @@ impl Gpu {
         );
         self.objects
             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
-        // --8<-- [start:step-7g]
+        // --8<-- [start:step-6g]
         self.text.prepare(
             &self.ctx,
             &text::TextFrame {
@@ -267,7 +268,7 @@ impl Gpu {
     /// Encode cloud depth first, then physical mesh faces, then analytic ink.
     pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
         self.write_frame_uniforms(input)?;
-        // --8<-- [end:step-7g]
+        // --8<-- [end:step-6g]
         let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(output)
             | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
@@ -329,9 +330,9 @@ impl Gpu {
             self.segments.draw_ribbons(&mut pass, &ink);
             self.glyphs.draw_dots(&mut pass, &ink);
             self.arena.draw_text(&mut pass, &basic);
-            // --8<-- [start:step-7h]
+            // --8<-- [start:step-6h]
             self.text.draw(&mut pass);
-            // --8<-- [end:step-7h]
+            // --8<-- [end:step-6h]
         }
         self.ctx.queue.submit([encoder.finish()]);
         output.present();

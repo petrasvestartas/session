@@ -104,19 +104,7 @@ New file: the bindings, structs and helpers every scene shader starts with.
 --8<-- "lessons/04a/src/shaders/scene.wgsl"
 ```
 
-## Step 5 · src/engine/gpu/instance.rs
-
-Move the object row into its own file.
-
-`lessons/04a/src/engine/gpu/instance.rs` · edit · type this
-
-Replaces the `struct Instance` lines in `lessons/03/src/engine/gpu/instance.rs`
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/instance.rs:step-5"
-```
-
-## Step 6 · src/shaders/normals.wgsl
+## Step 5 · src/shaders/normals.wgsl
 
 New file: two helpers that turn a normal with its object, and one that unpacks a 2-byte normal.
 
@@ -128,84 +116,84 @@ New file: two helpers that turn a normal with its object, and one that unpacks a
 
 Run `cargo check` in `lessons/04a/`.
 
-## Step 7 · src/engine/gpu/targets.rs
+## Step 6 · src/engine/gpu/targets.rs
 
 New file: the colour and depth textures of one frame.
 
 `lessons/04a/src/engine/gpu/targets.rs` · type this, new file, start with these lines
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/targets.rs:step-7a"
+--8<-- "lessons/04a/src/engine/gpu/targets.rs:step-6a"
 ```
 
 `lessons/04a/src/engine/gpu/targets.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/targets.rs:step-7b"
+--8<-- "lessons/04a/src/engine/gpu/targets.rs:step-6b"
 ```
 
 `lessons/04a/src/engine/gpu/targets.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/targets.rs:step-7c"
+--8<-- "lessons/04a/src/engine/gpu/targets.rs:step-6c"
 ```
 
-## Step 8 · src/engine/gpu/frame.rs
+## Step 7 · src/engine/gpu/frame.rs
 
 New file: what the app hands the renderer each frame, the uniforms it writes, and the three bind groups every draw sets first.
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, new file, start with these lines
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8a"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7a"
 ```
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8b"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7b"
 ```
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8c"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7c"
 ```
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8d"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7d"
 ```
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8e"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7e"
 ```
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8f"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7f"
 ```
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8g"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7g"
 ```
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8h"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7h"
 ```
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8i"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7i"
 ```
 
 Copy this part from the lesson folder to the path shown.
@@ -213,10 +201,10 @@ Copy this part from the lesson folder to the path shown.
 `lessons/04a/src/engine/gpu/frame.rs` · copy the file, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-8j"
+--8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7j"
 ```
 
-## Step 9 · src/engine/gpu/view.rs
+## Step 8 · src/engine/gpu/view.rs
 
 New file: the display settings, each read once from the page URL or an env variable.
 Copy this file from the lesson folder to the path shown.
@@ -227,7 +215,7 @@ Copy this file from the lesson folder to the path shown.
 --8<-- "lessons/04a/src/engine/gpu/view.rs"
 ```
 
-## Step 10 · src/app/mod.rs
+## Step 9 · src/app/mod.rs
 
 New file: the app module, one line for now.
 
@@ -237,7 +225,7 @@ New file: the app module, one line for now.
 --8<-- "lessons/04a/src/app/mod.rs"
 ```
 
-## Step 11 · src/app/route.rs
+## Step 10 · src/app/route.rs
 
 New file: read one value from the page URL.
 
@@ -247,56 +235,56 @@ New file: read one value from the page URL.
 --8<-- "lessons/04a/src/app/route.rs"
 ```
 
-## Step 12 · src/engine/gpu/objects.rs
+## Step 11 · src/engine/gpu/objects.rs
 
 New file: the object table on the GPU.
 
 `lessons/04a/src/engine/gpu/objects.rs` · type this, new file, start with these lines
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-12a"
+--8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11a"
 ```
 
 `lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-12b"
+--8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11b"
 ```
 
 `lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-12c"
+--8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11c"
 ```
 
 `lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-12d"
+--8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11d"
 ```
 
 `lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-12e"
+--8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11e"
 ```
 
 `lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-12f"
+--8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11f"
 ```
 
 `lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-12g"
+--8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11g"
 ```
 
 `lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-12h"
+--8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11h"
 ```
 
 Copy this part from the lesson folder to the path shown.
@@ -304,68 +292,68 @@ Copy this part from the lesson folder to the path shown.
 `lessons/04a/src/engine/gpu/objects.rs` · copy the file, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-12i"
+--8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11i"
 ```
 
 Run `cargo check` in `lessons/04a/`.
 
-## Step 13 · src/shaders/triangle.wgsl
+## Step 12 · src/shaders/triangle.wgsl
 
 New file: the mesh shader, position and flat colour per face.
 
 `lessons/04a/src/shaders/triangle.wgsl` · type this, new file, start with these lines
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/triangle.wgsl:step-13a"
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:step-12a"
 ```
 
 `lessons/04a/src/shaders/triangle.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/triangle.wgsl:step-13b"
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:step-12b"
 ```
 
 `lessons/04a/src/shaders/triangle.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/triangle.wgsl:step-13c"
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:step-12c"
 ```
 
 `lessons/04a/src/shaders/triangle.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/triangle.wgsl:step-13d"
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:step-12d"
 ```
 
-## Step 14 · src/engine/gpu/arena.rs
+## Step 13 · src/engine/gpu/arena.rs
 
 New file: the mesh arena, vertices and indices of every mesh.
 
 `lessons/04a/src/engine/gpu/arena.rs` · type this, new file, start with these lines
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/arena.rs:step-14a"
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:step-13a"
 ```
 
 `lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/arena.rs:step-14b"
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:step-13b"
 ```
 
 `lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/arena.rs:step-14c"
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:step-13c"
 ```
 
 `lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/arena.rs:step-14d"
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:step-13d"
 ```
 
-## Step 15 · src/shaders/text_outline.wgsl
+## Step 14 · src/shaders/text_outline.wgsl
 
 New file: the shader for sheet fills and lettering: placed, flat-coloured, yellow when selected.
 Copy this file from the lesson folder to the path shown.
@@ -376,37 +364,29 @@ Copy this file from the lesson folder to the path shown.
 --8<-- "lessons/04a/src/shaders/text_outline.wgsl"
 ```
 
-## Step 16 · src/engine/gpu/text_outline.rs
+## Step 15 · src/engine/gpu/text_outline.rs
 
 New file: the lane that draws sheet fills and lettering, in colour and as pick ids.
 
 `lessons/04a/src/engine/gpu/text_outline.rs` · type this, new file, start with these lines
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-16a"
+--8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-15a"
 ```
 
 `lessons/04a/src/engine/gpu/text_outline.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-16b"
+--8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-15b"
 ```
 
 `lessons/04a/src/engine/gpu/text_outline.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-16c"
+--8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-15c"
 ```
 
-Copy this part from the lesson folder to the path shown.
-
-`lessons/04a/src/engine/gpu/text_outline.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-16d"
-```
-
-## Step 17 · src/engine/gpu/upload.rs
+## Step 16 · src/engine/gpu/upload.rs
 
 New file: everything one scene uploads, collected before the GPU sees it.
 
@@ -416,7 +396,7 @@ New file: everything one scene uploads, collected before the GPU sees it.
 --8<-- "lessons/04a/src/engine/gpu/upload.rs"
 ```
 
-## Step 18 · src/fixture.rs
+## Step 17 · src/fixture.rs
 
 New file: a small test scene built in code.
 Copy this file from the lesson folder to the path shown.
@@ -427,35 +407,35 @@ Copy this file from the lesson folder to the path shown.
 --8<-- "lessons/04a/src/fixture.rs"
 ```
 
-## Step 19 · src/engine/gpu/mod.rs
+## Step 18 · src/engine/gpu/mod.rs
 
 New file: the GPU owner, one field per drawing lane.
 
 `lessons/04a/src/engine/gpu/mod.rs` · type this, replace the whole file, start with these lines
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/mod.rs:step-19a"
+--8<-- "lessons/04a/src/engine/gpu/mod.rs:step-18a"
 ```
 
 `lessons/04a/src/engine/gpu/mod.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/mod.rs:step-19b"
+--8<-- "lessons/04a/src/engine/gpu/mod.rs:step-18b"
 ```
 
 `lessons/04a/src/engine/gpu/mod.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/mod.rs:step-19c"
+--8<-- "lessons/04a/src/engine/gpu/mod.rs:step-18c"
 ```
 
 `lessons/04a/src/engine/gpu/mod.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/mod.rs:step-19d"
+--8<-- "lessons/04a/src/engine/gpu/mod.rs:step-18d"
 ```
 
-## Step 20 · src/engine/mod.rs
+## Step 19 · src/engine/mod.rs
 
 Put the gpu and pipelines folders into the build.
 
@@ -468,38 +448,38 @@ pub mod gpu;
 ```
 
 ```rust
---8<-- "lessons/04a/src/engine/mod.rs:step-20"
+--8<-- "lessons/04a/src/engine/mod.rs:step-19"
 ```
 
-## Step 21 · src/lib.rs
+## Step 20 · src/lib.rs
 
 Replace the entry point: it now owns a camera and the GPU.
 
 `lessons/04a/src/lib.rs` · type this, replace the whole file, start with these lines
 
 ```rust
---8<-- "lessons/04a/src/lib.rs:step-21a"
+--8<-- "lessons/04a/src/lib.rs:step-20a"
 ```
 
 `lessons/04a/src/lib.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/lib.rs:step-21b"
+--8<-- "lessons/04a/src/lib.rs:step-20b"
 ```
 
-## Step 22 · src/scene.rs
+## Step 21 · src/scene.rs
 
 Delete the old scene file.
 
 Delete `src/scene.rs` (it exists in `lessons/03/`, not in `lessons/04a/`).
 
-## Step 23 · src/shaders/first.wgsl
+## Step 22 · src/shaders/first.wgsl
 
 Delete the first triangle shader.
 
 Delete `src/shaders/first.wgsl` (it exists in `lessons/03/`, not in `lessons/04a/`).
 
-## Step 24 · index.html
+## Step 23 · index.html
 
 Copy the page: the status now reports mesh vertices.
 Copy this file from the lesson folder to the path shown.
@@ -509,19 +489,19 @@ Copy this file from the lesson folder to the path shown.
 Replaces the line `<title>Session checkpoint 03</title>` in `lessons/03/index.html`
 
 ```html
---8<-- "lessons/04a/index.html:step-24a"
+--8<-- "lessons/04a/index.html:step-23a"
 ```
 
 Replaces the line `<output id="status">Starting checkpoint 03</output>` in `lessons/03/index.html`
 
 ```html
---8<-- "lessons/04a/index.html:step-24b"
+--8<-- "lessons/04a/index.html:step-23b"
 ```
 
 Replaces the line `document.getElementById('status').textContent = 'Checkpoi…` in `lessons/03/index.html`
 
 ```html
---8<-- "lessons/04a/index.html:step-24c"
+--8<-- "lessons/04a/index.html:step-23c"
 ```
 
 Run `cargo check` in `lessons/04a/`.

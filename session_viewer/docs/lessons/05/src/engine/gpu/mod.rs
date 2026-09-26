@@ -1,8 +1,8 @@
 use session_rust::AABB;
 pub mod arena;
-// --8<-- [start:step-18a]
+// --8<-- [start:step-17a]
 pub mod backdrop;
-// --8<-- [end:step-18a]
+// --8<-- [end:step-17a]
 pub mod buffers;
 pub mod cloud;
 pub mod frame;
@@ -25,9 +25,9 @@ pub use instance::Instance;
 use objects::InkScene;
 pub use objects::{ObjectRow, Rebase};
 pub use segments::CylinderSegment;
-// --8<-- [start:step-18b]
+// --8<-- [start:step-17b]
 use targets::Targets;
-// --8<-- [end:step-18b]
+// --8<-- [end:step-17b]
 pub use upload::Upload;
 
 /// Everything on the GPU: the device, the frame and one field per lane.
@@ -40,9 +40,9 @@ pub struct Gpu {
     pub targets: targets::Targets,
     pub view: view::View,
     pub objects: objects::InstanceTable,
-    // --8<-- [start:step-18c]
+    // --8<-- [start:step-17c]
     pub backdrop: backdrop::BackdropLane,
-    // --8<-- [end:step-18c]
+    // --8<-- [end:step-17c]
     pub arena: arena::ArenaLane,
     pub segments: segments::SegmentLane,
     pub glyphs: glyphs::GlyphLane,
@@ -55,6 +55,7 @@ pub struct Gpu {
 
 impl Gpu {
     /// Open WebGPU on the canvas.
+    #[cfg(target_arch = "wasm32")]
     pub async fn new(canvas: web_sys::HtmlCanvasElement) -> anyhow::Result<Self> {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::BROWSER_WEBGPU,
@@ -96,9 +97,9 @@ impl Gpu {
         let frame = frame::FrameUniforms::new(&ctx, &layouts, (1, 1));
         let targets = targets::Targets::new(&ctx, (1, 1), config.format, 1);
         let objects = objects::InstanceTable::new(&ctx, &layouts, &InkScene { targets: &targets });
-        // --8<-- [start:step-18d]
+        // --8<-- [start:step-17d]
         let backdrop = backdrop::BackdropLane::new(&ctx, &layouts, target);
-        // --8<-- [end:step-18d]
+        // --8<-- [end:step-17d]
         let arena = arena::ArenaLane::new(&ctx, &layouts, target);
         let segments = segments::SegmentLane::new(&ctx, &layouts, target);
         let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
@@ -113,9 +114,9 @@ impl Gpu {
             targets,
             view: view::View::from_env(),
             objects,
-            // --8<-- [start:step-18e]
+            // --8<-- [start:step-17e]
             backdrop,
-            // --8<-- [end:step-18e]
+            // --8<-- [end:step-17e]
             arena,
             segments,
             glyphs,
@@ -142,9 +143,9 @@ impl Gpu {
 
         self.splat.invalidate();
         self.bounds.union_with(&up.bounds);
-        // --8<-- [start:step-18f]
+        // --8<-- [start:step-17f]
         self.retarget(false);
-        // --8<-- [end:step-18f]
+        // --8<-- [end:step-17f]
     }
 
     /// Resize the canvas and every texture that follows it.
@@ -152,7 +153,7 @@ impl Gpu {
         self.config.width = width.max(1);
         self.config.height = height.max(1);
         self.surface.configure(&self.ctx.device, &self.config);
-        // --8<-- [start:step-18g]
+        // --8<-- [start:step-17g]
         self.retarget(true);
         self.splat.resize();
     }
@@ -216,7 +217,7 @@ impl Gpu {
         )
     }
 
-// --8<-- [end:step-18g]
+// --8<-- [end:step-17g]
     /// Positions as f32 offsets from one f64 anchor.
     pub fn rebase_anchor(
         &mut self,
@@ -284,14 +285,14 @@ impl Gpu {
         };
         {
             let mut pass = self.targets.begin_faces(&mut encoder, &target, input.clear);
-            // --8<-- [start:step-18h]
+            // --8<-- [start:step-17h]
             self.backdrop.draw_background(&mut pass);
 
             if self.view.show_grid {
                 self.backdrop.draw_grid(&mut pass, &basic);
             }
 
-// --8<-- [end:step-18h]
+// --8<-- [end:step-17h]
             self.arena.draw_faces(&mut pass, &basic);
             self.splat.draw_resolve(&mut pass, &self.frame.cloud_group);
         }

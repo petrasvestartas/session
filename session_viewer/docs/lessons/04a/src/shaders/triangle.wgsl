@@ -1,4 +1,4 @@
-// --8<-- [start:step-13a]
+// --8<-- [start:step-12a]
 // Red for faces seen from behind.
 const BACKFACE_COLOR: vec3<f32> = vec3<f32>(0.80, 0.05, 0.05);
 
@@ -21,8 +21,8 @@ struct VsOut {
     @location(5) @interpolate(flat) mirrored: u32, // 1 when the object matrix flips handedness
 }
 
-// --8<-- [end:step-13a]
-// --8<-- [start:step-13b]
+// --8<-- [end:step-12a]
+// --8<-- [start:step-12b]
 // A vertex placed off screen, so nothing is drawn.
 fn dead_vertex() -> VsOut {
     var dead: VsOut; // all zero; only the position matters
@@ -65,8 +65,8 @@ fn vs_main(in: VsIn) -> VsOut {
     return o;
 }
 
-// --8<-- [end:step-13b]
-// --8<-- [start:step-13c]
+// --8<-- [end:step-12b]
+// --8<-- [start:step-12c]
 // Direction toward the camera; constant in ortho.
 fn view_dir(world_pos: vec3<f32>) -> vec3<f32> {
     if (line.ortho_h > 0.0) {
@@ -112,8 +112,8 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     return vec4<f32>(base * shaded, 1.0);
 }
 
-// --8<-- [end:step-13c]
-// --8<-- [start:step-13d]
+// --8<-- [end:step-12c]
+// --8<-- [start:step-12d]
 // The id pass: (object row + 1, 0).
 @fragment
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
@@ -124,4 +124,4 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
 fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
     return shade(in, front);
 }
-// --8<-- [end:step-13d]
+// --8<-- [end:step-12d]

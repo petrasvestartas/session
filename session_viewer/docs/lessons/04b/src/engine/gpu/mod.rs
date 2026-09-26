@@ -43,6 +43,7 @@ pub struct Gpu {
 
 impl Gpu {
     /// Open WebGPU on the canvas.
+    #[cfg(target_arch = "wasm32")]
     pub async fn new(canvas: web_sys::HtmlCanvasElement) -> anyhow::Result<Self> {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::BROWSER_WEBGPU,

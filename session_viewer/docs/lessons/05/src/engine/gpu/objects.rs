@@ -125,7 +125,7 @@ fn ink_instance_group(
                 binding: 3,
                 resource: wgpu::BindingResource::TextureView(&targets.depth_msaa),
             },
-            // --8<-- [start:step-14a]
+            // --8<-- [start:step-13a]
             wgpu::BindGroupEntry {
                 binding: 4,
                 resource: wgpu::BindingResource::TextureView(&targets.gradient_single),
@@ -134,7 +134,7 @@ fn ink_instance_group(
                 binding: 5,
                 resource: wgpu::BindingResource::TextureView(&targets.gradient_msaa),
             },
-            // --8<-- [end:step-14a]
+            // --8<-- [end:step-13a]
         ],
     })
 }
@@ -181,9 +181,9 @@ impl InstanceTable {
         ctx: &GpuCtx,
         layouts: &Layouts,
         depths: [&wgpu::TextureView; 2],
-        // --8<-- [start:step-14b]
+        // --8<-- [start:step-13b]
         gradients: [&wgpu::TextureView; 2],
-        // --8<-- [end:step-14b]
+        // --8<-- [end:step-13b]
     ) -> wgpu::BindGroup {
         ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("pick.instances"),
@@ -205,7 +205,7 @@ impl InstanceTable {
                     binding: 3,
                     resource: wgpu::BindingResource::TextureView(depths[1]),
                 },
-                // --8<-- [start:step-14c]
+                // --8<-- [start:step-13c]
                 wgpu::BindGroupEntry {
                     binding: 4,
                     resource: wgpu::BindingResource::TextureView(gradients[0]),
@@ -214,7 +214,7 @@ impl InstanceTable {
                     binding: 5,
                     resource: wgpu::BindingResource::TextureView(gradients[1]),
                 },
-                // --8<-- [end:step-14c]
+                // --8<-- [end:step-13c]
             ],
         })
     }

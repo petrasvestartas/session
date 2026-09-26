@@ -668,7 +668,16 @@ Remove this file; its replacement is now part of the rendering modules.
 
 Delete `src/fixture.rs` (it exists in `lessons/11/`, not in `lessons/12/`).
 
-Run `cargo check` in `lessons/12/`.
+## Step 28 · tests that need a headless GPU
+
+Copy the tests that wait for this lesson: they open `Gpu::new_headless` or read `lane_shaders()`, both new here.
+
+- `lessons/12/src/engine/gpu/instance.rs` · copy the file
+- `lessons/12/src/engine/gpu/text_outline.rs` · copy the file
+- `lessons/12/src/engine/gpu/text_plane.rs` · copy the file
+- `lessons/12/src/engine/gpu/text.rs` · copy the file
+
+Run `cargo check` and `cargo xtest` in `lessons/12/`.
 
 ## Check
 

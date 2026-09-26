@@ -1,4 +1,4 @@
-// --8<-- [start:step-12a]
+// --8<-- [start:step-11a]
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
 use super::instance::Instance;
 use super::targets::Targets;
@@ -19,8 +19,8 @@ const REANCHOR_THROTTLE_MS: f64 = 200.0;
 pub struct ObjectRow {
     pub place: Xform, // world placement
     pub color: [f32; 4], // rgba tint
-    // --8<-- [end:step-12a]
-    // --8<-- [start:step-12b]
+    // --8<-- [end:step-11a]
+    // --8<-- [start:step-11b]
     pub flags: u32, // Instance::FLAG_* bits
     pub bounds: AABB, // box in the object's own space
     pub spacing: f32, // vertex spacing, or point size for clouds
@@ -57,8 +57,8 @@ pub struct Rebase {
 /// A row with faces and its world box, for the inside test.
 struct BoundedRow {
     row: u32, // object row
-    // --8<-- [end:step-12b]
-    // --8<-- [start:step-12c]
+    // --8<-- [end:step-11b]
+    // --8<-- [start:step-11c]
     lo: [f64; 3], // box minimum
     hi: [f64; 3], // box maximum
 }
@@ -108,8 +108,8 @@ fn ink_instance_group(
     l: &Layouts,
     buffers: [&wgpu::Buffer; 2],
     scene: &InkScene,
-    // --8<-- [end:step-12c]
-// --8<-- [start:step-12d]
+    // --8<-- [end:step-11c]
+// --8<-- [start:step-11d]
 ) -> wgpu::BindGroup {
     let targets = scene.targets;
     ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -179,8 +179,8 @@ impl InstanceTable {
         layouts: &Layouts,
         depths: [&wgpu::TextureView; 2],
     ) -> wgpu::BindGroup {
-    // --8<-- [end:step-12d]
-        // --8<-- [start:step-12e]
+    // --8<-- [end:step-11d]
+        // --8<-- [start:step-11e]
         ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("pick.instances"),
             layout: &layouts.ink_instance,
@@ -255,8 +255,8 @@ impl InstanceTable {
             model[12] = 0.0;
             model[13] = 0.0;
             model[14] = 0.0;
-            // --8<-- [end:step-12e]
-            // --8<-- [start:step-12f]
+            // --8<-- [end:step-11e]
+            // --8<-- [start:step-11f]
             self.rows.push(Instance {
                 model,
                 color: r.color,
@@ -324,8 +324,8 @@ impl InstanceTable {
         }
     }
 
-    // --8<-- [end:step-12f]
-    // --8<-- [start:step-12g]
+    // --8<-- [end:step-11f]
+    // --8<-- [start:step-11g]
     /// Recompute every relative translation for a new origin.
     fn rebuild(&mut self, ctx: &GpuCtx, origin: &Point) {
         self.last_origin = Some(origin.clone());
@@ -382,8 +382,8 @@ impl InstanceTable {
                     if !(coordinate >= low && coordinate <= high) {
                         inside = false;
                         break;
-                        // --8<-- [end:step-12g]
-                    // --8<-- [start:step-12h]
+                        // --8<-- [end:step-11g]
+                    // --8<-- [start:step-11h]
                     }
                 }
             }
@@ -446,8 +446,8 @@ impl InstanceTable {
         self.rows.get(i as usize)
     }
 
-// --8<-- [end:step-12h]
-    // --8<-- [start:step-12i]
+// --8<-- [end:step-11h]
+    // --8<-- [start:step-11i]
     /// Row count.
     pub fn len(&self) -> u32 {
         self.rows.len() as u32
@@ -498,4 +498,4 @@ mod tests {
         assert!(!world_box(&r).is_valid());
     }
 }
-// --8<-- [end:step-12i]
+// --8<-- [end:step-11i]

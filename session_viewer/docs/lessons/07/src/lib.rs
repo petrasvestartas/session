@@ -18,6 +18,7 @@ pub struct Tutorial {
 #[wasm_bindgen] // Everything in this block is exported to JavaScript
 impl Tutorial {
     /// Negotiate a presentation compatible browser adapter and build the first pipeline.
+    #[cfg(target_arch = "wasm32")]
     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
         console_error_panic_hook::set_once(); // Better error messages in the console
         let mut gpu = Gpu::new(canvas.clone()).await.map_err(js_error)?;

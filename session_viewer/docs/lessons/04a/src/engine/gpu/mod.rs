@@ -1,4 +1,4 @@
-// --8<-- [start:step-19a]
+// --8<-- [start:step-18a]
 use session_rust::AABB;
 pub mod arena;
 pub mod buffers;
@@ -34,9 +34,10 @@ pub struct Gpu {
 }
 
 impl Gpu {
-// --8<-- [end:step-19a]
-    // --8<-- [start:step-19b]
+// --8<-- [end:step-18a]
+    // --8<-- [start:step-18b]
     /// Open WebGPU on the canvas.
+    #[cfg(target_arch = "wasm32")]
     pub async fn new(canvas: web_sys::HtmlCanvasElement) -> anyhow::Result<Self> {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::BROWSER_WEBGPU,
@@ -101,8 +102,8 @@ impl Gpu {
         self.arena.append(&self.ctx, &up.arena);
         self.bounds.union_with(&up.bounds);
     }
-    // --8<-- [end:step-19b]
-// --8<-- [start:step-19c]
+    // --8<-- [end:step-18b]
+// --8<-- [start:step-18c]
 
     /// Resize the canvas and every texture that follows it.
     pub fn resize(&mut self, width: u32, height: u32) {
@@ -149,8 +150,8 @@ impl Gpu {
         self.objects
             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
     }
-    // --8<-- [end:step-19c]
-// --8<-- [start:step-19d]
+    // --8<-- [end:step-18c]
+// --8<-- [start:step-18d]
 
     /// Faces first, then ink over their depth.
     pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
@@ -186,4 +187,4 @@ impl Gpu {
 fn gpu_error(error: wgpu::Error) {
     panic!("tutorial WebGPU error: {error}");
 }
-// --8<-- [end:step-19d]
+// --8<-- [end:step-18d]

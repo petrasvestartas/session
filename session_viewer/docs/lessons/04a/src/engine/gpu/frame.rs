@@ -1,4 +1,4 @@
-// --8<-- [start:step-8a]
+// --8<-- [start:step-7a]
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::view::View;
 use crate::camera::FOVY_DEG;
@@ -37,8 +37,8 @@ impl Binds<'_> {
     }
 }
 
-// --8<-- [end:step-8a]
-// --8<-- [start:step-8b]
+// --8<-- [end:step-7a]
+// --8<-- [start:step-7b]
 /// Pen and view settings every shader reads, 80 bytes.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -90,8 +90,8 @@ const _: () = {
     assert!(std::mem::offset_of!(CloudUniform, frame) == 32);
 };
 
-// --8<-- [end:step-8b]
-// --8<-- [start:step-8c]
+// --8<-- [end:step-7b]
+// --8<-- [start:step-7c]
 /// A pick renders only a small window around the cursor, 13 x 13 px by default, not the whole canvas.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PickView {
@@ -159,8 +159,8 @@ fn mat4_mul(left: &[f32; 16], right: &[f32; 16]) -> [f32; 16] {
     out
 }
 
-// --8<-- [end:step-8c]
-// --8<-- [start:step-8d]
+// --8<-- [end:step-7c]
+// --8<-- [start:step-7d]
 /// Two copies of every uniform: one for the frame, one for the pick window, so a pick never disturbs the picture.
 pub struct FrameUniforms {
     mvp_buffer: wgpu::Buffer,
@@ -184,8 +184,8 @@ pub struct FrameUniforms {
     pub eye: [f32; 3],
 }
 
-// --8<-- [end:step-8d]
-// --8<-- [start:step-8e]
+// --8<-- [end:step-7d]
+// --8<-- [start:step-7e]
 impl FrameUniforms {
     /// `'a` on both inputs: the Binds may outlive neither self nor instances.
     pub fn binds<'a>(&'a self, instances: &'a wgpu::BindGroup) -> Binds<'a> {
@@ -232,8 +232,8 @@ impl FrameUniforms {
             frame: [size.0 as f32, size.1 as f32],
             opacity: 1.0,
             _pad: 0.0,
-            // --8<-- [end:step-8e]
-        // --8<-- [start:step-8f]
+            // --8<-- [end:step-7e]
+        // --8<-- [start:step-7f]
         };
         let line_buffer = uniform_buffer(&ctx.device, "line.buffer", &line);
         let cloud = CloudUniform {
@@ -311,8 +311,8 @@ impl FrameUniforms {
             vp_w: cx.size.0 as f32,
             eye: self.eye,
             anchor: cx.anchor,
-            // --8<-- [end:step-8f]
-            // --8<-- [start:step-8g]
+            // --8<-- [end:step-7f]
+            // --8<-- [start:step-7g]
             lit: f32::from(cx.view.lit),
             backface: f32::from(cx.view.backface),
             origin: [0.0; 2],
@@ -331,8 +331,8 @@ impl FrameUniforms {
             edl: cx.view.edl_strength,
             _pad0: 0.0,
             _pad1: 0.0,
-            // --8<-- [end:step-8g]
-            // --8<-- [start:step-8h]
+            // --8<-- [end:step-7g]
+            // --8<-- [start:step-7h]
             origin: [0.0; 2],
             frame: [cx.size.0 as f32, cx.size.1 as f32],
             _pad: [0.0; 2],
@@ -376,8 +376,8 @@ impl FrameUniforms {
     }
 }
 
-// --8<-- [end:step-8h]
-// --8<-- [start:step-8i]
+// --8<-- [end:step-7h]
+// --8<-- [start:step-7i]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -396,8 +396,8 @@ mod tests {
         let t = view.clip_transform((1600, 1000));
         // canvas pixel to clip space
         let ndc = |px: f32, py: f32| [px / 800.0 - 1.0, 1.0 - py / 500.0];
-        // --8<-- [end:step-8i]
-        // --8<-- [start:step-8j]
+        // --8<-- [end:step-7i]
+        // --8<-- [start:step-7j]
         let apply = |ndc: [f32; 2]| [t[0] * ndc[0] + t[12], t[5] * ndc[1] + t[13]];
         let left_top = apply(ndc(100.0, 250.0));
         let right_bottom = apply(ndc(119.0, 269.0));
@@ -405,4 +405,4 @@ mod tests {
         assert!((right_bottom[0] - 1.0).abs() < 1e-4 && (right_bottom[1] + 1.0).abs() < 1e-4);
     }
 }
-// --8<-- [end:step-8j]
+// --8<-- [end:step-7j]

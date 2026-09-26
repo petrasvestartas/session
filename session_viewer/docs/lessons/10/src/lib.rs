@@ -22,6 +22,7 @@ pub struct Tutorial {
 #[wasm_bindgen]
 impl Tutorial {
     /// Retain local CAD sources while handing only prepared lane tables to the GPU.
+    #[cfg(target_arch = "wasm32")]
     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
         // panics print to the console
         console_error_panic_hook::set_once();
