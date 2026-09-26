@@ -206,8 +206,8 @@
     <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
     <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
     <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
-    <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
-    <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
+    <!-- The docs site, built by the Trunk pre-build hook (session_tests/scripts/build-viewer-docs.sh). -->
+    <link data-trunk rel="copy-dir" href="target/docs/vue" data-target-path="docs"/>
     <!-- Message telling that Webgpu is not available. -->
     <script>
       // These named registrations belong to this document's lifetime and are installed once.

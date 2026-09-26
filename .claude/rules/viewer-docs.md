@@ -69,8 +69,14 @@ paths:
 - The only site check is `docs/serve.sh build` (MkDocs with `check_paths: true`: a snippet that
   names a missing file fails the build). The only code check is `cargo check -j4 --lib` inside
   the lesson directory, one lesson at a time.
-- The viewer page carries a black folded-corner link to `docs/`; Trunk copies `target/docs/site`
-  into `dist/docs` and `docs/build_site.sh` (pre-build hook) rebuilds the site when stale.
+- The site is the Vue app in `session/session_tests` (course, Kernel API, install), not MkDocs.
+  Pages are plain Markdown plus `--8<--` includes, which its build plugin resolves; no MkDocs-only
+  syntax (no `!!!` admonitions, `===` tabs, `{: }` attribute lists or Material icons). The
+  viewer's black folded-corner link opens `docs/`: Trunk's pre-build hook
+  `session_tests/scripts/build-viewer-docs.sh` builds the app into `target/docs/vue` when a
+  source changed and Trunk copies it to `dist/docs`; Pages builds it for `/session/docs/`. Once
+  MkDocs is removed the site check becomes `npm run build` in `session_tests`, which fails on a
+  missing include or a broken link.
 - Mermaid: `flowchart TB` for chains longer than five nodes (LR gets shrunk to unreadable size);
   several small diagrams beat one tangled one; edge labels stay short.
 - Flowcharts are D2, not Mermaid: the source is `docs/diagrams/<lesson>-<n>.d2` and the rendered

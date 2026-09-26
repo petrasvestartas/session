@@ -9,6 +9,10 @@ npm run dev                          # localhost:8769/session/  (course pages re
 npm run build                        # dist/ for /session/docs/  (DOCS_BASE=/other/ to move it)
 ```
 
+The viewer's `trunk serve` / `trunk build` runs `scripts/build-viewer-docs.sh` first: it builds this
+site with base `/docs/` into `session_viewer/target/docs/vue` (only when a source changed), and
+Trunk copies it to `dist/docs`, so the viewer's corner link opens it locally too.
+
 Routes (hash router):
 
 - `#/` home: Viewer course, Kernel API, Install.

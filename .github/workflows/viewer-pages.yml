@@ -50,10 +50,11 @@ jobs:
         run: rustup target add wasm32-unknown-unknown
       - name: Install trunk
         run: curl -sL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf- -C "$HOME/.cargo/bin"
-      # The docs site replaces dist/docs below, so Trunk's MkDocs hook (docs/build_site.sh) is
-      # skipped: a stamp newer than every source makes it a no-op.
-      - name: Skip the MkDocs course build
-        run: mkdir -p session_viewer/target/docs/site && touch session_viewer/target/docs/site/index.html
+      # The docs site is built for /session/docs/ below and replaces dist/docs, so Trunk's local
+      # docs hook (session_tests/scripts/build-viewer-docs.sh, base /docs/) is skipped: a stamp
+      # newer than every source makes it a no-op.
+      - name: Skip the local docs build
+        run: mkdir -p session_viewer/target/docs/vue && touch session_viewer/target/docs/vue/index.html
       # `assets/pb` is the LOCAL scene's geometry - untracked, and deliberately not deployed:
       # the published page reads its scene from R2, never from here. index.html still copies the
       # directory, so it has to exist; empty is exactly right.
@@ -111,7 +112,7 @@ jobs:
             echo 'window.TEST_DATA = {};' > "$out"
             echo "::notice::No kernel test results on main yet; the Kernel API page shows an empty state."
           fi
-      # Base /session/docs/ (vite.config.ts); it replaces the MkDocs copy Trunk made at dist/docs.
+      # Base /session/docs/ (vite.config.ts); it replaces the stub Trunk copied to dist/docs.
       - name: Build the docs site
         run: |
           cd session_tests

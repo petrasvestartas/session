@@ -4,15 +4,16 @@ release = true
 no_sri = true
 public_url = "./"
 
-# Build the documentation site before the bundle so dist/docs serves it next to the viewer.
+# Build the documentation site (the Vue app in ../session_tests) before the bundle so dist/docs
+# serves it next to the viewer; a no-op while its sources are unchanged.
 [[hooks]]
 stage = "pre_build"
 command = "bash"
-command_arguments = ["docs/build_site.sh"]
+command_arguments = ["../session_tests/scripts/build-viewer-docs.sh"]
 
 [watch]
 # This replaces Trunk's default watch set, so the shared path dependency is explicit.
-watch = ["src", "Cargo.toml", "index.html", "assets/view_local.yaml", "assets/text", "assets/text-quality.html", "../session_rust/src", "docs"]
+watch = ["src", "Cargo.toml", "index.html", "assets/view_local.yaml", "assets/text", "assets/text-quality.html", "../session_rust/src", "docs", "../session_tests/src", "../session_tests/plugins"]
 enable_cooldown = true
 
 [serve]
