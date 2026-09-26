@@ -1,3 +1,4 @@
+// No vertex buffer here either: 50 vertex indices become 25 lines, 22 floor lines and 3 axes.
 const STEP: f32 = 1000.0; // mm per cell
 const HALF: f32 = 5000.0; // grid reaches 5 m each way
 const N: u32 = 5u; // cells from the center to the edge

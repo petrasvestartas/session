@@ -1,566 +1,370 @@
 # 04a · Meshes on the GPU
 
-A blue triangle draws from mesh buffers while the camera still orbits and zooms.
+Every mesh of a scene lands in one arena: a shared vertex buffer, a parallel table of object rows, and index runs drawn with `draw_indexed`.
+The mesh shader is written in its final form here, including the clipping test and the instance slot that later lessons fill.
 
 ![One growable arena holds every mesh's vertices and a parallel table gives every vertex its object row; a mesh is a range of indices, and a draw binds both vertex buffers, binds one index run and calls draw_indexed.](illustrations/arena.svg)
 
-## Step 1 · src/engine/gpu/buffers.rs
+## Step 1 · src/shaders/clip.wgsl
 
-New file: buffer usage flags, a GPU buffer that grows by half when full, and small buffer helpers.
+The clipping prelude: the plane uniform, the `CLIPPING` override and `clip_active`; with zero planes nothing is cut.
 
-`lessons/04a/src/engine/gpu/buffers.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/buffers.rs:step-1a"
-```
-
-`lessons/04a/src/engine/gpu/buffers.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/buffers.rs:step-1b"
-```
-
-`lessons/04a/src/engine/gpu/buffers.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/buffers.rs:step-1c"
-```
-
-`lessons/04a/src/engine/gpu/buffers.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/buffers.rs:step-1d"
-```
-
-`lessons/04a/src/engine/gpu/buffers.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/buffers.rs:step-1e"
-```
-
-## Step 2 · src/engine/pipelines/layouts.rs
-
-New file: the bind group layouts every pipeline shares.
-
-`lessons/04a/src/engine/pipelines/layouts.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/04a/src/engine/pipelines/layouts.rs:step-2a"
-```
-
-`lessons/04a/src/engine/pipelines/layouts.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/pipelines/layouts.rs:step-2b"
-```
-
-## Step 3 · src/engine/pipelines/mod.rs
-
-New file: one builder for every render pipeline.
-
-`lessons/04a/src/engine/pipelines/mod.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/04a/src/engine/pipelines/mod.rs:step-3a"
-```
-
-`lessons/04a/src/engine/pipelines/mod.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/pipelines/mod.rs:step-3b"
-```
-
-`lessons/04a/src/engine/pipelines/mod.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/pipelines/mod.rs:step-3c"
-```
-
-`lessons/04a/src/engine/pipelines/mod.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/pipelines/mod.rs:step-3d"
-```
-
-`lessons/04a/src/engine/pipelines/mod.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/pipelines/mod.rs:step-3e"
-```
-
-`lessons/04a/src/engine/pipelines/mod.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/pipelines/mod.rs:step-3f"
-```
-
-## Step 4 · src/shaders/scene.wgsl
-
-New file: the bindings, structs and helpers every scene shader starts with.
-
-`lessons/04a/src/shaders/scene.wgsl` · type this, new file
+`lessons/04a/src/shaders/clip.wgsl` · type this, new file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/scene.wgsl"
+--8<-- "lessons/04a/src/shaders/clip.wgsl:clip-uniform"
 ```
 
-## Step 5 · src/shaders/normals.wgsl
+## Step 2 · src/shaders/clip.wgsl
 
-New file: two helpers that turn a normal with its object, and one that unpacks a 2-byte normal.
+The signed distance to a plane and three cut tests: for a scene point, a segment, and a screen point.
 
-`lessons/04a/src/shaders/normals.wgsl` · type this, new file
+`lessons/04a/src/shaders/clip.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/normals.wgsl"
+--8<-- "lessons/04a/src/shaders/clip.wgsl:clip-tests"
 ```
 
-Run `cargo check` in `lessons/04a/`.
+## Step 3 · src/shaders/clip.wgsl
 
-## Step 6 · src/engine/gpu/targets.rs
+Cut per MSAA sample: a mask of the samples that lie on the kept side of every plane.
 
-New file: the colour and depth textures of one frame.
-
-`lessons/04a/src/engine/gpu/targets.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/targets.rs:step-6a"
-```
-
-`lessons/04a/src/engine/gpu/targets.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/targets.rs:step-6b"
-```
-
-`lessons/04a/src/engine/gpu/targets.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/targets.rs:step-6c"
-```
-
-## Step 7 · src/engine/gpu/frame.rs
-
-New file: what the app hands the renderer each frame, the uniforms it writes, and the three bind groups every draw sets first.
-
-`lessons/04a/src/engine/gpu/frame.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7a"
-```
-
-`lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7b"
-```
-
-`lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7c"
-```
-
-`lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7d"
-```
-
-`lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7e"
-```
-
-`lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7f"
-```
-
-`lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7g"
-```
-
-`lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7h"
-```
-
-`lessons/04a/src/engine/gpu/frame.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7i"
-```
-
-Copy this part from the lesson folder to the path shown.
-
-`lessons/04a/src/engine/gpu/frame.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/frame.rs:step-7j"
-```
-
-## Step 8 · src/engine/gpu/view.rs
-
-New file: the display settings, each read once from the page URL or an env variable.
-Copy this file from the lesson folder to the path shown.
-
-`lessons/04a/src/engine/gpu/view.rs` · copy the file, new file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/view.rs"
-```
-
-## Step 9 · src/app/mod.rs
-
-New file: the app module, one line for now.
-
-`lessons/04a/src/app/mod.rs` · 1 lines · type this, new file
-
-```rust
---8<-- "lessons/04a/src/app/mod.rs"
-```
-
-## Step 10 · src/app/route.rs
-
-New file: read one value from the page URL.
-
-`lessons/04a/src/app/route.rs` · 14 lines · type this, new file
-
-```rust
---8<-- "lessons/04a/src/app/route.rs"
-```
-
-## Step 11 · src/engine/gpu/objects.rs
-
-New file: the object table on the GPU.
-
-`lessons/04a/src/engine/gpu/objects.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11a"
-```
-
-`lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11b"
-```
-
-`lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11c"
-```
-
-`lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11d"
-```
-
-`lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11e"
-```
-
-`lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11f"
-```
-
-`lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11g"
-```
-
-`lessons/04a/src/engine/gpu/objects.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11h"
-```
-
-Copy this part from the lesson folder to the path shown.
-
-`lessons/04a/src/engine/gpu/objects.rs` · copy the file, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/objects.rs:step-11i"
-```
-
-Run `cargo check` in `lessons/04a/`.
-
-## Step 12 · src/shaders/triangle.wgsl
-
-New file: the mesh shader, position and flat colour per face.
-
-`lessons/04a/src/shaders/triangle.wgsl` · type this, new file, start with these lines
+`lessons/04a/src/shaders/clip.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/triangle.wgsl:step-12a"
+--8<-- "lessons/04a/src/shaders/clip.wgsl:clip-samples"
 ```
+
+## Step 4 · src/shaders/clip.wgsl
+
+Plane helpers the section caps of lesson 18b read: eye side, depth and slope on screen, cap ids, pick words.
+
+`lessons/04a/src/shaders/clip.wgsl` · type this, append at the end of the file
+
+```wgsl
+--8<-- "lessons/04a/src/shaders/clip.wgsl:clip-planes"
+```
+
+## Step 5 · src/shaders/triangle.wgsl
+
+The mesh vertex shader: unpack, place and colour one vertex, with its object row taken through slot 0.
+
+`lessons/04a/src/shaders/triangle.wgsl` · type this, new file
+
+```wgsl
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:triangle-vertex"
+```
+
+## Step 6 · src/shaders/triangle.wgsl
+
+Vertex pulling: read each vertex from storage by its index, so a triangle knows its own id and source face.
 
 `lessons/04a/src/shaders/triangle.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/triangle.wgsl:step-12b"
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:triangle-pulled"
 ```
+
+## Step 7 · src/shaders/triangle.wgsl
+
+Shading: a headlight, red back faces, and translucent solids that drop their far side; lesson 36 turns opacity on.
 
 `lessons/04a/src/shaders/triangle.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/triangle.wgsl:step-12c"
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:triangle-shade"
 ```
+
+## Step 8 · src/shaders/triangle.wgsl
+
+The fragment entry points: shaded colour, pick ids, outline masks, and colour cut sample by sample.
 
 `lessons/04a/src/shaders/triangle.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/triangle.wgsl:step-12d"
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:triangle-fragments"
 ```
 
-## Step 13 · src/engine/gpu/arena.rs
+## Step 9 · src/shaders/triangle.wgsl
 
-New file: the mesh arena, vertices and indices of every mesh.
+Crossing counts behind a clipping plane, which tell lesson 18b where to paint section caps.
 
-`lessons/04a/src/engine/gpu/arena.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/arena.rs:step-13a"
-```
-
-`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/arena.rs:step-13b"
-```
-
-`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/arena.rs:step-13c"
-```
-
-`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/arena.rs:step-13d"
-```
-
-## Step 14 · src/shaders/text_outline.wgsl
-
-New file: the shader for sheet fills and lettering: placed, flat-coloured, yellow when selected.
-Copy this file from the lesson folder to the path shown.
-
-`lessons/04a/src/shaders/text_outline.wgsl` · copy the file, new file
+`lessons/04a/src/shaders/triangle.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04a/src/shaders/text_outline.wgsl"
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:triangle-count"
 ```
 
-## Step 15 · src/engine/gpu/text_outline.rs
+## Step 10 · src/shaders/triangle.wgsl
 
-New file: the lane that draws sheet fills and lettering, in colour and as pick ids.
+Picking a section cap: atomic counters name the solid under the clicked pixel.
 
-`lessons/04a/src/engine/gpu/text_outline.rs` · type this, new file, start with these lines
+`lessons/04a/src/shaders/triangle.wgsl` · type this, append at the end of the file
+
+```wgsl
+--8<-- "lessons/04a/src/shaders/triangle.wgsl:triangle-pick-caps"
+```
+
+## Step 11 · src/shaders/text_outline.wgsl
+
+The print shader for sheet fills and lettering: flat colour, yellow when selected, cut in screen space.
+
+`lessons/04a/src/shaders/text_outline.wgsl` · type this, new file
+
+```wgsl
+--8<-- "lessons/04a/src/shaders/text_outline.wgsl:outline-shader"
+```
+
+## Step 12 · src/engine/gpu/slots.rs
+
+Slot values, the `Draw` record, and three layouts that step the slot buffer once per instance.
+
+`lessons/04a/src/engine/gpu/slots.rs` · type this, new file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-15a"
+--8<-- "lessons/04a/src/engine/gpu/slots.rs:slots-layouts"
 ```
+
+## Step 13 · src/engine/gpu/slots.rs
+
+The slot buffer, which holds slot 0 alone until lesson 18a writes instances into it.
+
+`lessons/04a/src/engine/gpu/slots.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/slots.rs:slots"
+```
+
+## Step 14 · src/engine/gpu/slots.rs
+
+The slot table: a texture of four u32 per texel that finds an instance from a triangle id.
+
+`lessons/04a/src/engine/gpu/slots.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/slots.rs:slot-table"
+```
+
+## Step 15 · src/engine/gpu/slots.rs
+
+The slot allocator that lesson 18a drives; copy it now so the arena compiles.
+
+`lessons/04a/src/engine/gpu/slots.rs` · copy this part, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/slots.rs:slot-space"
+```
+
+## Step 16 · src/engine/gpu/slots.rs
+
+The slot tests.
+
+`lessons/04a/src/engine/gpu/slots.rs` · copy this part, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/slots.rs:slots-tests"
+```
+
+## Step 17 · src/engine/gpu/text_outline.rs
+
+The print lane: one shader, three pipelines; the methods call `draw`, written in the next step.
+
+`lessons/04a/src/engine/gpu/text_outline.rs` · type this, new file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/text_outline.rs:outline-lane"
+```
+
+## Step 18 · src/engine/gpu/text_outline.rs
+
+The shared indexed draw and the three pipelines: colour blended on top, ids at equal depth.
 
 `lessons/04a/src/engine/gpu/text_outline.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-15b"
+--8<-- "lessons/04a/src/engine/gpu/text_outline.rs:outline-draw"
 ```
 
-`lessons/04a/src/engine/gpu/text_outline.rs` · type this, append at the end of the file
+## Step 19 · src/engine/gpu/upload.rs
+
+Register the mesh rows in `Upload`: four lines, one in the struct, `default`, `drop_uploaded` and `merge`.
+
+`lessons/04a/src/engine/gpu/upload.rs` · type this, one line in `pub struct Upload`
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/text_outline.rs:step-15c"
+--8<-- "lessons/04a/src/engine/gpu/upload.rs:upload-arena-field"
 ```
 
-## Step 16 · src/engine/gpu/upload.rs
-
-New file: everything one scene uploads, collected before the GPU sees it.
-
-`lessons/04a/src/engine/gpu/upload.rs` · 37 lines · type this, new file
+`lessons/04a/src/engine/gpu/upload.rs` · type this, one line in `fn default`
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/upload.rs"
+--8<-- "lessons/04a/src/engine/gpu/upload.rs:upload-arena-default"
 ```
 
-## Step 17 · src/fixture.rs
-
-New file: a small test scene built in code.
-Copy this file from the lesson folder to the path shown.
-
-`lessons/04a/src/fixture.rs` · 35 lines · copy the file, new file
+`lessons/04a/src/engine/gpu/upload.rs` · type this, one line in `fn drop_uploaded`
 
 ```rust
---8<-- "lessons/04a/src/fixture.rs"
+--8<-- "lessons/04a/src/engine/gpu/upload.rs:upload-arena-drop"
 ```
 
-## Step 18 · src/engine/gpu/mod.rs
-
-New file: the GPU owner, one field per drawing lane.
-
-`lessons/04a/src/engine/gpu/mod.rs` · type this, replace the whole file, start with these lines
+`lessons/04a/src/engine/gpu/upload.rs` · type this, one line in `fn merge`
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/mod.rs:step-18a"
+--8<-- "lessons/04a/src/engine/gpu/upload.rs:upload-arena-merge"
 ```
+
+## Step 20 · src/engine/gpu/upload.rs
+
+A second `impl Upload` block: merge another file's meshes after these, shifting its indices and face ids.
+
+`lessons/04a/src/engine/gpu/upload.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/upload.rs:upload-meshes"
+```
+
+## Step 21 · src/engine/gpu/arena.rs
+
+The packed 20-byte arena vertex and the vertex layout that tells the GPU where each field sits.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, new file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-vertex"
+```
+
+## Step 22 · src/engine/gpu/arena.rs
+
+Pack a normal into one u32, the inverse of `oct32_decode`.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-octahedral"
+```
+
+## Step 23 · src/engine/gpu/arena.rs
+
+The CPU lists one upload fills before the GPU sees them.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-rows"
+```
+
+## Step 24 · src/engine/gpu/arena.rs
+
+The arena lane with its buffers, created empty; its `impl` block stays open until step 28.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-lane"
+```
+
+## Step 25 · src/engine/gpu/arena.rs
+
+Write rows: append a file, overwrite an object in place, hide rows for undo, empty a triangle.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-write"
+```
+
+## Step 26 · src/engine/gpu/arena.rs
+
+The draw methods, ending in `draw_run`: bind three vertex buffers and an index run, then call `draw_indexed`.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-draw"
+```
+
+## Step 27 · src/engine/gpu/arena.rs
+
+Draw chosen runs of solid faces for later passes, plain or once per placed instance.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-instanced"
+```
+
+## Step 28 · src/engine/gpu/arena.rs
+
+Reset for a new scene, release the memory, count the rows; the `impl` block closes here.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-reset"
+```
+
+## Step 29 · src/engine/gpu/arena.rs
+
+The two mask pipelines, and the `Lane` hooks that let the GPU treat the arena like every other lane.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-pipelines"
+```
+
+## Step 30 · src/engine/gpu/arena.rs
+
+The arena tests: vertex size, normal packing, colour packing.
+
+`lessons/04a/src/engine/gpu/arena.rs` · copy this part, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-tests"
+```
+
+## Step 31 · src/engine/gpu/arena.rs
+
+Where each triangle and vertex came from: the face tag, the source face, the surface sample; lesson 17 uses them.
+
+`lessons/04a/src/engine/gpu/arena.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/gpu/arena.rs:arena-faces"
+```
+
+## Step 32 · src/engine/pipelines/mod.rs
+
+Every mesh pipeline takes the arena vertex as its vertex buffer 0.
+
+`lessons/04a/src/engine/pipelines/mod.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/pipelines/mod.rs:arena-layout"
+```
+
+## Step 33 · src/engine/pipelines/mod.rs
+
+The pipeline compile test.
+
+`lessons/04a/src/engine/pipelines/mod.rs` · copy this part, append at the end of the file
+
+```rust
+--8<-- "lessons/04a/src/engine/pipelines/mod.rs:compile-tests"
+```
+
+## Step 34 · src/engine/gpu/mod.rs
+
+A second `impl Gpu` block: live face counts and the row edits that undo and editing call.
 
 `lessons/04a/src/engine/gpu/mod.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04a/src/engine/gpu/mod.rs:step-18b"
+--8<-- "lessons/04a/src/engine/gpu/mod.rs:editable-rows"
 ```
 
-`lessons/04a/src/engine/gpu/mod.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/mod.rs:step-18c"
-```
-
-`lessons/04a/src/engine/gpu/mod.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/engine/gpu/mod.rs:step-18d"
-```
-
-## Step 19 · src/engine/mod.rs
-
-Put the gpu and pipelines folders into the build.
-
-`lessons/04a/src/engine/mod.rs` · edit · type this
-
-Added below
-
-```rust
-pub mod gpu;
-```
-
-```rust
---8<-- "lessons/04a/src/engine/mod.rs:step-19"
-```
-
-## Step 20 · src/lib.rs
-
-Replace the entry point: it now owns a camera and the GPU.
-
-`lessons/04a/src/lib.rs` · type this, replace the whole file, start with these lines
-
-```rust
---8<-- "lessons/04a/src/lib.rs:step-20a"
-```
-
-`lessons/04a/src/lib.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/04a/src/lib.rs:step-20b"
-```
-
-## Step 21 · src/scene.rs
-
-Delete the old scene file.
-
-Delete `src/scene.rs` (it exists in `lessons/03/`, not in `lessons/04a/`).
-
-## Step 22 · src/shaders/first.wgsl
-
-Delete the first triangle shader.
-
-Delete `src/shaders/first.wgsl` (it exists in `lessons/03/`, not in `lessons/04a/`).
-
-## Step 23 · index.html
-
-Copy the page: the status now reports mesh vertices.
-Copy this file from the lesson folder to the path shown.
-
-`lessons/04a/index.html` · edit · copy the file
-
-Replaces the line `<title>Session checkpoint 03</title>` in `lessons/03/index.html`
-
-```html
---8<-- "lessons/04a/index.html:step-23a"
-```
-
-Replaces the line `<output id="status">Starting checkpoint 03</output>` in `lessons/03/index.html`
-
-```html
---8<-- "lessons/04a/index.html:step-23b"
-```
-
-Replaces the line `document.getElementById('status').textContent = 'Checkpoi…` in `lessons/03/index.html`
-
-```html
---8<-- "lessons/04a/index.html:step-23c"
-```
-
-Run `cargo check` in `lessons/04a/`.
+Run cargo check in lessons/04a/.
 
 ## Check
 
-Run `trunk serve` in `lessons/04a/` and open <http://127.0.0.1:8770/>.
-
-Expected: A blue triangle draws from mesh buffers while the camera still orbits and zooms; status: **Checkpoint 04a · 1 objects**.
-
-![Checkpoint 04a: the first mesh drawn from arena buffers through the object table.](screenshots/04a.png)
-
-If it fails:
-
-- The canvas stays empty: the surface is not configured or the arena has no rows.
-- Geometry is scrambled: the vertex stride or object row layout differs from the shader.
-
-## What changed
-
-```text
-lessons/04a/src/
-├── app/
-│   ├── mod.rs  +
-│   └── route.rs  +
-├── engine/
-│   ├── gpu/
-│   │   ├── arena.rs  +
-│   │   ├── buffers.rs  +
-│   │   ├── frame.rs  +
-│   │   ├── instance.rs  ~
-│   │   ├── mod.rs  ~
-│   │   ├── objects.rs  +
-│   │   ├── targets.rs  +
-│   │   ├── text_outline.rs  +
-│   │   ├── upload.rs  +
-│   │   └── view.rs  +
-│   ├── pipelines/
-│   │   ├── layouts.rs  +
-│   │   └── mod.rs  +
-│   └── mod.rs  ~
-├── shaders/
-│   ├── normals.wgsl  +
-│   ├── scene.wgsl  +
-│   ├── text_outline.wgsl  +
-│   └── triangle.wgsl  +
-├── camera.rs
-├── fixture.rs  +
-└── lib.rs  ~
-```
-
-`+` new in this lesson · `~` changed in this lesson
-
-Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: `lessons/04a/`.
-
-## Next
-[04b · Strokes](04b-strokes.md): the segment drawing module, `ribbon.wgsl`, and the shared ink visibility rule.
-
-## Expected viewer result
-
-Checkpoint 04a: the first mesh drawn from arena buffers through the object table.
-
-[![Full viewer result for 04a meshes](screenshots/04a.png)](screenshots/04a.png)
+`cargo xtest` in `lessons/04a/` runs the arena and slot tests natively: a vertex packs into 20 bytes, and a normal survives packing within a ten-thousandth of a radian.

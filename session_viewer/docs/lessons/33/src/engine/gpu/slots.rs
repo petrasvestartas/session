@@ -1,18 +1,20 @@
+// --8<-- [start:slots-layouts]
 use super::buffers::{GpuCtx, GrowBuf};
 use std::collections::HashMap;
 use std::ops::Range;
 
-/// Slot value that keeps each row's own object row: slot 0, read by every plain draw.
+/// A slot names the object row one copy of a shared mesh draws with; slot 0 holds this value,
+/// which tells the shader "keep the vertex's own row", so every plain draw reads slot 0.
 pub const OWN_ROW: u32 = u32::MAX;
 
-/// One instance slot: its object row, and what its triangles add to their arena index to name
-/// their own triangle id, after every arena triangle and every earlier instance's.
+/// [object row, id base]: the base turns a shared triangle's index into this copy's own triangle id.
+/// A `type` alias only gives a name to an existing type.
 pub type Slot = [u32; 2];
 
-/// Texels per row of the slot table; the shaders split an index by it.
+/// A texture row may hold at most 8192 texels in WebGPU, so slot k sits at (k % 1024, k / 1024).
 const TABLE_WIDTH: u32 = 1024;
 
-/// One definition drawn once per instance: its shared rows and the slots of its instances.
+/// A definition is a mesh shared by many placed copies, its instances; one Draw repeats it per slot.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Draw {
     pub faces: Range<u32>,   // solid face indices
@@ -21,7 +23,7 @@ pub struct Draw {
     pub slots: Range<u32>,   // instance slots, never slot 0
 }
 
-/// The slot at locations 0 and 1, stepped per instance: row and id base.
+/// Slot word 0 at shader location 0, word 1 at location 1.
 const SLOT_FACES: [wgpu::VertexAttribute; 2] = [
     wgpu::VertexAttribute {
         offset: 0,
@@ -49,7 +51,8 @@ const SLOT_ARENA: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
     format: wgpu::VertexFormat::Uint32,
 }];
 
-/// The slot buffer as the pulled face shaders read it, at locations 0 and 1.
+/// draw_indexed(indices, 0, 3..5) draws the same triangles twice, as instances 3 and 4; a buffer
+/// stepped per Instance moves one 8-byte slot per repetition instead of one per vertex.
 pub fn slot_layout() -> wgpu::VertexBufferLayout<'static> {
     wgpu::VertexBufferLayout {
         array_stride: 8,
@@ -58,7 +61,7 @@ pub fn slot_layout() -> wgpu::VertexBufferLayout<'static> {
     }
 }
 
-/// The slot buffer as the ribbon shader reads it, the row at location 0.
+/// For the ribbon shader of lesson 04b: the row alone.
 pub fn row_slot_layout() -> wgpu::VertexBufferLayout<'static> {
     wgpu::VertexBufferLayout {
         array_stride: 8,
@@ -67,7 +70,7 @@ pub fn row_slot_layout() -> wgpu::VertexBufferLayout<'static> {
     }
 }
 
-/// The slot buffer beside the arena's vertex and row buffers, at location 4.
+/// Location 4, after the arena vertex (0-2) and its object row (3).
 pub fn arena_slot_layout() -> wgpu::VertexBufferLayout<'static> {
     wgpu::VertexBufferLayout {
         array_stride: 8,
@@ -75,15 +78,16 @@ pub fn arena_slot_layout() -> wgpu::VertexBufferLayout<'static> {
         attributes: &SLOT_ARENA,
     }
 }
+// --8<-- [end:slots-layouts]
 
-/// The instance slots of one lane and the draws that read them; slot 0 is `OWN_ROW`.
+// --8<-- [start:slots]
+/// Lesson 18a fills these; until then the buffer holds slot 0 alone and `draws` stays empty.
 pub struct Slots {
-    buf: GrowBuf,     // one Slot per instance
-    draws: Vec<Draw>, // one per definition
+    buf: GrowBuf,
+    draws: Vec<Draw>,
 }
 
 impl Slots {
-    /// Only slot 0, so plain draws keep their rows.
     pub fn new(ctx: &GpuCtx) -> Self {
         let mut buf = GrowBuf::new(ctx, "instance.slots", 8, super::buffers::VERTS);
         buf.append(ctx, &[[OWN_ROW, 0]]);
@@ -113,6 +117,7 @@ impl Slots {
     /// Write `slots` from slot `at` in place; past the end the buffer grows.
     pub fn write(&mut self, ctx: &GpuCtx, at: u32, slots: &[Slot]) {
         let len = self.buf.len();
+        // saturating_sub stops at 0 instead of wrapping a u32 round to 4 billion
         let inside = (len.saturating_sub(at) as usize).min(slots.len());
         self.buf.write_at(ctx, at, &slots[..inside]);
 
@@ -135,7 +140,7 @@ impl Slots {
         self.draws.clear();
     }
 
-    /// The slot buffer, bound as vertex buffer `slot` of every draw that reads it.
+    /// `slot` here is the vertex buffer number of the pipeline, not an instance slot.
     pub fn bind(&self, pass: &mut wgpu::RenderPass<'_>, slot: u32) {
         pass.set_vertex_buffer(slot, self.buf.buf.slice(..));
     }
@@ -160,17 +165,18 @@ impl Slots {
         self.buf.buf.size()
     }
 }
+// --8<-- [end:slots]
 
-/// Where each instance's triangle ids lie, for the passes that read them: texel 0 holds the slot
-/// count and the arena's triangle count, texel k slot k's row, first id, first definition
-/// triangle and triangle count.
+// --8<-- [start:slot-table]
+/// A texture can hold plain numbers: Rgba32Uint = four u32 per texel, read in WGSL with textureLoad.
+/// Texel 0 = [slot count, arena triangles, 0, 0]; texel k = [row, first id, first shared triangle, triangles].
+/// Passes that start from a triangle id (visibility, picking) look its instance up here.
 pub struct SlotTable {
-    texture: wgpu::Texture, // Rgba32Uint, TABLE_WIDTH texels a row; one zero texel without instances
-    pub view: wgpu::TextureView, // the texture, bound
+    texture: wgpu::Texture, // one zero texel while there are no instances
+    pub view: wgpu::TextureView,
 }
 
 impl SlotTable {
-    /// One zero texel: no instances.
     pub fn new(ctx: &GpuCtx) -> Self {
         let texture = table_texture(ctx, 1, 1);
         Self {
@@ -194,13 +200,13 @@ impl SlotTable {
         }
 
         let mut data = texels.to_vec();
-        data.resize((width * height) as usize, [0; 4]);
+        data.resize((width * height) as usize, [0; 4]); // write_texture wants every texel of the rectangle
         ctx.queue.write_texture(
             self.texture.as_image_copy(),
             bytemuck::cast_slice(&data),
             wgpu::TexelCopyBufferLayout {
                 offset: 0,
-                bytes_per_row: Some(width * 16),
+                bytes_per_row: Some(width * 16), // 16 bytes a texel
                 rows_per_image: Some(height),
             },
             self.texture.size(),
@@ -253,7 +259,7 @@ impl SlotTable {
     }
 }
 
-/// A `width` by `height` table of four u32 words a texel.
+/// TEXTURE_BINDING lets shaders read it, COPY_DST lets write_texture fill it.
 fn table_texture(ctx: &GpuCtx, width: u32, height: u32) -> wgpu::Texture {
     ctx.device.create_texture(&wgpu::TextureDescriptor {
         label: Some("instance.table"),
@@ -265,11 +271,15 @@ fn table_texture(ctx: &GpuCtx, width: u32, height: u32) -> wgpu::Texture {
         mip_level_count: 1,
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
-        format: wgpu::TextureFormat::Rgba32Uint, // row, first id, first triangle, triangles
+        format: wgpu::TextureFormat::Rgba32Uint,
         usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         view_formats: &[],
     })
 }
+// --8<-- [end:slot-table]
+
+// --8<-- [start:slot-space]
+// The slot allocator: lesson 18a drives it; until then it holds slot 0 alone.
 
 /// Triangle ids kept free past the arena's after it grew, so appending objects rarely renumbers.
 fn headroom(arena: u32) -> u32 {
@@ -739,7 +749,9 @@ fn coalesce(ranges: Vec<Range<u32>>, end: u32) -> Vec<Range<u32>> {
 pub fn clamp(range: &Range<u32>, len: u32) -> Range<u32> {
     range.start.min(len)..range.end.min(len)
 }
+// --8<-- [end:slot-space]
 
+// --8<-- [start:slots-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -956,3 +968,4 @@ mod tests {
         assert!(space.follow(10_000) == Change::default());
     }
 }
+// --8<-- [end:slots-tests]

@@ -1,3 +1,4 @@
+// --8<-- [start:rows]
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
 use super::hull::{Hull, placed_box};
 use super::instance::Instance;
@@ -55,7 +56,9 @@ pub struct Rebase {
     pub moved: bool,   // true when the table was rebuilt now
     pub pending: bool, // true when a rebuild waits on the throttle
 }
+// --8<-- [end:rows]
 
+// --8<-- [start:boxes]
 /// A row with faces and its world box, for the inside test.
 struct BoundedRow {
     row: u32,     // object row
@@ -134,6 +137,7 @@ fn same_hull(a: Option<&Hull>, b: Option<&Hull>) -> bool {
     }
 }
 
+// f32 keeps about 7 digits: at 1,000,000 mm a 1 mm step is lost, so the GPU gets positions relative to a nearby anchor.
 /// Translation relative to the origin, as the GPU reads it.
 fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
     [
@@ -143,7 +147,9 @@ fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
         0.0,
     ]
 }
+// --8<-- [end:boxes]
 
+// --8<-- [start:table]
 /// The object rows on the GPU and their exact positions on the CPU.
 pub struct InstanceTable {
     geometry_revision: u64,             // bumps when anything moves or hides
@@ -178,7 +184,9 @@ fn instance_group(
         &[rows, translations],
     )
 }
+// --8<-- [end:table]
 
+// --8<-- [start:table-append]
 impl InstanceTable {
     /// Instance rows for read-only GPU passes.
     pub fn instance_buffer(&self) -> &wgpu::Buffer {
@@ -348,7 +356,9 @@ impl InstanceTable {
             self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
         }
     }
+// --8<-- [end:table-append]
 
+// --8<-- [start:anchor]
     /// Measure from the camera again at the next frame, as after loading a document.
     pub fn forget_anchor(&mut self) {
         self.last_origin = None;
@@ -416,7 +426,9 @@ impl InstanceTable {
 
         Some(model)
     }
+// --8<-- [end:anchor]
 
+// --8<-- [start:inside]
     /// Set FLAG_INSIDE on rows whose box contains the eye.
     pub fn update_inside(&mut self, ctx: &GpuCtx, eye: [f32; 3], scene: &AABB) {
         if self.bounded.is_empty() {
@@ -496,7 +508,9 @@ impl InstanceTable {
         self.widget = Some(row);
         (row, grew || grew_t)
     }
+// --8<-- [end:inside]
 
+// --8<-- [start:placement]
     /// Move one object; writes only its row.
     pub fn set_placement(&mut self, ctx: &GpuCtx, row: u32, place: &Xform) -> bool {
         let i = row as usize;
@@ -534,6 +548,7 @@ impl InstanceTable {
         true
     }
 
+    // `pub(crate)` = visible anywhere in this crate and nowhere outside it.
     /// Set a row's box and spacing after its geometry changed.
     pub(crate) fn set_geometry_bounds(
         &mut self,
@@ -670,7 +685,9 @@ impl InstanceTable {
         m[14] = translation[2];
         Some(Xform::from_matrix(m))
     }
+// --8<-- [end:placement]
 
+// --8<-- [start:bury]
     /// Take a redrawn row's box, spacing and drawing flags; selection, visibility and colors stay.
     pub fn update_geometry(&mut self, ctx: &GpuCtx, row: u32, r: &ObjectRow) {
         const KEEP: u32 = Instance::FLAG_SELECTED
@@ -740,6 +757,7 @@ impl InstanceTable {
         }
     }
 
+    // Undo never frees GPU memory: a deleted object's row is hidden and kept, so its undo is one write, not a new upload.
     /// Hide rows whose objects an undo may bring back; their drawing flags and own boxes stay for `unbury`.
     pub fn bury_many(&mut self, ctx: &GpuCtx, rows: &[u32]) {
         if rows.is_empty() {
@@ -816,7 +834,9 @@ impl InstanceTable {
         self.rows[i].ao_radius = ambient_radius(&world);
         self.write_row(ctx, row);
     }
+// --8<-- [end:bury]
 
+// --8<-- [start:queries]
     /// World box of every row that is not dead.
     pub fn live_world_bounds(&self) -> AABB {
         let mut out = AABB::empty();
@@ -990,7 +1010,9 @@ impl InstanceTable {
         }
     }
 }
+// --8<-- [end:queries]
 
+// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1122,7 +1144,9 @@ mod tests {
         assert_eq!(anchored(base, &second)[0], 9.0e3);
     }
 }
+// --8<-- [end:tests]
 
+// --8<-- [start:table-lane]
 impl super::lane::Lane for InstanceTable {
     fn on_reset(&mut self, _ctx: &GpuCtx) {
         self.reset();
@@ -1136,3 +1160,4 @@ impl super::lane::Lane for InstanceTable {
         (self.allocated_bytes(), 0)
     }
 }
+// --8<-- [end:table-lane]

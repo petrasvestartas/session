@@ -1,3 +1,6 @@
+// --8<-- [start:modules]
+// One line per file of this folder; `pub` lets code outside `gpu` reach it.
+// A line tagged `register:<name>` is a registration: each later lesson adds its own line to lists like this one.
 pub mod arena; // register:arena
 pub mod backdrop; // register:backdrop
 pub mod buffers; // register:buffers
@@ -27,7 +30,9 @@ pub mod text_outline; // register:text_outline
 pub mod upload; // register:upload
 pub mod vectors; // register:vectors
 pub mod view; // register:view
+// --8<-- [end:modules]
 
+// --8<-- [start:uses]
 use crate::engine::performance::Performance;
 use crate::engine::pipelines::{Layouts, Target};
 use session_rust::{AABB, Point};
@@ -57,7 +62,9 @@ pub use pick::Pick; // register:shell
 pub use segments::CylinderSegment; // register:strokes
 pub use upload::Upload;
 pub use view::View;
+// --8<-- [end:uses]
 
+// --8<-- [start:gpu-struct]
 /// Everything on the GPU: the device, the frame and one field per lane.
 pub struct Gpu {
     pub surface: Option<wgpu::Surface<'static>>, // the canvas; None when headless
@@ -89,7 +96,10 @@ pub struct Gpu {
     device_type: wgpu::DeviceType,        // discrete, integrated or CPU
     pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>, // first GPU error
 }
+// --8<-- [end:gpu-struct]
 
+// --8<-- [start:lane-list]
+// A macro that takes a macro: `lane_list!(shared, self)` becomes `shared!(self; frame, objects, backdrop)`, so every loop below walks one list.
 /// Every lane, once. Adding one means writing its `Lane` impl and one line here.
 macro_rules! lane_list {
     ($apply:ident, $g:ident) => {
@@ -112,6 +122,7 @@ macro_rules! lane_list {
 
 /// The lanes, shared.
 macro_rules! shared {
+    // `$(...),*` repeats once per name; `as &dyn Lane` views each field through the Lane trait
     ($g:ident; $($lane:ident),* $(,)?) => { [$(&$g.$lane as &dyn Lane),*] };
 }
 
@@ -119,7 +130,9 @@ macro_rules! shared {
 macro_rules! owned {
     ($g:ident; $($lane:ident),* $(,)?) => { [$(&mut $g.$lane as &mut dyn Lane),*] };
 }
+// --8<-- [end:lane-list]
 
+// --8<-- [start:gpu-bytes]
 impl Gpu {
     /// Bytes reserved on the GPU: (buffers, textures).
     pub fn allocated_bytes(&self) -> (u64, u64) {
@@ -147,7 +160,9 @@ impl Gpu {
             pixels * if samples > 1 { samples * 12 } else { 8 } + if samples > 1 { 8 } else { 32 };
         (buffers, textures + frame_textures)
     }
+// --8<-- [end:gpu-bytes]
 
+// --8<-- [start:gpu-new]
     /// Open the GPU for a window.
     pub async fn new(window: std::sync::Arc<winit::window::Window>) -> anyhow::Result<Self> {
         let size = window.inner_size();
@@ -158,7 +173,9 @@ impl Gpu {
     pub async fn new_headless(width: u32, height: u32) -> anyhow::Result<Self> {
         Self::build(None, (width, height)).await
     }
+// --8<-- [end:gpu-new]
 
+// --8<-- [start:gpu-build]
     /// Open the device and create every lane, empty.
     async fn build(
         window: Option<std::sync::Arc<winit::window::Window>>,
@@ -194,6 +211,7 @@ impl Gpu {
         let text = text::TextLane::new(&ctx, target); // register:text
         let cloud = CloudLane::new(&ctx); // register:clouds
         let splat = Splat::new(&ctx, &layouts, target, cloud.buffers()); // register:clouds
+        // each registered lane builds itself through its `make` function
         let registered = lane::REGISTRY
             .iter()
             .map(|lane| (lane.make)(&ctx, &layouts, target))
@@ -240,7 +258,9 @@ impl Gpu {
         gpu.rebind_ink(); // register:ink
         Ok(gpu)
     }
+// --8<-- [end:gpu-build]
 
+// --8<-- [start:set-scene]
     /// Append one upload to every lane.
     pub fn set_scene(&mut self, up: &Upload) {
         self.objects.append(&self.ctx, &self.layouts, &up.obj);
@@ -265,7 +285,9 @@ impl Gpu {
             samples: self.targets.samples,
         }
     }
+// --8<-- [end:set-scene]
 
+// --8<-- [start:retarget]
     /// Remake targets and pipelines when the sample count changes.
     fn retarget(&mut self, resized: bool) {
         let samples = self.msaa_now();
@@ -303,7 +325,9 @@ impl Gpu {
             pass.on_retarget(ctx, layouts, target);
         }
     }
+// --8<-- [end:retarget]
 
+// --8<-- [start:msaa]
     /// Pixels this GPU can afford at 4x MSAA.
     pub fn msaa_budget(&self) -> Option<u32> {
         Targets::msaa_budget(self.device_type)
@@ -329,7 +353,9 @@ impl Gpu {
             self.config.width as f32 / self.logical_size[0].max(1.0) as f32,
         )
     }
+// --8<-- [end:msaa]
 
+// --8<-- [start:resize]
     /// Resize the canvas and every texture that follows it.
     pub fn resize(&mut self, width: u32, height: u32) {
         if width == 0 || height == 0 {
@@ -347,7 +373,9 @@ impl Gpu {
         self.splat.resize(); // register:clouds
         self.pick.resize(); // register:shell
     }
+// --8<-- [end:resize]
 
+// --8<-- [start:reset]
     /// Forget every row; keep the buffers.
     pub fn reset(&mut self) {
         let ctx = &self.ctx;
@@ -365,7 +393,9 @@ impl Gpu {
         self.dead = patch::Counts::default(); // register:patch
         self.dead_points = 0; // register:clouds
     }
+// --8<-- [end:reset]
 
+// --8<-- [start:release]
     /// Forget every row and free the buffers.
     pub fn release(&mut self) {
         let ctx = &self.ctx;
@@ -388,7 +418,9 @@ impl Gpu {
         self.rebind_ink(); // register:ink
     }
 }
+// --8<-- [end:release]
 
+// --8<-- [start:lane-shaders]
 /// Every lane's shader sources, for the tests.
 #[cfg(test)]
 pub(crate) fn lane_shaders() -> Vec<(&'static str, &'static str)> {
@@ -400,8 +432,11 @@ pub(crate) fn lane_shaders() -> Vec<(&'static str, &'static str)> {
     out.extend_from_slice(vectors::SHADERS); // register:strokes
     out
 }
+// --8<-- [end:lane-shaders]
 
-// --8<-- [start:03]
+// --8<-- [start:03-rows]
+// --8<-- [start:row-edits]
+// Every edit below writes one 96-byte row and never the geometry: selecting a mesh of a million triangles is one small write.
 impl Gpu {
     /// Grow the scene box to include object `row`.
     pub fn grew_bounds(&mut self, row: u32) {
@@ -447,6 +482,7 @@ impl Gpu {
         self.splat.invalidate(); // register:clouds
     }
 
+    /// Hidden, not freed: the row stays on the GPU, so showing it again is one more write.
     /// Hide or show object `row`.
     pub fn set_hidden(&mut self, row: u32, on: bool) {
         self.objects
@@ -454,9 +490,11 @@ impl Gpu {
         self.splat.invalidate(); // register:clouds
     }
 }
-// --8<-- [end:03]
+// --8<-- [end:row-edits]
+// --8<-- [end:03-rows]
 
-// --8<-- [start:04a]
+// --8<-- [start:04a-editable-rows]
+// --8<-- [start:editable-rows]
 impl Gpu {
     /// Solid face indices still drawn.
     pub(crate) fn live_faces(&self) -> u32 {
@@ -536,9 +574,12 @@ impl Gpu {
         self.rebind_ink(); // register:ink
     }
 }
-// --8<-- [end:04a]
+// --8<-- [end:editable-rows]
+// --8<-- [end:04a-editable-rows]
 
-// --8<-- [start:04b]
+// --8<-- [start:04b-ink]
+// --8<-- [start:ink]
+// --8<-- [start:stroke-rows]
 impl Gpu {
     /// Pipe rows still drawn.
     pub(crate) fn live_pipes(&self) -> u32 {
@@ -552,7 +593,9 @@ impl Gpu {
             .saturating_sub(self.dead.ribbons)
     }
 }
+// --8<-- [end:stroke-rows]
 
+// --8<-- [start:rebind-ink]
 impl Gpu {
     /// Rebuild the ink bind group after targets or tiles moved.
     fn rebind_ink(&mut self) {
@@ -565,9 +608,13 @@ impl Gpu {
         );
     }
 }
-// --8<-- [end:04b]
+// --8<-- [end:rebind-ink]
+// --8<-- [end:ink]
+// --8<-- [end:04b-ink]
 
-// --8<-- [start:04c]
+// --8<-- [start:04c-markers]
+// --8<-- [start:markers]
+// --8<-- [start:marker-rows]
 impl Gpu {
     /// Marker rows still drawn.
     pub(crate) fn live_spheres(&self) -> u32 {
@@ -579,9 +626,13 @@ impl Gpu {
         self.glyphs.dot_count().saturating_sub(self.dead.dots)
     }
 }
-// --8<-- [end:04c]
+// --8<-- [end:marker-rows]
+// --8<-- [end:markers]
+// --8<-- [end:04c-markers]
 
-// --8<-- [start:04d]
+// --8<-- [start:04d-clouds]
+// --8<-- [start:clouds]
+// --8<-- [start:cloud-rows]
 impl Gpu {
     /// Append one upload's point clouds.
     fn append_cloud(&mut self, up: &Upload) {
@@ -619,4 +670,6 @@ impl Gpu {
         self.cloud.point_count.saturating_sub(self.dead_points)
     }
 }
-// --8<-- [end:04d]
+// --8<-- [end:cloud-rows]
+// --8<-- [end:clouds]
+// --8<-- [end:04d-clouds]

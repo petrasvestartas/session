@@ -1,3 +1,4 @@
+# An empty [workspace] keeps this crate out of any parent workspace, so it builds on its own.
 [workspace]
 
 [package]
@@ -16,7 +17,7 @@ serde_yaml_ng = "0.10"
 toml = { version = "=0.8.23", optional = true }
 serde_json = { version = "1.0", features = ["float_roundtrip"] }
 winit = "0.30"
-wgpu = "29.0"
+wgpu = "29.0" # the Rust WebGPU library; natively it runs on Vulkan, Metal and DX12
 egui = { version = "=0.34.3", default-features = false }
 egui-wgpu = { version = "=0.34.3", default-features = false }
 egui-winit = { version = "=0.34.3", default-features = false }

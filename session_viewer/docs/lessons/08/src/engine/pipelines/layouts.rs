@@ -1,3 +1,5 @@
+// --8<-- [start:entries]
+// A bind group layout is the type of a bind group: which binding holds a uniform, a storage buffer or a texture, and which shader stages see it.
 /// One buffer binding, visible to `stages`.
 fn buffer_entry(
     binding: u32,
@@ -36,7 +38,9 @@ fn uniform_layout(
         entries: &[buffer_entry(0, stages, wgpu::BufferBindingType::Uniform)],
     })
 }
+// --8<-- [end:entries]
 
+// --8<-- [start:groups]
 /// Group 1: pen and view settings at binding 0, clipping planes at 1.
 fn line_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     let stages = wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE;
@@ -198,7 +202,9 @@ fn resolve_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         ],
     })
 }
+// --8<-- [end:groups]
 
+// --8<-- [start:layouts]
 /// The bind group layouts every lane shares.
 pub struct Layouts {
     pub mvp: wgpu::BindGroupLayout,          // group 0: camera matrix
@@ -230,3 +236,4 @@ impl Layouts {
         }
     }
 }
+// --8<-- [end:layouts]

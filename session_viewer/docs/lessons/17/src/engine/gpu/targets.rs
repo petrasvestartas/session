@@ -1,5 +1,7 @@
+// --8<-- [start:budgets]
 use super::buffers::GpuCtx;
 
+// MSAA = multisample anti-aliasing: 4 samples per pixel smooth the edges and cost 4 times the memory.
 /// Pixels a discrete GPU may draw at 4x MSAA.
 const MSAA_PIXELS_DISCRETE: u32 = 9_000_000;
 
@@ -11,7 +13,10 @@ const MSAA_PIXELS_SHARED: u32 = 2_500_000;
 
 /// Pixels at 4x when the GPU type is unknown; every browser lands here.
 const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
+// --8<-- [end:budgets]
 
+// --8<-- [start:targets]
+// A render target is a texture a pass draws into; the depth texture keeps, per pixel, how near the closest surface is.
 /// The frame's depth and color textures at one sample count.
 pub struct Targets {
     pub depth: Attachment,                  // scene depth
@@ -100,7 +105,9 @@ impl Targets {
             placeholder.destroy();
         }
     }
+// --8<-- [end:targets]
 
+// --8<-- [start:samples]
     /// Pixels this GPU type may draw at 4x; None = never.
     pub fn msaa_budget(gpu: wgpu::DeviceType) -> Option<u32> {
         match gpu {
@@ -139,7 +146,11 @@ impl Targets {
             _ => 1,
         }
     }
+// --8<-- [end:samples]
 
+// --8<-- [start:passes]
+    // A render pass is one run of draws into a set of targets: `load` says what they start from, `store` whether the result is kept.
+    // `'a` ties the pass to the encoder and views it borrows: it may not outlive them.
     /// Open the face pass: color and depth cleared, or kept when `clear` is None.
     pub fn begin_faces<'a>(
         &'a self,
@@ -178,7 +189,7 @@ impl Targets {
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &self.depth,
                 depth_ops: Some(wgpu::Operations {
-                    // reverse-Z: 0 is the far plane
+                    // reverse-Z: near is 1 and far is 0, which keeps float depth precise far away
                     load: match clear {
                         Some(_) => wgpu::LoadOp::Clear(0.0),
                         None => wgpu::LoadOp::Load,
@@ -199,7 +210,7 @@ impl Targets {
         encoder: &'a mut wgpu::CommandEncoder,
         view: &'a wgpu::TextureView,
     ) -> wgpu::RenderPass<'a> {
-        // at 4x the pass resolves into the canvas here
+        // at 4x the pass resolves into the canvas: each pixel's 4 samples are averaged into one
         let (target, resolve) = match self.msaa.as_deref() {
             Some(msaa) => (msaa, Some(view)),
             None => (view, None),
@@ -226,7 +237,9 @@ impl Targets {
         })
     }
 }
+// --8<-- [end:passes]
 
+// --8<-- [start:textures]
 /// Settings for one 2D texture.
 pub struct TextureSpec {
     pub size: (u32, u32),            // width and height, px
@@ -278,6 +291,7 @@ impl Attachment {
     }
 }
 
+// Deref lets `&attachment` stand in for `&TextureView`, the way a smart pointer stands in for its value.
 /// An Attachment can be used wherever a view is expected.
 impl std::ops::Deref for Attachment {
     type Target = wgpu::TextureView;
@@ -289,12 +303,14 @@ impl std::ops::Deref for Attachment {
 
 /// Free the texture on drop.
 impl Drop for Attachment {
-    /// Remove the DOM listener.
+    /// Rust runs this when the value goes out of scope.
     fn drop(&mut self) {
         self.texture.destroy();
     }
 }
+// --8<-- [end:textures]
 
+// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -361,3 +377,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:tests]

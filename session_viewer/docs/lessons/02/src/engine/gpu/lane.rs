@@ -1,3 +1,4 @@
+// --8<-- [start:pick-mode]
 use super::buffers::GpuCtx;
 use super::frame::Binds;
 use super::upload::Upload;
@@ -18,7 +19,11 @@ pub enum PickMode {
         cloud: bool, // true = pick cloud points instead
     },
 }
+// --8<-- [end:pick-mode]
 
+// --8<-- [start:lane-trait]
+// A lane is one kind of drawing, such as the background or the meshes, with its own buffers and pipelines.
+// A trait is a set of methods a type promises; every method here has a default body, so a lane writes only what it needs.
 /// The lifecycle every drawing lane shares; a new lane impls this and is named once in `lane_list!` or `REGISTRY`.
 pub trait Lane {
     /// Rebuild pipelines for a new color format or sample count.
@@ -61,7 +66,9 @@ pub trait Lane {
         0
     }
 }
+// --8<-- [end:lane-trait]
 
+// --8<-- [start:registry]
 /// A registered lane's rows: an edited object overwrites or kills them in place.
 pub trait RowLane: Lane {
     /// Overwrite this lane's rows of `up`, starting at row `first`.
@@ -79,13 +86,18 @@ pub struct Registered {
     pub stride: u64,                         // bytes per row
 }
 
+// A registry is a list later lessons add lines to: a new lane is one file plus one line here.
+// It holds `fn` pointers, so nothing is built until Gpu::build calls `make`; it starts empty.
 /// Lanes that live only behind the `Lane` hooks. Adding one means one file and one line here.
 pub const REGISTRY: &[Registered] = &[
 ];
 
 /// How many lanes are registered.
 pub const REGISTERED: usize = REGISTRY.len();
+// --8<-- [end:registry]
 
+// --8<-- [start:lane-rows]
+// `Box<dyn Any>` holds a value of any type and can be asked later which type it is.
 /// Rows for registered lanes, one table per row type, so `Upload` needs no field per lane.
 #[derive(Default)]
 pub struct LaneRows {
@@ -127,7 +139,9 @@ impl LaneRows {
         self.tables = Vec::new();
     }
 }
+// --8<-- [end:lane-rows]
 
+// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -146,3 +160,4 @@ mod tests {
         assert!(rows.get::<Vec<u32>>().is_none());
     }
 }
+// --8<-- [end:tests]

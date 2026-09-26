@@ -1,3 +1,5 @@
+// --8<-- [start:04d-splat-record]
+// --8<-- [start:splat-record]
 use super::buffers::{GpuCtx, bind_group, zeroed_buffer};
 use super::cloud::{Cloud, LodNode, NO_NORMALS, PointBufs};
 use super::instance::Instance;
@@ -22,6 +24,8 @@ const POINT_VERTS: u32 = 6;
 /// Bytes before the records: record count, point total, 0, 0.
 const HEADER_BYTES: u64 = 16;
 
+// Splatting = draw every point as a small square cut to a disc, into a texture of its own, nearest point winning;
+// then one full-screen triangle copies that texture into the scene (the resolve).
 /// One run of points to draw, 160 bytes, as the shader reads it.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -55,6 +59,7 @@ pub struct RecordCx<'a> {
 }
 
 /// What the last point pass depended on; same key = skip it.
+/// A still camera over 13.8 M points redraws nothing: the texture from the last pass is reused.
 #[derive(Clone, PartialEq)]
 struct Key {
     mvp: [f32; 16],   // camera matrix
@@ -63,7 +68,11 @@ struct Key {
     point_count: u32, // points uploaded
     geometry: u64,    // object change count
 }
+// --8<-- [end:splat-record]
+// --8<-- [end:04d-splat-record]
 
+// --8<-- [start:04d-splat-targets]
+// --8<-- [start:splat-targets]
 /// Textures the point pass draws into, made when the first cloud arrives.
 struct SplatTargets {
     depth: Attachment,              // nearest point per pixel
@@ -118,7 +127,11 @@ impl SplatTargets {
         }
     }
 }
+// --8<-- [end:splat-targets]
+// --8<-- [end:04d-splat-targets]
 
+// --8<-- [start:04d-splat-new]
+// --8<-- [start:splat-new]
 /// Settings that differ between the color and id point pipelines.
 struct PointVariant {
     target: Target,      // output format
@@ -135,7 +148,7 @@ pub struct Splat {
     record_buf: wgpu::Buffer,      // records on the GPU
     total: u32,                    // points drawn last pass
     key: Option<Key>,              // what the last pass depended on
-    targets: Option<SplatTargets>, // point textures
+    targets: Option<SplatTargets>, // point textures; None until the first cloud, so a scene without clouds pays nothing
     points_group: wgpu::BindGroup, // records and point buffers, bound
     resolve_shader: Shader,        // resolve shader
     point_pipeline: Pipeline,      // points in color
@@ -205,7 +218,11 @@ impl Splat {
             id_pipeline,
         }
     }
+// --8<-- [end:splat-new]
+// --8<-- [end:04d-splat-new]
 
+// --8<-- [start:04d-splat-state]
+// --8<-- [start:splat-state]
     /// Draw cloud `parent` without LOD while it is edited.
     pub fn set_controls(&mut self, parent: Option<u32>) {
         self.control_parent = parent;
@@ -252,7 +269,11 @@ impl Splat {
     pub fn total(&self) -> u32 {
         self.total
     }
+// --8<-- [end:splat-state]
+// --8<-- [end:04d-splat-state]
 
+// --8<-- [start:04d-splat-passes]
+// --8<-- [start:splat-passes]
     /// Draw the points into their texture, unless nothing changed.
     pub fn prelude(
         &mut self,
@@ -304,6 +325,7 @@ impl Splat {
         );
 
         let Some(targets) = &self.targets else { return };
+        // a render pass of its own, into the point textures, before the scene's passes
         let mut pass = begin_point_pass(encoder, targets);
         pass.set_pipeline(&self.point_pipeline);
         pass.set_bind_group(0, cloud_group, &[]);
@@ -328,6 +350,7 @@ impl Splat {
         pass.set_pipeline(&self.resolve_pipeline);
         pass.set_bind_group(0, cloud_group, &[]);
         pass.set_bind_group(1, &targets.resolve_group, &[]);
+        // one triangle big enough to cover the whole screen, so every pixel runs the resolve once
         pass.draw(0..3, 0..1);
         1
     }
@@ -344,7 +367,11 @@ impl Splat {
         pass.draw(0..POINT_VERTS * self.total, 0..1);
         1
     }
+// --8<-- [end:splat-passes]
+// --8<-- [end:04d-splat-passes]
 
+// --8<-- [start:04d-splat-records]
+// --8<-- [start:splat-records]
     /// Build one record per run of points to draw.
     fn build_records(&mut self, cx: &RecordCx) {
         self.records.clear();
@@ -443,7 +470,11 @@ impl Splat {
         self.total = cum;
     }
 }
+// --8<-- [end:splat-records]
+// --8<-- [end:04d-splat-records]
 
+// --8<-- [start:04d-splat-pipelines]
+// --8<-- [start:splat-pipelines]
 /// Open the point pass: color cleared, depth cleared to far.
 fn begin_point_pass<'a>(
     encoder: &'a mut wgpu::CommandEncoder,
@@ -463,6 +494,7 @@ fn begin_point_pass<'a>(
         depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
             view: &t.depth,
             depth_ops: Some(wgpu::Operations {
+                // reverse depth: 0 is farthest, so any point beats the clear and the nearer of two points wins
                 load: wgpu::LoadOp::Clear(0.0),
                 store: wgpu::StoreOp::Store,
             }),
@@ -512,7 +544,12 @@ fn build_resolve(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -> 
         .depth(DepthMode::Opaque);
     build(ctx, target, &desc)
 }
+// --8<-- [end:splat-pipelines]
+// --8<-- [end:04d-splat-pipelines]
 
+// --8<-- [start:04d-splat-trait]
+// --8<-- [start:splat-trait]
+// Splat joins the lane loop too: its textures are dropped with the rest on release.
 impl super::lane::Lane for Splat {
     fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
         self.retarget(ctx, layouts, target);
@@ -530,3 +567,5 @@ impl super::lane::Lane for Splat {
         self.allocated_bytes()
     }
 }
+// --8<-- [end:splat-trait]
+// --8<-- [end:04d-splat-trait]

@@ -1,3 +1,5 @@
+// --8<-- [start:04c-glyph-rows]
+// --8<-- [start:glyph-rows]
 use super::buffers::{GpuCtx, GrowBuf, ROWS, Template, bind_group};
 use super::frame::Binds;
 use super::upload::drop_rows;
@@ -14,9 +16,11 @@ pub const SHADERS: &[(&str, &str)] = &[
     ("glyph.wgsl", shader!("glyph.wgsl")),
 ];
 
-/// Vertices per dot: one triangle around the disc.
+/// Vertices per dot: one triangle around the disc, half the corners of a quad.
 const DOT_VERTS: u32 = 3;
 
+// Marker = a round spot on a mesh vertex, hidden on the back side like the edges.
+// Dot = a round spot on a free point, drawn whichever way it faces.
 /// One marker or dot, 48 bytes, as the shaders read it.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -25,8 +29,8 @@ pub struct GlyphPoint {
     pub radius: f32,          // 0 = pen width; > 0 world mm; < 0 screen px
     pub color: [f32; 4],      // rgba
     pub instance_id: u32,     // object row
-    pub facing: u32,          // packed normals of the faces around it
-    pub facing_ext: [u32; 2], // more packed normals
+    pub facing: u32,          // two face normals around the vertex, 16 bits each
+    pub facing_ext: [u32; 2], // four more, six normals in all
 }
 
 const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
@@ -45,7 +49,11 @@ impl GlyphRows {
         drop_rows(&mut self.dots);
     }
 }
+// --8<-- [end:glyph-rows]
+// --8<-- [end:04c-glyph-rows]
 
+// --8<-- [start:04c-glyph-lane]
+// --8<-- [start:glyph-lane]
 /// One glyph buffer and its bind group.
 struct GlyphTable {
     label: &'static str,    // name shown in GPU errors
@@ -86,11 +94,15 @@ struct GlyphPipelines {
 pub struct GlyphLane {
     spheres: GlyphTable,   // marker rows
     dots: GlyphTable,      // dot rows
-    template: Template,    // one quad, drawn per marker
+    template: Template,    // one quad in a vertex buffer, drawn once per marker row
     shaders: GlyphShaders, // shader modules
     gpu: GlyphPipelines,   // pipelines
 }
+// --8<-- [end:glyph-lane]
+// --8<-- [end:04c-glyph-lane]
 
+// --8<-- [start:04c-glyph-impl]
+// --8<-- [start:glyph-impl]
 impl GlyphLane {
     /// Overwrite one marker or dot row.
     pub(crate) fn patch_marker(
@@ -114,7 +126,7 @@ impl GlyphLane {
         self.dots.buf.write_at(ctx, at.dots, &up.dots);
     }
 
-    /// Hand `count` marker or dot rows from `first` to the hidden row `sink`.
+    /// Hand `count` marker or dot rows from `first` to the hidden row `sink`; as for strokes, undo stays instant.
     pub(crate) fn kill(&mut self, ctx: &GpuCtx, spheres: bool, first: u32, count: u32, sink: u32) {
         let table = if spheres { &self.spheres } else { &self.dots };
         let dead = GlyphPoint {
@@ -167,7 +179,11 @@ impl GlyphLane {
             self.dots.rebind(ctx, l);
         }
     }
+// --8<-- [end:glyph-impl]
+// --8<-- [end:04c-glyph-impl]
 
+// --8<-- [start:04c-glyph-draw]
+// --8<-- [start:glyph-draw]
     /// Draw the markers in color.
     pub fn draw_spheres(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_markers(pass, b, &self.gpu.sphere)
@@ -203,7 +219,7 @@ impl GlyphLane {
         b.set(pass);
         pass.set_bind_group(3, &self.spheres.group, &[]);
         self.template.bind(pass);
-        // one quad per marker row
+        // the quad's 6 indices, once per marker row: the shader reads row `instance_index`
         pass.draw_indexed(0..self.template.index_count, 0, 0..self.spheres.buf.len());
         1
     }
@@ -251,7 +267,11 @@ impl GlyphLane {
         self.dots.buf.len()
     }
 }
+// --8<-- [end:glyph-draw]
+// --8<-- [end:04c-glyph-draw]
 
+// --8<-- [start:04c-glyph-pipelines]
+// --8<-- [start:glyph-pipelines]
 /// Build the five glyph pipelines.
 fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &GlyphShaders, target: Target) -> GlyphPipelines {
     let groups = [&l.mvp, &l.line, &l.ink_instance, &l.ink_rows];
@@ -296,6 +316,7 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &GlyphShaders, target: Target) 
                 .with("glyph.source", "fs_source_id")
                 .vertex("vs_source")
                 .scene_samples(1)
+                // only the dot in front survives, so a pick hits the point you see
                 .depth(DepthMode::OpaqueEqual),
         ),
     }
@@ -312,7 +333,11 @@ fn unit_quad() -> (Vec<[f32; 3]>, Vec<u32>) {
     let idx = vec![0u32, 1, 2, 0, 2, 3];
     (v, idx)
 }
+// --8<-- [end:glyph-pipelines]
+// --8<-- [end:04c-glyph-pipelines]
 
+// --8<-- [start:04c-glyph-tests]
+// --8<-- [start:glyph-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -342,7 +367,12 @@ mod tests {
         assert_eq!(std::mem::offset_of!(GlyphPoint, facing_ext), 40);
     }
 }
+// --8<-- [end:glyph-tests]
+// --8<-- [end:04c-glyph-tests]
 
+// --8<-- [start:04c-glyph-trait]
+// --8<-- [start:glyph-trait]
+// The same Lane trait as the strokes: one loop in Gpu retargets, resets and releases both.
 impl super::lane::Lane for GlyphLane {
     fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
         self.retarget(ctx, layouts, target);
@@ -360,3 +390,5 @@ impl super::lane::Lane for GlyphLane {
         (self.allocated_bytes(), 0)
     }
 }
+// --8<-- [end:glyph-trait]
+// --8<-- [end:04c-glyph-trait]

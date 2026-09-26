@@ -1,3 +1,4 @@
+// --8<-- [start:frame]
 use super::Gpu;
 use super::buffers::GpuCtx;
 use super::frame::{Binds, FrameInput, MAX_PLANES};
@@ -12,7 +13,11 @@ pub struct Frame<'a> {
     pub tier: u8,                    // drag tier; 0 is full quality
     pub rough: bool,                 // ink tests against the fitted planes alone; register:tiles
 }
+// --8<-- [end:frame]
 
+// --8<-- [start:pass-trait]
+// A pass is one optional stage of the frame, such as clipping or ambient occlusion, that owns its GPU state.
+// `Lane + Any`: every pass is also a lane, and `Any` lets `pass::<T>()` find it by its type.
 /// One optional pass of the frame owning its GPU state; each hook runs on every pass in `PASSES` order.
 pub trait Pass: Lane + Any {
     /// Before anything of the frame is encoded.
@@ -96,24 +101,31 @@ pub trait Pass: Lane + Any {
         None
     }
 }
+// --8<-- [end:pass-trait]
 
+// --8<-- [start:passes]
+// Empty in the first lessons: each pass a later lesson writes adds one line here.
 /// The passes in frame order. Adding one means its `Pass` impl in one file and one line here.
 pub const PASSES: &[fn(&GpuCtx, Target) -> Box<dyn Pass>] = &[
     super::instanced::pass,       // register:instanced
     super::surface_outline::pass, // register:outline
 ];
 
+// `pub(super)` = visible to the parent module, `gpu`, and no further.
 /// Stands in the list for a pass while its own hook runs.
 pub(super) struct Nothing;
 
 impl Lane for Nothing {}
 
 impl Pass for Nothing {}
+// --8<-- [end:passes]
 
+// --8<-- [start:each-pass]
 impl Gpu {
     /// Run `f` on every pass in order with the rest of the GPU; the pass is out of the list meanwhile.
     pub(super) fn each_pass(&mut self, mut f: impl FnMut(&mut dyn Pass, &mut Gpu)) {
         for i in 0..self.passes.len() {
+            // `mem::replace` takes the pass out and leaves `Nothing` in its slot, so the pass and the rest of `self` can both be borrowed mutably
             let mut pass = std::mem::replace(&mut self.passes[i], Box::new(Nothing));
             f(pass.as_mut(), self);
             self.passes[i] = pass;
@@ -149,3 +161,4 @@ pub(super) fn find_mut<T: Pass>(passes: &mut [Box<dyn Pass>]) -> &mut T {
         .find_map(|pass| (pass.as_mut() as &mut dyn Any).downcast_mut::<T>())
         .expect("a registered pass")
 }
+// --8<-- [end:each-pass]

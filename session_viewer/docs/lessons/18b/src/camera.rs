@@ -1,3 +1,4 @@
+// --8<-- [start:units]
 use session_rust::{AABB, Point, Quaternion, Vector, Xform};
 
 pub use crate::engine::gpu::frame::FOVY_DEG;
@@ -33,12 +34,14 @@ pub enum View {
     Bottom,
     Iso,
 }
+// --8<-- [end:units]
 
+// --8<-- [start:camera]
 /// Orbit camera: an orientation, a target and a distance.
 pub struct Camera {
     pub target: [f64; 3],        // the point looked at, meters
     pub distance: f64,           // eye to target, meters
-    pub orientation: Quaternion, // where the camera faces
+    pub orientation: Quaternion, // where the camera faces; a quaternion stores a rotation in 4 numbers and never locks up the way angles do
     pub world_up: [f64; 3],      // the axis yaw turns around
     pub position: [f64; 3],      // the eye, computed from the above
     pub up: [f64; 3],            // the up direction, computed from the above
@@ -55,7 +58,9 @@ pub struct CameraPose {
     up: [f64; 3],       // the up direction
     perspective: bool,  // false = orthographic
 }
+// --8<-- [end:camera]
 
+// --8<-- [start:camera-new]
 impl Camera {
     /// The current pose.
     pub fn pose(&self) -> CameraPose {
@@ -93,7 +98,9 @@ impl Camera {
 
         cam
     }
+// --8<-- [end:camera-new]
 
+// --8<-- [start:navigate]
     /// Turn the camera around the target by mouse pixels.
     pub fn orbit(&mut self, dx: f32, dy: f32) {
         let wu = Vector::new(self.world_up[0], self.world_up[1], self.world_up[2]);
@@ -102,6 +109,7 @@ impl Camera {
         let yaw_q = Quaternion::from_axis_angle(wu, (-dx * 0.005) as f64);
         let pitch_q = Quaternion::from_axis_angle(right, (-dy * 0.005) as f64);
 
+        // multiplying quaternions chains rotations; `normalized` stops rounding drift from creeping in
         self.orientation = (yaw_q * (pitch_q * self.orientation.duplicate())).normalized();
         self.update_position();
     }
@@ -124,7 +132,9 @@ impl Camera {
         self.distance = zoom_distance(self.distance, amount);
         self.update_position();
     }
+// --8<-- [end:navigate]
 
+// --8<-- [start:ray]
     /// The world ray under a cursor pixel: origin and unit direction, scene units.
     pub fn ray(&self, cursor: (f64, f64), viewport: (f64, f64)) -> Option<(Point, Vector)> {
         // no ray for an empty viewport or a lost cursor
@@ -186,7 +196,9 @@ impl Camera {
             Vector::new(dir[0] / length, dir[1] / length, dir[2] / length),
         ))
     }
+// --8<-- [end:ray]
 
+// --8<-- [start:zoom-at]
     /// Zoom so the point under the cursor stays under the cursor.
     pub fn zoom_at(&mut self, amount: f32, cursor: (f64, f64), viewport: (f64, f64)) {
         // nothing for an empty viewport or a lost cursor
@@ -265,7 +277,9 @@ impl Camera {
         );
         self.fit(&clipped, aspect);
     }
+// --8<-- [end:zoom-at]
 
+// --8<-- [start:view-proj]
     /// The target in scene units.
     pub fn origin(&self) -> Point {
         let s = self.unit.to_meters();
@@ -316,15 +330,17 @@ impl Camera {
             self.target[2] - anchor[2],
         );
         let up = Vector::new(self.up[0], self.up[1], self.up[2]);
-        let view = Xform::look_at_right_handed(&eye, &target, &up);
+        let view = Xform::look_at_right_handed(&eye, &target, &up); // world axes to camera axes, with the eye at the origin
 
         // scene units to meters
         let s = self.unit.to_meters();
         let scale = Xform::scale_xyz(s, s, s);
 
-        projection * view * scale
+        projection * view * scale // read right to left: scale to meters, then the view, then the projection
     }
+// --8<-- [end:view-proj]
 
+// --8<-- [start:standard-views]
     /// Turn to a named view, orthographic.
     pub fn set_view(&mut self, view: View) {
         use std::f64::consts::{FRAC_PI_2, FRAC_PI_6, PI};
@@ -352,7 +368,9 @@ impl Camera {
     pub fn reset(&mut self) {
         *self = Camera::new();
     }
+// --8<-- [end:standard-views]
 
+// --8<-- [start:fit]
     /// Frame a box: look at its center, back off until it fits.
     pub fn fit(&mut self, bounds: &AABB, aspect: f64) {
         if !bounds.is_valid() {
@@ -447,7 +465,9 @@ impl Camera {
 fn dot3(p: &[f64; 3], v: &Vector) -> f64 {
     p[0] * v[0] + p[1] * v[1] + p[2] * v[2]
 }
+// --8<-- [end:fit]
 
+// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -552,7 +572,9 @@ mod tests {
         }
     }
 }
+// --8<-- [end:tests]
 
+// --8<-- [start:zoom-distance]
 /// The distance after `amount` wheel steps, 0.9 per step.
 fn zoom_distance(distance: f64, amount: f32) -> f64 {
     if !amount.is_finite() {
@@ -562,7 +584,9 @@ fn zoom_distance(distance: f64, amount: f32) -> f64 {
     // at most ten steps per event, never zero
     (distance * 0.9_f64.powf(f64::from(amount).clamp(-10.0, 10.0))).clamp(1.0e-6, 1.0e15)
 }
+// --8<-- [end:zoom-distance]
 
+// --8<-- [start:wheel-tests]
 #[cfg(test)]
 mod wheel_tests {
     #[cfg(test)]
@@ -702,3 +726,4 @@ mod wheel_tests {
         );
     }
 }
+// --8<-- [end:wheel-tests]

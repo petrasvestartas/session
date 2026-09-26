@@ -1,3 +1,5 @@
+// --8<-- [start:04d-resolve-bindings]
+// --8<-- [start:resolve-bindings]
 // Point cloud settings, 48 bytes; matches CloudUniform in Rust.
 struct CloudUniform {
     size: f32, // point size scale; applied on the CPU
@@ -21,6 +23,7 @@ struct VsOut {
 
 @vertex
 // Place the three corners of a screen-covering triangle.
+// Corners (-1,-1), (3,-1), (-1,3): the part inside -1..1 is exactly the screen, with no diagonal seam.
 fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     var o: VsOut;
     let x = f32(i32(vid & 1u) * 4 - 1);
@@ -28,7 +31,11 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.pos = vec4<f32>(x, y, 0.0, 1.0);
     return o;
 }
+// --8<-- [end:resolve-bindings]
+// --8<-- [end:04d-resolve-bindings]
 
+// --8<-- [start:04d-resolve-shade]
+// --8<-- [start:resolve-shade]
 // Output: color, triangle id, and the depth written to the scene.
 struct FsOut {
     @location(0) color: vec4<f32>, // rgba
@@ -54,7 +61,8 @@ fn shade(in: VsOut) -> FsOut {
     var o: FsOut;
     var rgb = textureLoad(scolor, pix, 0).rgb;
 
-    // eye-dome lighting: darken where neighbours are nearer
+    // eye-dome lighting (EDL): points have no surface to shade, so darken a pixel where its neighbours are nearer,
+    // which draws outlines around shapes from depth alone
     if (cloud.edl > 0.0) {
         let w = i32(cloud.vp_w);
         let h = i32(cloud.vp_h);
@@ -94,3 +102,5 @@ fn shade(in: VsOut) -> FsOut {
 fn fs_main(in: VsOut) -> FsOut {
     return shade(in);
 }
+// --8<-- [end:resolve-shade]
+// --8<-- [end:04d-resolve-shade]

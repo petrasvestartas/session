@@ -1,25 +1,24 @@
-// One mesh vertex, as the arena stores it.
+// --8<-- [start:outline-shader]
+// No @location(1): print needs no normal, and an attribute the shader does not declare is ignored.
 struct Vertex {
-    @location(0) position: vec3<f32>, // object-space position
-    @location(2) color: vec4<f32>, // rgba
+    @location(0) position: vec3<f32>, // object space
+    @location(2) color: vec4<f32>,
     @location(3) object: u32, // object row
 }
 
-// What the vertex shader hands the fragment shader.
 struct Fragment {
-    @builtin(position) position: vec4<f32>, // clip position
-    @location(0) color: vec4<f32>, // rgba
-    @location(1) @interpolate(flat) object: u32, // object row
+    @builtin(position) position: vec4<f32>,
+    @location(0) color: vec4<f32>,
+    @location(1) @interpolate(flat) object: u32,
 }
 
-// Place the vertex; color is flat, yellow when selected.
+// Sheet fills and lettering are print: flat colour, no light, yellow when selected.
 @vertex
 fn vs_main(vertex: Vertex) -> Fragment {
     let instance = instances[vertex.object];
     var out: Fragment;
     out.object = vertex.object;
 
-    // hidden: off screen
     if (instance.flags & FLAG_HIDDEN) != 0u {
         out.position = vec4<f32>(3.0, 3.0, 0.5, 1.0);
         out.color = vec4<f32>(0.0);
@@ -34,12 +33,11 @@ fn vs_main(vertex: Vertex) -> Fragment {
     return out;
 }
 
-// True when a clipping plane cuts this fragment away, tested in canvas clip space.
+// In a fragment shader @builtin(position) is the pixel, so the test runs in canvas clip space.
 fn cut(fragment: Fragment) -> bool {
     return clip_active() && clip_cut_ndc(0u, clip_ndc(fragment.position.xy + line.origin, line.frame, fragment.position.z));
 }
 
-// Flat color.
 @fragment
 fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
     if (cut(fragment)) {
@@ -49,7 +47,7 @@ fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
     return fragment.color;
 }
 
-// Object id; no triangle id.
+// Second output 0: print has no triangle id.
 @fragment
 fn fs_physical_id(fragment: Fragment) -> PhysicalId {
     if (cut(fragment)) {
@@ -60,7 +58,6 @@ fn fs_physical_id(fragment: Fragment) -> PhysicalId {
 }
 
 @fragment
-// Object id.
 fn fs_id(fragment: Fragment) -> @location(0) vec2<u32> {
     if (cut(fragment)) {
         discard;
@@ -68,3 +65,4 @@ fn fs_id(fragment: Fragment) -> @location(0) vec2<u32> {
 
     return vec2<u32>(fragment.object + 1u, 0u);
 }
+// --8<-- [end:outline-shader]

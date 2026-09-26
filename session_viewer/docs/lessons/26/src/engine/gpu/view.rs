@@ -1,3 +1,4 @@
+// --8<-- [start:view]
 /// Display settings; most start from a `?query` or an env variable.
 pub struct View {
     pub ssao: bool,               // ambient occlusion on
@@ -21,6 +22,7 @@ pub struct View {
 }
 
 impl View {
+    /// Arctic: ambient occlusion on, and the outlines with it.
     pub fn set_arctic(&mut self, on: bool) {
         self.ssao = on;
         if on {
@@ -52,7 +54,10 @@ impl View {
         }
     }
 }
+// --8<-- [end:view]
 
+// --8<-- [start:pixel-ratio]
+// Device pixel ratio = real pixels per CSS pixel: 2 on most phones and Retina screens.
 /// Framebuffer pixels per CSS pixel, capped by `?dpr=`.
 pub fn device_pixel_ratio() -> f64 {
     #[cfg(target_arch = "wasm32")]
@@ -72,6 +77,7 @@ pub fn device_pixel_ratio() -> f64 {
     }
 }
 
+// A `static` lives for the whole program; an atomic can change without `mut` and without a lock.
 /// True once the page dropped to device scale 1 without MSAA.
 static REDUCED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
@@ -100,7 +106,10 @@ pub fn surface_per_physical() -> f64 {
         1.0
     }
 }
+// --8<-- [end:pixel-ratio]
 
+// --8<-- [start:knobs]
+// A knob is one setting read at start: `?msaa=4` in the page URL, `VIEWER_MSAA=4` in a native test.
 /// One setting's text: `?query=` in the browser, `ENV` natively.
 pub fn knob(env: &str, query: &str) -> Option<String> {
     #[cfg(target_arch = "wasm32")]
@@ -129,7 +138,7 @@ fn knob_f32(env: &str, query: &str, default: f32) -> f32 {
 
 /// An integer setting, or None.
 fn knob_u32(env: &str, query: &str) -> Option<u32> {
-    knob(env, query)?.parse().ok()
+    knob(env, query)?.parse().ok() // `?` works on an Option too: None returns None
 }
 
 /// The `?name=` value of the page URL.
@@ -151,3 +160,4 @@ pub fn query(name: &str) -> Option<String> {
 
     None
 }
+// --8<-- [end:knobs]

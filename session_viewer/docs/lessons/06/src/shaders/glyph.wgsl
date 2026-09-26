@@ -1,3 +1,5 @@
+// --8<-- [start:04c-dot-row]
+// --8<-- [start:dot-row]
 // One marker or dot, 48 bytes; matches GlyphPoint in Rust.
 struct GlyphPoint {
     center: vec3<f32>, // world position
@@ -11,6 +13,7 @@ struct GlyphPoint {
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>; // one row per marker
 
 // One triangle around the disc; the fragment shader cuts the circle.
+// The corners sit 2 units from the center, so the unit circle just fits inside the triangle.
 const CORNERS = array<vec2<f32>, 3>(
     vec2<f32>(0.0, 2.0),
     vec2<f32>(-1.7320508, -1.0),
@@ -29,7 +32,11 @@ struct VsOut {
     @location(6) @interpolate(flat) depth: f32, // disc depth, 0..1
     @location(7) @interpolate(flat) point_index: u32, // row in the glyph table
 };
+// --8<-- [end:dot-row]
+// --8<-- [end:04c-dot-row]
 
+// --8<-- [start:04c-dot-vertex]
+// --8<-- [start:dot-vertex]
 // A vertex placed off screen, so nothing is drawn.
 fn dead_dot() -> VsOut {
     var dead: VsOut; // all zero; only the position matters
@@ -87,7 +94,7 @@ fn glyph_vertex(vid: u32) -> VsOut {
     }
 
     let corner = CORNERS[vid % 3u];
-    // corner offset in clip units
+    // corner offset in clip units: px to the -1..1 range is 2 / size, and times w survives the divide
     let off = corner * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
 
     var o: VsOut;
@@ -109,13 +116,17 @@ fn glyph_vertex(vid: u32) -> VsOut {
     o.point_index = vid / 3u;
     return o;
 }
+// --8<-- [end:dot-vertex]
+// --8<-- [end:04c-dot-vertex]
 
+// --8<-- [start:04c-dot-fragments]
+// --8<-- [start:dot-fragments]
 // Edge softness in px, never wider than the disc itself.
 fn ramp(half_width: f32) -> f32 {
     return min(line.feather, 2.0 * half_width);
 }
 
-// How much of this pixel the disc covers, 0..1.
+// How much of this pixel the disc covers, 0..1: 1 inside the radius, falling to 0 across the feather.
 fn coverage(in: VsOut) -> f32 {
     let d = length(in.corner) * (in.px + 0.5 * line.feather);
     let f = ramp(in.px);
@@ -175,3 +186,5 @@ fn fs_source_id(in: VsOut) -> @location(0) vec2<u32> {
 
     return vec2<u32>(in.inst_id + 1u, in.point_index + 1u);
 }
+// --8<-- [end:dot-fragments]
+// --8<-- [end:04c-dot-fragments]

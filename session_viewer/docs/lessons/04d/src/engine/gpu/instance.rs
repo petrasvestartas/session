@@ -1,5 +1,7 @@
+// --8<-- [start:instance]
 use session_rust::Xform;
 
+// A row is one object's small record for the shaders: 96 bytes, however many triangles the object has.
 /// One object row as the shaders read it, 96 bytes.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -15,6 +17,7 @@ pub struct Instance {
 const _: () = assert!(std::mem::size_of::<Instance>() == 96);
 
 impl Instance {
+    // Each flag is one bit of `flags`, so one u32 holds up to 32 switches.
     /// Selected: drawn tinted.
     pub const FLAG_SELECTED: u32 = 1 << 0;
 
@@ -63,6 +66,7 @@ impl Instance {
     /// A curve with arrowheads: its ribbons look along the curve for a head to stop under.
     pub const FLAG_HEADS: u32 = 1 << 15;
 
+    // A storage buffer may not be empty, so an empty scene still binds this one row.
     /// The one row an empty scene binds: identity, grey, no flags.
     pub fn placeholder() -> Self {
         Self {
@@ -75,7 +79,9 @@ impl Instance {
         }
     }
 }
+// --8<-- [end:instance]
 
+// --8<-- [start:tests]
 /// Field names of a WGSL struct, in order.
 #[cfg(test)]
 pub(crate) fn wgsl_fields(src: &str, struct_name: &str) -> Vec<String> {
@@ -167,3 +173,4 @@ mod tests {
         assert_eq!(&Instance::placeholder().model[12..15], &[0.0; 3]);
     }
 }
+// --8<-- [end:tests]

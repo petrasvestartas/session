@@ -1,6 +1,8 @@
+// --8<-- [start:lane-ids]
 use super::Upload;
 use super::lane::{REGISTERED, REGISTRY};
 
+// An edit rewrites one object's rows where they already are; these types say which lane tables it touches and how many rows.
 /// One row table of the editable lanes.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 pub(crate) enum LaneId {
@@ -27,7 +29,9 @@ impl LaneId {
         }
     }
 }
+// --8<-- [end:lane-ids]
 
+// --8<-- [start:counts]
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 /// Row counts per lane, for placing one object's rows.
 pub(crate) struct Counts {
@@ -106,10 +110,13 @@ impl Counts {
             .sum()
     }
 }
+// --8<-- [end:counts]
 
+// --8<-- [start:span]
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 /// Where one object's rows sit: first row and row count per lane.
 pub(crate) struct Span {
     pub start: Counts, // first row per lane
     pub count: Counts, // rows per lane
 }
+// --8<-- [end:span]

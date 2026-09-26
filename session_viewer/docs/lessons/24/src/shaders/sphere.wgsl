@@ -1,3 +1,7 @@
+// --8<-- [start:04c-marker-row]
+// --8<-- [start:marker-row]
+// A marker is an impostor: a camera-facing quad cut to a disc in the fragment shader,
+// 4 vertices where a sphere mesh would need hundreds, and it looks the same from every side.
 // One marker or dot, 48 bytes; matches GlyphPoint in Rust.
 struct GlyphPoint {
     center: vec3<f32>, // world position
@@ -50,8 +54,13 @@ fn dead_dot() -> VsOut {
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
     return dead;
 }
+// --8<-- [end:marker-row]
+// --8<-- [end:04c-marker-row]
 
+// --8<-- [start:04c-marker-facing]
+// --8<-- [start:marker-facing]
 // (has face normals, one of them faces the camera).
+// A vertex on the back of a closed mesh has every face turned away: its marker hides like the edges there.
 fn faces_front(g: GlyphPoint, model: mat4x4<f32>, to_eye: vec3<f32>) -> vec2<bool> {
     let fwords = array<u32, 3>(g.facing, g.facing_ext.x, g.facing_ext.y);
     var known = false;
@@ -65,6 +74,7 @@ fn faces_front(g: GlyphPoint, model: mat4x4<f32>, to_eye: vec3<f32>) -> vec2<boo
 
         known = true;
 
+        // each word holds two normals: bits 0-15 and bits 16-31
         for (var h = 0u; h < 2u; h = h + 1u) {
             let n = face_normal(model, oct16_decode((fw >> (16u * h)) & 0xffffu));
 
@@ -76,7 +86,11 @@ fn faces_front(g: GlyphPoint, model: mat4x4<f32>, to_eye: vec3<f32>) -> vec2<boo
 
     return vec2<bool>(known, false);
 }
+// --8<-- [end:marker-facing]
+// --8<-- [end:04c-marker-facing]
 
+// --8<-- [start:04c-marker-vertex]
+// --8<-- [start:marker-vertex]
 @vertex
 // Place one corner of a marker's quad; back markers show faint through translucent faces.
 fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> VsOut {
@@ -137,6 +151,7 @@ fn marker_vertex(tmpl: vec3<f32>, gi: u32, through_faces: bool) -> VsOut {
     }
 
     // back-facing vertices are skipped, unless inside, open, x-ray or behind glass
+    // glass: see-through faces (lesson 36) let back markers show faint, as ribbon.wgsl does for back edges
     let glass = through_faces && line.opacity < 1.0;
     let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || line.opacity <= 0.0 || glass;
 
@@ -165,7 +180,11 @@ fn marker_vertex(tmpl: vec3<f32>, gi: u32, through_faces: bool) -> VsOut {
     o.depth = clip.z / clip.w;
     return o;
 }
+// --8<-- [end:marker-vertex]
+// --8<-- [end:04c-marker-vertex]
 
+// --8<-- [start:04c-marker-fragments]
+// --8<-- [start:marker-fragments]
 // Edge softness in px, never wider than the disc itself.
 fn ramp(half_width: f32) -> f32 {
     return min(line.feather, 2.0 * half_width);
@@ -207,3 +226,5 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
 
     return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);
 }
+// --8<-- [end:marker-fragments]
+// --8<-- [end:04c-marker-fragments]

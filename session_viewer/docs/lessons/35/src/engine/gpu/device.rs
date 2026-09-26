@@ -1,6 +1,10 @@
+// --8<-- [start:setup]
 use std::sync::Arc;
 use winit::window::Window;
 
+// Instance = the entry point to the GPU API: WebGPU in the browser, Vulkan, Metal or DX12 natively.
+// Adapter = one physical GPU the instance found.
+// Headless = no window: a test draws into a texture and reads it back.
 /// Everything `open` set up.
 pub struct DeviceSetup {
     pub surface: Option<wgpu::Surface<'static>>, // the canvas; None when headless
@@ -8,12 +12,15 @@ pub struct DeviceSetup {
     pub queue: wgpu::Queue,                      // runs GPU commands
     pub config: wgpu::SurfaceConfiguration,      // size and format of the canvas
     pub device_type: wgpu::DeviceType,           // discrete, integrated or CPU
-    pub failure: Arc<std::sync::Mutex<Option<String>>>, // first GPU error, read each frame
+    pub failure: Arc<std::sync::Mutex<Option<String>>>, // first GPU error; Arc shares it with the error callback, Mutex lets one side at a time touch it
 }
+// --8<-- [end:setup]
 
+// --8<-- [start:open]
+// An `async fn` returns a future: `.await` below pauses until the browser answers, without blocking the page.
 /// Open the GPU: instance, surface, adapter, device, surface config.
 pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Result<DeviceSetup> {
-    // WebGPU in the browser, native APIs otherwise
+    // WebGPU in the browser, native APIs otherwise; `cfg!` is a compile-time true or false
     let backends = if cfg!(target_arch = "wasm32") {
         wgpu::Backends::BROWSER_WEBGPU
     } else {
@@ -29,7 +36,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
 
     // the window's drawing surface, if there is a window
     let surface = match &window {
-        Some(w) => Some(instance.create_surface(w.clone())?),
+        Some(w) => Some(instance.create_surface(w.clone())?), // `?` hands an error straight back to our caller
         None => None,
     };
 
@@ -100,11 +107,12 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
             ..Default::default()
         })
         .await?;
-    // browser errors are stored, not thrown
+    // the browser reports errors later, through callbacks: keep the first for the status line
     let failure = Arc::new(std::sync::Mutex::new(None));
     #[cfg(target_arch = "wasm32")]
     {
         let errors = failure.clone();
+        // `move`: the closure owns `errors`, since it runs long after `open` has returned
         device.on_uncaptured_error(Arc::new(move |error| remember_gpu_error(&errors, error)));
         let lost = failure.clone();
         // ask for a frame so the loss is seen
@@ -120,7 +128,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
     #[cfg(not(target_arch = "wasm32"))]
     device.on_uncaptured_error(Arc::new(report_gpu_error));
 
-    // prefer an sRGB canvas format
+    // prefer an sRGB format: the GPU converts our linear colours to what the screen expects
     let (format, present_mode, alpha_mode) = match &surface {
         Some(s) => {
             let caps = s.get_capabilities(&adapter);
@@ -137,7 +145,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         }
         None => (
             wgpu::TextureFormat::Rgba8UnormSrgb,
-            wgpu::PresentMode::Fifo,
+            wgpu::PresentMode::Fifo, // Fifo = one frame per screen refresh
             wgpu::CompositeAlphaMode::Auto,
         ),
     };
@@ -149,7 +157,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         present_mode,
         alpha_mode,
         view_formats: vec![],
-        desired_maximum_frame_latency: 2,
+        desired_maximum_frame_latency: 2, // at most two frames queued ahead of the screen
     };
 
     if let Some(s) = &surface {
@@ -166,7 +174,9 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         failure,
     })
 }
+// --8<-- [end:open]
 
+// --8<-- [start:helpers]
 /// Pick the native GPU named by `VIEWER_ADAPTER`, if any.
 async fn named_adapter(
     instance: &wgpu::Instance,
@@ -206,7 +216,9 @@ fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String)
 fn report_gpu_error(e: wgpu::Error) {
     panic!("wgpu: {e}");
 }
+// --8<-- [end:helpers]
 
+// --8<-- [start:shader-test]
 /// A broken shader must reach the error callback.
 #[cfg(all(test, not(target_arch = "wasm32")))]
 #[test]
@@ -223,7 +235,9 @@ fn invalid_gpu_shader_is_fatal() {
             ),
         });
 }
+// --8<-- [end:shader-test]
 
+// --8<-- [start:browser-errors]
 /// Store a browser GPU error.
 #[cfg(target_arch = "wasm32")]
 fn remember_gpu_error(failure: &std::sync::Mutex<Option<String>>, error: wgpu::Error) {
@@ -242,7 +256,9 @@ fn remember_device_loss(
         format!("WebGPU device lost ({reason:?}): {message}"),
     );
 }
+// --8<-- [end:browser-errors]
 
+// --8<-- [start:tests]
 #[cfg(test)]
 #[test]
 /// The first stored error stays when more arrive.
@@ -255,3 +271,4 @@ fn first_gpu_error_survives_follow_on_submission_errors() {
         Some("texture allocation failed")
     );
 }
+// --8<-- [end:tests]

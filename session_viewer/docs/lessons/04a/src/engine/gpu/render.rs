@@ -1,7 +1,9 @@
+// --8<-- [start:encode]
 use super::Gpu;
 use super::frame::Binds;
 use super::pass::Frame;
 
+// `impl Gpu` blocks may sit in any file of the crate: this one adds the frame encoding.
 impl Gpu {
     /// Encode one frame into `view`; returns (draws, objects).
     pub fn encode_frame(
@@ -29,7 +31,9 @@ impl Gpu {
         self.each_pass(|pass, g| draws += pass.after_faces(g, encoder, &frame));
         (draws, self.objects.len())
     }
+// --8<-- [end:encode]
 
+// --8<-- [start:face-passes]
     /// The first pass: each pass's own face passes, then the one the faces draw in.
     fn face_passes(&mut self, encoder: &mut wgpu::CommandEncoder, f: &Frame) -> u32 {
         let mut draws = 0;
@@ -69,8 +73,10 @@ impl Gpu {
         draws
     }
 }
+// --8<-- [end:face-passes]
 
-// --8<-- [start:02]
+// --8<-- [start:02-grid]
+// --8<-- [start:grid-list]
 impl Gpu {
     /// The grid, when shown.
     fn grid_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
@@ -81,4 +87,5 @@ impl Gpu {
         }
     }
 }
-// --8<-- [end:02]
+// --8<-- [end:grid-list]
+// --8<-- [end:02-grid]

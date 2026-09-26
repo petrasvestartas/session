@@ -1,8 +1,10 @@
+// --8<-- [start:math]
 use super::upload::Upload;
 use session_rust::{AABB, Xform};
 use std::rc::Rc;
 
 /// Points that can be extreme in some direction: every hull corner of a set, a few inner points at most.
+// `Rc<[T]>` = a shared list of fixed length: a clone copies a pointer, not the points
 pub type Hull = Rc<[[f32; 3]]>;
 
 /// Least signed volume, in the unit-scaled frame, that puts a point above a face.
@@ -50,7 +52,9 @@ fn farthest(
 
     best
 }
+// --8<-- [end:math]
 
+// --8<-- [start:points]
 /// Points inside rows of plain words: `stride` words a row, a point at each of `offsets`.
 #[derive(Clone, Copy)]
 pub struct Points<'a> {
@@ -79,7 +83,9 @@ impl<'a> Points<'a> {
         [self.words[w], self.words[w + 1], self.words[w + 2]]
     }
 }
+// --8<-- [end:points]
 
+// --8<-- [start:extreme]
 /// The points a linear function can peak at: the corners of their convex hull, and perhaps a few
 /// points inside it. A box placed by any transform is exact over these alone. None when more than
 /// `MOST` would be kept.
@@ -220,7 +226,9 @@ pub fn extreme_points(points: Points) -> Option<Vec<[f32; 3]>> {
 
     keep(&kept)
 }
+// --8<-- [end:extreme]
 
+// --8<-- [start:boxes]
 /// The world box of `points` placed by `place`, in f64.
 pub fn placed_box(points: &[[f32; 3]], place: &Xform) -> AABB {
     let m = &place.m;
@@ -254,7 +262,9 @@ fn spans(hull: &[[f32; 3]], bounds: &AABB) -> bool {
         .iter()
         .all(|(a, b)| (a - b).abs() <= tolerance)
 }
+// --8<-- [end:boxes]
 
+// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -361,8 +371,10 @@ mod tests {
         assert!(ends.contains(&[0.0, 0.0, 0.0]) && ends.contains(&[19.0, 38.0, 0.0]));
     }
 }
+// --8<-- [end:tests]
 
-// --8<-- [start:04d]
+// --8<-- [start:04d-hull-of]
+// --8<-- [start:hull-of]
 /// The extreme points of every vertex, segment end and marker one walk wrote, with `more`; None
 /// when the walk wrote rows without points here, or its points do not span `bounds`.
 pub fn hull_of(up: &Upload, more: &[[f32; 3]], bounds: &AABB) -> Option<Hull> {
@@ -394,4 +406,5 @@ pub fn hull_of(up: &Upload, more: &[[f32; 3]], bounds: &AABB) -> Option<Hull> {
     let hull = extreme_points(Points::of(&points, &[0]))?;
     spans(&hull, bounds).then(|| Hull::from(hull))
 }
-// --8<-- [end:04d]
+// --8<-- [end:hull-of]
+// --8<-- [end:04d-hull-of]

@@ -1,3 +1,4 @@
+// --8<-- [start:performance]
 /// Frame timing, the drag quality tiers and the slow-interaction detector.
 pub struct Performance {
     prev_frame: f64,       // time of the last frame, ms
@@ -38,7 +39,9 @@ const SLOW_FRAME_MS: f64 = 100.0;
 
 /// This many slow frames in a row mean the GPU cannot keep up.
 const SLOW_FRAMES: u32 = 30;
+// --8<-- [end:performance]
 
+// --8<-- [start:performance-frame]
 impl Performance {
     /// Start the clock now.
     pub fn new() -> Self {
@@ -189,7 +192,9 @@ impl Performance {
         }
     }
 }
+// --8<-- [end:performance-frame]
 
+// --8<-- [start:clock]
 /// Milliseconds now: `performance.now()` in the browser.
 #[cfg(target_arch = "wasm32")]
 pub fn now_ms() -> f64 {
@@ -210,6 +215,7 @@ pub fn mark(name: &str) {
 /// A startup milestone: time since the first one, with the pipelines and shaders made so far.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn mark(name: &str) {
+    // a `static` OnceLock is set once, on first use, and shared for the program's life
     static START: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
     let ms = START
         .get_or_init(std::time::Instant::now)
@@ -291,7 +297,9 @@ pub fn perf_line(text: &str) {
     };
     el.set_text_content(Some(text));
 }
+// --8<-- [end:clock]
 
+// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -434,3 +442,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:tests]

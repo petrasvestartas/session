@@ -1,3 +1,5 @@
+// --8<-- [start:04b-vector-row]
+// --8<-- [start:vector-row]
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
 use super::frame::Binds;
 use super::lane::PickMode;
@@ -13,9 +15,11 @@ use wgpu::PrimitiveTopology::TriangleList;
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[("vector.wgsl", shader!("vector.wgsl"))];
 
-/// Vertices per vector: a shaft quad and a quad per head.
+/// Vertices per vector: a shaft quad and a quad per head, 3 x 6.
 const VECTOR_VERTS: u32 = 18;
 
+// An arrow is exactly as long as its line: the tip lands on the end point, the shaft stops under the head's base,
+// and an end without a head is cut flat at its point, with no round cap poking past it.
 /// One vector as the shader reads it: a head's tip lands on its point, a bare end is cut flat there.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
@@ -31,6 +35,7 @@ pub struct VectorRow {
     pub pad: u32,         //  44    4  -> 48, a multiple of 16
 }
 
+// Associated constants live on the type, so callers write VectorRow::HEAD_END; the bits combine with |.
 impl VectorRow {
     pub const HEAD_END: u32 = 1; // a head whose tip is `end`
     pub const HEAD_START: u32 = 2; // a head whose tip is `start`
@@ -40,11 +45,16 @@ impl VectorRow {
 const _: () = assert!(std::mem::size_of::<VectorRow>() == 48);
 
 /// Vector rows of one upload; producers write them with `up.lanes.get_mut::<VectorRows>()`.
+/// The upload finds these rows by their type, so adding a lane adds no field to Upload.
 #[derive(Default)]
 pub struct VectorRows {
     pub rows: Vec<VectorRow>, // one per vector
 }
+// --8<-- [end:vector-row]
+// --8<-- [end:04b-vector-row]
 
+// --8<-- [start:04b-vector-lane]
+// --8<-- [start:vector-lane]
 /// Vectors on the GPU: one instanced draw for all of them.
 pub struct VectorLane {
     buf: GrowBuf,           // VectorRow rows
@@ -55,6 +65,7 @@ pub struct VectorLane {
 }
 
 /// The registry's entry: constructor, row count and merge.
+/// One line in lane.rs lists this constant; the Gpu then builds, fills and draws the lane without naming its type.
 pub const REGISTERED: Registered = Registered {
     make,
     rows_in,
@@ -63,6 +74,7 @@ pub const REGISTERED: Registered = Registered {
 };
 
 /// The registry's constructor.
+// Box<dyn RowLane> = a lane of any type behind one pointer; calls go through the trait, decided at run time.
 fn make(ctx: &GpuCtx, l: &Layouts, target: Target) -> Box<dyn RowLane> {
     Box::new(VectorLane::new(ctx, l, target))
 }
@@ -116,12 +128,16 @@ impl VectorLane {
         pass.set_pipeline(pipeline);
         b.set(pass);
         pass.set_bind_group(3, &self.group, &[]);
-        // eighteen corners per vector, one instance per row
+        // instancing: the same 18 corners run once per row, and the shader reads row `instance_index`
         pass.draw(0..VECTOR_VERTS, 0..self.buf.len());
         1
     }
 }
+// --8<-- [end:vector-lane]
+// --8<-- [end:04b-vector-lane]
 
+// --8<-- [start:04b-vector-traits]
+// --8<-- [start:vector-traits]
 impl Lane for VectorLane {
     fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
         (self.color, self.id) = build_pipelines(ctx, layouts, &self.shader, target);
@@ -177,6 +193,7 @@ impl Lane for VectorLane {
     }
 }
 
+// RowLane adds what an editable lane needs: overwrite one object's rows, and hide them for undo.
 impl RowLane for VectorLane {
     fn write_at(&mut self, ctx: &GpuCtx, _l: &Layouts, first: u32, up: &Upload) {
         if let Some(rows) = up.lanes.get::<VectorRows>() {
@@ -185,6 +202,7 @@ impl RowLane for VectorLane {
     }
 
     fn kill(&mut self, ctx: &GpuCtx, first: u32, count: u32, sink: u32) {
+        // `..zeroed()` fills every field not named with zero; `sink` is an object row that is always hidden
         let dead = VectorRow {
             instance_id: sink,
             ..bytemuck::Zeroable::zeroed()
@@ -192,7 +210,11 @@ impl RowLane for VectorLane {
         self.buf.fill(ctx, first, count, &dead);
     }
 }
+// --8<-- [end:vector-traits]
+// --8<-- [end:04b-vector-traits]
 
+// --8<-- [start:04b-vector-pipelines]
+// --8<-- [start:vector-pipelines]
 /// Build the color and id pipelines.
 fn build_pipelines(
     ctx: &GpuCtx,
@@ -217,7 +239,11 @@ fn build_pipelines(
     );
     (color, id)
 }
+// --8<-- [end:vector-pipelines]
+// --8<-- [end:04b-vector-pipelines]
 
+// --8<-- [start:04b-vector-tests]
+// --8<-- [start:vector-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -650,3 +676,5 @@ mod tests {
         );
     }
 }
+// --8<-- [end:vector-tests]
+// --8<-- [end:04b-vector-tests]

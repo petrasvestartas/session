@@ -1,5 +1,6 @@
-use bytemuck::Pod;
-use wgpu::util::DeviceExt;
+// --8<-- [start:ctx]
+use bytemuck::Pod; // Pod = plain old data: a type that may be copied as raw bytes
+use wgpu::util::DeviceExt; // a trait: `use` brings its methods, such as create_buffer_init, into scope
 
 /// The GPU connection: device makes resources, queue runs commands.
 pub struct GpuCtx {
@@ -18,10 +19,13 @@ impl GpuCtx {
         }
     }
 }
+// --8<-- [end:ctx]
 
+// --8<-- [start:usages]
+// Usage flags say what the GPU may do with a buffer: STORAGE = shaders read it as an array, COPY_DST = we write it, COPY_SRC = it can be copied out.
 /// Usage flags for a storage buffer that grows.
 pub const ROWS: wgpu::BufferUsages = wgpu::BufferUsages::STORAGE
-    .union(wgpu::BufferUsages::COPY_DST)
+    .union(wgpu::BufferUsages::COPY_DST) // `.union` is `|` in a form a `const` allows
     .union(wgpu::BufferUsages::COPY_SRC);
 
 /// Most bytes one constant-row write sends.
@@ -36,7 +40,9 @@ pub const VERTS: wgpu::BufferUsages = wgpu::BufferUsages::VERTEX
 pub const INDICES: wgpu::BufferUsages = wgpu::BufferUsages::INDEX
     .union(wgpu::BufferUsages::COPY_DST)
     .union(wgpu::BufferUsages::COPY_SRC);
+// --8<-- [end:usages]
 
+// --8<-- [start:growbuf]
 /// A GPU buffer that grows by half when full.
 pub struct GrowBuf {
     pub buf: wgpu::Buffer,     // the GPU buffer
@@ -62,6 +68,7 @@ impl GrowBuf {
         }
     }
 
+    // `<T: Pod>` makes one function for every row type, as long as it is plain bytes.
     /// Append rows; returns true if the buffer was replaced.
     pub fn append<T: Pod>(&mut self, ctx: &GpuCtx, data: &[T]) -> bool {
         debug_assert_eq!(std::mem::size_of::<T>() as u64, self.stride);
@@ -78,7 +85,7 @@ impl GrowBuf {
             self.grow(ctx, grown(self.cap, need, self.most(ctx)));
         }
 
-        // write the new rows after the existing ones
+        // write_buffer queues the copy; it lands before the next submitted commands run
         ctx.queue.write_buffer(
             &self.buf,
             self.len as u64 * self.stride,
@@ -105,7 +112,8 @@ impl GrowBuf {
         let nb = zeroed_buffer(&ctx.device, self.label, new_cap * self.stride, self.usage);
 
         if self.len > 0 {
-            // copy old rows on the GPU, no round trip
+            // copy the old rows GPU to GPU; the CPU never sees them
+            // A command encoder records GPU commands; nothing runs until `submit` hands the list to the queue.
             let mut enc = ctx.device.create_command_encoder(&Default::default());
             enc.copy_buffer_to_buffer(&self.buf, 0, &nb, 0, self.len as u64 * self.stride);
             ctx.queue.submit([enc.finish()]);
@@ -114,7 +122,9 @@ impl GrowBuf {
         replace_buffer(&mut self.buf, nb);
         self.cap = new_cap;
     }
+// --8<-- [end:growbuf]
 
+// --8<-- [start:rows]
     /// Overwrite existing rows starting at `at`.
     pub fn write_at<T: Pod>(&self, ctx: &GpuCtx, at: u32, data: &[T]) {
         if data.is_empty() {
@@ -187,7 +197,9 @@ impl GrowBuf {
         self.len = fresh.len;
         self.cap = fresh.cap;
     }
+// --8<-- [end:rows]
 
+// --8<-- [start:growbuf-state]
     /// Forget the rows; keep the buffer.
     pub fn reset(&mut self) {
         self.len = 0;
@@ -230,7 +242,9 @@ impl GrowBuf {
         self.len == 0
     }
 }
+// --8<-- [end:growbuf-state]
 
+// --8<-- [start:template]
 /// A small mesh drawn many times, once per instance.
 pub struct Template {
     pub vbo: wgpu::Buffer, // vertex positions
@@ -269,7 +283,9 @@ impl Template {
         pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint32);
     }
 }
+// --8<-- [end:template]
 
+// --8<-- [start:helpers]
 /// A new buffer of `size` bytes, filled with zeros.
 pub fn zeroed_buffer(
     device: &wgpu::Device,
@@ -287,9 +303,11 @@ pub fn zeroed_buffer(
 
 /// Swap in `fresh` and free the old buffer now.
 pub fn replace_buffer(slot: &mut wgpu::Buffer, fresh: wgpu::Buffer) {
+    // `mem::replace` puts `fresh` in the slot and returns the old buffer, which `destroy` frees now instead of whenever it is dropped
     std::mem::replace(slot, fresh).destroy();
 }
 
+// A uniform buffer is a small read-only block every shader invocation sees, such as the camera matrix.
 /// A small buffer holding one `T` for shaders to read.
 pub fn uniform_buffer<T: Pod>(device: &wgpu::Device, label: &str, value: &T) -> wgpu::Buffer {
     device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -299,6 +317,7 @@ pub fn uniform_buffer<T: Pod>(device: &wgpu::Device, label: &str, value: &T) -> 
     })
 }
 
+// A bind group is the bundle of buffers and textures one draw can read; its layout says which slot holds what.
 /// A bind group with `buffers` at bindings 0, 1, 2…
 pub fn bind_group(
     ctx: &GpuCtx,
@@ -331,7 +350,9 @@ fn grown(cap: u64, need: u64, most: u64) -> u64 {
 fn reserved(need: u64, spare: u64, most: u64) -> u64 {
     need.saturating_add(spare).min(most).max(need)
 }
+// --8<-- [end:helpers]
 
+// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::{grown, reserved};
@@ -362,3 +383,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:tests]

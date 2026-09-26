@@ -1,6 +1,9 @@
+// --8<-- [start:04d-lod-walk]
+// --8<-- [start:lod-walk]
 use super::cloud::{Cloud, LodNode};
 use session_rust::Xform;
 
+// LOD = level of detail: far away a coarse subset of the points is enough; closer, a box is split into its children.
 /// Clouds below this size always draw every point.
 const LOD_MIN_POINTS: u32 = 2_000_000;
 
@@ -61,6 +64,7 @@ impl LodWalk {
         // start at the root, which has no parent
         self.stack.push((0, usize::MAX));
 
+        // a stack instead of recursion: no call depth limit, and the Vec is reused every frame
         while let Some((n, parent)) = self.stack.pop() {
             let Some(node) = p.nodes.get(base + n) else {
                 continue;
@@ -90,7 +94,7 @@ impl LodWalk {
             }
         }
 
-        // pass the finest spacing up to each parent
+        // pass the finest spacing up to each parent; children come after their parent, so one backward loop is enough
         for i in (0..self.visits.len()).rev() {
             let (fine, parent) = (self.visits[i].spacing, self.visits[i].parent);
 
@@ -112,7 +116,11 @@ impl LodWalk {
         }
     }
 }
+// --8<-- [end:lod-walk]
+// --8<-- [end:04d-lod-walk]
 
+// --8<-- [start:04d-lod-spacing]
+// --8<-- [start:lod-spacing]
 /// Pixels between two neighbouring points of the node on screen.
 fn projected_spacing(p: &Projection, node: &LodNode, model: &[f32; 16], scale: f64) -> f64 {
     // spacing in metres
@@ -129,7 +137,7 @@ fn projected_spacing(p: &Projection, node: &LodNode, model: &[f32; 16], scale: f
             .sqrt()
             .max(1.0e-6)
             * 0.001;
-    // spacing as a fraction of the view height
+    // spacing as a fraction of the view height; 1.7320508 * 0.5 comes from the 60 degree field of view
     let frac = if p.ortho_h > 0.0 {
         world / (2.0 * p.ortho_h as f64 * 0.001)
     } else {
@@ -155,3 +163,5 @@ pub fn radius_factor(r: &Range, px: f32, scale: f64, ortho_h: f32) -> f32 {
     };
     k as f32
 }
+// --8<-- [end:lod-spacing]
+// --8<-- [end:04d-lod-spacing]

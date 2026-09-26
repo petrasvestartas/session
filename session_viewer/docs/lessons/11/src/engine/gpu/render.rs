@@ -1,7 +1,9 @@
+// --8<-- [start:encode]
 use super::Gpu;
 use super::frame::Binds;
 use super::pass::Frame;
 
+// `impl Gpu` blocks may sit in any file of the crate: this one adds the frame encoding.
 impl Gpu {
     /// Encode one frame into `view`; returns (draws, objects).
     pub fn encode_frame(
@@ -31,7 +33,9 @@ impl Gpu {
         draws += self.ink_pass(encoder, view); // pass 3: lines, markers, outlines and text; register:ink
         (draws, self.objects.len())
     }
+// --8<-- [end:encode]
 
+// --8<-- [start:face-passes]
     /// The first pass: each pass's own face passes, then the one the faces draw in.
     fn face_passes(&mut self, encoder: &mut wgpu::CommandEncoder, f: &Frame) -> u32 {
         let mut draws = 0;
@@ -72,8 +76,10 @@ impl Gpu {
         draws
     }
 }
+// --8<-- [end:face-passes]
 
-// --8<-- [start:02]
+// --8<-- [start:02-grid]
+// --8<-- [start:grid-list]
 impl Gpu {
     /// The grid, when shown.
     fn grid_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
@@ -84,9 +90,11 @@ impl Gpu {
         }
     }
 }
-// --8<-- [end:02]
+// --8<-- [end:grid-list]
+// --8<-- [end:02-grid]
 
-// --8<-- [start:04b]
+// --8<-- [start:04b-ink-pass]
+// --8<-- [start:ink-pass]
 impl Gpu {
     /// Pass 3: lines, markers, outlines and text over the faces.
     fn ink_pass(&mut self, encoder: &mut wgpu::CommandEncoder, view: &wgpu::TextureView) -> u32 {
@@ -124,9 +132,11 @@ impl Gpu {
         draws
     }
 }
-// --8<-- [end:04b]
+// --8<-- [end:ink-pass]
+// --8<-- [end:04b-ink-pass]
 
-// --8<-- [start:04c]
+// --8<-- [start:04c-marker-draws]
+// --8<-- [start:marker-draws]
 impl Gpu {
     /// The vertex markers, when mesh edges and markers are shown.
     fn sphere_draws(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
@@ -148,9 +158,11 @@ impl Gpu {
         }
     }
 }
-// --8<-- [end:04c]
+// --8<-- [end:marker-draws]
+// --8<-- [end:04c-marker-draws]
 
-// --8<-- [start:04d]
+// --8<-- [start:04d-point-pass]
+// --8<-- [start:point-pass]
 use super::splat::RecordCx;
 
 impl Gpu {
@@ -178,4 +190,5 @@ impl Gpu {
         );
     }
 }
-// --8<-- [end:04d]
+// --8<-- [end:point-pass]
+// --8<-- [end:04d-point-pass]

@@ -1,3 +1,5 @@
+// --8<-- [start:04b-vector-struct]
+// --8<-- [start:vector-struct]
 // One vector: a shaft from `start` to `end` with an arrowhead at either end, 48 bytes; matches VectorRow in Rust.
 struct VectorRow {
     start: vec3<f32>, // start point, object space
@@ -24,7 +26,7 @@ const HEAD_ASPECT: f32 = 0.4;
 const HEAD_SHARE: f32 = 0.6;
 // Half a pixel's diagonal: how far a pixel reaches from its center.
 const FILTER_REACH: f32 = 0.70711;
-// Quad corner of vertex `k` of 6: 0 back-, 1 back+, 2 front-, 3 front+.
+// Quad corner of vertex `k` of 6: 0 back-, 1 back+, 2 front-, 3 front+; two triangles share corners 1 and 2.
 const CORNERS = array<u32, 6>(0u, 1u, 2u, 2u, 1u, 3u);
 
 // What the vertex shader hands the fragment shader.
@@ -39,7 +41,11 @@ struct VsOut {
     @location(6) @interpolate(flat) widths: vec4<f32>, // shaft half width at start and end, px; depth at both
     @location(7) @interpolate(flat) inst_id: u32, // object row
 };
+// --8<-- [end:vector-struct]
+// --8<-- [end:04b-vector-struct]
 
+// --8<-- [start:04b-vector-helpers]
+// --8<-- [start:vector-helpers]
 // Half width in px at depth `w`, from the radius field.
 fn half_width_px(radius: f32, w: f32) -> f32 {
     if (radius < 0.0) { return -radius * line.thickness; }
@@ -70,8 +76,13 @@ fn dead_vertex() -> VsOut {
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
     return dead;
 }
+// --8<-- [end:vector-helpers]
+// --8<-- [end:04b-vector-helpers]
 
+// --8<-- [start:04b-vector-vertex]
+// --8<-- [start:vector-vertex]
 // Corner `vid` of 18 of vector `row`: 0-5 the shaft, 6-11 the end head, 12-17 the start head.
+// instance_index is the row: one draw call runs these 18 corners once per vector.
 @vertex
 fn vs_main(@builtin(vertex_index) vid: u32, @builtin(instance_index) row: u32) -> VsOut {
     let v = vectors[row];
@@ -116,6 +127,7 @@ fn vs_main(@builtin(vertex_index) vid: u32, @builtin(instance_index) row: u32) -
     let hw = max(hw0, hw1);
 
     // tips on the points, no head at an end the near plane cut; the heads share part of the vector
+    // e.g. a 40 px arrow with one head: the head is at most 0.6 x 40 = 24 px, however thick the pen
     let only = (v.heads & HEAD_ONLY) != 0u;
     let at_end = (v.heads & HEAD_END) != 0u && f1 <= 0.0;
     let at_start = (v.heads & HEAD_START) != 0u && f0 <= 0.0;
@@ -127,10 +139,11 @@ fn vs_main(@builtin(vertex_index) vid: u32, @builtin(instance_index) row: u32) -
     let half0 = head0 * HEAD_ASPECT;
 
     // the shaft ends flat on a bare point and just under a head's base, px from the start
+    // tuck = the shaft runs up to a pixel under the head, so no light seam shows between them
     let t0 = head0 - select(0.0, tuck(head0, half0, hw), at_start);
     let t1 = len - head1 + select(0.0, tuck(head1, half1, hw), at_end);
 
-    // the three quads meet at seams, so no pixel is blended twice
+    // the three quads meet at seams, so no pixel is blended twice; a pixel on the seam belongs to one quad only
     var seam0 = select(-FILTER_REACH, head0 + FILTER_REACH, at_start);
     var seam1 = select(len + FILTER_REACH, len - head1 - FILTER_REACH, at_end);
 
@@ -177,6 +190,7 @@ fn vs_main(@builtin(vertex_index) vid: u32, @builtin(instance_index) row: u32) -
     let depth = clamp(select(e0.z / e0.w, e1.z / e1.w, front), 0.0, 1.0);
 
     var o: VsOut;
+    // w = 1: p is already in screen pixels, so no perspective divide is left to do
     o.pos = vec4<f32>((p / vp - 0.5) * 2.0, depth, 1.0);
     var color = edge_color(unpack4x8unorm(v.color), inst);
 
@@ -194,7 +208,11 @@ fn vs_main(@builtin(vertex_index) vid: u32, @builtin(instance_index) row: u32) -
     o.inst_id = v.instance_id;
     return o;
 }
+// --8<-- [end:vector-vertex]
+// --8<-- [end:04b-vector-vertex]
 
+// --8<-- [start:04b-vector-coverage]
+// --8<-- [start:vector-coverage]
 // Fraction of a pixel square lying below signed distance `t` from a line.
 fn box_cdf(t: f32, hi: f32, lo: f32, m: f32, q: f32) -> f32 {
     let s = clamp(t, -hi, hi);
@@ -214,6 +232,7 @@ fn band_area(d: f32, hw: f32, g: vec2<f32>) -> f32 {
     return box_cdf(hw - d, hi, lo, m, q) + box_cdf(hw + d, hi, lo, m, q) - 1.0;
 }
 
+// A head's coverage is its signed distance turned into alpha: 0.5 px outside fades to 0, 0.5 px inside is 1.
 // Signed distance from `p` to triangle (p0, p1, p2), negative inside.
 fn triangle_distance(p: vec2<f32>, p0: vec2<f32>, p1: vec2<f32>, p2: vec2<f32>) -> f32 {
     let e0 = p1 - p0;
@@ -249,7 +268,7 @@ fn coverage(in: VsOut) -> f32 {
     let run = in.shaft.zw - in.shaft.xy;
     let span = length(run);
 
-    // the shaft: a band across times a band along, so both ends are flat
+    // the shaft: a band across times a band along, so both ends are flat; a round cap would poke past the point
     if (span > 1e-6) {
         let dir = run / span;
         let n = vec2<f32>(-dir.y, dir.x);
@@ -267,7 +286,11 @@ fn coverage(in: VsOut) -> f32 {
     alpha = max(alpha, head_coverage(in.p, in.ends.zw, in.head_end));
     return max(alpha, head_coverage(in.p, in.ends.xy, in.head_start));
 }
+// --8<-- [end:vector-coverage]
+// --8<-- [end:04b-vector-coverage]
 
+// --8<-- [start:04b-vector-fragments]
+// --8<-- [start:vector-fragments]
 // The vector's center line as this fragment sees it.
 fn ink_axis(in: VsOut) -> InkAxis {
     let ba = in.ends.zw - in.ends.xy;
@@ -319,3 +342,5 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
 
     return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);
 }
+// --8<-- [end:vector-fragments]
+// --8<-- [end:04b-vector-fragments]

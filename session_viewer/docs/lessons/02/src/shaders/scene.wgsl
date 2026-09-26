@@ -1,3 +1,4 @@
+// WGSL is the WebGPU shading language. `@group(g) @binding(b)` names one slot of bind group g; the Rust side fills the same slot.
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>; // camera matrix
 @group(1) @binding(0) var<uniform> line: LineUniform; // pen and view settings
 @group(1) @binding(1) var<uniform> clipping: ClipUniform; // clipping planes
@@ -12,6 +13,7 @@ struct Instance {
     edge_color: u32, // packed edge color
 };
 
+// `var<storage, read>` = a read-only array as long as the buffer bound to it.
 @group(2) @binding(0) var<storage, read> instances: array<Instance>; // one row per object
 @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>; // position per object, minus the scene origin
 

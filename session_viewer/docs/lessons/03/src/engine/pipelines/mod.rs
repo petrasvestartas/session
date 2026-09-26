@@ -1,6 +1,7 @@
+// --8<-- [start:head]
 pub mod layouts;
 
-pub use layouts::Layouts;
+pub use layouts::Layouts; // `pub use` re-exports: other files write `pipelines::Layouts`
 
 use crate::engine::gpu::buffers::GpuCtx;
 use std::cell::{Cell, LazyCell, RefCell};
@@ -8,6 +9,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
+// `thread_local!` = a global, one per thread; `Cell` lets it change through a shared reference. The browser runs one thread.
 thread_local! {
     /// Render and compute pipelines compiled on this thread so far.
     static PIPELINES: Cell<u32> = const { Cell::new(0) };
@@ -30,12 +32,17 @@ pub fn count_shader() {
 pub fn created() -> (u32, u32) {
     (PIPELINES.get(), SHADERS.get())
 }
+// --8<-- [end:head]
 
+// --8<-- [start:lazy]
+// `Rc` = shared ownership, freed when the last clone is dropped; `LazyCell` runs its closure on first use and keeps the result.
+// `Box<dyn FnOnce() -> T>` = any closure that runs once, whatever its concrete type, kept on the heap.
 /// A GPU object made on its first use; clones share it, and equal means the same one.
 pub struct Lazy<T>(Rc<LazyCell<T, Box<dyn FnOnce() -> T>>>);
 
 impl<T> Lazy<T> {
     /// Made by `make` when first used.
+    // `impl FnOnce() -> T` accepts any closure of that shape; `'static` = it borrows nothing that could be dropped first.
     pub fn new(make: impl FnOnce() -> T + 'static) -> Self {
         Self(Rc::new(LazyCell::new(Box::new(make))))
     }
@@ -75,7 +82,11 @@ pub type Pipeline = Lazy<wgpu::RenderPipeline>;
 
 /// A shader module, compiled when a pipeline first needs it.
 pub type Shader = Lazy<wgpu::ShaderModule>;
+// --8<-- [end:lazy]
 
+// --8<-- [start:cache]
+// `RefCell` moves the borrow check to run time, so methods on `&self` can still insert.
+// `#[derive(Default)]` writes the Default impl for us: every field starts empty.
 /// Shaders, layouts and pipelines by description: asking again, or a second lane of the same
 /// kind asking, returns the first one, so an MSAA flip back and forth compiles nothing twice.
 #[derive(Default)]
@@ -123,7 +134,9 @@ struct PipelineKey {
     masks: bool,                        // writes both outline masks
     target: Target,                     // color format and samples
 }
+// --8<-- [end:cache]
 
+// --8<-- [start:modes]
 /// Where a pipeline draws: color format and MSAA sample count.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Target {
@@ -214,7 +227,9 @@ impl ColorWrite {
         }
     }
 }
+// --8<-- [end:modes]
 
+// --8<-- [start:desc]
 /// Everything `build` needs for one render pipeline.
 #[derive(Clone)]
 pub struct PipelineDesc<'a> {
@@ -264,6 +279,7 @@ impl<'a> PipelineDesc<'a> {
         d
     }
 
+    // Each method takes `self` by value and returns it, so the calls chain: `base.with(..).depth(..)`.
     /// A copy with another vertex entry point.
     pub fn vertex(mut self, vs: &'a str) -> Self {
         self.vs = vs;
@@ -300,7 +316,11 @@ impl<'a> PipelineDesc<'a> {
         self
     }
 }
+// --8<-- [end:desc]
 
+// --8<-- [start:prelude]
+// WGSL has no `import`: shared code is pasted after each shader's own text.
+// `shader!` (lib.rs) pastes the minified file in at compile time.
 /// Shared WGSL: groups 0-2, Instance, LineUniform, flags, `place`.
 pub const SCENE: &str = shader!("scene.wgsl");
 
@@ -320,7 +340,10 @@ pub fn scene_source(source: &str) -> String {
 pub fn scene_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
     module(ctx, label, &scene_source(source))
 }
+// --8<-- [end:prelude]
 
+// --8<-- [start:vertex-layouts]
+// A vertex buffer layout tells the pipeline how to cut a buffer into vertices: the stride, and which bytes feed which @location.
 /// One u32 at location 3: the object row.
 const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
     offset: 0,
@@ -352,7 +375,9 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
         attributes: &TEMPLATE_ATTRIBS,
     }
 }
+// --8<-- [end:vertex-layouts]
 
+// --8<-- [start:shader-modules]
 /// Append the WGSL every shader ends with: normals and physical output.
 pub fn shared(source: &str) -> String {
     format!(
@@ -367,6 +392,7 @@ pub fn module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
     wgsl(ctx, label, shared(source))
 }
 
+// A shader module is WGSL compiled for this GPU; compiling is slow, so each text compiles once, on first use.
 /// The shader for exactly `source`: one per label and source, compiled on first use.
 pub fn wgsl(ctx: &GpuCtx, label: &str, source: String) -> Shader {
     let mut hasher = std::hash::DefaultHasher::new();
@@ -429,7 +455,10 @@ pub fn pipeline_layout(
         immediate_size: 0,
     })
 }
+// --8<-- [end:shader-modules]
 
+// --8<-- [start:build]
+// A render pipeline is the fixed recipe for one kind of draw: shaders, vertex layout, blending, depth test and sample count.
 /// One render pipeline; Depth32Float, no culling, fill mode. It compiles on first use, and a
 /// second request for the same description gets the same pipeline.
 pub fn build(ctx: &GpuCtx, target: Target, desc: &PipelineDesc) -> Pipeline {
@@ -521,6 +550,7 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
         }));
     }
 
+    // override constants: values the WGSL declares with `override` and the pipeline fixes when it compiles
     let mut constants = Vec::new();
 
     // shader constant: which depth texture is live
@@ -580,7 +610,9 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
         cache: None,
     })
 }
+// --8<-- [end:build]
 
+// --8<-- [start:tests]
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
     use super::*;
@@ -603,3 +635,4 @@ mod tests {
         assert!(lazy != Lazy::new(|| 7), "equal means the same object");
     }
 }
+// --8<-- [end:tests]

@@ -1,400 +1,178 @@
 # 04c · Markers
 
-An orange point appears below the triangle and fades smoothly at small sizes.
+Vertex markers and free dots are discs drawn by the fragment shader: a marker from one camera-facing quad, a dot from one triangle.
 
-![A sphere is four template corners pushed out by the pixel radius plus half the feather; a free dot is one equilateral triangle whose incircle is the disc.](illustrations/markers.svg)
+![A marker is four quad corners pushed out by the pixel radius plus half the feather; a dot is one triangle whose inner circle is the disc.](illustrations/markers.svg)
 
 ## Step 1 · src/engine/gpu/glyphs.rs
 
-New file: the lane that draws vertex markers and flat dots, one 48-byte row each.
+The 48-byte row of a marker or dot, and the two tables one upload fills.
 
-`lessons/04c/src/engine/gpu/glyphs.rs` · type this, new file, start with these lines
+`lessons/04c/src/engine/gpu/glyphs.rs` · type this, new file
 
 ```rust
---8<-- "lessons/04c/src/engine/gpu/glyphs.rs:step-1a"
+--8<-- "lessons/04c/src/engine/gpu/glyphs.rs:glyph-rows"
 ```
+
+## Step 2 · src/engine/gpu/glyphs.rs
+
+One buffer per table with its bind group, the two shaders, the five pipelines, and the lane.
 
 `lessons/04c/src/engine/gpu/glyphs.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04c/src/engine/gpu/glyphs.rs:step-1b"
+--8<-- "lessons/04c/src/engine/gpu/glyphs.rs:glyph-lane"
 ```
+
+## Step 3 · src/engine/gpu/glyphs.rs
+
+Open `impl GlyphLane`: overwrite and hide rows, create the lane, append an upload.
 
 `lessons/04c/src/engine/gpu/glyphs.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04c/src/engine/gpu/glyphs.rs:step-1c"
+--8<-- "lessons/04c/src/engine/gpu/glyphs.rs:glyph-impl"
 ```
+
+## Step 4 · src/engine/gpu/glyphs.rs
+
+Markers draw one quad per row as instances; dots draw three vertices each; the impl block closes.
 
 `lessons/04c/src/engine/gpu/glyphs.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04c/src/engine/gpu/glyphs.rs:step-1d"
+--8<-- "lessons/04c/src/engine/gpu/glyphs.rs:glyph-draw"
 ```
+
+## Step 5 · src/engine/gpu/glyphs.rs
+
+The five pipelines, and the unit quad every marker is drawn from.
 
 `lessons/04c/src/engine/gpu/glyphs.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04c/src/engine/gpu/glyphs.rs:step-1e"
+--8<-- "lessons/04c/src/engine/gpu/glyphs.rs:glyph-pipelines"
 ```
+
+## Step 6 · src/engine/gpu/glyphs.rs
+
+Test: both shaders declare the same row as Rust.
+
+`lessons/04c/src/engine/gpu/glyphs.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/04c/src/engine/gpu/glyphs.rs:glyph-tests"
+```
+
+## Step 7 · src/engine/gpu/glyphs.rs
+
+The `Lane` trait, so the Gpu handles this lane in the same loop as the strokes.
 
 `lessons/04c/src/engine/gpu/glyphs.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/04c/src/engine/gpu/glyphs.rs:step-1f"
+--8<-- "lessons/04c/src/engine/gpu/glyphs.rs:glyph-trait"
 ```
 
-Copy this part from the lesson folder to the path shown.
+## Step 8 · src/shaders/sphere.wgsl
 
-`lessons/04c/src/engine/gpu/glyphs.rs` · copy the file, append at the end of the file
+A marker is an impostor: the shader's row, and the pen radius in world units and in pixels.
 
-```rust
---8<-- "lessons/04c/src/engine/gpu/glyphs.rs:step-1g"
-```
-
-## Step 2 · src/shaders/sphere.wgsl
-
-New file: the sphere shader, a round marker with real depth.
-
-`lessons/04c/src/shaders/sphere.wgsl` · type this, new file, start with these lines
+`lessons/04c/src/shaders/sphere.wgsl` · type this, new file
 
 ```wgsl
---8<-- "lessons/04c/src/shaders/sphere.wgsl:step-2b"
+--8<-- "lessons/04c/src/shaders/sphere.wgsl:marker-row"
 ```
+
+## Step 9 · src/shaders/sphere.wgsl
+
+Whether any face around the vertex looks at the camera.
 
 `lessons/04c/src/shaders/sphere.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04c/src/shaders/sphere.wgsl:step-2c"
+--8<-- "lessons/04c/src/shaders/sphere.wgsl:marker-facing"
 ```
+
+## Step 10 · src/shaders/sphere.wgsl
+
+Two entry points first, then the `marker_vertex` they share: place, size, cull and colour one quad corner.
 
 `lessons/04c/src/shaders/sphere.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04c/src/shaders/sphere.wgsl:step-2d"
+--8<-- "lessons/04c/src/shaders/sphere.wgsl:marker-vertex"
 ```
 
-## Step 3 · src/shaders/glyph.wgsl
+## Step 11 · src/shaders/sphere.wgsl
 
-New file: the dot shader: one triangle per dot, cut to a soft-edged disc.
+Cut the quad to a soft-edged disc, test it against the faces, write colour or pick id.
 
-`lessons/04c/src/shaders/glyph.wgsl` · type this, new file, start with these lines
+`lessons/04c/src/shaders/sphere.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04c/src/shaders/glyph.wgsl:step-3b"
+--8<-- "lessons/04c/src/shaders/sphere.wgsl:marker-fragments"
 ```
+
+## Step 12 · src/shaders/glyph.wgsl
+
+The same row for dots, drawn as one triangle whose inner circle is the disc.
+
+`lessons/04c/src/shaders/glyph.wgsl` · type this, new file
+
+```wgsl
+--8<-- "lessons/04c/src/shaders/glyph.wgsl:dot-row"
+```
+
+## Step 13 · src/shaders/glyph.wgsl
+
+Place one corner of a dot's triangle, sized in pixels, fading when thinner than one.
 
 `lessons/04c/src/shaders/glyph.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04c/src/shaders/glyph.wgsl:step-3c"
+--8<-- "lessons/04c/src/shaders/glyph.wgsl:dot-vertex"
 ```
+
+## Step 14 · src/shaders/glyph.wgsl
+
+Disc coverage, colour and the two pick ids: the object, or the cloud point a dot stands for.
 
 `lessons/04c/src/shaders/glyph.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/04c/src/shaders/glyph.wgsl:step-3d"
+--8<-- "lessons/04c/src/shaders/glyph.wgsl:dot-fragments"
 ```
+
+## Step 15 · src/engine/gpu/mod.rs
+
+Marker and dot rows still drawn, after undo hid some.
+
+`lessons/04c/src/engine/gpu/mod.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04c/src/engine/gpu/mod.rs:markers"
+```
+
+## Step 16 · src/engine/gpu/render.rs
+
+The marker and dot draws of the ink pass, each behind its view switch.
+
+`lessons/04c/src/engine/gpu/render.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/04c/src/engine/gpu/render.rs:marker-draws"
+```
+
+## Step 17 · registration lines
+
+Copy the lines tagged `register:glyphs` and `register:markers` from these files of `lessons/04c/`:
+
+- `src/engine/gpu/mod.rs`: the module, the lane field, its creation, append, patch, kill, release and shader list.
+- `src/engine/gpu/patch.rs`, `present.rs`, `upload.rs`, `render.rs`: the marker and dot counts, the glyph rows of an upload, and the two draw calls.
 
 Run `cargo check` in `lessons/04c/`.
 
-## Step 4 · src/engine/pipelines/mod.rs
-
-Add the marker pipelines.
-
-`lessons/04c/src/engine/pipelines/mod.rs` · edit · type this
-
-Added above
-
-```rust
-/// The mesh vertex slot: the kernel's interleaved `RenderVertex` (pos, normal, colour).
-```
-
-```rust
---8<-- "lessons/04c/src/engine/pipelines/mod.rs:step-4a"
-```
-
-Added above
-
-```rust
-/// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
-```
-
-```rust
---8<-- "lessons/04c/src/engine/pipelines/mod.rs:step-4b"
-```
-
-## Step 5 · src/engine/pipelines/layouts.rs
-
-Add the marker bind group layout.
-
-`lessons/04c/src/engine/pipelines/layouts.rs` · edit · type this
-
-Added above
-
-```rust
-/// Segment rows retain source-edge IDs and one shared selection uniform.
-```
-
-```rust
---8<-- "lessons/04c/src/engine/pipelines/layouts.rs:step-5a"
-```
-
-Added below
-
-```rust
-    pub ink_instance: wgpu::BindGroupLayout,
-```
-
-```rust
---8<-- "lessons/04c/src/engine/pipelines/layouts.rs:step-5b"
-```
-
-Added below
-
-```rust
-            ink_instance: ink_instance_layout(device),
-```
-
-```rust
---8<-- "lessons/04c/src/engine/pipelines/layouts.rs:step-5c"
-```
-
-## Step 6 · src/engine/gpu/upload.rs
-
-Add markers to the upload.
-
-`lessons/04c/src/engine/gpu/upload.rs` · edit · type this
-
-Added below
-
-```rust
-use super::arena::ArenaRows;
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/upload.rs:step-6a"
-```
-
-Added below
-
-```rust
-    pub seg: SegRows,
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/upload.rs:step-6b"
-```
-
-Added below
-
-```rust
-            seg: SegRows::default(),
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/upload.rs:step-6c"
-```
-
-Added below
-
-```rust
-        self.seg.drop_rows();
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/upload.rs:step-6d"
-```
-
-## Step 7 · src/engine/gpu/mod.rs
-
-Add the marker lane to the GPU owner and the frame.
-
-`lessons/04c/src/engine/gpu/mod.rs` · edit · type this
-
-Added below
-
-```rust
-pub mod frame;
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/mod.rs:step-7a"
-```
-
-Added below
-
-```rust
-pub use frame::FrameInput;
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/mod.rs:step-7b"
-```
-
-Added below
-
-```rust
-    pub segments: segments::SegmentLane,
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/mod.rs:step-7c"
-```
-
-Added below
-
-```rust
-        let segments = segments::SegmentLane::new(&ctx, &layouts, target);
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/mod.rs:step-7d"
-```
-
-Added below
-
-```rust
-            segments,
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/mod.rs:step-7e"
-```
-
-Added below
-
-```rust
-        self.segments.append(&self.ctx, &self.layouts, &up.seg);
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/mod.rs:step-7f"
-```
-
-Added below
-
-```rust
-            self.segments.draw_ribbons(&mut pass, &ink);
-```
-
-```rust
---8<-- "lessons/04c/src/engine/gpu/mod.rs:step-7g"
-```
-
-## Step 8 · src/fixture.rs
-
-Copy the test scene: it now has markers.
-Copy this file from the lesson folder to the path shown.
-
-`lessons/04c/src/fixture.rs` · edit · copy the file
-
-Replaces the line `use crate::engine::gpu::{CylinderSegment, Instance, Objec…` in `lessons/04b/src/fixture.rs`
-
-```rust
---8<-- "lessons/04c/src/fixture.rs:step-8a"
-```
-
-Replaces the line `for _ in 0..2 {` in `lessons/04b/src/fixture.rs`
-
-```rust
---8<-- "lessons/04c/src/fixture.rs:step-8b"
-```
-
-Added below
-
-```rust
-        });
-    }
-```
-
-```rust
---8<-- "lessons/04c/src/fixture.rs:step-8c"
-```
-
-## Step 9 · src/lib.rs
-
-Report the dot count from the entry point.
-
-`lessons/04c/src/lib.rs` · edit · type this
-
-Replaces the line `"meshVertices":self.gpu.arena.vert_count(),"segments":sel…` in `lessons/04b/src/lib.rs`
-
-```rust
---8<-- "lessons/04c/src/lib.rs:step-9"
-```
-
-## Step 10 · index.html
-
-Copy the page: the status now reports dots.
-Copy this file from the lesson folder to the path shown.
-
-`lessons/04c/index.html` · edit · copy the file
-
-Replaces the line `<title>Session checkpoint 04b</title>` in `lessons/04b/index.html`
-
-```html
---8<-- "lessons/04c/index.html:step-10a"
-```
-
-Replaces the line `<output id="status">Starting checkpoint 04b</output>` in `lessons/04b/index.html`
-
-```html
---8<-- "lessons/04c/index.html:step-10b"
-```
-
-Replaces the line `document.getElementById('status').textContent = 'Checkpoi…` in `lessons/04b/index.html`
-
-```html
---8<-- "lessons/04c/index.html:step-10c"
-```
-
 ## Check
 
-Run `trunk serve` in `lessons/04c/` and open <http://127.0.0.1:8770/>.
-
-Expected: An orange point appears below the triangle and fades smoothly at small sizes; status: **Checkpoint 04c · 3 objects**.
-
-![Checkpoint 04c: vertex markers and free dots drawn from the glyph lane.](screenshots/04c.png)
-
-If it fails:
-
-- Dots vanish while zooming out: the half-pixel floor or alpha fade is missing.
-- A sphere looks flat: the fragment depth still describes its billboard.
-
-## What changed
-
-```text
-lessons/04c/src/engine/
-├── gpu/
-│   ├── arena.rs
-│   ├── buffers.rs
-│   ├── frame.rs
-│   ├── glyphs.rs  +
-│   ├── instance.rs
-│   ├── mod.rs  ~
-│   ├── objects.rs
-│   ├── segments.rs
-│   ├── targets.rs
-│   ├── text_outline.rs
-│   ├── upload.rs  ~
-│   └── view.rs
-├── pipelines/
-│   ├── layouts.rs  ~
-│   └── mod.rs  ~
-└── mod.rs
-```
-
-`+` new in this lesson · `~` changed in this lesson
-
-Data flow: source files → retained scene state → GPU buffers → visible result. Every file at this point: `lessons/04c/`.
-
-## Next
-
-[04d · Point clouds](04d-clouds.md)
-
-## Expected viewer result
-
-Checkpoint 04c: vertex markers and free dots drawn from the glyph lane.
-
-[![Full viewer result for 04c markers](screenshots/04c.png)](screenshots/04c.png)
+Run `cargo xtest --lib glyphs` in `lessons/04c/`: the test confirms `sphere.wgsl` and `glyph.wgsl` declare `GlyphPoint` with the Rust fields in the Rust order, 48 bytes each.

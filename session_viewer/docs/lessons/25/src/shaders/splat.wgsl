@@ -1,3 +1,5 @@
+// --8<-- [start:04d-splat-bindings]
+// --8<-- [start:splat-bindings]
 // Point cloud settings, 48 bytes; matches CloudUniform in Rust.
 struct CloudUniform {
     size: f32, // point size scale; applied on the CPU
@@ -13,14 +15,19 @@ struct CloudUniform {
 @group(0) @binding(0) var<uniform> cloud: CloudUniform; // cloud settings
 @group(0) @binding(1) var<uniform> clipping: ClipUniform; // clipping planes
 
-// Words per record; the layout matches SplatRecord in Rust.
+// Words per record; the layout matches SplatRecord in Rust: 160 bytes / 4 = 40 u32 words.
+// The table is read as plain u32 words, and bitcast turns a word back into the f32 Rust wrote.
 const REC_WORDS: u32 = 40u;
 const NO_NORMALS: u32 = 0xffffffffu; // marker for a run without normals
 @group(1) @binding(0) var<storage, read> table: array<u32>; // header {records, points, 0, 0}, then the records
 @group(1) @binding(1) var<storage, read> positions: array<f32>; // x, y, z per point
 @group(1) @binding(2) var<storage, read> colors: array<u32>; // packed rgba per point
 @group(1) @binding(3) var<storage, read> normals: array<u32>; // packed normal per point
+// --8<-- [end:splat-bindings]
+// --8<-- [end:04d-splat-bindings]
 
+// --8<-- [start:04d-splat-project]
+// --8<-- [start:splat-project]
 // One point projected to the screen.
 struct Splat {
     px: vec2<i32>, // center pixel
@@ -38,6 +45,7 @@ fn rec_f(base: u32, w: u32) -> f32 {
 }
 
 // Record holding drawn point `gid`, by binary search on the cumulative counts.
+// One draw covers every run: with 4096 records the search takes 12 steps per point.
 fn record_of(gid: u32) -> u32 {
     let n = table[0];
     var lo = 0u;
@@ -106,7 +114,7 @@ fn project(gid: u32) -> Splat {
         return s;
     }
 
-    // radius in px, between the record's minimum and 8
+    // radius in px, between the record's minimum and 8; word 23 is the radius factor k over depth
     let r_min = rec_f(base, 19u);
     // canvas pixel, shifted into this target
     s.r = clamp(bitcast<f32>(table[base + 23u]) * cloud.frame.y / clip.w, r_min, 8.0);
@@ -153,7 +161,11 @@ fn project(gid: u32) -> Splat {
     s.ok = true;
     return s;
 }
+// --8<-- [end:splat-project]
+// --8<-- [end:04d-splat-project]
 
+// --8<-- [start:04d-splat-point]
+// --8<-- [start:splat-point]
 // What the vertex shader hands the fragment shader.
 struct PointOut {
     @builtin(position) pos: vec4<f32>, // clip position
@@ -175,7 +187,7 @@ fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
         return o;
     }
 
-    // half the square, whole pixels
+    // half the square, whole pixels: every point covers whole pixels, so its edge never blends
     let ir = i32(ceil(s.r - 0.5));
     // keeps the square's corners outside the disc
     let corner_rr = 2.0 * f32(ir * ir) - 0.001;
@@ -221,4 +233,7 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
     return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec2<u32>(0u));
 }
 
+// build.rs pastes clip.wgsl here: WGSL has no include of its own
 #include "clip.wgsl"
+// --8<-- [end:splat-point]
+// --8<-- [end:04d-splat-point]

@@ -1,42 +1,59 @@
+// --8<-- [start:entry]
+// `#[cfg(...)]` keeps the next item only when the condition holds: here, only in the browser build.
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-/// Browser entry point.
+/// The browser runs this once the module has loaded.
 #[cfg(target_arch = "wasm32")]
+// wasm-bindgen writes the JavaScript glue around the module; `start` makes that glue call this function.
 #[wasm_bindgen(start)]
 pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
-    // panics print to the console
+    // a panic then prints its message to the browser console instead of a bare `unreachable`
     console_error_panic_hook::set_once();
-    engine::performance::mark("wasm entry"); // register:frame
-    start(); // register:shell
+    engine::performance::mark("wasm entry"); // a named point on the browser's performance timeline; register:frame
+    start(); // open the window and the event loop; register:shell
     Ok(())
 }
+// --8<-- [end:entry]
 
-// --8<-- [start:01]
+// --8<-- [start:01-first-frame]
+// --8<-- [start:shader-macro]
+// `macro_rules!` makes a macro, code that writes code; it must come before the `mod` lines that use it.
 /// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
 macro_rules! shader {
+    // `$name:literal` matches one string literal, such as "background.wgsl".
     ($name:literal) => {
+        // `include_str!` pastes the file into the binary at compile time; OUT_DIR is the folder build.rs wrote.
         include_str!(concat!(env!("OUT_DIR"), "/shaders/", $name))
     };
 }
 
+// `mod engine;` makes src/engine/mod.rs part of this crate.
 mod engine;
-// --8<-- [end:01]
+// --8<-- [end:shader-macro]
+// --8<-- [end:01-first-frame]
 
-// --8<-- [start:02]
+// --8<-- [start:02-camera]
+// --8<-- [start:camera-mod]
 mod camera;
-// --8<-- [end:02]
+// --8<-- [end:camera-mod]
+// --8<-- [end:02-camera]
 
-// --8<-- [start:06]
+// --8<-- [start:06-app]
+// --8<-- [start:app-mod]
 pub mod app;
-// --8<-- [end:06]
+// --8<-- [end:app-mod]
+// --8<-- [end:06-app]
 
-// --8<-- [start:11]
+// --8<-- [start:11-text-quality]
+// --8<-- [start:text-quality-mod]
 #[cfg(target_arch = "wasm32")]
 pub mod text_quality;
-// --8<-- [end:11]
+// --8<-- [end:text-quality-mod]
+// --8<-- [end:11-text-quality]
 
-// --8<-- [start:12]
+// --8<-- [start:12-shell]
+// --8<-- [start:state-msg]
 mod state;
 
 use crate::app::scene::FileDoc;
@@ -63,7 +80,9 @@ pub enum Msg {
     Hydrated(Box<app::scene::Hydrated>), // a released document's objects are back; register:editing
     Fonts(Vec<Vec<u8>>),           // the whole label fonts, main font first; register:loading
 }
+// --8<-- [end:state-msg]
 
+// --8<-- [start:app-struct]
 #[cfg(target_arch = "wasm32")]
 use {
     crate::app::input::Input,
@@ -76,7 +95,7 @@ use {
     winit::window::{Window, WindowId},
 };
 
-/// The winit application: owns the state and the gestures.
+/// The application: winit owns the event loop and calls its methods with every event.
 #[cfg(target_arch = "wasm32")]
 pub struct App {
     state: Option<State>,               // everything drawn, once the GPU is up
@@ -86,13 +105,16 @@ pub struct App {
     agent: Option<app::agent::CommandAgent>, // phone keyboard listener; register:phone
     ui: Option<app::ui::Ui>,            // the egui panels; register:egui
 }
+// --8<-- [end:app-struct]
 
+// --8<-- [start:app-run]
 #[cfg(target_arch = "wasm32")]
 impl App {
     /// Create the event loop and spawn the app on the browser's main loop.
     pub fn run() -> anyhow::Result<()> {
         // log::info! goes to the browser console
         console_log::init_with_level(log::Level::Info).ok();
+        // `with_user_event` lets our own `Msg` values travel through the loop beside the window events.
         let event_loop = EventLoop::<Msg>::with_user_event().build()?;
         let app = App {
             proxy: Some(event_loop.create_proxy()),
@@ -102,6 +124,7 @@ impl App {
             agent: None, // register:phone
             ui: None,    // register:egui
         };
+        // a browser loop cannot block: `spawn_app` hands the app over and returns at once
         event_loop.spawn_app(app);
         Ok(())
     }
@@ -127,8 +150,11 @@ impl App {
         }
     }
 }
+// --8<-- [end:app-run]
 
+// --8<-- [start:app-events]
 #[cfg(target_arch = "wasm32")]
+// winit calls `resumed` once, `user_event` for each `Msg` and `window_event` for each input or redraw.
 impl ApplicationHandler<Msg> for App {
     /// Bind the window to the page canvas and start loading.
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
@@ -253,7 +279,9 @@ impl ApplicationHandler<Msg> for App {
         self.request_if_needed();
     }
 }
+// --8<-- [end:app-events]
 
+// --8<-- [start:canvas]
 /// The page element with id `canvas`.
 #[cfg(target_arch = "wasm32")]
 fn viewer_canvas() -> Option<web_sys::HtmlCanvasElement> {
@@ -302,7 +330,9 @@ fn desired_canvas_size() -> Option<(u32, u32)> {
     let h = (canvas.client_height() as f64 * dpr).round() as u32;
     (w > 0 && h > 0).then_some((w, h))
 }
+// --8<-- [end:canvas]
 
+// --8<-- [start:start]
 /// Start the viewer, unless this is the text-quality page.
 #[cfg(target_arch = "wasm32")]
 fn start() {
@@ -323,9 +353,11 @@ fn start() {
         app::feedback::error(&format!("Cannot start the viewer: {error}"));
     }
 }
-// --8<-- [end:12]
+// --8<-- [end:start]
+// --8<-- [end:12-shell]
 
-// --8<-- [start:14]
+// --8<-- [start:14-fonts]
+// --8<-- [start:use-fonts]
 #[cfg(target_arch = "wasm32")]
 impl App {
     /// Keep the whole fonts for the page's life, shared by the labels and the panels.
@@ -333,6 +365,7 @@ impl App {
         let Some(state) = &mut self.state else { return };
         let faces: Vec<&'static [u8]> = faces
             .into_iter()
+            // `Box::leak` hands the bytes a 'static lifetime: they are never freed, which suits fonts kept for the page's life
             .map(|face| &*Box::leak(face.into_boxed_slice()))
             .collect();
 
@@ -342,9 +375,11 @@ impl App {
         }
     }
 }
-// --8<-- [end:14]
+// --8<-- [end:use-fonts]
+// --8<-- [end:14-fonts]
 
-// --8<-- [start:15]
+// --8<-- [start:15-stream]
+// --8<-- [start:cloud-stream]
 use crate::app::scene::StreamedInit;
 use crate::app::walk::cloud::StreamRows;
 
@@ -373,9 +408,11 @@ fn start_stream(state: &mut State, init: Box<StreamedInit>) {
         col_at,
     });
 }
-// --8<-- [end:15]
+// --8<-- [end:cloud-stream]
+// --8<-- [end:15-stream]
 
-// --8<-- [start:19]
+// --8<-- [start:19-sheets]
+// --8<-- [start:sheet-stream]
 use crate::app::scene::SheetInit;
 use crate::app::walk::sheet::SheetRows;
 
@@ -398,9 +435,11 @@ fn start_sheet(state: &mut State, init: Box<SheetInit>) {
         from,
     });
 }
-// --8<-- [end:19]
+// --8<-- [end:sheet-stream]
+// --8<-- [end:19-sheets]
 
-// --8<-- [start:22]
+// --8<-- [start:22-panels]
+// --8<-- [start:panels]
 #[cfg(target_arch = "wasm32")]
 impl App {
     /// The egui panels and their GPU painter.
@@ -479,9 +518,11 @@ fn repaint_if(state: &mut State, repaint: bool) {
         state.request_frame();
     }
 }
-// --8<-- [end:22]
+// --8<-- [end:panels]
+// --8<-- [end:22-panels]
 
-// --8<-- [start:23]
+// --8<-- [start:23-commands]
+// --8<-- [start:open-saved]
 /// Replace the scene with a saved one.
 #[cfg(target_arch = "wasm32")]
 fn open_saved(state: &mut State, scene: Box<app::scene::Scene>) {
@@ -495,7 +536,9 @@ fn open_saved(state: &mut State, scene: Box<app::scene::Scene>) {
     state.touch();
     app::feedback::status("Session opened");
 }
+// --8<-- [end:open-saved]
 
+// --8<-- [start:phone-keys]
 #[cfg(target_arch = "wasm32")]
 impl App {
     /// Listen to the hidden input that raises the phone keyboard.
@@ -520,9 +563,12 @@ impl App {
         state.touch();
     }
 }
-// --8<-- [end:23]
+// --8<-- [end:phone-keys]
+// --8<-- [end:23-commands]
 
-// --8<-- [start:37]
+// --8<-- [start:37-selftest]
+// --8<-- [start:selftest-mod]
 #[cfg(not(target_arch = "wasm32"))]
 pub mod selftest;
-// --8<-- [end:37]
+// --8<-- [end:selftest-mod]
+// --8<-- [end:37-selftest]

@@ -1,40 +1,45 @@
+// --8<-- [start:inputs]
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::view::View;
 use crate::engine::pipelines::Layouts;
 use session_rust::Xform;
 
-/// What the caller gives each frame.
+/// Everything that changes from one frame to the next; the renderer keeps no camera or clock of its own.
 pub struct FrameInput {
-    pub view_proj: Xform,   // camera matrix
-    pub clear: wgpu::Color, // background color
-    pub now_ms: f64,        // time of this frame, ms
+    pub view_proj: Xform, // camera: world to screen in one matrix
+    pub clear: wgpu::Color, // the colour the frame starts from
+    pub now_ms: f64, // browser clock, used to time each frame
 }
 
-/// Extra inputs for writing the frame uniforms.
+/// Extra inputs for the frame uniforms; it borrows the View, so it carries the View's lifetime `'a`.
 pub struct FrameCx<'a> {
-    pub view: &'a View,   // display settings
-    pub anchor: [f32; 3], // world point the scene is centered on
-    pub size: (u32, u32), // framebuffer size, px
+    pub view: &'a View,
+    pub anchor: [f32; 3], // subtracted from every position, so a model 100 km from the origin keeps its millimetres in f32
+    pub size: (u32, u32), // real pixels: an 800 x 600 canvas at scale 2.0 is 1600 x 1200
     pub pixel_scale: f32, // framebuffer pixels per CSS pixel
 }
 
-/// The three bind groups every draw starts with.
+/// Group 0 = camera matrix, group 1 = pen and view settings, group 2 = one row per object.
 pub struct Binds<'a> {
-    pub mvp: &'a wgpu::BindGroup,       // group 0: camera matrix
-    pub line: &'a wgpu::BindGroup,      // group 1: pen and view settings
-    pub instances: &'a wgpu::BindGroup, // group 2: object rows
+    pub mvp: &'a wgpu::BindGroup,
+    pub line: &'a wgpu::BindGroup,
+    pub instances: &'a wgpu::BindGroup,
 }
 
+// `'_` means whatever lifetime this Binds was made with; the method has no reason to name it.
 impl Binds<'_> {
-    /// Set groups 0, 1 and 2 on the pass.
+    /// Every pipeline expects the same three slots, so each draw sets them in one call instead of three.
     pub fn set(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_bind_group(0, self.mvp, &[]);
+        pass.set_bind_group(0, self.mvp, &[]); // the index must match @group(0) in the WGSL; &[] = no dynamic offsets
         pass.set_bind_group(1, self.line, &[]);
         pass.set_bind_group(2, self.instances, &[]);
     }
 }
+// --8<-- [end:inputs]
 
+// --8<-- [start:uniforms]
 /// Pen and view settings every shader reads, 80 bytes.
+// `#[repr(C)]` fixes field order and padding, so the bytes match the WGSL struct.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct LineUniform {
@@ -54,7 +59,7 @@ pub struct LineUniform {
     pub _pad: f32,        // keeps the size a multiple of 16
 }
 
-// the shaders read these byte offsets
+// checked at compile time: a size or offset that drifts from the WGSL fails the build, not the frame
 const _: () = {
     assert!(std::mem::size_of::<LineUniform>() == 80);
     assert!(std::mem::offset_of!(LineUniform, lit) == 48);
@@ -84,7 +89,9 @@ const _: () = {
     assert!(std::mem::offset_of!(CloudUniform, origin) == 24);
     assert!(std::mem::offset_of!(CloudUniform, frame) == 32);
 };
+// --8<-- [end:uniforms]
 
+// --8<-- [start:pick-view]
 /// The part of the canvas a pick renders.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PickView {
@@ -152,7 +159,9 @@ fn mat4_mul(left: &[f32; 16], right: &[f32; 16]) -> [f32; 16] {
 
     out
 }
+// --8<-- [end:pick-view]
 
+// --8<-- [start:frame-uniforms]
 /// Uniform buffers and bind groups for a frame and its pick pass.
 pub struct FrameUniforms {
     mvp_buffer: wgpu::Buffer,                  // camera matrix
@@ -306,7 +315,9 @@ impl FrameUniforms {
             eye: [0.0; 3],
         }
     }
+// --8<-- [end:frame-uniforms]
 
+// --8<-- [start:frame-write]
     /// Write this frame's camera, pen and cloud settings.
     pub fn write(&mut self, ctx: &GpuCtx, input: &FrameInput, cx: &FrameCx) {
         self.mvp_f32 = input.view_proj.to_f32();
@@ -401,7 +412,9 @@ impl FrameUniforms {
             .write_buffer(&self.pick_cloud_buffer, 0, bytemuck::bytes_of(&cloud));
     }
 }
+// --8<-- [end:frame-write]
 
+// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -427,13 +440,18 @@ mod tests {
         assert!((right_bottom[0] - 1.0).abs() < 1e-4 && (right_bottom[1] + 1.0).abs() < 1e-4);
     }
 }
+// --8<-- [end:tests]
 
+// --8<-- [start:frame-lane]
+// A second `impl` block, for a trait this time: the frame uniforms join the Lane list so their bytes are counted.
 impl super::lane::Lane for FrameUniforms {
     fn bytes(&self) -> (u64, u64) {
         (self.allocated_bytes(), 0)
     }
 }
+// --8<-- [end:frame-lane]
 
+// --8<-- [start:clip-uniform]
 /// Most clipping planes cutting at once.
 pub const MAX_PLANES: usize = 6;
 
@@ -460,3 +478,4 @@ const _: () = assert!(std::mem::size_of::<ClipUniform>() == 448);
 
 /// Vertical field of view in degrees.
 pub const FOVY_DEG: f64 = 60.0;
+// --8<-- [end:clip-uniform]

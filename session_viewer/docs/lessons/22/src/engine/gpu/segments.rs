@@ -1,3 +1,5 @@
+// --8<-- [start:04b-segment-rows]
+// --8<-- [start:segment-rows]
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
 use super::frame::Binds;
 use super::slots::{Slots, clamp, row_slot_layout};
@@ -13,7 +15,7 @@ use wgpu::PrimitiveTopology::TriangleList;
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[("ribbon.wgsl", shader!("ribbon.wgsl"))];
 
-/// Vertices per segment: two triangles, placed by the shader.
+/// Vertices per segment: two triangles the shader lays around it on screen, a ribbon that keeps its pixel width at any zoom.
 const RIBBON_VERTS: u32 = 6;
 
 /// One line segment, 40 bytes, as the shaders read it.
@@ -25,9 +27,10 @@ pub struct CylinderSegment {
     pub p1: [f32; 3],     // end point
     pub instance_id: u32, // object row
     pub color: u32,       // packed rgba, red in the low byte
-    pub facing: u32,      // packed normals of the two faces beside it
+    pub facing: u32,      // the two face normals beside a mesh edge, 16 bits each; u32::MAX for a free curve
 }
 
+// Checked while compiling: a size change here would silently break the shader's struct.
 const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
 
 /// One batch of segments added to a sheet.
@@ -38,6 +41,9 @@ pub struct SegDraw {
     pub first: u32,    // row of the first segment in the upload's sheet rows
 }
 
+// Pipe = a mesh or solid edge, hidden when both faces beside it look away.
+// Ribbon = a free line or curve, drawn whichever way it faces.
+// Chain = a run of segments that form one polyline, so their joints can be drawn clean.
 /// Segment rows of one upload.
 #[derive(Default)]
 pub struct SegRows {
@@ -68,7 +74,11 @@ impl SegRows {
         drop_rows(&mut self.sheets);
     }
 }
+// --8<-- [end:segment-rows]
+// --8<-- [end:04b-segment-rows]
 
+// --8<-- [start:04b-sheets]
+// --8<-- [start:sheets]
 /// A run of sheet segments stored on the GPU.
 #[derive(Clone, Copy)]
 pub struct SegChunk {
@@ -77,7 +87,7 @@ pub struct SegChunk {
     pub row: u32,  // GPU row of the first segment
 }
 
-/// One drawing sheet on the GPU.
+/// A sheet is a 2D drawing streamed in batches; its segments sit in their own table, so editing never moves them.
 pub struct SegSheet {
     pub instance: u32,         // object row
     pub resident: u32,         // segments uploaded so far
@@ -134,11 +144,16 @@ fn sheet_of(sheets: &[SegSheet], row: u32) -> Option<(usize, u32)> {
 
     None
 }
+// --8<-- [end:sheets]
+// --8<-- [end:04b-sheets]
 
+// --8<-- [start:04b-joints]
+// --8<-- [start:joints]
 /// Neighbour code of an end under an arrowhead: no joint, and the ribbon stops at the head's base.
+/// u32::MAX already means "no neighbour", and no real row reaches MAX - 1, so one field holds all three cases.
 pub(super) const HEAD_MARK: u32 = u32::MAX - 1;
 
-/// A segment with its neighbours, so joints are drawn once.
+/// A segment with its neighbours, so joints are drawn once: each side stops at the bisector with the next one.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub(super) struct StrokeSegment {
@@ -185,6 +200,7 @@ fn joined_rows(
                 && a.color == b.color
                 && a.radius == b.radius
             {
+                // links are GPU rows: this upload lands after `base` rows already in the buffer
                 result[index as usize].next = next + base;
                 result[next as usize].previous = index + base;
             }
@@ -214,7 +230,11 @@ fn joined_rows(
 
     result
 }
+// --8<-- [end:joints]
+// --8<-- [end:04b-joints]
 
+// --8<-- [start:04b-tables]
+// --8<-- [start:tables]
 /// One segment buffer, its ids and their bind group.
 struct SegTable {
     label: &'static str,    // name shown in GPU errors
@@ -258,7 +278,7 @@ impl SegTable {
     }
 }
 
-/// The nine segment pipelines.
+/// One shader, nine pipelines: a pipeline fixes the entry points, the target format and the blending, so each mix is its own.
 struct SegPipelines {
     ribbon: Pipeline,           // plain lines in color
     unselected: Pipeline,       // unselected objects' lines
@@ -282,9 +302,13 @@ pub struct SegmentLane {
     selected_rows: HashSet<u32>, // selected object rows
     selected_edge: bool,         // an edge is selected
     sheets: Vec<SegSheet>,       // drawing sheets
-    pub slots: Slots,            // instance slots and the per-definition draws
+    pub slots: Slots,            // copies of a block definition; empty until lesson 18a fills it
 }
+// --8<-- [end:tables]
+// --8<-- [end:04b-tables]
 
+// --8<-- [start:04b-lane-new]
+// --8<-- [start:lane-new]
 impl SegmentLane {
     /// Bytes reserved on the GPU by this lane.
     pub fn allocated_bytes(&self) -> u64 {
@@ -300,6 +324,7 @@ impl SegmentLane {
 
     /// Create the lane: shader, pipelines, empty tables.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
+        // the ribbon code plus the shared ink code that hides strokes behind faces
         let shader = ink_module(ctx, "ribbon.shader", shader!("ribbon.wgsl"));
         let gpu = build_pipelines(ctx, l, &shader, target);
         let selection = uniform_buffer(&ctx.device, "edge.selection", &[u32::MAX; 4]);
@@ -322,6 +347,7 @@ impl SegmentLane {
 
     /// Rebuild the pipelines for a new MSAA sample count.
     pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
+        // a pipeline is built for one sample count (1 or 4), so a change rebuilds all nine
         self.gpu = build_pipelines(ctx, l, &self.shader, target);
     }
 
@@ -331,8 +357,10 @@ impl SegmentLane {
         let mut ids = up.pipe_ids.clone();
         ids.resize(up.pipes.len(), u32::MAX);
         let pipes = joined_rows(&up.pipes, &up.pipe_chains, &[], self.pipes.buf.len());
+        // true when the buffer was full and got replaced by a bigger one
         let pipes_changed = self.pipes.buf.append(ctx, &pipes);
 
+        // a bind group points at the old buffer, so a replaced buffer needs a new group
         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
             self.pipes.rebind(ctx, l, &self.selection);
         }
@@ -375,8 +403,13 @@ impl SegmentLane {
             push_chunk(&mut self.sheets, d.instance, chunk, ids);
         }
     }
+// --8<-- [end:lane-new]
+// --8<-- [end:04b-lane-new]
 
+// --8<-- [start:04b-lane-edit]
+// --8<-- [start:lane-edit]
     /// Hand `count` pipe or ribbon rows from `first` to the hidden row `sink`.
+    /// Undo stays instant: the rows keep their place and draw nothing, so nothing is freed or shifted.
     pub(crate) fn kill(
         &mut self,
         ctx: &GpuCtx,
@@ -467,7 +500,11 @@ impl SegmentLane {
             self.selected_rows.remove(&row);
         }
     }
+// --8<-- [end:lane-edit]
+// --8<-- [end:04b-lane-edit]
 
+// --8<-- [start:04b-lane-draw]
+// --8<-- [start:lane-draw]
     /// Draw the unselected objects' lines.
     pub fn draw_unselected(
         &self,
@@ -490,7 +527,7 @@ impl SegmentLane {
         draws
     }
 
-    /// Draw the selected objects' lines.
+    /// Draw the selected objects' lines; drawn after the rest, so the yellow sits on top.
     pub fn draw_selected(
         &self,
         pass: &mut wgpu::RenderPass<'_>,
@@ -515,8 +552,13 @@ impl SegmentLane {
 
         draws
     }
+// --8<-- [end:lane-draw]
+// --8<-- [end:04b-lane-draw]
 
+// --8<-- [start:04b-lane-masks]
+// --8<-- [start:lane-masks]
     /// Draw every edge into the solid mask.
+    /// A mask is a one-byte-per-pixel texture; the outline pass reads it to find where visible edges are.
     pub fn draw_solid_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_table(pass, b, &self.gpu.mask_unselected, &self.pipes)
             + self.draw_table(pass, b, &self.gpu.mask_selected, &self.pipes)
@@ -536,7 +578,11 @@ impl SegmentLane {
         self.draw_table(pass, b, &self.gpu.masks_unselected, &self.pipes)
             + self.draw_table(pass, b, &self.gpu.masks_selected, &self.pipes)
     }
+// --8<-- [end:lane-masks]
+// --8<-- [end:04b-lane-masks]
 
+// --8<-- [start:04b-lane-ids]
+// --8<-- [start:lane-ids]
     /// Draw the edges in color.
     pub fn draw_pipes(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_table(pass, b, &self.gpu.ribbon, &self.pipes)
@@ -580,7 +626,7 @@ impl SegmentLane {
         b.set(pass);
         pass.set_bind_group(3, &table.group, &[]);
         self.slots.bind(pass, 0);
-        // six vertices per segment, placed by the shader
+        // no vertex data: vertex `vid` belongs to segment vid / 6, which the shader reads from the storage buffer
         pass.draw(0..RIBBON_VERTS * table.buf.len(), 0..1);
         let mut draws = 1;
 
@@ -606,7 +652,11 @@ impl SegmentLane {
 
         draws
     }
+// --8<-- [end:lane-ids]
+// --8<-- [end:04b-lane-ids]
 
+// --8<-- [start:04b-lane-counts]
+// --8<-- [start:lane-counts]
     /// Forget every row; keep the buffers.
     pub fn reset(&mut self) {
         self.slots.clear_draws();
@@ -653,12 +703,17 @@ impl SegmentLane {
         self.ribbons.buf.len()
     }
 }
+// --8<-- [end:lane-counts]
+// --8<-- [end:04b-lane-counts]
 
+// --8<-- [start:04b-pipelines]
+// --8<-- [start:pipelines]
 /// Build the nine segment pipelines.
 fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -> SegPipelines {
     let groups = [&l.mvp, &l.line, &l.ink_instance, &l.segment_rows];
     // always drawn, the shader tests depth; the one vertex buffer is the instance slots
     let slots = [row_slot_layout()];
+    // no depth test in hardware: the shader reads the faces' depth itself, so hidden ink can fade instead of vanish
     let quad = PipelineDesc::new(shader, &groups, &slots, TriangleList)
         .scene_samples(target.samples)
         .depth(DepthMode::Always);
@@ -740,7 +795,11 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -
         ),
     }
 }
+// --8<-- [end:pipelines]
+// --8<-- [end:04b-pipelines]
 
+// --8<-- [start:04b-tests]
+// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -873,7 +932,12 @@ mod tests {
         }
     }
 }
+// --8<-- [end:tests]
+// --8<-- [end:04b-tests]
 
+// --8<-- [start:04b-lane-trait]
+// --8<-- [start:lane-trait]
+// `Lane` is the trait every GPU lane implements, so the Gpu can retarget, reset and release them all in one loop.
 impl super::lane::Lane for SegmentLane {
     fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
         self.retarget(ctx, layouts, target);
@@ -891,7 +955,12 @@ impl super::lane::Lane for SegmentLane {
         (self.allocated_bytes(), 0)
     }
 }
+// --8<-- [end:lane-trait]
+// --8<-- [end:04b-lane-trait]
 
+// --8<-- [start:04b-merge]
+// --8<-- [start:merge]
+// A second `impl SegRows` block: Rust allows several, so the merge can come at the end of the file.
 impl SegRows {
     /// Move `other`'s rows after these, its chains and ids shifted to match.
     pub fn merge(&mut self, other: &mut SegRows) {
@@ -938,3 +1007,5 @@ impl SegRows {
         seg.sheet_ids.append(&mut other.sheet_ids);
     }
 }
+// --8<-- [end:merge]
+// --8<-- [end:04b-merge]

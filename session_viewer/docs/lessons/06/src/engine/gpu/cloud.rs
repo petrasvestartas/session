@@ -1,3 +1,5 @@
+// --8<-- [start:04d-cloud-rows]
+// --8<-- [start:cloud-rows]
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::upload::drop_rows;
 use crate::engine::pipelines::Layouts;
@@ -5,6 +7,7 @@ use crate::engine::pipelines::Layouts;
 /// Marker for a cloud that has no normals.
 pub const NO_NORMALS: u32 = u32::MAX;
 
+// A large cloud streams in batches: 13.8 million points arrive as many uploads, each drawn as soon as it lands.
 /// One batch of points added to a cloud.
 pub struct CloudDraw {
     pub instance: u32,   // object row of the cloud
@@ -17,7 +20,7 @@ pub struct CloudDraw {
     pub nrm_first: u32,  // first normal row, or NO_NORMALS
 }
 
-/// One box of the cloud's octree.
+/// One box of the cloud's octree: a box split into 8 child boxes, again and again, with each box's points stored in one run.
 #[derive(Clone, Copy)]
 pub struct LodNode {
     pub center: [f32; 3],   // box center
@@ -94,7 +97,11 @@ impl CloudRows {
         drop_rows(&mut self.nodes);
     }
 }
+// --8<-- [end:cloud-rows]
+// --8<-- [end:04d-cloud-rows]
 
+// --8<-- [start:04d-cloud-lane]
+// --8<-- [start:cloud-lane]
 /// The three point buffers, borrowed for binding.
 pub struct PointBufs<'a> {
     pub pos: &'a wgpu::Buffer,
@@ -108,7 +115,7 @@ pub struct CloudLane {
     col: GrowBuf,            // colors
     nrm: GrowBuf,            // normals
     pub clouds: Vec<Cloud>,  // one entry per cloud
-    pub buried: Vec<Cloud>,  // deleted clouds an undo may draw again, points kept
+    pub buried: Vec<Cloud>,  // deleted clouds an undo may draw again, points kept on the GPU
     pub nodes: Vec<LodNode>, // octree nodes of every cloud
     pub point_count: u32,    // points on the GPU
 }
@@ -137,7 +144,11 @@ impl CloudLane {
         let more = u64::from(more);
         self.pos.fits(ctx, more * 3) && self.col.fits(ctx, more) && self.nrm.fits(ctx, more)
     }
+// --8<-- [end:cloud-lane]
+// --8<-- [end:04d-cloud-lane]
 
+// --8<-- [start:04d-cloud-append]
+// --8<-- [start:cloud-append]
     /// Append one upload; returns true if a buffer was replaced.
     pub fn append(&mut self, ctx: &GpuCtx, up: &CloudRows) -> bool {
         debug_assert_eq!(up.col.len() * 3, up.pos.len());
@@ -157,7 +168,8 @@ impl CloudLane {
         let nrm_base = self.nrm.len();
         let node_base = self.nodes.len() as u32;
 
-        // a full buffer grows to exactly the points known to come, not by half
+        // a full buffer grows to exactly the points known to come, not by half:
+        // 13.8 M points need 166 MB of positions; growing by half would reserve up to 83 MB more for nothing
         let (expect, normals) = (u64::from(up.expect), u64::from(up.expect_normals));
         let mut moved = self.pos.reserve(ctx, up.pos.len() as u64, expect * 3);
         moved |= self.col.reserve(ctx, up.col.len() as u64, expect);
@@ -225,7 +237,11 @@ impl CloudLane {
 
         log::warn!("cloud chunk for row {instance} arrived before its cloud; dropped");
     }
+// --8<-- [end:cloud-append]
+// --8<-- [end:04d-cloud-append]
 
+// --8<-- [start:04d-cloud-undo]
+// --8<-- [start:cloud-undo]
     /// Stop drawing the cloud on object row `instance`, buried or not; returns its resident points, now dead.
     pub fn kill_instance(&mut self, instance: u32) -> u32 {
         if let Some(at) = self.clouds.iter().position(|c| c.instance == instance) {
@@ -239,6 +255,7 @@ impl CloudLane {
     }
 
     /// Stop drawing the cloud on object row `instance` but keep its points for an undo; false when none is drawn.
+    /// Undo is instant: burying moves one small entry between two lists, the points never leave the GPU.
     pub fn bury_instance(&mut self, instance: u32) -> bool {
         let Some(at) = self.clouds.iter().position(|c| c.instance == instance) else {
             return false;
@@ -291,6 +308,7 @@ impl CloudLane {
             nodes.extend_from_slice(&self.nodes[first.min(end)..end]);
         }
 
+        // the copies run on the GPU, buffer to buffer; no point passes through the CPU
         let mut encoder = ctx.device.create_command_encoder(&Default::default());
         let fresh = [
             self.pos.packed(ctx, &mut encoder, &pos),
@@ -305,7 +323,11 @@ impl CloudLane {
         self.nodes = nodes;
         self.point_count = points;
     }
+// --8<-- [end:cloud-undo]
+// --8<-- [end:04d-cloud-undo]
 
+// --8<-- [start:04d-cloud-lookup]
+// --8<-- [start:cloud-lookup]
     /// Cloud of a GPU point row: (object row, point index).
     pub fn row_of(&self, row: u32) -> Option<(u32, u32)> {
         for c in &self.clouds {
@@ -361,7 +383,12 @@ impl CloudLane {
         self.nodes.shrink_to_fit();
     }
 }
+// --8<-- [end:cloud-lookup]
+// --8<-- [end:04d-cloud-lookup]
 
+// --8<-- [start:04d-cloud-trait]
+// --8<-- [start:cloud-trait]
+// No on_retarget: this lane has buffers only; the pipelines that draw clouds live in splat.rs.
 impl super::lane::Lane for CloudLane {
     fn on_reset(&mut self, _ctx: &GpuCtx) {
         self.reset();
@@ -375,7 +402,12 @@ impl super::lane::Lane for CloudLane {
         (self.allocated_bytes(), 0)
     }
 }
+// --8<-- [end:cloud-trait]
+// --8<-- [end:04d-cloud-trait]
 
+// --8<-- [start:04d-cloud-merge]
+// --8<-- [start:cloud-merge]
+// A second impl block, as for SegRows: the merge comes at the end of the file.
 impl CloudRows {
     /// Move `other`'s points after these, its batches shifted to match.
     pub fn merge(&mut self, other: &mut CloudRows) {
@@ -401,3 +433,5 @@ impl CloudRows {
         cloud.nodes.append(&mut other.nodes);
     }
 }
+// --8<-- [end:cloud-merge]
+// --8<-- [end:04d-cloud-merge]

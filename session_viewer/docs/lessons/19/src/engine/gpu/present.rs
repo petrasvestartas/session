@@ -1,3 +1,4 @@
+// --8<-- [start:frame-uniforms]
 use super::Gpu;
 use super::frame::{FrameCx, FrameInput};
 #[cfg(not(target_arch = "wasm32"))]
@@ -25,12 +26,14 @@ impl Gpu {
     pub fn ambient_pending(&self) -> bool {
         self.passes.iter().any(|pass| pass.pending(self))
     }
+// --8<-- [end:frame-uniforms]
 
+// --8<-- [start:present]
     /// Draw one frame to the canvas; returns encode time in ms.
     pub fn present(&mut self, input: &FrameInput) -> Option<f64> {
         self.write_frame_uniforms(input);
         let surface = self.surface.as_ref()?;
-        // this frame's canvas texture; None means try again
+        // the canvas lends one texture per frame; `present()` below hands it back to be shown
         let output = match surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(t)
             | wgpu::CurrentSurfaceTexture::Suboptimal(t) => t,
@@ -52,6 +55,7 @@ impl Gpu {
         let t0 = crate::engine::performance::now_ms();
         let (draws, objects) = self.encode_frame(&mut encoder, &view, input.clear);
         let encode_ms = crate::engine::performance::now_ms() - t0;
+        // submit: the GPU starts on the recorded commands while the CPU moves on
         self.ctx.queue.submit([encoder.finish()]);
         // start reading back any pick copied this frame
         self.pick.map(); // register:shell
@@ -81,7 +85,9 @@ impl Gpu {
 
         Some(encode_ms)
     }
+// --8<-- [end:present]
 
+// --8<-- [start:offscreen]
     /// Draw one frame into a texture and return its RGBA8 pixels; native only.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn render_offscreen(&mut self, input: &FrameInput) -> Vec<u8> {
@@ -159,8 +165,10 @@ impl Gpu {
         out
     }
 }
+// --8<-- [end:offscreen]
 
-// --8<-- [start:11]
+// --8<-- [start:11-prepare-text]
+// --8<-- [start:prepare-text]
 impl Gpu {
     /// Lay out the labels for this frame.
     fn prepare_text(&mut self, size: (u32, u32)) {
@@ -178,9 +186,11 @@ impl Gpu {
         }
     }
 }
-// --8<-- [end:11]
+// --8<-- [end:prepare-text]
+// --8<-- [end:11-prepare-text]
 
-// --8<-- [start:12]
+// --8<-- [start:12-pick-frame]
+// --8<-- [start:pick-frame]
 impl Gpu {
     /// Run only the id pass for a pick; nothing is shown.
     pub fn pick_frame(&mut self, input: &FrameInput, at: (u32, u32)) {
@@ -229,4 +239,5 @@ impl Gpu {
         readback.read(&self.ctx)
     }
 }
-// --8<-- [end:12]
+// --8<-- [end:pick-frame]
+// --8<-- [end:12-pick-frame]
