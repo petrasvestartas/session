@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from compas.datastructures import Mesh as CMesh
 
 

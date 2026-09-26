@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from compas.geometry import Line as CLine
 from compas.geometry import Polyline as CPolyline
 

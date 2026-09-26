@@ -1,8 +1,8 @@
 # session_compas
 
-COMPAS converters and viewer for `session_py` geometry.
+COMPAS converters for `session_py` geometry and a publisher to the live viewer.
 
-Converts `session_py` objects (Point, Line, Polyline, Mesh, NurbsCurve, NurbsSurface, PointCloud) to COMPAS geometry and displays them with `compas_viewer`.
+Converts `session_py` objects (Point, Line, Polyline, Mesh, NurbsCurve, NurbsSurface, PointCloud, Plane, BRep) to COMPAS geometry, and publishes a session to https://petrasvestartas.github.io/session/ the same way the wood C++ projects do.
 
 ## Install
 
@@ -12,64 +12,25 @@ pip install session_compas
 
 ## Usage
 
-### Load and view a protobuf/JSON session
-
-```python
-from session_compas.session import view
-
-view("scene.pb")
-```
-
-### Convert individual objects
+### Publish a session to the live viewer
 
 ```python
 from session_py import Point
 from session_py import Session
-from session_compas.session import view
+from session_compas import publish
 
 session = Session()
 session.add_point(Point(1, 2, 3))
-view(session)
+publish(session)
 ```
 
-### Convert without viewer
+`publish` also takes a path to an existing `.pb`, and `notify=False` skips the ntfy ping to open pages. It runs the superproject's `bash/publish-scene.sh`, found by walking up from the package or set with `SESSION_PUBLISH_SCRIPT`. The script overwrites the one R2 slot `pb/view_live.pb` and skips unchanged bytes.
+
+### Convert to COMPAS
 
 ```python
-from session_compas.compas_point import to_compas
+from session_compas import to_compas
 from session_py import Point
 
 cp = to_compas(Point(1, 2, 3))  # compas.geometry.Point
-```
-
-### Serialize session_py to JSON/protobuf
-
-```python
-from session_py import Point
-from session_py import Session
-
-session = Session()
-session.add_point(Point(1, 2, 3))
-session.file_json_dump("scene.json")
-session.pb_dump("scene.pb")
-```
-
-## Documentation
-
-`compas_viewer` has its own dedicated website — it is **not** bundled with the core COMPAS geometry docs.
-
-| Package | Docs |
-|---------|------|
-| Viewer (`compas_viewer`) | https://compas.dev/compas_viewer/ |
-| Core geometry (`compas`) | https://compas.dev/compas/ |
-
-There is nothing to open locally — just visit the site (e.g. `python -m webbrowser https://compas.dev/compas_viewer/`).
-
-To build the viewer docs offline instead, clone the repo and run Sphinx:
-
-```bash
-git clone https://github.com/compas-dev/compas_viewer
-cd compas_viewer
-pip install -e ".[dev]"
-sphinx-build -b html docs docs/_build/html
-python -m webbrowser docs/_build/html/index.html
 ```
