@@ -1,6 +1,6 @@
-mod control;
-mod gizmo;
-mod object;
+mod control; // register:control-drag
+mod gizmo; // register:gizmo-drag
+mod object; // register:object-drag
 
 use crate::State;
 

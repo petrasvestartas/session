@@ -1,39 +1,39 @@
-pub mod arena;
-pub mod backdrop;
-pub mod buffers;
-pub mod clip;
-pub mod cloud;
-pub mod device;
-pub mod faces;
-pub mod frame;
-pub mod glyphs;
-pub mod hull;
-pub mod instance;
-pub mod instanced;
-pub mod lod;
-pub mod objects;
+pub mod arena; // register:arena
+pub mod backdrop; // register:backdrop
+pub mod buffers; // register:buffers
+pub mod clip; // register:clip
+pub mod cloud; // register:cloud
+pub mod device; // register:device
+pub mod faces; // register:faces
+pub mod frame; // register:frame
+pub mod glyphs; // register:glyphs
+pub mod hull; // register:hull
+pub mod instance; // register:instance
+pub mod instanced; // register:instanced
+pub mod lod; // register:lod
+pub mod objects; // register:objects
 
-pub mod lane;
-pub mod pass;
-pub(crate) mod patch;
-pub mod pick;
-pub mod present;
-pub mod render;
-pub mod segments;
-pub mod splat;
-mod ssao;
-pub mod surface_outline;
-pub mod targets;
-pub mod text;
-pub mod text_outline;
-pub mod timing;
-mod triangle_tiles;
-pub mod ui;
-pub mod upload;
-pub mod vectors;
-pub mod view;
-mod widget;
-mod widget_mesh;
+pub mod lane; // register:lane
+pub mod pass; // register:pass
+pub(crate) mod patch; // register:patch
+pub mod pick; // register:pick
+pub mod present; // register:present
+pub mod render; // register:render
+pub mod segments; // register:segments
+pub mod splat; // register:splat
+mod ssao; // register:ssao
+pub mod surface_outline; // register:surface_outline
+pub mod targets; // register:targets
+pub mod text; // register:text
+pub mod text_outline; // register:text_outline
+pub mod timing; // register:timing
+mod triangle_tiles; // register:triangle_tiles
+pub mod ui; // register:ui
+pub mod upload; // register:upload
+pub mod vectors; // register:vectors
+pub mod view; // register:view
+mod widget; // register:widget
+mod widget_mesh; // register:widget_mesh
 
 use crate::engine::performance::Performance;
 use crate::engine::pipelines::{Layouts, Target};

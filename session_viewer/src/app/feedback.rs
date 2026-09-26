@@ -17,7 +17,8 @@ pub fn status(message: &str) {
     }
 
     #[cfg(target_arch = "wasm32")]
-    super::ui::MODEL.with_borrow_mut(|model| model.status = message.chars().take(256).collect());
+    super::ui::command_line::STATE
+        .with_borrow_mut(|model| model.status = message.chars().take(256).collect());
     log::info!("{message}");
 }
 
@@ -32,7 +33,8 @@ pub fn progress(message: &str, last: &str) {
 
         if shown.is_empty() || shown == last {
             status.set_text_content(Some(message));
-            super::ui::MODEL.with_borrow_mut(|model| model.status = message.to_string());
+            super::ui::command_line::STATE
+                .with_borrow_mut(|model| model.status = message.to_string());
         }
     }
 }
@@ -57,7 +59,7 @@ pub fn error(message: &str) {
 /// Open or close the command line.
 #[cfg(target_arch = "wasm32")]
 pub fn command_line(open: bool) {
-    super::ui::MODEL.with_borrow_mut(|model| {
+    super::ui::command_line::STATE.with_borrow_mut(|model| {
         model.command_open = open;
         model.focus_command = open;
 
@@ -130,13 +132,13 @@ pub struct EdgeRow {
 /// Replace the rows of the layers panel.
 #[cfg(target_arch = "wasm32")]
 pub fn layers_panel(rows: &[LayerRow]) {
-    super::ui::MODEL.with_borrow_mut(|model| model.rows = rows.to_vec());
+    super::ui::layers::STATE.with_borrow_mut(|model| model.rows = rows.to_vec());
 }
 
 /// Replace the rows of the graph table; `total` counts the edges not listed too.
 #[cfg(target_arch = "wasm32")]
 pub fn graph_panel(edges: Vec<EdgeRow>, total: usize) {
-    super::ui::MODEL.with_borrow_mut(|model| {
+    super::ui::layers::STATE.with_borrow_mut(|model| {
         model.edges = edges;
         model.edge_total = total;
     });
@@ -149,20 +151,20 @@ pub fn graph_panel(_edges: Vec<EdgeRow>, _total: usize) {}
 /// Whether the graph table is unfolded.
 #[cfg(target_arch = "wasm32")]
 pub fn graph_open() -> bool {
-    super::ui::MODEL.with_borrow(|model| model.graph_open)
+    super::ui::layers::STATE.with_borrow(|model| model.graph_open)
 }
 
 /// Fold or unfold the graph table.
 #[cfg(target_arch = "wasm32")]
 pub fn toggle_graph() {
-    super::ui::MODEL.with_borrow_mut(|model| model.graph_open = !model.graph_open);
+    super::ui::layers::STATE.with_borrow_mut(|model| model.graph_open = !model.graph_open);
 }
 
 /// Start editing the name of layer row `index`.
 #[cfg(target_arch = "wasm32")]
 pub fn rename_row(index: usize, label: &str) {
-    super::ui::MODEL.with_borrow_mut(|model| {
-        model.renaming = Some(super::ui::Rename {
+    super::ui::layers::STATE.with_borrow_mut(|model| {
+        model.renaming = Some(super::ui::layers::Rename {
             node: index.to_string(),
             text: label.to_string(),
             focused: false,
@@ -188,7 +190,7 @@ pub fn rename_row(_index: usize, _label: &str) {}
 /// Show or hide the layers panel.
 #[cfg(target_arch = "wasm32")]
 pub fn layers_visible(open: bool) {
-    super::ui::MODEL.with_borrow_mut(|model| {
+    super::ui::layers::STATE.with_borrow_mut(|model| {
         model.layers_open = open;
 
         if !open {
@@ -201,7 +203,7 @@ pub fn layers_visible(open: bool) {
 /// Whether the layers panel is open.
 #[cfg(target_arch = "wasm32")]
 pub fn layers_open() -> bool {
-    super::ui::MODEL.with_borrow(|model| model.layers_open)
+    super::ui::layers::STATE.with_borrow(|model| model.layers_open)
 }
 
 /// No panel on native.

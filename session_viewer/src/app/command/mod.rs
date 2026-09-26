@@ -1,6 +1,8 @@
 pub mod tool;
 pub mod verbs;
 
+pub use verbs::REGISTRY;
+
 use crate::State;
 use crate::app::coords;
 
@@ -53,84 +55,6 @@ impl Verb for Spec {
         self
     }
 }
-
-/// Every verb the command line knows.
-pub const REGISTRY: &[&dyn Verb] = &[
-    &verbs::point::SPEC,      // register:point
-    &verbs::line::SPEC,       // register:line
-    &verbs::arrow::SPEC,      // register:arrow
-    &verbs::polyline::SPEC,   // register:polyline
-    &verbs::curve::SPEC,      // register:curve
-    &verbs::close::SPEC,      // register:close
-    &verbs::trim::SPEC,       // register:trim
-    &verbs::extend::SPEC,     // register:extend
-    &verbs::explode::SPEC,    // register:explode
-    &verbs::r#move::SPEC,     // register:move
-    &verbs::rotate::SPEC,     // register:rotate
-    &verbs::scale::SPEC,      // register:scale
-    &verbs::copy::SPEC,       // register:copy
-    &verbs::orient_3_points::SPEC, // register:orient_3_points
-    &verbs::split::SPEC,      // register:split
-    &verbs::save::SPEC,       // register:save
-    &verbs::open::SPEC,       // register:open
-    &verbs::delete::SPEC,     // register:delete
-    &verbs::undo::SPEC,       // register:undo
-    &verbs::redo::SPEC,       // register:redo
-    &verbs::hide::SPEC,       // register:hide
-    &verbs::show::SPEC,       // register:show
-    &verbs::fit::SPEC,        // register:fit
-    &verbs::escape::SPEC,     // register:escape
-    &verbs::layers::SPEC,     // register:layers
-    &verbs::opacity::SPEC,    // register:opacity
-    &verbs::arrowhead::SPEC,  // register:arrowhead
-    &verbs::attributes::SPEC, // register:attributes
-    &verbs::snap::SPEC,       // register:snap
-    &verbs::arctic::SPEC,     // register:arctic
-    &verbs::outline::SPEC,    // register:outline
-    &verbs::object::SPEC,     // register:object
-    &verbs::edge::SPEC,       // register:edge
-    &verbs::face::SPEC,       // register:face
-    &verbs::controls::SPEC,   // register:controls
-    &verbs::select_lasso::SPEC, // register:select_lasso
-    &verbs::select_by_name::SPEC, // register:select_by_name
-    &verbs::select_small::SPEC, // register:select_small
-    &verbs::clipping_plane::SPEC, // register:clipping_plane
-    &verbs::r#box::SPEC,      // register:box
-    &verbs::sphere::SPEC, // register:sphere
-    &verbs::cylinder::SPEC, // register:cylinder
-    &verbs::cone::SPEC, // register:cone
-    &verbs::pyramid::SPEC, // register:pyramid
-    &verbs::torus::SPEC, // register:torus
-    &verbs::block_with_hole::SPEC, // register:block_with_hole
-    &verbs::tetrahedron::SPEC, // register:tetrahedron
-    &verbs::octahedron::SPEC, // register:octahedron
-    &verbs::dodecahedron::SPEC, // register:dodecahedron
-    &verbs::icosahedron::SPEC, // register:icosahedron
-    &verbs::quad_sphere::SPEC, // register:quad_sphere
-    &verbs::capsule::SPEC, // register:capsule
-    &verbs::nurbs_curve_circle::SPEC, // register:nurbs_curve_circle
-    &verbs::nurbs_curve_ellipse::SPEC, // register:nurbs_curve_ellipse
-    &verbs::nurbs_curve_arc::SPEC, // register:nurbs_curve_arc
-    &verbs::nurbs_curve_parabola::SPEC, // register:nurbs_curve_parabola
-    &verbs::loft::SPEC, // register:loft
-    &verbs::extrude::SPEC, // register:extrude
-    &verbs::nurbs_surface_loft::SPEC, // register:nurbs_surface_loft
-    &verbs::nurbs_surface_network::SPEC, // register:nurbs_surface_network
-    &verbs::nurbs_surface_revolve::SPEC, // register:nurbs_surface_revolve
-    &verbs::nurbs_surface_4_points::SPEC, // register:nurbs_surface_4_points
-    &verbs::nurbs_surface_sweep1::SPEC, // register:nurbs_surface_sweep1
-    &verbs::nurbs_surface_sweep2::SPEC, // register:nurbs_surface_sweep2
-    &verbs::text::SPEC, // register:text
-    &verbs::project_to_plane::SPEC, // register:project_to_plane
-    &verbs::measure_distance::SPEC, // register:measure_distance
-    &verbs::length::SPEC, // register:length
-    &verbs::area::SPEC, // register:area
-    &verbs::volume::SPEC, // register:volume
-    &verbs::add_group::SPEC, // register:add_group
-    &verbs::add_edge::SPEC, // register:add_edge
-    #[cfg(test)]
-    &verbs::geometry::tests::SPEC, // register:wedge
-];
 
 /// A name lowercased without its spaces, so `clippingplane` spells `Clipping Plane`.
 fn compact(name: &str) -> String {
@@ -520,86 +444,22 @@ mod tests {
         assert!(parsed("Layers maybe").is_err());
     }
 
-    /// The whole command list, in the order the command line shows it.
+    /// Every registered name is offered once, alphabetically.
     #[test]
     fn every_verb_is_offered_in_alphabetical_order() {
-        assert_eq!(
-            completions(""),
-            vec![
-                "Add Edge",
-                "Add Group",
-                "Arctic",
-                "Area",
-                "Arrow",
-                "Arrowhead",
-                "Block With Hole",
-                "Box",
-                "Capsule",
-                "Clipping Plane",
-                "Close",
-                "Cone",
-                "Controls",
-                "Copy",
-                "Curve",
-                "Cylinder",
-                "Delete",
-                "Dodecahedron",
-                "Edge",
-                "Element Features",
-                "Escape",
-                "Explode",
-                "Extend",
-                "Extrude",
-                "Face",
-                "Fit",
-                "Hide",
-                "Icosahedron",
-                "Layers",
-                "Length",
-                "Line",
-                "Loft",
-                "Measure Distance",
-                "Move",
-                "Nurbs Curve Arc",
-                "Nurbs Curve Circle",
-                "Nurbs Curve Ellipse",
-                "Nurbs Curve Parabola",
-                "Nurbs Surface 4 Points",
-                "Nurbs Surface Loft",
-                "Nurbs Surface Network",
-                "Nurbs Surface Revolve",
-                "Nurbs Surface Sweep1",
-                "Nurbs Surface Sweep2",
-                "Object",
-                "Octahedron",
-                "Opacity",
-                "Open",
-                "Orient 3 Points",
-                "Outline",
-                "Point",
-                "Polyline",
-                "Project To Plane",
-                "Pyramid",
-                "Quad Sphere",
-                "Redo",
-                "Rotate",
-                "Save",
-                "Scale",
-                "Select By Name",
-                "Select Lasso",
-                "Select Small",
-                "Show",
-                "Snap",
-                "Sphere",
-                "Split",
-                "Tetrahedron",
-                "Text",
-                "Torus",
-                "Trim",
-                "Undo",
-                "Volume",
-                "Wedge", // the test-only verb in verbs/geometry.rs
-            ]
+        let offered = completions("");
+        let mut names: Vec<_> = REGISTRY
+            .iter()
+            .flat_map(|verb| verb.spec().names)
+            .copied()
+            .collect();
+        names.sort_by_key(|name| name.to_ascii_lowercase());
+        assert_eq!(offered, names);
+        // strictly increasing, so no name is offered twice
+        assert!(
+            offered
+                .windows(2)
+                .all(|pair| pair[0].to_ascii_lowercase() < pair[1].to_ascii_lowercase())
         );
     }
 

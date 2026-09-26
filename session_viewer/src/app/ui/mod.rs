@@ -1,75 +1,89 @@
 use crate::State;
-use crate::app::feedback::{EdgeRow, LayerRow};
-use crate::app::gizmo::Handle;
-use crate::state::number_box::NumberPrompt;
-use std::cell::RefCell;
-use std::collections::VecDeque;
+use std::cell::Cell;
 use theme::{BUNDLED, fonts, visuals};
 use winit::window::Window;
-mod command_line; // register:command_line
 mod graph; // register:graph
-mod layers; // register:layers
-mod number_box; // register:number_box
 mod overlay; // register:overlay
 #[cfg(target_arch = "wasm32")]
 mod phone; // register:phone
 mod pointer; // register:pointer
 mod theme; // register:theme
 
-/// Everything the panels show.
-#[derive(Default)]
-pub struct Model {
-    pub layers_open: bool,                                    // layers panel shown
-    pub rows: Vec<LayerRow>,                                  // its rows
-    pub edges: Vec<EdgeRow>,                                  // graph table rows
-    pub edge_total: usize,                                    // graph edges, listed or not
-    pub(crate) graph_open: bool,                              // graph table unfolded
-    pub(crate) renaming: Option<Rename>,                      // a layer name edited in its row
-    menu_open: bool,                                          // a layer or colour menu is shown
-    pub command_open: bool,                                   // command line shown
-    pub command: String,                                      // text in the command field
-    pub drawing_prompt: String,                               // prompt while drawing
-    drawing_options: &'static [(&'static str, &'static str)], // buttons while drawing: (label, line)
-    drawing_chosen: Option<&'static str>,                     // the option button shown as chosen
-    pub focus_command: bool,                                  // give the field focus next frame
-    pub status: String,                                       // status line text
-    history: VecDeque<String>,                                // past commands and answers
-    command_expanded: bool,                                   // history shown above the field
-    layers_collapsed: bool,                                   // layers panel folded to its title
-    completion: usize,                                        // highlighted completion index
-    completion_prefix: String,                                // text the completions match
-    inline_suffix: bool,      // completion suffix shown in the field
-    completion_visible: bool, // completion list shown
-    pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
-    pub(crate) command_rect: Option<egui::Rect>, // where the field is, for taps
-    pub(crate) keyboard_rects: Vec<egui::Rect>, // a layer name field or an item opening one
-    snap_bar: bool,           // snap toolbar under the field
-    snap_modes: u8,           // snap kinds switched on
-    agent_edit: Option<bool>, // phone keyboard set the text, true on delete
-    number_prompt: Option<NumberPrompt>, // the gumball number box, when open
-    number_handle: Option<Handle>, // the handle the box was opened for
-    number: String,           // text typed into the box
-    number_error: String,     // why the typed value was refused
-    pub(crate) number_rect: Option<egui::Rect>, // where the box is, for taps
+/// Declare each panel's module and list it in PANELS, so a panel is one file plus one line.
+macro_rules! panels {
+    ($($name:ident),* $(,)?) => {
+        $(pub(crate) mod $name;)*
+
+        /// The panels in drawing order; the number box first, so its Escape never reaches the command line.
+        const PANELS: &[&dyn Panel] = &[$(&$name::Hooks),*];
+    };
 }
 
-thread_local! { pub static MODEL: RefCell<Model> = RefCell::default(); } // the one model
+panels! {
+    number_box,   // register:number_box
+    command_line, // register:command_line
+    layers,       // register:layers
+}
 
-/// A layer name being edited in its row.
-pub(crate) struct Rename {
-    pub node: String,  // the row's node index
-    pub text: String,  // the name typed so far
-    pub focused: bool, // the field has the keys
-    pub done: bool,    // kept by Enter or a click elsewhere, applied after the frame
+/// One panel. Its state lives in its own file; these hooks are all the frame needs from it.
+trait Panel {
+    /// Copy what it shows from the viewer, before the frame.
+    fn fill(&self, _state: &mut State) {}
+
+    /// Draw into the root area; a click or a line to run goes to `out`.
+    fn show(&self, root: &mut egui::Ui, controls: &mut Option<Vec<Control>>, out: &mut Output);
+
+    /// Apply what it took this frame, once egui is done; true when something changed.
+    fn apply(&self, _state: &mut State) -> bool {
+        false
+    }
+
+    /// True while it takes the keys.
+    fn keys_taken(&self) -> bool {
+        false
+    }
+
+    /// True while Escape is its own, so the command line leaves it alone.
+    fn holds_escape(&self) -> bool {
+        false
+    }
+
+    /// Its open text field for the phone keyboard: the egui id, after `edit` ran on the text.
+    fn field(&self, _edit: &mut dyn FnMut(&mut String)) -> Option<&'static str> {
+        None
+    }
+
+    /// Whether `point` is on its text field, which raises the keyboard, and on a floating area that keeps the pointer.
+    fn hit(&self, _point: egui::Pos2) -> (bool, bool) {
+        (false, false)
+    }
+
+    /// Its part of the state browser tests read.
+    fn snapshot(&self, _json: &mut serde_json::Map<String, serde_json::Value>) {}
+}
+
+thread_local! { static MENU_OPEN: Cell<bool> = const { Cell::new(false) }; } // an egui popup, e.g. a layer or colour menu, is open
+
+/// True while a popup such as a layer or colour menu is open.
+fn menu_open() -> bool {
+    MENU_OPEN.get()
 }
 
 /// True while a panel takes the keys: the command line, a layer rename, the number box or an open menu.
 pub fn keys_taken() -> bool {
-    MODEL.with_borrow(|model| {
-        model.command_open
-            || model.menu_open
-            || model.number_prompt.is_some()
-            || model.renaming.as_ref().is_some_and(|rename| rename.focused)
+    menu_open() || PANELS.iter().any(|panel| panel.keys_taken())
+}
+
+/// True while another panel owns Escape, e.g. a layer rename.
+fn escape_held() -> bool {
+    PANELS.iter().any(|panel| panel.holds_escape())
+}
+
+/// Whether `point` is on a text field, which raises the keyboard, and on a floating area that keeps the pointer.
+pub(crate) fn hit(point: egui::Pos2) -> (bool, bool) {
+    PANELS.iter().fold((false, false), |(field, popup), panel| {
+        let (on_field, on_popup) = panel.hit(point);
+        (field || on_field, popup || on_popup)
     })
 }
 
@@ -86,19 +100,7 @@ pub struct Control {
 struct Output {
     action: Option<String>,  // a panel click, for `State::panel_action`
     command: Option<String>, // a line to run
-    typed: Option<String>,   // a value Enter took from the number box
-    closed: bool,            // the number box was closed without a value
 }
-
-/// One panel: draws itself into the root area and reports through `Output`.
-type Panel = fn(&mut egui::Ui, &mut Model, &mut Option<Vec<Control>>, &mut Output);
-
-/// The panels in drawing order; the number box first, so its Escape never reaches the command line.
-const PANELS: &[Panel] = &[
-    number_box::show,   // register:number_box
-    command_line::show, // register:command_line
-    layers::show,       // register:layers
-];
 
 /// The egui interface over the canvas.
 pub struct Ui {
@@ -130,7 +132,7 @@ impl Ui {
         context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
         context.set_theme(egui::Theme::Light);
         context.set_visuals(visuals());
-        MODEL.with_borrow_mut(|model| model.focus_command = true);
+        command_line::STATE.with_borrow_mut(|model| model.focus_command = true);
         let input = egui_winit::State::new(
             context.clone(),
             egui::ViewportId::ROOT,
@@ -173,21 +175,11 @@ impl Ui {
         }
 
         let mut out = Output::default();
-        let number_prompt = state.number_prompt();
 
-        // a box whose handle went behind the eye closes, so no unseen field keeps the keys
-        if number_prompt.is_none() {
-            state.close_number_box();
+        for panel in PANELS {
+            panel.fill(state);
         }
 
-        MODEL.with_borrow_mut(|model| {
-            model.drawing_prompt = state.drawing_prompt();
-            model.drawing_options = state.drawing_options();
-            model.drawing_chosen = state.drawing_chosen();
-            model.snap_bar = state.features.snap.bar;
-            model.snap_modes = state.features.snap.modes;
-            model.number_prompt = number_prompt;
-        });
         // a dragged object's snap, else the shape being drawn
         let drawing = state
             .drag_overlay()
@@ -221,11 +213,9 @@ impl Ui {
             if let Some(controls) = self.controls.as_mut() {
                 controls.clear();
             }
-            MODEL.with_borrow_mut(|model| {
-                for panel in PANELS {
-                    panel(root, model, &mut self.controls, &mut out);
-                }
-            });
+            for panel in PANELS {
+                panel.show(root, &mut self.controls, &mut out);
+            }
             self.scene_rect = root.available_rect_before_wrap();
             let painter = root.painter().with_clip_rect(self.scene_rect);
             let scale = state.pixel_scale() as f32;
@@ -240,45 +230,17 @@ impl Ui {
         for batch in batches {
             output.append(self.context.run_ui(batch, &mut draw));
         }
-        MODEL.with_borrow_mut(|model| model.menu_open = egui::Popup::is_any_open(&self.context));
+        MENU_OPEN.set(egui::Popup::is_any_open(&self.context));
         self.input
             .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
-        // a kept layer name goes in before the click that ended its edit
-        let renamed = MODEL.with_borrow_mut(|model| model.renaming.take_if(|rename| rename.done));
-        let Output {
-            action,
-            command,
-            typed,
-            closed,
-        } = out;
-        let changed =
-            action.is_some() || command.is_some() || renamed.is_some() || typed.is_some() || closed;
+        let mut changed = false;
 
-        if let Some(rename) = renamed {
-            state.panel_action(&format!("rename/{}/{}", rename.node, rename.text));
+        for panel in PANELS {
+            changed |= panel.apply(state);
         }
 
-        if closed {
-            state.close_number_box();
-        }
-
-        // Enter in the number box: one undo step, or the reason under the field
-        if let Some(text) = typed {
-            match state.type_number(&text) {
-                Ok(Some(done)) => {
-                    crate::app::feedback::status(&done);
-                    MODEL.with_borrow_mut(|model| {
-                        if model.history.len() == 200 {
-                            model.history.pop_front();
-                        }
-
-                        model.history.push_back(format!("> {done}"));
-                    });
-                }
-                Ok(None) => {}
-                Err(error) => MODEL.with_borrow_mut(|model| model.number_error = error),
-            }
-        }
+        let Output { action, command } = out;
+        changed |= action.is_some() || command.is_some();
 
         if let Some(key) = action {
             state.panel_action(&key);
@@ -287,15 +249,11 @@ impl Ui {
         if let Some(text) = command {
             let message = state.run_command(&text).unwrap_or_else(|error| error);
             crate::app::feedback::status(&message);
-            MODEL.with_borrow_mut(|model| {
-                if model.history.len() == 200 {
-                    model.history.pop_front();
-                }
-
-                model.history.push_back(format!(
-                    "> {}\n{message}",
-                    crate::app::command::canonical(&text)
-                ));
+            command_line::remember(format!(
+                "> {}\n{message}",
+                crate::app::command::canonical(&text)
+            ));
+            command_line::STATE.with_borrow(|model| {
                 if !model.command_open && !model.focus_command {
                     self.context.memory_mut(|memory| {
                         memory.surrender_focus(egui::Id::new("command-input"))
@@ -330,8 +288,17 @@ impl Ui {
                 .and_then(|window| window.document())
                 .and_then(|document| document.get_element_by_id("canvas"))
         {
-            let snapshot = MODEL.with_borrow(|model| serde_json::json!({"framework": "egui 0.34.3", "scene_rect": [self.scene_rect.min.x,self.scene_rect.min.y,self.scene_rect.max.x,self.scene_rect.max.y], "completion_rect": model.completion_rect.map(|r| [r.min.x,r.min.y,r.max.x,r.max.y]), "rows": model.rows, "edges": model.edges, "edge_total": model.edge_total, "controls": self.controls, "command_open": model.command_open, "layers_open": model.layers_open, "command": model.command, "history": model.history, "hint": crate::app::command::hint(&model.command), "placeholder": command_line::placeholder(&model.drawing_prompt, &model.status, model.command_expanded), "number": model.number, "number_error": model.number_error, "number_rect": model.number_rect.map(|r| [r.min.x,r.min.y,r.max.x,r.max.y])}));
-            let _ = canvas.set_attribute("data-viewer-ui", &snapshot.to_string());
+            let mut snapshot = serde_json::Map::new();
+            snapshot.insert("framework".into(), "egui 0.34.3".into());
+            snapshot.insert("scene_rect".into(), corners(Some(self.scene_rect)));
+            snapshot.insert("controls".into(), serde_json::json!(self.controls));
+
+            for panel in PANELS {
+                panel.snapshot(&mut snapshot);
+            }
+
+            let snapshot = serde_json::Value::Object(snapshot).to_string();
+            let _ = canvas.set_attribute("data-viewer-ui", &snapshot);
         }
 
         if let Some(status) = web_sys::window()
@@ -354,4 +321,9 @@ fn record(controls: &mut Option<Vec<Control>>, key: &str, label: &str, response:
         label: label.to_string(),
         rect: [r.min.x, r.min.y, r.max.x, r.max.y],
     });
+}
+
+/// A rectangle as `[left, top, right, bottom]` for browser tests, null when there is none.
+fn corners(rect: Option<egui::Rect>) -> serde_json::Value {
+    serde_json::json!(rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y]))
 }

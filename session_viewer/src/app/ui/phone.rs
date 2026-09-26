@@ -1,29 +1,12 @@
-use super::command_line::command_cursor_end;
-use super::{MODEL, Model, Ui};
+use super::command_line::{STATE, command_cursor_end};
+use super::{PANELS, Panel, Ui};
 
-/// A text field the phone keyboard types into, besides the command line.
-struct TextField {
-    id: &'static str,                            // the egui id of its text edit
-    text: fn(&mut Model) -> Option<&mut String>, // its text, None while it is not shown
-}
-
-/// The fields that take the phone keyboard before the command line, the first open one.
-const FIELDS: &[TextField] = &[
-    // register:layer-rename
-    TextField {
-        id: "layer-rename",
-        text: |model| model.renaming.as_mut().map(|rename| &mut rename.text),
-    },
-    // register:number-box
-    TextField {
-        id: "number-input",
-        text: |model| model.number_prompt.is_some().then_some(&mut model.number),
-    },
-];
-
-/// The open field the phone keyboard types into, None for the command line.
-fn open_field(model: &mut Model) -> Option<&'static TextField> {
-    FIELDS.iter().find(|field| (field.text)(model).is_some())
+/// The open field the phone keyboard types into, None for the command line; a later panel wins, so a layer rename before the number box.
+fn open_field() -> Option<(&'static dyn Panel, &'static str)> {
+    PANELS
+        .iter()
+        .rev()
+        .find_map(|panel| panel.field(&mut |_| {}).map(|id| (*panel, id)))
 }
 
 impl Ui {
@@ -33,13 +16,13 @@ impl Ui {
         let id = egui::Id::new("command-input");
 
         // a layer name or the number box takes the typing before the command line
-        if let Some(field) = MODEL.with_borrow_mut(open_field) {
+        if let Some(field) = open_field() {
             self.type_into(field, event);
             return Vec::new();
         }
 
         // an empty line while drawing still finishes the shape
-        let (open, empty) = MODEL.with_borrow(|m| {
+        let (open, empty) = STATE.with_borrow(|m| {
             (
                 m.command_open,
                 m.command.is_empty() && m.drawing_prompt.is_empty(),
@@ -86,7 +69,7 @@ impl Ui {
 
                 let deleted = value.chars().count() < self.agent_value.chars().count();
                 self.agent_value.clone_from(&value);
-                MODEL.with_borrow_mut(|model| {
+                STATE.with_borrow_mut(|model| {
                     model.command = value;
                     model.agent_edit = Some(deleted);
                     model.command_open = true;
@@ -104,19 +87,19 @@ impl Ui {
     }
 
     /// Feed the hidden input's typing into a field other than the command line.
-    fn type_into(&mut self, field: &TextField, event: crate::app::agent::AgentEvent) {
+    fn type_into(
+        &mut self,
+        (panel, field): (&'static dyn Panel, &'static str),
+        event: crate::app::agent::AgentEvent,
+    ) {
         use crate::app::agent::AgentEvent;
-        let id = egui::Id::new(field.id);
+        let id = egui::Id::new(field);
 
         match event {
             // the input's whole text replaces the field's, as for the command line
             AgentEvent::Text(value) => {
                 command_cursor_end(&self.context, id, &value);
-                MODEL.with_borrow_mut(|model| {
-                    if let Some(text) = (field.text)(model) {
-                        text.clone_from(&value);
-                    }
-                });
+                panel.field(&mut |text| text.clone_from(&value));
                 self.agent_value = value;
                 self.context.memory_mut(|memory| memory.request_focus(id));
             }
@@ -141,25 +124,28 @@ impl Ui {
 
     /// The open field changed on its own: the hidden input follows.
     pub(super) fn follow_field(&mut self) {
-        MODEL.with_borrow_mut(|model| {
-            let field = open_field(model).map(|field| field.id);
+        let open = open_field();
+        let field = open.map(|(_, id)| id);
 
-            // a field that just opened takes the input, selected so typing replaces it
-            if field != self.field {
-                // a field that closed lowers the keyboard, unless the command line took it
-                if field.is_none() && !model.command_open {
-                    crate::app::agent::blur();
-                }
-
-                self.field = field;
-
-                if let Some(text) = open_field(model).and_then(|field| (field.text)(model)) {
-                    self.agent_value.clone_from(text);
-                    crate::app::agent::edit(text);
-                }
+        // a field that just opened takes the input, selected so typing replaces it
+        if field != self.field {
+            // a field that closed lowers the keyboard, unless the command line took it
+            if field.is_none() && !STATE.with_borrow(|model| model.command_open) {
+                crate::app::agent::blur();
             }
 
-            // the input keeps what was typed: no completion suffix, no rewrite mid-word
+            self.field = field;
+
+            if let Some((panel, _)) = open {
+                panel.field(&mut |text| {
+                    self.agent_value.clone_from(text);
+                    crate::app::agent::edit(text);
+                });
+            }
+        }
+
+        // the input keeps what was typed: no completion suffix, no rewrite mid-word
+        STATE.with_borrow(|model| {
             if self.field.is_none()
                 && self.agent_value != model.command
                 && !model.inline_suffix

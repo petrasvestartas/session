@@ -1,11 +1,87 @@
 use super::command_line::command_cursor_select;
-use super::{Control, Model, Output, Rename, record};
-use crate::app::feedback::LayerRow;
+use super::{Control, Output, record};
+use crate::State;
+use crate::app::feedback::{EdgeRow, LayerRow};
+use std::cell::RefCell;
+
+/// What the layers panel shows and remembers between frames.
+#[derive(Default)]
+pub(crate) struct Layers {
+    pub(crate) layers_open: bool,        // layers panel shown
+    pub(crate) rows: Vec<LayerRow>,      // its rows
+    pub(crate) edges: Vec<EdgeRow>,      // graph table rows
+    pub(crate) edge_total: usize,        // graph edges, listed or not
+    pub(crate) graph_open: bool,         // graph table unfolded
+    pub(crate) renaming: Option<Rename>, // a layer name edited in its row
+    layers_collapsed: bool,              // layers panel folded to its title
+    keyboard_rects: Vec<egui::Rect>,     // a layer name field or an item opening one
+}
+
+thread_local! { pub(crate) static STATE: RefCell<Layers> = RefCell::default(); } // kept between frames
+
+/// A layer name being edited in its row.
+pub(crate) struct Rename {
+    pub node: String,  // the row's node index
+    pub text: String,  // the name typed so far
+    pub focused: bool, // the field has the keys
+    pub done: bool,    // kept by Enter or a click elsewhere, applied after the frame
+}
+
+/// The layers panel, registered in PANELS.
+pub(super) struct Hooks;
+
+impl super::Panel for Hooks {
+    fn show(&self, root: &mut egui::Ui, controls: &mut Option<Vec<Control>>, out: &mut Output) {
+        STATE.with_borrow_mut(|model| draw(root, model, controls, out));
+    }
+
+    fn apply(&self, state: &mut State) -> bool {
+        // a kept layer name goes in before the click that ended its edit
+        let renamed = STATE.with_borrow_mut(|model| model.renaming.take_if(|rename| rename.done));
+
+        if let Some(rename) = &renamed {
+            state.panel_action(&format!("rename/{}/{}", rename.node, rename.text));
+        }
+
+        renamed.is_some()
+    }
+
+    fn keys_taken(&self) -> bool {
+        STATE.with_borrow(|model| model.renaming.as_ref().is_some_and(|rename| rename.focused))
+    }
+
+    fn holds_escape(&self) -> bool {
+        STATE.with_borrow(|model| model.renaming.is_some())
+    }
+
+    fn field(&self, edit: &mut dyn FnMut(&mut String)) -> Option<&'static str> {
+        STATE.with_borrow_mut(|model| {
+            model.renaming.as_mut().map(|rename| {
+                edit(&mut rename.text);
+                "layer-rename"
+            })
+        })
+    }
+
+    fn hit(&self, point: egui::Pos2) -> (bool, bool) {
+        let inside = STATE.with_borrow(|model| model.keyboard_rects.iter().any(|r| r.contains(point)));
+        (inside, false)
+    }
+
+    fn snapshot(&self, json: &mut serde_json::Map<String, serde_json::Value>) {
+        STATE.with_borrow(|model| {
+            json.insert("rows".into(), serde_json::json!(model.rows));
+            json.insert("edges".into(), serde_json::json!(model.edges));
+            json.insert("edge_total".into(), model.edge_total.into());
+            json.insert("layers_open".into(), model.layers_open.into());
+        });
+    }
+}
 
 /// The layers panel; a click sets `action`.
-pub(super) fn show(
+fn draw(
     root: &mut egui::Ui,                 // the panel area
-    model: &mut Model,                   // the panel state
+    model: &mut Layers,                  // the panel state
     controls: &mut Option<Vec<Control>>, // placed controls to draw
     out: &mut Output,
 ) {
@@ -77,7 +153,7 @@ pub(super) fn show(
                 ui.spacing_mut().item_spacing.y = 0.;
                 ui.spacing_mut().interact_size.y = height;
                 ui.spacing_mut().button_padding.y = 0.;
-                let Model {
+                let Layers {
                     rows,
                     renaming,
                     keyboard_rects,

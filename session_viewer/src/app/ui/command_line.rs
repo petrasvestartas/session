@@ -1,9 +1,91 @@
-use super::{Control, Model, Output, record};
+use super::{Control, Output, record};
+use crate::State;
+use std::cell::RefCell;
+use std::collections::VecDeque;
+
+/// What the command line shows and remembers between frames.
+#[derive(Default)]
+pub(crate) struct CommandLine {
+    pub(crate) command_open: bool,     // command line shown
+    pub(crate) command: String,        // text in the command field
+    pub(crate) drawing_prompt: String, // prompt while drawing
+    drawing_options: &'static [(&'static str, &'static str)], // buttons while drawing: (label, line)
+    drawing_chosen: Option<&'static str>,                     // the option button shown as chosen
+    pub(crate) focus_command: bool,                           // give the field focus next frame
+    pub(crate) status: String,                                // status line text
+    history: VecDeque<String>,                                // past commands and answers
+    command_expanded: bool,                                   // history shown above the field
+    completion: usize,                                        // highlighted completion index
+    completion_prefix: String,                                // text the completions match
+    pub(crate) inline_suffix: bool, // completion suffix shown in the field
+    completion_visible: bool,       // completion list shown
+    pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
+    pub(crate) command_rect: Option<egui::Rect>, // where the field is, for taps
+    snap_bar: bool,                 // snap toolbar under the field
+    snap_modes: u8,                 // snap kinds switched on
+    pub(crate) agent_edit: Option<bool>, // phone keyboard set the text, true on delete
+}
+
+thread_local! { pub(crate) static STATE: RefCell<CommandLine> = RefCell::default(); } // kept between frames
+
+/// Add a line to the history, keeping the last 200.
+pub(super) fn remember(line: String) {
+    STATE.with_borrow_mut(|model| {
+        if model.history.len() == 200 {
+            model.history.pop_front();
+        }
+
+        model.history.push_back(line);
+    });
+}
+
+/// The command line, registered in PANELS.
+pub(super) struct Hooks;
+
+impl super::Panel for Hooks {
+    fn fill(&self, state: &mut State) {
+        STATE.with_borrow_mut(|model| {
+            model.drawing_prompt = state.drawing_prompt();
+            model.drawing_options = state.drawing_options();
+            model.drawing_chosen = state.drawing_chosen();
+            model.snap_bar = state.features.snap.bar;
+            model.snap_modes = state.features.snap.modes;
+        });
+    }
+
+    fn show(&self, root: &mut egui::Ui, controls: &mut Option<Vec<Control>>, out: &mut Output) {
+        STATE.with_borrow_mut(|model| draw(root, model, controls, out));
+    }
+
+    fn keys_taken(&self) -> bool {
+        STATE.with_borrow(|model| model.command_open)
+    }
+
+    fn hit(&self, point: egui::Pos2) -> (bool, bool) {
+        STATE.with_borrow(|model| {
+            let inside = |rect: Option<egui::Rect>| rect.is_some_and(|r| r.contains(point));
+            (inside(model.command_rect), inside(model.completion_rect))
+        })
+    }
+
+    fn snapshot(&self, json: &mut serde_json::Map<String, serde_json::Value>) {
+        STATE.with_borrow(|model| {
+            let placeholder =
+                placeholder(&model.drawing_prompt, &model.status, model.command_expanded);
+            json.insert("completion_rect".into(), super::corners(model.completion_rect));
+            json.insert("command_open".into(), model.command_open.into());
+            json.insert("command".into(), model.command.clone().into());
+            json.insert("history".into(), serde_json::json!(model.history));
+            json.insert("hint".into(), crate::app::command::hint(&model.command).into());
+            json.insert("placeholder".into(), placeholder.into());
+        });
+    }
+}
 
 /// The command dock; an executed line goes to `command`.
-pub(super) fn show(
+fn draw(
     root: &mut egui::Ui,                 // the panel area
-    model: &mut Model,                   // the panel state
+    model: &mut CommandLine,             // the panel state
     controls: &mut Option<Vec<Control>>, // placed controls to draw
     out: &mut Output,
 ) {
@@ -422,8 +504,8 @@ pub(super) fn show(
                 // Escape in the field clears it, unless it closes a layer menu or cancels a rename; the scene's Esc is keys.rs's
                 if focused
                     && ui.input(|i| i.key_pressed(egui::Key::Escape))
-                    && !model.menu_open
-                    && model.renaming.is_none()
+                    && !super::menu_open()
+                    && !super::escape_held()
                 {
                     model.command.clear();
                     model.completion_visible = false;
@@ -537,7 +619,11 @@ mod tests {
     use super::super::theme::{BUNDLED, fonts};
     use super::*;
 
-    fn frame(context: &egui::Context, model: &mut Model, key: Option<egui::Key>) -> Option<String> {
+    fn frame(
+        context: &egui::Context,
+        model: &mut CommandLine,
+        key: Option<egui::Key>,
+    ) -> Option<String> {
         let mut input = egui::RawInput {
             screen_rect: Some(egui::Rect::from_min_size(
                 egui::Pos2::ZERO,
@@ -557,7 +643,7 @@ mod tests {
             }
         }
         let mut out = Output::default();
-        let _ = context.run_ui(input, |ui| show(ui, model, &mut None, &mut out));
+        let _ = context.run_ui(input, |ui| draw(ui, model, &mut None, &mut out));
         out.command
     }
 
@@ -567,7 +653,7 @@ mod tests {
             let context = egui::Context::default();
             context.set_fonts(fonts(BUNDLED));
             context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-            let mut model = Model {
+            let mut model = CommandLine {
                 command: name.into(),
                 focus_command: true,
                 ..Default::default()
@@ -601,7 +687,7 @@ mod tests {
         assert_eq!(spelled("Orient 3 Points", "Orient"), 6);
         let context = egui::Context::default();
         context.set_fonts(fonts(BUNDLED));
-        let mut model = Model {
+        let mut model = CommandLine {
             focus_command: true,
             ..Default::default()
         };
@@ -618,7 +704,7 @@ mod tests {
                 ..Default::default()
             };
             let _ = context.run_ui(input, |ui| {
-                show(ui, &mut model, &mut None, &mut Output::default())
+                draw(ui, &mut model, &mut None, &mut Output::default())
             });
         }
 
@@ -629,7 +715,7 @@ mod tests {
     fn browsing_starts_from_the_typed_option() {
         let context = egui::Context::default();
         context.set_fonts(fonts(BUNDLED));
-        let mut model = Model {
+        let mut model = CommandLine {
             command: "Snap Off".into(),
             focus_command: true,
             ..Default::default()

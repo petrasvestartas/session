@@ -1,6 +1,5 @@
 //! A hidden `<input>` that raises the phone keyboard for the command line and every other text field.
 
-use super::ui::MODEL;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
 use winit::event_loop::EventLoopProxy;
@@ -96,14 +95,7 @@ impl CommandAgent {
                 }
 
                 let point = egui::pos2(event.offset_x() as f32, event.offset_y() as f32);
-                let (line, popup) = MODEL.with_borrow(|m| {
-                    (
-                        m.command_rect.is_some_and(|r| r.contains(point))
-                            || m.number_rect.is_some_and(|r| r.contains(point))
-                            || m.keyboard_rects.iter().any(|r| r.contains(point)),
-                        m.completion_rect.is_some_and(|r| r.contains(point)),
-                    )
-                });
+                let (line, popup) = super::ui::hit(point);
 
                 if line {
                     let _ = input.focus();

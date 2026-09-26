@@ -1,4 +1,5 @@
-use super::{MODEL, Ui};
+use super::command_line::STATE;
+use super::{Ui, hit, keys_taken};
 use winit::window::Window;
 
 impl Ui {
@@ -7,7 +8,7 @@ impl Ui {
         let response = self.input.on_window_event(window, event);
         let escape = matches!(event, winit::event::WindowEvent::KeyboardInput { event, .. }
             if event.logical_key == winit::keyboard::Key::Named(winit::keyboard::NamedKey::Escape))
-            && MODEL.with_borrow(|model| model.command_open);
+            && STATE.with_borrow(|model| model.command_open);
         // use the current pointer, not last frame's hover
         use winit::event::{ElementState, TouchPhase, WindowEvent};
         let ratio = window.scale_factor() as f32;
@@ -17,12 +18,10 @@ impl Ui {
         let context = self.context.clone();
         // the completion list, the number box, a context menu or a colour menu
         let in_popup = |point| {
-            MODEL.with_borrow(|m| {
-                m.completion_rect.is_some_and(|r| r.contains(point))
-                    || m.number_rect.is_some_and(|r| r.contains(point))
-            }) || context
-                .layer_id_at(point)
-                .is_some_and(|layer| layer.order != egui::Order::Background)
+            hit(point).1
+                || context
+                    .layer_id_at(point)
+                    .is_some_and(|layer| layer.order != egui::Order::Background)
         };
 
         match event {
@@ -82,11 +81,7 @@ impl Ui {
         }
 
         // an open menu or number box keeps the keys too, so Escape only closes it
-        if matches!(event, WindowEvent::KeyboardInput { .. })
-            && MODEL.with_borrow(|model| {
-                model.command_open || model.menu_open || model.number_prompt.is_some()
-            })
-        {
+        if matches!(event, WindowEvent::KeyboardInput { .. }) && keys_taken() {
             consumed = true;
         }
         (consumed || escape, response.repaint || escape)
@@ -95,7 +90,7 @@ impl Ui {
     /// A press on the field opens it, anywhere else but the list closes it.
     fn press(&mut self) {
         let id = egui::Id::new("command-input");
-        let (input, popup) = MODEL.with_borrow(|m| {
+        let (input, popup) = STATE.with_borrow(|m| {
             (
                 m.command_rect.is_some_and(|r| r.contains(self.pointer)),
                 m.completion_rect.is_some_and(|r| r.contains(self.pointer)),
@@ -105,10 +100,10 @@ impl Ui {
         // focus now so the first key is not lost
         if input {
             self.context.memory_mut(|memory| memory.request_focus(id));
-            MODEL.with_borrow_mut(|model| model.command_open = true);
+            STATE.with_borrow_mut(|model| model.command_open = true);
         } else if !popup {
             self.context.memory_mut(|memory| memory.surrender_focus(id));
-            MODEL.with_borrow_mut(|model| model.command_open = false);
+            STATE.with_borrow_mut(|model| model.command_open = false);
         }
     }
 }

@@ -1,10 +1,11 @@
+use super::layers::Layers;
 use super::layers::SELECTED;
-use super::{Control, Model, record};
+use super::{Control, record};
 
 /// The graph section: a header folding a table of edges; a row click selects both objects.
 pub(super) fn show(
     ui: &mut egui::Ui,
-    model: &Model,
+    model: &Layers,
     height: f32,
     controls: &mut Option<Vec<Control>>, // placed controls to draw
     action: &mut Option<String>,

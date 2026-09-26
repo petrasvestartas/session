@@ -10,19 +10,19 @@ use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
-mod clipping;
-mod cloud_query;
-mod drag;
-mod drawing;
-pub mod edit;
-mod features;
-mod hydrate;
-pub(crate) mod number_box;
-mod panel;
-mod sheet_query;
-mod splitting;
-mod text;
-mod tool;
+mod clipping; // register:clipping
+mod cloud_query; // register:cloud_query
+mod drag; // register:drag
+mod drawing; // register:drawing
+pub mod edit; // register:edit
+mod features; // register:features
+mod hydrate; // register:hydrate
+pub(crate) mod number_box; // register:number_box
+mod panel; // register:panel
+mod sheet_query; // register:sheet_query
+mod splitting; // register:splitting
+mod text; // register:text
+mod tool; // register:tool
 use features::Features;
 use std::sync::Arc;
 use winit::window::Window;

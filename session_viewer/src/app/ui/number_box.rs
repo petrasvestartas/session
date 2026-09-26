@@ -1,11 +1,97 @@
-use super::{Control, Model, Output, record};
+use super::{Control, Output, record};
+use crate::State;
+use crate::app::gizmo::Handle;
+use crate::state::number_box::NumberPrompt;
+use std::cell::RefCell;
 
-/// The gumball number box beside its handle; Enter hands the text to `typed`, Escape sets `closed`.
-pub(super) fn show(
+/// What the gumball number box shows and took this frame.
+#[derive(Default)]
+pub(crate) struct NumberBox {
+    number_prompt: Option<NumberPrompt>, // the box, when open
+    number_handle: Option<Handle>,       // the handle the box was opened for
+    number: String,                      // text typed into the box
+    number_error: String,                // why the typed value was refused
+    number_rect: Option<egui::Rect>,     // where the box is, for taps
+    typed: Option<String>,               // a value Enter took this frame
+    closed: bool,                        // closed without a value this frame
+}
+
+thread_local! { static STATE: RefCell<NumberBox> = RefCell::default(); } // kept between frames
+
+/// The number box, registered in PANELS.
+pub(super) struct Hooks;
+
+impl super::Panel for Hooks {
+    fn fill(&self, state: &mut State) {
+        let prompt = state.number_prompt();
+
+        // a box whose handle went behind the eye closes, so no unseen field keeps the keys
+        if prompt.is_none() {
+            state.close_number_box();
+        }
+
+        STATE.with_borrow_mut(|model| model.number_prompt = prompt);
+    }
+
+    fn show(&self, root: &mut egui::Ui, controls: &mut Option<Vec<Control>>, _out: &mut Output) {
+        STATE.with_borrow_mut(|model| draw(root, model, controls));
+    }
+
+    fn apply(&self, state: &mut State) -> bool {
+        let (typed, closed) =
+            STATE.with_borrow_mut(|model| (model.typed.take(), std::mem::take(&mut model.closed)));
+
+        if closed {
+            state.close_number_box();
+        }
+
+        // Enter: one undo step, or the reason under the field
+        if let Some(text) = &typed {
+            match state.type_number(text) {
+                Ok(Some(done)) => {
+                    crate::app::feedback::status(&done);
+                    super::command_line::remember(format!("> {done}"));
+                }
+                Ok(None) => {}
+                Err(error) => STATE.with_borrow_mut(|model| model.number_error = error),
+            }
+        }
+
+        typed.is_some() || closed
+    }
+
+    fn keys_taken(&self) -> bool {
+        STATE.with_borrow(|model| model.number_prompt.is_some())
+    }
+
+    fn field(&self, edit: &mut dyn FnMut(&mut String)) -> Option<&'static str> {
+        STATE.with_borrow_mut(|model| {
+            model.number_prompt.is_some().then(|| {
+                edit(&mut model.number);
+                "number-input"
+            })
+        })
+    }
+
+    fn hit(&self, point: egui::Pos2) -> (bool, bool) {
+        let inside = STATE.with_borrow(|model| model.number_rect.is_some_and(|r| r.contains(point)));
+        (inside, inside)
+    }
+
+    fn snapshot(&self, json: &mut serde_json::Map<String, serde_json::Value>) {
+        STATE.with_borrow(|model| {
+            json.insert("number".into(), model.number.clone().into());
+            json.insert("number_error".into(), model.number_error.clone().into());
+            json.insert("number_rect".into(), super::corners(model.number_rect));
+        });
+    }
+}
+
+/// The gumball number box beside its handle; Enter keeps the text in `typed`, Escape sets `closed`.
+fn draw(
     root: &mut egui::Ui,                 // the panel area
-    model: &mut Model,                   // the panel state
+    model: &mut NumberBox,               // the panel state
     controls: &mut Option<Vec<Control>>, // placed controls to draw
-    out: &mut Output,
 ) {
     let Some(prompt) = model.number_prompt.as_ref() else {
         model.number_handle = None;
@@ -29,7 +115,7 @@ pub(super) fn show(
     if root.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
         || focused.is_some_and(|other| other != id)
     {
-        out.closed = true;
+        model.closed = true;
         return;
     }
 
@@ -71,6 +157,6 @@ pub(super) fn show(
     model.number_rect = Some(area.response.rect);
 
     if enter {
-        out.typed = Some(model.number.clone());
+        model.typed = Some(model.number.clone());
     }
 }
