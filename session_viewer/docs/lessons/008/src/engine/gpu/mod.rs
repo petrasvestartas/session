@@ -11,7 +11,9 @@ pub mod targets; // register:targets
 // --8<-- [end:003-module]
 pub mod view; // register:knobs
 
+// --8<-- [start:006-use]
 use crate::engine::pipelines::Target; // register:pipelines
+// --8<-- [end:006-use]
 
 use buffers::GpuCtx;
 use device::DeviceSetup;
@@ -83,10 +85,12 @@ impl Gpu {
         let samples = 1; // register:targets
         let targets = Targets::new(&ctx, size, config.format, samples); // register:targets
 // --8<-- [end:003-build]
+// --8<-- [start:006-target]
         let target = Target { // register:pipelines
             format: config.format,
             samples,
         };
+// --8<-- [end:006-target]
 
         log::info!(
             "viewer init OK - surface {}x{}, format {:?}",

@@ -30,4 +30,4 @@ Run `cargo check` and `cargo xtest`: the lazy test still passes and nothing else
 
 A lane describes a pipeline with `PipelineDesc`; `build` keys the cache with an owned copy and hands back a `Lazy`; `compile` runs once, on first use. Next: shaders in the crate.
 
-Next: [04a · Meshes on the GPU](04a-meshes.md)
+Next: [008 · Shaders in the crate](008-shaders.md)

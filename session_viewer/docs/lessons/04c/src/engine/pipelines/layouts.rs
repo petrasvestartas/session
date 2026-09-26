@@ -1,4 +1,4 @@
-// --8<-- [start:entries]
+// --8<-- [start:008-layouts]
 // A bind group layout is the type of a bind group: which binding holds a uniform, a storage buffer or a texture, and which shader stages see it.
 /// One buffer binding, visible to `stages`.
 fn buffer_entry(
@@ -19,7 +19,7 @@ fn buffer_entry(
 }
 
 /// A read-only storage buffer at `binding`, for the vertex stage.
-fn storage_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+fn storage_entry(binding: u32) -> wgpu::BindGroupLayoutEntry { // register:strokes
     buffer_entry(
         binding,
         wgpu::ShaderStages::VERTEX,
@@ -38,9 +38,7 @@ fn uniform_layout(
         entries: &[buffer_entry(0, stages, wgpu::BufferBindingType::Uniform)],
     })
 }
-// --8<-- [end:entries]
 
-// --8<-- [start:groups]
 /// Group 1: pen and view settings at binding 0, clipping planes at 1.
 fn line_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     let stages = wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE;
@@ -48,11 +46,39 @@ fn line_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         label: Some("line.layout"),
         entries: &[
             buffer_entry(0, stages, wgpu::BufferBindingType::Uniform),
-            buffer_entry(1, stages, wgpu::BufferBindingType::Uniform),
         ],
     })
 }
 
+/// The bind group layouts every lane shares.
+pub struct Layouts {
+    pub mvp: wgpu::BindGroupLayout,          // group 0: camera matrix
+    pub line: wgpu::BindGroupLayout,         // group 1: pen and view settings, clipping planes
+    pub instance: wgpu::BindGroupLayout,     // group 2: object rows; register:objects
+    pub ink_instance: wgpu::BindGroupLayout, // group 2 for ink, with depth textures; register:ink
+    pub ink_rows: wgpu::BindGroupLayout,     // group 3 for markers and dots; register:markers
+    pub segment_rows: wgpu::BindGroupLayout, // group 3 for lines; register:strokes
+}
+
+impl Layouts {
+    /// Build every layout once.
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            mvp: uniform_layout(
+                device,
+                "mvp.layout",
+                wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE,
+            ),
+            line: line_layout(device),
+            instance: instance_layout(device), // register:objects
+            ink_instance: ink_instance_layout(device), // register:ink
+            ink_rows: ink_rows_layout(device), // register:markers
+            segment_rows: segment_rows_layout(device), // register:strokes
+        }
+    }
+}
+// --8<-- [end:008-layouts]
+// --8<-- [start:04a-tail]
 /// Group 2: object rows at binding 0, translations at 1.
 fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -202,38 +228,5 @@ fn resolve_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         ],
     })
 }
-// --8<-- [end:groups]
+// --8<-- [end:04a-tail]
 
-// --8<-- [start:layouts]
-/// The bind group layouts every lane shares.
-pub struct Layouts {
-    pub mvp: wgpu::BindGroupLayout,          // group 0: camera matrix
-    pub line: wgpu::BindGroupLayout,         // group 1: pen and view settings, clipping planes
-    pub instance: wgpu::BindGroupLayout,     // group 2: object rows
-    pub ink_instance: wgpu::BindGroupLayout, // group 2 for ink, with depth textures
-    pub ink_rows: wgpu::BindGroupLayout,     // group 3 for markers and dots
-    pub segment_rows: wgpu::BindGroupLayout, // group 3 for lines
-    pub points: wgpu::BindGroupLayout,       // group 1 for points
-    pub resolve: wgpu::BindGroupLayout,      // group 1 for the point resolve
-}
-
-impl Layouts {
-    /// Build every layout once.
-    pub fn new(device: &wgpu::Device) -> Self {
-        Self {
-            mvp: uniform_layout(
-                device,
-                "mvp.layout",
-                wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE,
-            ),
-            line: line_layout(device),
-            instance: instance_layout(device),
-            ink_instance: ink_instance_layout(device),
-            ink_rows: ink_rows_layout(device),
-            segment_rows: segment_rows_layout(device),
-            points: points_layout(device),
-            resolve: resolve_layout(device),
-        }
-    }
-}
-// --8<-- [end:layouts]

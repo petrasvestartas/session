@@ -560,6 +560,20 @@ pub fn scene_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
     module(ctx, label, &scene_source(source))
 }
 
+/// Append the WGSL every shader ends with: normals and physical output.
+pub fn shared(source: &str) -> String {
+    format!(
+        "{source}\n{}\n{}",
+        shader!("normals.wgsl"),
+        shader!("physical.wgsl")
+    )
+}
+
+/// A shader that declares its own bindings.
+pub fn module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
+    wgsl(ctx, label, shared(source))
+}
+
 /// One u32 at location 3: the object row.
 const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
     offset: 0,
@@ -590,20 +604,6 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
         step_mode: wgpu::VertexStepMode::Vertex,
         attributes: &TEMPLATE_ATTRIBS,
     }
-}
-
-/// Append the WGSL every shader ends with: normals and physical output.
-pub fn shared(source: &str) -> String {
-    format!(
-        "{source}\n{}\n{}",
-        shader!("normals.wgsl"),
-        shader!("physical.wgsl")
-    )
-}
-
-/// A shader that declares its own bindings.
-pub fn module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
-    wgsl(ctx, label, shared(source))
 }
 
 /// Vertex slot 0: the arena's packed vertex (position, normal, color).

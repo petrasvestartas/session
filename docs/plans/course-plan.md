@@ -99,7 +99,7 @@ lessons than its range pushes the later ranges, which are re-stated here.
 
 ## Part 1 in detail (first pixels)
 
-Every lesson ends in the browser with `trunk serve`. Lessons 000-007 are cut and pushed (2026-09-26); their typed
+Every lesson ends in the browser with `trunk serve`. Lessons 000-008 are cut and pushed (2026-09-26); their typed
 lines are measured by `check_budget.py`.
 
 | Id | Lesson | Types | You should see | Typed |
@@ -112,7 +112,7 @@ lines are measured by `check_budget.py`.
 | 005 | Resize and device pixels | `Gpu::resize`, `retarget`, `samples_wanted`, `State::resize`, `logical_size`, `page_hidden`, `desired_canvas_size`, `fit_canvas`, `resize_held`, `view.rs` device pixel ratio and `View`, `Targets::samples_for` and the 4x textures | the canvas follows the window; `?dpr=1`, `?msaa=4` | 236 |
 | 006 | The pipeline cache | `pipelines/mod.rs` counters, Lazy, Cache, DepthMode, ColorWrite, PipelineKey, Target | `cargo xtest`: the lazy test passes | 149 |
 | 007 | Describe and build a pipeline | `pipelines/mod.rs` PipelineDesc, wgsl, layout, pipeline_layout, build, compile | cargo check, same canvas | 198 |
-| 008 | Shaders in the crate | `build.rs`, the `shader!` macro, `scene.wgsl`, `normals.wgsl`, `physical.wgsl`, `background.wgsl`, `layouts.rs` mvp and line | tests pass | |
+| 008 | Shaders in the crate | `build.rs`, the `shader!` macro, `scene.wgsl`, `normals.wgsl`, `physical.wgsl`, the prelude helpers, `layouts.rs` mvp and line | the stripped shader in OUT_DIR | 190 |
 | 009 | The frame uniform | `frame.rs` LineUniform, FrameUniforms, write; `write_frame_uniforms` | same picture, drawn through the frame bind group | |
 | 010 | The object table | `instance.rs`, `buffers.rs` GrowBuf, `objects.rs` core: rows, translations, group 2 | tests pass | |
 | 011 | The background triangle | `backdrop.rs`, `lane.rs` trait, `lane_list!`, the backdrop pass | a white canvas: the fullscreen triangle | |

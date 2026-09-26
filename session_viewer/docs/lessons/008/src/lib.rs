@@ -15,6 +15,18 @@ pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
 }
 // --8<-- [end:000-entry]
 
+// --8<-- [start:008-macro]
+// `macro_rules!` makes a macro, code that writes code; it must come before the `mod` lines that use it.
+/// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
+macro_rules! shader { // register:shaders
+    // `$name:literal` matches one string literal, such as "background.wgsl".
+    ($name:literal) => {
+        // `include_str!` pastes the file into the binary at compile time; OUT_DIR is the folder build.rs wrote.
+        include_str!(concat!(env!("OUT_DIR"), "/shaders/", $name))
+    };
+}
+// --8<-- [end:008-macro]
+
 // --8<-- [start:001-modules]
 // --8<-- [start:002-engine]
 // `mod engine;` makes src/engine/mod.rs part of this crate.

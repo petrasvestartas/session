@@ -490,7 +490,7 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
 // --8<-- [end:007-build]
 
 
-// --8<-- [start:04a-tail]
+// --8<-- [start:008-shaders]
 // WGSL has no `import`: shared code is pasted after each shader's own text.
 // `shader!` (lib.rs) pastes the minified file in at compile time.
 /// Shared WGSL: groups 0-2, Instance, LineUniform, flags, `place`.
@@ -514,6 +514,22 @@ pub fn scene_source(source: &str) -> String {
 pub fn scene_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
     module(ctx, label, &scene_source(source))
 }
+/// Append the WGSL every shader ends with: normals and physical output.
+pub fn shared(source: &str) -> String {
+    format!(
+        "{source}\n{}\n{}",
+        shader!("normals.wgsl"),
+        shader!("physical.wgsl")
+    )
+}
+
+/// A shader that declares its own bindings.
+pub fn module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
+    wgsl(ctx, label, shared(source))
+}
+// --8<-- [end:008-shaders]
+// --8<-- [start:04a-tail]
+
 // A vertex buffer layout tells the pipeline how to cut a buffer into vertices: the stride, and which bytes feed which @location.
 /// One u32 at location 3: the object row.
 const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
@@ -546,20 +562,6 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
         attributes: &TEMPLATE_ATTRIBS,
     }
 }
-/// Append the WGSL every shader ends with: normals and physical output.
-pub fn shared(source: &str) -> String {
-    format!(
-        "{source}\n{}\n{}",
-        shader!("normals.wgsl"),
-        shader!("physical.wgsl")
-    )
-}
-
-/// A shader that declares its own bindings.
-pub fn module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
-    wgsl(ctx, label, shared(source))
-}
-
 /// Vertex slot 0: the arena's packed vertex (position, normal, color).
 pub fn vertex_layout() -> wgpu::VertexBufferLayout<'static> {
     crate::engine::gpu::arena::GpuVertex::layout()

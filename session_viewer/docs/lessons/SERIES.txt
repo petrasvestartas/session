@@ -6,7 +6,8 @@
 005 004 005-resize.md
 006 005 006-cache.md
 007 006 007-build.md
-04a 007 04a-meshes.md
+008 007 008-shaders.md
+04a 008 04a-meshes.md
 04b 04a 04b-strokes.md
 04c 04b 04c-markers.md
 04d 04c 04d-clouds.md

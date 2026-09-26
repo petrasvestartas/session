@@ -20,6 +20,8 @@ src/state.rs resize 005
 src/engine/gpu/buffers.rs pipelines 006
 src/engine/gpu/mod.rs pipelines 006
 src/engine/mod.rs pipelines 006
+src/engine/pipelines/mod.rs scene 008
+src/lib.rs shaders 008
 index.html page 04a
 src/app/loader.rs perf 04a
 src/engine/gpu/backdrop.rs camera 04a
@@ -62,14 +64,16 @@ src/engine/gpu/view.rs grid 04a
 src/engine/gpu/view.rs meshes 04a
 src/engine/gpu/view.rs perf 04a
 src/engine/gpu/view.rs spin 04a
+src/engine/pipelines/layouts.rs objects 04a
 src/engine/pipelines/mod.rs clip 04a
 src/engine/pipelines/mod.rs layouts 04a
 src/engine/pipelines/mod.rs meshes 04a
 src/engine/pipelines/mod.rs physical 04a
-src/engine/pipelines/mod.rs scene 04a
 src/lib.rs camera 04a
 src/lib.rs frame 04a
-src/lib.rs shaders 04a
+src/shaders/physical.wgsl physical 04a
+src/shaders/scene.wgsl meshes 04a
+src/shaders/scene.wgsl objects 04a
 src/state.rs anchor 04a
 src/state.rs camera 04a
 src/state.rs fit 04a
@@ -86,7 +90,10 @@ src/engine/gpu/present.rs strokes 04b
 src/engine/gpu/render.rs ink 04b
 src/engine/gpu/upload.rs strokes 04b
 src/engine/gpu/view.rs strokes 04b
+src/engine/pipelines/layouts.rs ink 04b
+src/engine/pipelines/layouts.rs strokes 04b
 src/engine/pipelines/mod.rs ink 04b
+src/shaders/scene.wgsl strokes 04b
 src/engine/gpu/mod.rs glyphs 04c
 src/engine/gpu/mod.rs markers 04c
 src/engine/gpu/patch.rs markers 04c
@@ -94,6 +101,8 @@ src/engine/gpu/present.rs markers 04c
 src/engine/gpu/render.rs markers 04c
 src/engine/gpu/upload.rs markers 04c
 src/engine/gpu/view.rs markers 04c
+src/engine/pipelines/layouts.rs markers 04c
+src/shaders/scene.wgsl markers 04c
 src/engine/gpu/mod.rs cloud 04d
 src/engine/gpu/mod.rs clouds 04d
 src/engine/gpu/mod.rs lod 04d
@@ -102,6 +111,7 @@ src/engine/gpu/present.rs clouds 04d
 src/engine/gpu/render.rs clouds 04d
 src/engine/gpu/upload.rs clouds 04d
 src/engine/gpu/view.rs clouds 04d
+src/engine/pipelines/layouts.rs clouds 04d
 src/app/mod.rs knobs 06
 src/app/mod.rs walk 06
 src/engine/mod.rs text 10
@@ -152,6 +162,7 @@ src/engine/pipelines/mod.rs pick 12
 src/lib.rs input 12
 src/lib.rs keys 12
 src/lib.rs scene 12
+src/shaders/physical.wgsl pick 12
 src/state.rs features 12
 src/state.rs input 12
 src/state.rs inspection 12
@@ -213,6 +224,8 @@ src/app/inspection.rs clipping 18b
 src/app/mod.rs clipping 18b
 src/engine/gpu/mod.rs clip 18b
 src/engine/gpu/pass.rs clip 18b
+src/engine/pipelines/layouts.rs clip 18b
+src/shaders/scene.wgsl clip 18b
 src/state.rs clipping 18b
 src/state/features.rs clipping 18b
 src/app/inspection.rs sheets 19

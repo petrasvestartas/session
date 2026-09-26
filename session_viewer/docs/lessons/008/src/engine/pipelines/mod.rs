@@ -1,7 +1,4 @@
 // --8<-- [start:006-cache]
-pub mod layouts;
-
-pub use layouts::Layouts; // `pub use` re-exports: other files write `pipelines::Layouts`
 
 use crate::engine::gpu::buffers::GpuCtx;
 use std::cell::{Cell, LazyCell, RefCell};
@@ -105,6 +102,52 @@ impl Cache {
     }
 }
 
+/// How a pipeline uses depth; reverse-Z, so nearer is greater.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum DepthMode {
+    Opaque,        // write, nearer wins
+    OpaqueEqual,   // write, nearer or equal wins
+    ReadOnly,      // test only, nearer wins
+    ReadOnlyEqual, // test only, nearer or equal wins
+    Always,        // no test, no write
+    Detached,      // no depth attachment at all
+}
+
+impl DepthMode {
+    /// The (write, compare) pair wgpu wants.
+    fn state(self) -> (bool, wgpu::CompareFunction) {
+        match self {
+            DepthMode::Opaque => (true, wgpu::CompareFunction::Greater),
+            DepthMode::OpaqueEqual => (true, wgpu::CompareFunction::GreaterEqual),
+            DepthMode::ReadOnly => (false, wgpu::CompareFunction::Greater),
+            DepthMode::ReadOnlyEqual => (false, wgpu::CompareFunction::GreaterEqual),
+            DepthMode::Always | DepthMode::Detached => (false, wgpu::CompareFunction::Always),
+        }
+    }
+}
+
+/// How a pipeline writes color.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum ColorWrite {
+    Opaque,  // overwrite
+    Blended, // alpha blend
+    Nothing, // write nothing; the fragment shader has side effects
+}
+
+impl ColorWrite {
+    /// The (blend, write mask) pair wgpu wants.
+    fn state(self) -> (Option<wgpu::BlendState>, wgpu::ColorWrites) {
+        match self {
+            ColorWrite::Opaque => (None, wgpu::ColorWrites::ALL),
+            ColorWrite::Blended => (
+                Some(wgpu::BlendState::ALPHA_BLENDING),
+                wgpu::ColorWrites::ALL,
+            ),
+            ColorWrite::Nothing => (None, wgpu::ColorWrites::empty()),
+        }
+    }
+}
+
 /// A shader's label, source length and source hash: the text itself is not kept.
 type ShaderKey = (String, usize, u64);
 
@@ -157,52 +200,6 @@ mod tests {
 }
 // --8<-- [end:006-cache]
 // --8<-- [start:007-desc]
-/// How a pipeline uses depth; reverse-Z, so nearer is greater.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub enum DepthMode {
-    Opaque,        // write, nearer wins
-    OpaqueEqual,   // write, nearer or equal wins
-    ReadOnly,      // test only, nearer wins
-    ReadOnlyEqual, // test only, nearer or equal wins
-    Always,        // no test, no write
-    Detached,      // no depth attachment at all
-}
-
-impl DepthMode {
-    /// The (write, compare) pair wgpu wants.
-    fn state(self) -> (bool, wgpu::CompareFunction) {
-        match self {
-            DepthMode::Opaque => (true, wgpu::CompareFunction::Greater),
-            DepthMode::OpaqueEqual => (true, wgpu::CompareFunction::GreaterEqual),
-            DepthMode::ReadOnly => (false, wgpu::CompareFunction::Greater),
-            DepthMode::ReadOnlyEqual => (false, wgpu::CompareFunction::GreaterEqual),
-            DepthMode::Always | DepthMode::Detached => (false, wgpu::CompareFunction::Always),
-        }
-    }
-}
-
-/// How a pipeline writes color.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub enum ColorWrite {
-    Opaque,  // overwrite
-    Blended, // alpha blend
-    Nothing, // write nothing; the fragment shader has side effects
-}
-
-impl ColorWrite {
-    /// The (blend, write mask) pair wgpu wants.
-    fn state(self) -> (Option<wgpu::BlendState>, wgpu::ColorWrites) {
-        match self {
-            ColorWrite::Opaque => (None, wgpu::ColorWrites::ALL),
-            ColorWrite::Blended => (
-                Some(wgpu::BlendState::ALPHA_BLENDING),
-                wgpu::ColorWrites::ALL,
-            ),
-            ColorWrite::Nothing => (None, wgpu::ColorWrites::empty()),
-        }
-    }
-}
-
 /// Everything `build` needs for one render pipeline.
 #[derive(Clone)]
 pub struct PipelineDesc<'a> {
@@ -269,7 +266,7 @@ impl<'a> PipelineDesc<'a> {
 
 
 
-// --8<-- [start:008-build]
+// --8<-- [start:007-build]
 // A shader module is WGSL compiled for this GPU; compiling is slow, so each text compiles once, on first use.
 /// The shader for exactly `source`: one per label and source, compiled on first use.
 pub fn wgsl(ctx: &GpuCtx, label: &str, source: String) -> Shader {
@@ -439,4 +436,42 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
         cache: None,
     })
 }
-// --8<-- [end:008-build]
+// --8<-- [end:007-build]
+
+
+// --8<-- [start:008-shaders]
+// WGSL has no `import`: shared code is pasted after each shader's own text.
+// `shader!` (lib.rs) pastes the minified file in at compile time.
+/// Shared WGSL: groups 0-2, Instance, LineUniform, flags, `place`.
+pub const SCENE: &str = shader!("scene.wgsl");
+
+/// WGSL every scene shader ends with. A shared snippet is one file and one line here.
+pub const PRELUDE: &[&str] = &[
+    SCENE, // register:scene
+];
+
+/// A scene shader's full text: its own code, then the prelude.
+pub fn scene_source(source: &str) -> String {
+    PRELUDE
+        .iter()
+        .fold(source.to_owned(), |text, part| format!("{text}\n{part}"))
+}
+
+/// A shader with the shared scene and clipping code appended.
+pub fn scene_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
+    module(ctx, label, &scene_source(source))
+}
+/// Append the WGSL every shader ends with: normals and physical output.
+pub fn shared(source: &str) -> String {
+    format!(
+        "{source}\n{}\n{}",
+        shader!("normals.wgsl"),
+        shader!("physical.wgsl")
+    )
+}
+
+/// A shader that declares its own bindings.
+pub fn module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
+    wgsl(ctx, label, shared(source))
+}
+// --8<-- [end:008-shaders]
