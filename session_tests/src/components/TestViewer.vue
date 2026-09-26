@@ -1,8 +1,8 @@
 <template>
   <div class="test-layout">
     <main class="test-main">
-      <table v-if="groupedTests.length">
-        <thead>
+      <table v-if="groupedTests.length" :class="{ single: narrow }">
+        <thead v-if="!narrow">
           <tr>
             <th>
               <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="lang-link">
@@ -24,13 +24,26 @@
         <tbody>
           <template v-for="g in groupedTests" :key="g.name">
             <tr class="test-name-row" :id="'test-' + g.name">
-              <td :colspan="3">
+              <td :colspan="narrow ? 1 : 3">
                 <strong>{{ g.name }}</strong>
+                <div v-if="narrow" class="lang-tabs" role="tablist" aria-label="Language" @keydown="onTabKey">
+                  <button
+                    v-for="l in LANGS" :key="l.id"
+                    type="button"
+                    role="tab"
+                    class="lang-tab"
+                    :class="{ active: lang === l.id, fail: g[l.id] && !g[l.id].passed }"
+                    :aria-selected="lang === l.id"
+                    :tabindex="lang === l.id ? 0 : -1"
+                    @click="setLang(l.id)">
+                    {{ l.label }}<span v-if="g[l.id] && !g[l.id].passed" aria-label="failed"> ✗</span>
+                  </button>
+                </div>
               </td>
             </tr>
             <tr>
             <!-- C++ column -->
-            <td class="lang-col">
+            <td v-if="shows('cpp')" class="lang-col">
               <div v-if="g.cpp" class="test-card">
                 <div :class="['tag', g.cpp.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'cpp')">
                   {{ g.cpp.passed ? '✓' : '✗' }} {{ formatTime(g.cpp.time_ms) }} ms
@@ -75,7 +88,7 @@
             </td>
 
             <!-- Python column -->
-            <td class="lang-col">
+            <td v-if="shows('python')" class="lang-col">
               <div v-if="g.python" class="test-card">
                 <div :class="['tag', g.python.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'python')">
                   {{ g.python.passed ? '✓' : '✗' }} {{ formatTime(g.python.time_ms) }} ms
@@ -120,7 +133,7 @@
             </td>
 
             <!-- Rust column -->
-            <td class="lang-col">
+            <td v-if="shows('rust')" class="lang-col">
               <div v-if="g.rust" class="test-card">
                 <div :class="['tag', g.rust.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'rust')">
                   {{ g.rust.passed ? '✓' : '✗' }} {{ formatTime(g.rust.time_ms) }} ms
@@ -176,31 +189,31 @@
       <!-- JSON Artifacts Section -->
       <div v-if="hasArtifacts" class="artifacts-section">
         <h3 class="section-title">Serialization JSON</h3>
-        <table>
+        <table :class="{ single: narrow }">
           <thead>
             <tr>
-              <th>C++</th>
-              <th>Python</th>
-              <th>Rust</th>
+              <th v-if="shows('cpp')">C++</th>
+              <th v-if="shows('python')">Python</th>
+              <th v-if="shows('rust')">Rust</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class="lang-col">
+              <td v-if="shows('cpp')" class="lang-col">
                 <div v-if="artifacts.cpp" class="artifact-card">
                   <button class="code-copy-btn" type="button" @click="copyJson(artifacts.cpp)" title="Copy JSON"></button>
                   <div v-html="formatJson(artifacts.cpp)"></div>
                 </div>
                 <div v-else class="missing">–</div>
               </td>
-              <td class="lang-col">
+              <td v-if="shows('python')" class="lang-col">
                 <div v-if="artifacts.python" class="artifact-card">
                   <button class="code-copy-btn" type="button" @click="copyJson(artifacts.python)" title="Copy JSON"></button>
                   <div v-html="formatJson(artifacts.python)"></div>
                 </div>
                 <div v-else class="missing">–</div>
               </td>
-              <td class="lang-col">
+              <td v-if="shows('rust')" class="lang-col">
                 <div v-if="artifacts.rust" class="artifact-card">
                   <button class="code-copy-btn" type="button" @click="copyJson(artifacts.rust)" title="Copy JSON"></button>
                   <div v-html="formatJson(artifacts.rust)"></div>
@@ -225,7 +238,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import type { HighlighterCore } from 'shiki/core'
 import { getHighlighter } from '../highlighter'
 import { renderCode, uncommentUsing } from '../codeTheme'
@@ -238,6 +251,49 @@ const props = defineProps({
 })
 
 defineEmits(['update:activeSuite'])
+
+// Narrow screens show one language at a time; the choice holds for every test and is remembered.
+const LANGS = [
+  { id: 'cpp', label: 'C++' },
+  { id: 'python', label: 'Python' },
+  { id: 'rust', label: 'Rust' },
+]
+const LANG_KEY = 'session-docs-lang'
+const narrowQuery = window.matchMedia('(max-width: 900px)')
+const narrow = ref(narrowQuery.matches)
+const onNarrow = (e: MediaQueryListEvent) => (narrow.value = e.matches)
+onMounted(() => narrowQuery.addEventListener('change', onNarrow))
+onBeforeUnmount(() => narrowQuery.removeEventListener('change', onNarrow))
+
+const readLang = (): string => {
+  try {
+    const v = localStorage.getItem(LANG_KEY)
+    return v && LANGS.some((l) => l.id === v) ? v : 'cpp'
+  } catch {
+    return 'cpp'
+  }
+}
+
+const lang = ref(readLang())
+const shows = (id: string) => !narrow.value || lang.value === id
+
+const setLang = (id: string) => {
+  lang.value = id
+  try {
+    localStorage.setItem(LANG_KEY, id)
+  } catch { /* storage blocked */ }
+}
+
+// Arrow keys move between the tabs of one test, as in a tab list.
+const onTabKey = (e: KeyboardEvent) => {
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
+  const i = LANGS.findIndex((l) => l.id === lang.value)
+  const next = LANGS[(i + (e.key === 'ArrowRight' ? 1 : LANGS.length - 1)) % LANGS.length]
+  setLang(next.id)
+  const tabs = (e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('[role="tab"]')
+  tabs[LANGS.indexOf(next)]?.focus()
+  e.preventDefault()
+}
 
 // Syntax highlighting via Shiki (loaded once; replaces the tree-sitter wasm highlighter).
 const ready = ref(false)
@@ -756,6 +812,60 @@ pre {
   white-space: pre-wrap;
   word-wrap: break-word;
   color: #1a1a1a;
+}
+
+.lang-tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 0.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.lang-tab {
+  padding: 0.35rem 0.8rem;
+  margin-bottom: -1px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.lang-tab.active {
+  color: var(--fg);
+  font-weight: 600;
+  border-bottom-color: var(--fg);
+}
+
+.lang-tab.fail {
+  color: var(--fail);
+}
+
+/* One language: full width, code keeps its lines and scrolls sideways inside its block. */
+table.single th,
+table.single td {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+table.single .lang-col {
+  width: 100%;
+}
+
+table.single .code-shell :deep(pre) {
+  overflow-x: auto;
+}
+
+table.single .code-shell :deep(code),
+table.single .artifact-card :deep(code) {
+  white-space: pre;
+  word-wrap: normal;
+  overflow-wrap: normal;
+}
+
+table.single .artifact-card :deep(pre) {
+  overflow-x: auto;
 }
 </style>
 

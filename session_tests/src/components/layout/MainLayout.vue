@@ -1,11 +1,33 @@
 <template>
-  <div class="main-layout">
-    <nav class="sidebar" :class="{ collapsed: sidebarCollapsed }" aria-label="Site">
-      <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed" :aria-label="sidebarCollapsed ? 'Show menu' : 'Hide menu'">
+  <div class="main-layout" :class="{ phone }">
+    <header v-if="phone" class="topbar" :inert="drawerOpen">
+      <button
+        ref="menuButton"
+        type="button"
+        class="menu-button"
+        aria-label="Menu"
+        aria-controls="site-nav"
+        :aria-expanded="drawerOpen"
+        @click="openDrawer">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.6" fill="none" /></svg>
+      </button>
+      <span class="topbar-title">{{ sectionTitle }}</span>
+    </header>
+
+    <div v-if="phone && drawerOpen" class="drawer-backdrop" @click="closeDrawer"></div>
+
+    <nav
+      id="site-nav"
+      ref="nav"
+      class="sidebar"
+      :class="{ collapsed: !phone && sidebarCollapsed, drawer: phone, open: phone && drawerOpen }"
+      :inert="phone && !drawerOpen"
+      aria-label="Site">
+      <button v-if="!phone" class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed" :aria-label="sidebarCollapsed ? 'Show menu' : 'Hide menu'">
         <span class="toggle-arrow">{{ sidebarCollapsed ? '○' : '●' }}</span>
       </button>
 
-      <div v-if="!sidebarCollapsed" class="nav-section">
+      <div v-if="phone || !sidebarCollapsed" class="nav-section">
         <div class="repo-icons">
           <a href="https://github.com/petrasvestartas/session" target="_blank" rel="noopener" class="repo-link" title="Session" aria-label="Session on GitHub">
             <svg class="repo-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -17,7 +39,7 @@
           </a>
         </div>
 
-        <button type="button" class="search-open" @click="searchOpen = true">Search <kbd>/</kbd></button>
+        <button type="button" class="search-open" @click="openSearch">Search <kbd v-if="!phone">/</kbd></button>
 
         <a
           href="#/tests"
@@ -87,19 +109,19 @@
       </div>
     </nav>
 
-    <div class="main-content">
+    <div class="main-content" :inert="phone && drawerOpen">
       <main class="content-area" id="content">
         <router-view></router-view>
       </main>
     </div>
 
     <SearchBox v-if="searchOpen" @close="searchOpen = false" />
-    <a class="viewer-corner" :href="viewerHref" title="Back to the viewer" aria-label="Back to the viewer"></a>
+    <a class="viewer-corner" :href="viewerHref" :inert="phone && drawerOpen" title="Back to the viewer" aria-label="Back to the viewer"></a>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount, watch, defineAsyncComponent } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick, defineAsyncComponent } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { groups as courseGroups, pages as coursePages } from 'virtual:course';
 import { ensureTestData } from '../../dataLoader';
@@ -119,16 +141,56 @@ const repos = [
   { name: 'session_data', title: 'Data' },
 ];
 
+// Phones get a top bar whose menu button slides the navigation in as a drawer.
+const phoneQuery = window.matchMedia('(max-width: 800px)');
+const phone = ref(phoneQuery.matches);
+const drawerOpen = ref(false);
+const nav = ref<HTMLElement | null>(null);
+const menuButton = ref<HTMLButtonElement | null>(null);
+const onPhoneChange = (e: MediaQueryListEvent) => {
+  phone.value = e.matches;
+  drawerOpen.value = false;
+};
+
+const openDrawer = async () => {
+  drawerOpen.value = true;
+  await nextTick();
+  nav.value?.querySelector<HTMLElement>('a, button')?.focus();
+};
+
+const closeDrawer = () => {
+  if (!drawerOpen.value) return;
+  drawerOpen.value = false;
+  nextTick(() => menuButton.value?.focus());
+};
+
 // The search box loads its index only when opened: the Search button or the / key.
 const searchOpen = ref(false);
+const openSearch = () => {
+  drawerOpen.value = false;
+  searchOpen.value = true;
+};
+
 const onKey = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && drawerOpen.value) {
+    closeDrawer();
+    return;
+  }
   const t = e.target as HTMLElement;
   if (e.key !== '/' || searchOpen.value || /^(INPUT|TEXTAREA)$/.test(t.tagName) || t.isContentEditable) return;
   e.preventDefault();
-  searchOpen.value = true;
+  openSearch();
 };
-onMounted(() => window.addEventListener('keydown', onKey));
-onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
+
+onMounted(() => {
+  window.addEventListener('keydown', onKey);
+  phoneQuery.addEventListener('change', onPhoneChange);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKey);
+  phoneQuery.removeEventListener('change', onPhoneChange);
+});
 
 const currentSlug = computed(() => (route.path.startsWith('/course/') ? route.path.slice('/course/'.length) : ''));
 
@@ -151,13 +213,15 @@ const currentRoute = computed(() => {
   return 'home';
 });
 
+const sectionTitle = computed(() => ({ tests: 'Kernel API', install: 'Install', course: 'Viewer course' } as Record<string, string>)[currentRoute.value] ?? '');
+
 const testsSuites = ref<string[]>([]);
 const selectedSuite = ref('');
-// Phones start with the menu folded away and fold it again after each navigation.
-const narrow = window.matchMedia('(max-width: 760px)');
-const sidebarCollapsed = ref(narrow.matches);
+const sidebarCollapsed = ref(false);
+
+// The drawer closes after every navigation, including a jump to a test on the same page.
 watch(() => route.fullPath, () => {
-  if (narrow.matches) sidebarCollapsed.value = true;
+  drawerOpen.value = false;
 });
 
 const loadSuitesFromTestData = () => {
@@ -266,6 +330,7 @@ const suiteFunctions = computed(() => {
 });
 
 const scrollToTest = (name: string) => {
+  drawerOpen.value = false;
   const el = document.getElementById('test-' + name);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   router.replace({ path: '/tests', query: { suite: selectedSuite.value, test: name } });
@@ -557,17 +622,90 @@ watch(
   z-index: 200;
 }
 
-@media (max-width: 760px) {
-  .sidebar:not(.collapsed) {
+.topbar {
+  flex: 0 0 auto;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--rule);
+  background: #ffffff;
+}
+
+.menu-button {
+  width: 40px;
+  height: 40px;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.menu-button svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.topbar-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 800px) {
+  .main-layout.phone {
+    flex-direction: column;
+  }
+
+  .sidebar.drawer {
     position: fixed;
     top: 0;
     left: 0;
-    height: 100%;
-    max-width: 85vw;
+    bottom: 0;
+    width: min(85vw, 300px);
+    max-width: none;
+    z-index: 260;
+    border-right: 1px solid var(--rule);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+
+  .sidebar.drawer.open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.2s ease;
+  }
+
+  .sidebar.drawer .nav-section {
+    padding: 0.5rem 0 2rem;
+  }
+
+  .sidebar.drawer .nav-button,
+  .sidebar.drawer .suite-button,
+  .sidebar.drawer .fn-button {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
   }
 
   .content-area {
-    padding: 0.25rem 16px 1rem 24px;
+    padding: 0.25rem 16px 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar.drawer,
+  .sidebar.drawer.open {
+    transition: none;
   }
 }
 </style>
