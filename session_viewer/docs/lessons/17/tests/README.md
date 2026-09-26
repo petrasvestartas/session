@@ -9,7 +9,7 @@ The text browser check needs Playwright 1.58.2 and Chrome. Dependencies and scre
 can live outside the repository:
 
 ```sh
-npm install --prefix /tmp/viewer-browser-test playwright@1.58.2
+npm install --prefix /tmp/viewer-browser-test playwright@1.58.2 pngjs
 NODE_PATH=/tmp/viewer-browser-test/node_modules node tests/text-quality.cjs
 ```
 
@@ -44,19 +44,77 @@ checks actual solid occlusion, projection, cache reuse and texture release.
 
 `node tests/teapot.cjs` uses the intentionally retained `assets/pb/view_mixed_teapot.pb`:
 the existing 32-patch Utah teapot, preserved byte-for-byte from the archive worktree.
-It checks source hash, GUID, visible surfaces and all 512 surface controls at DPR 1/2.
+It checks source hash, GUID, visible surfaces, all 512 surface controls at DPR 1/2, and,
+seen from below, that the concave foot boundary is drawn along its whole cubic outline.
 The asset has no verified 3ds Max export provenance. Its original four open shells are retained.
+
+Object counts in the browser checks include the document-title text object, which is a
+source row of its own: the seven-family interaction fixture reports eight objects and the
+teapot manifest two.
+
+`node tests/ambient-floor.cjs` loads the public `view_mixed` scene, fits the floor model,
+and checks its ground-shadow smoothness and the clickable SSAO options. It delays the
+last document to verify that finishing a load preserves an adjusted camera. Captures
+are written to `target/review/ambient-floor`; this check also requires `pngjs`.
+
+`node tests/ambient-details.cjs` checks the cone and torus contact-shadow footprint and
+plate shading in `view_mixed`, then captures the floor for comparison. It also requires
+`pngjs` and writes captures to `target/review/ambient-details`. Set `VIEWER_DPR=2`
+to exercise capped-resolution reconstruction on a high-DPI canvas.
+
+`node tests/ambient-lighting.cjs` checks SSAO toggles, camera preservation, texture and
+uniform allocation/release, and real frame cadence. `AMBIENT_SPIN=1` keeps the camera
+moving so the measurement includes recomputing AO instead of only cached compositing.
+Native coverage: `cargo test --target x86_64-unknown-linux-gnu --lib
+engine::gpu::ssao::tests -- --include-ignored` (requires a GPU adapter).
+
+Pixel oracles were measured with the 1.5 px pen. The viewer's default pen is now 1 px, so the
+checks whose thresholds depend on stroke coverage pin `VIEWER_THICKNESS=1.5` (natively) or
+`?thickness=1.5` (in the browser) rather than lowering their thresholds: the interaction
+fixture's yellow coverage, the stroke-join and selected-overlap captures, the triangle
+visibility counterexample, the depth gate's plate outline, the hidden-line probe matrix, the
+teapot back-face census, the joint stroke weights and the orbit probe. The close-up box and
+orbit probes rely on the default silhouette-off setting, because the black solid
+silhouette is near-black ink that belongs to a separate check. Two floors were re-measured
+after joined strokes gained one owner per shared sample: the joint-to-free weight ratio
+(minimum 82%, floor 78%) and the near-edge-on cross-section (59.7%, floor 56%); the
+orientation diff of the flipped BRep probe allows 0.5% of the near-black pixels, the few edge
+pixels whose winning triangle changes with triangle order under finite-triangle visibility.
 
 The native ignored GPU test `selected_silhouette_is_black_visible_only_and_releases_coverage`
 checks black selected-surface silhouettes against physical occlusion, unchanged picking
 IDs, 1x/4x transitions and immediate coverage-texture release when selection clears.
 
-`node tests/pdf-text-quality.cjs` compares the checked local PDF asset at forced 1x and
-budget-selected 4x. It checks the source SHA-256, automatic sheet coverage, and three
-normal-size glyph crops for partial coverage, retained ink mass, bounds and word position.
-The test preserves the original PDF outline/font geometry. It captures both full drawings
-and crops; it is deliberately tied to that source and camera. Run on a stable production
-bundle to avoid a development rebuild overlay contaminating the screenshots.
+Selected strokes must retain their yellow core over coincident mesh edges, other polylines
+and crossing strokes, while genuinely covered spans stay hidden:
+
+```sh
+REGEN_PROTO=0 cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_selection_overlap
+python3 tests/selection-overlap.py
+```
+
+The runner compares five fixtures with identical-geometry controls at four cameras and
+MSAA 1/4: forty cases, including both polyline upload orders and a tight crossing-point
+check. It requires at least 97% yellow-core retention and zero yellow in the covered span.
+The runner starts the renderer with `VIEWER_OUTLINES=1`, so the selected solid's black silhouette is present as designed. Captures, original source GUIDs and measurements
+go under `target/selection-overlap` (`--output` overrides it); `--renderer` and `--generator`
+accept separately built native executables. The generator also records exposed picking
+leads for manual or browser selection of the intended source.
+
+Joined strokes must cover shared vertices without getting darker when subdivided:
+
+```sh
+REGEN_PROTO=0 cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_stroke_joins
+python3 tests/stroke-joins.py
+```
+
+The runner makes 32 captures of a closed circle, acute bend, single straight segment and
+the same straight line split into 2048 segments, in top/perspective views, MSAA 1/4 and
+ordinary/selected states. Forty checks use projected source vertices (including the
+diagonal circle joint and closing seam) and require dense/single integrated ink between
+90% and 108%. This detects missing joint cores and repeated cap opacity without historical
+golden images. Output goes to `target/stroke-joins`; `--output`, `--renderer`, `--generator`
+and `--check-only` support isolated builds and rechecking retained captures.
 
 Generate the seven-object interaction source fixture outside the repository, then drive
 real canvas clicks and keyboard events against the opt-in read-only inspection snapshot:
@@ -125,43 +183,27 @@ six post-upload source-edge mappings. Shared geometry minitests separately verif
 one-sided C0 normals, trimmed holes and exact shared boundary XYZ. This is a Session
 rendering regression, not an OCCT pixel comparison.
 
-`python3 tests/parity.py` rebuilds and runs the existing shared CAD mini-tests without a
-GPU: `RemeshNurbsSurfaceGrid`, `NurbsSurfaceTrimmed` and `BRep`. The expected totals are
-51 Rust, 59 C++ and 51 Python tests; C++ has eight additional preexisting trimmed-surface
-tests. Rust uses the maintained `check_shared_geometry` example and the normal Cargo
-dependency resolver. C++ uses the existing `point_minitest` CMake target's compiler flags
-and link inputs, selecting only those three test registration objects. A generated main
-calls the existing registry, with only report paths redirected outside the source tree.
-Python runs the three original modules with their report destination redirected.
-
-The default C++ build directory is `../session_cpp/build` and must use Unix Makefiles;
-`--cpp-build /tmp/cad-cpp-build` creates a separate build with the same generator. Building
-from scratch requires the shared package's documented compiler and dependency tooling,
-including network access for CMake's pinned dependencies. `--jobs 4` controls C++ build
-parallelism. Commands, compiler versions, assertions, counts and logs go under
-`/tmp/session-viewer-parity` (override with `--output`); no test report is written into
-the source tree. A changed or missing suite count fails the gate for review.
-
-`node tests/picking-performance.cjs` compares real mouse-release selection on a controlled
-baseline (`VIEWER_BASELINE_URL`, default port 45693) and the current viewer (`VIEWER_URL`,
-default port 18772). Set `VIEWER_INTERACTION_FIXTURE` to the same generated seven-family
-fixture used by `interaction.cjs`; the runner mocks identical YAML and protobuf bytes for
-both builds and records their SHA-256. Both builds need the inspection attributes used by
-the controlled baseline: selected row, frame count, submission timestamp and camera matrix.
-The default is ten measured samples per family after one warmup, using actual Escape and
-mouse input. Submission, the following browser frame callback and screenshot completion
-are reported separately as median and p95; none measures physical display presentation.
-Every sample must also show yellow screenshot pixels. Failed highlights remain failures
-and are excluded from successful-highlight timing summaries. There is no fixed sleep in
-the measured path. `--self-test` checks timestamp/summary logic without Chrome; browser
-runs use the same Playwright installation and Chrome settings as `interaction.cjs`.
-
 `python3 tests/format.py` checks all handwritten Rust files under the viewer's `src/`
 and `examples/` with Rust 2024 defaults. Use `--write` to apply the same formatting.
 The script passes an explicit file list and `skip_children=true`, so it never traverses
 or reformats the shared Session packages.
 
 The maintained depth scripts are in `tests/depth/`; they moved out of the archived lessons.
+The focused finite-triangle counterexample is generated and checked with:
+
+```sh
+REGEN_PROTO=0 cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_triangle_visibility
+python3 tests/triangle-visibility.py
+```
+
+It requires all 766 exposed seam-core pixels beside a nearby non-occluding strip and
+zero black pixels anywhere behind the genuinely covering strip. All three captures use
+the default silhouette-off setting, so source ink is measured apart from the separately tested surface silhouettes.
+The nearby strip's infinite depth plane crosses the seam ray outside its finite triangle;
+this fixture fails when that extrapolated plane is allowed to hide the seam. Use
+`--renderer` for an independently built native executable and `--output` to override
+`target/triangle-visibility`; `results.json` records the fixed capture settings and counts.
+
 The strict hidden-ink matrix renders 54 combinations and the original floor census renders
 21 views, including distance ×16. Both require zero hidden ink in their stated masks:
 
@@ -248,3 +290,17 @@ scenes remain unsupported and return an error.
 Run `node tests/splitting.cjs` with the same Playwright/Chrome environment for curve creation and Split, joined-face topology, touch confirmation, cancellation and Save/Open.
 
 `node tests/color-channels.cjs` checks rendered face and edge colors independently, Original resets, legacy-compatible Save/Open and captures the full viewer for current lesson 11. `node tests/large-object-dragging.cjs` loads the bundled bunny mesh and 342k-point lion, measures real pointer dragging and release, and verifies that the cloud image moves with a stationary camera. Use the same headed Chrome/WebGPU environment and `VIEWER_URL` as the other browser checks.
+
+`node tests/command-workspace.cjs` checks draggable command history, suggestion clicks,
+Arctic options, Point/Line/Polyline drawing, Rectangle/Polygon constructors, undo and narrow
+layouts. `node tests/drawing-large-scene.cjs` additionally uses the local manifest and its
+large sheet assets (over 100,000 retained objects). It starts and draws all three basic
+geometry commands, with a deadline that catches repeated whole-tree transform lookups
+while building snap targets. Both use the Playwright installation above; the large-scene
+check requires the local `view_local_*` assets.
+
+`node tests/ambient-scenes.cjs` checks Arctic toggles, camera preservation and WebGPU errors across the seven published scenes, saving still/drag/release images under `target/review/ambient-scenes`. Set `AO_SAMPLES=1` or `4`, `AO_DPR=1` or `2`, and `AO_PHONE=1` for the Pixel 7 viewport. These viewport tests use the host GPU. `VIEWER_URL` selects the build to review.
+
+`NO_IDLE_CALLBACK=1 node tests/ambient-lighting.cjs` checks Arctic startup and resource release without `requestIdleCallback`.
+
+`node tests/ambient-motion.cjs` records a 32-frame camera rotation of `view_live` with Arctic enabled. It checks camera continuity and WebGPU errors, and saves frames plus matrices for visual comparison. The ignored native test `rotation_reprojects_ground_shadows_without_erasing_them` measures temporal variation at fixed ground points and retains a spatial-only comparison.

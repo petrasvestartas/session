@@ -1,25 +1,28 @@
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::targets::{Attachment, Targets, TextureSpec};
 use super::widget_mesh;
-use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
+use crate::engine::pipelines::Layouts;
+use crate::engine::pipelines::{
+    ColorWrite, DepthMode, Pipeline, PipelineDesc, Target, build, module,
+};
 use session_rust::Xform;
 use wgpu::util::DeviceExt;
 
 /// Draws the gumball into its own small texture, then over the frame.
 pub struct Widget {
-    vertices: wgpu::Buffer, // the gumball mesh
-    count: u32, // vertices in it
-    uniform: wgpu::Buffer, // matrix, screen box, active handle
-    group: wgpu::BindGroup, // binds the uniform
-    layout: wgpu::BindGroupLayout, // one uniform
-    pipeline: wgpu::RenderPipeline, // mesh into the tile
-    tile: Option<Tile>, // textures the size of the gumball on screen
-    composite: wgpu::RenderPipeline, // tile over the frame
-    format: wgpu::TextureFormat, // canvas color format
-    texture_layout: wgpu::BindGroupLayout, // texture and sampler
-    visible: bool, // placed and on screen this frame
+    vertices: wgpu::Buffer,                 // the gumball mesh
+    count: u32,                             // vertices in it
+    uniform: wgpu::Buffer,                  // matrix, screen box, active handle
+    group: wgpu::BindGroup,                 // binds the uniform
+    layout: wgpu::BindGroupLayout,          // one uniform
+    pipeline: Pipeline,                     // mesh into the tile
+    tile: Option<Tile>,                     // textures the size of the gumball on screen
+    composite: Pipeline,                    // tile over the frame
+    format: wgpu::TextureFormat,            // canvas color format
+    texture_layout: wgpu::BindGroupLayout,  // texture and sampler
+    visible: bool,                          // placed and on screen this frame
     pub placement: Option<([f64; 3], f64)>, // world position and scale; None = hidden
-    pub active: f32, // handle under the cursor, -1 = none
+    pub active: f32,                        // handle under the cursor, -1 = none
 }
 
 impl Widget {
@@ -224,19 +227,15 @@ impl Drop for Widget {
 }
 
 /// The mesh pipeline: lit, depth-tested, 4x MSAA.
-fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgpu::RenderPipeline {
-    let shader = module(
-        &ctx.device,
-        "widget",
-        include_str!("../../shaders/widget.wgsl"),
-    );
+fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> Pipeline {
+    let shader = module(ctx, "widget", shader!("widget.wgsl"));
     let vertex = wgpu::VertexBufferLayout {
         array_stride: std::mem::size_of::<widget_mesh::Vertex>() as u64,
         step_mode: wgpu::VertexStepMode::Vertex,
         attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Uint32, 2 => Uint32],
     };
     build(
-        &ctx.device,
+        ctx,
         target,
         &PipelineDesc::new(
             &shader,
@@ -255,10 +254,10 @@ const MESH_TARGET: Target = Target {
 
 /// The gumball's own textures.
 struct Tile {
-    size: (u32, u32), // texture size, px
-    color: Attachment, // color at 4x
-    depth: Attachment, // depth at 4x
-    resolved: Attachment, // color at 1x, sampled by the composite
+    size: (u32, u32),       // texture size, px
+    color: Attachment,      // color at 4x
+    depth: Attachment,      // depth at 4x
+    resolved: Attachment,   // color at 1x, sampled by the composite
     group: wgpu::BindGroup, // resolved texture and sampler
 }
 
@@ -356,19 +355,15 @@ fn composite_pipeline(
     layout: &wgpu::BindGroupLayout,
     texture: &wgpu::BindGroupLayout,
     format: wgpu::TextureFormat,
-) -> wgpu::RenderPipeline {
-    let shader = module(
-        &ctx.device,
-        "widget composite",
-        include_str!("../../shaders/widget.wgsl"),
-    );
+) -> Pipeline {
+    let shader = module(ctx, "widget composite", shader!("widget.wgsl"));
     let groups = [layout, texture];
     let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
         .vertex("vs_composite")
         .with("widget composite", "fs_composite")
         .depth(DepthMode::Detached)
         .color(ColorWrite::Blended);
-    build(&ctx.device, Target { format, samples: 1 }, &desc)
+    build(ctx, Target { format, samples: 1 }, &desc)
 }
 
 /// Screen box of the gumball: x, y, width, height; None when behind the camera.
@@ -410,4 +405,18 @@ fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
     let width = (max[0] + 2.0).ceil().min(size.0 as f64) - x;
     let height = (max[1] + 2.0).ceil().min(size.1 as f64) - y;
     (width > 0.0 && height > 0.0).then_some([x, y, width, height])
+}
+
+impl super::lane::Lane for Widget {
+    fn on_retarget(&mut self, ctx: &GpuCtx, _layouts: &Layouts, target: Target) {
+        self.retarget(ctx, target);
+    }
+
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.clear();
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        self.allocated_bytes()
+    }
 }

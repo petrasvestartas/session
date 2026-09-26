@@ -62,5 +62,5 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 @fragment
 // Flat line color.
 fn fs_main(in: VsOut) -> PhysicalColor {
-    return PhysicalColor(vec4<f32>(in.color, 1.0), vec4<f32>(0.0));
+    return PhysicalColor(vec4<f32>(in.color, 1.0), vec2<u32>(0u));
 }

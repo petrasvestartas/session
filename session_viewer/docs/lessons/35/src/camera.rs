@@ -1,7 +1,6 @@
 use session_rust::{AABB, Point, Quaternion, Vector, Xform};
 
-/// Vertical field of view: the camera sees 60° from the bottom edge of the screen to the top.
-pub const FOVY_DEG: f64 = 60.0;
+pub use crate::engine::gpu::frame::FOVY_DEG;
 
 /// The unit the scene file is written in.
 #[derive(Clone, Copy, PartialEq)]
@@ -11,7 +10,7 @@ pub enum Unit {
 }
 
 impl Unit {
-    /// e.g. 2500 mm x 0.001 = 2.5 m.
+    /// Factor from this unit to meters.
     pub fn to_meters(self) -> f64 {
         match self {
             Unit::Millimeters => 0.001,
@@ -20,9 +19,10 @@ impl Unit {
     }
 }
 
-/// Near plane = the closest depth drawn: 1/10 000 of the target distance, so 0.3 mm at 3 m.
+/// Near plane distance as a fraction of the target distance.
 pub const NEAR_FRACTION: f64 = 1.0e-4;
 
+/// A named standard view.
 #[derive(Clone, Copy)]
 pub enum View {
     Front,
@@ -34,20 +34,19 @@ pub enum View {
     Iso,
 }
 
-/// An orbit camera is set by what you look AT, how far away, and which way it faces; the eye follows from those.
+/// Orbit camera: an orientation, a target and a distance.
 pub struct Camera {
-    pub target: [f64; 3],        // always meters, whatever unit the file uses
+    pub target: [f64; 3],        // the point looked at, meters
     pub distance: f64,           // eye to target, meters
-    pub orientation: Quaternion,
-    pub world_up: [f64; 3],      // yaw turns around this axis, +Z
-    pub position: [f64; 3],      // the eye, derived by update_position()
-    pub up: [f64; 3],            // screen up, derived too
-    pub perspective: bool,       // false = orthographic: parallel lines stay parallel, far things do not shrink
-    pub unit: Unit,
-    pub scene_extent: f64,       // meters; the far plane must reach this far past the target
+    pub orientation: Quaternion, // where the camera faces
+    pub world_up: [f64; 3],      // the axis yaw turns around
+    pub position: [f64; 3],      // the eye, computed from the above
+    pub up: [f64; 3],            // the up direction, computed from the above
+    pub perspective: bool,       // false = orthographic
+    pub unit: Unit,              // the scene file unit
+    pub scene_extent: f64,       // scene radius in meters, keeps the far plane wide
 }
 
-// --8<-- [start:step-4a]
 /// The part of the camera the user chose: where it looks from and at.
 #[derive(Debug, PartialEq)]
 pub struct CameraPose {
@@ -68,16 +67,15 @@ impl Camera {
         }
     }
 
-    /// Looks at the origin from 3 m, turned 30° and tilted 30° down.
-// --8<-- [end:step-4a]
+    /// A camera at the isometric view.
     pub fn new() -> Self {
         use std::f64::consts::FRAC_PI_6;
 
-        // Quaternion = a rotation stored as four numbers. Turn 30° about Z, then tilt 30° down.
+        // turn 30° about Z, then tilt 30° down
         let yaw_q = Quaternion::from_axis_angle(Vector::z_axis(), -FRAC_PI_6);
         let rv = yaw_q.rotate_vector(Vector::x_axis());
         let pitch_q = Quaternion::from_axis_angle(rv, -FRAC_PI_6);
-        let orientation = (pitch_q * yaw_q).normalized(); // b * a = apply a first, then b
+        let orientation = (pitch_q * yaw_q).normalized();
 
         let mut cam = Self {
             target: [0.0; 3],
@@ -96,7 +94,7 @@ impl Camera {
         cam
     }
 
-    /// 0.005 radians per pixel: a 200 px drag turns about 57°.
+    /// Turn the camera around the target by mouse pixels.
     pub fn orbit(&mut self, dx: f32, dy: f32) {
         let wu = Vector::new(self.world_up[0], self.world_up[1], self.world_up[2]);
         let right = self.orientation.rotate_vector(Vector::x_axis());
@@ -104,11 +102,11 @@ impl Camera {
         let yaw_q = Quaternion::from_axis_angle(wu, (-dx * 0.005) as f64);
         let pitch_q = Quaternion::from_axis_angle(right, (-dy * 0.005) as f64);
 
-        self.orientation = (yaw_q * (pitch_q * self.orientation.duplicate())).normalized(); // normalized() removes the drift many small turns add
+        self.orientation = (yaw_q * (pitch_q * self.orientation.duplicate())).normalized();
         self.update_position();
     }
 
-    /// Slide the target across the screen plane; the view direction stays.
+    /// Slide the camera sideways by mouse pixels.
     pub fn pan(&mut self, dx: f32, dy: f32) {
         let right = self.orientation.rotate_vector(Vector::x_axis());
         // farther away, a pixel moves more
@@ -198,8 +196,8 @@ impl Camera {
         }
 
         let new_dist = zoom_distance(self.distance, amount);
-        let k = new_dist / self.distance; // 0.9 after one wheel step
-        // NDC = normalized device coordinates: -1..1 across the screen, y up
+        let k = new_dist / self.distance; // how much closer
+        // pixel to -1..1 on both axes, y up
         let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
         let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
         // half the view size at the target plane
@@ -216,6 +214,7 @@ impl Camera {
         self.update_position();
     }
 
+    /// Switch between perspective and orthographic.
     pub fn toggle_projection(&mut self) {
         self.perspective = !self.perspective;
     }
@@ -278,12 +277,12 @@ impl Camera {
         self.distance / self.unit.to_meters()
     }
 
-    /// One matrix, two jobs: view moves the world in front of the eye, projection flattens it onto the screen.
+    /// The view-projection matrix, relative to the target.
     pub fn view_proj(&self, aspect: f64) -> Xform {
         self.view_proj_anchored(aspect, &self.origin())
     }
 
-    /// Anchor = a point subtracted before the f32 conversion, so a model 100 km out keeps millimetres.
+    /// The view-projection matrix, relative to `anchor` (scene units).
     pub fn view_proj_anchored(&self, aspect: f64, anchor: &Point) -> Xform {
         let dist = self.distance;
         let a = self.unit.to_meters();
@@ -291,7 +290,7 @@ impl Camera {
         // far plane reaches the whole scene
         let far = (dist * 10.0).max(dist + 2.0 * self.scene_extent);
         let projection = if self.perspective {
-            // Reverse-Z: far and near are swapped so depth 1 is near, which spends float precision near the eye.
+            // far and near swapped: depth 1 is near (reverse-Z)
             Xform::perspective(FOVY_DEG.to_radians(), aspect, far, dist * NEAR_FRACTION)
         } else {
             let h = dist * (FOVY_DEG * 0.5).to_radians().tan(); // half view height
@@ -323,7 +322,7 @@ impl Camera {
         let s = self.unit.to_meters();
         let scale = Xform::scale_xyz(s, s, s);
 
-        projection * view * scale // read right to left: scale first, projection last
+        projection * view * scale
     }
 
     /// Turn to a named view, orthographic.
@@ -349,6 +348,7 @@ impl Camera {
         self.update_position();
     }
 
+    /// Reset to a fresh default camera.
     pub fn reset(&mut self) {
         *self = Camera::new();
     }
@@ -361,6 +361,7 @@ impl Camera {
 
         let s = self.unit.to_meters();
 
+        // look at the box center
         self.target = [bounds.cx * s, bounds.cy * s, bounds.cz * s];
 
         // half the view angle, sideways and up
@@ -425,6 +426,7 @@ impl Camera {
         }
     }
 
+    /// Set the scene file unit.
     pub fn set_unit(&mut self, unit: Unit) {
         self.unit = unit;
     }
@@ -450,7 +452,6 @@ fn dot3(p: &[f64; 3], v: &Vector) -> f64 {
 mod tests {
     use super::*;
 
-    // --8<-- [start:step-4b]
     #[test]
     fn pose_tracks_navigation_without_tracking_scene_extent() {
         let mut camera = Camera::new();
@@ -471,7 +472,6 @@ mod tests {
     }
 
     /// The depth value of a point `depth` meters in front of the eye.
-    // --8<-- [end:step-4b]
     fn ndc_depth(cam: &Camera, depth: f64) -> f64 {
         let fwd = cam.orientation.rotate_vector(Vector::y_axis());
         let (s, o) = (cam.unit.to_meters(), cam.origin());

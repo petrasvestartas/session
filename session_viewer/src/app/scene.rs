@@ -1,22 +1,17 @@
-#[path = "scene_text.rs"]
-mod text;
-pub use text::SceneText;
-
+#[path = "scene_instances.rs"] // register:instancing
+pub(crate) mod instances; // register:instancing
+#[path = "scene_release.rs"] // register:release
+mod release; // register:release
 #[path = "scene_rows.rs"]
 pub(crate) mod rows;
+#[path = "scene_sync.rs"] // register:document
+pub(crate) mod sync; // register:document
+#[path = "scene_text.rs"] // register:scene_text
+mod text; // register:scene_text
+pub use text::SceneText; // register:scene_text
 
-#[path = "scene_sync.rs"]
-pub(crate) mod sync;
-
-#[path = "scene_release.rs"]
-mod release;
-
-use crate::app::sheet_query::{EntityMeta, SheetTable};
-use crate::app::stream::{CloudFields, CloudLod, SheetFields};
 use crate::app::walk::bounds::{Baselines, file_extent, mark_sheet, planar_band};
-use crate::app::walk::cloud::{StreamRows, StreamSlice, walk_stream_slice};
 use crate::app::walk::mesh::Lap;
-use crate::app::walk::sheet::{SheetRows, SheetSlice, walk_sheet_slice};
 use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
@@ -39,58 +34,6 @@ pub struct FileDoc {
     pub display_only: bool,   // a streamed shell with no kernel objects
 }
 
-/// A streamed cloud's first slice.
-pub struct StreamedInit {
-    pub name: String,        // display name
-    pub url: String,         // the cloud file
-    pub place: Xform,        // world placement
-    pub rows: StreamRows,    // the first points
-    pub lod: CloudLod,       // the whole node table
-    pub fields: CloudFields, // array positions in the file
-    pub resident: u32,       // points in this slice
-    pub point_px: f32,       // point size override
-    pub col_at: u64,         // byte position of the next colour
-    pub ceiling: u32,        // most streamed points on the page
-}
-
-/// A streamed cloud's slot in the scene.
-pub struct StreamedCloud {
-    pub name: String,        // display name
-    pub url: String,         // the cloud file
-    pub row: u32,            // its object row
-    pub lod: CloudLod,       // the whole node table
-    pub fields: CloudFields, // array positions in the file
-    pub place: Xform,        // world placement
-    pub done_to: u32,        // points loaded so far
-    pub total: u32,          // points in the file
-    pub point_px: f32,       // point size override
-}
-
-/// A streamed sheet's first slice.
-pub struct SheetInit {
-    pub name: String,             // display name
-    pub url: String,              // the sheet file
-    pub meta_url: Option<String>, // its entity side table
-    pub place: Xform,             // world placement
-    pub rows: SheetRows,          // the first segments
-    pub fields: SheetFields,      // array positions in the file
-    pub resident: u32,            // segments in this slice
-}
-
-/// A sheet's slot in the scene.
-pub struct SheetBatch {
-    pub name: String,                        // display name
-    pub url: String,                         // the sheet file
-    pub meta_url: Option<String>,            // its entity side table
-    pub row: u32,                            // its object row
-    pub fields: SheetFields,                 // array positions in the file
-    pub place: Xform,                        // world placement
-    pub done_to: u32,                        // segments loaded so far
-    pub total: u32,                          // segments in the file
-    pub resolved: Option<(u32, EntityMeta)>, // entity the last pick found
-    pub table: Option<SheetTable>,           // side table head, read once
-}
-
 /// What a pick landed on.
 #[derive(Clone, Debug)]
 pub struct Picked {
@@ -109,93 +52,21 @@ pub struct PickedPoint {
     pub position: [f64; 3], // world position
 }
 
-/// A geometry's type, kept for the rows of a released document.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Shape {
-    Box,
-    BRep,
-    Element,
-    Line,
-    Mesh,
-    Curve,
-    Surface,
-    Plane,
-    Point,
-    Cloud,
-    Polyline,
-}
-
-impl Shape {
-    /// The type of one geometry.
-    pub fn of(geometry: &Geometry) -> Self {
-        match geometry {
-            Geometry::OBB(_) => Shape::Box,
-            Geometry::BRep(_) => Shape::BRep,
-            Geometry::Element(_) => Shape::Element,
-            Geometry::Line(_) => Shape::Line,
-            Geometry::Mesh(_) => Shape::Mesh,
-            Geometry::NurbsCurve(_) => Shape::Curve,
-            Geometry::NurbsSurface(_) => Shape::Surface,
-            Geometry::Plane(_) => Shape::Plane,
-            Geometry::Point(_) => Shape::Point,
-            Geometry::PointCloud(_) => Shape::Cloud,
-            Geometry::Polyline(_) => Shape::Polyline,
-        }
-    }
-
-    /// The name shown for an unnamed object.
-    pub fn label(self) -> &'static str {
-        match self {
-            Shape::Box => "Box",
-            Shape::BRep => "BRep",
-            Shape::Element => "Element",
-            Shape::Line => "Line",
-            Shape::Mesh => "Mesh",
-            Shape::Curve => "NURBS curve",
-            Shape::Surface => "NURBS surface",
-            Shape::Plane => "Plane",
-            Shape::Point => "Point",
-            Shape::Cloud => "Point cloud",
-            Shape::Polyline => "Polyline",
-        }
-    }
-}
-
-/// Where a released document's kernel objects come back from.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Fetch {
-    Idle,    // nothing asked for it
-    Wanted,  // an edit needs it
-    Loading, // on its way
-    Failed,  // the last fetch failed; only an edit asks again
-}
-
-/// A document whose kernel objects were dropped after the walk; its rows stay drawn.
-pub struct Released {
-    pub url: String,            // the file, fetched again to edit it
-    pub token: u64,             // this release; an older fetch is ignored
-    first: u32,                 // its first row
-    shapes: Vec<Option<Shape>>, // type of each row from `first`
-    names: Vec<u32>,            // name of each row from `first`, in `table`
-    table: Vec<Box<str>>,       // the distinct object names
-    pub fetch: Fetch,           // whether it is being fetched
-}
-
-/// A released document fetched and decoded again.
-pub struct Hydrated {
-    pub doc: usize,                       // the document
-    pub token: u64,                       // the release it answers
-    pub session: Result<Session, String>, // its objects, or why not
-    pub ms: f64,                          // fetch and decode time
-}
+/// Names a row has before its geometry's own: a text's, a sheet entity's, an instance's, a released row's.
+const NAMERS: &[for<'a> fn(&'a Scene, u32) -> Option<&'a str>] = &[
+    Scene::text_name,            // register:scene_text
+    Scene::sheet_name,           // register:sheets
+    Scene::instance_name,        // register:instancing
+    Scene::released_object_name, // register:release
+];
 
 /// The open documents and their object rows; a row id stays with its object for the object's life.
 pub struct Scene {
     pub docs: Vec<FileDoc>,                              // loaded files
-    pub texts: Vec<SceneText>,                           // text objects
+    pub texts: Vec<SceneText>,                           // text objects; register:scene_text
     pub tables: Upload,                                  // rows walked but not yet uploaded
-    pub streamed: Vec<StreamedCloud>,                    // streamed clouds
-    pub sheets: Vec<SheetBatch>,                         // streamed sheets
+    pub streamed: Vec<StreamedCloud>,                    // streamed clouds; register:stream
+    pub sheets: Vec<SheetBatch>,                         // streamed sheets; register:sheets
     pub hidden: HashSet<(usize, Rc<str>)>,               // (document, guid) hidden
     pub locked: HashSet<(usize, Rc<str>)>,               // (document, guid) not selectable
     pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,      // face colour overrides
@@ -220,7 +91,7 @@ pub struct Scene {
     dead_points: u32,                             // cloud points of dropped clouds
     compactions: u32,                             // editable lanes walked again
     loaded: bool,                                 // rows of a new document wait in the tables
-    preview: Option<(u32, sync::Previews)>,       // drag previews of one row
+    preview: Option<(u32, sync::Previews)>,       // drag previews of one row; register:editing
     pub(crate) bounds_stale: bool,                // the scene box may be larger than what is left
     edge_sources: Vec<(u32, u32)>,                // (object row, edge index) of each pipe
     guid_to_row: HashMap<(usize, Rc<str>), u32>,  // (document, guid) to row
@@ -232,22 +103,22 @@ pub struct Scene {
     pub(crate) row_revision: u64,                     // bumped when rows come or go
     pub(crate) current_layer: Option<(usize, String)>, // (document, tree node) new objects go to
     pub(crate) layer_steps: u64,                      // layer steps made, for unique labels
-    pub(crate) edge_steps: HashMap<(usize, String), crate::app::layers::EdgeStep>, // edge each (document, step) added
+    pub(crate) edge_steps: HashMap<(usize, String), crate::app::layers::EdgeStep>, // edge each (document, step) added; register:editing
     pub(crate) groups: HashSet<(usize, Rc<str>)>, // (document, tree node guid) of each group
     pub(crate) text_rows: Vec<u32>, // text rows an undo, redo or delete showed or hid, for the GPU
-    pub(crate) released: HashMap<usize, Released>, // documents drawn without their kernel objects
-    asked: RefCell<Vec<usize>>,     // released documents a read-only path needs
-    stream_ceiling: u32,            // most streamed points on the page
-    tombs: HashMap<(usize, Rc<str>), Tomb>, // deleted objects whose rows stay on the GPU, hidden
-    tombed: Counts,                 // lane rows the tombs hold
-    tomb_points: u64,               // cloud points the tombs hold
-    burials: u64,                   // tombs made, for their order
-    tomb_cap: u64,                  // lane bytes the tombs may hold
-    pub(crate) instancing: sync::instances::Instancing, // definitions drawn once, placed by instance rows
+    pub(crate) released: HashMap<usize, Released>, // documents drawn without their kernel objects; register:release
+    asked: RefCell<Vec<usize>>, // released documents a read-only path needs; register:release
+    stream_ceiling: u32,        // most streamed points on the page; register:stream
+    tombs: HashMap<(usize, Rc<str>), Tomb>, // deleted objects whose rows stay on the GPU, hidden; register:document
+    tombed: Counts,                         // lane rows the tombs hold; register:document
+    tomb_points: u64,                       // cloud points the tombs hold; register:document
+    burials: u64,                           // tombs made, for their order; register:document
+    tomb_cap: u64,                          // lane bytes the tombs may hold; register:document
+    pub(crate) instancing: instances::Instancing, // definitions drawn once, placed by instance rows; register:instancing
     #[cfg(test)]
     pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
     #[cfg(test)]
-    pub(crate) searches: usize, // tree walks the syncs needed
+    pub(crate) searches: usize,   // tree walks the syncs needed
 }
 
 impl Default for Scene {
@@ -268,10 +139,10 @@ impl Scene {
     pub fn new() -> Self {
         Self {
             docs: Vec::new(),
-            texts: Vec::new(),
+            texts: Vec::new(), // register:scene_text
             tables: Upload::default(),
-            streamed: Vec::new(),
-            sheets: Vec::new(),
+            streamed: Vec::new(), // register:stream
+            sheets: Vec::new(),   // register:sheets
             hidden: HashSet::new(),
             locked: HashSet::new(),
             colors: HashMap::new(),
@@ -285,11 +156,11 @@ impl Scene {
             spans: Spans::default(),
             caps: HashMap::new(),
             graves: HashMap::new(),
-            tombs: HashMap::new(),
-            tombed: Counts::default(),
-            tomb_points: 0,
-            burials: 0,
-            tomb_cap: sync::TOMB_CAP,
+            tombs: HashMap::new(),     // register:document
+            tombed: Counts::default(), // register:document
+            tomb_points: 0,            // register:document
+            burials: 0,                // register:document
+            tomb_cap: sync::TOMB_CAP,  // register:document
             ids: Ids::default(),
             sink: None,
             empty: Rc::from(""),
@@ -301,7 +172,7 @@ impl Scene {
             dead_points: 0,
             compactions: 0,
             loaded: false,
-            preview: None,
+            preview: None, // register:editing
             bounds_stale: false,
             edge_sources: Vec::new(),
             guid_to_row: HashMap::new(),
@@ -313,13 +184,13 @@ impl Scene {
             row_revision: 0,
             current_layer: None,
             layer_steps: 0,
-            edge_steps: HashMap::new(),
+            edge_steps: HashMap::new(), // register:editing
             groups: HashSet::new(),
             text_rows: Vec::new(),
-            released: HashMap::new(),
-            asked: RefCell::new(Vec::new()),
-            stream_ceiling: 0,
-            instancing: Default::default(),
+            released: HashMap::new(),        // register:release
+            asked: RefCell::new(Vec::new()), // register:release
+            stream_ceiling: 0,               // register:stream
+            instancing: Default::default(),  // register:instancing
             #[cfg(test)]
             ledger: HashMap::new(),
             #[cfg(test)]
@@ -333,13 +204,13 @@ impl Scene {
         self.undo_steps.clear();
         self.redo_steps.clear();
         self.current_layer = None;
-        self.edge_steps.clear();
+        self.edge_steps.clear(); // register:editing
         self.groups.clear();
-        self.released.clear();
-        self.asked.borrow_mut().clear();
+        self.released.clear(); // register:release
+        self.asked.borrow_mut().clear(); // register:release
         self.docs.clear();
         self.doc_state.clear();
-        self.texts.clear();
+        self.texts.clear(); // register:scene_text
         self.text_rows.clear();
         self.hidden.clear();
         self.locked.clear();
@@ -353,8 +224,8 @@ impl Scene {
     fn reset_rows(&mut self) {
         self.row_revision = self.row_revision.wrapping_add(1);
         self.tables = Upload::default();
-        self.streamed.clear();
-        self.sheets.clear();
+        self.streamed.clear(); // register:stream
+        self.sheets.clear(); // register:sheets
         self.order.clear();
         self.owners.clear();
         self.feet.clear();
@@ -362,9 +233,9 @@ impl Scene {
         self.spans.clear();
         self.caps.clear();
         self.graves.clear();
-        self.tombs.clear();
-        self.tombed = Counts::default();
-        self.tomb_points = 0;
+        self.tombs.clear(); // register:document
+        self.tombed = Counts::default(); // register:document
+        self.tomb_points = 0; // register:document
         self.ids.clear();
         self.sink = None;
         self.pending.clear();
@@ -373,14 +244,14 @@ impl Scene {
         self.dead = Counts::default();
         self.dead_points = 0;
         self.loaded = false;
-        self.preview = None;
+        self.preview = None; // register:editing
         self.bounds_stale = false;
         self.edge_sources.clear();
         self.guid_to_row.clear();
         self.selected = None;
         self.object_rows = 0;
         self.uploaded = Counts::default();
-        self.instancing.clear();
+        self.instancing.clear(); // register:instancing
         #[cfg(test)]
         self.ledger.clear();
     }
@@ -452,10 +323,10 @@ impl Scene {
             let incoming = self.tables.cloud.point_count();
 
             if incoming > 0 && self.dead_points > 0 && !gpu.cloud.fits(&gpu.ctx, incoming) {
-                self.compact_clouds(gpu);
+                self.compact_clouds(gpu); // register:document
             }
 
-            (self.tables.cloud.expect, self.tables.cloud.expect_normals) = self.stream_expect();
+            (self.tables.cloud.expect, self.tables.cloud.expect_normals) = self.stream_expect(); // register:stream
             gpu.set_scene(&self.tables);
 
             // a loaded document re-centres the origin at the camera, as it always did; an edit keeps it
@@ -497,29 +368,11 @@ impl Scene {
             self.bounds_stale = true;
         }
 
-        self.upload_instances(gpu);
-        gpu.set_dead(self.dead.plus(self.tombed), self.dead_points);
+        self.upload_instances(gpu); // register:instancing
+        let mut dead = self.dead;
+        dead = dead.plus(self.tombed); // register:document
+        gpu.set_dead(dead, self.dead_points);
         gpu.refresh_samples();
-    }
-
-    /// Streamed points and normals still to come after the rows walked so far, within the ceiling.
-    fn stream_expect(&self) -> (u32, u32) {
-        let mut done = 0u32;
-        let mut points = 0u32;
-        let mut normals = 0u32;
-
-        for cloud in &self.streamed {
-            let left = cloud.total.saturating_sub(cloud.done_to);
-            done = done.saturating_add(cloud.done_to);
-            points = points.saturating_add(left);
-
-            if cloud.fields.normals_len > 0 {
-                normals = normals.saturating_add(left);
-            }
-        }
-
-        let room = self.stream_ceiling.saturating_sub(done);
-        (points.min(room), normals.min(room))
     }
 
     /// True when nothing waits to be appended.
@@ -660,7 +513,7 @@ impl Scene {
             }
         }
 
-        self.add_instances(index, &session, &place, &world, &mut placed);
+        self.add_instances(index, &session, &place, &world, &mut placed); // register:instancing
         lap.mark("objects");
 
         // each row remembers the tree node it was placed from
@@ -687,7 +540,7 @@ impl Scene {
 
         lap.mark("sweeps");
 
-        let nodes_from = sync::tree_key(&session);
+        let nodes_from = tree_key(&session);
         self.push_doc(
             FileDoc {
                 name,
@@ -698,196 +551,6 @@ impl Scene {
             },
             DocState { sheet, nodes_from },
         );
-    }
-
-    /// Add a streamed cloud from its first slice; returns its slot.
-    pub fn add_streamed_cloud(&mut self, init: StreamedInit, gpu: &mut Gpu) -> usize {
-        let slot = self.stream_cloud(init);
-        self.upload_to(gpu);
-        slot
-    }
-
-    /// The rows of a streamed cloud's first slice and its read-only shell document.
-    pub(crate) fn stream_cloud(&mut self, init: StreamedInit) -> usize {
-        let StreamedInit {
-            name,
-            url,
-            place,
-            rows,
-            lod,
-            fields,
-            resident,
-            point_px,
-            col_at: _,
-            ceiling,
-        } = init;
-        self.stream_ceiling = ceiling;
-        let total = fields.count;
-        let row = self.push_row(self.docs.len(), &format!("stream:{url}"), place.clone(), 0);
-        let slice = StreamSlice {
-            rows,
-            lod: &lod,
-            from: 0,
-            to: resident,
-            row,
-            point_px,
-        };
-        let bounds = walk_stream_slice(&mut self.tables.cloud, &slice);
-        let o = self.tables.obj.rows.last_mut().unwrap();
-        o.bounds = bounds;
-        o.spacing = point_px;
-        self.tables.bounds.union_with(&bounds.transformed(&place));
-        let model = place.clone();
-        self.push_doc(
-            FileDoc {
-                name: name.clone(),
-                place,
-                session: Rc::new(Session::new(&name)),
-                point_px,
-                display_only: true,
-            },
-            DocState::default(),
-        );
-        self.streamed.push(StreamedCloud {
-            name,
-            url,
-            row,
-            lod,
-            fields,
-            place: model,
-            done_to: resident,
-            total,
-            point_px,
-        });
-        self.streamed.len() - 1
-    }
-
-    /// Add the next slice of streamed cloud `idx`.
-    pub fn extend_streamed_cloud(&mut self, idx: usize, rows: StreamRows, to: u32, gpu: &mut Gpu) {
-        let Some(sc) = self.streamed.get(idx) else {
-            return;
-        };
-
-        if to <= sc.done_to {
-            return;
-        }
-
-        let place = match self.document(sc.row) {
-            Some(document) => document.place.clone(),
-            None => Xform::identity(),
-        };
-        let row = sc.row;
-        let slice = StreamSlice {
-            rows,
-            lod: &sc.lod,
-            from: sc.done_to,
-            to,
-            row,
-            point_px: sc.point_px,
-        };
-        let bounds = walk_stream_slice(&mut self.tables.cloud, &slice);
-        self.tables.bounds.union_with(&bounds.transformed(&place));
-        self.streamed[idx].done_to = to;
-        self.upload_to(gpu);
-        gpu.objects
-            .grow_local_bounds(&gpu.ctx, row, &bounds, &place);
-    }
-
-    /// Add a streamed sheet from its first slice; returns its slot.
-    pub fn add_sheet(&mut self, init: SheetInit, gpu: &mut Gpu) -> usize {
-        let slot = self.stream_sheet(init);
-        self.upload_to(gpu);
-        slot
-    }
-
-    /// The rows of a streamed sheet's first slice and its read-only shell document.
-    pub(crate) fn stream_sheet(&mut self, init: SheetInit) -> usize {
-        let SheetInit {
-            name,
-            url,
-            meta_url,
-            place,
-            rows,
-            fields,
-            resident,
-        } = init;
-        let total = fields.count;
-        let row = self.push_row(
-            self.docs.len(),
-            &format!("sheet:{url}"),
-            place.clone(),
-            Instance::FLAG_SHEET,
-        );
-        let slice = SheetSlice { rows, from: 0, row };
-        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
-        let o = self.tables.obj.rows.last_mut().unwrap();
-        o.bounds = bounds;
-        self.tables.bounds.union_with(&bounds.transformed(&place));
-        let model = place.clone();
-        self.push_doc(
-            FileDoc {
-                name: name.clone(),
-                place,
-                session: Rc::new(Session::new(&name)),
-                point_px: 0.0,
-                display_only: true,
-            },
-            DocState::default(),
-        );
-        self.sheets.push(SheetBatch {
-            name,
-            url,
-            meta_url,
-            row,
-            fields,
-            place: model,
-            done_to: resident,
-            total,
-            resolved: None,
-            table: None,
-        });
-        self.sheets.len() - 1
-    }
-
-    /// Add the next slice of sheet `idx`.
-    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32, gpu: &mut Gpu) {
-        let Some(sheet) = self.sheets.get(idx) else {
-            return;
-        };
-
-        if to <= sheet.done_to {
-            return;
-        }
-
-        let place = sheet.place.clone();
-        let row = sheet.row;
-        let slice = SheetSlice {
-            rows,
-            from: sheet.done_to,
-            row,
-        };
-        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
-        self.tables.bounds.union_with(&bounds.transformed(&place));
-        self.sheets[idx].done_to = to;
-        self.upload_to(gpu);
-        gpu.objects
-            .grow_local_bounds(&gpu.ctx, row, &bounds, &place);
-    }
-
-    /// The sheet slot on object row `row`, if that row is a sheet.
-    pub fn sheet_slot(&self, row: u32) -> Option<usize> {
-        for (slot, sheet) in self.sheets.iter().enumerate() {
-            if sheet.row == row {
-                return Some(slot);
-            }
-        }
-
-        None
-    }
-
-    /// The sheet on object row `row`.
-    pub fn sheet_at(&self, row: u32) -> Option<&SheetBatch> {
-        self.sheets.get(self.sheet_slot(row)?)
     }
 
     /// What a GPU pick landed on.
@@ -902,16 +565,7 @@ impl Scene {
         }
 
         let mut entity = None;
-        // bit 31 set: the sub id is a ribbon row
-        let ribbon = pick.sub & 0x7fff_ffff;
-
-        if pick.sub & 0x8000_0000 != 0
-            && self.sheet_at(pick.row).is_some()
-            && let Some((parent, _)) = gpu.segments.row_of(ribbon)
-            && parent == pick.row
-        {
-            entity = gpu.segments.source_id(ribbon).filter(|id| *id != u32::MAX);
-        }
+        entity = entity.or(self.sheet_entity_at(pick, gpu)); // register:sheets
 
         let doc = match self.document(pick.row) {
             Some(document) => document.name.clone(),
@@ -946,20 +600,10 @@ impl Scene {
 
     /// The row's name, or its type when unnamed.
     pub fn object_name(&self, row: u32) -> &str {
-        if let Some(text) = self.text_at(row) {
-            return &text.label.text;
-        }
-
-        if let Some(sheet) = self.sheet_at(row) {
-            return match &sheet.resolved {
-                Some((_, meta)) if !meta.name.trim().is_empty() => &meta.name,
-                Some((_, meta)) if !meta.kind.trim().is_empty() => &meta.kind,
-                _ => &sheet.name,
-            };
-        }
-
-        if let Some(name) = self.instance_name(row) {
-            return name;
+        for namer in NAMERS {
+            if let Some(name) = namer(self, row) {
+                return name;
+            }
         }
 
         let (name, kind) = match self.geometry(row) {
@@ -974,10 +618,7 @@ impl Scene {
             Some(Geometry::Point(value)) => (value.name.as_str(), "Point"),
             Some(Geometry::PointCloud(value)) => (value.name.as_str(), "Point cloud"),
             Some(Geometry::Polyline(value)) => (value.name.as_str(), "Polyline"),
-            None => (
-                self.released_name(row).unwrap_or(""),
-                self.shape(row).map_or("Object", Shape::label),
-            ),
+            None => ("", "Object"),
         };
 
         if name.trim().is_empty() { kind } else { name }
@@ -990,8 +631,16 @@ impl Scene {
         }
 
         let &(parent, edge) = self.edge_sources.get((pick.sub & 0x7fff_ffff) as usize)?;
-        let own = parent == pick.row || self.instance_batch_row(pick.row) == Some(parent);
+        let mut own = parent == pick.row;
+        own = own || self.instance_batch_row(pick.row) == Some(parent); // register:instancing
         (own && edge != u32::MAX).then_some(edge)
+    }
+
+    /// The solid face indices a row draws, and whether an instance draws them from its definition.
+    pub fn solid_faces(&self, row: u32) -> Option<(std::ops::Range<u32>, bool)> {
+        let mut faces = self.face_range(row).map(|range| (range, false));
+        faces = faces.or_else(|| Some((self.instance_faces(row)?, true))); // register:instancing
+        faces
     }
 
     /// Point `local` of the cloud on `row`; None when streamed.
@@ -1065,9 +714,9 @@ impl Scene {
     pub fn object_count(&self) -> usize {
         self.order.len()
             - self.ids.len()
-            - self.tombs.len()
+            - self.tombs.len() // register:document
             - usize::from(self.sink.is_some())
-            - self.instancing.batch_rows()
+            - self.instancing.batch_rows() // register:instancing
     }
 }
 
@@ -1129,7 +778,7 @@ mod tests {
     use session_rust::{BRep, Point};
 
     /// A document at the origin.
-    fn file(name: &str, session: Rc<Session>, display_only: bool) -> FileDoc {
+    pub(super) fn file(name: &str, session: Rc<Session>, display_only: bool) -> FileDoc {
         FileDoc {
             name: name.into(),
             session,
@@ -1137,67 +786,6 @@ mod tests {
             point_px: 0.0,
             display_only,
         }
-    }
-
-    /// A created text is an edit: the GPU anchor stays where it was.
-    #[test]
-    fn a_created_text_keeps_the_anchor() {
-        let mut scene = Scene::new();
-        scene.add_text(crate::app::edit::tests::text(1.0));
-        assert!(!scene.loaded);
-    }
-
-    /// A streamed cloud's first slice of `resident` of `count` points, normals when `normals`.
-    fn streamed(count: u32, resident: u32, normals: bool, ceiling: u32) -> StreamedInit {
-        StreamedInit {
-            name: "scan".into(),
-            url: "scan.pb".into(),
-            place: Xform::identity(),
-            rows: StreamRows {
-                positions: vec![0.0; resident as usize * 3],
-                colors: Vec::new(),
-                normals: Vec::new(),
-            },
-            lod: CloudLod::default(),
-            fields: CloudFields {
-                end: 0,
-                coords_at: 0,
-                coords_len: 0,
-                colors_at: 0,
-                colors_len: 0,
-                normals_at: 0,
-                normals_len: u64::from(normals),
-                count,
-                ids_at: 0,
-                ids_len: 0,
-                revision: None,
-            },
-            resident,
-            point_px: 1.0,
-            col_at: 0,
-            ceiling,
-        }
-    }
-
-    /// The points still to stream are what the files hold, but never past the page's ceiling.
-    #[test]
-    fn stream_expect_is_the_rest_of_the_files_within_the_ceiling() {
-        let mut scene = Scene::new();
-        scene.stream_cloud(streamed(10, 4, false, 100));
-        assert_eq!(scene.stream_expect(), (6, 0));
-
-        scene.stream_cloud(streamed(50, 5, true, 100));
-        assert_eq!(scene.stream_expect(), (51, 45));
-
-        scene.stream_cloud(streamed(1000, 10, false, 20));
-        assert_eq!(scene.stream_expect(), (1, 1));
-
-        scene.stream_cloud(streamed(1000, 10, false, 20));
-        assert_eq!(
-            scene.stream_expect(),
-            (0, 0),
-            "a floor past the ceiling expects nothing more"
-        );
     }
 
     /// The same guid in two documents stays two objects.
@@ -1261,6 +849,512 @@ mod tests {
         assert!(!scene.tables.arena.idx.is_empty());
     }
 
+    /// Kills join into one run per contiguous stretch of a lane.
+    #[test]
+    fn kills_merge_into_runs() {
+        let kills = vec![
+            (LaneId::Ribbons, 10, 2),
+            (LaneId::Verts, 0, 4),
+            (LaneId::Ribbons, 12, 3),
+            (LaneId::Ribbons, 20, 1),
+            (LaneId::Verts, 4, 0),
+        ];
+        assert_eq!(
+            runs(kills),
+            vec![
+                (LaneId::Verts, 0, 4),
+                (LaneId::Ribbons, 10, 5),
+                (LaneId::Ribbons, 20, 1)
+            ]
+        );
+    }
+}
+
+/// The tree a node cache is filled from, by its root's address; a session moved by `Rc::make_mut` keeps it.
+pub(crate) fn tree_key(session: &Session) -> usize {
+    session
+        .tree
+        .root()
+        .map_or(0, |root| Rc::as_ptr(&root) as usize)
+}
+
+use crate::app::stream::{CloudFields, CloudLod, SheetFields};
+
+use crate::app::walk::cloud::{StreamRows, StreamSlice, walk_stream_slice};
+
+/// A streamed cloud's first slice.
+pub struct StreamedInit {
+    pub name: String,        // display name
+    pub url: String,         // the cloud file
+    pub place: Xform,        // world placement
+    pub rows: StreamRows,    // the first points
+    pub lod: CloudLod,       // the whole node table
+    pub fields: CloudFields, // array positions in the file
+    pub resident: u32,       // points in this slice
+    pub point_px: f32,       // point size override
+    pub col_at: u64,         // byte position of the next colour
+    pub ceiling: u32,        // most streamed points on the page
+}
+
+/// A streamed cloud's slot in the scene.
+pub struct StreamedCloud {
+    pub name: String,        // display name
+    pub url: String,         // the cloud file
+    pub row: u32,            // its object row
+    pub lod: CloudLod,       // the whole node table
+    pub fields: CloudFields, // array positions in the file
+    pub place: Xform,        // world placement
+    pub done_to: u32,        // points loaded so far
+    pub total: u32,          // points in the file
+    pub point_px: f32,       // point size override
+}
+
+impl Scene {
+    /// Streamed points and normals still to come after the rows walked so far, within the ceiling.
+    fn stream_expect(&self) -> (u32, u32) {
+        let mut done = 0u32;
+        let mut points = 0u32;
+        let mut normals = 0u32;
+
+        for cloud in &self.streamed {
+            let left = cloud.total.saturating_sub(cloud.done_to);
+            done = done.saturating_add(cloud.done_to);
+            points = points.saturating_add(left);
+
+            if cloud.fields.normals_len > 0 {
+                normals = normals.saturating_add(left);
+            }
+        }
+
+        let room = self.stream_ceiling.saturating_sub(done); // register:stream
+        (points.min(room), normals.min(room))
+    }
+
+    /// Add a streamed cloud from its first slice; returns its slot.
+    pub fn add_streamed_cloud(&mut self, init: StreamedInit, gpu: &mut Gpu) -> usize {
+        let slot = self.stream_cloud(init);
+        self.upload_to(gpu);
+        slot
+    }
+
+    /// The rows of a streamed cloud's first slice and its read-only shell document.
+    pub(crate) fn stream_cloud(&mut self, init: StreamedInit) -> usize {
+        let StreamedInit {
+            name,
+            url,
+            place,
+            rows,
+            lod,
+            fields,
+            resident,
+            point_px,
+            col_at: _,
+            ceiling,
+        } = init;
+        self.stream_ceiling = ceiling; // register:stream
+        let total = fields.count;
+        let row = self.push_row(self.docs.len(), &format!("stream:{url}"), place.clone(), 0);
+        let slice = StreamSlice {
+            rows,
+            lod: &lod,
+            from: 0,
+            to: resident,
+            row,
+            point_px,
+        };
+        let bounds = walk_stream_slice(&mut self.tables.cloud, &slice);
+        let o = self.tables.obj.rows.last_mut().unwrap();
+        o.bounds = bounds;
+        o.spacing = point_px;
+        self.tables.bounds.union_with(&bounds.transformed(&place));
+        let model = place.clone();
+        self.push_doc(
+            FileDoc {
+                name: name.clone(),
+                place,
+                session: Rc::new(Session::new(&name)),
+                point_px,
+                display_only: true,
+            },
+            DocState::default(),
+        );
+        self.streamed.push(StreamedCloud {
+            name,
+            url,
+            row,
+            lod,
+            fields,
+            place: model,
+            done_to: resident,
+            total,
+            point_px,
+        });
+        self.streamed.len() - 1 // register:stream
+    }
+
+    /// Add the next slice of streamed cloud `idx`.
+    pub fn extend_streamed_cloud(&mut self, idx: usize, rows: StreamRows, to: u32, gpu: &mut Gpu) {
+        let Some(sc) = self.streamed.get(idx) else {
+            return;
+        };
+
+        if to <= sc.done_to {
+            return;
+        }
+
+        let place = match self.document(sc.row) {
+            Some(document) => document.place.clone(),
+            None => Xform::identity(),
+        };
+        let row = sc.row;
+        let slice = StreamSlice {
+            rows,
+            lod: &sc.lod,
+            from: sc.done_to,
+            to,
+            row,
+            point_px: sc.point_px,
+        };
+        let bounds = walk_stream_slice(&mut self.tables.cloud, &slice);
+        self.tables.bounds.union_with(&bounds.transformed(&place));
+        self.streamed[idx].done_to = to; // register:stream
+        self.upload_to(gpu);
+        gpu.objects
+            .grow_local_bounds(&gpu.ctx, row, &bounds, &place);
+    }
+}
+
+#[cfg(test)]
+mod stream_tests {
+    use super::*;
+
+    /// A streamed cloud's first slice of `resident` of `count` points, normals when `normals`.
+    fn streamed(count: u32, resident: u32, normals: bool, ceiling: u32) -> StreamedInit {
+        StreamedInit {
+            name: "scan".into(),
+            url: "scan.pb".into(),
+            place: Xform::identity(),
+            rows: StreamRows {
+                positions: vec![0.0; resident as usize * 3],
+                colors: Vec::new(),
+                normals: Vec::new(),
+            },
+            lod: CloudLod::default(),
+            fields: CloudFields {
+                end: 0,
+                coords_at: 0,
+                coords_len: 0,
+                colors_at: 0,
+                colors_len: 0,
+                normals_at: 0,
+                normals_len: u64::from(normals),
+                count,
+                ids_at: 0,
+                ids_len: 0,
+                revision: None,
+            },
+            resident,
+            point_px: 1.0,
+            col_at: 0,
+            ceiling,
+        }
+    }
+
+    /// The points still to stream are what the files hold, but never past the page's ceiling.
+    #[test]
+    fn stream_expect_is_the_rest_of_the_files_within_the_ceiling() {
+        let mut scene = Scene::new();
+        scene.stream_cloud(streamed(10, 4, false, 100));
+        assert_eq!(scene.stream_expect(), (6, 0));
+
+        scene.stream_cloud(streamed(50, 5, true, 100));
+        assert_eq!(scene.stream_expect(), (51, 45));
+
+        scene.stream_cloud(streamed(1000, 10, false, 20));
+        assert_eq!(scene.stream_expect(), (1, 1));
+
+        scene.stream_cloud(streamed(1000, 10, false, 20));
+        assert_eq!(
+            scene.stream_expect(),
+            (0, 0),
+            "a floor past the ceiling expects nothing more"
+        );
+    }
+}
+
+/// A geometry's type, kept for the rows of a released document.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Shape {
+    Box,
+    BRep,
+    Element,
+    Line,
+    Mesh,
+    Curve,
+    Surface,
+    Plane,
+    Point,
+    Cloud,
+    Polyline,
+}
+
+impl Shape {
+    /// The type of one geometry.
+    pub fn of(geometry: &Geometry) -> Self {
+        match geometry {
+            Geometry::OBB(_) => Shape::Box,
+            Geometry::BRep(_) => Shape::BRep,
+            Geometry::Element(_) => Shape::Element,
+            Geometry::Line(_) => Shape::Line,
+            Geometry::Mesh(_) => Shape::Mesh,
+            Geometry::NurbsCurve(_) => Shape::Curve,
+            Geometry::NurbsSurface(_) => Shape::Surface,
+            Geometry::Plane(_) => Shape::Plane,
+            Geometry::Point(_) => Shape::Point,
+            Geometry::PointCloud(_) => Shape::Cloud,
+            Geometry::Polyline(_) => Shape::Polyline,
+        }
+    }
+
+    /// The name shown for an unnamed object.
+    pub fn label(self) -> &'static str {
+        match self {
+            Shape::Box => "Box",
+            Shape::BRep => "BRep",
+            Shape::Element => "Element",
+            Shape::Line => "Line",
+            Shape::Mesh => "Mesh",
+            Shape::Curve => "NURBS curve",
+            Shape::Surface => "NURBS surface",
+            Shape::Plane => "Plane",
+            Shape::Point => "Point",
+            Shape::Cloud => "Point cloud",
+            Shape::Polyline => "Polyline",
+        }
+    }
+}
+
+/// Where a released document's kernel objects come back from.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Fetch {
+    Idle,    // nothing asked for it
+    Wanted,  // an edit needs it
+    Loading, // on its way
+    Failed,  // the last fetch failed; only an edit asks again
+}
+
+/// A document whose kernel objects were dropped after the walk; its rows stay drawn.
+pub struct Released {
+    pub url: String,            // the file, fetched again to edit it
+    pub token: u64,             // this release; an older fetch is ignored
+    first: u32,                 // its first row
+    shapes: Vec<Option<Shape>>, // type of each row from `first`
+    names: Vec<u32>,            // name of each row from `first`, in `table`
+    table: Vec<Box<str>>,       // the distinct object names
+    pub fetch: Fetch,           // whether it is being fetched
+}
+
+use crate::app::sheet_query::{EntityMeta, SheetTable};
+
+use crate::app::walk::sheet::{SheetRows, SheetSlice, walk_sheet_slice};
+
+/// A streamed sheet's first slice.
+pub struct SheetInit {
+    pub name: String,             // display name
+    pub url: String,              // the sheet file
+    pub meta_url: Option<String>, // its entity side table
+    pub place: Xform,             // world placement
+    pub rows: SheetRows,          // the first segments
+    pub fields: SheetFields,      // array positions in the file
+    pub resident: u32,            // segments in this slice
+}
+
+/// A sheet's slot in the scene.
+pub struct SheetBatch {
+    pub name: String,                        // display name
+    pub url: String,                         // the sheet file
+    pub meta_url: Option<String>,            // its entity side table
+    pub row: u32,                            // its object row
+    pub fields: SheetFields,                 // array positions in the file
+    pub place: Xform,                        // world placement
+    pub done_to: u32,                        // segments loaded so far
+    pub total: u32,                          // segments in the file
+    pub resolved: Option<(u32, EntityMeta)>, // entity the last pick found
+    pub table: Option<SheetTable>,           // side table head, read once
+}
+
+impl Scene {
+    /// Add a streamed sheet from its first slice; returns its slot.
+    pub fn add_sheet(&mut self, init: SheetInit, gpu: &mut Gpu) -> usize {
+        let slot = self.stream_sheet(init);
+        self.upload_to(gpu);
+        slot
+    }
+
+    /// The rows of a streamed sheet's first slice and its read-only shell document.
+    pub(crate) fn stream_sheet(&mut self, init: SheetInit) -> usize {
+        let SheetInit {
+            name,
+            url,
+            meta_url,
+            place,
+            rows,
+            fields,
+            resident,
+        } = init;
+        let total = fields.count;
+        let row = self.push_row(
+            self.docs.len(),
+            &format!("sheet:{url}"),
+            place.clone(),
+            Instance::FLAG_SHEET,
+        );
+        let slice = SheetSlice { rows, from: 0, row };
+        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
+        let o = self.tables.obj.rows.last_mut().unwrap();
+        o.bounds = bounds;
+        self.tables.bounds.union_with(&bounds.transformed(&place));
+        let model = place.clone();
+        self.push_doc(
+            FileDoc {
+                name: name.clone(),
+                place,
+                session: Rc::new(Session::new(&name)),
+                point_px: 0.0,
+                display_only: true,
+            },
+            DocState::default(),
+        );
+        self.sheets.push(SheetBatch {
+            name,
+            url,
+            meta_url,
+            row,
+            fields,
+            place: model,
+            done_to: resident,
+            total,
+            resolved: None,
+            table: None,
+        });
+        self.sheets.len() - 1 // register:sheets
+    }
+
+    /// Add the next slice of sheet `idx`.
+    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32, gpu: &mut Gpu) {
+        let Some(sheet) = self.sheets.get(idx) else {
+            return;
+        };
+
+        if to <= sheet.done_to {
+            return;
+        }
+
+        let place = sheet.place.clone();
+        let row = sheet.row;
+        let slice = SheetSlice {
+            rows,
+            from: sheet.done_to,
+            row,
+        };
+        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
+        self.tables.bounds.union_with(&bounds.transformed(&place));
+        self.sheets[idx].done_to = to; // register:sheets
+        self.upload_to(gpu);
+        gpu.objects
+            .grow_local_bounds(&gpu.ctx, row, &bounds, &place);
+    }
+
+    /// The sheet slot on object row `row`, if that row is a sheet.
+    pub fn sheet_slot(&self, row: u32) -> Option<usize> {
+        for (slot, sheet) in self.sheets.iter().enumerate() {
+            if sheet.row == row {
+                return Some(slot);
+            }
+        }
+
+        None
+    }
+
+    /// The sheet on object row `row`.
+    pub fn sheet_at(&self, row: u32) -> Option<&SheetBatch> {
+        self.sheets.get(self.sheet_slot(row)?) // register:sheets
+    }
+}
+
+impl Scene {
+    /// A sheet row's name: its picked entity's name or kind, else the sheet's.
+    fn sheet_name(&self, row: u32) -> Option<&str> {
+        let sheet = self.sheet_at(row)?;
+        Some(match &sheet.resolved {
+            Some((_, meta)) if !meta.name.trim().is_empty() => &meta.name,
+            Some((_, meta)) if !meta.kind.trim().is_empty() => &meta.kind,
+            _ => &sheet.name,
+        })
+    }
+}
+
+impl Scene {
+    /// The sheet entity a ribbon pick on a sheet row landed on.
+    fn sheet_entity_at(&self, pick: Pick, gpu: &Gpu) -> Option<u32> {
+        // bit 31 set: the sub id is a ribbon row
+        let ribbon = pick.sub & 0x7fff_ffff;
+
+        if pick.sub & 0x8000_0000 != 0
+            && self.sheet_at(pick.row).is_some()
+            && let Some((parent, _)) = gpu.segments.row_of(ribbon)
+            && parent == pick.row
+        {
+            return gpu.segments.source_id(ribbon).filter(|id| *id != u32::MAX);
+        }
+
+        None
+    }
+}
+
+#[cfg(test)]
+mod document_tests {
+    use super::tests::file;
+    use super::*;
+    use session_rust::Point;
+
+    /// Baked attribute copies never get a row.
+    #[test]
+    fn baked_attributes_never_get_a_row() {
+        use session_rust::{Element, Mesh, Polyline};
+
+        let mut element = Element::new("beam");
+        element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
+        let mut source = Session::new("attributes");
+        source.add_element(element, None);
+        let group = source.add_group("attributes");
+        let axis = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(100.0, 0.0, 0.0)]);
+        source.add_polyline(axis, Some(&group));
+        assert_eq!(source.lookup.len(), 2);
+        let mut scene = Scene::new();
+        scene.add_file(file("beam", Rc::new(source), false));
+        assert_eq!(scene.object_count(), 1);
+
+        scene.attributes = true;
+        scene.rewalk_cpu();
+        assert_eq!(scene.object_count(), 1);
+    }
+}
+
+#[cfg(test)]
+mod editing_tests {
+    use super::tests::file;
+    use super::*;
+    use session_rust::Point;
+
+    /// A created text is an edit: the GPU anchor stays where it was.
+    #[test]
+    fn a_created_text_keeps_the_anchor() {
+        let mut scene = Scene::new();
+        scene.add_text(crate::app::edit::tests::text(1.0));
+        assert!(!scene.loaded);
+    }
+
     /// Element features draw in the element's row and move with it.
     #[test]
     fn attributes_share_the_element_row_and_its_placement() {
@@ -1295,46 +1389,12 @@ mod tests {
             105.0
         );
     }
+}
 
-    /// Baked attribute copies never get a row.
-    #[test]
-    fn baked_attributes_never_get_a_row() {
-        use session_rust::{Element, Mesh, Polyline};
-
-        let mut element = Element::new("beam");
-        element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
-        let mut source = Session::new("attributes");
-        source.add_element(element, None);
-        let group = source.add_group("attributes");
-        let axis = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(100.0, 0.0, 0.0)]);
-        source.add_polyline(axis, Some(&group));
-        assert_eq!(source.lookup.len(), 2);
-        let mut scene = Scene::new();
-        scene.add_file(file("beam", Rc::new(source), false));
-        assert_eq!(scene.object_count(), 1);
-
-        scene.attributes = true;
-        scene.rewalk_cpu();
-        assert_eq!(scene.object_count(), 1);
-    }
-
-    /// Kills join into one run per contiguous stretch of a lane.
-    #[test]
-    fn kills_merge_into_runs() {
-        let kills = vec![
-            (LaneId::Ribbons, 10, 2),
-            (LaneId::Verts, 0, 4),
-            (LaneId::Ribbons, 12, 3),
-            (LaneId::Ribbons, 20, 1),
-            (LaneId::Verts, 4, 0),
-        ];
-        assert_eq!(
-            runs(kills),
-            vec![
-                (LaneId::Verts, 0, 4),
-                (LaneId::Ribbons, 10, 5),
-                (LaneId::Ribbons, 20, 1)
-            ]
-        );
-    }
+/// A released document fetched and decoded again.
+pub struct Hydrated {
+    pub doc: usize,                       // the document
+    pub token: u64,                       // the release it answers
+    pub session: Result<Session, String>, // its objects, or why not
+    pub ms: f64,                          // fetch and decode time
 }

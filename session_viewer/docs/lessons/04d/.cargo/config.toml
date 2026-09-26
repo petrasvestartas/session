@@ -1,11 +1,17 @@
-# wasm32 = WebAssembly, the code a browser runs; every cargo command builds it unless told otherwise.
+# Single target: the browser. Every `cargo` command (check/build/clippy) defaults to wasm32,
+# so the code needs no `#[cfg(target_arch = "wasm32")]` gates. Trunk also builds this target.
 [build]
 target = "wasm32-unknown-unknown"
-target-dir = "../../../target/lessons" # one build folder for all lessons, so dependencies compile once
 
 [target.wasm32-unknown-unknown]
-rustflags = ["-C", "link-arg=--max-memory=4294967296"] # memory may grow to 4 GB, all a 32-bit address can reach
+rustflags = ["-C", "link-arg=--max-memory=4294967296"]
 
-# wasm32 has no test runner and no files, so `cargo xtest` runs tests on this machine instead.
+# Tests and examples are NATIVE: wasm32 has no test runner and no std::fs.
 [alias]
 xtest = "test --target x86_64-unknown-linux-gnu"
+
+# Native tests: each GPU test opens its own device, so cap the test threads; prefer the discrete
+# GPU where one exists (the integrated one hangs under many devices); no match falls back.
+[env]
+RUST_TEST_THREADS = "4"
+VIEWER_ADAPTER = { value = "nvidia", force = false }

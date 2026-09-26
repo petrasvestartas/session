@@ -1,4 +1,3 @@
-//! Adds up what the loaded document costs in memory, counting each Vec and String once, to explain the status-line number.
 use super::super::scene::FileDoc;
 use session_rust::{
     BRep, Collection, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, NurbsSurfaceTrimmed,
@@ -11,14 +10,16 @@ use std::rc::{Rc, Weak};
 /// Memory held by the loaded documents, by category.
 #[derive(Clone, Copy, Default, serde::Serialize)]
 pub(super) struct Payload {
-    pub vector_capacity_bytes: usize,
-    pub string_capacity_bytes: usize,
-    pub exposed_slice_bytes: usize, // slices whose capacity is hidden
-    pub occupied_map_entry_bytes: usize,
-    pub shared_value_bytes: usize, // each Rc value once
-    pub unique_sessions: usize,
-    pub unique_geometry_values: usize,
-    pub scans: u64, // how many times counted
+    pub vector_capacity_bytes: usize,    // Vec capacities
+    pub string_capacity_bytes: usize,    // String capacities
+    pub exposed_slice_bytes: usize,      // slices whose capacity is hidden
+    pub occupied_map_entry_bytes: usize, // map entries in use
+    pub shared_value_bytes: usize,       // each Rc value once
+    pub unique_sessions: usize,          // distinct sessions
+    pub unique_geometry_values: usize,   // distinct geometries
+    pub dead_slots: usize,               // slots of removed objects not yet purged
+    pub history_bytes: usize,            // bytes undo and redo pin
+    pub scans: u64,                      // how many times counted
 }
 
 impl Payload {
@@ -36,7 +37,7 @@ impl Payload {
         self.vector_capacity_bytes += value.capacity() * size_of::<T>();
     }
 
-    /// A kernel Collection keeps a deleted object's slot until the next purge, so undo can revive it: every slot costs memory.
+    /// Add a Collection's slots, dead ones included.
     fn collection<T>(&mut self, value: &Collection<T>) {
         self.vector_capacity_bytes += value.number_of_slots() * size_of::<T>();
     }
@@ -61,7 +62,7 @@ impl Payload {
 #[derive(Default)]
 pub(super) struct SourceCache {
     documents: Vec<Weak<Session>>, // sessions counted, without keeping them alive
-    payload: Payload, // their count
+    payload: Payload,              // their count
 }
 
 impl SourceCache {
@@ -149,7 +150,7 @@ fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>
     shared_all(&objects.meshes, p, seen, mesh_payload);
     shared_all(&objects.nurbscurves, p, seen, curve_payload);
     shared_all(&objects.nurbssurfaces, p, seen, surface_payload);
-    p.vector(&objects.nurbssurfacetrimmeds); // the one kernel list that is still a plain Vec
+    p.vector(&objects.nurbssurfacetrimmeds);
 
     for value in &objects.nurbssurfacetrimmeds {
         shared(value, p, seen, trimmed_payload);
@@ -158,6 +159,8 @@ fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>
     shared_all(&objects.breps, p, seen, brep_payload);
     shared_all(&objects.elements, p, seen, element_payload);
     p.collection(&objects.components);
+    p.dead_slots += session.number_of_dead();
+    p.history_bytes += session.history.bytes;
 
     for component in &objects.components {
         p.string(&component.name);
@@ -185,6 +188,7 @@ fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>
         }
     }
 
+    instances_payload(session, p, seen);
     p.map(&session.xforms);
 
     for name in session.xforms.keys() {
@@ -201,6 +205,62 @@ fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>
 
     for value in &session.cached_boxes {
         box_payload(value, p);
+    }
+}
+
+/// Add the definitions, each value once, and the instances placing them.
+fn instances_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>) {
+    let d = &session.definitions;
+    macro_rules! each {
+        ($($list:ident => $children:ident),*) => {
+            $(for value in &d.$list {
+                p.vector_capacity_bytes += size_of_val(value);
+                shared(value, p, seen, $children);
+            })*
+        };
+    }
+
+    each!(
+        points => point_payload,
+        lines => line_payload,
+        planes => plane_payload,
+        bboxes => box_payload,
+        polylines => polyline_payload,
+        pointclouds => cloud_payload,
+        meshes => mesh_payload,
+        nurbscurves => curve_payload,
+        nurbssurfaces => surface_payload,
+        breps => brep_payload,
+        elements => element_payload
+    );
+    p.map(&session.definition_lookup);
+    p.map(&session.instance_lookup);
+
+    for instance in &session.objects.instances {
+        p.vector_capacity_bytes += size_of_val(instance);
+        shared(instance, p, seen, |value, p| {
+            p.string(&value.name);
+            p.string(&value.definition_guid);
+            p.vector(&value.features);
+
+            for feature in &value.features {
+                p.string(&feature.name);
+                p.string(&feature.feature_type);
+                p.vector(&feature.outlines);
+
+                for outline in &feature.outlines {
+                    polyline_payload(outline, p);
+                }
+            }
+        });
+    }
+
+    for name in session
+        .definition_lookup
+        .keys()
+        .chain(session.instance_lookup.keys())
+    {
+        p.string(name);
     }
 }
 

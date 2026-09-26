@@ -4,7 +4,7 @@ use crate::app::scene::Hydrated;
 /// What waits for released documents to come back.
 pub(crate) enum Resume {
     Controls(u32), // F10 on this row
-    Save,          // the Save command
+    Save,          // the Save command; register:commands
     Rewalk,        // walk the lanes again: a compaction or a features toggle
 }
 
@@ -44,16 +44,6 @@ impl State {
         reason
     }
 
-    /// Save once every released document is back; false when none is released.
-    pub(crate) fn save_when_back(&mut self) -> bool {
-        if !self.scene.want_all() {
-            return false;
-        }
-
-        self.resume_after(Resume::Save);
-        true
-    }
-
     /// A released document's objects came back, or could not.
     pub fn hydrated(&mut self, back: Hydrated) {
         // a fetch for a replaced scene or an older release is dropped quietly
@@ -82,7 +72,7 @@ impl State {
             self.run_resume(resume);
         }
 
-        self.refresh_layers();
+        self.refresh_layers(); // register:panel
         self.touch();
     }
 
@@ -103,20 +93,7 @@ impl State {
                     self.enable_controls();
                 }
             }
-            Resume::Save if !self.scene.has_released() => {
-                let message = match crate::app::session_io::save(&self.scene) {
-                    Ok(bytes) => {
-                        #[cfg(target_arch = "wasm32")]
-                        if let Err(error) = crate::app::session_io::download(&bytes) {
-                            self.status(&format!("Save failed: {error:?}"));
-                            return;
-                        }
-                        format!("Saved complete session ({} bytes)", bytes.len())
-                    }
-                    Err(error) => error,
-                };
-                self.status(&message);
-            }
+            Resume::Save if !self.scene.has_released() => self.save_now(), // register:commands
             Resume::Rewalk if !self.scene.has_released() => {
                 self.scene.rewalk_editable(&mut self.gpu);
                 self.reselect_face();
@@ -125,5 +102,56 @@ impl State {
             }
             waiting => self.features.resume.push(waiting),
         }
+    }
+}
+
+impl State {
+    /// F10 on a released document: fetch it and show the controls once it is back; true while it comes.
+    pub(super) fn controls_after_hydrate(&mut self, parent: u32) -> bool {
+        let Some(doc) = self.scene.released_doc(parent) else {
+            return false;
+        };
+        self.scene.want(doc);
+        self.status(&format!(
+            "Loading '{}' for its control points",
+            self.scene.docs[doc].name
+        ));
+        self.resume_after(Resume::Controls(parent));
+        true
+    }
+
+    /// Snapping asked for a released document: fetch it.
+    pub(super) fn fetch_if_wanting(&mut self) {
+        if self.scene.wanting() {
+            self.fetch_wanted();
+        }
+    }
+}
+
+impl State {
+    /// Save once every released document is back; false when none is released.
+    pub(crate) fn save_when_back(&mut self) -> bool {
+        if !self.scene.want_all() {
+            return false;
+        }
+
+        self.resume_after(Resume::Save);
+        true
+    }
+
+    /// Save the session file now.
+    fn save_now(&mut self) {
+        let message = match crate::app::session_io::save(&self.scene) {
+            Ok(bytes) => {
+                #[cfg(target_arch = "wasm32")]
+                if let Err(error) = crate::app::session_io::download(&bytes) {
+                    self.status(&format!("Save failed: {error:?}"));
+                    return;
+                }
+                format!("Saved complete session ({} bytes)", bytes.len())
+            }
+            Err(error) => error,
+        };
+        self.status(&message);
     }
 }

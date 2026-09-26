@@ -1,6 +1,6 @@
 use super::buffers::{GpuCtx, GrowBuf, INDICES, VERTS};
 use super::frame::Binds;
-use super::instanced::{SlotSpace, SlotTable, arena_slot_layout, clamp};
+use super::slots::{SlotSpace, SlotTable, arena_slot_layout, clamp};
 use super::text_outline::{OutlineBuffers, OutlineTextLane};
 use super::upload::drop_rows;
 use crate::engine::pipelines::{
@@ -14,10 +14,7 @@ use wgpu::PrimitiveTopology::TriangleList;
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[
     ("triangle.wgsl", shader!("triangle.wgsl")),
-    (
-        "text_outline.wgsl",
-        shader!("text_outline.wgsl"),
-    ),
+    ("text_outline.wgsl", shader!("text_outline.wgsl")),
 ];
 
 /// The normal word of a vertex without a normal; no encoded normal reaches it.
@@ -49,7 +46,9 @@ impl GpuVertex {
 impl From<&RenderVertex> for GpuVertex {
     /// Pack the normal into octahedral halves and the color into bytes.
     fn from(vertex: &RenderVertex) -> Self {
-        let bytes = vertex.color.map(|c| (c.clamp(0.0, 1.0) * 255.0).round() as u8);
+        let bytes = vertex
+            .color
+            .map(|c| (c.clamp(0.0, 1.0) * 255.0).round() as u8);
         Self {
             position: vertex.position,
             normal: octahedral(vertex.normal),
@@ -87,15 +86,15 @@ fn gpu_vertices(vertices: &[RenderVertex]) -> Vec<GpuVertex> {
 /// Mesh rows of one upload, ready for the GPU.
 #[derive(Default)]
 pub struct ArenaRows {
-    pub verts: Vec<RenderVertex>, // one vertex per row
-    pub vids: Vec<u32>, // object row of each vertex
-    pub idx: Vec<u32>, // triangle indices of solid faces
-    pub idx_print: Vec<u32>, // triangle indices of sheet fills
-    pub idx_text: Vec<u32>, // triangle indices of sheet lettering
-    pub face_ids: Vec<u32>, // source face of each solid triangle
-    pub face_sources: Vec<super::faces::FaceSource>, // where each face came from
+    pub verts: Vec<RenderVertex>,                 // one vertex per row
+    pub vids: Vec<u32>,                           // object row of each vertex
+    pub idx: Vec<u32>,                            // triangle indices of solid faces
+    pub idx_print: Vec<u32>,                      // triangle indices of sheet fills
+    pub idx_text: Vec<u32>,                       // triangle indices of sheet lettering
+    pub face_ids: Vec<u32>,                       // source face of each solid triangle
+    pub face_sources: Vec<FaceSource>,            // where each face came from
     pub surface_boundaries: Vec<(u32, [u32; 2])>, // pipe and sample range per surface edge
-    pub surface_samples: Vec<crate::app::surface_preview::Sample>, // surface points for previews
+    pub surface_samples: Vec<Sample>,             // surface points for previews
 }
 
 impl ArenaRows {
@@ -116,22 +115,22 @@ impl ArenaRows {
 /// Pipelines that draw solid faces as masks.
 struct ArenaPipelines {
     selection_mask: Pipeline, // marks selected faces
-    masks: Pipeline, // both masks in one pass
+    masks: Pipeline,          // both masks in one pass
 }
 
 /// All mesh geometry on the GPU, in five growing buffers.
 pub struct ArenaLane {
-    pub tiles: super::triangle_tiles::TriangleTiles, // screen tiles for visibility tests
-    verts: GrowBuf, // vertex buffer
-    vids: GrowBuf, // object row per vertex
-    faces: GrowBuf, // solid face indices
-    print: GrowBuf, // sheet fill indices
-    text: GrowBuf, // sheet lettering indices
-    shader: Shader, // triangle shader
-    pipes: ArenaPipelines, // mask pipelines
-    outline_text: OutlineTextLane, // draws sheet fills and lettering
-    pub source_faces: super::faces::Faces, // solid faces with their source ids
-    pub table: SlotTable, // where each instance's triangle ids lie
+    pub tiles: super::triangle_tiles::TriangleTiles, // screen tiles for visibility tests; register:tiles
+    verts: GrowBuf,                                  // vertex buffer
+    vids: GrowBuf,                                   // object row per vertex
+    faces: GrowBuf,                                  // solid face indices
+    print: GrowBuf,                                  // sheet fill indices
+    text: GrowBuf,                                   // sheet lettering indices
+    shader: Shader,                                  // triangle shader
+    pipes: ArenaPipelines,                           // mask pipelines
+    outline_text: OutlineTextLane,                   // draws sheet fills and lettering
+    pub source_faces: super::faces::Faces,           // solid faces with their source ids
+    pub table: SlotTable,                            // where each instance's triangle ids lie
     pub space: SlotSpace, // where each instance's slot and triangle ids lie
 }
 
@@ -139,30 +138,6 @@ impl ArenaLane {
     /// Geometry buffers for read-only GPU passes: vertices, owners, solid indices.
     pub fn geometry_buffers(&self) -> [&wgpu::Buffer; 3] {
         [&self.verts.buf, &self.vids.buf, &self.faces.buf]
-    }
-
-    /// Reproject the triangles for this camera; bin them into screen tiles too when `lists`.
-    pub fn prepare_visibility(
-        &mut self,
-        ctx: &GpuCtx,
-        encoder: &mut wgpu::CommandEncoder,
-        binds: &Binds,
-        matrix: [f32; 16],
-        objects_revision: u64,
-        lists: bool,
-    ) {
-        self.tiles.encode(
-            ctx,
-            encoder,
-            super::triangle_tiles::TileInput {
-                binds,
-                geometry: [&self.verts.buf, &self.vids.buf, &self.faces.buf],
-                table: &self.table.view,
-                matrix,
-                objects_revision,
-            },
-            lists,
-        );
     }
 
     /// Triangle ids in use: the arena's, then one per instance triangle.
@@ -178,27 +153,25 @@ impl ArenaLane {
             + self.print.buf.size()
             + self.text.buf.size()
             + self.source_faces.allocated_bytes()
-            + self.tiles.allocated_bytes().0
+            + self.tiles.allocated_bytes().0 // register:tiles
     }
 
     /// Bytes of the lane's textures: the tile target and the slot table.
     pub fn texture_bytes(&self) -> u64 {
-        self.tiles.allocated_bytes().1 + self.table.allocated_bytes()
+        let mut bytes = self.table.allocated_bytes();
+        bytes += self.tiles.allocated_bytes().1; // register:tiles
+        bytes
     }
 
     /// Create the lane with empty buffers.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-        let shader = scene_module(
-            ctx,
-            "triangle.shader",
-            shader!("triangle.wgsl"),
-        );
+        let shader = scene_module(ctx, "triangle.shader", shader!("triangle.wgsl"));
         let pipes = build_pipelines(ctx, l, &shader, target);
 
         let source_faces = super::faces::Faces::new(ctx, l, &shader, target);
         Self {
             source_faces,
-            tiles: super::triangle_tiles::TriangleTiles::new(ctx, l),
+            tiles: super::triangle_tiles::TriangleTiles::new(ctx, l), // register:tiles
             verts: GrowBuf::new(
                 ctx,
                 "arena.vbo",
@@ -226,7 +199,7 @@ impl ArenaLane {
 
     /// Append one upload's rows to every buffer.
     pub fn append(&mut self, ctx: &GpuCtx, up: &ArenaRows) {
-        self.tiles.invalidate();
+        self.tiles.invalidate(); // register:tiles
         self.verts.append(ctx, &gpu_vertices(&up.verts));
         self.vids.append(ctx, &up.vids);
         self.faces.append(ctx, &up.idx);
@@ -238,13 +211,13 @@ impl ArenaLane {
 
     /// Overwrite vertices starting at row `first`.
     pub(crate) fn patch_vertices(&mut self, ctx: &GpuCtx, first: u32, vertices: &[RenderVertex]) {
-        self.tiles.invalidate();
+        self.tiles.invalidate(); // register:tiles
         self.verts.write_at(ctx, first, &gpu_vertices(vertices));
     }
 
     /// Overwrite one object's rows in place.
     pub(crate) fn patch(&mut self, ctx: &GpuCtx, at: super::patch::Counts, up: &ArenaRows) {
-        self.tiles.invalidate();
+        self.tiles.invalidate(); // register:tiles
         self.verts.write_at(ctx, at.verts, &gpu_vertices(&up.verts));
         self.vids.write_at(ctx, at.verts, &up.vids);
         self.faces.write_at(ctx, at.faces, &up.idx);
@@ -269,8 +242,7 @@ impl ArenaLane {
             return;
         }
 
-        self.tiles.invalidate();
-
+        self.tiles.invalidate(); // register:tiles
         match lane {
             LaneId::Verts => self.vids.fill(ctx, first, count, &sink),
             LaneId::Faces => self.source_faces.kill_ids(ctx, first / 3, count / 3),
@@ -294,8 +266,7 @@ impl ArenaLane {
             return;
         }
 
-        self.tiles.invalidate();
-
+        self.tiles.invalidate(); // register:tiles
         match lane {
             LaneId::Faces => {
                 self.faces.fill(ctx, first, count, &vertex);
@@ -488,7 +459,7 @@ impl ArenaLane {
 
     /// Forget every row; capacity stays.
     pub fn reset(&mut self, ctx: &GpuCtx) {
-        self.tiles.invalidate();
+        self.tiles.invalidate(); // register:tiles
         self.source_faces.reset(ctx);
         self.space = SlotSpace::default();
         self.table.write(ctx, &[]);
@@ -501,7 +472,7 @@ impl ArenaLane {
 
     /// Free every buffer.
     pub fn release(&mut self, ctx: &GpuCtx) {
-        self.tiles.release(ctx);
+        self.tiles.release(ctx); // register:tiles
         self.source_faces.release(ctx);
         self.space = SlotSpace::default();
         self.table.write(ctx, &[]);
@@ -524,12 +495,7 @@ impl ArenaLane {
 }
 
 /// Build the two mask pipelines for `target`.
-fn build_pipelines(
-    ctx: &GpuCtx,
-    l: &Layouts,
-    shader: &Shader,
-    target: Target,
-) -> ArenaPipelines {
+fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -> ArenaPipelines {
     // bind groups every mask pipeline uses
     let groups = [&l.mvp, &l.line, &l.instance];
     // vertex buffer 0: vertices, 1: object rows, 2: instance slots
@@ -666,5 +632,50 @@ mod tests {
         assert_eq!(packed.position, [1.0, 2.0, 3.0]);
         assert_eq!(packed.color.to_le_bytes(), [255, 128, 0, 255]);
         assert_eq!(packed.normal, NO_NORMAL);
+    }
+}
+
+/// Bit that marks a pick id as a face.
+pub const FACE_TAG: u32 = 0x2000_0000;
+
+/// Which object and face a triangle came from.
+#[derive(Clone, Copy)]
+pub struct FaceSource {
+    pub parent: u32, // object row
+    pub face: usize, // face index in that object
+}
+
+/// Where one GPU vertex came from on its surface.
+#[derive(Clone, Copy)]
+pub struct Sample {
+    pub index: u32,   // GPU vertex index
+    pub surface: u32, // surface index in the BRep
+    pub uv: [f64; 2], // parameter on that surface
+    pub sign: f32,    // +1 or -1 on the normal
+}
+
+impl ArenaLane {
+    /// Reproject the triangles for this camera; bin them into screen tiles too when `lists`.
+    pub fn prepare_visibility(
+        &mut self,
+        ctx: &GpuCtx,
+        encoder: &mut wgpu::CommandEncoder,
+        binds: &Binds,
+        matrix: [f32; 16],
+        objects_revision: u64,
+        lists: bool,
+    ) {
+        self.tiles.encode(
+            ctx,
+            encoder,
+            super::triangle_tiles::TileInput {
+                binds,
+                geometry: [&self.verts.buf, &self.vids.buf, &self.faces.buf],
+                table: &self.table.view,
+                matrix,
+                objects_revision,
+            },
+            lists,
+        );
     }
 }

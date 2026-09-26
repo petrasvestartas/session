@@ -1,4 +1,4 @@
-// cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- <out.ppm> <scene.yaml | file.pb>...
+//! Render one headless frame of the given scenes and print the ink count.
 
 use session_viewer::selftest::{SceneFile, render_scene};
 

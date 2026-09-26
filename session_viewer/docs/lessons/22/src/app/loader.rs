@@ -1,18 +1,12 @@
-use super::decode::session_from_bytes;
-use super::fetch::{fetch_bytes, sleep_ms};
+use super::decode::{Body, session_from_body};
+use super::fetch::{Reply, fetch_buffer, fetch_bytes, gunzip, sleep_ms};
 use super::live::LiveSource;
 use super::manifest::Manifest;
 use super::route::AUTO_GRID;
 use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
-use super::scene::{FileDoc, Scene, SheetInit, StreamedInit};
-use super::stream::{
-    CloudFields, SheetFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions,
-    fetch_sheet_slice, sheet_fields,
-};
-use super::walk::cloud::StreamRows;
-use super::walk::sheet::SheetRows;
+use super::scene::{FileDoc, Scene};
 use crate::engine::performance::now_ms;
-use crate::{CloudChunk, Msg, SheetChunk, State};
+use crate::{Msg, State};
 use session_rust::Xform;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -36,8 +30,8 @@ const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
 /// Fewest points a streamed cloud gets, even over budget.
 const STREAM_MIN_PREFIX: u32 = 250_000;
 
-/// Segments a sheet reads before its first frame.
-const SHEET_PREFIX_SEGMENTS: u32 = 500_000;
+/// Segments a sheet reads before its first frame, ~1.5 MB.
+const SHEET_PREFIX_SEGMENTS: u32 = 25_000;
 
 /// Segments per follow-up slice.
 const SHEET_CHUNK_SEGMENTS: u32 = 500_000;
@@ -60,11 +54,40 @@ thread_local! {
 
     /// Bumped on every reload request; older loads give up.
     static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
+
+    /// Manifest loads in progress; background sheet slices wait for them.
+    static LOADING: Cell<u32> = const { Cell::new(0) };
+}
+
+/// Counts one manifest load while alive.
+struct Loading;
+
+impl Loading {
+    /// Count a load.
+    fn start() -> Self {
+        LOADING.set(LOADING.get() + 1);
+        Loading
+    }
+}
+
+impl Drop for Loading {
+    /// The load ended, however it returned.
+    fn drop(&mut self) {
+        LOADING.set(LOADING.get().saturating_sub(1));
+    }
+}
+
+/// Let every file of the scene reach the screen before the remaining sheet slices take the network.
+async fn after_loads() {
+    while LOADING.get() > 0 {
+        sleep_ms(100).await;
+    }
 }
 
 /// Clear the scene and stop every stream.
 fn clear_scene() {
     GENERATION.set(GENERATION.get().wrapping_add(1));
+    reset_range_gate(); // register:stream
     RESIDENT.set(0);
     SHEET_RESIDENT.set(0);
     post(Msg::Clear);
@@ -112,6 +135,10 @@ fn sheet_budget_spend(n: u32) {
 /// Start the viewer, load the first scene, then keep polling.
 pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
     PROXY.with_borrow_mut(|slot| *slot = Some(proxy.clone()));
+    let mut live = LiveSource::from_query();
+    // without a live source the manifest downloads while the GPU starts
+    let route = scene_route().filter(|_| live.is_none());
+    let early = route.as_ref().map(prefetch);
     let state = match State::new(window, Scene::new()).await {
         Ok(state) => state,
         Err(error) => {
@@ -121,9 +148,9 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
             return;
         }
     };
+    crate::engine::performance::mark("state ready");
     let _ = proxy.send_event(Msg::Ready(Box::new(state)));
 
-    let mut live = LiveSource::from_query();
     let mut loaded = false;
 
     if let Some(src) = live.as_mut() {
@@ -131,8 +158,8 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
         loaded = post_live(src).await;
     }
 
-    if !loaded && let Some(route) = scene_route() {
-        load_route(&route, None).await;
+    if !loaded && let Some(route) = route.or_else(scene_route) {
+        load_route(&route, None, early).await;
     }
 
     let Some(mut src) = live else { return };
@@ -163,10 +190,10 @@ async fn post_live(src: &mut LiveSource) -> bool {
     clear_scene();
 
     for doc in docs {
-        post(Msg::File(doc));
+        post(Msg::File(doc, None));
     }
 
-    post(Msg::Texts(texts));
+    post(Msg::Texts(texts)); // register:scene_text
     post(Msg::Fit);
     super::feedback::status("");
     true
@@ -190,12 +217,23 @@ pub fn reload_scene(url: Option<String>) {
 
 /// Load a route as a replacement.
 async fn load_replacement(route: SceneRoute, generation: u64) {
-    load_route(&route, Some(generation)).await;
+    load_route(&route, Some(generation), None).await;
 }
 
 /// True when a newer load has started since.
 fn stale_load(generation: u64) -> bool {
     LOAD_GENERATION.get() != generation
+}
+
+/// Start fetching the manifest now; the promise resolves to its bytes.
+fn prefetch(route: &SceneRoute) -> js_sys::Promise {
+    let route = route.clone();
+    wasm_bindgen_futures::future_to_promise(async move {
+        match fetch_manifest(&route).await {
+            Ok(bytes) => Ok(js_sys::Uint8Array::from(bytes.as_slice()).into()),
+            Err(error) => Err(JsValue::from_str(&error)),
+        }
+    })
 }
 
 /// Fetch the manifest; a missing `.toml` falls back to `.yaml`.
@@ -210,12 +248,14 @@ async fn fetch_manifest(route: &SceneRoute) -> Result<Vec<u8>, String> {
     }
 }
 
-/// Load every item of a manifest; a reload swaps the scene only once complete.
-async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+/// Load every item of a manifest, from `early` when it was prefetched; a reload swaps the scene
+/// only once complete.
+async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<js_sys::Promise>) {
     let generation = match replacement {
         Some(generation) => generation,
         None => LOAD_GENERATION.get(),
     };
+    let _loading = Loading::start();
     let mut pending = Vec::new(); // staged items of a reload
     let mut failed = false;
     let budget = scene_budget_bytes(); // whole-file bytes allowed
@@ -224,13 +264,21 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
     let mut staged_points = 0u32;
     let mut staged_segments = 0u32;
     let t0 = now_ms();
-    let bytes = match fetch_manifest(route).await {
+    let fetched = match early {
+        Some(promise) => wasm_bindgen_futures::JsFuture::from(promise)
+            .await
+            .map(|bytes| js_sys::Uint8Array::new(&bytes).to_vec())
+            .map_err(|error| error.as_string().unwrap_or_default()),
+        None => fetch_manifest(route).await,
+    };
+    let bytes = match fetched {
         Ok(b) => b,
         Err(e) => {
             super::feedback::status(&format!("Cannot fetch the scene manifest: {e}"));
             return;
         }
     };
+    crate::engine::performance::mark("manifest received");
 
     if stale_load(generation) {
         return;
@@ -255,77 +303,60 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
 
     let files = files.max(1);
     let share = (max_points() / files).max(STREAM_MIN_PREFIX);
+    let mut ahead: Option<Ahead> = None; // the next file, probed while this one loads
 
     for (i, item) in manifest.items.iter().enumerate() {
         let url = join(&route.base, &item.file);
         let place = manifest.place(i, AUTO_GRID);
         let point_px = item.point_size as f32;
+        let encoded = item.encoded_size();
+        // the first 8 KB, read once: the cloud and sheet checks and the size come from it;
+        // an encoded file is never range-read
+        let (head, body) = match ahead.take() {
+            Some(read) => read.wait().await,
+            None if url.ends_with(".pb") && encoded.is_none() => (probe(&url).await, None), // register:stream
+            None => (None, None),
+        };
 
-        if url.ends_with(".pb") {
+        if let Some(next) = manifest.items.get(i + 1)
+            && next.file.ends_with(".pb")
+        {
+            ahead = Some(Ahead::start(
+                join(&route.base, &next.file),
+                next.encoded_size(),
+            ));
+        }
+
+        if let Some(head) = &head {
             let slot = Placement {
                 name: manifest.name_of(i, &item.file),
                 place: place.clone(),
                 point_px,
             };
-            let remaining = if replacement.is_some() {
-                max_points().saturating_sub(staged_points)
-            } else {
-                budget_left()
+            let mut cx = ItemCx {
+                url: &url,
+                generation,
+                replacement,
+                share,
+                failed: &mut failed,
+                pending: &mut pending,
+                staged_points: &mut staged_points,
+                staged_segments: &mut staged_segments,
             };
 
-            if let Some(init) =
-                stream_prefix(&url, &slot, share.min(remaining.max(STREAM_MIN_PREFIX))).await
-            {
-                if stale_load(generation) {
-                    return;
-                }
-
-                if init.resident == 0 {
-                    failed = true;
-                    continue;
-                }
-
-                if replacement.is_some() {
-                    staged_points = staged_points.saturating_add(init.resident);
-                    pending.push(PendingDocument::Streamed(Box::new(init)));
-                } else {
-                    budget_spend(init.resident);
-                    post(Msg::StreamedCloud(Box::new(init)));
-                }
-
-                continue;
-            }
-
-            let remaining = if replacement.is_some() {
-                max_segments().saturating_sub(staged_segments)
-            } else {
-                sheet_budget_left()
-            };
-
-            if let Some(init) = sheet_prefix(&url, &slot, remaining).await {
-                if stale_load(generation) {
-                    return;
-                }
-
-                if init.resident == 0 {
-                    failed = true;
-                    continue;
-                }
-
-                if replacement.is_some() {
-                    staged_segments = staged_segments.saturating_add(init.resident);
-                    pending.push(PendingDocument::Sheet(Box::new(init)));
-                } else {
-                    sheet_budget_spend(init.resident);
-                    post(Msg::Sheet(Box::new(init)));
-                }
-
-                continue;
+            match stream_item(&mut cx, head, &slot).await {
+                Ok(()) => {}
+                Err(Step::Next) => continue,
+                Err(Step::Stop) => return,
             }
         }
 
-        // skip a file the device cannot hold
-        let length = super::fetch::content_length(&url).await.unwrap_or(0);
+        // skip a file the device cannot hold, by its decoded size
+        let length = match (encoded, head.as_ref().and_then(|head| head.total)) {
+            (Some(size), _) => size,
+            (None, Some(total)) => total,
+            (None, None) => super::fetch::content_length(&url).await.unwrap_or(0),
+        };
 
         if spent + length > budget {
             log::warn!(
@@ -338,9 +369,19 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             continue;
         }
 
-        spent += length;
         let f0 = now_ms();
-        let bytes = match fetch_bytes(&url).await {
+        // read ahead, or no larger than the probe, or read now; a failed read-ahead is not retried
+        let fetched = match (body, head.and_then(Reply::whole)) {
+            (Some(body), _) => body.map(Body::Js),
+            (None, Some(bytes)) => Ok(Body::Bytes(bytes)),
+            (None, None) => fetch_buffer(&url).await.map(Body::Js),
+        };
+        let fetched = match fetched {
+            // a host that did not mark the file encoded hands over the packed bytes
+            Ok(body) if encoded.is_some() && packed(&body) => unpack(body).await,
+            fetched => fetched,
+        };
+        let body = match fetched {
             Ok(b) => b,
             Err(e) => {
                 super::feedback::status(&format!("Unable to load {}: {e}", item.file));
@@ -348,9 +389,16 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                 continue;
             }
         };
-        let n = bytes.len();
+        spent += length.max(body.size());
+
+        // the next body downloads while this one decodes, not while this one downloads
+        if let Some(next) = ahead.as_mut() {
+            next.read_body(budget.saturating_sub(spent));
+        }
+
+        let n = body.size();
         let f1 = now_ms();
-        let session = match session_from_bytes(&url, bytes).await {
+        let session = match session_from_body(&url, body, !item.display_only).await {
             Ok(session) => session,
             Err(error) => {
                 super::feedback::status(&format!("Cannot decode {}: {error}", item.file));
@@ -363,7 +411,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             return;
         }
 
-        if session.lookup.is_empty() {
+        if session.lookup.is_empty() && session.instance_lookup.is_empty() {
             log::warn!("'{}' holds no geometry ({n} bytes); skipped", item.file);
             failed = true;
             continue;
@@ -383,11 +431,13 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             point_px,
             display_only: item.display_only,
         };
+        // a display-only document drops its objects after the walk and fetches them for an edit
+        let source = item.display_only.then(|| url.clone());
 
         if replacement.is_some() {
-            pending.push(PendingDocument::Whole(doc));
+            pending.push(PendingDocument::Whole(doc, source));
         } else {
-            post(Msg::File(doc));
+            post(Msg::File(doc, source));
         }
     }
 
@@ -409,20 +459,14 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
 
         for document in pending {
             match document {
-                PendingDocument::Whole(doc) => {
-                    post(Msg::File(doc));
-                }
-                PendingDocument::Streamed(stream) => {
-                    post(Msg::StreamedCloud(stream));
-                }
-                PendingDocument::Sheet(sheet) => {
-                    post(Msg::Sheet(sheet));
-                }
+                PendingDocument::Whole(doc, source) => _ = post(Msg::File(doc, source)),
+                PendingDocument::Streamed(stream) => _ = post(Msg::StreamedCloud(stream)), // register:stream
+                PendingDocument::Sheet(sheet) => _ = post(Msg::Sheet(sheet)), // register:sheets
             }
         }
     }
 
-    post(Msg::Texts(manifest.texts));
+    post(Msg::Texts(manifest.texts)); // register:scene_text
     post(Msg::Fit);
 
     if !failed {
@@ -433,13 +477,130 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
         "scene posted {:.0} ms after the manifest fetch",
         now_ms() - t0
     );
+    crate::engine::performance::mark("scene posted");
+}
+
+/// A file's probe and, when read ahead, its whole body in a JS buffer or why it failed.
+type Read = (Option<Reply>, Option<Result<js_sys::Uint8Array, String>>);
+
+/// The next file of a manifest: probed while the one before it loads, its body read while that
+/// one decodes, so the two downloads never share the connection.
+struct Ahead {
+    url: String,                   // the next file
+    encoded: Option<u64>,          // decoded size of an encoded file, which is not probed
+    probed: js_sys::Promise,       // settles when the probe finished
+    body: Option<js_sys::Promise>, // settles when the body read finished
+    read: Rc<RefCell<Read>>,       // what they read
+}
+
+impl Ahead {
+    /// Start probing `url`, unless it is stored encoded.
+    fn start(url: String, encoded: Option<u64>) -> Self {
+        let read = Rc::new(RefCell::new((None, None)));
+        let (slot, target) = (read.clone(), url.clone());
+        let probed = wasm_bindgen_futures::future_to_promise(async move {
+            if encoded.is_none() {
+                let head = probe(&target).await; // register:stream
+                slot.borrow_mut().0 = head; // register:stream
+            }
+
+            Ok(JsValue::UNDEFINED)
+        });
+        Self {
+            url,
+            encoded,
+            probed,
+            body: None,
+            read,
+        }
+    }
+
+    /// Once probed, read the body of a plain file of at most `room` bytes.
+    fn read_body(&mut self, room: u64) {
+        let (probed, slot, url) = (self.probed.clone(), self.read.clone(), self.url.clone());
+        let encoded = self.encoded;
+        self.body = Some(wasm_bindgen_futures::future_to_promise(async move {
+            let _ = wasm_bindgen_futures::JsFuture::from(probed).await;
+            let whole = match encoded {
+                Some(size) => size <= room,
+                None => slot.borrow().0.as_ref().is_some_and(|head| {
+                    head.status == 206
+                        && plain(&head.bytes) // register:stream
+                        && head
+                            .total
+                            .is_some_and(|total| total > head.bytes.len() as u64 && total <= room)
+                }),
+            };
+
+            if whole {
+                let body = fetch_buffer(&url).await;
+                slot.borrow_mut().1 = Some(body);
+            }
+
+            Ok(JsValue::UNDEFINED)
+        }));
+    }
+
+    /// Wait for the reads.
+    async fn wait(self) -> Read {
+        for promise in std::iter::once(self.probed).chain(self.body) {
+            let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
+        }
+
+        self.read.take()
+    }
 }
 
 /// One staged item of a reload.
 enum PendingDocument {
-    Whole(FileDoc),              // a decoded file
-    Streamed(Box<StreamedInit>), // a cloud's first slice
-    Sheet(Box<SheetInit>),       // a sheet's first slice
+    Whole(FileDoc, Option<String>), // a decoded file and, when display-only, its file
+    Streamed(Box<StreamedInit>),    // a cloud's first slice; register:stream
+    Sheet(Box<SheetInit>),          // a sheet's first slice; register:sheets
+}
+
+/// True when a body starts with the gzip magic.
+fn packed(body: &Body) -> bool {
+    match body {
+        Body::Bytes(bytes) => bytes.starts_with(&[0x1f, 0x8b]),
+        Body::Js(array) => {
+            array.length() >= 2 && array.get_index(0) == 0x1f && array.get_index(1) == 0x8b
+        }
+    }
+}
+
+/// A packed body unpacked; the bytes stay in JS.
+async fn unpack(body: Body) -> Result<Body, String> {
+    let array = match body {
+        Body::Bytes(bytes) => js_sys::Uint8Array::from(bytes.as_slice()),
+        Body::Js(array) => array,
+    };
+    gunzip(&array).await.map(Body::Js)
+}
+
+/// What the manifest loop does after a file was streamed.
+enum Step {
+    Next, // go on with the next file
+    Stop, // the load went stale: stop
+}
+
+/// What streaming one probed file reads and changes.
+struct ItemCx<'a> {
+    url: &'a str,                          // the file
+    generation: u64,                       // the load this is part of
+    replacement: Option<u64>,              // a reload stages its files
+    share: u32,                            // points one cloud may read first
+    failed: &'a mut bool,                  // some file failed
+    pending: &'a mut Vec<PendingDocument>, // staged items of a reload
+    staged_points: &'a mut u32,            // points staged by a reload
+    staged_segments: &'a mut u32,          // segments staged by a reload
+}
+
+/// A probed file that streams: its first slice is posted, or staged for a reload; `Err` tells the
+/// manifest loop what comes next, `Ok` loads the file whole.
+async fn stream_item(cx: &mut ItemCx<'_>, head: &Reply, slot: &Placement) -> Result<(), Step> {
+    start_cloud(cx, head, slot).await?; // register:stream
+    start_sheet(cx, head, slot).await?; // register:sheets
+    Ok(())
 }
 
 /// Name and placement of a streamed document.
@@ -449,10 +610,85 @@ struct Placement {
     point_px: f32, // point size, clouds only
 }
 
+/// Bytes a scene may load: `?budget=` or 16 MB per GB.
+fn scene_budget_bytes() -> u64 {
+    if let Some(mb) = crate::engine::gpu::view::knob("VIEWER_BUDGET", "budget")
+        && let Ok(mb) = mb.parse::<u64>()
+    {
+        return mb << 20;
+    }
+
+    let gigabytes = web_sys::window()
+        .map(|window| window.navigator())
+        .and_then(|navigator| js_sys::Reflect::get(&navigator, &"deviceMemory".into()).ok())
+        .and_then(|value| value.as_f64())
+        .unwrap_or(4.0);
+    ((gigabytes * 16.0) as u64) << 20
+}
+
+/// The message naming skipped files, if any.
+fn skipped_notice(skipped: &[String], budget: u64) -> String {
+    if skipped.is_empty() {
+        return String::new();
+    }
+
+    format!(
+        "Skipped over the {} MB scene budget: {}. Add ?budget=<MB> to raise it.",
+        budget >> 20,
+        skipped.join(", ")
+    )
+}
+
+// --8<-- [start:15]
+use super::scene::StreamedInit;
+use super::stream::{
+    CloudFields, cloud_fields, cloud_lod, fetch_colors, fetch_normals, fetch_positions, plain,
+    probe, reset_range_gate,
+};
+use super::walk::cloud::StreamRows;
+use crate::CloudChunk;
+
+/// A cloud read by range: its first `share` points go out now.
+async fn start_cloud(cx: &mut ItemCx<'_>, head: &Reply, slot: &Placement) -> Result<(), Step> {
+    let remaining = if cx.replacement.is_some() {
+        max_points().saturating_sub(*cx.staged_points)
+    } else {
+        budget_left()
+    };
+    let share = cx.share.min(remaining.max(STREAM_MIN_PREFIX));
+    let Some(init) = stream_prefix(cx.url, slot, share, head).await else {
+        return Ok(());
+    };
+
+    if stale_load(cx.generation) {
+        return Err(Step::Stop);
+    }
+
+    if init.resident == 0 {
+        *cx.failed = true;
+        return Err(Step::Next);
+    }
+
+    if cx.replacement.is_some() {
+        *cx.staged_points = cx.staged_points.saturating_add(init.resident);
+        cx.pending.push(PendingDocument::Streamed(Box::new(init)));
+    } else {
+        budget_spend(init.resident);
+        post(Msg::StreamedCloud(Box::new(init)));
+    }
+
+    Err(Step::Next)
+}
+
 /// Read a cloud's first `share` points by range; None when it should load whole.
-async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<StreamedInit> {
+async fn stream_prefix(
+    url: &str,
+    slot: &Placement,
+    share: u32,
+    head: &Reply,
+) -> Option<StreamedInit> {
     let (name, place, point_px) = (slot.name.as_str(), slot.place.clone(), slot.point_px);
-    let mut fields = cloud_fields(url).await?;
+    let mut fields = cloud_fields(url, head).await?;
 
     if fields.count <= STREAM_PREFIX_POINTS && fields.coords_len < STREAM_MIN_BYTES {
         return None;
@@ -472,17 +708,22 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
             rows: StreamRows {
                 positions: Vec::new(),
                 colors: Vec::new(),
+                normals: Vec::new(),
             },
             lod,
             col_at: fields.colors_at,
             fields,
             resident: 0,
             point_px,
+            ceiling: max_points(),
         });
     };
     let (colors, col_at) = fetch_colors(url, &fields, fields.colors_at, resident)
         .await
         .unwrap_or((Vec::new(), fields.colors_at));
+    let normals = fetch_normals(url, &fields, 0, resident)
+        .await
+        .unwrap_or_default();
     log::info!(
         "streamed '{name}': {resident} of {} points on screen, {} nodes",
         fields.count,
@@ -492,114 +733,18 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
         name: name.to_string(),
         url: url.to_string(),
         place,
-        rows: StreamRows { positions, colors },
+        rows: StreamRows {
+            positions,
+            colors,
+            normals,
+        },
         lod,
         fields,
         resident,
         point_px,
         col_at,
+        ceiling: max_points(),
     })
-}
-
-/// `name` in the same folder as `url`.
-fn sibling(url: &str, name: &str) -> String {
-    let dir = url.rfind('/').map_or(0, |at| at + 1);
-    format!("{}{name}", &url[..dir])
-}
-
-/// Read a sheet's first `share` segments by range; None when not a sheet file.
-async fn sheet_prefix(url: &str, slot: &Placement, share: u32) -> Option<SheetInit> {
-    let name = slot.name.as_str();
-    let fields = sheet_fields(url).await?;
-    let meta_url = (!fields.meta.is_empty()).then(|| sibling(url, &fields.meta));
-    let mut resident = SHEET_PREFIX_SEGMENTS.min(share).min(fields.count);
-    let rows = match fetch_sheet_slice(url, &fields, 0, resident).await {
-        Some(rows) if resident > 0 => rows,
-        _ => {
-            log::warn!(
-                "'{name}': no sheet prefix - {resident} of {} segments allowed (?segments= to raise the ceiling) or the range read failed",
-                fields.count
-            );
-            resident = 0;
-            SheetRows {
-                positions: Vec::new(),
-                colors: Vec::new(),
-                widths: Vec::new(),
-                ids: Vec::new(),
-            }
-        }
-    };
-    log::info!(
-        "sheet '{name}': {resident} of {} segments on screen, {} entities",
-        fields.count,
-        fields.entities
-    );
-    Some(SheetInit {
-        name: name.to_string(),
-        url: url.to_string(),
-        meta_url,
-        place: slot.place.clone(),
-        rows,
-        fields,
-        resident,
-    })
-}
-
-/// Where a sheet's streaming continues.
-pub struct SheetCursor {
-    pub idx: usize,          // the sheet's slot in the scene
-    pub url: String,         // the sheet file
-    pub fields: SheetFields, // array positions in the file
-    pub from: u32,           // next segment to read
-}
-
-/// Keep reading a sheet's slices in the background.
-pub fn spawn_sheet_rest(cursor: SheetCursor) {
-    wasm_bindgen_futures::spawn_local(sheet_rest(cursor));
-}
-
-/// The slice loop behind `spawn_sheet_rest`.
-async fn sheet_rest(c: SheetCursor) {
-    let (url, idx, fields) = (c.url, c.idx, c.fields);
-    let generation = GENERATION.get();
-    let mut at = c.from;
-
-    while at < fields.count {
-        if GENERATION.get() != generation {
-            return;
-        }
-
-        let left = sheet_budget_left();
-
-        if left == 0 {
-            log::info!(
-                "'{url}': {at} of {} segments resident - at the page's segment ceiling (?segments= to raise it)",
-                fields.count
-            );
-            return;
-        }
-
-        let to = (at + SHEET_CHUNK_SEGMENTS.min(left)).min(fields.count);
-        sheet_budget_spend(to - at);
-        let Some(rows) = fetch_sheet_slice(&url, &fields, at, to).await else {
-            if GENERATION.get() == generation {
-                SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_sub(to - at));
-            }
-
-            super::feedback::status("A sheet range failed; reload to retry the missing data");
-            return;
-        };
-
-        if GENERATION.get() != generation {
-            return;
-        }
-
-        if !post(Msg::SheetChunk(SheetChunk { idx, rows, to })) {
-            return;
-        }
-
-        at = to;
-    }
 }
 
 /// Where a cloud's streaming continues.
@@ -652,6 +797,9 @@ async fn stream_rest(c: StreamCursor) {
             .await
             .unwrap_or((Vec::new(), col_at));
         col_at = next;
+        let normals = fetch_normals(&url, &fields, at, to)
+            .await
+            .unwrap_or_default();
 
         if GENERATION.get() != generation {
             return;
@@ -659,7 +807,11 @@ async fn stream_rest(c: StreamCursor) {
 
         if !post(Msg::CloudChunk(CloudChunk {
             idx,
-            rows: StreamRows { positions, colors },
+            rows: StreamRows {
+                positions,
+                colors,
+                normals,
+            },
             to,
         })) {
             return;
@@ -667,32 +819,165 @@ async fn stream_rest(c: StreamCursor) {
         at = to;
     }
 }
+// --8<-- [end:15]
 
-/// Bytes a scene may load: `?budget=` or 16 MB per GB.
-fn scene_budget_bytes() -> u64 {
-    if let Some(mb) = crate::engine::gpu::view::knob("VIEWER_BUDGET", "budget")
-        && let Ok(mb) = mb.parse::<u64>()
-    {
-        return mb << 20;
+// --8<-- [start:19]
+use super::scene::SheetInit;
+use super::stream::{SheetFields, fetch_sheet_slice, sheet_fields};
+use super::walk::sheet::SheetRows;
+use crate::SheetChunk;
+
+/// A sheet read by range: its first segments go out now.
+async fn start_sheet(cx: &mut ItemCx<'_>, head: &Reply, slot: &Placement) -> Result<(), Step> {
+    let remaining = if cx.replacement.is_some() {
+        max_segments().saturating_sub(*cx.staged_segments)
+    } else {
+        sheet_budget_left()
+    };
+    let Some(init) = sheet_prefix(cx.url, slot, remaining, head).await else {
+        return Ok(());
+    };
+
+    if stale_load(cx.generation) {
+        return Err(Step::Stop);
     }
 
-    let gigabytes = web_sys::window()
-        .map(|window| window.navigator())
-        .and_then(|navigator| js_sys::Reflect::get(&navigator, &"deviceMemory".into()).ok())
-        .and_then(|value| value.as_f64())
-        .unwrap_or(4.0);
-    ((gigabytes * 16.0) as u64) << 20
-}
-
-/// The message naming skipped files, if any.
-fn skipped_notice(skipped: &[String], budget: u64) -> String {
-    if skipped.is_empty() {
-        return String::new();
+    if init.resident == 0 {
+        *cx.failed = true;
+        return Err(Step::Next);
     }
 
-    format!(
-        "Skipped over the {} MB scene budget: {}. Add ?budget=<MB> to raise it.",
-        budget >> 20,
-        skipped.join(", ")
-    )
+    if cx.replacement.is_some() {
+        *cx.staged_segments = cx.staged_segments.saturating_add(init.resident);
+        cx.pending.push(PendingDocument::Sheet(Box::new(init)));
+    } else {
+        sheet_budget_spend(init.resident);
+        post(Msg::Sheet(Box::new(init)));
+    }
+
+    Err(Step::Next)
 }
+
+/// `name` in the same folder as `url`.
+fn sibling(url: &str, name: &str) -> String {
+    let dir = url.rfind('/').map_or(0, |at| at + 1);
+    format!("{}{name}", &url[..dir])
+}
+
+/// Read a sheet's first `share` segments by range; None when not a sheet file.
+async fn sheet_prefix(url: &str, slot: &Placement, share: u32, head: &Reply) -> Option<SheetInit> {
+    let name = slot.name.as_str();
+    let fields = sheet_fields(url, head).await?;
+    let meta_url = (!fields.meta.is_empty()).then(|| sibling(url, &fields.meta));
+    let mut resident = SHEET_PREFIX_SEGMENTS.min(share).min(fields.count);
+    let rows = match fetch_sheet_slice(url, &fields, 0, resident).await {
+        Some(rows) if resident > 0 => rows,
+        _ => {
+            log::warn!(
+                "'{name}': no sheet prefix - {resident} of {} segments allowed (?segments= to raise the ceiling) or the range read failed",
+                fields.count
+            );
+            resident = 0;
+            SheetRows {
+                positions: Vec::new(),
+                colors: Vec::new(),
+                widths: Vec::new(),
+                ids: Vec::new(),
+            }
+        }
+    };
+    log::info!(
+        "sheet '{name}': {resident} of {} segments on screen, {} entities",
+        fields.count,
+        fields.entities
+    );
+    Some(SheetInit {
+        name: name.to_string(),
+        url: url.to_string(),
+        meta_url,
+        place: slot.place.clone(),
+        rows,
+        fields,
+        resident,
+    })
+}
+
+/// Where a sheet's streaming continues.
+pub struct SheetCursor {
+    pub idx: usize,          // the sheet's slot in the scene
+    pub url: String,         // the sheet file
+    pub fields: SheetFields, // array positions in the file
+    pub from: u32,           // next segment to read
+}
+
+/// Keep reading a sheet's slices in the background.
+pub fn spawn_sheet_rest(cursor: SheetCursor) {
+    wasm_bindgen_futures::spawn_local(sheet_rest(cursor));
+}
+
+/// The slice loop behind `spawn_sheet_rest`.
+async fn sheet_rest(c: SheetCursor) {
+    let (url, idx, fields) = (c.url, c.idx, c.fields);
+    let generation = GENERATION.get();
+    let mut at = c.from;
+    after_loads().await;
+
+    while at < fields.count {
+        if GENERATION.get() != generation {
+            return;
+        }
+
+        let left = sheet_budget_left();
+
+        if left == 0 {
+            log::info!(
+                "'{url}': {at} of {} segments resident - at the page's segment ceiling (?segments= to raise it)",
+                fields.count
+            );
+            return;
+        }
+
+        let to = (at + SHEET_CHUNK_SEGMENTS.min(left)).min(fields.count);
+        sheet_budget_spend(to - at);
+        let Some(rows) = fetch_sheet_slice(&url, &fields, at, to).await else {
+            if GENERATION.get() == generation {
+                SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_sub(to - at));
+            }
+
+            super::feedback::status("A sheet range failed; reload to retry the missing data");
+            return;
+        };
+
+        if GENERATION.get() != generation {
+            return;
+        }
+
+        if !post(Msg::SheetChunk(SheetChunk { idx, rows, to })) {
+            return;
+        }
+
+        at = to;
+    }
+}
+// --8<-- [end:19]
+
+// --8<-- [start:21]
+/// Fetch and decode a released document again; the answer comes back as `Msg::Hydrated`.
+pub fn spawn_hydrate(doc: usize, url: String, token: u64) {
+    wasm_bindgen_futures::spawn_local(async move {
+        let t0 = now_ms();
+        let session = match fetch_buffer(&url).await {
+            Ok(array) => session_from_body(&url, Body::Js(array), true).await,
+            Err(error) => Err(error),
+        };
+        post(Msg::Hydrated(Box::new(Hydrated {
+            doc,
+            token,
+            session,
+            ms: now_ms() - t0,
+        })));
+    });
+}
+
+use super::scene::Hydrated;
+// --8<-- [end:21]

@@ -12,7 +12,7 @@ async function main(){
  const browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',headless:process.env.VIEWER_HEADLESS==='1',args:process.env.VIEWER_CHROME_ARGS?JSON.parse(process.env.VIEWER_CHROME_ARGS):[]});
  const context=await browser.newContext({viewport:{width:1000,height:700},deviceScaleFactor:1});const page=await context.newPage();const errors=[];
  function onError(error){errors.push(String(error));}
- async function manifest(route){await route.fulfill({status:200,contentType:'application/toml',body:'name="lifecycle"\n[[items]]\nfile="pb/lifecycle.pb"\ndisplay_only=true\n'});}
+ async function manifest(route){await route.fulfill({status:200,contentType:'application/yaml',body:'name: lifecycle\nitems:\n  - file: pb/lifecycle.pb\n    display_only: true\n'});}
  async function geometry(route){await route.fulfill({status:200,contentType:'application/octet-stream',body:pointFixture()});}
  page.on('pageerror',onError);await page.route('**/scenes/lifecycle.toml',manifest);await page.route('**/pb/lifecycle.pb',geometry);
  try{

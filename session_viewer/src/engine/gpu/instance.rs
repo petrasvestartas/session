@@ -102,6 +102,77 @@ mod tests {
     use crate::engine::gpu::frame::LineUniform;
     use crate::engine::gpu::lane_shaders;
 
+    use crate::engine::pipelines::SCENE;
+
+    /// The shared scene code declares Instance with the Rust fields.
+    #[test]
+    fn instance_mirror() {
+        let rust = [
+            "model",
+            "color",
+            "flags",
+            "ao_radius",
+            "spacing",
+            "edge_color",
+        ];
+        assert_eq!(wgsl_fields(SCENE, "Instance"), rust, "Instance fields");
+    }
+
+    /// The shared scene code declares LineUniform with the Rust fields.
+    #[test]
+    fn line_uniform_mirror() {
+        let rust = [
+            "thickness",
+            "proj_y",
+            "ortho_h",
+            "vp_h",
+            "vp_w",
+            "eye_x",
+            "eye_y",
+            "eye_z",
+            "anchor",
+            "feather",
+            "lit",
+            "backface",
+            "origin",
+            "frame",
+            "opacity",
+        ];
+        assert_eq!(
+            wgsl_fields(SCENE, "LineUniform"),
+            rust,
+            "LineUniform fields"
+        );
+        assert_eq!(std::mem::size_of::<LineUniform>(), 80);
+    }
+
+    /// Translations live in the shared code; no shader redeclares the structs.
+    #[test]
+    fn translations_mirror() {
+        let binding = "@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;";
+        assert!(SCENE.contains(binding), "translations binding");
+        assert!(SCENE.contains("fn place("), "the place() helper");
+
+        for (name, src) in lane_shaders() {
+            assert!(
+                !src.contains("struct Instance"),
+                "{name}: redeclares Instance"
+            );
+            assert!(
+                !src.contains("struct LineUniform"),
+                "{name}: redeclares LineUniform"
+            );
+        }
+
+        assert_eq!(&Instance::placeholder().model[12..15], &[0.0; 3]);
+    }
+}
+
+#[cfg(test)]
+mod tiles_tests {
+    use crate::engine::gpu::frame::LineUniform;
+    use crate::engine::gpu::lane_shaders;
+
     /// Every shader compiles and its struct offsets match Rust.
     #[test]
     fn shader_validation_and_layouts() {
@@ -207,70 +278,5 @@ mod tests {
                 }
             }
         }
-    }
-
-    use crate::engine::pipelines::SCENE;
-
-    /// The shared scene code declares Instance with the Rust fields.
-    #[test]
-    fn instance_mirror() {
-        let rust = [
-            "model",
-            "color",
-            "flags",
-            "ao_radius",
-            "spacing",
-            "edge_color",
-        ];
-        assert_eq!(wgsl_fields(SCENE, "Instance"), rust, "Instance fields");
-    }
-
-    /// The shared scene code declares LineUniform with the Rust fields.
-    #[test]
-    fn line_uniform_mirror() {
-        let rust = [
-            "thickness",
-            "proj_y",
-            "ortho_h",
-            "vp_h",
-            "vp_w",
-            "eye_x",
-            "eye_y",
-            "eye_z",
-            "anchor",
-            "feather",
-            "lit",
-            "backface",
-            "origin",
-            "frame",
-            "opacity",
-        ];
-        assert_eq!(
-            wgsl_fields(SCENE, "LineUniform"),
-            rust,
-            "LineUniform fields"
-        );
-        assert_eq!(std::mem::size_of::<LineUniform>(), 80);
-    }
-
-    /// Translations live in the shared code; no shader redeclares the structs.
-    #[test]
-    fn translations_mirror() {
-        let binding = "@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;";
-        assert!(SCENE.contains(binding), "translations binding");
-        assert!(SCENE.contains("fn place("), "the place() helper");
-
-        for (name, src) in lane_shaders() {
-            assert!(
-                !src.contains("struct Instance"),
-                "{name}: redeclares Instance"
-            );
-            assert!(
-                !src.contains("struct LineUniform"),
-                "{name}: redeclares LineUniform"
-            );
-        }
-
-        assert_eq!(&Instance::placeholder().model[12..15], &[0.0; 3]);
     }
 }

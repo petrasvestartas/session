@@ -1,18 +1,17 @@
 use super::encode::oct16;
 use super::{Row, WalkCx};
-use crate::app::stream::CloudLod;
 use crate::engine::gpu::cloud::CloudRows;
 use crate::engine::gpu::{CloudDraw, LodNode, NO_NORMALS};
 use session_rust::AABB;
 use session_rust::PointCloud;
 
-/// 20 mm, for a cloud too small or too flat to measure.
+/// Spacing for a cloud too small to measure.
 const DEFAULT_SPACING: f32 = 20.0;
 
 /// A point cloud: points, octree nodes, one draw.
 pub fn walk_cloud(c: &mut CloudRows, pc: &PointCloud, cx: &WalkCx) -> Row {
-    let first = c.point_count(); // every cloud shares the tables; this one starts here
-    let node_first = c.nodes.len() as u32;
+    let first = c.point_count(); // index of this cloud's first point
+    let node_first = c.nodes.len() as u32; // index of this cloud's first node
     // normals only when every point has one
     let nrm_first = if pc.normals().len() >= pc.len() * 3 {
         c.nrm.len() as u32
@@ -73,7 +72,7 @@ fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> AABB {
 
         if has_normals {
             rows.nrm.push(
-                oct16(&[normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]]).unwrap_or(0), // a zero normal decodes as +z
+                oct16(&[normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]]).unwrap_or(0),
             );
         }
     }
@@ -84,8 +83,8 @@ fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> AABB {
 /// Copy the cloud's octree nodes.
 fn push_nodes(rows: &mut CloudRows, pc: &PointCloud) {
     for k in 0..pc.lod_node_count() {
-        let (c, size) = pc.lod_cube(k);
-        let (nf, nc) = pc.lod_range(k); // a node's points are one run: first, count
+        let (c, size) = pc.lod_cube(k); // node cube
+        let (nf, nc) = pc.lod_range(k); // its points
         let mut children = [-1i32; 8]; // -1 = no child
 
         for (slot, v) in pc.lod_children(k).into_iter().enumerate().take(8) {
@@ -103,7 +102,7 @@ fn push_nodes(rows: &mut CloudRows, pc: &PointCloud) {
     }
 }
 
-/// Four 0-255 channels, red in the lowest byte like pack_rgba.
+/// Four 0-255 channels to one word.
 fn pack_color(c: &[i32]) -> u32 {
     (c[0] as u32 & 255)
         | (c[1] as u32 & 255) << 8
@@ -111,7 +110,7 @@ fn pack_color(c: &[i32]) -> u32 {
         | (c[3] as u32 & 255) << 24
 }
 
-/// Treats the cloud as a surface: sqrt(area / points), e.g. 10 m x 10 m with 1 M points gives 10 mm.
+/// Point spacing from the cloud's density.
 fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
     let n = pc.len();
 
@@ -124,7 +123,7 @@ fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
         (2.0 * bounds.hy) as f32,
         (2.0 * bounds.hz) as f32,
     ];
-    e.sort_by(descending_extent);
+    e.sort_unstable_by(descending_extent);
     let area = e[0] as f64 * e[1] as f64; // two longest sides
 
     if area <= 0.0 || !area.is_finite() {
@@ -134,20 +133,29 @@ fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
     (area / n as f64).sqrt() as f32
 }
 
+/// Largest first.
+fn descending_extent(a: &f32, b: &f32) -> std::cmp::Ordering {
+    b.partial_cmp(a).unwrap()
+}
+
+// --8<-- [start:15]
+use crate::app::stream::CloudLod;
+
 /// Raw point columns of one streamed slice.
 pub struct StreamRows {
     pub positions: Vec<f32>, // three floats per point
-    pub colors: Vec<u32>, // packed RGBA per point
+    pub colors: Vec<u32>,    // packed RGBA per point
+    pub normals: Vec<u32>,   // packed normal per point, empty = none
 }
 
 /// One slice of a streamed cloud and where it goes.
 pub struct StreamSlice<'a> {
-    pub rows: StreamRows,
+    pub rows: StreamRows,  // the points
     pub lod: &'a CloudLod, // the whole node table
-    pub from: u32, // first point index in the cloud
-    pub to: u32, // one past the last
-    pub row: u32,
-    pub point_px: f32, // file's point size
+    pub from: u32,         // first point index in the cloud
+    pub to: u32,           // one past the last
+    pub row: u32,          // object row
+    pub point_px: f32,     // file's point size
 }
 
 /// Append one streamed slice; return its box.
@@ -176,6 +184,13 @@ pub fn walk_stream_slice(c: &mut CloudRows, s: &StreamSlice) -> AABB {
     c.col.extend_from_slice(colors);
     c.col.resize(first as usize + count as usize, 0xff00_0000); // pad with black
     c.pos.extend_from_slice(&s.rows.positions);
+    // normals only when the slice has one per point
+    let nrm_first = if s.rows.normals.len() == count as usize {
+        c.nrm.extend_from_slice(&s.rows.normals);
+        (c.nrm.len() - count as usize) as u32
+    } else {
+        NO_NORMALS
+    };
     c.draws.push(CloudDraw {
         instance: s.row,
         from: s.from,
@@ -184,7 +199,7 @@ pub fn walk_stream_slice(c: &mut CloudRows, s: &StreamSlice) -> AABB {
         spacing: resident_spacing(s.lod, s.to).unwrap_or(s.point_px.max(DEFAULT_SPACING)), // no whole node yet: guess
         node_first,
         node_count,
-        nrm_first: NO_NORMALS,
+        nrm_first,
     });
     bounds
 }
@@ -204,7 +219,7 @@ fn resident_spacing(lod: &CloudLod, to: u32) -> Option<f32> {
     spacing.is_finite().then_some(spacing as f32)
 }
 
-/// The file stores a node's min corner; the GPU wants its centre.
+/// One node of a streamed cloud's node table.
 fn lod_node(lod: &CloudLod, k: usize) -> LodNode {
     let mut children = [-1i32; 8];
 
@@ -227,7 +242,4 @@ fn lod_node(lod: &CloudLod, k: usize) -> LodNode {
     }
 }
 
-/// Largest first; unwrap panics on NaN, which a valid box never has.
-fn descending_extent(a: &f32, b: &f32) -> std::cmp::Ordering {
-    b.partial_cmp(a).unwrap()
-}
+// --8<-- [end:15]

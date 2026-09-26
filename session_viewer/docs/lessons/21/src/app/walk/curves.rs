@@ -1,9 +1,11 @@
 use super::Row;
 use super::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
-use crate::engine::gpu::CylinderSegment;
+use crate::engine::gpu::lane::LaneRows;
 use crate::engine::gpu::segments::SegRows;
+use crate::engine::gpu::vectors::{VectorRow, VectorRows};
+use crate::engine::gpu::{CylinderSegment, Instance};
 use session_rust::AABB;
-use session_rust::{Line, NurbsCurve, Polyline};
+use session_rust::{Arrowhead, Line, NurbsCurve, Polyline};
 
 /// One segment per pair of neighbours; grows `bounds`.
 pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut AABB) {
@@ -11,6 +13,10 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
     seg.ribbons.reserve(pts.len().saturating_sub(1));
 
     for w in pts.windows(2) {
+        // skip a repeated point
+        if w[0] == w[1] {
+            continue;
+        }
         bounds.union_with_point(w[0][0] as f64, w[0][1] as f64, w[0][2] as f64);
         seg.ribbons.push(CylinderSegment {
             p0: w[0],
@@ -18,7 +24,7 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
             p1: w[1],
             instance_id: pen.row,
             color: pen.color,
-            facing: FACING_UNKNOWN,
+            facing: FACING_UNKNOWN, // no face orientation
         });
     }
 
@@ -29,26 +35,82 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
     }
 }
 
+/// A head-only vector row at the end of `segment`, aimed along it.
+fn head_row(segment: &CylinderSegment) -> VectorRow {
+    VectorRow {
+        start: segment.p0,
+        radius: segment.radius,
+        end: segment.p1,
+        instance_id: segment.instance_id,
+        color: segment.color,
+        head: 0.0,
+        heads: VectorRow::HEAD_END | VectorRow::HEAD_ONLY,
+        pad: 0,
+    }
+}
+
+/// Heads on the ribbons from `first` on: a vector row per headed end, that end marked so the ribbon stops under it; the row flags.
+fn push_heads(seg: &mut SegRows, lanes: &mut LaneRows, first: usize, arrowhead: Arrowhead) -> u32 {
+    let (start, end) = match arrowhead {
+        Arrowhead::NONE => return 0,
+        Arrowhead::START => (true, false),
+        Arrowhead::END => (false, true),
+        Arrowhead::BOTH => (true, true),
+    };
+    let (Some(&head), Some(&tail)) = (seg.ribbons.get(first), seg.ribbons.last()) else {
+        return 0;
+    };
+
+    // a zero-length line has no direction to aim along
+    if tail.p0 == tail.p1 {
+        return 0;
+    }
+
+    let rows = &mut lanes.get_mut::<VectorRows>().rows;
+
+    if start {
+        let flipped = CylinderSegment {
+            p0: head.p1,
+            p1: head.p0,
+            ..head
+        };
+        rows.push(head_row(&flipped));
+        seg.ribbon_heads.push((first as u32, VectorRow::HEAD_START));
+    }
+
+    if end {
+        rows.push(head_row(&tail));
+        seg.ribbon_heads
+            .push((seg.ribbons.len() as u32 - 1, VectorRow::HEAD_END));
+    }
+
+    Instance::FLAG_HEADS
+}
+
 /// A line as one segment.
-pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
+pub fn walk_line(seg: &mut SegRows, lanes: &mut LaneRows, l: &Line, row: u32) -> Row {
     let p0 = [l[0] as f32, l[1] as f32, l[2] as f32];
     let p1 = [l[3] as f32, l[4] as f32, l[5] as f32];
     let mut bounds = AABB::empty();
     bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
     bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);
+    let first = seg.ribbons.len();
     seg.ribbons.push(CylinderSegment {
         p0,
         radius: encode_width(l.width),
         p1,
         instance_id: row,
         color: pack_rgba(l.linecolor.to_f32()),
-        facing: FACING_UNKNOWN,
+        facing: FACING_UNKNOWN, // no face orientation
     });
-    Row::thin(bounds)
+    Row {
+        flags: push_heads(seg, lanes, first, l.arrowhead),
+        ..Row::thin(bounds)
+    }
 }
 
 /// A polyline as one segment per span.
-pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
+pub fn walk_polyline(seg: &mut SegRows, lanes: &mut LaneRows, pl: &Polyline, row: u32) -> Row {
     let mut pts: Vec<[f32; 3]> = Vec::with_capacity(pl.coords.len() / 3);
 
     for c in pl.coords.chunks_exact(3) {
@@ -61,8 +123,12 @@ pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
         color: pack_rgba(pl.linecolor.to_f32()),
     };
     let mut bounds = AABB::empty();
+    let first = seg.ribbons.len();
     push_polyline(seg, &pts, &pen, &mut bounds);
-    Row::thin(bounds)
+    Row {
+        flags: push_heads(seg, lanes, first, pl.arrowhead),
+        ..Row::thin(bounds)
+    }
 }
 
 /// Degrees of turning one chord may span.
@@ -120,7 +186,7 @@ pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
     }
 
     let spans = c.span_count().max(1);
-    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512);
+    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512); // chord count
 
     let (t0, t1) = c.domain();
     let mut pts: Vec<[f64; 3]> = Vec::with_capacity(n + 1);
@@ -134,7 +200,7 @@ pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
 }
 
 /// A curve as a sampled polyline.
-pub fn walk_nurbscurve(seg: &mut SegRows, c: &NurbsCurve, row: u32) -> Row {
+pub fn walk_nurbscurve(seg: &mut SegRows, lanes: &mut LaneRows, c: &NurbsCurve, row: u32) -> Row {
     let pts: Vec<_> = sample_nurbscurve(c)
         .into_iter()
         .map(render_position)
@@ -150,6 +216,124 @@ pub fn walk_nurbscurve(seg: &mut SegRows, c: &NurbsCurve, row: u32) -> Row {
         color: pack_rgba(color),
     };
     let mut bounds = AABB::empty();
+    let first = seg.ribbons.len();
     push_polyline(seg, &pts, &pen, &mut bounds);
-    Row::thin(bounds)
+    Row {
+        flags: push_heads(seg, lanes, first, c.arrowhead),
+        ..Row::thin(bounds)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use session_rust::Point;
+
+    /// Walk one curve into fresh tables.
+    fn walked(walk: impl FnOnce(&mut SegRows, &mut LaneRows)) -> (SegRows, Vec<VectorRow>) {
+        let mut seg = SegRows::default();
+        let mut lanes = LaneRows::default();
+        walk(&mut seg, &mut lanes);
+        let rows = lanes
+            .get::<VectorRows>()
+            .map_or(Vec::new(), |v| v.rows.clone());
+        (seg, rows)
+    }
+
+    /// A polyline with both heads: one head-only row per end, aimed along its end segment, both ends marked.
+    #[test]
+    fn polyline_heads_aim_along_the_end_segments() {
+        let mut pl = Polyline::new(vec![
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(10.0, 0.0, 0.0),
+            Point::new(10.0, 10.0, 0.0),
+            Point::new(10.0, 10.0, 0.0),
+        ]);
+        pl.arrowhead = Arrowhead::BOTH;
+        pl.width = 3.0;
+        let (seg, rows) = walked(|seg, lanes| {
+            walk_polyline(seg, lanes, &pl, 7);
+        });
+        let only = VectorRow::HEAD_END | VectorRow::HEAD_ONLY;
+        assert_eq!(seg.ribbons.len(), 2, "the repeated point adds no segment");
+        assert_eq!(rows.len(), 2);
+        assert_eq!(
+            (rows[0].start, rows[0].end, rows[0].heads),
+            ([10.0, 0.0, 0.0], [0.0, 0.0, 0.0], only)
+        );
+        assert_eq!(
+            (rows[1].start, rows[1].end, rows[1].heads),
+            ([10.0, 0.0, 0.0], [10.0, 10.0, 0.0], only)
+        );
+
+        for row in &rows {
+            assert_eq!(
+                (row.instance_id, row.radius, row.color),
+                (7, seg.ribbons[0].radius, seg.ribbons[0].color)
+            );
+        }
+
+        assert_eq!(
+            seg.ribbon_heads,
+            vec![(0, VectorRow::HEAD_START), (1, VectorRow::HEAD_END)]
+        );
+    }
+
+    /// No heads: no vector table, no marks; one head on a line: one row and one mark.
+    #[test]
+    fn a_headless_curve_is_unchanged() {
+        let pl = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]);
+        let mut seg = SegRows::default();
+        let mut lanes = LaneRows::default();
+        assert_eq!(walk_polyline(&mut seg, &mut lanes, &pl, 0).flags, 0);
+        assert!(lanes.get::<VectorRows>().is_none());
+        assert!(seg.ribbon_heads.is_empty());
+
+        let mut line = Line::new(0.0, 0.0, 0.0, 5.0, 0.0, 0.0);
+        line.arrowhead = Arrowhead::START;
+        let (seg, rows) = walked(|seg, lanes| {
+            assert_eq!(walk_line(seg, lanes, &line, 2).flags, Instance::FLAG_HEADS);
+        });
+        assert_eq!(rows.len(), 1);
+        assert_eq!(
+            (rows[0].start, rows[0].end),
+            ([5.0, 0.0, 0.0], [0.0, 0.0, 0.0])
+        );
+        assert_eq!(seg.ribbon_heads, vec![(0, VectorRow::HEAD_START)]);
+
+        // a zero-length line has nothing to aim a head along
+        let mut dot = Line::new(1.0, 1.0, 0.0, 1.0, 1.0, 0.0);
+        dot.arrowhead = Arrowhead::BOTH;
+        let (seg, rows) = walked(|seg, lanes| {
+            assert_eq!(walk_line(seg, lanes, &dot, 3).flags, 0);
+        });
+        assert!(rows.is_empty() && seg.ribbon_heads.is_empty());
+    }
+
+    /// A curve's end head sits on the curve's end point, aimed along the last drawn chord.
+    #[test]
+    fn curve_head_lands_on_the_end_point() {
+        let mut curve = NurbsCurve::create(
+            false,
+            3,
+            &[
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(10.0, 20.0, 0.0),
+                Point::new(30.0, -20.0, 0.0),
+                Point::new(40.0, 0.0, 5.0),
+            ],
+        );
+        curve.arrowhead = Arrowhead::END;
+        let (seg, rows) = walked(|seg, lanes| {
+            walk_nurbscurve(seg, lanes, &curve, 1);
+        });
+        let last = seg.ribbons.last().unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].end, [40.0, 0.0, 5.0]);
+        assert_eq!((rows[0].start, rows[0].end), (last.p0, last.p1));
+        assert_eq!(
+            seg.ribbon_heads,
+            vec![(seg.ribbons.len() as u32 - 1, VectorRow::HEAD_END)]
+        );
+    }
 }

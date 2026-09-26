@@ -1,4 +1,3 @@
-// --8<-- [start:step-7a]
 use super::mesh_ink::{Ink, InkCx, edges_and_dots};
 use super::mesh_topology::{SlotMap, mesh_topology};
 use super::{Row, WalkCx};
@@ -7,7 +6,6 @@ use crate::engine::gpu::Instance;
 use crate::engine::gpu::arena::ArenaRows;
 use session_rust::AABB;
 use session_rust::Mesh;
-use session_rust::RenderVertex;
 
 /// Above this many triangles a mesh gets no edges or dots.
 pub const MESH_RAW_MIN: usize = 200_000;
@@ -15,13 +13,13 @@ pub const MESH_RAW_MIN: usize = 200_000;
 /// From this many edges the wireframe is black.
 pub const WIREFRAME_BLACK_MIN: usize = 10_000;
 
-/// dot(n0, n1) of two unit normals is the cosine of their angle; above this the faces lie in one plane.
+/// Normal dot above which two faces are one flat region.
 pub const COPLANAR_DOT: f64 = 1.0 - 1e-9;
 
 /// Normal dot below which a smooth seam is a crease, cos 25°.
 pub const CREASE_COS: f64 = 0.906_307_787;
 
-/// Rough vertex spacing: box diagonal over sqrt(count), e.g. 10 m and 100 vertices give 1 m.
+/// Typical distance between vertices.
 pub(super) fn mesh_spacing(bounds: &AABB, verts: usize) -> f32 {
     if verts < 2 {
         return 0.0;
@@ -30,17 +28,15 @@ pub(super) fn mesh_spacing(bounds: &AABB, verts: usize) -> f32 {
     bounds.diagonal() as f32 / (verts as f32).sqrt()
 }
 
-/// A single width of 0 marks a print fill: a filled 2D shape on a sheet, drawn without edges.
+/// A mesh with one zero width is a printed fill.
 pub fn is_print_fill(m: &Mesh) -> bool {
     m.widths().len() == 1 && m.widths()[0] == 0.0
 }
 
-// --8<-- [end:step-7a]
-// --8<-- [start:step-7b]
-/// Which kind of mesh this is; the three kinds are the constants below.
+/// How one mesh is walked.
 pub struct MeshOpts {
     pub sheet_lanes: bool, // print fills go to the sheet runs
-    pub allow_open: bool,  // a mesh with holes is drawn with its back faces
+    pub allow_open: bool,  // an open mesh may be flagged open
     pub smooth: bool,      // a sampled surface, seams are not edges
 }
 
@@ -61,28 +57,27 @@ impl MeshOpts {
 
     /// An element's mesh, never flagged open.
     pub const ELEMENT: MeshOpts = MeshOpts {
-    // --8<-- [end:step-7b]
-        // --8<-- [start:step-7c]
         sheet_lanes: true,
         allow_open: false,
         smooth: false,
     };
 }
 
-/// Prints the time between marks when VIEWER_PROFILE is set; one bool test when it is not.
+/// A lap timer printing when profiling is on.
 #[cfg(not(target_arch = "wasm32"))]
 pub struct Lap {
-    on: bool,
+    on: bool,               // profiling enabled
     at: std::time::Instant, // last mark
     prefix: &'static str,   // caller name in each line
 }
 
-/// `Instant::now()` panics on wasm32, so the browser build gets an empty timer.
+/// No timer in the browser.
 #[cfg(target_arch = "wasm32")]
 pub struct Lap;
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Lap {
+    /// Start the timer.
     pub fn start(prefix: &'static str) -> Self {
         Self {
             on: knobs::profile(),
@@ -102,48 +97,48 @@ impl Lap {
 
 #[cfg(target_arch = "wasm32")]
 impl Lap {
+    /// No clock on wasm32.
     pub fn start(_prefix: &'static str) -> Self {
         Self
     }
 
+    /// No clock on wasm32.
     pub fn mark(&mut self, _name: &str) {}
 }
 
-/// Three index lists draw in order: faces, sheet fills, then sheet lettering on top.
+/// The index list this mesh's triangles join.
 fn index_run<'a>(arena: &'a mut ArenaRows, m: &Mesh, sheet: bool) -> &'a mut Vec<u32> {
     if !sheet {
         return &mut arena.idx;
     }
 
     if m.name == "text" {
-        &mut arena.idx_text
+        &mut arena.idx_text // lettering draws last
     } else {
         &mut arena.idx_print
     }
 }
 
-/// The shared walk context plus this mesh's kind.
+/// Context and options for one mesh.
 pub struct MeshCx<'a> {
-// --8<-- [end:step-7c]
-    // --8<-- [start:step-7d]
-    pub cx: &'a WalkCx,
-    pub opts: &'a MeshOpts,
+    pub cx: &'a WalkCx,     // where rows go
+    pub opts: &'a MeshOpts, // how to walk
 }
 
-/// Triangles always; edges and dots only up to MESH_RAW_MIN triangles, and never for a print fill.
+/// A mesh: triangles, then edges and dots.
 pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) -> Row {
     let (cx, o) = (mc.cx, mc.opts);
-    let base = cx.vert_base + arena.verts.len() as u32; // this mesh's indices count from after every vertex already stored
+    let base = cx.vert_base + arena.verts.len() as u32; // first vertex index
     let mut lap = Lap::start("walk_mesh");
-    let rm = m.to_render(); // the kernel splits every polygon into triangles
+    let rm = m.to_render(); // triangles from the kernel
     lap.mark("to_render");
 
     let print = is_print_fill(m);
-    let decorated = rm.indices.len() / 3 <= MESH_RAW_MIN && !print;
-    let keys = if decorated { m.vertices() } else { Vec::new() }; // sorted, as SlotMap needs
+    let decorated = rm.indices.len() / 3 <= MESH_RAW_MIN && !print; // gets edges and dots
+    let keys = if decorated { m.vertices() } else { Vec::new() }; // sorted vertex keys
     let slots = SlotMap::new(&keys);
-    let mut vpos64 = Vec::with_capacity(keys.len()); // f64 for exact normals, f32 for the GPU
-    let mut vpos = Vec::with_capacity(keys.len());
+    let mut vpos64 = Vec::with_capacity(keys.len()); // positions by slot
+    let mut vpos = Vec::with_capacity(keys.len()); // same in f32
 
     for &key in &keys {
         let point = &m.vertex[&key];
@@ -168,7 +163,7 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
             v.position[2] as f64,
         );
         arena.verts.push(*v);
-        arena.vids.push(cx.row); // so the shader finds this object's matrix
+        arena.vids.push(cx.row);
     }
 
     let idx = index_run(arena, m, o.sheet_lanes && print);
@@ -178,13 +173,18 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         idx.push(base + i);
     }
 
+    if !(o.sheet_lanes && print) {
+        // a smooth surface is one source face
+        append_face_ids(arena, m, cx.row, o.smooth, rm.indices.len() / 3);
+    }
+
     lap.mark("vert+idx push");
     let mut flags = if o.sheet_lanes && print {
         Instance::FLAG_PRINT
     } else {
         0
     };
-    let smooth = o.smooth && !knobs::seams(); // VIEWER_SEAMS: debug view of every sampling seam
+    let smooth = o.smooth && !knobs::seams(); // knob shows seams
 
     if smooth {
         flags |= Instance::FLAG_SMOOTH;
@@ -199,6 +199,15 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         spacing: mesh_spacing(&bounds, m.number_of_vertices()),
         flags,
         faces: true,
+    };
+
+    // closed and wound one way, checked once a clipping plane cut: a section caps it
+    let solid = (!print && super::plane::solids_verified())
+        .then(|| super::plane::solid_orientation(m))
+        .flatten();
+    let row = Row {
+        flags: row.flags | super::plane::solid_flags(solid),
+        ..row
     };
 
     if !decorated || knobs::no_edges() {
@@ -228,14 +237,54 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     }
 }
 
-/// Just the positions of the render vertices, e.g. for a thickness measure.
-fn positions(verts: &[RenderVertex]) -> Vec<[f32; 3]> {
-    let mut out = Vec::with_capacity(verts.len());
+/// One source face address per triangle.
+fn append_face_ids(
+    arena: &mut ArenaRows,
+    mesh: &Mesh,
+    parent: u32,
+    surface: bool,
+    triangles: usize,
+) {
+    use crate::engine::gpu::faces::FaceSource;
 
-    for v in verts {
-        out.push(v.position);
+    // a surface is one face
+    if surface {
+        let address = arena.face_sources.len() as u32;
+        arena.face_sources.push(FaceSource { parent, face: 0 });
+        arena
+            .face_ids
+            .extend(std::iter::repeat_n(address, triangles));
+        return;
     }
 
-    out
+    let start = arena.face_ids.len();
+    let mut keys: Vec<_> = mesh.face.keys().copied().collect();
+    keys.sort_unstable();
+
+    for face in keys {
+        let address = arena.face_sources.len() as u32;
+        arena.face_sources.push(FaceSource { parent, face });
+        let valid =
+            |triangle: &[usize; 3]| triangle.iter().all(|key| mesh.vertex.contains_key(key));
+        // triangles of this face: cached, else a fan
+        let count = if let Some(cached) = mesh
+            .triangulation
+            .get(&face)
+            .filter(|tris| !tris.is_empty())
+        {
+            cached.iter().filter(|tri| valid(tri)).count()
+        } else {
+            let corners = &mesh.face[&face];
+            (1..corners.len().saturating_sub(1))
+                .filter(|&i| valid(&[corners[0], corners[i], corners[i + 1]]))
+                .count()
+        };
+        arena.face_ids.extend(std::iter::repeat_n(address, count));
+    }
+
+    assert_eq!(
+        arena.face_ids.len() - start,
+        triangles,
+        "source face IDs must match the kernel triangle stream"
+    );
 }
-// --8<-- [end:step-7d]

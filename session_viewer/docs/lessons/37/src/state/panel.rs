@@ -1,10 +1,11 @@
 use crate::app::layers::Layer;
 use crate::state::State;
+use std::rc::Rc;
 
 impl State {
     /// How many rows are selected together.
     pub fn selected_group_count(&self) -> usize {
-        self.hierarchy.selected.len()
+        self.highlighted.len()
     }
 
     /// A click in the layers panel, by its key.
@@ -17,12 +18,11 @@ impl State {
 
         // color/<node>/<face|edge>/<hex or original>
         if let Some(value) = key.strip_prefix("color/") {
-            // --8<-- [start:step-21a]
             let parts: Vec<_> = value.split('/').collect();
 
             if parts.len() == 3
                 && let Ok(index) = parts[0].parse::<usize>()
-                && index < self.hierarchy.nodes.len()
+                && index < self.features.hierarchy.nodes.len()
                 && matches!(parts[1], "face" | "edge")
             {
                 let edge = parts[1] == "edge";
@@ -35,7 +35,7 @@ impl State {
                     Some([(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8])
                 };
 
-                for row in self.hierarchy.targets(index) {
+                for row in self.features.hierarchy.targets(index) {
                     // an edge color needs faces to sit on
                     if edge
                         && !self.gpu.objects.row(row).is_some_and(|r| {
@@ -59,7 +59,6 @@ impl State {
                         }
 
                         self.gpu.set_object_color(row, edge, color);
-                        // --8<-- [end:step-21a]
                     }
                 }
 
@@ -67,6 +66,43 @@ impl State {
                 self.touch();
             }
 
+            return;
+        }
+
+        // rename/<node>/<new name>
+        if let Some(value) = key.strip_prefix("rename/") {
+            if let Some((index, to)) = value.split_once('/')
+                && let Ok(index) = index.parse::<usize>()
+                && let Some((doc, name)) = self.layer_of(index)
+            {
+                let to = to.trim().to_string();
+                let keep = self.selected_identities();
+                let result = self.scene.rename_layer(doc, &name, &to).map(|_| {
+                    // the fold and the highlight follow the new name
+                    self.features.hierarchy.nodes[index].name.clone_from(&to);
+                    format!("Renamed {name} to {to}")
+                });
+                self.after_layer_edit(result, keep);
+            }
+
+            return;
+        }
+
+        // pair/<row>/<row>: a graph edge selects both ends
+        if let Some(value) = key.strip_prefix("pair/") {
+            let rows: Vec<u32> = value
+                .split('/')
+                .filter_map(|row| row.parse().ok())
+                .collect();
+            self.select_rows(rows, false);
+            return;
+        }
+
+        // the graph table folds; its rows are made only while it is open
+        if key == "graph/toggle" {
+            crate::app::feedback::toggle_graph();
+            self.refresh_layers();
+            self.touch();
             return;
         }
 
@@ -79,35 +115,51 @@ impl State {
         };
 
         if action == "page" {
-            self.hierarchy.page = index;
-        } else if index < self.hierarchy.nodes.len() {
+            self.features.hierarchy.page = index;
+        } else if index < self.features.hierarchy.nodes.len() {
             match action {
                 "open" => {
                     // fold or unfold the node
-                    if !self.hierarchy.open.remove(&index) {
-                        self.hierarchy.open.insert(index);
+                    if !self.features.hierarchy.open.remove(&index) {
+                        self.features.hierarchy.open.insert(index);
                     }
                 }
-                // --8<-- [start:step-21b]
                 "select" | "add" => {
-                // --8<-- [end:step-21b]
-                    let rows = self.hierarchy.targets(index);
+                    let rows = self.features.hierarchy.targets(index);
 
-                    // while splitting, a click picks cutters
-                    if self.pending_split.is_some() {
+                    // a tool picking objects takes the rows
+                    if self.tool_picks() {
                         for row in rows {
-                            self.pick_split_cutter(row);
+                            self.tool_picked(Some(row));
                         }
 
                         return;
                     }
 
-                    // --8<-- [start:step-21c]
+                    // while splitting, a click picks cutters
+                    let mut taken = false;
+                    taken |= self.take_split_rows(&rows); // register:split
+
+                    if taken {
+                        return;
+                    }
+
+                    // the clicked layers stay highlighted; any other selection drops them
+                    let mut active = if action == "add" {
+                        std::mem::take(&mut self.features.hierarchy.active)
+                    } else {
+                        Vec::new()
+                    };
+
+                    if self.features.hierarchy.nodes[index].layer {
+                        active.push(index);
+                    }
+
                     self.select_rows(rows, action == "add");
-                    // --8<-- [end:step-21c]
+                    self.features.hierarchy.active = active;
                 }
                 "lock" => {
-                    let rows = self.hierarchy.targets(index);
+                    let rows = self.features.hierarchy.targets(index);
                     let lock = rows.iter().any(|row| self.scene.selectable(*row)); // anything unlocked: lock all
 
                     // a locked row cannot stay selected
@@ -117,8 +169,7 @@ impl State {
                             .selected
                             .is_some_and(|row| rows.binary_search(&row).is_ok())
                             || self
-                                .hierarchy
-                                .selected
+                                .highlighted
                                 .iter()
                                 .any(|row| rows.binary_search(row).is_ok()))
                     {
@@ -135,8 +186,31 @@ impl State {
                         }
                     }
                 }
+                "current" | "new_layer" | "new_sublayer" | "delete_layer" | "duplicate_layer"
+                | "change_layer" | "copy_layer" => {
+                    self.layer_action(action, index);
+                    return;
+                }
                 "hide" => {
-                    let rows = self.hierarchy.targets(index);
+                    let node = &self.features.hierarchy.nodes[index];
+                    // the current layer, a layer holding it or its document line
+                    let holds = match self.layer_of(index) {
+                        Some((doc, name)) => self.scene.holds_current(doc, &name),
+                        None => {
+                            node.depth == 0
+                                && self
+                                    .scene
+                                    .current_layer()
+                                    .is_some_and(|(doc, _)| doc == node.doc)
+                        }
+                    };
+
+                    if holds {
+                        self.status("The current layer cannot be hidden");
+                        return;
+                    }
+
+                    let rows = self.features.hierarchy.targets(index);
                     // anything visible: hide all
                     let hide = rows.iter().any(|row| {
                         self.scene
@@ -154,6 +228,145 @@ impl State {
         self.touch();
     }
 
+    /// Unfold the panel down to layer `name` of `doc` and open it, while the panel is shown.
+    pub(crate) fn reveal_layer(&mut self, doc: usize, name: &str) {
+        if !crate::app::feedback::layers_open() {
+            return;
+        }
+
+        self.features.hierarchy.refresh(&self.scene);
+
+        if let Some(node) = self.features.hierarchy.index_of(doc, name) {
+            self.features.hierarchy.reveal(node);
+            self.features.hierarchy.open.insert(node);
+        }
+    }
+
+    /// The (document, tree node) of a layer row.
+    fn layer_of(&self, index: usize) -> Option<(usize, String)> {
+        let node = self.features.hierarchy.nodes.get(index)?;
+        node.layer.then(|| (node.doc, node.name.clone()))
+    }
+
+    /// One layer menu action on node `index`.
+    fn layer_action(&mut self, action: &str, index: usize) {
+        let Some((doc, name)) = self.layer_of(index) else {
+            return;
+        };
+        let rows = self.selected_rows();
+        // what stays selected, by identity
+        let mut keep = self.selected_identities();
+        let mut made = None; // a new layer, named right away
+        let result = match action {
+            "current" => self.scene.set_current_layer(doc, &name).map(|_| {
+                let rows = self.features.hierarchy.targets(index);
+
+                // a hidden layer comes back when made current
+                if !rows.is_empty()
+                    && rows.iter().all(|row| {
+                        self.scene
+                            .identity_of(*row)
+                            .is_some_and(|id| self.scene.hidden.contains(&id))
+                    })
+                {
+                    self.set_rows_hidden(&rows, false);
+                }
+
+                format!("Current layer: {name}")
+            }),
+            "new_layer" | "new_sublayer" => self
+                .scene
+                .new_layer(doc, &name, action == "new_sublayer")
+                .map(|layer| {
+                    let message = format!("Added {layer}");
+                    made = Some(layer);
+                    message
+                }),
+            "delete_layer" => self
+                .scene
+                .delete_layer(doc, &name)
+                .map(|count| format!("Deleted {name} and {count} objects")),
+            "duplicate_layer" => self
+                .scene
+                .duplicate_layer(doc, &name)
+                .map(|made| format!("Added {made}")),
+            "change_layer" => {
+                self.scene
+                    .change_object_layer(&rows, doc, &name)
+                    .map(|moved| {
+                        let message = format!("Moved {} objects to {name}", moved.len());
+                        self.features.hierarchy.active.clear(); // the clicked layers no longer hold them
+                        keep = moved;
+                        message
+                    })
+            }
+            _ => self
+                .scene
+                .copy_object_layer(&rows, doc, &name)
+                .map(|copies| format!("Copied {} objects to {name}", copies.len())),
+        };
+        self.after_layer_edit(result, keep);
+
+        // a new layer is named right away
+        if let Some(layer) = made
+            && let Some(node) = self.features.hierarchy.index_of(doc, &layer)
+        {
+            self.features.hierarchy.reveal(node);
+            self.refresh_layers();
+            crate::app::feedback::rename_row(node, &layer);
+        }
+    }
+
+    /// The selected objects by identity, which outlives their rows.
+    fn selected_identities(&self) -> Vec<(usize, Rc<str>)> {
+        self.selected_rows()
+            .iter()
+            .filter_map(|row| self.scene.identity_of(*row))
+            .collect()
+    }
+
+    /// Report a layer edit and sync what it changed; `keep` stays selected, found by identity.
+    fn after_layer_edit(&mut self, result: Result<String, String>, keep: Vec<(usize, Rc<str>)>) {
+        match result {
+            Ok(message) => {
+                // the clicked layers by name, found again in the rebuilt panel
+                let active: Vec<(usize, String)> = self
+                    .features
+                    .hierarchy
+                    .active
+                    .iter()
+                    .filter_map(|index| self.features.hierarchy.nodes.get(*index))
+                    .map(|node| (node.doc, node.name.clone()))
+                    .collect();
+                self.commit_rows();
+                let mut rows: Vec<u32> = keep
+                    .iter()
+                    .filter_map(|(doc, guid)| self.scene.row_of(*doc, guid))
+                    .collect();
+                rows.sort_unstable();
+
+                // objects moved to another document have new rows
+                if rows != self.selected_rows() {
+                    self.select_rows(rows, false);
+                }
+
+                self.features.hierarchy.active = active
+                    .iter()
+                    .filter_map(|(doc, name)| self.features.hierarchy.index_of(*doc, name))
+                    .collect();
+                self.status(&message);
+            }
+            Err(error) => {
+                self.commit_rows();
+                self.status(&error);
+            }
+        }
+
+        self.refresh_layers();
+        self.update_label();
+        self.touch();
+    }
+
     /// Hide or show sorted rows.
     pub(super) fn set_rows_hidden(&mut self, rows: &[u32], hide: bool) {
         // a hidden row cannot stay selected
@@ -163,8 +376,7 @@ impl State {
                 .selected
                 .is_some_and(|row| rows.binary_search(&row).is_ok())
                 || self
-                    .hierarchy
-                    .selected
+                    .highlighted
                     .iter()
                     .any(|row| rows.binary_search(row).is_ok()))
         {
@@ -195,25 +407,29 @@ impl State {
     pub(super) fn hierarchy_labels(&mut self, rows: &mut Vec<crate::app::feedback::LayerRow>) {
         use crate::app::feedback::LayerRow;
         use crate::app::hierarchy::PAGE_SIZE;
-        let visible = self.hierarchy.visible(); // unfolded nodes
-        self.hierarchy.page = self
+        let visible = self.features.hierarchy.visible(); // unfolded nodes
+        self.features.hierarchy.page = self
+            .features
             .hierarchy
             .page
             .min(visible.len().saturating_sub(1) / PAGE_SIZE); // keep the page in range
-        let first = self.hierarchy.page * PAGE_SIZE;
+        let first = self.features.hierarchy.page * PAGE_SIZE;
+        let current = self.scene.current_layer();
+        let chosen = |row: &u32| {
+            self.scene.selected == Some(*row) || self.highlighted.binary_search(row).is_ok()
+        };
+        let hidden = |row: &u32| {
+            self.scene
+                .identity_of(*row)
+                .is_some_and(|id| self.scene.hidden.contains(&id))
+        };
 
         // one panel row per visible node on this page
         for &index in visible.iter().skip(first).take(PAGE_SIZE) {
-            let node = &self.hierarchy.nodes[index];
+            let node = &self.features.hierarchy.nodes[index];
             let count = node.rows.len();
-            // every row hidden?
-            let hidden = self.hierarchy.rows[node.rows.clone()].iter().all(|row| {
-                self.scene
-                    .identity_of(*row)
-                    .is_some_and(|id| self.scene.hidden.contains(&id))
-            });
-            let targets = &self.hierarchy.rows[node.rows.clone()];
-            let locked = targets.iter().all(|row| !self.scene.selectable(*row)); // every row locked?
+            let targets = &self.features.hierarchy.rows[node.rows.clone()];
+            let locked = count > 0 && targets.iter().all(|row| !self.scene.selectable(*row)); // every row locked?
             // the shared color, when every row has the same one
             let first_color = targets
                 .first()
@@ -226,16 +442,26 @@ impl State {
                         .is_some_and(|id| self.scene.colors.get(&id) == Some(first))
                 })
             });
+            // a clicked layer or sublayer while all it can select is, an object while it is selected
+            let clicked =
+                self.features.hierarchy.active.iter().any(|&layer| {
+                    layer <= index && index < self.features.hierarchy.nodes[layer].end
+                });
+            let selected = if node.layer {
+                clicked
+                    && targets
+                        .iter()
+                        .all(|row| chosen(row) || hidden(row) || !self.scene.selectable(*row))
+            } else {
+                targets.iter().any(chosen)
+            };
             rows.push(LayerRow {
                 key: format!("select/{index}"), // the select button key
                 label: node.label.clone(),
                 count,
-                hidden,
+                hidden: count > 0 && targets.iter().all(hidden), // every row hidden, and at least one
                 locked,
-                // --8<-- [start:step-21d]
-                selected: targets.iter().any(|r| {
-                    self.scene.selected == Some(*r) || self.hierarchy.selected.contains(r)
-                }),
+                selected,
                 color,
                 edge_color: targets
                     .first()
@@ -253,18 +479,29 @@ impl State {
                         r.flags & crate::engine::gpu::Instance::FLAG_HAS_FACES != 0
                     })
                 }),
-                // --8<-- [end:step-21d]
                 depth: node.depth,
-                expanded: (node.end > index + 1).then(|| self.hierarchy.open.contains(&index)),
+                expanded: (node.end > index + 1)
+                    .then(|| self.features.hierarchy.open.contains(&index)),
+                layer: node.layer,
+                current: node.layer
+                    && current
+                        .as_ref()
+                        .is_some_and(|(doc, name)| *doc == node.doc && *name == node.name),
+                root: node.layer
+                    && self.scene.docs[node.doc]
+                        .session
+                        .tree
+                        .root()
+                        .is_some_and(|root| root.borrow().name == node.name),
             });
         }
 
         // Previous and Next rows when there are more pages
         for (label, page) in [
-            ("Previous", self.hierarchy.page.checked_sub(1)),
+            ("Previous", self.features.hierarchy.page.checked_sub(1)),
             (
                 "Next",
-                (first + PAGE_SIZE < visible.len()).then_some(self.hierarchy.page + 1),
+                (first + PAGE_SIZE < visible.len()).then_some(self.features.hierarchy.page + 1),
             ),
         ] {
             if let Some(page) = page {
@@ -278,7 +515,7 @@ impl State {
             }
         }
 
-        if self.hierarchy.truncated {
+        if self.features.hierarchy.truncated {
             rows.push(LayerRow {
                 key: String::new(),
                 label: "Tree exceeds panel capacity".into(),

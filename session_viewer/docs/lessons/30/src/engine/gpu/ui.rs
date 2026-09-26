@@ -2,10 +2,10 @@ use super::buffers::GpuCtx;
 
 /// Draws the egui interface over the frame.
 pub struct Ui {
-    renderer: egui_wgpu::Renderer, // egui's wgpu renderer
-    jobs: Vec<egui::ClippedPrimitive>, // triangles to draw this frame
+    renderer: egui_wgpu::Renderer,       // egui's wgpu renderer
+    jobs: Vec<egui::ClippedPrimitive>,   // triangles to draw this frame
     screen: egui_wgpu::ScreenDescriptor, // canvas size and scale
-    free: Vec<egui::TextureId>, // textures to free next frame
+    free: Vec<egui::TextureId>,          // textures to free next frame
     textures: std::collections::HashSet<egui::TextureId>, // textures alive now
 }
 

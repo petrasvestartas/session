@@ -1,27 +1,25 @@
-//! Plates: the box drawn behind a label, with no texture: the shader works out the rounded shape per pixel.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
-use crate::engine::pipelines::Target;
+use crate::engine::pipelines::{Pipeline, Target};
 
-/// One plate, in framebuffer pixels.
+/// One label background rectangle, in screen pixels.
 pub(super) struct Rectangle {
-    pub(super) bounds: [f32; 4], // left, top, right, bottom
-    pub(super) clip: [f32; 4], // the label's clip box
-    pub(super) rounded: bool, // corner radius = half the height: a pill
-    // --8<-- [start:step-18a]
+    pub(super) bounds: [f32; 4],   // left, top, right, bottom
+    pub(super) clip: [f32; 4],     // screen box it is cut to
+    pub(super) rounded: bool,      // rounded corners
     pub(super) depth: Option<f32>, // scene depth, or None for an overlay
     pub(super) object: Option<crate::engine::text::TextObject>, // object it belongs to, for picks
 }
 
-/// Every plate of the frame, in one vertex buffer.
+/// Draws label backgrounds as rounded rectangles.
 pub(super) struct Plates {
-    vertices: GrowBuf, // six per plate: two triangles
-    pipeline: wgpu::RenderPipeline,
-    id_pipeline: wgpu::RenderPipeline, // object ids
+    vertices: GrowBuf,      // six vertices per rectangle
+    pipeline: Pipeline,     // in color
+    id_pipeline: Pipeline,  // object ids
     physical_vertices: u32, // vertices of depth-tested plates; overlays follow
 }
 
 impl Plates {
-    /// Starts empty; the buffer grows with the first plates.
+    /// Create the buffer and pipelines.
     pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
         Self {
             // 40 bytes per vertex; must match the shader and `pipeline`
@@ -37,7 +35,7 @@ impl Plates {
         self.pipeline = pipeline(ctx, target, false);
     }
 
-    /// Two triangles per plate, cut to its clip box.
+    /// Build six vertices per rectangle; depth-tested ones first.
     pub(super) fn prepare(&mut self, ctx: &GpuCtx, rectangles: &[Rectangle], size: [u32; 2]) {
         self.vertices.reset();
         let mut vertices = Vec::with_capacity(rectangles.len() * 6);
@@ -49,7 +47,7 @@ impl Plates {
                     continue;
                 }
 
-                // measure before cutting, so a cut plate keeps its true corners
+                // shape before clipping, for the rounded corners
                 let [left, top, right, bottom] = rectangle.bounds;
                 let half = [(right - left) * 0.5, (bottom - top) * 0.5];
                 let center = [(left + right) * 0.5, (top + bottom) * 0.5];
@@ -58,6 +56,7 @@ impl Plates {
                 } else {
                     0.0
                 };
+                // cut to the clip box
                 let left = left.max(rectangle.clip[0]);
                 let top = top.max(rectangle.clip[1]);
                 let right = right.min(rectangle.clip[2]);
@@ -67,7 +66,7 @@ impl Plates {
                     continue;
                 }
 
-                // pixels to clip space: x 0..width becomes -1..1, and y flips because clip y points up
+                // two triangles in clip space
                 for [x, y] in [
                     [left, top],
                     [left, bottom],
@@ -134,7 +133,6 @@ impl Plates {
         pass.set_pipeline(&self.id_pipeline);
         pass.set_bind_group(0, pick_transform, &[]);
         pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
-        // --8<-- [end:step-18a]
         pass.draw(0..self.vertices.len(), 0..1);
         1
     }
@@ -142,9 +140,7 @@ impl Plates {
     /// Forget every rectangle.
     pub(super) fn reset(&mut self) {
         self.vertices.reset();
-        // --8<-- [start:step-18b]
         self.physical_vertices = 0;
-        // --8<-- [end:step-18b]
     }
 
     /// Forget every rectangle and free the buffer.
@@ -158,25 +154,23 @@ impl Plates {
     }
 }
 
-// --8<-- [start:step-18c]
-/// Build the color or id pipeline; depth is read, not written.
-fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> wgpu::RenderPipeline {
-    let shader = ctx
-        .device
-        .create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("text plate shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/text_plate.wgsl").into()),
-        });
+/// The color or id pipeline, compiled on first use; depth is read, not written.
+fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
+    let device = ctx.device.clone();
     let pick = crate::engine::gpu::frame::pick_transform_layout(ctx);
-    let id_layout = ctx
-        .device
-        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+    Pipeline::new(move || {
+        crate::engine::pipelines::count_shader();
+        crate::engine::pipelines::count_pipeline();
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("text plate shader"),
+            source: wgpu::ShaderSource::Wgsl(shader!("text_plate.wgsl").into()),
+        });
+        let id_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("text plate ids"),
             bind_group_layouts: &[Some(&pick)],
             immediate_size: 0,
         });
-    ctx.device
-        .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("text plates"),
             layout: if ids { Some(&id_layout) } else { None },
             vertex: wgpu::VertexState {
@@ -195,7 +189,6 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> wgpu::RenderPipeline {
                 targets: &[Some(wgpu::ColorTargetState {
                     format: target.format,
                     blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) },
-                    // --8<-- [end:step-18c]
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
                 compilation_options: Default::default(),
@@ -204,9 +197,7 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> wgpu::RenderPipeline {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: Some(false),
-                // --8<-- [start:step-18d]
                 depth_compare: Some(wgpu::CompareFunction::GreaterEqual),
-                // --8<-- [end:step-18d]
                 stencil: Default::default(),
                 bias: Default::default(),
             }),
@@ -217,4 +208,5 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> wgpu::RenderPipeline {
             multiview_mask: None,
             cache: None,
         })
+    })
 }

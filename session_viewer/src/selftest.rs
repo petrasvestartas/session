@@ -205,7 +205,10 @@ fn frame_input(gpu: &mut Gpu, camera: &Camera, aspect: f64) -> FrameInput {
 fn report_drag(ms: &[f64], tiers: &[u8]) {
     let percentile = |values: &mut Vec<f64>, p: f64| {
         values.sort_by(f64::total_cmp);
-        values.get(((values.len() as f64 - 1.0) * p).round() as usize).copied().unwrap_or(0.0)
+        values
+            .get(((values.len() as f64 - 1.0) * p).round() as usize)
+            .copied()
+            .unwrap_or(0.0)
     };
     let mut all = ms.to_vec();
     println!(
@@ -221,7 +224,12 @@ fn report_drag(ms: &[f64], tiers: &[u8]) {
             continue;
         };
         let since = first_slow.map_or(0.0, |start| ms[start..entered].iter().sum::<f64>());
-        let mut at: Vec<f64> = ms.iter().zip(tiers).filter(|(_, t)| **t == tier).map(|(v, _)| *v).collect();
+        let mut at: Vec<f64> = ms
+            .iter()
+            .zip(tiers)
+            .filter(|(_, t)| **t == tier)
+            .map(|(v, _)| *v)
+            .collect();
         println!(
             "drag: tier {tier} from frame {entered}, {since:.0} ms after the first slow frame; p50 {:.1} ms there",
             percentile(&mut at, 0.5)
@@ -251,10 +259,27 @@ fn bench_labels(gpu: &Gpu, mixed: bool) -> Vec<TextLabel> {
         if mixed {
             // spread over the scene box
             let t = f64::from(i) / 40.0;
-            let world = [b.cx + b.hx * (t * 2.0 - 1.0), b.cy + b.hy * (1.0 - t * 2.0), b.cz];
+            let world = [
+                b.cx + b.hx * (t * 2.0 - 1.0),
+                b.cy + b.hy * (1.0 - t * 2.0),
+                b.cz,
+            ];
             let padding = [6.0, 3.0];
-            labels.push(label(i + 101, TextPlacement::Nameplate { world, padding, rounded: true }));
-            labels.push(label(i + 201, TextPlacement::Anchor { world, offset: [0.0, 12.0] }));
+            labels.push(label(
+                i + 101,
+                TextPlacement::Nameplate {
+                    world,
+                    padding,
+                    rounded: true,
+                },
+            ));
+            labels.push(label(
+                i + 201,
+                TextPlacement::Anchor {
+                    world,
+                    offset: [0.0, 12.0],
+                },
+            ));
         }
     }
 
@@ -262,12 +287,22 @@ fn bench_labels(gpu: &Gpu, mixed: bool) -> Vec<TextLabel> {
 }
 
 /// Up to six clipping planes through the middle of `bounds`, each cutting a different side.
-fn middle_planes(bounds: &session_rust::AABB, count: usize) -> Vec<crate::engine::gpu::clip::ClipPlane> {
+fn middle_planes(
+    bounds: &session_rust::AABB,
+    count: usize,
+) -> Vec<crate::engine::gpu::clip::ClipPlane> {
     use crate::app::clipping::{Mode, clip_plane, plane_from};
     let c = [bounds.cx, bounds.cy, bounds.cz];
     let h = [bounds.hx, bounds.hy, bounds.hz];
     // (axis, sign): the side cut away, a fifth of the way out from the middle
-    let sides = [(2, 1.0), (0, 1.0), (1, 1.0), (2, -1.0), (0, -1.0), (1, -1.0)];
+    let sides = [
+        (2, 1.0),
+        (0, 1.0),
+        (1, 1.0),
+        (2, -1.0),
+        (0, -1.0),
+        (1, -1.0),
+    ];
     let mut planes = Vec::new();
 
     for &(axis, sign) in sides.iter().take(count.min(6)) {

@@ -1,79 +1,113 @@
-//! Shaping turns a string into placed glyphs: which glyph to draw from the font, and where the pen lands after each one.
 use glyphon::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap, fontdb};
 use serde::Serialize;
 
 /// The font every label uses.
 pub const FONT_FAMILY: &str = "Noto Sans";
 
-/// The main font, bundled into the binary.
-pub const FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.ttf");
+/// The main font's Latin, Lithuanian, German and CAD subset, bundled into the binary once: a static,
+/// where a const is copied per use.
+pub static FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.subset.ttf");
 
-/// Symbol fallback font.
-pub const SYMBOL_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols-Regular.ttf");
+/// Symbol fallback font, only the symbols the viewer's own strings use.
+pub static SYMBOL_BYTES: &[u8] =
+    include_bytes!("../../assets/text/NotoSansSymbols-Regular.subset.ttf");
 
-/// Second symbol fallback font.
-pub const FALLBACK_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols2-Regular.ttf");
+/// Second symbol fallback font, only the symbols the viewer's own strings use.
+pub static FALLBACK_BYTES: &[u8] =
+    include_bytes!("../../assets/text/NotoSansSymbols2-Regular.subset.ttf");
+
+/// The whole fonts under `text/`, in the order of the bundled ones, fetched when a text needs them.
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
+pub const FULL_FONTS: [&str; 3] = [
+    "NotoSans-Regular.ttf",
+    "NotoSansSymbols2-Regular.ttf",
+    "NotoSansSymbols-Regular.ttf",
+];
 
 /// Most text bytes in one label set.
 const MAX_TEXT_BYTES: usize = 256 * 1024;
 
-/// Text origin, orientation and size policy; physical labels use scene depth.
-#[derive(Clone, Debug, PartialEq)]
+/// Where a label sits and how it is sized.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum TextPlacement {
-    Screen { // fixed on screen, CSS px
-        left: f32,
-        top: f32,
+    Screen {
+        // fixed on screen, CSS px
+        left: f32, // left edge
+        top: f32,  // top edge
     },
-    Anchor { // at a world point, screen-sized, hidden behind geometry
-        world: [f64; 3],
+    Anchor {
+        // at a world point, screen-sized, hidden behind geometry
+        world: [f64; 3],  // world point
         offset: [f32; 2], // shift from it, CSS px
     },
-    Nameplate { // centered on a world point with a plate, always on top
+    Nameplate {
+        // centered on a world point with a plate, always on top
         // world point
         world: [f64; 3],
         padding: [f32; 2], // space around the text, CSS px
-        rounded: bool, // rounded plate corners
+        rounded: bool,     // rounded plate corners
     },
     WorldPlane {
+        // lying on a plane in the world
         // top-left corner
         world: [f64; 3],
-        right: [f64; 3], // unit axis along the text
-        up: [f64; 3], // unit axis up the text
-        world_height: f64,
+        right: [f64; 3],   // unit axis along the text
+        up: [f64; 3],      // unit axis up the text
+        world_height: f64, // em height, world units
     },
-    WorldBillboard { // facing the camera, world-sized
+    WorldBillboard {
+        // facing the camera, world-sized
         // world point
         world: [f64; 3],
-        world_height: f64,
+        world_height: f64, // em height, world units
     },
 }
 
-/// One source label, sizes in CSS pixels.
-#[derive(Clone, Debug, PartialEq)]
+/// The object a label belongs to, for picks and selection.
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TextObject {
+    pub row: u32,       // object row
+    pub selected: bool, // drawn as selected
+}
+
+/// One text label; sizes in CSS pixels.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TextLabel {
-    pub id: u32, // unique per label
-    pub text: String,
-    pub font_size: f32,
-    pub line_height: f32, // distance between lines
-    pub color: [u8; 4], // rgba
-    pub placement: TextPlacement, // where it sits
-    pub clip: Option<[f32; 4]>, // screen box to cut it to: left, top, right, bottom
+    pub id: u32,                    // unique per label
+    pub object: Option<TextObject>, // owning object, if any
+    pub text: String,               // the text
+    pub font_size: f32,             // em size
+    pub line_height: f32,           // distance between lines
+    pub color: [u8; 4],             // rgba
+    pub placement: TextPlacement,   // where it sits
+    pub clip: Option<[f32; 4]>,     // screen box to cut it to: left, top, right, bottom
+}
+
+impl TextLabel {
+    /// Ink color: black when selected, else the label's own.
+    pub fn ink_color(&self) -> [u8; 4] {
+        if self.object.is_some_and(|object| object.selected) {
+            [0, 0, 0, 255]
+        } else {
+            self.color
+        }
+    }
 }
 
 /// A label with its shaped glyphs.
 pub struct TextRun {
-    pub label: TextLabel,
-    pub buffer: Buffer, // its glyphs, laid out by glyphon
+    pub label: TextLabel, // the label
+    pub buffer: Buffer,   // its glyphs, laid out by glyphon
 }
 
 /// Every label, shaped, with the fonts.
 pub struct TextDocument {
-    pub fonts: FontSystem,
+    pub fonts: FontSystem,  // the font set
     pub runs: Vec<TextRun>, // shaped labels
-    pub revision: u64, // bumps on every label change
+    pub revision: u64,      // bumps on every label change
     pub font_revision: u64, // bumps on every font change
-    pub shape_count: u64, // labels shaped so far
-    pub shaping_ms: f64, // time spent shaping
+    pub shape_count: u64,   // labels shaped so far
+    pub shaping_ms: f64,    // time spent shaping
 }
 
 impl TextDocument {
@@ -144,11 +178,20 @@ impl TextDocument {
 
     /// Replace the fonts and reshape everything; bad data changes nothing.
     pub fn replace_fonts(&mut self, sources: Vec<Vec<u8>>) -> anyhow::Result<()> {
+        let sources = sources
+            .into_iter()
+            .map(|bytes| fontdb::Source::Binary(std::sync::Arc::new(bytes)))
+            .collect();
+        self.replace_sources(sources)
+    }
+
+    /// `replace_fonts` from font sources, read in place.
+    pub fn replace_sources(&mut self, sources: Vec<fontdb::Source>) -> anyhow::Result<()> {
         let mut db = fontdb::Database::new();
 
-        for bytes in sources {
+        for source in sources {
             let before = db.faces().count();
-            db.load_font_data(bytes);
+            db.load_font_source(source);
             anyhow::ensure!(
                 db.faces().count() > before,
                 "font data contains no usable face"
@@ -218,24 +261,52 @@ impl Default for TextDocument {
 /// One shaped glyph, for tests.
 #[derive(Clone, Debug, Serialize)]
 pub struct GlyphDiagnostic {
-    pub label: u32,
-    pub line: usize,
+    pub label: u32,          // label id
+    pub line: usize,         // line index
     pub cluster: [usize; 2], // byte range in the text
-    pub glyph: u16, // glyph id; 0 = missing
-    pub font: String,
-    pub origin: [f32; 2], // position on the line
-    pub advance: f32, // width
-    pub offset: [f32; 2],
-    pub baseline: f32,
-    pub line_width: f32,
+    pub glyph: u16,          // glyph id; 0 = missing
+    pub font: String,        // font it came from
+    pub origin: [f32; 2],    // position on the line
+    pub advance: f32,        // width
+    pub offset: [f32; 2],    // shaping offset
+    pub baseline: f32,       // line baseline
+    pub line_width: f32,     // width of the whole line
 }
 
-/// The bundled fonts as a font system.
+/// True when the bundled fonts draw every character of `text`.
+pub fn covers(text: &str) -> bool {
+    text.is_ascii() || text.chars().all(|c| c.is_control() || bundled_glyph(c))
+}
+
+/// True when a bundled font maps `c` to a glyph; only the character maps are read.
+fn bundled_glyph(c: char) -> bool {
+    thread_local! {
+        static MAPS: Vec<ttf_parser::cmap::Table<'static>> = [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES]
+            .into_iter()
+            .filter_map(|bytes| {
+                let face = ttf_parser::RawFace::parse(bytes, 0).ok()?;
+                ttf_parser::cmap::Table::parse(face.table(ttf_parser::Tag::from_bytes(b"cmap"))?)
+            })
+            .collect();
+    }
+
+    MAPS.with(|maps| {
+        maps.iter().any(|map| {
+            map.subtables
+                .into_iter()
+                .any(|table| table.is_unicode() && table.glyph_index(u32::from(c)).is_some())
+        })
+    })
+}
+
+/// The bundled fonts as a font system, read in place rather than copied.
 fn bundled_fonts() -> FontSystem {
     let mut db = fontdb::Database::new();
-    db.load_font_data(FONT_BYTES.to_vec());
-    db.load_font_data(FALLBACK_BYTES.to_vec());
-    db.load_font_data(SYMBOL_BYTES.to_vec());
+
+    for bytes in [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES] {
+        db.load_font_source(fontdb::Source::Binary(std::sync::Arc::new(bytes)));
+    }
+
     db.set_sans_serif_family(FONT_FAMILY);
     FontSystem::new_with_locale_and_db("en-US".into(), db)
 }
@@ -348,8 +419,9 @@ mod tests {
     use super::*;
 
     /// A screen label with fixed metrics.
-    fn label(text: &str) -> TextLabel {
+    pub(super) fn label(text: &str) -> TextLabel {
         TextLabel {
+            object: None,
             id: 1,
             text: text.into(),
             font_size: 16.0,

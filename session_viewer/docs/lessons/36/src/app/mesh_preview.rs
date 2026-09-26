@@ -8,19 +8,19 @@ use std::collections::{HashMap, HashSet};
 
 /// A mesh's GPU rows, each tagged with its source vertex key.
 pub struct MeshPreview {
-    vertices: Vec<(usize, RenderVertex)>,       // (vertex key, GPU vertex)
+    vertices: Vec<(usize, RenderVertex)>, // (vertex key, GPU vertex)
     pipes: Vec<([usize; 2], CylinderSegment)>, // (edge keys, GPU pipe)
-    spheres: Vec<(usize, GlyphPoint)>,         // (vertex key, vertex sphere)
-    dots: Vec<(usize, GlyphPoint)>,            // (vertex key, dot)
-    span: Span,                                // where the rows sit on the GPU
+    spheres: Vec<(usize, GlyphPoint)>,    // (vertex key, vertex sphere)
+    dots: Vec<(usize, GlyphPoint)>,       // (vertex key, dot)
+    span: Span,                           // where the rows sit on the GPU
 }
 
 /// The GPU rows one drag touches.
 pub struct Gesture {
-    vertices: Vec<(u32, RenderVertex, bool)>,     // (GPU index, original, moves)
+    vertices: Vec<(u32, RenderVertex, bool)>, // (GPU index, original, moves)
     pipes: Vec<(u32, CylinderSegment, [bool; 2])>, // (GPU index, original, each end moves)
-    spheres: Vec<(u32, GlyphPoint, bool)>,        // (GPU index, original, moves)
-    dots: Vec<(u32, GlyphPoint, bool)>,           // (GPU index, original, moves)
+    spheres: Vec<(u32, GlyphPoint, bool)>,    // (GPU index, original, moves)
+    dots: Vec<(u32, GlyphPoint, bool)>,       // (GPU index, original, moves)
 }
 
 /// The mesh inside a geometry, if any.
@@ -305,9 +305,7 @@ mod tests {
                 vert_base: 0,
                 cloud_px: 0.,
                 row: 0,
-                // --8<-- [start:step-11]
                 attributes: false,
-                // --8<-- [end:step-11]
             },
             &geometry,
         );

@@ -1,10 +1,9 @@
-//! GPU text with glyphon: each glyph is rasterized once into an atlas, one shared texture, and every letter is a quad sampling it.
 use super::buffers::GpuCtx;
-// `#[path]` loads a sibling file as a private submodule: only this file sees Planes and Plates
 #[path = "text_plane.rs"]
 mod plane;
 #[path = "text_plate.rs"]
 mod plate;
+use crate::engine::pipelines::Layouts;
 use crate::engine::pipelines::Target;
 use crate::engine::text::{TextDocument, TextLabel, TextPlacement, TextRun};
 use glyphon::{
@@ -14,58 +13,58 @@ use glyphon::{
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 
-/// Camera and canvas for one frame; `PartialEq` lets `prepare` skip a frame equal to the last one.
+/// Camera and canvas facts the text lane needs each frame.
 #[derive(Clone, Debug, PartialEq)]
 pub struct TextFrame {
-    pub mvp: [f32; 16], // world to clip space, column-major
-    pub origin: [f64; 3], // subtracted from world points before `mvp`, so f32 keeps its precision
-    pub framebuffer: [u32; 2], // real pixels, e.g. 1600 x 1200
-    pub logical: [f64; 2], // CSS pixels, e.g. 800 x 600 at scale 2.0
-    pub ortho_half_height: f32, // 0 in perspective
+    pub mvp: [f32; 16],                             // camera matrix
+    pub origin: [f64; 3],                           // scene origin the matrix is relative to
+    pub framebuffer: [u32; 2],                      // canvas size, px
+    pub logical: [f64; 2],                          // canvas size, CSS px
+    pub ortho_half_height: f32,                     // ortho half-height; 0 = perspective
+    pub clip: [[f64; 4]; super::frame::MAX_PLANES], // clipping planes, world (normal, offset); zero cuts nothing
 }
 
-/// Counters for the diagnostics panel: they answer "why is text slow" and "where did the memory go".
+/// Text counters shown in the diagnostics panel.
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct TextStats {
-    pub preparations: u64,
-    pub skipped_preparations: u64, // frames where nothing moved
-    pub shape_count: u64,
-    pub shaping_ms: f64,
-    pub requested_glyphs: usize, // this frame
-    pub distinct_raster_keys: usize, // raster key = glyph + size + subpixel offset: one atlas entry each
-    pub new_raster_keys: usize, // this frame
-    pub raster_images: usize, // glyph bitmaps swash keeps on the CPU
-    pub new_raster_images: usize, // this frame
-    pub raster_image_capacity_bytes: usize,
-    pub atlas_resets: u64,
-    pub preparation_ms: f64, // the last rebuild
-    pub active_instance_bytes: usize, // 28 bytes per drawn glyph
-    pub missing_glyphs: usize, // glyph id 0: no font has it, drawn as a box
-    pub nameplate_capacity_bytes: u64,
-    pub world_plane_buffer_bytes: u64,
-    pub world_plane_texture_bytes: u64,
-    pub world_plane_rasterizations: u64,
+    pub preparations: u64,                  // frames that rebuilt the text
+    pub skipped_preparations: u64,          // frames that reused it
+    pub shape_count: u64,                   // labels shaped so far
+    pub shaping_ms: f64,                    // time spent shaping
+    pub requested_glyphs: usize,            // glyphs drawn this frame
+    pub distinct_raster_keys: usize,        // different glyph rasters seen
+    pub new_raster_keys: usize,             // new ones this frame
+    pub raster_images: usize,               // glyph images kept on the CPU
+    pub new_raster_images: usize,           // new ones this frame
+    pub raster_image_capacity_bytes: usize, // bytes of those images
+    pub atlas_resets: u64,                  // times the glyph atlas was rebuilt
+    pub preparation_ms: f64,                // time of the last rebuild
+    pub active_instance_bytes: usize,       // 28 bytes per drawn glyph
+    pub missing_glyphs: usize,              // glyphs no font had
+    pub nameplate_capacity_bytes: u64,      // bytes of the plate vertex buffer
+    pub world_plane_buffer_bytes: u64,      // bytes of the plane vertex buffer
+    pub world_plane_texture_bytes: u64,     // bytes of the plane textures
+    pub world_plane_rasterizations: u64,    // plane textures made so far
 }
 
-// Overlay = text always on top; anchored = text at a scene depth, hidden behind nearer geometry.
-/// Draws every label: planes, anchored text, plates and overlays.
+/// Draws every text label: screen overlays, anchored labels, plates and planes.
 pub struct TextLane {
     pub document: TextDocument, // the labels and their shaped glyphs
-    pub stats: TextStats,
-    cache: Cache, // glyphon's shaders and layouts, shared by the atlas and both renderers
-    atlas: TextAtlas,
-    viewport: Viewport, // canvas size, for glyphon's pixel to clip space math
-    raster: SwashCache, // swash rasterizes glyph outlines into bitmaps on the CPU
-    overlay: TextRenderer,
-    anchored: TextRenderer,
-    plates: plate::Plates,
-    planes: plane::Planes,
-    target: Target,
-    atlas_font_revision: u64,
-    prepared: Option<(u64, u64, TextFrame)>, // key of the last rebuild; the same key skips the next
-    raster_keys: HashSet<glyphon::CacheKey>, // since the last atlas reset
-    overlay_count: u32, // 0 or 1: nothing to draw, or one draw
-    anchored_count: u32,
+    pub stats: TextStats,       // counters
+    cache: Cache,               // glyphon's shared GPU cache
+    atlas: TextAtlas,           // glyph texture atlas
+    viewport: Viewport,         // canvas size for glyphon
+    raster: SwashCache,         // CPU glyph images
+    overlay: TextRenderer,      // labels always on top
+    anchored: TextRenderer,     // labels behind geometry are hidden
+    plates: plate::Plates,      // label backgrounds
+    planes: plane::Planes,      // labels on a world plane
+    target: Target,             // scene color format and samples
+    atlas_font_revision: u64,   // font set the atlas was built with
+    prepared: Option<(u64, u64, TextFrame)>, // what the last rebuild was for
+    raster_keys: HashSet<glyphon::CacheKey>, // glyph rasters seen since the last reset
+    overlay_count: u32,         // 1 when there are overlay labels to draw
+    anchored_count: u32,        // 1 when there are anchored labels to draw
 }
 
 impl TextLane {
@@ -79,7 +78,7 @@ impl TextLane {
         self.planes.texture_bytes()
     }
 
-    /// One atlas feeds both renderers; they differ only in the depth test.
+    /// Create the atlas, renderers, plates and planes.
     pub fn new(ctx: &GpuCtx, target: Target) -> Self {
         let cache = Cache::new(&ctx.device);
         let viewport = Viewport::new(&ctx.device, &cache);
@@ -98,7 +97,7 @@ impl TextLane {
             plates: plate::Plates::new(ctx, target),
             planes: plane::Planes::new(ctx, target),
             target,
-            atlas_font_revision: 1, // a new document starts at 1, so the first frame keeps this atlas
+            atlas_font_revision: 1,
             prepared: None,
             raster_keys: HashSet::new(),
             overlay_count: 0,
@@ -123,15 +122,22 @@ impl TextLane {
             target,
             wgpu::CompareFunction::GreaterEqual,
         );
-        self.prepared = None; // the next prepare must run
+        self.prepared = None;
     }
 
-    /// Place every label for this frame; skipped when labels, fonts and camera match the last call.
+    /// Place every label for this frame, unless nothing changed.
     pub fn prepare(&mut self, ctx: &GpuCtx, frame: &TextFrame) -> anyhow::Result<()> {
+        // labels fixed on screen ignore the camera
+        let fixed = self
+            .document
+            .runs
+            .iter()
+            .all(|run| matches!(run.label.placement, TextPlacement::Screen { .. }));
+        // skip when labels, fonts and whatever they follow are unchanged
         let key = (
             self.document.revision,
             self.document.font_revision,
-            frame.clone(),
+            if fixed { frame.canvas() } else { frame.clone() },
         );
 
         if self.prepared.as_ref() == Some(&key) {
@@ -143,10 +149,10 @@ impl TextLane {
         self.anchored_count = 0;
         self.plates.reset();
         let scale = frame.scale()?;
-        let start = now_ms();
+        let start = crate::engine::performance::now_ms();
         let fonts_changed = self.atlas_font_revision != self.document.font_revision;
 
-        // a fresh atlas after a font change, or past 4096 raster keys, so a long zoom cannot grow it forever
+        // rebuild the atlas when fonts changed or it grew large
         if fonts_changed || self.raster_keys.len() > 4096 {
             self.rebuild_resources(ctx);
         }
@@ -154,7 +160,7 @@ impl TextLane {
         let raster_images_before = self.raster.image_cache.values().flatten().count();
         self.planes
             .prepare(ctx, &mut self.document, &mut self.raster, frame)?;
-        self.atlas.trim(); // glyphs this prepare does not use may now be evicted
+        self.atlas.trim();
         self.viewport.update(
             &ctx.queue,
             Resolution {
@@ -180,7 +186,6 @@ impl TextLane {
                 plates.push(rectangle);
             }
 
-            // what glyphon draws: one shaped buffer at a position, scale and clip box
             let area = TextArea {
                 buffer: &run.buffer,
                 left: placed.left,
@@ -196,7 +201,7 @@ impl TextLane {
                 custom_glyphs: &[],
             };
 
-            // count glyphs and new raster keys, for the stats
+            // box around the shaped lines
             for line in run.buffer.layout_runs() {
                 for glyph in line.glyphs {
                     self.stats.requested_glyphs += 1;
@@ -204,6 +209,16 @@ impl TextLane {
                     let physical = glyph.physical((placed.left, placed.top), placed.scale);
                     self.stats.new_raster_keys +=
                         usize::from(self.raster_keys.insert(physical.cache_key));
+                }
+            }
+
+            // note whether each renderer has anything to draw
+            if !run.label.text.is_empty() {
+                match run.label.placement {
+                    TextPlacement::Screen { .. } | TextPlacement::Nameplate { .. } => {
+                        self.overlay_count = 1
+                    }
+                    _ => self.anchored_count = 1,
                 }
             }
 
@@ -224,7 +239,7 @@ impl TextLane {
             overlays,
             &mut self.raster,
         )?;
-        // one call draws every anchored label, so glyphon asks for each label's depth by id
+        // glyphon asks for each label's depth by id
         self.anchored.prepare_with_depth(
             &ctx.device,
             &ctx.queue,
@@ -236,19 +251,6 @@ impl TextLane {
             |id| depth_for(&depths, id),
         )?;
         self.plates.prepare(ctx, &plates, frame.framebuffer);
-
-        // note whether each renderer has anything to draw
-        for run in &self.document.runs {
-            if place(&run.label, frame, scale).is_some() && !run.label.text.is_empty() {
-                match run.label.placement {
-                    TextPlacement::Screen { .. } | TextPlacement::Nameplate { .. } => {
-                        self.overlay_count = 1
-                    }
-                    _ => self.anchored_count = 1,
-                }
-            }
-        }
-
         self.stats.raster_images = 0;
         self.stats.raster_image_capacity_bytes = 0;
 
@@ -270,7 +272,7 @@ impl TextLane {
         self.stats.world_plane_buffer_bytes = self.planes.buffer_bytes();
         self.stats.world_plane_texture_bytes = self.planes.texture_bytes();
         self.stats.world_plane_rasterizations = self.planes.rasterizations;
-        self.stats.preparation_ms = now_ms() - start;
+        self.stats.preparation_ms = crate::engine::performance::now_ms() - start;
         self.prepared = Some(key);
         Ok(())
     }
@@ -329,7 +331,7 @@ impl TextLane {
         self.rebuild_resources(ctx);
     }
 
-    /// Start the atlas and CPU glyph cache over, and rebuild both renderers from the new atlas.
+    /// Rebuild the atlas, renderers and glyph cache from scratch.
     fn rebuild_resources(&mut self, ctx: &GpuCtx) {
         self.atlas = make_atlas(ctx, &self.cache, self.target.format);
         self.overlay = renderer(
@@ -356,6 +358,24 @@ impl TextLane {
 }
 
 impl TextFrame {
+    /// This frame without its camera: all a label fixed on screen depends on.
+    fn canvas(&self) -> TextFrame {
+        TextFrame {
+            mvp: [0.0; 16],
+            origin: [0.0; 3],
+            ortho_half_height: 0.0,
+            clip: [[0.0; 4]; super::frame::MAX_PLANES],
+            ..self.clone()
+        }
+    }
+
+    /// True when a clipping plane cuts world point `p` away.
+    pub fn cut(&self, p: [f64; 3]) -> bool {
+        self.clip
+            .iter()
+            .any(|k| k[0] * p[0] + k[1] * p[1] + k[2] * p[2] + k[3] < 0.0)
+    }
+
     /// Framebuffer pixels per CSS pixel; fails on a stretched canvas.
     pub fn scale(&self) -> anyhow::Result<f32> {
         anyhow::ensure!(
@@ -371,7 +391,6 @@ impl TextFrame {
         );
         let x = self.framebuffer[0] as f64 / self.logical[0];
         let y = self.framebuffer[1] as f64 / self.logical[1];
-        // the canvas is rounded to whole pixels, which may shift each axis by one
         let tolerance = 1.0 / self.logical[0] + 1.0 / self.logical[1];
         anyhow::ensure!(
             (x - y).abs() <= tolerance,
@@ -383,13 +402,13 @@ impl TextFrame {
 
 /// Where a label lands on screen, in framebuffer pixels.
 struct PlacedText {
-    left: f32,
-    top: f32,
-    scale: f32, // real pixels per font pixel: the device scale, or less for far world-sized text
-    depth: Option<f32>, // None = overlay
+    left: f32,          // left edge
+    top: f32,           // top edge
+    scale: f32,         // font pixels per font unit
+    depth: Option<f32>, // scene depth; None = always on top
 }
 
-/// Screen position of a label; None behind the eye, outside near and far, or for plane text.
+/// Screen position of a label; None when off screen or on a world plane.
 fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText> {
     let (world, offset, world_height) = match label.placement {
         TextPlacement::WorldPlane { .. } => return None,
@@ -408,20 +427,26 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
             world_height,
         } => (world, [0.0; 2], Some(world_height)),
     };
+
+    // cut away by a clipping plane: not drawn
+    if frame.cut(world) {
+        return None;
+    }
+
     let p = [
         (world[0] - frame.origin[0]) as f32,
         (world[1] - frame.origin[1]) as f32,
         (world[2] - frame.origin[2]) as f32,
     ];
     let m = &frame.mvp;
-    // row 3 of the matrix gives w; w <= 0 is behind the eye
+    // behind the camera: not drawn
     let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
 
     if !w.is_finite() || w <= 0.0 {
         return None;
     }
 
-    // depth 0..1 lies between the far and near planes
+    // outside near and far: not drawn
     let z = (m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]) / w;
 
     if !(0.0..=1.0).contains(&z) {
@@ -430,7 +455,7 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
 
     let x = (m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12]) / w;
     let y = (m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13]) / w;
-    // world-sized text shrinks with w: pixel height = world height x y scale x half the framebuffer / w
+    // world-sized text scales with distance
     let raster_scale = match world_height {
         Some(height) => {
             let projection = (m[1] * m[1] + m[5] * m[5] + m[9] * m[9]).sqrt();
@@ -448,7 +473,7 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
         top: (1.0 - y) * 0.5 * frame.framebuffer[1] as f32 + offset[1] * scale,
         scale: raster_scale,
         depth: match label.placement {
-            TextPlacement::Nameplate { .. } => None, // stays on top of its own object
+            TextPlacement::Nameplate { .. } => None,
             _ => Some(z),
         },
     })
@@ -527,7 +552,7 @@ fn clip_bounds(label: &TextLabel, frame: &TextFrame, scale: f32) -> TextBounds {
         Some(c) => TextBounds {
             left: (c[0] * scale).floor() as i32,
             top: (c[1] * scale).floor() as i32,
-            right: (c[2] * scale).ceil() as i32, // floor and ceil round outward: an edge glyph keeps its last pixel
+            right: (c[2] * scale).ceil() as i32,
             bottom: (c[3] * scale).ceil() as i32,
         },
         None => TextBounds {
@@ -539,7 +564,7 @@ fn clip_bounds(label: &TextLabel, frame: &TextFrame, scale: f32) -> TextBounds {
     }
 }
 
-/// A glyphon renderer; `compare` decides whether scene geometry can hide its text.
+/// A glyphon renderer with the given depth test.
 fn renderer(
     ctx: &GpuCtx,
     atlas: &mut TextAtlas,
@@ -555,7 +580,7 @@ fn renderer(
         },
         Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(false), // text never hides geometry or other text
+            depth_write_enabled: Some(false),
             depth_compare: Some(compare),
             stencil: Default::default(),
             bias: Default::default(),
@@ -563,7 +588,7 @@ fn renderer(
     )
 }
 
-/// Accurate blends in linear light for an sRGB canvas; Web blends like a browser does.
+/// A glyph atlas for the canvas color format.
 fn make_atlas(ctx: &GpuCtx, cache: &Cache, format: wgpu::TextureFormat) -> TextAtlas {
     let mode = if format.is_srgb() {
         ColorMode::Accurate
@@ -573,21 +598,9 @@ fn make_atlas(ctx: &GpuCtx, cache: &Cache, format: wgpu::TextureFormat) -> TextA
     TextAtlas::with_color_mode(&ctx.device, &ctx.queue, cache, format, mode)
 }
 
-/// A missing id gets 0, the far plane in reverse-Z: visible only over empty background.
+/// Depth of the label with this id.
 fn depth_for(depths: &HashMap<usize, f32>, id: usize) -> f32 {
     depths.get(&id).copied().unwrap_or(0.0)
-}
-
-/// Time in ms; 0 outside the browser.
-fn now_ms() -> f64 {
-    #[cfg(target_arch = "wasm32")]
-    if let Some(window) = web_sys::window()
-        && let Some(performance) = window.performance()
-    {
-        return performance.now();
-    }
-
-    0.0
 }
 
 #[cfg(test)]
@@ -604,6 +617,7 @@ mod tests {
             framebuffer: [(800.0 * scale) as u32, (600.0 * scale) as u32],
             logical: [800.0, 600.0],
             ortho_half_height: 1.0,
+            clip: [[0.0; 4]; crate::engine::gpu::frame::MAX_PLANES],
         }
     }
 
@@ -1043,5 +1057,23 @@ mod tests {
         }
 
         count
+    }
+}
+
+impl super::lane::Lane for TextLane {
+    fn on_retarget(&mut self, ctx: &GpuCtx, _layouts: &Layouts, target: Target) {
+        self.retarget(ctx, target);
+    }
+
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.reset();
+    }
+
+    fn on_release(&mut self, ctx: &GpuCtx, _layouts: &Layouts) {
+        self.release(ctx);
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), self.texture_bytes())
     }
 }

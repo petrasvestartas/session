@@ -95,7 +95,7 @@ impl Drop for Query {
 
 /// The answer to one lookup.
 pub struct Resolved {
-    pub query: u64,                                        // which lookup
+    pub query: u64,                                       // which lookup
     pub result: Result<(EntityMeta, SheetTable), String>, // the entity and the table head
 }
 

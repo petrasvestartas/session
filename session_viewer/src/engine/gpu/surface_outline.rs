@@ -5,10 +5,10 @@ use super::buffers::GpuCtx;
 use super::frame::Binds;
 use super::pass::{Frame, Pass};
 use super::targets::{Attachment, Targets, TextureSpec};
+use crate::engine::pipelines::Layouts;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Pipeline, PipelineDesc, Target, build, module,
 };
-use crate::engine::pipelines::Layouts;
 
 /// One coverage mask: where the surfaces are on screen.
 struct Mask {
@@ -56,8 +56,8 @@ struct Alpha {
 /// Faces into the mask from the face pass's triangle ids, instead of drawing them again.
 struct FaceCoverage {
     layout: wgpu::BindGroupLayout, // the face pass's triangle id texture
-    fraction: Pipeline, // share of face samples, straight into the one-sample mask
-    with_edges: Pipeline, // face samples inside a mask pass, before the edges
+    fraction: Pipeline,            // share of face samples, straight into the one-sample mask
+    with_edges: Pipeline,          // face samples inside a mask pass, before the edges
     group: Option<(wgpu::TextureView, wgpu::BindGroup)>, // the texture it binds
 }
 
@@ -71,7 +71,7 @@ pub struct MaskKey {
     pub size: (u32, u32), // canvas size, px
     pub samples: u32,     // MSAA samples
     pub edges: bool,      // edges shown
-    pub rough: bool,      // edges tested against planes alone, in a slow drag
+    pub rough: bool,      // edges tested against planes alone, in a slow drag; register:tiles
     pub pen: u32,         // pen width bits
 }
 
@@ -93,11 +93,11 @@ pub struct SurfaceOutline {
     alpha_layout: wgpu::BindGroupLayout, // the outline alpha
     alpha: Option<Alpha>,                // outline alpha, only on the compositing outline
     alpha_for: Option<(bool, bool)>,     // which masks the alpha was drawn from
-    alpha_pipeline: Pipeline, // searches both masks into the alpha
+    alpha_pipeline: Pipeline,            // searches both masks into the alpha
     uniform: wgpu::Buffer,               // radius in px and a selected flag
-    pipeline: Pipeline,      // draws the outline
-    pool_pipeline: Pipeline, // shrinks the mask to blocks
-    dilate_pipeline: Pipeline, // grows the blocks by one
+    pipeline: Pipeline,                  // draws the outline
+    pool_pipeline: Pipeline,             // shrinks the mask to blocks
+    dilate_pipeline: Pipeline,           // grows the blocks by one
     mask: Option<Mask>,                  // current mask textures
     valid_for: Option<MaskKey>,          // what the mask was drawn for
     faces: Option<FaceCoverage>,         // faces from triangle ids, only around every solid
@@ -348,8 +348,7 @@ impl SurfaceOutline {
             let resolved = Attachment::new(ctx, "selection coverage", &spec);
             let multisampled = if samples > 1 {
                 // only resolved, never read: tilers may keep it on chip
-                let usage =
-                    wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TRANSIENT;
+                let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TRANSIENT;
                 Some(Attachment::new(
                     ctx,
                     "selection coverage MSAA",
@@ -460,7 +459,8 @@ impl SurfaceOutline {
                 size,
                 format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
                 samples: 1,
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::TEXTURE_BINDING,
             };
             let texture = Attachment::new(ctx, "selection outline alpha", &spec);
             let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -479,25 +479,34 @@ impl SurfaceOutline {
             self.alpha_for = None;
         }
 
-        if self.table.as_ref().is_some_and(|table| table.radius == radius) {
+        if self
+            .table
+            .as_ref()
+            .is_some_and(|table| table.radius == radius)
+        {
             return;
         }
 
         self.alpha_for = None;
 
-        let buffer = self.table.take().map(|table| table.buffer).unwrap_or_else(|| {
-            ctx.device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("selection outline taps"),
-                size: 16 + 16 * TAPS as u64,
-                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-                mapped_at_creation: false,
-            })
-        });
+        let buffer = self
+            .table
+            .take()
+            .map(|table| table.buffer)
+            .unwrap_or_else(|| {
+                ctx.device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("selection outline taps"),
+                    size: 16 + 16 * TAPS as u64,
+                    usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                })
+            });
         let taps = taps(radius);
         let mut data = vec![[0.0_f32; 4]; TAPS + 1];
         data[0][0] = f32::from_bits(taps.len() as u32);
         data[1..=taps.len()].copy_from_slice(&taps);
-        ctx.queue.write_buffer(&buffer, 0, bytemuck::cast_slice(&data));
+        ctx.queue
+            .write_buffer(&buffer, 0, bytemuck::cast_slice(&data));
         let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("selection outline taps"),
             layout: &self.table_layout,
@@ -658,7 +667,12 @@ impl SurfaceOutline {
     }
 
     /// Search both masks into the alpha texture, when forced or the masks in use changed.
-    pub fn encode_alpha(&mut self, selected: &Self, encoder: &mut wgpu::CommandEncoder, force: bool) {
+    pub fn encode_alpha(
+        &mut self,
+        selected: &Self,
+        encoder: &mut wgpu::CommandEncoder,
+        force: bool,
+    ) {
         let from = (self.mask.is_some(), selected.mask.is_some());
 
         if !force && self.alpha_for == Some(from) {
@@ -769,11 +783,7 @@ fn taps(radius: f32) -> Vec<[f32; 4]> {
 
 /// Outline pipeline: fullscreen, the alpha blended over the scene.
 fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> Pipeline {
-    let shader = module(
-        ctx,
-        "selection outline",
-        shader!("surface_outline.wgsl"),
-    );
+    let shader = module(ctx, "selection outline", shader!("surface_outline.wgsl"));
     let groups = [layout];
     let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
         .with("black selection outline", "fs_main")
@@ -1144,9 +1154,11 @@ mod tests {
             );
             gpu.view.show_outlines = false;
             let disabled = gpu.render_offscreen(&input);
-            assert!(disabled
-                .chunks_exact(4)
-                .all(|p| p[0] > 8 || p[1] > 8 || p[2] > 8));
+            assert!(
+                disabled
+                    .chunks_exact(4)
+                    .all(|p| p[0] > 8 || p[1] > 8 || p[2] > 8)
+            );
             assert_eq!(
                 selected_ids,
                 gpu.render_ids_offscreen(&input),
@@ -1335,7 +1347,14 @@ mod tests {
         gpu.resize(2880, 1800);
         let mut report = String::new();
 
-        for (mode, edges) in [(3, false), (0, false), (1, false), (2, false), (3, true), (0, true)] {
+        for (mode, edges) in [
+            (3, false),
+            (0, false),
+            (1, false),
+            (2, false),
+            (3, true),
+            (0, true),
+        ] {
             outline_mode(&mut gpu, mode);
             gpu.view.show_mesh_edges = edges;
 
@@ -1418,13 +1437,9 @@ impl Pass for Outline {
         let size = (g.config.width, g.config.height);
         // no outlines in x-ray
         let faces = g.view.show_outlines && g.view.opacity > 0.0 && g.live_faces() > 0;
-        let selected = self.selection.prepare(
-            &g.ctx,
-            size,
-            g.targets.samples,
-            g.logical_size[0],
-            faces,
-        );
+        let selected =
+            self.selection
+                .prepare(&g.ctx, size, g.targets.samples, g.logical_size[0], faces);
         let solid = self
             .solid
             .prepare(&g.ctx, size, g.targets.samples, g.logical_size[0], faces);
@@ -1440,11 +1455,11 @@ impl Pass for Outline {
             size,
             samples: g.targets.samples,
             edges: g.view.show_mesh_edges && f.tier < 2,
-            rough: f.rough,
+            rough: f.rough, // register:tiles
             pen: g.view.thickness_px.to_bits(),
         };
-        let stale = (solid && !self.solid.is_valid(&key))
-            || (selected && !self.selection.is_valid(&key));
+        let stale =
+            (solid && !self.solid.is_valid(&key)) || (selected && !self.selection.is_valid(&key));
         let mut draws = 0;
 
         if stale {
@@ -1452,7 +1467,7 @@ impl Pass for Outline {
             g.each_pass(|pass, g| pass.bind_masks(g));
             let b = g.frame.binds(&g.objects.group);
             // edges widen the mask, except in a slow drag
-            let ink = g.frame.binds(&g.objects.ink_group);
+            let ink = g.frame.binds(g.objects.ink_group());
             let edges = key.edges && g.live_pipes() > 0;
 
             if solid && selected {
@@ -1487,8 +1502,7 @@ impl Pass for Outline {
                     draws += g.segments.draw_selection_mask(&mut pass, &ink);
                 }
             }
-
-            g.mark(encoder, "masks");
+            g.mark(encoder, "masks"); // register:gtao
 
             if solid {
                 self.solid.encode_pool(encoder);
@@ -1500,11 +1514,11 @@ impl Pass for Outline {
                 self.selection.mark_valid(key);
             }
 
-            g.mark(encoder, "pool");
+            g.mark(encoder, "pool"); // register:gtao
         }
 
         self.solid.encode_alpha(&self.selection, encoder, stale);
-        g.mark(encoder, "alpha");
+        g.mark(encoder, "alpha"); // register:gtao
         draws
     }
 

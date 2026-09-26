@@ -1,42 +1,47 @@
-/// Display settings; each starts from the page URL, e.g. `?msaa=4`, or natively from an env variable.
+/// Display settings; most start from a `?query` or an env variable.
 pub struct View {
-    pub show_grid: bool,
-    pub show_points: bool, // point markers, `Q`
-    pub show_lines: bool, // lines and curves, `W`
-    pub show_mesh_edges: bool, // mesh edges and their vertex markers, `E`
-    // --8<-- [start:step-27a]
-    pub show_outlines: bool, // black outlines around surfaces, `O`
-    pub markers: bool, // vertex markers on mesh edges
-    pub cloud_size: f32, // point size scale, `[` and `]`
-    pub edl_strength: f32, // 0 = off
-    pub lod_px: f32, // LOD = level of detail: skip cloud points smaller than this, px; 0 = draw all
-    pub thickness_px: f32, // line width, CSS px
-    // --8<-- [end:step-27a]
-    pub feather_px: f32, // edge softness of dots, px
-    pub lit: bool, // headlight on mesh faces, `D`
-    pub backface: bool, // back faces painted red, `B`
-    pub opacity: f32, // face alpha; 0 = x-ray, `P` toggles
-    pub msaa_forced: Option<u32>, // 4 forces 4x MSAA, other values 1x
-    pub perf: bool, // draw every frame and show timing
-    pub spin: bool, // orbit a little every frame
+    pub ssao: bool,               // ambient occlusion on
+    pub show_grid: bool,          // floor grid
+    pub show_points: bool,        // point markers, `Q`
+    pub show_lines: bool,         // lines and curves, `W`
+    pub show_mesh_edges: bool,    // mesh edges and their vertex markers, `E`
+    pub show_outlines: bool,      // black outlines around surfaces, `O`
+    pub markers: bool,            // vertex markers on mesh edges
+    pub cloud_size: f32,          // point size scale, `[` and `]`
+    pub edl_strength: f32,        // eye-dome lighting strength; 0 = off
+    pub lod_px: f32,              // cloud LOD cutoff, px; 0 = draw every point
+    pub thickness_px: f32,        // pen width, CSS px
+    pub feather_px: f32,          // edge softness of dots, px
+    pub lit: bool,                // headlight on mesh faces, `D`
+    pub backface: bool,           // back faces painted red, `B`
+    pub opacity: f32,             // face alpha; 0 = x-ray, `P` toggles
+    pub msaa_forced: Option<u32>, // 4 forces 4x, other values 1x
+    pub perf: bool,               // draw every frame and show timing
+    pub spin: bool,               // orbit a little every frame
 }
 
 impl View {
+    pub fn set_arctic(&mut self, on: bool) {
+        self.ssao = on;
+        if on {
+            self.show_outlines = true;
+        }
+    }
+
     /// Read every setting once at start.
     pub fn from_env() -> Self {
         Self {
+            ssao: false,
             show_grid: knob("VIEWER_NO_GRID", "nogrid").is_none(),
             show_points: true,
             show_lines: true,
             show_mesh_edges: true,
-            // --8<-- [start:step-27b]
             show_outlines: knob("VIEWER_OUTLINES", "outlines").is_some(),
             markers: knob("BENCH_NO_MARKERS", "nomarkers").is_none(),
             cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
             lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
             thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.0).max(0.1),
-            // --8<-- [end:step-27b]
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
             lit: knob("VIEWER_LIT", "lit").is_some(),
             backface: knob("VIEWER_BACKFACE", "backface").is_some(),
@@ -48,7 +53,6 @@ impl View {
     }
 }
 
-// --8<-- [start:step-27c]
 /// Framebuffer pixels per CSS pixel, capped by `?dpr=`.
 pub fn device_pixel_ratio() -> f64 {
     #[cfg(target_arch = "wasm32")]
@@ -71,8 +75,8 @@ pub fn device_pixel_ratio() -> f64 {
 /// True once the page dropped to device scale 1 without MSAA.
 static REDUCED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-/// render at device scale 1
-pub fn reduce_for_slow_frames() {
+/// Drop to device scale 1 without MSAA until reload.
+pub fn reduce() {
     REDUCED.store(true, std::sync::atomic::Ordering::Relaxed);
 }
 
@@ -98,13 +102,11 @@ pub fn surface_per_physical() -> f64 {
 }
 
 /// One setting's text: `?query=` in the browser, `ENV` natively.
-// --8<-- [end:step-27c]
 pub fn knob(env: &str, query: &str) -> Option<String> {
-    // cfg: only one of these two blocks is compiled, picked by the build target.
     #[cfg(target_arch = "wasm32")]
     {
         let _ = env;
-        crate::app::route::query(query)
+        self::query(query)
     }
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -115,18 +117,37 @@ pub fn knob(env: &str, query: &str) -> Option<String> {
 
 /// A float setting, or `default`.
 fn knob_f32(env: &str, query: &str, default: f32) -> f32 {
-    // let-else: bind raw, or leave the function when there is nothing to bind.
     let Some(raw) = knob(env, query) else {
         return default;
     };
 
     match raw.parse::<f32>() {
-        Ok(value) if value.is_finite() => value, // a match guard: "inf" and "NaN" parse too, but are refused
+        Ok(value) if value.is_finite() => value,
         _ => default,
     }
 }
 
 /// An integer setting, or None.
 fn knob_u32(env: &str, query: &str) -> Option<u32> {
-    knob(env, query)?.parse().ok() // `?` on an Option returns None early, as it returns Err on a Result
+    knob(env, query)?.parse().ok()
+}
+
+/// The `?name=` value of the page URL.
+#[cfg(target_arch = "wasm32")]
+pub fn query(name: &str) -> Option<String> {
+    let search = web_sys::window()?.location().search().ok()?;
+    let raw = search.strip_prefix('?')?;
+    let prefix = format!("{name}=");
+
+    for pair in raw.split('&') {
+        if let Some(v) = pair.strip_prefix(prefix.as_str()) {
+            return js_sys::decode_uri_component(v).ok()?.as_string();
+        }
+
+        if pair == name {
+            return Some(String::new());
+        }
+    }
+
+    None
 }

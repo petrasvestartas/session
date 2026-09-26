@@ -33,8 +33,8 @@ fn parse_sample_index(value: &str) -> Option<usize> {
 
 /// One use of an edge by a face.
 pub struct EdgeUse {
-    pub edge: usize,
-    pub face: usize,
+    pub edge: usize,                  // edge index
+    pub face: usize,                  // face index
     pub orientation: BRepOrientation, // which way the face runs it
 }
 
@@ -67,7 +67,7 @@ fn sample_values(fm: &Mesh, name: &str) -> Vec<f64> {
         }
     }
 
-    vals.sort_by(sample_order);
+    vals.sort_unstable_by(sample_order);
     vals.dedup();
     vals
 }
@@ -157,7 +157,7 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
         return None;
     }
 
-    on_line.sort_by(parameter_order);
+    on_line.sort_unstable_by(parameter_order);
     let mut keys = Vec::with_capacity(on_line.len());
 
     for (_, key) in on_line {
@@ -173,9 +173,9 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
 
 /// The mesh vertices one BRep edge runs along.
 pub struct EdgeChain {
-    pub edge: usize, // BRep edge index
-    pub face: usize, // face mesh the keys belong to
-    pub keys: Vec<usize>, // vertex keys along the edge
+    pub edge: usize,          // BRep edge index
+    pub face: usize,          // face mesh the keys belong to
+    pub keys: Vec<usize>,     // vertex keys along the edge
     pub other: Option<usize>, // the face on the other side
 }
 
@@ -241,7 +241,7 @@ fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
             }
         }
 
-        ordered.sort_by(total_parameter_order);
+        ordered.sort_unstable_by(total_parameter_order);
         ordered.dedup_by(same_parameter);
         let mut keys = Vec::with_capacity(ordered.len());
 
@@ -313,7 +313,7 @@ type FacetEdge = [[u64; 3]; 2];
 #[derive(Default)]
 struct FacetPair {
     normals: [Option<[f64; 3]>; 2], // first two triangle normals
-    count: usize, // how many triangles in total
+    count: usize,                   // how many triangles in total
 }
 
 /// Position as bits, -0 same as 0.
@@ -400,10 +400,10 @@ fn face_facets(mesh: &Mesh) -> std::collections::HashMap<FacetEdge, FacetPair> {
 
 /// What every edge pipe of one BRep needs.
 pub struct EdgePen<'a> {
-    pub fms: &'a [Mesh],
-    pub signs: &'a [f64], // +1 or -1 per face
-    pub pen: Pen, // row, width, colour
-    facets: Vec<std::collections::HashMap<FacetEdge, FacetPair>>,
+    pub fms: &'a [Mesh],                                          // face meshes
+    pub signs: &'a [f64],                                         // +1 or -1 per face
+    pub pen: Pen,                                                 // row, width, colour
+    facets: Vec<std::collections::HashMap<FacetEdge, FacetPair>>, // per face: triangles at each edge
 }
 
 impl<'a> EdgePen<'a> {
@@ -469,9 +469,7 @@ pub fn push_edge_pipes(
 ) -> usize {
     let fm = &ep.fms[chain.face];
 
-    // --8<-- [start:step-31a]
     let first = seg.pipes.len() as u32;
-    // --8<-- [end:step-31a]
     seg.pipes.reserve(chain.keys.len().saturating_sub(1));
     let mut count = 0;
 
@@ -502,9 +500,7 @@ pub fn push_edge_pipes(
         count += 1;
     }
 
-    // --8<-- [start:step-31b]
     seg.pipe_chains.push(first..seg.pipes.len() as u32); // one joined stroke
-    // --8<-- [end:step-31b]
     count
 }
 

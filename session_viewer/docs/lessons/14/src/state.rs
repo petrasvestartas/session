@@ -1,7 +1,5 @@
-//! One place for what the viewer knows between frames, so no pass has to reach into another pass's data.
-use crate::app::scene::{FileDoc, Scene, StreamedInit};
+use crate::app::scene::{FileDoc, Scene};
 use crate::app::selection::{ControlId, Controls, SelectionMode};
-use crate::app::walk::cloud::StreamRows;
 use crate::app::walk::encode::FACING_UNKNOWN;
 use crate::camera::Camera;
 use crate::engine::gpu::glyphs::GlyphRows;
@@ -10,8 +8,8 @@ use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
-use crate::engine::text::{TextLabel, TextPlacement};
-use session_rust::AABB;
+mod features; // register:features
+use features::Features;
 use std::sync::Arc;
 use winit::window::Window;
 
@@ -25,25 +23,30 @@ const CLEAR: wgpu::Color = wgpu::Color {
 
 /// Orbit step per frame in `?spin=1` mode.
 const SPIN_STEP: f32 = 0.004;
+const ELEMENT_OPACITY: f32 = 0.9; // default element opacity: nearly solid, hidden edges still show faintly
 
 /// Everything the viewer holds: window, GPU, camera, scene, selection.
 pub struct State {
-    pub window: Arc<Window>, // the winit window on the canvas
-    pub gpu: Gpu, // device, buffers, pipelines
-    pub camera: Camera, // the view
-    pub scene: Scene, // the loaded documents
-    pub needs_frame: bool, // draw again on the next redraw
-    dirty: bool, // the picture changed
-    last_frame_ms: f64,
-    pub selection: SelectionMode, // object, edge, face or control points
-    controls: Controls, // control points of the selected object
-    requested: PickMode, // what the pending pick looks for
-    pub selection_radius_css: f64, // click tolerance in CSS pixels
-    scene_labels: Vec<TextLabel>, // Annotations are shaped when documents change.
-    show_selected_names: bool, // name label on the selection, T toggles
-    cloud_query: Option<crate::app::cloud_query::Query>, // a point-cloud pick in flight
-    #[cfg(target_arch = "wasm32")]
-    query_generation: u64, // counts cloud queries, old answers dropped
+    pub window: Arc<Window>,                // the winit window on the canvas
+    pub gpu: Gpu,                           // device, buffers, pipelines
+    pub camera: Camera,                     // the view
+    load_camera: crate::camera::CameraPose, // the view before loading started
+    pub scene: Scene,                       // the loaded documents
+    pub needs_frame: bool,                  // draw again on the next redraw
+    pub interacting: bool,                  // a drag or pinch is in progress
+    dirty: bool,                            // the picture changed
+    last_frame_ms: f64,                     // when the last frame was drawn
+    last_resize_ms: f64,                    // when the last resize was applied
+    pub selection: SelectionMode,           // object, edge, face or control points
+    pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
+    controls: Controls,                     // control points of the selected object
+    requested: PickMode,                    // what the pending pick looks for
+    pub(crate) additive_selection: bool,    // Shift held: add to the selection
+    selection_order: Vec<u32>,              // selected rows in pick order
+    highlighted: Vec<u32>,                  // rows highlighted, when several are selected
+    pub selection_radius_css: f64,          // click tolerance in CSS pixels
+    show_selected_names: bool,              // name label on the selection, T toggles
+    pub(crate) features: Features,          // what each feature keeps, features.rs
 }
 
 impl State {
@@ -54,23 +57,28 @@ impl State {
         // the scene rows go to the GPU once
         scene.upload_to(&mut gpu);
         log::info!("gpu init {:.0} ms", now_ms() - t0);
+        let camera = Camera::new();
         Ok(Self {
             window,
             gpu,
-            camera: Camera::new(), // default view
+            load_camera: camera.pose(),
+            camera,
             scene,
             needs_frame: true,
+            interacting: false,
             dirty: true,
             last_frame_ms: 0.0,
+            last_resize_ms: f64::NEG_INFINITY,
             selection: SelectionMode::Object,
+            selection_tool: crate::app::selection::SelectionTool::default(),
             controls: Controls::default(),
             requested: PickMode::Object,
+            additive_selection: false,
+            selection_order: Vec::new(),
+            highlighted: Vec::new(),
             selection_radius_css: 6.0,
-            scene_labels: Vec::new(), // no text yet
             show_selected_names: true,
-            cloud_query: None,
-            #[cfg(target_arch = "wasm32")]
-            query_generation: 0,
+            features: Features::default(),
         })
     }
 
@@ -85,16 +93,18 @@ impl State {
     }
 
     /// Add one loaded document to the scene.
-    pub fn append(&mut self, doc: FileDoc) {
+    pub fn append(&mut self, doc: FileDoc, source: Option<String>) {
         let t0 = now_ms();
-        let first_row = self.scene.object_count(); // rows before this document
+        let first_row = self.scene.row_count(); // rows before this document
+        let index = self.scene.docs.len();
+        crate::app::fonts::need_names(&doc.name, &doc.session); // register:loading
         self.scene.add_file(doc);
         let t1 = now_ms();
         // only the new rows go to the GPU
         self.scene.upload_to(&mut self.gpu);
         self.camera.grow_extent(&self.gpu.bounds);
-        self.annotate_document(first_row);
-        self.update_label();
+
+        // the layer panel lists the new rows
         log::info!(
             "appended: walk {:.0} ms, upload {:.0} ms | {} docs | memory observation {:.0} MiB",
             t1 - t0,
@@ -105,47 +115,37 @@ impl State {
         self.touch();
     }
 
-    // --8<-- [start:step-10a]
-    /// Replace the scene's text labels.
-    pub fn set_texts(&mut self, texts: Vec<crate::app::manifest::TextItem>) {
-        self.scene.texts = texts;
-        self.update_label();
-        self.include_text_bounds();
-        self.touch();
-    }
-
-    /// Start a streamed point cloud; returns its slot.
-// --8<-- [end:step-10a]
-    pub fn add_streamed(&mut self, init: StreamedInit) -> usize {
-        let idx = self.scene.add_streamed_cloud(init, &mut self.gpu);
-        self.camera.grow_extent(&self.gpu.bounds);
-        self.touch();
-        idx
-    }
-
-    /// Add more points to streamed cloud `idx`.
-    pub fn extend_streamed(&mut self, idx: usize, rows: StreamRows, to: u32) {
-        self.scene
-            .extend_streamed_cloud(idx, rows, to, &mut self.gpu);
-        self.camera.grow_extent(&self.gpu.bounds);
-        log::info!(
-            "cloud slice: {to} points resident | heap {:.0} MB",
-            heap_mb()
-        );
-        self.touch();
-    }
-
     /// Remove every document; camera and GPU stay.
     pub fn clear(&mut self) {
+        self.load_camera = self.camera.pose(); // remember the view
         self.selection = SelectionMode::Object;
+        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
-        self.scene_labels.clear();
         self.scene.clear(&mut self.gpu);
         self.touch();
     }
 
+    /// Fit the camera, unless the user already moved it.
+    pub fn fit_loaded(&mut self) {
+        // unchanged since loading started?
+        if self.camera.pose() == self.load_camera {
+            self.fit_all();
+        }
+    }
+
+    /// Shrink the scene box to what is left, after objects were deleted or moved.
+    pub(crate) fn refresh_bounds(&mut self) {
+        if !self.scene.bounds_stale {
+            return;
+        }
+
+        self.scene.bounds_stale = false;
+        self.gpu.bounds = self.gpu.objects.live_world_bounds();
+    }
+
     /// Fit the camera to everything loaded.
     pub fn fit_all(&mut self) {
+        self.refresh_bounds();
         let b = &self.gpu.bounds;
         log::info!("fit: bounds {} aspect {:.3}", b.str(), self.aspect());
         self.camera.fit(&self.gpu.bounds, self.aspect());
@@ -154,14 +154,18 @@ impl State {
 
     /// Fit the camera to the selection, or to everything.
     pub fn fit_selected_or_all(&mut self) {
-        let row = match self.scene.selected {
-            Some(row) => self.gpu.objects.row_bounds(row),
-            None => None,
-        };
-        let Some(b) = row else {
+        // the box of every selected row
+        let mut bounds = self
+            .selected_rows()
+            .into_iter()
+            .filter_map(|row| self.gpu.objects.row_bounds(row));
+        let Some(mut b) = bounds.next() else {
             self.fit_all();
             return;
         };
+        for next in bounds {
+            b.union_with(&next);
+        }
         log::info!(
             "fit selected: bounds {} aspect {:.3}",
             b.str(),
@@ -172,12 +176,24 @@ impl State {
         self.touch();
     }
 
-    /// Forward a canvas resize to the GPU layer.
-    pub fn resize(&mut self, width: u32, height: u32) {
+    /// Minimum time between two resizes.
+    const RESIZE_HOLD_MS: f64 = 100.0;
+
+    /// Resize the GPU targets; false when asked too soon after the last one.
+    pub fn resize(&mut self, width: u32, height: u32) -> bool {
+        let now = now_ms();
+
+        // a window drag resizes every frame; wait between remakes
+        if now - self.last_resize_ms < Self::RESIZE_HOLD_MS {
+            return false;
+        }
+
+        self.last_resize_ms = now;
         self.gpu.resize(width, height);
         self.gpu.logical_size = self.logical_size();
-        self.upload_controls();
+        self.upload_controls(); // register:controls
         self.touch();
+        true
     }
 
     /// Set the point size of clouds.
@@ -198,12 +214,18 @@ impl State {
 
     /// Ask what is under a pixel; the answer comes in a later frame.
     pub fn request_pick(&mut self, x: u32, y: u32) {
-        self.request_selection(x, y, false);
+        self.request_selection(x, y, false, false);
+    }
+
+    /// The picture changed: draw on the next redraw.
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn request_frame(&mut self) {
+        self.dirty = true;
+        self.needs_frame = true;
     }
 
     /// Something changed: drop pending picks, draw again.
     pub fn touch(&mut self) {
-        self.cancel_cloud_query();
         self.gpu.pick.cancel();
         self.dirty = true;
         self.needs_frame = true;
@@ -211,7 +233,17 @@ impl State {
 
     /// Select one row, or nothing.
     pub fn select(&mut self, row: Option<u32>) {
+        let row = row.filter(|row| self.scene.selectable(*row));
+
+        // unhighlight the old selection and the clicked layers
+
+        for old in self.highlighted.drain(..) {
+            self.gpu.set_selected(old, false);
+        }
+
+        // back to plain object mode, no edge, face or controls
         self.selection = SelectionMode::Object;
+        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
         self.gpu.controls.reset();
         self.gpu.control_net.reset();
@@ -227,19 +259,82 @@ impl State {
         }
 
         self.scene.selected = row;
-        self.update_label();
+        self.selection_order = row.into_iter().collect();
         self.touch();
+    }
+
+    /// Every selected row.
+    pub(crate) fn selected_rows(&self) -> Vec<u32> {
+        if self.highlighted.is_empty() {
+            self.scene.selected.into_iter().collect()
+        } else {
+            self.highlighted.clone()
+        }
+    }
+
+    /// The selected rows in the order they were picked.
+    pub(crate) fn ordered_rows(&self) -> Vec<u32> {
+        ordered(&self.selection_order, &self.selected_rows())
+    }
+
+    /// Select several rows, added to the selection or replacing it.
+    pub(crate) fn select_rows(&mut self, rows: Vec<u32>, additive: bool) {
+        let mut selected = if additive {
+            self.ordered_rows()
+        } else {
+            Vec::new()
+        };
+        // skip rows that cannot be selected or are hidden
+        selected.extend(rows.into_iter().filter(|r| {
+            self.scene.selectable(*r)
+                && self
+                    .scene
+                    .identity_of(*r)
+                    .is_some_and(|id| !self.scene.hidden.contains(&id))
+        }));
+        let order = selected.clone();
+        selected.sort_unstable();
+        selected.dedup();
+        self.select(None);
+        self.selection_order = ordered(&order, &selected);
+        self.scene.selected = selected.first().copied(); // the first is the main one
+        for &row in &selected {
+            self.gpu.set_selected(row, true);
+        }
+        if selected.len() > 1 {
+            self.highlighted = selected;
+        }
+        self.touch();
+    }
+
+    /// Select what a viewport click on `row` reaches: its whole group, when it is in one.
+    pub(crate) fn select_picked(&mut self, row: u32, additive: bool) {
+        let rows = features::CLICK_ROWS
+            .iter()
+            .find_map(|widen| widen(self, row))
+            .unwrap_or_else(|| vec![row]);
+        self.select_rows(rows, additive);
     }
 
     /// T: show or hide the name label on the selection.
     pub fn toggle_selected_names(&mut self) {
         self.show_selected_names = !self.show_selected_names;
-        self.update_label();
         self.touch();
     }
 
     /// H: hide the selection.
     pub fn hide_selected(&mut self) {
+        // several rows selected
+        if !self.highlighted.is_empty() {
+            let rows = std::mem::take(&mut self.highlighted);
+
+            for row in &rows {
+                self.gpu.set_selected(*row, false);
+            }
+
+            return;
+        }
+
         let Some(row) = self.scene.selected else {
             return;
         };
@@ -247,7 +342,7 @@ impl State {
             return;
         };
         self.select(None);
-        self.scene.hidden.insert(guid); // by id, so a rebuild keeps it hidden
+        self.scene.hidden.insert(guid); // by id, so a new row of it stays hidden
         self.gpu.set_hidden(row, true);
         self.touch();
     }
@@ -264,15 +359,17 @@ impl State {
 
     /// A pick answer arrived: select what it hit.
     fn apply_pick(&mut self, pick: Option<Pick>) {
-        // a point-cloud query takes the answer
-        #[cfg(target_arch = "wasm32")]
-        if self.cloud_query_awaiting_gpu() {
-            self.apply_cloud_query_pick(pick);
-            return;
+        // a feature waiting for this answer takes it: a drag, a tool, a split, a point-cloud query
+        for take in features::TAKE_PICK {
+            if take(self, pick) {
+                return;
+            }
         }
 
+        let pick = pick.filter(|pick| self.scene.selectable(pick.row));
+
         match self.requested {
-            PickMode::Edge => {
+            PickMode::Edge | PickMode::Component => {
                 // an edge hit wins over a face hit
                 if let Some(pick) = pick
                     && let Some(edge) = self.scene.edge_at(pick)
@@ -284,6 +381,7 @@ impl State {
                         .segments
                         .set_edge(&self.gpu.ctx, Some((pick.row, edge)));
                     self.status(&format!("Edge {edge} selected"));
+                    return;
                 }
 
                 return;
@@ -292,7 +390,7 @@ impl State {
                 if let Some(pick) = pick
                     && pick.row == parent
                 {
-                    self.apply_control(pick, cloud);
+                    self.apply_control(pick, cloud); // register:controls
                 }
 
                 return;
@@ -303,7 +401,9 @@ impl State {
         // nothing hit: clear, unless Shift is adding
         let Some(p) = pick else {
             log::info!("pick: nothing");
-            self.select(None);
+            if !self.additive_selection {
+                self.select(None);
+            }
             return;
         };
 
@@ -324,12 +424,12 @@ impl State {
                     None => log::info!("pick: '{}' {} row {}", hit.doc, hit.guid, hit.row),
                 }
 
-                let toggle = if self.scene.selected == Some(hit.row) {
-                    None
-                } else {
-                    Some(hit.row)
-                };
-                self.select(toggle);
+                // a sheet entity, not an object
+                if let Some(entity) = hit.entity {
+                    return;
+                }
+
+                self.select_picked(hit.row, self.additive_selection);
             }
             None => log::info!("pick: row {} sub {} (no document)", p.row, p.sub),
         }
@@ -337,12 +437,16 @@ impl State {
 
     /// Draw one frame; a still scene asks for no more.
     pub fn render(&mut self) {
+        for hook in features::BEFORE_PICKS {
+            hook(self);
+        }
+
         let logical = self.logical_size();
 
         // the CSS size changed: control dots keep their pixel size
         if logical != self.gpu.logical_size {
             self.gpu.logical_size = logical;
-            self.upload_controls();
+            self.upload_controls(); // register:controls
             self.touch();
         }
 
@@ -353,8 +457,14 @@ impl State {
         };
 
         if let Some(message) = failure {
+            // a lost device reloads the page
+            #[cfg(target_arch = "wasm32")]
+            if crate::app::route::recover_from_device_loss(&message) {
+                self.needs_frame = false;
+                return;
+            }
+
             crate::app::feedback::error(&message);
-            self.cancel_cloud_query();
             self.gpu.pick.cancel();
             self.needs_frame = false;
             return;
@@ -363,17 +473,16 @@ impl State {
         // apply a pick answer first, so this frame shows it
         if let Some(pick) = self.gpu.pick.poll() {
             self.apply_pick(pick);
-        } else if self.cloud_query_awaiting_gpu() && !self.gpu.pick.busy() {
-            self.cloud_query = None;
-            self.gpu.pick.cancel();
-            self.upload_controls();
-            self.status("Point query failed during GPU readback; click to retry");
+        } else {
         }
 
         self.needs_frame = false;
 
+        for hook in features::AFTER_PICKS {
+            hook(self);
+        }
+
         if self.gpu.view.spin {
-            self.cancel_cloud_query();
             self.camera.orbit(SPIN_STEP, 0.0);
         }
 
@@ -392,14 +501,35 @@ impl State {
             clear: CLEAR,
             now_ms,
         };
-        self.dirty |= rebase.moved || self.gpu.view.perf || self.gpu.view.spin; // redraw reasons
+        self.dirty |= rebase.moved
+            || self.gpu.view.perf
+            || self.gpu.view.spin
+            || self.gpu.ambient_pending()
+            || (self.gpu.performance.rough() && !self.interacting); // redraw reasons
 
         let mut dropped = false;
+        let mut waiting = false;
 
-        if self.dirty && !self.cloud_query_awaiting_gpu() {
-            let gap = now_ms - self.last_frame_ms;
+        if self.dirty && !waiting {
+            let gap = now_ms - self.last_frame_ms; // time since the last frame
             self.last_frame_ms = now_ms;
+            self.gpu.performance.interacting = self.interacting;
             let drawn = self.gpu.present(&input); // encode time, None when the frame was dropped
+
+            // slow even at the top drag tier: drop to device scale 1 and no antialiasing
+            if self.gpu.performance.take_slow_interaction()
+                && (crate::engine::gpu::view::device_pixel_ratio() > 1.0
+                    || self.gpu.targets.samples > 1)
+            {
+                crate::engine::gpu::view::reduce();
+                self.gpu
+                    .resize(self.gpu.config.width, self.gpu.config.height);
+                log::warn!(
+                    "slow interaction frames; rendering at device scale 1 without antialiasing"
+                );
+                self.status("Slow frames: rendering at device scale 1 without antialiasing");
+            }
+
             dropped = drawn.is_none() && self.gpu.surface.is_some(); // try again next frame
             self.dirty = dropped;
 
@@ -413,18 +543,20 @@ impl State {
             self.gpu.pick_frame(&input, at);
         }
 
-        // reasons to draw again
+        // reasons to draw again; a drag frame is redrawn in full once the drag ends
         self.needs_frame |= dropped
             || rebase.pending
             || self.gpu.pick.busy()
             || self.gpu.view.perf
-            || self.gpu.view.spin;
+            || self.gpu.view.spin
+            || self.gpu.ambient_pending()
+            || self.gpu.performance.rough();
         #[cfg(target_arch = "wasm32")]
         crate::app::inspection::publish(self);
     }
 
-    /// CSS size from the canvas; native size is physical.
-    fn logical_size(&self) -> [f64; 2] {
+    /// Canvas size in CSS pixels; device pixels natively.
+    pub(crate) fn logical_size(&self) -> [f64; 2] {
         #[cfg(target_arch = "wasm32")]
         if let Some(window) = web_sys::window()
             && let Some(document) = window.document()
@@ -442,18 +574,29 @@ impl State {
         ]
     }
 
-    /// One gesture, one pick pass; Ctrl never selects.
-    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool) {
-        self.cancel_cloud_query();
+    /// Ask what is under a pixel: an object, an edge (Ctrl) or a face (Ctrl+Shift).
+    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
+        // a split or a tool wants a plain object
+        let mut splitting = false;
+        let face = !splitting
+            && (face || self.selection_tool == crate::app::selection::SelectionTool::Face);
+        let edge = !splitting
+            && (edge || self.selection_tool == crate::app::selection::SelectionTool::Edge);
         self.gpu.pick.cancel();
 
         // a point cloud answers by its own query
-        #[cfg(target_arch = "wasm32")]
-        if !edge && self.start_cloud_query(x, y) {
+        let mut queried = false;
+
+        if queried {
             return;
         }
 
-        let mode = if edge {
+        // which kind of pick the id frame runs
+        let mode = if splitting {
+            PickMode::Object
+        } else if face {
+            PickMode::Component
+        } else if edge {
             PickMode::Edge
         } else {
             match self.selection {
@@ -473,6 +616,92 @@ impl State {
         self.needs_frame = true;
     }
 
+    /// Esc: the first cancels a command and keeps the selection, the next one clears it.
+    pub fn escape(&mut self) {
+        let mut cancelled = false;
+
+        if !cancelled {
+            self.escape_selection();
+        }
+    }
+
+    /// Esc: leave control points, keep the object selected.
+    pub fn escape_selection(&mut self) {
+        let parent = self.selection.escape();
+        self.select(parent);
+        self.status("");
+    }
+
+    /// Show a message in the status line.
+    fn status(&self, message: &str) {
+        crate::app::feedback::status(message);
+    }
+
+    /// The `?perf=1` line: frame number, gap, encode time, heap.
+    #[cfg(target_arch = "wasm32")]
+    fn perf_line(&self, gap_ms: f64, encode_ms: f64) {
+        let line = format!(
+            "f{} gap {gap_ms:.0} enc {encode_ms:.1} ms wasm capacity {:.0} MiB",
+            self.gpu.performance.frames,
+            heap_mb()
+        );
+        crate::engine::performance::perf_line(&line);
+    }
+
+    /// Natively the perf line goes nowhere.
+    #[cfg(not(target_arch = "wasm32"))]
+    fn perf_line(&self, _gap_ms: f64, _encode_ms: f64) {}
+}
+
+#[cfg(target_arch = "wasm32")]
+impl State {
+    /// The control points as JSON, for the inspection tests.
+    pub fn inspected_controls(&self) -> Vec<serde_json::Value> {
+        let mut points = Vec::with_capacity(self.controls.points.len());
+
+        for point in &self.controls.points {
+            points.push(serde_json::json!({"id": point.id, "position": point.position}));
+        }
+
+        points
+    }
+}
+
+/// A position as the f32 the GPU takes.
+pub(crate) fn render_position(position: [f64; 3]) -> [f32; 3] {
+    [position[0] as f32, position[1] as f32, position[2] as f32]
+}
+
+/// `selected` in the pick order `order`, first picks first; rows the order misses come last.
+fn ordered(order: &[u32], selected: &[u32]) -> Vec<u32> {
+    let mut left: std::collections::HashSet<u32> = selected.iter().copied().collect();
+    let mut rows: Vec<u32> = Vec::with_capacity(selected.len());
+
+    for row in order.iter().chain(selected) {
+        if left.remove(row) {
+            rows.push(*row);
+        }
+    }
+
+    rows
+}
+
+#[cfg(test)]
+mod order_tests {
+    use super::ordered;
+
+    /// Picks keep their order; a dropped row goes, an unknown one comes last.
+    #[test]
+    fn the_selection_keeps_pick_order() {
+        assert_eq!(ordered(&[9, 2, 5], &[2, 5, 9]), vec![9, 2, 5]);
+        assert_eq!(ordered(&[9, 2, 5], &[2, 9]), vec![9, 2]);
+        assert_eq!(ordered(&[9, 2], &[1, 2, 9]), vec![9, 2, 1]);
+        assert_eq!(ordered(&[3, 3, 1], &[1, 3]), vec![3, 1]);
+    }
+}
+
+// --8<-- [start:13]
+impl State {
     /// F10: show the control points of the selected object.
     pub fn enable_controls(&mut self) {
         let Some(parent) = self.scene.selected else {
@@ -485,13 +714,16 @@ impl State {
         {
             return;
         }
+        // a released document comes back first
+        let mut released = false;
+
+        if released {
+            return;
+        }
+
         // the points come from the source geometry
         let controls = match self.scene.geometry(parent) {
             Some(geometry) => Controls::from_geometry(geometry),
-            None if self.streamed_slot(parent).is_some() => Controls {
-                cloud: true,
-                ..Controls::default()
-            },
             None => {
                 self.status("Source controls are unavailable for this display-only object");
                 return;
@@ -503,28 +735,23 @@ impl State {
             return;
         }
 
+        // the gizmo would take the same clicks
         self.selection.enable_controls(Some(parent), controls.cloud);
+        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.gpu.segments.set_edge(&self.gpu.ctx, None);
         self.gpu.set_selected(parent, false);
         self.gpu
             .splat
             .set_controls(controls.cloud.then_some(parent));
         self.controls = controls;
-        self.upload_controls();
-        self.update_label();
+        self.upload_controls(); // register:controls
         self.status("Control points: click to select; Esc to leave");
         self.touch();
     }
 
-    /// Esc: leave control points, keep the object selected.
-    pub fn escape_selection(&mut self) {
-        let parent = self.selection.escape();
-        self.select(parent);
-        self.status("");
-    }
-
-    /// Upload the source controls once per F10.
-    fn upload_controls(&mut self) {
+    /// Send the control dots and their links to the GPU.
+    pub(crate) fn upload_controls(&mut self) {
+        // start empty, so nothing doubles
         self.gpu.controls.reset();
         self.gpu.control_net.reset();
         let SelectionMode::Controls {
@@ -548,8 +775,8 @@ impl State {
                 radius: -3.5 * scale as f32, // negative: a pixel size, not a world size
                 color,
                 instance_id: parent,
-                facing: FACING_UNKNOWN,
-                facing_ext: [FACING_UNKNOWN; 2],
+                facing: FACING_UNKNOWN,          // no face orientation
+                facing_ext: [FACING_UNKNOWN; 2], // no neighbour orientation
             });
         }
 
@@ -563,7 +790,7 @@ impl State {
                 radius: 0.0,
                 color: 0xffcc8866,
                 instance_id: parent,
-                facing: FACING_UNKNOWN,
+                facing: FACING_UNKNOWN, // no face orientation
             });
         }
 
@@ -617,414 +844,9 @@ impl State {
             selected: Some(id),
             cloud,
         };
-        self.upload_controls();
+        self.upload_controls(); // register:controls
         self.status(&format!("Selected {id:?}"));
         self.touch();
     }
-
-    /// A source query pauses color frames for readback.
-    fn cloud_query_awaiting_gpu(&self) -> bool {
-        match &self.cloud_query {
-            Some(query) => query.awaiting_gpu,
-            None => false,
-        }
-    }
-
-    /// Locate the streamed descriptor belonging to the active source parent.
-    fn streamed_slot(&self, parent: u32) -> Option<usize> {
-        for (slot, cloud) in self.scene.streamed.iter().enumerate() {
-            if cloud.row == parent {
-                return Some(slot);
-            }
-        }
-
-        None
-    }
-
-    /// Newer input cancels this query's callbacks.
-    fn cancel_cloud_query(&mut self) {
-        if self.cloud_query.take().is_some() {
-            self.gpu.pick.cancel();
-            self.upload_controls();
-            self.status("Point query cancelled because the view or selection changed");
-        }
-    }
-
-    /// F10 queries the source, not what is displayed.
-    #[cfg(target_arch = "wasm32")]
-    /// Begin a source query at a pixel.
-    fn start_cloud_query(&mut self, x: u32, y: u32) -> bool {
-        use crate::app::cloud_query::{Query, QueryView};
-        let SelectionMode::Controls {
-            parent,
-            cloud: true,
-            ..
-        } = self.selection
-        else {
-            return false;
-        };
-        let Some(slot) = self.streamed_slot(parent) else {
-            return false;
-        };
-        self.gpu.pick.cancel();
-        self.query_generation = self.query_generation.wrapping_add(1);
-        let cloud = &self.scene.streamed[slot];
-        let projection = self
-            .camera
-            .view_proj_anchored(self.aspect(), &session_rust::Point::new(0.0, 0.0, 0.0));
-        let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
-        let view = QueryView {
-            matrix: &projection * &cloud.place,
-            size: [
-                f64::from(self.gpu.config.width),
-                f64::from(self.gpu.config.height),
-            ],
-            at: [x, y],
-            radius: (self.selection_radius_css * scale).ceil().clamp(1.0, 128.0) + 3.5 * scale,
-        };
-        self.cloud_query = Some(Query::new(self.query_generation, cloud, view));
-        self.gpu.pick.start_source_query();
-        self.advance_cloud_query();
-        true
-    }
-
-    /// Fetch one page; resolve when every page is done.
-    #[cfg(target_arch = "wasm32")]
-    fn advance_cloud_query(&mut self) {
-        let Some(query) = self.cloud_query.as_mut() else {
-            return;
-        };
-        query.awaiting_gpu = false;
-        query.candidates.clear();
-
-        if let Some(page) = query.next_page() {
-            let progress = format!(
-                "Checking source points: {} / {} (display LOD remains bounded)",
-                query.checked, query.total
-            );
-            crate::app::cloud_query::fetch_page(query, page);
-            self.status(&progress);
-        } else if let Some(best) = query.best {
-            crate::app::cloud_query::resolve_id(query, best);
-            self.status("All eligible source points checked; resolving original point ID…");
-        } else {
-            self.cloud_query = None;
-            self.gpu.pick.cancel();
-            self.status("No visible source point in the selection window");
-        }
-
-        self.upload_controls();
-    }
-
-    /// A range callback belongs to exactly one camera/scene/parent generation.
-    #[cfg(target_arch = "wasm32")]
-    pub fn cloud_query_batch(&mut self, batch: crate::app::cloud_query::Batch) {
-        let Some(query) = self.cloud_query.as_mut() else {
-            return;
-        };
-
-        if query.id != batch.query || query.cancelled.get() {
-            return;
-        }
-
-        let (candidates, revision) = match batch.result {
-            Ok(result) => result,
-            Err(error) => {
-                self.cloud_query = None;
-                self.gpu.pick.cancel();
-                self.upload_controls();
-                self.status(&format!("Point query failed: {error}"));
-                return;
-            }
-        };
-        query.checked += batch.count;
-        query.revision = revision;
-
-        if candidates.is_empty() {
-            self.advance_cloud_query();
-            return;
-        }
-
-        query.candidates = candidates;
-        query.awaiting_gpu = true;
-        let parent = query.parent;
-        let at = query.view.at;
-        let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
-        let query = self.cloud_query.as_ref().unwrap();
-        let mut glyphs = GlyphRows::default();
-
-        for candidate in &query.candidates {
-            glyphs.dots.push(GlyphPoint {
-                center: render_position(candidate.position),
-                radius: -3.5 * scale as f32,
-                color: [0.15, 0.35, 0.9, 1.0],
-                instance_id: parent,
-                facing: FACING_UNKNOWN,
-                facing_ext: [candidate.local, FACING_UNKNOWN],
-            });
-        }
-
-        self.gpu.controls.reset();
-        self.gpu
-            .controls
-            .append(&self.gpu.ctx, &self.gpu.layouts, &glyphs);
-        // ID targets only; never presented.
-        self.requested = PickMode::Controls {
-            parent,
-            cloud: false,
-        };
-        self.gpu
-            .pick
-            .configure(self.requested, self.selection_radius_css, scale);
-        self.gpu.pick.request(at[0], at[1]);
-        self.needs_frame = true;
-    }
-
-    /// Fold this page's answer, then the next node.
-    #[cfg(target_arch = "wasm32")]
-    /// Take the cloud query's answer.
-    fn apply_cloud_query_pick(&mut self, pick: Option<Pick>) {
-        let Some(query) = self.cloud_query.as_mut() else {
-            return;
-        };
-        // This is the winner of the accumulated physical source-point depth, including
-        query.best = match pick {
-            Some(pick) if pick.row == query.parent && pick.sub < query.fields.count => {
-                Some(pick.sub)
-            }
-            _ => None,
-        };
-        self.advance_cloud_query();
-    }
-
-    /// Show the chosen source point even if not resident.
-    #[cfg(target_arch = "wasm32")]
-    pub fn cloud_query_resolved(&mut self, resolved: crate::app::cloud_query::Resolved) {
-        let Some(query) = self.cloud_query.as_ref() else {
-            return;
-        };
-
-        if query.id != resolved.query || query.cancelled.get() {
-            return;
-        }
-
-        let query = self.cloud_query.take().unwrap();
-        let (source, position) = match resolved.result {
-            Ok(result) => result,
-            Err(error) => {
-                self.gpu.pick.cancel();
-                self.upload_controls();
-                self.status(&format!("Point query failed: {error}"));
-                return;
-            }
-        };
-        let Some(best) = query.best else { return };
-        let id = ControlId::Point(source);
-        self.selection = SelectionMode::Controls {
-            parent: query.parent,
-            selected: Some(id),
-            cloud: true,
-        };
-        self.controls.points = vec![crate::app::selection::Control { id, position }];
-        self.gpu.splat.set_point(None);
-        self.upload_controls();
-        self.status(&format!(
-            "Selected source point {source} (row {}); all {} eligible points checked",
-            best, query.total
-        ));
-        self.touch();
-    }
-
-    /// Keep one readable source-document title above each loaded CAD group.
-    fn annotate_document(&mut self, first_row: usize) {
-        let mut bounds = AABB::empty();
-
-        for index in first_row..self.scene.object_count() {
-            let row = index as u32;
-            if matches!(
-                self.scene.geometry(row),
-                Some(session_rust::Geometry::BRep(_) | session_rust::Geometry::NurbsSurface(_))
-            ) && let Some(object) = self.gpu.objects.row_bounds(row)
-            {
-                bounds.union_with(&object);
-            }
-        }
-
-        if !bounds.is_valid() {
-            return;
-        }
-
-        let Some(document) = self.scene.docs.last() else {
-            return;
-        };
-        let mut anchor = label_center(&bounds);
-        anchor[2] = bounds.max_point()[2] + bounds.diagonal() * 0.08;
-        self.scene_labels.push(nameplate(
-            self.scene.docs.len() as u32,
-            document.name.clone(),
-            anchor,
-        ));
-    }
-
-    /// Document text and the selected name, white.
-    fn update_label(&mut self) {
-        let mut labels = self.scene_labels.clone();
-
-        // --8<-- [start:step-10b]
-        for (index, text) in self.scene.texts.iter().enumerate() {
-            labels.push(TextLabel {
-                id: (self.scene.docs.len() + index + 1) as u32, // after the document ids
-                text: text.text.clone(), // the label's words
-                font_size: 18.0,
-                line_height: 26.0,
-                color: [255; 4],
-                placement: TextPlacement::WorldPlane {
-                    world: text.at,
-                    right: text.right,
-                    up: text.up,
-                    world_height: text.height,
-                },
-                clip: None,
-            });
-        }
-
-// --8<-- [end:step-10b]
-        if self.show_selected_names
-            && !matches!(self.selection, SelectionMode::Controls { .. })
-            && let Some(row) = self.scene.selected
-            && let Some(bounds) = self.gpu.objects.row_bounds(row)
-        {
-            // Text ID 0 belongs to selection; document IDs start at 1, independent of rows.
-            labels.push(nameplate(
-                0,
-                self.scene.object_name(row).to_string(),
-                label_center(&bounds),
-            ));
-        }
-
-        if let Err(error) = self.gpu.text.set_labels(labels) {
-            self.status(&format!("Text: {error}"));
-        }
-    }
-
-    // --8<-- [start:step-10c]
-    /// Authored text planes count in camera fitting.
-    fn include_text_bounds(&mut self) {
-        for run in &self.gpu.text.document.runs {
-            let TextPlacement::WorldPlane {
-                world,
-                right,
-                up,
-                world_height,
-            } = run.label.placement
-            else {
-                continue;
-            };
-            let unit = world_height / f64::from(run.label.font_size);
-            let mut width = 0.0f64;
-            let mut height = 0.0f64;
-
-            for line in run.buffer.layout_runs() {
-                width = width.max(f64::from(line.line_w) * unit);
-                height = height.max(f64::from(line.line_top + line.line_height) * unit);
-            }
-
-            let padding = world_height * 0.125;
-
-            for x in [-padding, width + padding] {
-                for y in [-padding, height + padding] {
-                    let mut point = [0.0f32; 3];
-
-                    for axis in 0..3 {
-                        point[axis] = (world[axis] + right[axis] * x - up[axis] * y) as f32;
-                    }
-
-                    if point.into_iter().all(f32::is_finite) {
-                        self.gpu.bounds.union_with_point(
-                            point[0] as f64,
-                            point[1] as f64,
-                            point[2] as f64,
-                        );
-                    }
-                }
-            }
-        }
-    }
-
-    /// Show a message in the status line.
-// --8<-- [end:step-10c]
-    fn status(&self, message: &str) {
-        crate::app::feedback::status(message);
-    }
-
-    /// The `?perf=1` line: frame number, gap, encode time, heap.
-    #[cfg(target_arch = "wasm32")]
-    fn perf_line(&self, gap_ms: f64, encode_ms: f64) {
-        let line = format!(
-            "f{} gap {gap_ms:.0} enc {encode_ms:.1} ms wasm capacity {:.0} MiB",
-            self.gpu.performance.frames,
-            heap_mb()
-        );
-        crate::engine::performance::perf_line(&line);
-    }
-
-    /// Natively the perf line goes nowhere.
-    #[cfg(not(target_arch = "wasm32"))]
-    fn perf_line(&self, _gap_ms: f64, _encode_ms: f64) {}
 }
-
-#[cfg(target_arch = "wasm32")]
-impl State {
-    /// The control points as JSON, for the inspection tests.
-    pub fn inspected_controls(&self) -> Vec<serde_json::Value> {
-        let mut points = Vec::with_capacity(self.controls.points.len());
-
-        for point in &self.controls.points {
-            points.push(serde_json::json!({"id": point.id, "position": point.position}));
-        }
-
-        points
-    }
-}
-
-/// A source position as a GPU control point.
-fn render_position(position: [f64; 3]) -> [f32; 3] {
-    [position[0] as f32, position[1] as f32, position[2] as f32]
-}
-
-/// Center an annotation in the object's bounds.
-fn label_center(bounds: &AABB) -> [f64; 3] {
-    let mut center = [0.0; 3];
-
-    for (axis, coordinate) in center.iter_mut().enumerate() {
-        *coordinate = (bounds.min_point()[axis] + bounds.max_point()[axis]) * 0.5;
-    }
-
-    center
-}
-
-/// White-on-black annotations.
-fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
-    let scale = if id == 0 { 0.75 } else { 1.0 };
-    let line_height = 26.0 * scale;
-    let vertical_padding = 4.0 * scale;
-    // a cap at each end keeps the text inside
-    let horizontal_padding = if id == 0 {
-        line_height * 0.5 + vertical_padding
-    } else {
-        6.0 * scale
-    };
-    TextLabel {
-        id,
-        text,
-        font_size: 18.0 * scale,
-        line_height,
-        color: [255; 4],
-        placement: TextPlacement::Nameplate {
-            world,
-            padding: [horizontal_padding, vertical_padding],
-            rounded: id == 0, // the title gets round corners
-        },
-        clip: None,
-    }
-}
+// --8<-- [end:13]

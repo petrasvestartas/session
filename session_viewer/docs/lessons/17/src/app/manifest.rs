@@ -1,4 +1,3 @@
-//! The small index listing every file of a scene, read first so the viewer knows what to fetch.
 use serde::Deserialize;
 use session_rust::Xform;
 
@@ -16,36 +15,43 @@ pub struct Item {
     pub point_size: f64, // cloud point size in px, 0 = the file's own
     #[serde(default)]
     pub display_only: bool, // old flag, no longer changes anything
+    #[serde(default)]
+    pub size: u64, // decoded bytes, 0 = unknown
+    #[serde(default)]
+    pub encoding: String, // stored Content-Encoding such as `gzip`, empty = identity
 }
 
 /// One text placed in the world.
 #[derive(Clone, Debug, Deserialize)]
 pub struct TextItem {
-    pub text: String,
+    pub text: String, // the text
     #[serde(default)]
     pub at: [f64; 3], // world origin of the text
     #[serde(default = "text_right")]
     pub right: [f64; 3], // unit direction of the text line
     #[serde(default = "text_up")]
     pub up: [f64; 3], // unit direction up the text
-    pub height: f64, // letter height in world units
-    // --8<-- [start:step-11]
+    pub height: f64,  // letter height in world units
     #[serde(default)]
     pub camera_facing: bool, // always face the camera
-    // --8<-- [end:step-11]
 }
 
 /// The parsed scene file.
 #[derive(Clone, Deserialize)]
 pub struct Manifest {
     #[serde(default)]
-    pub name: String,
+    pub name: String, // scene name
     pub items: Vec<Item>, // geometry files
     #[serde(default)]
-    pub texts: Vec<TextItem>,
+    pub texts: Vec<TextItem>, // world texts
 }
 
 impl Item {
+    /// The decoded size of a file stored encoded: it is never range-read.
+    pub fn encoded_size(&self) -> Option<u64> {
+        (!self.encoding.is_empty()).then_some(self.size)
+    }
+
     /// The item's placement, None for the auto grid.
     pub fn placement(&self) -> Option<Xform> {
         if let Some(m) = self.xform {
@@ -71,7 +77,7 @@ impl Manifest {
         };
         let manifest: Self = match serde_yaml_ng::from_str(text) {
             Ok(manifest) => manifest,
-            Err(yaml) => match toml::from_str(text) {
+            Err(yaml) => match toml_form(text) {
                 Ok(manifest) => manifest,
                 Err(toml) => {
                     return Err(format!(
@@ -100,6 +106,12 @@ impl Manifest {
                 || item.xform.is_some_and(nonfinite_transform)
             {
                 return Err(format!("item {index}: non-finite transform"));
+            }
+
+            if !item.encoding.is_empty() && item.size == 0 {
+                return Err(format!(
+                    "item {index}: an encoded file needs its decoded size"
+                ));
             }
 
             if let Some(matrix) = item.xform
@@ -210,12 +222,32 @@ fn nonfinite_transform<const N: usize>(values: [f64; N]) -> bool {
     !values.into_iter().all(f64::is_finite)
 }
 
+/// A TOML manifest.
+#[cfg(feature = "toml-manifests")]
+fn toml_form(text: &str) -> Result<Manifest, String> {
+    toml::from_str(text).map_err(|error| error.to_string())
+}
+
+/// TOML is not read without the `toml-manifests` feature.
+#[cfg(not(feature = "toml-manifests"))]
+fn toml_form(_text: &str) -> Result<Manifest, String> {
+    Err("not read by this build (feature toml-manifests)".to_string())
+}
+
 /// The line and column of a YAML error, if known.
 fn yaml_at(e: &serde_yaml_ng::Error) -> String {
     match e.location() {
         Some(l) => format!(" (line {}, column {})", l.line(), l.column()),
         None => String::new(),
     }
+}
+
+/// True for a content-addressed key, whose bytes never change: the browser cache may answer it.
+pub fn immutable_key(url: &str) -> bool {
+    let name = url.rsplit('/').next().unwrap_or(url);
+    let stem = name.split('.').next().unwrap_or(name);
+    let hash = stem.rsplit('-').next().unwrap_or(stem);
+    hash.len() >= 16 && hash.bytes().all(|b| b.is_ascii_hexdigit())
 }
 
 /// Grid slot `index` of `count`, `cell` apart.
@@ -241,13 +273,35 @@ mod tests {
             "name = \"sample\"\n[[items]]\nfile = \"pb/box.pb\"\nat = [1, 2, 3]\n",
         ];
 
-        for form in forms {
+        for form in &forms[..forms.len() - usize::from(cfg!(not(feature = "toml-manifests")))] {
             let manifest = Manifest::parse(form.as_bytes()).unwrap();
             assert!(manifest.texts.is_empty());
             assert_eq!(manifest.name, "sample");
             assert_eq!(manifest.items[0].file, "pb/box.pb");
             assert_eq!(manifest.items[0].at, Some([1.0, 2.0, 3.0]));
         }
+    }
+
+    /// Encoded items carry their decoded size; plain items need neither field.
+    #[test]
+    fn encoded_items_carry_their_decoded_size() {
+        let manifest =
+            Manifest::parse(b"items: [{file: a.pb, size: 90, encoding: gzip}, {file: b.pb}]")
+                .unwrap();
+        assert_eq!(manifest.items[0].encoded_size(), Some(90));
+        assert_eq!(manifest.items[1].encoded_size(), None);
+        assert!(Manifest::parse(b"items: [{file: a.pb, encoding: gzip}]").is_err());
+    }
+
+    /// Only hashed names skip revalidation.
+    #[test]
+    fn immutable_keys_are_the_hashed_names() {
+        let revision = "https://x.dev/pb/revisions/4f24e928c29eb9effa864768903b73f3fbb9038279ccdf8a87117e588b4c72f3.pb";
+        assert!(immutable_key(revision));
+        assert!(immutable_key("pb/sheets/querschnitt-0123456789abcdef.pb"));
+        assert!(!immutable_key("https://x.dev/pb/view_mixed_floor_model.pb"));
+        assert!(!immutable_key("https://x.dev/scenes/view_mixed.yaml"));
+        assert!(!immutable_key("pb/sheets/querschnitt-cafe.pb"));
     }
 
     /// Bad items are refused.
@@ -274,7 +328,7 @@ mod tests {
             "items = []\n[[texts]]\ntext = \"Fixed Ω cube\"\nat = [1, 2, 3]\nright = [0, 1, 0]\nup = [0, 0, -1]\nheight = 12.5\n",
         ];
 
-        for form in forms {
+        for form in &forms[..forms.len() - usize::from(cfg!(not(feature = "toml-manifests")))] {
             let manifest = Manifest::parse(form.as_bytes()).unwrap();
             assert_eq!(manifest.texts.len(), 1);
             let text = &manifest.texts[0];

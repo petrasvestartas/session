@@ -1,11 +1,11 @@
-use super::buffers::{bind_group, GpuCtx, GrowBuf, ROWS};
+use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
 use super::frame::Binds;
+use super::lane::PickMode;
 use super::lane::{Lane, Registered, RowLane};
-use super::pick::PickMode;
 use super::upload::Upload;
 use super::view::View;
 use crate::engine::pipelines::{
-    build, ink_module, ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target,
+    ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
 };
 use wgpu::PrimitiveTopology::TriangleList;
 
@@ -47,11 +47,11 @@ pub struct VectorRows {
 
 /// Vectors on the GPU: one instanced draw for all of them.
 pub struct VectorLane {
-    buf: GrowBuf,                // VectorRow rows
-    group: wgpu::BindGroup,      // group 3, binds the rows
-    shader: Shader,  // vector shader
-    color: Pipeline, // arrows in color
-    id: Pipeline,    // arrow object ids
+    buf: GrowBuf,           // VectorRow rows
+    group: wgpu::BindGroup, // group 3, binds the rows
+    shader: Shader,         // vector shader
+    color: Pipeline,        // arrows in color
+    id: Pipeline,           // arrow object ids
 }
 
 /// The registry's entry: constructor, row count and merge.
@@ -69,7 +69,9 @@ fn make(ctx: &GpuCtx, l: &Layouts, target: Target) -> Box<dyn RowLane> {
 
 /// Vector rows in one upload.
 fn rows_in(up: &Upload) -> u32 {
-    up.lanes.get::<VectorRows>().map_or(0, |rows| rows.rows.len() as u32)
+    up.lanes
+        .get::<VectorRows>()
+        .map_or(0, |rows| rows.rows.len() as u32)
 }
 
 /// Move the vector rows of `other` after those of `up`.
@@ -82,11 +84,7 @@ fn merge(up: &mut Upload, other: &mut Upload) {
 impl VectorLane {
     /// Create the lane: shader, pipelines, an empty table.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-        let shader = ink_module(
-            ctx,
-            "vector.shader",
-            shader!("vector.wgsl"),
-        );
+        let shader = ink_module(ctx, "vector.shader", shader!("vector.wgsl"));
         let (color, id) = build_pipelines(ctx, l, &shader, target);
         let buf = GrowBuf::new(
             ctx,
@@ -110,12 +108,7 @@ impl VectorLane {
     }
 
     /// Draw every vector with `pipeline`; returns the draw count.
-    fn draw(
-        &self,
-        pass: &mut wgpu::RenderPass<'_>,
-        b: &Binds,
-        pipeline: &Pipeline,
-    ) -> u32 {
+    fn draw(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds, pipeline: &Pipeline) -> u32 {
         if self.buf.is_empty() {
             return 0;
         }
@@ -231,7 +224,7 @@ mod tests {
     use crate::engine::gpu::instance::wgsl_fields;
 
     /// A pen-wide vector from `start` to `end` on object `row`, default head.
-    fn arrow(row: u32, start: [f32; 3], end: [f32; 3], color: [f32; 4]) -> VectorRow {
+    pub(super) fn arrow(row: u32, start: [f32; 3], end: [f32; 3], color: [f32; 4]) -> VectorRow {
         let byte = |v: f32| ((v.clamp(0.0, 1.0) * 255.0 + 0.5) as u32) & 0xff;
         VectorRow {
             start,
@@ -306,103 +299,8 @@ mod tests {
         assert_eq!(row.instance_id, 3);
     }
 
-    /// Draws, highlights, hides, picks and releases one vector on a headless device.
-    #[test]
-    fn vector_renders_selects_hides_and_picks() {
-        use crate::camera::Camera;
-        use crate::engine::gpu::{FrameInput, Gpu, ObjectRow};
-        use session_rust::{Xform, AABB};
-
-        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(256, 256)) else {
-            eprintln!("no GPU adapter; skipped");
-            return;
-        };
-        gpu.view.show_grid = false;
-        let mut up = Upload::default();
-        let mut bounds = AABB::empty();
-        bounds.union_with_point(0.0, 0.0, 0.0);
-        bounds.union_with_point(100.0, 100.0, 0.0);
-        let mut row = ObjectRow::new(Xform::identity(), 0);
-        row.bounds = bounds;
-        up.obj.rows.push(row);
-        up.bounds = bounds;
-        let vector = arrow(
-            0,
-            [0.0, 0.0, 0.0],
-            [100.0, 100.0, 0.0],
-            [0.0, 0.0, 0.0, 1.0],
-        );
-        up.lanes.get_mut::<VectorRows>().rows.push(vector);
-        gpu.set_scene(&up);
-
-        let mut camera = Camera::new();
-        camera.fit(&gpu.bounds, 1.0);
-        let rebase = gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
-        let input = FrameInput {
-            view_proj: camera.view_proj_anchored(1.0, &rebase.anchor),
-            clear: wgpu::Color::WHITE,
-            now_ms: 0.0,
-        };
-        let ink = |rgba: &[u8]| {
-            rgba.chunks_exact(4)
-                .filter(|p| p[0] < 128 && p[1] < 128)
-                .count()
-        };
-        let yellow = |rgba: &[u8]| {
-            rgba.chunks_exact(4)
-                .filter(|p| p[0] > 200 && p[1] > 200 && p[2] < 100)
-                .count()
-        };
-
-        for samples in [1, 4] {
-            gpu.view.msaa_forced = Some(samples);
-            gpu.resize(256, 256);
-            let plain = gpu.render_offscreen(&input);
-            let drawn = ink(&plain);
-            assert!(drawn > 60, "{samples}x: the arrow draws ink: {drawn}");
-
-            gpu.set_selected(0, true);
-            let selected = gpu.render_offscreen(&input);
-            assert!(
-                yellow(&selected) > 60,
-                "{samples}x: a selected arrow is yellow"
-            );
-            gpu.set_selected(0, false);
-
-            gpu.set_hidden(0, true);
-            let hidden = gpu.render_offscreen(&input);
-            assert_eq!(ink(&hidden), 0, "{samples}x: a hidden arrow draws nothing");
-            gpu.set_hidden(0, false);
-        }
-
-        let ids = gpu.render_ids_offscreen(&input);
-        let hits = ids.iter().filter(|id| id[0] == 1).count();
-        assert!(hits > 30, "the id pass answers row 0: {hits}");
-
-        let tagged = ids
-            .iter()
-            .filter(|id| id[0] == 1 && id[1] == 0x4000_0000)
-            .count();
-        assert_eq!(tagged, hits, "vector picks carry the marker tag");
-
-        // a stub head draws less ink than the default one
-        let with_head = ink(&gpu.render_offscreen(&input));
-        gpu.reset();
-        up.lanes.get_mut::<VectorRows>().rows[0].head = 0.1;
-        gpu.set_scene(&up);
-        let stub = ink(&gpu.render_offscreen(&input));
-        assert!(
-            with_head > stub + 15,
-            "the head adds ink: {with_head} vs {stub}"
-        );
-
-        gpu.release();
-        let empty = gpu.render_offscreen(&input);
-        assert_eq!(ink(&empty), 0, "released vectors are gone");
-    }
-
     /// How much of a pixel ink covers, from its darkest channel over the empty frame's; both sRGB.
-    fn covered(pixel: &[u8], paper: &[u8]) -> f64 {
+    pub(super) fn covered(pixel: &[u8], paper: &[u8]) -> f64 {
         let linear = |c: &[u8]| {
             let v = f64::from(c[0].min(c[1]).min(c[2])) / 255.0;
 
@@ -417,13 +315,19 @@ mod tests {
 
     /// How far one arrow's ink reaches past each end point, along the arrow, in px.
     #[derive(Clone, Copy)]
-    struct Reach {
-        far: f64,  // center of the farthest inked pixel
-        edge: f64, // the ink's edge: a pixel of coverage c has it c - 0.5 px past its center
+    pub(super) struct Reach {
+        pub(super) far: f64,  // center of the farthest inked pixel
+        pub(super) edge: f64, // the ink's edge: a pixel of coverage c has it c - 0.5 px past its center
     }
 
     /// Reach of the ink in `rgba` over the empty frame `paper` past `b` (along a to b) and past `a` (back).
-    fn reach(rgba: &[u8], paper: &[u8], width: usize, a: [f64; 2], b: [f64; 2]) -> [Reach; 2] {
+    pub(super) fn reach(
+        rgba: &[u8],
+        paper: &[u8],
+        width: usize,
+        a: [f64; 2],
+        b: [f64; 2],
+    ) -> [Reach; 2] {
         let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
         let len = (dx * dx + dy * dy).sqrt();
         let dir = [dx / len, dy / len];
@@ -459,7 +363,7 @@ mod tests {
     }
 
     /// Least ink along the center line from `a` to `b`, sampled every 0.1 px between `from` and `to` px after `a`.
-    fn thinnest(
+    pub(super) fn thinnest(
         rgba: &[u8],
         paper: &[u8],
         width: usize,
@@ -494,7 +398,7 @@ mod tests {
     }
 
     /// Where the drawn tip sits past `tip` along `dir`, px: the shift that best fits the ink within `r` to an ideal head.
-    fn tip_offset(
+    pub(super) fn tip_offset(
         rgba: &[u8],
         paper: &[u8],
         width: usize,
@@ -548,7 +452,7 @@ mod tests {
     fn arrow_is_exactly_as_long_as_its_line() {
         use crate::camera::Camera;
         use crate::engine::gpu::{FrameInput, Gpu, ObjectRow};
-        use session_rust::{Point, Xform, AABB};
+        use session_rust::{AABB, Point, Xform};
 
         const SIZE: u32 = 256;
         let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(SIZE, SIZE)) else {
@@ -741,8 +645,16 @@ mod tests {
             }
         }
 
-        eprintln!("worst tip error {worst_tip:.3}, ink past a tip {worst_far:.3}, past a flat end {worst_flat:.3}, center line {worst_seam:.3}");
+        eprintln!(
+            "worst tip error {worst_tip:.3}, ink past a tip {worst_far:.3}, past a flat end {worst_flat:.3}, center line {worst_seam:.3}"
+        );
     }
+}
+
+#[cfg(test)]
+mod walk_tests {
+    use super::tests::{reach, thinnest, tip_offset};
+    use super::*;
 
     /// Curve heads: each tip lands on its curve's end point and no ink, curve or head, reaches past it.
     #[test]
@@ -925,8 +837,16 @@ mod tests {
 
                         let (aim, tip) = (px(aim), px(end));
                         let [past, _] = reach(&near(tip), &paper, SIZE as usize, aim, tip);
-                        assert!(past.edge.abs() <= 0.5, "{label}: flat edge {:+.3}", past.edge);
-                        assert!(past.far <= 1.0, "{label}: ink {:+.3} past a flat end", past.far);
+                        assert!(
+                            past.edge.abs() <= 0.5,
+                            "{label}: flat edge {:+.3}",
+                            past.edge
+                        );
+                        assert!(
+                            past.far <= 1.0,
+                            "{label}: ink {:+.3} past a flat end",
+                            past.far
+                        );
                         worst_flat = worst_flat.max(past.far);
                     }
                 }
@@ -936,5 +856,106 @@ mod tests {
         eprintln!(
             "curve heads: worst tip error {worst_tip:.3}, ink past a tip {worst_far:.3}, past a flat end {worst_flat:.3}"
         );
+    }
+}
+
+#[cfg(test)]
+mod shell_tests {
+    use super::tests::arrow;
+    use super::*;
+
+    /// Draws, highlights, hides, picks and releases one vector on a headless device.
+    #[test]
+    fn vector_renders_selects_hides_and_picks() {
+        use crate::camera::Camera;
+        use crate::engine::gpu::{FrameInput, Gpu, ObjectRow};
+        use session_rust::{AABB, Xform};
+
+        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(256, 256)) else {
+            eprintln!("no GPU adapter; skipped");
+            return;
+        };
+        gpu.view.show_grid = false;
+        let mut up = Upload::default();
+        let mut bounds = AABB::empty();
+        bounds.union_with_point(0.0, 0.0, 0.0);
+        bounds.union_with_point(100.0, 100.0, 0.0);
+        let mut row = ObjectRow::new(Xform::identity(), 0);
+        row.bounds = bounds;
+        up.obj.rows.push(row);
+        up.bounds = bounds;
+        let vector = arrow(
+            0,
+            [0.0, 0.0, 0.0],
+            [100.0, 100.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        );
+        up.lanes.get_mut::<VectorRows>().rows.push(vector);
+        gpu.set_scene(&up);
+
+        let mut camera = Camera::new();
+        camera.fit(&gpu.bounds, 1.0);
+        let rebase = gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
+        let input = FrameInput {
+            view_proj: camera.view_proj_anchored(1.0, &rebase.anchor),
+            clear: wgpu::Color::WHITE,
+            now_ms: 0.0,
+        };
+        let ink = |rgba: &[u8]| {
+            rgba.chunks_exact(4)
+                .filter(|p| p[0] < 128 && p[1] < 128)
+                .count()
+        };
+        let yellow = |rgba: &[u8]| {
+            rgba.chunks_exact(4)
+                .filter(|p| p[0] > 200 && p[1] > 200 && p[2] < 100)
+                .count()
+        };
+
+        for samples in [1, 4] {
+            gpu.view.msaa_forced = Some(samples);
+            gpu.resize(256, 256);
+            let plain = gpu.render_offscreen(&input);
+            let drawn = ink(&plain);
+            assert!(drawn > 60, "{samples}x: the arrow draws ink: {drawn}");
+
+            gpu.set_selected(0, true);
+            let selected = gpu.render_offscreen(&input);
+            assert!(
+                yellow(&selected) > 60,
+                "{samples}x: a selected arrow is yellow"
+            );
+            gpu.set_selected(0, false);
+
+            gpu.set_hidden(0, true);
+            let hidden = gpu.render_offscreen(&input);
+            assert_eq!(ink(&hidden), 0, "{samples}x: a hidden arrow draws nothing");
+            gpu.set_hidden(0, false);
+        }
+
+        let ids = gpu.render_ids_offscreen(&input);
+        let hits = ids.iter().filter(|id| id[0] == 1).count();
+        assert!(hits > 30, "the id pass answers row 0: {hits}");
+
+        let tagged = ids
+            .iter()
+            .filter(|id| id[0] == 1 && id[1] == 0x4000_0000)
+            .count();
+        assert_eq!(tagged, hits, "vector picks carry the marker tag");
+
+        // a stub head draws less ink than the default one
+        let with_head = ink(&gpu.render_offscreen(&input));
+        gpu.reset();
+        up.lanes.get_mut::<VectorRows>().rows[0].head = 0.1;
+        gpu.set_scene(&up);
+        let stub = ink(&gpu.render_offscreen(&input));
+        assert!(
+            with_head > stub + 15,
+            "the head adds ink: {with_head} vs {stub}"
+        );
+
+        gpu.release();
+        let empty = gpu.render_offscreen(&input);
+        assert_eq!(ink(&empty), 0, "released vectors are gone");
     }
 }

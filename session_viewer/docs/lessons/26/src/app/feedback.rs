@@ -1,5 +1,3 @@
-//! Messages for the person using the viewer: what loaded, what failed, what is selected.
-
 /// Show a message in the status line.
 pub fn status(message: &str) {
     // an empty message shows the reload notice, if any
@@ -10,7 +8,6 @@ pub fn status(message: &str) {
         message
     };
 
-    // #[cfg] on a statement: the native build drops it and only logs
     #[cfg(target_arch = "wasm32")]
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()
@@ -19,7 +16,27 @@ pub fn status(message: &str) {
         status.set_text_content(Some(message));
     }
 
+    #[cfg(target_arch = "wasm32")] // register:commands
+    super::ui::command_line::STATE // register:commands
+        .with_borrow_mut(|model| model.status = message.chars().take(256).collect()); // register:commands
     log::info!("{message}");
+}
+
+/// Show a download's progress, unless another message is up; nothing is logged.
+#[cfg(target_arch = "wasm32")]
+pub fn progress(message: &str, last: &str) {
+    if let Some(window) = web_sys::window()
+        && let Some(document) = window.document()
+        && let Some(status) = document.get_element_by_id("viewer-status")
+    {
+        let shown = status.text_content().unwrap_or_default();
+
+        if shown.is_empty() || shown == last {
+            status.set_text_content(Some(message));
+            super::ui::command_line::STATE // register:commands
+                .with_borrow_mut(|model| model.status = message.to_string()); // register:commands
+        }
+    }
 }
 
 /// Show the error panel with a reload button.
@@ -39,34 +56,6 @@ pub fn error(message: &str) {
     log::error!("{message}");
 }
 
-/// Open or close the command line.
-#[cfg(target_arch = "wasm32")]
-/// Show or hide the command box; returns it.
-pub fn command_line(open: bool) -> Option<web_sys::HtmlInputElement> {
-    use wasm_bindgen::JsCast;
-    let document = web_sys::window()?.document()?;
-    let input: web_sys::HtmlInputElement = document
-        .get_element_by_id("viewer-command")?
-        .dyn_into()
-        .ok()?;
-
-    if open {
-        input.set_hidden(false);
-        input.set_value("");
-        let _ = input.focus();
-    } else {
-        input.set_hidden(true);
-
-        if let Some(canvas) = document.get_element_by_id("canvas")
-            && let Ok(canvas) = canvas.dyn_into::<web_sys::HtmlElement>()
-        {
-            let _ = canvas.focus();
-        }
-    }
-
-    Some(input)
-}
-
 /// Give the canvas keyboard focus.
 #[cfg(target_arch = "wasm32")]
 pub fn focus_canvas() {
@@ -84,103 +73,60 @@ pub fn focus_canvas() {
 #[cfg(not(target_arch = "wasm32"))]
 pub fn focus_canvas() {}
 
-/// The command line, when it is open.
+/// One row of the layers panel.
+#[derive(Clone, Default, serde::Serialize)]
+pub struct LayerRow {
+    pub key: String,                 // unique id of the row
+    pub label: String,               // text shown
+    pub count: usize,                // objects under it
+    pub hidden: bool,                // eye toggled off
+    pub locked: bool,                // not editable
+    pub selected: bool,              // highlighted
+    pub color: Option<[u8; 3]>,      // face colour swatch
+    pub edge_color: Option<[u8; 3]>, // edge colour swatch
+    pub has_faces: bool,             // shows a face swatch
+    pub depth: usize,                // indent level
+    pub expanded: Option<bool>,      // open, closed or no children
+    pub layer: bool,                 // a group or document, not an object
+    pub current: bool,               // where new objects go
+    pub root: bool,                  // the top layer of its document
+}
+
+/// One row of the graph table: an edge between two objects.
+#[derive(Clone, Default, serde::Serialize)]
+pub struct EdgeRow {
+    pub key: String,    // `pair/<row>/<row>`
+    pub from: String,   // first object's name, else its short guid
+    pub to: String,     // second object's name, else its short guid
+    pub guids: String,  // both guids, for the tooltip
+    pub selected: bool, // both ends selected
+}
+
+// --8<-- [start:23]
+/// Open or close the command line.
 #[cfg(target_arch = "wasm32")]
-/// The text typed in the command box.
-pub fn command_text() -> Option<String> {
-    use wasm_bindgen::JsCast;
-    let input: web_sys::HtmlInputElement = web_sys::window()?
-        .document()?
-        .get_element_by_id("viewer-command")?
-        .dyn_into()
-        .ok()?;
-    (!input.hidden()).then(|| input.value())
+pub fn command_line(open: bool) {
+    super::ui::command_line::STATE.with_borrow_mut(|model| {
+        model.command_open = open;
+        model.focus_command = open;
+
+        if open {
+            model.command.clear();
+        }
+    });
 }
 
 /// No command line on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn command_line(_open: bool) {}
 
-pub struct LayerRow {
-    pub key: String, // unique id of the row
-    pub label: String, // text shown
-    pub count: usize, // objects under it
-    pub hidden: bool, // eye toggled off
-}
-
-/// Replace the rows of the layers panel.
+/// Raise the phone keyboard over an empty field; works while a tap is handled.
 #[cfg(target_arch = "wasm32")]
-pub fn layers_panel(rows: &[LayerRow]) {
-    let Some(document) = web_sys::window().and_then(|w| w.document()) else {
-        return;
-    };
-    let Some(panel) = document.get_element_by_id("viewer-layers") else {
-        return;
-    };
-    panel.set_text_content(None);
-
-    for row in rows {
-        // one button per layer row
-        let Ok(line) = document.create_element("button") else {
-            continue;
-        };
-        let _ = line.set_attribute("type", "button");
-        let _ = line.set_attribute("aria-pressed", if row.hidden { "true" } else { "false" });
-        let _ = line.set_attribute("data-layer", &row.key);
-        let _ = line.set_attribute(
-            "style",
-            // --8<-- [start:step-2]
-            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:1",
-        );
-
-        if row.hidden {
-            let _ = line.set_attribute(
-                "style",
-                "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:pre;overflow:hidden;text-overflow:ellipsis;opacity:0.45",
-                // --8<-- [end:step-2]
-            );
-        }
-
-        let mark = if row.hidden { "·" } else { "•" };
-        line.set_text_content(Some(&format!("{mark} {} ({})", row.label, row.count)));
-        let _ = panel.append_child(&line);
-    }
+pub fn raise_keyboard() {
+    super::agent::raise();
 }
 
-/// Show or hide the panel; returns it so a caller can attach its one listener.
-#[cfg(target_arch = "wasm32")]
-/// Show or hide the layers panel; returns it.
-pub fn layers_visible(open: bool) -> Option<web_sys::Element> {
-    let panel = web_sys::window()?
-        .document()?
-        .get_element_by_id("viewer-layers")?;
-    let _ = if open {
-        panel.remove_attribute("hidden")
-    } else {
-        panel.set_attribute("hidden", "")
-    };
-    Some(panel)
-}
-
-/// Whether the layers panel is open.
-#[cfg(target_arch = "wasm32")]
-pub fn layers_open() -> bool {
-    web_sys::window()
-        .and_then(|w| w.document())
-        .and_then(|d| d.get_element_by_id("viewer-layers"))
-        .is_some_and(|panel| !panel.has_attribute("hidden"))
-}
-
-/// No panel on native.
+/// No phone keyboard on native.
 #[cfg(not(target_arch = "wasm32"))]
-pub fn layers_panel(_rows: &[LayerRow]) {}
-
-/// No panel on native.
-#[cfg(not(target_arch = "wasm32"))]
-pub fn layers_visible(_open: bool) {}
-
-/// No panel on native.
-#[cfg(not(target_arch = "wasm32"))]
-pub fn layers_open() -> bool {
-    false
-}
+pub fn raise_keyboard() {}
+// --8<-- [end:23]

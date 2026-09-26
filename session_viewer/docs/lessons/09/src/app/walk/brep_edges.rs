@@ -31,7 +31,7 @@ fn parse_sample_index(value: &str) -> Option<usize> {
     value.parse().ok()
 }
 
-/// A BRep edge is shared: each of the two faces meeting there uses the same edge, once from each side.
+/// One use of an edge by a face.
 pub struct EdgeUse {
     pub edge: usize,                  // edge index
     pub face: usize,                  // face index
@@ -67,7 +67,7 @@ fn sample_values(fm: &Mesh, name: &str) -> Vec<f64> {
         }
     }
 
-    vals.sort_by(sample_order);
+    vals.sort_unstable_by(sample_order);
     vals.dedup();
     vals
 }
@@ -157,7 +157,7 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
         return None;
     }
 
-    on_line.sort_by(parameter_order);
+    on_line.sort_unstable_by(parameter_order);
     let mut keys = Vec::with_capacity(on_line.len());
 
     for (_, key) in on_line {
@@ -241,7 +241,7 @@ fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
             }
         }
 
-        ordered.sort_by(total_parameter_order);
+        ordered.sort_unstable_by(total_parameter_order);
         ordered.dedup_by(same_parameter);
         let mut keys = Vec::with_capacity(ordered.len());
 
@@ -306,7 +306,6 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
     out
 }
 
-// --8<-- [start:step-4a]
 /// A triangle edge keyed by its two end positions.
 type FacetEdge = [[u64; 3]; 2];
 
@@ -317,7 +316,7 @@ struct FacetPair {
     count: usize,                   // how many triangles in total
 }
 
-/// Floats are compared as raw bits here, because two vertices at the same spot must hash to the same key.
+/// Position as bits, -0 same as 0.
 fn position_bits(position: [f64; 3]) -> [u64; 3] {
     let mut bits = [0; 3];
 
@@ -340,7 +339,7 @@ fn facet_edge(a: [f64; 3], b: [f64; 3]) -> FacetEdge {
     if a <= b { [a, b] } else { [b, a] }
 }
 
-/// A normal is the direction a surface faces; comparing the two normals at an edge says whether it is a crease or flat.
+/// Triangle normals at every edge of one face mesh.
 fn face_facets(mesh: &Mesh) -> std::collections::HashMap<FacetEdge, FacetPair> {
     let mut result = std::collections::HashMap::<FacetEdge, FacetPair>::new();
     let mut faces: Vec<_> = mesh.face.keys().copied().collect();
@@ -401,9 +400,9 @@ fn face_facets(mesh: &Mesh) -> std::collections::HashMap<FacetEdge, FacetPair> {
 
 /// What every edge pipe of one BRep needs.
 pub struct EdgePen<'a> {
-    pub fms: &'a [Mesh],                                         // face meshes
-    pub signs: &'a [f64],                                        // +1 or -1 per face
-    pub pen: Pen,                                                // row, width, colour
+    pub fms: &'a [Mesh],                                          // face meshes
+    pub signs: &'a [f64],                                         // +1 or -1 per face
+    pub pen: Pen,                                                 // row, width, colour
     facets: Vec<std::collections::HashMap<FacetEdge, FacetPair>>, // per face: triangles at each edge
 }
 
@@ -453,7 +452,6 @@ impl<'a> EdgePen<'a> {
         };
         pack_facing(first.as_ref(), second.as_ref())
     }
-    // --8<-- [end:step-4a]
 }
 
 /// A normal turned outward by its face's sign.
@@ -471,6 +469,7 @@ pub fn push_edge_pipes(
 ) -> usize {
     let fm = &ep.fms[chain.face];
 
+    let first = seg.pipes.len() as u32;
     seg.pipes.reserve(chain.keys.len().saturating_sub(1));
     let mut count = 0;
 
@@ -494,15 +493,14 @@ pub fn push_edge_pipes(
             p1: p1f,
             instance_id: ep.pen.row,
             color: ep.pen.color,
-            // --8<-- [start:step-4d]
             facing: ep.facing(chain, p0, p1),
-            // --8<-- [end:step-4d]
         });
         seg.pipe_ids
             .push(u32::try_from(chain.edge).unwrap_or(u32::MAX)); // edge id for picking
         count += 1;
     }
 
+    seg.pipe_chains.push(first..seg.pipes.len() as u32); // one joined stroke
     count
 }
 
@@ -680,7 +678,6 @@ mod tests {
         }
     }
 
-    // --8<-- [start:step-4e]
     /// The teapot's front meridian stays visible.
     #[test]
     fn teapot_front_meridian_is_not_self_occluded() {
@@ -747,7 +744,6 @@ mod tests {
         assert!(checked >= 8);
     }
 
-    // --8<-- [end:step-4e]
     /// Cylinder pipes carry both neighbouring face normals.
     #[test]
     fn pipes_face_both_adjacent_faces() {
@@ -758,7 +754,6 @@ mod tests {
         let fms = b.face_meshes_q(Some(QUALITY));
         let chains = edge_chains(&b, &fms);
         let signs = vec![1.0; fms.len()];
-        // --8<-- [start:step-4f]
         let ep = EdgePen::new(
             &fms,
             &signs,
@@ -779,7 +774,6 @@ mod tests {
                 "missing incident facet for {:?} → {:?}",
                 p.p0, p.p1
             );
-            // --8<-- [end:step-4f]
             assert_ne!(p.facing & 0xffff, p.facing >> 16);
             assert_eq!(p.instance_id, 3);
         }
@@ -788,7 +782,6 @@ mod tests {
         let seam = push_edge_pipes(&mut seg, chains[2].as_ref().unwrap(), &ep, &mut bounds);
         assert_eq!(seam, 1);
         let p = &seg.pipes[before];
-        // --8<-- [start:step-4g]
         assert_ne!(p.facing & 0xffff, p.facing >> 16);
         assert!(seg.ribbons.is_empty());
         assert_eq!(seg.pipe_ids.len(), seg.pipes.len());
@@ -837,7 +830,6 @@ mod tests {
         }
     }
 
-// --8<-- [end:step-4g]
     /// A segment that collapses in f32 pushes no pipe.
     #[test]
     fn collapsed_display_segments_do_not_create_pick_targets() {
@@ -854,7 +846,6 @@ mod tests {
         }
 
         let signs = vec![1.0; fms.len()];
-        // --8<-- [start:step-4h]
         let ep = EdgePen::new(
             &fms,
             &signs,
@@ -864,7 +855,6 @@ mod tests {
                 color: 0,
             },
         );
-        // --8<-- [end:step-4h]
         let mut seg = SegRows::default();
         assert_eq!(push_edge_pipes(&mut seg, chain, &ep, &mut AABB::empty()), 0);
         assert!(seg.pipes.is_empty());

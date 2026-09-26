@@ -32,15 +32,14 @@ pub struct Node {
 /// The tree panel's flattened nodes.
 #[derive(Default)]
 pub struct Hierarchy {
-    pub nodes: Vec<Node>,     // every node, parents before children
-    pub rows: Vec<u32>,       // object rows the nodes point into
-    pub open: HashSet<usize>, // expanded nodes
-    pub page: usize,          // current panel page
-    pub selected: Vec<u32>,   // rows highlighted
-    pub truncated: bool,      // scene too large to show
-    pub edges: Vec<[u32; 2]>, // graph edges between object rows, from and to
-    pub active: Vec<usize>,   // clicked layer nodes
-    revision: Option<u64>,    // scene revision this was built from
+    pub nodes: Vec<Node>,           // every node, parents before children
+    pub rows: Vec<u32>,             // object rows the nodes point into
+    pub open: HashSet<usize>,       // expanded nodes
+    pub page: usize,                // current panel page
+    pub truncated: bool,            // scene too large to show
+    pub edges: Vec<[u32; 2]>,       // graph edges between object rows, from and to
+    pub active: Vec<usize>,         // clicked layer nodes
+    revision: Option<u64>,          // scene revision this was built from
     away: HashSet<(usize, String)>, // open nodes an undo took away, open again when they return
 }
 

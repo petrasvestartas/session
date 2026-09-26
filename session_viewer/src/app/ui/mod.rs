@@ -4,7 +4,7 @@ use theme::{BUNDLED, fonts, visuals};
 use winit::window::Window;
 mod graph; // register:graph
 mod overlay; // register:overlay
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_arch = "wasm32")] // register:phone
 mod phone; // register:phone
 mod pointer; // register:pointer
 mod theme; // register:theme
@@ -60,6 +60,14 @@ trait Panel {
 
     /// Its part of the state browser tests read.
     fn snapshot(&self, _json: &mut serde_json::Map<String, serde_json::Value>) {}
+
+    /// True while it is open and Escape closes it.
+    fn closes_on_escape(&self) -> bool {
+        false
+    }
+
+    /// A press at `pointer` over the canvas: focus its field when the press is on it.
+    fn press(&self, _context: &egui::Context, _pointer: egui::Pos2) {}
 }
 
 thread_local! { static MENU_OPEN: Cell<bool> = const { Cell::new(false) }; } // an egui popup, e.g. a layer or colour menu, is open
@@ -112,10 +120,10 @@ pub struct Ui {
     ui_drag: bool,                           // a drag started on a panel
     over_panel: bool,                        // the pointer was last over a panel or popup
     touches: std::collections::HashSet<u64>, // fingers on panels
-    #[cfg(target_arch = "wasm32")]
-    agent_value: String, // last text taken from the hidden input
-    #[cfg(target_arch = "wasm32")]
-    field: Option<&'static str>, // the field the hidden input fed last frame, None for the command line
+    #[cfg(target_arch = "wasm32")] // register:phone
+    agent_value: String, // last text taken from the hidden input; register:phone
+    #[cfg(target_arch = "wasm32")] // register:phone
+    field: Option<&'static str>, // the field the hidden input fed last frame, None for the command line; register:phone
 }
 
 impl Ui {
@@ -132,7 +140,7 @@ impl Ui {
         context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
         context.set_theme(egui::Theme::Light);
         context.set_visuals(visuals());
-        command_line::STATE.with_borrow_mut(|model| model.focus_command = true);
+        command_line::STATE.with_borrow_mut(|model| model.focus_command = true); // register:commands
         let input = egui_winit::State::new(
             context.clone(),
             egui::ViewportId::ROOT,
@@ -153,10 +161,10 @@ impl Ui {
             ui_drag: false,
             over_panel: false,
             touches: std::collections::HashSet::new(),
-            #[cfg(target_arch = "wasm32")]
-            agent_value: String::new(),
-            #[cfg(target_arch = "wasm32")]
-            field: None,
+            #[cfg(target_arch = "wasm32")] // register:phone
+            agent_value: String::new(), // register:phone
+            #[cfg(target_arch = "wasm32")] // register:phone
+            field: None, // register:phone
         }
     }
 
@@ -181,10 +189,8 @@ impl Ui {
         }
 
         // a dragged object's snap, else the shape being drawn
-        let drawing = state
-            .drag_overlay()
-            .unwrap_or_else(|| state.drawing_overlay());
-        let marks = state.tool_marks().or_else(|| state.mark_overlay()); // a tool's parts, else a measured answer
+        let mut drawing = state.drag_overlay();
+        drawing = drawing.or_else(|| Some(state.drawing_overlay())); // register:commands
         // keep clicks and keys in arrival order
         let mut batches = Vec::new();
         let mut events = Vec::new();
@@ -219,11 +225,12 @@ impl Ui {
             self.scene_rect = root.available_rect_before_wrap();
             let painter = root.painter().with_clip_rect(self.scene_rect);
             let scale = state.pixel_scale() as f32;
-            overlay::drawing(&painter, &drawing, scale);
 
-            if let Some(marks) = &marks {
-                overlay::tool_marks(&painter, marks, scale);
+            if let Some(drawing) = &drawing {
+                overlay::drawing(&painter, drawing, scale);
             }
+
+            overlay::marks(&painter, state, scale); // register:tools
         };
         let mut batches = batches.into_iter();
         let mut output = self.context.run_ui(batches.next().unwrap(), &mut draw);
@@ -243,29 +250,16 @@ impl Ui {
         changed |= action.is_some() || command.is_some();
 
         if let Some(key) = action {
-            state.panel_action(&key);
+            state.panel_action(&key); // register:panel
         }
 
         if let Some(text) = command {
-            let message = state.run_command(&text).unwrap_or_else(|error| error);
-            crate::app::feedback::status(&message);
-            command_line::remember(format!(
-                "> {}\n{message}",
-                crate::app::command::canonical(&text)
-            ));
-            command_line::STATE.with_borrow(|model| {
-                if !model.command_open && !model.focus_command {
-                    self.context.memory_mut(|memory| {
-                        memory.surrender_focus(egui::Id::new("command-input"))
-                    });
-                }
-            });
-            state.touch();
+            self.run_line(state, &text); // register:commands
         }
 
         self.publish();
-        #[cfg(target_arch = "wasm32")]
-        self.follow_field();
+        #[cfg(target_arch = "wasm32")] // register:phone
+        self.follow_field(); // register:phone
         let repaint = changed || self.context.has_requested_repaint();
         output.pixels_per_point = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
 
@@ -326,4 +320,23 @@ fn record(controls: &mut Option<Vec<Control>>, key: &str, label: &str, response:
 /// A rectangle as `[left, top, right, bottom]` for browser tests, null when there is none.
 fn corners(rect: Option<egui::Rect>) -> serde_json::Value {
     serde_json::json!(rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y]))
+}
+
+impl Ui {
+    /// Run a line typed into the command line and remember it.
+    fn run_line(&mut self, state: &mut State, text: &str) {
+        let message = state.run_command(text).unwrap_or_else(|error| error);
+        crate::app::feedback::status(&message);
+        command_line::remember(format!(
+            "> {}\n{message}",
+            crate::app::command::canonical(text)
+        ));
+        command_line::STATE.with_borrow(|model| {
+            if !model.command_open && !model.focus_command {
+                self.context
+                    .memory_mut(|memory| memory.surrender_focus(egui::Id::new("command-input")));
+            }
+        });
+        state.touch();
+    }
 }

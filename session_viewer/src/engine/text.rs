@@ -30,28 +30,33 @@ const MAX_TEXT_BYTES: usize = 256 * 1024;
 /// Where a label sits and how it is sized.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum TextPlacement {
-    Screen { // fixed on screen, CSS px
+    Screen {
+        // fixed on screen, CSS px
         left: f32, // left edge
-        top: f32, // top edge
+        top: f32,  // top edge
     },
-    Anchor { // at a world point, screen-sized, hidden behind geometry
-        world: [f64; 3], // world point
+    Anchor {
+        // at a world point, screen-sized, hidden behind geometry
+        world: [f64; 3],  // world point
         offset: [f32; 2], // shift from it, CSS px
     },
-    Nameplate { // centered on a world point with a plate, always on top
+    Nameplate {
+        // centered on a world point with a plate, always on top
         // world point
         world: [f64; 3],
         padding: [f32; 2], // space around the text, CSS px
-        rounded: bool, // rounded plate corners
+        rounded: bool,     // rounded plate corners
     },
-    WorldPlane { // lying on a plane in the world
+    WorldPlane {
+        // lying on a plane in the world
         // top-left corner
         world: [f64; 3],
-        right: [f64; 3], // unit axis along the text
-        up: [f64; 3], // unit axis up the text
+        right: [f64; 3],   // unit axis along the text
+        up: [f64; 3],      // unit axis up the text
         world_height: f64, // em height, world units
     },
-    WorldBillboard { // facing the camera, world-sized
+    WorldBillboard {
+        // facing the camera, world-sized
         // world point
         world: [f64; 3],
         world_height: f64, // em height, world units
@@ -61,21 +66,21 @@ pub enum TextPlacement {
 /// The object a label belongs to, for picks and selection.
 #[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TextObject {
-    pub row: u32, // object row
+    pub row: u32,       // object row
     pub selected: bool, // drawn as selected
 }
 
 /// One text label; sizes in CSS pixels.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TextLabel {
-    pub id: u32, // unique per label
+    pub id: u32,                    // unique per label
     pub object: Option<TextObject>, // owning object, if any
-    pub text: String, // the text
-    pub font_size: f32, // em size
-    pub line_height: f32, // distance between lines
-    pub color: [u8; 4], // rgba
-    pub placement: TextPlacement, // where it sits
-    pub clip: Option<[f32; 4]>, // screen box to cut it to: left, top, right, bottom
+    pub text: String,               // the text
+    pub font_size: f32,             // em size
+    pub line_height: f32,           // distance between lines
+    pub color: [u8; 4],             // rgba
+    pub placement: TextPlacement,   // where it sits
+    pub clip: Option<[f32; 4]>,     // screen box to cut it to: left, top, right, bottom
 }
 
 impl TextLabel {
@@ -92,17 +97,17 @@ impl TextLabel {
 /// A label with its shaped glyphs.
 pub struct TextRun {
     pub label: TextLabel, // the label
-    pub buffer: Buffer, // its glyphs, laid out by glyphon
+    pub buffer: Buffer,   // its glyphs, laid out by glyphon
 }
 
 /// Every label, shaped, with the fonts.
 pub struct TextDocument {
-    pub fonts: FontSystem, // the font set
+    pub fonts: FontSystem,  // the font set
     pub runs: Vec<TextRun>, // shaped labels
-    pub revision: u64, // bumps on every label change
+    pub revision: u64,      // bumps on every label change
     pub font_revision: u64, // bumps on every font change
-    pub shape_count: u64, // labels shaped so far
-    pub shaping_ms: f64, // time spent shaping
+    pub shape_count: u64,   // labels shaped so far
+    pub shaping_ms: f64,    // time spent shaping
 }
 
 impl TextDocument {
@@ -256,16 +261,16 @@ impl Default for TextDocument {
 /// One shaped glyph, for tests.
 #[derive(Clone, Debug, Serialize)]
 pub struct GlyphDiagnostic {
-    pub label: u32, // label id
-    pub line: usize, // line index
+    pub label: u32,          // label id
+    pub line: usize,         // line index
     pub cluster: [usize; 2], // byte range in the text
-    pub glyph: u16, // glyph id; 0 = missing
-    pub font: String, // font it came from
-    pub origin: [f32; 2], // position on the line
-    pub advance: f32, // width
-    pub offset: [f32; 2], // shaping offset
-    pub baseline: f32, // line baseline
-    pub line_width: f32, // width of the whole line
+    pub glyph: u16,          // glyph id; 0 = missing
+    pub font: String,        // font it came from
+    pub origin: [f32; 2],    // position on the line
+    pub advance: f32,        // width
+    pub offset: [f32; 2],    // shaping offset
+    pub baseline: f32,       // line baseline
+    pub line_width: f32,     // width of the whole line
 }
 
 /// True when the bundled fonts draw every character of `text`.
@@ -413,40 +418,8 @@ fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
 mod tests {
     use super::*;
 
-    /// The bundled subsets draw the viewer's own strings and the specimen; the whole fonts the rest.
-    #[test]
-    fn bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest() {
-        for spec in crate::app::command::REGISTRY.iter().map(|verb| verb.spec()) {
-            for text in spec.names.iter().chain(spec.aliases).chain(spec.options) {
-                assert!(covers(text), "{text}");
-            }
-
-            assert!(covers(spec.hint), "{}", spec.hint);
-        }
-
-        for text in [
-            "Ąą Čč Ęę Ėė Įį Šš Ųų Ūū Žž",
-            "Äußere Wände, Größe, Straße ẞ, „Zitat“ »Guillemets«",
-            "Ø 12 ± 0,5 mm, 45°, m² m³, µm",
-            "→ ■ ⏵ ◻ ⚙ ⏳ ⌘",
-            "+ –", // the panels' fold buttons
-        ] {
-            assert!(covers(text), "{text}");
-        }
-
-        assert!(!covers("Fixed Ω cube"));
-        let whole: Vec<Vec<u8>> = FULL_FONTS
-            .iter()
-            .map(|name| std::fs::read(format!("assets/text/{name}")).unwrap())
-            .collect();
-        let mut doc = TextDocument::new();
-        doc.replace_fonts(whole).unwrap();
-        doc.set_labels(vec![label("Fixed Ω cube")]).unwrap();
-        assert!(doc.diagnostics().iter().all(|glyph| glyph.glyph != 0));
-    }
-
     /// A screen label with fixed metrics.
-    fn label(text: &str) -> TextLabel {
+    pub(super) fn label(text: &str) -> TextLabel {
         TextLabel {
             object: None,
             id: 1,
@@ -561,5 +534,43 @@ mod tests {
         invalid.font_size = f32::NAN;
         assert!(doc.set_labels(vec![invalid]).is_err());
         assert_eq!(doc.runs[0].label.text, "Keep");
+    }
+}
+
+#[cfg(test)]
+mod commands_tests {
+    use super::tests::label;
+    use super::*;
+
+    /// The bundled subsets draw the viewer's own strings and the specimen; the whole fonts the rest.
+    #[test]
+    fn bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest() {
+        for spec in crate::app::command::REGISTRY.iter().map(|verb| verb.spec()) {
+            for text in spec.names.iter().chain(spec.aliases).chain(spec.options) {
+                assert!(covers(text), "{text}");
+            }
+
+            assert!(covers(spec.hint), "{}", spec.hint);
+        }
+
+        for text in [
+            "Ąą Čč Ęę Ėė Įį Šš Ųų Ūū Žž",
+            "Äußere Wände, Größe, Straße ẞ, „Zitat“ »Guillemets«",
+            "Ø 12 ± 0,5 mm, 45°, m² m³, µm",
+            "→ ■ ⏵ ◻ ⚙ ⏳ ⌘",
+            "+ –", // the panels' fold buttons
+        ] {
+            assert!(covers(text), "{text}");
+        }
+
+        assert!(!covers("Fixed Ω cube"));
+        let whole: Vec<Vec<u8>> = FULL_FONTS
+            .iter()
+            .map(|name| std::fs::read(format!("assets/text/{name}")).unwrap())
+            .collect();
+        let mut doc = TextDocument::new();
+        doc.replace_fonts(whole).unwrap();
+        doc.set_labels(vec![label("Fixed Ω cube")]).unwrap();
+        assert!(doc.diagnostics().iter().all(|glyph| glyph.glyph != 0));
     }
 }

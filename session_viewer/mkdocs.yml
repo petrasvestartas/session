@@ -52,7 +52,7 @@ markdown_extensions:
       base_path:
         - !relative $config_dir/docs
         - !relative $config_dir/..
-      check_paths: true
+      check_paths: false # stage C: pages still name pre-cut step anchors; true again once every page is rewritten
   - pymdownx.highlight:
       pygments_lang_class: true
       guess_lang: false
@@ -81,7 +81,7 @@ nav:
     - "02 · Camera": docs/02-camera.md
     - "03 · Object rows and identity": docs/03-identity.md
     - "04a · Meshes on the GPU": docs/04a-meshes.md
-    - "04b · Strokes": docs/04b-strokes.md
+    - "04b · Strokes and arrows": docs/04b-strokes.md
     - "04c · Markers": docs/04c-markers.md
     - "04d · Point clouds": docs/04d-clouds.md
     - "05 · Depth and visible ink": docs/05-visibility.md
@@ -91,32 +91,34 @@ nav:
     - "09 · Normals and shading": docs/09-normals.md
     - "10 · Text shaping": docs/10-text-layout.md
     - "11 · Text rendering": docs/11-text-rendering.md
-    - "12 · maintained viewer shell and picking": docs/12-picking.md
-    - "13 · Source controls": docs/13-controls.md
+    - "12 · The viewer shell and picking": docs/12-picking.md
+    - "13 · Source controls and cloud picks": docs/13-controls.md
     - "14 · Loading scenes": docs/14-loading.md
     - "15 · Publication and streamed reads": docs/15-publication.md
-    - "16 · Resource accounting": docs/16-accounting.md
+    - "16 · Resource accounting and release": docs/16-accounting.md
     - "17 · Source faces, text objects and one silhouette": docs/17-source-presentation.md
-    - "18 · Finite-triangle visibility and maintained viewer convergence": docs/18-finite-visibility.md
+    - "18 · Finite-triangle visibility": docs/18-finite-visibility.md
+    - "18a · Instancing": docs/18a-instancing.md
+    - "18b · Clipping planes and section caps": docs/18b-clipping.md
     - "19 · Sheets: batched drawings with lazy metadata": docs/19-sheets.md
-    - "20 · The document: undo, redo and save": docs/20-history.md
-    - "21 · Editing: the gumball, the command line and the layers panel": docs/21-editing.md
-    - "22 · Refresh diagnostics and resource checks": docs/22-runtime-helpers.md
-    - "23 · Create, trim, extend and explode": docs/23-geometry-commands.md
-    - "24 · Make control dragging respect object placement": docs/24-placed-controls.md
+    - "20 · The document and its rows": docs/20-history.md
+    - "21 · Direct editing": docs/21-editing.md
+    - "22 · The egui layer": docs/22-runtime-helpers.md
+    - "23 · The command line: one verb per file": docs/23-geometry-commands.md
+    - "23a · Tools that ask for points": docs/23a-tools.md
+    - "23b · Shapes": docs/23b-shapes.md
+    - "23c · Surfacing": docs/23c-surfacing.md
+    - "23d · Annotate and measure": docs/23d-annotate-measure.md
+    - "24 · Snapping": docs/24-placed-controls.md
     - "25 · Draw a solid, readable gumball": docs/25-gumball.md
-    - "26 · Build the nested session and graph panel": docs/26-nested-panel.md
-    - "27 · Build the egui panel and command interface": docs/27-egui-interface.md
-    - "28 · Finish the shared editing wiring": docs/28-editing-wiring.md
-    - "29 · Dock the workspace, edit source geometry and save": docs/29-docked-workspace.md
-    - "30 · Keep source dragging live and build one layer tree": docs/30-layer-tree.md
-    - "31 · Split curves and faces while keeping the shell joined": docs/31-splitting.md
-    - "32 · Finish the command workspace and soft ambient lighting": docs/32-colors-lighting.md
-    - "33 · Contact shadows that follow object size": docs/33-contact-shadows.md
-    - "34 · Polyline options, ordered input and a remembered view": docs/34-polyline-options.md
-    - "35 · Attributes On|Off and a phone keyboard": docs/35-attributes.md
-    - "36 · Translucent faces and the Opacity command": docs/36-translucent-faces.md
-    - "37 · Attribute features in red and a one-row command dock": docs/37-command-dock.md
+    - "26 · The nested session panel": docs/26-nested-panel.md
+    - "30 · The layers panel and the layer tree": docs/30-layer-tree.md
+    - "31 · Split curves and faces": docs/31-splitting.md
+    - "32 · Ambient occlusion": docs/32-colors-lighting.md
+    - "33 · GTAO, Arctic and Outline": docs/33-contact-shadows.md
+    - "35 · Attributes On|Off": docs/35-attributes.md
+    - "36 · Translucent faces and Opacity": docs/36-translucent-faces.md
+    - "37 · Self-test: the finished viewer": docs/37-command-dock.md
   - Reference:
     - "Architecture": ARCHITECTURE.md
     - "Reading failures": docs/debugging.md

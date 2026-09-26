@@ -1,27 +1,26 @@
-// The first 16 bytes of CloudUniform, as in splat.wgsl.
+// Point cloud settings, 48 bytes; matches CloudUniform in Rust.
 struct CloudUniform {
-    size: f32,
-    vp_w: f32,
-    vp_h: f32,
-    edl: f32,
-    // --8<-- [start:step-36]
+    size: f32, // point size scale; applied on the CPU
+    vp_w: f32, // target width, px
+    vp_h: f32, // target height, px
+    edl: f32, // eye-dome lighting strength; 0 = off
     _pad0: f32, // padding
     _pad1: f32, // padding
     origin: vec2<f32>, // top-left of this target in the canvas, px
     frame: vec2<f32>, // canvas size, px
-    // --8<-- [end:step-36]
 };
 
-@group(0) @binding(0) var<uniform> cloud: CloudUniform;
+@group(0) @binding(0) var<uniform> cloud: CloudUniform; // cloud settings
 @group(1) @binding(0) var sdepth: texture_depth_2d; // nearest point depth per pixel
 @group(1) @binding(1) var scolor: texture_2d<f32>; // its color
 
+// One vertex of the fullscreen triangle.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>,
+    @builtin(position) pos: vec4<f32>, // clip position
 };
 
 @vertex
-// Corners (-1, -1), (3, -1), (-1, 3): one triangle covers the whole -1..1 screen.
+// Place the three corners of a screen-covering triangle.
 fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     var o: VsOut;
     let x = f32(i32(vid & 1u) * 4 - 1);
@@ -30,11 +29,11 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     return o;
 }
 
-// frag_depth: the fragment sets its own depth instead of taking the triangle's.
+// Output: color, triangle id, and the depth written to the scene.
 struct FsOut {
-    @location(0) color: vec4<f32>,
-    @location(1) gradient: vec2<f32>,
-    @builtin(frag_depth) depth: f32,
+    @location(0) color: vec4<f32>, // rgba
+    @location(1) primitive: vec2<u32>, // triangle id; none for points
+    @builtin(frag_depth) depth: f32, // point depth into the scene
 };
 
 // Depth on a log scale that grows with distance.
@@ -47,7 +46,7 @@ fn shade(in: VsOut) -> FsOut {
     let pix = vec2<i32>(in.pos.xy);
     let d = textureLoad(sdepth, pix, 0);
 
-    // depth 0 is still the clear value: no point here
+    // no point here
     if (d == 0.0) {
         discard;
     }
@@ -86,11 +85,12 @@ fn shade(in: VsOut) -> FsOut {
 
     o.color = vec4<f32>(rgb, 1.0);
     o.depth = d;
-    o.gradient = vec2<f32>(0.0);
+    o.primitive = vec2<u32>(0u);
     return o;
 }
 
 @fragment
+// Resolve one pixel.
 fn fs_main(in: VsOut) -> FsOut {
     return shade(in);
 }

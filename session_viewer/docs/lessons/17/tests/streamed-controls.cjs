@@ -63,6 +63,8 @@ async function main(){
   let page;const errors=[],messages=[];
   try{
     page=await browser.newPage({viewport:{width:1200,height:900},deviceScaleFactor:dpr});
+    // A static build has no favicon; Chrome's own favicon fetch still logs a 404 console error. Answer it like smoke.cjs.
+    await page.route('**/favicon.ico',function favicon(route){return route.fulfill({status:204})});
     page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{messages.push(`${m.type()}: ${m.text()}`);if(m.type()==='error'){errors.push(m.text());console.error(m.text());}});
     await page.addInitScript(() => { window.fixtureInspect = () => JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection')||'null'); });
     await page.goto((process.env.VIEWER_URL||'http://127.0.0.1:8770/')+`?scene=stream-test.yaml&data=${encodeURIComponent(base)}&points=250000&inspect=1`);

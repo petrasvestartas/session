@@ -1,9 +1,10 @@
+use crate::app::command::verbs::geometry::Draw;
 use crate::app::scene::FileDoc;
 use crate::app::scene::Scene;
+use crate::app::scene::rows::DocState;
+use crate::app::scene::sync;
 use session_rust::Geometry;
 use session_rust::Line;
-use session_rust::Point;
-use session_rust::Polyline;
 use session_rust::Session;
 use session_rust::Xform;
 use std::rc::Rc;
@@ -11,110 +12,114 @@ use std::rc::Rc;
 /// Most points one command may create.
 pub const MAX_POINTS: usize = 4096;
 
-/// One geometry command.
-#[derive(Clone, Debug, PartialEq)]
-pub enum Modeling {
-    Point([f64; 3]),          // create a point
-    Line([f64; 3], [f64; 3]), // create a line
-    Polyline(Vec<[f64; 3]>),  // create a polyline
-    Curve(Vec<[f64; 3]>),     // create a curve through control points
-    Trim(f64, f64),           // keep this part of the selected curve, 0..1
-    Extend(f64, f64),         // extend the selected curve to this range
-    Explode,                  // split the selected polyline into lines
+/// A part of the selected curve over 0..1 of its length.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Interval {
+    Trim(f64, f64),   // keep this part
+    Extend(f64, f64), // grow to this range
 }
 
 impl Scene {
-    /// Run one geometry command as one undo step.
-    pub fn model(&mut self, command: &Modeling) -> Result<(), String> {
-        if !self.streamed.is_empty() || !self.sheets.is_empty() {
-            return Err("geometry edits require a scene without streamed sources".into());
-        }
-
-        match command {
-            Modeling::Point(p) => self.create_geometry(Geometry::Point(Rc::new(point(*p)?))),
-            Modeling::Line(a, b) => {
-                let line = Line::from_points(&point(*a)?, &point(*b)?);
-
-                if line.length() <= 1e-12 {
-                    return Err("line endpoints must differ".into());
-                }
-
-                self.create_geometry(Geometry::Line(Rc::new(line)))
-            }
-            Modeling::Polyline(points) => {
-                if !(2..=MAX_POINTS).contains(&points.len()) {
-                    return Err(format!("polyline needs 2–{MAX_POINTS} points"));
-                }
-
-                let points = points
-                    .iter()
-                    .map(|p| point(*p))
-                    .collect::<Result<Vec<_>, _>>()?;
-                self.create_geometry(Geometry::Polyline(Rc::new(Polyline::new(points))))
-            }
-            Modeling::Curve(points) => {
-                if !(2..=MAX_POINTS).contains(&points.len()) {
-                    return Err(format!("curve needs 2–{MAX_POINTS} control points"));
-                }
-
-                let points = points
-                    .iter()
-                    .map(|p| point(*p))
-                    .collect::<Result<Vec<_>, _>>()?;
-                let curve =
-                    session_rust::NurbsCurve::create(false, (points.len() - 1).min(3), &points);
-                self.create_geometry(Geometry::NurbsCurve(Rc::new(curve)))
-            }
-            _ => self.edit_geometry(command),
-        }
+    /// Draw `verb` through `points` as one undo step; the new object's (document, guid) comes back.
+    pub fn model(&mut self, verb: &Draw, points: &[[f64; 3]]) -> Result<(usize, String), String> {
+        self.create_geometry(verb.geometry(points)?)
     }
 
-    /// Add a geometry to the `Created` document, making it if needed.
-    fn create_geometry(&mut self, geometry: Geometry) -> Result<(), String> {
-        let index = self.created_doc;
-        let doc = match index {
-            Some(index) => index,
-            None => {
-                self.docs.push(FileDoc {
-                    name: "Created".into(),
-                    session: Rc::new(Session::new("Created")),
-                    place: Xform::identity(),
-                    point_px: 0.0,
-                    display_only: false,
-                });
+    /// Add a geometry to the current layer, else the `Created` document, making it if needed.
+    pub(crate) fn create_geometry(
+        &mut self,
+        geometry: Geometry,
+    ) -> Result<(usize, String), String> {
+        let mut made = self.create_many(vec![geometry], "create")?;
+        Ok(made.remove(0))
+    }
+
+    /// Add geometries to the current layer as one undo step; each (document, guid) comes back.
+    pub(crate) fn create_many(
+        &mut self,
+        geometries: Vec<Geometry>,
+        label: &str,
+    ) -> Result<Vec<(usize, String)>, String> {
+        if geometries.is_empty() {
+            return Err("nothing to create".into());
+        }
+
+        let layer = self
+            .current_layer()
+            .filter(|(doc, _)| !self.docs[*doc].display_only);
+        let doc = match (&layer, self.created_doc) {
+            (Some((doc, _)), _) => *doc,
+            (None, Some(index)) => index,
+            (None, None) => {
+                let session = Rc::new(Session::new("Created"));
+                let nodes_from = sync::tree_key(&session);
+                self.push_doc(
+                    FileDoc {
+                        name: "Created".into(),
+                        session,
+                        place: Xform::identity(),
+                        point_px: 0.0,
+                        display_only: false,
+                    },
+                    DocState {
+                        sheet: None,
+                        nodes_from,
+                    },
+                );
+                self.created_doc = Some(self.docs.len() - 1);
                 self.docs.len() - 1
             }
         };
-        self.created_doc = Some(doc);
+        let place = self.docs[doc].place.clone();
         let session = Rc::make_mut(&mut self.docs[doc].session);
-        session.begin("create");
+        // the current layer, else the root
+        let parent = layer
+            .as_ref()
+            .and_then(|(_, name)| session.tree.get_node_by_name(name))
+            .or_else(|| session.tree.root())
+            .ok_or("this document has no tree")?;
+        let name = parent.borrow().name.clone();
+        let back = super::layers::frame(session, &place, &name);
+        session.begin(label);
+        let mut nodes = Vec::with_capacity(geometries.len());
 
-        match geometry {
-            Geometry::Point(p) => {
-                session.add_point((*p).clone(), None);
+        for geometry in &geometries {
+            let Some(node) = super::layers::add(session, geometry, &parent, true) else {
+                continue;
+            };
+
+            // world coordinates stay put under a placed document or layer
+            if let Some(back) = &back {
+                let guid = node.borrow().name.clone();
+                super::layers::place(session, &guid, back, &Xform::identity());
             }
-            Geometry::Line(line) => {
-                session.add_line((*line).clone(), None);
-            }
-            Geometry::Polyline(line) => {
-                let added = session.add_polyline((*line).clone(), None);
-                debug_assert!(added.is_some());
-            }
-            Geometry::NurbsCurve(curve) => {
-                session.add_nurbscurve((*curve).clone(), None);
-            }
-            _ => unreachable!(),
+
+            nodes.push(node);
         }
 
-        session.commit();
-        self.last_edited = Some(doc);
-        Ok(())
+        let notes = sync::commit(session);
+        self.noted(doc, notes);
+
+        if nodes.is_empty() {
+            return Err("the geometry is empty".into());
+        }
+
+        let mut made = Vec::with_capacity(nodes.len());
+
+        for node in &nodes {
+            self.hint(doc, node);
+            made.push((doc, node.borrow().name.clone()));
+        }
+
+        self.edited(&[doc]);
+        Ok(made)
     }
 
-    /// Trim, extend or explode the selected object.
-    fn edit_geometry(&mut self, command: &Modeling) -> Result<(), String> {
+    /// Trim or extend the selected object.
+    pub fn edit_interval(&mut self, interval: Interval) -> Result<(), String> {
         let row = self.selected.ok_or("select one object first")?;
         let (doc, guid) = self.identity_of(row).ok_or("object no longer exists")?;
+        self.editable(doc)?; // a released document comes back first
         let file = self.docs.get(doc).ok_or("this object has no document")?;
 
         if file.display_only {
@@ -122,80 +127,27 @@ impl Scene {
         }
 
         let source = self.geometry(row).ok_or("source geometry is unavailable")?;
+        let next = edited(source, interval)?;
+        let session = Rc::make_mut(&mut self.docs[doc].session);
+        session.begin("edit geometry");
+        let replaced = session.replace(&guid, next);
+        let notes = sync::commit(session);
+        self.noted(doc, notes);
 
-        if matches!(command, Modeling::Explode) {
-            let Geometry::Polyline(line) = source else {
-                return Err("explode currently accepts polylines".into());
-            };
-
-            if line.point_count() > MAX_POINTS {
-                return Err(format!("explode is limited to {MAX_POINTS} points"));
-            }
-
-            if file
-                .session
-                .tree
-                .get_node_by_name(&guid)
-                .is_some_and(|node| !node.borrow().is_leaf())
-            {
-                return Err("explode requires an object without child geometry".into());
-            }
-
-            let points = line.get_points();
-            let width = line.width;
-            let dash = line.dash.clone();
-            let color = line.linecolor.clone();
-            let place = file.session.world_xform(&guid); // the lines keep the placement
-            let session = Rc::make_mut(&mut self.docs[doc].session);
-            session.begin("explode");
-
-            if !session.remove_object(&guid) {
-                session.commit();
-                return Err("object no longer exists".into());
-            }
-
-            for pair in points.windows(2) {
-                let mut line = Line::from_points(&pair[0], &pair[1]);
-                line.width = width;
-                line.dash = dash.clone();
-                line.linecolor = color.clone();
-                let node = session.add_line(line, None);
-                session.set_xform(&node.borrow().name, place.clone());
-            }
-
-            session.commit();
-        } else {
-            let next = edited(source, command)?;
-            let session = Rc::make_mut(&mut self.docs[doc].session);
-            session.begin("edit geometry");
-            let replaced = session.replace(&guid, next);
-            session.commit();
-
-            if !replaced {
-                return Err("object no longer exists".into());
-            }
+        if !replaced {
+            return Err("object no longer exists".into());
         }
 
-        self.last_edited = Some(doc);
+        self.edited(&[doc]);
         Ok(())
     }
 }
 
-/// A point from finite, reasonable coordinates.
-fn point(p: [f64; 3]) -> Result<Point, String> {
-    if p.iter().any(|v| !v.is_finite() || v.abs() > 1e12) {
-        return Err("coordinates must be finite and within ±1e12".into());
-    }
-
-    Ok(Point::new(p[0], p[1], p[2]))
-}
-
 /// The source trimmed or extended to `a..b` of its length.
-fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
-    let (a, b, trim) = match *command {
-        Modeling::Trim(a, b) => (a, b, true),
-        Modeling::Extend(a, b) => (a, b, false),
-        _ => return Err("expected trim or extend".into()),
+fn edited(source: &Geometry, interval: Interval) -> Result<Geometry, String> {
+    let (a, b, trim) = match interval {
+        Interval::Trim(a, b) => (a, b, true),
+        Interval::Extend(a, b) => (a, b, false),
     };
 
     if !a.is_finite() || !b.is_finite() || a >= b || a.abs() > 1e6 || b.abs() > 1e6 {
@@ -203,7 +155,7 @@ fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
     }
 
     if (trim && (a < 0.0 || b > 1.0)) || (!trim && (a > 0.0 || b < 1.0)) {
-        return Err("trim keeps 0 ≤ a < b ≤ 1; extend needs a ≤ 0 and b ≥ 1".into());
+        return Err("trim keeps 0 <= a < b <= 1; extend needs a <= 0 and b >= 1".into());
     }
 
     match source {
@@ -213,6 +165,7 @@ fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
             next.linecolor = line.linecolor.clone();
             next.width = line.width;
             next.dash = line.dash.clone();
+            next.arrowhead = line.arrowhead;
             Ok(Geometry::Line(Rc::new(next)))
         }
         Geometry::NurbsCurve(curve) => {
@@ -243,35 +196,46 @@ fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /// A scene with one selected polyline.
-    fn scene(geometry: Polyline) -> Scene {
-        let mut session = Session::new("test");
-        assert!(session.add_polyline(geometry, None).is_some());
-        let mut scene = Scene::new();
-        scene.add_file(FileDoc {
-            name: "test".into(),
-            session: Rc::new(session),
-            place: Xform::identity(),
-            point_px: 0.0,
-            display_only: false,
-        });
-        scene.selected = Some(0);
-        scene
-    }
+    use crate::app::command::verbs::point;
+    use session_rust::Point;
 
     /// A created point undoes and redoes; NaN is refused.
     #[test]
     fn creation_undo_redo_and_invalid_input() {
         let mut scene = Scene::new();
-        assert!(scene.model(&Modeling::Point([f64::NAN, 0.0, 0.0])).is_err());
+        assert!(scene.model(&point::SPEC, &[[f64::NAN, 0.0, 0.0]]).is_err());
         assert!(scene.docs.is_empty());
-        scene.model(&Modeling::Point([1.0, 2.0, 3.0])).unwrap();
+        scene.model(&point::SPEC, &[[1.0, 2.0, 3.0]]).unwrap();
         assert_eq!(scene.docs[0].session.lookup.len(), 1);
         assert!(scene.undo());
         assert!(scene.docs[0].session.lookup.is_empty());
         assert!(scene.redo());
         assert_eq!(scene.docs[0].session.lookup.len(), 1);
+    }
+
+    /// Several objects go in as one undo step; an empty list adds nothing.
+    #[test]
+    fn create_many_adds_a_surface_and_a_brep_in_one_undo_step() {
+        let mut scene = Scene::new();
+        let surface = session_rust::Primitives::create_extrusion(
+            &session_rust::NurbsCurve::create(
+                false,
+                1,
+                &[Point::new(0.0, 0.0, 0.0), Point::new(5.0, 0.0, 0.0)],
+            ),
+            &session_rust::Vector::new(0.0, 0.0, 5.0),
+        );
+        let geometries = vec![
+            Geometry::NurbsSurface(Rc::new(surface)),
+            Geometry::BRep(Rc::new(session_rust::BRep::create_box(1.0, 2.0, 3.0))),
+        ];
+        assert_eq!(scene.create_many(geometries, "pair").unwrap().len(), 2);
+        assert_eq!(scene.docs[0].session.lookup.len(), 2);
+        assert!(scene.undo());
+        assert!(scene.docs[0].session.lookup.is_empty());
+        assert!(scene.redo());
+        assert_eq!(scene.docs[0].session.lookup.len(), 2);
+        assert!(scene.create_many(Vec::new(), "none").is_err());
     }
 
     /// Trim and extend keep the pen and check their ranges.
@@ -280,19 +244,19 @@ mod tests {
         let mut line = Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);
         line.width = 3.0;
         let source = Geometry::Line(Rc::new(line));
-        let Geometry::Line(trim) = edited(&source, &Modeling::Trim(0.2, 0.8)).unwrap() else {
+        let Geometry::Line(trim) = edited(&source, Interval::Trim(0.2, 0.8)).unwrap() else {
             panic!()
         };
         assert_eq!(trim.start()[0], 2.0);
         assert_eq!(trim.end()[0], 8.0);
         assert_eq!(trim.width, 3.0);
-        let Geometry::Line(extend) = edited(&source, &Modeling::Extend(-0.5, 1.5)).unwrap() else {
+        let Geometry::Line(extend) = edited(&source, Interval::Extend(-0.5, 1.5)).unwrap() else {
             panic!()
         };
         assert_eq!(extend.start()[0], -5.0);
         assert_eq!(extend.end()[0], 15.0);
-        assert!(edited(&source, &Modeling::Trim(-0.1, 0.8)).is_err());
-        assert!(edited(&source, &Modeling::Extend(0.1, 1.5)).is_err());
+        assert!(edited(&source, Interval::Trim(-0.1, 0.8)).is_err());
+        assert!(edited(&source, Interval::Extend(0.1, 1.5)).is_err());
     }
 
     /// Curve trim takes 0..1 of the domain.
@@ -304,40 +268,10 @@ mod tests {
             &[Point::new(0.0, 0.0, 0.0), Point::new(10.0, 0.0, 0.0)],
         );
         let source = Geometry::NurbsCurve(Rc::new(curve));
-        let Geometry::NurbsCurve(curve) = edited(&source, &Modeling::Trim(0.2, 0.8)).unwrap()
-        else {
+        let Geometry::NurbsCurve(curve) = edited(&source, Interval::Trim(0.2, 0.8)).unwrap() else {
             panic!()
         };
         assert!((curve.point_at_start()[0] - 2.0).abs() < 1e-9);
         assert!((curve.point_at_end()[0] - 8.0).abs() < 1e-9);
-    }
-
-    /// Explode is one undo step and keeps the placement.
-    #[test]
-    fn explode_is_one_transaction_and_preserves_placement() {
-        let mut scene = scene(Polyline::new(vec![
-            Point::new(0.0, 0.0, 0.0),
-            Point::new(1.0, 0.0, 0.0),
-            Point::new(1.0, 1.0, 0.0),
-        ]));
-        let (_, guid) = scene.identity_of(0).unwrap();
-        Rc::make_mut(&mut scene.docs[0].session)
-            .set_xform(&guid, Xform::translation(5.0, 0.0, 0.0));
-        scene.model(&Modeling::Explode).unwrap();
-        let session = &scene.docs[0].session;
-        assert_eq!(session.lookup.len(), 2);
-
-        for guid in session.lookup.keys() {
-            assert_eq!(session.world_xform(guid).m[12], 5.0);
-        }
-
-        assert!(scene.undo());
-        assert_eq!(scene.docs[0].session.lookup.len(), 1);
-        assert!(matches!(
-            scene.docs[0].session.lookup.get(guid.as_ref()),
-            Some(Geometry::Polyline(_))
-        ));
-        assert!(scene.redo());
-        assert_eq!(scene.docs[0].session.lookup.len(), 2);
     }
 }

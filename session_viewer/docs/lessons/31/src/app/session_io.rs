@@ -21,17 +21,21 @@ struct Archive {
 /// Everything about the scene that is not a document.
 #[derive(Serialize, Deserialize)]
 struct Metadata {
-    // --8<-- [start:step-7a]
     #[serde(default)]
     created_doc: Option<usize>, // index of the `Created` document
-    // --8<-- [end:step-7a]
-    documents: Vec<Document>,   // one per session
+    #[serde(default)]
+    current_layer: Option<(usize, String)>, // (document, layer) new objects go to
+    documents: Vec<Document>,     // one per session
     hidden: Vec<(usize, String)>, // (document, guid) hidden
     #[serde(default)]
     locked: Vec<(usize, String)>, // (document, guid) locked
     #[serde(default)]
     colors: Vec<(usize, String, [u8; 3])>, // face colour overrides
+    #[serde(default)]
+    edge_colors: Option<Vec<(usize, String, [u8; 3])>>, // edge colour overrides, None in old files
     texts: Vec<(String, TextLabel, bool)>, // (key, label, active)
+    #[serde(default)]
+    groups: Vec<(usize, String)>, // (document, tree node guid) of each group
 }
 
 /// One document's name and placement.
@@ -58,7 +62,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
             );
         }
 
-        let bytes = (*file.session).clone().pb_dumps(); // a copy keeps the undo history
+        let bytes = file.session.to_proto().encode_to_vec(); // live entries, history kept, nothing copied
         size = size.saturating_add(bytes.len());
 
         if size > LIMIT {
@@ -86,10 +90,15 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
         .map(|((doc, id), color)| (*doc, id.to_string(), *color))
         .collect();
     colors.sort();
+    let mut groups: Vec<_> = scene
+        .groups
+        .iter()
+        .map(|(doc, id)| (*doc, id.to_string()))
+        .collect();
+    groups.sort();
     let metadata = Metadata {
-        // --8<-- [start:step-7b]
         created_doc: scene.created_doc,
-        // --8<-- [end:step-7b]
+        current_layer: scene.current_layer.clone(),
         documents: scene
             .docs
             .iter()
@@ -102,11 +111,21 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
         hidden,
         locked,
         colors,
+        edge_colors: Some({
+            let mut colors: Vec<_> = scene
+                .edge_colors
+                .iter()
+                .map(|((doc, id), color)| (*doc, id.to_string(), *color))
+                .collect();
+            colors.sort();
+            colors
+        }),
         texts: scene
             .texts
             .iter()
             .map(|t| (t.key.clone(), t.label.clone(), t.active))
             .collect(),
+        groups,
     };
     let archive = Archive {
         documents,
@@ -139,7 +158,6 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
         return Err("Document inventory does not match".into());
     }
 
-    // --8<-- [start:step-7c]
     if metadata
         .created_doc
         .is_some_and(|index| index >= metadata.documents.len())
@@ -149,7 +167,34 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
 
     let mut scene = Scene::new();
     scene.created_doc = metadata.created_doc;
-    // --8<-- [end:step-7c]
+    // identity state first, so each row is made hidden and colored
+    scene.hidden = metadata
+        .hidden
+        .into_iter()
+        .map(|(doc, id)| (doc, Rc::from(id)))
+        .collect();
+    scene.locked = metadata
+        .locked
+        .into_iter()
+        .map(|(doc, id)| (doc, Rc::from(id)))
+        .collect();
+    scene.groups = metadata
+        .groups
+        .into_iter()
+        .map(|(doc, id)| (doc, Rc::from(id)))
+        .collect();
+    // old files have one colour for faces and edges
+    scene.edge_colors = metadata
+        .edge_colors
+        .unwrap_or_else(|| metadata.colors.clone())
+        .into_iter()
+        .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
+        .collect();
+    scene.colors = metadata
+        .colors
+        .into_iter()
+        .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
+        .collect();
 
     for (meta, bytes) in metadata.documents.into_iter().zip(archive.documents) {
         if !meta.place.into_iter().all(f64::is_finite) || !meta.point_px.is_finite() {
@@ -159,7 +204,9 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
         let proto =
             session_rust::proto::Session::decode(bytes.as_slice()).map_err(|e| e.to_string())?;
         super::validate::session(&proto)?;
+        drop(proto); // checked; the kernel decodes its own copy
         let session = Session::pb_loads(&bytes).map_err(|e| e.to_string())?;
+        drop(bytes); // the document is converted; free its bytes before the walk
         super::validate::retained(&session)?;
         scene.add_file(FileDoc {
             name: meta.name,
@@ -174,21 +221,11 @@ pub fn open(bytes: &[u8]) -> Result<Scene, String> {
         scene.register_text(key, label, active);
     }
 
-    scene.hidden = metadata
-        .hidden
-        .into_iter()
-        .map(|(doc, id)| (doc, Rc::from(id)))
-        .collect();
-    scene.locked = metadata
-        .locked
-        .into_iter()
-        .map(|(doc, id)| (doc, Rc::from(id)))
-        .collect();
-    scene.colors = metadata
-        .colors
-        .into_iter()
-        .map(|(doc, id, color)| ((doc, Rc::from(id)), color))
-        .collect();
+    // a layer that is gone is not restored
+    if let Some((doc, name)) = metadata.current_layer {
+        let _ = scene.set_current_layer(doc, &name);
+    }
+
     Ok(scene)
 }
 
@@ -249,19 +286,43 @@ mod tests {
     use crate::app::deform::Target;
     use session_rust::{Geometry, Mesh, Point};
 
-    // --8<-- [start:step-7d]
+    /// A created text keeps its key, placement and shown flag; an undone one reopens hidden.
+    #[test]
+    fn a_created_text_survives_save_and_open() {
+        let mut scene = Scene::new();
+        scene.add_text(crate::app::edit::tests::text(1.0));
+        scene.add_text(crate::app::edit::tests::text(2.0));
+        assert!(scene.undo());
+        let restored = open(&save(&scene).unwrap()).unwrap();
+        let texts: Vec<_> = restored
+            .texts
+            .iter()
+            .map(|text| (text.key.as_str(), &text.label.placement, text.active))
+            .collect();
+        let shown: Vec<_> = scene
+            .texts
+            .iter()
+            .map(|text| (text.key.as_str(), &text.label.placement, text.active))
+            .collect();
+        assert_eq!(texts, shown);
+        assert_eq!(restored.visible_texts().len(), 1);
+    }
+
     /// A created line keeps its screen pen after reopening.
     #[test]
     fn created_curves_keep_visible_screen_pens_after_open() {
         let mut scene = Scene::new();
         scene
-            .model(&crate::app::modeling::Modeling::Line(
-                [-3000., -5000., 200.],
-                [-3000., -1000., 200.],
-            ))
+            .model(
+                &crate::app::command::verbs::line::SPEC,
+                &[[-3000., -5000., 200.], [-3000., -1000., 200.]],
+            )
             .unwrap();
+        Rc::make_mut(&mut scene.docs[0].session).add_group("roof");
+        scene.set_current_layer(0, "roof").unwrap();
         let restored = open(&save(&scene).unwrap()).unwrap();
         assert_eq!(restored.created_doc, Some(0));
+        assert_eq!(restored.current_layer(), Some((0, "roof".to_string())));
         assert_eq!(restored.tables.seg.ribbons.len(), 1);
         assert_eq!(restored.tables.seg.ribbons[0].radius, 0.);
         assert_eq!(
@@ -271,7 +332,6 @@ mod tests {
     }
 
     /// Edits, placements, hidden and colour state survive a save.
-// --8<-- [end:step-7d]
     #[test]
     fn edited_documents_placements_hidden_state_and_history_survive_save() {
         let mut source = Session::new("source");
@@ -310,13 +370,30 @@ mod tests {
         scene
             .colors
             .insert(scene.identity_of(1).unwrap(), [240, 80, 30]);
+        scene
+            .edge_colors
+            .insert(scene.identity_of(1).unwrap(), [30, 80, 240]);
+        let count = Rc::strong_count(&scene.docs[1].session);
         let bytes = save(&scene).unwrap();
+        assert_eq!(Rc::strong_count(&scene.docs[1].session), count, "no copy");
         assert!(scene.undo(), "saving leaves live undo available");
         let restored = open(&bytes).unwrap();
         assert_eq!(restored.docs.len(), 2);
         assert_eq!(restored.hidden.len(), 1);
         assert_eq!(restored.locked, scene.locked);
         assert_eq!(restored.colors, scene.colors);
+        assert_eq!(restored.edge_colors, scene.edge_colors);
+        let mut archive = Archive::decode(&bytes[MAGIC.len()..]).unwrap();
+        let mut old: serde_json::Value = serde_json::from_slice(&archive.metadata).unwrap();
+        old.as_object_mut().unwrap().remove("edge_colors");
+        archive.metadata = serde_json::to_vec(&old).unwrap();
+        let mut legacy = MAGIC.to_vec();
+        archive.encode(&mut legacy).unwrap();
+        let legacy = open(&legacy).unwrap();
+        assert_eq!(
+            legacy.edge_colors, legacy.colors,
+            "legacy overrides still color both channels"
+        );
         assert!(!restored.selectable(0));
         assert!(restored.selectable(1));
         assert_eq!(restored.docs[0].place.m[12], 100.);
@@ -338,5 +415,57 @@ mod tests {
         assert!(open(b"not a session").is_err());
         let bytes = save(&Scene::new()).unwrap();
         assert!(open(&bytes[..bytes.len() - 1]).is_err());
+    }
+
+    /// Time and peak resident memory of opening the documents in VIEWER_SESSION_BENCH, saved.
+    #[cfg(target_os = "linux")]
+    #[test]
+    #[ignore = "benchmark; VIEWER_SESSION_BENCH lists .pb documents"]
+    fn bench_open() {
+        let Some(paths) = std::env::var_os("VIEWER_SESSION_BENCH") else {
+            return;
+        };
+        let mut scene = Scene::new();
+
+        for path in std::env::split_paths(&paths) {
+            let session = Session::pb_loads(&std::fs::read(&path).unwrap()).unwrap();
+            scene.add_file(FileDoc {
+                name: path.display().to_string(),
+                place: Xform::identity(),
+                session: Rc::new(session),
+                point_px: 0.,
+                display_only: false,
+            });
+        }
+
+        let bytes = save(&scene).unwrap();
+        drop(scene);
+        // resident MiB, or its peak since the reset below
+        let status = |key: &str| {
+            let text = std::fs::read_to_string("/proc/self/status").unwrap();
+            let line = text.lines().find(|line| line.starts_with(key)).unwrap();
+            line.split_whitespace()
+                .nth(1)
+                .unwrap()
+                .parse::<f64>()
+                .unwrap()
+                / 1024.
+        };
+        std::fs::write("/proc/self/clear_refs", "5").unwrap();
+        let start = status("VmRSS:");
+        let clock = std::time::Instant::now();
+        let restored = open(&bytes).unwrap();
+        let ms = clock.elapsed().as_secs_f64() * 1000.;
+        let peak = status("VmHWM:") - start;
+        std::fs::create_dir_all("target/review").unwrap();
+        std::fs::write(
+            "target/review/bench-open.txt",
+            format!(
+                "{:.0} MiB file, {} rows: {ms:.0} ms, peak +{peak:.0} MiB\n",
+                bytes.len() as f64 / 1_048_576.,
+                restored.row_count()
+            ),
+        )
+        .unwrap();
     }
 }

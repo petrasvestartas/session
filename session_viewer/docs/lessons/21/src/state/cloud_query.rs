@@ -8,7 +8,7 @@ use super::{
 impl State {
     /// True while a cloud query waits for the GPU pick.
     pub(super) fn cloud_query_awaiting_gpu(&self) -> bool {
-        match &self.cloud_query {
+        match &self.features.cloud_query {
             Some(query) => query.awaiting_gpu,
             None => false,
         }
@@ -27,7 +27,7 @@ impl State {
 
     /// Drop the cloud query in flight.
     pub(super) fn cancel_cloud_query(&mut self) {
-        if self.cloud_query.take().is_some() {
+        if self.features.cloud_query.take().is_some() {
             self.gpu.pick.cancel();
             self.upload_controls();
             self.status("Point query cancelled because the view or selection changed");
@@ -51,7 +51,7 @@ impl State {
             return false;
         };
         self.gpu.pick.cancel();
-        self.query_generation = self.query_generation.wrapping_add(1); // new query id
+        self.features.query_generation = self.features.query_generation.wrapping_add(1); // new query id
         let cloud = &self.scene.streamed[slot];
         // the matrix that puts a source point on screen
         let projection = self
@@ -67,7 +67,7 @@ impl State {
             at: [x, y], // the click
             radius: (self.selection_radius_css * scale).ceil().clamp(1.0, 128.0) + 3.5 * scale, // click tolerance plus a dot
         };
-        self.cloud_query = Some(Query::new(self.query_generation, cloud, view));
+        self.features.cloud_query = Some(Query::new(self.features.query_generation, cloud, view));
         self.gpu.pick.start_source_query();
         self.advance_cloud_query();
         true
@@ -76,7 +76,7 @@ impl State {
     /// Fetch the next page of source points, or finish with the best one.
     #[cfg(target_arch = "wasm32")]
     fn advance_cloud_query(&mut self) {
-        let Some(query) = self.cloud_query.as_mut() else {
+        let Some(query) = self.features.cloud_query.as_mut() else {
             return;
         };
         query.awaiting_gpu = false;
@@ -95,7 +95,7 @@ impl State {
             crate::app::cloud_query::resolve_id(query, best);
             self.status("All eligible source points checked; resolving original point ID…");
         } else {
-            self.cloud_query = None;
+            self.features.cloud_query = None;
             self.gpu.pick.cancel();
             self.status("No visible source point in the selection window");
         }
@@ -106,7 +106,7 @@ impl State {
     /// One page of source points arrived: draw them for the GPU to pick.
     #[cfg(target_arch = "wasm32")]
     pub fn cloud_query_batch(&mut self, batch: crate::app::cloud_query::Batch) {
-        let Some(query) = self.cloud_query.as_mut() else {
+        let Some(query) = self.features.cloud_query.as_mut() else {
             return;
         };
 
@@ -118,7 +118,7 @@ impl State {
         let (candidates, revision) = match batch.result {
             Ok(result) => result,
             Err(error) => {
-                self.cloud_query = None;
+                self.features.cloud_query = None;
                 self.gpu.pick.cancel();
                 self.upload_controls();
                 self.status(&format!("Point query failed: {error}"));
@@ -139,17 +139,17 @@ impl State {
         let parent = query.parent;
         let at = query.view.at;
         let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
-        let query = self.cloud_query.as_ref().unwrap();
+        let query = self.features.cloud_query.as_ref().unwrap();
         let mut glyphs = GlyphRows::default();
 
         // one dot per candidate
         for candidate in &query.candidates {
             glyphs.dots.push(GlyphPoint {
                 center: render_position(candidate.position),
-                radius: -3.5 * scale as f32, // pixel size
+                radius: -3.5 * scale as f32,   // pixel size
                 color: [0.15, 0.35, 0.9, 1.0], // blue
                 instance_id: parent,
-                facing: FACING_UNKNOWN,
+                facing: FACING_UNKNOWN, // no face orientation
                 facing_ext: [candidate.local, FACING_UNKNOWN], // carries the point's row
             });
         }
@@ -173,7 +173,7 @@ impl State {
     /// The GPU picked one of this page's dots: keep it, go on.
     #[cfg(target_arch = "wasm32")]
     pub(super) fn apply_cloud_query_pick(&mut self, pick: Option<Pick>) {
-        let Some(query) = self.cloud_query.as_mut() else {
+        let Some(query) = self.features.cloud_query.as_mut() else {
             return;
         };
         // the nearest so far, across pages
@@ -189,7 +189,7 @@ impl State {
     /// The winner's source id and position arrived: select it.
     #[cfg(target_arch = "wasm32")]
     pub fn cloud_query_resolved(&mut self, resolved: crate::app::cloud_query::Resolved) {
-        let Some(query) = self.cloud_query.as_ref() else {
+        let Some(query) = self.features.cloud_query.as_ref() else {
             return;
         };
 
@@ -198,7 +198,7 @@ impl State {
             return;
         }
 
-        let query = self.cloud_query.take().unwrap();
+        let query = self.features.cloud_query.take().unwrap();
         let (source, position) = match resolved.result {
             Ok(result) => result,
             Err(error) => {
@@ -223,5 +223,40 @@ impl State {
             best, query.total
         ));
         self.touch();
+    }
+}
+
+impl State {
+    /// A point-cloud query takes the pick of a selectable row.
+    #[cfg(target_arch = "wasm32")]
+    pub(super) fn take_cloud_pick(&mut self, pick: Option<Pick>) -> bool {
+        if !self.cloud_query_awaiting_gpu() {
+            return false;
+        }
+
+        let pick = pick.filter(|pick| self.scene.selectable(pick.row));
+        self.apply_cloud_query_pick(pick);
+        true
+    }
+
+    /// A point cloud answers a click by its own query, unless `skip`; true when one started.
+    pub(super) fn start_cloud_pick(&mut self, x: u32, y: u32, skip: bool) -> bool {
+        #[cfg(target_arch = "wasm32")]
+        if !skip && self.start_cloud_query(x, y) {
+            return true;
+        }
+
+        let _ = (x, y, skip); // natively no query runs
+        false
+    }
+
+    /// The GPU readback of a point-cloud query failed: drop it.
+    pub(super) fn cloud_query_lost(&mut self) {
+        if self.cloud_query_awaiting_gpu() && !self.gpu.pick.busy() {
+            self.features.cloud_query = None;
+            self.gpu.pick.cancel();
+            self.upload_controls();
+            self.status("Point query failed during GPU readback; click to retry");
+        }
     }
 }

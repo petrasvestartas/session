@@ -30,6 +30,16 @@ pub(super) fn drawing(painter: &egui::Painter, drawing: &(Vec<(f64, f64)>, Strin
     }
 }
 
+/// A tool's parts, else a measured answer.
+pub(super) fn marks(painter: &egui::Painter, state: &crate::State, scale: f32) {
+    let mut marks = state.tool_marks();
+    marks = marks.or_else(|| state.mark_overlay()); // register:annotate
+
+    if let Some(marks) = &marks {
+        tool_marks(painter, marks, scale);
+    }
+}
+
 /// Paint a tool's strokes, squares and label; points arrive in device pixels.
 pub(super) fn tool_marks(
     painter: &egui::Painter,

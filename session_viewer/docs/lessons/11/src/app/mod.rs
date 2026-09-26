@@ -1,3 +1,2 @@
-pub mod knobs;
-pub mod route;
-pub mod walk;
+pub mod knobs; // register:knobs
+pub mod walk; // register:walk

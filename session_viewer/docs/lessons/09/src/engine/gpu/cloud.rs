@@ -1,29 +1,30 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::upload::drop_rows;
+use crate::engine::pipelines::Layouts;
 
 /// Marker for a cloud that has no normals.
 pub const NO_NORMALS: u32 = u32::MAX;
 
 /// One batch of points added to a cloud.
 pub struct CloudDraw {
-    pub instance: u32, // object row of the cloud
-    pub from: u32, // first point index within the cloud
-    pub count: u32, // points in this batch
-    pub first: u32, // row of the first point in the upload
-    pub spacing: f32, // typical distance between points
-    pub node_first: u32, // This cloud's nodes; 0 nodes = no octree.
-    pub node_count: u32,
-    pub nrm_first: u32, // first normal row, or NO_NORMALS
+    pub instance: u32,   // object row of the cloud
+    pub from: u32,       // first point index within the cloud
+    pub count: u32,      // points in this batch
+    pub first: u32,      // row of the first point in the upload
+    pub spacing: f32,    // typical distance between points
+    pub node_first: u32, // first octree node in the upload
+    pub node_count: u32, // octree nodes; 0 = no octree
+    pub nrm_first: u32,  // first normal row, or NO_NORMALS
 }
 
 /// One box of the cloud's octree.
 #[derive(Clone, Copy)]
 pub struct LodNode {
-    pub center: [f32; 3], // box center
-    pub size: f32, // box edge length
-    pub spacing: f32, // point spacing inside the box
-    pub first: u32, // first point of the box, within the cloud
-    pub count: u32, // points in the box
+    pub center: [f32; 3],   // box center
+    pub size: f32,          // box edge length
+    pub spacing: f32,       // point spacing inside the box
+    pub first: u32,         // first point of the box, within the cloud
+    pub count: u32,         // points in the box
     pub children: [i32; 8], // child node indices, -1 = none
 }
 
@@ -31,8 +32,9 @@ pub struct LodNode {
 #[derive(Clone, Copy)]
 pub struct Chunk {
     pub from: u32, // first point index within the cloud
-    pub to: u32, // one past the last point index
-    pub row: u32, // GPU row of the first point
+    pub to: u32,   // one past the last point index
+    pub row: u32,  // GPU row of the first point
+    pub nrm: u32,  // GPU row of its first normal, or NO_NORMALS
 }
 
 impl Chunk {
@@ -44,12 +46,11 @@ impl Chunk {
 
 /// One point cloud on the GPU.
 pub struct Cloud {
-    pub instance: u32, // object row
-    pub spacing: f32, // typical distance between points
-    pub node_first: u32,
-    pub node_count: u32,
-    pub nrm_first: u32, // first normal row, or NO_NORMALS
-    pub resident: u32, // points uploaded so far
+    pub instance: u32,      // object row
+    pub spacing: f32,       // typical distance between points
+    pub node_first: u32,    // first octree node
+    pub node_count: u32,    // octree nodes; 0 = no octree
+    pub resident: u32,      // points uploaded so far
     pub chunks: Vec<Chunk>, // where those points live
 }
 
@@ -69,11 +70,13 @@ impl Cloud {
 /// Point rows of one upload.
 #[derive(Default)]
 pub struct CloudRows {
-    pub pos: Vec<f32>, // x, y, z per point
-    pub col: Vec<u32>, // packed color per point
-    pub nrm: Vec<u32>, // packed normal per point
+    pub pos: Vec<f32>,         // x, y, z per point
+    pub col: Vec<u32>,         // packed color per point
+    pub nrm: Vec<u32>,         // packed normal per point
     pub draws: Vec<CloudDraw>, // point batches in this upload
-    pub nodes: Vec<LodNode>, // octree nodes in this upload
+    pub nodes: Vec<LodNode>,   // octree nodes in this upload
+    pub expect: u32,           // points known to follow this upload
+    pub expect_normals: u32,   // normals known to follow this upload
 }
 
 impl CloudRows {
@@ -101,12 +104,13 @@ pub struct PointBufs<'a> {
 
 /// All point clouds on the GPU.
 pub struct CloudLane {
-    pos: GrowBuf, // positions
-    col: GrowBuf, // colors
-    nrm: GrowBuf, // normals
-    pub clouds: Vec<Cloud>, // one entry per cloud
+    pos: GrowBuf,            // positions
+    col: GrowBuf,            // colors
+    nrm: GrowBuf,            // normals
+    pub clouds: Vec<Cloud>,  // one entry per cloud
+    pub buried: Vec<Cloud>,  // deleted clouds an undo may draw again, points kept
     pub nodes: Vec<LodNode>, // octree nodes of every cloud
-    pub point_count: u32, // points on the GPU
+    pub point_count: u32,    // points on the GPU
 }
 
 impl CloudLane {
@@ -122,20 +126,43 @@ impl CloudLane {
             col: GrowBuf::new(ctx, "points.col.buffer", 4, ROWS),
             nrm: GrowBuf::new(ctx, "points.nrm.buffer", 4, ROWS),
             clouds: Vec::new(),
+            buried: Vec::new(),
             nodes: Vec::new(),
             point_count: 0,
         }
     }
 
+    /// True when `more` points fit in the largest buffers this device allows.
+    pub fn fits(&self, ctx: &GpuCtx, more: u32) -> bool {
+        let more = u64::from(more);
+        self.pos.fits(ctx, more * 3) && self.col.fits(ctx, more) && self.nrm.fits(ctx, more)
+    }
+
     /// Append one upload; returns true if a buffer was replaced.
     pub fn append(&mut self, ctx: &GpuCtx, up: &CloudRows) -> bool {
         debug_assert_eq!(up.col.len() * 3, up.pos.len());
+
+        // past the device's largest buffer the upload is dropped, not the device
+        if !self.fits(ctx, up.point_count()) {
+            log::warn!(
+                "{} cloud points do not fit beside the {} on the GPU; not drawn",
+                up.point_count(),
+                self.point_count
+            );
+            return false;
+        }
+
         // rows before this upload
         let point_base = self.point_count;
         let nrm_base = self.nrm.len();
         let node_base = self.nodes.len() as u32;
 
-        let mut moved = self.pos.append(ctx, &up.pos);
+        // a full buffer grows to exactly the points known to come, not by half
+        let (expect, normals) = (u64::from(up.expect), u64::from(up.expect_normals));
+        let mut moved = self.pos.reserve(ctx, up.pos.len() as u64, expect * 3);
+        moved |= self.col.reserve(ctx, up.col.len() as u64, expect);
+        moved |= self.nrm.reserve(ctx, up.nrm.len() as u64, normals);
+        moved |= self.pos.append(ctx, &up.pos);
         moved |= self.col.append(ctx, &up.col);
         moved |= self.nrm.append(ctx, &up.nrm);
         self.point_count = self.pos.len() / 3;
@@ -146,6 +173,11 @@ impl CloudLane {
                 from: d.from,
                 to: d.from + d.count,
                 row: point_base + d.first,
+                nrm: if d.nrm_first == NO_NORMALS {
+                    NO_NORMALS
+                } else {
+                    nrm_base + d.nrm_first
+                },
             };
 
             // a later batch extends an existing cloud
@@ -154,18 +186,12 @@ impl CloudLane {
                 continue;
             }
 
-            let nrm_first = if d.nrm_first == NO_NORMALS {
-                NO_NORMALS
-            } else {
-                nrm_base + d.nrm_first
-            };
             // first batch opens a new cloud
             self.clouds.push(Cloud {
                 instance: d.instance,
                 spacing: d.spacing,
                 node_first: d.node_first + node_base,
                 node_count: d.node_count,
-                nrm_first,
                 resident: chunk.to,
                 chunks: vec![chunk],
             });
@@ -176,7 +202,7 @@ impl CloudLane {
 
     /// Add a batch to the cloud on object row `instance`.
     fn extend(&mut self, instance: u32, chunk: Chunk) {
-        for cloud in &mut self.clouds {
+        for cloud in self.clouds.iter_mut().chain(self.buried.iter_mut()) {
             if cloud.instance != instance {
                 continue;
             }
@@ -198,6 +224,86 @@ impl CloudLane {
         }
 
         log::warn!("cloud chunk for row {instance} arrived before its cloud; dropped");
+    }
+
+    /// Stop drawing the cloud on object row `instance`, buried or not; returns its resident points, now dead.
+    pub fn kill_instance(&mut self, instance: u32) -> u32 {
+        if let Some(at) = self.clouds.iter().position(|c| c.instance == instance) {
+            return self.clouds.remove(at).resident;
+        }
+
+        match self.buried.iter().position(|c| c.instance == instance) {
+            Some(at) => self.buried.remove(at).resident,
+            None => 0,
+        }
+    }
+
+    /// Stop drawing the cloud on object row `instance` but keep its points for an undo; false when none is drawn.
+    pub fn bury_instance(&mut self, instance: u32) -> bool {
+        let Some(at) = self.clouds.iter().position(|c| c.instance == instance) else {
+            return false;
+        };
+
+        let cloud = self.clouds.remove(at);
+        self.buried.push(cloud);
+        true
+    }
+
+    /// Draw a buried cloud again; false when none is buried on that row.
+    pub fn unbury_instance(&mut self, instance: u32) -> bool {
+        let Some(at) = self.buried.iter().position(|c| c.instance == instance) else {
+            return false;
+        };
+
+        let cloud = self.buried.remove(at);
+        self.clouds.push(cloud);
+        true
+    }
+
+    /// Copy the live clouds' points, normals and nodes into buffers of exact size; the old ones are freed.
+    pub fn compact(&mut self, ctx: &GpuCtx) {
+        let mut pos = Vec::new(); // (first row, rows) runs to keep
+        let mut col = Vec::new();
+        let mut nrm = Vec::new();
+        let mut nodes = Vec::new();
+        let mut points = 0u32;
+        let mut normals = 0u32;
+
+        // buried clouds move too: an undo still finds their points
+        for cloud in self.clouds.iter_mut().chain(self.buried.iter_mut()) {
+            for chunk in &mut cloud.chunks {
+                let count = chunk.to - chunk.from;
+                pos.push((chunk.row * 3, count * 3));
+                col.push((chunk.row, count));
+                chunk.row = points;
+                points += count;
+
+                if chunk.nrm != NO_NORMALS {
+                    nrm.push((chunk.nrm, count));
+                    chunk.nrm = normals;
+                    normals += count;
+                }
+            }
+
+            let first = cloud.node_first as usize;
+            let end = (first + cloud.node_count as usize).min(self.nodes.len());
+            cloud.node_first = nodes.len() as u32;
+            nodes.extend_from_slice(&self.nodes[first.min(end)..end]);
+        }
+
+        let mut encoder = ctx.device.create_command_encoder(&Default::default());
+        let fresh = [
+            self.pos.packed(ctx, &mut encoder, &pos),
+            self.col.packed(ctx, &mut encoder, &col),
+            self.nrm.packed(ctx, &mut encoder, &nrm),
+        ];
+        ctx.queue.submit([encoder.finish()]);
+        let [p, c, n] = fresh;
+        self.pos.swap_in(p);
+        self.col.swap_in(c);
+        self.nrm.swap_in(n);
+        self.nodes = nodes;
+        self.point_count = points;
     }
 
     /// Cloud of a GPU point row: (object row, point index).
@@ -240,6 +346,7 @@ impl CloudLane {
         self.nrm.reset();
         self.point_count = 0;
         self.clouds.clear();
+        self.buried.clear();
         self.nodes.clear();
     }
 
@@ -250,6 +357,47 @@ impl CloudLane {
         self.col.release(ctx);
         self.nrm.release(ctx);
         self.clouds.shrink_to_fit();
+        self.buried.shrink_to_fit();
         self.nodes.shrink_to_fit();
+    }
+}
+
+impl super::lane::Lane for CloudLane {
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.reset();
+    }
+
+    fn on_release(&mut self, ctx: &GpuCtx, _layouts: &Layouts) {
+        self.release(ctx);
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), 0)
+    }
+}
+
+impl CloudRows {
+    /// Move `other`'s points after these, its batches shifted to match.
+    pub fn merge(&mut self, other: &mut CloudRows) {
+        let cloud = self;
+        let points = cloud.point_count();
+        let nodes = cloud.nodes.len() as u32;
+        let normals = cloud.nrm.len() as u32;
+
+        for mut draw in other.draws.drain(..) {
+            draw.first += points;
+            draw.node_first += nodes;
+
+            if draw.nrm_first != NO_NORMALS {
+                draw.nrm_first += normals;
+            }
+
+            cloud.draws.push(draw);
+        }
+
+        cloud.pos.append(&mut other.pos);
+        cloud.col.append(&mut other.col);
+        cloud.nrm.append(&mut other.nrm);
+        cloud.nodes.append(&mut other.nodes);
     }
 }

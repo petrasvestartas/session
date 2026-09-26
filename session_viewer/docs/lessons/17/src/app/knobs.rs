@@ -1,16 +1,15 @@
 use std::sync::OnceLock;
 
-/// The first call reads the variable into `slot`; every later call only reads `slot`.
+/// True when the environment variable is set; read once.
 fn env_flag(name: &str, slot: &'static OnceLock<bool>) -> bool {
     *slot.get_or_init(|| read_environment_flag(name))
 }
 
-/// Set at all counts, even VIEWER_PROFILE=0; the browser has no environment, so there it is always false.
+/// True when the environment variable exists.
 fn read_environment_flag(name: &str) -> bool {
     std::env::var(name).is_ok()
 }
 
-// OnceLock = a value filled on first use, then read-only; that makes it safe in a `static`.
 static PROFILE: OnceLock<bool> = OnceLock::new();
 
 static DROP_SESSIONS: OnceLock<bool> = OnceLock::new();

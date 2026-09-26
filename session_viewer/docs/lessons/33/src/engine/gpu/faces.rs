@@ -1,47 +1,41 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::frame::Binds;
-use crate::engine::pipelines::{ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build};
+use super::slots::{Slots, clamp, slot_layout};
+use crate::engine::pipelines::{
+    ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build,
+};
 
-/// Bit that marks a pick id as a face.
-pub const FACE_TAG: u32 = 0x2000_0000;
-
-/// Which object and face a triangle came from.
-#[derive(Clone, Copy)]
-pub struct FaceSource {
-    pub parent: u32, // object row
-    pub face: usize, // face index in that object
-}
+pub use super::arena::{FACE_TAG, FaceSource};
 
 /// Solid faces: their source ids, the selected one, and the pipelines.
 pub struct Faces {
-    pub sources: Vec<FaceSource>, // one entry per face
-    ids: GrowBuf, // face id per triangle
-    selected: wgpu::Buffer, // selected face id, read by shaders
-    active: Option<u32>, // selected face id, if any
-    revision: u64, // bumps on every selection change
-    layout: wgpu::BindGroupLayout, // shape of the face bind group
+    pub sources: Vec<FaceSource>,   // one entry per face
+    ids: GrowBuf,                   // face id per triangle
+    selected: wgpu::Buffer,         // selected face id, read by shaders
+    active: Option<u32>,            // selected face id, if any
+    revision: u64,                  // bumps on every selection change
+    layout: wgpu::BindGroupLayout,  // shape of the face bind group
     group: Option<wgpu::BindGroup>, // the face buffers, bound
-    pipes: FacePipelines, // face pipelines
+    pipes: FacePipelines,           // face pipelines
+    pub slots: Slots,               // instance slots and the per-definition draws
 }
 
-/// The six face pipelines.
+/// The face pipelines.
 struct FacePipelines {
-    physical: wgpu::RenderPipeline, // colored faces
-    object_ids: wgpu::RenderPipeline, // object id per pixel
-    pick: wgpu::RenderPipeline, // face id per pixel
-    highlight: wgpu::RenderPipeline, // selected face in color
-    mask: wgpu::RenderPipeline, // selected face into a mask
-    masks: wgpu::RenderPipeline, // selected face into both masks
+    physical: Pipeline,       // colored faces, blended for glass
+    opaque: Pipeline,         // colored faces at full opacity, no blending
+    clipped: Pipeline,        // colored faces cut by clipping planes, blended
+    clipped_opaque: Pipeline, // the same at full opacity
+    object_ids: Pipeline,     // object id per pixel
+    pick: Pipeline,           // face id per pixel
+    highlight: Pipeline,      // selected face in color
+    mask: Pipeline,           // selected face into a mask
+    masks: Pipeline,          // selected face into both masks
 }
 
 impl Faces {
     /// Create the layout, the selection buffer and the pipelines.
-    pub fn new(
-        ctx: &GpuCtx,
-        layouts: &Layouts,
-        shader: &wgpu::ShaderModule,
-        target: Target,
-    ) -> Self {
+    pub fn new(ctx: &GpuCtx, layouts: &Layouts, shader: &Shader, target: Target) -> Self {
         // bindings 0-3 are storage buffers, 4 is the selection
         let entries: Vec<_> = (0..5)
             .map(|binding| wgpu::BindGroupLayoutEntry {
@@ -82,17 +76,12 @@ impl Faces {
             layout,
             group: None,
             pipes,
+            slots: Slots::new(ctx),
         }
     }
 
     /// Rebuild the pipelines for a new MSAA sample count.
-    pub fn retarget(
-        &mut self,
-        ctx: &GpuCtx,
-        layouts: &Layouts,
-        shader: &wgpu::ShaderModule,
-        target: Target,
-    ) {
+    pub fn retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, shader: &Shader, target: Target) {
         self.pipes = pipelines(ctx, layouts, shader, target, &self.layout);
     }
 
@@ -155,40 +144,39 @@ impl Faces {
         self.revision = self.revision.wrapping_add(1);
     }
 
-    /// Face behind a pick id, if it belongs to object `row`.
-    pub fn source(&self, row: u32, sub: u32) -> Option<(u32, FaceSource)> {
-        // top three bits say what kind of pick
-        if sub & 0xe000_0000 != FACE_TAG {
-            return None;
+    /// Give `count` triangles from `first` no face.
+    pub(crate) fn kill_ids(&mut self, ctx: &GpuCtx, first: u32, count: u32) {
+        self.ids.fill(ctx, first, count, &u32::MAX);
+        self.revision = self.revision.wrapping_add(1);
+    }
+
+    /// Detach `count` source faces from `first`, so no pick or address finds them.
+    pub(crate) fn kill_sources(&mut self, first: u32, count: u32) {
+        let end = (first + count) as usize;
+
+        for source in &mut self.sources[first as usize..end] {
+            source.parent = u32::MAX;
         }
 
-        let address = sub & !FACE_TAG;
-        let source = *self.sources.get(address as usize)?;
-        (source.parent == row).then_some((address, source))
-    }
-
-    /// Face id of `face` on object `parent`.
-    pub fn address(&self, parent: u32, face: usize) -> Option<u32> {
-        self.sources
-            .iter()
-            .position(|source| source.parent == parent && source.face == face)
-            .map(|i| i as u32)
-    }
-
-    /// Select a face; None clears the selection.
-    pub fn select(&mut self, ctx: &GpuCtx, face: Option<u32>) {
-        self.active = face;
         self.revision = self.revision.wrapping_add(1);
-        ctx.queue.write_buffer(
-            &self.selected,
-            0,
-            bytemuck::cast_slice(&[face.unwrap_or(u32::MAX), 0, 0, 0]),
-        );
     }
 
-    /// Draw the colored faces.
-    pub fn draw_physical(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
-        self.draw(pass, binds, &self.pipes.physical)
+    /// Draw the colored faces; `opaque` skips blending, which full opacity does not need, and
+    /// `clipped` cuts them sample by sample while clipping planes are active.
+    pub fn draw_physical(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        binds: &Binds,
+        opaque: bool,
+        clipped: bool,
+    ) -> u32 {
+        let pipeline = match (opaque, clipped) {
+            (true, false) => &self.pipes.opaque,
+            (false, false) => &self.pipes.physical,
+            (true, true) => &self.pipes.clipped_opaque,
+            (false, true) => &self.pipes.clipped,
+        };
+        self.draw(pass, binds, pipeline)
     }
 
     /// Draw object ids.
@@ -199,15 +187,6 @@ impl Faces {
     /// Draw face ids.
     pub fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
         self.draw(pass, binds, &self.pipes.pick)
-    }
-
-    /// Draw the selected face highlighted.
-    pub fn draw_highlight(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
-        if self.active.is_none() {
-            return 0;
-        }
-
-        self.draw(pass, binds, &self.pipes.highlight)
     }
 
     /// Draw the selected face into the selection mask.
@@ -228,18 +207,8 @@ impl Faces {
         self.draw(pass, binds, &self.pipes.masks)
     }
 
-    /// Selection change count.
-    pub fn revision(&self) -> u64 {
-        self.revision
-    }
-
     /// Draw every face with `pipeline`; returns the draw count.
-    fn draw(
-        &self,
-        pass: &mut wgpu::RenderPass<'_>,
-        binds: &Binds,
-        pipeline: &wgpu::RenderPipeline,
-    ) -> u32 {
+    fn draw(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds, pipeline: &Pipeline) -> u32 {
         let Some(group) = &self.group else {
             return 0;
         };
@@ -251,14 +220,39 @@ impl Faces {
         pass.set_pipeline(pipeline);
         binds.set(pass);
         pass.set_bind_group(3, group, &[]);
+        self.slots.bind(pass, 0);
         // three vertices per triangle, read by index in the shader
         pass.draw(0..self.ids.len() * 3, 0..1);
-        1
+        let mut draws = 1;
+
+        // each definition once more per instance, its rows from the slots
+        for draw in self.slots.draws() {
+            let faces = clamp(&draw.faces, self.ids.len() * 3);
+
+            if !faces.is_empty() {
+                pass.draw(faces, draw.slots.clone());
+                draws += 1;
+            }
+        }
+
+        draws
+    }
+
+    /// Select a face; None clears the selection.
+    pub fn select(&mut self, ctx: &GpuCtx, face: Option<u32>) {
+        self.active = face;
+        self.revision = self.revision.wrapping_add(1);
+        ctx.queue.write_buffer(
+            &self.selected,
+            0,
+            bytemuck::cast_slice(&[face.unwrap_or(u32::MAX), 0, 0, 0]),
+        );
     }
 
     /// Forget every face; keep the buffers.
     pub fn reset(&mut self, ctx: &GpuCtx) {
         self.select(ctx, None);
+        self.slots.clear_draws();
         self.ids.reset();
         self.sources.clear();
         self.group = None;
@@ -267,42 +261,49 @@ impl Faces {
     /// Forget every face and free the buffers.
     pub fn release(&mut self, ctx: &GpuCtx) {
         self.reset(ctx);
+        self.slots.clear(ctx, true);
         self.ids.release(ctx);
         self.sources.shrink_to_fit();
     }
 
     /// Bytes reserved on the GPU by this struct.
     pub fn allocated_bytes(&self) -> u64 {
-        self.ids.buf.size() + self.selected.size()
+        self.ids.buf.size() + self.selected.size() + self.slots.allocated_bytes()
     }
 }
 
-/// Build the six face pipelines.
+/// Build the face pipelines.
 fn pipelines(
     ctx: &GpuCtx,
     layouts: &Layouts,
-    shader: &wgpu::ShaderModule,
+    shader: &Shader,
     target: Target,
     layout: &wgpu::BindGroupLayout,
 ) -> FacePipelines {
     let groups = [&layouts.mvp, &layouts.line, &layouts.instance, layout];
-    // no vertex buffers: the shader reads vertices by index
-    let base = PipelineDesc::new(shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
-        .vertex("vs_face");
+    // the shader reads vertices by index; the one vertex buffer is the instance slots
+    let slots = [slot_layout()];
+    let base = PipelineDesc::new(
+        shader,
+        &groups,
+        &slots,
+        wgpu::PrimitiveTopology::TriangleList,
+    )
+    .vertex("vs_face");
     let pick = build(
-        &ctx.device,
+        ctx,
         Target::ID,
         &base.with("source face IDs", "fs_id").physical(),
     );
     let highlight = build(
-        &ctx.device,
+        ctx,
         target,
         &base
             .with("selected face", "fs_face_highlight")
             .depth(DepthMode::ReadOnlyEqual),
     );
     let mask = build(
-        &ctx.device,
+        ctx,
         Target {
             format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
             samples: target.samples,
@@ -312,7 +313,7 @@ fn pipelines(
             .depth(DepthMode::ReadOnlyEqual),
     );
     let masks = build(
-        &ctx.device,
+        ctx,
         Target {
             format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
             samples: target.samples,
@@ -325,24 +326,78 @@ fn pipelines(
     // same faces, plain vertex shader
     let object_base = base.vertex("vs_triangle");
     let physical = build(
-        &ctx.device,
+        ctx,
         target,
         &object_base
             .with("physical triangle", "fs_main")
             .color(ColorWrite::Blended)
             .physical(),
     );
+    let opaque = build(
+        ctx,
+        target,
+        &object_base
+            .with("physical triangle opaque", "fs_main")
+            .physical(),
+    );
     let object_ids = build(
-        &ctx.device,
+        ctx,
         Target::ID,
         &object_base.with("object triangle IDs", "fs_id").physical(),
     );
+    // cut by clipping planes: only compiled once a plane cuts
+    let cut = object_base
+        .with("clipped triangle", "fs_clipped")
+        .physical();
+    let clipped = build(ctx, target, &cut.clone().color(ColorWrite::Blended));
+    let clipped_opaque = build(ctx, target, &cut);
     FacePipelines {
         pick,
         highlight,
         mask,
         masks,
         physical,
+        opaque,
+        clipped,
+        clipped_opaque,
         object_ids,
     }
 }
+
+// --8<-- [start:17]
+impl Faces {
+    /// Face behind a pick id, if it belongs to object `row`.
+    pub fn source(&self, row: u32, sub: u32) -> Option<(u32, FaceSource)> {
+        // top three bits say what kind of pick
+        if sub & 0xe000_0000 != FACE_TAG {
+            return None;
+        }
+
+        let address = sub & !FACE_TAG;
+        let source = *self.sources.get(address as usize)?;
+        (source.parent == row).then_some((address, source))
+    }
+
+    /// Face id of `face` on object `parent`.
+    pub fn address(&self, parent: u32, face: usize) -> Option<u32> {
+        self.sources
+            .iter()
+            .position(|source| source.parent == parent && source.face == face)
+            .map(|i| i as u32)
+    }
+
+    /// Draw the selected face highlighted.
+    pub fn draw_highlight(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
+        if self.active.is_none() {
+            return 0;
+        }
+
+        self.draw(pass, binds, &self.pipes.highlight)
+    }
+
+    /// Selection change count.
+    pub fn revision(&self) -> u64 {
+        self.revision
+    }
+}
+// --8<-- [end:17]

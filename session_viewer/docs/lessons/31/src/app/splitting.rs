@@ -1,8 +1,7 @@
-//! Splitting cuts one curve or face with another, so the first pick is held here until the cutter arrives.
-
-use super::scene::Scene;
+use super::scene::{Scene, sync};
 use session_rust::simple_split;
-use session_rust::{BRep, Geometry, NurbsCurve};
+use session_rust::{BRep, Geometry, NurbsCurve, TreeNode};
+use std::cell::RefCell;
 use std::rc::Rc;
 
 /// True for a geometry that can cut: a line, polyline or curve.
@@ -63,10 +62,6 @@ impl Scene {
         face: Option<usize>,
         cutters: &[u32],
     ) -> Result<usize, String> {
-        if !self.streamed.is_empty() || !self.sheets.is_empty() {
-            return Err("Splitting requires complete retained source documents".into());
-        }
-
         if cutters.is_empty() || cutters.len() > 64 {
             return Err("Choose 1–64 cutter curves".into());
         }
@@ -176,14 +171,12 @@ impl Scene {
         }
 
         // the pieces inherit the parent, placement and colours
-        let parent_name = file
-            .session
-            .tree
-            .get_node_by_name(&guid)
-            .and_then(|node| node.borrow().parent())
-            .map(|node| node.borrow().name.clone());
+        let parent = self
+            .node_of(target)
+            .and_then(|(node, in_tree)| in_tree.then(|| node.borrow().parent()).flatten());
         let place = file.session.xform(&guid);
         let color = self.colors.get(&(doc, Rc::clone(&guid))).copied();
+        let edge_color = self.edge_colors.get(&(doc, Rc::clone(&guid))).copied();
 
         // name the pieces `x (part 1)`, `x (part 2)`...
         if pieces.len() > 1 {
@@ -204,7 +197,21 @@ impl Scene {
         // the first piece replaces the target, the rest are added beside it
         let first = pieces.remove(0);
         let session = Rc::make_mut(&mut self.docs[doc].session);
-        let parent = parent_name.and_then(|name| session.tree.get_node_by_name(&name));
+        // a copied session has its own nodes
+        let parent = parent.and_then(|node| {
+            let name = node.borrow().name.clone();
+
+            if session
+                .tree
+                .root()
+                .is_some_and(|root| Rc::ptr_eq(&root, &top(&node)))
+            {
+                Some(node)
+            } else {
+                session.tree.get_node_by_name(&name)
+            }
+        });
+        let mut made = Vec::new();
         session.begin("split");
         let replaced = session.replace(&guid, first);
         debug_assert!(replaced);
@@ -222,15 +229,40 @@ impl Scene {
             };
             let id = node.borrow().name.clone();
             session.set_xform(&id, place.clone());
+            made.push(node);
 
             if let Some(color) = color {
-                self.colors.insert((doc, Rc::from(id)), color);
+                self.colors.insert((doc, Rc::from(id.as_str())), color);
+            }
+
+            if let Some(color) = edge_color {
+                self.edge_colors.insert((doc, Rc::from(id.as_str())), color);
             }
         }
 
-        session.commit();
-        self.last_edited = Some(doc);
+        let notes = sync::commit(session);
+        self.noted(doc, notes);
+
+        for node in &made {
+            self.hint(doc, node);
+        }
+
+        self.edited(&[doc]);
         Ok(regions)
+    }
+}
+
+/// The top of the tree a node hangs in.
+fn top(node: &Rc<RefCell<TreeNode>>) -> Rc<RefCell<TreeNode>> {
+    let mut top = Rc::clone(node);
+
+    loop {
+        let parent = top.borrow().parent();
+
+        match parent {
+            Some(parent) => top = parent,
+            None => return top,
+        }
     }
 }
 

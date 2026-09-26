@@ -1,5 +1,3 @@
-// --8<-- [start:step-9a]
-//! Answers what a click hit on a sheet, the flat drawing page laid over the model.
 use serde::Deserialize;
 use std::cell::Cell;
 use std::rc::Rc;
@@ -19,19 +17,19 @@ pub struct EntityMeta {
     #[serde(default)]
     pub guid: String, // source object id
     #[serde(default)]
-    pub name: String,
+    pub name: String, // display name
     #[serde(default)]
     pub kind: String, // wall, door, ...
     #[serde(default)]
-    pub width: f32,
+    pub width: f32, // pen width
     #[serde(default)]
-    pub color: Vec<f32>,
+    pub color: Vec<f32>, // pen colour
 }
 
 /// The table head, cached per sheet.
 #[derive(Clone, Debug)]
 pub struct SheetTable {
-    pub count: u32, // records in the table
+    pub count: u32,               // records in the table
     pub revision: Option<String>, // ETag every read must match
 }
 
@@ -58,8 +56,6 @@ pub fn record(raw: &[u8]) -> Result<(u64, u64), String> {
     ))
 }
 
-// --8<-- [end:step-9a]
-// --8<-- [start:step-9b]
 /// Byte position of record `id`; `record_at(count)` starts the blobs.
 pub fn record_at(id: u32) -> u64 {
     HEAD_BYTES + RECORD_BYTES * u64::from(id)
@@ -72,9 +68,9 @@ pub fn entity_from(raw: &[u8]) -> Result<EntityMeta, String> {
 
 /// One entity lookup in flight.
 pub struct Query {
-    pub id: u64, // lookup number
-    pub row: u32, // the sheet's object row
-    pub entity: u32, // entity index in the sheet
+    pub id: u64,                   // lookup number
+    pub row: u32,                  // the sheet's object row
+    pub entity: u32,               // entity index in the sheet
     pub cancelled: Rc<Cell<bool>>, // set when a newer lookup replaces this
 }
 
@@ -99,12 +95,10 @@ impl Drop for Query {
 
 /// The answer to one lookup.
 pub struct Resolved {
-    pub query: u64, // which lookup
-    pub result: Result<(EntityMeta, SheetTable), String>,
+    pub query: u64,                                       // which lookup
+    pub result: Result<(EntityMeta, SheetTable), String>, // the entity and the table head
 }
 
-// --8<-- [end:step-9b]
-// --8<-- [start:step-9c]
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
@@ -132,8 +126,6 @@ mod web {
         url: String,
         table: Option<SheetTable>,
         entities: u32,
-        // --8<-- [end:step-9c]
-    // --8<-- [start:step-9d]
     ) {
         let result = read_entity(&url, entity, table, entities, &cancelled).await;
 
@@ -261,4 +253,3 @@ mod tests {
         assert!(token.get());
     }
 }
-// --8<-- [end:step-9d]

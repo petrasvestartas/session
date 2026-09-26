@@ -1,6 +1,5 @@
 use super::encode::oct16;
 use super::{Row, WalkCx};
-use crate::app::stream::CloudLod;
 use crate::engine::gpu::cloud::CloudRows;
 use crate::engine::gpu::{CloudDraw, LodNode, NO_NORMALS};
 use session_rust::AABB;
@@ -134,6 +133,13 @@ fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
     (area / n as f64).sqrt() as f32
 }
 
+/// Largest first.
+fn descending_extent(a: &f32, b: &f32) -> std::cmp::Ordering {
+    b.partial_cmp(a).unwrap()
+}
+
+use crate::app::stream::CloudLod;
+
 /// Raw point columns of one streamed slice.
 pub struct StreamRows {
     pub positions: Vec<f32>, // three floats per point
@@ -233,9 +239,4 @@ fn lod_node(lod: &CloudLod, k: usize) -> LodNode {
         count: lod.count[k] as u32,
         children,
     }
-}
-
-/// Largest first.
-fn descending_extent(a: &f32, b: &f32) -> std::cmp::Ordering {
-    b.partial_cmp(a).unwrap()
 }

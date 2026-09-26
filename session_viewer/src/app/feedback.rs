@@ -16,9 +16,9 @@ pub fn status(message: &str) {
         status.set_text_content(Some(message));
     }
 
-    #[cfg(target_arch = "wasm32")]
-    super::ui::command_line::STATE
-        .with_borrow_mut(|model| model.status = message.chars().take(256).collect());
+    #[cfg(target_arch = "wasm32")] // register:commands
+    super::ui::command_line::STATE // register:commands
+        .with_borrow_mut(|model| model.status = message.chars().take(256).collect()); // register:commands
     log::info!("{message}");
 }
 
@@ -33,8 +33,8 @@ pub fn progress(message: &str, last: &str) {
 
         if shown.is_empty() || shown == last {
             status.set_text_content(Some(message));
-            super::ui::command_line::STATE
-                .with_borrow_mut(|model| model.status = message.to_string());
+            super::ui::command_line::STATE // register:commands
+                .with_borrow_mut(|model| model.status = message.to_string()); // register:commands
         }
     }
 }
@@ -56,19 +56,6 @@ pub fn error(message: &str) {
     log::error!("{message}");
 }
 
-/// Open or close the command line.
-#[cfg(target_arch = "wasm32")]
-pub fn command_line(open: bool) {
-    super::ui::command_line::STATE.with_borrow_mut(|model| {
-        model.command_open = open;
-        model.focus_command = open;
-
-        if open {
-            model.command.clear();
-        }
-    });
-}
-
 /// Give the canvas keyboard focus.
 #[cfg(target_arch = "wasm32")]
 pub fn focus_canvas() {
@@ -85,20 +72,6 @@ pub fn focus_canvas() {
 /// No canvas on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn focus_canvas() {}
-
-/// Raise the phone keyboard over an empty field; works while a tap is handled.
-#[cfg(target_arch = "wasm32")]
-pub fn raise_keyboard() {
-    super::agent::raise();
-}
-
-/// No phone keyboard on native.
-#[cfg(not(target_arch = "wasm32"))]
-pub fn raise_keyboard() {}
-
-/// No command line on native.
-#[cfg(not(target_arch = "wasm32"))]
-pub fn command_line(_open: bool) {}
 
 /// One row of the layers panel.
 #[derive(Clone, Default, serde::Serialize)]
@@ -128,6 +101,33 @@ pub struct EdgeRow {
     pub guids: String,  // both guids, for the tooltip
     pub selected: bool, // both ends selected
 }
+
+/// Open or close the command line.
+#[cfg(target_arch = "wasm32")]
+pub fn command_line(open: bool) {
+    super::ui::command_line::STATE.with_borrow_mut(|model| {
+        model.command_open = open;
+        model.focus_command = open;
+
+        if open {
+            model.command.clear();
+        }
+    });
+}
+
+/// No command line on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn command_line(_open: bool) {}
+
+/// Raise the phone keyboard over an empty field; works while a tap is handled.
+#[cfg(target_arch = "wasm32")]
+pub fn raise_keyboard() {
+    super::agent::raise();
+}
+
+/// No phone keyboard on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn raise_keyboard() {}
 
 /// Replace the rows of the layers panel.
 #[cfg(target_arch = "wasm32")]

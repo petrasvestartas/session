@@ -1,3 +1,17 @@
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
+/// Browser entry point.
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(start)]
+pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
+    // panics print to the console
+    console_error_panic_hook::set_once();
+    engine::performance::mark("wasm entry"); // register:frame
+    start(); // register:shell
+    Ok(())
+}
+
 /// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
 macro_rules! shader {
     ($name:literal) => {
@@ -5,62 +19,47 @@ macro_rules! shader {
     };
 }
 
-pub mod app;
-mod camera;
 mod engine;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod selftest;
-mod state;
+
+mod camera;
+
+pub mod app;
+
 #[cfg(target_arch = "wasm32")]
 pub mod text_quality;
 
-use crate::app::scene::{FileDoc, SheetInit, StreamedInit};
-use crate::app::walk::cloud::StreamRows;
-use crate::app::walk::sheet::SheetRows;
+mod state;
+
+use crate::app::scene::FileDoc;
 pub use state::State;
-
-/// The next slice of streamed cloud `idx`.
-pub struct CloudChunk {
-    pub idx: usize,      // which cloud
-    pub rows: StreamRows, // the new points
-    pub to: u32,          // rows loaded so far
-}
-
-/// The next slice of sheet `idx`.
-pub struct SheetChunk {
-    pub idx: usize,     // which sheet
-    pub rows: SheetRows, // the new segments
-    pub to: u32,         // segments loaded so far
-}
 
 /// Messages the async loader sends to the event loop.
 pub enum Msg {
-    Ready(Box<State>),                            // GPU is up, here is the state
-    File(FileDoc, Option<String>),                // one loaded file; a display-only one names its file
-    Texts(Vec<app::manifest::TextItem>),          // text labels to place
-    Clear,                                        // empty the scene
-    Fit,                                          // frame the camera on everything
-    StreamedCloud(Box<StreamedInit>),             // a point cloud starts streaming
-    CloudChunk(CloudChunk),                       // more points arrived
-    CloudQueryBatch(app::cloud_query::Batch),     // points asked for on click
-    CloudQueryResolved(app::cloud_query::Resolved), // those points answered
-    Sheet(Box<SheetInit>),                        // a drawing sheet starts streaming
-    SheetChunk(SheetChunk),                       // more segments arrived
-    SheetEntity(app::sheet_query::Resolved),      // a picked sheet entity answered
-    CancelPointer,                                // the browser lost the pointer
-    #[cfg(target_arch = "wasm32")]
-    Agent(app::agent::AgentEvent),                // a phone keyboard key
-    SavedScene(Box<app::scene::Scene>),           // a saved session loaded
-    Hydrated(Box<app::scene::Hydrated>),          // a released document's objects are back
-    Fonts(Vec<Vec<u8>>),                          // the whole label fonts, main font first
+    Ready(Box<State>),                              // GPU is up, here is the state
+    File(FileDoc, Option<String>), // one loaded file; a display-only one names its file
+    Texts(Vec<app::manifest::TextItem>), // text labels to place; register:scene_text
+    Clear,                         // empty the scene
+    Fit,                           // frame the camera on everything
+    StreamedCloud(Box<StreamedInit>), // a point cloud starts streaming; register:stream
+    CloudChunk(CloudChunk),        // more points arrived; register:stream
+    CloudQueryBatch(app::cloud_query::Batch), // points asked for on click; register:cloud_query
+    CloudQueryResolved(app::cloud_query::Resolved), // those points answered; register:cloud_query
+    Sheet(Box<SheetInit>),         // a drawing sheet starts streaming; register:sheets
+    SheetChunk(SheetChunk),        // more segments arrived; register:sheets
+    SheetEntity(app::sheet_query::Resolved), // a picked sheet entity answered; register:sheets
+    CancelPointer,                 // the browser lost the pointer
+    #[cfg(target_arch = "wasm32")] // register:phone
+    Agent(app::agent::AgentEvent), // a phone keyboard key; register:phone
+    SavedScene(Box<app::scene::Scene>), // a saved session loaded; register:commands
+    Hydrated(Box<app::scene::Hydrated>), // a released document's objects are back; register:editing
+    Fonts(Vec<Vec<u8>>),           // the whole label fonts, main font first; register:loading
 }
 
 #[cfg(target_arch = "wasm32")]
 use {
-    crate::app::{input::Input, loader},
+    crate::app::input::Input,
     std::sync::Arc,
     wasm_bindgen::JsCast,
-    wasm_bindgen::prelude::*,
     winit::application::ApplicationHandler,
     winit::event::{ElementState, WindowEvent},
     winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy},
@@ -71,12 +70,12 @@ use {
 /// The winit application: owns the state and the gestures.
 #[cfg(target_arch = "wasm32")]
 pub struct App {
-    state: Option<State>,                                       // everything drawn, once the GPU is up
-    proxy: Option<EventLoopProxy<Msg>>,                         // sends messages into the loop
-    input: Input,                                               // mouse and key gestures
+    state: Option<State>,               // everything drawn, once the GPU is up
+    proxy: Option<EventLoopProxy<Msg>>, // sends messages into the loop
+    input: Input,                       // mouse and key gestures
     pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener
-    agent: Option<app::agent::CommandAgent>,                    // phone keyboard listener
-    ui: Option<app::ui::Ui>,                                    // the egui panels
+    agent: Option<app::agent::CommandAgent>, // phone keyboard listener; register:phone
+    ui: Option<app::ui::Ui>,            // the egui panels; register:egui
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -91,8 +90,8 @@ impl App {
             state: None,
             input: Input::new(),
             pointer_cancellation: None,
-            agent: None,
-            ui: None,
+            agent: None, // register:phone
+            ui: None,    // register:egui
         };
         event_loop.spawn_app(app);
         Ok(())
@@ -105,12 +104,7 @@ impl App {
             let _ = state.resize(w, h);
         }
 
-        // the egui panels and their GPU painter
-        self.ui = Some(app::ui::Ui::new(&state.window, state.logical_size()[0]));
-        state.gpu.ui = Some(engine::gpu::ui::Ui::new(
-            &state.gpu.ctx,
-            state.gpu.config.format,
-        ));
+        self.adopt_panels(&mut state); // register:egui
         state.window.request_redraw();
         self.state = Some(state);
     }
@@ -154,13 +148,9 @@ impl ApplicationHandler<Msg> for App {
                 Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
             }
 
-            match app::agent::CommandAgent::new(canvas, proxy.clone()) {
-                Ok(agent) => self.agent = Some(agent),
-                Err(error) => log::warn!("Cannot register the command agent: {error:?}"),
-            }
-
+            self.listen_agent(canvas, &proxy); // register:phone
             // async: GPU setup, then Msg::Ready
-            wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
+            wasm_bindgen_futures::spawn_local(app::loader::boot(window, proxy)); // register:loading
         }
     }
 
@@ -178,83 +168,23 @@ impl ApplicationHandler<Msg> for App {
             Msg::Clear => state.clear(),
             Msg::Fit => state.fit_loaded(),
             Msg::File(doc, source) => state.append(doc, source),
-            Msg::Hydrated(back) => state.hydrated(*back),
-            Msg::Fonts(faces) => {
-                // kept for the page's life, shared by the labels and the panels
-                let faces: Vec<&'static [u8]> = faces
-                    .into_iter()
-                    .map(|face| &*Box::leak(face.into_boxed_slice()))
-                    .collect();
-
-                if let Ok(faces) = <[&'static [u8]; 3]>::try_from(faces) {
-                    state.use_fonts(faces);
-
-                    if let Some(ui) = self.ui.as_mut() {
-                        ui.use_fonts(faces);
-                    }
-                }
-            }
-            Msg::Texts(texts) => state.set_texts(texts),
-            Msg::StreamedCloud(init) => {
-                // add the first rows, keep loading the rest
-                let (url, fields, from, col_at) = (
-                    init.url.clone(),
-                    init.fields.clone(),
-                    init.resident,
-                    init.col_at,
-                );
-                let idx = state.add_streamed(*init);
-                loader::spawn_stream_rest(loader::StreamCursor {
-                    idx,
-                    url,
-                    fields,
-                    from,
-                    col_at,
-                });
-            }
-            Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
-            Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
-            Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
-            Msg::Sheet(init) => {
-                let (url, fields, from) = (init.url.clone(), init.fields.clone(), init.resident);
-                let idx = state.add_sheet(*init);
-                loader::spawn_sheet_rest(loader::SheetCursor {
-                    idx,
-                    url,
-                    fields,
-                    from,
-                });
-            }
-            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
-            Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
-            Msg::SavedScene(scene) => {
-                // replace the scene with the saved one
-                state.clear();
-                state.scene = *scene;
-                state.scene.upload_to(&mut state.gpu);
-                state.scene.restore_text_visibility(&mut state.gpu);
-                state.update_label(); // the saved texts reach the GPU
-                state.fit_all();
-                state.refresh_layers();
-                state.touch();
-                app::feedback::status("Session opened");
-            }
+            Msg::Hydrated(back) => state.hydrated(*back), // register:editing
+            Msg::Fonts(faces) => self.use_fonts(faces),   // register:loading
+            Msg::Texts(texts) => state.set_texts(texts),  // register:scene_text
+            Msg::StreamedCloud(init) => start_stream(state, init), // register:stream
+            Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to), // register:stream
+            Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch), // register:cloud_query
+            Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved), // register:cloud_query
+            Msg::Sheet(init) => start_sheet(state, init), // register:sheets
+            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to), // register:sheets
+            Msg::SheetEntity(resolved) => state.sheet_entity(resolved), // register:sheets
+            Msg::SavedScene(scene) => open_saved(state, scene), // register:commands
             Msg::CancelPointer => {
-                state.cancel_gesture();
+                state.cancel_gesture(); // register:editing
                 self.input.cancel();
                 state.touch();
             }
-            Msg::Agent(event) => {
-                // phone keys become key presses
-                if let Some(ui) = self.ui.as_mut() {
-                    for key in ui.agent(event) {
-                        self.input
-                            .key(state, winit::keyboard::Key::Character(key.as_str()));
-                    }
-                }
-
-                state.touch();
-            }
+            Msg::Agent(event) => self.agent_keys(event), // register:phone
         }
 
         self.request_if_needed();
@@ -262,56 +192,12 @@ impl ApplicationHandler<Msg> for App {
 
     /// Handle one window event: redraw, resize, key or mouse.
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
+        let taken = self.panels_take(&event); // the panels get the event first; register:egui
         let Some(state) = &mut self.state else { return };
-
-        // the panels get the event first
-        if let Some(ui) = self.ui.as_mut() {
-            let (mut consumed, repaint) = ui.event(&state.window, &event);
-
-            // keys reach the viewer unless a text field or a menu has them; the number box from its click on
-            if matches!(event, WindowEvent::KeyboardInput { .. }) {
-                consumed = app::ui::keys_taken() || state.number_box_open();
-            }
-
-            if repaint {
-                state.request_frame();
-            }
-
-            // a command following a left drag, e.g. a lasso, keeps the pointer over panels too
-            let held = self.input.tool_held()
-                && matches!(
-                    event,
-                    WindowEvent::CursorMoved { .. }
-                        | WindowEvent::MouseInput {
-                            button: winit::event::MouseButton::Left,
-                            ..
-                        }
-                );
-
-            if consumed && !held {
-                // a release inside a panel ends any viewer drag
-                if matches!(
-                    event,
-                    WindowEvent::MouseInput {
-                        state: ElementState::Released,
-                        ..
-                    } | WindowEvent::Touch(winit::event::Touch {
-                        phase: winit::event::TouchPhase::Ended
-                            | winit::event::TouchPhase::Cancelled,
-                        ..
-                    })
-                ) {
-                    self.input.cancel();
-                    state.cancel_gesture();
-                }
-
-                self.request_if_needed();
-                return;
-            }
-        }
 
         // true when the scene must be drawn again
         let changed = match event {
+            _ if taken => false, // register:egui
             WindowEvent::CloseRequested => {
                 event_loop.exit();
                 false
@@ -332,13 +218,10 @@ impl ApplicationHandler<Msg> for App {
                 if held {
                     state.needs_frame = true;
                 } else {
-                    // panels lay out, then the scene draws
-                    let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state));
+                    // panels lay out, then the scene draws; register:egui
+                    let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state)); // register:egui
                     state.render();
-
-                    if repaint {
-                        state.request_frame();
-                    }
+                    repaint_if(state, repaint); // register:egui
                 }
 
                 false
@@ -411,20 +294,15 @@ fn desired_canvas_size() -> Option<(u32, u32)> {
     (w > 0 && h > 0).then_some((w, h))
 }
 
-/// Browser entry point.
+/// Start the viewer, unless this is the text-quality page.
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(start)]
-pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
-    // panics print to the console
-    console_error_panic_hook::set_once();
-    engine::performance::mark("wasm entry");
-
+fn start() {
     // the text-quality page runs its own code
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()
         && document.get_element_by_id("text-quality-canvas").is_some()
     {
-        return Ok(());
+        return;
     }
 
     // after a GPU-loss reload, show the notice
@@ -435,6 +313,194 @@ pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
     if let Err(error) = App::run() {
         app::feedback::error(&format!("Cannot start the viewer: {error}"));
     }
-
-    Ok(())
 }
+
+#[cfg(target_arch = "wasm32")]
+impl App {
+    /// Keep the whole fonts for the page's life, shared by the labels and the panels.
+    fn use_fonts(&mut self, faces: Vec<Vec<u8>>) {
+        let Some(state) = &mut self.state else { return };
+        let faces: Vec<&'static [u8]> = faces
+            .into_iter()
+            .map(|face| &*Box::leak(face.into_boxed_slice()))
+            .collect();
+
+        if let Ok(faces) = <[&'static [u8]; 3]>::try_from(faces) {
+            state.use_fonts(faces); // register:scene_text
+            self.panel_fonts(faces); // register:egui
+        }
+    }
+}
+
+use crate::app::scene::StreamedInit;
+use crate::app::walk::cloud::StreamRows;
+
+/// The next slice of streamed cloud `idx`.
+pub struct CloudChunk {
+    pub idx: usize,       // which cloud
+    pub rows: StreamRows, // the new points
+    pub to: u32,          // rows loaded so far
+}
+
+/// Add a streamed cloud's first rows and keep loading the rest.
+#[cfg(target_arch = "wasm32")]
+fn start_stream(state: &mut State, init: Box<StreamedInit>) {
+    let (url, fields, from, col_at) = (
+        init.url.clone(),
+        init.fields.clone(),
+        init.resident,
+        init.col_at,
+    );
+    let idx = state.add_streamed(*init);
+    app::loader::spawn_stream_rest(app::loader::StreamCursor {
+        idx,
+        url,
+        fields,
+        from,
+        col_at,
+    });
+}
+
+use crate::app::scene::SheetInit;
+use crate::app::walk::sheet::SheetRows;
+
+/// The next slice of sheet `idx`.
+pub struct SheetChunk {
+    pub idx: usize,      // which sheet
+    pub rows: SheetRows, // the new segments
+    pub to: u32,         // segments loaded so far
+}
+
+/// Add a sheet's first segments and keep loading the rest.
+#[cfg(target_arch = "wasm32")]
+fn start_sheet(state: &mut State, init: Box<SheetInit>) {
+    let (url, fields, from) = (init.url.clone(), init.fields.clone(), init.resident);
+    let idx = state.add_sheet(*init);
+    app::loader::spawn_sheet_rest(app::loader::SheetCursor {
+        idx,
+        url,
+        fields,
+        from,
+    });
+}
+
+#[cfg(target_arch = "wasm32")]
+impl App {
+    /// The egui panels and their GPU painter.
+    fn adopt_panels(&mut self, state: &mut State) {
+        self.ui = Some(app::ui::Ui::new(&state.window, state.logical_size()[0]));
+        state.gpu.ui = Some(engine::gpu::ui::Ui::new(
+            &state.gpu.ctx,
+            state.gpu.config.format,
+        ));
+    }
+
+    /// The panels take the fonts too.
+    fn panel_fonts(&mut self, faces: [&'static [u8]; 3]) {
+        if let Some(ui) = self.ui.as_mut() {
+            ui.use_fonts(faces);
+        }
+    }
+
+    /// The panels get the event first; true when they took it.
+    fn panels_take(&mut self, event: &WindowEvent) -> bool {
+        let Some(state) = &mut self.state else {
+            return false;
+        };
+        let Some(ui) = self.ui.as_mut() else {
+            return false;
+        };
+        let (mut consumed, repaint) = ui.event(&state.window, event);
+
+        // keys reach the viewer unless a text field or a menu has them; the number box from its click on
+        if matches!(event, WindowEvent::KeyboardInput { .. }) {
+            consumed = app::ui::keys_taken() || state.number_box_open();
+        }
+
+        if repaint {
+            state.request_frame();
+        }
+
+        // a command following a left drag, e.g. a lasso, keeps the pointer over panels too
+        let held = self.input.tool_held()
+            && matches!(
+                event,
+                WindowEvent::CursorMoved { .. }
+                    | WindowEvent::MouseInput {
+                        button: winit::event::MouseButton::Left,
+                        ..
+                    }
+            );
+
+        if consumed && !held {
+            // a release inside a panel ends any viewer drag
+            if matches!(
+                event,
+                WindowEvent::MouseInput {
+                    state: ElementState::Released,
+                    ..
+                } | WindowEvent::Touch(winit::event::Touch {
+                    phase: winit::event::TouchPhase::Ended | winit::event::TouchPhase::Cancelled,
+                    ..
+                })
+            ) {
+                self.input.cancel();
+                state.cancel_gesture();
+            }
+
+            return true;
+        }
+
+        false
+    }
+}
+
+/// The panels asked for another frame.
+#[cfg(target_arch = "wasm32")]
+fn repaint_if(state: &mut State, repaint: bool) {
+    if repaint {
+        state.request_frame();
+    }
+}
+
+/// Replace the scene with a saved one.
+#[cfg(target_arch = "wasm32")]
+fn open_saved(state: &mut State, scene: Box<app::scene::Scene>) {
+    state.clear();
+    state.scene = *scene;
+    state.scene.upload_to(&mut state.gpu);
+    state.scene.restore_text_visibility(&mut state.gpu); // register:scene_text
+    state.update_label(); // the saved texts reach the GPU; register:scene_text
+    state.fit_all();
+    state.refresh_layers(); // register:panel
+    state.touch();
+    app::feedback::status("Session opened");
+}
+
+#[cfg(target_arch = "wasm32")]
+impl App {
+    /// Listen to the hidden input that raises the phone keyboard.
+    fn listen_agent(&mut self, canvas: web_sys::HtmlCanvasElement, proxy: &EventLoopProxy<Msg>) {
+        match app::agent::CommandAgent::new(canvas, proxy.clone()) {
+            Ok(agent) => self.agent = Some(agent),
+            Err(error) => log::warn!("Cannot register the command agent: {error:?}"),
+        }
+    }
+
+    /// Phone keys become key presses.
+    fn agent_keys(&mut self, event: app::agent::AgentEvent) {
+        let Some(state) = &mut self.state else { return };
+
+        if let Some(ui) = self.ui.as_mut() {
+            for key in ui.agent(event) {
+                self.input
+                    .key(state, winit::keyboard::Key::Character(key.as_str()));
+            }
+        }
+
+        state.touch();
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub mod selftest;

@@ -256,11 +256,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
                 entry
             }),
         });
-    let composite_shader = module(
-        ctx,
-        "ambient composite",
-        shader!("ambient_composite.wgsl"),
-    );
+    let composite_shader = module(ctx, "ambient composite", shader!("ambient_composite.wgsl"));
     let composite_groups = [&composite_layout, &sample_layout];
     let composite_desc = PipelineDesc::new(
         &composite_shader,
@@ -757,12 +753,16 @@ impl Ssao {
             ctx.queue
                 .write_buffer(&self.inverse, 0, bytemuck::cast_slice(&data));
         }
-        if self.group.as_ref().is_none_or(|(depth, ids, buffer, bound, _)| {
-            *depth != targets.depth.view
-                || *ids != targets.gradient.view
-                || bound != table
-                || buffer.iter().zip(geometry).any(|(a, b)| a != b)
-        }) {
+        if self
+            .group
+            .as_ref()
+            .is_none_or(|(depth, ids, buffer, bound, _)| {
+                *depth != targets.depth.view
+                    || *ids != targets.gradient.view
+                    || bound != table
+                    || buffer.iter().zip(geometry).any(|(a, b)| a != b)
+            })
+        {
             let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("ambient scene"),
                 layout: &pipes.layout,
@@ -1776,7 +1776,7 @@ mod tests {
 
 /// Ambient occlusion over the faces; its pipelines at 1x and 4x stay while it is off.
 pub struct Ambient {
-    ssao: Option<Ssao>,                 // the textures and buffers, when on
+    ssao: Option<Ssao>,                // the textures and buffers, when on
     pipes: [Option<SsaoPipelines>; 2], // at 1x and 4x
 }
 
@@ -1817,7 +1817,11 @@ impl Pass for Ambient {
             let target = g.target();
             if let Some(pipes) = cached(&mut self.pipes, &g.ctx, target) {
                 // textures follow the canvas; pipelines stay
-                if self.ssao.as_ref().is_some_and(|ssao| !ssao.fits(pipes, full, dpr)) {
+                if self
+                    .ssao
+                    .as_ref()
+                    .is_some_and(|ssao| !ssao.fits(pipes, full, dpr))
+                {
                     self.ssao = None;
                 }
                 let ssao = self

@@ -5,14 +5,7 @@ use session_rust::AABB;
 use session_rust::{Geometry, NurbsSurface, RenderVertex};
 use std::collections::HashMap;
 
-/// Where one GPU vertex came from on its surface.
-#[derive(Clone, Copy)]
-pub struct Sample {
-    pub index: u32,   // GPU vertex index
-    pub surface: u32, // surface index in the BRep
-    pub uv: [f64; 2], // parameter on that surface
-    pub sign: f32,    // +1 or -1 on the normal
-}
+pub use crate::engine::gpu::arena::Sample;
 
 /// Enough of a surface upload to re-evaluate it after a control moves.
 pub struct SurfacePreview {
@@ -68,14 +61,12 @@ impl SurfacePreview {
         let start_pipe = local.pipes as usize;
         let end_pipe = start_pipe + span.count.pipes as usize;
         let pipes = up.seg.pipes[start_pipe..end_pipe].to_vec();
-        // --8<-- [start:step-27a]
         // pipe ends by vertex index, not by position
         let boundary: HashMap<_, _> = up.arena.surface_boundaries.iter().copied().collect();
         let pipe_vertices = (start_pipe..end_pipe)
             .map(|pipe| {
                 let ends = boundary.get(&(pipe as u32))?;
                 Some([ends[0] as usize - first, ends[1] as usize - first])
-                // --8<-- [end:step-27a]
             })
             .collect::<Option<Vec<_>>>()?;
         // a vertex on each side of the pipe, for its normals
@@ -172,11 +163,9 @@ impl SurfacePreview {
             pipe.p1 = vertices[ends[1]].position;
             let a = vertices[normals[0]].normal.map(f64::from);
             let b = vertices[normals[1]].normal.map(f64::from);
-            // --8<-- [start:step-27b]
             if pipe.facing != super::walk::encode::FACING_UNKNOWN {
                 pipe.facing = super::walk::encode::pack_facing(Some(&a), Some(&b));
             }
-            // --8<-- [end:step-27b]
             segments.pipes.push(pipe);
         }
 
@@ -209,7 +198,6 @@ mod tests {
     use session_rust::{BRep, Xform};
     use std::rc::Rc;
 
-    // --8<-- [start:step-27c]
     /// Vertices at one point keep their own uv when pulled apart.
     #[test]
     fn coincident_boundary_samples_keep_their_own_uv_after_edit() {
@@ -225,9 +213,7 @@ mod tests {
                 vert_base: 0,
                 cloud_px: 0.0,
                 row: 0,
-                // --8<-- [start:step-12a]
                 attributes: false,
-                // --8<-- [end:step-12a]
             },
             &source,
         );
@@ -270,9 +256,7 @@ mod tests {
                 vert_base: 0,
                 cloud_px: 0.0,
                 row: 0,
-                // --8<-- [start:step-12b]
                 attributes: false,
-                // --8<-- [end:step-12b]
             },
             &source,
         );
@@ -309,7 +293,6 @@ mod tests {
     }
 
     /// A box preview moves with a face and restores on cancel.
-// --8<-- [end:step-27c]
     #[test]
     fn joined_shell_preview_moves_source_samples_and_cancel_restores_them() {
         let source = Geometry::BRep(Rc::new(BRep::create_box(10.0, 10.0, 10.0)));
@@ -318,9 +301,7 @@ mod tests {
             vert_base: 0,
             cloud_px: 0.0,
             row: 3,
-            // --8<-- [start:step-12c]
             attributes: false,
-            // --8<-- [end:step-12c]
         };
         walk_geometry(&mut Walk::of(&mut upload), &cx, &source);
         let span = Span {

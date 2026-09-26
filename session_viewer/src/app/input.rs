@@ -113,7 +113,7 @@ impl Input {
                 // a running command draws with the button held
                 if self.tool_held {
                     self.last_cursor = at;
-                    return state.tool_drag(at.0, at.1);
+                    return state.tool_drag(at.0, at.1); // register:tools
                 }
 
                 // a plain press dragged past the slop may start a tool, once
@@ -146,7 +146,10 @@ impl Input {
                 }
 
                 self.last_cursor = at;
-                dragging || state.hover_drawing(at.0, at.1) || state.hover_gizmo(at.0, at.1)
+                let mut redraw = dragging;
+                redraw = redraw || state.hover_drawing(at.0, at.1); // register:commands
+                redraw = redraw || state.hover_gizmo(at.0, at.1); // register:gumball
+                redraw
             }
             WindowEvent::MouseWheel { delta, .. } => {
                 let amount = match delta {
@@ -163,7 +166,7 @@ impl Input {
             }
             WindowEvent::Focused(false) => {
                 self.cancel();
-                state.cancel_gesture();
+                state.cancel_gesture(); // register:editing
                 state.interacting = false;
                 true
             }
@@ -187,7 +190,7 @@ impl Input {
                     && t.phase == TouchPhase::Started
                     && self.fingers.len() > 1
                 {
-                    state.cancel_gesture();
+                    state.cancel_gesture(); // register:editing
                     self.touch_edit = None;
                     self.gesture = None;
                     self.tool_held = false;
@@ -211,16 +214,18 @@ impl Input {
 
                 // a first finger closes the number box and may grab a control or a handle
                 if t.phase == TouchPhase::Started && self.fingers.len() == 1 {
-                    state.close_number_box();
+                    state.close_number_box(); // register:editing
                     self.last_cursor = at;
                     self.touch_down = at;
                     self.dragged = false;
                     // while drawing, a tap is only a point, like a mouse press
-                    if state.features.draft.is_none() {
+                    let mut drawing = false;
+                    drawing |= state.drafting(); // register:commands
+
+                    if !drawing {
                         self.gesture = gesture::press(state, at, TOUCH_REACH);
                     }
-
-                    self.tool_held = state.tool_press(at.0, at.1);
+                    self.tool_held = state.tool_press(at.0, at.1); // register:tools
 
                     if self.gesture.is_some() || self.tool_held {
                         self.touch_edit = Some(t.id);
@@ -235,10 +240,10 @@ impl Input {
 
                     match (t.phase, self.gesture) {
                         (TouchPhase::Moved, None) if self.tool_held => {
-                            state.tool_drag(at.0, at.1);
+                            state.tool_drag(at.0, at.1); // register:tools
                         }
                         (TouchPhase::Ended, None) if self.tool_held => {
-                            state.tool_release(false, false);
+                            state.tool_release(false, false); // register:tools
                         }
                         (TouchPhase::Moved, Some(active)) => {
                             (active.drag)(state, at);
@@ -248,12 +253,9 @@ impl Input {
                             let tap = !self.dragged;
                             (active.release)(state, at, tap);
 
-                            // a tap that opened a number box raises the phone keyboard
-                            if tap && state.number_box_open() {
-                                crate::app::feedback::raise_keyboard();
-                            }
+                            state.number_box_tapped(tap); // register:editing
                         }
-                        (TouchPhase::Cancelled, _) => state.cancel_gesture(),
+                        (TouchPhase::Cancelled, _) => state.cancel_gesture(), // register:editing
                         _ => {}
                     }
 
@@ -284,17 +286,18 @@ impl Input {
                     Act::Moved => true,
                     Act::Tap(at) => {
                         // a command waiting for a point takes the tap, like a mouse click
-                        if state.features.draft.is_some() {
-                            return state.click_drawing(at.0, at.1);
+                        let mut drawing = false;
+                        drawing |= state.drafting(); // register:commands
+
+                        if drawing {
+                            return state.click_drawing(at.0, at.1); // register:commands
                         }
 
                         state.request_selection(at.0 as u32, at.1 as u32, false, false);
                         false
                     }
                     // a command waiting for points takes both taps
-                    Act::Fit(at) if state.features.draft.is_some() => {
-                        state.click_drawing(at.0, at.1)
-                    }
+                    Act::Fit(at) if state.drafting() => state.click_drawing(at.0, at.1), // register:commands
                     Act::Fit(_) => {
                         state.fit_all();
                         true
@@ -331,11 +334,12 @@ impl Input {
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
             ElementState::Pressed => {
-                let closed = state.close_number_box(); // a press in the scene closes the number box
+                let mut closed = false;
+                closed |= state.close_number_box(); // a press in the scene closes the number box; register:editing
                 self.left_down = Some(self.last_cursor);
                 self.dragged = false;
                 // a running command that draws with the button, e.g. a lasso
-                self.tool_held = state.tool_press(self.last_cursor.0, self.last_cursor.1);
+                self.tool_held = state.tool_press(self.last_cursor.0, self.last_cursor.1); // register:tools
 
                 if self.tool_held {
                     self.plain = false;
@@ -343,7 +347,9 @@ impl Input {
                 }
 
                 // while drawing, a press is only a click
-                self.plain = !self.ctrl && !self.shift && state.features.draft.is_none();
+                let mut drawing = false;
+                drawing |= state.drafting(); // register:commands
+                self.plain = !self.ctrl && !self.shift && !drawing;
 
                 if self.plain {
                     self.gesture = gesture::press(state, self.last_cursor, MOUSE_REACH);
@@ -357,7 +363,7 @@ impl Input {
 
                 if self.tool_held {
                     self.tool_held = false;
-                    return state.tool_release(self.shift, self.ctrl);
+                    return state.tool_release(self.shift, self.ctrl); // register:tools
                 }
 
                 // the tool in charge takes the release; a press that never left the slop is a click
@@ -376,8 +382,11 @@ impl Input {
                     return false; // a drag, not a click
                 }
 
-                if state.features.draft.is_some() {
-                    return state.click_drawing(self.last_cursor.0, self.last_cursor.1);
+                let mut drawing = false;
+                drawing |= state.drafting(); // register:commands
+
+                if drawing {
+                    return state.click_drawing(self.last_cursor.0, self.last_cursor.1); // register:commands
                 }
                 state.additive_selection = self.shift && !self.ctrl; // Shift adds to the selection
                 state.request_selection(

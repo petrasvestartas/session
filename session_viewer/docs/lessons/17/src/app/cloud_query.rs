@@ -1,16 +1,15 @@
-//! A click on a streamed cloud: read, page by page, only the points whose octree cube lies under the cursor.
 use super::stream::{CloudFields, CloudLod};
 use session_rust::Xform;
 use std::cell::Cell;
 use std::ops::Range;
 use std::rc::Rc;
 
-/// 65 536 points x 24 bytes = 1.5 MiB per range request.
+/// Points read per page.
 pub const PAGE_POINTS: u32 = 65_536;
 
-/// Ids are stored as 4 little-endian bytes.
+/// A point's original id from its four stored bytes.
 pub fn original_id(raw: &[u8]) -> Result<u32, String> {
-    let Ok(bytes): Result<[u8; 4], _> = raw.try_into() else { // any length but 4 fails here
+    let Ok(bytes): Result<[u8; 4], _> = raw.try_into() else {
         return Err("Original point ID range must contain exactly four bytes".to_string());
     };
     Ok(u32::from_le_bytes(bytes))
@@ -19,19 +18,18 @@ pub fn original_id(raw: &[u8]) -> Result<u32, String> {
 /// The click and the camera it was made with.
 #[derive(Clone)]
 pub struct QueryView {
-    pub matrix: Xform, // cloud space to clip space
+    pub matrix: Xform,  // cloud space to clip space
     pub size: [f64; 2], // viewport in pixels
-    pub at: [u32; 2], // click pixel
-    pub radius: f64, // pick radius in pixels
+    pub at: [u32; 2],   // click pixel
+    pub radius: f64,    // pick radius in pixels
 }
 
 impl QueryView {
-    /// Clip space = x, y, z, w before the divide by w; x/w and y/w run -1..1 across the screen.
+    /// A point in clip space, before the divide.
     fn clip(&self, point: [f64; 3]) -> [f64; 4] {
         let mut clip = [0.0; 4];
 
         for (row, value) in clip.iter_mut().enumerate() {
-            // m is column-major: m[4 * column + row]
             *value = self.matrix.m[row] * point[0]
                 + self.matrix.m[4 + row] * point[1]
                 + self.matrix.m[8 + row] * point[2]
@@ -45,19 +43,18 @@ impl QueryView {
     pub fn project(&self, point: [f64; 3]) -> Option<[f64; 3]> {
         let p = self.clip(point);
 
-        // w <= 0: behind the eye; z outside 0..w: beyond the far or near plane
         if invalid_clip(&p) || p[3] <= 0.0 || p[2] < 0.0 || p[2] > p[3] {
             return None;
         }
 
         Some([
             (p[0] / p[3] + 1.0) * self.size[0] * 0.5,
-            (1.0 - p[1] / p[3]) * self.size[1] * 0.5, // flipped: clip y points up, pixel y down
+            (1.0 - p[1] / p[3]) * self.size[1] * 0.5,
             p[2] / p[3],
         ])
     }
 
-    /// Conservative: true when unsure, so a point is never missed, only read for nothing.
+    /// True when the cube may reach the click window.
     fn intersects(&self, min: [f64; 3], size: f64) -> bool {
         if !size.is_finite() || size < 0.0 || !min.into_iter().all(f64::is_finite) {
             return true;
@@ -73,7 +70,6 @@ impl QueryView {
             return true;
         }
 
-        // all corners behind the eye: invisible; only some: the projection breaks, so say yes
         if corners.iter().all(behind_eye) {
             return false;
         }
@@ -86,7 +82,6 @@ impl QueryView {
             return false;
         }
 
-        // the cube's box on screen against a square of +-radius around the click
         let mut lo = [f64::INFINITY; 2];
         let mut hi = [f64::NEG_INFINITY; 2];
 
@@ -99,7 +94,7 @@ impl QueryView {
         }
 
         for axis in 0..2 {
-            let center = self.at[axis] as f64 + 0.5; // the middle of the clicked pixel
+            let center = self.at[axis] as f64 + 0.5;
 
             if lo[axis] > center + self.radius || hi[axis] < center - self.radius {
                 return false;
@@ -110,24 +105,27 @@ impl QueryView {
     }
 }
 
+/// True when a clip point is not finite.
 fn invalid_clip(point: &[f64; 4]) -> bool {
     !point.iter().copied().all(f64::is_finite)
 }
 
+/// True when a clip point is behind the eye.
 fn behind_eye(point: &[f64; 4]) -> bool {
     point[3] <= 0.0
 }
 
-/// Reverse-Z: the far plane is z = 0 and the near plane z = w.
+/// True when a clip point is past the far plane.
 fn beyond_far(point: &[f64; 4]) -> bool {
     point[2] < 0.0
 }
 
+/// True when a clip point is before the near plane.
 fn beyond_near(point: &[f64; 4]) -> bool {
     point[2] > point[3]
 }
 
-/// Bits 0, 1, 2 of `corner` add `size` on x, y, z: 0..8 gives all eight.
+/// Corner `corner` of a cube.
 fn cube_corner(min: [f64; 3], size: f64, corner: usize) -> [f64; 3] {
     [
         min[0] + if corner & 1 == 0 { 0.0 } else { size },
@@ -147,15 +145,16 @@ fn grow_pixel_bounds(lo: &mut [f64; 2], hi: &mut [f64; 2], point: [f64; 2]) {
 /// One point near the click.
 #[derive(Clone, Debug)]
 pub struct Candidate {
-    pub local: u32, // index in the source file
+    pub local: u32,         // index in the source file
     pub position: [f64; 3], // exact source position
 }
 
+/// Order ranges by start.
 fn source_range_order(left: &Range<u32>, right: &Range<u32>) -> std::cmp::Ordering {
     left.start.cmp(&right.start)
 }
 
-/// Sorted, then joined where they touch: [0..5, 3..9, 12..14] -> [0..9, 12..14].
+/// Merge overlapping ranges.
 fn merge(mut ranges: Vec<Range<u32>>) -> Vec<Range<u32>> {
     ranges.sort_unstable_by(source_range_order);
     let mut out: Vec<Range<u32>> = Vec::new();
@@ -177,7 +176,7 @@ fn merge(mut ranges: Vec<Range<u32>>) -> Vec<Range<u32>> {
     out
 }
 
-/// The fallback: scan the whole cloud as one range.
+/// Every row, as page-sized ranges.
 fn all_rows(total: u32) -> Vec<Range<u32>> {
     std::iter::once(0..total).collect()
 }
@@ -186,7 +185,6 @@ fn all_rows(total: u32) -> Vec<Range<u32>> {
 pub fn eligible_ranges(lod: &CloudLod, total: u32, view: &QueryView) -> Vec<Range<u32>> {
     let n = lod.len();
 
-    // a broken node table: scan everything rather than miss a point
     if n == 0 || lod.first.len() < n || lod.count.len() < n || lod.min.len() < n * 3 {
         return all_rows(total);
     }
@@ -218,7 +216,6 @@ pub fn eligible_ranges(lod: &CloudLod, total: u32, view: &QueryView) -> Vec<Rang
         }
     }
 
-    // points in no node would never be read: scan everything instead
     if merge(coverage) != all_rows(total) {
         return all_rows(total);
     }
@@ -228,20 +225,20 @@ pub fn eligible_ranges(lod: &CloudLod, total: u32, view: &QueryView) -> Vec<Rang
 
 /// One pick in a streamed cloud, page by page.
 pub struct Query {
-    pub id: u64, // pick number
-    pub parent: u32, // the cloud's object row
-    pub url: String, // the cloud file
-    pub fields: CloudFields, // where the arrays are in the file
-    pub view: QueryView, // the click
-    pub cancelled: Rc<Cell<bool>>, // one flag shared with every read in flight; set when a newer pick replaces this
-    pub revision: Option<String>, // ETag = the server's version tag; a changed file fails the read instead of mixing versions
+    pub id: u64,                    // pick number
+    pub parent: u32,                // the cloud's object row
+    pub url: String,                // the cloud file
+    pub fields: CloudFields,        // where the arrays are in the file
+    pub view: QueryView,            // the click
+    pub cancelled: Rc<Cell<bool>>,  // set when a newer pick replaces this
+    pub revision: Option<String>,   // file ETag every read must match
     pub candidates: Vec<Candidate>, // points near the click so far
-    pub best: Option<u32>, // winning candidate index so far
-    pub checked: u32, // points examined so far
-    pub total: u32, // points to examine
-    ranges: Vec<Range<u32>>, // pages still to read
-    next: usize,
-    pub awaiting_gpu: bool, // a page is on the GPU for ranking
+    pub best: Option<u32>,          // winning candidate index so far
+    pub checked: u32,               // points examined so far
+    pub total: u32,                 // points to examine
+    ranges: Vec<Range<u32>>,        // pages still to read
+    next: usize,                    // next range
+    pub awaiting_gpu: bool,         // a page is on the GPU for ranking
 }
 
 impl Query {
@@ -279,7 +276,7 @@ impl Query {
         }
 
         let range = self.ranges.get_mut(self.next)?;
-        let page = range.start..range.end.min(range.start.saturating_add(PAGE_POINTS)); // at most one page off the front
+        let page = range.start..range.end.min(range.start.saturating_add(PAGE_POINTS));
         range.start = page.end;
 
         if range.start >= range.end {
@@ -291,7 +288,7 @@ impl Query {
 }
 
 impl Drop for Query {
-    /// Drop runs when the Query is freed, so a replaced pick stops its own reads.
+    /// Cancel the pick.
     fn drop(&mut self) {
         self.cancelled.set(true);
     }
@@ -299,18 +296,17 @@ impl Drop for Query {
 
 /// One page's answer.
 pub struct Batch {
-    pub query: u64, // which pick
-    pub count: u32, // points examined
-    pub result: Result<(Vec<Candidate>, Option<String>), String>, // the candidates and the ETag the read saw
+    pub query: u64,                                               // which pick
+    pub count: u32,                                               // points examined
+    pub result: Result<(Vec<Candidate>, Option<String>), String>, // candidates and the ETag
 }
 
 /// The final answer of a pick.
 pub struct Resolved {
-    pub query: u64, // which pick
+    pub query: u64,                              // which pick
     pub result: Result<(u32, [f64; 3]), String>, // original id and position
 }
 
-// browser only: the reads go through fetch
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
@@ -318,15 +314,16 @@ mod web {
 
     use crate::app::fetch::fetch_range as range;
 
-    /// An owned copy for the async read, which may outlive the Query that started it.
+    /// What one page read needs from the pick.
     struct SourceRequest {
-        query: u64,
-        url: String,
-        fields: CloudFields,
-        cancelled: Rc<Cell<bool>>,
-        revision: Option<String>,
+        query: u64,                // which pick
+        url: String,               // the cloud file
+        fields: CloudFields,       // array positions
+        cancelled: Rc<Cell<bool>>, // the pick's cancel flag
+        revision: Option<String>,  // ETag to match
     }
 
+    /// Copy what a page read needs.
     fn source_request(query: &Query) -> SourceRequest {
         SourceRequest {
             query: query.id,
@@ -339,7 +336,6 @@ mod web {
 
     /// Start reading one page; the answer arrives as a message.
     pub fn fetch_page(query: &Query, page: Range<u32>) {
-        // spawn_local runs the future on the browser's event loop; this call returns at once
         wasm_bindgen_futures::spawn_local(post_page(
             source_request(query),
             query.view.clone(),
@@ -367,7 +363,7 @@ mod web {
         view: &QueryView,
         page: Range<u32>,
     ) -> Result<(Vec<Candidate>, Option<String>), String> {
-        let at = source.fields.coords_at + u64::from(page.start) * 24; // 3 f64 per point = 24 bytes
+        let at = source.fields.coords_at + u64::from(page.start) * 24;
         let length = u64::from(page.end - page.start) * 24;
         let (raw, revision) = range(&source.url, at, length, &source.revision).await?;
 
@@ -392,7 +388,6 @@ mod web {
                 .expect("exact triple checked above");
             *value = f64::from_le_bytes(bytes);
 
-            // it must also fit f32, the GPU's precision
             if !value.is_finite() || !(*value as f32).is_finite() {
                 return Err(
                     "Source coordinates are nonfinite or outside the GPU coordinate range"
@@ -460,7 +455,7 @@ mod web {
         }
 
         let position = source_position(&coords)?;
-        let original = if fields.ids_len == 0 { // no id array: the index is the id
+        let original = if fields.ids_len == 0 {
             local
         } else {
             if fields.ids_len != u64::from(fields.count) * 4 {
@@ -558,6 +553,8 @@ mod tests {
                 coords_len: 0,
                 colors_at: 0,
                 colors_len: 0,
+                normals_at: 0,
+                normals_len: 0,
                 count: 1,
                 ids_at: 0,
                 ids_len: 0,
@@ -605,6 +602,8 @@ mod tests {
                 coords_len: 0,
                 colors_at: 0,
                 colors_len: 0,
+                normals_at: 0,
+                normals_len: 0,
                 count: 1,
                 ids_at: 0,
                 ids_len: 0,

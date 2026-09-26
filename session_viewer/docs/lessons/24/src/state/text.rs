@@ -9,7 +9,7 @@ impl State {
         let mut bounds = AABB::empty();
 
         // the box around the new BReps and surfaces
-        for index in first_row..self.scene.object_count() {
+        for index in first_row..self.scene.row_count() {
             let row = index as u32;
             if matches!(
                 self.scene.geometry(row),
@@ -33,8 +33,32 @@ impl State {
         self.scene.set_document_title(label, &mut self.gpu);
     }
 
+    /// Add a text object as one undo step and draw it.
+    pub(crate) fn add_text(&mut self, label: TextLabel) {
+        self.scene.add_text(label);
+        self.scene.upload_to(&mut self.gpu);
+        self.scene.flag_texts(&mut self.gpu);
+        self.update_label();
+        self.touch();
+    }
+
+    /// Draw the labels with the whole fonts, main font first.
+    pub fn use_fonts(&mut self, faces: [&'static [u8]; 3]) {
+        let sources = faces
+            .into_iter()
+            .map(|face| glyphon::fontdb::Source::Binary(std::sync::Arc::new(face)))
+            .collect();
+
+        if let Err(error) = self.gpu.text.document.replace_sources(sources) {
+            self.status(&format!("Text: {error}"));
+        }
+
+        self.update_label();
+        self.touch();
+    }
+
     /// Send the scene texts plus the selection's name label to the GPU.
-    pub(super) fn update_label(&mut self) {
+    pub(crate) fn update_label(&mut self) {
         let mut labels = self.scene.visible_texts();
 
         // the name of the selected object, at its center
@@ -48,6 +72,10 @@ impl State {
                 self.scene.object_name(row).to_string(),
                 label_center(&bounds),
             ));
+        }
+
+        for label in &labels {
+            crate::app::fonts::need(&label.text);
         }
 
         if let Err(error) = self.gpu.text.set_labels(labels) {
@@ -161,5 +189,14 @@ fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
             rounded: true,
         },
         clip: None,
+    }
+}
+
+impl State {
+    /// Replace the scene's text labels.
+    pub fn set_texts(&mut self, texts: Vec<crate::app::manifest::TextItem>) {
+        self.scene.set_texts(texts, &mut self.gpu);
+        self.update_label();
+        self.touch();
     }
 }

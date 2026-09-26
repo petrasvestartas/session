@@ -108,20 +108,20 @@ type LayoutKey = (String, Vec<wgpu::BindGroupLayoutEntry>);
 /// Everything a render pipeline compiles from, owned, so the compile can wait for its first use.
 #[derive(Clone, PartialEq, Eq, Hash)]
 struct PipelineKey {
-    label: String, // name shown in GPU errors
-    shader: Shader, // vertex and fragment code
-    vs: String, // vertex entry point
-    fs: String, // fragment entry point
+    label: String,                      // name shown in GPU errors
+    shader: Shader,                     // vertex and fragment code
+    vs: String,                         // vertex entry point
+    fs: String,                         // fragment entry point
     groups: Vec<wgpu::BindGroupLayout>, // bind group layouts, in slot order
     buffers: Vec<(u64, wgpu::VertexStepMode, Vec<wgpu::VertexAttribute>)>, // vertex buffer layouts
-    topology: wgpu::PrimitiveTopology, // triangles or lines
-    color: ColorWrite, // how color is written
-    depth: DepthMode, // how depth is used
-    scene_samples: Option<u32>, // sets SCENE_MSAA in the shader
-    clipping: Option<bool>, // sets CLIPPING in an ink shader
-    physical: bool, // also writes the triangle id target
-    masks: bool, // writes both outline masks
-    target: Target, // color format and samples
+    topology: wgpu::PrimitiveTopology,  // triangles or lines
+    color: ColorWrite,                  // how color is written
+    depth: DepthMode,                   // how depth is used
+    scene_samples: Option<u32>,         // sets SCENE_MSAA in the shader
+    clipping: Option<bool>,             // sets CLIPPING in an ink shader
+    physical: bool,                     // also writes the triangle id target
+    masks: bool,                        // writes both outline masks
+    target: Target,                     // color format and samples
 }
 
 /// Where a pipeline draws: color format and MSAA sample count.
@@ -303,9 +303,7 @@ impl<'a> PipelineDesc<'a> {
 
 /// Shared WGSL: groups 0-2, Instance, LineUniform, flags, `place`.
 pub const SCENE: &str = shader!("scene.wgsl");
-
-/// Shared WGSL: the clipping planes and their tests; the includer binds `clipping`.
-pub const CLIP: &str = shader!("clip.wgsl");
+pub const CLIP: &str = shader!("clip.wgsl"); // clipping planes, the includer binds `clipping`; register:meshes
 
 /// WGSL every scene shader ends with. A shared snippet is one file and one line here.
 pub const PRELUDE: &[&str] = &[
@@ -315,7 +313,9 @@ pub const PRELUDE: &[&str] = &[
 
 /// A scene shader's full text: its own code, then the prelude.
 pub fn scene_source(source: &str) -> String {
-    PRELUDE.iter().fold(source.to_owned(), |text, part| format!("{text}\n{part}"))
+    PRELUDE
+        .iter()
+        .fold(source.to_owned(), |text, part| format!("{text}\n{part}"))
 }
 
 /// A shader with the shared scene and clipping code appended.
@@ -336,11 +336,6 @@ const TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
     shader_location: 0,
     format: wgpu::VertexFormat::Float32x3,
 }];
-
-/// Vertex slot 0: the arena's packed vertex (position, normal, color).
-pub fn vertex_layout() -> wgpu::VertexBufferLayout<'static> {
-    crate::engine::gpu::arena::GpuVertex::layout()
-}
 
 /// Vertex slot 1: one object row per vertex.
 pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
@@ -416,19 +411,6 @@ pub fn layout(
                 })
         })
         .clone()
-}
-
-/// Shared WGSL for ink: the visibility test and the projected triangles it reads.
-pub const INK: &str = shader!("ink_visibility.wgsl");
-
-/// An ink shader's full text: its own code, the ink code, then the prelude.
-pub fn ink_source(source: &str) -> String {
-    scene_source(&format!("{source}\n{INK}"))
-}
-
-/// An ink shader: scene code plus the ink code.
-pub fn ink_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
-    module(ctx, label, &ink_source(source))
 }
 
 /// A pipeline layout over `groups`, in slot order.
@@ -604,8 +586,6 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
     use super::*;
-    use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
-    use session_rust::{RenderVertex, Xform};
 
     #[test]
     /// Clones share one object, made once, on its first use.
@@ -624,6 +604,18 @@ mod tests {
         assert!(lazy == copy);
         assert!(lazy != Lazy::new(|| 7), "equal means the same object");
     }
+}
+
+/// Vertex slot 0: the arena's packed vertex (position, normal, color).
+pub fn vertex_layout() -> wgpu::VertexBufferLayout<'static> {
+    crate::engine::gpu::arena::GpuVertex::layout()
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod meshes_tests {
+    use super::*;
+    use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
+    use session_rust::{RenderVertex, Xform};
 
     #[test]
     #[ignore = "requires a native GPU adapter"]
@@ -637,7 +629,10 @@ mod tests {
         };
         let boot = created().0;
         gpu.render_offscreen(&input);
-        assert!(created().0 - boot <= 2, "an empty frame compiles the backdrop only");
+        assert!(
+            created().0 - boot <= 2,
+            "an empty frame compiles the backdrop only"
+        );
         let mut upload = Upload::default();
         upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
 
@@ -666,10 +661,32 @@ mod tests {
             compiled.push(created().0);
         }
 
-        assert!(compiled[0] > boot + 2, "the solid frame compiled its pipelines");
-        assert_eq!(compiled[2], compiled[1], "back at 4x nothing compiles again");
-        assert_eq!(compiled[3], compiled[1], "back at 1x nothing compiles again");
+        assert!(
+            compiled[0] > boot + 2,
+            "the solid frame compiled its pipelines"
+        );
+        assert_eq!(
+            compiled[2], compiled[1],
+            "back at 4x nothing compiles again"
+        );
+        assert_eq!(
+            compiled[3], compiled[1],
+            "back at 1x nothing compiles again"
+        );
         // the ones no frame used yet compile without a validation error too
         assert!(gpu.ctx.cache.compile_all() as u32 >= compiled[3] - boot);
     }
+}
+
+/// Shared WGSL for ink: the visibility test and the projected triangles it reads.
+pub const INK: &str = shader!("ink_visibility.wgsl");
+
+/// An ink shader's full text: its own code, the ink code, then the prelude.
+pub fn ink_source(source: &str) -> String {
+    scene_source(&format!("{source}\n{INK}"))
+}
+
+/// An ink shader: scene code plus the ink code.
+pub fn ink_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
+    module(ctx, label, &ink_source(source))
 }

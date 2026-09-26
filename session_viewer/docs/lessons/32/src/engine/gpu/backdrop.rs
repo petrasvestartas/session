@@ -1,18 +1,15 @@
 use super::buffers::GpuCtx;
 use super::frame::Binds;
-// --8<-- [start:step-39a]
-use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, scene_module};
-// --8<-- [end:step-39a]
+use crate::engine::pipelines::{
+    DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, scene_module,
+};
 use wgpu::PrimitiveTopology::{LineList, TriangleList};
 
 /// Shader sources the tests compare against the files.
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[
-    ("grid.wgsl", include_str!("../../shaders/grid.wgsl")),
-    (
-        "background.wgsl",
-        include_str!("../../shaders/background.wgsl"),
-    ),
+    ("grid.wgsl", shader!("grid.wgsl")), // register:camera
+    ("background.wgsl", shader!("background.wgsl")),
 ];
 
 /// Grid vertex count: 44 floor lines plus 6 axis lines.
@@ -20,45 +17,32 @@ const GRID_VERTS: u32 = 50;
 
 /// Draws the background color and the floor grid.
 pub struct BackdropLane {
-    background_shader: wgpu::ShaderModule, // fullscreen background shader
-    grid_shader: wgpu::ShaderModule, // floor grid shader
-    background: wgpu::RenderPipeline, // background pipeline
-    grid: wgpu::RenderPipeline, // grid pipeline
+    background_shader: Shader, // fullscreen background shader
+    grid_shader: Shader,       // floor grid shader; register:camera
+    background: Pipeline,      // background pipeline
+    grid: Pipeline,            // grid pipeline; register:camera
 }
 
 impl BackdropLane {
     /// Compile both shaders and build the pipelines.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-        // --8<-- [start:step-39b]
-        let background_shader = scene_module(
-        // --8<-- [end:step-39b]
-            &ctx.device,
-            "background.shader",
-            include_str!("../../shaders/background.wgsl"),
-        );
-        let grid_shader = scene_module(
-            &ctx.device,
-            "grid.shader",
-            include_str!("../../shaders/grid.wgsl"),
-        );
-        // --8<-- [start:step-39c]
+        let background_shader = scene_module(ctx, "background.shader", shader!("background.wgsl"));
+        let grid_shader = scene_module(ctx, "grid.shader", shader!("grid.wgsl")); // register:camera
         let background = build_background(ctx, l, &background_shader, target);
-        // --8<-- [end:step-39c]
-        let grid = build_grid(ctx, l, &grid_shader, target);
+        let grid = build_grid(ctx, l, &grid_shader, target); // register:camera
 
         Self {
             background_shader,
-            grid_shader,
+            grid_shader, // register:camera
             background,
-            grid,
+            grid, // register:camera
         }
     }
 
     /// Rebuild both pipelines for a new sample count.
     pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
-        // --8<-- [start:step-39d]
         self.background = build_background(ctx, l, &self.background_shader, target);
-        self.grid = build_grid(ctx, l, &self.grid_shader, target);
+        self.grid = build_grid(ctx, l, &self.grid_shader, target); // register:camera
     }
 
     /// Draw the background as one fullscreen triangle.
@@ -67,11 +51,33 @@ impl BackdropLane {
         pass.set_bind_group(0, b.mvp, &[]);
         pass.set_bind_group(1, b.line, &[]);
         // three vertices, the shader places them
-        // --8<-- [end:step-39d]
         pass.draw(0..3, 0..1);
         1
     }
+}
 
+/// Background pipeline: always passes the depth test.
+fn build_background(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -> Pipeline {
+    let groups = [&l.mvp, &l.line];
+    let base = PipelineDesc::new(shader, &groups, &[], TriangleList);
+    build(
+        ctx,
+        target,
+        &base
+            .with("background", "fs_main")
+            .depth(DepthMode::Always)
+            .physical(),
+    )
+}
+
+impl super::lane::Lane for BackdropLane {
+    fn on_retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
+        self.retarget(ctx, layouts, target);
+    }
+}
+
+// --8<-- [start:02]
+impl BackdropLane {
     /// Draw the floor grid lines.
     pub fn draw_grid(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         pass.set_pipeline(&self.grid);
@@ -82,38 +88,12 @@ impl BackdropLane {
     }
 }
 
-/// Background pipeline: always passes the depth test.
-fn build_background(
-    ctx: &GpuCtx,
-    // --8<-- [start:step-39e]
-    l: &Layouts,
-    shader: &wgpu::ShaderModule,
-    target: Target,
-) -> wgpu::RenderPipeline {
-    let groups = [&l.mvp, &l.line];
-    let base = PipelineDesc::new(shader, &groups, &[], TriangleList);
-    // --8<-- [end:step-39e]
-    build(
-        &ctx.device,
-        target,
-        &base
-            .with("background", "fs_main")
-            .depth(DepthMode::Always)
-            .physical(),
-    )
-}
-
 /// Grid pipeline: lines behind geometry are hidden.
-fn build_grid(
-    ctx: &GpuCtx,
-    l: &Layouts,
-    shader: &wgpu::ShaderModule,
-    target: Target,
-) -> wgpu::RenderPipeline {
+fn build_grid(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -> Pipeline {
     let groups = [&l.mvp, &l.line];
     let base = PipelineDesc::new(shader, &groups, &[], LineList);
     build(
-        &ctx.device,
+        ctx,
         target,
         &base
             .with("grid", "fs_main")
@@ -121,3 +101,4 @@ fn build_grid(
             .physical(),
     )
 }
+// --8<-- [end:02]

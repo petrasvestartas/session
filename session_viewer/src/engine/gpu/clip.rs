@@ -14,8 +14,7 @@ use session_rust::{AABB, Xform};
 use std::ops::Range;
 use wgpu::PrimitiveTopology::TriangleList;
 
-/// Most clipping planes cutting at once.
-pub const MAX_PLANES: usize = 6;
+pub use super::frame::{ClipUniform, MAX_PLANES};
 
 /// Hatch spacing, CSS px.
 const HATCH_CSS_PX: f64 = 8.0;
@@ -62,27 +61,6 @@ impl ClipPlane {
         self.distance(center).abs() <= reach + slack
     }
 }
-
-/// The clipping planes as the shaders read them, 448 bytes.
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct ClipUniform {
-    // offset size
-    pub planes: [[f32; 4]; MAX_PLANES], //   0   96  kept side relative to the anchor
-    pub screen: [[f32; 4]; MAX_PLANES], //  96   96  the same over canvas clip space
-    pub hatch: [[f32; 4]; MAX_PLANES],  // 192   96  hatch coordinate numerator over (x, y, 1)
-    pub hatch_w: [[f32; 4]; MAX_PLANES], // 288   96  its denominator
-    pub sides: [[f32; 4]; 2],           // 384   32  side of each plane the eye is on
-    pub count: u32,                     // 416    4  planes in use
-    pub samples: u32,                   // 420    4  scene samples per pixel
-    pub fill: u32,                      // 424    4  0 hatch, 1 solid light grey
-    pub spacing: f32,                   // 428    4  hatch spacing, px
-    pub width: f32,                     // 432    4  hatch line width, px
-    pub outline: f32,                  // 436    4  cut boundary width, px
-    pub pad: [f32; 2],                  // 440    8  -> 448
-}
-
-const _: () = assert!(std::mem::size_of::<ClipUniform>() == 448);
 
 /// What the uniform is built from each frame.
 pub struct ClipView<'a> {
@@ -707,6 +685,10 @@ pub fn pass(_ctx: &GpuCtx, target: Target) -> Box<dyn Pass> {
 }
 
 impl Pass for Clip {
+    fn clip_world(&self) -> Option<[[f64; 4]; MAX_PLANES]> {
+        Some(self.world())
+    }
+
     fn write_frame(&mut self, g: &mut Gpu, input: &FrameInput) {
         let size = (g.config.width, g.config.height);
         let clip = self.uniform(&ClipView {
@@ -754,7 +736,7 @@ impl Pass for Clip {
         if count > 0 {
             let b = g.frame.binds(&g.objects.group);
             draws += self.encode_count(encoder, &g.arena, &b, planes[count - 1]);
-            g.mark(encoder, "counts");
+            g.mark(encoder, "counts"); // register:gtao
         }
 
         draws
@@ -1175,7 +1157,12 @@ mod tests {
     use session_rust::{Point, Vector};
 
     /// A camera at `eye` looking at `target`, relative to `anchor`, in scene units; reverse depth.
-    fn view(eye: [f64; 3], target: [f64; 3], anchor: [f64; 3], perspective: bool) -> Xform {
+    pub(super) fn view(
+        eye: [f64; 3],
+        target: [f64; 3],
+        anchor: [f64; 3],
+        perspective: bool,
+    ) -> Xform {
         let at = |p: [f64; 3]| Point::new(p[0] - anchor[0], p[1] - anchor[1], p[2] - anchor[2]);
         let d = [target[0] - eye[0], target[1] - eye[1], target[2] - eye[2]];
         let distance = dot(d, d).sqrt();
@@ -1584,13 +1571,21 @@ mod tests {
                 samples: 1,
             },
         );
-        assert_eq!((u.count, u.samples, u.spacing, u.width, u.outline), (1, 1, 16.0, 2.0, 4.0));
+        assert_eq!(
+            (u.count, u.samples, u.spacing, u.width, u.outline),
+            (1, 1, 16.0, 2.0, 4.0)
+        );
     }
 
     /// A point or vector as three numbers.
     fn array<T: std::ops::Index<usize, Output = f64>>(v: &T) -> [f64; 3] {
         [v[0], v[1], v[2]]
     }
+}
+
+#[cfg(test)]
+mod editing_tests {
+    use super::tests::view;
 
     #[cfg(not(target_arch = "wasm32"))]
     mod gpu {

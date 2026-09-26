@@ -1,45 +1,42 @@
-// --8<-- [start:step-2a]
 use super::cloud::{Cloud, LodNode};
 use session_rust::Xform;
 
-/// Below 2 million points a cloud is cheap enough to draw in full.
+/// Clouds below this size always draw every point.
 const LOD_MIN_POINTS: u32 = 2_000_000;
 
-/// One run of points to draw: a distant cloud draws fewer, wider-spaced points, since the rest would land on the same pixel.
+/// A run of points to draw, with their spacing.
 pub struct Range {
-    pub first: u32, // index into the cloud's points
-    pub count: u32,
-    pub spacing: f32, // gap between neighbouring points, mm
-    pub tile: bool, // true = an octree node, not the whole cloud
+    pub first: u32,   // first point in the cloud
+    pub count: u32,   // points in the run
+    pub spacing: f32, // distance between points
+    pub tile: bool,   // true = an octree node, not the whole cloud
 }
 
-/// An octree splits space into eight boxes again and again, so a whole box can be skipped or coarsened in one test.
+/// One octree node seen during the walk.
 struct Visit {
-    first: u32,
-    count: u32,
-    spacing: f32, // finest spacing found in or below it
-    parent: usize, // index of the parent visit; usize::MAX for the root
+    first: u32,    // first point in the cloud
+    count: u32,    // points in the node
+    spacing: f32,  // finest spacing found in or below it
+    parent: usize, // index of the parent visit
 }
 
 /// Camera facts the walk needs.
 pub struct Projection<'a> {
-    pub eye: [f32; 3],
-    pub ortho_h: f32, // world mm; 0 = perspective
-    pub height_px: u32,
-    pub lod_px: f32, // split a node while its spacing is wider than this
+    pub eye: [f32; 3],        // camera position
+    pub ortho_h: f32,         // ortho half-height, world mm; 0 = perspective
+    pub height_px: u32,       // viewport height, px
+    pub lod_px: f32,          // split a node while its spacing is wider than this
     pub nodes: &'a [LodNode], // every cloud's octree nodes
 }
 
-/// Kept between frames, so the lists reuse their memory instead of allocating every frame.
+/// The walk's scratch lists and its result, reused each frame.
 #[derive(Default)]
 pub struct LodWalk {
-    pub ranges: Vec<Range>, // result: the runs to draw
+    pub ranges: Vec<Range>,     // result: the runs to draw
     stack: Vec<(usize, usize)>, // nodes still to visit, with parent
-    visits: Vec<Visit>,
+    visits: Vec<Visit>,         // nodes visited
 }
 
-// --8<-- [end:step-2a]
-// --8<-- [start:step-2b]
 impl LodWalk {
     /// Pick which runs of one cloud to draw at this camera.
     pub fn select(&mut self, p: &Projection, c: &Cloud, model: &[f32; 16]) {
@@ -61,15 +58,15 @@ impl LodWalk {
         let scale = Xform::from_matrix(model.map(f64::from)).uniform_scale();
         self.stack.clear();
         self.visits.clear();
-        // the root has no parent
+        // start at the root, which has no parent
         self.stack.push((0, usize::MAX));
 
-        while let Some((n, parent)) = self.stack.pop() { // depth-first, with a stack instead of recursion
+        while let Some((n, parent)) = self.stack.pop() {
             let Some(node) = p.nodes.get(base + n) else {
                 continue;
             };
 
-            if node.first >= c.resident { // not streamed in yet
+            if node.first >= c.resident {
                 continue;
             }
 
@@ -86,14 +83,14 @@ impl LodWalk {
             // still too coarse on screen: visit the children
             if projected_spacing(p, node, model, scale) > p.lod_px as f64 {
                 for &child in &node.children {
-                    if child >= 0 { // -1 = no child in that eighth
+                    if child >= 0 {
                         self.stack.push((child as usize, slot));
                     }
                 }
             }
         }
 
-        // pass the finest spacing up; in reverse, because children sit after their parent
+        // pass the finest spacing up to each parent
         for i in (0..self.visits.len()).rev() {
             let (fine, parent) = (self.visits[i].spacing, self.visits[i].parent);
 
@@ -116,8 +113,6 @@ impl LodWalk {
     }
 }
 
-// --8<-- [end:step-2b]
-// --8<-- [start:step-2c]
 /// Pixels between two neighbouring points of the node on screen.
 fn projected_spacing(p: &Projection, node: &LodNode, model: &[f32; 16], scale: f64) -> f64 {
     // spacing in metres
@@ -138,7 +133,7 @@ fn projected_spacing(p: &Projection, node: &LodNode, model: &[f32; 16], scale: f
     let frac = if p.ortho_h > 0.0 {
         world / (2.0 * p.ortho_h as f64 * 0.001)
     } else {
-        world * 1.7320508 * 0.5 / dist // 1.732 = 1 / tan(30°), half the 60° field of view
+        world * 1.7320508 * 0.5 / dist
     };
     frac * p.height_px as f64
 }
@@ -160,4 +155,3 @@ pub fn radius_factor(r: &Range, px: f32, scale: f64, ortho_h: f32) -> f32 {
     };
     k as f32
 }
-// --8<-- [end:step-2c]

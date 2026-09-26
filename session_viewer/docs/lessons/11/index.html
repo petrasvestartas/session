@@ -1,118 +1,250 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <meta charset="utf-8">
-    <!-- Without this a phone lays the page out 980 px wide and shrinks it to fit. -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- --8<-- [start:step-11a] -->
-    <title>Session checkpoint 11</title>
-    <!-- --8<-- [end:step-11a] -->
-    <!-- data-target-name = the crate to compile, the name in Cargo.toml. -->
-    <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <title>Session Viewer</title>
+    <!-- Scenes come from this bucket: open the connection while the wasm downloads. -->
+    <link rel="preconnect" href="https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev" crossorigin>
+    <script>
+      // Fetch the scene manifest and its first file while the wasm downloads. app/fetch.rs takes
+      // each request by URL; the URLs follow app/route.rs and app/live.rs, and a mismatch is unused.
+      (function () {
+        var BUCKET = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/";
+        var LOCAL_URL = /^http:\/\/(localhost|127\.0\.0\.1|\[::1\]):/;
+        var early = window.__viewerEarly = {};
+        var query = {};
+
+        location.search.slice(1).split("&").forEach(function (pair) {
+          var at = pair.indexOf("=");
+          var key = at < 0 ? pair : pair.slice(0, at);
+          if (!(key in query))
+            try {
+              query[key] = at < 0 ? "" : decodeURIComponent(pair.slice(at + 1));
+            } catch (error) {
+              query[key] = null;
+            }
+        });
+
+        function join(base, file) {
+          return /^https?:\/\//.test(file) ? file : base + file.replace(/^(\.\/)+/, "");
+        }
+
+        function immutable(url) {
+          var hash = url.split("/").pop().split(".")[0].split("-").pop();
+          return hash.length >= 16 && /^[0-9a-f]+$/i.test(hash);
+        }
+
+        function start(key, url, range) {
+          var controller = new AbortController();
+          var init = { mode: "cors", cache: immutable(url) ? "default" : "no-cache", signal: controller.signal };
+          if (range)
+            init.headers = { Range: "bytes=0-8191" };
+          var reply = fetch(url, init);
+          reply.catch(function () {});
+          early[key] = { r: reply, c: controller };
+          return reply;
+        }
+
+        var local = /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/.test(location.hostname);
+        var scene = query.scene;
+        if (scene !== undefined && (!scene || scene[0] === "/" || /\/\/|:/.test(scene) || scene.split("/").indexOf("..") >= 0))
+          scene = undefined;
+        var last = location.pathname.split("/").pop();
+        if (scene === undefined && last && !/\.html$|:|^\./.test(last))
+          scene = last;
+        var data = query.data;
+        var base = data === undefined ? BUCKET : data === "off" || data === "" ? "" :
+          /^https:\/\//.test(data) || LOCAL_URL.test(data) ? data : BUCKET;
+        if (base && base.slice(-1) !== "/")
+          base += "/";
+        var live = query.live;
+        var manifest = null;
+        var whole = false;
+
+        if (live !== "off" && live !== "0" && (live !== undefined || scene === "view_live" || (!scene && !local))) {
+          manifest = live && (/^https:\/\//.test(live) || LOCAL_URL.test(live)) ? live : BUCKET + "scenes/view_live.yaml";
+          whole = true;
+          if (!base || manifest.indexOf(base) !== 0)
+            base = manifest.slice(0, manifest.lastIndexOf("/") + 1);
+        } else if (scene) {
+          var path = scene.indexOf(".") >= 0 ? scene : scene + ".yaml";
+          manifest = join(base, path.indexOf("/") >= 0 ? path : "scenes/" + path);
+        } else if (local) {
+          manifest = "view_local.yaml";
+          base = "";
+        }
+
+        if (!manifest)
+          return;
+
+        start(manifest, manifest, false).then(function (reply) {
+          return reply.ok ? reply.clone().text() : "";
+        }).then(function (text) {
+          var hit = /^[\s-]*\{?\s*file\s*[:=]\s*["']?([^"'\s#,}]+)/m.exec(text) || /"file"\s*:\s*"([^"]+)"/.exec(text);
+          if (!hit)
+            return;
+          var file = join(base, hit[1]);
+          // the item's own lines; a range read of a stored-gzip file corrupts the cache entry
+          var rest = text.slice(hit.index + hit[0].length);
+          var end = rest.search(/\n[ \t]*-|\n[^\s#]/);
+          var item = end < 0 ? rest : rest.slice(0, end);
+          if (whole)
+            start(file, file, false);
+          else if (/\.pb$/.test(file) && !/["']?encoding["']?\s*[:=]/.test(item))
+            start(file + "#probe", file, true);
+        }).catch(function () {});
+      })();
+    </script>
     <style>
-      html, body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        background: #171b23;
-        color: white;
-        font: 14px sans-serif;
-      }
-      canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-        touch-action: none;
-      }
-      #status {
+      #viewer-error:not([hidden]) {
         position: fixed;
-        left: 12px;
-        top: 12px;
-        background: #171b23cc;
-        padding: 8px;
-        pointer-events: none;
+        inset: 0;
+        background: #111e;
+        color: #fff;
+        padding: 25vh 15vw;
+        font: 16px/1.5 system-ui;
+        z-index: 20;
+      }
+      #viewer-error button {
+        padding: 8px 16px;
+        margin-top: 16px;
       }
     </style>
-    <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
-    <!-- --8<-- [start:step-11b] -->
-    <link data-trunk rel="copy-file" href="assets/text-quality.html">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      /* overscroll-behavior kills pull-to-refresh and the rubber band: a downward drag on the
+      canvas is an orbit, and a page that bounces under it swallows half the gesture. */
+      html, body {
+        height: 100%;
+        overscroll-behavior: none;
+      }
+      body {
+        background: #f0f0f0;
+        overflow: hidden;
+      }
+      /* No focus ring. winit gives the canvas a tabindex so it can receive key
+      events, and the browser then rings the focused element - a black
+      rectangle around the whole viewport, drawn over the model. Both spellings
+      are needed: engines differ on which one they paint. */
+      /* touch-action: none is what actually delivers the gestures. winit does call preventDefault,
+      on `pointerdown` and on a non-passive `touchstart` (winit-0.30.13 web_sys/pointer.rs:115,
+      web_sys/canvas.rs:245), but that is a LATE veto: the compositor has already begun deciding
+      whether the gesture is a scroll, and where it decides yes the app gets a pointercancel and
+      nothing more. touch-action tells it up front, before any of that, and it is the only one
+      of the three that iOS Safari applies to page pinch-zoom.
+      The rest turns off the things a long press and a double tap mean to a DOCUMENT: the iOS
+      callout menu, text selection, the grey tap flash, and the legacy double-tap-to-zoom.
+      100dvh after 100vh: dvh follows a mobile toolbar sliding away, vh does not, and browsers
+      that never heard of dvh keep the line above. */
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      canvas:focus, canvas:focus-visible {
+        outline: none;
+      }
+      /* The documentation corner: a black folded-corner triangle, always above the canvas. */
+      #viewer-docs {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 0;
+        height: 0;
+        z-index: 10;
+        display: block;
+        border-bottom: 20px solid #111;
+        border-left: 20px solid transparent;
+        transition: border-bottom-width .25s cubic-bezier(.2, .8, .3, 1.25), border-left-width .25s cubic-bezier(.2, .8, .3, 1.25);
+      }
+      #viewer-docs:hover, #viewer-docs:focus-visible {
+        border-bottom-width: 26px;
+        border-left-width: 26px;
+        outline: none;
+      }
+      #viewer-status:empty {
+        display: none;
+      }
+      #no-webgpu {
+        position: fixed;
+        inset: 0;
+        background: #111;
+        color: #eee;
+        font: 1rem system-ui;
+        text-align: center;
+        padding-top: 40vh;
+      }
+    </style>
   </head>
   <body>
-    <!-- wgpu wraps this canvas as the Surface; tabindex="0" lets it take keyboard focus. -->
-    <canvas id="canvas" tabindex="0"></canvas>
-    <a href="./text-quality.html" style="position: fixed; right: 12px; top: 12px; color: white;">Compare GPU text</a>
-    <output id="status">Starting checkpoint 11</output>
-    <!-- --8<-- [end:step-11b] -->
+    <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0"/>
+    <!-- Trunk copies local fixtures into dist/pb. Named remote scenes resolve through
+    app/route.rs; their manifests and geometry are fetched from the configured data host. -->
+    <link data-trunk rel="copy-dir" href="assets/pb" data-target-path="pb"/>
+    <!-- The ONE local manifest. Every other scene is opened from the R2 bucket with
+    ?scene=scenes/view_<name>.yaml and is never copied into dist. -->
+    <link data-trunk rel="copy-file" href="assets/view_local.yaml"/>
+    <div id="viewer-error" role="alert" hidden>
+      <p id="viewer-error-message"></p>
+      <button type="button" onclick="location.reload()">Reload viewer</button>
+    </div>
+    <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Click selects, Shift-click adds to selection, right drag orbits. Type Layers On in the command line to show layers. Enter executes and Escape cancels."></canvas>
+    <!-- A phone keyboard opens only for an editable element: this one takes the command line's typing (app/agent.rs). Below 16px iOS zooms the page on focus. -->
+    <input id="command-agent" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" tabindex="-1" aria-hidden="true" style="position: fixed; bottom: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; pointer-events: none;">
+    <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
+    <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
+    <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
+    <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
+    <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
+    <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
+    <!-- Message telling that Webgpu is not available. -->
     <script>
-      let tutorial; // the Rust Tutorial, once create() has finished
-      let pointer; // [x, y] of the last event while dragging, else undefined
+      // These named registrations belong to this document's lifetime and are installed once.
+      function preventContextMenu(event) {
+        event.preventDefault();
+      }
 
-      async function start() {
-        // Trunk sets window.wasmBindings once the .wasm has loaded; until then, try again every 20 ms.
-        if (!window.wasmBindings) {
-          setTimeout(start, 20);
+      function installCanvasHandlers() {
+        var canvas = document.getElementById("canvas");
+        if (canvas)
+          canvas.addEventListener("contextmenu", preventContextMenu);
+      }
+
+      document.addEventListener("DOMContentLoaded", installCanvasHandlers, { once: true });
+
+      // Reload the scene in place when the embedding page asks for it, e.g. after
+      // an example was re-run and rewrote its .pb. Reloading this whole frame
+      // would restart WebGPU and reset the camera; this swaps only the geometry.
+      function reloadSceneMessage(event) {
+        if (event.source !== window.parent && event.origin !== window.location.origin)
           return;
-        }
+        var data = event.data;
 
-        try {
-          tutorial = await window.wasmBindings.Tutorial.create(document.getElementById('canvas'));
-          // Try it in the console: tutorial.render(800, 600, 1)
-          window.tutorial = tutorial;
-          render();
-        } catch (error) {
-          document.getElementById('status').textContent = String(error);
-          throw error;
-        }
-      }
-
-      // Draw one frame, then show the status Rust returns.
-      function render() {
-        const canvas = document.getElementById('canvas');
-        const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-        canvas.dataset.tutorialInspection = JSON.stringify(state); // kept on the canvas for automated checks
-        // --8<-- [start:step-11c]
-        document.getElementById('status').textContent = 'Checkpoint 11 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
-        // --8<-- [end:step-11c]
-      }
-
-      function down(event) {
-        pointer = [event.clientX, event.clientY];
-        event.target.setPointerCapture(event.pointerId); // keep receiving moves when the pointer leaves the canvas
-      }
-
-      function move(event) {
-        if (!pointer) // not dragging
+        if (!data || data.type !== "session-viewer:reload-scene")
           return;
-        const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1]; // CSS pixels since the last event
-        pointer = [event.clientX, event.clientY];
-        tutorial.drag(dx, dy, event.shiftKey); // Shift = pan, otherwise orbit
-        render(); // no animation loop: a frame is drawn only when something changed
+
+        if (window.wasmBindings && window.wasmBindings.reload_scene) {
+          window.wasmBindings.reload_scene(data.scene || undefined);
+        }
       }
 
-      function up() {
-        pointer = undefined;
-      }
+      window.addEventListener("message", reloadSceneMessage);
 
-      function wheel(event) {
-        event.preventDefault(); // the page must not scroll
-        tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY); // one wheel notch is deltaY 100 = one step; up zooms in
-        render();
+      if (!navigator.gpu) {
+        document.body.insertAdjacentHTML("beforeend",
+          '<div id="no-webgpu">WebGPU is unavailable. Open this viewer in a WebGPU-enabled browser over HTTPS or localhost; check the browser’s GPU settings.</div>');
       }
-
-      function resize() {
-        if (tutorial) // resize can fire before create() has finished
-          render();
-      }
-
-      const canvas = document.getElementById('canvas');
-      // Pointer events cover mouse, pen and touch with one set of handlers.
-      canvas.addEventListener('pointerdown', down);
-      canvas.addEventListener('pointermove', move);
-      canvas.addEventListener('pointerup', up);
-      canvas.addEventListener('pointercancel', up);
-      canvas.addEventListener('wheel', wheel, { passive: false }); // passive: false, or preventDefault is ignored
-      window.addEventListener('resize', resize);
-      start();
     </script>
   </body>
 </html>

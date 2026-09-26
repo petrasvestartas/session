@@ -1,20 +1,19 @@
-//! Turns raw touch points into one camera gesture: one finger orbits, two fingers pan and zoom.
 use winit::event::{Touch, TouchPhase};
 
 use crate::camera::Camera;
 use crate::engine::performance::now_ms;
 
-/// 2·tan(30°) / 0.0015: with a 60° view the point under the finger stays under it; `pan` multiplies by 0.0015.
+/// Pan units one pixel of finger is worth, over the viewport height.
 const PAN_PER_PX: f64 = 2.0 * 0.577_350_269_189_625_7 / 0.001_5; // 769.8
 
-/// ln 0.9: zoom counts wheel steps of x0.9, so a pinch ratio r is -ln r / ln 0.9 steps, i.e. distance / r.
+/// ln 0.9, the wheel zoom step; a pinch is converted through it.
 const PINCH_LOG: f64 = -0.105_360_515_657_826_28;
 
 /// Largest pinch ratio one event may apply.
 const PINCH_MAX: f64 = 2.0;
 
-/// A finger moving less than this many pixels is a tap.
-const TAP_SLOP: f64 = 12.0;
+/// A finger moving less than this many CSS pixels is a tap.
+pub(crate) const TAP_SLOP: f64 = 12.0;
 
 /// A finger lifting within this many ms is a tap.
 const TAP_MS: f64 = 300.0;
@@ -27,25 +26,25 @@ const DOUBLE_TAP_SLOP: f64 = 40.0;
 
 /// What one touch event asks the caller to do.
 pub enum Act {
-    None,
-    Moved, // the camera moved, redraw
-    Fit, // double tap: fit the scene
+    None,            // nothing
+    Moved,           // the camera moved, redraw
+    Fit((f64, f64)), // double tap: fit the scene, or a point while a command waits
     Tap((f64, f64)), // single tap: pick at these pixels
 }
 
 /// One finger on the screen, in physical pixels.
 struct Finger {
-    id: u64, // the same while this finger stays down
-    pos: (f64, f64),
+    id: u64,          // browser touch id
+    pos: (f64, f64),  // where it is now
     down: (f64, f64), // where it landed
-    t0: f64, // when it landed, ms
+    t0: f64,          // when it landed, ms
 }
 
 /// Every finger down and the last two-finger measurement.
 pub struct Touches {
-    fingers: Vec<Finger>,
-    span: f64, // last distance between the first two, 0 = not yet measured
-    mid: (f64, f64), // last midpoint of the first two
+    fingers: Vec<Finger>,           // fingers on the screen
+    span: f64,                      // last distance between the first two, 0 = not yet measured
+    mid: (f64, f64),                // last midpoint of the first two
     tap: Option<(f64, (f64, f64))>, // when and where the last tap lifted
 }
 
@@ -150,13 +149,14 @@ impl Touches {
         };
 
         if second {
-            return Act::Fit; // double tap
+            return Act::Fit(p); // double tap
         }
 
         self.tap = Some((now, p));
         Act::Tap(p)
     }
 
+    /// Index of the finger with this id.
     fn finger_index(&self, id: u64) -> Option<usize> {
         for (index, finger) in self.fingers.iter().enumerate() {
             if finger.id == id {
@@ -176,7 +176,7 @@ impl Touches {
 }
 
 impl Default for Touches {
-    /// Clippy asks for Default whenever a type has a no-argument `new`.
+    /// Same as `new`.
     fn default() -> Self {
         Self::new()
     }

@@ -21,5 +21,6 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 @fragment
 // White background; slightly grey when SSAO is on.
 fn fs_main(in: VsOut) -> PhysicalColor {
-    return PhysicalColor(vec4<f32>(1.0, 1.0, 1.0, 1.0), vec2<f32>(0.0));
+    let value = select(1.0,0.94,line.lit > 1.5);
+    return PhysicalColor(vec4<f32>(vec3<f32>(value),1.0), vec2<u32>(0u));
 }

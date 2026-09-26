@@ -76,12 +76,16 @@ done
 # signed wrong would paint an exterior red and blow past it.
 check teapot "$B/mk_teapot" "$OUT/teapot.pb"
 check teapot_census bash -c "'$B/mk_teapot' '$OUT/teapot.pb' | grep -q ' unchained 0'"
-check render_teapot_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$OUT/teapot_top.ppm" "$OUT/teapot.pb"
+# The 6100 ceiling was measured with the 1.5 px pen: a thinner rim covers fewer opening
+# pixels, so the 1 px default counts ~120 more red pixels. Pin the oracle's pen.
+check render_teapot_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_VIEW=top VIEWER_THICKNESS=1.5 "$B/selftest" "$OUT/teapot_top.ppm" "$OUT/teapot.pb"
 check teapot_backface python3 tests/depth/_shade_scanline.py "$OUT/teapot_top.ppm" --max-backface 6100
 
 check closeup closeup
 check closeup_box_fixture env HIDDEN_LINE_PROBE_CLOSEUP=1 "$B/mk_hidden_line_probe" "$OUT/grey_box.pb"
 for samples in 1 4; do
+    # The box's own red edges and dark vertices are the subject; the black solid silhouette
+    # (tested by selection-overlap and the interaction fixtures) would join the markers.
     check "closeup_box_render_$samples" env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_MSAA=$samples "$B/selftest" "$OUT/grey_box_$samples.ppm" "$OUT/grey_box.pb"
     check "closeup_box_$samples" python3 tests/depth/_closeup_box.py "$OUT/grey_box_$samples.ppm"
 done
@@ -109,7 +113,8 @@ for name in iso down front side top tilt; do
         tilt) cam=(VIEWER_ORBIT=0,207.35) ;;
     esac
     for d in 1 4; do
-        check "render_${name}_$d" env VIEWER_W=1800 VIEWER_H=1400 VIEWER_NO_GRID=1 VIEWER_MSAA=4 VIEWER_DISTANCE_SCALE=$d VIEWER_IDS="$OUT/joint_${name}_$d.ids" "${cam[@]}" "$B/selftest" "$OUT/joint_${name}_$d.ppm" "$OUT/joint.pb"
+        # _stroke_weight.py's floors were measured with the 1.5 px pen (its docstring); pin it.
+        check "render_${name}_$d" env VIEWER_W=1800 VIEWER_H=1400 VIEWER_NO_GRID=1 VIEWER_MSAA=4 VIEWER_THICKNESS=1.5 VIEWER_DISTANCE_SCALE=$d VIEWER_IDS="$OUT/joint_${name}_$d.ids" "${cam[@]}" "$B/selftest" "$OUT/joint_${name}_$d.ppm" "$OUT/joint.pb"
         check "joint_${name}_$d" python3 tests/depth/_stroke_weight.py "$OUT/joint_${name}_$d.ppm" "$OUT/joint_${name}_$d.ids"
     done
 done

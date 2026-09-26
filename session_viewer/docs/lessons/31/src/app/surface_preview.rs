@@ -5,14 +5,7 @@ use session_rust::AABB;
 use session_rust::{Geometry, NurbsSurface, RenderVertex};
 use std::collections::HashMap;
 
-/// Where one GPU vertex came from on its surface.
-#[derive(Clone, Copy)]
-pub struct Sample {
-    pub index: u32,   // GPU vertex index
-    pub surface: u32, // surface index in the BRep
-    pub uv: [f64; 2], // parameter on that surface
-    pub sign: f32,    // +1 or -1 on the normal
-}
+pub use crate::engine::gpu::arena::Sample;
 
 /// Enough of a surface upload to re-evaluate it after a control moves.
 pub struct SurfacePreview {
@@ -68,13 +61,12 @@ impl SurfacePreview {
         let start_pipe = local.pipes as usize;
         let end_pipe = start_pipe + span.count.pipes as usize;
         let pipes = up.seg.pipes[start_pipe..end_pipe].to_vec();
-        let pipe_vertices = pipes
-            .iter()
-            .map(|p| {
-                Some([
-                    *positions.get(&p.p0.map(f32::to_bits))?.first()?,
-                    *positions.get(&p.p1.map(f32::to_bits))?.first()?,
-                ])
+        // pipe ends by vertex index, not by position
+        let boundary: HashMap<_, _> = up.arena.surface_boundaries.iter().copied().collect();
+        let pipe_vertices = (start_pipe..end_pipe)
+            .map(|pipe| {
+                let ends = boundary.get(&(pipe as u32))?;
+                Some([ends[0] as usize - first, ends[1] as usize - first])
             })
             .collect::<Option<Vec<_>>>()?;
         // a vertex on each side of the pipe, for its normals
@@ -171,7 +163,9 @@ impl SurfacePreview {
             pipe.p1 = vertices[ends[1]].position;
             let a = vertices[normals[0]].normal.map(f64::from);
             let b = vertices[normals[1]].normal.map(f64::from);
-            pipe.facing = super::walk::encode::pack_facing(Some(&a), Some(&b));
+            if pipe.facing != super::walk::encode::FACING_UNKNOWN {
+                pipe.facing = super::walk::encode::pack_facing(Some(&a), Some(&b));
+            }
             segments.pipes.push(pipe);
         }
 
@@ -206,6 +200,100 @@ mod tests {
 
     /// Vertices at one point keep their own uv when pulled apart.
     #[test]
+    fn coincident_boundary_samples_keep_their_own_uv_after_edit() {
+        let mut surface = BRep::create_box(40.0, 30.0, 25.0).m_surfaces[0].clone();
+        // collapse one edge to a point, then open it
+        let pole = surface.get_cv(0, 0).unwrap();
+        surface.set_cv(0, 1, &pole);
+        let source = Geometry::NurbsSurface(Rc::new(surface.clone()));
+        let mut upload = Upload::default();
+        walk_geometry(
+            &mut Walk::of(&mut upload),
+            &WalkCx {
+                vert_base: 0,
+                cloud_px: 0.0,
+                row: 0,
+                attributes: false,
+            },
+            &source,
+        );
+        let span = Span {
+            start: Counts::default(),
+            count: Counts::of(&upload),
+        };
+        let preview = SurfacePreview::capture(&upload, span, Counts::default(), &source).unwrap();
+        surface.set_cv(
+            0,
+            1,
+            &session_rust::Point::new(pole[0], pole[1], pole[2] + 12.0),
+        );
+        let (_, pipes, _) = preview
+            .evaluate(&Geometry::NurbsSurface(Rc::new(surface)))
+            .unwrap();
+        let first_boundary = &upload.seg.pipe_chains[0];
+        assert!(
+            pipes.pipes[first_boundary.start as usize..first_boundary.end as usize]
+                .iter()
+                .all(|p| p.p0 != p.p1),
+            "each formerly coincident endpoint must follow its own parameter"
+        );
+        for pair in
+            pipes.pipes[first_boundary.start as usize..first_boundary.end as usize].windows(2)
+        {
+            assert_eq!(pair[0].p1, pair[1].p0);
+        }
+    }
+
+    /// A surface preview keeps its four edges joined.
+    #[test]
+    fn standalone_surface_preview_keeps_connectivity_and_only_four_boundary_ids() {
+        let box_ = BRep::create_box(40.0, 30.0, 25.0);
+        let source = Geometry::NurbsSurface(Rc::new(box_.m_surfaces[0].clone()));
+        let mut upload = Upload::default();
+        walk_geometry(
+            &mut Walk::of(&mut upload),
+            &WalkCx {
+                vert_base: 0,
+                cloud_px: 0.0,
+                row: 0,
+                attributes: false,
+            },
+            &source,
+        );
+        let span = Span {
+            start: Counts::default(),
+            count: Counts::of(&upload),
+        };
+        let preview = SurfacePreview::capture(&upload, span, Counts::default(), &source)
+            .expect("every grid vertex retains its UV");
+        assert!(upload.seg.pipe_ids.iter().all(|id| *id < 4));
+        assert_eq!(upload.seg.pipe_chains.len(), 4);
+        for edge in 0..4 {
+            let changed = deform::transform(
+                &source,
+                Target::Edge(edge),
+                &Xform::translation(0.0, 0.0, 7.0),
+            )
+            .unwrap();
+            let (vertices, pipes, _) = preview.evaluate(&changed).unwrap();
+            assert_eq!(vertices.len(), upload.arena.verts.len());
+            assert_eq!(pipes.pipes.len(), upload.seg.pipes.len());
+            assert!(
+                vertices
+                    .iter()
+                    .zip(&upload.arena.verts)
+                    .any(|(a, b)| a.position != b.position)
+            );
+            for pipe in pipes.pipes {
+                assert_eq!(pipe.facing, super::super::walk::encode::FACING_UNKNOWN);
+                assert!(vertices.iter().any(|v| v.position == pipe.p0));
+                assert!(vertices.iter().any(|v| v.position == pipe.p1));
+            }
+        }
+    }
+
+    /// A box preview moves with a face and restores on cancel.
+    #[test]
     fn joined_shell_preview_moves_source_samples_and_cancel_restores_them() {
         let source = Geometry::BRep(Rc::new(BRep::create_box(10.0, 10.0, 10.0)));
         let mut upload = Upload::default();
@@ -213,6 +301,7 @@ mod tests {
             vert_base: 0,
             cloud_px: 0.0,
             row: 3,
+            attributes: false,
         };
         walk_geometry(&mut Walk::of(&mut upload), &cx, &source);
         let span = Span {

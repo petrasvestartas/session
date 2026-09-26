@@ -4,9 +4,7 @@ struct ProjectedTriangle {
     edge1: vec4<f32>, // xyz: edge line equation; w: reference y
     edge2: vec4<f32>, // xyz: edge line equation; w: reference depth
     edge3: vec4<f32>, // xyz: fourth edge after clipping; w: corner count
-    // --8<-- [start:step-7]
     gradient: vec4<f32>, // xy: depth slope; z: nearest depth; w: contact radius
-    // --8<-- [end:step-7]
     bounds: vec4<f32>, // screen box: left, top, right, bottom
 };
 

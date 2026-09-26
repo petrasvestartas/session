@@ -80,7 +80,10 @@ impl State {
                 continue;
             }
 
-            let Some(shape) = self.scene.shape_of(row) else {
+            let mut shape = self.scene.geometry(row);
+            shape = shape.or_else(|| self.scene.instance_definition(row)); // register:instancing
+
+            let Some(shape) = shape else {
                 continue;
             };
             let bits = match walked.get(&std::ptr::from_ref(shape)) {
@@ -108,6 +111,34 @@ impl State {
         }
     }
 
+    /// The clipping planes as JSON, for the inspection tests.
+    pub fn clipping_status(&self) -> serde_json::Value {
+        let clip = self.gpu.pass::<Clip>();
+        let planes: Vec<[f64; 4]> = clip
+            .planes()
+            .iter()
+            .map(|p| [p.normal[0], p.normal[1], p.normal[2], p.offset])
+            .collect();
+        serde_json::json!({
+            "enabled": clip.enabled,
+            "fill": if clip.fill == 1 { "Solid" } else { "Hatch" },
+            "count": planes.len(),
+            "planes": planes,
+            "rows": self.gpu.objects.clipping_rows(),
+            "hidden": self.features.clip_hidden,
+            "scene_box": [
+                self.gpu.bounds.cx,
+                self.gpu.bounds.cy,
+                self.gpu.bounds.cz,
+                self.gpu.bounds.hx,
+                self.gpu.bounds.hy,
+                self.gpu.bounds.hz
+            ],
+        })
+    }
+}
+
+impl State {
     /// Half the rectangle of a new clipping plane: a little more than the scene's widest half.
     pub(crate) fn clipping_half_size(&mut self) -> f64 {
         self.refresh_bounds();
@@ -196,31 +227,5 @@ impl State {
             "Clipping Plane Fill {}",
             if solid { "Solid" } else { "Hatch" }
         )
-    }
-
-    /// The clipping planes as JSON, for the inspection tests.
-    pub fn clipping_status(&self) -> serde_json::Value {
-        let clip = self.gpu.pass::<Clip>();
-        let planes: Vec<[f64; 4]> = clip
-            .planes()
-            .iter()
-            .map(|p| [p.normal[0], p.normal[1], p.normal[2], p.offset])
-            .collect();
-        serde_json::json!({
-            "enabled": clip.enabled,
-            "fill": if clip.fill == 1 { "Solid" } else { "Hatch" },
-            "count": planes.len(),
-            "planes": planes,
-            "rows": self.gpu.objects.clipping_rows(),
-            "hidden": self.features.clip_hidden,
-            "scene_box": [
-                self.gpu.bounds.cx,
-                self.gpu.bounds.cy,
-                self.gpu.bounds.cz,
-                self.gpu.bounds.hx,
-                self.gpu.bounds.hy,
-                self.gpu.bounds.hz
-            ],
-        })
     }
 }

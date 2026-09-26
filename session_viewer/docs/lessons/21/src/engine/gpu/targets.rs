@@ -12,19 +12,17 @@ const MSAA_PIXELS_SHARED: u32 = 2_500_000;
 /// Pixels at 4x when the GPU type is unknown; every browser lands here.
 const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
 
-// --8<-- [start:step-24a]
 /// The frame's depth and color textures at one sample count.
 pub struct Targets {
-    pub depth: Attachment,
-    pub msaa: Option<Attachment>, // multisampled color, only at 4x
-    pub depth_single: wgpu::TextureView, // depth at 1x, or a 1x1 placeholder
-    pub depth_msaa: wgpu::TextureView, // depth at 4x, or a 1x1 placeholder
-    pub samples: u32, // MSAA samples, 1 or 4
-    pub gradient: Attachment, // depth slope per pixel
-    pub gradient_single: wgpu::TextureView, // gradient at 1x, or a placeholder
-    pub gradient_msaa: wgpu::TextureView, // gradient at 4x, or a placeholder
+    pub depth: Attachment,                  // scene depth
+    pub msaa: Option<Attachment>,           // multisampled color, only at 4x
+    pub depth_single: wgpu::TextureView,    // depth at 1x, or a 1x1 placeholder
+    pub depth_msaa: wgpu::TextureView,      // depth at 4x, or a 1x1 placeholder
+    pub samples: u32,                       // MSAA samples, 1 or 4
+    pub gradient: Attachment, // triangle index + 1 per sample in two 16-bit halves, 0 for none
+    pub gradient_single: wgpu::TextureView, // triangle ids at 1x, or a placeholder
+    pub gradient_msaa: wgpu::TextureView, // triangle ids at 4x, or a placeholder
     _placeholders: [Attachment; 2], // the 1x1 textures, freed with the rest
-    // --8<-- [end:step-24a]
 }
 
 impl Targets {
@@ -32,9 +30,7 @@ impl Targets {
     pub fn new(ctx: &GpuCtx, size: (u32, u32), format: wgpu::TextureFormat, samples: u32) -> Self {
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
         let attachment = |label, size, format, samples| {
-            // --8<-- [start:step-24b]
             Attachment::new(
-            // --8<-- [end:step-24b]
                 ctx,
                 label,
                 &TextureSpec {
@@ -57,30 +53,26 @@ impl Targets {
             other_samples,
         );
         let (depth_single, depth_msaa) = if samples == 1 {
-            // --8<-- [start:step-24c]
             (depth.view.clone(), empty_depth.view.clone())
         } else {
             (empty_depth.view.clone(), depth.view.clone())
-            // --8<-- [end:step-24c]
         };
         let gradient = attachment(
-            "physical.gradient",
+            "physical.primitive",
             size,
-            wgpu::TextureFormat::Rgba16Float,
+            wgpu::TextureFormat::Rg16Uint,
             samples,
         );
         let empty_gradient = attachment(
-            "unused.gradient",
+            "unused.primitive",
             (1, 1),
-            wgpu::TextureFormat::Rgba16Float,
+            wgpu::TextureFormat::Rg16Uint,
             other_samples,
         );
         let (gradient_single, gradient_msaa) = if samples == 1 {
-            // --8<-- [start:step-24d]
             (gradient.view.clone(), empty_gradient.view.clone())
         } else {
             (empty_gradient.view.clone(), gradient.view.clone())
-            // --8<-- [end:step-24d]
         };
         Self {
             gradient,
@@ -91,7 +83,6 @@ impl Targets {
             depth_single,
             depth_msaa,
             samples,
-            // --8<-- [start:step-24e]
             _placeholders: [empty_depth, empty_gradient],
         }
     }
@@ -107,7 +98,6 @@ impl Targets {
 
         for placeholder in &self._placeholders {
             placeholder.destroy();
-            // --8<-- [end:step-24e]
         }
     }
 
@@ -123,9 +113,7 @@ impl Targets {
         }
     }
 
-    // --8<-- [start:step-24f]
     /// Sample count: 4x only with solids, within budget, below device scale 2.
-    // --8<-- [end:step-24f]
     pub fn samples_for(
         solid: bool,
         pixels: u32,
@@ -133,7 +121,6 @@ impl Targets {
         budget: Option<u32>,
         pixel_scale: f32,
     ) -> u32 {
-        // --8<-- [start:step-24g]
         // a page that lost its device stays at 1x
         if super::view::reduced() {
             return 1;
@@ -144,7 +131,6 @@ impl Targets {
         }
 
         if pixel_scale >= MSAA_MAX_PIXEL_SCALE {
-        // --8<-- [end:step-24g]
             return 1;
         }
 
@@ -154,16 +140,19 @@ impl Targets {
         }
     }
 
-    /// Open the face pass: color and depth cleared.
+    /// Open the face pass: color and depth cleared, or kept when `clear` is None.
     pub fn begin_faces<'a>(
         &'a self,
         encoder: &'a mut wgpu::CommandEncoder,
         view: &'a wgpu::TextureView,
-        clear: wgpu::Color,
+        clear: Option<wgpu::Color>,
     ) -> wgpu::RenderPass<'a> {
-        // --8<-- [start:step-24h]
         let target = self.msaa.as_deref().unwrap_or(view);
-        // --8<-- [end:step-24h]
+        // a pass after the first keeps what the one before drew
+        let load = |color| match clear {
+            Some(_) => wgpu::LoadOp::Clear(color),
+            None => wgpu::LoadOp::Load,
+        };
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("physical face pass"),
             color_attachments: &[
@@ -172,7 +161,7 @@ impl Targets {
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(clear),
+                        load: load(clear.unwrap_or(wgpu::Color::TRANSPARENT)),
                         store: wgpu::StoreOp::Store,
                     },
                 }),
@@ -181,7 +170,7 @@ impl Targets {
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                        load: load(wgpu::Color::TRANSPARENT),
                         store: wgpu::StoreOp::Store,
                     },
                 }),
@@ -190,7 +179,10 @@ impl Targets {
                 view: &self.depth,
                 depth_ops: Some(wgpu::Operations {
                     // reverse-Z: 0 is the far plane
-                    load: wgpu::LoadOp::Clear(0.0),
+                    load: match clear {
+                        Some(_) => wgpu::LoadOp::Clear(0.0),
+                        None => wgpu::LoadOp::Load,
+                    },
                     store: wgpu::StoreOp::Store,
                 }),
                 stencil_ops: None,
@@ -207,10 +199,8 @@ impl Targets {
         encoder: &'a mut wgpu::CommandEncoder,
         view: &'a wgpu::TextureView,
     ) -> wgpu::RenderPass<'a> {
-        // --8<-- [start:step-24i]
         // at 4x the pass resolves into the canvas here
         let (target, resolve) = match self.msaa.as_deref() {
-        // --8<-- [end:step-24i]
             Some(msaa) => (msaa, Some(view)),
             None => (view, None),
         };
@@ -239,10 +229,10 @@ impl Targets {
 
 /// Settings for one 2D texture.
 pub struct TextureSpec {
-    pub size: (u32, u32), // width and height, px
+    pub size: (u32, u32),            // width and height, px
     pub format: wgpu::TextureFormat, // pixel format
-    pub samples: u32,
-    pub usage: wgpu::TextureUsages, // how the GPU may use it
+    pub samples: u32,                // MSAA samples
+    pub usage: wgpu::TextureUsages,  // how the GPU may use it
 }
 
 /// Create a 2D texture from `spec`.
@@ -263,11 +253,10 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
     })
 }
 
-// --8<-- [start:step-24j]
 /// A texture and its view; dropping it frees the memory at once.
 pub struct Attachment {
-    texture: wgpu::Texture,
-    pub view: wgpu::TextureView,
+    texture: wgpu::Texture,      // the texture
+    pub view: wgpu::TextureView, // its default view
 }
 
 impl Attachment {
@@ -300,10 +289,10 @@ impl std::ops::Deref for Attachment {
 
 /// Free the texture on drop.
 impl Drop for Attachment {
+    /// Remove the DOM listener.
     fn drop(&mut self) {
         self.texture.destroy();
     }
-    // --8<-- [end:step-24j]
 }
 
 #[cfg(test)]

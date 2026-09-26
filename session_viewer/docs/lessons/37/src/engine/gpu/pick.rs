@@ -13,10 +13,10 @@ pub struct Pick {
 
 /// Textures the id pass draws into, sized to the pick window.
 struct IdTargets {
-    id: Attachment, // object and sub id per pixel
-    depth: Attachment, // depth per pixel
-    gradient: Attachment, // depth slope per pixel
-    size: (u32, u32), // texture size, px
+    id: Attachment,       // object and sub id per pixel
+    depth: Attachment,    // depth per pixel
+    gradient: Attachment, // triangle index + 1 per pixel, 0 for none
+    size: (u32, u32),     // texture size, px
 }
 
 /// Default click tolerance, CSS pixels.
@@ -28,23 +28,12 @@ pub const PICK_HALO: u32 = 3;
 /// Largest tolerance, framebuffer pixels.
 const MAX_RADIUS: u32 = 128;
 
-/// What a pick may answer with.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum PickMode {
-    #[default]
-    Object, // whole objects
-    Edge, // edges
-    Component, // edges first, else the visible face
-    Controls { // control dots of one object
-        parent: u32, // the object row
-        cloud: bool, // true = pick cloud points instead
-    },
-}
+pub use super::lane::PickMode;
 
 /// Stage of a multi-page source point query.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SourcePhase {
-    Inactive, // no query running
+    Inactive,  // no query running
     FirstPage, // first page clears the ids
     MorePages, // later pages keep them
 }
@@ -52,12 +41,12 @@ enum SourcePhase {
 /// The square of pixels read back around the cursor.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Window {
-    pub x: u32, // left edge, px
-    pub y: u32, // top edge, px
-    pub w: u32, // width, px
-    pub h: u32, // height, px
-    pub cx: u32, // cursor x inside the window
-    pub cy: u32, // cursor y inside the window
+    pub x: u32,      // left edge, px
+    pub y: u32,      // top edge, px
+    pub w: u32,      // width, px
+    pub h: u32,      // height, px
+    pub cx: u32,     // cursor x inside the window
+    pub cy: u32,     // cursor y inside the window
     pub radius: u32, // tolerance, px
 }
 
@@ -106,27 +95,27 @@ const ROW_BYTES: u32 = ((2 * MAX_RADIUS + 1) * 8).div_ceil(256) * 256;
 
 /// Runs picks: request, draw, copy, map, read.
 pub struct Picker {
-    pending: Option<(u32, u32)>, // cursor position waiting to be picked
-    inflight: bool, // a copy is on the GPU
-    window: Window, // window of the copy in flight
-    copied: bool, // a copy was encoded this frame, map it after submit
-    ready: Arc<AtomicU8>, // 0 waiting, 1 mapped, 2 failed
-    generation: u64, // bumps on every request or cancel
-    submitted: u64, // generation of the copy in flight
-    pub mode: PickMode, // what to answer with
-    radius: u32, // tolerance, framebuffer px
-    source_phase: SourcePhase, // stage of a source point query
+    pending: Option<(u32, u32)>,    // cursor position waiting to be picked
+    inflight: bool,                 // a copy is on the GPU
+    window: Window,                 // window of the copy in flight
+    copied: bool,                   // a copy was encoded this frame, map it after submit
+    ready: Arc<AtomicU8>,           // 0 waiting, 1 mapped, 2 failed
+    generation: u64,                // bumps on every request or cancel
+    submitted: u64,                 // generation of the copy in flight
+    pub mode: PickMode,             // what to answer with
+    radius: u32,                    // tolerance, framebuffer px
+    source_phase: SourcePhase,      // stage of a source point query
     readback: Option<wgpu::Buffer>, // CPU-readable copy of the window
-    targets: Option<IdTargets>, // id textures
-    view: PickView, // where the textures sit in the canvas
+    targets: Option<IdTargets>,     // id textures
+    view: PickView,                 // where the textures sit in the canvas
 }
 
 /// A whole-frame id copy, native only.
 #[cfg(not(target_arch = "wasm32"))]
 pub(super) struct IdReadback {
     buffer: wgpu::Buffer, // CPU-readable copy
-    size: (u32, u32), // frame size, px
-    row_bytes: u32, // bytes per row, 256-aligned
+    size: (u32, u32),     // frame size, px
+    row_bytes: u32,       // bytes per row, 256-aligned
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -249,7 +238,7 @@ impl Picker {
 
     /// Open a pass for one query page; the first page clears the ids.
     pub fn begin_source<'a>(
-        &'a mut self,
+        &mut self,
         encoder: &'a mut wgpu::CommandEncoder,
     ) -> wgpu::RenderPass<'a> {
         let first = self.source_phase == SourcePhase::FirstPage;
@@ -316,7 +305,7 @@ impl Picker {
 
     /// Open the id pass over textures sized to `view`, cleared.
     pub fn begin_pass<'a>(
-        &'a mut self,
+        &mut self,
         ctx: &GpuCtx,
         encoder: &'a mut wgpu::CommandEncoder,
         view: PickView,
@@ -350,10 +339,10 @@ impl Picker {
             );
             let gradient = Attachment::new(
                 ctx,
-                "pick.gradient",
+                "pick.primitive",
                 &TextureSpec {
                     size,
-                    format: wgpu::TextureFormat::Rgba16Float,
+                    format: wgpu::TextureFormat::Rg16Uint,
                     samples: 1,
                     usage: wgpu::TextureUsages::RENDER_ATTACHMENT
                         | wgpu::TextureUsages::TEXTURE_BINDING,
@@ -405,7 +394,7 @@ impl Picker {
         })
     }
 
-    /// The gradient texture of the id pass.
+    /// The triangle id texture of the id pass.
     pub fn gradient(&self) -> &wgpu::TextureView {
         &self.targets.as_ref().expect("physical ID targets").gradient
     }
@@ -743,5 +732,15 @@ mod tests {
             Some((2, 0))
         );
         assert_eq!(nearest_hit(&texels(win, &[]), win), None);
+    }
+}
+
+impl super::lane::Lane for Picker {
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.cancel();
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        self.allocated_bytes()
     }
 }

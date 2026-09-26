@@ -97,13 +97,29 @@ impl Scene {
 
     /// The geometry type of a row, from its object or, when released, from the walk.
     pub fn shape(&self, row: u32) -> Option<Shape> {
-        if let Some(geometry) = self.geometry(row).or_else(|| self.instance_definition(row)) {
+        let mut geometry = self.geometry(row);
+        geometry = geometry.or_else(|| self.instance_definition(row)); // register:instancing
+
+        if let Some(geometry) = geometry {
             return Some(Shape::of(geometry));
         }
 
         let released = self.released.get(self.owners.get(row as usize)?)?;
         let at = row.checked_sub(released.first)?;
         *released.shapes.get(at as usize)?
+    }
+
+    /// The name of a row whose document was released: its object name, else its type.
+    pub fn released_object_name(&self, row: u32) -> Option<&str> {
+        self.released.get(self.owners.get(row as usize)?)?;
+
+        if self.geometry(row).is_some() {
+            return None;
+        }
+
+        let name = self.released_name(row).unwrap_or("");
+        let kind = self.shape(row).map_or("Object", Shape::label);
+        Some(if name.trim().is_empty() { kind } else { name })
     }
 
     /// The object name of a released row.
@@ -115,6 +131,47 @@ impl Scene {
         released.table.get(*at as usize).map(|name| name.as_ref())
     }
 
+    /// True while some document is drawn without its kernel objects.
+    pub fn has_released(&self) -> bool {
+        !self.released.is_empty()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::app::scene::FileDoc;
+    use session_rust::{Line, Point, Xform};
+
+    /// A sheet-like document: a layer of lines and a point.
+    pub(super) fn sheet() -> Session {
+        let mut s = Session::new("sheet");
+        let walls = s.add_group("walls");
+
+        for i in 0..4 {
+            let x = i as f64;
+            s.add_line(Line::new(x, 0.0, 0.0, x, 1.0, 0.0), Some(&walls));
+        }
+
+        s.add_point(Point::new(5.0, 5.0, 0.0), None);
+        s
+    }
+
+    /// A scene holding `session` as its one document.
+    pub(super) fn scene(session: Session) -> Scene {
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "sheet".into(),
+            place: Xform::identity(),
+            session: Rc::new(session),
+            point_px: 0.0,
+            display_only: true,
+        });
+        scene
+    }
+}
+
+impl Scene {
     /// Ask for document `doc`'s objects back; false when it is not released.
     pub fn want(&mut self, doc: usize) -> bool {
         let Some(released) = self.released.get_mut(&doc) else {
@@ -257,45 +314,12 @@ impl Scene {
             .get(&doc)
             .is_some_and(|released| released.token == token)
     }
-
-    /// True while some document is drawn without its kernel objects.
-    pub fn has_released(&self) -> bool {
-        !self.released.is_empty()
-    }
 }
 
 #[cfg(test)]
-mod tests {
+mod editing_tests {
+    use super::tests::{scene, sheet};
     use super::*;
-    use crate::app::scene::FileDoc;
-    use session_rust::{Line, Point, Xform};
-
-    /// A sheet-like document: a layer of lines and a point.
-    fn sheet() -> Session {
-        let mut s = Session::new("sheet");
-        let walls = s.add_group("walls");
-
-        for i in 0..4 {
-            let x = i as f64;
-            s.add_line(Line::new(x, 0.0, 0.0, x, 1.0, 0.0), Some(&walls));
-        }
-
-        s.add_point(Point::new(5.0, 5.0, 0.0), None);
-        s
-    }
-
-    /// A scene holding `session` as its one document.
-    fn scene(session: Session) -> Scene {
-        let mut scene = Scene::new();
-        scene.add_file(FileDoc {
-            name: "sheet".into(),
-            place: Xform::identity(),
-            session: Rc::new(session),
-            point_px: 0.0,
-            display_only: true,
-        });
-        scene
-    }
 
     /// Released rows keep their names, kinds and layers; edits wait for the objects.
     #[test]
@@ -371,7 +395,10 @@ mod tests {
         scene.fetch_failed(0, token);
         assert!(!scene.awaits(0, token + 1));
         scene.ask(0);
-        assert!(scene.take_wanted().is_empty(), "a hover does not fetch again");
+        assert!(
+            scene.take_wanted().is_empty(),
+            "a hover does not fetch again"
+        );
         assert!(scene.editable(0).is_err());
         assert_eq!(scene.take_wanted().len(), 1, "an edit does");
     }

@@ -84,7 +84,7 @@ async function main() {
       await page.route('**/pb/view_mixed_teapot.pb', function source(route) {
         return route.fulfill({status:200,contentType:'application/octet-stream',body:bytes});
       });
-      await page.goto(new URL('?data=off&inspect=1', process.env.VIEWER_URL || 'http://127.0.0.1:8770/').href);
+      await page.goto(new URL('?data=off&inspect=1&lit=1&nogrid=1', process.env.VIEWER_URL || 'http://127.0.0.1:8770/').href);
       await page.bringToFront();
       await page.waitForFunction(function loaded() {
         const s = JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection') || '{}');
@@ -97,10 +97,12 @@ async function main() {
       assert(initial.vertices > 1000 && initial.pipes > 100, 'source patches and boundaries must tessellate');
       const png = await page.locator('#canvas').screenshot({path:path.join(output,`teapot-dpr${dpr}.png`)});
       assert(await page.evaluate(shadedPixels, png.toString('base64')) > 10000 * dpr * dpr);
+      await page.keyboard.press('Escape');
       await page.keyboard.press('6');
       await page.waitForFunction(function bottomFrame(previous) {
         return JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).frames > previous;
       }, initial.frames);
+      await page.waitForTimeout(500);
       const bottom = await page.evaluate(snapshot);
       const footPng = await page.locator('#canvas').screenshot({path:path.join(output,`teapot-foot-dpr${dpr}.png`)});
       const foot = await page.evaluate(footBoundaryPixels, {base64:footPng.toString('base64'),state:bottom});
@@ -121,7 +123,11 @@ async function main() {
       await page.screenshot({path:path.join(output,`teapot-controls-dpr${dpr}.png`)});
       await page.keyboard.press('Escape'); await page.waitForTimeout(150);
       const restored = await page.evaluate(snapshot);
-      assert.equal(restored.markers, 0); assert.equal(restored.selected, 0);
+      assert.equal(restored.markers, 0); assert.equal(restored.selected, null);
+      await page.keyboard.press('Space'); await page.waitForTimeout(500);
+      const perspective = await page.evaluate(snapshot);
+      assert.equal(perspective.pipes, initial.pipes, 'projection cannot manufacture edges');
+      await page.screenshot({path:path.join(output,`teapot-perspective-dpr${dpr}.png`)});
       assert.deepEqual(errors, []);
       reports.push({dpr,initial,selected,surface_controls:surfaces,foot,restored,errors});
       await context.close();

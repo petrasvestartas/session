@@ -37,11 +37,22 @@ fn uniform_layout(
     })
 }
 
+/// Group 1: pen and view settings at binding 0, clipping planes at 1.
+fn line_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    let stages = wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE;
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("line.layout"),
+        entries: &[
+            buffer_entry(0, stages, wgpu::BufferBindingType::Uniform),
+            buffer_entry(1, stages, wgpu::BufferBindingType::Uniform),
+        ],
+    })
+}
+
 /// Group 2: object rows at binding 0, translations at 1.
 fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("instance.layout"),
-        // --8<-- [start:step-16a]
         entries: &[
             buffer_entry(
                 0,
@@ -54,7 +65,6 @@ fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
                 wgpu::BufferBindingType::Storage { read_only: true },
             ),
         ],
-        // --8<-- [end:step-16a]
     })
 }
 
@@ -72,13 +82,13 @@ fn scene_depth(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
     }
 }
 
-/// A float texture binding for the fragment stage, unfiltered.
+/// A triangle id texture binding for the fragment stage.
 fn scene_gradient(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
     wgpu::BindGroupLayoutEntry {
         binding,
         visibility: wgpu::ShaderStages::FRAGMENT,
         ty: wgpu::BindingType::Texture {
-            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+            sample_type: wgpu::TextureSampleType::Uint,
             view_dimension: wgpu::TextureViewDimension::D2,
             multisampled,
         },
@@ -86,7 +96,7 @@ fn scene_gradient(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntr
     }
 }
 
-/// Group 2 for ink: rows, depth, gradient, triangles, tiles.
+/// Bind group 2 for ink: rows, depths, triangle ids, triangles, tiles.
 fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("ink.instance.layout"),
@@ -105,7 +115,6 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
             scene_depth(3, true),
             scene_gradient(4, false),
             scene_gradient(5, true),
-            // --8<-- [start:step-16b]
             buffer_entry(
                 6,
                 wgpu::ShaderStages::FRAGMENT,
@@ -116,7 +125,6 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
                 wgpu::ShaderStages::FRAGMENT,
                 wgpu::BufferBindingType::Storage { read_only: true },
             ),
-            // --8<-- [end:step-16b]
         ],
     })
 }
@@ -193,32 +201,26 @@ fn resolve_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
 
 /// The bind group layouts every lane shares.
 pub struct Layouts {
-    pub mvp: wgpu::BindGroupLayout, // group 0: camera matrix
-    pub line: wgpu::BindGroupLayout, // group 1: pen and view settings
-    pub instance: wgpu::BindGroupLayout, // group 2: object rows
+    pub mvp: wgpu::BindGroupLayout,          // group 0: camera matrix
+    pub line: wgpu::BindGroupLayout,         // group 1: pen and view settings, clipping planes
+    pub instance: wgpu::BindGroupLayout,     // group 2: object rows
     pub ink_instance: wgpu::BindGroupLayout, // group 2 for ink, with depth textures
-    pub ink_rows: wgpu::BindGroupLayout, // group 3 for markers and dots
+    pub ink_rows: wgpu::BindGroupLayout,     // group 3 for markers and dots
     pub segment_rows: wgpu::BindGroupLayout, // group 3 for lines
-    pub points: wgpu::BindGroupLayout, // group 1 for points
-    pub resolve: wgpu::BindGroupLayout, // group 1 for the point resolve
+    pub points: wgpu::BindGroupLayout,       // group 1 for points
+    pub resolve: wgpu::BindGroupLayout,      // group 1 for the point resolve
 }
 
 impl Layouts {
     /// Build every layout once.
     pub fn new(device: &wgpu::Device) -> Self {
         Self {
-            // --8<-- [start:step-16c]
             mvp: uniform_layout(
                 device,
                 "mvp.layout",
                 wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE,
             ),
-            line: uniform_layout(
-                device,
-                "line.layout",
-                wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE,
-            ),
-            // --8<-- [end:step-16c]
+            line: line_layout(device),
             instance: instance_layout(device),
             ink_instance: ink_instance_layout(device),
             ink_rows: ink_rows_layout(device),

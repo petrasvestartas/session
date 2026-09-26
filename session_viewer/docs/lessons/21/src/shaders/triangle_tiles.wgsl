@@ -17,9 +17,9 @@ struct TileRecord {
     values: array<atomic<u32>, 4>
 };
 
-@group(3) @binding(1) var<storage, read_write> tile_records: array<TileRecord>;
+@group(3) @binding(1) var<storage, read_write> tile_records: array<TileRecord>; // tile records, then the reference pool
 
-// the triangle as the fragment shader sees it
+// what the vertex shader passes to the fragment shader
 struct TileVertex {
     @builtin(position) clip: vec4<f32>, // position in the tile grid
     @location(0) @interpolate(flat) edge0: vec3<f32>, // edge line equation
@@ -48,7 +48,8 @@ fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance
     let size = ceil(vec2<f32>(line.vp_w, line.vp_h)/f32(visibility_tile_span()));
     let lo = clamp(floor((triangle.bounds.xy-0.00390625)/f32(visibility_tile_span())), vec2<f32>(0.0), size);
     let hi = clamp(floor((triangle.bounds.zw+0.00390625)/f32(visibility_tile_span()))+1.0, vec2<f32>(0.0), size);
-    let corners = array<vec2<f32>, 6>(vec2<f32>(0.0, 0.0), vec2<f32>(1.0, 0.0), vec2<f32>(0.0, 1.0), vec2<f32>(0.0, 1.0), vec2<f32>(1.0, 0.0), vec2<f32>(1.0, 1.0));
+    // triangle strip: two triangles from four corners
+    let corners = array<vec2<f32>, 4>(vec2<f32>(0.0, 0.0), vec2<f32>(1.0, 0.0), vec2<f32>(0.0, 1.0), vec2<f32>(1.0, 1.0));
     let position = mix(lo, hi, corners[vertex])/size;
     out.clip = vec4<f32>(position.x*2.0-1.0, 1.0-position.y*2.0, 0.0, 1.0);
     out.edge0 = triangle.edge0.xyz;
@@ -117,3 +118,5 @@ fn fs_fill(v: TileVertex) -> @location(0) f32 {
     atomicStore(&tile_records[(offset+1u)/4u].values[(offset+1u)%4u], bitcast<u32>(bound));
     return 0.0;
 }
+
+#include "projected_triangle.wgsl"

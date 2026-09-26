@@ -15,29 +15,13 @@ pub fn is_local_url(url: &str) -> bool {
 }
 
 /// Where a scene and its files are.
+#[derive(Clone)]
 pub struct SceneRoute {
     pub manifest: String, // the scene file URL
-    pub base: String, // prefix for its `file` entries
+    pub base: String,     // prefix for its `file` entries
 }
 
-/// The `?name=` value of the page URL.
-pub fn query(name: &str) -> Option<String> {
-    let search = web_sys::window()?.location().search().ok()?;
-    let raw = search.strip_prefix('?')?;
-    let prefix = format!("{name}=");
-
-    for pair in raw.split('&') {
-        if let Some(v) = pair.strip_prefix(prefix.as_str()) {
-            return js_sys::decode_uri_component(v).ok()?.as_string();
-        }
-
-        if pair == name {
-            return Some(String::new());
-        }
-    }
-
-    None
-}
+pub use crate::engine::gpu::view::query;
 
 /// An integer knob from the query string.
 pub fn knob_u32(name: &str) -> Option<u32> {
@@ -149,12 +133,10 @@ pub fn scene_route() -> Option<SceneRoute> {
     }
 }
 
-// --8<-- [start:step-37a]
 /// Reload once at reduced quality after a lost GPU device.
 #[cfg(target_arch = "wasm32")]
 pub fn recover_from_device_loss(message: &str) -> bool {
     if !message.contains("device lost") || crate::engine::gpu::view::reduced() {
-    // --8<-- [end:step-37a]
         return false;
     }
 
@@ -165,7 +147,6 @@ pub fn recover_from_device_loss(message: &str) -> bool {
     let Ok(search) = location.search() else {
         return false;
     };
-    // --8<-- [start:step-37b]
     let mut query = query_without(&search, "recovered");
 
     if !query.is_empty() {
@@ -175,7 +156,6 @@ pub fn recover_from_device_loss(message: &str) -> bool {
     let reason: String = message.chars().take(200).collect();
     query.push_str("recovered=");
     query.push_str(&String::from(js_sys::encode_uri_component(&reason)));
-    // --8<-- [end:step-37b]
     let Ok(hash) = location.hash() else {
         return false;
     };
@@ -186,7 +166,6 @@ pub fn recover_from_device_loss(message: &str) -> bool {
     location.replace(&format!("{path}?{query}{hash}")).is_ok()
 }
 
-// --8<-- [start:step-37c]
 /// The query string without `?` and without `name=`.
 #[cfg(target_arch = "wasm32")]
 fn query_without(search: &str, name: &str) -> String {
@@ -242,5 +221,4 @@ pub fn adopt_recovery() -> Option<&'static str> {
 #[cfg(target_arch = "wasm32")]
 pub fn recovered_notice() -> Option<&'static str> {
     RECOVERED.get().map(String::as_str)
-    // --8<-- [end:step-37c]
 }

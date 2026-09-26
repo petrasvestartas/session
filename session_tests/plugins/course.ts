@@ -1,7 +1,8 @@
 // Vite plugin: the viewer course (session_viewer/docs/*.md) as lazy Vue routes.
 // Resolves every --8<-- include the way pymdownx.snippets does (named sections and line ranges,
 // against the MkDocs base paths docs/ and ..), strips marker lines, fails the build naming the page
-// and include when a file or section is missing, renders with marked + Shiki and the site code colours (src/codeTheme.ts),
+// and include when a file or section is missing (a warning while mkdocs.yml sets check_paths: false),
+// renders with marked + Shiki and the site code colours (src/codeTheme.ts),
 // copies the images and files the pages link to, and builds the search index.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -178,6 +179,12 @@ export function include(spec: string, sources: Set<string>): string[] | string {
     return out;
   }
   return lines.filter((l) => !MARKER.test(l));
+}
+
+/** False only while mkdocs.yml sets snippets `check_paths: false` (the course re-cut); a missing include then warns. */
+function checkPaths(): boolean {
+  const mk = path.join(VIEWER, 'mkdocs.yml');
+  return !fs.existsSync(mk) || !/^\s*check_paths:\s*false\b/m.test(fs.readFileSync(mk, 'utf8'));
 }
 
 function resolveSnippets(text: string, page: string, errors: string[], sources: Set<string>): string {
@@ -365,7 +372,11 @@ export default function coursePlugin(): Plugin {
     assets = new Map();
     const next = new Map<string, Page>();
     for (const [slug, file] of bySlug) next.set(slug, renderPage(file, slug, bySlug, links, errors));
-    if (errors.length) throw new Error(`course: ${errors.length} unresolved --8<-- include(s):\n  ${errors.join('\n  ')}`);
+    if (errors.length) {
+      const msg = `course: ${errors.length} unresolved --8<-- include(s):\n  ${errors.join('\n  ')}`;
+      if (checkPaths()) throw new Error(msg);
+      console.warn(`course: ${errors.length} unresolved --8<-- include(s) left out, mkdocs.yml sets check_paths: false`);
+    }
     const broken: string[] = [];
     for (const l of links) {
       const target = l.slug && next.get(l.slug);

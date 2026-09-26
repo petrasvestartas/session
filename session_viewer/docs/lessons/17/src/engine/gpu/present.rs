@@ -1,4 +1,3 @@
-//! More methods of Gpu: one type may have several `impl` blocks, so each file adds its own.
 use super::Gpu;
 use super::frame::{FrameCx, FrameInput};
 #[cfg(not(target_arch = "wasm32"))]
@@ -12,30 +11,26 @@ impl Gpu {
             view: &self.view,
             anchor: self.objects.anchor_f32(),
             size,
-            // e.g. 1600 real pixels over 800 CSS pixels = 2.0
+            // framebuffer pixels per CSS pixel
             pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
         };
         self.frame.write(&self.ctx, input, &cx);
+        self.each_pass(|pass, g| pass.write_frame(g, input));
         self.objects
             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
-        let frame = super::text::TextFrame {
-            mvp: self.frame.mvp_f32,
-            origin: self.objects.anchor(),
-            framebuffer: [size.0, size.1],
-            logical: self.logical_size,
-            ortho_half_height: self.frame.ortho_h,
-        };
+        self.prepare_text(size); // register:text
+    }
 
-        if let Err(error) = self.text.prepare(&self.ctx, &frame) {
-            log::warn!("text preparation: {error}");
-        }
+    /// Keep a requested Arctic view awake until its idle-compiled pipelines are ready.
+    pub fn ambient_pending(&self) -> bool {
+        self.passes.iter().any(|pass| pass.pending(self))
     }
 
     /// Draw one frame to the canvas; returns encode time in ms.
     pub fn present(&mut self, input: &FrameInput) -> Option<f64> {
         self.write_frame_uniforms(input);
         let surface = self.surface.as_ref()?;
-        // Suboptimal still draws; lost or outdated: reconfigure and skip this frame
+        // this frame's canvas texture; None means try again
         let output = match surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(t)
             | wgpu::CurrentSurfaceTexture::Suboptimal(t) => t,
@@ -58,26 +53,32 @@ impl Gpu {
         let (draws, objects) = self.encode_frame(&mut encoder, &view, input.clear);
         let encode_ms = crate::engine::performance::now_ms() - t0;
         self.ctx.queue.submit([encoder.finish()]);
-        self.pick.map(); // after submit: start reading back a pending pick, if any
+        // start reading back any pick copied this frame
+        self.pick.map(); // register:shell
         output.present();
+
+        // startup marks; the GPU-side one also times the pipelines the first frames compiled
+        let mut geometry = false;
+        geometry |= self.live_faces() + self.live_sheet() > 0; // register:meshes
+        geometry |= self.live_pipes() + self.live_ribbons() > 0; // register:strokes
+        geometry |= self.live_spheres() + self.live_dots() > 0; // register:markers
+        geometry |= self.live_points() > 0; // register:clouds
+
+        if let Some(done) = self.performance.mark_startup(geometry) {
+            self.ctx
+                .queue
+                .on_submitted_work_done(move || crate::engine::performance::mark(done));
+        }
+
+        // compile ahead outside the frame, after the first geometry has been presented
+        self.each_pass(|pass, g| pass.after_present(g));
         self.performance
             .frame(draws, objects, input.now_ms, self.view.perf);
-        Some(encode_ms)
-    }
+        if self.view.ssao {
+            self.performance.keep_arctic_quality();
+        }
 
-    /// Run only the id pass for a pick; nothing is shown.
-    pub fn pick_frame(&mut self, input: &FrameInput, at: (u32, u32)) {
-        self.write_frame_uniforms(input);
-        let mut encoder = self
-            .ctx
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("pick"),
-            });
-        self.point_pass(&mut encoder);
-        self.id_pass(&mut encoder, Some(at));
-        self.ctx.queue.submit([encoder.finish()]);
-        self.pick.map();
+        Some(encode_ms)
     }
 
     /// Draw one frame into a texture and return its RGBA8 pixels; native only.
@@ -96,7 +97,7 @@ impl Gpu {
             },
         );
         let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
-        // wgpu copies rows 256-byte aligned: a 100 px row of 400 bytes is padded to 512
+        // bytes per row, 256-aligned as wgpu requires
         let padded = (w * 4).div_ceil(256) * 256;
         let readback = self.ctx.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("headless.readback"),
@@ -129,12 +130,13 @@ impl Gpu {
                 depth_or_array_layers: 1,
             },
         );
+
         self.ctx.queue.submit([encoder.finish()]);
-        self.pick.map();
+        self.pick.map(); // register:shell
         log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
 
         let slice = readback.slice(..);
-        // map_async only asks; poll(Wait) blocks until the copy has reached the CPU
+        // wait for the copy to land on the CPU
         slice.map_async(wgpu::MapMode::Read, |_| {});
         let _ = self.ctx.device.poll(wgpu::PollType::Wait {
             submission_index: None,
@@ -149,14 +151,55 @@ impl Gpu {
             out.extend_from_slice(&data[a..a + (w * 4) as usize]);
         }
 
-        drop(data); // the mapped view must be gone before unmap
+        drop(data);
         readback.unmap();
+
         out
+    }
+}
+
+// --8<-- [start:11]
+impl Gpu {
+    /// Lay out the labels for this frame.
+    fn prepare_text(&mut self, size: (u32, u32)) {
+        let frame = super::text::TextFrame {
+            mvp: self.frame.mvp_f32,
+            origin: self.objects.anchor(),
+            framebuffer: [size.0, size.1],
+            logical: self.logical_size,
+            ortho_half_height: self.frame.ortho_h,
+            clip: self.clip_planes(),
+        };
+
+        if let Err(error) = self.text.prepare(&self.ctx, &frame) {
+            log::warn!("text preparation: {error}");
+        }
+    }
+}
+// --8<-- [end:11]
+
+// --8<-- [start:12]
+impl Gpu {
+    /// Run only the id pass for a pick; nothing is shown.
+    pub fn pick_frame(&mut self, input: &FrameInput, at: (u32, u32)) {
+        self.write_frame_uniforms(input);
+        let mut encoder = self
+            .ctx
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("pick"),
+            });
+        self.point_pass(&mut encoder);
+        self.id_pass(&mut encoder, Some(at));
+        self.ctx.queue.submit([encoder.finish()]);
+        self.pick.map();
     }
 
     /// Draw one frame and return (object, sub) per pixel; native only.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn render_ids_offscreen(&mut self, input: &FrameInput) -> Vec<[u32; 2]> {
+        // a pending pick would fight over the id textures
+        self.pick.cancel();
         let size = (self.config.width, self.config.height);
         let texture = texture(
             &self.ctx,
@@ -183,3 +226,4 @@ impl Gpu {
         readback.read(&self.ctx)
     }
 }
+// --8<-- [end:12]

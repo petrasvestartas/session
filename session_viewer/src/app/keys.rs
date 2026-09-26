@@ -1,5 +1,5 @@
-use crate::camera::View;
 use crate::State;
+use crate::camera::View;
 use winit::keyboard::{Key, NamedKey};
 
 /// What a key press runs, and what must be held with it.
@@ -64,53 +64,16 @@ pub const KEYS: &[Binding] = &[
         s.refresh_bounds();
         s.camera.toggle_projection_framed(&s.gpu.bounds, s.aspect())
     }),
-    // register:escape
     // the first Esc cancels the command and keeps the selection, the next one clears it
-    named(NamedKey::Escape, |s| {
-        if s.features.draft.is_some() {
-            s.cancel_drawing();
-        } else {
-            s.escape_selection();
-        }
-    }),
-    // register:enter
-    named(NamedKey::Enter, |s| {
-        if s.features.draft.is_some() {
-            let result = s.run_command("");
-            crate::app::feedback::status(&result.unwrap_or_else(|e| e));
-        } else {
-            s.confirm_split();
-        }
-    }),
-    // register:controls
-    named(NamedKey::F10, |s| s.enable_controls()),
-    // register:delete
-    named(NamedKey::Delete, |s| s.delete_selected()),
-    // register:command-line
-    plain(&[":"], |_| crate::app::feedback::command_line(true)),
-    // register:layers
-    plain(&["l", "L"], |s| s.toggle_layers_panel()),
-    // register:redo-shift
-    Binding {
-        trigger: Trigger::Chars(&["z", "Z"]),
-        ctrl: true,
-        shift: Some(true),
-        run: |s| s.redo(),
-    },
-    // register:undo
-    Binding {
-        trigger: Trigger::Chars(&["z", "Z"]),
-        ctrl: true,
-        shift: Some(false),
-        run: |s| s.undo(),
-    },
-    // register:redo
-    Binding {
-        trigger: Trigger::Chars(&["y", "Y"]),
-        ctrl: true,
-        shift: None,
-        run: |s| s.redo(),
-    },
+    named(NamedKey::Escape, |s| s.escape()),
+    named(NamedKey::Enter, |s| s.enter()), // register:enter
+    named(NamedKey::F10, |s| s.enable_controls()), // register:controls
+    named(NamedKey::Delete, |s| s.delete_selected()), // register:delete
+    plain(&[":"], |_| crate::app::feedback::command_line(true)), // register:command-line
+    plain(&["l", "L"], |s| s.toggle_layers_panel()), // register:layers
+    ctrl(&["z", "Z"], Some(true), |s| s.redo()), // register:redo-shift
+    ctrl(&["z", "Z"], Some(false), |s| s.undo()), // register:undo
+    ctrl(&["y", "Y"], None, |s| s.redo()), // register:redo
     // register:view-front
     plain(&["1"], |s| s.camera.set_view(View::Front)),
     // register:view-back
@@ -164,3 +127,13 @@ pub const KEYS: &[Binding] = &[
     // register:cloud-bigger
     plain(&["]"], |s| s.set_cloud_size(s.gpu.view.cloud_size + 0.25)),
 ];
+
+/// A press with Ctrl held, and Shift held, not held or either.
+const fn ctrl(chars: &'static [&'static str], shift: Option<bool>, run: fn(&mut State)) -> Binding {
+    Binding {
+        trigger: Trigger::Chars(chars),
+        ctrl: true,
+        shift,
+        run,
+    }
+}

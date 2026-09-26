@@ -9,11 +9,11 @@ const CHORD_DEGREES: f64 = 5.0; // curve turn per sample
 
 /// The sheet being built, one entry per stroke.
 struct Sheet {
-    coords: Vec<f64>,    // xyz of every vertex
-    colors: Vec<u32>,    // packed rgba per stroke
-    widths: Vec<f32>,    // width per stroke, 0 = default
-    ids: Vec<u32>,       // meta row per stroke
-    meta: Vec<Vec<u8>>,  // encoded meta rows
+    coords: Vec<f64>,   // xyz of every vertex
+    colors: Vec<u32>,   // packed rgba per stroke
+    widths: Vec<f32>,   // width per stroke, 0 = default
+    ids: Vec<u32>,      // meta row per stroke
+    meta: Vec<Vec<u8>>, // encoded meta rows
 }
 
 /// A 0..1 float as one byte.

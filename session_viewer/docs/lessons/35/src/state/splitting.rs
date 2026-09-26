@@ -12,15 +12,16 @@ impl State {
     /// The pending split, for the inspection tests.
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn split_status(&self) -> Option<(u32, Option<usize>, &[u32])> {
-        self.pending_split
+        self.features
+            .pending_split
             .as_ref()
             .map(|p| (p.target, p.face, p.cutters.as_slice()))
     }
 
     /// Split: start choosing cutters, or finish when they are chosen.
-    pub(super) fn split_command(&mut self) -> Result<String, String> {
+    pub(crate) fn split_command(&mut self) -> Result<String, String> {
         // Split again finishes
-        if self.pending_split.is_some() {
+        if self.features.pending_split.is_some() {
             return self.finish_split();
         }
 
@@ -28,6 +29,10 @@ impl State {
             .scene
             .selected
             .ok_or("Select a curve or Ctrl+Shift-select a face, then run Split")?;
+        if let Some(reason) = self.locked_reason(&[row]) {
+            return Err(reason);
+        }
+
         // a selected face, else the whole curve
         let selected = match self.selection {
             crate::app::selection::SelectionMode::Face { face, .. } => Some(face),
@@ -37,7 +42,7 @@ impl State {
             self.scene.geometry(row).ok_or("Source unavailable")?,
             selected,
         )?;
-        self.pending_split = Some(Pending {
+        self.features.pending_split = Some(Pending {
             target: row,
             face,
             cutters: vec![],
@@ -49,8 +54,8 @@ impl State {
     }
 
     /// Drop the pending split and its cutter highlights.
-    pub(super) fn cancel_split(&mut self) {
-        if let Some(pending) = self.pending_split.take() {
+    pub(crate) fn cancel_split(&mut self) {
+        if let Some(pending) = self.features.pending_split.take() {
             for row in pending.cutters {
                 self.gpu.set_selected(row, false);
             }
@@ -59,11 +64,14 @@ impl State {
 
     /// Add a clicked row to the cutters, or remove it again.
     pub(super) fn pick_split_cutter(&mut self, row: u32) {
-        let Some(pending) = self.pending_split.as_mut() else {
+        let Some(pending) = self.features.pending_split.as_mut() else {
             return;
         };
-        // only an unlocked curve, not the target
 
+        // a released curve comes back for the next click
+        self.scene.ask(row);
+
+        // only an unlocked curve, not the target
         if row == pending.target
             || !self.scene.selectable(row)
             || !self.scene.geometry(row).is_some_and(splitting::is_cutter)
@@ -91,7 +99,7 @@ impl State {
 
     /// Enter: finish the split.
     pub fn confirm_split(&mut self) {
-        if self.pending_split.is_some() {
+        if self.features.pending_split.is_some() {
             let message = self.finish_split().unwrap_or_else(|error| error);
             self.status(&message);
             self.touch();
@@ -100,10 +108,14 @@ impl State {
 
     /// Run the split with the chosen cutters.
     fn finish_split(&mut self) -> Result<String, String> {
-        let pending = self.pending_split.take().ok_or("Start Split first")?;
+        let pending = self
+            .features
+            .pending_split
+            .take()
+            .ok_or("Start Split first")?;
 
         if pending.cutters.is_empty() {
-            self.pending_split = Some(pending);
+            self.features.pending_split = Some(pending);
             return Err("Select at least one cutter curve, then press Enter".into());
         }
 
@@ -111,7 +123,7 @@ impl State {
             self.gpu.set_selected(row, false);
         }
 
-        let identity = self.scene.identity_of(pending.target); // to find the row again after the rebuild
+        let identity = self.scene.identity_of(pending.target); // to select it again after the sync
         let result = self
             .scene
             .split_rows(pending.target, pending.face, &pending.cutters);
@@ -119,10 +131,7 @@ impl State {
         match result {
             Ok(regions) if regions > 1 => {
                 self.after_history();
-                let row = identity.and_then(|id| {
-                    (0..self.scene.object_count() as u32)
-                        .find(|&row| self.scene.identity_of(row).as_ref() == Some(&id))
-                });
+                let row = identity.and_then(|(doc, guid)| self.scene.row_of(doc, &guid));
                 self.select(row);
                 Ok(format!(
                     "Split into {regions} regions. The BRep stays joined; Undo restores the original. Cutters are retained."
@@ -137,5 +146,48 @@ impl State {
                 Err(error)
             }
         }
+    }
+}
+
+impl State {
+    /// While splitting, clicked layer rows are cutters; false when no split waits.
+    pub(super) fn take_split_rows(&mut self, rows: &[u32]) -> bool {
+        if self.features.pending_split.is_none() {
+            return false;
+        }
+
+        for &row in rows {
+            self.pick_split_cutter(row);
+        }
+
+        true
+    }
+
+    /// A split whose target or a cutter is gone ends.
+    pub(super) fn drop_gone_split(&mut self) {
+        let scene = &self.scene;
+        let gone = |row: &u32| scene.identity_of(*row).is_none();
+        let split = self
+            .features
+            .pending_split
+            .as_ref()
+            .is_some_and(|split| gone(&split.target) || split.cutters.iter().any(gone));
+
+        if split {
+            self.cancel_split();
+        }
+    }
+
+    /// A split is waiting for its cutter: it takes the pick.
+    pub(super) fn take_split_pick(&mut self, pick: Option<crate::engine::gpu::Pick>) -> bool {
+        if self.features.pending_split.is_none() {
+            return false;
+        }
+
+        if let Some(pick) = pick {
+            self.pick_split_cutter(pick.row);
+        }
+
+        true
     }
 }

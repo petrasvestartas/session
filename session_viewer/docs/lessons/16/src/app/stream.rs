@@ -1,28 +1,129 @@
-//! Reads a file in ranges as it arrives, so a big scene starts drawing before the whole download has finished.
-
 /// Byte positions of a cloud's arrays in its file.
 #[derive(Clone, Debug)]
 pub struct CloudFields {
-    pub end: u64, // end of the cloud message
-    pub coords_at: u64,
-    pub coords_len: u64,
-    pub colors_at: u64,
-    pub colors_len: u64, // their length
-    pub count: u32, // points in the cloud
-    pub ids_at: u64, // start of the original ids, 0 = none
-    pub ids_len: u64, // their length
+    pub end: u64,                 // end of the cloud message
+    pub coords_at: u64,           // start of the positions
+    pub coords_len: u64,          // their length
+    pub colors_at: u64,           // start of the colours
+    pub colors_len: u64,          // their length
+    pub normals_at: u64,          // start of the normals, 0 = none
+    pub normals_len: u64,         // their length
+    pub count: u32,               // points in the cloud
+    pub ids_at: u64,              // start of the original ids, 0 = none
+    pub ids_len: u64,             // their length
     pub revision: Option<String>, // file ETag every read must match
+}
+
+/// Byte positions of a sheet's arrays in its file; length 0 = absent.
+#[derive(Clone, Debug, Default)]
+pub struct SheetFields {
+    pub end: u64,                 // end of the sheet message
+    pub coords_at: u64,           // start of the segment ends
+    pub coords_len: u64,          // their length
+    pub colors_at: u64,           // start of the colours
+    pub colors_len: u64,          // their length
+    pub widths_at: u64,           // start of the pen widths
+    pub widths_len: u64,          // their length
+    pub ids_at: u64,              // start of the entity ids
+    pub ids_len: u64,             // their length
+    pub count: u32,               // segments in the sheet
+    pub entities: u32,            // records in the side table
+    pub meta: String,             // side table file name, empty = none
+    pub revision: Option<String>, // file ETag every read must match
+}
+
+/// One protobuf field header.
+#[derive(Clone, Copy)]
+pub struct Field {
+    pub field: u32, // field number
+    pub wire: u32,  // wire type
+    pub value: u64, // the varint value, or the body length
+    pub body: u64,  // where the body starts
+    pub next: u64,  // where the next field starts
+}
+
+/// Parse the field header at `at`; None when it runs past `end`.
+pub fn field_at(header: &[u8], at: u64, end: u64) -> Option<Field> {
+    let (tag, used) = varint(header, 0)?;
+    let (field, wire) = (u32::try_from(tag >> 3).ok()?, (tag & 7) as u32);
+
+    if field == 0 {
+        return None;
+    }
+
+    let body = body_end(at, used as u64, end)?;
+
+    if wire != 2 {
+        let (value, _) = if wire == 0 {
+            varint(header, used)?
+        } else {
+            (0, 0)
+        };
+        let skip = skip_scalar(header, used, wire)?;
+        return Some(Field {
+            field,
+            wire,
+            value,
+            body,
+            next: body_end(body, skip as u64, end)?,
+        });
+    }
+
+    let (length, extra) = varint(header, used)?;
+    let body = body_end(body, extra as u64, end)?;
+    Some(Field {
+        field,
+        wire,
+        value: length,
+        body,
+        next: body_end(body, length, end)?,
+    })
+}
+
+impl SheetFields {
+    /// Bytes per segment: six doubles.
+    pub const SEGMENT_BYTES: u64 = 48;
+
+    /// Record one field found after `coords`; false when it is wrong.
+    pub fn set(&mut self, f: &Field, body: &[u8]) -> bool {
+        let per_segment = u64::from(self.count) * 4;
+
+        match (f.field, f.wire) {
+            (4, 2) if self.colors_len == 0 && f.value == per_segment => {
+                (self.colors_at, self.colors_len) = (f.body, f.value)
+            }
+            (5, 2) if self.widths_len == 0 && f.value == per_segment => {
+                (self.widths_at, self.widths_len) = (f.body, f.value)
+            }
+            (15, 2) if self.ids_len == 0 && f.value == per_segment => {
+                (self.ids_at, self.ids_len) = (f.body, f.value)
+            }
+            (6, 0) => return f.value == u64::from(self.count),
+            (7, 0) => match u32::try_from(f.value) {
+                Ok(entities) => self.entities = entities,
+                Err(_) => return false,
+            },
+            (8, 2) if f.value <= NAME_BYTES => match std::str::from_utf8(body) {
+                Ok(meta) => self.meta = meta.to_string(),
+                Err(_) => return false,
+            },
+            (1..=8, _) | (15, _) => return false,
+            _ => {}
+        }
+
+        true
+    }
 }
 
 /// A cloud's octree node table.
 #[derive(Clone, Default)]
 pub struct CloudLod {
-    pub min: Vec<f64>, // cube corner, three per node
-    pub size: Vec<f64>, // cube size per node
-    pub spacing: Vec<f64>, // point spacing per node
-    pub level: Vec<i32>, // depth per node
-    pub first: Vec<i32>, // first point per node
-    pub count: Vec<i32>, // points per node
+    pub min: Vec<f64>,      // cube corner, three per node
+    pub size: Vec<f64>,     // cube size per node
+    pub spacing: Vec<f64>,  // point spacing per node
+    pub level: Vec<i32>,    // depth per node
+    pub first: Vec<i32>,    // first point per node
+    pub count: Vec<i32>,    // points per node
     pub children: Vec<i32>, // eight child indices per node, -1 = none
 }
 
@@ -159,32 +260,7 @@ impl CloudLod {
     }
 }
 
-/// The varint at `i` and its byte length.
-pub fn varint(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
-    let (mut v, mut shift) = (0u64, 0u32);
-    let start = i;
-
-    loop {
-        let byte = *b.get(i)?;
-
-        if shift == 63 && byte > 1 {
-            return None;
-        }
-
-        v |= ((byte & 0x7f) as u64) << shift;
-        i += 1;
-
-        if byte & 0x80 == 0 {
-            return Some((v, i - start));
-        }
-
-        shift += 7;
-
-        if shift > 63 {
-            return None;
-        }
-    }
-}
+use super::validate::varint;
 
 /// Byte length of a scalar field of wire type `wire`.
 fn skip_scalar(b: &[u8], i: usize, wire: u32) -> Option<usize> {
@@ -210,7 +286,24 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
     let mut at = 0usize;
     let objects_end = descend_message(head, &mut at, None, 3)?;
     let end = descend_message(head, &mut at, Some(objects_end), 8)?;
+    first_array(head, at, end)
+}
 
+/// Start, length of `coords` and end of the sheet message.
+pub fn sheet_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
+    let mut at = 0usize;
+    let objects_end = descend_message(head, &mut at, None, 3)?;
+    let end = descend_message(head, &mut at, Some(objects_end), 17)?;
+    first_array(head, at, end)
+}
+
+/// True for a file whose first bytes show neither a cloud nor a sheet: it loads whole.
+pub fn plain(head: &[u8]) -> bool {
+    cloud_layout(head).is_none() && sheet_layout(head).is_none()
+}
+
+/// The `coords` field, which only small names may precede.
+fn first_array(head: &[u8], mut at: usize, end: u64) -> Option<(u64, u64, u64)> {
     while (at as u64) < end {
         let (tag, used) = varint(head, at)?;
         at = at.checked_add(used)?;
@@ -242,7 +335,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
             return Some((at as u64, length, end));
         }
 
-        if field == 4 || length > NAME_BYTES {
+        if field > 3 || length > NAME_BYTES {
             return None;
         }
 
@@ -274,7 +367,9 @@ fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u
         }
 
         if field == want {
-            if want == 8 && parent_end != Some(next) {
+            if let Some(end) = parent_end
+                && end != next
+            {
                 return None;
             }
 
@@ -297,7 +392,13 @@ fn finite_float(value: f64) -> bool {
 /// `count` xyz triples as f32; None when short or not finite.
 #[cfg(any(target_arch = "wasm32", test))]
 fn checked_positions(raw: &[u8], count: u32) -> Option<Vec<f32>> {
-    if raw.len() as u64 != u64::from(count).checked_mul(24)? {
+    checked_doubles(raw, u64::from(count).checked_mul(3)?)
+}
+
+/// Exactly `n` doubles as f32; None when short or not finite.
+#[cfg(any(target_arch = "wasm32", test))]
+fn checked_doubles(raw: &[u8], n: u64) -> Option<Vec<f32>> {
+    if raw.len() as u64 != n.checked_mul(8)? {
         return None;
     }
 
@@ -322,8 +423,6 @@ fn bounded_range(at: u64, length: u64) -> bool {
     length <= 64 * 1024 * 1024 && at.checked_add(length).is_some()
 }
 
-/// Checked body bounds, shared by metadata, position and color ranges.
-#[cfg(any(target_arch = "wasm32", test))]
 /// `at + length` when it stays within `end`.
 fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
     let next = at.checked_add(length)?;
@@ -331,12 +430,12 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
     if next <= end { Some(next) } else { None }
 }
 
-/// Each range request costs a network round trip, so read 64 KiB ahead and answer later small reads from memory.
+/// A cached slice of the file's header bytes.
 #[cfg(any(target_arch = "wasm32", test))]
 #[derive(Default)]
 struct MetadataWindow {
-    at: u64, // file position of `bytes[0]`
-    bytes: Vec<u8>,
+    at: u64,        // file position of `bytes[0]`
+    bytes: Vec<u8>, // the cached bytes
 }
 
 #[cfg(any(target_arch = "wasm32", test))]
@@ -384,12 +483,51 @@ pub fn packed_f64(raw: &[u8]) -> Vec<f64> {
     out
 }
 
+/// A packed `fixed32` array in full.
+pub fn packed_u32(raw: &[u8]) -> Vec<u32> {
+    let mut out = Vec::with_capacity(raw.len() / 4);
+
+    for c in raw.chunks_exact(4) {
+        out.push(u32::from_le_bytes(c.try_into().unwrap()));
+    }
+
+    out
+}
+
+/// A packed `float` array in full; a non-finite value becomes 0.
+pub fn packed_f32(raw: &[u8]) -> Vec<f32> {
+    let mut out = Vec::with_capacity(raw.len() / 4);
+
+    for c in raw.chunks_exact(4) {
+        let v = f32::from_le_bytes(c.try_into().unwrap());
+        out.push(if v.is_finite() { v } else { 0.0 });
+    }
+
+    out
+}
+
 /// An already-fetched coords slice as f32 triples.
 pub fn positions_from(raw: &[u8]) -> Vec<f32> {
     let mut out = Vec::with_capacity(raw.len() / 8);
 
     for c in raw.chunks_exact(8) {
         out.push(f64::from_le_bytes(c.try_into().unwrap()) as f32);
+    }
+
+    out
+}
+
+/// Packed doubles, three per point, as octahedral normals; a degenerate one becomes 0.
+pub fn normals_from(raw: &[u8]) -> Vec<u32> {
+    let mut out = Vec::with_capacity(raw.len() / 24);
+
+    for c in raw.chunks_exact(24) {
+        let n = [
+            f64::from_le_bytes(c[0..8].try_into().unwrap()),
+            f64::from_le_bytes(c[8..16].try_into().unwrap()),
+            f64::from_le_bytes(c[16..24].try_into().unwrap()),
+        ];
+        out.push(super::walk::encode::oct16(&n).unwrap_or(0));
     }
 
     out
@@ -422,26 +560,44 @@ pub use web::*;
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
-    use crate::app::fetch::{GetOpts, fetch_range, get};
+    use crate::app::fetch::{GetOpts, PROBE_BYTES, Reply, Task, fetch_range, get, retryable};
+    use crate::app::manifest::immutable_key;
+    use crate::app::range_gate::{RANGE_READS, RangeGate};
+    use std::cell::RefCell;
+    use std::rc::Rc;
 
     const POINT_BYTES: u64 = 24; // three doubles
 
     const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024; // largest node table read
 
+    thread_local! {
+        /// The scene's streaming range reads queue here.
+        static GATE: RefCell<Rc<RangeGate>> = RefCell::new(RangeGate::new(RANGE_READS));
+    }
+
+    /// A new scene: turn the old scene's waiting reads away and start an empty queue.
+    pub fn reset_range_gate() {
+        GATE.with_borrow_mut(|gate| {
+            gate.close();
+            *gate = RangeGate::new(RANGE_READS);
+        });
+    }
+
     impl MetadataWindow {
         /// The bytes at `at`, reading more when not cached.
-        async fn read(
+        pub(super) async fn read(
             &mut self,
             url: &str,
             at: u64,
             length: u64,
-            fields: &CloudFields,
+            end: u64,
+            revision: &Option<String>,
         ) -> Option<&[u8]> {
-            body_end(at, length, fields.end)?;
+            body_end(at, length, end)?;
 
             if self.slice(at, length).is_none() {
-                let read_length = Self::read_length(at, length, fields.end)?;
-                self.bytes = source_range(url, at, read_length, &fields.revision).await?;
+                let read_length = Self::read_length(at, length, end)?;
+                self.bytes = source_range(url, at, read_length, revision).await?;
                 self.at = at;
             }
 
@@ -464,27 +620,52 @@ mod web {
             return Some(Vec::new());
         }
 
-        Some(fetch_range(url, at, length, revision).await.ok()?.0)
+        // the stall timer starts once the read holds a slot, so queued reads never time out
+        let gate = GATE.with_borrow(Rc::clone);
+        let _permit = gate.enter().await?;
+
+        match fetch_range(url, at, length, revision).await {
+            Ok((bytes, _)) => Some(bytes),
+            Err(error) if retryable(&error) && !gate.is_closed() => {
+                log::warn!("{url}: {error}; retrying the range once");
+                Some(fetch_range(url, at, length, revision).await.ok()?.0)
+            }
+            Err(_) => None,
+        }
     }
 
-    /// Find where a cloud's arrays are in the file.
-    pub async fn cloud_fields(url: &str) -> Option<CloudFields> {
+    /// Start reading one range of the file.
+    pub(super) fn start_range(
+        url: &str,
+        (at, length): (u64, u64),
+        revision: &Option<String>,
+    ) -> Task<Option<Vec<u8>>> {
+        let (url, revision) = (url.to_string(), revision.clone());
+        Task::start(async move { source_range(&url, at, length, &revision).await })
+    }
+
+    /// The first 8 KB of a file, read once for every layout check and the file's size.
+    pub async fn probe(url: &str) -> Option<Reply> {
         let reply = get(
             url,
             &GetOpts {
-                range: Some((0, 8192)),
-                revalidate: true,
+                range: Some((0, PROBE_BYTES)),
+                revalidate: !immutable_key(url),
                 ..Default::default()
             },
         )
         .await
         .ok()?;
+        (reply.bytes.len() as u64 <= PROBE_BYTES).then_some(reply)
+    }
 
-        if reply.status != 206 || reply.bytes.len() > 8192 {
+    /// Find where a cloud's arrays are in the file, from its `probe`.
+    pub async fn cloud_fields(url: &str, probe: &Reply) -> Option<CloudFields> {
+        if probe.status != 206 {
             return None;
         }
 
-        let (coords_at, coords_len, end) = cloud_layout(&reply.bytes)?;
+        let (coords_at, coords_len, end) = cloud_layout(&probe.bytes)?;
 
         if coords_len == 0 || !coords_len.is_multiple_of(POINT_BYTES) {
             return None;
@@ -494,7 +675,7 @@ mod web {
         let mut colors = (after, 0);
 
         if after < end {
-            let header = source_range(url, after, 16.min(end - after), &reply.etag).await?;
+            let header = source_range(url, after, 16.min(end - after), &probe.etag).await?;
             let (tag, used) = varint(&header, 0)?;
 
             if tag >> 3 == 4 && tag & 7 == 2 {
@@ -511,10 +692,12 @@ mod web {
             coords_len,
             colors_at: colors.0,
             colors_len: colors.1,
+            normals_at: 0,
+            normals_len: 0,
             count: u32::try_from(coords_len / POINT_BYTES).ok()?,
             ids_at: 0,
             ids_len: 0,
-            revision: reply.etag,
+            revision: probe.etag.clone(),
         })
     }
 
@@ -525,11 +708,18 @@ mod web {
         let mut seen = [false; 7];
         let mut table_bytes = 0u64;
         let mut ids = None;
+        let mut normals = (0, 0);
         let mut window = MetadataWindow::default();
 
         while at < fields.end {
             let header = window
-                .read(url, at, 64.min(fields.end - at), fields)
+                .read(
+                    url,
+                    at,
+                    64.min(fields.end - at),
+                    fields.end,
+                    &fields.revision,
+                )
                 .await?;
             let (tag, used) = varint(header, 0)?;
             let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
@@ -563,13 +753,19 @@ mod web {
                     return None;
                 }
 
-                let raw = window.read(url, body, length, fields).await?;
+                let raw = window
+                    .read(url, body, length, fields.end, &fields.revision)
+                    .await?;
 
                 if !lod.set_field(field, raw) {
                     return None;
                 }
 
                 seen[field - 8] = true;
+            }
+
+            if field == 5 && length == fields.coords_len {
+                normals = (body, length);
             }
 
             if field == 15 {
@@ -588,6 +784,7 @@ mod web {
         }
 
         (fields.ids_at, fields.ids_len) = ids.unwrap_or((0, 0));
+        (fields.normals_at, fields.normals_len) = normals;
         Some(lod)
     }
 
@@ -613,6 +810,30 @@ mod web {
         )?;
         let raw = source_range(url, at, length, &fields.revision).await?;
         checked_positions(&raw, to - from)
+    }
+
+    /// Packed normals of points `[from, to)`; None when the cloud has none.
+    pub async fn fetch_normals(
+        url: &str,
+        fields: &CloudFields,
+        from: u32,
+        to: u32,
+    ) -> Option<Vec<u32>> {
+        if fields.normals_len == 0 || from > to || to > fields.count {
+            return None;
+        }
+
+        let at = fields
+            .normals_at
+            .checked_add(u64::from(from).checked_mul(POINT_BYTES)?)?;
+        let length = u64::from(to - from).checked_mul(POINT_BYTES)?;
+        body_end(
+            at,
+            length,
+            body_end(fields.normals_at, fields.normals_len, fields.end)?,
+        )?;
+        let raw = source_range(url, at, length, &fields.revision).await?;
+        (raw.len() as u64 == length).then(|| normals_from(&raw))
     }
 
     /// Colours of `count` points starting at byte `at`.
@@ -644,6 +865,24 @@ mod web {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Normals pack per point and a zero normal stays 0.
+    #[test]
+    fn normals_pack_three_doubles_per_point() {
+        let mut raw = Vec::new();
+
+        for v in [0.0f64, 0.0, 1.0, 0.0, 0.0, 0.0] {
+            raw.extend_from_slice(&v.to_le_bytes());
+        }
+
+        let packed = normals_from(&raw);
+        assert_eq!(packed.len(), 2);
+        assert_eq!(
+            packed[0],
+            crate::app::walk::encode::oct16(&[0.0, 0.0, 1.0]).unwrap()
+        );
+        assert_eq!(packed[1], 0);
+    }
 
     /// The window serves nearby reads from cache.
     #[test]
@@ -780,6 +1019,127 @@ mod tests {
             ),
             None
         );
+    }
+
+    /// One protobuf varint.
+    fn uvarint(mut v: u64) -> Vec<u8> {
+        let mut out = Vec::new();
+
+        loop {
+            let byte = (v & 0x7f) as u8;
+            v >>= 7;
+
+            if v == 0 {
+                out.push(byte);
+                return out;
+            }
+
+            out.push(byte | 0x80);
+        }
+    }
+
+    /// One length-delimited field: tag, length, body.
+    fn bytes_field(field: u32, body: &[u8]) -> Vec<u8> {
+        let mut out = uvarint(u64::from(field << 3 | 2));
+        out.extend(uvarint(body.len() as u64));
+        out.extend_from_slice(body);
+        out
+    }
+
+    /// One varint field.
+    fn uint_field(field: u32, value: u32) -> Vec<u8> {
+        let mut out = uvarint(u64::from(field << 3));
+        out.extend(uvarint(u64::from(value)));
+        out
+    }
+
+    /// A one-segment sheet file.
+    fn sheet_file() -> Vec<u8> {
+        let coords: Vec<u8> = [0.0f64, 1.0, 2.0, 3.0, 4.0, 5.0]
+            .into_iter()
+            .flat_map(f64::to_le_bytes)
+            .collect();
+        let mut sheet = bytes_field(1, b"guid");
+        sheet.extend(bytes_field(2, b"plan"));
+        sheet.extend(bytes_field(3, &coords));
+        sheet.extend(bytes_field(4, &0xff00_00ffu32.to_le_bytes()));
+        sheet.extend(bytes_field(5, &0.35f32.to_le_bytes()));
+        sheet.extend(uint_field(6, 1));
+        sheet.extend(uint_field(7, 9));
+        sheet.extend(bytes_field(8, b"plan.shm"));
+        sheet.extend(bytes_field(15, &7u32.to_le_bytes()));
+        let objects = bytes_field(17, &sheet);
+        bytes_field(3, &objects)
+    }
+
+    /// Scan the fields after `coords` from memory.
+    fn scan_tail(file: &[u8], fields: &mut SheetFields, mut at: u64) -> bool {
+        while at < fields.end {
+            let Some(f) = field_at(&file[at as usize..], at, fields.end) else {
+                return false;
+            };
+            let body = if f.wire == 2 {
+                &file[f.body as usize..(f.body + f.value.min(NAME_BYTES)) as usize]
+            } else {
+                &[]
+            };
+
+            if !fields.set(&f, body) {
+                return false;
+            }
+
+            at = f.next;
+        }
+
+        true
+    }
+
+    /// The sheet walk finds every array.
+    #[test]
+    fn sheet_layout_walks_objects_field_17_and_locates_every_array() {
+        let file = sheet_file();
+        let (coords_at, coords_len, end) = sheet_layout(&file).unwrap();
+        assert_eq!(coords_len, 48);
+        assert_eq!(end, file.len() as u64);
+        assert_eq!(
+            packed_f64(&file[coords_at as usize..(coords_at + 48) as usize])[5],
+            5.0
+        );
+        let mut fields = SheetFields {
+            end,
+            coords_at,
+            coords_len,
+            count: 1,
+            ..Default::default()
+        };
+        assert!(scan_tail(&file, &mut fields, coords_at + coords_len));
+        assert_eq!(fields.colors_len, 4);
+        assert_eq!(fields.widths_len, 4);
+        assert_eq!(fields.ids_len, 4);
+        assert_eq!(fields.entities, 9);
+        assert_eq!(fields.meta, "plan.shm");
+        assert_eq!(
+            packed_u32(&file[fields.colors_at as usize..][..4]),
+            [0xff00_00ff]
+        );
+        assert_eq!(packed_f32(&file[fields.widths_at as usize..][..4]), [0.35]);
+        assert_eq!(packed_u32(&file[fields.ids_at as usize..][..4]), [7]);
+        assert_eq!(fields.ids_at + 4, end);
+        // a sheet is not a cloud, nor a file that loads whole; two objects are not one file
+        assert!(walk_to_coords(&file).is_none());
+        assert!(!plain(&file));
+        assert!(!plain(&bytes_field(
+            3,
+            &bytes_field(8, &bytes_field(3, &[0; 24]))
+        )));
+        assert!(plain(&bytes_field(3, &bytes_field(1, b"mesh"))));
+        let mut two = bytes_field(17, &file[4..]);
+        two.extend(bytes_field(17, b""));
+        assert!(sheet_layout(&bytes_field(3, &two)).is_none());
+        // a wrong segment count is refused
+        let mut wrong = fields.clone();
+        wrong.count = 2;
+        assert!(!scan_tail(&file, &mut wrong, coords_at + coords_len));
     }
 
     /// Colours decode and report where they end.

@@ -1,20 +1,19 @@
-//! The adapter and device request, moved out of lib.rs now that the viewer is more than one file.
 use std::sync::Arc;
 use winit::window::Window;
 
 /// Everything `open` set up.
 pub struct DeviceSetup {
     pub surface: Option<wgpu::Surface<'static>>, // the canvas; None when headless
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pub config: wgpu::SurfaceConfiguration,
-    pub device_type: wgpu::DeviceType, // discrete, integrated or CPU
-    pub failure: Arc<std::sync::Mutex<Option<String>>>, // Arc = shared owner, Mutex = one writer at a time: error callbacks write, each frame reads
+    pub device: wgpu::Device,                    // creates GPU resources
+    pub queue: wgpu::Queue,                      // runs GPU commands
+    pub config: wgpu::SurfaceConfiguration,      // size and format of the canvas
+    pub device_type: wgpu::DeviceType,           // discrete, integrated or CPU
+    pub failure: Arc<std::sync::Mutex<Option<String>>>, // first GPU error, read each frame
 }
 
 /// Open the GPU: instance, surface, adapter, device, surface config.
 pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Result<DeviceSetup> {
-    // PRIMARY = Vulkan, Metal or DX12, whichever the OS has
+    // WebGPU in the browser, native APIs otherwise
     let backends = if cfg!(target_arch = "wasm32") {
         wgpu::Backends::BROWSER_WEBGPU
     } else {
@@ -28,19 +27,19 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         display: None,
     });
 
-    // no window in native tests: they render off-screen
+    // the window's drawing surface, if there is a window
     let surface = match &window {
         Some(w) => Some(instance.create_surface(w.clone())?),
         None => None,
     };
 
-    // native: the integrated GPU keeps a laptop cool; the browser decides for itself
+    // browser picks the GPU; native prefers the low-power one
     let default_power = if cfg!(target_arch = "wasm32") {
         wgpu::PowerPreference::None
     } else {
         wgpu::PowerPreference::LowPower
     };
-    // ?gpu=high in the URL, or VIEWER_GPU=high natively, asks for the fast GPU
+    // `?gpu=high` asks for the fast GPU
     let preferred = if super::view::knob("VIEWER_GPU", "gpu").as_deref() == Some("high") {
         wgpu::PowerPreference::HighPerformance
     } else {
@@ -74,7 +73,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         log::warn!("software adapter - rendering on the CPU will be slow");
     }
 
-    // the default is 128 MiB per storage buffer; big meshes and clouds need more, so take up to 256 MiB
+    // allow storage buffers up to 256 MiB
     let limits = wgpu::Limits {
         max_storage_buffer_binding_size: adapter
             .limits()
@@ -83,16 +82,25 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         ..wgpu::Limits::default()
     };
 
+    // natively, `VIEWER_GPU_TIMING` asks for timestamps between passes
+    let timing =
+        !cfg!(target_arch = "wasm32") && super::view::knob("VIEWER_GPU_TIMING", "").is_some();
+    let timestamps =
+        wgpu::Features::TIMESTAMP_QUERY | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
     let (device, queue) = adapter
         .request_device(&wgpu::DeviceDescriptor {
             label: None,
-            required_features: wgpu::Features::empty(),
+            required_features: if timing {
+                adapter.features() & timestamps
+            } else {
+                wgpu::Features::empty()
+            },
             required_limits: limits,
             memory_hints: Default::default(),
             ..Default::default()
         })
         .await?;
-    // a browser callback must not panic, so it stores the message for the next frame to report
+    // browser errors are stored, not thrown
     let failure = Arc::new(std::sync::Mutex::new(None));
     #[cfg(target_arch = "wasm32")]
     {
@@ -112,7 +120,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
     #[cfg(not(target_arch = "wasm32"))]
     device.on_uncaptured_error(Arc::new(report_gpu_error));
 
-    // sRGB: the GPU converts our linear colours for the screen
+    // prefer an sRGB canvas format
     let (format, present_mode, alpha_mode) = match &surface {
         Some(s) => {
             let caps = s.get_capabilities(&adapter);
@@ -128,7 +136,6 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
             (f, caps.present_modes[0], caps.alpha_modes[0])
         }
         None => (
-            // no surface: the format off-screen tests render into
             wgpu::TextureFormat::Rgba8UnormSrgb,
             wgpu::PresentMode::Fifo,
             wgpu::CompositeAlphaMode::Auto,
@@ -142,10 +149,11 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         present_mode,
         alpha_mode,
         view_formats: vec![],
-        desired_maximum_frame_latency: 2, // at most 2 frames queued ahead of the screen: less input lag
+        desired_maximum_frame_latency: 2,
     };
 
     if let Some(s) = &surface {
+        // size the surface now
         s.configure(&device, &config);
     }
 
@@ -159,7 +167,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
     })
 }
 
-/// VIEWER_ADAPTER=nvidia picks the first native GPU whose name contains "nvidia"; the browser cannot choose.
+/// Pick the native GPU named by `VIEWER_ADAPTER`, if any.
 async fn named_adapter(
     instance: &wgpu::Instance,
     backends: wgpu::Backends,
@@ -216,12 +224,13 @@ fn invalid_gpu_shader_is_fatal() {
         });
 }
 
+/// Store a browser GPU error.
 #[cfg(target_arch = "wasm32")]
 fn remember_gpu_error(failure: &std::sync::Mutex<Option<String>>, error: wgpu::Error) {
     remember_failure(failure, format!("WebGPU error: {error}"));
 }
 
-/// Device lost = the browser took the GPU away, e.g. after a driver reset or when memory ran out.
+/// Store a browser device-loss reason.
 #[cfg(target_arch = "wasm32")]
 fn remember_device_loss(
     failure: &std::sync::Mutex<Option<String>>,

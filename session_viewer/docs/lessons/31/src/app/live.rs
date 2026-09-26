@@ -1,6 +1,6 @@
 use super::decode::session_from_bytes;
 use super::fetch::{GetOpts, get};
-use super::manifest::Manifest;
+use super::manifest::{Manifest, immutable_key};
 use super::route::{
     AUTO_GRID, data_base, is_local_url, join, page_is_local, path_scene, query, query_scene,
 };
@@ -27,8 +27,8 @@ const NOTIFY_TICK_MS: i32 = 100;
 
 /// An open relay connection.
 struct Notify {
-    _source: web_sys::EventSource,                         // the event stream
-    flag: Rc<RefCell<bool>>,                               // a message arrived
+    _source: web_sys::EventSource, // the event stream
+    flag: Rc<RefCell<bool>>,       // a message arrived
     _on_message: Closure<dyn FnMut(web_sys::MessageEvent)>, // the JS callback
 }
 
@@ -80,18 +80,19 @@ enum Read {
 
 /// The watched scene and what was last seen of it.
 pub struct LiveSource {
-    pub url: String,                          // manifest URL
-    pub tick_ms: i32,                         // how often `check` runs
-    pub poll_ms: f64,                         // how often the network is read
-    last_read_ms: f64,                        // when it was last read
-    base: String,                             // prefix for the manifest's files
-    manifest: Option<Manifest>,               // last good manifest
-    etags: HashMap<String, String>,           // last ETag per URL
-    hashes: HashMap<String, u64>,             // last content hash per URL without ETag
-    sessions: HashMap<String, Rc<Session>>,   // decoded file per URL
-    last_warning: Option<String>,             // last message logged
-    pending: bool,                            // a change waits to be shown
-    notify: Option<Notify>,                   // relay connection
+    pub url: String,                        // manifest URL
+    pub tick_ms: i32,                       // how often `check` runs
+    pub poll_ms: f64,                       // how often the network is read
+    last_read_ms: f64,                      // when it was last read
+    base: String,                           // prefix for the manifest's files
+    manifest: Option<Manifest>,             // last good manifest
+    etags: HashMap<String, String>,         // last ETag per URL
+    hashes: HashMap<String, u64>,           // last content hash per URL without ETag
+    sessions: HashMap<String, Rc<Session>>, // decoded file per URL
+    last_warning: Option<String>,           // last message logged
+    pending: bool,                          // a change waits to be shown
+    notify: Option<Notify>,                 // relay connection
+    notify_url: Option<String>,             // relay opened after the first scene
 }
 
 impl LiveSource {
@@ -136,14 +137,15 @@ impl LiveSource {
             },
             None => DEFAULT_POLL_SECONDS,
         };
-        let notify = match (is_local_url(&url), query("notify").as_deref()) {
-            (_, Some("off")) | (_, Some("0")) | (true, _) => None,
-            (false, Some(u)) if u.starts_with("https://") => Notify::open(u),
-            (false, _) => Notify::open(DEFAULT_NOTIFY),
+        let notify_url = match (is_local_url(&url), query("notify")) {
+            (_, Some(u)) if u == "off" || u == "0" => None,
+            (true, _) => None,
+            (false, Some(u)) if u.starts_with("https://") => Some(u),
+            (false, _) => Some(DEFAULT_NOTIFY.to_string()),
         };
         let poll_ms = seconds * 1000.0;
         // with a relay, look at its flag often
-        let tick_ms = if notify.is_some() {
+        let tick_ms = if notify_url.is_some() {
             NOTIFY_TICK_MS.min(poll_ms as i32)
         } else {
             poll_ms as i32
@@ -160,7 +162,8 @@ impl LiveSource {
             sessions: HashMap::new(),
             last_warning: None,
             pending: false,
-            notify,
+            notify: None,
+            notify_url,
         })
     }
 
@@ -185,7 +188,7 @@ impl LiveSource {
         let known = self.etags.get(url).cloned();
         let opts = GetOpts {
             no_store: false,
-            revalidate: true,
+            revalidate: !immutable_key(url),
             if_none_match: known.clone(),
             range: None,
         };
@@ -334,6 +337,12 @@ impl LiveSource {
         }
 
         self.pending = false;
+
+        // the relay connects once the first scene is in, not while it downloads
+        if let Some(url) = self.notify_url.take() {
+            self.notify = Notify::open(&url);
+        }
+
         Some(docs)
     }
 
@@ -348,7 +357,7 @@ impl LiveSource {
             }
         };
 
-        if session.lookup.is_empty() {
+        if session.lookup.is_empty() && session.instance_lookup.is_empty() {
             self.forget(url, format!("{url} holds no geometry ({n} bytes); skipped"));
             return;
         }
@@ -390,7 +399,7 @@ impl LiveSource {
                 match get(
                     url,
                     &GetOpts {
-                        revalidate: true,
+                        revalidate: !immutable_key(url),
                         ..GetOpts::default()
                     },
                 )

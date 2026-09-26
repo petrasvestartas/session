@@ -2,8 +2,8 @@
 @group(2) @binding(3) var scene_depth_msaa: texture_depth_multisampled_2d; // scene depth at 4x
 
 override SCENE_MSAA: bool = false; // which depth texture is live
-@group(2) @binding(4) var scene_gradient_single: texture_2d<f32>; // depth slope and triangle id at 1x
-@group(2) @binding(5) var scene_gradient_msaa: texture_multisampled_2d<f32>; // the same at 4x
+@group(2) @binding(4) var scene_primitive_single: texture_2d<u32>; // triangle index + 1 at 1x, in 16-bit halves
+@group(2) @binding(5) var scene_primitive_msaa: texture_multisampled_2d<u32>; // the same at 4x
 
 // Depth tolerance as a fraction of the depth.
 const DEPTH_REL_TOL: f32 = 1.9073486e-6;
@@ -13,6 +13,9 @@ const SLOPE_PX: f32 = 0.00390625;
 
 // How much two slopes may differ and still be one surface.
 const KINK: f32 = 0.03125;
+
+// Depth change per pixel from which a slope carries no plane: 65504 / 65536.
+const SLOPE_INVALID: f32 = 0.99951171875;
 
 // Output of an ink fragment.
 struct InkColor {
@@ -226,7 +229,7 @@ fn ink_disc_source_hidden(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sampl
     return false;
 }
 
-// Like ink_axis_visible, but using the stored depth slope when there is one.
+// Like ink_axis_visible, but using the depth slope of the triangle under the pixel.
 fn ink_visible_plane(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
 
@@ -234,21 +237,26 @@ fn ink_visible_plane(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
         return true;
     }
 
-    var encoded = vec2<f32>(0.0);
+    // the grid and points are flat
+    let primitive = ink_primitive(pixel, sample);
+    var gradient = vec2<f32>(0.0);
 
-    if (SCENE_MSAA) {
-        encoded = textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).xy;
-    }
-    else {
-        encoded = textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).xy;
+    if (primitive != 0u) {
+        let triangle = min(primitive, arrayLength(&projected)) - 1u;
+
+        // no projected triangle: fit a plane
+        if (projected[triangle].edge3.w < 3.0) {
+            return ink_axis_visible(pixel, axis, sample);
+        }
+
+        gradient = projected[triangle].gradient.xy;
     }
 
-    // no stored slope: fit one
-    if (any(abs(encoded) >= vec2<f32>(PLANE_INVALID))) {
+    // too steep for a plane: fit one
+    if (any(abs(gradient) >= vec2<f32>(SLOPE_INVALID))) {
         return ink_axis_visible(pixel, axis, sample);
     }
 
-    let gradient = encoded / PLANE_SCALE;
     let delta = axis.at - pixel;
     let predicted = z + dot(gradient, delta);
     return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(gradient.x)+abs(gradient.y), abs(delta.x)+abs(delta.y)));
@@ -262,19 +270,51 @@ fn ink_primitive(pixel: vec2<f32>, sample: u32) -> u32 {
         return 0u;
     }
 
+    var halves: vec2<u32>;
+
     if (SCENE_MSAA) {
-        return ink_decode_primitive(textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).zw);
+        halves = textureLoad(scene_primitive_msaa, vec2<i32>(pixel), i32(sample)).xy;
+    } else {
+        halves = textureLoad(scene_primitive_single, vec2<i32>(pixel), 0).xy;
     }
 
-    return ink_decode_primitive(textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).zw);
+    return halves.x | (halves.y << 16u);
 }
 
 @group(2) @binding(7) var<storage, read> triangle_tiles: array<vec4<u32>>; // which triangles cover each screen tile
 
-// --8<-- [start:step-42a]
+// True when a clipping plane removed the triangle point hit at canvas point `at`, depth `depth`.
+fn ink_hit_cut(at: vec2<f32>, depth: f32) -> bool {
+    return clip_active() && clip_cut_ndc(0u, clip_ndc(at, line.frame, depth));
+}
+
+// Is the ink visible where the section cap of clipping plane `plane` lies under its center line?
+fn ink_cap_visible(plane: u32, axis: InkAxis) -> bool {
+    let slope = clip_plane_slope(plane, line.frame);
+    let depth = clip_plane_depth(plane, clip_ndc(axis.at + line.origin, line.frame, 0.0).xy);
+    return depth <= axis.depth + ink_tolerance(axis.depth, abs(slope.x) + abs(slope.y), 1.0);
+}
+
 // plane fit first, then the exact triangles
 fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> bool {
-    let plane_visible = ink_visible_plane(pixel, axis, sample);
+    // a section cap is flat on its plane: exact where it lies under the center line
+    var fit_at = pixel;
+
+    if (clip_active()) {
+        let under = floor(axis.at) + fract(pixel);
+        let cap = ink_primitive(under, sample);
+
+        if (clip_is_cap(cap)) {
+            return ink_cap_visible(clip_cap_plane(cap), axis);
+        }
+
+        // a cap beside the center line only: the surface under the line decides
+        if (clip_is_cap(ink_primitive(pixel, sample))) {
+            fit_at = under;
+        }
+    }
+
+    let plane_visible = ink_visible_plane(fit_at, axis, sample);
     if (plane_visible && !boundary) {
         return true;
     }
@@ -282,45 +322,40 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
     // no tile lists: the plane fit decides
     if (triangle_tiles[0].x==0u) {
         return plane_visible;
-        // --8<-- [end:step-42a]
     }
 
     // canvas pixel of the center line
     let at = axis.at + line.origin;
     // the triangle under this pixel, tested exactly
-    let fringe = ink_primitive(pixel, sample);
+    let fringe = ink_primitive(fit_at, sample);
 
-    // --8<-- [start:step-42b]
-    if (fringe!=0u) {
+    if (fringe!=0u && !(clip_active() && clip_is_cap(fringe))) {
         let fringe_hit = projected_triangle_at(projected[fringe-1u], at);
-        if (fringe_hit.y>0.5 && fringe_hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
+        if (fringe_hit.y>0.5 && fringe_hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL && !ink_hit_cut(at, fringe_hit.x)) {
             return false;
         }
-        // --8<-- [end:step-42b]
     }
 
     // the four triangles around the center line, tested exactly
-    let source_base = floor(axis.at-fract(pixel))+fract(pixel);
+    let source_base = floor(axis.at-fract(fit_at))+fract(fit_at);
 
     for (var i = 0u;i<4u;i++) {
         let primitive = ink_primitive(source_base+vec2<f32>(f32(i&1u), f32(i>>1u)), sample);
 
-        if (primitive==0u || primitive==fringe) {
+        if (primitive==0u || primitive==fringe || (clip_active() && clip_is_cap(primitive))) {
             continue;
         }
 
         let hit = projected_triangle_at(projected[primitive-1u], at);
 
-        if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
+        if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL && !ink_hit_cut(at, hit.x)) {
             return false;
         }
     }
 
-    // --8<-- [start:step-42c]
     // a boundary stroke also checks every triangle in its tile
     if (plane_visible) { return true; }
 
-// --8<-- [end:step-42c]
     if (any(at<vec2<f32>(0.0)) || any(at>=line.frame)) {
         return false;
     }
@@ -353,7 +388,7 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
 
         let hit = projected_triangle_at(projected[primitive-1u], at);
 
-        if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
+        if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL && !ink_hit_cut(at, hit.x)) {
             return false;
         }
     }
@@ -361,20 +396,10 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
     return true;
 }
 
-// Triangle index from the two packed half floats, or 0.
-fn ink_decode_primitive(encoded: vec2<f32>) -> u32 {
-    if (any(encoded==vec2<f32>(0.0))) {
-        return 0u;
-    }
-
-    let packed = pack2x16float(encoded);
-    return ((packed&0xffffu)-0x400u) | (((packed>>16u)-0x400u)<<14u);
-}
-
-// --8<-- [start:step-5]
-// Hidden ink behind a translucent face is dimmed to 1 - opacity, instead of being hidden outright.
+// Alpha of hidden ink: 0, or 1 - opacity through translucent faces.
 fn through_glass(hidden: bool) -> f32 {
     let glass = line.opacity > 0.0 && line.opacity < 1.0;
     return select(1.0, select(0.0, 1.0 - line.opacity, glass), hidden);
 }
-// --8<-- [end:step-5]
+
+#include "projected_triangle.wgsl"

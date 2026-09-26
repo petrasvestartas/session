@@ -148,3 +148,46 @@ impl State {
         }
     }
 }
+
+impl State {
+    /// While splitting, clicked layer rows are cutters; false when no split waits.
+    pub(super) fn take_split_rows(&mut self, rows: &[u32]) -> bool {
+        if self.features.pending_split.is_none() {
+            return false;
+        }
+
+        for &row in rows {
+            self.pick_split_cutter(row);
+        }
+
+        true
+    }
+
+    /// A split whose target or a cutter is gone ends.
+    pub(super) fn drop_gone_split(&mut self) {
+        let scene = &self.scene;
+        let gone = |row: &u32| scene.identity_of(*row).is_none();
+        let split = self
+            .features
+            .pending_split
+            .as_ref()
+            .is_some_and(|split| gone(&split.target) || split.cutters.iter().any(gone));
+
+        if split {
+            self.cancel_split();
+        }
+    }
+
+    /// A split is waiting for its cutter: it takes the pick.
+    pub(super) fn take_split_pick(&mut self, pick: Option<crate::engine::gpu::Pick>) -> bool {
+        if self.features.pending_split.is_none() {
+            return false;
+        }
+
+        if let Some(pick) = pick {
+            self.pick_split_cutter(pick.row);
+        }
+
+        true
+    }
+}

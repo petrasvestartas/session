@@ -17,11 +17,11 @@ async function main(){
  const failures=[];page.on('pageerror',error=>failures.push(String(error)));
  async function route(request){
    const url=new URL(request.request().url());
-   if(url.pathname==='/scenes/slow.toml'){slowRequested();await slowGate;return request.fulfill({status:200,contentType:'application/toml',body:'name="slow"\n[[items]]\nfile="pb/one.pb"\n'});}
+   if(url.pathname==='/scenes/slow.toml'){slowRequested();await slowGate;return request.fulfill({status:200,contentType:'application/yaml',body:'name: slow\nitems:\n  - file: pb/one.pb\n'});}
    if(url.pathname.startsWith('/scenes/')){
      const name=url.pathname.split('/').at(-1).split('.')[0];
      if(name==='missing')return request.fulfill({status:404,body:'absent'});
-     return request.fulfill({status:200,contentType:'application/toml',body:'name="'+name+'"\n[[items]]\nfile="pb/'+name+'.pb"\n'});
+     return request.fulfill({status:200,contentType:'application/yaml',body:'name: '+name+'\nitems:\n  - file: pb/'+name+'.pb\n'});
    }
    if(url.pathname.startsWith('/pb/')){
      const name=url.pathname.split('/').at(-1).split('.')[0];

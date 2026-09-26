@@ -1,8 +1,6 @@
-use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
+use crate::app::scene::{FileDoc, Scene};
 use crate::app::selection::{ControlId, Controls, SelectionMode};
-use crate::app::walk::cloud::StreamRows;
 use crate::app::walk::encode::FACING_UNKNOWN;
-use crate::app::walk::sheet::SheetRows;
 use crate::camera::Camera;
 use crate::engine::gpu::glyphs::GlyphRows;
 use crate::engine::gpu::pick::PickMode;
@@ -57,13 +55,9 @@ pub struct State {
     requested: PickMode,                    // what the pending pick looks for
     pub(crate) additive_selection: bool,    // Shift held: add to the selection
     selection_order: Vec<u32>,              // selected rows in pick order
+    highlighted: Vec<u32>,                  // rows highlighted, when several are selected
     pub selection_radius_css: f64,          // click tolerance in CSS pixels
     show_selected_names: bool,              // name label on the selection, T toggles
-    cloud_query: Option<crate::app::cloud_query::Query>, // a point-cloud pick in flight
-    #[cfg(target_arch = "wasm32")]
-    query_generation: u64, // counts cloud queries, old answers dropped
-    sheet_query: Option<crate::app::sheet_query::Query>, // a sheet pick in flight
-    sheet_generation: u64,                  // counts sheet queries, old answers dropped
     pub(crate) features: Features,          // what each feature keeps, features.rs
 }
 
@@ -93,13 +87,9 @@ impl State {
             requested: PickMode::Object,
             additive_selection: false,
             selection_order: Vec::new(),
+            highlighted: Vec::new(),
             selection_radius_css: 6.0,
             show_selected_names: true,
-            cloud_query: None,
-            #[cfg(target_arch = "wasm32")]
-            query_generation: 0,
-            sheet_query: None,
-            sheet_generation: 0,
             features: Features::default(),
         })
     }
@@ -119,23 +109,19 @@ impl State {
         let t0 = now_ms();
         let first_row = self.scene.row_count(); // rows before this document
         let index = self.scene.docs.len();
-        crate::app::fonts::need_names(&doc.name, &doc.session);
+        crate::app::fonts::need_names(&doc.name, &doc.session); // register:loading
         self.scene.add_file(doc);
         let t1 = now_ms();
         // only the new rows go to the GPU
         self.scene.upload_to(&mut self.gpu);
         self.camera.grow_extent(&self.gpu.bounds);
-        self.annotate_document(first_row);
-        self.dim_elements(first_row);
-
-        // a display-only document keeps its rows and tree, not its objects
-        if let Some(url) = source {
-            self.scene.release(index, first_row as u32, url);
-        }
+        self.annotate_document(first_row); // register:scene_text
+        self.dim_elements(first_row); // register:opacity
+        self.release_display_only(index, first_row, source); // register:release
 
         // the layer panel lists the new rows
-        self.refresh_layers();
-        self.update_label();
+        self.refresh_layers(); // register:panel
+        self.update_label(); // register:scene_text
         log::info!(
             "appended: walk {:.0} ms, upload {:.0} ms | {} docs | memory observation {:.0} MiB",
             t1 - t0,
@@ -146,67 +132,21 @@ impl State {
         self.touch();
     }
 
-    /// Replace the scene's text labels.
-    pub fn set_texts(&mut self, texts: Vec<crate::app::manifest::TextItem>) {
-        self.scene.set_texts(texts, &mut self.gpu);
-        self.update_label();
-        self.touch();
-    }
-
-    /// Start a streamed point cloud; returns its slot.
-    pub fn add_streamed(&mut self, init: StreamedInit) -> usize {
-        let idx = self.scene.add_streamed_cloud(init, &mut self.gpu);
-        self.camera.grow_extent(&self.gpu.bounds);
-        self.touch();
-        idx
-    }
-
-    /// Add more points to streamed cloud `idx`.
-    pub fn extend_streamed(&mut self, idx: usize, rows: StreamRows, to: u32) {
-        self.scene
-            .extend_streamed_cloud(idx, rows, to, &mut self.gpu);
-        self.camera.grow_extent(&self.gpu.bounds);
-        log::info!(
-            "cloud slice: {to} points resident | heap {:.0} MB",
-            heap_mb()
-        );
-        self.touch();
-    }
-
-    /// Start a streamed sheet; returns its slot.
-    pub fn add_sheet(&mut self, init: SheetInit) -> usize {
-        let idx = self.scene.add_sheet(init, &mut self.gpu);
-        self.camera.grow_extent(&self.gpu.bounds);
-        self.touch();
-        idx
-    }
-
-    /// Add more segments to sheet `idx`.
-    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32) {
-        self.scene.extend_sheet(idx, rows, to, &mut self.gpu);
-        self.camera.grow_extent(&self.gpu.bounds);
-        log::info!(
-            "sheet slice: {to} segments resident | heap {:.0} MB",
-            heap_mb()
-        );
-        self.touch();
-    }
-
     /// Remove every document; camera and GPU stay.
     pub fn clear(&mut self) {
         self.load_camera = self.camera.pose(); // remember the view
-        self.cancel_split();
-        self.cancel_gesture();
-        self.features.draft = None; // its rows are gone
-        self.features.hierarchy = Default::default();
+        self.cancel_split(); // register:split
+        self.cancel_gesture(); // register:editing
+        self.features.draft = None; // its rows are gone; register:commands
+        self.features.hierarchy = Default::default(); // register:panel
         self.selection = SelectionMode::Object;
-        self.sheet_query = None;
+        self.features.sheet_query = None; // register:sheets
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
-        self.features.resume.clear(); // a waiting Save or F10 belonged to the old scene
+        self.features.resume.clear(); // a waiting Save or F10 belonged to the old scene; register:editing
         self.scene.clear(&mut self.gpu);
-        self.place_gizmo(None);
-        self.refresh_layers();
+        self.place_gizmo(None); // register:editing
+        self.refresh_layers(); // register:panel
         self.touch();
     }
 
@@ -226,7 +166,7 @@ impl State {
 
         self.scene.bounds_stale = false;
         self.gpu.bounds = self.gpu.objects.live_world_bounds();
-        self.include_text_bounds();
+        self.include_text_bounds(); // register:scene_text
     }
 
     /// Fit the camera to everything loaded.
@@ -277,7 +217,7 @@ impl State {
         self.last_resize_ms = now;
         self.gpu.resize(width, height);
         self.gpu.logical_size = self.logical_size();
-        self.upload_controls();
+        self.upload_controls(); // register:controls
         self.touch();
         true
     }
@@ -312,8 +252,8 @@ impl State {
 
     /// Something changed: drop pending picks, draw again.
     pub fn touch(&mut self) {
-        self.fetch_wanted();
-        self.cancel_cloud_query();
+        self.fetch_wanted(); // register:editing
+        self.cancel_cloud_query(); // register:cloud_query
         self.gpu.pick.cancel();
         self.dirty = true;
         self.needs_frame = true;
@@ -321,20 +261,20 @@ impl State {
 
     /// Select one row, or nothing.
     pub fn select(&mut self, row: Option<u32>) {
-        self.cancel_split();
+        self.cancel_split(); // register:split
         let row = row.filter(|row| self.scene.selectable(*row));
-        self.cancel_gesture();
+        self.cancel_gesture(); // register:editing
 
         // unhighlight the old selection and the clicked layers
-        self.features.hierarchy.active.clear();
+        self.features.hierarchy.active.clear(); // register:panel
 
-        for old in self.features.hierarchy.selected.drain(..) {
+        for old in self.highlighted.drain(..) {
             self.gpu.set_selected(old, false);
         }
 
         // back to plain object mode, no edge, face or controls
         self.selection = SelectionMode::Object;
-        self.sheet_query = None;
+        self.features.sheet_query = None; // register:sheets
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
         self.gpu.controls.reset();
@@ -352,18 +292,18 @@ impl State {
 
         self.scene.selected = row;
         self.selection_order = row.into_iter().collect();
-        self.refresh_layers();
-        self.place_gizmo(row);
-        self.update_label();
+        self.refresh_layers(); // register:panel
+        self.place_gizmo(row); // register:editing
+        self.update_label(); // register:scene_text
         self.touch();
     }
 
     /// Every selected row.
     pub(crate) fn selected_rows(&self) -> Vec<u32> {
-        if self.features.hierarchy.selected.is_empty() {
+        if self.highlighted.is_empty() {
             self.scene.selected.into_iter().collect()
         } else {
-            self.features.hierarchy.selected.clone()
+            self.highlighted.clone()
         }
     }
 
@@ -397,38 +337,41 @@ impl State {
             self.gpu.set_selected(row, true);
         }
         if selected.len() > 1 {
-            self.features.hierarchy.selected = selected;
+            self.highlighted = selected;
         }
-        self.place_gizmo(self.scene.selected);
-        self.refresh_layers();
-        self.update_label();
+        self.place_gizmo(self.scene.selected); // register:editing
+        self.refresh_layers(); // register:panel
+        self.update_label(); // register:scene_text
         self.touch();
     }
 
     /// Select what a viewport click on `row` reaches: its whole group, when it is in one.
     pub(crate) fn select_picked(&mut self, row: u32, additive: bool) {
-        let rows = self.scene.group_rows(row);
+        let rows = features::CLICK_ROWS
+            .iter()
+            .find_map(|widen| widen(self, row))
+            .unwrap_or_else(|| vec![row]);
         self.select_rows(rows, additive);
     }
 
     /// T: show or hide the name label on the selection.
     pub fn toggle_selected_names(&mut self) {
         self.show_selected_names = !self.show_selected_names;
-        self.update_label();
+        self.update_label(); // register:scene_text
         self.touch();
     }
 
     /// H: hide the selection.
     pub fn hide_selected(&mut self) {
         // several rows selected
-        if !self.features.hierarchy.selected.is_empty() {
-            let rows = std::mem::take(&mut self.features.hierarchy.selected);
+        if !self.highlighted.is_empty() {
+            let rows = std::mem::take(&mut self.highlighted);
 
             for row in &rows {
                 self.gpu.set_selected(*row, false);
             }
 
-            self.set_rows_hidden(&rows, true);
+            self.set_rows_hidden(&rows, true); // register:panel
             return;
         }
 
@@ -441,56 +384,8 @@ impl State {
         self.select(None);
         self.scene.hidden.insert(guid); // by id, so a new row of it stays hidden
         self.gpu.set_hidden(row, true);
-        self.refresh_layers();
-        self.update_label();
-        self.touch();
-    }
-
-    /// Element Features On|Off: draw the features inside each element; `None` toggles.
-    pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
-        let show = value.unwrap_or(!self.scene.attributes);
-        self.scene.attributes = show;
-        self.select(None);
-
-        if !self.scene.rewalk_editable(&mut self.gpu) {
-            self.resume_after(hydrate::Resume::Rewalk);
-        }
-
-        self.place_gizmo(None);
-        self.refresh_layers();
-        self.update_label();
-        self.touch();
-        show
-    }
-
-    /// Make elements slightly see-through the first time they arrive.
-    fn dim_elements(&mut self, first_row: usize) {
-        // an opacity was already chosen
-        if self.features.opacity_chosen || self.gpu.view.opacity < 1.0 {
-            return;
-        }
-
-        // does the new document have elements?
-        let elements = (first_row..self.scene.row_count()).any(|row| {
-            let row = row as u32;
-            matches!(
-                self.scene
-                    .geometry(row)
-                    .or_else(|| self.scene.instance_definition(row)),
-                Some(session_rust::Geometry::Element(_))
-            )
-        });
-
-        if elements {
-            self.gpu.view.opacity = ELEMENT_OPACITY;
-            self.features.opacity_chosen = true;
-        }
-    }
-
-    /// Opacity <value>: 0 is x-ray, 1 is solid.
-    pub fn set_opacity(&mut self, value: f32) {
-        self.gpu.view.opacity = value.clamp(0.0, 1.0);
-        self.features.opacity_chosen = true;
+        self.refresh_layers(); // register:panel
+        self.update_label(); // register:scene_text
         self.touch();
     }
 
@@ -501,41 +396,21 @@ impl State {
         }
 
         self.scene.hidden.clear();
-        self.refresh_layers();
-        self.update_label();
+        self.refresh_layers(); // register:panel
+        self.update_label(); // register:scene_text
         self.touch();
     }
 
     /// A pick answer arrived: select what it hit.
     fn apply_pick(&mut self, pick: Option<Pick>) {
-        // a drag asked what its press landed on
-        if self.take_drag_pick(pick) {
-            return;
-        }
-
-        // a tool asked for this object
-        if self.tool_picks() {
-            self.tool_picked(pick.map(|pick| pick.row));
-            return;
-        }
-
-        // a split is waiting for its cutter
-        if self.features.pending_split.is_some() {
-            if let Some(pick) = pick {
-                self.pick_split_cutter(pick.row);
+        // a feature waiting for this answer takes it: a drag, a tool, a split, a point-cloud query
+        for take in features::TAKE_PICK {
+            if take(self, pick) {
+                return;
             }
-
-            return;
         }
 
         let pick = pick.filter(|pick| self.scene.selectable(pick.row));
-
-        // a point-cloud query takes the answer
-        #[cfg(target_arch = "wasm32")]
-        if self.cloud_query_awaiting_gpu() {
-            self.apply_cloud_query_pick(pick);
-            return;
-        }
 
         match self.requested {
             PickMode::Edge | PickMode::Component => {
@@ -549,37 +424,19 @@ impl State {
                     self.gpu
                         .segments
                         .set_edge(&self.gpu.ctx, Some((pick.row, edge)));
-                    self.place_gizmo(Some(pick.row));
+                    self.place_gizmo(Some(pick.row)); // register:editing
                     self.status(&format!("Edge {edge} selected"));
-                } else if self.requested == PickMode::Component
-                    && let Some(pick) = pick
-                    && let Some((address, source)) =
-                        self.gpu.arena.source_faces.source(pick.row, pick.sub)
-                {
-                    self.select(Some(source.parent));
-                    self.gpu.set_selected(source.parent, false);
-                    self.gpu
-                        .pass_mut::<crate::engine::gpu::surface_outline::Outline>()
-                        .selection
-                        .set_selected(source.parent, true);
-                    self.selection = SelectionMode::Face {
-                        parent: source.parent,
-                        face: source.face,
-                    };
-                    self.gpu
-                        .arena
-                        .source_faces
-                        .select(&self.gpu.ctx, Some(address));
-                    self.place_gizmo(Some(source.parent));
-                    self.status(&format!("Face {} selected", source.face));
+                    return;
                 }
+
+                self.pick_face(pick); // register:scene_text
                 return;
             }
             PickMode::Controls { parent, cloud } => {
                 if let Some(pick) = pick
                     && pick.row == parent
                 {
-                    self.apply_control(pick, cloud);
+                    self.apply_control(pick, cloud); // register:controls
                 }
 
                 return;
@@ -615,7 +472,7 @@ impl State {
 
                 // a sheet entity, not an object
                 if let Some(entity) = hit.entity {
-                    self.apply_sheet_pick(hit.row, entity);
+                    self.apply_sheet_pick(hit.row, entity); // register:sheets
                     return;
                 }
 
@@ -627,28 +484,17 @@ impl State {
 
     /// Draw one frame; a still scene asks for no more.
     pub fn render(&mut self) {
-        // every edit syncs its rows; one that did not is caught here
-        if self.scene.has_pending() {
-            log::warn!("an edit left its rows unsynced");
-            self.commit_rows();
-        }
-
-        // snapping asked for a released document
-        if self.scene.wanting() {
-            self.fetch_wanted();
-        }
-
         for hook in features::BEFORE_PICKS {
             hook(self);
         }
 
-        self.upload_gizmo();
+        self.upload_gizmo(); // register:gumball
         let logical = self.logical_size();
 
         // the CSS size changed: control dots keep their pixel size
         if logical != self.gpu.logical_size {
             self.gpu.logical_size = logical;
-            self.upload_controls();
+            self.upload_controls(); // register:controls
             self.touch();
         }
 
@@ -667,7 +513,7 @@ impl State {
             }
 
             crate::app::feedback::error(&message);
-            self.cancel_cloud_query();
+            self.cancel_cloud_query(); // register:cloud_query
             self.gpu.pick.cancel();
             self.needs_frame = false;
             return;
@@ -676,11 +522,8 @@ impl State {
         // apply a pick answer first, so this frame shows it
         if let Some(pick) = self.gpu.pick.poll() {
             self.apply_pick(pick);
-        } else if self.cloud_query_awaiting_gpu() && !self.gpu.pick.busy() {
-            self.cloud_query = None;
-            self.gpu.pick.cancel();
-            self.upload_controls();
-            self.status("Point query failed during GPU readback; click to retry");
+        } else {
+            self.cloud_query_lost(); // register:cloud_query
         }
 
         self.needs_frame = false;
@@ -690,7 +533,7 @@ impl State {
         }
 
         if self.gpu.view.spin {
-            self.cancel_cloud_query();
+            self.cancel_cloud_query(); // register:cloud_query
             self.camera.orbit(SPIN_STEP, 0.0);
         }
 
@@ -716,8 +559,10 @@ impl State {
             || (self.gpu.performance.rough() && !self.interacting); // redraw reasons
 
         let mut dropped = false;
+        let mut waiting = false;
+        waiting |= self.cloud_query_awaiting_gpu(); // a point-cloud query waits for its answer; register:cloud_query
 
-        if self.dirty && !self.cloud_query_awaiting_gpu() {
+        if self.dirty && !waiting {
             let gap = now_ms - self.last_frame_ms; // time since the last frame
             self.last_frame_ms = now_ms;
             self.gpu.performance.interacting = self.interacting;
@@ -784,17 +629,21 @@ impl State {
     /// Ask what is under a pixel: an object, an edge (Ctrl) or a face (Ctrl+Shift).
     pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
         // a split or a tool wants a plain object
-        let splitting = self.features.pending_split.is_some() || self.tool_picks();
+        let mut splitting = false;
+        splitting |= self.features.pending_split.is_some(); // register:split
+        splitting |= self.tool_picks(); // register:tools
         let face = !splitting
             && (face || self.selection_tool == crate::app::selection::SelectionTool::Face);
         let edge = !splitting
             && (edge || self.selection_tool == crate::app::selection::SelectionTool::Edge);
-        self.cancel_cloud_query();
+        self.cancel_cloud_query(); // register:cloud_query
         self.gpu.pick.cancel();
 
         // a point cloud answers by its own query
-        #[cfg(target_arch = "wasm32")]
-        if !splitting && !edge && self.start_cloud_query(x, y) {
+        let mut queried = false;
+        queried |= self.start_cloud_pick(x, y, splitting || edge); // register:cloud_query
+
+        if queried {
             return;
         }
 
@@ -823,6 +672,93 @@ impl State {
         self.needs_frame = true;
     }
 
+    /// Esc: the first cancels a command and keeps the selection, the next one clears it.
+    pub fn escape(&mut self) {
+        let mut cancelled = false;
+        cancelled |= self.cancel_draft(); // register:tools
+
+        if !cancelled {
+            self.escape_selection();
+        }
+    }
+
+    /// Esc: leave control points, keep the object selected.
+    pub fn escape_selection(&mut self) {
+        let parent = self.selection.escape();
+        self.select(parent);
+        self.features.mark = None; // register:annotate
+        self.status("");
+    }
+
+    /// Show a message in the status line.
+    fn status(&self, message: &str) {
+        crate::app::feedback::status(message);
+    }
+
+    /// The `?perf=1` line: frame number, gap, encode time, heap.
+    #[cfg(target_arch = "wasm32")]
+    fn perf_line(&self, gap_ms: f64, encode_ms: f64) {
+        let line = format!(
+            "f{} gap {gap_ms:.0} enc {encode_ms:.1} ms wasm capacity {:.0} MiB",
+            self.gpu.performance.frames,
+            heap_mb()
+        );
+        crate::engine::performance::perf_line(&line);
+    }
+
+    /// Natively the perf line goes nowhere.
+    #[cfg(not(target_arch = "wasm32"))]
+    fn perf_line(&self, _gap_ms: f64, _encode_ms: f64) {}
+}
+
+#[cfg(target_arch = "wasm32")]
+impl State {
+    /// The control points as JSON, for the inspection tests.
+    pub fn inspected_controls(&self) -> Vec<serde_json::Value> {
+        let mut points = Vec::with_capacity(self.controls.points.len());
+
+        for point in &self.controls.points {
+            points.push(serde_json::json!({"id": point.id, "position": point.position}));
+        }
+
+        points
+    }
+}
+
+/// A position as the f32 the GPU takes.
+pub(crate) fn render_position(position: [f64; 3]) -> [f32; 3] {
+    [position[0] as f32, position[1] as f32, position[2] as f32]
+}
+
+/// `selected` in the pick order `order`, first picks first; rows the order misses come last.
+fn ordered(order: &[u32], selected: &[u32]) -> Vec<u32> {
+    let mut left: std::collections::HashSet<u32> = selected.iter().copied().collect();
+    let mut rows: Vec<u32> = Vec::with_capacity(selected.len());
+
+    for row in order.iter().chain(selected) {
+        if left.remove(row) {
+            rows.push(*row);
+        }
+    }
+
+    rows
+}
+
+#[cfg(test)]
+mod order_tests {
+    use super::ordered;
+
+    /// Picks keep their order; a dropped row goes, an unknown one comes last.
+    #[test]
+    fn the_selection_keeps_pick_order() {
+        assert_eq!(ordered(&[9, 2, 5], &[2, 5, 9]), vec![9, 2, 5]);
+        assert_eq!(ordered(&[9, 2, 5], &[2, 9]), vec![9, 2]);
+        assert_eq!(ordered(&[9, 2], &[1, 2, 9]), vec![9, 2, 1]);
+        assert_eq!(ordered(&[3, 3, 1], &[1, 3]), vec![3, 1]);
+    }
+}
+
+impl State {
     /// F10: show the control points of the selected object.
     pub fn enable_controls(&mut self) {
         let Some(parent) = self.scene.selected else {
@@ -836,23 +772,17 @@ impl State {
             return;
         }
         // a released document comes back first
-        if let Some(doc) = self.scene.released_doc(parent) {
-            self.scene.want(doc);
-            self.status(&format!(
-                "Loading '{}' for its control points",
-                self.scene.docs[doc].name
-            ));
-            self.resume_after(hydrate::Resume::Controls(parent));
+        let mut released = false;
+        released |= self.controls_after_hydrate(parent); // register:editing
+
+        if released {
             return;
         }
 
         // the points come from the source geometry
         let controls = match self.scene.geometry(parent) {
             Some(geometry) => Controls::from_geometry(geometry),
-            None if self.streamed_slot(parent).is_some() => Controls {
-                cloud: true,
-                ..Controls::default()
-            },
+            None if self.streamed_slot(parent).is_some() => Controls::cloud(), // register:cloud_query
             None => {
                 self.status("Source controls are unavailable for this display-only object");
                 return;
@@ -865,7 +795,7 @@ impl State {
         }
 
         // the gizmo would take the same clicks
-        self.place_gizmo(None);
+        self.place_gizmo(None); // register:editing
         self.selection.enable_controls(Some(parent), controls.cloud);
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.gpu.segments.set_edge(&self.gpu.ctx, None);
@@ -874,18 +804,10 @@ impl State {
             .splat
             .set_controls(controls.cloud.then_some(parent));
         self.controls = controls;
-        self.upload_controls();
-        self.update_label();
+        self.upload_controls(); // register:controls
+        self.update_label(); // register:scene_text
         self.status("Control points: click to select; Esc to leave");
         self.touch();
-    }
-
-    /// Esc: leave control points, keep the object selected.
-    pub fn escape_selection(&mut self) {
-        let parent = self.selection.escape();
-        self.select(parent);
-        self.features.mark = None;
-        self.status("");
     }
 
     /// Send the control dots and their links to the GPU.
@@ -983,76 +905,151 @@ impl State {
             selected: Some(id),
             cloud,
         };
-        self.upload_controls();
-        self.place_gizmo(Some(parent));
+        self.upload_controls(); // register:controls
+        self.place_gizmo(Some(parent)); // register:editing
         self.status(&format!("Selected {id:?}"));
         self.touch();
     }
+}
 
-    /// Show a message in the status line.
-    fn status(&self, message: &str) {
-        crate::app::feedback::status(message);
+use crate::app::scene::StreamedInit;
+use crate::app::walk::cloud::StreamRows;
+
+impl State {
+    /// Start a streamed point cloud; returns its slot.
+    pub fn add_streamed(&mut self, init: StreamedInit) -> usize {
+        let idx = self.scene.add_streamed_cloud(init, &mut self.gpu);
+        self.camera.grow_extent(&self.gpu.bounds);
+        self.touch();
+        idx
     }
 
-    /// The `?perf=1` line: frame number, gap, encode time, heap.
-    #[cfg(target_arch = "wasm32")]
-    fn perf_line(&self, gap_ms: f64, encode_ms: f64) {
-        let line = format!(
-            "f{} gap {gap_ms:.0} enc {encode_ms:.1} ms wasm capacity {:.0} MiB",
-            self.gpu.performance.frames,
+    /// Add more points to streamed cloud `idx`.
+    pub fn extend_streamed(&mut self, idx: usize, rows: StreamRows, to: u32) {
+        self.scene
+            .extend_streamed_cloud(idx, rows, to, &mut self.gpu);
+        self.camera.grow_extent(&self.gpu.bounds);
+        log::info!(
+            "cloud slice: {to} points resident | heap {:.0} MB",
             heap_mb()
         );
-        crate::engine::performance::perf_line(&line);
+        self.touch();
     }
-
-    /// Natively the perf line goes nowhere.
-    #[cfg(not(target_arch = "wasm32"))]
-    fn perf_line(&self, _gap_ms: f64, _encode_ms: f64) {}
 }
 
-#[cfg(target_arch = "wasm32")]
 impl State {
-    /// The control points as JSON, for the inspection tests.
-    pub fn inspected_controls(&self) -> Vec<serde_json::Value> {
-        let mut points = Vec::with_capacity(self.controls.points.len());
-
-        for point in &self.controls.points {
-            points.push(serde_json::json!({"id": point.id, "position": point.position}));
+    /// A display-only document keeps its rows and tree, not its objects.
+    pub(super) fn release_display_only(
+        &mut self,
+        index: usize,
+        first_row: usize,
+        source: Option<String>,
+    ) {
+        if let Some(url) = source {
+            self.scene.release(index, first_row as u32, url);
         }
+    }
+}
 
-        points
+impl State {
+    /// A face pick in Component mode: select the face.
+    fn pick_face(&mut self, pick: Option<Pick>) {
+        if self.requested == PickMode::Component
+            && let Some(pick) = pick
+            && let Some((address, source)) = self.gpu.arena.source_faces.source(pick.row, pick.sub)
+        {
+            self.select(Some(source.parent));
+            self.gpu.set_selected(source.parent, false);
+            self.gpu
+                .pass_mut::<crate::engine::gpu::surface_outline::Outline>()
+                .selection
+                .set_selected(source.parent, true);
+            self.selection = SelectionMode::Face {
+                parent: source.parent,
+                face: source.face,
+            };
+            self.gpu
+                .arena
+                .source_faces
+                .select(&self.gpu.ctx, Some(address));
+            self.place_gizmo(Some(source.parent)); // register:editing
+            self.status(&format!("Face {} selected", source.face));
+        }
     }
 }
 
-/// A position as the f32 the GPU takes.
-pub(crate) fn render_position(position: [f64; 3]) -> [f32; 3] {
-    [position[0] as f32, position[1] as f32, position[2] as f32]
+use crate::app::scene::SheetInit;
+use crate::app::walk::sheet::SheetRows;
+
+impl State {
+    /// Start a streamed sheet; returns its slot.
+    pub fn add_sheet(&mut self, init: SheetInit) -> usize {
+        let idx = self.scene.add_sheet(init, &mut self.gpu);
+        self.camera.grow_extent(&self.gpu.bounds);
+        self.touch();
+        idx
+    }
+
+    /// Add more segments to sheet `idx`.
+    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32) {
+        self.scene.extend_sheet(idx, rows, to, &mut self.gpu);
+        self.camera.grow_extent(&self.gpu.bounds);
+        log::info!(
+            "sheet slice: {to} segments resident | heap {:.0} MB",
+            heap_mb()
+        );
+        self.touch();
+    }
 }
 
-/// `selected` in the pick order `order`, first picks first; rows the order misses come last.
-fn ordered(order: &[u32], selected: &[u32]) -> Vec<u32> {
-    let mut left: std::collections::HashSet<u32> = selected.iter().copied().collect();
-    let mut rows: Vec<u32> = Vec::with_capacity(selected.len());
+impl State {
+    /// Element Features On|Off: draw the features inside each element; `None` toggles.
+    pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
+        let show = value.unwrap_or(!self.scene.attributes);
+        self.scene.attributes = show;
+        self.select(None);
 
-    for row in order.iter().chain(selected) {
-        if left.remove(row) {
-            rows.push(*row);
+        if !self.scene.rewalk_editable(&mut self.gpu) {
+            self.resume_after(hydrate::Resume::Rewalk);
+        }
+
+        self.place_gizmo(None);
+        self.refresh_layers();
+        self.update_label();
+        self.touch();
+        show
+    }
+}
+
+impl State {
+    /// Make elements slightly see-through the first time they arrive.
+    fn dim_elements(&mut self, first_row: usize) {
+        // an opacity was already chosen
+        if self.features.opacity_chosen || self.gpu.view.opacity < 1.0 {
+            return;
+        }
+
+        // does the new document have elements?
+        let elements = (first_row..self.scene.row_count()).any(|row| {
+            let row = row as u32;
+            matches!(
+                self.scene
+                    .geometry(row)
+                    .or_else(|| self.scene.instance_definition(row)),
+                Some(session_rust::Geometry::Element(_))
+            )
+        });
+
+        if elements {
+            self.gpu.view.opacity = ELEMENT_OPACITY;
+            self.features.opacity_chosen = true;
         }
     }
 
-    rows
-}
-
-#[cfg(test)]
-mod order_tests {
-    use super::ordered;
-
-    /// Picks keep their order; a dropped row goes, an unknown one comes last.
-    #[test]
-    fn the_selection_keeps_pick_order() {
-        assert_eq!(ordered(&[9, 2, 5], &[2, 5, 9]), vec![9, 2, 5]);
-        assert_eq!(ordered(&[9, 2, 5], &[2, 9]), vec![9, 2]);
-        assert_eq!(ordered(&[9, 2], &[1, 2, 9]), vec![9, 2, 1]);
-        assert_eq!(ordered(&[3, 3, 1], &[1, 3]), vec![3, 1]);
+    /// Opacity <value>: 0 is x-ray, 1 is solid.
+    pub fn set_opacity(&mut self, value: f32) {
+        self.gpu.view.opacity = value.clamp(0.0, 1.0);
+        self.features.opacity_chosen = true;
+        self.touch();
     }
 }

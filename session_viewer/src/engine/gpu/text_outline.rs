@@ -8,26 +8,22 @@ use crate::engine::pipelines::{
 /// The three mesh buffers one sheet draw reads, borrowed from the arena.
 pub struct OutlineBuffers<'a> {
     pub vertices: &'a GrowBuf, // vertex positions
-    pub objects: &'a GrowBuf, // object row per vertex
-    pub indices: &'a GrowBuf, // triangle indices
+    pub objects: &'a GrowBuf,  // object row per vertex
+    pub indices: &'a GrowBuf,  // triangle indices
 }
 
 /// Draws sheet fills and lettering: flat color, no lighting.
 pub struct OutlineTextLane {
-    shader: Shader, // text outline shader
-    color: Pipeline, // in color
-    id: Pipeline, // object ids
+    shader: Shader,        // text outline shader
+    color: Pipeline,       // in color
+    id: Pipeline,          // object ids
     physical_id: Pipeline, // object ids with depth and gradient
 }
 
 impl OutlineTextLane {
     /// Compile the shader and build the three pipelines.
     pub fn new(ctx: &GpuCtx, layouts: &Layouts, target: Target) -> Self {
-        let shader = scene_module(
-            ctx,
-            "text-outline.shader",
-            shader!("text_outline.wgsl"),
-        );
+        let shader = scene_module(ctx, "text-outline.shader", shader!("text_outline.wgsl"));
         let (color, id, physical_id) = pipelines(ctx, layouts, &shader, target);
         Self {
             shader,
@@ -99,11 +95,7 @@ fn pipelines(
     layouts: &Layouts,
     shader: &Shader,
     target: Target,
-) -> (
-    Pipeline,
-    Pipeline,
-    Pipeline,
-) {
+) -> (Pipeline, Pipeline, Pipeline) {
     let groups = [&layouts.mvp, &layouts.line, &layouts.instance];
     let vertices = [vertex_layout(), instance_id_layout()];
     let base = PipelineDesc::new(
@@ -142,6 +134,16 @@ fn pipelines(
 mod tests {
     use crate::engine::gpu::{FrameInput, Gpu, Instance, ObjectRow, Upload};
     use session_rust::{RenderVertex, Xform};
+
+    /// True for the selection yellow.
+    fn is_yellow(pixel: &[u8]) -> bool {
+        pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 0
+    }
+
+    /// True for the white background.
+    fn is_white(pixel: &[u8]) -> bool {
+        pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 255
+    }
 
     #[test]
     #[ignore = "requires a native GPU adapter"]
@@ -263,15 +265,5 @@ mod tests {
             "the next valid background pick must complete normally"
         );
         assert!(!gpu.pick.busy());
-    }
-
-    /// True for the selection yellow.
-    fn is_yellow(pixel: &[u8]) -> bool {
-        pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 0
-    }
-
-    /// True for the white background.
-    fn is_white(pixel: &[u8]) -> bool {
-        pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 255
     }
 }

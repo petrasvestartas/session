@@ -16,27 +16,10 @@ impl Gpu {
         };
         self.frame.write(&self.ctx, input, &cx);
         self.each_pass(|pass, g| pass.write_frame(g, input));
-        self.widget.prepare(
-            &self.ctx,
-            &input.view_proj,
-            self.objects.anchor(),
-            self.frame.eye,
-            size,
-        );
+        self.prepare_widget(input, size); // register:gumball
         self.objects
             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
-        let frame = super::text::TextFrame {
-            mvp: self.frame.mvp_f32,
-            origin: self.objects.anchor(),
-            framebuffer: [size.0, size.1],
-            logical: self.logical_size,
-            ortho_half_height: self.frame.ortho_h,
-            clip: self.pass::<super::clip::Clip>().world(),
-        };
-
-        if let Err(error) = self.text.prepare(&self.ctx, &frame) {
-            log::warn!("text preparation: {error}");
-        }
+        self.prepare_text(size); // register:text
     }
 
     /// Keep a requested Arctic view awake until its idle-compiled pipelines are ready.
@@ -72,15 +55,16 @@ impl Gpu {
         let encode_ms = crate::engine::performance::now_ms() - t0;
         self.ctx.queue.submit([encoder.finish()]);
         // start reading back any pick copied this frame
-        self.pick.map();
-        self.arena.tiles.map_report();
+        self.pick.map(); // register:shell
+        self.arena.tiles.map_report(); // register:tiles
         output.present();
 
         // startup marks; the GPU-side one also times the pipelines the first frames compiled
-        let geometry = self.live_faces() + self.live_sheet() > 0
-            || self.live_pipes() + self.live_ribbons() > 0
-            || self.live_spheres() + self.live_dots() > 0
-            || self.live_points() > 0;
+        let mut geometry = false;
+        geometry |= self.live_faces() + self.live_sheet() > 0; // register:meshes
+        geometry |= self.live_pipes() + self.live_ribbons() > 0; // register:strokes
+        geometry |= self.live_spheres() + self.live_dots() > 0; // register:markers
+        geometry |= self.live_points() > 0; // register:clouds
 
         if let Some(done) = self.performance.mark_startup(geometry) {
             self.ctx
@@ -97,22 +81,6 @@ impl Gpu {
         }
 
         Some(encode_ms)
-    }
-
-    /// Run only the id pass for a pick; nothing is shown.
-    pub fn pick_frame(&mut self, input: &FrameInput, at: (u32, u32)) {
-        self.write_frame_uniforms(input);
-        let mut encoder = self
-            .ctx
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("pick"),
-            });
-        self.point_pass(&mut encoder);
-        self.id_pass(&mut encoder, Some(at));
-        self.ctx.queue.submit([encoder.finish()]);
-        self.pick.map();
-        self.arena.tiles.map_report();
     }
 
     /// Draw one frame into a texture and return its RGBA8 pixels; native only.
@@ -165,13 +133,10 @@ impl Gpu {
             },
         );
 
-        if let Some(timer) = &self.timer {
-            timer.resolve(&mut encoder);
-        }
-
+        self.resolve_timer(&mut encoder); // register:gtao
         self.ctx.queue.submit([encoder.finish()]);
-        self.pick.map();
-        self.arena.tiles.map_report();
+        self.pick.map(); // register:shell
+        self.arena.tiles.map_report(); // register:tiles
         log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
 
         let slice = readback.slice(..);
@@ -193,11 +158,44 @@ impl Gpu {
         drop(data);
         readback.unmap();
 
-        if let Some(timer) = self.timer.as_mut() {
-            timer.collect(&self.ctx);
-        }
-
+        self.collect_timer(); // register:gtao
         out
+    }
+}
+
+impl Gpu {
+    /// Lay out the labels for this frame.
+    fn prepare_text(&mut self, size: (u32, u32)) {
+        let frame = super::text::TextFrame {
+            mvp: self.frame.mvp_f32,
+            origin: self.objects.anchor(),
+            framebuffer: [size.0, size.1],
+            logical: self.logical_size,
+            ortho_half_height: self.frame.ortho_h,
+            clip: self.clip_planes(),
+        };
+
+        if let Err(error) = self.text.prepare(&self.ctx, &frame) {
+            log::warn!("text preparation: {error}");
+        }
+    }
+}
+
+impl Gpu {
+    /// Run only the id pass for a pick; nothing is shown.
+    pub fn pick_frame(&mut self, input: &FrameInput, at: (u32, u32)) {
+        self.write_frame_uniforms(input);
+        let mut encoder = self
+            .ctx
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("pick"),
+            });
+        self.point_pass(&mut encoder);
+        self.id_pass(&mut encoder, Some(at));
+        self.ctx.queue.submit([encoder.finish()]);
+        self.pick.map();
+        self.arena.tiles.map_report(); // register:tiles
     }
 
     /// Draw one frame and return (object, sub) per pixel; native only.
@@ -229,5 +227,36 @@ impl Gpu {
         let readback = self.pick.copy_frame(&self.ctx, &mut encoder);
         self.ctx.queue.submit([encoder.finish()]);
         readback.read(&self.ctx)
+    }
+}
+
+impl Gpu {
+    /// Place the gumball for this frame.
+    fn prepare_widget(&mut self, input: &FrameInput, size: (u32, u32)) {
+        self.widget.prepare(
+            &self.ctx,
+            &input.view_proj,
+            self.objects.anchor(),
+            self.frame.eye,
+            size,
+        );
+    }
+}
+
+impl Gpu {
+    /// Resolve the pass timestamps into their readback buffer.
+    #[cfg(not(target_arch = "wasm32"))]
+    fn resolve_timer(&self, encoder: &mut wgpu::CommandEncoder) {
+        if let Some(timer) = &self.timer {
+            timer.resolve(encoder);
+        }
+    }
+
+    /// Read the pass times back.
+    #[cfg(not(target_arch = "wasm32"))]
+    fn collect_timer(&mut self) {
+        if let Some(timer) = self.timer.as_mut() {
+            timer.collect(&self.ctx);
+        }
     }
 }

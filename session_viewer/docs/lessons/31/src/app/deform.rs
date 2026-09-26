@@ -1,11 +1,9 @@
-//! Dragging one face, edge or control point instead of the whole object; the drag is applied in the object's own frame.
-
 use super::selection::{ControlId, Controls, SelectionMode};
 use session_rust::{Geometry, Mesh, NurbsSurface, Point, Xform};
 use std::collections::HashSet;
 use std::rc::Rc;
 
-// A drag has to know what it grabbed: the whole object, one face, one edge, or a single control point.
+/// The part of a geometry an edit applies to.
 #[derive(Clone, Copy, Debug)]
 pub enum Target {
     Control(ControlId), // one control point or vertex
@@ -27,8 +25,8 @@ impl Target {
     }
 }
 
-/// The mesh vertices a deform target selects.
-fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
+/// The mesh vertex keys a target covers.
+pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
     match target {
         Target::Control(ControlId::Vertex(key)) if mesh.vertex.contains_key(&key) => Ok(vec![key]),
         Target::Face(key) => {
@@ -177,9 +175,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     .set_position(point);
             }
 
-            mesh.triangulation.clear();
-            // The identity transform invalidates kernel render/BVH caches in both the frozen
-            mesh.transform(&Xform::identity());
+            mesh.clear_triangle_bvh(); // stale after moving vertices
             Geometry::Mesh(Rc::new(mesh))
         }
         Geometry::NurbsSurface(source) => {
@@ -239,6 +235,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
             next.width = source.width;
             next.dash = source.dash.clone();
             next.linecolor = source.linecolor.clone();
+            next.arrowhead = source.arrowhead;
             Geometry::Line(Rc::new(next))
         }
         Geometry::Point(source) => {

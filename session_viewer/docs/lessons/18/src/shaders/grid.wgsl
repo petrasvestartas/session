@@ -15,8 +15,8 @@ const BLUE: vec3<f32> = vec3<f32>(0.30, 0.45, 0.85);
 
 // One grid vertex.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>,
-    @location(0) color: vec3<f32>,
+    @builtin(position) pos: vec4<f32>, // clip position
+    @location(0) color: vec3<f32>, // line color
 }
 
 @vertex
@@ -62,7 +62,5 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 @fragment
 // Flat line color.
 fn fs_main(in: VsOut) -> PhysicalColor {
-    // --8<-- [start:step-4]
-    return PhysicalColor(vec4<f32>(in.color, 1.0), vec4<f32>(0.0));
-    // --8<-- [end:step-4]
+    return PhysicalColor(vec4<f32>(in.color, 1.0), vec2<u32>(0u));
 }

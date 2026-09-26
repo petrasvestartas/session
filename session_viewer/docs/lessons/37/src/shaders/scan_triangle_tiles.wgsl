@@ -129,3 +129,5 @@ fn finish_offsets(@builtin(global_invocation_id) id: vec3<u32>) {
         records[0].values[1] = start+records[tile].values[0]*2u;
     }
 }
+
+#include "projected_triangle.wgsl"

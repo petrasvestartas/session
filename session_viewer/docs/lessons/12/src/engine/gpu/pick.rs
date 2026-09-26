@@ -1,49 +1,52 @@
-// --8<-- [start:step-15a]
-//! Picking draws the scene into a hidden texture where every pixel is an object number, then reads back the one pixel under the cursor.
 use super::buffers::GpuCtx;
-use super::targets::{TextureSpec, texture, texture_view};
+use super::frame::PickView;
+use super::targets::{Attachment, TextureSpec};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
 
 /// What the pixel under the cursor holds.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Pick {
-    pub row: u32,
+    pub row: u32, // object row
     pub sub: u32, // 0 = the object; else a tagged edge, face, dot or point id
 }
 
 /// Textures the id pass draws into, sized to the pick window.
 struct IdTargets {
-    id: wgpu::Texture, // one object id per pixel
-    id_view: wgpu::TextureView,
-    depth: wgpu::TextureView, // depth of the pick frame
-    gradient: wgpu::TextureView, // depth slope of the pick frame
-    size: (u32, u32), // texture size, px
+    id: Attachment,       // object and sub id per pixel
+    depth: Attachment,    // depth per pixel
+    gradient: Attachment, // triangle index + 1 per pixel, 0 for none
+    size: (u32, u32),     // texture size, px
 }
 
 /// Default click tolerance, CSS pixels.
 pub const PICK_RADIUS: u32 = 6;
 
+/// Extra pixels drawn around the window, for the visibility test.
+pub const PICK_HALO: u32 = 3;
+
 /// Largest tolerance, framebuffer pixels.
 const MAX_RADIUS: u32 = 128;
 
-/// What a pick may answer with.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum PickMode {
-    #[default]
-    Object,
-    Edge,
+pub use super::lane::PickMode;
+
+/// Stage of a multi-page source point query.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SourcePhase {
+    Inactive,  // no query running
+    FirstPage, // first page clears the ids
+    MorePages, // later pages keep them
 }
 
 /// The square of pixels read back around the cursor.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Window {
-    pub x: u32, // left edge, px
-    pub y: u32, // top edge, px
-    pub w: u32, // width, px
-    pub h: u32, // height, px
-    pub cx: u32, // cursor x inside the window
-    pub cy: u32, // cursor y inside the window
+    pub x: u32,      // left edge, px
+    pub y: u32,      // top edge, px
+    pub w: u32,      // width, px
+    pub h: u32,      // height, px
+    pub cx: u32,     // cursor x inside the window
+    pub cy: u32,     // cursor y inside the window
     pub radius: u32, // tolerance, px
 }
 
@@ -53,8 +56,6 @@ impl Window {
         Self::with_radius(at, size, PICK_RADIUS)
     }
 
-// --8<-- [end:step-15a]
-    // --8<-- [start:step-15b]
     /// A window of `radius` around `at`, kept inside the canvas.
     pub fn with_radius(at: (u32, u32), size: (u32, u32), radius: u32) -> Self {
         let radius = radius.min(MAX_RADIUS);
@@ -72,34 +73,49 @@ impl Window {
             radius,
         }
     }
+
+    /// The window plus its halo, as the pass draws it.
+    pub fn view(&self, size: (u32, u32)) -> PickView {
+        let size = (size.0.max(1), size.1.max(1));
+        let x = self.x.saturating_sub(PICK_HALO);
+        let y = self.y.saturating_sub(PICK_HALO);
+        let right = (self.x + self.w + PICK_HALO).min(size.0);
+        let bottom = (self.y + self.h + PICK_HALO).min(size.1);
+        PickView {
+            x,
+            y,
+            w: (right - x).max(1),
+            h: (bottom - y).max(1),
+        }
+    }
 }
 
 /// Bytes per row of the readback buffer, 256-aligned as wgpu requires.
 const ROW_BYTES: u32 = ((2 * MAX_RADIUS + 1) * 8).div_ceil(256) * 256;
 
-// --8<-- [end:step-15b]
-// --8<-- [start:step-15c]
 /// Runs picks: request, draw, copy, map, read.
 pub struct Picker {
-    pending: Option<(u32, u32)>, // cursor position waiting to be picked
-    inflight: bool, // a copy is on the GPU
-    window: Window, // window of the copy in flight
-    copied: bool, // a copy was encoded this frame, map it after submit
-    ready: Arc<AtomicU8>, // 0 waiting, 1 mapped, 2 failed
-    generation: u64, // bumps on every request or cancel
-    submitted: u64, // generation of the copy in flight
-    pub mode: PickMode, // what to answer with
-    radius: u32, // tolerance, framebuffer px
+    pending: Option<(u32, u32)>,    // cursor position waiting to be picked
+    inflight: bool,                 // a copy is on the GPU
+    window: Window,                 // window of the copy in flight
+    copied: bool,                   // a copy was encoded this frame, map it after submit
+    ready: Arc<AtomicU8>,           // 0 waiting, 1 mapped, 2 failed
+    generation: u64,                // bumps on every request or cancel
+    submitted: u64,                 // generation of the copy in flight
+    pub mode: PickMode,             // what to answer with
+    radius: u32,                    // tolerance, framebuffer px
+    source_phase: SourcePhase,      // stage of a source point query
     readback: Option<wgpu::Buffer>, // CPU-readable copy of the window
-    targets: Option<IdTargets>,
+    targets: Option<IdTargets>,     // id textures
+    view: PickView,                 // where the textures sit in the canvas
 }
 
 /// A whole-frame id copy, native only.
 #[cfg(not(target_arch = "wasm32"))]
 pub(super) struct IdReadback {
     buffer: wgpu::Buffer, // CPU-readable copy
-    size: (u32, u32), // frame size, px
-    row_bytes: u32, // bytes per row, 256-aligned
+    size: (u32, u32),     // frame size, px
+    row_bytes: u32,       // bytes per row, 256-aligned
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -142,8 +158,6 @@ impl IdReadback {
     }
 }
 
-// --8<-- [end:step-15c]
-// --8<-- [start:step-15d]
 impl Picker {
     /// Bytes reserved on the GPU: (buffer, textures).
     pub fn allocated_bytes(&self) -> (u64, u64) {
@@ -155,7 +169,7 @@ impl Picker {
             Some(target) => u64::from(target.size.0) * u64::from(target.size.1),
             None => 0,
         };
-        (buffer, pixels * 16)
+        (buffer, pixels * 20)
     }
 
     /// An idle picker with nothing allocated.
@@ -178,8 +192,10 @@ impl Picker {
             submitted: 0,
             mode: PickMode::Object,
             radius: PICK_RADIUS,
+            source_phase: SourcePhase::Inactive,
             readback: None,
             targets: None,
+            view: PickView::whole((1, 1)),
         }
     }
 
@@ -199,15 +215,78 @@ impl Picker {
 
     /// Drop the pending request and ignore any answer in flight.
     pub fn cancel(&mut self) {
+        self.source_phase = SourcePhase::Inactive;
         self.generation = self.generation.wrapping_add(1);
         self.pending = None;
     }
 
-// --8<-- [end:step-15d]
-    // --8<-- [start:step-15e]
+    /// Start a source point query.
+    pub fn start_source_query(&mut self) {
+        self.cancel();
+        self.source_phase = SourcePhase::FirstPage;
+    }
+
+    /// True while a source point query runs.
+    pub fn source_query(&self) -> bool {
+        self.source_phase != SourcePhase::Inactive
+    }
+
+    /// True once the first page of the query was drawn.
+    pub fn source_initialized(&self) -> bool {
+        self.source_phase == SourcePhase::MorePages
+    }
+
+    /// Open a pass for one query page; the first page clears the ids.
+    pub fn begin_source<'a>(
+        &mut self,
+        encoder: &'a mut wgpu::CommandEncoder,
+    ) -> wgpu::RenderPass<'a> {
+        let first = self.source_phase == SourcePhase::FirstPage;
+        self.source_phase = SourcePhase::MorePages;
+        let target = self
+            .targets
+            .as_ref()
+            .expect("physical query pass initializes targets");
+        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("source points"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &target.id,
+                resolve_target: None,
+                depth_slice: None,
+                ops: wgpu::Operations {
+                    load: if first {
+                        wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
+                    } else {
+                        wgpu::LoadOp::Load
+                    },
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &target.depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            timestamp_writes: None,
+            occlusion_query_set: None,
+            multiview_mask: None,
+        })
+    }
+
     /// The readback window around `at` at the current tolerance.
     pub fn window(&self, at: (u32, u32), size: (u32, u32)) -> Window {
         Window::with_radius(at, size, self.radius)
+    }
+
+    /// Area the id pass draws: the window plus halo, or the whole canvas.
+    pub fn view_for(&self, at: Option<(u32, u32)>, size: (u32, u32)) -> PickView {
+        match at {
+            Some(at) => self.window(at, size).view(size),
+            None => PickView::whole(size),
+        }
     }
 
     /// True while a pick is requested or in flight.
@@ -224,19 +303,20 @@ impl Picker {
         }
     }
 
-// --8<-- [end:step-15e]
-    // --8<-- [start:step-15f]
     /// Open the id pass over textures sized to `view`, cleared.
     pub fn begin_pass<'a>(
-        &'a mut self,
+        &mut self,
         ctx: &GpuCtx,
         encoder: &'a mut wgpu::CommandEncoder,
-        size: (u32, u32),
+        view: PickView,
     ) -> wgpu::RenderPass<'a> {
+        let size = (view.w, view.h);
+        self.view = view;
+
         // remake the textures when the size changed
         if !matches!(&self.targets, Some(targets) if targets.size == size) {
             let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC;
-            let id = texture(
+            let id = Attachment::new(
                 ctx,
                 "pick.id",
                 &TextureSpec {
@@ -246,8 +326,7 @@ impl Picker {
                     usage,
                 },
             );
-            let id_view = id.create_view(&wgpu::TextureViewDescriptor::default());
-            let depth = texture_view(
+            let depth = Attachment::new(
                 ctx,
                 "pick.depth",
                 &TextureSpec {
@@ -258,12 +337,12 @@ impl Picker {
                         | wgpu::TextureUsages::TEXTURE_BINDING,
                 },
             );
-            let gradient = texture_view(
+            let gradient = Attachment::new(
                 ctx,
-                "pick.gradient",
+                "pick.primitive",
                 &TextureSpec {
                     size,
-                    format: wgpu::TextureFormat::Rg16Float, // two half floats
+                    format: wgpu::TextureFormat::Rg16Uint,
                     samples: 1,
                     usage: wgpu::TextureUsages::RENDER_ATTACHMENT
                         | wgpu::TextureUsages::TEXTURE_BINDING,
@@ -271,7 +350,6 @@ impl Picker {
             );
             self.targets = Some(IdTargets {
                 id,
-                id_view,
                 depth,
                 gradient,
                 size,
@@ -283,7 +361,7 @@ impl Picker {
             label: Some("pick pass"),
             color_attachments: &[
                 Some(wgpu::RenderPassColorAttachment {
-                    view: &t.id_view,
+                    view: &t.id,
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
@@ -316,9 +394,7 @@ impl Picker {
         })
     }
 
-// --8<-- [end:step-15f]
-    // --8<-- [start:step-15g]
-    /// The gradient texture of the id pass.
+    /// The triangle id texture of the id pass.
     pub fn gradient(&self) -> &wgpu::TextureView {
         &self.targets.as_ref().expect("physical ID targets").gradient
     }
@@ -340,7 +416,7 @@ impl Picker {
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("pick ink"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &targets.id_view,
+                view: &targets.id,
                 resolve_target: None,
                 depth_slice: None,
                 ops: wgpu::Operations {
@@ -359,17 +435,16 @@ impl Picker {
         })
     }
 
-// --8<-- [end:step-15g]
-    // --8<-- [start:step-15h]
     /// Copy the window around `at` into the readback buffer.
     pub fn copy_window(
         &mut self,
         ctx: &GpuCtx,
         encoder: &mut wgpu::CommandEncoder,
         at: (u32, u32),
+        size: (u32, u32),
     ) {
         let Some(t) = &self.targets else { return };
-        let win = self.window(at, t.size);
+        let win = self.window(at, size);
 
         if self.readback.is_none() {
             self.readback = Some(readback_buffer(ctx));
@@ -378,12 +453,12 @@ impl Picker {
         let buf = self.readback.as_ref().expect("readback initialized above");
         encoder.copy_texture_to_buffer(
             wgpu::TexelCopyTextureInfo {
-                texture: &t.id,
+                texture: t.id.texture(),
                 mip_level: 0,
                 // window position inside the textures
                 origin: wgpu::Origin3d {
-                    x: win.x, // window left, physical pixels
-                    y: win.y, // window top, physical pixels
+                    x: win.x.saturating_sub(self.view.x),
+                    y: win.y.saturating_sub(self.view.y),
                     z: 0,
                 },
                 aspect: wgpu::TextureAspect::All,
@@ -408,8 +483,6 @@ impl Picker {
         self.copied = true;
     }
 
-// --8<-- [end:step-15h]
-    // --8<-- [start:step-15i]
     /// Copy the whole id texture, native only.
     #[cfg(not(target_arch = "wasm32"))]
     pub(super) fn copy_frame(
@@ -427,7 +500,7 @@ impl Picker {
         });
         encoder.copy_texture_to_buffer(
             wgpu::TexelCopyTextureInfo {
-                texture: &target.id,
+                texture: target.id.texture(),
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
@@ -453,8 +526,6 @@ impl Picker {
         }
     }
 
-    // --8<-- [end:step-15i]
-    // --8<-- [start:step-15j]
     /// Start mapping the readback buffer; call once after submit.
     pub fn map(&mut self) {
         if !self.copied {
@@ -507,8 +578,6 @@ impl Picker {
         self.targets = None;
     }
 }
-// --8<-- [end:step-15j]
-// --8<-- [start:step-15k]
 
 /// Best pixel in the window: ink before faces, then nearest to the cursor.
 fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
@@ -532,7 +601,9 @@ fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
                 continue;
             }
 
-            let key = (sub == 0, distance, object, sub);
+            let face = sub == 0 || sub.wrapping_sub(1) & 0xe000_0000 == super::faces::FACE_TAG;
+            // smallest tuple wins: ink first, then nearest
+            let key = (face, distance, object, sub);
 
             match best {
                 Some(previous) if key >= previous => {}
@@ -581,8 +652,6 @@ fn hit_ids((_, _, object, sub): (bool, u64, u32, u32)) -> (u32, u32) {
     (object, sub)
 }
 
-// --8<-- [end:step-15k]
-// --8<-- [start:step-15l]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -665,4 +734,13 @@ mod tests {
         assert_eq!(nearest_hit(&texels(win, &[]), win), None);
     }
 }
-// --8<-- [end:step-15l]
+
+impl super::lane::Lane for Picker {
+    fn on_reset(&mut self, _ctx: &GpuCtx) {
+        self.cancel();
+    }
+
+    fn bytes(&self) -> (u64, u64) {
+        self.allocated_bytes()
+    }
+}

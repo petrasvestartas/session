@@ -1,10 +1,9 @@
 [build]
-dist = "../../../target/lessons/32/dist"
+dist = "../../../target/lessons/35/dist"
 # Benchmarks and tutorial checkpoints use this same optimized browser build.
 release = true
-no_sri = true # SRI = a hash on each script tag that the browser checks; not used here
-public_url = "./" # links relative to the page, so the site works from any folder
-
+no_sri = true
+public_url = "./"
 
 [watch]
 # This replaces Trunk's default watch set, so the shared path dependency is explicit.

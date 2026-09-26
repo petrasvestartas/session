@@ -2,8 +2,6 @@ use super::Scene;
 use super::rows::{
     Cap, FREE, Footprint, GEOMETRY, Note, PLACE, PRESENCE, SINK, SUBTREE, TOMB, Tomb,
 };
-use crate::app::mesh_preview::MeshPreview;
-use crate::app::surface_preview::SurfacePreview;
 use crate::app::walk::bounds::{Baselines, in_band, mark_pens_from};
 use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
 use crate::engine::gpu::faces::FaceSource;
@@ -19,9 +17,6 @@ use std::collections::{HashMap, HashSet};
 use std::rc::{Rc, Weak};
 
 type Node = Rc<RefCell<TreeNode>>;
-
-#[path = "scene_instances.rs"]
-pub(crate) mod instances;
 
 /// Dead editable bytes that start a compaction, at least.
 const COMPACT_MIN: u64 = 16 * 1024 * 1024;
@@ -193,15 +188,15 @@ fn held<T>(list: &Collection<Rc<T>>, slot: usize) -> Option<usize> {
 }
 
 /// One identity a sync looks at.
-struct Work {
-    doc: usize,                            // its document
-    guid: Rc<str>,                         // its object or group name
-    what: u8,                              // the note bits, merged
-    weak: Option<Weak<RefCell<TreeNode>>>, // the node a note named
-    parent: Option<(String, usize)>,       // where an added object was put
-    tomb: Option<Weak<history::Tomb>>,     // the kernel tomb of its newest add or remove
-    node: Option<Node>,                    // its tree node, once resolved
-    in_tree: bool,                         // that node hangs from the document's root
+pub(super) struct Work {
+    pub(super) doc: usize,                            // its document
+    pub(super) guid: Rc<str>,                         // its object or group name
+    pub(super) what: u8,                              // the note bits, merged
+    pub(super) weak: Option<Weak<RefCell<TreeNode>>>, // the node a note named
+    pub(super) parent: Option<(String, usize)>,       // where an added object was put
+    pub(super) tomb: Option<Weak<history::Tomb>>,     // the kernel tomb of its newest add or remove
+    pub(super) node: Option<Node>,                    // its tree node, once resolved
+    pub(super) in_tree: bool,                         // that node hangs from the document's root
 }
 
 /// Add one identity, or merge it into the entry already there.
@@ -259,16 +254,10 @@ fn check(session: &Session, node: Node, guid: &str) -> Option<(Node, bool)> {
     Some((node, in_tree))
 }
 
-/// The tree a node cache is filled from, by its root's address; a session moved by `Rc::make_mut` keeps it.
-pub(crate) fn tree_key(session: &Session) -> usize {
-    session
-        .tree
-        .root()
-        .map_or(0, |root| Rc::as_ptr(&root) as usize)
-}
+pub(crate) use super::tree_key;
 
 /// True when an ancestor below the root is an `attributes` group: the object is drawn by its element.
-fn baked(node: &Node) -> bool {
+pub(super) fn baked(node: &Node) -> bool {
     let mut current = node.borrow().parent();
 
     while let Some(ancestor) = current {
@@ -282,13 +271,6 @@ fn baked(node: &Node) -> bool {
     }
 
     false
-}
-
-/// A dragged row's previews, captured from a walk of that row alone.
-pub(crate) struct Previews {
-    pub mesh: Option<MeshPreview>,       // vertex keys of a mesh
-    pub surface: Option<SurfacePreview>, // surface parameters of a BRep or surface
-    span: Span,                          // where the captured rows sit
 }
 
 impl Scene {
@@ -591,9 +573,23 @@ impl Scene {
         }
     }
 
+    /// One row's world placement: file placement times every transform down its tree path.
+    pub fn placement_of(&self, row: u32) -> Option<Xform> {
+        let (doc, guid) = self.identity_of(row)?;
+        self.docs.get(doc)?;
+        let (node, in_tree) = match self.node_of(row) {
+            Some((node, in_tree)) => (Some(node), in_tree),
+            None => (None, false),
+        };
+        Some(self.world_place(doc, node.as_ref(), in_tree, &guid))
+    }
+
     /// Kill, create, redraw or move the row of one identity; true when a row came or went.
     fn reconcile(&mut self, item: &Work) -> bool {
-        if let Some(changed) = self.reconcile_instance(item) {
+        let mut instance: Option<bool> = None;
+        instance = instance.or_else(|| self.reconcile_instance(item)); // register:instancing
+
+        if let Some(changed) = instance {
             return changed;
         }
 
@@ -811,7 +807,7 @@ impl Scene {
     }
 
     /// Rows after every row on the GPU and in the tables.
-    fn append(&mut self, up: Upload, cloud: bool) -> Footprint {
+    pub(super) fn append(&mut self, up: Upload, cloud: bool) -> Footprint {
         let start = self.uploaded.plus(Counts::of(&self.tables));
         let count = Counts::of(&up);
         self.tables.merge(up, start.verts);
@@ -902,7 +898,13 @@ impl Scene {
     }
 
     /// Hand an allocation's content to the sink; it waits as the identity's grave when `grave`.
-    fn retire(&mut self, cur: Span, grave: bool, key: &(usize, Rc<str>), foot: Footprint) {
+    pub(super) fn retire(
+        &mut self,
+        cur: Span,
+        grave: bool,
+        key: &(usize, Rc<str>),
+        foot: Footprint,
+    ) {
         self.kill_lanes(cur.start, cur.count);
         self.dead = self.dead.plus(cur.count);
 
@@ -1053,7 +1055,7 @@ impl Scene {
     }
 
     /// Drop an identity's row: its lane rows go to the sink, its id waits for the end of the sync.
-    fn kill(&mut self, row: u32) {
+    pub(super) fn kill(&mut self, row: u32) {
         let i = row as usize;
         let doc = self.owners[i];
         let guid = std::mem::replace(&mut self.order[i], Rc::clone(&self.empty));
@@ -1077,9 +1079,7 @@ impl Scene {
         self.ids.give(row);
         self.bounds_stale = true;
 
-        if self.preview.as_ref().is_some_and(|(held, _)| *held == row) {
-            self.preview = None;
-        }
+        self.forget_preview(row); // register:editing
     }
 
     /// The kernel tomb of a dead object whose uploaded rows can wait for an undo: exact rows or a whole cloud.
@@ -1159,9 +1159,7 @@ impl Scene {
             },
         );
 
-        if self.preview.as_ref().is_some_and(|(held, _)| *held == row) {
-            self.preview = None;
-        }
+        self.forget_preview(row); // register:editing
     }
 
     /// Show a buried identity again when its tomb holds this very object walked the same way; false when it walks anew.
@@ -1365,7 +1363,10 @@ impl Scene {
     /// Walk every editable document again into fresh lanes, in load order; ids and everything else stay.
     /// False, having asked for them, while a released document would lose its rows.
     pub fn rewalk_editable(&mut self, gpu: &mut Gpu) -> bool {
-        if self.want_all() {
+        let mut waiting = false;
+        waiting |= self.want_all(); // register:editing
+
+        if waiting {
             return false;
         }
 
@@ -1391,7 +1392,7 @@ impl Scene {
         self.spans.clear();
         self.caps.clear();
         self.graves.clear();
-        self.preview = None;
+        self.preview = None; // register:editing
 
         // the fresh lanes hold no tomb: an undo walks the object again
         for (_, tomb) in std::mem::take(&mut self.tombs) {
@@ -1481,106 +1482,7 @@ impl Scene {
             self.staged.geometry.push((row, object));
         }
 
-        self.rewalk_instances(doc);
-    }
-
-    /// Capture the drag previews of `row` from a walk of it alone; nothing when its rows differ.
-    pub(crate) fn capture_preview(&mut self, row: u32) {
-        let span = self
-            .spans
-            .span(*self.feet.get(row as usize).unwrap_or(&Footprint::None));
-
-        if self
-            .preview
-            .as_ref()
-            .is_some_and(|(held, previews)| *held == row && previews.span == span)
-        {
-            return;
-        }
-
-        self.preview = None;
-        let Some((doc, guid)) = self.identity_of(row) else {
-            return;
-        };
-
-        if self.docs.get(doc).is_none_or(|file| file.display_only) {
-            return;
-        }
-
-        let session = Rc::clone(&self.docs[doc].session);
-        let Some(geometry) = session.lookup.get(guid.as_ref()) else {
-            return;
-        };
-        let Some(place) = self.placement_of(row) else {
-            return;
-        };
-        let (up, _) = self.walk_one(doc, row, geometry, &place);
-
-        if Counts::of(&up) != span.count {
-            return;
-        }
-
-        let previews = Previews {
-            mesh: MeshPreview::capture(&up, span, Counts::default(), geometry),
-            surface: SurfacePreview::capture(&up, span, Counts::default(), geometry),
-            span,
-        };
-        self.preview = Some((row, previews));
-    }
-
-    /// The mesh preview of a dragged row.
-    pub(crate) fn mesh_preview(&self, row: u32) -> Option<&MeshPreview> {
-        let (held, previews) = self.preview.as_ref()?;
-        (*held == row).then_some(previews.mesh.as_ref()).flatten()
-    }
-
-    /// Drop the drag previews.
-    pub(crate) fn drop_preview(&mut self) {
-        self.preview = None;
-    }
-
-    /// Re-evaluate a dragged surface into its own rows; false when the rows moved or the surface cannot.
-    pub(crate) fn patch_surface(&self, row: u32, geometry: &Geometry, gpu: &mut Gpu) -> bool {
-        let Some((held, previews)) = self.preview.as_ref() else {
-            return false;
-        };
-        let span = self.spans.span(self.feet[row as usize]);
-
-        if *held != row || previews.span != span {
-            return false;
-        }
-
-        let Some(surface) = &previews.surface else {
-            return false;
-        };
-        let Some((vertices, pipes, bounds)) = surface.evaluate(geometry) else {
-            return false;
-        };
-        let Some(place) = self.placement_of(row) else {
-            return false;
-        };
-
-        gpu.arena
-            .patch_vertices(&gpu.ctx, span.start.verts, &vertices);
-        gpu.segments.patch_pipes(&gpu.ctx, span.start.pipes, &pipes);
-        gpu.objects
-            .set_geometry_bounds(&gpu.ctx, row, bounds, 0.0, &place);
-        gpu.grew_bounds(row);
-        true
-    }
-
-    /// Memory held by the drag previews.
-    pub fn preview_cache_bytes(&self) -> usize {
-        self.preview.as_ref().map_or(0, |(_, previews)| {
-            previews
-                .mesh
-                .as_ref()
-                .map_or(0, MeshPreview::allocated_bytes)
-                + previews
-                    .surface
-                    .as_ref()
-                    .map_or(0, SurfacePreview::allocated_bytes)
-        })
+        self.rewalk_instances(doc); // register:instancing
     }
 
     /// CPU bytes of the per-row tables and the maps keyed by identity.
@@ -1782,7 +1684,11 @@ impl Scene {
             let want = &fresh.tables.obj.rows[other as usize];
             assert_eq!(bits(&held.place), bits(&want.place), "{id:?} placement");
             assert_eq!(boxed(&held.bounds), boxed(&want.bounds), "{id:?} box");
-            assert_eq!(held.hull.as_deref(), want.hull.as_deref(), "{id:?} extreme points");
+            assert_eq!(
+                held.hull.as_deref(),
+                want.hull.as_deref(),
+                "{id:?} extreme points"
+            );
             assert_eq!(
                 held.spacing.to_bits(),
                 want.spacing.to_bits(),
@@ -1810,8 +1716,8 @@ impl Scene {
             assert!(
                 owner == u32::MAX
                     || self.identity_of(owner).is_some()
-                    || self.owners.get(owner as usize) == Some(&TOMB)
-                    || self.instancing.is_batch(owner),
+                    || self.instancing.is_batch(owner) // register:instancing
+                    || self.owners.get(owner as usize) == Some(&TOMB),
                 "a pipe names dead row {owner}"
             );
         }
@@ -1839,9 +1745,6 @@ impl Scene {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::app::command::verbs::{curve, line, point, polyline};
-    use crate::app::hierarchy::Hierarchy;
-    use crate::app::modeling::Interval;
     use crate::app::scene::{FileDoc, SheetInit, StreamedInit};
     use crate::app::stream::{CloudFields, CloudLod, SheetFields};
     use crate::app::walk::cloud::StreamRows;
@@ -1850,7 +1753,7 @@ mod tests {
     use session_rust::{Element, Line, Mesh, NurbsCurve, Point, Polyline};
 
     /// A document placed at `place`.
-    fn file(name: &str, session: Session, place: Xform) -> FileDoc {
+    pub(super) fn file(name: &str, session: Session, place: Xform) -> FileDoc {
         FileDoc {
             name: name.into(),
             session: Rc::new(session),
@@ -1861,12 +1764,12 @@ mod tests {
     }
 
     /// A point.
-    fn p(x: f64, y: f64, z: f64) -> Point {
+    pub(super) fn p(x: f64, y: f64, z: f64) -> Point {
         Point::new(x, y, z)
     }
 
     /// A curve through eight points of an arc: trimming it changes its sample count.
-    fn arc() -> NurbsCurve {
+    pub(super) fn arc() -> NurbsCurve {
         let points: Vec<Point> = (0..8)
             .map(|i| {
                 let angle = i as f64 * 0.4;
@@ -1913,7 +1816,7 @@ mod tests {
     }
 
     /// A second document with a layer of its own.
-    fn other() -> Session {
+    pub(super) fn other() -> Session {
         let mut session = Session::new("other");
         let inbox = session.add_group("inbox");
         session.add_point(p(3.0, 3.0, 3.0), Some(&inbox));
@@ -1921,7 +1824,7 @@ mod tests {
     }
 
     /// A streamed sheet and a streamed cloud, read-only shells.
-    fn shells(scene: &mut Scene) {
+    pub(super) fn shells(scene: &mut Scene) {
         scene.stream_sheet(SheetInit {
             name: "plan".into(),
             url: "plan.pb".into(),
@@ -1972,7 +1875,7 @@ mod tests {
     }
 
     /// Two placed documents, one shared by two placements, and the streamed shells.
-    fn scene() -> Scene {
+    pub(super) fn scene() -> Scene {
         let mut scene = Scene::new();
         scene.add_file(file("site", site(), Xform::translation(100.0, 0.0, 0.0)));
         shells(&mut scene);
@@ -1995,14 +1898,14 @@ mod tests {
     }
 
     /// Sync, flush without a GPU, compare with a fresh scene.
-    fn check(scene: &mut Scene) {
+    pub(super) fn check(scene: &mut Scene) {
         scene.sync();
         scene.settle();
         scene.verify();
     }
 
     /// Live rows of editable documents, by identity.
-    fn live(scene: &Scene) -> Vec<(u32, (usize, Rc<str>))> {
+    pub(super) fn live(scene: &Scene) -> Vec<(u32, (usize, Rc<str>))> {
         (0..scene.row_count() as u32)
             .filter_map(|row| {
                 let id = scene.identity_of(row)?;
@@ -2016,12 +1919,386 @@ mod tests {
     }
 
     /// The first live row whose geometry passes `test`.
-    fn find(scene: &Scene, test: impl Fn(&Geometry) -> bool) -> Option<u32> {
+    pub(super) fn find(scene: &Scene, test: impl Fn(&Geometry) -> bool) -> Option<u32> {
         live(scene)
             .into_iter()
             .map(|(row, _)| row)
             .find(|&row| scene.geometry(row).is_some_and(&test))
     }
+
+    /// A tiny deterministic random source.
+    pub(super) struct Dice(pub(super) u64);
+
+    impl Dice {
+        /// A number below `n`.
+        pub(super) fn roll(&mut self, n: usize) -> usize {
+            self.0 = self
+                .0
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1_442_695_040_888_963_407);
+            ((self.0 >> 33) as usize) % n.max(1)
+        }
+    }
+
+    /// Hide or color one live object as the panel does: its identity and its row.
+    pub(super) fn mark(scene: &mut Scene, dice: &mut Dice) {
+        let rows: Vec<u32> = live(scene).into_iter().map(|(row, _)| row).collect();
+
+        if rows.is_empty() {
+            return;
+        }
+
+        let row = rows[dice.roll(rows.len())];
+        let id = scene.identity_of(row).unwrap();
+        let held = scene.ledger.get_mut(&row).unwrap();
+
+        if dice.roll(2) == 0 {
+            scene.hidden.insert(id);
+            held.flags |= Instance::FLAG_HIDDEN;
+        } else {
+            scene.colors.insert(id, [200, 40, 40]);
+            held.flags |= Instance::FLAG_COLOR;
+        }
+    }
+}
+
+use crate::app::mesh_preview::MeshPreview;
+
+use crate::app::surface_preview::SurfacePreview;
+
+/// A dragged row's previews, captured from a walk of that row alone.
+pub(crate) struct Previews {
+    pub mesh: Option<MeshPreview>,       // vertex keys of a mesh
+    pub surface: Option<SurfacePreview>, // surface parameters of a BRep or surface
+    span: Span,                          // where the captured rows sit
+}
+
+impl Scene {
+    /// Capture the drag previews of `row` from a walk of it alone; nothing when its rows differ.
+    pub(crate) fn capture_preview(&mut self, row: u32) {
+        let span = self
+            .spans
+            .span(*self.feet.get(row as usize).unwrap_or(&Footprint::None));
+
+        if self
+            .preview
+            .as_ref()
+            .is_some_and(|(held, previews)| *held == row && previews.span == span)
+        {
+            return;
+        }
+
+        self.preview = None; // register:editing
+        let Some((doc, guid)) = self.identity_of(row) else {
+            return;
+        };
+
+        if self.docs.get(doc).is_none_or(|file| file.display_only) {
+            return;
+        }
+
+        let session = Rc::clone(&self.docs[doc].session);
+        let Some(geometry) = session.lookup.get(guid.as_ref()) else {
+            return;
+        };
+        let Some(place) = self.placement_of(row) else {
+            return;
+        };
+        let (up, _) = self.walk_one(doc, row, geometry, &place);
+
+        if Counts::of(&up) != span.count {
+            return;
+        }
+
+        let previews = Previews {
+            mesh: MeshPreview::capture(&up, span, Counts::default(), geometry),
+            surface: SurfacePreview::capture(&up, span, Counts::default(), geometry),
+            span,
+        };
+        self.preview = Some((row, previews));
+    }
+
+    /// The mesh preview of a dragged row.
+    pub(crate) fn mesh_preview(&self, row: u32) -> Option<&MeshPreview> {
+        let (held, previews) = self.preview.as_ref()?;
+        (*held == row).then_some(previews.mesh.as_ref()).flatten()
+    }
+
+    /// Drop the drag previews.
+    pub(crate) fn drop_preview(&mut self) {
+        self.preview = None; // register:editing
+    }
+
+    /// Re-evaluate a dragged surface into its own rows; false when the rows moved or the surface cannot.
+    pub(crate) fn patch_surface(&self, row: u32, geometry: &Geometry, gpu: &mut Gpu) -> bool {
+        let Some((held, previews)) = self.preview.as_ref() else {
+            return false;
+        };
+        let span = self.spans.span(self.feet[row as usize]);
+
+        if *held != row || previews.span != span {
+            return false;
+        }
+
+        let Some(surface) = &previews.surface else {
+            return false;
+        };
+        let Some((vertices, pipes, bounds)) = surface.evaluate(geometry) else {
+            return false;
+        };
+        let Some(place) = self.placement_of(row) else {
+            return false;
+        };
+
+        gpu.arena
+            .patch_vertices(&gpu.ctx, span.start.verts, &vertices);
+        gpu.segments.patch_pipes(&gpu.ctx, span.start.pipes, &pipes);
+        gpu.objects
+            .set_geometry_bounds(&gpu.ctx, row, bounds, 0.0, &place);
+        gpu.grew_bounds(row);
+        true
+    }
+
+    /// Memory held by the drag previews.
+    pub fn preview_cache_bytes(&self) -> usize {
+        self.preview.as_ref().map_or(0, |(_, previews)| {
+            previews
+                .mesh
+                .as_ref()
+                .map_or(0, MeshPreview::allocated_bytes)
+                + previews
+                    .surface
+                    .as_ref()
+                    .map_or(0, SurfacePreview::allocated_bytes)
+        })
+    }
+}
+
+impl Scene {
+    /// Drop the drag preview of `row`, if it holds one.
+    fn forget_preview(&mut self, row: u32) {
+        if self.preview.as_ref().is_some_and(|(held, _)| *held == row) {
+            self.preview = None;
+        }
+    }
+}
+
+#[cfg(test)]
+mod editing_tests {
+    use super::tests::{check, file, find, live, p, scene};
+    use super::*;
+    use session_rust::{Mesh, Point};
+
+    /// A deleted cloud keeps its points for an undo and counts toward the cap; past it its points die.
+    #[test]
+    fn a_deleted_cloud_waits_in_its_tomb() {
+        use session_rust::{Color, PointCloud, Vector};
+
+        let mut scene = scene();
+        let mut session = Session::new("cloud");
+        let points: Vec<Point> = (0..100).map(|i| p(i as f64, 0.0, 0.0)).collect();
+        let normals = vec![Vector::new(0.0, 0.0, 1.0); points.len()];
+        let colors = vec![Color::red(); points.len()];
+        session.add_pointcloud(PointCloud::new(points, normals, colors), None);
+        scene.add_file(file("cloud", session, Xform::identity()));
+        scene.settle();
+        let cloud = find(&scene, |g| matches!(g, Geometry::PointCloud(_))).unwrap();
+
+        assert!(scene.delete_row(cloud));
+        scene.sync();
+        assert_eq!(scene.staged.bury, [cloud], "hidden, its points kept");
+        assert!(scene.staged.clouds.is_empty());
+        scene.settle();
+        assert_eq!(scene.tomb_bytes(), 100 * CLOUD_POINT_BYTES);
+
+        assert!(scene.undo());
+        scene.sync();
+        assert_eq!(
+            scene.staged.unbury.len(),
+            1,
+            "drawn again, nothing uploaded"
+        );
+        scene.settle();
+        scene.verify();
+        assert_eq!(scene.tomb_bytes(), 0);
+
+        scene.tomb_cap = 100 * CLOUD_POINT_BYTES - 1;
+        assert!(scene.delete_row(cloud));
+        scene.sync();
+        assert!(scene.tombs.is_empty(), "past the cap it is released");
+        assert_eq!(scene.staged.clouds, [cloud], "its points die");
+        scene.settle();
+    }
+
+    /// A compaction walks the lanes again without the tombs; undo walks the object anew.
+    #[test]
+    fn compaction_drops_the_tombs() {
+        let mut scene = scene();
+        let mesh = find(&scene, |g| matches!(g, Geometry::Mesh(_))).unwrap();
+        let id = scene.identity_of(mesh).unwrap();
+        assert!(scene.delete_row(mesh));
+        check(&mut scene);
+        assert_eq!(scene.tombs.len(), 1);
+        scene.rewalk_cpu();
+        scene.verify();
+        assert!(scene.tombs.is_empty() && scene.tombed.is_empty());
+        assert!(scene.undo());
+        check(&mut scene);
+        assert!(live(&scene).iter().any(|(_, held)| *held == id));
+    }
+
+    /// Every object of several documents goes in one step; one undo brings them all back, one redo takes them again.
+    #[test]
+    fn delete_rows_is_one_step() {
+        let mut scene = scene();
+        let before = live(&scene);
+        let rows: Vec<u32> = before.iter().map(|(row, _)| *row).collect();
+        let ids: HashSet<_> = before.iter().map(|(_, id)| id.clone()).collect();
+        let docs: HashSet<usize> = ids.iter().map(|id| id.0).collect();
+        let held = |scene: &Scene| {
+            live(scene)
+                .into_iter()
+                .filter(|(_, id)| ids.contains(id))
+                .count()
+        };
+        assert!(docs.len() > 1);
+        let steps = scene.undo_steps.len();
+        assert!(scene.delete_rows(&rows) > 1);
+        check(&mut scene);
+        assert_eq!(scene.undo_steps.len(), steps + 1, "one step");
+        assert_eq!(held(&scene), 0);
+
+        assert!(scene.undo());
+        check(&mut scene);
+        assert_eq!(held(&scene), ids.len(), "one undo brings all");
+        assert!(scene.tombs.is_empty());
+        assert!(scene.redo());
+        check(&mut scene);
+        assert_eq!(held(&scene), 0, "one redo takes all");
+        assert!(scene.undo());
+        check(&mut scene);
+        assert_eq!(held(&scene), ids.len());
+    }
+
+    /// An object outside the tree is buried by its op's own tomb and shown again by undo.
+    #[test]
+    fn a_tree_less_object_is_buried_by_its_op() {
+        let mut session = Session::new("loose");
+        session.add_mesh(Mesh::create_box(1.0, 1.0, 1.0), None);
+        session.node_lookup.clear();
+        session.tree = session_rust::Tree::new("loose");
+        let mut scene = Scene::new();
+        scene.add_file(file("loose", session, Xform::identity()));
+        scene.settle();
+        assert!(scene.delete_row(0));
+        check(&mut scene);
+        assert_eq!(scene.tombs.len(), 1);
+        assert!(scene.undo());
+        scene.sync();
+        assert_eq!(scene.staged.unbury.len(), 1);
+        assert!(scene.tables_empty(), "nothing uploaded");
+        scene.settle();
+        scene.verify();
+    }
+
+    /// A thousand boxes deleted together hide in one step and come back in one, nothing uploaded either way.
+    #[test]
+    fn a_thousand_boxes_delete_and_undo_in_place() {
+        let mut session = Session::new("boxes");
+
+        for i in 0..1000 {
+            let node = session
+                .add_mesh(Mesh::create_box(1.0, 1.0, 1.0), None)
+                .unwrap();
+            let guid = node.borrow().name.clone();
+            session.set_xform(
+                &guid,
+                Xform::translation(f64::from(i % 40) * 2.0, f64::from(i / 40) * 2.0, 0.0),
+            );
+        }
+
+        let mut scene = Scene::new();
+        scene.add_file(file("boxes", session, Xform::identity()));
+        scene.settle();
+        let rows: Vec<u32> = live(&scene).into_iter().map(|(row, _)| row).collect();
+        assert_eq!(rows.len(), 1000);
+        assert_eq!(scene.delete_rows(&rows), 1000);
+        scene.sync();
+        assert_eq!(scene.staged.bury.len(), 1000);
+        assert!(scene.staged.kills.is_empty() && scene.tables_empty());
+        scene.settle();
+        scene.verify();
+        assert_eq!(scene.object_count(), 0);
+
+        assert!(scene.undo());
+        scene.sync();
+        assert_eq!(scene.staged.unbury.len(), 1000);
+        assert!(
+            scene.staged.patches.is_empty() && scene.tables_empty(),
+            "nothing uploaded"
+        );
+        scene.settle();
+        scene.verify();
+        assert_eq!(scene.object_count(), 1000);
+        assert!(!scene.undo(), "one step");
+    }
+
+    /// Moving a parent moves its unselected children too.
+    #[test]
+    fn moving_a_parent_moves_its_children() {
+        let mut scene = scene();
+        let parent = find(&scene, |g| matches!(g, Geometry::Point(_))).unwrap();
+        let (doc, guid) = scene.identity_of(parent).unwrap();
+        let child = scene.docs[doc]
+            .session
+            .tree
+            .get_node_by_name(&guid)
+            .unwrap()
+            .borrow()
+            .children()[0]
+            .borrow()
+            .name
+            .clone();
+        let child = scene.row_of(doc, &child).unwrap();
+        scene.transform_rows(&[parent], &Xform::translation(0.0, 7.0, 0.0), "move");
+        scene.sync();
+        let moved: Vec<u32> = scene.staged.places.iter().map(|(row, _)| *row).collect();
+        assert!(
+            moved.contains(&parent) && moved.contains(&child),
+            "{moved:?}"
+        );
+        scene.settle();
+        scene.verify();
+    }
+
+    /// No per-row preview table: only a dragged row holds preview memory.
+    #[test]
+    fn per_row_tables_are_small() {
+        let mut scene = scene();
+        assert_eq!(scene.preview_cache_bytes(), 0);
+        let mesh = find(&scene, |g| matches!(g, Geometry::Mesh(_))).unwrap();
+        scene.capture_preview(mesh);
+        assert!(scene.mesh_preview(mesh).is_some());
+        let held = scene.preview_cache_bytes();
+        assert!(
+            held > 0 && held < 64 * 1024,
+            "{held} bytes for one small mesh"
+        );
+        scene.drop_preview();
+        assert_eq!(scene.preview_cache_bytes(), 0);
+        assert!(
+            std::mem::size_of::<Footprint>() + std::mem::size_of::<Weak<RefCell<TreeNode>>>() <= 24
+        );
+    }
+}
+
+#[cfg(test)]
+mod commands_tests {
+    use super::tests::{Dice, check, file, find, live, p, scene};
+    use super::*;
+    use crate::app::command::verbs::{line, point};
+    use crate::app::modeling::Interval;
+    use session_rust::{Line, Mesh, Point, Polyline};
 
     /// Notes come from the committed transaction; an empty one and the layer marker give none.
     #[test]
@@ -2239,160 +2516,6 @@ mod tests {
         assert!(scene.identity_of(line).is_some());
     }
 
-    /// A deleted cloud keeps its points for an undo and counts toward the cap; past it its points die.
-    #[test]
-    fn a_deleted_cloud_waits_in_its_tomb() {
-        use session_rust::{Color, PointCloud, Vector};
-
-        let mut scene = scene();
-        let mut session = Session::new("cloud");
-        let points: Vec<Point> = (0..100).map(|i| p(i as f64, 0.0, 0.0)).collect();
-        let normals = vec![Vector::new(0.0, 0.0, 1.0); points.len()];
-        let colors = vec![Color::red(); points.len()];
-        session.add_pointcloud(PointCloud::new(points, normals, colors), None);
-        scene.add_file(file("cloud", session, Xform::identity()));
-        scene.settle();
-        let cloud = find(&scene, |g| matches!(g, Geometry::PointCloud(_))).unwrap();
-
-        assert!(scene.delete_row(cloud));
-        scene.sync();
-        assert_eq!(scene.staged.bury, [cloud], "hidden, its points kept");
-        assert!(scene.staged.clouds.is_empty());
-        scene.settle();
-        assert_eq!(scene.tomb_bytes(), 100 * CLOUD_POINT_BYTES);
-
-        assert!(scene.undo());
-        scene.sync();
-        assert_eq!(
-            scene.staged.unbury.len(),
-            1,
-            "drawn again, nothing uploaded"
-        );
-        scene.settle();
-        scene.verify();
-        assert_eq!(scene.tomb_bytes(), 0);
-
-        scene.tomb_cap = 100 * CLOUD_POINT_BYTES - 1;
-        assert!(scene.delete_row(cloud));
-        scene.sync();
-        assert!(scene.tombs.is_empty(), "past the cap it is released");
-        assert_eq!(scene.staged.clouds, [cloud], "its points die");
-        scene.settle();
-    }
-
-    /// A compaction walks the lanes again without the tombs; undo walks the object anew.
-    #[test]
-    fn compaction_drops_the_tombs() {
-        let mut scene = scene();
-        let mesh = find(&scene, |g| matches!(g, Geometry::Mesh(_))).unwrap();
-        let id = scene.identity_of(mesh).unwrap();
-        assert!(scene.delete_row(mesh));
-        check(&mut scene);
-        assert_eq!(scene.tombs.len(), 1);
-        scene.rewalk_cpu();
-        scene.verify();
-        assert!(scene.tombs.is_empty() && scene.tombed.is_empty());
-        assert!(scene.undo());
-        check(&mut scene);
-        assert!(live(&scene).iter().any(|(_, held)| *held == id));
-    }
-
-    /// Every object of several documents goes in one step; one undo brings them all back, one redo takes them again.
-    #[test]
-    fn delete_rows_is_one_step() {
-        let mut scene = scene();
-        let before = live(&scene);
-        let rows: Vec<u32> = before.iter().map(|(row, _)| *row).collect();
-        let ids: HashSet<_> = before.iter().map(|(_, id)| id.clone()).collect();
-        let docs: HashSet<usize> = ids.iter().map(|id| id.0).collect();
-        let held = |scene: &Scene| {
-            live(scene)
-                .into_iter()
-                .filter(|(_, id)| ids.contains(id))
-                .count()
-        };
-        assert!(docs.len() > 1);
-        let steps = scene.undo_steps.len();
-        assert!(scene.delete_rows(&rows) > 1);
-        check(&mut scene);
-        assert_eq!(scene.undo_steps.len(), steps + 1, "one step");
-        assert_eq!(held(&scene), 0);
-
-        assert!(scene.undo());
-        check(&mut scene);
-        assert_eq!(held(&scene), ids.len(), "one undo brings all");
-        assert!(scene.tombs.is_empty());
-        assert!(scene.redo());
-        check(&mut scene);
-        assert_eq!(held(&scene), 0, "one redo takes all");
-        assert!(scene.undo());
-        check(&mut scene);
-        assert_eq!(held(&scene), ids.len());
-    }
-
-    /// An object outside the tree is buried by its op's own tomb and shown again by undo.
-    #[test]
-    fn a_tree_less_object_is_buried_by_its_op() {
-        let mut session = Session::new("loose");
-        session.add_mesh(Mesh::create_box(1.0, 1.0, 1.0), None);
-        session.node_lookup.clear();
-        session.tree = session_rust::Tree::new("loose");
-        let mut scene = Scene::new();
-        scene.add_file(file("loose", session, Xform::identity()));
-        scene.settle();
-        assert!(scene.delete_row(0));
-        check(&mut scene);
-        assert_eq!(scene.tombs.len(), 1);
-        assert!(scene.undo());
-        scene.sync();
-        assert_eq!(scene.staged.unbury.len(), 1);
-        assert!(scene.tables_empty(), "nothing uploaded");
-        scene.settle();
-        scene.verify();
-    }
-
-    /// A thousand boxes deleted together hide in one step and come back in one, nothing uploaded either way.
-    #[test]
-    fn a_thousand_boxes_delete_and_undo_in_place() {
-        let mut session = Session::new("boxes");
-
-        for i in 0..1000 {
-            let node = session
-                .add_mesh(Mesh::create_box(1.0, 1.0, 1.0), None)
-                .unwrap();
-            let guid = node.borrow().name.clone();
-            session.set_xform(
-                &guid,
-                Xform::translation(f64::from(i % 40) * 2.0, f64::from(i / 40) * 2.0, 0.0),
-            );
-        }
-
-        let mut scene = Scene::new();
-        scene.add_file(file("boxes", session, Xform::identity()));
-        scene.settle();
-        let rows: Vec<u32> = live(&scene).into_iter().map(|(row, _)| row).collect();
-        assert_eq!(rows.len(), 1000);
-        assert_eq!(scene.delete_rows(&rows), 1000);
-        scene.sync();
-        assert_eq!(scene.staged.bury.len(), 1000);
-        assert!(scene.staged.kills.is_empty() && scene.tables_empty());
-        scene.settle();
-        scene.verify();
-        assert_eq!(scene.object_count(), 0);
-
-        assert!(scene.undo());
-        scene.sync();
-        assert_eq!(scene.staged.unbury.len(), 1000);
-        assert!(
-            scene.staged.patches.is_empty() && scene.tables_empty(),
-            "nothing uploaded"
-        );
-        scene.settle();
-        scene.verify();
-        assert_eq!(scene.object_count(), 1000);
-        assert!(!scene.undo(), "one step");
-    }
-
     /// Delete, undo, redo, undo ten times hands the same 10k-vertex mesh back: tombs flip in place, the purge keeps the dead few.
     #[test]
     fn delete_undo_reuses_the_mesh_without_a_copy() {
@@ -2481,19 +2604,303 @@ mod tests {
         assert_eq!(scene.spans.span(scene.feet[curve as usize]), after);
     }
 
-    /// A tiny deterministic random source.
-    struct Dice(u64);
-
-    impl Dice {
-        /// A number below `n`.
-        fn roll(&mut self, n: usize) -> usize {
-            self.0 = self
-                .0
-                .wrapping_mul(6_364_136_223_846_793_005)
-                .wrapping_add(1_442_695_040_888_963_407);
-            ((self.0 >> 33) as usize) % n.max(1)
-        }
+    /// Deleting a parent draws its children at their own transform and frees baked features.
+    #[test]
+    fn removing_a_parent_draws_children_like_a_rewalk() {
+        let mut scene = scene();
+        let element = find(&scene, |g| matches!(g, Geometry::Element(_))).unwrap();
+        let parent = find(&scene, |g| matches!(g, Geometry::Point(_))).unwrap();
+        let count = scene.object_count();
+        assert!(scene.delete_row(element));
+        check(&mut scene);
+        assert_eq!(
+            scene.object_count(),
+            count,
+            "the baked polyline takes the element's place"
+        );
+        assert!(scene.delete_row(parent));
+        check(&mut scene);
+        assert!(scene.undo());
+        check(&mut scene);
+        assert!(scene.undo());
+        check(&mut scene);
+        assert_eq!(scene.object_count(), count);
     }
+
+    /// Layer undo and redo flip nodes in place: no tree walk, rows stay right.
+    #[test]
+    fn layer_steps_walk_no_tree() {
+        let mut scene = scene();
+        let line = find(&scene, |g| matches!(g, Geometry::Line(_))).unwrap();
+        let (doc, _) = scene.identity_of(line).unwrap();
+        scene.change_object_layer(&[line], doc, "roof").unwrap();
+        check(&mut scene);
+        let searches = scene.searches;
+
+        for back in [true, false, true] {
+            assert!(if back { scene.undo() } else { scene.redo() });
+            check(&mut scene);
+            assert_eq!(scene.searches, searches, "no tree walk");
+        }
+
+        scene.delete_layer(doc, "walls").unwrap();
+        check(&mut scene);
+        assert!(scene.undo());
+        check(&mut scene);
+        assert!(scene.redo());
+        check(&mut scene);
+        assert!(scene.undo());
+        check(&mut scene);
+
+        // a layer renamed to `attributes` bakes what it holds; undo frees it
+        let other = scene
+            .docs
+            .iter()
+            .position(|file| file.name == "other")
+            .unwrap();
+        let count = scene.object_count();
+        scene.rename_layer(other, "inbox", "attributes").unwrap();
+        check(&mut scene);
+        assert_eq!(scene.object_count(), count - 1);
+        assert!(scene.undo());
+        check(&mut scene);
+        assert_eq!(scene.object_count(), count);
+        assert!(scene.redo());
+        check(&mut scene);
+        assert_eq!(scene.object_count(), count - 1);
+    }
+
+    /// A flat drawing's new flat line takes the sheet flag and pens; a 3D point and `Created` do not.
+    #[test]
+    fn sheet_rule() {
+        let mut flat = Session::new("plan");
+        flat.add_line(Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0), None);
+        flat.add_line(Line::new(0.0, 5.0, 0.0, 10.0, 5.0, 0.0), None);
+        let mut scene = Scene::new();
+        scene.add_file(file("plan", flat, Xform::identity()));
+        scene.settle();
+        assert!(scene.doc_state[0].sheet.is_some());
+        scene.current_layer = Some((0, "plan".into()));
+        let (_, line) = scene
+            .model(&line::SPEC, &[[0.0, 9.0, 0.0], [10.0, 9.0, 0.0]])
+            .unwrap();
+        let (_, point) = scene.model(&point::SPEC, &[[0.0, 0.0, 50.0]]).unwrap();
+        scene.sync();
+        let pens: Vec<f32> = scene.tables.seg.ribbons.iter().map(|s| s.radius).collect();
+        assert_eq!(pens, vec![0.5], "the flat line takes the sheet pen");
+        scene.settle();
+        scene.verify();
+        let flags = |scene: &Scene, guid: &str| {
+            scene.ledger[&scene.row_of(0, guid).unwrap()].flags & Instance::FLAG_SHEET
+        };
+        assert_ne!(flags(&scene, &line), 0);
+        assert_eq!(flags(&scene, &point), 0);
+        scene.rewalk_cpu();
+        assert_ne!(flags(&scene, &line), 0, "compaction keeps it");
+
+        scene.current_layer = None;
+        let (doc, created) = scene
+            .model(&line::SPEC, &[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+            .unwrap();
+        check(&mut scene);
+        assert_eq!(
+            scene.ledger[&scene.row_of(doc, &created).unwrap()].flags & Instance::FLAG_SHEET,
+            0,
+            "Created is never a sheet"
+        );
+    }
+
+    /// Drawing, deleting and undoing cost the same in a scene of a thousand objects and of a hundred thousand.
+    #[test]
+    fn edit_cost_does_not_scale_with_the_scene() {
+        let time = |objects: usize| {
+            let mut session = Session::new("big");
+
+            for i in 0..objects {
+                session.add_line(Line::new(i as f64, 0.0, 0.0, i as f64, 1.0, 0.0), None);
+            }
+
+            let mut scene = Scene::new();
+            scene.add_file(file("big", session, Xform::identity()));
+            scene.settle();
+            let started = std::time::Instant::now();
+
+            for i in 0..40 {
+                let (doc, guid) = scene.model(&point::SPEC, &[[i as f64, 5.0, 0.0]]).unwrap();
+                scene.sync();
+                scene.settle();
+                let row = scene.row_of(doc, &guid).unwrap();
+                assert!(scene.delete_row(row));
+                scene.sync();
+                scene.settle();
+                assert!(scene.undo());
+                scene.sync();
+                scene.settle();
+            }
+
+            started.elapsed().as_secs_f64()
+        };
+        let small = time(1_000);
+        let large = time(100_000);
+        assert!(
+            large < small * 4.0 + 0.05,
+            "120 edits: {small:.4} s with 1k objects, {large:.4} s with 100k"
+        );
+    }
+
+    /// A drag that grows a curve mostly fits its headroom; cancelling returns to the grave.
+    #[test]
+    fn preview_growth_is_bounded_and_cancel_restores() {
+        let mut scene = scene();
+        let curve = find(&scene, |g| matches!(g, Geometry::NurbsCurve(_))).unwrap();
+        let (doc, guid) = scene.identity_of(curve).unwrap();
+        let source = scene.docs[doc].session.lookup[guid.as_ref()].clone();
+        let start = scene.spans.span(scene.feet[curve as usize]);
+        let Geometry::NurbsCurve(original) = &source else {
+            panic!()
+        };
+        let mut moves = 0;
+        let mut largest = 0u64;
+
+        for frame in 0..200 {
+            let mut grown = (**original).clone();
+            let (lo, hi) = grown.domain();
+            let reach = 1.0 + (frame % 50 + 1) as f64 * 0.04;
+            assert!(grown.extend(lo, lo + (hi - lo) * reach));
+            scene.redraw(curve, &Geometry::NurbsCurve(Rc::new(grown)), true);
+            moves += usize::from(!scene.tables_empty());
+            scene.settle();
+            let alloc = scene
+                .caps
+                .get(&curve)
+                .map_or(scene.spans.span(scene.feet[curve as usize]).count, |cap| {
+                    cap.alloc
+                });
+            largest = largest.max(alloc.bytes());
+        }
+
+        assert!(moves <= 16, "{moves} of 200 frames needed new rows");
+        assert!(
+            scene.dead.bytes() <= (moves as u64 + 1) * largest,
+            "{} dead bytes",
+            scene.dead.bytes()
+        );
+        scene.redraw(curve, &source, false);
+        scene.settle();
+        assert_eq!(
+            scene.spans.span(scene.feet[curve as usize]),
+            start,
+            "back at its grave"
+        );
+        scene.verify();
+    }
+
+    /// A few frames of a curve or polyline growing, then the release or the cancel.
+    pub(super) fn drag(scene: &mut Scene, dice: &mut Dice) {
+        let rows: Vec<u32> = live(scene)
+            .into_iter()
+            .map(|(row, _)| row)
+            .filter(|&row| {
+                matches!(
+                    scene.geometry(row),
+                    Some(Geometry::NurbsCurve(_) | Geometry::Polyline(_))
+                )
+            })
+            .collect();
+
+        if rows.is_empty() {
+            return;
+        }
+
+        let row = rows[dice.roll(rows.len())];
+        let source = scene.geometry(row).unwrap().clone();
+        let mut shape = source.clone();
+
+        for _ in 0..1 + dice.roll(6) {
+            shape = match &source {
+                Geometry::NurbsCurve(curve) => {
+                    let mut grown = (**curve).clone();
+                    let (lo, hi) = grown.domain();
+                    let _ = grown.extend(lo, hi + (hi - lo) * (0.1 + dice.roll(20) as f64 * 0.1));
+                    Geometry::NurbsCurve(Rc::new(grown))
+                }
+                Geometry::Polyline(line) => {
+                    let mut points = line.get_points();
+
+                    for i in 0..dice.roll(4) {
+                        points.push(p(i as f64, 9.0, 1.0));
+                    }
+
+                    Geometry::Polyline(Rc::new(Polyline::new(points)))
+                }
+                _ => unreachable!(),
+            };
+            scene.redraw(row, &shape, true);
+            scene.settle();
+        }
+
+        if dice.roll(2) == 0 {
+            scene.redraw(row, &source, false);
+        } else {
+            scene.commit_geometry(row, shape, "drag").unwrap();
+            scene.sync();
+        }
+
+        scene.settle();
+    }
+}
+
+#[cfg(test)]
+mod panel_tests {
+    use super::tests::{check, scene};
+    use crate::app::command::verbs::point;
+    use crate::app::hierarchy::Hierarchy;
+
+    /// The layers panel sees created objects and loses deleted ones.
+    #[test]
+    fn hierarchy_follows_edits() {
+        let mut scene = scene();
+        let mut panel = Hierarchy::default();
+        let (doc, guid) = scene.model(&point::SPEC, &[[1.0, 1.0, 1.0]]).unwrap();
+        check(&mut scene);
+        panel.refresh(&scene);
+        let row = scene.row_of(doc, &guid).unwrap();
+        assert!(panel.rows.contains(&row));
+        assert!(scene.delete_row(row));
+        check(&mut scene);
+        panel.refresh(&scene);
+        assert!(!panel.rows.contains(&row));
+        assert!(scene.undo());
+        check(&mut scene);
+        panel.refresh(&scene);
+        assert!(panel.rows.contains(&row), "the same row comes back");
+        let walls = panel.index_of(0, "walls").unwrap();
+        let targets = panel.targets(walls);
+        let expected: Vec<u32> = {
+            let session = &scene.docs[0].session;
+            let node = session.tree.get_node_by_name("walls").unwrap();
+            let mut rows: Vec<u32> = node
+                .borrow()
+                .descendants()
+                .iter()
+                .filter_map(|n| scene.row_of(0, &n.borrow().name))
+                .collect();
+            rows.sort_unstable();
+            rows
+        };
+        assert_eq!(targets, expected);
+    }
+}
+
+#[cfg(test)]
+mod split_tests {
+    use super::commands_tests::drag;
+    use super::tests::{Dice, arc, check, file, find, live, mark, p, scene, shells};
+    use super::*;
+    use crate::app::command::verbs::{curve, line, point, polyline};
+    use crate::app::modeling::Interval;
+    use crate::app::scene::FileDoc;
+    use session_rust::{Element, Line, Mesh, Point, Polyline};
 
     /// One random edit of the kinds the viewer makes.
     fn edit(scene: &mut Scene, dice: &mut Dice) {
@@ -2756,27 +3163,6 @@ mod tests {
         assert_eq!(scene.row_revision, revision, "no row came or went");
     }
 
-    /// Hide or color one live object as the panel does: its identity and its row.
-    fn mark(scene: &mut Scene, dice: &mut Dice) {
-        let rows: Vec<u32> = live(scene).into_iter().map(|(row, _)| row).collect();
-
-        if rows.is_empty() {
-            return;
-        }
-
-        let row = rows[dice.roll(rows.len())];
-        let id = scene.identity_of(row).unwrap();
-        let held = scene.ledger.get_mut(&row).unwrap();
-
-        if dice.roll(2) == 0 {
-            scene.hidden.insert(id);
-            held.flags |= Instance::FLAG_HIDDEN;
-        } else {
-            scene.colors.insert(id, [200, 40, 40]);
-            held.flags |= Instance::FLAG_COLOR;
-        }
-    }
-
     /// Hidden and colored objects keep both through every kind of edit, undo and compaction.
     #[test]
     fn hidden_and_colored_objects_keep_their_flags() {
@@ -2801,100 +3187,6 @@ mod tests {
                     .unwrap_or_else(|_| panic!("seed {seed} step {step}"));
             }
         }
-    }
-
-    /// Deleting a parent draws its children at their own transform and frees baked features.
-    #[test]
-    fn removing_a_parent_draws_children_like_a_rewalk() {
-        let mut scene = scene();
-        let element = find(&scene, |g| matches!(g, Geometry::Element(_))).unwrap();
-        let parent = find(&scene, |g| matches!(g, Geometry::Point(_))).unwrap();
-        let count = scene.object_count();
-        assert!(scene.delete_row(element));
-        check(&mut scene);
-        assert_eq!(
-            scene.object_count(),
-            count,
-            "the baked polyline takes the element's place"
-        );
-        assert!(scene.delete_row(parent));
-        check(&mut scene);
-        assert!(scene.undo());
-        check(&mut scene);
-        assert!(scene.undo());
-        check(&mut scene);
-        assert_eq!(scene.object_count(), count);
-    }
-
-    /// Moving a parent moves its unselected children too.
-    #[test]
-    fn moving_a_parent_moves_its_children() {
-        let mut scene = scene();
-        let parent = find(&scene, |g| matches!(g, Geometry::Point(_))).unwrap();
-        let (doc, guid) = scene.identity_of(parent).unwrap();
-        let child = scene.docs[doc]
-            .session
-            .tree
-            .get_node_by_name(&guid)
-            .unwrap()
-            .borrow()
-            .children()[0]
-            .borrow()
-            .name
-            .clone();
-        let child = scene.row_of(doc, &child).unwrap();
-        scene.transform_rows(&[parent], &Xform::translation(0.0, 7.0, 0.0), "move");
-        scene.sync();
-        let moved: Vec<u32> = scene.staged.places.iter().map(|(row, _)| *row).collect();
-        assert!(
-            moved.contains(&parent) && moved.contains(&child),
-            "{moved:?}"
-        );
-        scene.settle();
-        scene.verify();
-    }
-
-    /// Layer undo and redo flip nodes in place: no tree walk, rows stay right.
-    #[test]
-    fn layer_steps_walk_no_tree() {
-        let mut scene = scene();
-        let line = find(&scene, |g| matches!(g, Geometry::Line(_))).unwrap();
-        let (doc, _) = scene.identity_of(line).unwrap();
-        scene.change_object_layer(&[line], doc, "roof").unwrap();
-        check(&mut scene);
-        let searches = scene.searches;
-
-        for back in [true, false, true] {
-            assert!(if back { scene.undo() } else { scene.redo() });
-            check(&mut scene);
-            assert_eq!(scene.searches, searches, "no tree walk");
-        }
-
-        scene.delete_layer(doc, "walls").unwrap();
-        check(&mut scene);
-        assert!(scene.undo());
-        check(&mut scene);
-        assert!(scene.redo());
-        check(&mut scene);
-        assert!(scene.undo());
-        check(&mut scene);
-
-        // a layer renamed to `attributes` bakes what it holds; undo frees it
-        let other = scene
-            .docs
-            .iter()
-            .position(|file| file.name == "other")
-            .unwrap();
-        let count = scene.object_count();
-        scene.rename_layer(other, "inbox", "attributes").unwrap();
-        check(&mut scene);
-        assert_eq!(scene.object_count(), count - 1);
-        assert!(scene.undo());
-        check(&mut scene);
-        assert_eq!(scene.object_count(), count);
-        assert!(scene.redo());
-        check(&mut scene);
-        assert_eq!(scene.object_count(), count - 1);
     }
 
     /// With a streamed sheet and cloud loaded every edit works; the shells stay read-only.
@@ -2979,66 +3271,6 @@ mod tests {
         check(&mut scene);
     }
 
-    /// A flat drawing's new flat line takes the sheet flag and pens; a 3D point and `Created` do not.
-    #[test]
-    fn sheet_rule() {
-        let mut flat = Session::new("plan");
-        flat.add_line(Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0), None);
-        flat.add_line(Line::new(0.0, 5.0, 0.0, 10.0, 5.0, 0.0), None);
-        let mut scene = Scene::new();
-        scene.add_file(file("plan", flat, Xform::identity()));
-        scene.settle();
-        assert!(scene.doc_state[0].sheet.is_some());
-        scene.current_layer = Some((0, "plan".into()));
-        let (_, line) = scene
-            .model(&line::SPEC, &[[0.0, 9.0, 0.0], [10.0, 9.0, 0.0]])
-            .unwrap();
-        let (_, point) = scene.model(&point::SPEC, &[[0.0, 0.0, 50.0]]).unwrap();
-        scene.sync();
-        let pens: Vec<f32> = scene.tables.seg.ribbons.iter().map(|s| s.radius).collect();
-        assert_eq!(pens, vec![0.5], "the flat line takes the sheet pen");
-        scene.settle();
-        scene.verify();
-        let flags = |scene: &Scene, guid: &str| {
-            scene.ledger[&scene.row_of(0, guid).unwrap()].flags & Instance::FLAG_SHEET
-        };
-        assert_ne!(flags(&scene, &line), 0);
-        assert_eq!(flags(&scene, &point), 0);
-        scene.rewalk_cpu();
-        assert_ne!(flags(&scene, &line), 0, "compaction keeps it");
-
-        scene.current_layer = None;
-        let (doc, created) = scene
-            .model(&line::SPEC, &[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
-            .unwrap();
-        check(&mut scene);
-        assert_eq!(
-            scene.ledger[&scene.row_of(doc, &created).unwrap()].flags & Instance::FLAG_SHEET,
-            0,
-            "Created is never a sheet"
-        );
-    }
-
-    /// No per-row preview table: only a dragged row holds preview memory.
-    #[test]
-    fn per_row_tables_are_small() {
-        let mut scene = scene();
-        assert_eq!(scene.preview_cache_bytes(), 0);
-        let mesh = find(&scene, |g| matches!(g, Geometry::Mesh(_))).unwrap();
-        scene.capture_preview(mesh);
-        assert!(scene.mesh_preview(mesh).is_some());
-        let held = scene.preview_cache_bytes();
-        assert!(
-            held > 0 && held < 64 * 1024,
-            "{held} bytes for one small mesh"
-        );
-        scene.drop_preview();
-        assert_eq!(scene.preview_cache_bytes(), 0);
-        assert!(
-            std::mem::size_of::<Footprint>() + std::mem::size_of::<Weak<RefCell<TreeNode>>>() <= 24
-        );
-    }
-
     /// After edits a picked row still names its object, and its lane rows name the row.
     #[test]
     fn row_identity_survives_edits() {
@@ -3059,79 +3291,6 @@ mod tests {
                 assert!(range.end <= scene.uploaded.ribbons);
             }
         }
-    }
-
-    /// The layers panel sees created objects and loses deleted ones.
-    #[test]
-    fn hierarchy_follows_edits() {
-        let mut scene = scene();
-        let mut panel = Hierarchy::default();
-        let (doc, guid) = scene.model(&point::SPEC, &[[1.0, 1.0, 1.0]]).unwrap();
-        check(&mut scene);
-        panel.refresh(&scene);
-        let row = scene.row_of(doc, &guid).unwrap();
-        assert!(panel.rows.contains(&row));
-        assert!(scene.delete_row(row));
-        check(&mut scene);
-        panel.refresh(&scene);
-        assert!(!panel.rows.contains(&row));
-        assert!(scene.undo());
-        check(&mut scene);
-        panel.refresh(&scene);
-        assert!(panel.rows.contains(&row), "the same row comes back");
-        let walls = panel.index_of(0, "walls").unwrap();
-        let targets = panel.targets(walls);
-        let expected: Vec<u32> = {
-            let session = &scene.docs[0].session;
-            let node = session.tree.get_node_by_name("walls").unwrap();
-            let mut rows: Vec<u32> = node
-                .borrow()
-                .descendants()
-                .iter()
-                .filter_map(|n| scene.row_of(0, &n.borrow().name))
-                .collect();
-            rows.sort_unstable();
-            rows
-        };
-        assert_eq!(targets, expected);
-    }
-
-    /// Drawing, deleting and undoing cost the same in a scene of a thousand objects and of a hundred thousand.
-    #[test]
-    fn edit_cost_does_not_scale_with_the_scene() {
-        let time = |objects: usize| {
-            let mut session = Session::new("big");
-
-            for i in 0..objects {
-                session.add_line(Line::new(i as f64, 0.0, 0.0, i as f64, 1.0, 0.0), None);
-            }
-
-            let mut scene = Scene::new();
-            scene.add_file(file("big", session, Xform::identity()));
-            scene.settle();
-            let started = std::time::Instant::now();
-
-            for i in 0..40 {
-                let (doc, guid) = scene.model(&point::SPEC, &[[i as f64, 5.0, 0.0]]).unwrap();
-                scene.sync();
-                scene.settle();
-                let row = scene.row_of(doc, &guid).unwrap();
-                assert!(scene.delete_row(row));
-                scene.sync();
-                scene.settle();
-                assert!(scene.undo());
-                scene.sync();
-                scene.settle();
-            }
-
-            started.elapsed().as_secs_f64()
-        };
-        let small = time(1_000);
-        let large = time(100_000);
-        assert!(
-            large < small * 4.0 + 0.05,
-            "120 edits: {small:.4} s with 1k objects, {large:.4} s with 100k"
-        );
     }
 
     /// Dead rows past the threshold call a compaction, which leaves the lanes as a fresh walk.
@@ -3164,107 +3323,6 @@ mod tests {
             .sum();
         assert_eq!(packed, scene.uploaded.bytes());
         assert!(!scene.compaction_due());
-    }
-
-    /// A drag that grows a curve mostly fits its headroom; cancelling returns to the grave.
-    #[test]
-    fn preview_growth_is_bounded_and_cancel_restores() {
-        let mut scene = scene();
-        let curve = find(&scene, |g| matches!(g, Geometry::NurbsCurve(_))).unwrap();
-        let (doc, guid) = scene.identity_of(curve).unwrap();
-        let source = scene.docs[doc].session.lookup[guid.as_ref()].clone();
-        let start = scene.spans.span(scene.feet[curve as usize]);
-        let Geometry::NurbsCurve(original) = &source else {
-            panic!()
-        };
-        let mut moves = 0;
-        let mut largest = 0u64;
-
-        for frame in 0..200 {
-            let mut grown = (**original).clone();
-            let (lo, hi) = grown.domain();
-            let reach = 1.0 + (frame % 50 + 1) as f64 * 0.04;
-            assert!(grown.extend(lo, lo + (hi - lo) * reach));
-            scene.redraw(curve, &Geometry::NurbsCurve(Rc::new(grown)), true);
-            moves += usize::from(!scene.tables_empty());
-            scene.settle();
-            let alloc = scene
-                .caps
-                .get(&curve)
-                .map_or(scene.spans.span(scene.feet[curve as usize]).count, |cap| {
-                    cap.alloc
-                });
-            largest = largest.max(alloc.bytes());
-        }
-
-        assert!(moves <= 16, "{moves} of 200 frames needed new rows");
-        assert!(
-            scene.dead.bytes() <= (moves as u64 + 1) * largest,
-            "{} dead bytes",
-            scene.dead.bytes()
-        );
-        scene.redraw(curve, &source, false);
-        scene.settle();
-        assert_eq!(
-            scene.spans.span(scene.feet[curve as usize]),
-            start,
-            "back at its grave"
-        );
-        scene.verify();
-    }
-
-    /// A few frames of a curve or polyline growing, then the release or the cancel.
-    fn drag(scene: &mut Scene, dice: &mut Dice) {
-        let rows: Vec<u32> = live(scene)
-            .into_iter()
-            .map(|(row, _)| row)
-            .filter(|&row| {
-                matches!(
-                    scene.geometry(row),
-                    Some(Geometry::NurbsCurve(_) | Geometry::Polyline(_))
-                )
-            })
-            .collect();
-
-        if rows.is_empty() {
-            return;
-        }
-
-        let row = rows[dice.roll(rows.len())];
-        let source = scene.geometry(row).unwrap().clone();
-        let mut shape = source.clone();
-
-        for _ in 0..1 + dice.roll(6) {
-            shape = match &source {
-                Geometry::NurbsCurve(curve) => {
-                    let mut grown = (**curve).clone();
-                    let (lo, hi) = grown.domain();
-                    let _ = grown.extend(lo, hi + (hi - lo) * (0.1 + dice.roll(20) as f64 * 0.1));
-                    Geometry::NurbsCurve(Rc::new(grown))
-                }
-                Geometry::Polyline(line) => {
-                    let mut points = line.get_points();
-
-                    for i in 0..dice.roll(4) {
-                        points.push(p(i as f64, 9.0, 1.0));
-                    }
-
-                    Geometry::Polyline(Rc::new(Polyline::new(points)))
-                }
-                _ => unreachable!(),
-            };
-            scene.redraw(row, &shape, true);
-            scene.settle();
-        }
-
-        if dice.roll(2) == 0 {
-            scene.redraw(row, &source, false);
-        } else {
-            scene.commit_geometry(row, shape, "drag").unwrap();
-            scene.sync();
-        }
-
-        scene.settle();
     }
 
     /// Drags released or cancelled between edits, undos and compactions leave what a fresh scene draws.

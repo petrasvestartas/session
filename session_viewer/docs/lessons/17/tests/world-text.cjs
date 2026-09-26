@@ -93,7 +93,7 @@ async function main() {
       await page.waitForFunction(() => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected !== null);
       const selected = await page.evaluate(snapshot);
       assert.equal(selected.selection, 'Object');
-      assert.deepEqual(plane(selected).color,[255,255,255,255], 'selection preserves white glyphs');
+      assert.deepEqual(plane(selected).color,[0,0,0,255], 'selection changes glyphs to black');
       await page.keyboard.press('h');
       await page.waitForFunction(() => !JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.placement === 'world_plane'));
       await page.mouse.click(...at); await page.waitForTimeout(100);

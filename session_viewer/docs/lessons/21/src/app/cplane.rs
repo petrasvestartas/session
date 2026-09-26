@@ -1,5 +1,3 @@
-// --8<-- [start:step-3a]
-//! The construction plane: the flat surface new geometry is drawn on, because a click only gives two screen numbers.
 use session_rust::{Point, Vector};
 
 /// A construction plane through two world axes.
@@ -10,8 +8,6 @@ pub enum CPlane {
     Xz, // normal y
 }
 
-// --8<-- [end:step-3a]
-// --8<-- [start:step-3b]
 impl CPlane {
     /// The plane the view faces most directly.
     pub fn facing(forward: &Vector) -> Self {
@@ -61,8 +57,6 @@ impl CPlane {
     }
 }
 
-// --8<-- [end:step-3b]
-// --8<-- [start:step-3c]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -133,4 +127,3 @@ mod tests {
         assert_eq!(expected as f32, 1.0e6_f32, "and f32 would have lost it");
     }
 }
-// --8<-- [end:step-3c]

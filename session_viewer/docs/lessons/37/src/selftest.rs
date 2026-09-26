@@ -6,6 +6,7 @@ use crate::camera::FOVY_DEG;
 use crate::camera::{Camera, View};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::now_ms;
+use crate::engine::text::{TextLabel, TextPlacement};
 use session_rust::{Session, Xform};
 use std::rc::Rc;
 
@@ -200,6 +201,123 @@ fn frame_input(gpu: &mut Gpu, camera: &Camera, aspect: f64) -> FrameInput {
     }
 }
 
+/// Drag frame times by tier, and how long the first slow frames took to reach each tier.
+fn report_drag(ms: &[f64], tiers: &[u8]) {
+    let percentile = |values: &mut Vec<f64>, p: f64| {
+        values.sort_by(f64::total_cmp);
+        values
+            .get(((values.len() as f64 - 1.0) * p).round() as usize)
+            .copied()
+            .unwrap_or(0.0)
+    };
+    let mut all = ms.to_vec();
+    println!(
+        "drag: p50 {:.1} ms, p95 {:.1} ms",
+        percentile(&mut all, 0.5),
+        percentile(&mut all, 0.95)
+    );
+    // the first frame timed the pause before the drag
+    let first_slow = ms.iter().skip(1).position(|t| *t > 33.0).map(|i| i + 1);
+
+    for tier in 1..=crate::engine::performance::TOP_TIER {
+        let Some(entered) = tiers.iter().position(|t| *t >= tier) else {
+            continue;
+        };
+        let since = first_slow.map_or(0.0, |start| ms[start..entered].iter().sum::<f64>());
+        let mut at: Vec<f64> = ms
+            .iter()
+            .zip(tiers)
+            .filter(|(_, t)| **t == tier)
+            .map(|(v, _)| *v)
+            .collect();
+        println!(
+            "drag: tier {tier} from frame {entered}, {since:.0} ms after the first slow frame; p50 {:.1} ms there",
+            percentile(&mut at, 0.5)
+        );
+    }
+}
+
+/// Forty labels fixed on screen; with `mixed`, forty nameplates and forty anchors in the scene too.
+fn bench_labels(gpu: &Gpu, mixed: bool) -> Vec<TextLabel> {
+    let b = &gpu.bounds;
+    let label = |id: u32, placement| TextLabel {
+        id,
+        object: None,
+        text: format!("Label {id} of the bench"),
+        font_size: 14.0,
+        line_height: 20.0,
+        color: [0, 0, 0, 255],
+        placement,
+        clip: None,
+    };
+    let mut labels = Vec::new();
+
+    for i in 0..40u32 {
+        let (left, top) = (20.0 + (i % 4) as f32 * 180.0, 20.0 + (i / 4) as f32 * 24.0);
+        labels.push(label(i + 1, TextPlacement::Screen { left, top }));
+
+        if mixed {
+            // spread over the scene box
+            let t = f64::from(i) / 40.0;
+            let world = [
+                b.cx + b.hx * (t * 2.0 - 1.0),
+                b.cy + b.hy * (1.0 - t * 2.0),
+                b.cz,
+            ];
+            let padding = [6.0, 3.0];
+            labels.push(label(
+                i + 101,
+                TextPlacement::Nameplate {
+                    world,
+                    padding,
+                    rounded: true,
+                },
+            ));
+            labels.push(label(
+                i + 201,
+                TextPlacement::Anchor {
+                    world,
+                    offset: [0.0, 12.0],
+                },
+            ));
+        }
+    }
+
+    labels
+}
+
+/// Up to six clipping planes through the middle of `bounds`, each cutting a different side.
+fn middle_planes(
+    bounds: &session_rust::AABB,
+    count: usize,
+) -> Vec<crate::engine::gpu::clip::ClipPlane> {
+    use crate::app::clipping::{Mode, clip_plane, plane_from};
+    let c = [bounds.cx, bounds.cy, bounds.cz];
+    let h = [bounds.hx, bounds.hy, bounds.hz];
+    // (axis, sign): the side cut away, a fifth of the way out from the middle
+    let sides = [
+        (2, 1.0),
+        (0, 1.0),
+        (1, 1.0),
+        (2, -1.0),
+        (0, -1.0),
+        (1, -1.0),
+    ];
+    let mut planes = Vec::new();
+
+    for &(axis, sign) in sides.iter().take(count.min(6)) {
+        let mut origin = c;
+        origin[axis] += sign * h[axis] * 0.2;
+        let mut normal = origin;
+        normal[axis] += sign;
+        let plane = plane_from(Mode::Normal, &[origin, normal], h[0].max(h[1]).max(h[2]))
+            .expect("a plane through the scene");
+        planes.extend(clip_plane(&plane, &Xform::identity()));
+    }
+
+    planes
+}
+
 /// Write RGBA pixels as a PPM image.
 pub(crate) fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Result<()> {
     use std::io::Write;
@@ -215,30 +333,82 @@ pub(crate) fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Res
 pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
     let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
     let mut scene = Scene::new();
+    // VIEWER_CLIP=n cuts with n clipping planes through the scene's middle; solids get checked first
+    let planes: usize = std::env::var("VIEWER_CLIP")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(0);
+
+    if planes > 0 {
+        crate::app::clipping::verify_solids();
+    }
+
     load_files(&mut scene, &mut gpu, files);
+    gpu.set_clip_planes(&middle_planes(&gpu.bounds, planes));
+    gpu.find_solids(|row| scene.solid_faces(row));
     // VIEWER_SELECT=name highlights one object
     if let Ok(name) = std::env::var("VIEWER_SELECT") {
-        let row = (0..scene.object_count() as u32)
+        let row = (0..scene.row_count() as u32)
             .find(|row| scene.object_name(*row) == name)
             .unwrap_or_else(|| panic!("VIEWER_SELECT object not found: {name}"));
         scene.selected = Some(row);
         gpu.set_selected(row, true);
     }
     let aspect = w as f64 / h as f64;
-    let camera = camera_from_env(&gpu, aspect);
+    let mut camera = camera_from_env(&gpu, aspect);
+    // VIEWER_AO=1 turns ambient occlusion on
+    gpu.view.ssao = std::env::var_os("VIEWER_AO").is_some();
+    // VIEWER_LABELS=screen|mixed adds labels fixed on screen, or also anchored in the scene
+    if let Ok(kind) = std::env::var("VIEWER_LABELS") {
+        let labels = bench_labels(&gpu, kind == "mixed");
+        gpu.text.set_labels(labels).expect("bench labels");
+    }
 
     // VIEWER_FRAMES=N times N frames first
     if let Some(n) = std::env::var("VIEWER_FRAMES")
         .ok()
         .and_then(|v| v.parse::<usize>().ok())
     {
+        // VIEWER_FRAMES_ORBIT=dx orbits by dx mouse pixels before each timed frame
+        let step: f32 = std::env::var("VIEWER_FRAMES_ORBIT")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(0.0);
         let mut ms: Vec<f64> = Vec::new();
+        // VIEWER_GPU_TIMING=1 also times every pass on the GPU
+        gpu.timer = crate::engine::gpu::timing::PassTimer::new(&gpu.ctx);
+        let mut text_ms = 0.0;
+        let prepared = gpu.text.stats.preparations;
+        // VIEWER_INTERACT=1 draws the orbit as a drag, through the drag quality tiers
+        let drag = std::env::var_os("VIEWER_INTERACT").is_some();
+        let mut tiers = Vec::new();
+        gpu.performance.interacting = drag;
+
         for _ in 0..n.max(1) {
+            camera.orbit(step, 0.0);
             let input = frame_input(&mut gpu, &camera, aspect);
+            let before = gpu.text.stats.preparations;
             let t = std::time::Instant::now();
             let _ = gpu.render_offscreen(&input);
             ms.push(t.elapsed().as_secs_f64() * 1000.0);
+            tiers.push(gpu.performance.drag_tier());
+
+            if drag {
+                gpu.performance.frame(0, 0, now_ms(), false);
+            }
+
+            if gpu.text.stats.preparations > before {
+                text_ms += gpu.text.stats.preparation_ms;
+            }
         }
+
+        gpu.performance.interacting = false;
+
+        if drag {
+            report_drag(&ms, &tiers);
+        }
+
+        camera.orbit(-step * n.max(1) as f32, 0.0);
         ms.sort_by(|a, b| a.partial_cmp(b).unwrap());
         println!(
             "frames: n={} median {:.1} ms ({:.0} fps) min {:.1} max {:.1}",
@@ -248,6 +418,24 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
             ms[0],
             ms[ms.len() - 1]
         );
+
+        if let Some(timer) = gpu.timer.take() {
+            let spans: Vec<String> = timer
+                .medians()
+                .iter()
+                .map(|(label, ms)| format!("{label} {ms:.3}"))
+                .collect();
+            println!("gpu ms, median per pass: {}", spans.join(", "));
+            let (buffers, textures) = gpu.allocated_bytes();
+            let tiles = gpu.arena.tiles.allocated_bytes().0;
+            println!("gpu bytes: buffers {buffers}, textures {textures}, tile tables {tiles}");
+            let count = gpu.text.stats.preparations - prepared;
+            println!(
+                "text: {count} preparations, {:.4} ms each, {:.4} ms per frame",
+                text_ms / count.max(1) as f64,
+                text_ms / n.max(1) as f64
+            );
+        }
     }
 
     let input = frame_input(&mut gpu, &camera, aspect);

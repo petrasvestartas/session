@@ -2,7 +2,7 @@
 
 use crate::engine::gpu::{
     buffers::GpuCtx,
-    targets::{TextureSpec, texture_view},
+    targets::{Attachment, TextureSpec},
     text::{TextFrame, TextLane},
 };
 use crate::engine::pipelines::Target;
@@ -30,13 +30,13 @@ enum Specimens {
 /// The page's own GPU setup and text lane.
 #[wasm_bindgen]
 pub struct TextQuality {
-    canvas: web_sys::HtmlCanvasElement,
-    surface: wgpu::Surface<'static>, // where frames go
-    ctx: GpuCtx, // device and queue
+    canvas: web_sys::HtmlCanvasElement, // the page canvas
+    surface: wgpu::Surface<'static>,    // where frames go
+    ctx: GpuCtx,                        // device and queue
     config: wgpu::SurfaceConfiguration, // canvas size and format
-    lane: TextLane, // the viewer's text renderer
-    depth: wgpu::TextureView,
-    adapter: String, // GPU name, for the report
+    lane: TextLane,                     // the viewer's text renderer
+    depth: Attachment,                  // depth buffer
+    adapter: String,                    // GPU name, for the report
 }
 
 #[wasm_bindgen]
@@ -153,7 +153,7 @@ impl TextQuality {
                 break;
             }
         }
-        let ctx = GpuCtx { device, queue };
+        let ctx = GpuCtx::new(device, queue);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format,
@@ -239,6 +239,7 @@ impl TextQuality {
             framebuffer: size,
             logical,
             ortho_half_height: 0.0,
+            clip: [[0.0; 4]; crate::engine::gpu::frame::MAX_PLANES],
         };
         self.lane.prepare(&self.ctx, &frame)?;
         let output = match self.surface.get_current_texture() {
@@ -327,9 +328,9 @@ fn fixture_labels(selected: bool) -> Vec<TextLabel> {
     labels
 }
 
-/// A real depth attachment, as in production.
-fn fixture_depth(ctx: &GpuCtx, size: [u32; 2]) -> wgpu::TextureView {
-    texture_view(
+/// A depth buffer of the canvas size.
+fn fixture_depth(ctx: &GpuCtx, size: [u32; 2]) -> Attachment {
+    Attachment::new(
         ctx,
         "text-quality.depth",
         &TextureSpec {

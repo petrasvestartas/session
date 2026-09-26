@@ -11,7 +11,8 @@ function ready() {
   const raw=document.getElementById('canvas')?.dataset.viewerInspection;
   if(!raw)return false;
   const state=JSON.parse(raw);
-  return state.objects===7 && state.text_labels?.length>0 && !state.pick_busy;
+  // Seven geometry families plus the document-title text object, itself a source row.
+  return state.objects===8 && state.text_labels?.length>0 && !state.pick_busy;
 }
 /** Wait for asynchronous picking to drain after an input event. */
 function settled() { const state=JSON.parse(document.getElementById("canvas").dataset.viewerInspection);return !state.pick_busy; }
@@ -46,7 +47,9 @@ async function pixelCounts(request) {
 async function captureLabel(page,state,label,dpr,output,name) {
   const scale=label.id===0?0.75:1;
   assert.equal(label.placement,'nameplate');assert.equal(label.font_size,18*scale);assert.equal(label.line_height,26*scale);
-  assert.deepEqual(label.color,[255,255,255,255]);assert.deepEqual(label.padding,label.id===0?[12.75,3]:[6,4]);assert.equal(label.rounded,label.id===0);
+  // Every nameplate is rounded with a full cap outside each end: padding is
+  // [line_height/2 + 4*scale, 4*scale], so [12.75,3] for the 0.75-scale selection name and [17,4] for a title.
+  assert.deepEqual(label.color,[255,255,255,255]);assert.deepEqual(label.padding,label.id===0?[12.75,3]:[17,4]);assert.equal(label.rounded,true);
   if(label.rounded)assert.ok(label.padding[0]>=label.line_box[1]/2+label.padding[1], 'the complete shaped line must fit between the rounded caps');
   const center=project(state,label.world);
   const width=(label.line_box[0]+2*label.padding[0])*dpr,height=(label.line_box[1]+2*label.padding[1])*dpr;

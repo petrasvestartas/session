@@ -37,12 +37,11 @@ const canvas=document.getElementById('text-quality-canvas');
 const reference=document.getElementById('reference');
 const status=document.getElementById('metric-result');
 
-/** Load the same fonts in the browser first, then open the viewer's text lane on the canvas. */
+/** Load the exact browser-reference fonts before opening the shared GPU text fixture. */
 async function start() {
   if (!navigator.gpu) throw new Error('WebGPU is unavailable in this browser.');
   await Promise.all([document.fonts.load('16px "Noto Sans"'),document.fonts.load('16px "Noto Sans Symbols 2"'),document.fonts.load('16px "Noto Sans Symbols"')]);
   await document.fonts.ready;
-  // Trunk adds a hash to the .js and .wasm names; read the real names from index.html
   const html=await fetch('./index.html',{cache:'no-store'}).then(readText);
   const match=html.match(/(?:import[^;]*?from\s*|import\s*)["']([^"']*session_viewer[^"']*\.js)["']/);
   if(!match) throw new Error('Cannot find the built viewer module in index.html. Build this fixture with Trunk.');
@@ -66,15 +65,15 @@ async function start() {
   window.addEventListener('pagehide',dispose,{once:true});
   window.textQuality={
     render,reset,fixture,
-    /** The last measurement, without drawing again. */
+    /** Read the last completed measurement without triggering another render. */
     get report(){return lastReport},
-    /** Glyph origins and bitmap boxes from that same frame. */
+    /** Read the glyph origin/bitmap diagnostic from the same completed frame. */
     get diagnostics(){return lastDiagnostics}
   };
 }
-/** A failed fetch throws instead of handing an error page to the parser. */
+/** Reject failed build-asset fetches before parsing their contents. */
 function readText(response) { if(!response.ok) throw new Error(`Build asset HTTP ${response.status}`);return response.text(); }
-/** Browser text at the same CSS positions as the GPU labels. */
+/** Place browser reference specimens at the same logical origins as GPU labels. */
 function buildReference() {
   reference.replaceChildren();reference.dataset.specimen='reference';
   for(const row of rows) {
@@ -83,7 +82,7 @@ function buildReference() {
     element.textContent=row.text;reference.append(element);
   }
 }
-/** Draw with the current controls and compare line widths with the browser. */
+/** Refresh text, metrics and diagnostics for the current fixture controls. */
 function render() {
   if(!fixture) return;
   try {
@@ -106,7 +105,7 @@ function render() {
     document.documentElement.dataset.ready='true';
   } catch(error) {fail(error)}
 }
-/** One centered nameplate; its browser twin is 25.5 px wider because of the padding. */
+/** Keep a centered nameplate active through resize callbacks and compare its shaped width. */
 function renderNameplate() {
   const scale=Number(document.getElementById('scale').value);
   const report=JSON.parse(fixture.render_nameplate(scale));
@@ -124,7 +123,7 @@ function renderNameplate() {
   drawDiagnostics({glyphs:[],bitmaps:[],scale:report.effectiveScale});
   document.documentElement.dataset.ready='true';
 }
-/** Compare line widths, not pixels: two rasterizers never agree pixel for pixel. */
+/** Compare logical line advances without imposing rasterizer pixel equality. */
 function compareMetrics(diagnostics) {
   const context=document.createElement('canvas').getContext('2d');
   context.fontKerning='normal';const metrics=[];
@@ -139,9 +138,9 @@ function compareMetrics(diagnostics) {
   }
   return metrics;
 }
-/** Width difference in CSS pixels. */
+/** Express advance disagreement in CSS pixels. */
 function widthDifference(row){return Math.abs(row.browser-row.shaper)}
-/** Draw baselines, glyph origins and bitmap boxes over the canvas. */
+/** Overlay original glyph baselines, origins and raster bounds. */
 function drawDiagnostics(data) {
   const overlay=document.getElementById('diagnostic-canvas');overlay.width=canvas.width;overlay.height=canvas.height;
   if(!document.getElementById('diagnostics').checked)return;
@@ -154,13 +153,13 @@ function drawDiagnostics(data) {
     for(const baseline of baselines){ctx.beginPath();ctx.moveTo(row.left*data.scale,(row.top+baseline)*data.scale);ctx.lineTo(canvas.width,(row.top+baseline)*data.scale);ctx.stroke()}
   }
 }
-/** Free the GPU text, then draw it again from scratch. */
+/** Exercise disposal and recreate the current document. */
 function reset(){fixture.reset();render()}
-/** Save the report and diagnostics as JSON. */
+/** Export the measured fixture contract for reproducible investigation. */
 function download(){const blob=new Blob([JSON.stringify({report:lastReport,diagnostics:lastDiagnostics},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='text-quality.json';a.click();URL.revokeObjectURL(url)}
-/** Free the wasm object and stop listening for resizes. */
+/** Release the fixture and every browser observer it owns. */
 function dispose(){observer?.disconnect();window.removeEventListener('resize',render);fixture?.free();fixture=null}
-/** Show a failure on the page, in a data attribute for automated checks, and in the console. */
+/** Make fixture failures visible to both the reader and automated checks. */
 function fail(error){status.className='failure';status.textContent=String(error);document.documentElement.dataset.error=String(error);console.error(error)}
 start().catch(fail);
 </script>

@@ -1,0 +1,192 @@
+#[cfg(target_arch = "wasm32")]
+use crate::State;
+mod source_memory; // register:release
+
+/// Write the viewer state onto the canvas for browser tests.
+#[cfg(target_arch = "wasm32")]
+pub fn publish(state: &State) {
+    if super::route::query("inspect").as_deref() != Some("1") {
+        return; // only with ?inspect=1
+    }
+
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(document) = window.document() else {
+        return;
+    };
+    let Some(canvas) = document.get_element_by_id("canvas") else {
+        return;
+    };
+    let (buffers, textures) = state.gpu.allocated_bytes();
+    let source_memory = SOURCE_MEMORY.with_borrow_mut(|cache| cache.snapshot(&state.scene.docs)); // register:release
+    let parent = state.scene.selected;
+    let model = match parent {
+        Some(row) => state.gpu.objects.anchored_model(row),
+        None => None,
+    };
+    let identity = selected_identity(state);
+    let mut snapshot = serde_json::json!({
+        "submitted_at_ms": crate::engine::performance::now_ms(),
+        "frames": state.gpu.performance.frames,
+        "draw_calls": state.gpu.performance.draws,
+        "selected": parent,
+        "hidden_count": state.scene.hidden.len(),
+        "identity": identity,
+        "selection": state.selection,
+        "controls": state.inspected_controls(),
+        "markers": state.gpu.controls.dot_count(),
+        "control_segments": state.gpu.control_net.ribbon_count(),
+        "pick_busy": state.gpu.pick.busy(),
+        "objects": state.scene.object_count(),
+        "cloud_points": state.gpu.cloud.resident(),
+        "vertices": state.gpu.arena.vert_count(),
+        "pipes": state.gpu.segments.pipe_count(),
+        "ribbons": state.gpu.segments.ribbon_count(),
+        "mvp": state.gpu.frame.mvp_f32,
+        "model": model,
+        "origin": state.gpu.objects.anchor(),
+        "canvas": [state.gpu.config.width, state.gpu.config.height],
+        "logical_canvas": state.gpu.logical_size,
+        "samples": state.gpu.targets.samples,
+        "outlines": state.gpu.view.show_outlines,
+        "source_cpu_known_payload_bytes": source_memory.known_bytes(), // register:release
+        "source_cpu_known_payload": source_memory, // register:release
+        "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap", // register:release
+        "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers", // register:release
+        "text_cpu_raster_image_capacity_bytes": state.gpu.text.stats.raster_image_capacity_bytes,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "gpu_buffer_capacity_bytes": buffers,
+        "gpu_texture_estimate_bytes": textures,
+        "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+        "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+        "text": state.gpu.text.stats,
+        "text_labels": text_labels(state),
+        "wasm_capacity_bytes": crate::engine::performance::heap_mb() * 1_048_576.0,
+    });
+    snapshot["selected_rows"] = serde_json::json!(state.selected_rows());
+    snapshot["selected_models"] = serde_json::json!(
+        state
+            .selected_rows()
+            .iter()
+            .map(|r| state.gpu.objects.anchored_model(*r))
+            .collect::<Vec<_>>()
+    );
+    snapshot["clipping"] = state.clipping_status(); // register:clipping
+    snapshot["ssao"] = serde_json::json!(state.gpu.view.ssao);
+    snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
+    snapshot["color_count"] = serde_json::json!(state.scene.colors.len());
+    snapshot["edge_color_count"] = serde_json::json!(state.scene.edge_colors.len());
+    snapshot["source_faces"] =
+        serde_json::json!(parent.and_then(|row| match state.scene.geometry(row)? {
+            session_rust::Geometry::BRep(brep) => Some(brep.face_count()),
+            session_rust::Geometry::Element(element) => match element.geometry() {
+                session_rust::element::ElementGeometry::BRep(brep) => Some(brep.face_count()),
+                _ => None,
+            },
+            _ => None,
+        }));
+    snapshot["selected_kind"] =
+        serde_json::json!(parent.and_then(|row| state.scene.geometry(row).map(kind)));
+    snapshot["selected_bounds"] = serde_json::json!(parent.and_then(|row| {
+        let b = state.gpu.objects.row_bounds(row)?;
+        Some([
+            [b.cx - b.hx, b.cy - b.hy, b.cz - b.hz],
+            [b.cx + b.hx, b.cy + b.hy, b.cz + b.hz],
+        ])
+    }));
+    snapshot["scene_revision"] = serde_json::json!(state.scene.row_revision);
+    let docs = &state.scene.docs;
+    let slots = &state.gpu.arena.source_faces.slots;
+    snapshot["instancing"] = serde_json::json!({
+        "definitions": docs.iter().map(|d| d.session.definition_lookup.len()).sum::<usize>(),
+        "instances": docs.iter().map(|d| d.session.instance_lookup.len()).sum::<usize>(),
+        "gpu_draws": slots.draws().len(),
+        "gpu_instances": slots.instances(),
+    });
+    let _ = canvas.set_attribute("data-viewer-inspection", &snapshot.to_string());
+}
+
+/// Document index and guid of the selected row.
+#[cfg(target_arch = "wasm32")]
+fn selected_identity(state: &State) -> Option<(usize, String)> {
+    let row = state.scene.selected?;
+    let (document, guid) = state.scene.identity_of(row)?;
+    Some((document, guid.to_string()))
+}
+
+/// Every drawn text label, as JSON.
+#[cfg(target_arch = "wasm32")]
+fn text_labels(state: &State) -> Vec<serde_json::Value> {
+    use crate::engine::text::TextPlacement;
+    let mut labels = Vec::new();
+
+    for run in &state.gpu.text.document.runs {
+        let (kind, world, padding) = match run.label.placement {
+            TextPlacement::Screen { .. } => ("screen", None, None),
+            TextPlacement::Anchor { world, .. } => ("anchor", Some(world), None),
+            TextPlacement::WorldBillboard { world, .. } => ("world_billboard", Some(world), None),
+            TextPlacement::WorldPlane { world, .. } => ("world_plane", Some(world), None),
+            TextPlacement::Nameplate { world, padding, .. } => {
+                ("nameplate", Some(world), Some(padding))
+            }
+        };
+        let mut width = 0.0f32;
+        let mut height = 0.0f32;
+
+        for line in run.buffer.layout_runs() {
+            width = width.max(line.line_w);
+            height = height.max(line.line_top + line.line_height);
+        }
+
+        labels.push(serde_json::json!({
+            "id": run.label.id,
+            "object": run.label.object.map(|object| object.row),
+            "text": run.label.text,
+            "font_size": run.label.font_size,
+            "line_height": run.label.line_height,
+            "color": run.label.ink_color(),
+            "placement": kind,
+            "world": world,
+            "world_height": match run.label.placement {
+                TextPlacement::WorldBillboard { world_height, .. } => Some(world_height),
+                _ => None,
+            },
+            "padding": padding,
+            "rounded": matches!(run.label.placement, TextPlacement::Nameplate { rounded: true, .. }),
+            "line_box": [width, height],
+            "plane": match run.label.placement {
+                TextPlacement::WorldPlane { right, up, world_height, .. } => Some((right, up, world_height)),
+                _ => None,
+            },
+        }));
+    }
+
+    labels
+}
+
+/// The geometry's variant name, e.g. `BRep`.
+#[cfg(target_arch = "wasm32")]
+fn kind(geometry: &session_rust::Geometry) -> &'static str {
+    use session_rust::Geometry;
+
+    match geometry {
+        Geometry::OBB(_) => "OBB",
+        Geometry::BRep(_) => "BRep",
+        Geometry::Element(_) => "Element",
+        Geometry::Line(_) => "Line",
+        Geometry::Mesh(_) => "Mesh",
+        Geometry::NurbsCurve(_) => "NurbsCurve",
+        Geometry::NurbsSurface(_) => "NurbsSurface",
+        Geometry::Plane(_) => "Plane",
+        Geometry::Point(_) => "Point",
+        Geometry::PointCloud(_) => "PointCloud",
+        Geometry::Polyline(_) => "Polyline",
+    }
+}
+
+// --8<-- [start:16]
+thread_local! {
+    static SOURCE_MEMORY: std::cell::RefCell<source_memory::SourceCache> = Default::default();
+}
+// --8<-- [end:16]

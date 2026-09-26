@@ -21,17 +21,17 @@ pub struct GizmoDrag {
 impl State {
     /// Put the gizmo at the center of the selection, or remove it.
     pub fn place_gizmo(&mut self, row: Option<u32>) {
-        let row = row.filter(|_| !self.tool_running()); // hidden while a tool asks for points
+        let row = row.filter(|_| !self.tool_running()); // hidden while a tool asks for points; register:tools
         // no box, no gizmo
         let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else {
             self.features.gizmo = None;
-            self.upload_gizmo();
+            self.upload_gizmo(); // register:gumball
             return;
         };
         // the box around every selected row
         let mut bounds = box_;
         if row.is_some() {
-            for selected in &self.features.hierarchy.selected {
+            for selected in &self.highlighted {
                 if let Some(b) = self.gpu.objects.row_bounds(*selected) {
                     bounds.union_with(&b);
                 }
@@ -61,7 +61,7 @@ impl State {
             None => self.features.gizmo = Some(Gizmo::new(origin)),
         }
 
-        self.upload_gizmo();
+        self.upload_gizmo(); // register:gumball
     }
 
     /// Grab a gizmo handle within `radius` CSS pixels; false when the press missed it.
@@ -152,7 +152,7 @@ impl State {
                     gizmo.origin = origin;
                 }
 
-                self.upload_gizmo();
+                self.upload_gizmo(); // register:gumball
                 self.touch();
                 return true;
             }
@@ -177,7 +177,7 @@ impl State {
                 gizmo.origin = origin;
             }
 
-            self.upload_gizmo();
+            self.upload_gizmo(); // register:gumball
             self.touch();
             return true;
         }
@@ -240,7 +240,7 @@ impl State {
                 return false;
             }
 
-            self.refresh_layers();
+            self.refresh_layers(); // register:panel
             self.touch();
             return true;
         }
@@ -275,7 +275,7 @@ impl State {
             return false;
         };
         gizmo.typing = Some(handle);
-        self.upload_gizmo();
+        self.upload_gizmo(); // register:gumball
         let (_, _, unit) = handle.labels();
         self.status(&format!(
             "{}: type a value in {unit}, Enter applies, Esc closes",
@@ -288,7 +288,7 @@ impl State {
     /// Drop a drag that will never be released; everything goes back.
     pub fn cancel_gesture(&mut self) {
         self.cancel_object_drag();
-        self.tool_abandon(); // a running tool's drag, e.g. a lasso loop
+        self.tool_abandon(); // a running tool's drag, e.g. a lasso loop; register:tools
 
         if let Some(active) = self.features.dragging.take() {
             if let Some(preview) = active.mesh_preview.as_ref() {
@@ -394,12 +394,9 @@ impl State {
 
     /// After an undo, redo or delete: sync the rows, drop the selection.
     pub(crate) fn after_history(&mut self) {
-        // a tool's preview and bases belong to the documents as they were
-        if self.tool_running() {
-            self.cancel_drawing();
-        }
+        self.cancel_running_tool(); // a tool's preview and bases belong to the documents as they were; register:tools
 
-        self.features.hierarchy.page = 0;
+        self.features.hierarchy.page = 0; // register:panel
         self.selection = SelectionMode::Object;
         self.select(None);
         self.scene.flag_texts(&mut self.gpu);
@@ -430,11 +427,6 @@ impl State {
         // a selected, controlled or split row is gone
         let scene = &self.scene;
         let gone = |row: &u32| scene.identity_of(*row).is_none();
-        let split = self
-            .features
-            .pending_split
-            .as_ref()
-            .is_some_and(|split| gone(&split.target) || split.cutters.iter().any(gone));
         let lost = self.selected_rows().iter().any(gone)
             || self.selection.parent().is_some_and(|row| gone(&row));
         let rows: Vec<u32> = self
@@ -442,17 +434,14 @@ impl State {
             .into_iter()
             .filter(|row| !gone(row))
             .collect();
-
-        if split {
-            self.cancel_split();
-        }
+        self.drop_gone_split(); // register:split
 
         // the survivors stay selected; a freed id keeps no controls
         if lost {
             self.select_rows(rows, false);
         }
 
-        self.refresh_layers();
+        self.refresh_layers(); // register:panel
         self.update_label();
         self.touch();
     }
@@ -512,115 +501,9 @@ fn world_per_css_px(world_distance: f64, physical_height: f64, physical_per_css:
     per_physical * physical_per_css
 }
 
-impl State {
-    /// Tell the GPU where the gizmo is and which handle lights up.
-    pub fn upload_gizmo(&mut self) {
-        let Some(gizmo) = self.features.gizmo.as_ref() else {
-            self.gpu.widget.clear();
-            return;
-        };
-        self.gpu.widget.placement = Some((
-            [gizmo.origin[0], gizmo.origin[1], gizmo.origin[2]],
-            self.world_per_px(), // keeps the widget the same pixel size
-        ));
-        // the dragged handle, else the one being typed for, else the hovered one
-        let handle = self
-            .features
-            .dragging
-            .as_ref()
-            .map(|drag| drag.drag.handle)
-            .or(gizmo.typing)
-            .or(gizmo.hovered);
-        // handle index for the shader: 0-2 move, 3-5 rotate, 6-8 scale, 9 uniform
-        self.gpu.widget.active = match handle {
-            Some(Handle::Translate(axis)) => axis as u32 as f32,
-            Some(Handle::Rotate(axis)) => axis as u32 as f32 + 3.0,
-            Some(Handle::Scale(axis)) => axis as u32 as f32 + 6.0,
-            Some(Handle::ScaleUniform) => 9.0,
-            None => -1.0,
-        };
-    }
+impl State {}
 
-    /// Light the gizmo handle under the pointer; true when it changed.
-    pub fn hover_gizmo(&mut self, x: f64, y: f64) -> bool {
-        let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
-            return false;
-        };
-        let per_px = self.world_per_px();
-        let Some(gizmo) = self.features.gizmo.as_mut() else {
-            return false;
-        };
-        let hovered = gizmo.hit(&from, &dir, per_px);
-
-        if gizmo.hovered == hovered {
-            return false;
-        }
-
-        gizmo.hovered = hovered;
-        self.upload_gizmo();
-        true
-    }
-}
-
-impl State {
-    /// Run one command line; the answer is what to show the person.
-    pub fn run_command(&mut self, line: &str) -> Result<String, String> {
-        let line = &crate::app::command::canonical(line); // `poly line` runs Polyline
-        self.cancel_gesture();
-        self.features.mark = None;
-        // while drawing, points and Enter go to the draft
-        if let Some(result) = self.drawing_command(line) {
-            return result;
-        }
-        let action = crate::app::command::parse(line)?;
-
-        if !action.keeps_draft() {
-            self.cancel_drawing();
-        }
-
-        if !action.keeps_split() {
-            self.cancel_split();
-        }
-
-        // Rhino-like: pick the objects first, Enter runs the command
-        if action.needs_selection() && self.scene.selected.is_none() {
-            return self.ask_for_objects(line);
-        }
-
-        action.run(self)
-    }
-
-    /// Apply one transform to the selection and record it.
-    pub(crate) fn apply(&mut self, delta: Xform, label: &str) -> Result<String, String> {
-        let Some(row) = self.scene.selected else {
-            return Err("nothing is selected".into());
-        };
-
-        if let Some(reason) = self.locked_reason(&self.selected_rows()) {
-            return Err(reason);
-        }
-
-        // a face, edge or control point moves inside the object
-        if let Some(target) = crate::app::deform::Target::selected(&self.selection) {
-            self.scene.edit_subobject(row, target, &delta, label)?;
-            self.commit_rows();
-            self.restore_edit_selection(row);
-            self.touch();
-            return Ok(label.into());
-        }
-
-        // whole objects: the document moves them and every object below, the rows follow
-        let rows = self.selected_rows();
-        self.scene
-            .transform_rows(&rows, &delta, label)
-            .ok_or("this selection cannot be edited")?;
-        self.commit_rows();
-        self.place_gizmo(Some(row));
-        self.update_label();
-        self.touch();
-        Ok(label.into())
-    }
-}
+impl State {}
 
 /// A rotation about a point.
 pub(crate) fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
@@ -650,86 +533,9 @@ fn centred(inner: Xform, about: Option<&Point>) -> Xform {
     &(&to * &inner) * &back
 }
 
-impl State {
-    /// Hide a layer, or show it when it is fully hidden.
-    pub fn toggle_layer(&mut self, layer: Layer) {
-        let rows = layers::of_layer(&self.scene, layer);
+impl State {}
 
-        if rows.is_empty() {
-            return;
-        }
-
-        // anything still visible: hide the whole layer
-        let hide = rows.iter().any(|&row| {
-            self.scene
-                .identity_of(row)
-                .is_some_and(|id| !self.scene.hidden.contains(&id))
-        });
-        self.set_rows_hidden(&rows, hide);
-    }
-
-    /// Refill the layers panel, when it is open.
-    pub fn refresh_layers(&mut self) {
-        if !crate::app::feedback::layers_open() {
-            return;
-        }
-
-        self.features.hierarchy.refresh(&self.scene);
-        let mut rows = Vec::new();
-        self.hierarchy_labels(&mut rows);
-        crate::app::feedback::layers_panel(&rows);
-        let selected = self.selected_rows(); // sorted
-        let guid = |row| {
-            self.scene
-                .identity_of(row)
-                .map(|id| id.1)
-                .unwrap_or_default()
-        };
-        // rows only while the table is unfolded
-        let open = crate::app::feedback::graph_open();
-        let edges = self
-            .features
-            .hierarchy
-            .edges
-            .iter()
-            .take(if open { MAX_EDGE_ROWS } else { 0 })
-            .map(|&[from, to]| crate::app::feedback::EdgeRow {
-                key: format!("pair/{from}/{to}"),
-                from: edge_label(&self.scene, from),
-                to: edge_label(&self.scene, to),
-                guids: format!("From {}\nTo {}", guid(from), guid(to)), // the panel font has no arrow
-                selected: selected.binary_search(&from).is_ok()
-                    && selected.binary_search(&to).is_ok(),
-            })
-            .collect();
-        crate::app::feedback::graph_panel(edges, self.features.hierarchy.edges.len());
-    }
-}
-
-/// An edge end in the graph table: the object's own name, else the start of its guid.
-fn edge_label(scene: &crate::app::scene::Scene, row: u32) -> String {
-    match scene.geometry(row).map(session_rust::Geometry::name) {
-        Some(name) if !name.trim().is_empty() => name.to_string(),
-        _ => scene
-            .identity_of(row)
-            .map(|id| id.1.chars().take(8).collect())
-            .unwrap_or_default(),
-    }
-}
-
-impl State {
-    /// L: open or close the layers panel.
-    pub fn toggle_layers_panel(&mut self) {
-        let open = !crate::app::feedback::layers_open();
-        crate::app::feedback::layers_visible(open);
-
-        if open {
-            self.refresh_layers();
-        }
-
-        self.touch();
-    }
-}
+impl State {}
 
 /// A control point drag in progress.
 pub struct ControlDrag {
@@ -935,6 +741,210 @@ const MAX_EDGE_ROWS: usize = 5000; // graph edges listed in the panel
 mod tests {
     use super::*;
 
+    /// A CSS pixel is the same scene length on a 1x and a 2x display.
+    #[test]
+    fn a_css_pixel_is_worth_more_world_on_a_denser_display() {
+        let one_to_one = world_per_css_px(1000.0, 800.0, 1.0);
+        let retina = world_per_css_px(1000.0, 1600.0, 2.0);
+        assert!(
+            (one_to_one - retina).abs() < 1e-9,
+            "the same CSS pixel, either way"
+        );
+
+        let closer = world_per_css_px(500.0, 800.0, 1.0);
+        assert!(closer < one_to_one, "nearer camera, less world in a pixel");
+        // the answer scales with the distance
+        assert!(
+            world_per_css_px(1.0, 800.0, 1.0) * 1000.0 - world_per_css_px(1000.0, 800.0, 1.0)
+                < 1e-9,
+            "the answer scales with the distance, so the distance must be in world units"
+        );
+        assert_eq!(
+            world_per_css_px(1000.0, 0.0, 1.0),
+            1.0,
+            "no surface, no answer"
+        );
+    }
+}
+
+impl State {
+    /// Reselect `row` after its rows were redrawn, keeping the face, edge or control mode.
+    fn restore_edit_selection(&mut self, row: u32) {
+        let selection = self.selection.clone();
+        self.select(Some(row)); // resets the mode
+        self.selection = selection; // put it back
+
+        match self.selection {
+            SelectionMode::Controls { .. } => {
+                self.gpu.set_selected(row, false);
+
+                if let Some(geometry) = self.scene.geometry(row) {
+                    self.controls = crate::app::selection::Controls::from_geometry(geometry);
+                }
+
+                self.upload_controls();
+            }
+            SelectionMode::Face { face, .. } => {
+                self.gpu.set_selected(row, false);
+                let address = self.gpu.arena.source_faces.address(row, face);
+                self.gpu.arena.source_faces.select(&self.gpu.ctx, address);
+            }
+            SelectionMode::Edge { edge, .. } => {
+                self.gpu.set_selected(row, false);
+                self.gpu.segments.set_edge(&self.gpu.ctx, Some((row, edge)));
+            }
+            SelectionMode::Object => {}
+        }
+
+        self.place_gizmo(Some(row));
+        self.refresh_layers(); // register:panel
+        self.touch();
+    }
+}
+
+impl State {
+    /// Draw `row` from its document geometry again, dropping any preview.
+    fn restore_source_render(&mut self, row: u32) {
+        if let Some(geometry) = self.scene.geometry(row).cloned() {
+            self.scene.redraw(row, &geometry, false);
+            self.scene.upload_to(&mut self.gpu);
+        }
+    }
+}
+
+impl State {
+    /// The rows of `row`'s outermost group, else the row alone.
+    pub(super) fn group_of(&self, row: u32) -> Option<Vec<u32>> {
+        Some(self.scene.group_rows(row))
+    }
+
+    /// Every edit syncs its rows; one that did not is caught here.
+    pub(super) fn catch_unsynced(&mut self) {
+        if self.scene.has_pending() {
+            log::warn!("an edit left its rows unsynced");
+            self.commit_rows();
+        }
+    }
+}
+
+impl State {
+    /// Apply one transform to the selection and record it.
+    pub(crate) fn apply(&mut self, delta: Xform, label: &str) -> Result<String, String> {
+        let Some(row) = self.scene.selected else {
+            return Err("nothing is selected".into());
+        };
+
+        if let Some(reason) = self.locked_reason(&self.selected_rows()) {
+            return Err(reason);
+        }
+
+        // a face, edge or control point moves inside the object
+        if let Some(target) = crate::app::deform::Target::selected(&self.selection) {
+            self.scene.edit_subobject(row, target, &delta, label)?;
+            self.commit_rows();
+            self.restore_edit_selection(row);
+            self.touch();
+            return Ok(label.into());
+        }
+
+        // whole objects: the document moves them and every object below, the rows follow
+        let rows = self.selected_rows();
+        self.scene
+            .transform_rows(&rows, &delta, label)
+            .ok_or("this selection cannot be edited")?;
+        self.commit_rows();
+        self.place_gizmo(Some(row));
+        self.update_label();
+        self.touch();
+        Ok(label.into())
+    }
+}
+
+#[cfg(test)]
+mod egui_tests {}
+
+impl State {
+    /// Run one command line; the answer is what to show the person.
+    pub fn run_command(&mut self, line: &str) -> Result<String, String> {
+        let line = &crate::app::command::canonical(line); // `poly line` runs Polyline
+        self.cancel_gesture();
+        self.features.mark = None; // register:annotate
+        // while drawing, points and Enter go to the draft
+        if let Some(result) = self.drawing_command(line) {
+            return result;
+        }
+        let action = crate::app::command::parse(line)?;
+
+        if !action.keeps_draft() {
+            self.cancel_drawing();
+        }
+
+        if !action.keeps_split() {
+            self.cancel_split(); // register:split
+        }
+
+        // Rhino-like: pick the objects first, Enter runs the command
+        if action.needs_selection() && self.scene.selected.is_none() {
+            return self.ask_for_objects(line);
+        }
+
+        action.run(self)
+    }
+}
+
+impl State {
+    /// Tell the GPU where the gizmo is and which handle lights up.
+    pub fn upload_gizmo(&mut self) {
+        let Some(gizmo) = self.features.gizmo.as_ref() else {
+            self.gpu.widget.clear();
+            return;
+        };
+        self.gpu.widget.placement = Some((
+            [gizmo.origin[0], gizmo.origin[1], gizmo.origin[2]],
+            self.world_per_px(), // keeps the widget the same pixel size
+        ));
+        // the dragged handle, else the one being typed for, else the hovered one
+        let handle = self
+            .features
+            .dragging
+            .as_ref()
+            .map(|drag| drag.drag.handle)
+            .or(gizmo.typing)
+            .or(gizmo.hovered);
+        // handle index for the shader: 0-2 move, 3-5 rotate, 6-8 scale, 9 uniform
+        self.gpu.widget.active = match handle {
+            Some(Handle::Translate(axis)) => axis as u32 as f32,
+            Some(Handle::Rotate(axis)) => axis as u32 as f32 + 3.0,
+            Some(Handle::Scale(axis)) => axis as u32 as f32 + 6.0,
+            Some(Handle::ScaleUniform) => 9.0,
+            None => -1.0,
+        };
+    }
+
+    /// Light the gizmo handle under the pointer; true when it changed.
+    pub fn hover_gizmo(&mut self, x: f64, y: f64) -> bool {
+        let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
+            return false;
+        };
+        let per_px = self.world_per_px();
+        let Some(gizmo) = self.features.gizmo.as_mut() else {
+            return false;
+        };
+        let hovered = gizmo.hit(&from, &dir, per_px);
+
+        if gizmo.hovered == hovered {
+            return false;
+        }
+
+        gizmo.hovered = hovered;
+        self.upload_gizmo(); // register:gumball
+        true
+    }
+}
+
+#[cfg(test)]
+mod egui_tests_25 {
+
     /// The widget draws three colored arms.
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
@@ -994,6 +1004,92 @@ mod tests {
             "three coloured arms: red {red}, green {green}, blue {blue}, of {changed} changed"
         );
     }
+}
+
+impl State {
+    /// L: open or close the layers panel.
+    pub fn toggle_layers_panel(&mut self) {
+        let open = !crate::app::feedback::layers_open();
+        crate::app::feedback::layers_visible(open);
+
+        if open {
+            self.refresh_layers(); // register:panel
+        }
+
+        self.touch();
+    }
+}
+
+impl State {
+    /// Hide a layer, or show it when it is fully hidden.
+    pub fn toggle_layer(&mut self, layer: Layer) {
+        let rows = layers::of_layer(&self.scene, layer);
+
+        if rows.is_empty() {
+            return;
+        }
+
+        // anything still visible: hide the whole layer
+        let hide = rows.iter().any(|&row| {
+            self.scene
+                .identity_of(row)
+                .is_some_and(|id| !self.scene.hidden.contains(&id))
+        });
+        self.set_rows_hidden(&rows, hide);
+    }
+
+    /// Refill the layers panel, when it is open.
+    pub fn refresh_layers(&mut self) {
+        if !crate::app::feedback::layers_open() {
+            return;
+        }
+
+        self.features.hierarchy.refresh(&self.scene);
+        let mut rows = Vec::new();
+        self.hierarchy_labels(&mut rows);
+        crate::app::feedback::layers_panel(&rows);
+        let selected = self.selected_rows(); // sorted
+        let guid = |row| {
+            self.scene
+                .identity_of(row)
+                .map(|id| id.1)
+                .unwrap_or_default()
+        };
+        // rows only while the table is unfolded
+        let open = crate::app::feedback::graph_open();
+        let edges = self
+            .features
+            .hierarchy
+            .edges
+            .iter()
+            .take(if open { MAX_EDGE_ROWS } else { 0 })
+            .map(|&[from, to]| crate::app::feedback::EdgeRow {
+                key: format!("pair/{from}/{to}"),
+                from: edge_label(&self.scene, from),
+                to: edge_label(&self.scene, to),
+                guids: format!("From {}\nTo {}", guid(from), guid(to)), // the panel font has no arrow
+                selected: selected.binary_search(&from).is_ok()
+                    && selected.binary_search(&to).is_ok(),
+            })
+            .collect();
+        crate::app::feedback::graph_panel(edges, self.features.hierarchy.edges.len());
+    }
+}
+
+/// An edge end in the graph table: the object's own name, else the start of its guid.
+fn edge_label(scene: &crate::app::scene::Scene, row: u32) -> String {
+    match scene.geometry(row).map(session_rust::Geometry::name) {
+        Some(name) if !name.trim().is_empty() => name.to_string(),
+        _ => scene
+            .identity_of(row)
+            .map(|id| id.1.chars().take(8).collect())
+            .unwrap_or_default(),
+    }
+}
+
+#[cfg(test)]
+mod panel_tests {
+    use super::*;
 
     /// The graph table shows an object's name as the tree does, and a short guid when it has none.
     #[test]
@@ -1018,75 +1114,5 @@ mod tests {
         assert_eq!(edge_label(&scene, 0), "my_point");
         let guid = scene.identity_of(1).unwrap().1;
         assert_eq!(edge_label(&scene, 1), guid[..8]);
-    }
-
-    /// A CSS pixel is the same scene length on a 1x and a 2x display.
-    #[test]
-    fn a_css_pixel_is_worth_more_world_on_a_denser_display() {
-        let one_to_one = world_per_css_px(1000.0, 800.0, 1.0);
-        let retina = world_per_css_px(1000.0, 1600.0, 2.0);
-        assert!(
-            (one_to_one - retina).abs() < 1e-9,
-            "the same CSS pixel, either way"
-        );
-
-        let closer = world_per_css_px(500.0, 800.0, 1.0);
-        assert!(closer < one_to_one, "nearer camera, less world in a pixel");
-        // the answer scales with the distance
-        assert!(
-            world_per_css_px(1.0, 800.0, 1.0) * 1000.0 - world_per_css_px(1000.0, 800.0, 1.0)
-                < 1e-9,
-            "the answer scales with the distance, so the distance must be in world units"
-        );
-        assert_eq!(
-            world_per_css_px(1000.0, 0.0, 1.0),
-            1.0,
-            "no surface, no answer"
-        );
-    }
-}
-
-impl State {
-    /// Reselect `row` after its rows were redrawn, keeping the face, edge or control mode.
-    fn restore_edit_selection(&mut self, row: u32) {
-        let selection = self.selection.clone();
-        self.select(Some(row)); // resets the mode
-        self.selection = selection; // put it back
-
-        match self.selection {
-            SelectionMode::Controls { .. } => {
-                self.gpu.set_selected(row, false);
-
-                if let Some(geometry) = self.scene.geometry(row) {
-                    self.controls = crate::app::selection::Controls::from_geometry(geometry);
-                }
-
-                self.upload_controls();
-            }
-            SelectionMode::Face { face, .. } => {
-                self.gpu.set_selected(row, false);
-                let address = self.gpu.arena.source_faces.address(row, face);
-                self.gpu.arena.source_faces.select(&self.gpu.ctx, address);
-            }
-            SelectionMode::Edge { edge, .. } => {
-                self.gpu.set_selected(row, false);
-                self.gpu.segments.set_edge(&self.gpu.ctx, Some((row, edge)));
-            }
-            SelectionMode::Object => {}
-        }
-
-        self.place_gizmo(Some(row));
-        self.refresh_layers();
-        self.touch();
-    }
-}
-
-impl State {
-    /// Draw `row` from its document geometry again, dropping any preview.
-    fn restore_source_render(&mut self, row: u32) {
-        if let Some(geometry) = self.scene.geometry(row).cloned() {
-            self.scene.redraw(row, &geometry, false);
-            self.scene.upload_to(&mut self.gpu);
-        }
     }
 }

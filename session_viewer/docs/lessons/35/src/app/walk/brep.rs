@@ -2,9 +2,7 @@ use super::brep_edges::{EdgeChain, EdgePen, edge_chains, push_edge_pipes};
 use super::brep_orient::face_signs;
 use super::curves::{push_polyline, sample_nurbscurve};
 use super::encode::{Pen, encode_width, pack_rgba};
-// --8<-- [start:step-28a]
 use super::mesh::mesh_spacing;
-// --8<-- [end:step-28a]
 use super::mesh_ink::Ink;
 use super::{Row, WalkCx};
 use crate::app::knobs;
@@ -71,9 +69,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
         bounds: AABB::empty(),
     };
     let mut verts = 0; // vertex total for spacing
-    // --8<-- [start:step-28b]
     let mut boundary_vertices = Vec::with_capacity(fms.len()); // per face: vertex key to GPU index
-    // --8<-- [end:step-28b]
 
     for (fi, fm) in fms.iter_mut().enumerate() {
         fm.set_objectcolor(b.surfacecolor.clone());
@@ -93,7 +89,6 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
             }
         }
 
-        // --8<-- [start:step-28c]
         let mut keys: Vec<_> = fm.vertex.keys().copied().collect();
         keys.sort_unstable();
         boundary_vertices.push(
@@ -102,7 +97,6 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
                 .map(|(i, key)| (key, arena.verts.len() as u32 + i as u32))
                 .collect::<std::collections::HashMap<_, _>>(),
         );
-        // --8<-- [end:step-28c]
         let surface_index = b.m_faces[fi].surface_index as usize;
         cache_samples(arena, fm, &rm, &b.m_surfaces[surface_index], surface_index); // uv per vertex for live edits
         push_face(arena, &rm, cx, &mut solid, fi);
@@ -112,6 +106,11 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
 
     if !b.is_solid() {
         flags |= Instance::FLAG_OPEN;
+    }
+
+    // closed shells, faces turned outward: a clipping plane caps it
+    if b.is_solid() {
+        flags |= Instance::FLAG_CLOSED;
     }
 
     if b.face_count() == 1 {
@@ -132,7 +131,6 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
             color: pack_rgba(Color::black().to_f32()),
         };
         let ep = EdgePen::new(&fms, &signs, pen);
-        // --8<-- [start:step-28d]
         walk_brep_edges(
             ink,
             b,
@@ -141,7 +139,6 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
             arena,
             &boundary_vertices,
         );
-        // --8<-- [end:step-28d]
     }
 
     row
@@ -153,7 +150,6 @@ fn walk_brep_edges(
     b: &BRep,
     chains: &[Option<EdgeChain>],
     out: (&EdgePen, &mut AABB),
-    // --8<-- [start:step-28e]
     arena: &mut ArenaRows,
     boundary_vertices: &[std::collections::HashMap<usize, u32>],
 ) {
@@ -178,7 +174,6 @@ fn walk_brep_edges(
                     arena.surface_boundaries.push((pipe, ends));
                     pipe += 1;
                 }
-                // --8<-- [end:step-28e]
             }
             None => {
                 if !b.m_edges[ei].degenerated && !b.edge_faces(ei).is_empty() {
@@ -214,7 +209,6 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB))
     push_polyline(ink.seg, &points, out.0, out.1);
 }
 
-// --8<-- [start:step-28f]
 /// A NURBS surface as a fixed UV grid with its four border edges.
 pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
     let (Some((u0, u1)), Some((v0, v1))) = (s.domain(0), s.domain(1)) else {
@@ -236,7 +230,7 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
             bounds.union_with_point(point[0], point[1], point[2]);
             arena
                 .surface_samples
-                .push(crate::app::surface_preview::Sample {
+                .push(crate::engine::gpu::arena::Sample {
                     index: arena.verts.len() as u32,
                     surface: 0,
                     uv: [u, v],
@@ -304,7 +298,6 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
         spacing: mesh_spacing(&bounds, (nu + 1) * (nv + 1)),
         flags: Instance::FLAG_SINGLE | Instance::FLAG_SMOOTH | Instance::FLAG_OPEN,
         faces: true,
-        // --8<-- [end:step-28f]
     }
 }
 
@@ -325,9 +318,7 @@ mod tests {
             vert_base: 100,
             cloud_px: 0.0,
             row: 5,
-            // --8<-- [start:step-8a]
             attributes: false,
-            // --8<-- [end:step-8a]
         };
         let row = {
             let mut ink = Ink {
@@ -339,7 +330,6 @@ mod tests {
         (arena, seg, glyph, row)
     }
 
-    // --8<-- [start:step-28g]
     /// The teapot's pipes lie on its authored edge curves.
     #[test]
     fn teapot_ink_is_only_authored_patch_boundaries() {
@@ -402,7 +392,6 @@ mod tests {
     }
 
     /// A cylinder uploads unwelded faces with unit normals.
-// --8<-- [end:step-28g]
     #[test]
     fn cylinder_walks_unwelded_with_normals() {
         let b = BRep::create_cylinder(150.0, 400.0);
@@ -490,9 +479,7 @@ mod tests {
             vert_base: 0,
             cloud_px: 0.0,
             row: 7,
-            // --8<-- [start:step-8b]
             attributes: false,
-            // --8<-- [end:step-8b]
         };
         let row = walk_surface(&mut arena, &mut ink, &b.m_surfaces[0], &cx);
         assert_ne!(row.flags & Instance::FLAG_OPEN, 0);
@@ -633,7 +620,7 @@ fn cache_samples(
             .sum::<f64>();
         arena
             .surface_samples
-            .push(crate::app::surface_preview::Sample {
+            .push(crate::engine::gpu::arena::Sample {
                 index: arena.verts.len() as u32 + offset as u32,
                 surface: index as u32,
                 uv: [u, v],

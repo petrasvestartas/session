@@ -34,7 +34,7 @@ fn projected_triangle_at(triangle: ProjectedTriangle, at: vec2<f32>) -> vec2<f32
     let depth = triangle.edge2.w+dot(triangle.gradient.xy, at-vec2<f32>(triangle.edge0.w, triangle.edge1.w));
     return vec2<f32>(depth, 1.0);
 }
-// Bound the header and pooled-reference allocations at large framebuffer sizes.
+// Pixels per tile side for a canvas; must match TileLayout in Rust.
 
 fn visibility_tile_span_of(width: u32, height: u32) -> u32 {
     var span = 4u;

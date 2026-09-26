@@ -25,10 +25,8 @@ impl Target {
     }
 }
 
-// --8<-- [start:step-2a]
 /// The mesh vertex keys a target covers.
 pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
-// --8<-- [end:step-2a]
     match target {
         Target::Control(ControlId::Vertex(key)) if mesh.vertex.contains_key(&key) => Ok(vec![key]),
         Target::Face(key) => {
@@ -177,9 +175,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     .set_position(point);
             }
 
-            // --8<-- [start:step-2b]
             mesh.clear_triangle_bvh(); // stale after moving vertices
-            // --8<-- [end:step-2b]
             Geometry::Mesh(Rc::new(mesh))
         }
         Geometry::NurbsSurface(source) => {
@@ -239,6 +235,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
             next.width = source.width;
             next.dash = source.dash.clone();
             next.linecolor = source.linecolor.clone();
+            next.arrowhead = source.arrowhead;
             Geometry::Line(Rc::new(next))
         }
         Geometry::Point(source) => {

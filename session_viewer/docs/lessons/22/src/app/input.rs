@@ -1,11 +1,17 @@
-use super::touch::{Act, Touches};
+use super::gesture::{self, Gesture};
+use super::touch::{Act, TAP_SLOP, Touches};
 use crate::State;
-use crate::camera::View;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent};
-use winit::keyboard::{Key, NamedKey};
+use winit::keyboard::Key;
 
 /// A press moving less than this many pixels is a click.
 const CLICK_SLOP: f64 = 4.0;
+
+/// How far from a handle a mouse press still takes it, CSS pixels.
+const MOUSE_REACH: f64 = 8.0;
+
+/// How far from a handle a finger still takes it, CSS pixels.
+const TOUCH_REACH: f64 = 18.0;
 
 /// Mouse, keyboard and finger state between events.
 pub struct Input {
@@ -13,11 +19,17 @@ pub struct Input {
     panning: bool,                           // middle button held
     ctrl: bool,                              // Ctrl held
     shift: bool,                             // Shift held
-    gizmo_drag: bool,                        // a gizmo handle is being dragged
-    control_drag: bool,                      // a control point is being dragged
+    gesture: Option<&'static Gesture>,       // the left-button tool in charge
     last_cursor: (f64, f64),                 // last pointer position in pixels
     left_down: Option<(f64, f64)>,           // where the left button went down
-    touch: Touches,                          // camera finger gestures
+    plain: bool,             // that press had no Ctrl or Shift and may still start a tool
+    dragged: bool,           // that press, or the editing finger, left its slop
+    touch: Touches,          // camera finger gestures
+    touch_edit: Option<u64>, // finger running a tool
+    touch_down: (f64, f64),  // where that finger landed
+    fingers: std::collections::HashSet<u64>, // fingers on the screen
+    touch_cancelled: bool,   // waiting for all fingers to lift
+    tool_held: bool,         // a running command follows this drag, e.g. a lasso
 }
 
 impl Default for Input {
@@ -35,65 +47,26 @@ impl Input {
             panning: false,
             ctrl: false,
             shift: false,
-            gizmo_drag: false,
-            control_drag: false,
+            gesture: None,
             last_cursor: (0.0, 0.0),
             left_down: None,
+            plain: false,
+            dragged: false,
             touch: Touches::new(),
+            touch_edit: None,
+            touch_down: (0.0, 0.0),
+            fingers: std::collections::HashSet::new(),
+            touch_cancelled: false,
+            tool_held: false,
         }
     }
 
     /// One key press; true when the frame must be redrawn.
     pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
-        match key {
-            Key::Named(NamedKey::Space) => state
-                .camera
-                .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
-            Key::Named(NamedKey::Escape) => state.escape_selection(),
-            Key::Named(NamedKey::F10) => state.enable_controls(),
-            Key::Named(NamedKey::Delete) => state.delete_selected(),
-            // colon opens the command line
-            Key::Character(":") => {
-                crate::app::feedback::command_line(true);
-            }
-            Key::Character("l" | "L") => state.toggle_layers_panel(),
-            // Ctrl+Z undo, Ctrl+Shift+Z redo
-            Key::Character("z" | "Z") if self.ctrl => {
-                if self.shift {
-                    state.redo()
-                } else {
-                    state.undo()
-                }
-            }
-            Key::Character("y" | "Y") if self.ctrl => state.redo(),
-            Key::Character("1") => state.camera.set_view(View::Front),
-            Key::Character("2") => state.camera.set_view(View::Back),
-            Key::Character("3") => state.camera.set_view(View::Left),
-            Key::Character("4") => state.camera.set_view(View::Right),
-            Key::Character("5") => state.camera.set_view(View::Top),
-            Key::Character("6") => state.camera.set_view(View::Bottom),
-            Key::Character("7") => state.camera.set_view(View::Iso),
-            Key::Character("c" | "C") => state.camera.reset(),
-            Key::Character("f" | "F") => state.fit_selected_or_all(),
-            Key::Character("q" | "Q") => state.gpu.view.show_points = !state.gpu.view.show_points,
-            Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
-            Key::Character("e" | "E") => {
-                state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
-            }
-            Key::Character("o" | "O") => {
-                state.gpu.view.show_outlines = !state.gpu.view.show_outlines
-            }
-            Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
-            Key::Character("h" | "H") => state.hide_selected(),
-            Key::Character("s" | "S") => state.show_all(),
-            Key::Character("t" | "T") => state.toggle_selected_names(),
-            Key::Character("b" | "B") => state.gpu.view.backface = !state.gpu.view.backface,
-            Key::Character("p" | "P") => state.toggle_xray(),
-            Key::Character("[") => state.set_cloud_size(state.gpu.view.cloud_size - 0.25),
-            Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
-            _ => return false,
-        }
-
+        let Some(binding) = super::keys::binding(&key, self.ctrl, self.shift) else {
+            return false;
+        };
+        (binding.run)(state);
         true
     }
 
@@ -127,25 +100,42 @@ impl Input {
             } => self.left(state, *btn),
             WindowEvent::CursorMoved { position, .. } => {
                 let scale = crate::engine::gpu::view::surface_per_physical(); // window to canvas pixels
-                let position =
-                    winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
+                let at = (position.x * scale, position.y * scale);
 
-                if self.control_drag {
-                    self.last_cursor = (position.x, position.y);
-                    return state.drag_control(position.x, position.y);
+                // leaving the click slop turns the press into a drag
+                if let Some(down) = self.left_down
+                    && (at.0 - down.0).abs().max((at.1 - down.1).abs())
+                        > CLICK_SLOP * device_pixel_ratio()
+                {
+                    self.dragged = true;
                 }
 
-                if self.gizmo_drag {
-                    self.last_cursor = (position.x, position.y);
-                    return state.drag_gizmo(position.x, position.y);
+                // a running command draws with the button held
+                if self.tool_held {
+                    self.last_cursor = at;
+                }
+
+                // a plain press dragged past the slop may start a tool, once
+                if self.gesture.is_none()
+                    && self.plain
+                    && self.dragged
+                    && let Some(down) = self.left_down
+                {
+                    self.plain = false;
+                    self.gesture = gesture::start(state, down, at);
+                }
+
+                if let Some(active) = self.gesture {
+                    self.last_cursor = at;
+                    return (active.drag)(state, at);
                 }
 
                 let dragging = self.orbiting || self.panning;
 
                 // camera moves in CSS pixels
                 if dragging {
-                    let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
-                    let dy = ((position.y - self.last_cursor.1) / device_pixel_ratio()) as f32;
+                    let dx = ((at.0 - self.last_cursor.0) / device_pixel_ratio()) as f32;
+                    let dy = ((at.1 - self.last_cursor.1) / device_pixel_ratio()) as f32;
 
                     if self.panning || self.ctrl {
                         state.camera.pan(dx, dy);
@@ -154,8 +144,9 @@ impl Input {
                     }
                 }
 
-                self.last_cursor = (position.x, position.y);
-                dragging
+                self.last_cursor = at;
+                let mut redraw = dragging;
+                redraw
             }
             WindowEvent::MouseWheel { delta, .. } => {
                 let amount = match delta {
@@ -172,6 +163,7 @@ impl Input {
             }
             WindowEvent::Focused(false) => {
                 self.cancel();
+                state.cancel_gesture(); // register:editing
                 state.interacting = false;
                 true
             }
@@ -184,6 +176,98 @@ impl Input {
                     ),
                     ..*t
                 };
+                let at = (t.location.x, t.location.y);
+
+                if t.phase == TouchPhase::Started {
+                    self.fingers.insert(t.id);
+                }
+
+                // a second finger cancels a one-finger edit
+                if self.touch_edit.is_some()
+                    && t.phase == TouchPhase::Started
+                    && self.fingers.len() > 1
+                {
+                    state.cancel_gesture(); // register:editing
+                    self.touch_edit = None;
+                    self.gesture = None;
+                    self.tool_held = false;
+                    self.touch_cancelled = true;
+                }
+
+                // ignore everything until every finger lifts
+                if self.touch_cancelled {
+                    if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                        self.fingers.remove(&t.id);
+                    }
+
+                    if self.fingers.is_empty() {
+                        self.touch_cancelled = false;
+                        self.touch = Touches::new();
+                    }
+
+                    state.interacting = false;
+                    return true;
+                }
+
+                // a first finger closes the number box and may grab a control or a handle
+                if t.phase == TouchPhase::Started && self.fingers.len() == 1 {
+                    state.close_number_box(); // register:editing
+                    self.last_cursor = at;
+                    self.touch_down = at;
+                    self.dragged = false;
+                    // while drawing, a tap is only a point, like a mouse press
+                    let mut drawing = false;
+
+                    if !drawing {
+                        self.gesture = gesture::press(state, at, TOUCH_REACH);
+                    }
+
+                    if self.gesture.is_some() || self.tool_held {
+                        self.touch_edit = Some(t.id);
+                    }
+                }
+
+                // the editing finger
+                if self.touch_edit == Some(t.id) {
+                    self.last_cursor = at;
+                    let moved = (at.0 - self.touch_down.0).hypot(at.1 - self.touch_down.1);
+                    self.dragged |= moved / device_pixel_ratio() > TAP_SLOP; // once away, a drag even if it comes back
+
+                    match (t.phase, self.gesture) {
+                        (TouchPhase::Moved, None) if self.tool_held => {
+                        }
+                        (TouchPhase::Ended, None) if self.tool_held => {
+                        }
+                        (TouchPhase::Moved, Some(active)) => {
+                            (active.drag)(state, at);
+                        }
+                        (TouchPhase::Ended, Some(active)) => {
+                            // a finger that stayed put is a tap
+                            let tap = !self.dragged;
+                            (active.release)(state, at, tap);
+
+                            state.number_box_tapped(tap); // register:editing
+                        }
+                        (TouchPhase::Cancelled, _) => state.cancel_gesture(), // register:editing
+                        _ => {}
+                    }
+
+                    if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                        self.fingers.remove(&t.id);
+                        self.touch_edit = None;
+                        self.gesture = None;
+                        self.tool_held = false;
+                        self.touch = Touches::new();
+                    }
+
+                    state.interacting = self.touch_edit.is_some();
+                    return true;
+                }
+
+                if matches!(t.phase, TouchPhase::Ended | TouchPhase::Cancelled) {
+                    self.fingers.remove(&t.id);
+                }
+
                 state.interacting = matches!(t.phase, TouchPhase::Started | TouchPhase::Moved);
 
                 // otherwise the fingers move the camera
@@ -194,10 +278,17 @@ impl Input {
                     Act::None => false,
                     Act::Moved => true,
                     Act::Tap(at) => {
+                        // a command waiting for a point takes the tap, like a mouse click
+                        let mut drawing = false;
+
+                        if drawing {
+                        }
+
                         state.request_selection(at.0 as u32, at.1 as u32, false, false);
                         false
                     }
-                    Act::Fit => {
+                    // a command waiting for points takes both taps
+                    Act::Fit(_) => {
                         state.fit_all();
                         true
                     }
@@ -207,49 +298,67 @@ impl Input {
         }
     }
 
+    /// True while a running command follows a left drag, e.g. a lasso.
+    pub fn tool_held(&self) -> bool {
+        self.tool_held
+    }
+
     /// Forget every gesture in progress.
     pub fn cancel(&mut self) {
         self.orbiting = false;
         self.panning = false;
         self.ctrl = false;
         self.shift = false;
-        self.gizmo_drag = false;
-        self.control_drag = false;
+        self.gesture = None;
         self.left_down = None;
+        self.plain = false;
+        self.dragged = false;
         self.touch = Touches::new();
+        self.touch_edit = None;
+        self.fingers.clear();
+        self.touch_cancelled = false;
+        self.tool_held = false;
     }
 
-    /// Left button: control drag, then gizmo drag, then a click.
+    /// Left button: a tool from the registry, else a click.
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
             ElementState::Pressed => {
-                if state.begin_control_drag(self.last_cursor.0, self.last_cursor.1) {
-                    self.control_drag = true;
-                    return false;
-                }
-
-                if state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
-                    self.gizmo_drag = true;
-                    return false;
-                }
-
+                let mut closed = false;
+                closed |= state.close_number_box(); // a press in the scene closes the number box; register:editing
                 self.left_down = Some(self.last_cursor);
-                false
+                self.dragged = false;
+                // a running command that draws with the button, e.g. a lasso
+
+                if self.tool_held {
+                    self.plain = false;
+                    return true;
+                }
+
+                // while drawing, a press is only a click
+                let mut drawing = false;
+                self.plain = !self.ctrl && !self.shift && !drawing;
+
+                if self.plain {
+                    self.gesture = gesture::press(state, self.last_cursor, MOUSE_REACH);
+                }
+
+                closed
             }
             ElementState::Released => {
-                if self.control_drag {
-                    self.control_drag = false;
-                    state.end_control_drag(self.last_cursor.0, self.last_cursor.1);
-                    return true;
+                let down = self.left_down.take();
+                self.plain = false;
+
+                if self.tool_held {
+                    self.tool_held = false;
                 }
 
-                if self.gizmo_drag {
-                    self.gizmo_drag = false;
-                    state.end_gizmo(self.last_cursor.0, self.last_cursor.1);
-                    return true;
+                // the tool in charge takes the release; a press that never left the slop is a click
+                if let Some(active) = self.gesture.take() {
+                    return (active.release)(state, self.last_cursor, !self.dragged);
                 }
 
-                let Some(down) = self.left_down.take() else {
+                let Some(down) = down else {
                     return false;
                 };
                 let moved = (self.last_cursor.0 - down.0)
@@ -260,6 +369,11 @@ impl Input {
                     return false; // a drag, not a click
                 }
 
+                let mut drawing = false;
+
+                if drawing {
+                }
+                state.additive_selection = self.shift && !self.ctrl; // Shift adds to the selection
                 state.request_selection(
                     self.last_cursor.0 as u32,
                     self.last_cursor.1 as u32,
@@ -275,7 +389,7 @@ impl Input {
 /// A `pointercancel` listener on the canvas.
 #[cfg(target_arch = "wasm32")]
 pub struct PointerCancellation {
-    canvas: web_sys::HtmlCanvasElement,                                 // the canvas listened to
+    canvas: web_sys::HtmlCanvasElement, // the canvas listened to
     callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>, // the JS callback
 }
 
@@ -306,117 +420,6 @@ impl Drop for PointerCancellation {
             "pointercancel",
             self.callback.as_ref().unchecked_ref(),
         );
-    }
-}
-
-/// Send the cancel message to the event loop.
-#[cfg(target_arch = "wasm32")]
-pub struct CommandKeys {
-    input: web_sys::HtmlInputElement, // the command line input
-    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::KeyboardEvent)>, // the key handler
-    blur: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>, // the blur handler
-}
-
-#[cfg(target_arch = "wasm32")]
-impl CommandKeys {
-    /// Install once: Enter sends the line, Escape closes the box.
-    pub fn new(
-        input: web_sys::HtmlInputElement, // the command line input
-        proxy: winit::event_loop::EventLoopProxy<crate::Msg>, // sends messages to the app
-    ) -> Result<Self, wasm_bindgen::JsValue> {
-        use wasm_bindgen::JsCast;
-        let box_ = input.clone();
-        let callback = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
-            move |event: web_sys::KeyboardEvent| match event.key().as_str() {
-                "Enter" => {
-                    let line = box_.value();
-                    crate::app::feedback::command_line(false);
-
-                    if !line.trim().is_empty() {
-                        let _ = proxy.send_event(crate::Msg::Command(line));
-                    }
-                }
-                "Escape" => {
-                    crate::app::feedback::command_line(false);
-                }
-                _ => {}
-            },
-        );
-        input.add_event_listener_with_callback("keydown", callback.as_ref().unchecked_ref())?;
-        // Clicking away closes it. Otherwise the box keeps the keyboard with no key that
-        let shut = input.clone();
-        let blur = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
-            move |_: web_sys::Event| {
-                if !shut.hidden() {
-                    crate::app::feedback::command_line(false);
-                }
-            },
-        );
-        input.add_event_listener_with_callback("blur", blur.as_ref().unchecked_ref())?;
-        Ok(Self {
-            input,
-            callback,
-            blur,
-        })
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-impl Drop for CommandKeys {
-    /// Remove the DOM listener.
-    fn drop(&mut self) {
-        use wasm_bindgen::JsCast;
-        let _ = self
-            .input
-            .remove_event_listener_with_callback("keydown", self.callback.as_ref().unchecked_ref());
-        let _ = self
-            .input
-            .remove_event_listener_with_callback("blur", self.blur.as_ref().unchecked_ref());
-    }
-}
-
-/// One click listener for the whole layers panel.
-#[cfg(target_arch = "wasm32")]
-pub struct LayerClicks {
-    panel: web_sys::Element, // the layers panel element
-    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>, // the click handler
-}
-
-#[cfg(target_arch = "wasm32")]
-impl LayerClicks {
-    /// Install the listener on the page.
-    pub fn new(
-        panel: web_sys::Element, // the layers panel element
-        proxy: winit::event_loop::EventLoopProxy<crate::Msg>, // sends messages to the app
-    ) -> Result<Self, wasm_bindgen::JsValue> {
-        use wasm_bindgen::JsCast;
-        let callback = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
-            move |event: web_sys::Event| {
-                let Some(target) = event.target() else { return };
-                let Ok(element) = target.dyn_into::<web_sys::Element>() else {
-                    return;
-                };
-                let Some(key) = element.get_attribute("data-layer") else {
-                    return;
-                };
-                // A click in the panel takes the focus off the canvas, and every key binding
-                crate::app::feedback::focus_canvas();
-                let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
-            },
-        );
-        panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;
-        Ok(Self { panel, callback })
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-impl Drop for LayerClicks {
-    /// Remove the DOM listener.
-    fn drop(&mut self) {
-        use wasm_bindgen::JsCast;
-        let _ = self
-            .panel
-            .remove_event_listener_with_callback("click", self.callback.as_ref().unchecked_ref());
     }
 }
 

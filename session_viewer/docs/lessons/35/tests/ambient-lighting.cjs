@@ -19,6 +19,7 @@ async function cadence(page) {
     headless: process.env.HEADLESS === '1', args: ['--enable-unsafe-webgpu',
       '--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE', '--ozone-platform=x11']});
   const page = await browser.newPage({viewport: {width: 1440, height: 1000}});
+  if (process.env.NO_IDLE_CALLBACK) await page.addInitScript(() => { window.requestIdleCallback = undefined; });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
@@ -45,17 +46,27 @@ async function cadence(page) {
     const [x, y, right, bottom] = ui.controls.find(control => control.key === 'command/input').rect;
     // No artificial wait after clicking: the first letter must survive the focus change.
     await page.mouse.click((x + right) / 2, (y + bottom) / 2);
-    await page.keyboard.type('SSAO On');
+    await page.keyboard.type('Arctic On');
     await page.keyboard.press('Enter');
     await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-viewer-inspection')).ssao);
     await page.waitForTimeout(1000);
     const on = await snapshot(page);
+    if (!process.env.AMBIENT_SPIN) {
+      assert.deepEqual(on.mvp, off.mvp, 'Arctic preserves the camera projection and framing');
+      assert.deepEqual(on.origin, off.origin, 'Arctic preserves the camera anchor');
+    }
     const grey = PNG.sync.read(await page.screenshot());
     assert(grey.data[corner]<255 && grey.data[corner]>230,"Arctic on has a light grey background");
     assert(JSON.parse(await page.locator('canvas').getAttribute('data-viewer-ui')).command_open, 'Enter keeps the command field focused');
     const extraTextures = on.gpu_texture_estimate_bytes - off.gpu_texture_estimate_bytes;
-    assert(extraTextures > 0 && extraTextures <= 2 * 960 * 960, 'two capped R8 textures');
-    assert.equal(on.gpu_buffer_capacity_bytes - off.gpu_buffer_capacity_bytes, 144);
+    const [width,height] = on.canvas;
+    const scale = Math.max(0.25,Math.min(0.5,on.logical_canvas[0]/width));
+    const aw=Math.max(32,Math.ceil(width*scale)),ah=Math.max(32,Math.ceil(height*scale));
+    let pyramid=0;for(let level=0;level<6;level++) pyramid+=(aw>>level)*(ah>>level);
+    const expectedTextures=6*pyramid+2*aw*ah+width*height+(aw>>4)*(ah>>4)+5*Math.ceil(aw/2)*Math.ceil(ah/2);
+    assert.equal(extraTextures,expectedTextures,'bounded depth pyramid, filtered shading, ground and full-resolution cache');
+    const extraBuffers = on.samples === 1 ? 348 : 336 + 4*width*height + 8*Math.ceil(width/16)*Math.ceil(height/16);
+    assert.equal(on.gpu_buffer_capacity_bytes - off.gpu_buffer_capacity_bytes, extraBuffers);
     const caret = PNG.sync.read(await page.screenshot());
     let darkestColumn = 0;
     for (let px = Math.floor(x)-1; px <= Math.ceil(x)+1; px++) {
@@ -69,15 +80,29 @@ async function cadence(page) {
     assert(darkestColumn>=10,'the empty command field paints a visible dark caret');
     const fpsOn = await cadence(page);
     // Enter leaves the caret ready: run another command without clicking again.
-    await page.keyboard.type('SSAO On');
+    await page.keyboard.type('Arctic On');
     await page.keyboard.press('Enter');
     await page.waitForTimeout(500);
-    assert(JSON.parse(await page.locator('canvas').getAttribute('data-viewer-ui')).history.at(-1).startsWith('> SSAO On\n'));
+    assert(JSON.parse(await page.locator('canvas').getAttribute('data-viewer-ui')).history.at(-1).startsWith('> Arctic On\n'));
     if (process.env.SCREENSHOTS) {
       await fs.mkdir(path.join(root, 'target/review'), {recursive: true});
       await page.screenshot({path: path.join(root, 'target/review/ambient-regression.png')});
     }
     await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    if (!process.env.AMBIENT_SPIN) {
+      for (const projection of ['perspective', 'orthographic']) {
+        const camera = await snapshot(page);
+        await page.keyboard.press('g');
+        await page.waitForTimeout(200);
+        assert.deepEqual((await snapshot(page)).mvp, camera.mvp, projection+' G toggle preserves the camera');
+        await page.keyboard.press('g');
+        await page.waitForTimeout(200);
+        assert.deepEqual((await snapshot(page)).mvp, camera.mvp, projection+' G toggle restores the camera');
+        await page.keyboard.press('Space');
+        await page.waitForTimeout(200);
+      }
+    }
     await page.mouse.move(800, 350);
     await page.mouse.down({button: 'right'});
     await page.mouse.move(940, 460, {steps: 12});
@@ -92,7 +117,7 @@ async function cadence(page) {
     assert.equal(released.gpu_buffer_capacity_bytes, off.gpu_buffer_capacity_bytes);
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({result: 'PASS', vertices: on.vertices, extraTextures,
-      additionalUniformBytes: 144, frameCadenceFps: {off: fpsOff, on: fpsOn}, rotating: !!process.env.AMBIENT_SPIN}));
+      additionalBufferBytes: extraBuffers, frameCadenceFps: {off: fpsOff, on: fpsOn}, rotating: !!process.env.AMBIENT_SPIN}));
   } catch (error) {
     console.error(await page.locator('canvas').getAttribute('data-viewer-ui'));
     await page.screenshot({path: path.join(root, 'target/review/ambient-failure.png')});

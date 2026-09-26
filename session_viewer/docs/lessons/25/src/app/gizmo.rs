@@ -1,13 +1,14 @@
 use session_rust::intersection::{line_line_parameters, line_plane};
 use session_rust::{Line, Plane, Point, Vector, Xform};
 
-// --8<-- [start:step-1]
 /// Arm length in CSS pixels.
 pub const ARM: f64 = 96.0;
-// --8<-- [end:step-1]
 
 /// Distance of the scale balls along each arm.
 pub const BALL_AT: f64 = ARM * 0.5;
+
+/// Distance of the arrow head, where an arm's number box is pinned.
+const ARROW_AT: f64 = ARM * 0.9;
 
 /// Grab radius in pixels.
 const GRAB: f64 = 8.0;
@@ -74,6 +75,40 @@ impl Handle {
             Handle::ScaleUniform => ("Scale", "", "factor"),
         }
     }
+
+    /// What the number box says, e.g. Move X.
+    pub fn title(self) -> String {
+        let (verb, axis, _) = self.labels();
+
+        if axis.is_empty() {
+            verb.to_string()
+        } else {
+            format!("{verb} {axis}")
+        }
+    }
+}
+
+/// The number typed for `handle`: None when it changes nothing, an error when it cannot be used.
+pub fn typed_value(handle: Handle, text: &str) -> Result<Option<f64>, String> {
+    let text = text.trim();
+
+    if text.is_empty() {
+        return Ok(None);
+    }
+
+    let value = text
+        .parse::<f64>()
+        .ok()
+        .filter(|value| value.is_finite())
+        .ok_or_else(|| format!("`{text}` is not a number"))?;
+
+    match handle {
+        Handle::Scale(_) | Handle::ScaleUniform if value <= 0.0 => {
+            Err("scale wants a factor above zero".into())
+        }
+        Handle::Scale(_) | Handle::ScaleUniform => Ok((value != 1.0).then_some(value)),
+        Handle::Translate(_) | Handle::Rotate(_) => Ok((value != 0.0).then_some(value)),
+    }
 }
 
 /// What a drag remembers from its grab.
@@ -91,6 +126,7 @@ pub struct Gizmo {
     pub origin: Point,           // centre in world
     pub hovered: Option<Handle>, // handle under the pointer
     pub drag: Option<Drag>,      // drag in progress
+    pub typing: Option<Handle>,  // handle whose number box is open
 }
 
 impl Gizmo {
@@ -100,19 +136,49 @@ impl Gizmo {
             origin,
             hovered: None,
             drag: None,
+            typing: None,
         }
     }
 
-    /// Move the gizmo and end any drag.
+    /// Move the gizmo and end any drag or number box.
     pub fn set_origin(&mut self, origin: Point) {
         self.origin = origin;
         self.hovered = None;
         self.drag = None;
+        self.typing = None;
+    }
+
+    /// A point on `handle`, where its number box is pinned.
+    pub fn handle_point(&self, handle: Handle, world_per_px: f64) -> Point {
+        let s = world_per_px; // pixel sizes to world
+
+        match handle {
+            Handle::Translate(axis) => &self.origin + &(&axis.unit() * (ARROW_AT * s)),
+            Handle::Scale(axis) => &self.origin + &(&axis.unit() * (BALL_AT * s)),
+            Handle::ScaleUniform => self.origin.clone(),
+            Handle::Rotate(axis) => {
+                // the middle of the arc, in the quadrant without arms
+                let (u, v) = axis.others();
+                &self.origin - &(&(&u + &v) * (ARM * s / 2.0_f64.sqrt()))
+            }
+        }
     }
 
     /// The handle under a ray, tested from the centre outward.
     pub fn hit(&self, from: &Point, dir: &Vector, world_per_px: f64) -> Option<Handle> {
+        self.hit_with_radius(from, dir, world_per_px, GRAB)
+    }
+
+    /// Handle under a ray with a custom grab radius.
+    pub fn hit_with_radius(
+        &self,
+        from: &Point,
+        dir: &Vector,
+        world_per_px: f64,
+        radius: f64,
+    ) -> Option<Handle> {
         let s = world_per_px; // pixel sizes to world
+        let grab = radius.max(GRAB);
 
         if within(from, dir, &self.origin, HUB * s) {
             return Some(Handle::ScaleUniform);
@@ -126,7 +192,7 @@ impl Gizmo {
 
             let at = &self.origin + &(&axis.unit() * (BALL_AT * s));
 
-            if within(from, dir, &at, GRAB * s) {
+            if within(from, dir, &at, grab * s) {
                 return Some(Handle::Scale(axis));
             }
         }
@@ -140,8 +206,8 @@ impl Gizmo {
             if let Some(p) = closest_on_axis(from, dir, &self.origin, &axis.unit()) {
                 let t = (&p - &self.origin).dot(&axis.unit());
 
-                // The arm's grabbable run starts where the hub ends: inside it all three arms
-                if (HUB * s..=ARM * s).contains(&t) && within(from, dir, &p, GRAB * s) {
+                // from the hub's edge to the arm tip
+                if (HUB * s..=ARM * s).contains(&t) && within(from, dir, &p, grab * s) {
                     return Some(Handle::Translate(axis));
                 }
             }
@@ -153,8 +219,7 @@ impl Gizmo {
                 let d = &p - &self.origin;
                 let (u, v) = axis.others();
 
-                // A quarter arc, in the quadrant the arms and balls do not occupy. Sharing a
-                if d.dot(&u) < 0.0 && d.dot(&v) < 0.0 && (d.magnitude() - ARM * s).abs() < GRAB * s
+                if d.dot(&u) < 0.0 && d.dot(&v) < 0.0 && (d.magnitude() - ARM * s).abs() < grab * s
                 {
                     return Some(Handle::Rotate(axis));
                 }
@@ -254,7 +319,7 @@ impl Gizmo {
             }
             Handle::Rotate(axis) => about(&self.origin, rotation(axis, value.to_radians())),
             Handle::Scale(axis) => {
-                let k = value.max(MIN_SCALE);
+                let k = typed_factor(value);
                 let (x, y, z) = match axis {
                     Axis::X => (k, 1.0, 1.0),
                     Axis::Y => (1.0, k, 1.0),
@@ -263,11 +328,20 @@ impl Gizmo {
                 about(&self.origin, Xform::scale_xyz(x, y, z))
             }
             Handle::ScaleUniform => {
-                let k = value.max(MIN_SCALE);
+                let k = typed_factor(value);
                 about(&self.origin, Xform::scale_xyz(k, k, k))
             }
         }
     }
+}
+
+/// A typed factor as typed, e.g. 0.001 for mm to m; only one at or below zero becomes the minimum.
+fn typed_factor(value: f64) -> f64 {
+    if value <= 0.0 {
+        return MIN_SCALE;
+    }
+
+    value
 }
 
 /// A scale factor slowed near the centre, never below the minimum.
@@ -310,7 +384,7 @@ fn end_on(dir: &Vector, axis: Axis) -> bool {
 fn closest_on_axis(from: &Point, dir: &Vector, origin: &Point, axis: &Vector) -> Option<Point> {
     let ray = Line::from_point_direction_length(from, dir, 1.0);
     let line = Line::from_point_direction_length(origin, axis, 1.0);
-    let (_, t) = line_line_parameters(&ray, &line, 1e-9, false, false)?;
+    let (_, t) = line_line_parameters(&ray, &line, 0.0, false, false)?;
 
     Some(origin + &(axis * t))
 }
@@ -368,6 +442,17 @@ fn about(pivot: &Point, m: Xform) -> Xform {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A ray a few pixels off the arm still grabs it.
+    #[test]
+    fn arm_grab_accepts_a_ray_within_the_screen_aperture() {
+        let gizmo = Gizmo::new(Point::new(5.0, 45.0, 0.0));
+        let from = Point::new(25.0, 44.5, 100.0);
+        assert_eq!(
+            gizmo.hit(&from, &Vector::new(0.0, 0.0, -1.0), 0.25),
+            Some(Handle::Translate(Axis::X))
+        );
+    }
 
     const SCALE: f64 = 1.0; // one world unit per pixel
 
@@ -508,5 +593,75 @@ mod tests {
         assert_eq!([m.m[12], m.m[13], m.m[14]], [0.0, 12.5, 0.0]);
         let z = g.typed(Handle::ScaleUniform, 0.0);
         assert!(z.m[0] >= MIN_SCALE && z.m[5] >= MIN_SCALE && z.m[10] >= MIN_SCALE);
+        let fine = g.typed(Handle::Scale(Axis::X), 0.001);
+        assert!(
+            (fine.m[0] - 0.001).abs() < 1e-15,
+            "a typed factor below the drag minimum"
+        );
+    }
+
+    /// Every number box is pinned on its own handle.
+    #[test]
+    fn every_handle_anchor_lies_on_its_handle() {
+        let g = at_origin();
+        let top = Vector::new(0.0, 0.0, -1.0);
+        let front = Vector::new(0.0, 1.0, 0.0);
+        let side = Vector::new(1.0, 0.0, 0.0);
+        let views = [
+            (Handle::Translate(Axis::X), top.clone()),
+            (Handle::Translate(Axis::Y), top.clone()),
+            (Handle::Translate(Axis::Z), front.clone()),
+            (Handle::Scale(Axis::X), top.clone()),
+            (Handle::Scale(Axis::Y), top.clone()),
+            (Handle::Scale(Axis::Z), front.clone()),
+            (Handle::ScaleUniform, top.clone()),
+            (Handle::Rotate(Axis::X), side),
+            (Handle::Rotate(Axis::Y), front),
+            (Handle::Rotate(Axis::Z), top),
+        ];
+
+        for (handle, dir) in views {
+            // a ray through the anchor, from 500 units back
+            let from = &g.handle_point(handle, SCALE) - &(&dir * 500.0);
+            assert_eq!(g.hit(&from, &dir, SCALE), Some(handle), "{handle:?}");
+        }
+    }
+
+    /// Typed text becomes a value, nothing, or a reason.
+    #[test]
+    fn typed_values_parse_per_handle() {
+        let arm = Handle::Translate(Axis::X);
+        let ball = Handle::Scale(Axis::Y);
+        assert_eq!(typed_value(arm, " 250 "), Ok(Some(250.0)));
+        assert_eq!(typed_value(Handle::Rotate(Axis::Z), "-90"), Ok(Some(-90.0)));
+        assert_eq!(typed_value(arm, ""), Ok(None));
+        assert_eq!(typed_value(arm, "0"), Ok(None), "no move");
+        assert_eq!(typed_value(ball, "1"), Ok(None), "no scale");
+
+        for text in ["abc", "1e999", "NaN"] {
+            assert_eq!(
+                typed_value(arm, text),
+                Err(format!("`{text}` is not a number"))
+            );
+        }
+
+        for (handle, text) in [(ball, "0"), (Handle::ScaleUniform, "-2")] {
+            assert_eq!(
+                typed_value(handle, text),
+                Err("scale wants a factor above zero".into())
+            );
+        }
+    }
+
+    /// Moving the gumball closes its number box.
+    #[test]
+    fn a_moved_gizmo_closes_its_number_box() {
+        let mut g = at_origin();
+        assert_eq!(g.typing, None);
+        g.typing = Some(Handle::Rotate(Axis::Z));
+        g.set_origin(Point::new(1.0, 2.0, 3.0));
+        assert_eq!(g.typing, None);
+        assert_eq!(Handle::ScaleUniform.title(), "Scale");
+        assert_eq!(Handle::Translate(Axis::X).title(), "Move X");
     }
 }

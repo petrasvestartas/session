@@ -260,32 +260,7 @@ impl CloudLod {
     }
 }
 
-/// The varint at `i` and its byte length.
-pub fn varint(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
-    let (mut v, mut shift) = (0u64, 0u32);
-    let start = i;
-
-    loop {
-        let byte = *b.get(i)?;
-
-        if shift == 63 && byte > 1 {
-            return None;
-        }
-
-        v |= ((byte & 0x7f) as u64) << shift;
-        i += 1;
-
-        if byte & 0x80 == 0 {
-            return Some((v, i - start));
-        }
-
-        shift += 7;
-
-        if shift > 63 {
-            return None;
-        }
-    }
-}
+use super::validate::varint;
 
 /// Byte length of a scalar field of wire type `wire`.
 fn skip_scalar(b: &[u8], i: usize, wire: u32) -> Option<usize> {
@@ -588,7 +563,6 @@ mod web {
     use crate::app::fetch::{GetOpts, PROBE_BYTES, Reply, Task, fetch_range, get, retryable};
     use crate::app::manifest::immutable_key;
     use crate::app::range_gate::{RANGE_READS, RangeGate};
-    use crate::app::walk::sheet::SheetRows;
     use std::cell::RefCell;
     use std::rc::Rc;
 
@@ -611,7 +585,7 @@ mod web {
 
     impl MetadataWindow {
         /// The bytes at `at`, reading more when not cached.
-        async fn read(
+        pub(super) async fn read(
             &mut self,
             url: &str,
             at: u64,
@@ -661,7 +635,7 @@ mod web {
     }
 
     /// Start reading one range of the file.
-    fn start_range(
+    pub(super) fn start_range(
         url: &str,
         (at, length): (u64, u64),
         revision: &Option<String>,
@@ -886,106 +860,6 @@ mod web {
         let (colors, used) = colors_from(&raw, count)?;
         Some((colors, body_end(at, used as u64, end)?))
     }
-
-    /// Find where a sheet's arrays are in the file, from its `probe`.
-    pub async fn sheet_fields(url: &str, probe: &Reply) -> Option<SheetFields> {
-        if probe.status != 206 {
-            return None;
-        }
-
-        let (coords_at, coords_len, end) = sheet_layout(&probe.bytes)?;
-
-        if coords_len == 0 || !coords_len.is_multiple_of(SheetFields::SEGMENT_BYTES) {
-            return None;
-        }
-
-        let mut fields = SheetFields {
-            end,
-            coords_at,
-            coords_len,
-            count: u32::try_from(coords_len / SheetFields::SEGMENT_BYTES).ok()?,
-            revision: probe.etag.clone(),
-            ..Default::default()
-        };
-        let mut at = body_end(coords_at, coords_len, end)?;
-        let mut window = MetadataWindow::default();
-
-        while at < end {
-            let header = window
-                .read(url, at, 64.min(end - at), end, &fields.revision)
-                .await?;
-            let f = field_at(header, at, end)?;
-            let body = if (f.field, f.wire) == (8, 2) {
-                if f.value > NAME_BYTES {
-                    return None;
-                }
-
-                window
-                    .read(url, f.body, f.value, end, &fields.revision)
-                    .await?
-            } else {
-                &[]
-            };
-
-            if !fields.set(&f, body) {
-                return None;
-            }
-
-            at = f.next;
-        }
-
-        Some(fields)
-    }
-
-    /// The byte range of entries `[from, to)` of one fixed-width array.
-    fn sheet_range(
-        fields: &SheetFields,
-        (at, len): (u64, u64),
-        from: u32,
-        to: u32,
-        stride: u64,
-    ) -> Option<(u64, u64)> {
-        if len == 0 {
-            return Some((0, 0));
-        }
-
-        let start = at.checked_add(u64::from(from).checked_mul(stride)?)?;
-        let length = u64::from(to - from).checked_mul(stride)?;
-        body_end(start, length, body_end(at, len, fields.end)?)?;
-        Some((start, length))
-    }
-
-    /// Segments `[from, to)` of a sheet, its four arrays read at once.
-    pub async fn fetch_sheet_slice(
-        url: &str,
-        fields: &SheetFields,
-        from: u32,
-        to: u32,
-    ) -> Option<SheetRows> {
-        if from > to || to > fields.count {
-            return None;
-        }
-
-        let coords = (fields.coords_at, fields.coords_len);
-        let coords = sheet_range(fields, coords, from, to, SheetFields::SEGMENT_BYTES)?;
-        // colour, width and id are 4 bytes a segment
-        let colors = sheet_range(fields, (fields.colors_at, fields.colors_len), from, to, 4)?;
-        let widths = sheet_range(fields, (fields.widths_at, fields.widths_len), from, to, 4)?;
-        let ids = sheet_range(fields, (fields.ids_at, fields.ids_len), from, to, 4)?;
-        let reads =
-            [coords, colors, widths, ids].map(|range| start_range(url, range, &fields.revision));
-        let [coords, colors, widths, ids] = reads;
-        let positions = checked_doubles(&coords.wait().await??, u64::from(to - from) * 6);
-        let colors = packed_u32(&colors.wait().await??);
-        let widths = packed_f32(&widths.wait().await??);
-        let ids = packed_u32(&ids.wait().await??);
-        Some(SheetRows {
-            positions: positions?,
-            colors,
-            widths,
-            ids,
-        })
-    }
 }
 
 #[cfg(test)]
@@ -1003,7 +877,10 @@ mod tests {
 
         let packed = normals_from(&raw);
         assert_eq!(packed.len(), 2);
-        assert_eq!(packed[0], crate::app::walk::encode::oct16(&[0.0, 0.0, 1.0]).unwrap());
+        assert_eq!(
+            packed[0],
+            crate::app::walk::encode::oct16(&[0.0, 0.0, 1.0]).unwrap()
+        );
         assert_eq!(packed[1], 0);
     }
 
@@ -1272,5 +1149,116 @@ mod tests {
         let (c, used) = colors_from(&raw, 2).unwrap();
         assert_eq!(c, [0x7f64_007f, 0x0403_0201]);
         assert_eq!(used, 8);
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub use web_sheets::*;
+
+#[cfg(target_arch = "wasm32")]
+mod web_sheets {
+    use super::web::start_range;
+    use super::*;
+    use crate::app::fetch::Reply;
+    use crate::app::walk::sheet::SheetRows;
+
+    /// Find where a sheet's arrays are in the file, from its `probe`.
+    pub async fn sheet_fields(url: &str, probe: &Reply) -> Option<SheetFields> {
+        if probe.status != 206 {
+            return None;
+        }
+
+        let (coords_at, coords_len, end) = sheet_layout(&probe.bytes)?;
+
+        if coords_len == 0 || !coords_len.is_multiple_of(SheetFields::SEGMENT_BYTES) {
+            return None;
+        }
+
+        let mut fields = SheetFields {
+            end,
+            coords_at,
+            coords_len,
+            count: u32::try_from(coords_len / SheetFields::SEGMENT_BYTES).ok()?,
+            revision: probe.etag.clone(),
+            ..Default::default()
+        };
+        let mut at = body_end(coords_at, coords_len, end)?;
+        let mut window = MetadataWindow::default();
+
+        while at < end {
+            let header = window
+                .read(url, at, 64.min(end - at), end, &fields.revision)
+                .await?;
+            let f = field_at(header, at, end)?;
+            let body = if (f.field, f.wire) == (8, 2) {
+                if f.value > NAME_BYTES {
+                    return None;
+                }
+
+                window
+                    .read(url, f.body, f.value, end, &fields.revision)
+                    .await?
+            } else {
+                &[]
+            };
+
+            if !fields.set(&f, body) {
+                return None;
+            }
+
+            at = f.next;
+        }
+
+        Some(fields)
+    }
+
+    /// The byte range of entries `[from, to)` of one fixed-width array.
+    fn sheet_range(
+        fields: &SheetFields,
+        (at, len): (u64, u64),
+        from: u32,
+        to: u32,
+        stride: u64,
+    ) -> Option<(u64, u64)> {
+        if len == 0 {
+            return Some((0, 0));
+        }
+
+        let start = at.checked_add(u64::from(from).checked_mul(stride)?)?;
+        let length = u64::from(to - from).checked_mul(stride)?;
+        body_end(start, length, body_end(at, len, fields.end)?)?;
+        Some((start, length))
+    }
+
+    /// Segments `[from, to)` of a sheet, its four arrays read at once.
+    pub async fn fetch_sheet_slice(
+        url: &str,
+        fields: &SheetFields,
+        from: u32,
+        to: u32,
+    ) -> Option<SheetRows> {
+        if from > to || to > fields.count {
+            return None;
+        }
+
+        let coords = (fields.coords_at, fields.coords_len);
+        let coords = sheet_range(fields, coords, from, to, SheetFields::SEGMENT_BYTES)?;
+        // colour, width and id are 4 bytes a segment
+        let colors = sheet_range(fields, (fields.colors_at, fields.colors_len), from, to, 4)?;
+        let widths = sheet_range(fields, (fields.widths_at, fields.widths_len), from, to, 4)?;
+        let ids = sheet_range(fields, (fields.ids_at, fields.ids_len), from, to, 4)?;
+        let reads =
+            [coords, colors, widths, ids].map(|range| start_range(url, range, &fields.revision));
+        let [coords, colors, widths, ids] = reads;
+        let positions = checked_doubles(&coords.wait().await??, u64::from(to - from) * 6);
+        let colors = packed_u32(&colors.wait().await??);
+        let widths = packed_f32(&widths.wait().await??);
+        let ids = packed_u32(&ids.wait().await??);
+        Some(SheetRows {
+            positions: positions?,
+            colors,
+            widths,
+            ids,
+        })
     }
 }

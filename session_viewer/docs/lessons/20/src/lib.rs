@@ -1,54 +1,70 @@
-pub mod app;
-mod camera;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
+/// Browser entry point.
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(start)]
+pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
+    // panics print to the console
+    console_error_panic_hook::set_once();
+    engine::performance::mark("wasm entry"); // register:frame
+    start(); // register:shell
+    Ok(())
+}
+
+// --8<-- [start:01]
+/// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
+macro_rules! shader {
+    ($name:literal) => {
+        include_str!(concat!(env!("OUT_DIR"), "/shaders/", $name))
+    };
+}
+
 mod engine;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod selftest;
-mod state;
+// --8<-- [end:01]
+
+// --8<-- [start:02]
+mod camera;
+// --8<-- [end:02]
+
+// --8<-- [start:06]
+pub mod app;
+// --8<-- [end:06]
+
+// --8<-- [start:11]
 #[cfg(target_arch = "wasm32")]
 pub mod text_quality;
+// --8<-- [end:11]
 
-use crate::app::scene::{FileDoc, SheetInit, StreamedInit};
-use crate::app::walk::cloud::StreamRows;
-use crate::app::walk::sheet::SheetRows;
+// --8<-- [start:12]
+mod state;
+
+use crate::app::scene::FileDoc;
 pub use state::State;
-
-/// One more slice of streamed cloud `idx`.
-pub struct CloudChunk {
-    pub idx: usize, // which cloud
-    pub rows: StreamRows, // the new points
-    pub to: u32, // rows loaded so far
-}
-
-/// One more slice of sheet `idx`.
-pub struct SheetChunk {
-    pub idx: usize, // which sheet
-    pub rows: SheetRows, // the new segments
-    pub to: u32, // segments loaded so far
-}
 
 /// Messages the async loader sends to the event loop.
 pub enum Msg {
-    Ready(Box<State>), // GPU is up, here is the state
-    File(FileDoc),
-    Texts(Vec<app::manifest::TextItem>), // text labels to place
-    Clear, // empty the scene
-    Fit, // frame the camera on everything
-    StreamedCloud(Box<StreamedInit>),
-    CloudChunk(CloudChunk), // more points arrived
-    CloudQueryBatch(app::cloud_query::Batch), // points asked for on click
-    CloudQueryResolved(app::cloud_query::Resolved), // those points answered
-    Sheet(Box<SheetInit>), // a drawing sheet starts streaming
-    SheetChunk(SheetChunk), // more segments arrived
-    SheetEntity(app::sheet_query::Resolved),
-    CancelPointer, // the browser lost the pointer
+    Ready(Box<State>),                              // GPU is up, here is the state
+    File(FileDoc, Option<String>), // one loaded file; a display-only one names its file
+    Texts(Vec<app::manifest::TextItem>), // text labels to place; register:scene_text
+    Clear,                         // empty the scene
+    Fit,                           // frame the camera on everything
+    StreamedCloud(Box<StreamedInit>), // a point cloud starts streaming; register:stream
+    CloudChunk(CloudChunk),        // more points arrived; register:stream
+    CloudQueryBatch(app::cloud_query::Batch), // points asked for on click; register:cloud_query
+    CloudQueryResolved(app::cloud_query::Resolved), // those points answered; register:cloud_query
+    Sheet(Box<SheetInit>),         // a drawing sheet starts streaming; register:sheets
+    SheetChunk(SheetChunk),        // more segments arrived; register:sheets
+    SheetEntity(app::sheet_query::Resolved), // a picked sheet entity answered; register:sheets
+    CancelPointer,                 // the browser lost the pointer
+    Fonts(Vec<Vec<u8>>),           // the whole label fonts, main font first; register:loading
 }
 
 #[cfg(target_arch = "wasm32")]
 use {
-    crate::app::{input::Input, loader},
+    crate::app::input::Input,
     std::sync::Arc,
     wasm_bindgen::JsCast,
-    wasm_bindgen::prelude::*,
     winit::application::ApplicationHandler,
     winit::event::{ElementState, WindowEvent},
     winit::event_loop::{ActiveEventLoop, EventLoop, EventLoopProxy},
@@ -59,9 +75,9 @@ use {
 /// The winit application: owns the state and the gestures.
 #[cfg(target_arch = "wasm32")]
 pub struct App {
-    state: Option<State>, // everything drawn, once the GPU is up
+    state: Option<State>,               // everything drawn, once the GPU is up
     proxy: Option<EventLoopProxy<Msg>>, // sends messages into the loop
-    input: Input, // mouse and key gestures
+    input: Input,                       // mouse and key gestures
     pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener
 }
 
@@ -86,7 +102,7 @@ impl App {
     fn adopt(&mut self, mut state: State) {
         // match the canvas pixel size
         if let Some((w, h)) = desired_canvas_size() {
-            state.resize(w, h);
+            let _ = state.resize(w, h);
         }
 
         state.window.request_redraw();
@@ -127,13 +143,13 @@ impl ApplicationHandler<Msg> for App {
         };
 
         if let Some(proxy) = self.proxy.take() {
-            match app::input::PointerCancellation::new(canvas, proxy.clone()) {
+            match app::input::PointerCancellation::new(canvas.clone(), proxy.clone()) {
                 Ok(listener) => self.pointer_cancellation = Some(listener),
                 Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
             }
 
             // async: GPU setup, then Msg::Ready
-            wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
+            wasm_bindgen_futures::spawn_local(app::loader::boot(window, proxy)); // register:loading
         }
     }
 
@@ -149,41 +165,17 @@ impl ApplicationHandler<Msg> for App {
         match msg {
             Msg::Ready(_) => {}
             Msg::Clear => state.clear(),
-            Msg::Fit => state.fit_all(),
-            Msg::File(doc) => state.append(doc),
-            Msg::Texts(texts) => state.set_texts(texts),
-            Msg::StreamedCloud(init) => {
-                // add the first rows, keep loading the rest
-                let (url, fields, from, col_at) = (
-                    init.url.clone(),
-                    init.fields.clone(),
-                    init.resident,
-                    init.col_at,
-                );
-                let idx = state.add_streamed(*init);
-                loader::spawn_stream_rest(loader::StreamCursor {
-                    idx,
-                    url,
-                    fields,
-                    from,
-                    col_at,
-                });
-            }
-            Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
-            Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
-            Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
-            Msg::Sheet(init) => {
-                let (url, fields, from) = (init.url.clone(), init.fields.clone(), init.resident);
-                let idx = state.add_sheet(*init);
-                loader::spawn_sheet_rest(loader::SheetCursor {
-                    idx,
-                    url,
-                    fields,
-                    from,
-                });
-            }
-            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
-            Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
+            Msg::Fit => state.fit_loaded(),
+            Msg::File(doc, source) => state.append(doc, source),
+            Msg::Fonts(faces) => self.use_fonts(faces),   // register:loading
+            Msg::Texts(texts) => state.set_texts(texts),  // register:scene_text
+            Msg::StreamedCloud(init) => start_stream(state, init), // register:stream
+            Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to), // register:stream
+            Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch), // register:cloud_query
+            Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved), // register:cloud_query
+            Msg::Sheet(init) => start_sheet(state, init), // register:sheets
+            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to), // register:sheets
+            Msg::SheetEntity(resolved) => state.sheet_entity(resolved), // register:sheets
             Msg::CancelPointer => {
                 self.input.cancel();
                 state.touch();
@@ -196,6 +188,7 @@ impl ApplicationHandler<Msg> for App {
     /// Handle one window event: redraw, resize, key or mouse.
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         let Some(state) = &mut self.state else { return };
+
         // true when the scene must be drawn again
         let changed = match event {
             WindowEvent::CloseRequested => {
@@ -207,13 +200,20 @@ impl ApplicationHandler<Msg> for App {
                     return;
                 }
 
-                if let Some((w, h)) = desired_canvas_size()
-                    && (w, h) != (state.gpu.config.width, state.gpu.config.height)
-                {
-                    state.resize(w, h);
+                // resize first; a resize not ready yet holds the frame
+                let held = match desired_canvas_size() {
+                    Some((w, h)) if (w, h) != (state.gpu.config.width, state.gpu.config.height) => {
+                        !state.resize(w, h)
+                    }
+                    _ => false,
+                };
+
+                if held {
+                    state.needs_frame = true;
+                } else {
+                    state.render();
                 }
 
-                state.render();
                 false
             }
             WindowEvent::Resized(_) => true,
@@ -284,24 +284,98 @@ fn desired_canvas_size() -> Option<(u32, u32)> {
     (w > 0 && h > 0).then_some((w, h))
 }
 
-/// Browser entry point.
+/// Start the viewer, unless this is the text-quality page.
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(start)]
-pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
-    // panics print to the console
-    console_error_panic_hook::set_once();
-
+fn start() {
     // the text-quality page runs its own code
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()
         && document.get_element_by_id("text-quality-canvas").is_some()
     {
-        return Ok(());
+        return;
+    }
+
+    // after a GPU-loss reload, show the notice
+    if let Some(notice) = app::route::adopt_recovery() {
+        app::feedback::status(notice);
     }
 
     if let Err(error) = App::run() {
         app::feedback::error(&format!("Cannot start the viewer: {error}"));
     }
-
-    Ok(())
 }
+// --8<-- [end:12]
+
+// --8<-- [start:14]
+#[cfg(target_arch = "wasm32")]
+impl App {
+    /// Keep the whole fonts for the page's life, shared by the labels and the panels.
+    fn use_fonts(&mut self, faces: Vec<Vec<u8>>) {
+        let Some(state) = &mut self.state else { return };
+        let faces: Vec<&'static [u8]> = faces
+            .into_iter()
+            .map(|face| &*Box::leak(face.into_boxed_slice()))
+            .collect();
+
+        if let Ok(faces) = <[&'static [u8]; 3]>::try_from(faces) {
+            state.use_fonts(faces); // register:scene_text
+        }
+    }
+}
+// --8<-- [end:14]
+
+// --8<-- [start:15]
+use crate::app::scene::StreamedInit;
+use crate::app::walk::cloud::StreamRows;
+
+/// The next slice of streamed cloud `idx`.
+pub struct CloudChunk {
+    pub idx: usize,       // which cloud
+    pub rows: StreamRows, // the new points
+    pub to: u32,          // rows loaded so far
+}
+
+/// Add a streamed cloud's first rows and keep loading the rest.
+#[cfg(target_arch = "wasm32")]
+fn start_stream(state: &mut State, init: Box<StreamedInit>) {
+    let (url, fields, from, col_at) = (
+        init.url.clone(),
+        init.fields.clone(),
+        init.resident,
+        init.col_at,
+    );
+    let idx = state.add_streamed(*init);
+    app::loader::spawn_stream_rest(app::loader::StreamCursor {
+        idx,
+        url,
+        fields,
+        from,
+        col_at,
+    });
+}
+// --8<-- [end:15]
+
+// --8<-- [start:19]
+use crate::app::scene::SheetInit;
+use crate::app::walk::sheet::SheetRows;
+
+/// The next slice of sheet `idx`.
+pub struct SheetChunk {
+    pub idx: usize,      // which sheet
+    pub rows: SheetRows, // the new segments
+    pub to: u32,         // segments loaded so far
+}
+
+/// Add a sheet's first segments and keep loading the rest.
+#[cfg(target_arch = "wasm32")]
+fn start_sheet(state: &mut State, init: Box<SheetInit>) {
+    let (url, fields, from) = (init.url.clone(), init.fields.clone(), init.resident);
+    let idx = state.add_sheet(*init);
+    app::loader::spawn_sheet_rest(app::loader::SheetCursor {
+        idx,
+        url,
+        fields,
+        from,
+    });
+}
+// --8<-- [end:19]

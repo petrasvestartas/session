@@ -1,54 +1,41 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::frame::Binds;
-use super::instanced::{Slots, clamp, slot_layout};
+use super::slots::{Slots, clamp, slot_layout};
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build,
 };
 
-/// Bit that marks a pick id as a face.
-pub const FACE_TAG: u32 = 0x2000_0000;
-
-/// Which object and face a triangle came from.
-#[derive(Clone, Copy)]
-pub struct FaceSource {
-    pub parent: u32, // object row
-    pub face: usize, // face index in that object
-}
+pub use super::arena::{FACE_TAG, FaceSource};
 
 /// Solid faces: their source ids, the selected one, and the pipelines.
 pub struct Faces {
-    pub sources: Vec<FaceSource>, // one entry per face
-    ids: GrowBuf, // face id per triangle
-    selected: wgpu::Buffer, // selected face id, read by shaders
-    active: Option<u32>, // selected face id, if any
-    revision: u64, // bumps on every selection change
-    layout: wgpu::BindGroupLayout, // shape of the face bind group
+    pub sources: Vec<FaceSource>,   // one entry per face
+    ids: GrowBuf,                   // face id per triangle
+    selected: wgpu::Buffer,         // selected face id, read by shaders
+    active: Option<u32>,            // selected face id, if any
+    revision: u64,                  // bumps on every selection change
+    layout: wgpu::BindGroupLayout,  // shape of the face bind group
     group: Option<wgpu::BindGroup>, // the face buffers, bound
-    pipes: FacePipelines, // face pipelines
-    pub slots: Slots, // instance slots and the per-definition draws
+    pipes: FacePipelines,           // face pipelines
+    pub slots: Slots,               // instance slots and the per-definition draws
 }
 
 /// The face pipelines.
 struct FacePipelines {
-    physical: Pipeline, // colored faces, blended for glass
-    opaque: Pipeline, // colored faces at full opacity, no blending
-    clipped: Pipeline, // colored faces cut by clipping planes, blended
+    physical: Pipeline,       // colored faces, blended for glass
+    opaque: Pipeline,         // colored faces at full opacity, no blending
+    clipped: Pipeline,        // colored faces cut by clipping planes, blended
     clipped_opaque: Pipeline, // the same at full opacity
-    object_ids: Pipeline, // object id per pixel
-    pick: Pipeline, // face id per pixel
-    highlight: Pipeline, // selected face in color
-    mask: Pipeline, // selected face into a mask
-    masks: Pipeline, // selected face into both masks
+    object_ids: Pipeline,     // object id per pixel
+    pick: Pipeline,           // face id per pixel
+    highlight: Pipeline,      // selected face in color
+    mask: Pipeline,           // selected face into a mask
+    masks: Pipeline,          // selected face into both masks
 }
 
 impl Faces {
     /// Create the layout, the selection buffer and the pipelines.
-    pub fn new(
-        ctx: &GpuCtx,
-        layouts: &Layouts,
-        shader: &Shader,
-        target: Target,
-    ) -> Self {
+    pub fn new(ctx: &GpuCtx, layouts: &Layouts, shader: &Shader, target: Target) -> Self {
         // bindings 0-3 are storage buffers, 4 is the selection
         let entries: Vec<_> = (0..5)
             .map(|binding| wgpu::BindGroupLayoutEntry {
@@ -94,13 +81,7 @@ impl Faces {
     }
 
     /// Rebuild the pipelines for a new MSAA sample count.
-    pub fn retarget(
-        &mut self,
-        ctx: &GpuCtx,
-        layouts: &Layouts,
-        shader: &Shader,
-        target: Target,
-    ) {
+    pub fn retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, shader: &Shader, target: Target) {
         self.pipes = pipelines(ctx, layouts, shader, target, &self.layout);
     }
 
@@ -180,37 +161,6 @@ impl Faces {
         self.revision = self.revision.wrapping_add(1);
     }
 
-    /// Face behind a pick id, if it belongs to object `row`.
-    pub fn source(&self, row: u32, sub: u32) -> Option<(u32, FaceSource)> {
-        // top three bits say what kind of pick
-        if sub & 0xe000_0000 != FACE_TAG {
-            return None;
-        }
-
-        let address = sub & !FACE_TAG;
-        let source = *self.sources.get(address as usize)?;
-        (source.parent == row).then_some((address, source))
-    }
-
-    /// Face id of `face` on object `parent`.
-    pub fn address(&self, parent: u32, face: usize) -> Option<u32> {
-        self.sources
-            .iter()
-            .position(|source| source.parent == parent && source.face == face)
-            .map(|i| i as u32)
-    }
-
-    /// Select a face; None clears the selection.
-    pub fn select(&mut self, ctx: &GpuCtx, face: Option<u32>) {
-        self.active = face;
-        self.revision = self.revision.wrapping_add(1);
-        ctx.queue.write_buffer(
-            &self.selected,
-            0,
-            bytemuck::cast_slice(&[face.unwrap_or(u32::MAX), 0, 0, 0]),
-        );
-    }
-
     /// Draw the colored faces; `opaque` skips blending, which full opacity does not need, and
     /// `clipped` cuts them sample by sample while clipping planes are active.
     pub fn draw_physical(
@@ -239,15 +189,6 @@ impl Faces {
         self.draw(pass, binds, &self.pipes.pick)
     }
 
-    /// Draw the selected face highlighted.
-    pub fn draw_highlight(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
-        if self.active.is_none() {
-            return 0;
-        }
-
-        self.draw(pass, binds, &self.pipes.highlight)
-    }
-
     /// Draw the selected face into the selection mask.
     pub fn draw_mask(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
         if self.active.is_none() {
@@ -266,18 +207,8 @@ impl Faces {
         self.draw(pass, binds, &self.pipes.masks)
     }
 
-    /// Selection change count.
-    pub fn revision(&self) -> u64 {
-        self.revision
-    }
-
     /// Draw every face with `pipeline`; returns the draw count.
-    fn draw(
-        &self,
-        pass: &mut wgpu::RenderPass<'_>,
-        binds: &Binds,
-        pipeline: &Pipeline,
-    ) -> u32 {
+    fn draw(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds, pipeline: &Pipeline) -> u32 {
         let Some(group) = &self.group else {
             return 0;
         };
@@ -305,6 +236,17 @@ impl Faces {
         }
 
         draws
+    }
+
+    /// Select a face; None clears the selection.
+    pub fn select(&mut self, ctx: &GpuCtx, face: Option<u32>) {
+        self.active = face;
+        self.revision = self.revision.wrapping_add(1);
+        ctx.queue.write_buffer(
+            &self.selected,
+            0,
+            bytemuck::cast_slice(&[face.unwrap_or(u32::MAX), 0, 0, 0]),
+        );
     }
 
     /// Forget every face; keep the buffers.
@@ -404,7 +346,9 @@ fn pipelines(
         &object_base.with("object triangle IDs", "fs_id").physical(),
     );
     // cut by clipping planes: only compiled once a plane cuts
-    let cut = object_base.with("clipped triangle", "fs_clipped").physical();
+    let cut = object_base
+        .with("clipped triangle", "fs_clipped")
+        .physical();
     let clipped = build(ctx, target, &cut.clone().color(ColorWrite::Blended));
     let clipped_opaque = build(ctx, target, &cut);
     FacePipelines {
@@ -417,5 +361,41 @@ fn pipelines(
         clipped,
         clipped_opaque,
         object_ids,
+    }
+}
+
+impl Faces {
+    /// Face behind a pick id, if it belongs to object `row`.
+    pub fn source(&self, row: u32, sub: u32) -> Option<(u32, FaceSource)> {
+        // top three bits say what kind of pick
+        if sub & 0xe000_0000 != FACE_TAG {
+            return None;
+        }
+
+        let address = sub & !FACE_TAG;
+        let source = *self.sources.get(address as usize)?;
+        (source.parent == row).then_some((address, source))
+    }
+
+    /// Face id of `face` on object `parent`.
+    pub fn address(&self, parent: u32, face: usize) -> Option<u32> {
+        self.sources
+            .iter()
+            .position(|source| source.parent == parent && source.face == face)
+            .map(|i| i as u32)
+    }
+
+    /// Draw the selected face highlighted.
+    pub fn draw_highlight(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
+        if self.active.is_none() {
+            return 0;
+        }
+
+        self.draw(pass, binds, &self.pipes.highlight)
+    }
+
+    /// Selection change count.
+    pub fn revision(&self) -> u64 {
+        self.revision
     }
 }

@@ -3,6 +3,9 @@ use crate::engine::gpu::Gpu;
 use crate::engine::text::{TextLabel, TextObject, TextPlacement};
 use session_rust::Xform;
 
+/// Key prefix of a text made with the Text command.
+pub(crate) const CREATED_TEXT: &str = "created-text/";
+
 /// One text object and its scene row.
 pub struct SceneText {
     pub label: TextLabel,    // what to draw
@@ -81,7 +84,7 @@ impl Scene {
             }
         }
 
-        let row = self.push_row(usize::MAX, &key, Xform::identity(), 0);
+        let row = self.push_row(super::rows::TEXT, &key, Xform::identity(), 0);
         label.id = row + 1;
         label.object = Some(TextObject {
             row,
@@ -95,14 +98,86 @@ impl Scene {
         });
     }
 
+    /// Add a text object as one undo step; returns its row.
+    pub fn add_text(&mut self, label: TextLabel) -> u32 {
+        let next = self
+            .texts
+            .iter()
+            .filter_map(|text| text.key.strip_prefix(CREATED_TEXT)?.parse::<u64>().ok())
+            .max()
+            .map_or(0, |index| index + 1);
+        let key = format!("{CREATED_TEXT}{next}");
+        let loaded = self.loaded; // an edit keeps the GPU anchor, only a load re-centres it
+        self.register_text(key.clone(), label, true);
+        self.loaded = loaded;
+        self.text_edited(format!("+{key}")); // register:editing
+        let row = self.texts[self.texts.len() - 1].row;
+        self.text_rows.push(row);
+        row
+    }
+
+    /// Retire the active text on `row` as one undo step; false when no text is there.
+    pub(crate) fn delete_text(&mut self, row: u32) -> bool {
+        let Some(label) = self.retire_text(row) else {
+            return false;
+        };
+        self.text_edited(label); // register:editing
+        true
+    }
+
+    /// Retire the active text on `row`; its undo label, None when no text is there.
+    pub(crate) fn retire_text(&mut self, row: u32) -> Option<String> {
+        let text = self
+            .texts
+            .iter_mut()
+            .find(|text| text.active && text.row == row)?;
+        text.active = false;
+        let label = format!("-{}", text.key);
+        self.text_rows.push(row);
+        self.selected = None;
+        Some(label)
+    }
+
+    /// Show or hide the text an undo step `label` made or deleted.
+    pub(crate) fn step_text(&mut self, label: &str, back: bool) {
+        let (sign, key) = label.split_at(1);
+        let shown = (sign == "+") != back;
+
+        let Some(text) = self.texts.iter_mut().find(|text| text.key == key) else {
+            return;
+        };
+        text.active = shown;
+        let row = text.row;
+        self.text_rows.push(row);
+
+        if !shown && self.selected == Some(row) {
+            self.selected = None;
+        }
+    }
+
+    /// Hide or show on the GPU the texts undo, redo or delete changed.
+    pub(crate) fn flag_texts(&mut self, gpu: &mut Gpu) {
+        for row in std::mem::take(&mut self.text_rows) {
+            let hidden = self
+                .identity_of(row)
+                .is_some_and(|id| self.hidden.contains(&id));
+            gpu.set_hidden(row, self.text_at(row).is_none() || hidden);
+        }
+    }
+
     /// Hide inactive and hidden texts on the GPU.
-    pub(super) fn restore_text_visibility(&self, gpu: &mut Gpu) {
+    pub(crate) fn restore_text_visibility(&self, gpu: &mut Gpu) {
         for text in &self.texts {
             let hidden = self
                 .identity_of(text.row)
                 .is_some_and(|id| self.hidden.contains(&id));
             gpu.set_hidden(text.row, !text.active || hidden);
         }
+    }
+
+    /// The words a text row shows.
+    pub fn text_name(&self, row: u32) -> Option<&str> {
+        self.text_at(row).map(|text| text.label.text.as_str())
     }
 
     /// The active text on `row`.

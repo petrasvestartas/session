@@ -6,8 +6,8 @@ use std::f32::consts::{FRAC_PI_2, PI, TAU};
 /// One gumball mesh vertex.
 pub struct Vertex {
     position: [f32; 3], // CSS pixels from the gumball center
-    color: u32, // packed rgba
-    handle: u32, // which of the ten handles it belongs to
+    color: u32,         // packed rgba
+    handle: u32,        // which of the ten handles it belongs to
 }
 
 /// Axis colors: red x, green y, blue z.

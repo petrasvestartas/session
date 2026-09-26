@@ -1,28 +1,30 @@
-pub mod cloud_query;
-pub mod feedback;
-pub mod input;
-pub mod knobs;
-pub mod manifest;
-pub mod scene;
-pub mod selection;
-// --8<-- [start:step-10]
-pub mod sheet_query;
-// --8<-- [end:step-10]
-pub mod stream;
-pub mod touch;
-pub mod validate;
-pub mod walk;
-
-#[cfg(target_arch = "wasm32")]
-pub mod decode;
-#[cfg(target_arch = "wasm32")]
-pub mod fetch;
-#[cfg(target_arch = "wasm32")]
-pub mod live;
-#[cfg(target_arch = "wasm32")]
-pub mod loader;
-#[cfg(target_arch = "wasm32")]
-pub mod route;
-
-#[cfg(any(target_arch = "wasm32", test))]
-pub mod inspection;
+pub mod clipping; // register:clipping
+pub mod cloud_query; // register:cloud_query
+#[cfg(any(target_arch = "wasm32", test))] // register:decode
+pub mod decode; // register:decode
+pub mod feedback; // register:feedback
+#[cfg(target_arch = "wasm32")] // register:fetch
+pub mod fetch; // register:fetch
+pub mod fonts; // register:fonts
+pub mod gesture; // register:gesture
+pub mod input; // register:input
+#[cfg(any(target_arch = "wasm32", test))] // register:inspection
+pub mod inspection; // register:inspection
+pub mod keys; // register:keys
+pub mod knobs; // register:knobs
+#[cfg(target_arch = "wasm32")] // register:live
+pub mod live; // register:live
+#[cfg(target_arch = "wasm32")] // register:loader
+pub mod loader; // register:loader
+pub mod manifest; // register:manifest
+#[cfg(any(target_arch = "wasm32", test))] // register:range_gate
+pub mod range_gate; // register:range_gate
+#[cfg(target_arch = "wasm32")] // register:route
+pub mod route; // register:route
+pub mod scene; // register:scene
+pub mod selection; // register:selection
+pub mod sheet_query; // register:sheet_query
+pub mod stream; // register:stream
+pub mod touch; // register:touch
+pub mod validate; // register:validate
+pub mod walk; // register:walk

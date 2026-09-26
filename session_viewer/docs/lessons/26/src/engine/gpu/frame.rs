@@ -1,34 +1,32 @@
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::view::View;
-use crate::camera::FOVY_DEG;
 use crate::engine::pipelines::Layouts;
 use session_rust::Xform;
 
-/// Everything that changes per frame; the renderer keeps no camera or clock of its own.
+/// What the caller gives each frame.
 pub struct FrameInput {
-    pub view_proj: Xform,
-    pub clear: wgpu::Color,
-    pub now_ms: f64, // browser clock, milliseconds
+    pub view_proj: Xform,   // camera matrix
+    pub clear: wgpu::Color, // background color
+    pub now_ms: f64,        // time of this frame, ms
 }
 
-/// `'a`: this struct must not outlive the View it borrows.
+/// Extra inputs for writing the frame uniforms.
 pub struct FrameCx<'a> {
-    pub view: &'a View,
-    pub anchor: [f32; 3],
-    pub size: (u32, u32), // device pixels, not CSS pixels
-    pub pixel_scale: f32,
+    pub view: &'a View,   // display settings
+    pub anchor: [f32; 3], // world point the scene is centered on
+    pub size: (u32, u32), // framebuffer size, px
+    pub pixel_scale: f32, // framebuffer pixels per CSS pixel
 }
 
-/// Group 0 = camera matrix, group 1 = pen and view settings, group 2 = one row per object.
+/// The three bind groups every draw starts with.
 pub struct Binds<'a> {
-    pub mvp: &'a wgpu::BindGroup,
-    pub line: &'a wgpu::BindGroup,
-    pub instances: &'a wgpu::BindGroup,
+    pub mvp: &'a wgpu::BindGroup,       // group 0: camera matrix
+    pub line: &'a wgpu::BindGroup,      // group 1: pen and view settings
+    pub instances: &'a wgpu::BindGroup, // group 2: object rows
 }
 
-// `'_` = whatever lifetime this Binds was made with; the method has no reason to name it.
 impl Binds<'_> {
-    /// Every pipeline expects the same three groups, so each draw sets them in one call.
+    /// Set groups 0, 1 and 2 on the pass.
     pub fn set(&self, pass: &mut wgpu::RenderPass<'_>) {
         pass.set_bind_group(0, self.mvp, &[]);
         pass.set_bind_group(1, self.line, &[]);
@@ -40,23 +38,23 @@ impl Binds<'_> {
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct LineUniform {
-    pub thickness: f32, // line width, device pixels
-    pub proj_y: f32, // perspective: clip units per mm at distance 1
-    pub ortho_h: f32, // half the view height when orthographic; 0 = perspective
-    pub vp_h: f32, // vp = viewport: the render target's size in pixels
-    pub vp_w: f32,
-    pub eye: [f32; 3],
-    pub anchor: [f32; 3],
-    pub feather: f32, // soft edge in px: lines fade out instead of stair-stepping
-    pub lit: f32, // 0 flat, 1 lit, 2 lit + ambient occlusion
-    pub backface: f32, // 1 = paint back faces red
-    pub origin: [f32; 2], // where this render target sits in the canvas, px; non-zero only in a pick
-    pub frame: [f32; 2], // canvas size, px
-    pub opacity: f32, // mesh face alpha, 1 = opaque
-    pub _pad: f32, // uniform sizes go in 16-byte steps: 76 becomes 80
+    pub thickness: f32,   // pen width, px
+    pub proj_y: f32,      // perspective scale factor
+    pub ortho_h: f32,     // ortho half-height; 0 = perspective
+    pub vp_h: f32,        // target height, px
+    pub vp_w: f32,        // target width, px
+    pub eye: [f32; 3],    // camera position
+    pub anchor: [f32; 3], // world point the scene is centered on
+    pub feather: f32,     // edge softness of lines, px
+    pub lit: f32,         // 0 flat, 1 lit, 2 lit with SSAO
+    pub backface: f32,    // 1 = paint back faces red
+    pub origin: [f32; 2], // top-left of this target in the canvas, px
+    pub frame: [f32; 2],  // canvas size, px
+    pub opacity: f32,     // alpha of mesh faces
+    pub _pad: f32,        // keeps the size a multiple of 16
 }
 
-// Checked at compile time: a moved field fails the build instead of drawing garbage.
+// the shaders read these byte offsets
 const _: () = {
     assert!(std::mem::size_of::<LineUniform>() == 80);
     assert!(std::mem::offset_of!(LineUniform, lit) == 48);
@@ -70,15 +68,15 @@ const _: () = {
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct CloudUniform {
-    pub size: f32, // point size scale; the CPU applies it, shaders do not
-    pub vp_w: f32,
-    pub vp_h: f32,
-    pub edl: f32, // EDL = eye-dome lighting: darkens depth jumps so a cloud reads as solid; 0 = off
-    pub _pad0: f32,
-    pub _pad1: f32,
-    pub origin: [f32; 2],
-    pub frame: [f32; 2],
-    pub _pad: [f32; 2],
+    pub size: f32,        // point size scale; the CPU applies it, shaders do not
+    pub vp_w: f32,        // target width, px
+    pub vp_h: f32,        // target height, px
+    pub edl: f32,         // eye-dome lighting strength; 0 = off
+    pub _pad0: f32,       // padding
+    pub _pad1: f32,       // padding
+    pub origin: [f32; 2], // top-left of this target in the canvas, px
+    pub frame: [f32; 2],  // canvas size, px
+    pub _pad: [f32; 2],   // padding
 }
 
 const _: () = {
@@ -87,17 +85,17 @@ const _: () = {
     assert!(std::mem::offset_of!(CloudUniform, frame) == 32);
 };
 
-/// A pick renders only a small window around the cursor, 13 x 13 px by default, not the whole canvas.
+/// The part of the canvas a pick renders.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PickView {
-    pub x: u32, // canvas pixels from the top-left
-    pub y: u32,
-    pub w: u32,
-    pub h: u32,
+    pub x: u32, // left edge in canvas pixels
+    pub y: u32, // top edge in canvas pixels
+    pub w: u32, // width, px
+    pub h: u32, // height, px
 }
 
 impl PickView {
-    /// .max(1): a 0 x 0 canvas would divide by zero later.
+    /// A pick view covering the whole canvas.
     pub fn whole(size: (u32, u32)) -> Self {
         Self {
             x: 0,
@@ -107,7 +105,7 @@ impl PickView {
         }
     }
 
-    /// Stretch clip space so this small window fills -1..1, the pick target's whole area.
+    /// Matrix that maps canvas clip space onto this window.
     pub fn clip_transform(&self, frame: (u32, u32)) -> [f32; 16] {
         let (fw, fh) = (frame.0.max(1) as f32, frame.1.max(1) as f32);
         let (w, h) = (self.w.max(1) as f32, self.h.max(1) as f32);
@@ -124,6 +122,7 @@ impl PickView {
     }
 }
 
+/// Bind group layout for the pick clip-space matrix.
 pub fn pick_transform_layout(ctx: &GpuCtx) -> wgpu::BindGroupLayout {
     ctx.device
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -141,7 +140,7 @@ pub fn pick_transform_layout(ctx: &GpuCtx) -> wgpu::BindGroupLayout {
         })
 }
 
-/// Column-major, like WGSL: out = left * right.
+/// Multiply two column-major 4x4 matrices.
 fn mat4_mul(left: &[f32; 16], right: &[f32; 16]) -> [f32; 16] {
     let mut out = [0.0; 16];
 
@@ -154,31 +153,33 @@ fn mat4_mul(left: &[f32; 16], right: &[f32; 16]) -> [f32; 16] {
     out
 }
 
-/// Two copies of every uniform: one for the frame, one for the pick window, so a pick never disturbs the picture.
+/// Uniform buffers and bind groups for a frame and its pick pass.
 pub struct FrameUniforms {
-    mvp_buffer: wgpu::Buffer,
-    line_buffer: wgpu::Buffer,
-    cloud_buffer: wgpu::Buffer,
-    pub mvp_group: wgpu::BindGroup,
-    pub line_group: wgpu::BindGroup,
-    pub cloud_group: wgpu::BindGroup, // the point lane's group 1
-    pick_mvp_buffer: wgpu::Buffer, // the same three, for the pick window
-    pick_line_buffer: wgpu::Buffer,
-    pick_cloud_buffer: wgpu::Buffer,
+    mvp_buffer: wgpu::Buffer,                  // camera matrix
+    line_buffer: wgpu::Buffer,                 // LineUniform
+    cloud_buffer: wgpu::Buffer,                // CloudUniform
+    clip_buffer: wgpu::Buffer, // ClipUniform, bound beside the line and cloud blocks
+    pub mvp_group: wgpu::BindGroup, // group 0
+    pub line_group: wgpu::BindGroup, // group 1
+    pub cloud_group: wgpu::BindGroup, // group 1 of the point lane
+    pick_mvp_buffer: wgpu::Buffer, // same three blocks, for the pick window
+    pick_line_buffer: wgpu::Buffer, // LineUniform for the pick
+    pick_cloud_buffer: wgpu::Buffer, // CloudUniform for the pick
     pick_transform_buffer: wgpu::Buffer, // canvas-to-window matrix
-    pub pick_mvp_group: wgpu::BindGroup,
-    pub pick_line_group: wgpu::BindGroup,
-    pub pick_cloud_group: wgpu::BindGroup,
+    pub pick_mvp_group: wgpu::BindGroup, // group 0 for the pick
+    pub pick_line_group: wgpu::BindGroup, // group 1 for the pick
+    pub pick_cloud_group: wgpu::BindGroup, // point lane group 1 for the pick
     pub pick_transform_group: wgpu::BindGroup, // text lanes' pick group
-    line: LineUniform, // kept to derive the pick copy
-    cloud: CloudUniform,
-    pub mvp_f32: [f32; 16],
-    pub ortho_h: f32,
-    pub eye: [f32; 3],
+    line: LineUniform,         // last written values
+    cloud: CloudUniform,       // last written values
+    clip: ClipUniform,         // last written clipping planes
+    pub mvp_f32: [f32; 16],    // this frame's camera matrix
+    pub ortho_h: f32,          // ortho half-height; 0 = perspective
+    pub eye: [f32; 3],         // camera position this frame
 }
 
 impl FrameUniforms {
-    /// `'a` on both inputs: the Binds may outlive neither self nor instances.
+    /// Bind groups 0-2 for a scene draw.
     pub fn binds<'a>(&'a self, instances: &'a wgpu::BindGroup) -> Binds<'a> {
         Binds {
             mvp: &self.mvp_group,
@@ -187,6 +188,7 @@ impl FrameUniforms {
         }
     }
 
+    /// Bind groups 0-2 for a pick draw.
     pub fn pick_binds<'a>(&'a self, instances: &'a wgpu::BindGroup) -> Binds<'a> {
         Binds {
             mvp: &self.pick_mvp_group,
@@ -195,7 +197,7 @@ impl FrameUniforms {
         }
     }
 
-    /// For the memory counters: 448 bytes in all.
+    /// Bytes reserved on the GPU by these buffers.
     pub fn allocated_bytes(&self) -> u64 {
         self.mvp_buffer.size()
             + self.line_buffer.size()
@@ -204,8 +206,10 @@ impl FrameUniforms {
             + self.pick_line_buffer.size()
             + self.pick_cloud_buffer.size()
             + self.pick_transform_buffer.size()
+            + self.clip_buffer.size()
     }
 
+    /// Create the buffers and bind groups with default values.
     pub fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
         let mvp_buffer = uniform_buffer(&ctx.device, "mvp.buffer", &Xform::identity().to_f32());
         let line = LineUniform {
@@ -237,6 +241,8 @@ impl FrameUniforms {
             _pad: [0.0; 2],
         };
         let cloud_buffer = uniform_buffer(&ctx.device, "cloud.buffer", &cloud);
+        let clip = ClipUniform::default();
+        let clip_buffer = uniform_buffer(&ctx.device, "clip.buffer", &clip);
         let identity = Xform::identity().to_f32();
         let pick_mvp_buffer = uniform_buffer(&ctx.device, "pick.mvp.buffer", &identity);
         let pick_line_buffer = uniform_buffer(&ctx.device, "pick.line.buffer", &line);
@@ -244,13 +250,31 @@ impl FrameUniforms {
         let pick_transform_buffer = uniform_buffer(&ctx.device, "pick.transform.buffer", &identity);
 
         let mvp_group = bind_group(ctx, &l.mvp, "mvp.bind_group", &[&mvp_buffer]);
-        let line_group = bind_group(ctx, &l.line, "line.bind_group", &[&line_buffer]);
-        let cloud_group = bind_group(ctx, &l.line, "cloud.bind_group", &[&cloud_buffer]); // same layout: one uniform buffer
+        let line_group = bind_group(
+            ctx,
+            &l.line,
+            "line.bind_group",
+            &[&line_buffer, &clip_buffer],
+        );
+        let cloud_group = bind_group(
+            ctx,
+            &l.line,
+            "cloud.bind_group",
+            &[&cloud_buffer, &clip_buffer],
+        );
         let pick_mvp_group = bind_group(ctx, &l.mvp, "pick.mvp.bind_group", &[&pick_mvp_buffer]);
-        let pick_line_group =
-            bind_group(ctx, &l.line, "pick.line.bind_group", &[&pick_line_buffer]);
-        let pick_cloud_group =
-            bind_group(ctx, &l.line, "pick.cloud.bind_group", &[&pick_cloud_buffer]);
+        let pick_line_group = bind_group(
+            ctx,
+            &l.line,
+            "pick.line.bind_group",
+            &[&pick_line_buffer, &clip_buffer],
+        );
+        let pick_cloud_group = bind_group(
+            ctx,
+            &l.line,
+            "pick.cloud.bind_group",
+            &[&pick_cloud_buffer, &clip_buffer],
+        );
         let pick_transform_group = bind_group(
             ctx,
             &pick_transform_layout(ctx),
@@ -262,6 +286,7 @@ impl FrameUniforms {
             mvp_buffer,
             line_buffer,
             cloud_buffer,
+            clip_buffer,
             mvp_group,
             line_group,
             cloud_group,
@@ -275,13 +300,14 @@ impl FrameUniforms {
             pick_transform_group,
             line,
             cloud,
+            clip,
             mvp_f32: [0.0; 16],
             ortho_h: 0.0,
             eye: [0.0; 3],
         }
     }
 
-    /// Called once per frame before any draw; the copies land on the GPU at the next submit.
+    /// Write this frame's camera, pen and cloud settings.
     pub fn write(&mut self, ctx: &GpuCtx, input: &FrameInput, cx: &FrameCx) {
         self.mvp_f32 = input.view_proj.to_f32();
         self.ortho_h = input.view_proj.ortho_half_height() as f32;
@@ -300,7 +326,11 @@ impl FrameUniforms {
             vp_w: cx.size.0 as f32,
             eye: self.eye,
             anchor: cx.anchor,
-            lit: f32::from(cx.view.lit), // 1 when shading is on
+            lit: if cx.view.ssao {
+                2.0
+            } else {
+                f32::from(cx.view.lit)
+            },
             backface: f32::from(cx.view.backface),
             origin: [0.0; 2],
             frame: [cx.size.0 as f32, cx.size.1 as f32],
@@ -325,6 +355,17 @@ impl FrameUniforms {
         ctx.queue
             .write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&cloud));
         self.cloud = cloud;
+    }
+
+    /// Write the clipping planes when they changed; the main frame and the pick share them.
+    pub fn write_clip(&mut self, ctx: &GpuCtx, clip: &ClipUniform) {
+        if bytemuck::bytes_of(&self.clip) == bytemuck::bytes_of(clip) {
+            return;
+        }
+
+        self.clip = *clip;
+        ctx.queue
+            .write_buffer(&self.clip_buffer, 0, bytemuck::bytes_of(clip));
     }
 
     /// Write the same settings for the pick window; call after `write`.
@@ -386,3 +427,36 @@ mod tests {
         assert!((right_bottom[0] - 1.0).abs() < 1e-4 && (right_bottom[1] + 1.0).abs() < 1e-4);
     }
 }
+
+impl super::lane::Lane for FrameUniforms {
+    fn bytes(&self) -> (u64, u64) {
+        (self.allocated_bytes(), 0)
+    }
+}
+
+/// Most clipping planes cutting at once.
+pub const MAX_PLANES: usize = 6;
+
+/// The clipping planes as the shaders read them, 448 bytes.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct ClipUniform {
+    // offset size
+    pub planes: [[f32; 4]; MAX_PLANES], //   0   96  kept side relative to the anchor
+    pub screen: [[f32; 4]; MAX_PLANES], //  96   96  the same over canvas clip space
+    pub hatch: [[f32; 4]; MAX_PLANES],  // 192   96  hatch coordinate numerator over (x, y, 1)
+    pub hatch_w: [[f32; 4]; MAX_PLANES], // 288   96  its denominator
+    pub sides: [[f32; 4]; 2],           // 384   32  side of each plane the eye is on
+    pub count: u32,                     // 416    4  planes in use
+    pub samples: u32,                   // 420    4  scene samples per pixel
+    pub fill: u32,                      // 424    4  0 hatch, 1 solid light grey
+    pub spacing: f32,                   // 428    4  hatch spacing, px
+    pub width: f32,                     // 432    4  hatch line width, px
+    pub outline: f32,                   // 436    4  cut boundary width, px
+    pub pad: [f32; 2],                  // 440    8  -> 448
+}
+
+const _: () = assert!(std::mem::size_of::<ClipUniform>() == 448);
+
+/// Vertical field of view in degrees.
+pub const FOVY_DEG: f64 = 60.0;

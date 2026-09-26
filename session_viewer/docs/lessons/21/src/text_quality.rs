@@ -30,13 +30,13 @@ enum Specimens {
 /// The page's own GPU setup and text lane.
 #[wasm_bindgen]
 pub struct TextQuality {
-    canvas: web_sys::HtmlCanvasElement,
-    surface: wgpu::Surface<'static>, // where frames go
-    ctx: GpuCtx, // device and queue
+    canvas: web_sys::HtmlCanvasElement, // the page canvas
+    surface: wgpu::Surface<'static>,    // where frames go
+    ctx: GpuCtx,                        // device and queue
     config: wgpu::SurfaceConfiguration, // canvas size and format
-    lane: TextLane, // the viewer's text renderer
-    depth: Attachment,
-    adapter: String, // GPU name, for the report
+    lane: TextLane,                     // the viewer's text renderer
+    depth: Attachment,                  // depth buffer
+    adapter: String,                    // GPU name, for the report
 }
 
 #[wasm_bindgen]
@@ -153,7 +153,7 @@ impl TextQuality {
                 break;
             }
         }
-        let ctx = GpuCtx { device, queue };
+        let ctx = GpuCtx::new(device, queue);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format,
@@ -239,6 +239,7 @@ impl TextQuality {
             framebuffer: size,
             logical,
             ortho_half_height: 0.0,
+            clip: [[0.0; 4]; crate::engine::gpu::frame::MAX_PLANES],
         };
         self.lane.prepare(&self.ctx, &frame)?;
         let output = match self.surface.get_current_texture() {

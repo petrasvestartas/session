@@ -1,8 +1,10 @@
 use super::buffers::GpuCtx;
 
-// --8<-- [start:step-10a]
 /// Pixels a discrete GPU may draw at 4x MSAA.
 const MSAA_PIXELS_DISCRETE: u32 = 9_000_000;
+
+/// Device scale from which MSAA is off unless forced.
+const MSAA_MAX_PIXEL_SCALE: f32 = 2.0;
 
 /// Pixels an integrated GPU may draw at 4x MSAA.
 const MSAA_PIXELS_SHARED: u32 = 2_500_000;
@@ -10,107 +12,95 @@ const MSAA_PIXELS_SHARED: u32 = 2_500_000;
 /// Pixels at 4x when the GPU type is unknown; every browser lands here.
 const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
 
-// --8<-- [end:step-10a]
-/// The depth texture remembers how far away each pixel already is, which is what lets a nearer triangle cover a farther one.
+/// The frame's depth and color textures at one sample count.
 pub struct Targets {
-    pub depth: wgpu::TextureView,
-    pub msaa: Option<wgpu::TextureView>,
-    pub depth_single: wgpu::TextureView, // depth at 1x, or a 1x1 placeholder
-    pub depth_msaa: wgpu::TextureView, // depth at 4x, or a 1x1 placeholder
-    pub samples: u32, // MSAA draws each pixel 4 times at slightly different spots and averages them, to soften edges
-    // --8<-- [start:step-10b]
-    pub gradient: wgpu::TextureView,
-    pub gradient_single: wgpu::TextureView, // gradient at 1x, or a placeholder
-    pub gradient_msaa: wgpu::TextureView, // gradient at 4x, or a placeholder
-    // --8<-- [end:step-10b]
+    pub depth: Attachment,                  // scene depth
+    pub msaa: Option<Attachment>,           // multisampled color, only at 4x
+    pub depth_single: wgpu::TextureView,    // depth at 1x, or a 1x1 placeholder
+    pub depth_msaa: wgpu::TextureView,      // depth at 4x, or a 1x1 placeholder
+    pub samples: u32,                       // MSAA samples, 1 or 4
+    pub gradient: Attachment, // triangle index + 1 per sample in two 16-bit halves, 0 for none
+    pub gradient_single: wgpu::TextureView, // triangle ids at 1x, or a placeholder
+    pub gradient_msaa: wgpu::TextureView, // triangle ids at 4x, or a placeholder
+    _placeholders: [Attachment; 2], // the 1x1 textures, freed with the rest
 }
 
 impl Targets {
     /// Create the textures for `size` at `samples`.
     pub fn new(ctx: &GpuCtx, size: (u32, u32), format: wgpu::TextureFormat, samples: u32) -> Self {
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
-        let depth = texture_view(
-            ctx,
-            "depth",
-            &TextureSpec {
-                size,
-                format: wgpu::TextureFormat::Depth32Float,
-                samples,
-                usage,
-            },
-        );
-        let msaa = if samples > 1 {
-            Some(texture_view(
+        let attachment = |label, size, format, samples| {
+            Attachment::new(
                 ctx,
-                "msaa_color",
+                label,
                 &TextureSpec {
                     size,
                     format,
                     samples,
                     usage,
                 },
-            ))
-        } else {
-            None
+            )
         };
+        let depth = attachment("depth", size, wgpu::TextureFormat::Depth32Float, samples);
+        let msaa = (samples > 1).then(|| attachment("msaa_color", size, format, samples));
 
         // shaders bind both sample counts; the unused one is 1x1
         let other_samples = if samples == 1 { 4 } else { 1 };
-        let empty_depth = texture_view(
-            ctx,
+        let empty_depth = attachment(
             "unused.depth",
-            &TextureSpec {
-                size: (1, 1),
-                format: wgpu::TextureFormat::Depth32Float,
-                samples: other_samples,
-                usage,
-            },
+            (1, 1),
+            wgpu::TextureFormat::Depth32Float,
+            other_samples,
         );
         let (depth_single, depth_msaa) = if samples == 1 {
-            (depth.clone(), empty_depth)
+            (depth.view.clone(), empty_depth.view.clone())
         } else {
-            (empty_depth, depth.clone())
+            (empty_depth.view.clone(), depth.view.clone())
         };
-        // --8<-- [start:step-10c]
-        let gradient = texture_view(
-            ctx,
-            "physical.gradient",
-            &TextureSpec {
-                size,
-                format: wgpu::TextureFormat::Rg16Float,
-                samples,
-                usage,
-            },
+        let gradient = attachment(
+            "physical.primitive",
+            size,
+            wgpu::TextureFormat::Rg16Uint,
+            samples,
         );
-        let empty_gradient = texture_view(
-            ctx,
-            "unused.gradient",
-            &TextureSpec {
-                size: (1, 1),
-                format: wgpu::TextureFormat::Rg16Float,
-                samples: other_samples,
-                usage,
-            },
+        let empty_gradient = attachment(
+            "unused.primitive",
+            (1, 1),
+            wgpu::TextureFormat::Rg16Uint,
+            other_samples,
         );
         let (gradient_single, gradient_msaa) = if samples == 1 {
-            (gradient.clone(), empty_gradient)
+            (gradient.view.clone(), empty_gradient.view.clone())
         } else {
-            (empty_gradient, gradient.clone())
+            (empty_gradient.view.clone(), gradient.view.clone())
         };
         Self {
             gradient,
             gradient_single,
             gradient_msaa,
-            // --8<-- [end:step-10c]
             depth,
             msaa,
             depth_single,
             depth_msaa,
             samples,
+            _placeholders: [empty_depth, empty_gradient],
         }
     }
 
-    // --8<-- [start:step-10d]
+    /// Free every texture now.
+    pub fn destroy(&self) {
+        self.depth.destroy();
+        self.gradient.destroy();
+
+        if let Some(msaa) = &self.msaa {
+            msaa.destroy();
+        }
+
+        for placeholder in &self._placeholders {
+            placeholder.destroy();
+        }
+    }
+
     /// Pixels this GPU type may draw at 4x; None = never.
     pub fn msaa_budget(gpu: wgpu::DeviceType) -> Option<u32> {
         match gpu {
@@ -123,10 +113,25 @@ impl Targets {
         }
     }
 
-    /// 4x samples only when solids are drawn.
-    pub fn samples_for(solid: bool, pixels: u32, forced: Option<u32>, budget: Option<u32>) -> u32 {
+    /// Sample count: 4x only with solids, within budget, below device scale 2.
+    pub fn samples_for(
+        solid: bool,
+        pixels: u32,
+        forced: Option<u32>,
+        budget: Option<u32>,
+        pixel_scale: f32,
+    ) -> u32 {
+        // a page that lost its device stays at 1x
+        if super::view::reduced() {
+            return 1;
+        }
+
         if let Some(s) = forced {
             return if s == 4 { 4 } else { 1 };
+        }
+
+        if pixel_scale >= MSAA_MAX_PIXEL_SCALE {
+            return 1;
         }
 
         match budget {
@@ -135,25 +140,28 @@ impl Targets {
         }
     }
 
-    // --8<-- [end:step-10d]
-    /// Open the face pass: color and depth cleared.
+    /// Open the face pass: color and depth cleared, or kept when `clear` is None.
     pub fn begin_faces<'a>(
         &'a self,
         encoder: &'a mut wgpu::CommandEncoder,
         view: &'a wgpu::TextureView,
-        clear: wgpu::Color,
+        clear: Option<wgpu::Color>,
     ) -> wgpu::RenderPass<'a> {
-        let target = self.msaa.as_ref().unwrap_or(view);
+        let target = self.msaa.as_deref().unwrap_or(view);
+        // a pass after the first keeps what the one before drew
+        let load = |color| match clear {
+            Some(_) => wgpu::LoadOp::Clear(color),
+            None => wgpu::LoadOp::Load,
+        };
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("physical face pass"),
-            // --8<-- [start:step-10e]
             color_attachments: &[
                 Some(wgpu::RenderPassColorAttachment {
                     view: target,
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(clear),
+                        load: load(clear.unwrap_or(wgpu::Color::TRANSPARENT)),
                         store: wgpu::StoreOp::Store,
                     },
                 }),
@@ -162,17 +170,19 @@ impl Targets {
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                        load: load(wgpu::Color::TRANSPARENT),
                         store: wgpu::StoreOp::Store,
                     },
                 }),
             ],
-            // --8<-- [end:step-10e]
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &self.depth,
                 depth_ops: Some(wgpu::Operations {
                     // reverse-Z: 0 is the far plane
-                    load: wgpu::LoadOp::Clear(0.0),
+                    load: match clear {
+                        Some(_) => wgpu::LoadOp::Clear(0.0),
+                        None => wgpu::LoadOp::Load,
+                    },
                     store: wgpu::StoreOp::Store,
                 }),
                 stencil_ops: None,
@@ -189,7 +199,8 @@ impl Targets {
         encoder: &'a mut wgpu::CommandEncoder,
         view: &'a wgpu::TextureView,
     ) -> wgpu::RenderPass<'a> {
-        let (target, resolve) = match &self.msaa {
+        // at 4x the pass resolves into the canvas here
+        let (target, resolve) = match self.msaa.as_deref() {
             Some(msaa) => (msaa, Some(view)),
             None => (view, None),
         };
@@ -218,10 +229,10 @@ impl Targets {
 
 /// Settings for one 2D texture.
 pub struct TextureSpec {
-    pub size: (u32, u32), // width and height, px
+    pub size: (u32, u32),            // width and height, px
     pub format: wgpu::TextureFormat, // pixel format
-    pub samples: u32, // MSAA samples
-    pub usage: wgpu::TextureUsages, // how the GPU may use it
+    pub samples: u32,                // MSAA samples
+    pub usage: wgpu::TextureUsages,  // how the GPU may use it
 }
 
 /// Create a 2D texture from `spec`.
@@ -242,11 +253,47 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
     })
 }
 
-/// A texture's default view; wgpu keeps the texture alive.
-pub fn texture_view(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::TextureView {
-    texture(ctx, label, spec).create_view(&wgpu::TextureViewDescriptor::default())
+/// A texture and its view; dropping it frees the memory at once.
+pub struct Attachment {
+    texture: wgpu::Texture,      // the texture
+    pub view: wgpu::TextureView, // its default view
 }
-// --8<-- [start:step-10f]
+
+impl Attachment {
+    /// Create a texture from `spec` and its default view.
+    pub fn new(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> Self {
+        let texture = texture(ctx, label, spec);
+        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        Self { texture, view }
+    }
+
+    /// The texture itself, for copies.
+    pub fn texture(&self) -> &wgpu::Texture {
+        &self.texture
+    }
+
+    /// Free the memory now; destroying twice is fine.
+    pub fn destroy(&self) {
+        self.texture.destroy();
+    }
+}
+
+/// An Attachment can be used wherever a view is expected.
+impl std::ops::Deref for Attachment {
+    type Target = wgpu::TextureView;
+
+    fn deref(&self) -> &wgpu::TextureView {
+        &self.view
+    }
+}
+
+/// Free the texture on drop.
+impl Drop for Attachment {
+    /// Remove the DOM listener.
+    fn drop(&mut self) {
+        self.texture.destroy();
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -258,16 +305,41 @@ mod tests {
         let discrete = Targets::msaa_budget(wgpu::DeviceType::DiscreteGpu);
         let shared = Targets::msaa_budget(wgpu::DeviceType::IntegratedGpu);
         let software = Targets::msaa_budget(wgpu::DeviceType::Cpu);
-        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, discrete), 4);
-        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, shared), 1);
-        assert_eq!(Targets::samples_for(true, 1920 * 1080, None, shared), 4);
-        assert_eq!(Targets::samples_for(true, 1, None, software), 1);
-        assert_eq!(Targets::samples_for(false, 1, None, discrete), 1);
         assert_eq!(
-            Targets::samples_for(true, 3840 * 2160, Some(1), discrete),
+            Targets::samples_for(true, 3840 * 2160, None, discrete, 1.0),
+            4
+        );
+        assert_eq!(
+            Targets::samples_for(true, 3840 * 2160, None, shared, 1.0),
             1
         );
-        assert_eq!(Targets::samples_for(false, u32::MAX, Some(4), software), 4);
+        assert_eq!(
+            Targets::samples_for(true, 1920 * 1080, None, shared, 1.0),
+            4
+        );
+        assert_eq!(Targets::samples_for(true, 1, None, software, 1.0), 1);
+        assert_eq!(Targets::samples_for(false, 1, None, discrete, 1.0), 1);
+        assert_eq!(
+            Targets::samples_for(true, 3840 * 2160, Some(1), discrete, 1.0),
+            1
+        );
+        assert_eq!(
+            Targets::samples_for(false, u32::MAX, Some(4), software, 1.0),
+            4
+        );
+        // device scale 2: 1x unless forced
+        assert_eq!(
+            Targets::samples_for(true, 1920 * 1080, None, discrete, 2.0),
+            1
+        );
+        assert_eq!(
+            Targets::samples_for(true, 1920 * 1080, None, discrete, 1.5),
+            4
+        );
+        assert_eq!(
+            Targets::samples_for(true, 1920 * 1080, Some(4), discrete, 2.0),
+            4
+        );
     }
 
     /// The unknown-GPU budget keeps 4x at 2560x1440 but not at 4K.
@@ -275,9 +347,17 @@ mod tests {
     fn the_browser_arm_is_not_the_integrated_one() {
         let browser = Targets::msaa_budget(wgpu::DeviceType::Other);
         let shared = Targets::msaa_budget(wgpu::DeviceType::IntegratedGpu);
-        assert_eq!(Targets::samples_for(true, 2560 * 1440, None, browser), 4);
-        assert_eq!(Targets::samples_for(true, 2560 * 1440, None, shared), 1);
-        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, browser), 1);
+        assert_eq!(
+            Targets::samples_for(true, 2560 * 1440, None, browser, 1.0),
+            4
+        );
+        assert_eq!(
+            Targets::samples_for(true, 2560 * 1440, None, shared, 1.0),
+            1
+        );
+        assert_eq!(
+            Targets::samples_for(true, 3840 * 2160, None, browser, 1.0),
+            1
+        );
     }
 }
-// --8<-- [end:step-10f]

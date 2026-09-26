@@ -28,8 +28,8 @@ impl State {
             .segments
             .set_edge(&self.gpu.ctx, Some((row, entity)));
         self.scene.sheets[slot].resolved = None;
-        self.sheet_generation = self.sheet_generation.wrapping_add(1); // new query id
-        let query = Query::new(self.sheet_generation, row, entity);
+        self.features.sheet_generation = self.features.sheet_generation.wrapping_add(1); // new query id
+        let query = Query::new(self.features.sheet_generation, row, entity);
 
         // fetch name and kind from the side table, if any
         match self.scene.sheets[slot].meta_url.clone() {
@@ -48,13 +48,13 @@ impl State {
             }
         }
 
-        self.sheet_query = Some(query);
+        self.features.sheet_query = Some(query);
         self.touch();
     }
 
     /// The entity's name and kind arrived: show them.
     pub fn sheet_entity(&mut self, resolved: Resolved) {
-        let Some(query) = self.sheet_query.as_ref() else {
+        let Some(query) = self.features.sheet_query.as_ref() else {
             return;
         };
 
@@ -63,7 +63,7 @@ impl State {
             return;
         }
 
-        let query = self.sheet_query.take().unwrap();
+        let query = self.features.sheet_query.take().unwrap();
         let Some(slot) = self.scene.sheet_slot(query.row) else {
             return;
         };

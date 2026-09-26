@@ -17,13 +17,13 @@ const REANCHOR_THROTTLE_MS: f64 = 200.0;
 /// One object row as the CPU builds it.
 #[derive(Clone)]
 pub struct ObjectRow {
-    pub place: Xform, // world placement
-    pub color: [f32; 4], // rgba tint
-    pub edge_color: u32, // packed edge color
-    pub flags: u32, // Instance::FLAG_* bits
-    pub bounds: AABB, // box in the object's own space
-    pub spacing: f32, // vertex spacing, or point size for clouds
-    pub faces: bool, // true when the object drew faces
+    pub place: Xform,       // world placement
+    pub color: [f32; 4],    // rgba tint
+    pub edge_color: u32,    // packed edge color
+    pub flags: u32,         // Instance::FLAG_* bits
+    pub bounds: AABB,       // box in the object's own space
+    pub spacing: f32,       // vertex spacing, or point size for clouds
+    pub faces: bool,        // true when the object drew faces
     pub hull: Option<Hull>, // extreme points in the object's own space, for an exact turned box
 }
 
@@ -52,13 +52,13 @@ pub struct ObjectRows {
 /// Result of a `rebase_anchor` call.
 pub struct Rebase {
     pub anchor: Point, // current scene origin
-    pub moved: bool, // true when the table was rebuilt now
+    pub moved: bool,   // true when the table was rebuilt now
     pub pending: bool, // true when a rebuild waits on the throttle
 }
 
 /// A row with faces and its world box, for the inside test.
 struct BoundedRow {
-    row: u32, // object row
+    row: u32,     // object row
     lo: [f64; 3], // box minimum
     hi: [f64; 3], // box maximum
 }
@@ -146,23 +146,23 @@ fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
 
 /// The object rows on the GPU and their exact positions on the CPU.
 pub struct InstanceTable {
-    geometry_revision: u64, // bumps when anything moves or hides
-    rows: Vec<Instance>, // the rows, as uploaded
-    translation: Vec<[f64; 3]>, // exact world position per row
-    local_bounds: Vec<AABB>, // box per row, in the object's own space
-    hulls: Vec<Option<Hull>>, // extreme points per row; empty until a row has some
-    widget: Option<u32>, // identity row the gumball draws with
-    bounded: Vec<BoundedRow>, // rows with faces, for the inside test
-    bounded_at: Vec<u32>, // index of each row in `bounded`, u32::MAX = none
-    world_bounds: Vec<AABB>, // box per row in world space
-    clipping: Vec<u32>, // rows of clipping planes, sorted
-    closed: Vec<u32>, // rows of verified closed solids, sorted
-    last_origin: Option<Point>, // origin the GPU positions are measured from
-    buffer: GrowBuf, // Instance rows on the GPU
-    translations: GrowBuf, // positions minus the scene origin, on the GPU
-    last_rebase_ms: f64, // when the origin last moved
-    pub group: wgpu::BindGroup, // group 2: rows and translations
-    pub ink_group: wgpu::BindGroup, // group 2 for ink, with depth textures
+    geometry_revision: u64,             // bumps when anything moves or hides
+    rows: Vec<Instance>,                // the rows, as uploaded
+    translation: Vec<[f64; 3]>,         // exact world position per row
+    local_bounds: Vec<AABB>,            // box per row, in the object's own space
+    hulls: Vec<Option<Hull>>,           // extreme points per row; empty until a row has some
+    widget: Option<u32>,                // identity row the gumball draws with
+    bounded: Vec<BoundedRow>,           // rows with faces, for the inside test
+    bounded_at: Vec<u32>,               // index of each row in `bounded`, u32::MAX = none
+    world_bounds: Vec<AABB>,            // box per row in world space
+    clipping: Vec<u32>,                 // rows of clipping planes, sorted
+    closed: Vec<u32>,                   // rows of verified closed solids, sorted
+    last_origin: Option<Point>,         // origin the GPU positions are measured from
+    buffer: GrowBuf,                    // Instance rows on the GPU
+    translations: GrowBuf,              // positions minus the scene origin, on the GPU
+    last_rebase_ms: f64,                // when the origin last moved
+    pub group: wgpu::BindGroup,         // group 2: rows and translations
+    ink_group: Option<wgpu::BindGroup>, // group 2 for ink, with depth textures; register:ink
 }
 
 /// Bind group 2: rows at binding 0, translations at 1.
@@ -180,48 +180,6 @@ fn instance_group(
     )
 }
 
-/// Textures and tiles the ink bind group reads.
-pub struct InkScene<'a> {
-    pub tiles: &'a super::triangle_tiles::TriangleTiles, // screen tiles for visibility tests
-    pub targets: &'a Targets, // depth and triangle id textures
-}
-
-/// Bind group 2 for ink lanes: rows, depth, triangle ids, tiles.
-fn ink_instance_group(
-    ctx: &GpuCtx,
-    l: &Layouts,
-    label: &str,
-    buffers: [&wgpu::Buffer; 2],
-    depths: [&wgpu::TextureView; 2],
-    gradients: [&wgpu::TextureView; 2],
-    tiles: &super::triangle_tiles::TriangleTiles,
-) -> wgpu::BindGroup {
-    let view = wgpu::BindingResource::TextureView;
-    let entries = [
-        buffers[0].as_entire_binding(),
-        buffers[1].as_entire_binding(),
-        view(depths[0]),
-        view(depths[1]),
-        view(gradients[0]),
-        view(gradients[1]),
-        tiles.projected.as_entire_binding(),
-        tiles.buffer.as_entire_binding(),
-    ];
-    let entries: Vec<wgpu::BindGroupEntry> = entries
-        .into_iter()
-        .enumerate()
-        .map(|(binding, resource)| wgpu::BindGroupEntry {
-            binding: binding as u32,
-            resource,
-        })
-        .collect();
-    ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some(label),
-        layout: &l.ink_instance,
-        entries: &entries,
-    })
-}
-
 impl InstanceTable {
     /// Instance rows for read-only GPU passes.
     pub fn instance_buffer(&self) -> &wgpu::Buffer {
@@ -236,7 +194,7 @@ impl InstanceTable {
         self.buffer.buf.size() + self.translations.buf.size()
     }
 
-    pub fn new(ctx: &GpuCtx, l: &Layouts, scene: &InkScene) -> Self {
+    pub fn new(ctx: &GpuCtx, l: &Layouts) -> Self {
         let buffer = GrowBuf::new(
             ctx,
             "instance.buffer",
@@ -245,16 +203,6 @@ impl InstanceTable {
         );
         let translations = GrowBuf::new(ctx, "instance.translations", 16, ROWS);
         let group = instance_group(ctx, l, &buffer.buf, &translations.buf);
-        let t = scene.targets;
-        let ink_group = ink_instance_group(
-            ctx,
-            l,
-            "ink.instances.bind_group",
-            [&buffer.buf, &translations.buf],
-            [&t.depth_single, &t.depth_msaa],
-            [&t.gradient_single, &t.gradient_msaa],
-            scene.tiles,
-        );
 
         Self {
             geometry_revision: 0,
@@ -273,42 +221,8 @@ impl InstanceTable {
             translations,
             last_rebase_ms: 0.0,
             group,
-            ink_group,
+            ink_group: None, // register:ink
         }
-    }
-
-    /// Rebuild the ink bind group.
-    pub fn rebind_ink(&mut self, ctx: &GpuCtx, l: &Layouts, scene: &InkScene) {
-        let t = scene.targets;
-        self.ink_group = ink_instance_group(
-            ctx,
-            l,
-            "ink.instances.bind_group",
-            [&self.buffer.buf, &self.translations.buf],
-            [&t.depth_single, &t.depth_msaa],
-            [&t.gradient_single, &t.gradient_msaa],
-            scene.tiles,
-        );
-    }
-
-    /// An ink bind group over the pick pass's own depth textures.
-    pub fn pick_group(
-        &self,
-        ctx: &GpuCtx,
-        layouts: &Layouts,
-        depths: [&wgpu::TextureView; 2],
-        gradients: [&wgpu::TextureView; 2],
-        tiles: &super::triangle_tiles::TriangleTiles,
-    ) -> wgpu::BindGroup {
-        ink_instance_group(
-            ctx,
-            layouts,
-            "pick.instances",
-            [&self.buffer.buf, &self.translations.buf],
-            depths,
-            gradients,
-            tiles,
-        )
     }
 
     /// Append one upload's rows.
@@ -731,7 +645,11 @@ impl InstanceTable {
             row,
             live && flags & Instance::FLAG_CLIPPING_PLANE != 0,
         );
-        track_in(&mut self.closed, row, live && flags & Instance::FLAG_CLOSED != 0);
+        track_in(
+            &mut self.closed,
+            row,
+            live && flags & Instance::FLAG_CLOSED != 0,
+        );
     }
 
     /// Rows of clipping planes, hidden ones included.
@@ -969,8 +887,8 @@ impl InstanceTable {
         let Some(r) = self.rows.get_mut(row as usize) else {
             return;
         };
-        let revive = (bit & Instance::FLAG_HIDDEN != 0 && !on)
-            || (bit & Instance::FLAG_SELECTED != 0 && on);
+        let revive =
+            (bit & Instance::FLAG_HIDDEN != 0 && !on) || (bit & Instance::FLAG_SELECTED != 0 && on);
 
         if r.flags & Instance::FLAG_DEAD != 0 && revive {
             return;
@@ -1218,5 +1136,90 @@ impl super::lane::Lane for InstanceTable {
 
     fn bytes(&self) -> (u64, u64) {
         (self.allocated_bytes(), 0)
+    }
+}
+
+/// Textures and tiles the ink bind group reads.
+pub struct InkScene<'a> {
+    pub tiles: &'a super::triangle_tiles::TriangleTiles, // screen tiles for visibility tests; register:tiles
+    pub targets: &'a Targets,                            // depth and triangle id textures
+}
+
+/// Bind group 2 for ink lanes: rows, depth, triangle ids, tiles.
+fn ink_instance_group(
+    ctx: &GpuCtx,
+    l: &Layouts,
+    label: &str,
+    buffers: [&wgpu::Buffer; 2],
+    depths: [&wgpu::TextureView; 2],
+    gradients: [&wgpu::TextureView; 2],
+    tiles: &super::triangle_tiles::TriangleTiles, // register:tiles
+) -> wgpu::BindGroup {
+    let view = wgpu::BindingResource::TextureView;
+    let entries = [
+        buffers[0].as_entire_binding(),
+        buffers[1].as_entire_binding(),
+        view(depths[0]),
+        view(depths[1]),
+        view(gradients[0]),
+        view(gradients[1]),
+        tiles.projected.as_entire_binding(), // register:tiles
+        tiles.buffer.as_entire_binding(),    // register:tiles
+    ];
+    let entries: Vec<wgpu::BindGroupEntry> = entries
+        .into_iter()
+        .enumerate()
+        .map(|(binding, resource)| wgpu::BindGroupEntry {
+            binding: binding as u32,
+            resource,
+        })
+        .collect();
+    ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: Some(label),
+        layout: &l.ink_instance,
+        entries: &entries,
+    })
+}
+
+impl InstanceTable {
+    /// Group 2 for ink lanes, with depth textures.
+    pub fn ink_group(&self) -> &wgpu::BindGroup {
+        self.ink_group
+            .as_ref()
+            .expect("the ink bind group is built with the GPU")
+    }
+
+    /// Rebuild the ink bind group.
+    pub fn rebind_ink(&mut self, ctx: &GpuCtx, l: &Layouts, scene: &InkScene) {
+        let t = scene.targets;
+        self.ink_group = Some(ink_instance_group(
+            ctx,
+            l,
+            "ink.instances.bind_group",
+            [&self.buffer.buf, &self.translations.buf],
+            [&t.depth_single, &t.depth_msaa],
+            [&t.gradient_single, &t.gradient_msaa],
+            scene.tiles, // register:tiles
+        ));
+    }
+
+    /// An ink bind group over the pick pass's own depth textures.
+    pub fn pick_group(
+        &self,
+        ctx: &GpuCtx,
+        layouts: &Layouts,
+        depths: [&wgpu::TextureView; 2],
+        gradients: [&wgpu::TextureView; 2],
+        tiles: &super::triangle_tiles::TriangleTiles, // register:tiles
+    ) -> wgpu::BindGroup {
+        ink_instance_group(
+            ctx,
+            layouts,
+            "pick.instances",
+            [&self.buffer.buf, &self.translations.buf],
+            depths,
+            gradients,
+            tiles, // register:tiles
+        )
     }
 }

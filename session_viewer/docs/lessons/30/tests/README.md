@@ -9,7 +9,7 @@ The text browser check needs Playwright 1.58.2 and Chrome. Dependencies and scre
 can live outside the repository:
 
 ```sh
-npm install --prefix /tmp/viewer-browser-test playwright@1.58.2
+npm install --prefix /tmp/viewer-browser-test playwright@1.58.2 pngjs
 NODE_PATH=/tmp/viewer-browser-test/node_modules node tests/text-quality.cjs
 ```
 
@@ -51,6 +51,22 @@ The asset has no verified 3ds Max export provenance. Its original four open shel
 Object counts in the browser checks include the document-title text object, which is a
 source row of its own: the seven-family interaction fixture reports eight objects and the
 teapot manifest two.
+
+`node tests/ambient-floor.cjs` loads the public `view_mixed` scene, fits the floor model,
+and checks its ground-shadow smoothness and the clickable SSAO options. It delays the
+last document to verify that finishing a load preserves an adjusted camera. Captures
+are written to `target/review/ambient-floor`; this check also requires `pngjs`.
+
+`node tests/ambient-details.cjs` checks the cone and torus contact-shadow footprint and
+plate shading in `view_mixed`, then captures the floor for comparison. It also requires
+`pngjs` and writes captures to `target/review/ambient-details`. Set `VIEWER_DPR=2`
+to exercise capped-resolution reconstruction on a high-DPI canvas.
+
+`node tests/ambient-lighting.cjs` checks SSAO toggles, camera preservation, texture and
+uniform allocation/release, and real frame cadence. `AMBIENT_SPIN=1` keeps the camera
+moving so the measurement includes recomputing AO instead of only cached compositing.
+Native coverage: `cargo test --target x86_64-unknown-linux-gnu --lib
+engine::gpu::ssao::tests -- --include-ignored` (requires a GPU adapter).
 
 Pixel oracles were measured with the 1.5 px pen. The viewer's default pen is now 1 px, so the
 checks whose thresholds depend on stroke coverage pin `VIEWER_THICKNESS=1.5` (natively) or
@@ -274,3 +290,17 @@ scenes remain unsupported and return an error.
 Run `node tests/splitting.cjs` with the same Playwright/Chrome environment for curve creation and Split, joined-face topology, touch confirmation, cancellation and Save/Open.
 
 `node tests/color-channels.cjs` checks rendered face and edge colors independently, Original resets, legacy-compatible Save/Open and captures the full viewer for current lesson 11. `node tests/large-object-dragging.cjs` loads the bundled bunny mesh and 342k-point lion, measures real pointer dragging and release, and verifies that the cloud image moves with a stationary camera. Use the same headed Chrome/WebGPU environment and `VIEWER_URL` as the other browser checks.
+
+`node tests/command-workspace.cjs` checks draggable command history, suggestion clicks,
+Arctic options, Point/Line/Polyline drawing, Rectangle/Polygon constructors, undo and narrow
+layouts. `node tests/drawing-large-scene.cjs` additionally uses the local manifest and its
+large sheet assets (over 100,000 retained objects). It starts and draws all three basic
+geometry commands, with a deadline that catches repeated whole-tree transform lookups
+while building snap targets. Both use the Playwright installation above; the large-scene
+check requires the local `view_local_*` assets.
+
+`node tests/ambient-scenes.cjs` checks Arctic toggles, camera preservation and WebGPU errors across the seven published scenes, saving still/drag/release images under `target/review/ambient-scenes`. Set `AO_SAMPLES=1` or `4`, `AO_DPR=1` or `2`, and `AO_PHONE=1` for the Pixel 7 viewport. These viewport tests use the host GPU. `VIEWER_URL` selects the build to review.
+
+`NO_IDLE_CALLBACK=1 node tests/ambient-lighting.cjs` checks Arctic startup and resource release without `requestIdleCallback`.
+
+`node tests/ambient-motion.cjs` records a 32-frame camera rotation of `view_live` with Arctic enabled. It checks camera continuity and WebGPU errors, and saves frames plus matrices for visual comparison. The ignored native test `rotation_reprojects_ground_shadows_without_erasing_them` measures temporal variation at fixed ground points and retains a spatial-only comparison.

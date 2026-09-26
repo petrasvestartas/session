@@ -2,14 +2,13 @@ use super::brep_edges::{EdgeChain, EdgePen, edge_chains, push_edge_pipes};
 use super::brep_orient::face_signs;
 use super::curves::{push_polyline, sample_nurbscurve};
 use super::encode::{Pen, encode_width, pack_rgba};
-use super::mesh::{MeshCx, MeshOpts, mesh_spacing, walk_mesh};
+use super::mesh::mesh_spacing;
 use super::mesh_ink::Ink;
 use super::{Row, WalkCx};
 use crate::app::knobs;
 use crate::engine::gpu::Instance;
 use crate::engine::gpu::arena::ArenaRows;
 use session_rust::AABB;
-use session_rust::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
 use session_rust::{BRep, Color, Mesh, NurbsSurface, RenderMesh};
 
 /// Mesh quality: 5° between samples, chord sag 0.001 of the size.
@@ -23,7 +22,18 @@ struct Solid {
 }
 
 /// Append one face mesh to the arena.
-fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut Solid) {
+fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut Solid, face: usize) {
+    // one source face address for every triangle
+    let address = arena.face_sources.len() as u32;
+    arena
+        .face_sources
+        .push(crate::engine::gpu::faces::FaceSource {
+            parent: cx.row,
+            face,
+        });
+    arena
+        .face_ids
+        .extend(std::iter::repeat_n(address, rm.indices.len() / 3));
     let base = cx.vert_base + arena.verts.len() as u32; // first GPU vertex index
     let local = solid.pos.len() as u32; // first index in `solid`
     arena.verts.reserve(rm.vertices.len());
@@ -59,6 +69,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
         bounds: AABB::empty(),
     };
     let mut verts = 0; // vertex total for spacing
+    let mut boundary_vertices = Vec::with_capacity(fms.len()); // per face: vertex key to GPU index
 
     for (fi, fm) in fms.iter_mut().enumerate() {
         fm.set_objectcolor(b.surfacecolor.clone());
@@ -78,13 +89,28 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
             }
         }
 
-        push_face(arena, &rm, cx, &mut solid);
+        let mut keys: Vec<_> = fm.vertex.keys().copied().collect();
+        keys.sort_unstable();
+        boundary_vertices.push(
+            keys.into_iter()
+                .enumerate()
+                .map(|(i, key)| (key, arena.verts.len() as u32 + i as u32))
+                .collect::<std::collections::HashMap<_, _>>(),
+        );
+        let surface_index = b.m_faces[fi].surface_index as usize;
+        cache_samples(arena, fm, &rm, &b.m_surfaces[surface_index], surface_index); // uv per vertex for live edits
+        push_face(arena, &rm, cx, &mut solid, fi);
     }
 
     let mut flags = Instance::FLAG_SMOOTH; // vertices are samples
 
     if !b.is_solid() {
         flags |= Instance::FLAG_OPEN;
+    }
+
+    // closed shells, faces turned outward: a clipping plane caps it
+    if b.is_solid() {
+        flags |= Instance::FLAG_CLOSED;
     }
 
     if b.face_count() == 1 {
@@ -104,10 +130,15 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
             radius: encode_width(b.width),
             color: pack_rgba(Color::black().to_f32()),
         };
-        // --8<-- [start:step-5a]
         let ep = EdgePen::new(&fms, &signs, pen);
-        // --8<-- [end:step-5a]
-        walk_brep_edges(ink, b, &chains, (&ep, &mut row.bounds));
+        walk_brep_edges(
+            ink,
+            b,
+            &chains,
+            (&ep, &mut row.bounds),
+            arena,
+            &boundary_vertices,
+        );
     }
 
     row
@@ -119,13 +150,30 @@ fn walk_brep_edges(
     b: &BRep,
     chains: &[Option<EdgeChain>],
     out: (&EdgePen, &mut AABB),
+    arena: &mut ArenaRows,
+    boundary_vertices: &[std::collections::HashMap<usize, u32>],
 ) {
     let (ep, bounds) = out;
 
     for (ei, chain) in chains.iter().enumerate() {
         match chain {
             Some(c) => {
+                let mut pipe = ink.seg.pipes.len() as u32;
                 push_edge_pipes(ink.seg, c, ep, bounds);
+                // remember which vertices each pipe joins
+                for pair in c.keys.windows(2) {
+                    let ends = [
+                        boundary_vertices[c.face][&pair[0]],
+                        boundary_vertices[c.face][&pair[1]],
+                    ];
+                    let a = arena.verts[ends[0] as usize].position;
+                    let b = arena.verts[ends[1] as usize].position;
+                    if a == b || !a.into_iter().chain(b).all(f32::is_finite) {
+                        continue;
+                    }
+                    arena.surface_boundaries.push((pipe, ends));
+                    pipe += 1;
+                }
             }
             None => {
                 if !b.m_edges[ei].degenerated && !b.edge_faces(ei).is_empty() {
@@ -161,76 +209,95 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB))
     push_polyline(ink.seg, &points, out.0, out.1);
 }
 
-/// A NURBS surface is a smooth maths surface, so it has no triangles until it is sampled on a grid of u,v values.
+/// A NURBS surface as a fixed UV grid with its four border edges.
 pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
-    let mut sm = if let Some(mesh) = &s.m_mesh {
-        mesh.clone()
-    } else {
-        RemeshNurbsSurfaceGrid::from_u_v_q(s, 0, 0, QUALITY.0, QUALITY.1)
+    let (Some((u0, u1)), Some((v0, v1))) = (s.domain(0), s.domain(1)) else {
+        return Row::thin(AABB::empty());
     };
-
-    if let Some(c) = s.facecolors.first() {
-        sm.set_objectcolor(c.clone());
+    let nu = (s.m_cv_count[0] * 4).clamp(16, 96); // grid steps in u
+    let nv = (s.m_cv_count[1] * 4).clamp(16, 96); // grid steps in v
+    let first = arena.verts.len(); // index of this surface's first vertex
+    let base = cx.vert_base + first as u32; // first GPU vertex index
+    let color = s.facecolors.first().cloned().unwrap_or_default().to_f32();
+    let mut bounds = AABB::empty();
+    // one vertex per grid point
+    for i in 0..=nu {
+        for j in 0..=nv {
+            let u = u0 + (u1 - u0) * i as f64 / nu as f64;
+            let v = v0 + (v1 - v0) * j as f64 / nv as f64;
+            let point = s.point_at(u, v).unwrap_or_default();
+            let normal = s.normal_at(u, v);
+            bounds.union_with_point(point[0], point[1], point[2]);
+            arena
+                .surface_samples
+                .push(crate::engine::gpu::arena::Sample {
+                    index: arena.verts.len() as u32,
+                    surface: 0,
+                    uv: [u, v],
+                    sign: 1.0,
+                });
+            arena.verts.push(session_rust::RenderVertex {
+                position: point.to_f32(),
+                normal: [normal[0] as f32, normal[1] as f32, normal[2] as f32],
+                color,
+            });
+            arena.vids.push(cx.row);
+        }
     }
-
-    let first_pipe = ink.seg.pipes.len();
-    let mut row = walk_mesh(
-        arena,
-        ink,
-        &sm,
-        &MeshCx {
-            cx,
-            opts: &MeshOpts::SURFACE,
-        },
-    );
-    row.flags |= Instance::FLAG_SINGLE;
-    map_surface_boundaries(ink, s, &sm, first_pipe);
-    row
-}
-
-/// Name the four UV border edges.
-fn map_surface_boundaries(ink: &mut Ink, s: &NurbsSurface, mesh: &Mesh, first_pipe: usize) {
-    let mut masks = std::collections::HashMap::<[u32; 3], u8>::new();
-
-    for vertex in mesh.vertex.values() {
-        let mut mask = 0u8;
-
-        for (direction, name) in [(0, "u"), (1, "v")] {
+    let address = arena.face_sources.len() as u32;
+    arena
+        .face_sources
+        .push(crate::engine::gpu::faces::FaceSource {
+            parent: cx.row,
+            face: 0,
+        });
+    // two triangles per grid cell
+    for i in 0..nu {
+        for j in 0..nv {
+            let a = base + (i * (nv + 1) + j) as u32;
+            let b = a + (nv + 1) as u32;
+            arena.idx.extend_from_slice(&[a, b, b + 1, a, b + 1, a + 1]);
+            arena.face_ids.extend_from_slice(&[address, address]);
+        }
+    }
+    if !knobs::no_edges() {
+        ink.seg.pipe_ids.resize(ink.seg.pipes.len(), u32::MAX);
+        // the four border edges, skipping a closed direction
+        for edge in 0..4 {
+            let direction = edge / 2;
             if s.is_closed(direction) {
                 continue;
             }
-
-            let (Some(&parameter), Some((start, end))) =
-                (vertex.attributes.get(name), s.domain(direction))
-            else {
-                continue;
+            let indices: Vec<_> = match edge {
+                0 => (0..=nv).collect(),
+                1 => (0..=nv).map(|j| nu * (nv + 1) + j).collect(),
+                2 => (0..=nu).map(|i| i * (nv + 1)).collect(),
+                _ => (0..=nu).map(|i| i * (nv + 1) + nv).collect(),
             };
-
-            if parameter == start {
-                mask |= 1 << (direction * 2);
+            let start = ink.seg.pipes.len() as u32;
+            for ends in indices.windows(2) {
+                ink.seg.pipes.push(crate::engine::gpu::CylinderSegment {
+                    p0: arena.verts[first + ends[0]].position,
+                    p1: arena.verts[first + ends[1]].position,
+                    radius: encode_width(s.width),
+                    instance_id: cx.row,
+                    color: super::encode::BLACK,
+                    facing: super::encode::FACING_UNKNOWN,
+                });
+                arena.surface_boundaries.push((
+                    ink.seg.pipes.len() as u32 - 1,
+                    [(first + ends[0]) as u32, (first + ends[1]) as u32],
+                ));
+                ink.seg.pipe_ids.push(edge as u32);
             }
-
-            if parameter == end {
-                mask |= 1 << (direction * 2 + 1);
-            }
+            ink.seg.pipe_chains.push(start..ink.seg.pipes.len() as u32);
         }
-
-        let position = [vertex.x as f32, vertex.y as f32, vertex.z as f32];
-        *masks.entry(position.map(f32::to_bits)).or_insert(0) |= mask;
     }
-
-    ink.seg.pipe_ids.resize(ink.seg.pipes.len(), u32::MAX);
-
-    for index in first_pipe..ink.seg.pipes.len() {
-        let pipe = &ink.seg.pipes[index];
-        let a = masks.get(&pipe.p0.map(f32::to_bits)).copied().unwrap_or(0);
-        let b = masks.get(&pipe.p1.map(f32::to_bits)).copied().unwrap_or(0);
-        let common = a & b;
-        ink.seg.pipe_ids[index] = if common.count_ones() == 1 {
-            common.trailing_zeros()
-        } else {
-            u32::MAX
-        };
+    Row {
+        bounds,
+        spacing: mesh_spacing(&bounds, (nu + 1) * (nv + 1)),
+        flags: Instance::FLAG_SINGLE | Instance::FLAG_SMOOTH | Instance::FLAG_OPEN,
+        faces: true,
     }
 }
 
@@ -251,6 +318,7 @@ mod tests {
             vert_base: 100,
             cloud_px: 0.0,
             row: 5,
+            attributes: false,
         };
         let row = {
             let mut ink = Ink {
@@ -260,6 +328,67 @@ mod tests {
             walk_brep(&mut arena, &mut ink, b, &cx)
         };
         (arena, seg, glyph, row)
+    }
+
+    /// The teapot's pipes lie on its authored edge curves.
+    #[test]
+    fn teapot_ink_is_only_authored_patch_boundaries() {
+        let scene = session_rust::Session::pb_load(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/pb/view_mixed_teapot.pb"
+        ))
+        .unwrap();
+        let brep = &scene.objects.breps[0];
+        let (arena, seg, glyph, _) = walked(brep);
+        assert!(seg.ribbons.is_empty() && glyph.spheres.is_empty());
+        assert_eq!(arena.surface_boundaries.len(), seg.pipes.len());
+        let curves: Vec<Vec<_>> = brep
+            .m_edges
+            .iter()
+            .map(|edge| {
+                if edge.curve_3d_index < 0 {
+                    return Vec::new();
+                }
+                let curve = &brep.m_curves_3d[edge.curve_3d_index as usize];
+                let (a, b) = curve.domain();
+                (0..=1024)
+                    .map(|i| curve.point_at(a + (b - a) * i as f64 / 1024.0).to_f32())
+                    .collect()
+            })
+            .collect();
+        for &(pipe, ends) in &arena.surface_boundaries {
+            let edge = seg.pipe_ids[pipe as usize] as usize;
+            for index in ends {
+                let p = arena.verts[index as usize].position;
+                let distance = curves[edge]
+                    .windows(2)
+                    .map(|pair| {
+                        let d = std::array::from_fn::<_, 3, _>(|i| pair[1][i] - pair[0][i]);
+                        let q = std::array::from_fn::<_, 3, _>(|i| p[i] - pair[0][i]);
+                        let length: f32 = d.iter().map(|v| v * v).sum();
+                        let t = ((0..3).map(|i| q[i] * d[i]).sum::<f32>() / length.max(1e-20))
+                            .clamp(0.0, 1.0);
+                        (0..3)
+                            .map(|i| (q[i] - d[i] * t).powi(2))
+                            .sum::<f32>()
+                            .sqrt()
+                    })
+                    .fold(f32::INFINITY, f32::min);
+                assert!(
+                    distance < 0.01,
+                    "edge {edge} endpoint {p:?} is {distance} from its authored curve"
+                );
+            }
+            assert_eq!(
+                seg.pipes[pipe as usize].p0,
+                arena.verts[ends[0] as usize].position
+            );
+            assert_eq!(
+                seg.pipes[pipe as usize].p1,
+                arena.verts[ends[1] as usize].position
+            );
+            assert!((seg.pipe_ids[pipe as usize] as usize) < brep.m_edges.len());
+        }
     }
 
     /// A cylinder uploads unwelded faces with unit normals.
@@ -350,6 +479,7 @@ mod tests {
             vert_base: 0,
             cloud_px: 0.0,
             row: 7,
+            attributes: false,
         };
         let row = walk_surface(&mut arena, &mut ink, &b.m_surfaces[0], &cx);
         assert_ne!(row.flags & Instance::FLAG_OPEN, 0);
@@ -399,7 +529,6 @@ mod tests {
             );
         }
     }
-// --8<-- [start:step-5b]
 
     /// Each pyramid side keeps its own normal at the apex.
     #[test]
@@ -463,5 +592,39 @@ mod tests {
             }
         }
     }
-    // --8<-- [end:step-5b]
+}
+
+/// Remember each vertex's uv on its surface.
+fn cache_samples(
+    arena: &mut ArenaRows,
+    mesh: &Mesh,
+    render: &RenderMesh,
+    surface: &NurbsSurface,
+    index: usize,
+) {
+    let mut rows: Vec<_> = mesh.vertex.iter().collect();
+    rows.sort_unstable_by_key(|&(key, _)| *key);
+
+    if rows.len() != render.vertices.len() {
+        return; // vertices were split, no mapping
+    }
+
+    for (offset, ((_, vertex), rendered)) in rows.into_iter().zip(&render.vertices).enumerate() {
+        let (Some(&u), Some(&v)) = (vertex.attributes.get("u"), vertex.attributes.get("v")) else {
+            continue;
+        };
+        let normal = surface.normal_at(u, v);
+        // sign flips when the rendered normal was reversed
+        let dot = (0..3)
+            .map(|d| normal[d] * rendered.normal[d] as f64)
+            .sum::<f64>();
+        arena
+            .surface_samples
+            .push(crate::engine::gpu::arena::Sample {
+                index: arena.verts.len() as u32 + offset as u32,
+                surface: index as u32,
+                uv: [u, v],
+                sign: if dot < 0.0 { -1.0 } else { 1.0 },
+            });
+    }
 }
