@@ -19,6 +19,7 @@ src/engine/performance.rs 002
 src/engine/gpu/targets.rs 003
 src/engine/gpu/present.rs 004
 src/engine/gpu/render.rs 004
+src/engine/pipelines/mod.rs 006
 build.rs 04a
 src/camera.rs 04a
 src/engine/gpu/arena.rs 04a
@@ -35,7 +36,6 @@ src/engine/gpu/slots.rs 04a
 src/engine/gpu/text_outline.rs 04a
 src/engine/gpu/upload.rs 04a
 src/engine/pipelines/layouts.rs 04a
-src/engine/pipelines/mod.rs 04a
 src/page/no_webgpu.css 04a
 src/page/viewer.js 04a
 src/shaders/background.wgsl 04a

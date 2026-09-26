@@ -128,4 +128,4 @@ Run `trunk serve` and drag the window edge: the grey canvas follows it without a
 
 The canvas has a CSS size and a device size; `desired_canvas_size` joins them through the device pixel ratio. A resize remakes the textures, at most every 100 ms. `samples_for` decides 1 or 4 samples per pixel from the geometry, the GPU type and the pixel count. Next: the pipeline cache, the object every draw is made from.
 
-Next: [04a · Meshes on the GPU](04a-meshes.md)
+Next: [006 · The pipeline cache](006-cache.md)

@@ -55,7 +55,7 @@ Open <http://localhost:8780/>. Stop with Ctrl+C.
 
 ## Lessons
 
-The course is one chain, from 000 to 37. Every lesson adds new files or appends to files it already owns, so nothing you type is ever replaced later; the crate in `docs/lessons/37` is the finished viewer. Lessons 000 to 005 are the re-cut course: one hour each, one new thing on screen. The lessons from 04a on are being re-cut the same way (`docs/plans/course-plan.md`); until then they are large and their pages are incomplete.
+The course is one chain, from 000 to 37. Every lesson adds new files or appends to files it already owns, so nothing you type is ever replaced later; the crate in `docs/lessons/37` is the finished viewer. Lessons 000 to 007 are the re-cut course: one hour each, one new thing on screen. The lessons from 04a on are being re-cut the same way (`docs/plans/course-plan.md`); until then they are large and their pages are incomplete.
 
 - [000 · Empty project to a wasm page](000-project.md)
 - [001 · A window on the canvas](001-window.md)
@@ -63,6 +63,8 @@ The course is one chain, from 000 to 37. Every lesson adds new files or appends 
 - [003 · The frame's textures](003-textures.md)
 - [004 · Clear to a colour](004-clear.md)
 - [005 · Resize and device pixels](005-resize.md)
+- [006 · The pipeline cache](006-cache.md)
+- [007 · Describe and build a pipeline](007-build.md)
 - [04a · Meshes on the GPU](04a-meshes.md)
 - [04b · Strokes and arrows](04b-strokes.md)
 - [04c · Markers](04c-markers.md)

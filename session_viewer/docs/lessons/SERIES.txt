@@ -4,7 +4,9 @@
 003 002 003-textures.md
 004 003 004-clear.md
 005 004 005-resize.md
-04a 005 04a-meshes.md
+006 005 006-cache.md
+007 006 007-build.md
+04a 007 04a-meshes.md
 04b 04a 04b-strokes.md
 04c 04b 04c-markers.md
 04d 04c 04d-clouds.md

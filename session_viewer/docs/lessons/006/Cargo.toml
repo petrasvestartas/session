@@ -1,0 +1,88 @@
+# An empty [workspace] keeps this crate out of any parent workspace, so it builds on its own.
+[workspace]
+
+[package]
+name = "session_viewer"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the crate
+
+[dependencies]
+session_rust = { path = "../../../../session_rust", default-features = false } # no mini-tests in the wasm
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml_ng = "0.10"
+toml = { version = "=0.8.23", optional = true }
+serde_json = { version = "1.0", features = ["float_roundtrip"] }
+winit = "0.30"
+wgpu = "29.0" # the Rust WebGPU library; natively it runs on Vulkan, Metal and DX12
+egui = { version = "=0.34.3", default-features = false }
+egui-wgpu = { version = "=0.34.3", default-features = false }
+egui-winit = { version = "=0.34.3", default-features = false }
+glyphon = "=0.11.0" # The maintained text renderer release compatible with wgpu 29.
+# Cargo.lock holds swash on skrifa 0.40 (egui's) so one font stack ships (-135 KB gz); after any
+# `cargo update`, re-run `cargo update -p skrifa@0.44.0 --precise 0.40.0` if skrifa appears twice.
+ttf-parser = { version = "0.25", default-features = false } # glyph coverage; already linked by the shaper
+log = "0.4"
+console_error_panic_hook = "0.1.6"
+console_log = "1.0"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Document",
+    "Window",
+    "Element",
+    "HtmlCanvasElement",
+    "HtmlElement",
+    "HtmlInputElement",
+    "KeyboardEvent",
+    "PointerEvent",
+    "EventTarget",
+    "Event",
+    "Location",
+    "History",
+    "Performance",
+    "EventSource",
+    "MessageEvent",
+    "Request",
+    "RequestCache",
+    "RequestInit",
+    "RequestMode",
+    "Response",
+    "Headers",
+    "AbortController",
+    "AbortSignal",
+    "ReadableStream",
+    "ReadableStreamDefaultReader",
+    "ReadableWritablePair",
+    "Blob",
+    ] }
+# No use site here: session_rust -> rand 0.8 -> getrandom 0.2, which refuses wasm32-unknown-unknown
+# without the `js` feature.
+getrandom = { version = "0.2", features = ["js"] }
+js-sys = "0.3"
+prost = "0.14"
+bytemuck = { version = "1", features = ["derive"] }
+
+# Off in the page build: each costs over 30 KB gz of wasm (JSON sessions 105 KB, TOML manifests 60 KB).
+[features]
+json-sessions = []
+toml-manifests = ["dep:toml"]
+
+# Optimized dependencies keep debug builds fast enough to parse real scenes.
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+strip = true
+
+[dev-dependencies]
+naga = { version = "=29.0.4", features = ["wgsl-in"] }
+
+# Native-only: the headless verification harness (examples/selftest.rs). MUST stay at the end -
+# a target table placed mid-file silently swallows every [dependencies] entry after it, which is
+# how prost and bytemuck vanished from the wasm build.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pollster = "0.4"

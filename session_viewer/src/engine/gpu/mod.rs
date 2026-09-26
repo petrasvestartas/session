@@ -37,7 +37,8 @@ mod widget; // register:widget
 mod widget_mesh; // register:widget_mesh
 
 use crate::engine::performance::Performance; // register:perf
-use crate::engine::pipelines::{Layouts, Target}; // register:pipelines
+use crate::engine::pipelines::Layouts; // register:layouts
+use crate::engine::pipelines::Target; // register:pipelines
 use session_rust::AABB; // register:anchor
 use session_rust::Point; // register:anchor
 
@@ -247,7 +248,7 @@ impl Gpu {
             self.rebind_ink(); // register:ink
         }
 
-        if flip { // register:pipelines
+        if flip { // register:lane
             self.rebuild_pipelines();
             log::info!("msaa: {}x", samples);
         }

@@ -39,7 +39,10 @@ pub mod vectors; // register:vectors
 pub mod view; // register:knobs
 
 use crate::engine::performance::Performance; // register:perf
-use crate::engine::pipelines::{Layouts, Target}; // register:pipelines
+use crate::engine::pipelines::Layouts; // register:layouts
+// --8<-- [start:006-use]
+use crate::engine::pipelines::Target; // register:pipelines
+// --8<-- [end:006-use]
 use session_rust::AABB; // register:anchor
 use session_rust::Point; // register:anchor
 
@@ -185,10 +188,12 @@ impl Gpu {
         let samples = 1; // register:targets
         let targets = Targets::new(&ctx, size, config.format, samples); // register:targets
 // --8<-- [end:003-build]
+// --8<-- [start:006-target]
         let target = Target { // register:pipelines
             format: config.format,
             samples,
         };
+// --8<-- [end:006-target]
         let layouts = Layouts::new(&ctx.device); // register:layouts
         let frame = FrameUniforms::new(&ctx, &layouts, size); // register:frame
         let arena = ArenaLane::new(&ctx, &layouts, target); // register:meshes
@@ -272,7 +277,7 @@ impl Gpu {
             self.rebind_ink(); // register:ink
         }
 
-        if flip { // register:pipelines
+        if flip { // register:lane
             self.rebuild_pipelines();
             log::info!("msaa: {}x", samples);
         }

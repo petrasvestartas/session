@@ -1,6 +1,6 @@
-pub mod layouts;
+pub mod layouts; // register:layouts
 
-pub use layouts::Layouts;
+pub use layouts::Layouts; // register:layouts
 
 use crate::engine::gpu::buffers::GpuCtx;
 use std::cell::{Cell, LazyCell, RefCell};
@@ -83,7 +83,7 @@ pub struct Cache {
     shaders: RefCell<HashMap<ShaderKey, Shader>>, // by label and source digest
     layouts: RefCell<HashMap<LayoutKey, wgpu::BindGroupLayout>>, // by label and entries
     pipelines: RefCell<HashMap<PipelineKey, Pipeline>>, // by everything they compile from
-    pub clipping: Cell<bool>, // a plane cuts: ink pipelines built now keep their clip tests
+    pub clipping: Cell<bool>, // a plane cuts: ink pipelines built now keep their clip tests; register:clip
 }
 
 impl Cache {
@@ -97,46 +97,6 @@ impl Cache {
 
         pipelines.len()
     }
-}
-
-/// A shader's label, source length and source hash: the text itself is not kept.
-type ShaderKey = (String, usize, u64);
-
-/// A bind group layout's label and entries.
-type LayoutKey = (String, Vec<wgpu::BindGroupLayoutEntry>);
-
-/// Everything a render pipeline compiles from, owned, so the compile can wait for its first use.
-#[derive(Clone, PartialEq, Eq, Hash)]
-struct PipelineKey {
-    label: String,                      // name shown in GPU errors
-    shader: Shader,                     // vertex and fragment code
-    vs: String,                         // vertex entry point
-    fs: String,                         // fragment entry point
-    groups: Vec<wgpu::BindGroupLayout>, // bind group layouts, in slot order
-    buffers: Vec<(u64, wgpu::VertexStepMode, Vec<wgpu::VertexAttribute>)>, // vertex buffer layouts
-    topology: wgpu::PrimitiveTopology,  // triangles or lines
-    color: ColorWrite,                  // how color is written
-    depth: DepthMode,                   // how depth is used
-    scene_samples: Option<u32>,         // sets SCENE_MSAA in the shader
-    clipping: Option<bool>,             // sets CLIPPING in an ink shader
-    physical: bool,                     // also writes the triangle id target
-    masks: bool,                        // writes both outline masks
-    target: Target,                     // color format and samples
-}
-
-/// Where a pipeline draws: color format and MSAA sample count.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Target {
-    pub format: wgpu::TextureFormat, // color format
-    pub samples: u32,                // MSAA samples
-}
-
-impl Target {
-    /// The id pass target: two u32 per pixel, no MSAA.
-    pub const ID: Target = Target {
-        format: wgpu::TextureFormat::Rg32Uint,
-        samples: 1,
-    };
 }
 
 /// How a pipeline uses depth; reverse-Z, so nearer is greater.
@@ -168,8 +128,8 @@ impl DepthMode {
 pub enum ColorWrite {
     Opaque,  // overwrite
     Blended, // alpha blend
-    Max,     // keep the larger value; for masks
-    Add,     // add to the value; for counts
+    Max,     // keep the larger value; for masks; register:outline
+    Add,     // add to the value; for counts; register:clip
     Nothing, // write nothing; the fragment shader has side effects
 }
 
@@ -183,7 +143,7 @@ impl ColorWrite {
                 wgpu::ColorWrites::ALL,
             ),
             ColorWrite::Nothing => (None, wgpu::ColorWrites::empty()),
-            ColorWrite::Add => {
+            ColorWrite::Add => { // register:clip
                 let add = wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::One,
                     dst_factor: wgpu::BlendFactor::One,
@@ -197,7 +157,7 @@ impl ColorWrite {
                     wgpu::ColorWrites::ALL,
                 )
             }
-            ColorWrite::Max => {
+            ColorWrite::Max => { // register:outline
                 let max = wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::One,
                     dst_factor: wgpu::BlendFactor::One,
@@ -215,6 +175,69 @@ impl ColorWrite {
     }
 }
 
+/// A shader's label, source length and source hash: the text itself is not kept.
+type ShaderKey = (String, usize, u64);
+
+/// A bind group layout's label and entries.
+type LayoutKey = (String, Vec<wgpu::BindGroupLayoutEntry>);
+
+/// Everything a render pipeline compiles from, owned, so the compile can wait for its first use.
+#[derive(Clone, PartialEq, Eq, Hash)]
+struct PipelineKey {
+    label: String,                      // name shown in GPU errors
+    shader: Shader,                     // vertex and fragment code
+    vs: String,                         // vertex entry point
+    fs: String,                         // fragment entry point
+    groups: Vec<wgpu::BindGroupLayout>, // bind group layouts, in slot order
+    buffers: Vec<(u64, wgpu::VertexStepMode, Vec<wgpu::VertexAttribute>)>, // vertex buffer layouts
+    topology: wgpu::PrimitiveTopology,  // triangles or lines
+    color: ColorWrite,                  // how color is written
+    depth: DepthMode,                   // how depth is used
+    scene_samples: Option<u32>,         // sets SCENE_MSAA in the shader; register:ink
+    clipping: Option<bool>,             // sets CLIPPING in an ink shader; register:clip
+    physical: bool,                     // also writes the triangle id target; register:physical
+    masks: bool,                        // writes both outline masks; register:outline
+    target: Target,                     // color format and samples
+}
+
+/// Where a pipeline draws: color format and MSAA sample count.
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Target {
+    pub format: wgpu::TextureFormat, // color format
+    pub samples: u32,                // MSAA samples
+}
+
+impl Target { // register:pick
+    /// The id pass target: two u32 per pixel, no MSAA.
+    pub const ID: Target = Target {
+        format: wgpu::TextureFormat::Rg32Uint,
+        samples: 1,
+    };
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use super::*;
+
+    #[test]
+    /// Clones share one object, made once, on its first use.
+    fn lazy_objects_are_made_once_on_first_use() {
+        let made = Rc::new(Cell::new(0));
+        let counter = made.clone();
+        let lazy = Lazy::new(move || {
+            counter.set(counter.get() + 1);
+            7
+        });
+        let copy = lazy.clone();
+        assert_eq!(made.get(), 0, "nothing is made before its first use");
+        assert_eq!(*copy, 7);
+        assert_eq!(*lazy, 7);
+        assert_eq!(made.get(), 1, "clones share the one made");
+        assert!(lazy == copy);
+        assert!(lazy != Lazy::new(|| 7), "equal means the same object");
+    }
+}
+
 /// Everything `build` needs for one render pipeline.
 #[derive(Clone)]
 pub struct PipelineDesc<'a> {
@@ -227,9 +250,9 @@ pub struct PipelineDesc<'a> {
     pub topology: wgpu::PrimitiveTopology,                  // triangles or lines
     pub color: ColorWrite,                                  // how color is written
     pub depth: DepthMode,                                   // how depth is used
-    pub scene_samples: Option<u32>,                         // sets SCENE_MSAA in the shader
-    pub physical: bool,                                     // also writes the triangle id target
-    pub masks: bool, // writes both outline masks with MAX blending
+    pub scene_samples: Option<u32>,                         // sets SCENE_MSAA in the shader; register:ink
+    pub physical: bool,                                     // also writes the triangle id target; register:physical
+    pub masks: bool, // writes both outline masks with MAX blending; register:outline
 }
 
 impl<'a> PipelineDesc<'a> {
@@ -250,9 +273,9 @@ impl<'a> PipelineDesc<'a> {
             topology,
             color: ColorWrite::Opaque,
             depth: DepthMode::Opaque,
-            scene_samples: None,
-            physical: false,
-            masks: false,
+            scene_samples: None, // register:ink
+            physical: false,     // register:physical
+            masks: false,        // register:outline
         }
     }
 
@@ -277,19 +300,19 @@ impl<'a> PipelineDesc<'a> {
     }
 
     /// A copy that reads the scene depth at `samples`.
-    pub fn scene_samples(mut self, samples: u32) -> Self {
+    pub fn scene_samples(mut self, samples: u32) -> Self { // register:ink
         self.scene_samples = Some(samples);
         self
     }
 
     /// A copy that also writes the triangle id target.
-    pub fn physical(mut self) -> Self {
+    pub fn physical(mut self) -> Self { // register:physical
         self.physical = true;
         self
     }
 
     /// A copy that writes both outline masks.
-    pub fn masks(mut self) -> Self {
+    pub fn masks(mut self) -> Self { // register:outline
         self.masks = true;
         self
     }
@@ -299,74 +322,6 @@ impl<'a> PipelineDesc<'a> {
         self.depth = depth;
         self
     }
-}
-
-/// Shared WGSL: groups 0-2, Instance, LineUniform, flags, `place`.
-pub const SCENE: &str = shader!("scene.wgsl");
-pub const CLIP: &str = shader!("clip.wgsl"); // clipping planes, the includer binds `clipping`; register:meshes
-
-/// WGSL every scene shader ends with. A shared snippet is one file and one line here.
-pub const PRELUDE: &[&str] = &[
-    SCENE, // register:scene
-    CLIP,  // register:clip
-];
-
-/// A scene shader's full text: its own code, then the prelude.
-pub fn scene_source(source: &str) -> String {
-    PRELUDE
-        .iter()
-        .fold(source.to_owned(), |text, part| format!("{text}\n{part}"))
-}
-
-/// A shader with the shared scene and clipping code appended.
-pub fn scene_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
-    module(ctx, label, &scene_source(source))
-}
-
-/// One u32 at location 3: the object row.
-const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
-    offset: 0,
-    shader_location: 3,
-    format: wgpu::VertexFormat::Uint32,
-}];
-
-/// One vec3 at location 0: a template position.
-const TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
-    offset: 0,
-    shader_location: 0,
-    format: wgpu::VertexFormat::Float32x3,
-}];
-
-/// Vertex slot 1: one object row per vertex.
-pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
-    wgpu::VertexBufferLayout {
-        array_stride: 4,
-        step_mode: wgpu::VertexStepMode::Vertex,
-        attributes: &INSTANCE_ID_ATTRIBS,
-    }
-}
-
-/// Vertex slot 0 for the marker quad: positions only.
-pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
-    wgpu::VertexBufferLayout {
-        array_stride: 12,
-        step_mode: wgpu::VertexStepMode::Vertex,
-        attributes: &TEMPLATE_ATTRIBS,
-    }
-}
-
-/// Append the WGSL every shader ends with: normals and physical output.
-pub fn shared(source: &str) -> String {
-    format!(
-        "{source}\n{}\n{}",
-        shader!("normals.wgsl"),
-        shader!("physical.wgsl")
-    )
-}
-
-/// A shader that declares its own bindings.
-pub fn module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
-    wgsl(ctx, label, shared(source))
 }
 
 /// The shader for exactly `source`: one per label and source, compiled on first use.
@@ -449,11 +404,11 @@ pub fn build(ctx: &GpuCtx, target: Target, desc: &PipelineDesc) -> Pipeline {
         topology: desc.topology,
         color: desc.color,
         depth: desc.depth,
-        scene_samples: desc.scene_samples,
+        scene_samples: desc.scene_samples, // register:ink
         // ink pipelines are rebuilt on every retarget, so they alone may drop their clip tests
-        clipping: desc.scene_samples.map(|_| ctx.cache.clipping.get()),
-        physical: desc.physical,
-        masks: desc.masks,
+        clipping: desc.scene_samples.map(|_| ctx.cache.clipping.get()), // register:clip
+        physical: desc.physical, // register:physical
+        masks: desc.masks,       // register:outline
         target,
     };
     let mut pipelines = ctx.cache.pipelines.borrow_mut();
@@ -492,7 +447,7 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
     })];
 
     // two mask targets with MAX blending
-    if desc.masks {
+    if desc.masks { // register:outline
         let max = wgpu::BlendComponent {
             src_factor: wgpu::BlendFactor::One,
             dst_factor: wgpu::BlendFactor::One,
@@ -510,7 +465,7 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
     }
 
     // the triangle id target
-    if desc.physical {
+    if desc.physical { // register:physical
         targets.push(Some(wgpu::ColorTargetState {
             format: wgpu::TextureFormat::Rg16Uint,
             blend: None,
@@ -526,12 +481,12 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
     let mut constants = Vec::new();
 
     // shader constant: which depth texture is live
-    if let Some(samples) = desc.scene_samples {
+    if let Some(samples) = desc.scene_samples { // register:ink
         constants.push(("SCENE_MSAA", f64::from(samples > 1)));
     }
 
     // shader constant: no plane cuts, so the clip tests compile away
-    if let Some(clipping) = desc.clipping {
+    if let Some(clipping) = desc.clipping { // register:clip
         constants.push(("CLIPPING", f64::from(clipping)));
     }
 
@@ -583,27 +538,72 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
     })
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
-mod tests {
-    use super::*;
+/// Shared WGSL: groups 0-2, Instance, LineUniform, flags, `place`.
+pub const SCENE: &str = shader!("scene.wgsl");
+pub const CLIP: &str = shader!("clip.wgsl"); // clipping planes, the includer binds `clipping`; register:meshes
 
-    #[test]
-    /// Clones share one object, made once, on its first use.
-    fn lazy_objects_are_made_once_on_first_use() {
-        let made = Rc::new(Cell::new(0));
-        let counter = made.clone();
-        let lazy = Lazy::new(move || {
-            counter.set(counter.get() + 1);
-            7
-        });
-        let copy = lazy.clone();
-        assert_eq!(made.get(), 0, "nothing is made before its first use");
-        assert_eq!(*copy, 7);
-        assert_eq!(*lazy, 7);
-        assert_eq!(made.get(), 1, "clones share the one made");
-        assert!(lazy == copy);
-        assert!(lazy != Lazy::new(|| 7), "equal means the same object");
+/// WGSL every scene shader ends with. A shared snippet is one file and one line here.
+pub const PRELUDE: &[&str] = &[
+    SCENE, // register:scene
+    CLIP,  // register:clip
+];
+
+/// A scene shader's full text: its own code, then the prelude.
+pub fn scene_source(source: &str) -> String {
+    PRELUDE
+        .iter()
+        .fold(source.to_owned(), |text, part| format!("{text}\n{part}"))
+}
+
+/// A shader with the shared scene and clipping code appended.
+pub fn scene_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
+    module(ctx, label, &scene_source(source))
+}
+
+/// One u32 at location 3: the object row.
+const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+    offset: 0,
+    shader_location: 3,
+    format: wgpu::VertexFormat::Uint32,
+}];
+
+/// One vec3 at location 0: a template position.
+const TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+    offset: 0,
+    shader_location: 0,
+    format: wgpu::VertexFormat::Float32x3,
+}];
+
+/// Vertex slot 1: one object row per vertex.
+pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
+    wgpu::VertexBufferLayout {
+        array_stride: 4,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &INSTANCE_ID_ATTRIBS,
     }
+}
+
+/// Vertex slot 0 for the marker quad: positions only.
+pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
+    wgpu::VertexBufferLayout {
+        array_stride: 12,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &TEMPLATE_ATTRIBS,
+    }
+}
+
+/// Append the WGSL every shader ends with: normals and physical output.
+pub fn shared(source: &str) -> String {
+    format!(
+        "{source}\n{}\n{}",
+        shader!("normals.wgsl"),
+        shader!("physical.wgsl")
+    )
+}
+
+/// A shader that declares its own bindings.
+pub fn module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
+    wgsl(ctx, label, shared(source))
 }
 
 /// Vertex slot 0: the arena's packed vertex (position, normal, color).

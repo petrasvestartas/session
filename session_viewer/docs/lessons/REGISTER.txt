@@ -17,10 +17,12 @@ src/engine/gpu/mod.rs view 005
 src/engine/gpu/targets.rs msaa 005
 src/lib.rs resize 005
 src/state.rs resize 005
+src/engine/gpu/buffers.rs pipelines 006
+src/engine/gpu/mod.rs pipelines 006
+src/engine/mod.rs pipelines 006
 index.html page 04a
 src/app/loader.rs perf 04a
 src/engine/gpu/backdrop.rs camera 04a
-src/engine/gpu/buffers.rs pipelines 04a
 src/engine/gpu/device.rs errors 04a
 src/engine/gpu/device.rs native_adapter 04a
 src/engine/gpu/mod.rs anchor 04a
@@ -39,7 +41,6 @@ src/engine/gpu/mod.rs objects 04a
 src/engine/gpu/mod.rs pass 04a
 src/engine/gpu/mod.rs patch 04a
 src/engine/gpu/mod.rs perf 04a
-src/engine/gpu/mod.rs pipelines 04a
 src/engine/gpu/mod.rs slots 04a
 src/engine/gpu/mod.rs text_outline 04a
 src/engine/gpu/mod.rs upload 04a
@@ -61,9 +62,10 @@ src/engine/gpu/view.rs grid 04a
 src/engine/gpu/view.rs meshes 04a
 src/engine/gpu/view.rs perf 04a
 src/engine/gpu/view.rs spin 04a
-src/engine/mod.rs pipelines 04a
 src/engine/pipelines/mod.rs clip 04a
+src/engine/pipelines/mod.rs layouts 04a
 src/engine/pipelines/mod.rs meshes 04a
+src/engine/pipelines/mod.rs physical 04a
 src/engine/pipelines/mod.rs scene 04a
 src/lib.rs camera 04a
 src/lib.rs frame 04a
@@ -84,6 +86,7 @@ src/engine/gpu/present.rs strokes 04b
 src/engine/gpu/render.rs ink 04b
 src/engine/gpu/upload.rs strokes 04b
 src/engine/gpu/view.rs strokes 04b
+src/engine/pipelines/mod.rs ink 04b
 src/engine/gpu/mod.rs glyphs 04c
 src/engine/gpu/mod.rs markers 04c
 src/engine/gpu/patch.rs markers 04c
@@ -145,6 +148,7 @@ src/engine/gpu/present.rs pick 12
 src/engine/gpu/present.rs shell 12
 src/engine/gpu/render.rs pick 12
 src/engine/gpu/render.rs shell 12
+src/engine/pipelines/mod.rs pick 12
 src/lib.rs input 12
 src/lib.rs keys 12
 src/lib.rs scene 12
@@ -191,6 +195,7 @@ src/engine/gpu/mod.rs surface_outline 17
 src/engine/gpu/pass.rs outline 17
 src/engine/gpu/render.rs scene_text 17
 src/engine/gpu/view.rs outline 17
+src/engine/pipelines/mod.rs outline 17
 src/lib.rs scene_text 17
 src/state.rs scene_text 17
 src/state.rs text 17
