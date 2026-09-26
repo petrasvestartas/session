@@ -99,7 +99,9 @@ impl App {
 
     /// Take the ready state, size it to the canvas, draw.
     fn adopt(&mut self, mut state: State) {
+// --8<-- [start:005-adopt]
         fit_canvas(&mut state); // register:resize
+// --8<-- [end:005-adopt]
         state.window.request_redraw();
         self.state = Some(state);
     }
@@ -251,6 +253,7 @@ impl App {
             return false;
         };
 
+// --8<-- [start:005-redraw]
         if page_hidden() || desired_canvas_size().is_none() { // register:resize
             return false;
         }
@@ -259,43 +262,14 @@ impl App {
             state.needs_frame = true;
             return false;
         }
+// --8<-- [end:005-redraw]
 
         state.render();
         false
     }
 }
 // --8<-- [end:004-redraw]
-// --8<-- [start:04a-tail]
-#[cfg(target_arch = "wasm32")]
-impl App {
-    /// A key press: first press only, and only while the canvas has focus.
-    fn key(&mut self, event: &winit::event::KeyEvent) -> bool {
-        let Some(state) = &mut self.state else {
-            return false;
-        };
-        viewer_focused()
-            && event.state == ElementState::Pressed
-            && !event.repeat
-            && self.input.key(state, event.logical_key.as_ref())
-    }
-}
-
-/// True while the canvas has keyboard focus.
-#[cfg(target_arch = "wasm32")]
-fn viewer_focused() -> bool {
-    let Some(window) = web_sys::window() else {
-        return false;
-    };
-    let Some(document) = window.document() else {
-        return false;
-    };
-
-    match document.active_element() {
-        Some(element) => element.id() == "canvas",
-        None => false,
-    }
-}
-
+// --8<-- [start:005-resize]
 /// Match the canvas pixel size.
 #[cfg(target_arch = "wasm32")]
 fn fit_canvas(state: &mut State) {
@@ -336,6 +310,37 @@ fn desired_canvas_size() -> Option<(u32, u32)> {
     let w = (canvas.client_width() as f64 * dpr).round() as u32;
     let h = (canvas.client_height() as f64 * dpr).round() as u32;
     (w > 0 && h > 0).then_some((w, h))
+}
+// --8<-- [end:005-resize]
+// --8<-- [start:04a-tail]
+#[cfg(target_arch = "wasm32")]
+impl App {
+    /// A key press: first press only, and only while the canvas has focus.
+    fn key(&mut self, event: &winit::event::KeyEvent) -> bool {
+        let Some(state) = &mut self.state else {
+            return false;
+        };
+        viewer_focused()
+            && event.state == ElementState::Pressed
+            && !event.repeat
+            && self.input.key(state, event.logical_key.as_ref())
+    }
+}
+
+/// True while the canvas has keyboard focus.
+#[cfg(target_arch = "wasm32")]
+fn viewer_focused() -> bool {
+    let Some(window) = web_sys::window() else {
+        return false;
+    };
+    let Some(document) = window.document() else {
+        return false;
+    };
+
+    match document.active_element() {
+        Some(element) => element.id() == "canvas",
+        None => false,
+    }
 }
 
 #[cfg(target_arch = "wasm32")]

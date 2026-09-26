@@ -3,7 +3,8 @@
 002 001 002-gpu.md
 003 002 003-textures.md
 004 003 004-clear.md
-04a 004 04a-meshes.md
+005 004 005-resize.md
+04a 005 04a-meshes.md
 04b 04a 04b-strokes.md
 04c 04b 04c-markers.md
 04d 04c 04d-clouds.md

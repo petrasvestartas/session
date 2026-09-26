@@ -26,7 +26,6 @@ impl Targets {
             )
         };
         let depth = attachment("depth", size, wgpu::TextureFormat::Depth32Float, samples);
-
         Self {
             depth,
             samples,

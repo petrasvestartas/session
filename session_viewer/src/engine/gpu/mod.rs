@@ -229,6 +229,75 @@ impl Gpu {
     }
 }
 
+
+impl Gpu {
+    /// Remake targets and pipelines when the sample count changes.
+    fn retarget(&mut self, resized: bool) {
+        let samples = self.samples_wanted();
+        let flip = samples != self.targets.samples;
+
+        if flip || resized {
+            self.targets.destroy();
+            self.targets = Targets::new(
+                &self.ctx,
+                (self.config.width, self.config.height),
+                self.config.format,
+                samples,
+            );
+            self.rebind_ink(); // register:ink
+        }
+
+        if flip { // register:pipelines
+            self.rebuild_pipelines();
+            log::info!("msaa: {}x", samples);
+        }
+    }
+
+    /// Pixels this GPU can afford at 4x MSAA.
+    pub fn msaa_budget(&self) -> Option<u32> {
+        Targets::msaa_budget(self.device_type)
+    }
+
+    /// Pick the MSAA sample count again, after live rows came or went.
+    pub(crate) fn refresh_samples(&mut self) {
+        self.retarget(false);
+    }
+
+    /// MSAA samples for the current scene: 4x only with solid geometry.
+    fn samples_wanted(&self) -> u32 {
+        let mut solid = false;
+        solid |= self.live_faces() > 0; // register:meshes
+        solid |= self.live_sheet() > 0; // register:meshes
+        solid |= self.live_pipes() > 0; // register:strokes
+        solid |= self.live_spheres() > 0; // register:markers
+        Targets::samples_for(
+            solid,
+            self.config.width * self.config.height,
+            self.view.msaa_forced,
+            self.msaa_budget(),
+            self.config.width as f32 / self.logical_size[0].max(1.0) as f32,
+        )
+    }
+
+    /// Resize the canvas and every texture that follows it.
+    pub fn resize(&mut self, width: u32, height: u32) {
+        if width == 0 || height == 0 {
+            return;
+        }
+
+        self.config.width = width;
+        self.config.height = height;
+
+        if let Some(s) = &self.surface {
+            s.configure(&self.ctx.device, &self.config);
+        }
+
+        self.retarget(true);
+        self.splat.resize(); // register:clouds
+        self.pick.resize(); // register:pick
+    }
+}
+
 impl Gpu {
 
     /// Bytes reserved on the GPU: (buffers, textures).
@@ -283,28 +352,6 @@ impl Gpu {
         }
     }
 
-    /// Remake targets and pipelines when the sample count changes.
-    fn retarget(&mut self, resized: bool) {
-        let samples = self.samples_wanted();
-        let flip = samples != self.targets.samples;
-
-        if flip || resized {
-            self.targets.destroy();
-            self.targets = Targets::new(
-                &self.ctx,
-                (self.config.width, self.config.height),
-                self.config.format,
-                samples,
-            );
-            self.rebind_ink(); // register:ink
-        }
-
-        if flip { // register:pipelines
-            self.rebuild_pipelines();
-            log::info!("msaa: {}x", samples);
-        }
-    }
-
     /// Every lane builds its pipelines again for the current target; the cache compiles only new ones.
     fn rebuild_pipelines(&mut self) {
         let target = self.target();
@@ -319,50 +366,6 @@ impl Gpu {
         for pass in &mut self.passes { // register:pass
             pass.on_retarget(ctx, layouts, target);
         }
-    }
-
-    /// Pixels this GPU can afford at 4x MSAA.
-    pub fn msaa_budget(&self) -> Option<u32> {
-        Targets::msaa_budget(self.device_type)
-    }
-
-    /// Pick the MSAA sample count again, after live rows came or went.
-    pub(crate) fn refresh_samples(&mut self) {
-        self.retarget(false);
-    }
-
-    /// MSAA samples for the current scene: 4x only with solid geometry.
-    fn samples_wanted(&self) -> u32 {
-        let mut solid = false;
-        solid |= self.live_faces() > 0; // register:meshes
-        solid |= self.live_sheet() > 0; // register:meshes
-        solid |= self.live_pipes() > 0; // register:strokes
-        solid |= self.live_spheres() > 0; // register:markers
-        Targets::samples_for(
-            solid,
-            self.config.width * self.config.height,
-            self.view.msaa_forced,
-            self.msaa_budget(),
-            self.config.width as f32 / self.logical_size[0].max(1.0) as f32,
-        )
-    }
-
-    /// Resize the canvas and every texture that follows it.
-    pub fn resize(&mut self, width: u32, height: u32) {
-        if width == 0 || height == 0 {
-            return;
-        }
-
-        self.config.width = width;
-        self.config.height = height;
-
-        if let Some(s) = &self.surface {
-            s.configure(&self.ctx.device, &self.config);
-        }
-
-        self.retarget(true);
-        self.splat.resize(); // register:clouds
-        self.pick.resize(); // register:pick
     }
 
     /// Forget every row; keep the buffers.

@@ -64,22 +64,6 @@ pub fn reduced() -> bool {
     REDUCED.load(std::sync::atomic::Ordering::Relaxed)
 }
 
-/// Canvas pixels per browser pixel; below 1 when `?dpr=` caps it.
-pub fn surface_per_physical() -> f64 {
-    #[cfg(target_arch = "wasm32")]
-    {
-        let browser = web_sys::window()
-            .map(|window| window.device_pixel_ratio())
-            .filter(|ratio| *ratio > 0.0)
-            .unwrap_or(1.0);
-        device_pixel_ratio() / browser
-    }
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        1.0
-    }
-}
-
 /// A float setting, or `default`.
 fn knob_f32(env: &str, query: &str, default: f32) -> f32 {
     let Some(raw) = knob(env, query) else {
@@ -99,28 +83,28 @@ fn knob_u32(env: &str, query: &str) -> Option<u32> {
 
 /// Display settings; most start from a `?query` or an env variable.
 pub struct View {
-    pub ssao: bool,               // ambient occlusion on
-    pub show_grid: bool,          // floor grid
-    pub show_points: bool,        // point markers, `Q`
-    pub show_lines: bool,         // lines and curves, `W`
-    pub show_mesh_edges: bool,    // mesh edges and their vertex markers, `E`
-    pub show_outlines: bool,      // black outlines around surfaces, `O`
-    pub markers: bool,            // vertex markers on mesh edges
-    pub cloud_size: f32,          // point size scale, `[` and `]`
-    pub edl_strength: f32,        // eye-dome lighting strength; 0 = off
-    pub lod_px: f32,              // cloud LOD cutoff, px; 0 = draw every point
-    pub thickness_px: f32,        // pen width, CSS px
-    pub feather_px: f32,          // edge softness of dots, px
-    pub lit: bool,                // headlight on mesh faces, `D`
-    pub backface: bool,           // back faces painted red, `B`
-    pub opacity: f32,             // face alpha; 0 = x-ray, `P` toggles
+    pub ssao: bool,               // ambient occlusion on; register:ssao
+    pub show_grid: bool,          // floor grid; register:grid
+    pub show_points: bool,        // point markers, `Q`; register:markers
+    pub show_lines: bool,         // lines and curves, `W`; register:strokes
+    pub show_mesh_edges: bool,    // mesh edges and their vertex markers, `E`; register:strokes
+    pub show_outlines: bool,      // black outlines around surfaces, `O`; register:outline
+    pub markers: bool,            // vertex markers on mesh edges; register:markers
+    pub cloud_size: f32,          // point size scale, `[` and `]`; register:clouds
+    pub edl_strength: f32,        // eye-dome lighting strength; 0 = off; register:clouds
+    pub lod_px: f32,              // cloud LOD cutoff, px; 0 = draw every point; register:clouds
+    pub thickness_px: f32,        // pen width, CSS px; register:strokes
+    pub feather_px: f32,          // edge softness of dots, px; register:markers
+    pub lit: bool,                // headlight on mesh faces, `D`; register:meshes
+    pub backface: bool,           // back faces painted red, `B`; register:meshes
+    pub opacity: f32,             // face alpha; 0 = x-ray, `P` toggles; register:meshes
     pub msaa_forced: Option<u32>, // 4 forces 4x, other values 1x
-    pub perf: bool,               // draw every frame and show timing
-    pub spin: bool,               // orbit a little every frame
+    pub perf: bool,               // draw every frame and show timing; register:perf
+    pub spin: bool,               // orbit a little every frame; register:spin
 }
 
 impl View {
-    pub fn set_arctic(&mut self, on: bool) {
+    pub fn set_arctic(&mut self, on: bool) { // register:ssao
         self.ssao = on;
         if on {
             self.show_outlines = true;
@@ -130,24 +114,40 @@ impl View {
     /// Read every setting once at start.
     pub fn from_env() -> Self {
         Self {
-            ssao: false,
-            show_grid: knob("VIEWER_NO_GRID", "nogrid").is_none(),
-            show_points: true,
-            show_lines: true,
-            show_mesh_edges: true,
-            show_outlines: knob("VIEWER_OUTLINES", "outlines").is_some(),
-            markers: knob("BENCH_NO_MARKERS", "nomarkers").is_none(),
-            cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
-            edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
-            lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
-            thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.0).max(0.1),
-            feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
-            lit: knob("VIEWER_LIT", "lit").is_some(),
-            backface: knob("VIEWER_BACKFACE", "backface").is_some(),
-            opacity: knob_f32("VIEWER_OPACITY", "opacity", 1.0).clamp(0.0, 1.0),
+            ssao: false, // register:ssao
+            show_grid: knob("VIEWER_NO_GRID", "nogrid").is_none(), // register:grid
+            show_points: true, // register:markers
+            show_lines: true, // register:strokes
+            show_mesh_edges: true, // register:strokes
+            show_outlines: knob("VIEWER_OUTLINES", "outlines").is_some(), // register:outline
+            markers: knob("BENCH_NO_MARKERS", "nomarkers").is_none(), // register:markers
+            cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0), // register:clouds
+            edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25), // register:clouds
+            lod_px: knob_f32("VIEWER_LOD", "lod", 0.0), // register:clouds
+            thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.0).max(0.1), // register:strokes
+            feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0), // register:markers
+            lit: knob("VIEWER_LIT", "lit").is_some(), // register:meshes
+            backface: knob("VIEWER_BACKFACE", "backface").is_some(), // register:meshes
+            opacity: knob_f32("VIEWER_OPACITY", "opacity", 1.0).clamp(0.0, 1.0), // register:meshes
             msaa_forced: knob_u32("VIEWER_MSAA", "msaa"),
-            perf: knob("VIEWER_PERF", "perf").is_some(),
-            spin: knob("VIEWER_SPIN", "spin").is_some(),
+            perf: knob("VIEWER_PERF", "perf").is_some(), // register:perf
+            spin: knob("VIEWER_SPIN", "spin").is_some(), // register:spin
         }
+    }
+}
+
+/// Canvas pixels per browser pixel; below 1 when `?dpr=` caps it.
+pub fn surface_per_physical() -> f64 {
+    #[cfg(target_arch = "wasm32")]
+    {
+        let browser = web_sys::window()
+            .map(|window| window.device_pixel_ratio())
+            .filter(|ratio| *ratio > 0.0)
+            .unwrap_or(1.0);
+        device_pixel_ratio() / browser
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        1.0
     }
 }

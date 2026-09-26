@@ -11,7 +11,9 @@ pub struct DeviceSetup {
     pub device: wgpu::Device,                    // creates GPU resources
     pub queue: wgpu::Queue,                      // runs GPU commands
     pub config: wgpu::SurfaceConfiguration,      // size and format of the canvas
+// --8<-- [start:005-field]
     pub device_type: wgpu::DeviceType,           // discrete, integrated or CPU; register:msaa
+// --8<-- [end:005-field]
     pub failure: Arc<std::sync::Mutex<Option<String>>>, // first GPU error; Arc shares it with the error callback, Mutex lets one side at a time touch it
 }
 
@@ -162,7 +164,9 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         device,
         queue,
         config,
+// --8<-- [start:005-setup]
         device_type: info.device_type, // register:msaa
+// --8<-- [end:005-setup]
         failure,
     })
 }

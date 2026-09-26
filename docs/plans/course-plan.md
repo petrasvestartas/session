@@ -99,7 +99,7 @@ lessons than its range pushes the later ranges, which are re-stated here.
 
 ## Part 1 in detail (first pixels)
 
-Every lesson ends in the browser with `trunk serve`. Lessons 000-004 are cut and pushed (2026-09-26); their typed
+Every lesson ends in the browser with `trunk serve`. Lessons 000-005 are cut and pushed (2026-09-26); their typed
 lines are measured by `check_budget.py`.
 
 | Id | Lesson | Types | You should see | Typed |
@@ -109,7 +109,7 @@ lines are measured by `check_budget.py`.
 | 002 | Open the GPU | `engine/mod.rs`, `performance.rs` clock, `gpu/mod.rs` list and `Gpu`, `buffers.rs` GpuCtx, `view.rs` knobs, `device.rs` open; the state's GPU lines | console: `adapter: ...`, `viewer init OK - surface WxH`, `gpu init N ms` | 243 |
 | 003 | The frame's textures | `targets.rs` TextureSpec, Attachment, Targets, `begin_faces`; the `targets` lines of `gpu/mod.rs` | cargo check passes, same console | 126 |
 | 004 | Clear to a colour | `present.rs` FrameInput and present, `render.rs` Frame and encode_frame, `state.rs` render and gpu_failed, `lib.rs` redraw | the GPU paints the canvas 0.9 grey; a red experiment proves it | 121 |
-| 005 | Resize and device pixels | `Gpu::resize`, `retarget`, `samples_wanted`, `State::resize`, `logical_size`, `page_hidden`, `desired_canvas_size`, `fit_canvas`, `resize_held`, `view.rs` device pixel ratio and `View` | the canvas stays sharp when the window changes | |
+| 005 | Resize and device pixels | `Gpu::resize`, `retarget`, `samples_wanted`, `State::resize`, `logical_size`, `page_hidden`, `desired_canvas_size`, `fit_canvas`, `resize_held`, `view.rs` device pixel ratio and `View`, `Targets::samples_for` and the 4x textures | the canvas follows the window; `?dpr=1`, `?msaa=4` | 236 |
 | 006 | The pipeline cache | `pipelines/mod.rs` Lazy, Cache, Target, DepthMode, ColorWrite, PipelineDesc, build, compile | tests pass | |
 | 007 | Shaders in the crate | `build.rs`, the `shader!` macro, `scene.wgsl`, `normals.wgsl`, `physical.wgsl`, `background.wgsl`, `layouts.rs` mvp and line | tests pass | |
 | 008 | The frame uniform | `frame.rs` LineUniform, FrameUniforms, write; `write_frame_uniforms` | same picture, drawn through the frame bind group | |

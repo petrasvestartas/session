@@ -120,4 +120,5 @@ impl State {
         true
     }
 }
+
 // --8<-- [end:004-render]

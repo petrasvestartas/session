@@ -70,4 +70,4 @@ Run `trunk serve`. The canvas is now painted by the GPU: the background colour 0
 
 A frame is a recording: encoder, one pass that clears colour and depth, submit, present. `render` makes the recording only when the picture is dirty; the browser asks for it through `RedrawRequested`. Every later lesson draws inside the pass this one opened.
 
-Next: [04a · Meshes on the GPU](04a-meshes.md)
+Next: [005 · Resize and device pixels](005-resize.md)

@@ -130,7 +130,9 @@ impl State {
     /// Draw one frame; a still scene asks for no more.
     pub fn render(&mut self) {
         self.before_picks(); // register:features
+// --8<-- [start:005-hook]
         self.follow_logical_size(); // register:resize
+// --8<-- [end:005-hook]
 
         if self.gpu_failed() {
             return;
@@ -204,9 +206,65 @@ impl State {
         true
     }
 }
-// --8<-- [end:004-render]
 
+// --8<-- [end:004-render]
+// --8<-- [start:005-resize]
+impl State {
+    // A `const` inside `impl` is an associated constant, read as `Self::RESIZE_HOLD_MS`.
+    /// Minimum time between two resizes.
+    const RESIZE_HOLD_MS: f64 = 100.0;
+
+    /// Resize the GPU targets; false when asked too soon after the last one.
+    pub fn resize(&mut self, width: u32, height: u32) -> bool {
+        let now = now_ms();
+
+        // a window drag resizes every frame; wait between remakes
+        if now - self.last_resize_ms < Self::RESIZE_HOLD_MS {
+            return false;
+        }
+
+        self.last_resize_ms = now;
+        self.gpu.resize(width, height);
+        self.gpu.logical_size = self.logical_size();
+        self.upload_controls(); // register:controls
+        self.touch();
+        true
+    }
+
+    /// The CSS size changed: control dots keep their pixel size.
+    fn follow_logical_size(&mut self) {
+        let logical = self.logical_size();
+
+        if logical != self.gpu.logical_size {
+            self.gpu.logical_size = logical;
+            self.upload_controls(); // register:controls
+            self.touch();
+        }
+    }
+
+    /// Canvas size in CSS pixels; device pixels natively.
+    pub(crate) fn logical_size(&self) -> [f64; 2] {
+        #[cfg(target_arch = "wasm32")]
+        if let Some(window) = web_sys::window()
+            && let Some(document) = window.document()
+            && let Some(canvas) = document.get_element_by_id("canvas")
+        {
+            return [
+                f64::from(canvas.client_width().max(1)),
+                f64::from(canvas.client_height().max(1)),
+            ];
+        }
+
+        [
+            f64::from(self.gpu.config.width),
+            f64::from(self.gpu.config.height),
+        ]
+    }
+}
+// --8<-- [end:005-resize]
 // --8<-- [start:04a-tail]
+
+
 impl State {
     /// Add one loaded document to the scene.
     pub fn append(&mut self, doc: FileDoc, source: Option<String>) {
@@ -294,27 +352,6 @@ impl State {
         self.camera.fit(&b, self.aspect());
         self.camera.grow_extent(&self.gpu.bounds);
         self.touch();
-    }
-
-    // A `const` inside `impl` is an associated constant, read as `Self::RESIZE_HOLD_MS`.
-    /// Minimum time between two resizes.
-    const RESIZE_HOLD_MS: f64 = 100.0;
-
-    /// Resize the GPU targets; false when asked too soon after the last one.
-    pub fn resize(&mut self, width: u32, height: u32) -> bool {
-        let now = now_ms();
-
-        // a window drag resizes every frame; wait between remakes
-        if now - self.last_resize_ms < Self::RESIZE_HOLD_MS {
-            return false;
-        }
-
-        self.last_resize_ms = now;
-        self.gpu.resize(width, height);
-        self.gpu.logical_size = self.logical_size();
-        self.upload_controls(); // register:controls
-        self.touch();
-        true
     }
 
     /// Set the point size of clouds.
@@ -572,36 +609,6 @@ impl State {
         }
     }
 
-    /// The CSS size changed: control dots keep their pixel size.
-    fn follow_logical_size(&mut self) {
-        let logical = self.logical_size();
-
-        if logical != self.gpu.logical_size {
-            self.gpu.logical_size = logical;
-            self.upload_controls(); // register:controls
-            self.touch();
-        }
-    }
-
-
-    /// Canvas size in CSS pixels; device pixels natively.
-    pub(crate) fn logical_size(&self) -> [f64; 2] {
-        #[cfg(target_arch = "wasm32")]
-        if let Some(window) = web_sys::window()
-            && let Some(document) = window.document()
-            && let Some(canvas) = document.get_element_by_id("canvas")
-        {
-            return [
-                f64::from(canvas.client_width().max(1)),
-                f64::from(canvas.client_height().max(1)),
-            ];
-        }
-
-        [
-            f64::from(self.gpu.config.width),
-            f64::from(self.gpu.config.height),
-        ]
-    }
 
     /// Ask what is under a pixel: an object, an edge (Ctrl) or a face (Ctrl+Shift).
     pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {

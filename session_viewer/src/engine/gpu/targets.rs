@@ -10,7 +10,7 @@ pub struct Targets {
     pub gradient: Attachment, // triangle index + 1 per sample in two 16-bit halves, 0 for none; register:physical
     pub gradient_single: wgpu::TextureView, // triangle ids at 1x, or a placeholder; register:physical
     pub gradient_msaa: wgpu::TextureView, // triangle ids at 4x, or a placeholder; register:physical
-    _placeholders: [Attachment; 2], // the 1x1 textures, freed with the rest; register:msaa
+    _placeholders: [Attachment; 2], // the 1x1 textures, freed with the rest; register:physical
 }
 
 impl Targets {
@@ -84,7 +84,7 @@ impl Targets {
             msaa.destroy();
         }
 
-        for placeholder in &self._placeholders { // register:msaa
+        for placeholder in &self._placeholders { // register:physical
             placeholder.destroy();
         }
     }
@@ -264,6 +264,9 @@ impl Targets {
             _ => 1,
         }
     }
+}
+
+impl Targets {
 
     /// Open the ink pass over the faces; depth is read, not written.
     pub fn begin_ink<'a>(

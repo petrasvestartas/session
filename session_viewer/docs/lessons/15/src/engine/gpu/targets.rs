@@ -6,14 +6,16 @@ use super::buffers::GpuCtx;
 /// The frame's depth and color textures at one sample count.
 pub struct Targets {
     pub depth: Attachment,                  // scene depth
+// --8<-- [start:005-fields]
     pub msaa: Option<Attachment>,           // multisampled color, only at 4x; register:msaa
     pub depth_single: wgpu::TextureView,    // depth at 1x, or a 1x1 placeholder; register:msaa
     pub depth_msaa: wgpu::TextureView,      // depth at 4x, or a 1x1 placeholder; register:msaa
+// --8<-- [end:005-fields]
     pub samples: u32,                       // MSAA samples, 1 or 4
     pub gradient: Attachment, // triangle index + 1 per sample in two 16-bit halves, 0 for none; register:physical
     pub gradient_single: wgpu::TextureView, // triangle ids at 1x, or a placeholder; register:physical
     pub gradient_msaa: wgpu::TextureView, // triangle ids at 4x, or a placeholder; register:physical
-    _placeholders: [Attachment; 2], // the 1x1 textures, freed with the rest; register:msaa
+    _placeholders: [Attachment; 2], // the 1x1 textures, freed with the rest; register:physical
 }
 
 impl Targets {
@@ -33,6 +35,7 @@ impl Targets {
             )
         };
         let depth = attachment("depth", size, wgpu::TextureFormat::Depth32Float, samples);
+// --8<-- [start:005-textures]
         let msaa = (samples > 1).then(|| attachment("msaa_color", size, format, samples)); // register:msaa
 
         // shaders bind both sample counts; the unused one is 1x1
@@ -48,6 +51,7 @@ impl Targets {
         } else {
             (empty_depth.view.clone(), depth.view.clone())
         };
+// --8<-- [end:005-textures]
         let gradient = attachment( // register:physical
             "physical.primitive",
             size,
@@ -70,9 +74,11 @@ impl Targets {
             gradient_single, // register:physical
             gradient_msaa,   // register:physical
             depth,
+// --8<-- [start:005-init]
             msaa,         // register:msaa
             depth_single, // register:msaa
             depth_msaa,   // register:msaa
+// --8<-- [end:005-init]
             samples,
             _placeholders: [empty_depth, empty_gradient], // register:physical
         }
@@ -83,11 +89,13 @@ impl Targets {
         self.depth.destroy();
         self.gradient.destroy(); // register:physical
 
+// --8<-- [start:005-destroy]
         if let Some(msaa) = &self.msaa { // register:msaa
             msaa.destroy();
         }
+// --8<-- [end:005-destroy]
 
-        for placeholder in &self._placeholders { // register:msaa
+        for placeholder in &self._placeholders { // register:physical
             placeholder.destroy();
         }
     }
@@ -101,7 +109,9 @@ impl Targets {
         clear: Option<wgpu::Color>,
     ) -> wgpu::RenderPass<'a> {
         let target = view;
+// --8<-- [start:005-target]
         let target = self.msaa.as_deref().unwrap_or(target); // register:msaa
+// --8<-- [end:005-target]
         // a pass after the first keeps what the one before drew
         let load = |color| match clear {
             Some(_) => wgpu::LoadOp::Clear(color),
@@ -220,7 +230,7 @@ impl Drop for Attachment {
 }
 // --8<-- [end:003-targets]
 
-// --8<-- [start:04a-tail]
+// --8<-- [start:005-msaa]
 impl Targets {
     /// Pixels this GPU type may draw at 4x; None = never.
     pub fn msaa_budget(gpu: wgpu::DeviceType) -> Option<u32> {
@@ -274,6 +284,11 @@ impl Targets {
             _ => 1,
         }
     }
+}
+// --8<-- [end:005-msaa]
+// --8<-- [start:04a-tail]
+
+impl Targets {
 
     /// Open the ink pass over the faces; depth is read, not written.
     pub fn begin_ink<'a>(
