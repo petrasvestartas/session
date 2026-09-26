@@ -336,7 +336,8 @@ mod tests {
         let scene = session_rust::Session::pb_load(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/assets/pb/view_mixed_teapot.pb"
-        ));
+        ))
+        .unwrap();
         let brep = &scene.objects.breps[0];
         let (arena, seg, glyph, _) = walked(brep);
         assert!(seg.ribbons.is_empty() && glyph.spheres.is_empty());

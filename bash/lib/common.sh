@@ -10,8 +10,8 @@ CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "collection" "color" "co
 # Delete an entry the moment its test file lands (C++: src/<cls>_test.cpp,
 # Python: src/session_py/<cls>_test.py, Rust: src/<cls>_test.rs).
 # ("pdf" is not a class: the Rust-only PDF importer is covered by `cargo test --features pdf`.)
-NOT_IMPLEMENTED_cpp="collection"
-NOT_IMPLEMENTED_py="collection"
+NOT_IMPLEMENTED_cpp=""
+NOT_IMPLEMENTED_py=""
 NOT_IMPLEMENTED_rust=""
 
 # Resolve repo root from script location
