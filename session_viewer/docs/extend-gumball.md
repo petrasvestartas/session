@@ -1,13 +1,6 @@
 # Adding a gumball
 
-Start here: [Implement a solid gumball, step by step](25-gumball.md). It includes every code edit, the mesh shader and a real screenshot. The designs below are historical; use the supplement’s status table for supported operations and limits.
-
-!!! note "Built in lesson 21"
-    This was the design; `src/app/gizmo.rs` and `src/state/edit.rs` are what it became, and
-    [lesson 21](21-editing.md) teaches them. Two decisions went the other way in the end: the
-    widget draws in the two lane types the control net already uses rather than in a private
-    lane, and the drag is committed once on release rather than per frame. Read this for the
-    reasoning; read the code for what runs.
+These are the design notes the gumball grew from; [lesson 21](21-editing.md) teaches the drag (`app/gesture/`, `state/drag.rs`) and [lesson 25](25-gumball.md) draws the solid widget. Two decisions went the other way: the widget draws in the lane types the control net already uses rather than in a private lane, and the drag is committed once on release rather than per frame. Read this for the reasoning; read the lessons for what runs.
 
 ## The widget
 
@@ -356,6 +349,6 @@ Each step builds on its own.
 
 ## Expected viewer result
 
-Reference result from the supported [implementation tutorials](22-runtime-helpers.md). Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
+Reference result from the maintained viewer. Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb).
 
 [![Full viewer result for extend gumball](screenshots/extensions-gumball-overview.png)](screenshots/extensions-gumball-overview.png)

@@ -2,6 +2,8 @@
 
 Box, Sphere and eleven more solids ask a few questions, draw blue wires while you answer, and add a BRep or a mesh to the document. One tool, `Shaping`, runs them all: each shape is one file with a `static SHAPE` of five functions.
 
+![A shape is a static of functions: ask names the next question, read turns the answers into a part, outline draws its wires, build makes the object once nothing is left to ask.](illustrations/shape-functions.svg)
+
 ## Step 1 · registration lines
 
 One line in `tool.rs` adds the shape module, and one line per shape in `verbs!` adds its command.

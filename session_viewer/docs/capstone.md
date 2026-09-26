@@ -83,9 +83,9 @@ Two ways, not equivalent. A uniform branch is predictable and uniform — cheap,
 
 What is *not* in this design: no new lane, no new pipeline family, no trait, no per-object clipping state. A feature that fits the architecture adds one field and one function. If yours needed a new module, ask which constraint pushed you there.
 
-## Acceptance criteria for the proposed feature
+## Acceptance criteria
 
-This is a design reference for a future section plane, not a runnable implementation lesson. The current viewer does not implement it. Complete the course through [lesson 37](37-command-dock.md) for the full supported implementation; no section-plane code is needed to finish that sequence. A future implementation must satisfy these checks:
+[Lesson 18b](18b-clipping.md) meets these checks; any change to clipping must keep meeting them:
 
 - **It compiles at every step.** Add the field and the assertion first, and check. Then the contract function, unused, and check. Then one lane. Then the rest.
 - **It fails visibly when wrong.** Set the plane to cut through the middle of the fixture and orbit. A plane that moves with the camera means you tested in view space instead of world space.
@@ -95,6 +95,5 @@ This is a design reference for a future section plane, not a runnable implementa
 
 ## If you want more
 
-- **More planes.** Store a fixed-size plane array and an active count in the uniform. Test each active plane in a bounded loop. The count is shared by the draw, so loop iterations remain uniform; per-fragment discard results differ.
 - **A dimension primitive.** Reuse stroke rows for the leader and arrow strokes, text placement for its label, and one source identity for their picks. Add a lane only if those existing representations cannot express the required drawing behavior.
-- **Contribute it.** A clean section plane belongs in the viewer. Read `ARCHITECTURE.md`: changing source the course teaches means refolding the course.
+- **Change it.** Read "Adding a feature" in `ARCHITECTURE.md` and [Maintaining the course](maintaining.md): a change to code the course teaches goes into the master `docs/lessons/37`, and `docs/cut.py` carries it to every crate.

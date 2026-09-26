@@ -3131,7 +3131,122 @@ def one_gesture():
     c.write("one-gesture.svg")
 
 
+def tool_loop():
+    """23a: a tool asks for one point at a time until its answer says it is done."""
+    c = Canvas("A tool asks until it has enough",
+               "A command such as Move opens a tool. The tool prompts for a point, takes a click, a snap or typed "
+               "coordinates, and answers More, Repeat or Done. Between answers it only draws a preview.",
+               1180, 520)
+    c.text(28, 40, "Move: two points, one conversation", "h")
+    a = c.box(28, 80, ["you type", "`Move`"], "plain")
+    b = c.box(200, 80, ["the tool prompts", "`prompt(points)`", "\"Point to move from\""], "cpu")
+    d = c.box(470, 80, ["you answer", "a click, a snap", "or typed x,y,z"], "plain")
+    e = c.box(720, 80, ["the tool decides", "`placed(state, points, plane)`"], "cpu")
+    y = 80 + max(a[3], b[3], d[3], e[3]) / 2
+    c.arrow(a[0] + a[2], y, b[0] - 6, y)
+    c.arrow(b[0] + b[2], y, d[0] - 6, y)
+    c.arrow(d[0] + d[2], y, e[0] - 6, y)
+    top = 80 + max(a[3], b[3], d[3], e[3]) + 60
+    m = c.box(470, top, ["Next::More", "ask for the next point"], "cpu", w=230)
+    r = c.box(720, top, ["Next::Repeat(message)", "acted once; keep the first", "point and ask again"], "cpu", w=230)
+    f = c.box(970, top, ["Next::Done(message)", "finished; the message", "goes to the status line"], "sel", w=190)
+    ex = e[0] + e[2] / 2
+    for box in (m, r, f):
+        c.arrow(ex, 80 + e[3] + 4, box[0] + box[2] / 2, top - 6)
+    c.raw(f'<path class="ar" d="M{m[0]:.1f},{top + m[3] / 2:.1f} L{b[0] + b[2] / 2:.1f},{top + m[3] / 2:.1f} L{b[0] + b[2] / 2:.1f},{80 + b[3] + 6:.1f}"/>')
+    n = c.box(28, top + max(m[3], r[3], f[3]) + 40,
+              ["Between answers, every frame",
+               "guide() draws the rubber band from the placed points to the cursor",
+               "preview() moves the selection with the cursor, readout() shows a distance beside it",
+               "none of them writes the document: only Done does, in one transaction"], "note", w=1124)
+    c.h = int(n[1] + n[3] + 30)
+    c.write("tool-loop.svg")
+
+
+def shape_functions():
+    """23b: a shape is a static of plain functions the one Shaping tool calls in turn."""
+    c = Canvas("A shape is four functions and a name",
+               "Every shape command is a static SHAPE. The Shaping tool asks its next question, reads the answers "
+               "into a part, draws the part's outline while you move, and builds the object once nothing is left to ask.",
+               1180, 520)
+    c.text(28, 40, "Box: four questions, one tool", "h")
+    a = c.box(28, 80, ["ask(answers, part, option)", "the next question, or None", "\"Base center\", \"Corner or length\", \"Height\""], "cpu")
+    b = c.box(a[0] + a[2] + 110, 80, ["read(frame, answers, option)", "the answers so far as a Part", "an error refuses the last answer"], "cpu")
+    y = 80 + max(a[3], b[3]) / 2
+    c.arrow(a[0] + a[2], y, b[0] - 6, y, "an answer")
+    top = 80 + max(a[3], b[3]) + 70
+    d = c.box(b[0], top, ["outline(part)", "preview wires, blue, every move", "cheap: points, no kernel object"], "gpu")
+    e = c.box(d[0] + d[2] + 50, top, ["build(part, option)", "the BRep or mesh, once", "added in one transaction"], "sel")
+    c.arrow(b[0] + b[2] / 2, 80 + b[3] + 4, d[0] + d[2] / 2, top - 6)
+    c.arrow(b[0] + b[2], y, e[0] + e[2] / 2, top - 6, "ask says None")
+    c.raw(f'<path class="ar" d="M{d[0]:.1f},{top + d[3] / 2:.1f} L{a[0] + a[2] / 2:.1f},{top + d[3] / 2:.1f} L{a[0] + a[2] / 2:.1f},{80 + a[3] + 6:.1f}"/>')
+    c.text(a[0] + a[2] / 2 + 10, top + d[3] / 2 - 10, "more to ask", "s")
+    n = c.box(28, top + max(d[3], e[3]) + 40,
+              ["Why plain functions",
+               "thirteen solids share one tool, so a new shape is one file with a static SHAPE and one line in verbs!",
+               "a Part holds only numbers (a frame and sizes), so the outline is redrawn at every mouse move for free"], "note", w=1124)
+    c.h = int(n[1] + n[3] + 30)
+    c.write("shape-functions.svg")
+
+
+def recipe_steps():
+    """23c: a surface command is a recipe, a list of steps the gathering tool asks in order."""
+    c = Canvas("A surface command is a list of questions",
+               "Circle and the other NURBS curves use the shape tool. Surfaces use a Recipe: picked curves first, "
+               "then points, numbers or a distance, and a build function that turns the answers into NURBS surfaces.",
+               1180, 520)
+    c.text(28, 40, "Three recipes, one gathering tool", "h")
+    rows = [("Loft", ["Curves: 2 or more, in order"]),
+            ("Extrude", ["Curves: the profiles", "Distance: along the normal"]),
+            ("Revolve", ["Curves: the profile", "Point: axis start", "Point: axis end", "Number: angle"])]
+    y = 80
+    last = None
+    for name, steps in rows:
+        x = 28
+        n = c.box(x, y, [name], "sel", w=110)
+        x += 110 + 26
+        prev = n
+        for step in steps:
+            kind = "gpu" if step.startswith("Curves") else "cpu"
+            b = c.box(x, y, [step.split(":")[0], step.split(": ")[1]], kind, w=180)
+            c.arrow(prev[0] + prev[2], y + n[3] / 2, b[0] - 6, y + n[3] / 2)
+            prev = b
+            x += 180 + 26
+        bd = c.box(x, y, ["build(input)", "the new surfaces"], "plain", w=150)
+        c.arrow(prev[0] + prev[2], y + n[3] / 2, bd[0] - 6, y + n[3] / 2)
+        y += max(prev[3], bd[3]) + 26
+        last = bd
+    n = c.box(28, y + 14,
+              ["What the gathering tool does for every recipe",
+               "curves already selected answer the first step; Enter or Finish ends a step that takes any number",
+               "Enter takes a Number step's default; a Distance takes a click, a signed number or a typed vector",
+               "Open, Closed and Finish are chips under the command line: the recipe lists them, the tool shows them"], "note", w=1124)
+    c.h = int(n[1] + n[3] + 30)
+    c.write("recipe-steps.svg")
+
+
+def measure_mark():
+    """23d: a measurement answers with a number and a mark that lives until the next command."""
+    c = Canvas("A measurement is a number and a mark",
+               "Length, Area, Volume and Measure Distance read the selected kernel objects in world units, "
+               "print the total, and keep one mark in Features that the scene draws until the next command.",
+               1180, 460)
+    c.text(28, 40, "Length of two selected curves", "h")
+    a = c.box(28, 80, ["selected rows", "row 12 · NurbsCurve", "row 31 · Polyline", "row 40 · Text (skipped)"], "plain")
+    b = c.box(a[0] + a[2] + 50, 80, ["kernel, in world units", "`compute_length(geometry, place)`", "3.20 + 1.45"], "cpu")
+    d = c.box(b[0] + b[2] + 50, 80, ["the answer", "status: \"Length 4.65 · 2 curves · 1 other object skipped\"", "Features.mark: points and label"], "sel")
+    y = 80 + max(a[3], b[3], d[3]) / 2
+    c.arrow(a[0] + a[2], y, b[0] - 6, y)
+    c.arrow(b[0] + b[2], y, d[0] - 6, y)
+    n = c.box(28, 80 + max(a[3], b[3], d[3]) + 50,
+              ["The mark is not a document object",
+               "it is drawn from state.features.mark, so undo, save and the layer tree never see it",
+               "it carries the row revision it was measured on: a changed scene, Esc or the next command drops it"], "note", w=1124)
+    c.h = int(n[1] + n[3] + 30)
+    c.write("measure-mark.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone, band_coverage, disc_coverage, carry_verdict, depth_modes, ink_thresholds, three_normals, frame_passes, producer_contract, glyph_coverage, projected_record, edge_owner, one_gesture):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone, band_coverage, disc_coverage, carry_verdict, depth_modes, ink_thresholds, three_normals, frame_passes, producer_contract, glyph_coverage, projected_record, edge_owner, one_gesture, tool_loop, shape_functions, recipe_steps, measure_mark):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')

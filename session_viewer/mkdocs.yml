@@ -52,7 +52,7 @@ markdown_extensions:
       base_path:
         - !relative $config_dir/docs
         - !relative $config_dir/..
-      check_paths: false # stage C: pages still name pre-cut step anchors; true again once every page is rewritten
+      check_paths: true # a missing file or section fails the build by name
   - pymdownx.highlight:
       pygments_lang_class: true
       guess_lang: false

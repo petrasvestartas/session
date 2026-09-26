@@ -99,11 +99,11 @@ Use `Object`, `Controls`, `Edge`, and `Face` to choose selection tools. Select a
 
 **Save** downloads one `.session` file containing all retained documents, updated source geometry, placements, hidden objects, selection locks, display colors and annotations. **Open** restores it. Partially streamed scenes cannot yet be saved as complete files. Meshes, NURBS boundaries and compatible joined BRep edits are supported; BRep changes requiring trim reconstruction return an error and preserve the original shape.
 
-[Checkpoint 8](29-docked-workspace.md) explains the implementation and shows how to add a toolbar button by extending the `TOOLBAR` table.
+[Lesson 23](23-geometry-commands.md) builds the command line and [lesson 23a](23a-tools.md) the selection tools; a new command is one file in `app/command/verbs/` plus one line in `verbs!`.
 
 ## Layer visibility, selection locks and colors
 
-Expand the right-hand tree to see objects and their children. Click a bulb to hide or show that subtree, a lock to prevent or allow selection, and a color swatch to choose a palette color or edit its RGB values. Save/Open retains all three settings. [Checkpoint 9](30-layer-tree.md) implements these controls and the live shell preview.
+Expand the right-hand tree to see objects and their children. Click a bulb to hide or show that subtree, a lock to prevent or allow selection, and a color swatch to choose a palette color or edit its RGB values. Save/Open retains all three settings. [Lesson 30](30-layer-tree.md) builds these controls.
 
 ## Split with cutter curves
 
@@ -113,7 +113,7 @@ Select a target curve, standalone surface, or one BRep face. Use **Ctrl+Shift** 
 
 Curve splits keep all pieces. Face splits preserve existing holes and retain every region inside the owning BRep, updating shared boundaries so the shell stays joined. Cutters must intersect curves in 3D or lie on the selected surface within tolerance. Ambiguous overlaps and unsupported seam cases are rejected. This operation does not perform booleans, project cutters, cap holes or divide a solid into separate volumes.
 
-Use **Undo**, **Redo**, and **Save/Open** to verify the retained source. [Checkpoint 10](31-splitting.md) includes the kernel implementation and viewer wiring.
+Use **Undo**, **Redo**, and **Save/Open** to verify the retained source. [Lesson 31](31-splitting.md) builds Split.
 
 ## Expected viewer result
 

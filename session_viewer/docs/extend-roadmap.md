@@ -1,8 +1,6 @@
 # Extension roadmap and historical designs
 
-Current implementation and independent teaching steps: [Editing extensions](22-runtime-helpers.md). The designs below are historical; use the supplement’s status table for supported operations and limits.
-
-The frozen lesson-21 viewer reads, draws, picks, streams, moves, deletes and edits. The maintained viewer also creates points, lines and polylines through typed commands. `session_viewer_archive` (~11,000 lines of `src/`) created too, in a different architecture.
+This page is the gap analysis the editing lessons started from, kept for its reasoning. The course now builds everything marked closed below; the numbered gaps further down are the original list, and the ones still open are the roadmap.
 
 ## Three rules every design below obeys
 
@@ -10,28 +8,21 @@ The frozen lesson-21 viewer reads, draws, picks, streams, moves, deletes and edi
 - **Undo lives in the kernel.** `session_rust/src/history.rs`: transactions, tombstones, cursor; `Session::{begin, commit, undo, redo}`. A viewer stack is a second cursor that can disagree, and a save purges only one.
 - **Pixels come out of lanes.** `Gpu` lists them by hand in `src/engine/gpu/mod.rs`: `backdrop, arena, segments, glyphs, controls, control_net, text, selection_outline, solid_outline, cloud, splat, pick`. New geometry reuses one or becomes one more.
 
-## The four guides
+## The guides
 
-- **Gumball**, **Command line** and **Tree** were the designs; [lesson 21](21-editing.md) is the
-  code they became. They are kept as the reasoning behind it, not as instructions to follow.
-- **This page** preserves the original gap analysis; the linked implementation table records what remains.
+The [gumball](extend-gumball.md), [command line](extend-command-line.md) and [panels](extend-panels.md) pages were the designs; each opens by naming the lessons that became its code.
 
-## Built, in lesson 21
+## Closed since this list was written
 
-Nine of the gaps this page listed are closed. The code is the description now; a second one
-here would drift from it.
-
-| was | now |
-| --- | --- |
-| no screen ray | `Camera::ray`, f64 |
-| no construction plane, no typed coordinates | `app/cplane.rs`, `app/coords.rs` |
-| no object snapping | `app/snap.rs`, ranked in screen space |
-| nothing can be moved | the gumball, and `move` on the command line |
-| no delete | `Delete`, and `delete` |
-| no undo or redo | the kernel's history, per document |
-| no sub-object editing that writes back | a control drag, through `Session::replace` |
-| no text entry anywhere on the page | the command line, opened with `:` |
-| no panel of rows beside the scene | the layers panel, opened with `L` |
+- A screen ray: `Camera::ray`, in f64 (lesson 02).
+- A construction plane and typed coordinates: `app/cplane.rs` (lesson 21), `app/coords.rs` (lesson 23).
+- Object snapping, ranked in screen space: `app/snap.rs` (lesson 21), and the `Snap` command in lesson 24.
+- Moving objects: the drag in lesson 21, the gumball in lesson 25, `Move` on the command line (lesson 23a).
+- Delete, undo and redo: the kernel's history, per document (lesson 20), and the `Delete`, `Undo`, `Redo` commands (lesson 23).
+- Sub-object editing that writes back: a control drag through `Session::replace` (lesson 21).
+- Text entry: the command line, opened with `:` (lesson 23).
+- A panel of rows beside the scene: the layers panel, opened with `L` (lesson 30).
+- Interactive drawing (gap 5), multi-selection and box select (gap 9) and selection filters (gap 15): the point-asking tools, `Select Lasso` and the `Object`, `Controls`, `Edge` and `Face` commands (lesson 23a).
 
 ### 5 · Interactive drawing remains
 - Click or typed coordinate adds a point, Enter finishes, `c` closes, `u` drops the last, Esc cancels, rubber band follows. Needs (1)–(4) plus a transient segment-lane region.
@@ -157,13 +148,12 @@ enum PickMode { Object { filter: Filter }, Edge, Component, Controls { parent: u
 
 ## The order to build the rest in
 
-Each step compiles; each names what it must not break. Steps 1 to 8 of the original order are
-lesson 21; what follows is what is left.
+Each step compiles; each names what it must not break. This is the original order; items 1 to 3 are now closed (lesson 23a).
 
 1. **Filters** (15) — picking: mask full is byte-identical, the headless harness proves it.
 2. **Multi-selection and rectangle pick** (9) — silhouettes (`selection_revision` once per gesture), sheets (a sheet row selects the sheet).
 3. **Getpoint and the four tools** (5), rubber band in a transient `segments` region — finite-triangle visibility (the preview is strokes), text identity (`register_text` on rebuild), one frame per demand (`touch`).
-4. **Control write-back on Mesh and NurbsSurface** — lesson 21 does Polyline and NurbsCurve; a mesh vertex and a surface CV need `invalidate_triangle_bvh` and the CAD contract re-derived by `app/walk/brep_edges.rs` on rebuild.
+4. **Control write-back on Mesh and NurbsSurface** — lesson 21 writes back Polyline and NurbsCurve; a mesh vertex and a surface CV need `invalidate_triangle_bvh` and the CAD contract re-derived by `app/walk/brep_edges.rs` on rebuild.
 5. **Greville edit points** (11) — nothing; the two `ControlId` arms are additive.
 6. **Live deform** (12) plus the per-row vertex range — the tile index and silhouettes (bump `geometry_revision`), `FLAG_SMOOTH`.
 7. **Edge drag** (13), **wireframe toggle** (16), **naming and prompts** (17) — the keyboard map, `feedback::status` staying `textContent`.
@@ -187,6 +177,6 @@ lesson 21; what follows is what is left.
 
 ## Expected viewer result
 
-The completed viewer has a command dock across the bottom, one right-hand layer tree with bulbs, selection locks and color swatches, and a left toolbar. Split keeps both face regions in the joined shell. The selected region has its gumball; Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
+The completed viewer has a command dock across the bottom and one right-hand layer tree with bulbs, selection locks and color swatches. Split keeps both face regions in the joined shell. The selected region has its gumball; Save/Open retains the edited geometry and layer settings. See the [phone layout](screenshots/extensions-workspace-current-phone.png).
 
 [![Full viewer result for extend roadmap](screenshots/extensions-workspace-current-desktop.png)](screenshots/extensions-workspace-current-desktop.png)

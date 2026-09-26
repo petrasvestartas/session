@@ -2,6 +2,8 @@
 
 NURBS curves are drawn with the shape tool of lesson 23b, and surfaces are made from picked curves with the gathering tool of lesson 23a. This lesson adds the shared surfacing helpers, types Circle and Loft in full and copies the other ten commands.
 
+![A surface command is a recipe: picked curves first, then points, numbers or a distance, and a build function that makes the surfaces.](illustrations/recipe-steps.svg)
+
 ## Step 1 · registration lines
 
 One line in `tool.rs` adds the surfacing module, and one line per command in `verbs!` adds the twelve commands.

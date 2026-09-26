@@ -2,6 +2,8 @@
 
 Text writes a label into the model, Arrowhead puts heads on curves, and Project To Plane flattens a selection. Measure Distance, Length, Area and Volume answer with a number and leave a mark in the scene until the next command.
 
+![Length reads the selected curves in world units, prints the total and keeps a mark that the scene draws until the next command.](illustrations/measure-mark.svg)
+
 ## Step 1 · registration lines
 
 One line per command in `verbs!`, the `measure` helper module, and the mark kept in `Features`.

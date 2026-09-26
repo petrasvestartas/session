@@ -4,16 +4,7 @@ Learn this one picture and the rest of the course has an address.
 
 ![The whole viewer as one map: the top row is how documents come in, the bottom row is how a frame is drawn, and a pick answer travels back up.](illustrations/map.svg)
 
-From lesson 01 on, every step that touches a file opens with this map, one box filled pink: where the code on the page lives. Lesson 00 builds only the first box, so it shows no map.
-
-A compressed copy stays **pinned at the top of the page**, following you from step to step and from code block to code block.
-
-Three fills, and nothing else on the map ever moves:
-
-- **pink** — the code on this page lives here
-- **light slate** — you have already built it
-- **near-black** — still ahead of you
-
+The lesson pages do not repeat it. When a lesson names a file, find its zone below and you know which journey the code serves and what it may touch.
 
 ## The two paths
 
@@ -45,13 +36,13 @@ They meet once: the walk's rows are uploaded, and the frame path reads only thos
 
 ## How to use it while you type
 
-**Lanes** lit: you are adding a way to draw something. Ask what rows it reads and which shader it feeds.
+**Lanes**: you are adding a way to draw something. Ask what rows it reads and which shader it feeds.
 
-**GPU core** lit: you are changing something *every* lane sees — a uniform field, a pass, a pipeline rule. These need the three declarations to agree; expect a validation error if you miss one.
+**GPU core**: you are changing something *every* lane sees — a uniform field, a pass, a pipeline rule. These need the three declarations to agree; expect a validation error if you miss one.
 
-**Scene + walk** lit: you are deciding what a document *becomes*. Nothing here can see the camera; wanting to is the design telling you the work belongs one row down.
+**Scene + walk**: you are deciding what a document *becomes*. Nothing here can see the camera; wanting to is the design telling you the work belongs one row down.
 
-Two zones lit: the change crosses a boundary — a file written across several steps, with the build red in between; the lesson says where to run `cargo check`.
+Two zones in one lesson: the change crosses a boundary — a file written across several steps, with the build red in between; the lesson says where to run `cargo check`.
 
 ## Next
 

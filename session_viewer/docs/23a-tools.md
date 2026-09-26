@@ -2,6 +2,8 @@
 
 Some commands ask before they act: Move wants two points, Trim wants targets, cutters and the parts to remove. Each is a Tool from lesson 23; this lesson writes the transforms, trim and extend with cutters, the selection modes, and the gathering tool that lesson 23c builds its surfaces with.
 
+![A tool prompts for a point, takes a click, a snap or typed coordinates, and answers More, Repeat or Done; between answers it only draws a preview.](illustrations/tool-loop.svg)
+
 ## Step 1 · src/app/command/tool/cut.rs
 
 New file: a cutter is a curve or a plane; helpers turn objects into cutters and find the part under a click.
