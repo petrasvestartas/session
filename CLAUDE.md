@@ -59,7 +59,7 @@ Dev order: Python → Rust → C++. `/build` has the full reference.
 - `/new-class <name>`, `/port <class>`, `/sync <class>` — add, port, audit a geometry class;
   templates and field/method/operator/serialization notes live under `new-class/`
 - `/build [class]`, `/ci`, `/test-rules`, `/recipe <desc>`, `/publish <what>` (asks first; R2 keeps no history)
-- `/nurbs`, `/step-format`, `/decompile`, `/docstrings`, `/highlighting`, `/format-points` — reference skills
+- `/step-format`, `/decompile`, `/docstrings`, `/highlighting`, `/format-points` — reference skills
 - Path-scoped rules in `.claude/rules/` (viewer lesson docs load only when `session_viewer/` is touched)
 - Cross-repo skills (session-viewer-wgpu, session-comments, session-format,
   session-polyline-rectangle) live in github.com/petrasvestartas/skills — clone it into
