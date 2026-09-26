@@ -228,7 +228,7 @@
 import { computed, ref, onMounted } from 'vue'
 import type { HighlighterCore } from 'shiki/core'
 import { getHighlighter } from '../highlighter'
-import { renderCode } from '../codeTheme'
+import { renderCode, uncommentUsing } from '../codeTheme'
 
 const base = import.meta.env.BASE_URL
 
@@ -390,9 +390,12 @@ const normalizeForDisplay = (code) => {
   return lines.map((line) => (line.length >= minIndent ? line.slice(minIndent) : line)).join('\n').replace(/(\n\s*)+$/, '')
 }
 
+// C++ bodies show their leading `// using session_cpp::X;` lines as real using statements.
+const displayCode = (t) => normalizeForDisplay(t.language === 'cpp' ? uncommentUsing(t.code) : t.code)
+
 const highlightedCode = (t) => {
   if (!t || !t.code) return ""
-  const code = normalizeForDisplay(t.code)
+  const code = displayCode(t)
   const lang = t.language || ""
   if (!ready.value || !lang) return `<pre><code>${escapeHtml(code)}</code></pre>`
   return `<pre><code>${highlight(code, lang)}</code></pre>`
@@ -446,7 +449,7 @@ const highlightedFailureCode = (failure, lang) => {
 
 const copyCode = (t) => {
   if (!t || !t.code) return
-  const text = normalizeForDisplay(t.code)
+  const text = displayCode(t)
   try {
     if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text)

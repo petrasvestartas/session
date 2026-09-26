@@ -17,6 +17,11 @@
 //     others they are ordinary names;
 //   - words in strings and comments are text, not code, and are not counted.
 //
+// Kernel imports are checked on their own: `using session_cpp::Mesh;` (the leading commented C++
+// lines, uncommented as the site shows them), `from session_py import Mesh` and `use crate::Mesh;`
+// must colour the statement keyword, the module path and the imported name the same way (a C++
+// class in the path, `session_cpp::Intersection::f`, stays a type).
+//
 // What stays different is a different construct (about 45 names, 2026-09):
 //   - a Python property is a field, the C++/Rust accessor a call: `.guid` vs `.guid()`, x_axis;
 //   - Python keyword arguments are parameters (`Plane(x_axis=...)`), Rust struct literals fields;
@@ -45,7 +50,7 @@ const dataFile = args[0] || path.join(here, '..', 'testData.js');
 // codeTheme.ts has only type imports, so the stripped module loads from a data URL.
 const ts = fs.readFileSync(path.join(here, '..', 'src', 'codeTheme.ts'), 'utf8');
 const { code: js } = await transform(ts, { loader: 'ts', format: 'esm' });
-const { codeTheme, renderCode } = await import('data:text/javascript,' + encodeURIComponent(js));
+const { codeTheme, renderCode, uncommentUsing } = await import('data:text/javascript,' + encodeURIComponent(js));
 
 const raw = fs.readFileSync(dataFile, 'utf8');
 const data = JSON.parse(raw.slice(raw.indexOf('{', raw.indexOf('TEST_DATA')), raw.lastIndexOf('}') + 1));
@@ -91,6 +96,27 @@ function words(html, lang) {
 
 // counts[word][lang][kind] = n
 const counts = new Map();
+// Kernel import lines: statement keywords, module path segments, imported names (the name compares
+// across languages, keyword and path kinds pool per language).
+const KERNEL_IMPORT = /^\s*(using\s+session_cpp::|use\s+crate::|from\s+session_py\b)/;
+const imports = { lines: {}, keyword: {}, path: {}, names: new Map() };
+const tally = (obj, lang, kind) => {
+  obj[lang] ??= {};
+  obj[lang][kind] = (obj[lang][kind] || 0) + 1;
+};
+/** One kernel import line: `from` / `import` / `use` / `using` keywords, then path, then names. */
+function importLine(out, lang) {
+  tally(imports.lines, lang, 'n');
+  const at = lang === 'python' ? out.findIndex(([w]) => w === 'import') : out.length - 1;
+  out.forEach(([w, k], n) => {
+    if (n === 0 || (lang === 'python' && n === at)) tally(imports.keyword, lang, k);
+    else if (n < at) tally(imports.path, lang, k);
+    else {
+      if (!imports.names.has(w)) imports.names.set(w, {});
+      tally(imports.names.get(w), lang, k);
+    }
+  });
+}
 const samples = [];
 let blocks = 0;
 for (const [key, tests] of Object.entries(data)) {
@@ -100,8 +126,10 @@ for (const [key, tests] of Object.entries(data)) {
   for (const t of tests) {
     if (!t.code) continue;
     blocks++;
-    for (const html of renderCode(hl, t.code, LANGS[lang]).split('\n')) {
+    const code = lang === 'cpp' ? uncommentUsing(t.code) : t.code;
+    for (const html of renderCode(hl, code, LANGS[lang]).split('\n')) {
       const { line, out } = words(html, lang);
+      if (KERNEL_IMPORT.test(line)) importLine(out, lang);
       let marked = '';
       let last = 0;
       for (const [raw, k, i, j] of out) {
@@ -167,3 +195,12 @@ console.log(`identifiers whose main kind agrees in every language: ${agree}/${sh
 console.log(`occurrences with their identifier's consensus kind:   ${occAgree}/${occ} = ${pct(occAgree, occ)}`);
 console.log(`\ntop ${Math.min(top, mismatches.length)} of ${mismatches.length} mismatches (kind:count per language):`);
 for (const { w, n, byLang } of mismatches.slice(0, top)) console.log(`  ${w.padEnd(24)} ${String(n).padStart(5)}  ${cols(byLang)}`);
+
+const byName = [...imports.names].filter(([, b]) => Object.keys(b).length > 1);
+const importMiss = byName.filter(([, b]) => new Set(Object.values(b).map(dominant)).size > 1);
+const perLang = (obj) => ['cpp', 'python', 'rust'].map((l) => `${l}[${obj[l] ? fmt(obj[l]) : '-'}]`).join('  ');
+console.log(`\nkernel import lines: ${perLang(imports.lines)}`);
+console.log(`  keywords          ${perLang(imports.keyword)}`);
+console.log(`  module path       ${perLang(imports.path)}`);
+console.log(`  imported names agreeing in every language: ${byName.length - importMiss.length}/${byName.length}`);
+for (const [w, b] of importMiss.slice(0, top)) console.log(`    ${w.padEnd(22)} ${cols(b)}`);

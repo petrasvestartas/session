@@ -136,7 +136,8 @@ function scanBlock(code: string, lang: string): Block {
       }
     }
   }
-  const calls = new Set([...code.matchAll(/(?<![\w.])([a-z_]\w*)\s*\(/g)].map((m) => m[1]));
+  // Called names, template and turbofish calls too: `file_json_loads<Point>(`, `f::<T>(`.
+  const calls = new Set([...code.matchAll(/(?<![\w.])([a-z_]\w*)\s*(?:(?:::)?<[\w\s:,<>&*]*>\s*)?\(/g)].map((m) => m[1]));
   return { lang, types, modules, calls };
 }
 
@@ -198,6 +199,20 @@ function wordKind(word: string, line: string, i: number, j: number, scoped: Kind
   if (path) return 'ht';
   if (scoped === 'hm') return 'hm';
   return 'hv';
+}
+
+/**
+ * A C++ test body opens with `// using session_cpp::Mesh;` lines naming what to import; shown as
+ * real `using` statements they colour like the Python and Rust imports. Only the leading block.
+ */
+export function uncommentUsing(code: string): string {
+  const lines = code.split('\n');
+  for (let k = 0; k < lines.length; k++) {
+    const m = lines[k].match(/^(\s*)\/\/\s*(using\s+[\w:]+\s*;)\s*$/);
+    if (m) lines[k] = m[1] + m[2];
+    else if (lines[k].trim()) break;
+  }
+  return lines.join('\n');
 }
 
 const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
