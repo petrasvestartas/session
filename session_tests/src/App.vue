@@ -55,13 +55,13 @@ pre { color: #1f2328; }
 .ht { color: #1f2328; font-weight: 700; }   /* type or class: bold black */
 .hu { color: #8e0b61; }                      /* module or namespace: plum from the palette, saturated */
 .ha { color: #647906; }                      /* attribute or decorator: leaf green, saturated */
-.hf { color: #b82ea0; }                      /* function or method: mauve, saturated */
-.hx { color: #b82ea0; font-weight: 600; }    /* macro: mauve bold */
+.hf { color: #7580c7; }                      /* function or method: lavender from the palette, saturated */
+.hx { color: #7580c7; font-weight: 600; }    /* macro: lavender bold */
 .hv { color: #1f50ad; }                      /* variable: slate blue, saturated */
 .hp { color: #1f50ad; font-style: italic; }  /* parameter: slate blue italic */
 .hm { color: #647906; }                      /* field: leaf green, saturated */
 .hn { color: #1f2328; }                      /* number or constant: black, like any typed-in value */
 .hs { color: #1f2328; }                      /* string: black, like any typed-in value */
-.hc { color: #7580c7; font-style: italic; }  /* comment: lavender grey, saturated */
-.ho { color: #7580c7; }                      /* operator or punctuation: lavender grey, saturated */
+.hc { color: #6e7781; font-style: italic; }  /* comment: grey */
+.ho { color: #57606a; }                      /* operator or punctuation: grey */
 </style>
