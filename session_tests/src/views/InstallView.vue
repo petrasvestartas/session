@@ -47,18 +47,18 @@ onMounted(() => nextTick(highlightAll));
 </script>
 
 <style scoped>
-.install-root { height: 100%; display: flex; flex-direction: column; background: #0d0f12; color: #d7dae0; }
+.install-root { height: 100%; display: flex; flex-direction: column; background: #ffffff; color: var(--fg); }
 
-.section-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 24px 32px; }
+.section-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 24px 0; max-width: 820px; }
 
 .markdown { line-height: 1.6; }
-.markdown :deep(h1) { font-size: 24px; margin: 0 0 14px; }
-.markdown :deep(h2) { font-size: 18px; margin: 24px 0 8px; color: #cdd3db; }
-.markdown :deep(blockquote) { border-left: 3px solid #2e3a46; margin: 10px 0; padding: 4px 14px; color: #9aa3af; background: #11161c; border-radius: 0 6px 6px 0; }
+.markdown :deep(h1) { font-size: 24px; font-weight: 600; margin: 0 0 14px; }
+.markdown :deep(h2) { font-size: 18px; font-weight: 600; margin: 24px 0 8px; }
+.markdown :deep(blockquote) { border-left: 3px solid var(--rule); margin: 10px 0; padding: 4px 14px; color: var(--muted); }
 .markdown :deep(p) { margin: 9px 0; }
 /* Pill only for INLINE code; code blocks keep Shiki's single background. */
-.markdown :deep(:not(pre) > code) { background: #161a20; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
-.markdown :deep(pre) { border-radius: 8px; padding: 14px 16px; overflow-x: auto; font-size: 13px; }
+.markdown :deep(:not(pre) > code) { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+.markdown :deep(pre) { border-radius: 4px; padding: 14px 16px; overflow-x: auto; font-size: 13px; }
 .markdown :deep(pre code) { background: transparent; padding: 0; }
-.markdown :deep(a) { color: #6fb3ff; }
+.markdown :deep(a) { color: var(--fg); text-underline-offset: 2px; text-decoration-color: #b8b8b8; }
 </style>

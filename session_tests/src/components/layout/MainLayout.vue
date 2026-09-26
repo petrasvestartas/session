@@ -1,7 +1,7 @@
 <template>
   <div class="main-layout">
     <nav class="sidebar" :class="{ collapsed: sidebarCollapsed }">
-      <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
+      <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed" :aria-label="sidebarCollapsed ? 'Show menu' : 'Hide menu'">
         <span class="toggle-arrow">{{ sidebarCollapsed ? '○' : '●' }}</span>
       </button>
 
@@ -12,32 +12,39 @@
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
             </svg>
           </a>
-          <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="repo-link" title="C++">
-            <img src="/icons/session_cpp_white.png" class="repo-icon" alt="C++">
+          <a v-for="r in repos" :key="r.name" :href="'https://github.com/petrasvestartas/' + r.name" target="_blank" class="repo-link" :title="r.title">
+            <img :src="base + 'icons/' + r.name + '_black.png'" class="repo-icon" :alt="r.title">
           </a>
-          <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="repo-link" title="Python">
-            <img src="/icons/session_py_white.png" class="repo-icon" alt="Python">
-          </a>
-          <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="repo-link" title="Rust">
-            <img src="/icons/session_rust_white.png" class="repo-icon" alt="Rust">
-          </a>
-          <a href="https://github.com/petrasvestartas/session_proto" target="_blank" class="repo-link" title="Protobuf">
-            <img src="/icons/session_proto_white.png" class="repo-icon" alt="Protobuf">
-          </a>
-          <a href="https://github.com/petrasvestartas/session_data" target="_blank" class="repo-link" title="Data">
-            <img src="/icons/session_data_white.png" class="repo-icon" alt="Data">
-          </a>
+        </div>
+
+        <button type="button" class="search-open" @click="searchOpen = true">Search <kbd>/</kbd></button>
+
+        <router-link to="/" class="nav-button" :class="{ active: currentRoute === 'home' }">Home</router-link>
+
+        <router-link to="/course" class="nav-button" :class="{ active: currentRoute === 'course' }">Viewer course</router-link>
+
+        <div v-if="currentRoute === 'course'" class="suites-section course-section">
+          <template v-for="g in courseGroups" :key="g.title">
+            <div class="group-title">{{ g.title }}</div>
+            <router-link
+              v-for="s in g.slugs" :key="s"
+              :to="'/course/' + s"
+              class="suite-button course-link"
+              :class="{ active: s === currentSlug }">
+              {{ coursePages[s]?.title }}
+            </router-link>
+          </template>
         </div>
 
         <div
           class="nav-button"
           :class="{ active: currentRoute === 'tests' }"
           @click="openTestsMenu">
-          Tests
+          Kernel API
         </div>
 
         <div
-          v-if="testsSuites.length"
+          v-if="currentRoute === 'tests' && testsSuites.length"
           class="suites-section">
           <template v-for="s in testsSuites" :key="s">
             <button
@@ -45,7 +52,7 @@
               class="suite-button"
               :class="{ active: s === selectedSuite }"
               @click="selectSuite(s)">
-              <span class="suite-dot" :style="{ color: suitePassedMap.get(s) === false ? '#ff5555' : '#50fa7b' }">●</span>
+              <span class="suite-dot" :class="{ fail: suitePassedMap.get(s) === false }">●</span>
               {{ suiteLabel(s) }}
             </button>
             <div v-if="s === selectedSuite && suiteFunctions.length" class="functions-section">
@@ -54,7 +61,7 @@
                 type="button"
                 class="fn-button"
                 @click="scrollToTest(fn.name)">
-                <span class="fn-dot" :style="{ color: fn.passed ? '#50fa7b' : '#ff5555' }">●</span>
+                <span class="fn-dot" :class="{ fail: !fn.passed }">●</span>
                 {{ fn.name }}
               </button>
             </div>
@@ -82,21 +89,49 @@
     </nav>
 
     <div class="main-content">
-      <div class="content-area">
+      <div class="content-area" id="content">
         <router-view></router-view>
       </div>
     </div>
+
+    <SearchBox v-if="searchOpen" @close="searchOpen = false" />
+    <a class="viewer-corner" :href="viewerHref" title="Back to the viewer" aria-label="Back to the viewer"></a>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, watch, defineAsyncComponent } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { groups as courseGroups, pages as coursePages } from 'virtual:course';
 import { ensureTestData } from '../../dataLoader';
 import { sections as installSections } from '../../installSections';
 
 const route = useRoute();
 const router = useRouter();
+
+const SearchBox = defineAsyncComponent(() => import('../SearchBox.vue'));
+const base = import.meta.env.BASE_URL;
+const viewerHref = new URL('../', window.location.origin + base).href;
+const repos = [
+  { name: 'session_cpp', title: 'C++' },
+  { name: 'session_py', title: 'Python' },
+  { name: 'session_rust', title: 'Rust' },
+  { name: 'session_proto', title: 'Protobuf' },
+  { name: 'session_data', title: 'Data' },
+];
+
+// The search box loads its index only when opened: the Search button or the / key.
+const searchOpen = ref(false);
+const onKey = (e: KeyboardEvent) => {
+  const t = e.target as HTMLElement;
+  if (e.key !== '/' || searchOpen.value || /^(INPUT|TEXTAREA)$/.test(t.tagName) || t.isContentEditable) return;
+  e.preventDefault();
+  searchOpen.value = true;
+};
+onMounted(() => window.addEventListener('keydown', onKey));
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
+
+const currentSlug = computed(() => (route.path.startsWith('/course/') ? route.path.slice('/course/'.length) : ''));
 
 // Install page sub-sections — each install_sections/*.md is its own page via ?section=.
 const activeInstall = computed(() => {
@@ -111,13 +146,20 @@ const selectInstall = (id: string) => {
 
 const currentRoute = computed(() => {
   const path = route.path;
-  if (path.includes('/install')) return 'install';
-  return 'tests';
+  if (path.startsWith('/install')) return 'install';
+  if (path.startsWith('/course')) return 'course';
+  if (path.startsWith('/tests')) return 'tests';
+  return 'home';
 });
 
 const testsSuites = ref<string[]>([]);
 const selectedSuite = ref('');
-const sidebarCollapsed = ref(false);
+// Phones start with the menu folded away and fold it again after each navigation.
+const narrow = window.matchMedia('(max-width: 760px)');
+const sidebarCollapsed = ref(narrow.matches);
+watch(() => route.fullPath, () => {
+  if (narrow.matches) sidebarCollapsed.value = true;
+});
 
 const loadSuitesFromTestData = () => {
   if (typeof window === 'undefined' || typeof (window as any).TEST_DATA === 'undefined') return;
@@ -227,6 +269,7 @@ const suiteFunctions = computed(() => {
 const scrollToTest = (name: string) => {
   const el = document.getElementById('test-' + name);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  router.replace({ path: '/tests', query: { suite: selectedSuite.value, test: name } });
 };
 
 // Test data is lazy now — only pull it (and build the suites sidebar) when the Tests tab is in
@@ -257,6 +300,7 @@ watch(
 <style scoped>
 .main-layout {
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: row;
   position: relative;
@@ -265,11 +309,12 @@ watch(
 .sidebar {
   width: fit-content;
   min-width: 120px;
-  background: #000000;
+  max-width: 290px;
+  background: #ffffff;
+  border-right: 1px solid var(--rule);
   display: flex;
   flex-direction: column;
   padding: 0;
-  transition: width 0.2s;
   position: relative;
   z-index: 100;
   overflow: hidden;
@@ -278,6 +323,7 @@ watch(
 .sidebar.collapsed {
   width: 0;
   min-width: 0;
+  border-right: none;
   overflow: hidden;
 }
 
@@ -298,11 +344,11 @@ watch(
 }
 
 .sidebar-toggle:hover .toggle-arrow {
-  color: #ffffff;
+  color: var(--fg);
 }
 
 .toggle-arrow {
-  color: #444444;
+  color: #c8c8c8;
   font-size: 21px;
   transition: color 0.2s;
 }
@@ -312,12 +358,13 @@ watch(
   left: 0;
   right: auto;
   height: 100vh;
+  z-index: 150;
 }
 
 .nav-section {
   display: flex;
   flex-direction: column;
-  padding-top: 1.8rem;
+  padding: 1.2rem 20px 2rem 0;
   flex: 1;
   overflow-y: auto;
   min-height: 0;
@@ -333,22 +380,43 @@ watch(
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 300;
-  color: #ffffff;
-  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--fg);
   text-decoration: none;
   text-align: left;
 }
 
 .nav-button:hover {
-  color: #aaaaaa;
+  color: var(--muted);
 }
 
 .nav-button.active {
-  background: #1a1a1a;
-  color: #ffffff;
+  background: var(--hover);
   font-weight: 600;
+}
+
+.search-open {
+  margin: 0.25rem 0.75rem 0.6rem;
+  padding: 0.3rem 0.5rem;
+  background: #ffffff;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--muted);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-open:hover {
+  border-color: var(--faint);
+}
+
+.search-open kbd {
+  font-size: 11px;
+  color: var(--faint);
 }
 
 .repo-icons {
@@ -360,48 +428,25 @@ watch(
 }
 
 .repo-link {
-  color: #ffffff;
+  color: var(--fg);
   text-decoration: none;
-  transition: color 0.2s;
   width: 24px;
   height: 24px;
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  opacity: 0.85;
 }
 
 .repo-link:hover {
-  color: #aaaaaa;
+  opacity: 0.5;
 }
-
 
 .repo-icon {
   width: 20px;
   height: 20px;
-  font-size: 20px;
-  line-height: 1;
   display: block;
 }
-
-svg.repo-icon {
-  width: 20px;
-  height: 20px;
-}
-
-i.repo-icon {
-  width: 20px;
-  height: 20px;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-img.repo-icon {
-  width: 20px;
-  height: 20px;
-}
-
 
 .suites-section {
   display: flex;
@@ -409,31 +454,41 @@ img.repo-icon {
   padding-left: 1.5rem;
 }
 
+.group-title {
+  padding: 0.6rem 0.75rem 0.2rem;
+  font-size: 12px;
+  color: var(--faint);
+}
+
 .suite-button {
   padding: 0.2rem 0.75rem;
   background: transparent;
   border: none;
-  color: #888888;
+  color: var(--muted);
   font-family: inherit;
   font-size: 13px;
-  font-weight: 300;
-  text-transform: capitalize;
+  font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s ease;
   text-align: left;
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 0.35rem;
 }
 
 .suite-button:hover {
-  color: #ffffff;
+  color: var(--fg);
 }
 
 .suite-button.active {
-  background: #1a1a1a;
-  color: #ffffff;
+  background: var(--hover);
+  color: var(--fg);
   font-weight: 600;
+}
+
+.course-link {
+  display: block;
+  line-height: 1.35;
 }
 
 .functions-section {
@@ -446,12 +501,11 @@ img.repo-icon {
   padding: 0.1rem 0.5rem;
   background: transparent;
   border: none;
-  color: #888888;
+  color: var(--muted);
   font-family: inherit;
   font-size: 13px;
-  font-weight: 300;
+  font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s ease;
   text-align: left;
   display: flex;
   align-items: center;
@@ -459,23 +513,27 @@ img.repo-icon {
 }
 
 .fn-button:hover {
-  color: #ffffff;
+  color: var(--fg);
 }
 
-.fn-dot {
-  font-size: 8px;
-}
-
+.fn-dot,
 .suite-dot {
   font-size: 8px;
   flex-shrink: 0;
+  color: #c8c8c8;
+}
+
+.fn-dot.fail,
+.suite-dot.fail {
+  color: var(--fail);
 }
 
 .main-content {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  background: #000000;
+  background: #ffffff;
   overflow: hidden;
 }
 
@@ -484,7 +542,33 @@ img.repo-icon {
   min-height: 0;
   overflow-y: auto;
   padding: 0.25rem 1rem 1rem 1rem;
-  box-sizing: border-box;
-  background: #000000;
+  background: #ffffff;
+}
+
+/* The black folded corner, as in the viewer: back to the app one level up. */
+.viewer-corner {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 28px 28px;
+  border-color: transparent transparent #000000 transparent;
+  z-index: 200;
+}
+
+@media (max-width: 760px) {
+  .sidebar:not(.collapsed) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    max-width: 85vw;
+  }
+
+  .content-area {
+    padding: 0.25rem 16px 1rem 24px;
+  }
 }
 </style>

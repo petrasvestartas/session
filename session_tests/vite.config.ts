@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import { watch } from 'fs'
+import coursePlugin from './plugins/course'
 
 function watchPublicPlugin() {
   let reloadTimeout = null
@@ -21,9 +22,11 @@ function watchPublicPlugin() {
   }
 }
 
-export default defineConfig({
-  base: '/session/',
-  plugins: [vue(), watchPublicPlugin()],
+// Production is served at /session/docs/ next to the viewer (DOCS_BASE overrides it); the dev
+// server keeps /session/ so the minitest URL localhost:8769/session/tests#/tests still works.
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? process.env.DOCS_BASE || '/session/docs/' : '/session/',
+  plugins: [vue(), watchPublicPlugin(), coursePlugin()],
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
@@ -40,4 +43,4 @@ export default defineConfig({
     open: false
   },
   publicDir: 'public'
-})
+}))

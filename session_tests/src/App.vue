@@ -7,21 +7,17 @@ import MainLayout from './components/layout/MainLayout.vue'
 </script>
 
 <style>
-/* Self-hosted JetBrains Mono (public/fonts/) — one font for UI, code snippets, and (later) the
-   viewer. Served under the app base /session/. */
-@font-face {
-  font-family: 'JetBrains Mono';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/session/fonts/jetbrains-mono-400.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'JetBrains Mono';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/session/fonts/jetbrains-mono-700.woff2') format('woff2');
+/* Plain look: system fonts, black text, greys for rules and muted text, white background. */
+:root {
+  --fg: #000000;
+  --muted: #666666;
+  --faint: #999999;
+  --rule: #e2e2e2;
+  --hover: #f2f2f2;
+  --code-bg: #f6f6f6;
+  --fail: #a00000;
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 * {
@@ -29,15 +25,15 @@ import MainLayout from './components/layout/MainLayout.vue'
 }
 
 html {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--sans);
 }
 
 body {
   margin: 0;
   padding: 0;
-  background: #000000;
-  color: #ffffff;
-  font-size: 14px;
+  background: #ffffff;
+  color: var(--fg);
+  font-size: 15px;
 }
 
 button,
@@ -46,4 +42,15 @@ textarea {
   font-family: inherit;
   font-size: 14px;
 }
+
+code,
+pre,
+kbd {
+  font-family: var(--mono);
+}
+
+/* Greyscale code classes written by the course build (plugins/course.ts). */
+pre .c { color: #8a8a8a; font-style: italic; }
+pre .s { color: #5c5c5c; }
+pre .k { color: #000000; font-weight: 600; }
 </style>

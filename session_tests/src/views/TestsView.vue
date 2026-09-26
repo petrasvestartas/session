@@ -1,19 +1,36 @@
 <template>
   <div class="tests-view">
-    <TestViewer 
-      :tests="tests"
-      :active-suite="activeSuite"
-      @update:active-suite="activeSuite = $event">
-    </TestViewer>
+    <p v-if="about" class="class-about"><strong>{{ about.label }}</strong> {{ about.description }}</p>
+    <div class="tests-body">
+      <TestViewer
+        :tests="tests"
+        :active-suite="activeSuite"
+        @update:active-suite="activeSuite = $event">
+      </TestViewer>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
+import kernel from 'virtual:kernel';
 import TestViewer from '../components/TestViewer.vue';
 
 const route = useRoute();
+
+// One line about the class, from its C++ docstring (plugins/kernel.ts).
+const about = computed(() => kernel[activeSuite.value]);
+
+// Deep link #/tests?suite=<class>&test=<name>: scroll that test's row into view once it renders,
+// and again after the highlighter has settled the row heights.
+const scrollToTest = () => {
+  const t = route.query.test;
+  if (typeof t !== 'string') return;
+  const go = () => document.getElementById('test-' + t)?.scrollIntoView({ block: 'start' });
+  nextTick(go);
+  setTimeout(go, 400);
+};
 
 const activeSuite = ref('point_test');
 const tests = ref<any[]>([]);
@@ -63,14 +80,14 @@ const loadTests = () => {
     activeSuite.value = suites.value[0];
   }
 
-  if (all.length > 0) {
-    console.log(`✅ Loaded ${all.length} tests across ${suites.value.length} suites`);
-  }
+  scrollToTest();
 };
 
 onMounted(() => {
   setTimeout(loadTests, 100);
 });
+
+watch(() => route.query.test, scrollToTest);
 
 watch(
   () => route.query.suite,
@@ -85,9 +102,29 @@ watch(
 
 <style scoped>
 .tests-view {
-  padding: 1.5rem 0;
+  padding: 1rem 0 1.5rem;
   height: 100%;
   box-sizing: border-box;
-  background: #000000;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.class-about {
+  margin: 0 0 0.75rem;
+  padding: 0 0.75rem;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.class-about strong {
+  color: var(--fg);
+  font-weight: 600;
+  margin-right: 0.4rem;
+}
+
+.tests-body {
+  flex: 1;
+  min-height: 0;
 }
 </style>

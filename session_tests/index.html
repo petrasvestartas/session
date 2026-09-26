@@ -3,13 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Session Test Viewer</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <meta name="description" content="Session: the viewer course, the kernel API and install notes." />
+    <title>Session docs</title>
+    <link rel="icon" type="image/png" href="/icons/session_black.png" />
   </head>
   <body>
-    <div id="app">ROOT PLACEHOLDER — if you see this text, Vue did not mount.</div>
-    <!-- testData.js (~3.5MB) is lazy-loaded on demand (src/dataLoader.ts) only when the Tests
-         tab opens — not on every page. -->
+    <div id="app"></div>
+    <!-- testData.js (~8MB) is lazy-loaded on demand (src/dataLoader.ts) only when the Kernel API
+         page opens; each course page is its own lazy chunk. -->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

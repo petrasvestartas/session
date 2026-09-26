@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "marked": "^18.0.4",
+    "minisearch": "^7.2.0",
     "shiki": "^4.2.0",
     "vue": "^3.4.21",
     "vue-router": "^4.2.5"

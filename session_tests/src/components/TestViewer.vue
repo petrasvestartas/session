@@ -6,17 +6,17 @@
           <tr>
             <th>
               <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="lang-link">
-                <img src="/icons/session_cpp_white.png" class="lang-icon" alt="C++" title="C++">
+                <img :src="base + 'icons/session_cpp_black.png'" class="lang-icon" alt="C++" title="C++">
               </a>
             </th>
             <th>
               <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="lang-link">
-                <img src="/icons/session_py_white.png" class="lang-icon" alt="Python" title="Python">
+                <img :src="base + 'icons/session_py_black.png'" class="lang-icon" alt="Python" title="Python">
               </a>
             </th>
             <th>
               <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="lang-link">
-                <img src="/icons/session_rust_white.png" class="lang-icon" alt="Rust" title="Rust">
+                <img :src="base + 'icons/session_rust_black.png'" class="lang-icon" alt="Rust" title="Rust">
               </a>
             </th>
           </tr>
@@ -33,7 +33,7 @@
             <td class="lang-col">
               <div v-if="g.cpp" class="test-card">
                 <div :class="['tag', g.cpp.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'cpp')">
-                  <i :class="g.cpp.passed ? 'fa-solid fa-check' : 'fa-solid fa-xmark'"></i> {{ formatTime(g.cpp.time_ms) }} ms
+                  {{ g.cpp.passed ? '✓' : '✗' }} {{ formatTime(g.cpp.time_ms) }} ms
                 </div>
                 <div v-if="g.cpp.code" class="code-shell">
                   <button
@@ -78,7 +78,7 @@
             <td class="lang-col">
               <div v-if="g.python" class="test-card">
                 <div :class="['tag', g.python.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'python')">
-                  <i :class="g.python.passed ? 'fa-solid fa-check' : 'fa-solid fa-xmark'"></i> {{ formatTime(g.python.time_ms) }} ms
+                  {{ g.python.passed ? '✓' : '✗' }} {{ formatTime(g.python.time_ms) }} ms
                 </div>
                 <div v-if="g.python.code" class="code-shell">
                   <button
@@ -123,7 +123,7 @@
             <td class="lang-col">
               <div v-if="g.rust" class="test-card">
                 <div :class="['tag', g.rust.passed ? 'tag-pass' : 'tag-fail']" :style="timeStyle(g, 'rust')">
-                  <i :class="g.rust.passed ? 'fa-solid fa-check' : 'fa-solid fa-xmark'"></i> {{ formatTime(g.rust.time_ms) }} ms
+                  {{ g.rust.passed ? '✓' : '✗' }} {{ formatTime(g.rust.time_ms) }} ms
                 </div>
                 <div v-if="g.rust.code" class="code-shell">
                   <button
@@ -228,6 +228,8 @@ import { computed, ref, onMounted } from 'vue'
 import type { HighlighterCore } from 'shiki/core'
 import { getHighlighter, THEME } from '../highlighter'
 
+const base = import.meta.env.BASE_URL
+
 const props = defineProps({
   tests: { type: Array, required: true },
   activeSuite: { type: String, required: true }
@@ -314,35 +316,6 @@ const highlightGap = (text: string, lang: string): string => {
   return result
 }
 
-// github-dark token colors: identifiers Shiki leaves at the base foreground vs the purple it gives
-// function calls / type names (in C++/Rust, but NOT in Python's TextMate grammar).
-const BASE_FG = '#E1E4E8'
-const ENTITY_FG = '#B392F0'
-
-// Shiki (TextMate) doesn't scope Python function-call / type names — they come out as flat base-color
-// runs. Re-tokenize only those base-color spans and give the same purple a call/type gets elsewhere:
-// a name followed by "(" → call; PascalCase or ALL_CAPS → type. Keyword/string/number spans (their
-// own colors) are never touched.
-const enrichEntities = (inner: string): string =>
-  inner.replace(/<span style="color:#E1E4E8">([^<]*)<\/span>/gi, (_m, text: string) => {
-    const parts: Array<{ id?: string; sym?: string }> = []
-    const re = /([A-Za-z_]\w*)|([^A-Za-z_]+)/g
-    let m: RegExpExecArray | null
-    while ((m = re.exec(text)) !== null) parts.push(m[1] != null ? { id: m[1] } : { sym: m[2] })
-    let out = ''
-    for (let i = 0; i < parts.length; i++) {
-      const p = parts[i]
-      if (p.sym !== undefined) { out += `<span style="color:${BASE_FG}">${escapeHtml(p.sym)}</span>`; continue }
-      const id = p.id!
-      const nextSym = parts[i + 1]?.sym
-      const isCall = !!nextSym && nextSym.trimStart().startsWith('(')
-      const isType = /^[A-Z][A-Za-z0-9]*$/.test(id) || (/^[A-Z][A-Z0-9_]+$/.test(id))
-      const color = isCall || isType ? ENTITY_FG : BASE_FG
-      out += `<span style="color:${color}">${escapeHtml(id)}</span>`
-    }
-    return out
-  })
-
 // Highlight a snippet → inner token HTML (Shiki's outer <pre><code> stripped so the existing
 // block/inline wrappers keep working). Falls back to escaped text until the highlighter loads.
 const highlight = (code: string, lang: string): string => {
@@ -351,7 +324,7 @@ const highlight = (code: string, lang: string): string => {
   try {
     const out = h.codeToHtml(code, { lang: LANG_MAP[lang] || 'text', theme: THEME })
     const inner = out.replace(/^<pre[^>]*><code[^>]*>/, '').replace(/<\/code><\/pre>\s*$/, '')
-    return enrichEntities(inner)
+    return inner
   } catch {
     return escapeHtml(code)
   }
@@ -429,22 +402,21 @@ const highlightedCheck = (check, lang) => {
 const timeStyle = (group, lang) => {
   const t = group[lang]
   if (!t || typeof t.time_ms !== "number") return {}
-  if (!t.passed) return { color: '#ff5555' }
+  if (!t.passed) return { color: 'var(--fail)' }
   const times = [group.python, group.cpp, group.rust]
     .filter(x => x && typeof x.time_ms === "number" && x.passed)
     .map(x => x.time_ms)
-  if (!times.length) return { color: '#ffffff' }
+  if (!times.length) return { color: '#000000' }
   const min = Math.min(...times)
   const max = Math.max(...times)
-  if (max === min) return { color: '#ffffff' }
+  if (max === min) return { color: '#000000' }
   const value = t.time_ms
   let ratio = (value - min) / (max - min)
   if (ratio < 0) ratio = 0
   if (ratio > 1) ratio = 1
-  const r = Math.round(255 + (0x55 - 255) * ratio)
-  const g = Math.round(255 + (0x88 - 255) * ratio)
-  const b = Math.round(255 + (0xff - 255) * ratio)
-  return { color: `rgb(${r}, ${g}, ${b})` }
+  // Fastest black, slowest light grey.
+  const v = Math.round(0x9a * ratio)
+  return { color: `rgb(${v}, ${v}, ${v})` }
 }
 
 const failingChecks = (t) => {
@@ -554,7 +526,7 @@ const copyProto = (content) => {
 </script>
 
 <style scoped>
-/* Test viewer styles - Pure black theme */
+/* Test viewer styles: white page, black text, greys. */
 .test-layout {
   display: flex;
   height: 100%;
@@ -562,13 +534,13 @@ const copyProto = (content) => {
 .sidebar {
   width: 180px;
   flex-shrink: 0;
-  background: #000000;
+  background: #ffffff;
 }
 .sidebar-title {
   font-weight: 600;
   margin-bottom: 0.5rem;
   font-size: 16px;
-  color: #ffffff;
+  color: var(--fg);
 }
 .suite-pill {
   display: block;
@@ -578,19 +550,19 @@ const copyProto = (content) => {
   border: none;
   border-left: 3px solid transparent;
   background: transparent;
-  color: #aaaaaa;
+  color: var(--muted);
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 .suite-pill:hover {
-  background: #111111;
-  color: #ffffff;
+  background: var(--hover);
+  color: var(--fg);
 }
 .suite-pill.active {
-  background: #111111;
-  color: #ffffff;
-  border-left-color: #ffffff;
+  background: var(--hover);
+  color: var(--fg);
+  border-left-color: var(--fg);
 }
 .test-main {
   flex: 1;
@@ -600,7 +572,7 @@ const copyProto = (content) => {
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #000000;
+  background: #ffffff;
   box-shadow: none;
   table-layout: fixed;
 }
@@ -608,14 +580,14 @@ th, td {
   padding: 0.5rem 0.75rem;
   border: none;
   vertical-align: top;
-  color: #aaaaaa;
+  color: #1a1a1a;
 }
 th {
-  background: #000000;
+  background: #ffffff;
   text-align: left;
   font-weight: 600;
   font-size: 14px;
-  color: #ffffff;
+  color: var(--fg);
   border: none;
 }
 
@@ -623,23 +595,23 @@ th {
   width: 24px;
   height: 24px;
   font-size: 24px;
-  color: #ffffff;
+  color: var(--fg);
 }
 
 .lang-link {
-  color: #ffffff;
+  color: var(--fg);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .lang-link:hover {
-  color: #aaaaaa;
+  opacity: 0.5;
 }
 
 .lang-text {
   font-size: 24px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--fg);
 }
 .tag {
   display: inline-block;
@@ -650,10 +622,10 @@ th {
   border: none;
 }
 .tag-pass {
-  color: #50fa7b;
+  color: var(--muted);
 }
 .tag-fail {
-  color: #ff5555;
+  color: var(--fail);
 }
 pre {
   margin: 0;
@@ -665,12 +637,12 @@ pre {
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: anywhere;
-  color: #abb2bf;
+  color: #1a1a1a;
 }
 .code-shell {
   position: relative;
   margin: 0.25rem 0 0.5rem 0;
-  background: #0f0f0f;
+  background: var(--code-bg);
   border-radius: 4px;
   border: none;
 }
@@ -695,24 +667,24 @@ pre {
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: #444444;
+  background: #d0d0d0;
   cursor: pointer;
 }
 
 .code-copy-btn:hover {
-  background: #666666;
+  background: #999999;
 }
 .failures {
   margin-top: 0.35rem;
-  color: #ff5555;
+  color: var(--fail);
 }
 .exceptions {
   margin-top: 0.35rem;
 }
 .error-message {
   margin-top: 0.15rem;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  color: #ff5555;
+  font-family: var(--mono);
+  color: var(--fail);
 }
 .test-card {
   display: flex;
@@ -724,14 +696,14 @@ pre {
 }
 .missing {
   font-size: 0.8rem;
-  color: #666666;
+  color: var(--faint);
   font-style: italic;
 }
 .test-name-row td {
   padding-top: 0.75rem;
   font-weight: 600;
-  color: #ffffff;
-  background: #000000;
+  color: var(--fg);
+  background: #ffffff;
 }
 .lang-col {
   width: 33.33%;
@@ -742,8 +714,8 @@ pre {
   border: none;
 }
 .section-title {
-  background: #000000;
-  color: #ffffff;
+  background: #ffffff;
+  color: var(--fg);
   padding: 0;
   margin: 0 0 0.5rem 0;
   font-size: 14px;
@@ -757,7 +729,7 @@ pre {
 }
 .artifact-card {
   position: relative;
-  background: #000000;
+  background: #ffffff;
   border-radius: 0;
   padding: 0.5rem 0;
   border: none;
@@ -770,36 +742,17 @@ pre {
 .artifact-card :deep(code) {
   white-space: pre-wrap;
   word-wrap: break-word;
-  color: #aaaaaa;
+  color: #1a1a1a;
 }
 </style>
 
 <style>
-/* Tree-sitter highlight theme */
-.ts-kw  { color: #c678dd; }
-.ts-dir { color: #c678dd; }
-.ts-ty  { color: #00e5ff; }
-.ts-tyb { color: #56b6c2; }
-.ts-tyd { color: #00e5ff; font-weight: 600; }
-.ts-fn  { color: #61afef; }
-.ts-fnd { color: #61afef; font-weight: 600; }
-.ts-mt  { color: #61afef; }
-.ts-mc  { color: #61afef; font-weight: 600; }
-.ts-v   { color: #abb2bf; }
-.ts-vb  { color: #e06c75; font-style: italic; }
-.ts-pm  { color: #e5e54b; font-style: italic; }
-.ts-pl  { color: #e5e54b; }
-.ts-pr  { color: #e06c75; }
-.ts-cb  { color: #e5e54b; }
-.ts-s   { color: #98c379; }
-.ts-n   { color: #e5e54b; }
-.ts-c   { color: #5c6370; font-style: italic; }
-.ts-op  { color: #56b6c2; }
-.ts-mod { color: #00e5ff; }
-.ts-lb  { color: #00e5ff; font-style: italic; }
-.ts-dec { color: #00e5ff; }
-.ts-pb  { color: #ff79c6; }
-.ts-pd  { color: #ff79c6; }
+/* Proto schema highlight (TestViewer highlightGap): greyscale like the Shiki theme. */
+.ts-kw, .ts-dir { color: #000000; font-weight: 600; }
+.ts-c { color: #8a8a8a; font-style: italic; }
+.ts-s, .ts-n, .ts-cb { color: #5c5c5c; }
+.ts-ty, .ts-tyb, .ts-tyd, .ts-fn, .ts-fnd, .ts-mt, .ts-mc, .ts-v, .ts-vb, .ts-pm, .ts-pl, .ts-pr,
+.ts-op, .ts-mod, .ts-lb, .ts-dec, .ts-pb, .ts-pd { color: #1a1a1a; }
 .inline-code pre { display: inline; margin: 0; padding: 0; }
 .inline-code code { display: inline; }
 </style>

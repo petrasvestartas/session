@@ -18,14 +18,18 @@ if (legacySuite) {
 }
 
 // Hash mode for GitHub Pages. Views are lazy (dynamic import) so each route only loads when that
-// tab is opened, not in the main bundle.
+// tab is opened, not in the main bundle. A heading anchor rides after the route:
+// #/course/12-picking#step-1; the content pane scrolls to it (CourseView), not the window.
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { path: '/', redirect: '/tests' },
+    { path: '/', component: () => import('./views/HomeView.vue') },
+    { path: '/course', component: () => import('./views/CourseIndex.vue') },
+    { path: '/course/:slug(.*)', component: () => import('./views/CourseView.vue') },
     { path: '/tests', component: () => import('./views/TestsView.vue'),
       beforeEnter: async () => { await ensureTestData(); } },
     { path: '/install', component: () => import('./views/InstallView.vue') },
+    { path: '/:rest(.*)', redirect: '/' },
   ],
 });
 
