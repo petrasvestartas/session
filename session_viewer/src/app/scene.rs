@@ -983,14 +983,15 @@ impl Scene {
         if name.trim().is_empty() { kind } else { name }
     }
 
-    /// The edge index a pipe pick landed on.
+    /// The edge index a pipe pick landed on; an instance's edges are its definition's.
     pub fn edge_at(&self, pick: Pick) -> Option<u32> {
         if pick.sub & 0x8000_0000 == 0 {
             return None;
         }
 
         let &(parent, edge) = self.edge_sources.get((pick.sub & 0x7fff_ffff) as usize)?;
-        (parent == pick.row && edge != u32::MAX).then_some(edge)
+        let own = parent == pick.row || self.instance_batch_row(pick.row) == Some(parent);
+        (own && edge != u32::MAX).then_some(edge)
     }
 
     /// Point `local` of the cloud on `row`; None when streamed.

@@ -311,7 +311,7 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
     load_files(&mut scene, &mut gpu, files);
     gpu.set_clip_planes(&middle_planes(&gpu.bounds, planes));
     gpu.clip
-        .find_solids(&gpu.objects, |row| scene.face_range(row));
+        .find_solids(&gpu.objects, |row| scene.solid_faces(row));
     // VIEWER_SELECT=name highlights one object
     if let Ok(name) = std::env::var("VIEWER_SELECT") {
         let row = (0..scene.row_count() as u32)

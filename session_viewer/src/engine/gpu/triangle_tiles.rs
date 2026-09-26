@@ -11,6 +11,9 @@ use std::sync::atomic::{AtomicU8, Ordering};
 /// Bytes per projected triangle record.
 pub(super) const PROJECTED_BYTES: u64 = 96;
 
+/// Projection workgroups a dispatch row, under the 65535 limit; 64 triangles each.
+const PROJECT_ROW_GROUPS: u32 = 32768;
+
 /// Most screen tiles the grid may have.
 const MAX_TILES: u32 = 262_144;
 
@@ -155,6 +158,15 @@ impl PoolReport {
     }
 }
 
+/// Projection workgroups across and down for `triangles`, 64 each, rows of PROJECT_ROW_GROUPS.
+fn project_groups(triangles: u32) -> (u32, u32) {
+    let groups = triangles.div_ceil(64);
+    (
+        groups.min(PROJECT_ROW_GROUPS),
+        groups.div_ceil(PROJECT_ROW_GROUPS),
+    )
+}
+
 /// Next pool size: at least `floor`; doubled when the report overflowed.
 /// Records for a table of `need` triangles, None while `capacity` fits: exact after a load jump, an eighth spare after an edit.
 fn projected_records(need: u64, capacity: u64, most: u64) -> Option<u64> {
@@ -194,7 +206,7 @@ struct ProjectionKey {
 
 /// The layouts and pipelines of the tile passes.
 struct TilePipelines {
-    project_layout: wgpu::BindGroupLayout, // vertices, rows, indices, projected, count
+    project_layout: wgpu::BindGroupLayout, // vertices, rows, indices, projected, count, slot table
     raster_layout: wgpu::BindGroupLayout, // projected, tiles
     scan_layout: wgpu::BindGroupLayout, // tiles
     project: Lazy<wgpu::ComputePipeline>, // triangles to screen space
@@ -214,7 +226,7 @@ pub struct TriangleTiles {
     key: Option<ProjectionKey>, // what the projection was built for
     binned: Option<ProjectionKey>, // what the tile lists were built for
     pipes: TilePipelines, // pipelines
-    project_group: Option<(wgpu::BindGroup, [wgpu::Buffer; 3])>, // projection bindings and the geometry they bind
+    project_group: Option<(wgpu::BindGroup, [wgpu::Buffer; 3], wgpu::TextureView)>, // projection bindings and the geometry they bind
     raster: wgpu::BindGroup, // projected records and tiles, for binning
     scan: wgpu::BindGroup, // tiles, for the prefix sum
     pool_words: u64, // reference pool size, words
@@ -433,28 +445,43 @@ impl TriangleTiles {
         input: &TileInput<'_>,
     ) {
         // the geometry buffers move when the scene grows
-        let stale = self
-            .project_group
-            .as_ref()
-            .is_none_or(|(_, bound)| bound.iter().zip(input.geometry).any(|(a, b)| a != b));
+        let stale = self.project_group.as_ref().is_none_or(|(_, bound, table)| {
+            table != input.table || bound.iter().zip(input.geometry).any(|(a, b)| a != b)
+        });
 
         if stale {
-            let group = bind_group(
-                ctx,
-                &self.pipes.project_layout,
-                "triangle.project.bindings",
-                &[
-                    input.geometry[0],
-                    input.geometry[1],
-                    input.geometry[2],
-                    &self.projected,
-                    &self.live_count,
-                ],
-            );
-            self.project_group = Some((group, input.geometry.map(|buffer| buffer.clone())));
+            let buffers = [
+                input.geometry[0],
+                input.geometry[1],
+                input.geometry[2],
+                &self.projected,
+                &self.live_count,
+            ];
+            let mut entries: Vec<_> = buffers
+                .iter()
+                .enumerate()
+                .map(|(binding, buffer)| wgpu::BindGroupEntry {
+                    binding: binding as u32,
+                    resource: buffer.as_entire_binding(),
+                })
+                .collect();
+            entries.push(wgpu::BindGroupEntry {
+                binding: 5,
+                resource: wgpu::BindingResource::TextureView(input.table),
+            });
+            let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("triangle.project.bindings"),
+                layout: &self.pipes.project_layout,
+                entries: &entries,
+            });
+            self.project_group = Some((
+                group,
+                input.geometry.map(|buffer| buffer.clone()),
+                input.table.clone(),
+            ));
         }
 
-        let Some((group, _)) = &self.project_group else {
+        let Some((group, _, _)) = &self.project_group else {
             return;
         };
         let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
@@ -466,7 +493,8 @@ impl TriangleTiles {
         pass.set_bind_group(1, input.binds.line, &[]);
         pass.set_bind_group(2, input.binds.instances, &[]);
         pass.set_bind_group(3, group, &[]);
-        pass.dispatch_workgroups(self.requested_triangles.div_ceil(64), 1, 1);
+        let (x, y) = project_groups(self.requested_triangles);
+        pass.dispatch_workgroups(x, y, 1);
     }
 
     /// Draw every triangle over the tile grid with `pipeline`.
@@ -547,6 +575,7 @@ impl TriangleTiles {
 pub(super) struct TileInput<'a> {
     pub binds: &'a Binds<'a>, // bind groups 0-2
     pub geometry: [&'a wgpu::Buffer; 3], // vertices, object rows, indices
+    pub table: &'a wgpu::TextureView, // where the instances' triangle ids lie
     pub matrix: [f32; 16], // camera matrix
     pub objects_revision: u64, // object change count
 }
@@ -583,6 +612,16 @@ impl TilePipelines {
                 entry(2, Stages::COMPUTE, Storage { read_only: true }),
                 entry(3, Stages::COMPUTE, Storage { read_only: false }),
                 entry(4, Stages::COMPUTE, Uniform),
+                wgpu::BindGroupLayoutEntry {
+                    binding: 5,
+                    visibility: Stages::COMPUTE,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Uint,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
             ],
         });
         let raster_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -600,8 +639,9 @@ impl TilePipelines {
             ctx,
             "triangle.project",
             &format!(
-                "{}\n{}",
+                "{}\n{}\n{}",
                 shader!("project_triangles.wgsl"),
+                shader!("slot_table.wgsl"),
                 crate::engine::pipelines::CLIP
             ),
         );
@@ -719,6 +759,17 @@ fn compute_pipeline(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Past 65535 workgroups the projection wraps into rows, covering every triangle once.
+    #[test]
+    fn projection_dispatch_stays_in_limits() {
+        assert_eq!(project_groups(0), (0, 0));
+        assert_eq!(project_groups(65), (2, 1));
+        assert_eq!(project_groups(4_194_304), (32_768, 2));
+        let (x, y) = project_groups(u32::MAX);
+        assert!(x <= 65_535 && y <= 65_535);
+        assert!(u64::from(x) * u64::from(y) * 64 >= u64::from(u32::MAX));
+    }
 
     /// One more triangle reuses the table; a load jump is exact; an emptied table shrinks.
     #[test]

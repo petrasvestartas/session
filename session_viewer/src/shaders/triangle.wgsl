@@ -92,37 +92,29 @@ const FACE_TAG: u32 = 0x20000000u;
 // Slot value that keeps the vertex's own row; matches OWN_ROW in Rust.
 const OWN_ROW: u32 = 0xffffffffu;
 
-// True when rows `a` and `b` have the same rotation and scale.
-fn same_turn(a: u32, b: u32) -> bool {
-    let x = instances[a].model;
-    let y = instances[b].model;
-    return all(x[0] == y[0]) && all(x[1] == y[1]) && all(x[2] == y[2]);
-}
-
 // Vertex `index` read from the storage buffers instead of vertex inputs, drawn with `slot`'s row;
-// `empty` is the id a turned instance's triangle reports.
-fn pull_triangle(index: u32, slot: u32, empty: u32) -> VsOut {
+// `base` turns the arena triangle into the instance's own triangle id.
+fn pull_triangle(index: u32, slot: u32, base: u32) -> VsOut {
     let vertex = face_indices[index];
     let start = vertex * 5u; // five words per vertex: position, octahedral normal, rgba bytes
     let position = bitcast<vec3<f32>>(vec3<u32>(face_vertices[start], face_vertices[start+1u], face_vertices[start+2u]));
     let color = unpack4x8unorm(face_vertices[start+4u]);
     let own = face_objects[vertex];
     var out = transform_vertex(VsIn(position, face_vertices[start+3u], color, slot_row(own, slot)));
-    // readers of the id see the shared row's matrix: a turned instance reports its definition's empty triangle
-    out.primitive = select(empty, index/3u+1u, slot == OWN_ROW || same_turn(own, slot));
+    out.primitive = base + index/3u + 1u;
     return out;
 }
 
 @vertex
 // Vertices read by index; object ids.
-fn vs_triangle(@builtin(vertex_index) index: u32, @location(0) slot: u32, @location(1) empty: u32) -> VsOut {
-    return pull_triangle(index, slot, empty);
+fn vs_triangle(@builtin(vertex_index) index: u32, @location(0) slot: u32, @location(1) base: u32) -> VsOut {
+    return pull_triangle(index, slot, base);
 }
 
 @vertex
 // Vertices read by index, with the source face and its selection.
-fn vs_face(@builtin(vertex_index) index: u32, @location(0) slot: u32, @location(1) empty: u32) -> VsOut {
-    var out=pull_triangle(index, slot, empty);
+fn vs_face(@builtin(vertex_index) index: u32, @location(0) slot: u32, @location(1) base: u32) -> VsOut {
+    var out=pull_triangle(index, slot, base);
     out.source_face = source_faces[index/3u];
     out.selected = select(0u, 1u, out.source_face != 0xffffffffu && out.source_face == selected_face.x);
 
@@ -281,6 +273,17 @@ struct CountOut {
 @vertex
 // Corners of visible verified closed solids; everything else lands off screen.
 fn vs_count(in: VsIn, @builtin(instance_index) plane: u32) -> CountOut {
+    return count_corner(in, plane);
+}
+
+@vertex
+// Corners of instanced closed solids: the row and plane come per instance.
+fn vs_count_placed(in: VsIn, @location(4) plane: u32) -> CountOut {
+    return count_corner(in, plane);
+}
+
+// One corner of a closed solid for plane `plane`, off screen unless visible, closed and no plane.
+fn count_corner(in: VsIn, plane: u32) -> CountOut {
     let inst = instances[in.inst_id];
     var out: CountOut;
     out.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);

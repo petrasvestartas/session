@@ -3,10 +3,10 @@ use super::super::{Scene, placement};
 use super::{Work, baked};
 use crate::app::walk::{Row, Walk, WalkCx, is_drawable, walk_features, walk_geometry};
 use crate::engine::gpu::glyphs::GlyphPoint;
-use crate::engine::gpu::instanced::{Draw, Slot};
+use crate::engine::gpu::instanced::Draw;
 use crate::engine::gpu::patch::Counts;
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Upload};
-use session_rust::{AABB, Geometry, InstanceRef, RenderVertex, Session, Xform};
+use session_rust::{AABB, Geometry, InstanceRef, Session, Xform};
 use std::collections::HashMap;
 use std::rc::{Rc, Weak};
 
@@ -252,8 +252,7 @@ impl Scene {
         }
 
         self.feet[row as usize] = self.append(up, false);
-        // hidden and dead: never drawn, boxed or cut; ambient occlusion reads its box and, for the
-        // instances turned like its first, its matrix
+        // hidden and dead: never drawn, boxed or cut; ambient occlusion reads its box
         let mut object = ObjectRow::new(place.clone(), Instance::FLAG_HIDDEN | Instance::FLAG_DEAD);
         object.bounds = walk.bounds;
         self.set_object_row(row, object);
@@ -286,9 +285,7 @@ impl Scene {
         })
     }
 
-    /// A definition's shared rows walked under hidden row `row`, then one empty triangle on the
-    /// sink: the id a turned instance reports, so readers of triangle ids find no plane, no
-    /// matrix of another turn and no contact radius.
+    /// A definition's shared rows walked under hidden row `row`.
     fn shared_walk(&mut self, row: u32, definition: &Geometry) -> (Upload, Row) {
         let mut up = Upload::default();
         let cx = WalkCx {
@@ -298,15 +295,6 @@ impl Scene {
             attributes: self.attributes,
         };
         let walk = walk_geometry(&mut Walk::of(&mut up), &cx, definition);
-        let sink = self.sink_row();
-        let vertex = up.arena.verts.len() as u32;
-        up.arena.verts.push(RenderVertex {
-            position: [0.0; 3],
-            normal: [0.0; 3],
-            color: [0.0; 4],
-        });
-        up.arena.vids.push(sink);
-        up.arena.idx.extend_from_slice(&[vertex; 3]);
         (up, walk)
     }
 
@@ -654,8 +642,8 @@ impl Scene {
         }
     }
 
-    /// The instance slots and one draw per batch, from where the shared rows sit now.
-    pub(crate) fn instanced_draws(&self) -> (Vec<Slot>, Vec<Draw>) {
+    /// The instance rows in slot order and one draw per batch, from where the shared rows sit now.
+    pub(crate) fn instanced_draws(&self) -> (Vec<u32>, Vec<Draw>) {
         let mut rows = Vec::new();
         let mut draws = Vec::new();
 
@@ -667,9 +655,7 @@ impl Scene {
             let span = self.spans.span(self.feet[batch.row as usize]);
             let first = 1 + rows.len() as u32; // slot 0 keeps plain rows their own
             let (s, c) = (span.start, span.count);
-            // the empty triangle is the last of the shared ones
-            let empty = (s.faces + c.faces) / 3;
-            rows.extend(batch.members.iter().map(|&row| [row, empty]));
+            rows.extend_from_slice(&batch.members);
             draws.push(Draw {
                 faces: s.faces..s.faces + c.faces,
                 pipes: s.pipes..s.pipes + c.pipes,
@@ -701,6 +687,31 @@ impl Scene {
         let session = &self.docs.get(doc)?.session;
         let instance = session.instance_lookup.get(guid.as_ref())?;
         session.definition_lookup.get(&instance.definition_guid)
+    }
+
+    /// The shared solid face indices an instance row draws, in its definition's hidden row.
+    pub fn instance_faces(&self, row: u32) -> Option<std::ops::Range<u32>> {
+        let batch = (*self.instancing.of_row.get(&row)?)?;
+        self.face_range(self.instancing.batches.get(batch)?.as_ref()?.row)
+    }
+
+    /// The hidden row holding the definition an instance row draws.
+    pub fn instance_batch_row(&self, row: u32) -> Option<u32> {
+        let batch = (*self.instancing.of_row.get(&row)?)?;
+        Some(self.instancing.batches.get(batch)?.as_ref()?.row)
+    }
+
+    /// The geometry of a row: its own, or an instance's definition in the definition's frame.
+    pub fn shape_of(&self, row: u32) -> Option<&Geometry> {
+        self.geometry(row).or_else(|| self.instance_definition(row))
+    }
+
+    /// The solid face indices a row draws, and whether an instance draws them from its definition.
+    pub fn solid_faces(&self, row: u32) -> Option<(std::ops::Range<u32>, bool)> {
+        match self.face_range(row) {
+            Some(range) => Some((range, false)),
+            None => Some((self.instance_faces(row)?, true)),
+        }
     }
 
     /// The name of an instance row, or "Instance" when it has none.
@@ -806,6 +817,47 @@ mod tests {
         (s, definition)
     }
 
+    /// A 4 by 3 grid of one beam element with an axis poking out of both ends, every instance
+    /// turned its own way about z and tipped about x, on a floor: beams hide each other's edges
+    /// and axes without touching, and stand close enough to the floor for contact shadows.
+    fn turned_grid() -> Session {
+        let mut s = Session::new("turned");
+        let mut element = Element::new("beam");
+        element.set_geometry(Mesh::create_box(3.0, 1.0, 1.0));
+        let axis = Polyline::new(vec![Point::new(-2.0, 0.0, 0.0), Point::new(2.0, 0.0, 0.0)]);
+        element.add_feature(ElementFeature::new("axis", -1, vec![axis], "axis"));
+        let beam = s.add_definition(Geometry::Element(Rc::new(element)));
+        let floor = s.add_definition(Geometry::Mesh(Rc::new(Mesh::create_box(18.0, 13.0, 0.2))));
+
+        for i in 0..12 {
+            let turn = &Xform::rotation_z(i as f64 * 37.0, true)
+                * &Xform::rotation_x((i % 3) as f64 * 20.0, true);
+            let at = Xform::translation((i % 4) as f64 * 3.5, (i / 4) as f64 * 3.5, 0.0);
+            let instance = InstanceRef::with_name(&format!("beam_{i}"), &beam, Xform::identity());
+            s.add_instance(instance, &at * &turn, None);
+        }
+
+        let under = Xform::translation(5.25, 3.5, -0.9);
+        s.add_instance(InstanceRef::new(&floor, Xform::identity()), under, None);
+        s
+    }
+
+    /// The same objects with every instance baked into its own element or mesh.
+    fn bake(source: &Session) -> Session {
+        let mut baked = Session::new("baked");
+        let geometry = source.get_geometry();
+
+        for element in &geometry.elements {
+            baked.add_element((**element).clone(), None);
+        }
+
+        for mesh in &geometry.meshes {
+            baked.add_mesh((**mesh).clone(), None);
+        }
+
+        baked
+    }
+
     /// Instance rows of a scene, by guid.
     fn rows(scene: &Scene) -> Vec<(String, u32)> {
         let mut out: Vec<_> = (0..scene.row_count() as u32)
@@ -862,6 +914,57 @@ mod tests {
         let span = scene.spans.span(scene.feet[first as usize]);
         assert!(span.count.dots > 0 && span.count.verts == 0);
         assert_eq!(scene.object_name(first), "box_0");
+    }
+
+    /// A pick on an instance's edge names the definition's edge on that instance, never on
+    /// another row; the instance offers its definition's corners placed where it stands.
+    #[test]
+    fn instance_edges_pick_and_corners_snap() {
+        use crate::app::snap::{SnapKind, of_geometry};
+        use crate::engine::gpu::pick::Pick;
+
+        let (source, _) = placed(3);
+        let mut scene = Scene::new();
+        scene.add_file(file(source.clone()));
+        scene.settle();
+        let instances = rows(&scene);
+        let batch = scene.instance_batch_row(instances[0].1).unwrap();
+        let (pipe, edge) = scene
+            .edge_sources
+            .iter()
+            .enumerate()
+            .find_map(|(i, &(owner, edge))| {
+                (owner == batch && edge != u32::MAX).then_some((i, edge))
+            })
+            .expect("the definition's edges");
+        let sub = 0x8000_0000 | pipe as u32;
+
+        for (guid, row) in &instances {
+            assert_eq!(scene.edge_at(Pick { row: *row, sub }), Some(edge), "{guid}");
+        }
+
+        let other = Pick {
+            row: batch + 100,
+            sub,
+        };
+        assert_eq!(scene.edge_at(other), None, "not another row's");
+
+        for (guid, row) in &instances {
+            let shape = scene.shape_of(*row).expect("the definition");
+            let place = scene.placement_of(*row).unwrap();
+            let (mut snaps, mut wires) = (Vec::new(), Vec::new());
+            of_geometry(shape, &place, *row, 64, &mut snaps, &mut wires);
+            let world = source.world_xform(guid);
+            let corner = session_rust::Point::new(0.5, 0.5, 0.5).transformed(&world);
+            let found = snaps.iter().any(|snap| {
+                snap.kind == SnapKind::Vertex
+                    && snap.owner == *row
+                    && (0..3).all(|k| (snap.point[k] - corner[k]).abs() < 1e-9)
+            });
+            assert!(found, "{guid} snaps to its corner at {corner:?}");
+        }
+
+        assert!(scene.shape_of(batch).is_none(), "no snaps on the definition");
     }
 
     /// Hidden and locked instances come from their flags, per instance.
@@ -1023,12 +1126,15 @@ mod tests {
         use crate::camera::Camera;
         use crate::engine::gpu::FrameInput;
 
-        /// Colors and object ids of one frame of `session`, fitted to its box.
-        fn shot(session: Session, rotate: bool) -> (Vec<u8>, Vec<Option<String>>, Gpu, Scene) {
-            shot_with(session, rotate, false)
+        /// A 400 by 300 frame as `<dir>/<name>.ppm`, for looking at a failure.
+        fn write_ppm(dir: &std::ffi::OsStr, name: &str, rgba: &[u8]) {
+            let mut ppm = b"P6 400 300 255\n".to_vec();
+            ppm.extend(rgba.chunks_exact(4).flat_map(|p| [p[0], p[1], p[2]]));
+            std::fs::write(std::path::Path::new(dir).join(format!("{name}.ppm")), ppm).unwrap();
         }
 
-        /// `shot`, with ambient occlusion when `ssao`.
+        /// Colors and object ids of one frame of `session`, fitted to its box, with ambient
+        /// occlusion when `ssao`.
         fn shot_with(
             session: Session,
             rotate: bool,
@@ -1069,46 +1175,61 @@ mod tests {
         }
 
         /// Instances drawn from one upload look and pick exactly like the same objects baked:
-        /// every pixel's object is the instance's guid.
+        /// every pixel's object is the instance's guid, and faces, hidden edges and axes seen
+        /// through the glass, with and without ambient occlusion, match to the pixel.
         #[test]
         #[ignore = "requires a native GPU adapter"]
         fn instanced_frames_match_the_baked_scene() {
-            let (source, _) = placed(3);
-            let mut baked = Session::new("baked");
+            let scenes = [(placed(3).0, 1, 3), (turned_grid(), 2, 13)];
 
-            for element in &source.get_geometry().elements {
-                baked.add_element((**element).clone(), None);
-            }
+            for (source, batches, instances) in scenes {
+                let baked = bake(&source);
 
-            for rotate in [false, true] {
-                let (color, ids, gpu, scene) = shot(source.clone(), rotate);
-                let (want_color, want_ids, _, _) = shot(baked.clone(), rotate);
-                assert_eq!(scene.instancing.batch_rows(), 1);
-                assert_eq!(gpu.arena.source_faces.slots.instances(), 3);
-                let drawn = ids.iter().filter(|id| id.is_some()).count();
-                let same = ids.iter().zip(&want_ids).filter(|(a, b)| a == b).count();
-                let differ = color
-                    .chunks_exact(4)
-                    .zip(want_color.chunks_exact(4))
-                    .filter(|(a, b)| a != b)
-                    .count();
-                eprintln!(
-                    "rotate {rotate}: {drawn} object pixels, {} id mismatches, {differ} color mismatches",
-                    ids.len() - same
-                );
-                assert!(drawn > 1000, "the instances are drawn");
-                assert_eq!(same, ids.len(), "each pixel picks the same instance");
-                // faces, edges and features alike: only a few edge pixels differ, tested against depth alone
-                assert!(
-                    differ * 500 < color.len() / 4,
-                    "{differ} pixels differ in color"
-                );
+                for (rotate, ssao) in [(false, false), (true, false), (true, true)] {
+                    let (color, ids, gpu, scene) = shot_with(source.clone(), rotate, ssao);
+                    let (want_color, want_ids, _, _) = shot_with(baked.clone(), rotate, ssao);
+                    assert_eq!(scene.instancing.batch_rows(), batches);
+                    assert_eq!(gpu.arena.source_faces.slots.instances(), instances);
+                    let drawn = ids.iter().filter(|id| id.is_some()).count();
+                    let same = ids.iter().zip(&want_ids).filter(|(a, b)| a == b).count();
+                    let pairs = color.chunks_exact(4).zip(want_color.chunks_exact(4));
+                    let apart = |levels: u8| {
+                        pairs
+                            .clone()
+                            .filter(|(a, b)| (0..3).any(|k| a[k].abs_diff(b[k]) > levels))
+                            .count()
+                    };
+                    let (differ, far) = (apart(2), apart(8));
+
+                    if let Some(dir) = std::env::var_os("INSTANCING_SHOTS") {
+                        let name = format!("{}_{rotate}_{ssao}", source.name);
+                        write_ppm(&dir, &format!("{name}_instanced"), &color);
+                        write_ppm(&dir, &format!("{name}_baked"), &want_color);
+                    }
+                    eprintln!(
+                        "{} rotate {rotate} ssao {ssao}: {drawn} object pixels, {} id mismatches, {} exact color mismatches, {differ} by more than 2 levels, {far} by more than 8",
+                        source.name,
+                        ids.len() - same,
+                        apart(0)
+                    );
+                    assert!(drawn > 1000, "the instances are drawn");
+                    // turned instances are placed in f32 on the GPU: a few silhouette pixels flip
+                    assert!(
+                        (ids.len() - same) * 200 <= drawn,
+                        "each pixel picks the same instance"
+                    );
+                    // a turned normal shades a level or two apart, and f32 placement on the GPU
+                    // against f64 baking flips a rare edge pixel
+                    let pixels = color.len() / 4;
+                    assert!(differ * 250 <= pixels, "{differ} pixels differ in color");
+                    assert!(far * 20_000 <= pixels, "{far} pixels differ visibly");
+                }
             }
         }
 
         /// Walls standing on a floor, one of them turned a quarter: with ambient occlusion the
-        /// instanced frame stays close to the baked one, the turned wall never darker; its
-        /// triangles carry no shared id, so it takes depth normals and no contact radius.
+        /// instanced frame matches the baked one, the turned wall included, since each instance
+        /// triangle names its own row, matrix and contact radius.
         #[test]
         #[ignore = "requires a native GPU adapter"]
         fn ambient_occlusion_of_turned_instances() {
@@ -1142,17 +1263,12 @@ mod tests {
                 .count();
 
             if let Some(dir) = std::env::var_os("INSTANCING_SHOTS") {
-                for (name, pixels) in [("instanced", &color), ("baked", &want)] {
-                    let mut ppm = b"P6 400 300 255\n".to_vec();
-                    ppm.extend(pixels.chunks_exact(4).flat_map(|p| [p[0], p[1], p[2]]));
-                    std::fs::write(std::path::Path::new(&dir).join(format!("{name}.ppm")), ppm)
-                        .unwrap();
-                }
+                write_ppm(&dir, "walls_instanced", &color);
+                write_ppm(&dir, "walls_baked", &want);
             }
 
-            // what differs are edge pixels: until instanced triangles join the tile lists, ink tests the fitted planes
             eprintln!("ambient occlusion: {far} pixels differ by more than 24 levels");
-            assert!(far < 400 * 300 / 100, "{far} pixels differ");
+            assert!(far * 20_000 <= 400 * 300, "{far} pixels differ");
         }
 
         /// Median wall time of an offscreen 1920x1080 frame of INSTANCING_BENCH (a .pb), orbiting,

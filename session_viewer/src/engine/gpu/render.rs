@@ -39,7 +39,7 @@ impl Gpu {
         if self.arena.tiles.prepare(
             &self.ctx,
             (self.config.width, self.config.height),
-            self.arena.face_count() / 3,
+            self.arena.triangle_count(),
         ) {
             self.rebind_ink();
         }
@@ -63,6 +63,12 @@ impl Gpu {
         clear: wgpu::Color,
     ) -> (u32, u32) {
         self.mark(encoder, "start");
+
+        // the arena changed: the instance triangle ids follow it
+        if self.arena.follow_arena(&self.ctx) {
+            self.objects.geometry_changed();
+        }
+
         let tier = if self.view.ssao { 0 } else { self.performance.drag_tier() };
         let (projection, lists) = self.tile_readers();
         // a slow drag tests ink against the fitted planes alone; the lists return when it ends
@@ -103,6 +109,7 @@ impl Gpu {
                     pipes,
                     &self.targets,
                     [vertices, owners, indices, self.objects.instance_buffer()],
+                    &self.arena.table.view,
                     encoder,
                     view,
                     self.frame.mvp_f32,

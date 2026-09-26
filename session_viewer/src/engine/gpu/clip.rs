@@ -106,11 +106,101 @@ struct PickCaps {
     group: wgpu::BindGroup, // the records, for the pick draws
 }
 
+/// Instanced solids a plane crosses: per plane, (definition face indices, placed range), and one
+/// (row, plane) record per placed solid, drawn as the instances of the definition's faces.
+#[derive(Default)]
+struct Placed {
+    runs: [Vec<(Range<u32>, Range<u32>)>; MAX_PLANES], // per plane: faces, then records
+    records: Vec<[u32; 2]>,                            // row and plane per placed solid
+    buffer: Option<wgpu::Buffer>,                      // the records, once uploaded
+}
+
+impl Placed {
+    /// Upload the records if they changed since the last upload.
+    fn upload(&mut self, ctx: &GpuCtx) {
+        if self.buffer.is_some() || self.records.is_empty() {
+            return;
+        }
+
+        let buffer = zeroed_buffer(
+            &ctx.device,
+            "clip.placed",
+            self.records.len() as u64 * 8,
+            wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+        );
+        ctx.queue
+            .write_buffer(&buffer, 0, bytemuck::cast_slice(&self.records));
+        self.buffer = Some(buffer);
+    }
+
+    /// Draw plane `plane`'s placed solids with `pipeline`; returns the draw count.
+    fn draw(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        arena: &ArenaLane,
+        b: &Binds,
+        pipeline: &Pipeline,
+        group: Option<&wgpu::BindGroup>,
+        plane: usize,
+    ) -> u32 {
+        let Some(buffer) = &self.buffer else {
+            return 0;
+        };
+        arena.draw_placed(pass, b, pipeline, group, &self.runs[plane], buffer)
+    }
+}
+
+/// Group `placed` (plane, definition faces, row) into draws: per plane, one run per definition.
+fn group_placed(
+    mut placed: Vec<(u32, Range<u32>, u32)>,
+) -> ([Vec<(Range<u32>, Range<u32>)>; MAX_PLANES], Vec<[u32; 2]>) {
+    placed.sort_by_key(|(plane, faces, row)| (*plane, faces.start, *row));
+    let mut runs: [Vec<(Range<u32>, Range<u32>)>; MAX_PLANES] = Default::default();
+    let mut records = Vec::with_capacity(placed.len());
+
+    for (plane, faces, row) in placed {
+        let at = records.len() as u32;
+        records.push([row, plane]);
+        let plane_runs = &mut runs[plane as usize];
+
+        match plane_runs.last_mut() {
+            Some((last, rows)) if *last == faces && rows.end == at => rows.end = at + 1,
+            _ => plane_runs.push((faces, at..at + 1)),
+        }
+    }
+
+    (runs, records)
+}
+
+/// The placed records at locations 3 and 4, stepped per instance: row and plane.
+const PLACED_ATTRIBUTES: [wgpu::VertexAttribute; 2] = [
+    wgpu::VertexAttribute {
+        offset: 0,
+        shader_location: 3,
+        format: wgpu::VertexFormat::Uint32,
+    },
+    wgpu::VertexAttribute {
+        offset: 4,
+        shader_location: 4,
+        format: wgpu::VertexFormat::Uint32,
+    },
+];
+
+/// The placed records beside the arena vertices.
+fn placed_layout() -> wgpu::VertexBufferLayout<'static> {
+    wgpu::VertexBufferLayout {
+        array_stride: 8,
+        step_mode: wgpu::VertexStepMode::Instance,
+        attributes: &PLACED_ATTRIBUTES,
+    }
+}
+
 /// Pipelines at the scene's sample count.
 struct CapPipelines {
     counts: wgpu::BindGroupLayout, // group 3 of the caps: the count texture
     primitives: wgpu::BindGroupLayout, // group 3 of the mask draws: the triangle ids
     count: Pipeline,               // crossings behind one plane
+    count_placed: Option<Pipeline>, // the same for instanced solids, made on the first
     cap: Pipeline,                 // section caps into the face pass
     masks: Pipeline,               // caps into both outline masks
     selection: Pipeline,           // selected caps into the selection mask
@@ -121,6 +211,7 @@ struct PickPipelines {
     layout: wgpu::BindGroupLayout, // group 3 of the pick draws: the records
     count: Pipeline,               // crossings into the pick records
     owner: Pipeline,               // the nearest exit names the owner
+    placed: Option<[Pipeline; 2]>, // count and owner of instanced solids, made on the first
     ids: Pipeline,                 // caps into the pick
 }
 
@@ -137,6 +228,7 @@ pub struct Clip {
     primitives: Option<(wgpu::TextureView, wgpu::BindGroup)>, // triangle ids bound for the masks
     pick: Option<PickCaps>,          // made on the first pick through a cap
     runs: [Vec<Range<u32>>; MAX_PLANES], // per plane, face indices of the closed solids it crosses
+    placed: Placed,                  // the instanced closed solids each plane crosses
     runs_for: Option<u64>,           // the geometry revision the runs were found for
 }
 
@@ -155,13 +247,19 @@ impl Clip {
             primitives: None,
             pick: None,
             runs: Default::default(),
+            placed: Placed::default(),
             runs_for: None,
         }
     }
 
-    /// Find, per plane, the face indices of the closed solids it crosses; `faces` names a row's.
-    /// No other solid can hold a section: one beyond the plane is left as often as it is entered.
-    pub fn find_solids(&mut self, rows: &InstanceTable, faces: impl Fn(u32) -> Option<Range<u32>>) {
+    /// Find, per plane, the face indices of the closed solids it crosses; `faces` names a row's,
+    /// true when an instance draws them from its definition. No other solid can hold a section:
+    /// one beyond the plane is left as often as it is entered.
+    pub fn find_solids(
+        &mut self,
+        rows: &InstanceTable,
+        faces: impl Fn(u32) -> Option<(Range<u32>, bool)>,
+    ) {
         let revision = rows.geometry_revision();
 
         if self.runs_for == Some(revision) {
@@ -170,8 +268,13 @@ impl Clip {
 
         self.runs_for = Some(revision);
         let anchor = rows.anchor();
+        let mut placed = Vec::new();
 
-        for (plane, runs) in self.planes[..self.count].iter().zip(&mut self.runs) {
+        for (index, (plane, runs)) in self.planes[..self.count]
+            .iter()
+            .zip(&mut self.runs)
+            .enumerate()
+        {
             runs.clear();
 
             for &row in rows.closed_rows() {
@@ -182,9 +285,14 @@ impl Clip {
                     continue;
                 }
 
-                let Some(range) = faces(row) else {
+                let Some((range, instanced)) = faces(row) else {
                     continue;
                 };
+
+                if instanced {
+                    placed.push((index as u32, range, row));
+                    continue;
+                }
 
                 // neighbouring rows usually sit side by side in the index buffer
                 match runs.last_mut() {
@@ -193,6 +301,18 @@ impl Clip {
                 }
             }
         }
+
+        let (runs, records) = group_placed(placed);
+        self.placed = Placed {
+            runs,
+            records,
+            buffer: None,
+        };
+    }
+
+    /// True when plane `plane` crosses a closed solid.
+    fn cuts(&self, plane: usize) -> bool {
+        !self.runs[plane].is_empty() || !self.placed.runs[plane].is_empty()
     }
 
     /// Take `planes`, at most MAX_PLANES; true when they differ from the last ones.
@@ -252,6 +372,11 @@ impl Clip {
         let pipes = self
             .pipes
             .get_or_insert_with(|| cap_pipelines(ctx, l, target));
+        self.placed.upload(ctx);
+
+        if self.placed.buffer.is_some() && pipes.count_placed.is_none() {
+            pipes.count_placed = Some(count_placed_pipeline(ctx, l, target));
+        }
 
         if self
             .counts
@@ -323,7 +448,10 @@ impl Clip {
             None,
             &self.runs[plane as usize],
             plane,
-        )
+        ) + pipes.count_placed.as_ref().map_or(0, |pipeline| {
+            self.placed
+                .draw(&mut pass, arena, b, pipeline, None, plane as usize)
+        })
     }
 
     /// Draw plane `plane`'s section caps into the open face pass, before the faces.
@@ -408,6 +536,11 @@ impl Clip {
         let pipes = self
             .pick_pipes
             .get_or_insert_with(|| pick_pipelines(ctx, l));
+        self.placed.upload(ctx);
+
+        if self.placed.buffer.is_some() && pipes.placed.is_none() {
+            pipes.placed = Some(pick_placed_pipelines(ctx, l, &pipes.layout));
+        }
         let words = self.count as u64 * u64::from(size.0) * u64::from(size.1) * PICK_WORDS;
 
         if !self
@@ -455,7 +588,7 @@ impl Clip {
         let mut draws = 0;
 
         // counts first; the owners compare against the finished nearest exits
-        for pipeline in [&pipes.count, &pipes.owner] {
+        for (k, pipeline) in [&pipes.count, &pipes.owner].into_iter().enumerate() {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("section pick"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -481,6 +614,13 @@ impl Clip {
                     runs,
                     plane as u32,
                 );
+
+                if let Some(placed) = &pipes.placed {
+                    let group = Some(&pick.group);
+                    draws += self
+                        .placed
+                        .draw(&mut pass, arena, b, &placed[k], group, plane);
+                }
             }
         }
 
@@ -540,8 +680,8 @@ impl super::Gpu {
             return (planes, 0);
         }
 
-        for (plane, runs) in self.clip.runs[..self.clip.count].iter().enumerate() {
-            if !runs.is_empty() {
+        for plane in 0..self.clip.count {
+            if self.clip.cuts(plane) {
                 planes[count] = plane as u32;
                 count += 1;
             }
@@ -775,8 +915,60 @@ fn pick_pipelines(ctx: &GpuCtx, l: &Layouts) -> PickPipelines {
         layout: records,
         count,
         owner,
+        placed: None,
         ids,
     }
+}
+
+/// The pick's count and owner pipelines for instanced solids, `records` at group 3.
+fn pick_placed_pipelines(
+    ctx: &GpuCtx,
+    l: &Layouts,
+    records: &wgpu::BindGroupLayout,
+) -> [Pipeline; 2] {
+    let triangle = scene_module(ctx, "triangle.shader", TRIANGLE);
+    let groups = [&l.mvp, &l.line, &l.instance, records];
+    let buffers = [vertex_layout(), placed_layout()];
+    let window = Target {
+        format: wgpu::TextureFormat::R8Unorm, // one byte per pixel, never written
+        samples: 1,
+    };
+    let placed = PipelineDesc::new(&triangle, &groups, &buffers, TriangleList)
+        .vertex("vs_count_placed")
+        .color(ColorWrite::Nothing)
+        .depth(DepthMode::Detached);
+    [
+        build(
+            ctx,
+            window,
+            &placed.with("section pick count placed", "fs_pick_count"),
+        ),
+        build(
+            ctx,
+            window,
+            &placed.with("section pick owner placed", "fs_pick_owner"),
+        ),
+    ]
+}
+
+/// The crossing count of instanced closed solids at the scene's sample count.
+fn count_placed_pipeline(ctx: &GpuCtx, l: &Layouts, target: Target) -> Pipeline {
+    let triangle = scene_module(ctx, "triangle.shader", TRIANGLE);
+    let groups = [&l.mvp, &l.line, &l.instance];
+    let buffers = [vertex_layout(), placed_layout()];
+    let counted = Target {
+        format: COUNT_FORMAT,
+        samples: target.samples,
+    };
+    build(
+        ctx,
+        counted,
+        &PipelineDesc::new(&triangle, &groups, &buffers, TriangleList)
+            .with("section count placed", "fs_count")
+            .vertex("vs_count_placed")
+            .color(ColorWrite::Add)
+            .depth(DepthMode::Detached),
+    )
 }
 
 /// The count, cap and mask pipelines at the scene's sample count.
@@ -846,6 +1038,7 @@ fn cap_pipelines(ctx: &GpuCtx, l: &Layouts, target: Target) -> CapPipelines {
         counts,
         primitives,
         count,
+        count_placed: None,
         cap,
         masks,
         selection,
@@ -1359,7 +1552,7 @@ mod tests {
         fn cut(gpu: &mut Gpu, scene: &Scene, planes: &[ClipPlane]) {
             gpu.set_clip_planes(planes);
             gpu.clip
-                .find_solids(&gpu.objects, |row| scene.face_range(row));
+                .find_solids(&gpu.objects, |row| scene.solid_faces(row));
         }
 
         /// The world XY plane through height `z`, everything above cut away.
@@ -2294,6 +2487,127 @@ mod tests {
                     "perspective {perspective}: the beam"
                 );
             }
+        }
+
+        /// A block defined once and placed three times, straight, turned and mirrored: each
+        /// placed solid gets its section like the same blocks baked, and a pick through a cap
+        /// names the instance.
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        fn instanced_solids_cap_like_baked_ones() {
+            use session_rust::{Geometry, InstanceRef};
+
+            let places = [
+                Xform::translation(-60.0, 0.0, 0.0),
+                &Xform::translation(60.0, 0.0, 0.0) * &Xform::rotation_z(30.0, true),
+                &Xform::translation(0.0, 70.0, 0.0) * &Xform::scale_xyz(-1.0, 1.0, 1.0),
+            ];
+            let mut source = Session::new("instanced");
+            let cube = block([-25.0; 3], [25.0; 3], Color::blue(), true);
+            let definition = source.add_definition(Geometry::Mesh(Rc::new(cube)));
+
+            for place in &places {
+                let instance = InstanceRef::new(&definition, Xform::identity());
+                source.add_instance(instance, place.clone(), None);
+            }
+
+            let baked: Vec<Mesh> = source
+                .get_geometry()
+                .meshes
+                .iter()
+                .map(|mesh| (**mesh).clone())
+                .collect();
+            let Some((mut gpu, scene)) = shown(source) else {
+                return;
+            };
+            let Some((mut want, want_scene)) = placed(baked, vec![], Xform::identity()) else {
+                return;
+            };
+            // baking a mirror keeps the winding, so the baked mirrored block would show red backs
+            gpu.view.backface = false;
+            want.view.backface = false;
+            cut(&mut gpu, &scene, &[cut_above(0.0)]);
+            cut(&mut want, &want_scene, &[cut_above(0.0)]);
+            assert_eq!(gpu.clip.placed.records.len(), 3, "every instance is cut");
+            let centers = [[-60.0, 0.0, 0.0], [60.0, 0.0, 0.0], [0.0, 70.0, 0.0]];
+
+            for samples in [1, 4] {
+                for target in [&mut gpu, &mut want] {
+                    target.view.msaa_forced = Some(samples);
+                    target.resize(SIZE as u32, SIZE as u32);
+                }
+
+                for perspective in [true, false] {
+                    let eye = [40.0, -200.0, 260.0];
+                    let (input, pixel) = frame(&mut gpu, eye, [0.0, 20.0, 0.0], perspective);
+                    let rgba = gpu.render_offscreen(&input);
+                    let (input, _) = frame(&mut want, eye, [0.0, 20.0, 0.0], perspective);
+                    let expected = want.render_offscreen(&input);
+                    let label = format!("{samples}x, perspective {perspective}");
+
+                    for at in centers {
+                        let shares = tints(&rgba, pixel(at), 8);
+                        let cap = patch(&rgba, pixel(at), 8, BLUE);
+                        assert!(
+                            hatched(cap) && shares[0] > 0.99,
+                            "{label}: the section at {at:?}: {shares:?} {cap:?}"
+                        );
+                    }
+
+                    let far = rgba
+                        .chunks_exact(4)
+                        .zip(expected.chunks_exact(4))
+                        .filter(|(a, b)| (0..3).any(|k| a[k].abs_diff(b[k]) > 24))
+                        .count();
+                    eprintln!("{label}: {far} pixels unlike baked");
+
+                    if let Some(dir) = std::env::var_os("INSTANCING_SHOTS") {
+                        for (name, pixels) in [("instanced", &rgba), ("baked", &expected)] {
+                            let mut ppm = format!("P6 {SIZE} {SIZE} 255\n").into_bytes();
+                            ppm.extend(pixels.chunks_exact(4).flat_map(|p| [p[0], p[1], p[2]]));
+                            let file = format!("caps_{samples}_{perspective}_{name}.ppm");
+                            std::fs::write(std::path::Path::new(&dir).join(file), ppm).unwrap();
+                        }
+                    }
+
+                    assert!(far * 400 <= SIZE * SIZE, "{label}: {far} unlike baked");
+                }
+            }
+
+            gpu.view.msaa_forced = Some(1);
+            gpu.resize(SIZE as u32, SIZE as u32);
+            let (input, pixel) = frame(&mut gpu, [40.0, -200.0, 260.0], [0.0, 20.0, 0.0], true);
+            let ids = gpu.render_ids_offscreen(&input);
+
+            for (at, place) in centers.iter().zip(&places) {
+                let (x, y) = pixel(*at);
+                let row = ids[y * SIZE + x][0].checked_sub(1).expect("a cap pick");
+                let placement = scene.placement_of(row).expect("an instance row");
+                let same = (0..16).all(|i| (placement.m[i] - place.m[i]).abs() < 1e-9);
+                assert!(same, "the cap at {at:?} picks its instance");
+            }
+        }
+
+        /// A session's instances on a headless GPU, as `placed` sets it up.
+        fn shown(session: Session) -> Option<(Gpu, Scene)> {
+            crate::app::clipping::verify_solids();
+            let mut gpu = pollster::block_on(Gpu::new_headless(SIZE as u32, SIZE as u32)).ok()?;
+            gpu.clip.fill = 0;
+            gpu.view.show_grid = false;
+            gpu.view.show_mesh_edges = false;
+            gpu.view.show_points = false;
+            gpu.view.lit = false;
+            gpu.view.backface = true;
+            let mut scene = Scene::new();
+            scene.add_file(FileDoc {
+                name: "instanced".into(),
+                session: Rc::new(session),
+                place: Xform::identity(),
+                point_px: 0.0,
+                display_only: false,
+            });
+            scene.upload_to(&mut gpu);
+            Some((gpu, scene))
         }
     }
 }

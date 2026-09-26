@@ -357,7 +357,7 @@ impl State {
                 .is_some_and(|(x, y, radius)| (x - down.0).hypot(y - down.1) <= radius + reach);
 
             if under
-                && let Some(geometry) = self.scene.geometry(*row)
+                && let Some(geometry) = self.scene.shape_of(*row)
                 && snap::control_count(geometry) <= MAX_ROW_POINTS
             {
                 snap::of_geometry(geometry, place, *row, MAX_ROW_WIRES, &mut snaps, &mut wires);
@@ -446,7 +446,7 @@ impl State {
             return;
         }
 
-        let Some(geometry) = self.scene.geometry(row) else {
+        let Some(geometry) = self.scene.shape_of(row) else {
             self.scene.ask(row); // a released document comes back for its snaps
             return;
         };

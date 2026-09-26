@@ -4,6 +4,7 @@ use crate::engine::gpu::Instance;
 use crate::engine::gpu::clip::{ClipPlane, MAX_PLANES};
 use session_rust::element::ElementGeometry;
 use session_rust::{Geometry, Plane};
+use std::collections::HashMap;
 use std::rc::Rc;
 
 impl State {
@@ -58,7 +59,7 @@ impl State {
         let scene = &self.scene;
         self.gpu
             .clip
-            .find_solids(&self.gpu.objects, |row| scene.face_range(row));
+            .find_solids(&self.gpu.objects, |row| scene.solid_faces(row));
     }
 
     /// Flag every mesh walked so far as closed or not, once; open edges already say not.
@@ -68,6 +69,8 @@ impl State {
             | Instance::FLAG_PRINT
             | Instance::FLAG_SHEET
             | Instance::FLAG_SINGLE;
+        // instances of one definition share its geometry: walk it once
+        let mut walked: HashMap<*const Geometry, u32> = HashMap::new();
 
         for row in 0..self.gpu.objects.len() {
             let Some(flags) = self.gpu.objects.row(row).map(|object| object.flags) else {
@@ -78,15 +81,25 @@ impl State {
                 continue;
             }
 
-            let solid = match self.scene.geometry(row) {
-                Some(Geometry::Mesh(mesh)) => clipping::solid_orientation(mesh),
-                Some(Geometry::Element(element)) => match element.geometry() {
-                    ElementGeometry::Mesh(mesh) => clipping::solid_orientation(mesh),
-                    _ => continue,
-                },
-                _ => continue,
+            let Some(shape) = self.scene.shape_of(row) else {
+                continue;
             };
-            let bits = clipping::solid_flags(solid);
+            let bits = match walked.get(&std::ptr::from_ref(shape)) {
+                Some(&bits) => bits,
+                None => {
+                    let solid = match shape {
+                        Geometry::Mesh(mesh) => clipping::solid_orientation(mesh),
+                        Geometry::Element(element) => match element.geometry() {
+                            ElementGeometry::Mesh(mesh) => clipping::solid_orientation(mesh),
+                            _ => continue,
+                        },
+                        _ => continue,
+                    };
+                    let bits = clipping::solid_flags(solid);
+                    walked.insert(std::ptr::from_ref(shape), bits);
+                    bits
+                }
+            };
 
             for bit in [Instance::FLAG_CLOSED, Instance::FLAG_INWARD] {
                 self.gpu

@@ -66,6 +66,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
                 buffer_entry(4, wgpu::BufferBindingType::Storage { read_only: true }),
                 buffer_entry(5, wgpu::BufferBindingType::Storage { read_only: true }),
                 buffer_entry(6, wgpu::BufferBindingType::Storage { read_only: true }),
+                texture_entry(7, wgpu::TextureSampleType::Uint, false),
             ],
         });
     let depth_layout = ctx
@@ -450,6 +451,7 @@ pub struct Ssao {
         wgpu::TextureView,
         wgpu::TextureView,
         [wgpu::Buffer; 4],
+        wgpu::TextureView,
         wgpu::BindGroup,
     )>,
     cached: Option<([f32; 64], u64)>,
@@ -697,6 +699,7 @@ impl Ssao {
         pipes: &SsaoPipelines,
         targets: &Targets,
         geometry: [&wgpu::Buffer; 4],
+        table: &wgpu::TextureView,
         encoder: &mut wgpu::CommandEncoder,
         view: &wgpu::TextureView,
         mvp: [f32; 16],
@@ -738,9 +741,10 @@ impl Ssao {
             ctx.queue
                 .write_buffer(&self.inverse, 0, bytemuck::cast_slice(&data));
         }
-        if self.group.as_ref().is_none_or(|(depth, ids, buffer, _)| {
+        if self.group.as_ref().is_none_or(|(depth, ids, buffer, bound, _)| {
             *depth != targets.depth.view
                 || *ids != targets.gradient.view
+                || bound != table
                 || buffer.iter().zip(geometry).any(|(a, b)| a != b)
         }) {
             let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -775,16 +779,21 @@ impl Ssao {
                         binding: 6,
                         resource: geometry[3].as_entire_binding(),
                     },
+                    wgpu::BindGroupEntry {
+                        binding: 7,
+                        resource: wgpu::BindingResource::TextureView(table),
+                    },
                 ],
             });
             self.group = Some((
                 targets.depth.view.clone(),
                 targets.gradient.view.clone(),
                 geometry.map(Clone::clone),
+                table.clone(),
                 group,
             ));
         }
-        let group = &self.group.as_ref().unwrap().3;
+        let group = &self.group.as_ref().unwrap().4;
         if changed {
             if self.samples > 1 {
                 encoder.clear_buffer(&self.edge_buffers[1], 0, None);
@@ -1004,7 +1013,13 @@ fn projected_bounds(matrix: [f32; 16], bounds: [f32; 6], full: (u32, u32)) -> [f
 }
 
 fn shader_source(samples: u32) -> String {
-    let source = concat!(shader!("ssao.wgsl"), "\n", shader!("ambient_geometry.wgsl"));
+    let source = concat!(
+        shader!("ssao.wgsl"),
+        "\n",
+        shader!("ambient_geometry.wgsl"),
+        "\n",
+        shader!("slot_table.wgsl")
+    );
     if samples > 1 {
         source
             .replace("const MSAA: bool = false;", "const MSAA: bool = true;")
