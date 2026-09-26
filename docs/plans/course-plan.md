@@ -163,7 +163,9 @@ Tests, examples and assets a lesson needs are one line with a download link, nev
 2. Restructure `src` for the part (rules above); run the four gates; commit `src` on its own.
 3. Mirror `src` into the master (`lessons/37`, later `final`), add the section markers, update `FILES.txt`,
    `REGISTER.txt` and `SERIES.txt`; `python3 docs/cut.py`.
-4. Build every new crate: `cargo check --lib` (wasm) and `cargo xtest` with one shared `CARGO_TARGET_DIR`.
+4. Build every new crate: `cargo check --lib` (wasm) and `cargo xtest`, with `CARGO_TARGET_DIR` set to a directory
+   the lesson crates share among themselves but never with `session_viewer` itself (`target/lessons`): the crates have
+   the same package name, and a shared directory lets one crate's build script overwrite the shaders another reads.
 5. Write the pages in the voice; `check_write_once.py`, `check_lesson37.py`, `check_complete.py viewer` and
    `check_budget.py` at 0 for the new ids (the old tail stays over budget until converted).
 6. Commit with a plain message, push to main, watch `viewer-check`, `viewer-pages` and `Session mini tests` to
