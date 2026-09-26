@@ -51,17 +51,17 @@ kbd {
 
 /* Code colours (src/codeTheme.ts), only code is coloured; each is at least 4.7:1 on #f6f6f6. */
 pre { color: #1f2328; }
-.hk { color: #b0127a; font-weight: 600; }   /* keyword: vivid plum */
+.hk { color: #8e0b61; font-weight: 600; }   /* keyword: plum from the palette, saturated */
 .ht { color: #1f2328; font-weight: 700; }   /* type or class: bold black */
-.hu { color: #b0127a; }                      /* module or namespace: vivid plum */
-.ha { color: #4a8f00; }                      /* attribute or decorator: leaf green */
-.hf { color: #8a3ffc; }                      /* function or method: violet */
-.hx { color: #8a3ffc; font-weight: 600; }    /* macro: violet bold */
-.hv { color: #1d63ed; }                      /* variable: blue */
-.hp { color: #1d63ed; font-style: italic; }  /* parameter: blue italic */
-.hm { color: #4a8f00; }                      /* field: leaf green */
+.hu { color: #8e0b61; }                      /* module or namespace: plum from the palette, saturated */
+.ha { color: #647906; }                      /* attribute or decorator: leaf green, saturated */
+.hf { color: #b82ea0; }                      /* function or method: mauve, saturated */
+.hx { color: #b82ea0; font-weight: 600; }    /* macro: mauve bold */
+.hv { color: #1f50ad; }                      /* variable: slate blue, saturated */
+.hp { color: #1f50ad; font-style: italic; }  /* parameter: slate blue italic */
+.hm { color: #647906; }                      /* field: leaf green, saturated */
 .hn { color: #1f2328; }                      /* number or constant: black, like any typed-in value */
 .hs { color: #1f2328; }                      /* string: black, like any typed-in value */
-.hc { color: #7b74c9; font-style: italic; }  /* comment: lavender */
-.ho { color: #7b74c9; }                      /* operator or punctuation: lavender */
+.hc { color: #7580c7; font-style: italic; }  /* comment: lavender grey, saturated */
+.ho { color: #7580c7; }                      /* operator or punctuation: lavender grey, saturated */
 </style>
