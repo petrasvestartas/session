@@ -5,7 +5,7 @@ def to_compas(mesh):
     vertices = {}
     for vkey in mesh.vertices():
         pt = mesh.vertex_point(vkey)
-        vertices[vkey] = [pt.x, pt.y, pt.z]
+        vertices[vkey] = [pt[0], pt[1], pt[2]]
     faces = []
     for fkey in mesh.faces():
         faces.append(mesh.face_vertices(fkey))

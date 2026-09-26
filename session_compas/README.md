@@ -15,21 +15,21 @@ pip install session_compas
 ### Load and view a protobuf/JSON session
 
 ```python
-from session_compas.session import Session
+from session_compas.session import view
 
-session = Session.load("scene.pb")
-session.show()
+view("scene.pb")
 ```
 
 ### Convert individual objects
 
 ```python
-from session_py import Point, Mesh
-from session_compas.session import Session
+from session_py import Point
+from session_py import Session
+from session_compas.session import view
 
-s = Session()
-s.add(Point(1, 2, 3))
-s.show()
+session = Session()
+session.add_point(Point(1, 2, 3))
+view(session)
 ```
 
 ### Convert without viewer
@@ -44,10 +44,11 @@ cp = to_compas(Point(1, 2, 3))  # compas.geometry.Point
 ### Serialize session_py to JSON/protobuf
 
 ```python
-from session_py.session import Session
+from session_py import Point
+from session_py import Session
 
 session = Session()
-session.objects.points.append(Point(1, 2, 3))
+session.add_point(Point(1, 2, 3))
 session.file_json_dump("scene.json")
 session.pb_dump("scene.pb")
 ```

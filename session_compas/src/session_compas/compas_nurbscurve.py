@@ -7,5 +7,5 @@ def to_compas(crv, segments=100):
     for i in range(segments + 1):
         t = d[0] + (d[1] - d[0]) * i / segments
         p = crv.point_at(t)
-        pts.append([p.x, p.y, p.z])
+        pts.append([p[0], p[1], p[2]])
     return CPolyline(pts)

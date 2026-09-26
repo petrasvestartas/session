@@ -10,7 +10,7 @@ def to_compas(srf, nu=30, nv=30):
         for j in range(nv + 1):
             v = dv[0] + (dv[1] - dv[0]) * j / nv
             p = srf.point_at(u, v)
-            verts.append([p.x, p.y, p.z])
+            verts.append([p[0], p[1], p[2]])
     cmesh = CMesh()
     for xyz in verts:
         cmesh.add_vertex(x=xyz[0], y=xyz[1], z=xyz[2])
