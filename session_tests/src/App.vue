@@ -55,7 +55,7 @@ pre { color: #1f2328; }
 .ht { color: #953800; }                      /* type or class */
 .hu { color: #6639ba; }                      /* module or namespace */
 .ha { color: #116329; }                      /* attribute or decorator */
-.hf { color: #8250df; }                      /* function or method */
+.hf { color: #1f2328; }                      /* function or method: black */
 .hx { color: #a0169e; font-weight: 600; }    /* macro */
 .hv { color: #0969da; }                      /* variable */
 .hp { color: #bc4c00; font-style: italic; }  /* parameter */
