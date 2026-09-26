@@ -1,3 +1,4 @@
+// --8<-- [start:gizmo-gesture]
 use super::Gesture;
 use crate::State;
 
@@ -18,3 +19,4 @@ fn release(state: &mut State, at: (f64, f64), click: bool) -> bool {
 
     state.end_gizmo(at.0, at.1)
 }
+// --8<-- [end:gizmo-gesture]

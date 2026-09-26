@@ -1,336 +1,221 @@
 # 25 · Draw a solid, readable gumball
 
-The selected object shows solid colored gumball arrows, scale handles and rotation rings.
+Lesson 21 made the gumball's handles answer the pointer; this lesson draws them. Solid arrows, rings and balls go into a small tile of their own, which is blended over the frame.
 
-## Step 1 · src/app/gizmo.rs
-Expose the shared handle dimensions for the solid gumball.
+![The gumball mesh is uploaded once, drawn into its own tile at 4x, resolved and sampled over the frame.](illustrations/extend-gumball.svg)
 
-`lessons/25/src/app/gizmo.rs` · edit · type this
+## Step 1 · registration lines
 
-Replaces the line `pub const ARM: f64 = 72.0;` in `lessons/24/src/app/gizmo.rs`
+The widget is one more lane, so resize, reset and the byte count reach it.
+
+`lessons/25/src/engine/gpu/mod.rs` · type the line tagged `register:gumball`
 
 ```rust
---8<-- "lessons/25/src/app/gizmo.rs:step-1"
+--8<-- "lessons/25/src/engine/gpu/mod.rs:lane-list"
 ```
 
-## Step 2 · src/app/input.rs
-Update handle hover and bypass gumball grabs while Ctrl selects a component.
+Copy the other lines tagged `register:gumball`, `register:widget` and `register:widget_mesh` from these files of `lessons/25/`:
 
-`lessons/25/src/app/input.rs` · edit · type this
+- `src/engine/gpu/mod.rs`: the `widget` and `widget_mesh` modules, the `widget` field of `Gpu`, and building it.
+- `src/engine/gpu/render.rs`: the widget drawn after everything else, with its own depth.
+- `src/engine/gpu/present.rs`: `prepare_widget` with the frame uniforms.
+- `src/state.rs`: `upload_gizmo` before each frame.
+- `src/app/input.rs`: `hover_gizmo` when the pointer moves.
+- `src/state/edit.rs` and `src/state/number_box.rs`: `upload_gizmo` wherever the gizmo moves or changes handle.
+- `src/app/inspection.rs`: the widget's placement, highlight and bytes in the snapshot.
 
-Replaces the line `dragging` in `lessons/24/src/app/input.rs`
+## Step 2 · src/engine/gpu/widget_mesh.rs
+
+One gumball vertex, in CSS pixels from the centre with a colour and a handle index, and the shape sizes.
+
+`lessons/25/src/engine/gpu/widget_mesh.rs` · type this, new file
 
 ```rust
---8<-- "lessons/25/src/app/input.rs:step-2a"
+--8<-- "lessons/25/src/engine/gpu/widget_mesh.rs:widget-vertex"
 ```
 
-Replaces the line `if state.begin_control_drag(self.last_cursor.0, self.last…` in `lessons/24/src/app/input.rs`
+## Step 3 · src/engine/gpu/widget_mesh.rs
+
+The mesh: per axis a lathed arrow, a scale ball and a quarter ring, then the grey hub.
+
+`lessons/25/src/engine/gpu/widget_mesh.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/25/src/app/input.rs:step-2b"
+--8<-- "lessons/25/src/engine/gpu/widget_mesh.rs:widget-mesh"
 ```
 
-## Step 3 · src/engine/gpu/mod.rs
-Add the new GPU resources, initialize them and include their allocations in the counters.
+## Step 4 · src/engine/gpu/widget_mesh.rs
 
-`lessons/25/src/engine/gpu/mod.rs` · edit · type this
+Shape helpers: turn onto an axis, spin a profile, a sphere, and any parametric surface as triangles.
 
-Added after the line `pub mod view;` in `lessons/24/src/engine/gpu/mod.rs`
+`lessons/25/src/engine/gpu/widget_mesh.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:step-3a"
+--8<-- "lessons/25/src/engine/gpu/widget_mesh.rs:widget-shapes"
 ```
 
-Replaces the 2 lines from `pub gizmo_arms: SegmentLane,` in `lessons/24/src/engine/gpu/mod.rs`
+## Step 5 · src/engine/gpu/widget_mesh.rs
+
+Test: every vertex is finite and within the arm, and all ten handles are present.
+
+`lessons/25/src/engine/gpu/widget_mesh.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:step-3b"
+--8<-- "lessons/25/src/engine/gpu/widget_mesh.rs:widget-mesh-tests"
 ```
 
-Replaces the 2 lines from `+ self.gizmo_arms.allocated_bytes()` in `lessons/24/src/engine/gpu/mod.rs`
+## Step 6 · src/shaders/widget.wgsl
 
-```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:step-3c"
+The 96-byte uniform, and the tile texture the composite samples.
+
+`lessons/25/src/shaders/widget.wgsl` · type this, new file
+
+```wgsl
+--8<-- "lessons/25/src/shaders/widget.wgsl:widget-uniform"
 ```
 
-Added after the line `frame_textures` in `lessons/24/src/engine/gpu/mod.rs`
+## Step 7 · src/shaders/widget.wgsl
 
-```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:step-3d"
-```
+Draw the mesh into the tile, the active handle in orange.
 
-Replaces the 2 lines from `let gizmo_arms = SegmentLane::new(&ctx, &layouts, target);` in `lessons/24/src/engine/gpu/mod.rs`
+`lessons/25/src/shaders/widget.wgsl` · type this, append at the end of the file
 
-```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:step-3e"
-```
-
-Replaces the 2 lines from `gizmo_arms,` in `lessons/24/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:step-3f"
-```
-
-Delete the 6 lines from `pub fn set_widget_rows(&mut self, segments: &segments::Se…` in `lessons/24/src/engine/gpu/mod.rs`.
-
-Delete the 7 lines from `}` in `lessons/24/src/engine/gpu/mod.rs`.
-
-Replaces the 2 lines from `self.gizmo_arms.retarget(&self.ctx, &self.layouts, target);` in `lessons/24/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:step-3i"
-```
-
-Replaces the 2 lines from `self.gizmo_arms.reset();` in `lessons/24/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:step-3j"
-```
-
-Replaces the 2 lines from `self.gizmo_arms.release(&self.ctx, &self.layouts);` in `lessons/24/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:step-3k"
-```
-
-## Step 4 · src/engine/gpu/present.rs
-Submit the widget overlay with the scene frame.
-
-`lessons/25/src/engine/gpu/present.rs` · edit · type this
-
-Added after the line `self.frame.write(&self.ctx, input, &cx);` in `lessons/24/src/engine/gpu/present.rs`
-
-```rust
---8<-- "lessons/25/src/engine/gpu/present.rs:step-4"
-```
-
-## Step 5 · src/engine/gpu/render.rs
-Place the new drawing work into the frame sequence.
-
-`lessons/25/src/engine/gpu/render.rs` · edit · type this
-
-Added after the line `}` in `lessons/24/src/engine/gpu/render.rs`
-
-```rust
---8<-- "lessons/25/src/engine/gpu/render.rs:step-5a"
-```
-
-## Step 6 · src/engine/gpu/widget.rs
-Retain the gumball mesh and draw it into a bounded antialiased tile.
-
-`lessons/25/src/engine/gpu/widget.rs` · 390 lines · type this, new file
-
-```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs"
-```
-
-## Step 7 · src/engine/gpu/widget_mesh.rs
-Build reusable triangle meshes for the gumball arrows, scale handles and rotation rings.
-
-`lessons/25/src/engine/gpu/widget_mesh.rs` · 124 lines · type this, new file
-
-```rust
---8<-- "lessons/25/src/engine/gpu/widget_mesh.rs"
+```wgsl
+--8<-- "lessons/25/src/shaders/widget.wgsl:widget-mesh-shader"
 ```
 
 ## Step 8 · src/shaders/widget.wgsl
-Draw each handle with its own unlit color, then composite the tile over the scene.
 
-`lessons/25/src/shaders/widget.wgsl` · 54 lines · type this, new file
+Stretch the tile over its rectangle on the canvas and blend it in.
+
+`lessons/25/src/shaders/widget.wgsl` · type this, append at the end of the file
 
 ```wgsl
---8<-- "lessons/25/src/shaders/widget.wgsl"
+--8<-- "lessons/25/src/shaders/widget.wgsl:widget-composite"
 ```
 
-## Step 9 · src/state.rs
-Clear widget hover along with selection state.
+## Step 9 · src/engine/gpu/widget.rs
 
-`lessons/25/src/state.rs` · edit · type this
+The `Widget`: the mesh, its uniform, both pipelines, and a tile made on demand.
 
-Added after the line `pub fn render(&mut self) {` in `lessons/24/src/state.rs`
+`lessons/25/src/engine/gpu/widget.rs` · type this, new file
 
 ```rust
---8<-- "lessons/25/src/state.rs:step-9"
+--8<-- "lessons/25/src/engine/gpu/widget.rs:widget-struct"
 ```
 
-## Step 10 · src/state/edit.rs
-Replace the old line widget upload with the solid widget and update its hover state.
+## Step 10 · src/engine/gpu/widget.rs
 
-`lessons/25/src/state/edit.rs` · edit · type this
+Open `impl Widget`: upload the mesh and build both pipelines, then clear, retarget and count bytes.
 
-Replaces the line `use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, …` in `lessons/24/src/state/edit.rs`
+`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/25/src/state/edit.rs:step-10a"
+--8<-- "lessons/25/src/engine/gpu/widget.rs:widget-new"
 ```
 
-Delete the four `use` lines from `use crate::app::walk::encode::FACING_UNKNOWN;` in `lessons/24/src/state/edit.rs`.
+## Step 11 · src/engine/gpu/widget.rs
 
-Added after the line `fn world_per_px(&self) -> f64 {` in `lessons/24/src/state/edit.rs`
+Each frame, find the gumball's screen box, size the tile, and write the matrix that fills it.
+
+`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/25/src/state/edit.rs:step-10b"
+--8<-- "lessons/25/src/engine/gpu/widget.rs:widget-prepare"
 ```
 
-Replaces the lines from `self.gpu` in `lessons/24/src/state/edit.rs`
+## Step 12 · src/engine/gpu/widget.rs
+
+Two passes, the mesh into the tile then the tile over the frame; `Drop` frees the buffers.
+
+`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/25/src/state/edit.rs:step-10c"
+--8<-- "lessons/25/src/engine/gpu/widget.rs:widget-draw"
 ```
 
-Delete the `const ARC_STEPS` block and the `fn widget_rows` block from `lessons/24/src/state/edit.rs`.
+## Step 13 · src/engine/gpu/widget.rs
 
-Delete the `fn the_widget_draws_three_arms_three_arcs_and_four_balls` test and its `#[test]` line from `lessons/24/src/state/edit.rs`.
+The mesh pipeline, depth-tested, and the tile's format at 4x.
 
-Replaces the 3 lines from `let widget = gpu.widget_row();` in `lessons/24/src/state/edit.rs`
+`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/25/src/state/edit.rs:step-10e"
+--8<-- "lessons/25/src/engine/gpu/widget.rs:widget-pipeline"
 ```
 
-Delete the `fn the_arcs_are_where_the_hit_test_expects_them` test and its `#[test]` line from `lessons/24/src/state/edit.rs`.
+## Step 14 · src/engine/gpu/widget.rs
+
+The tile's colour, depth and resolved textures, and the layout of the texture the composite reads.
+
+`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/25/src/engine/gpu/widget.rs:widget-tile"
+```
+
+## Step 15 · src/engine/gpu/widget.rs
+
+The composite pipeline: no depth, the tile blended over the frame.
+
+`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/25/src/engine/gpu/widget.rs:widget-composite"
+```
+
+## Step 16 · src/engine/gpu/widget.rs
+
+The gumball's screen box, from the eight corners of its bounding cube.
+
+`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/25/src/engine/gpu/widget.rs:widget-bounds"
+```
+
+## Step 17 · src/engine/gpu/widget.rs
+
+The widget as a lane: retarget, reset and the byte count.
+
+`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/25/src/engine/gpu/widget.rs:widget-lane"
+```
+
+## Step 18 · src/engine/gpu/present.rs
+
+A `Gpu` method that places the widget for this frame.
+
+`lessons/25/src/engine/gpu/present.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/25/src/engine/gpu/present.rs:prepare-widget"
+```
+
+## Step 19 · src/state/edit.rs
+
+Tell the GPU where the gizmo is and which handle lights up, and light the handle under the pointer.
+
+`lessons/25/src/state/edit.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/25/src/state/edit.rs:upload-gizmo"
+```
+
+## Step 20 · src/state/edit.rs
+
+GPU test: the widget changes the picture, with red, green and blue arms.
+
+`lessons/25/src/state/edit.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/25/src/state/edit.rs:widget-test"
+```
+
+Run `cargo check` in `lessons/25/`.
 
 ## Check
 
-Run `trunk serve` in `lessons/25/` and open <http://127.0.0.1:8770/>.
-
-Expected: the selected object has solid colored handles and the status area shows no error.
-
-![Full viewer result for lesson 25](screenshots/extensions-gumball-overview.png)
-
-If it fails:
-
-- A handle blocks component picking: Ctrl does not bypass the gumball grab.
-- Gumball edges look rough: its tile sample count or composite coverage is wrong.
-
-## What changed
-
-```text
-lessons/25/src/
-├── app/
-│   ├── inspection/
-│   │   └── source_memory.rs
-│   ├── walk/
-│   │   ├── bounds.rs
-│   │   ├── brep.rs
-│   │   ├── brep_edges.rs
-│   │   ├── brep_orient.rs
-│   │   ├── cloud.rs
-│   │   ├── curves.rs
-│   │   ├── encode.rs
-│   │   ├── frames.rs
-│   │   ├── mesh.rs
-│   │   ├── mesh_ink.rs
-│   │   ├── mesh_topology.rs
-│   │   ├── mod.rs
-│   │   ├── points.rs
-│   │   └── sheet.rs
-│   ├── cloud_query.rs
-│   ├── command.rs
-│   ├── coords.rs
-│   ├── cplane.rs
-│   ├── decode.rs
-│   ├── edit.rs
-│   ├── feedback.rs
-│   ├── fetch.rs
-│   ├── gizmo.rs  ~
-│   ├── input.rs  ~
-│   ├── inspection.rs
-│   ├── knobs.rs
-│   ├── layers.rs
-│   ├── live.rs
-│   ├── loader.rs
-│   ├── manifest.rs
-│   ├── mod.rs
-│   ├── modeling.rs
-│   ├── route.rs
-│   ├── scene.rs
-│   ├── scene_text.rs
-│   ├── selection.rs
-│   ├── sheet_query.rs
-│   ├── snap.rs
-│   ├── stream.rs
-│   ├── touch.rs
-│   └── validate.rs
-├── engine/
-│   ├── gpu/
-│   │   ├── arena.rs
-│   │   ├── backdrop.rs
-│   │   ├── buffers.rs
-│   │   ├── cloud.rs
-│   │   ├── device.rs
-│   │   ├── faces.rs
-│   │   ├── frame.rs
-│   │   ├── glyphs.rs
-│   │   ├── instance.rs
-│   │   ├── lod.rs
-│   │   ├── mod.rs  ~
-│   │   ├── objects.rs
-│   │   ├── pick.rs
-│   │   ├── present.rs  ~
-│   │   ├── render.rs  ~
-│   │   ├── segments.rs
-│   │   ├── splat.rs
-│   │   ├── surface_outline.rs
-│   │   ├── targets.rs
-│   │   ├── text.rs
-│   │   ├── text_outline.rs
-│   │   ├── text_plane.rs
-│   │   ├── text_plate.rs
-│   │   ├── triangle_tiles.rs
-│   │   ├── upload.rs
-│   │   ├── view.rs
-│   │   ├── widget.rs  +
-│   │   └── widget_mesh.rs  +
-│   ├── pipelines/
-│   │   ├── layouts.rs
-│   │   └── mod.rs
-│   ├── mod.rs
-│   ├── performance.rs
-│   └── text.rs
-├── shaders/
-│   ├── background.wgsl
-│   ├── glyph.wgsl
-│   ├── grid.wgsl
-│   ├── ink_visibility.wgsl
-│   ├── normals.wgsl
-│   ├── physical.wgsl
-│   ├── project_triangles.wgsl
-│   ├── projected_triangle.wgsl
-│   ├── ribbon.wgsl
-│   ├── scan_triangle_tiles.wgsl
-│   ├── scene.wgsl
-│   ├── sphere.wgsl
-│   ├── splat.wgsl
-│   ├── splat_resolve.wgsl
-│   ├── surface_outline.wgsl
-│   ├── text_outline.wgsl
-│   ├── text_plane.wgsl
-│   ├── text_plate.wgsl
-│   ├── triangle.wgsl
-│   ├── triangle_tiles.wgsl
-│   └── widget.wgsl  +
-├── state/
-│   ├── cloud_query.rs
-│   ├── edit.rs  ~
-│   ├── sheet_query.rs
-│   └── text.rs
-├── camera.rs
-├── lib.rs
-└── state.rs  ~
-```
-
-`+` new in this lesson · `~` changed in this lesson
-
-Data flow: selected row → retained handle mesh → antialiased tile → scene overlay.
-Every file at this point: `lessons/25/`.
-
-## Next
-
-[26 · Build the nested session and graph panel](26-nested-panel.md)
-
-## Expected viewer result
-
-Select a line and press **7** for an isometric view. The whole viewer shows the selected line with solid cylindrical shafts, cone tips, rotation rings and scale spheres, while the surrounding scene stays visible. The capture uses the maintained viewer and the [nested fixture](extensions/nested.pb). The bottom dock, right Layers panel and left toolbar visible in this maintained-viewer reference are added in [checkpoint 8](29-docked-workspace.md).
-
-[![Full viewer result for lesson 25](screenshots/extensions-gumball-overview.png)](screenshots/extensions-gumball-overview.png)
+`cargo check` compiles, and `cargo xtest --lib widget_mesh` passes. Select an object: red, green and blue arrows, quarter rings and balls sit at its centre, the same size at any zoom, and the handle under the pointer turns orange.

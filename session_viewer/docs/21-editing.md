@@ -1,1093 +1,971 @@
-# 21 · Editing: the gumball, the command line and the layers panel
+# 21 · Direct editing
 
-Selecting an object shows a gumball, and a drag or typed command records an undoable edit.
+A plain drag moves an object, a gumball handle moves, turns or scales it, and an F10 control point follows the pointer, snapping to nearby geometry. The screen shows a preview while the pointer moves; the document changes once, on release, as one undo step.
 
 ![A drag is three moments: grabbing remembers the object's own transform, every move frame writes a preview into the row's GPU placement and touches no document, and letting go writes the document once.](illustrations/one-gesture.svg)
 
-## Step 1 · src/app/mod.rs
+## Step 1 · registration lines
 
-The application module connects source loading and interaction helpers.
+Three gestures join the left-button table, tried in this order: control point, gumball handle, object.
 
-`lessons/21/src/app/mod.rs` · edit · type this
-
-Replaces `mod feedback` in `lessons/20/src/app/mod.rs`
+`lessons/21/src/app/gesture/mod.rs` · type the lines tagged `register:control-drag`, `register:gizmo-drag` and `register:object-drag`
 
 ```rust
---8<-- "lessons/21/src/app/mod.rs:step-1"
+--8<-- "lessons/21/src/app/gesture/mod.rs:gesture-table"
 ```
 
-## Step 2 · src/state.rs
-
-State coordinates input, selection and frame requests.
-
-`lessons/21/src/state.rs` · edit · type this
-
-Added after the `mod cloud_query;` line of `lessons/20/src/state.rs`
+`lessons/21/src/state/features.rs` · type the lines tagged `register:control_drag`, `register:gizmo`, `register:gizmo_drag`, `register:object_drag`, `register:snap` and `register:hydrate`
 
 ```rust
---8<-- "lessons/21/src/state.rs:step-2"
+--8<-- "lessons/21/src/state/features.rs:features-struct"
+```
+
+`lessons/21/src/state/features.rs` · type the lines tagged `register:editing` and `register:hydrate`
+
+```rust
+--8<-- "lessons/21/src/state/features.rs:features-hooks"
+```
+
+Copy the other lines tagged `register:` with a lesson 21 tag from these files of `lessons/21/`:
+
+- `src/app/mod.rs`: the `cplane`, `deform`, `edit`, `gizmo`, `layers`, `mesh_preview`, `snap` and `surface_preview` modules.
+- `src/state.rs`: the `drag`, `edit`, `hydrate` and `number_box` modules, and the `register:editing` calls that place the gizmo or cancel a gesture.
+- `src/app/keys.rs`: Delete, Ctrl+Z, Ctrl+Shift+Z and Ctrl+Y.
+- `src/lib.rs` and `src/app/input.rs`: the `Hydrated` message, and the calls that cancel a gesture or close the number box.
+- `src/app/scene.rs`, `src/app/scene_sync.rs` and `src/app/scene_release.rs`: the preview, edge-step and `instancing` fields and calls.
+- `src/app/scene_text.rs`: the two `text_edited` calls that make a text an undo step.
+- `src/state/clipping.rs`: an instance's definition as the shape a plane cuts.
+- `src/app/inspection.rs`: the drag, number box, snap, layer, instance and preview entries of the snapshot.
+
+## Step 2 · src/app/cplane.rs
+
+The three world planes a dragged point can slide on, the one the view faces, and where a ray hits it.
+
+`lessons/21/src/app/cplane.rs` · type this, new file
+
+```rust
+--8<-- "lessons/21/src/app/cplane.rs:cplane"
 ```
 
 ## Step 3 · src/app/cplane.rs
 
-The construction plane maps cursor rays into modeling coordinates.
+Tests: the facing plane, a ray landing on it, rays that miss, and a millimetre kept a kilometre away.
 
-`lessons/21/src/app/cplane.rs` · type this, new file, start with these lines
+`lessons/21/src/app/cplane.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/cplane.rs:step-3a"
+--8<-- "lessons/21/src/app/cplane.rs:cplane-tests"
 ```
 
-`lessons/21/src/app/cplane.rs` · type this, append at the end of the file
+## Step 4 · src/app/snap.rs
+
+The snap kinds, one bit per switch, the snap settings and a snap candidate.
+
+`lessons/21/src/app/snap.rs` · type this, new file
 
 ```rust
---8<-- "lessons/21/src/app/cplane.rs:step-3b"
+--8<-- "lessons/21/src/app/snap.rs:snap-kinds"
 ```
 
-`lessons/21/src/app/cplane.rs` · type this, append at the end of the file
+## Step 5 · src/app/snap.rs
+
+Candidates from a polyline, a closed loop's centre, and the Near and Perp points along wires under the pointer.
+
+`lessons/21/src/app/snap.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/cplane.rs:step-3c"
+--8<-- "lessons/21/src/app/snap.rs:snap-candidates"
 ```
 
-## Step 4 · src/app/coords.rs
+## Step 6 · src/app/snap.rs
 
-Coordinate input accepts absolute, relative and polar values.
+The snap points and wires of any placed geometry, and a count of its control points without collecting them.
 
-`lessons/21/src/app/coords.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/21/src/app/coords.rs:step-4a"
-```
-
-`lessons/21/src/app/coords.rs` · type this, append at the end of the file
+`lessons/21/src/app/snap.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/coords.rs:step-4b"
-```
-
-`lessons/21/src/app/coords.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/coords.rs:step-4c"
-```
-
-`lessons/21/src/app/coords.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/coords.rs:step-4d"
-```
-
-## Step 5 · src/camera.rs
-
-The camera owns orbit, pan, zoom and projection in the same file used by the finished viewer.
-
-`lessons/21/src/camera.rs` · edit · type this
-
-Added after the `self.update_position();` line in `fn zoom` of `lessons/20/src/camera.rs`
-
-```rust
---8<-- "lessons/21/src/camera.rs:step-5a"
-```
-
-`lessons/21/src/camera.rs` · edit · type this
-
-Added after the `mod wheel_tests {` line of `lessons/20/src/camera.rs`
-
-```rust
---8<-- "lessons/21/src/camera.rs:step-5b"
-```
-
-## Step 6 · src/app/gizmo.rs
-
-The gumball computes translation, rotation and scale about the selected object.
-
-`lessons/21/src/app/gizmo.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/21/src/app/gizmo.rs:step-6a"
-```
-
-`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/gizmo.rs:step-6b"
-```
-
-`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/gizmo.rs:step-6c"
-```
-
-`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/gizmo.rs:step-6d"
-```
-
-`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/gizmo.rs:step-6e"
-```
-
-`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/gizmo.rs:step-6f"
-```
-
-`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/gizmo.rs:step-6g"
-```
-
-`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/gizmo.rs:step-6h"
+--8<-- "lessons/21/src/app/snap.rs:snap-geometry"
 ```
 
 ## Step 7 · src/app/snap.rs
 
-Snapping chooses nearby source positions in screen space.
-
-`lessons/21/src/app/snap.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/21/src/app/snap.rs:step-7a"
-```
+Pick the winner inside the aperture: the better kind first, then the nearer point.
 
 `lessons/21/src/app/snap.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/snap.rs:step-7b"
+--8<-- "lessons/21/src/app/snap.rs:snap-best"
 ```
+
+## Step 8 · src/app/snap.rs
+
+`Screen` maps world points, boxes and point chains to pixels, one matrix for many points.
 
 `lessons/21/src/app/snap.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/snap.rs:step-7c"
+--8<-- "lessons/21/src/app/snap.rs:snap-screen"
 ```
+
+## Step 9 · src/app/snap.rs
+
+`Bins` sorts rows into screen cells a slice at a time, so a query reads only the cells near the pointer.
 
 `lessons/21/src/app/snap.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/snap.rs:step-7d"
+--8<-- "lessons/21/src/app/snap.rs:snap-bins"
 ```
 
-## Step 8 · src/app/edit.rs
+## Step 10 · src/app/snap.rs
 
-Source edits record document transactions and preserve object identity.
+Tests: candidates of lines and loops, ranking, rays, the screen mapping and the bins.
 
-`lessons/21/src/app/edit.rs` · type this, new file, start with these lines
+`lessons/21/src/app/snap.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/edit.rs:step-8a"
+--8<-- "lessons/21/src/app/snap.rs:snap-tests"
 ```
 
-`lessons/21/src/app/edit.rs` · type this, append at the end of the file
+## Step 11 · src/app/gizmo.rs
+
+The gizmo's pixel sizes, its handles and axes, their number box labels, and how a typed value is read.
+
+`lessons/21/src/app/gizmo.rs` · type this, new file
 
 ```rust
---8<-- "lessons/21/src/app/edit.rs:step-8b"
+--8<-- "lessons/21/src/app/gizmo.rs:gizmo-handles"
 ```
 
-`lessons/21/src/app/edit.rs` · type this, append at the end of the file
+## Step 12 · src/app/gizmo.rs
+
+What a drag remembers, the `Gizmo` itself, and the point on each handle where its number box is pinned.
+
+`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/edit.rs:step-8c"
+--8<-- "lessons/21/src/app/gizmo.rs:gizmo-struct"
 ```
 
-`lessons/21/src/app/edit.rs` · type this, append at the end of the file
+## Step 13 · src/app/gizmo.rs
+
+Which handle a ray hits: the hub, then the balls, the arms and the arcs.
+
+`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/edit.rs:step-8d"
+--8<-- "lessons/21/src/app/gizmo.rs:gizmo-hit"
 ```
 
-## Step 9 · src/app/scene.rs
+## Step 14 · src/app/gizmo.rs
 
-The scene owns source documents and maps their identities to GPU rows.
+Start a drag, turn the pointer's travel into a move, turn or scale, or build one from a typed number; the impl closes.
 
-`lessons/21/src/app/scene.rs` · edit · type this
-
-Added after the `bases: Bases,` line in `struct Scene` of `lessons/20/src/app/scene.rs`
+`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/scene.rs:step-9a"
+--8<-- "lessons/21/src/app/gizmo.rs:gizmo-drag"
 ```
 
-Added after the `bases: Bases::default(),` line in `fn new` of `lessons/20/src/app/scene.rs`
+## Step 15 · src/app/gizmo.rs
+
+The small geometry helpers: softened scale, closest point on an axis, plane hits, angles and a transform about a pivot.
+
+`lessons/21/src/app/gizmo.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/scene.rs:step-9b"
+--8<-- "lessons/21/src/app/gizmo.rs:gizmo-math"
 ```
 
-## Step 10 · src/engine/gpu/objects.rs
+## Step 16 · src/app/gizmo.rs
 
-The object table stores GPU rows separately from source identity.
+Tests: handles do not shadow each other, stay pixel sized, and every drag and typed value gives the right transform.
 
-`lessons/21/src/engine/gpu/objects.rs` · edit · type this
-
-Added after the `}` line of `lessons/20/src/engine/gpu/objects.rs`
+`lessons/21/src/app/gizmo.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10a"
+--8<-- "lessons/21/src/app/gizmo.rs:gizmo-tests"
 ```
 
-Added after the `translation: Vec<[f64; 3]>,` line in `struct InstanceTable` of `lessons/20/src/engine/gpu/objects.rs`
+## Step 17 · src/app/deform.rs
+
+A `Target` names the vertex, edge or face an edit moves, read from the current selection.
+
+`lessons/21/src/app/deform.rs` · type this, new file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10b"
+--8<-- "lessons/21/src/app/deform.rs:deform-target"
 ```
 
-Added after the `translation: Vec::new(),` line in `fn new` of `lessons/20/src/engine/gpu/objects.rs`
+## Step 18 · src/app/deform.rs
+
+The mesh vertex keys and surface control indices a target covers.
+
+`lessons/21/src/app/deform.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10c"
+--8<-- "lessons/21/src/app/deform.rs:deform-keys"
 ```
 
-Replaces the 4 lines from `if self.translation.is_empty() {` in `fn append` of `lessons/20/src/engine/gpu/objects.rs`
+## Step 19 · src/app/deform.rs
+
+The points a target covers in any geometry, where the gumball centres.
+
+`lessons/21/src/app/deform.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10d"
+--8<-- "lessons/21/src/app/deform.rs:deform-points"
 ```
 
-Replaces the 20 lines from `` of `lessons/20/src/engine/gpu/objects.rs`
+## Step 20 · src/app/deform.rs
+
+A copy of the geometry with the target moved, one arm per geometry type.
+
+`lessons/21/src/app/deform.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10e"
+--8<-- "lessons/21/src/app/deform.rs:deform-transform"
 ```
 
-Added after the `});` line in `fn append` of `lessons/20/src/engine/gpu/objects.rs`
+## Step 21 · src/app/deform.rs
+
+Refuse a BRep edit whose edge curves no longer lie on their surfaces.
+
+`lessons/21/src/app/deform.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10f"
+--8<-- "lessons/21/src/app/deform.rs:deform-validate"
 ```
 
-`lessons/21/src/engine/gpu/objects.rs` · edit · type this
+## Step 22 · src/app/deform.rs
 
-Added after the `}` line in `impl InstanceTable` of `lessons/20/src/engine/gpu/objects.rs`
+Tests: a mesh face, edge numbering, a surface boundary and a box face.
+
+`lessons/21/src/app/deform.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10g"
+--8<-- "lessons/21/src/app/deform.rs:deform-tests"
 ```
 
-Replaces the 2 lines from `self.rows.clear();` in `fn reset` of `lessons/20/src/engine/gpu/objects.rs`
+## Step 23 · src/app/layers.rs
+
+What one layers-panel row controls: a document or a kind of geometry.
+
+`lessons/21/src/app/layers.rs` · type this, new file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10h"
+--8<-- "lessons/21/src/app/layers.rs:layer-model"
 ```
 
-Added after the `self.translation.shrink_to_fit();` line in `fn release` of `lessons/20/src/engine/gpu/objects.rs`
+## Step 24 · src/app/layers.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10i"
-```
-
-Added after the `}` line in `mod tests` of `lessons/20/src/engine/gpu/objects.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/objects.rs:step-10j"
-```
-
-## Step 11 · src/engine/gpu/mod.rs
-
-The GPU owner connects buffers, pipelines and frame resources.
-
-`lessons/21/src/engine/gpu/mod.rs` · edit · type this
-
-Added after the `pub control_net: SegmentLane,` line in `struct Gpu` of `lessons/20/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/mod.rs:step-11a"
-```
-
-Added after the `+ self.control_net.allocated_bytes()` line in `fn allocated_bytes` of `lessons/20/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/mod.rs:step-11b"
-```
-
-Added after the `let control_net = SegmentLane::new(&ctx, &lay…` line in `fn build` of `lessons/20/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/mod.rs:step-11c"
-```
-
-Added after the `control_net,` line in `fn build` of `lessons/20/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/mod.rs:step-11d"
-```
-
-Added after the `}` line in `impl Gpu` of `lessons/20/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/mod.rs:step-11e"
-```
-
-Added after the `if flip || resized {` line in `fn retarget` of `lessons/20/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/mod.rs:step-11f"
-```
-
-Added after the `self.control_net.retarget(&self.ctx, &self.la…` line in `fn retarget` of `lessons/20/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/mod.rs:step-11g"
-```
-
-Added after the `self.control_net.reset();` line in `fn reset` of `lessons/20/src/engine/gpu/mod.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/mod.rs:step-11h"
-```
-
-## Step 12 · src/engine/gpu/render.rs
-
-The frame encoder orders face, ink, picking and overlay passes.
-
-`lessons/21/src/engine/gpu/render.rs` · edit · type this
-
-Added after the `draws += self.controls.draw_dots(pass, &b);` line in `fn scene_list` of `lessons/20/src/engine/gpu/render.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/render.rs:step-12"
-```
-
-## Step 13 · src/state/edit.rs
-
-Editing connects commands and gumball previews to document history.
-
-`lessons/21/src/state/edit.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/21/src/state/edit.rs:step-13a"
-```
-
-`lessons/21/src/state/edit.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/state/edit.rs:step-13b"
-```
-
-`lessons/21/src/state/edit.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/state/edit.rs:step-13c"
-```
-
-`lessons/21/src/state/edit.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/state/edit.rs:step-13d"
-```
-
-## Step 14 · src/app/command.rs
-
-The command parser turns typed input into editing actions.
-
-`lessons/21/src/app/command.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/21/src/app/command.rs:step-14a"
-```
-
-`lessons/21/src/app/command.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/command.rs:step-14b"
-```
-
-`lessons/21/src/app/command.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/app/command.rs:step-14c"
-```
-
-## Step 15 · src/state/edit.rs
-
-Editing connects commands and gumball previews to document history.
-
-`lessons/21/src/state/edit.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/21/src/state/edit.rs:step-15"
-```
-
-## Step 16 · src/app/layers.rs
-
-Layer rows collect objects by document or geometry kind.
-
-`lessons/21/src/app/layers.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/21/src/app/layers.rs:step-16a"
-```
+The panel rows: documents first, then the kinds present, with their counts.
 
 `lessons/21/src/app/layers.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/layers.rs:step-16b"
+--8<-- "lessons/21/src/app/layers.rs:layer-rows"
 ```
+
+## Step 25 · src/app/layers.rs
+
+Open `impl Scene`: the current layer new objects go to, found by name in the tree.
 
 `lessons/21/src/app/layers.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/layers.rs:step-16c"
+--8<-- "lessons/21/src/app/layers.rs:layer-current"
 ```
+
+## Step 26 · src/app/layers.rs
+
+Add, rename and remove layers, names kept unique in their document.
 
 `lessons/21/src/app/layers.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/layers.rs:step-16d"
+--8<-- "lessons/21/src/app/layers.rs:layer-edit"
 ```
 
-## Step 17 · src/state/edit.rs
+## Step 27 · src/app/layers.rs
 
-Editing connects commands and gumball previews to document history.
+Move objects onto another layer without moving them in the world.
+
+`lessons/21/src/app/layers.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/layers.rs:layer-move"
+```
+
+## Step 28 · src/app/layers.rs
+
+Run each layer edit as one undo step, and take back a step that failed; the brace closes the impl.
+
+`lessons/21/src/app/layers.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/layers.rs:layer-steps"
+```
+
+## Step 29 · src/app/layers.rs
+
+Layer step labels, renames seen by undo, and the graph edges an Add Edge step made.
+
+`lessons/21/src/app/layers.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/layers.rs:layer-history"
+```
+
+## Step 30 · src/app/layers.rs
+
+Tree helpers: unique names, a layer's frame, placing an object under it, and a node's placement.
+
+`lessons/21/src/app/layers.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/layers.rs:layer-tree"
+```
+
+## Step 31 · src/app/layers.rs
+
+Tests: panel rows, counts, and every layer edit with its undo and redo.
+
+`lessons/21/src/app/layers.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/layers.rs:layer-tests"
+```
+
+## Step 32 · src/app/edit.rs
+
+A second `impl Scene`: move many rows by one world delta, one undo step per document.
+
+`lessons/21/src/app/edit.rs` · type this, new file
+
+```rust
+--8<-- "lessons/21/src/app/edit.rs:edit-transform"
+```
+
+## Step 33 · src/app/edit.rs
+
+Make a row's session private, read and set its local transform, and turn a world move into a local one.
+
+`lessons/21/src/app/edit.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/edit.rs:edit-rows"
+```
+
+## Step 34 · src/app/edit.rs
+
+Delete one row, or many rows and texts as one undo step across documents.
+
+`lessons/21/src/app/edit.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/edit.rs:edit-delete"
+```
+
+## Step 35 · src/app/edit.rs
+
+Undo and redo across documents, newest first, keeping a layer edit whole; the brace closes the impl.
+
+`lessons/21/src/app/edit.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/edit.rs:edit-history"
+```
+
+## Step 36 · src/app/edit.rs
+
+Move one control point of a polyline or curve, the world point turned into the object's frame first.
+
+`lessons/21/src/app/edit.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/edit.rs:edit-control-point"
+```
+
+## Step 37 · src/app/edit.rs
+
+Tests: group moves, shared files, scaled placements, undo across documents, control points and texts.
+
+`lessons/21/src/app/edit.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/edit.rs:edit-tests"
+```
+
+## Step 38 · src/app/edit.rs
+
+After the tests, one more `impl Scene`: move a subobject, replace geometry, and replace many rows as one step.
+
+`lessons/21/src/app/edit.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/edit.rs:edit-subobject"
+```
+
+## Step 39 · src/app/edit.rs
+
+Move a control point to a world point, and show a geometry on the GPU without touching the document.
+
+`lessons/21/src/app/edit.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/edit.rs:edit-preview"
+```
+
+## Step 40 · src/app/mesh_preview.rs
+
+A mesh's GPU rows tagged with vertex keys, and the few rows one drag touches.
+
+`lessons/21/src/app/mesh_preview.rs` · type this, new file
+
+```rust
+--8<-- "lessons/21/src/app/mesh_preview.rs:mesh-preview-rows"
+```
+
+## Step 41 · src/app/mesh_preview.rs
+
+Match the uploaded vertices, pipes and markers back to the mesh's keys.
+
+`lessons/21/src/app/mesh_preview.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/mesh_preview.rs:mesh-preview-capture"
+```
+
+## Step 42 · src/app/mesh_preview.rs
+
+Collect the rows a drag of one target moves or reshapes, and count the preview's bytes.
+
+`lessons/21/src/app/mesh_preview.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/mesh_preview.rs:mesh-preview-begin"
+```
+
+## Step 43 · src/app/mesh_preview.rs
+
+Patch those rows in place with the drag applied, or put them back.
+
+`lessons/21/src/app/mesh_preview.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/mesh_preview.rs:mesh-preview-apply"
+```
+
+## Step 44 · src/app/mesh_preview.rs
+
+Test: a drag on a 10,201-vertex mesh touches only the rows around the face.
+
+`lessons/21/src/app/mesh_preview.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/mesh_preview.rs:mesh-preview-tests"
+```
+
+## Step 45 · src/app/surface_preview.rs
+
+What a surface preview keeps from the upload: each vertex's parameter, the pipes and their ends.
+
+`lessons/21/src/app/surface_preview.rs` · type this, new file
+
+```rust
+--8<-- "lessons/21/src/app/surface_preview.rs:surface-preview-struct"
+```
+
+## Step 46 · src/app/surface_preview.rs
+
+Capture one surface or BRep upload, matching each pipe end to a vertex.
+
+`lessons/21/src/app/surface_preview.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/surface_preview.rs:surface-preview-capture"
+```
+
+## Step 47 · src/app/surface_preview.rs
+
+Evaluate the changed surfaces again at every kept parameter, and move the pipes with them.
+
+`lessons/21/src/app/surface_preview.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/surface_preview.rs:surface-preview-evaluate"
+```
+
+## Step 48 · src/app/surface_preview.rs
+
+Tests: coincident samples, a lone surface's four edges, and a box face moved and cancelled.
+
+`lessons/21/src/app/surface_preview.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/surface_preview.rs:surface-preview-tests"
+```
+
+## Step 49 · src/app/surface_preview.rs
+
+After the tests, the helper that finds the surfaces inside a geometry.
+
+`lessons/21/src/app/surface_preview.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/surface_preview.rs:surface-preview-surfaces"
+```
+
+## Step 50 · src/app/scene_instances.rs
+
+The batches: a definition walked once under a hidden row, drawn by every instance row.
+
+`lessons/21/src/app/scene_instances.rs` · type this, new file
+
+```rust
+--8<-- "lessons/21/src/app/scene_instances.rs:instancing-state"
+```
+
+## Step 51 · src/app/scene_instances.rs
+
+Open `impl Scene`: one row per drawable instance, and the rows an instance owns alone.
+
+`lessons/21/src/app/scene_instances.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_instances.rs:add-instances"
+```
+
+## Step 52 · src/app/scene_instances.rs
+
+Find or walk the batch of a definition, or decide it is drawn per instance.
+
+`lessons/21/src/app/scene_instances.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_instances.rs:batches"
+```
+
+## Step 53 · src/app/scene_instances.rs
+
+Kill, create, redraw or move an instance row during a sync.
+
+`lessons/21/src/app/scene_instances.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_instances.rs:reconcile-instance"
+```
+
+## Step 54 · src/app/scene_instances.rs
+
+Walk a document's batches and instance rows again after a compaction.
+
+`lessons/21/src/app/scene_instances.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_instances.rs:rewalk-instances"
+```
+
+## Step 55 · src/app/scene_instances.rs
+
+Look up an instance's definition, faces, batch row and name; after the impl, a walk's box and flags go onto an object row.
+
+`lessons/21/src/app/scene_instances.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_instances.rs:instance-lookup"
+```
+
+## Step 56 · src/app/scene_instances.rs
+
+Tests: one walk serves every instance, and every instance edit leaves the rows of a scene loaded fresh.
+
+`lessons/21/src/app/scene_instances.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_instances.rs:instance-tests"
+```
+
+## Step 57 · src/app/scene.rs
+
+Tests: a created text keeps its GPU anchor, and element features move with their element.
+
+`lessons/21/src/app/scene.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene.rs:editing-tests"
+```
+
+## Step 58 · src/app/scene.rs
+
+A released document fetched and decoded again, as the message that brings it back.
+
+`lessons/21/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene.rs:hydrated"
+```
+
+## Step 59 · src/app/scene_sync.rs
+
+A dragged row's mesh and surface previews, captured from a walk of that row alone.
+
+`lessons/21/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_sync.rs:sync-previews"
+```
+
+## Step 60 · src/app/scene_sync.rs
+
+Tests: deleted clouds, compaction, many-document deletes and objects outside the tree.
+
+`lessons/21/src/app/scene_sync.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_sync.rs:sync-editing-tests"
+```
+
+## Step 61 · src/app/scene_release.rs
+
+Ask for a released document's objects back, and put them back when they arrive.
+
+`lessons/21/src/app/scene_release.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_release.rs:hydrate"
+```
+
+## Step 62 · src/app/scene_release.rs
+
+Tests: released rows keep names and layers, the same file brings objects back, and a failed fetch waits for an edit.
+
+`lessons/21/src/app/scene_release.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/scene_release.rs:hydrate-tests"
+```
+
+## Step 63 · src/app/loader.rs
+
+Fetch and decode a released document again; the answer comes back as `Msg::Hydrated`.
+
+`lessons/21/src/app/loader.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/21/src/app/loader.rs:spawn-hydrate"
+```
+
+## Step 64 · src/state/hydrate.rs
+
+Edits that wait for released documents, why a row is locked, and the idle purge between edits.
+
+`lessons/21/src/state/hydrate.rs` · type this, new file
+
+```rust
+--8<-- "lessons/21/src/state/hydrate.rs"
+```
+
+## Step 65 · src/state/edit.rs
+
+What a gumball drag holds: the rows and their start placements, the handle, and a target with its source.
+
+`lessons/21/src/state/edit.rs` · type this, new file
+
+```rust
+--8<-- "lessons/21/src/state/edit.rs:gizmo-drag-struct"
+```
+
+## Step 66 · src/state/edit.rs
+
+Open `impl State`: centre the gizmo on the selection or its subobject, and grab a handle.
 
 `lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/state/edit.rs:step-17a"
+--8<-- "lessons/21/src/state/edit.rs:place-gizmo"
 ```
+
+## Step 67 · src/state/edit.rs
+
+Follow the pointer: a subobject previews its geometry, whole objects move their GPU placements.
 
 `lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/state/edit.rs:step-17b"
+--8<-- "lessons/21/src/state/edit.rs:drag-gizmo"
 ```
 
-## Step 18 · src/app/feedback.rs
+## Step 68 · src/state/edit.rs
 
-Feedback publishes status and panel information from the same application state.
+Release records one undo step, a click opens the number box, and a cancel puts everything back.
 
-`lessons/21/src/app/feedback.rs` · edit · type this
+`lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
-Added after the `}` line of `lessons/20/src/app/feedback.rs`
-
-```rust
---8<-- "lessons/21/src/app/feedback.rs:step-18"
-```
-
-## Step 19 · index.html
-
-Labels go in with `textContent`, so a document named after a tag cannot become markup.
-
-`lessons/21/index.html` · edit · type this
-
-Replaces the 3 lines from `<canvas id="canvas" tabindex="0"></canvas>` of `lessons/20/index.html`
-
-```html
---8<-- "lessons/21/index.html:step-19"
-```
-
-## Step 20 · Cargo.toml
-
-The manifest adds the dependencies and browser features used by these edits.
-
-`lessons/21/Cargo.toml` · edit · type this
-
-Replaces the 3 lines from `"EventTarget",` of `lessons/20/Cargo.toml`
-
-```toml
---8<-- "lessons/21/Cargo.toml:step-20"
-```
-
-## Step 21 · src/app/input.rs
-
-Input routes gestures and keyboard actions to State.
-
-`lessons/21/src/app/input.rs` · edit · type this
-
-Added after the `shift: bool,` line in `struct Input` of `lessons/20/src/app/input.rs`
-
-```rust
---8<-- "lessons/21/src/app/input.rs:step-21a"
-```
-
-Added after the `shift: false,` line in `fn new` of `lessons/20/src/app/input.rs`
-
-```rust
---8<-- "lessons/21/src/app/input.rs:step-21b"
-```
-
-Added after the `Key::Named(NamedKey::F10) => state.enable_con…` line in `fn key` of `lessons/20/src/app/input.rs`
-
-```rust
---8<-- "lessons/21/src/app/input.rs:step-21c"
-```
-
-Added after the `winit::dpi::PhysicalPosition::new(position.x…` line in `fn mouse` of `lessons/20/src/app/input.rs`
-
-```rust
---8<-- "lessons/21/src/app/input.rs:step-21d"
-```
-
-Replaces the 12 lines from `self.left_down = None;` in `fn cancel` of `lessons/20/src/app/input.rs`
-
-```rust
---8<-- "lessons/21/src/app/input.rs:step-21e"
-```
-
-Added after the `}` line of `lessons/20/src/app/input.rs`
-
-```rust
---8<-- "lessons/21/src/app/input.rs:step-21f"
-```
-
-## Step 22 · src/lib.rs
-
-The crate entry point connects the camera, scene and GPU owners.
-
-`lessons/21/src/lib.rs` · edit · type this
-
-Added after the `CancelPointer,` line in `enum Msg` of `lessons/20/src/lib.rs`
-
-```rust
---8<-- "lessons/21/src/lib.rs:step-22a"
-```
-
-Added after the `pointer_cancellation: Option<app::input::Poin…` line in `struct App` of `lessons/20/src/lib.rs`
-
-```rust
---8<-- "lessons/21/src/lib.rs:step-22b"
-```
-
-Added after the `pointer_cancellation: None,` line in `fn run` of `lessons/20/src/lib.rs`
-
-```rust
---8<-- "lessons/21/src/lib.rs:step-22c"
-```
-
-Added after the `if let Some((w, h)) = desired_canvas_size() {` line in `fn adopt` of `lessons/20/src/lib.rs`
-
-```rust
---8<-- "lessons/21/src/lib.rs:step-22d"
-```
-
-Added after the `}` line in `fn resumed` of `lessons/20/src/lib.rs`
-
-```rust
---8<-- "lessons/21/src/lib.rs:step-22e"
-```
-
-Added after the `}` line in `fn user_event` of `lessons/20/src/lib.rs`
-
-```rust
---8<-- "lessons/21/src/lib.rs:step-22f"
-```
-
-## Step 23 · src/state.rs
-
-State coordinates input, selection and frame requests.
-
-`lessons/21/src/state.rs` · edit · type this
-
-Added after the `last_frame_ms: f64,` line in `struct State` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23a"
-```
-
-Added after the `sheet_generation: u64,` line in `struct State` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23b"
-```
-
-Added after the `last_frame_ms: 0.0,` line in `fn new` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23c"
-```
-
-Added after the `sheet_generation: 0,` line in `fn new` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23d"
-```
-
-Added after the `self.annotate_document(first_row);` line in `fn append` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23e"
-```
-
-Added after the `self.scene.clear(&mut self.gpu);` line in `fn clear` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23f"
-```
-
-Added after the `}` line in `impl State` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23g"
-```
-
-Added after the `self.scene.selected = row;` line in `fn select` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23h"
-```
-
-Added after the `self.gpu.set_hidden(row, true);` line in `fn hide_selected` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23i"
-```
-
-Added after the `self.scene.hidden.clear();` line in `fn show_all` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23j"
-```
-
-Replaces the 3 lines from `&& crate::engine::gpu::view::device_pixel_rat…` in `fn render` of `lessons/20/src/state.rs`
-
-```rust
---8<-- "lessons/21/src/state.rs:step-23k"
-```
-
-## Step 24 · src/engine/gpu/targets.rs
-
-Targets own the depth and color attachments for a frame.
-
-`lessons/21/src/engine/gpu/targets.rs` · edit · type this
-
-Replaces the 8 lines from `pub depth: wgpu::TextureView,` in `struct Targets` of `lessons/20/src/engine/gpu/targets.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24a"
-```
-
-Replaces the `texture_view(` line in `fn new` of `lessons/20/src/engine/gpu/targets.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24b"
-```
-
-Replaces the 3 lines from `(depth.clone(), empty_depth)` in `fn new` of `lessons/20/src/engine/gpu/targets.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24c"
-```
-
-Replaces the 3 lines from `(gradient.clone(), empty_gradient)` in `fn new` of `lessons/20/src/engine/gpu/targets.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24d"
-```
-
-Added after the `samples,` line in `fn new` of `lessons/20/src/engine/gpu/targets.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24e"
-```
-
-```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24f"
-```
-
-Replaces the 5 lines from `if let Some(s) = forced {` in `fn samples_for` of `lessons/20/src/engine/gpu/targets.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24g"
-```
-
-Replaces the `let target = self.msaa.as_ref().unwrap_or(view);` line in `fn begin_faces` of `lessons/20/src/engine/gpu/targets.rs`
-
 ```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24h"
+--8<-- "lessons/21/src/state/edit.rs:end-gizmo"
 ```
 
-Replaces the `let (target, resolve) = match &self.msaa {` line in `fn begin_ink` of `lessons/20/src/engine/gpu/targets.rs`
+## Step 69 · src/state/edit.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24i"
-```
-
-Replaces `fn texture_view` in `lessons/20/src/engine/gpu/targets.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/targets.rs:step-24j"
-```
-
-## Step 25 · src/engine/gpu/mod.rs
+Delete the selection, undo and redo, and reset the selection afterwards.
 
-The GPU owner connects buffers, pipelines and frame resources.
+`lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
-`lessons/21/src/engine/gpu/mod.rs` · edit · type this
-
-Added after the `self.control_net.release(&self.ctx, &self.lay…` line in `fn release` of `lessons/20/src/engine/gpu/mod.rs`
-
 ```rust
---8<-- "lessons/21/src/engine/gpu/mod.rs:step-25"
+--8<-- "lessons/21/src/state/edit.rs:delete-undo"
 ```
-
-## Step 26 · src/engine/gpu/pick.rs
 
-Picking reads an object and subobject ID asynchronously.
+## Step 70 · src/state/edit.rs
 
-`lessons/21/src/engine/gpu/pick.rs` · edit · type this
-
-Replaces the `use super::targets::{TextureSpec, texture, te…` line of `lessons/20/src/engine/gpu/pick.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26a"
-```
+Bring the rows in line with the documents after an edit, compacting when dead rows pile up.
 
-Replaces the 4 lines from `id: wgpu::Texture,` in `struct IdTargets` of `lessons/20/src/engine/gpu/pick.rs`
+`lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26b"
+--8<-- "lessons/21/src/state/edit.rs:commit-rows"
 ```
 
-Replaces the `view: &target.id_view,` line in `fn begin_source` of `lessons/20/src/engine/gpu/pick.rs`
+## Step 71 · src/state/edit.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26c"
-```
+The scene length of one CSS pixel at the gizmo, and device pixels per CSS pixel; the brace closes the impl.
 
-Replaces the `let id = texture(` line in `fn begin_pass` of `lessons/20/src/engine/gpu/pick.rs`
+`lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26d"
+--8<-- "lessons/21/src/state/edit.rs:world-per-px"
 ```
 
-Replaces the 2 lines from `let id_view = id.create_view(&wgpu::TextureVi…` in `fn begin_pass` of `lessons/20/src/engine/gpu/pick.rs`
+## Step 72 · src/state/edit.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26e"
-```
+Rotations and scales about a point, for the commands of lesson 23a.
 
-Replaces the `let gradient = texture_view(` line in `fn begin_pass` of `lessons/20/src/engine/gpu/pick.rs`
+`lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26f"
+--8<-- "lessons/21/src/state/edit.rs:rotation-about"
 ```
 
-Delete the `view: &t.id_view,` line in `fn begin_pass` of `lessons/20/src/engine/gpu/pick.rs`.
+## Step 73 · src/state/edit.rs
 
-Replaces the `view: &t.id_view,` line in `fn begin_pass` of `lessons/20/src/engine/gpu/pick.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26h"
-```
+A control point drag: grab the selected point, preview the geometry with it moved, commit on release.
 
-Replaces the `view: &targets.id_view,` line in `fn begin_ink` of `lessons/20/src/engine/gpu/pick.rs`
+`lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26i"
+--8<-- "lessons/21/src/state/edit.rs:control-drag"
 ```
 
-Replaces the `texture: &t.id,` line in `fn copy_window` of `lessons/20/src/engine/gpu/pick.rs`
+## Step 74 · src/state/edit.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26j"
-```
+Where the point lands, snapped to another control or on its plane, and a scene point in pixels.
 
-Replaces the `texture: &target.id,` line in `fn copy_window` of `lessons/20/src/engine/gpu/pick.rs`
+`lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/pick.rs:step-26k"
+--8<-- "lessons/21/src/state/edit.rs:control-target"
 ```
 
-## Step 27 · src/engine/gpu/splat.rs
+## Step 75 · src/state/edit.rs
 
-The splat pass chooses visible points before compositing their color and depth.
-
-`lessons/21/src/engine/gpu/splat.rs` · edit · type this
-
-Replaces the `use super::targets::{TextureSpec, texture_view};` line of `lessons/20/src/engine/gpu/splat.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/splat.rs:step-27a"
-```
+Test: one CSS pixel covers the same scene length on a 1x and a 2x display.
 
-Replaces the 2 lines from `depth: wgpu::TextureView,` in `struct SplatTargets` of `lessons/20/src/engine/gpu/splat.rs`
+`lessons/21/src/state/edit.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/splat.rs:step-27b"
+--8<-- "lessons/21/src/state/edit.rs:edit-state-tests"
 ```
 
-Replaces the `let depth = texture_view(` line in `fn new` of `lessons/20/src/engine/gpu/splat.rs`
+## Step 76 · src/state/edit.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/splat.rs:step-27c"
-```
+Four more small impl blocks: restore a subobject selection, redraw from the source, two frame hooks, and `apply`.
 
-Replaces the `let color = texture_view(` line in `fn new` of `lessons/20/src/engine/gpu/splat.rs`
+`lessons/21/src/state/edit.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/splat.rs:step-27d"
+--8<-- "lessons/21/src/state/edit.rs:edit-restore"
 ```
 
-## Step 28 · src/engine/gpu/surface_outline.rs
+## Step 77 · src/state/drag.rs
 
-Surface masks add outlines around visible coverage.
+The limits that keep an object drag fast: snap reach, bin cell, and per-move budgets.
 
-`lessons/21/src/engine/gpu/surface_outline.rs` · edit · type this
+`lessons/21/src/state/drag.rs` · type this, new file
 
-Replaces the 9 lines from `use super::targets::{Targets, TextureSpec, te…` of `lessons/20/src/engine/gpu/surface_outline.rs`
-
 ```rust
---8<-- "lessons/21/src/engine/gpu/surface_outline.rs:step-28a"
+--8<-- "lessons/21/src/state/drag.rs:drag-limits"
 ```
 
-Replaces the 3 lines from `let resolved = texture_view(ctx, "selection c…` in `fn prepare` of `lessons/20/src/engine/gpu/surface_outline.rs`
+## Step 78 · src/state/drag.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/surface_outline.rs:step-28b"
-```
+An object drag, the objects it moves, and the snap targets it collects on the way.
 
-Replaces the `let coarse = texture_view(` line in `fn prepare` of `lessons/20/src/engine/gpu/surface_outline.rs`
+`lessons/21/src/state/drag.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/surface_outline.rs:step-28c"
+--8<-- "lessons/21/src/state/drag.rs:drag-state"
 ```
-
-## Step 29 · src/engine/gpu/triangle_tiles.rs
 
-Triangle tiles limit visibility queries to finite projected geometry.
+## Step 79 · src/state/drag.rs
 
-`lessons/21/src/engine/gpu/triangle_tiles.rs` · edit · type this
+Open `impl State`: past the click slop, ask the GPU pick what the press hit, and take hold when it answers.
 
-Replaces the 2 lines from `use super::buffers::{GpuCtx, ROWS, bind_group…` of `lessons/20/src/engine/gpu/triangle_tiles.rs`
+`lessons/21/src/state/drag.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/triangle_tiles.rs:step-29a"
+--8<-- "lessons/21/src/state/drag.rs:drag-start"
 ```
 
-Replaces the `target: Option<wgpu::TextureView>,` line in `struct TriangleTiles` of `lessons/20/src/engine/gpu/triangle_tiles.rs`
+## Step 80 · src/state/drag.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/triangle_tiles.rs:step-29b"
-```
+Grab: select the object, lock-check the selection, and choose the grab point and its plane.
 
-Replaces the 5 lines from `self.projected = zeroed_buffer(` in `fn prepare` of `lessons/20/src/engine/gpu/triangle_tiles.rs`
+`lessons/21/src/state/drag.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/triangle_tiles.rs:step-29c"
+--8<-- "lessons/21/src/state/drag.rs:drag-grab"
 ```
 
-Replaces the 24 lines from `self.buffer = zeroed_buffer(` in `fn prepare` of `lessons/20/src/engine/gpu/triangle_tiles.rs`
+## Step 81 · src/state/drag.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/triangle_tiles.rs:step-29d"
-```
+Follow the pointer, snapped or on the plane, show the rows there, and commit or cancel.
 
-Replaces the 2 lines from `self.buffer = zeroed_buffer(&ctx.device, "tri…` in `fn release_data` of `lessons/20/src/engine/gpu/triangle_tiles.rs`
+`lessons/21/src/state/drag.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/triangle_tiles.rs:step-29e"
+--8<-- "lessons/21/src/state/drag.rs:drag-follow"
 ```
-
-## Step 30 · src/engine/gpu/text_plane.rs
-
-Plane text projects labels through their scene placement.
-
-`lessons/21/src/engine/gpu/text_plane.rs` · edit · type this
 
-Replaces the 2 lines from `_texture: wgpu::Texture,` in `struct CachedPlane` of `lessons/20/src/engine/gpu/text_plane.rs`
+## Step 82 · src/state/drag.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/text_plane.rs:step-30a"
-```
+Find the best snap near the pointer, collecting nearby objects' points within a few milliseconds per move.
 
-Replaces the `_texture: texture,` line in `impl Planes` of `lessons/20/src/engine/gpu/text_plane.rs`
+`lessons/21/src/state/drag.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/text_plane.rs:step-30b"
+--8<-- "lessons/21/src/state/drag.rs:drag-snaps"
 ```
-
-## Step 31 · src/engine/gpu/buffers.rs
 
-Growable buffers keep existing rows while new geometry arrives.
+## Step 83 · src/state/drag.rs
 
-`lessons/21/src/engine/gpu/buffers.rs` · edit · type this
+The view as a `Screen`, the snap marker, the drag as JSON; then the drag plane and offset.
 
-Replaces the `self.buf = nb;` line in `fn grow` of `lessons/20/src/engine/gpu/buffers.rs`
+`lessons/21/src/state/drag.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/buffers.rs:step-31a"
+--8<-- "lessons/21/src/state/drag.rs:drag-status"
 ```
 
-Replaces the `self.buf = zeroed_buffer(&ctx.device, self.la…` line in `fn release` of `lessons/20/src/engine/gpu/buffers.rs`
+## Step 84 · src/state/drag.rs
 
-```rust
---8<-- "lessons/21/src/engine/gpu/buffers.rs:step-31b"
-```
+Tests: the drag plane for each view, and the offset that takes the grab point to the target.
 
-Added after the `}` line of `lessons/20/src/engine/gpu/buffers.rs`
+`lessons/21/src/state/drag.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/buffers.rs:step-31c"
+--8<-- "lessons/21/src/state/drag.rs:drag-tests"
 ```
-
-## Step 32 · src/engine/gpu/present.rs
 
-Presentation acquires the frame and submits rendering work.
+## Step 85 · src/state/number_box.rs
 
-`lessons/21/src/engine/gpu/present.rs` · edit · type this
+The number box a clicked handle opens, pinned to its handle on screen.
 
-Added after the `pub fn render_ids_offscreen(&mut self, input:…` line in `impl Gpu` of `lessons/20/src/engine/gpu/present.rs`
+`lessons/21/src/state/number_box.rs` · type this, new file
 
 ```rust
---8<-- "lessons/21/src/engine/gpu/present.rs:step-32"
+--8<-- "lessons/21/src/state/number_box.rs:number-prompt"
 ```
 
-Copy each file from the lesson folder to the path shown.
+## Step 86 · src/state/number_box.rs
 
-Copy from `lessons/21/` (tooling this checkpoint needs but the course does not teach):
+Close the box, or apply the typed value as one undo step.
 
-- `lessons/21/src/text_quality.rs`
+`lessons/21/src/state/number_box.rs` · type this, append at the end of the file
 
-## Step 33 · src/state.rs
-
-State coordinates input, selection and frame requests.
-
-`lessons/21/src/state.rs` · edit · type this
-
-Added after the `}` line in `impl State` of `lessons/20/src/state.rs`
-
 ```rust
---8<-- "lessons/21/src/state.rs:step-33a"
+--8<-- "lessons/21/src/state/number_box.rs:number-typed"
 ```
 
-Added after the `}` line in `fn enable_controls` of `lessons/20/src/state.rs`
+## Step 87 · src/state/number_box.rs
 
-```rust
---8<-- "lessons/21/src/state.rs:step-33b"
-```
+A tap that opened a number box; lesson 23 adds the line that raises the phone keyboard.
 
-Replaces `fn upload_controls` in `lessons/20/src/state.rs`
+`lessons/21/src/state/number_box.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/state.rs:step-33c"
+--8<-- "lessons/21/src/state/number_box.rs:number-tap"
 ```
-
-## Step 34 · src/lib.rs
 
-The crate entry point connects the camera, scene and GPU owners.
+## Step 88 · src/app/gesture/control.rs
 
-`lessons/21/src/lib.rs` · edit · type this
+The control point gesture: a press on the selected point grabs it, a click puts it back.
 
-Added after the `Msg::CancelPointer => {` line in `fn user_event` of `lessons/20/src/lib.rs`
+`lessons/21/src/app/gesture/control.rs` · type this, new file
 
 ```rust
---8<-- "lessons/21/src/lib.rs:step-34a"
+--8<-- "lessons/21/src/app/gesture/control.rs:control-gesture"
 ```
 
-Replaces the 4 lines from `if let Some((w, h)) = desired_canvas_size()` in `fn window_event` of `lessons/20/src/lib.rs`
+## Step 89 · src/app/gesture/gizmo.rs
 
-```rust
---8<-- "lessons/21/src/lib.rs:step-34b"
-```
-
-## Step 35 · src/engine/gpu/view.rs
+The gumball gesture: a handle drags the selection, a click asks for a number.
 
-View settings control display features without changing source geometry.
+`lessons/21/src/app/gesture/gizmo.rs` · type this, new file
 
-`lessons/21/src/engine/gpu/view.rs` · edit · type this
-
-Replaces `fn reduce_for_slow_frames` in `lessons/20/src/engine/gpu/view.rs`
-
 ```rust
---8<-- "lessons/21/src/engine/gpu/view.rs:step-35"
+--8<-- "lessons/21/src/app/gesture/gizmo.rs:gizmo-gesture"
 ```
 
-## Step 36 · src/state.rs
+## Step 90 · src/app/gesture/object.rs
 
-State coordinates input, selection and frame requests.
+The object gesture: only a mouse drag past the slop moves an object; a finger orbits.
 
-`lessons/21/src/state.rs` · edit · type this
+`lessons/21/src/app/gesture/object.rs` · type this, new file
 
-Replaces `fn render_position` in `lessons/20/src/state.rs`
-
 ```rust
---8<-- "lessons/21/src/state.rs:step-36"
+--8<-- "lessons/21/src/app/gesture/object.rs:object-gesture"
 ```
-
-## Step 37 · src/app/route.rs
 
-Route helpers read viewer options from the page URL.
+## Step 91 · src/app/keys.rs
 
-`lessons/21/src/app/route.rs` · edit · type this
+A key binding with Ctrl held, for undo and redo.
 
-Replaces the `if !message.contains("device lost") || query(…` line in `fn recover_from_device_loss` of `lessons/20/src/app/route.rs`
+`lessons/21/src/app/keys.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/route.rs:step-37a"
+--8<-- "lessons/21/src/app/keys.rs:ctrl-key"
 ```
 
-Replaces the 18 lines from `let kept: Vec<&str> = search` in `fn recover_from_device_loss` of `lessons/20/src/app/route.rs`
+## Step 92 · src/app/inspection.rs
 
-```rust
---8<-- "lessons/21/src/app/route.rs:step-37b"
-```
+The number box and the selected geometry's shape, for the inspection snapshot.
 
-Replaces the 6 lines from `#[cfg(target_arch = "wasm32")]` of `lessons/20/src/app/route.rs`
+`lessons/21/src/app/inspection.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/app/route.rs:step-37c"
+--8<-- "lessons/21/src/app/inspection.rs:edit-snapshot"
 ```
-
-## Step 38 · src/lib.rs
 
-The crate entry point connects the camera, scene and GPU owners.
+## Step 93 · src/engine/gpu/clip.rs
 
-`lessons/21/src/lib.rs` · edit · type this
+GPU tests on rendered frames: sections hatched and watertight, nothing cut away shows or picks.
 
-Added after the `}` line in `fn run_web` of `lessons/20/src/lib.rs`
+`lessons/21/src/engine/gpu/clip.rs` · copy, append at the end of the file
 
 ```rust
---8<-- "lessons/21/src/lib.rs:step-38"
+--8<-- "lessons/21/src/engine/gpu/clip.rs:clip-scene-tests"
 ```
 
-## Step 39 · src/engine/gpu/device.rs
+## Step 94 · tests and example
 
-Device setup chooses supported limits and reports GPU failures.
+Copy these files from `lessons/21/`:
 
-`lessons/21/src/engine/gpu/device.rs` · edit · type this
-
-Replaces the 2 lines from `device.set_device_lost_callback(move |reason,…` in `fn open` of `lessons/20/src/engine/gpu/device.rs`
-
-```rust
---8<-- "lessons/21/src/engine/gpu/device.rs:step-39"
-```
+- `tests/editing-extensions.cjs`, `tests/large-object-dragging.cjs`, `tests/live-shell-editing.cjs`, `tests/source-editing.cjs`, `tests/streamed-editing.cjs`: browser checks of drags, subobject edits, undo and streamed scenes.
+- `examples/mk_extension_fixture.rs`: writes the two-beam fixture scene the editing checks load.
 
 Run `cargo check` in `lessons/21/`.
 
 ## Check
 
-Run `trunk serve` in `lessons/21/` and open <http://127.0.0.1:8770/>.
-
-Expected: Selecting an object shows a gumball, and a drag or typed command records an undoable edit; status: **the status names the selected object**.
-
-[![Full viewer result for 21 editing](screenshots/21-editing-overview.png)](screenshots/21-editing-overview.png)
-
-If it fails:
-
-- A drag jumps on release: the world delta is applied as a local transform.
-- A cancelled drag leaves an object moved: the GPU preview is not restored.
-- A control marker moves before the shape changes: the source is committed on release.
-
-## What changed
-
-Every file at this point: `lessons/21/`.
-
-## Next
-
-[22 · Refresh diagnostics and resource checks](22-runtime-helpers.md)
-
-## Expected viewer result
-
-Select the placed polyline, press **7**, **L** and **:**; the gumball, layers and command field appear.
-
-[![Full viewer result for 21 editing](screenshots/21-editing-overview.png)](screenshots/21-editing-overview.png)
+`cargo check` compiles, and `cargo xtest --lib gizmo`, `cargo xtest --lib snap` and `cargo xtest --lib edit` pass. Drag an object: it follows the pointer, its grab point snaps to other objects' ends and middles, and Ctrl+Z puts it back; Delete removes the selection. The gumball handles already answer the pointer; lesson 25 draws them.

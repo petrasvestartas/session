@@ -1,3 +1,4 @@
+// --8<-- [start:drag-limits]
 use super::State;
 use crate::app::cplane::CPlane;
 use crate::app::selection::{SelectionMode, SelectionTool};
@@ -11,7 +12,7 @@ use std::collections::HashSet;
 /// Views closer to level than this, sin 20°, drag on a vertical plane.
 const LEVEL: f64 = 0.34;
 
-/// Snap reach, CSS pixels.
+/// The aperture: how close, in CSS pixels, the pointer must come to a point to snap to it.
 const APERTURE: f64 = 12.0;
 
 /// Bin cell, device pixels.
@@ -28,7 +29,10 @@ const MAX_ROW_POINTS: usize = 65_536;
 
 /// A BRep with more control links offers no Near snaps to a drag.
 const MAX_ROW_WIRES: usize = 4_096;
+// --8<-- [end:drag-limits]
 
+// --8<-- [start:drag-state]
+// The GPU pick answers a few frames late, so a drag starts empty and takes hold of the object when the answer comes.
 /// A left drag that started on an object: a pick asks what the press landed on, then it follows.
 pub struct ObjectDrag {
     down: (f64, f64),       // where the press landed, device pixels
@@ -69,7 +73,7 @@ impl Targets {
             rows: Bins::new(screen.size, CELL),
             points: Bins::new(screen.size, CELL),
             strokes: Bins::new(screen.size, CELL),
-            seen: moved.iter().copied().collect(),
+            seen: moved.iter().copied().collect(), // fields fill in the order written: `seen` reads `moved` before it moves in
             moved,
             screen,
             snaps: Vec::new(),
@@ -79,7 +83,9 @@ impl Targets {
         }
     }
 }
+// --8<-- [end:drag-state]
 
+// --8<-- [start:drag-start]
 impl State {
     /// A plain press dragged past the click slop: ask the GPU what the press landed on.
     pub(crate) fn start_object_drag(&mut self, down: (f64, f64), at: (f64, f64)) -> bool {
@@ -138,7 +144,7 @@ impl State {
 
     /// The pick answered: take hold of what it hit; false when no drag was asking.
     pub(super) fn take_drag_pick(&mut self, pick: Option<Pick>) -> bool {
-        // out of `self` while selecting, which would cancel it
+        // `take` moves the drag out and leaves None: selecting below would cancel a drag it found in `self`
         let Some(mut drag) = self.features.object_drag.take() else {
             return false;
         };
@@ -155,7 +161,9 @@ impl State {
         self.follow(cursor); // the pointer is already past the slop
         true
     }
+// --8<-- [end:drag-start]
 
+// --8<-- [start:drag-grab]
     /// Select `row` unless it is part of the selection, and hold the selection at the press.
     fn grab(&mut self, row: u32, down: (f64, f64)) -> Option<Moving> {
         if !self.scene.selectable(row) {
@@ -223,7 +231,7 @@ impl State {
             .features
             .snap
             .enabled
-            .then(|| Targets::new(screen, moved));
+            .then(|| Targets::new(screen, moved)); // only with snaps on
         Some(Moving {
             row: main,
             group,
@@ -234,14 +242,16 @@ impl State {
             targets,
         })
     }
+// --8<-- [end:drag-grab]
 
+// --8<-- [start:drag-follow]
     /// Put the grab point under the cursor, snapped or on the plane, and show the objects there.
     fn follow(&mut self, cursor: (f64, f64)) -> bool {
         let Some(mut moving) = self
             .features
             .object_drag
             .as_mut()
-            .and_then(|drag| drag.moving.take())
+            .and_then(|drag| drag.moving.take()) // out, so `aim` and `show` may borrow `self`; put back below
         else {
             return false;
         };
@@ -334,7 +344,9 @@ impl State {
             None => {}
         }
     }
+// --8<-- [end:drag-follow]
 
+// --8<-- [start:drag-snaps]
     /// The grabbed objects' own snap point under the press, if one is in reach.
     fn own_snap(
         &self,
@@ -400,7 +412,7 @@ impl State {
             view.circle(&objects.row_bounds(row)?)
         });
         let reach = APERTURE * self.pixel_scale();
-        let mut near = std::mem::take(&mut targets.near);
+        let mut near = std::mem::take(&mut targets.near); // borrow the reused list out, so `targets` stays free
         targets.rows.near(cursor, reach, &mut near);
         // how far a row's box is from the cursor, in pixels
         let gap = |row: u32| {
@@ -409,6 +421,7 @@ impl State {
         };
         // rows not collected yet whose boxes reach the cursor, nearest first, while this move has time
         near.retain(|&row| !targets.seen.contains(&row) && gap(row).is_some_and(|d| d <= reach));
+        // floats are not Ord, whole 1/1024 pixels are; the key is computed once per row
         near.sort_by_cached_key(|&row| gap(row).map_or(u64::MAX, |d| (d * 1024.0) as u64));
         let start = now_ms();
 
@@ -495,7 +508,9 @@ impl State {
             }
         }
     }
+// --8<-- [end:drag-snaps]
 
+// --8<-- [start:drag-status]
     /// The view as it maps the scene to device pixels now.
     pub(super) fn screen(&self) -> Screen {
         let origin = self.camera.origin();
@@ -548,7 +563,9 @@ fn drag_plane(forward: &Vector) -> CPlane {
 fn offset(from: &Point, to: &Point) -> Xform {
     Xform::translation(to[0] - from[0], to[1] - from[1], to[2] - from[2])
 }
+// --8<-- [end:drag-status]
 
+// --8<-- [start:drag-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -577,3 +594,4 @@ mod tests {
         assert_eq!([moved[0], moved[1], moved[2]], [1500.0, -9500.0, 0.0]);
     }
 }
+// --8<-- [end:drag-tests]

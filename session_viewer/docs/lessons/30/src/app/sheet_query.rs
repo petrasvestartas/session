@@ -1,3 +1,6 @@
+// --8<-- [start:side-table]
+// The .meta side table lies next to the sheet file: a head, one 16-byte record per entity, then the JSON blobs.
+// A picked entity is read on demand, so a sheet's names and kinds never sit in memory.
 use serde::Deserialize;
 use std::cell::Cell;
 use std::rc::Rc;
@@ -58,6 +61,7 @@ pub fn record(raw: &[u8]) -> Result<(u64, u64), String> {
 
 /// Byte position of record `id`; `record_at(count)` starts the blobs.
 pub fn record_at(id: u32) -> u64 {
+    // record 3 starts at 8 + 16 * 3 = 56
     HEAD_BYTES + RECORD_BYTES * u64::from(id)
 }
 
@@ -65,7 +69,9 @@ pub fn record_at(id: u32) -> u64 {
 pub fn entity_from(raw: &[u8]) -> Result<EntityMeta, String> {
     serde_json::from_slice(raw).map_err(|error| format!("Entity record is not valid JSON: {error}"))
 }
+// --8<-- [end:side-table]
 
+// --8<-- [start:entity-query]
 /// One entity lookup in flight.
 pub struct Query {
     pub id: u64,                   // lookup number
@@ -86,6 +92,7 @@ impl Query {
     }
 }
 
+// The cancel flag works as in the cloud query: a newer pick drops this Query, and its late answer is ignored.
 impl Drop for Query {
     /// Cancel the lookup.
     fn drop(&mut self) {
@@ -98,7 +105,9 @@ pub struct Resolved {
     pub query: u64,                                       // which lookup
     pub result: Result<(EntityMeta, SheetTable), String>, // the entity and the table head
 }
+// --8<-- [end:entity-query]
 
+// --8<-- [start:read-entity]
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
@@ -106,6 +115,7 @@ mod web {
 
     use crate::app::fetch::fetch_range as range;
 
+    // spawn_local runs the future after this call returns, so the future must own its data: values and a cloned flag, no borrows.
     /// Start reading one entity; the answer arrives as a message.
     pub fn fetch_entity(query: &Query, url: String, table: Option<SheetTable>, entities: u32) {
         wasm_bindgen_futures::spawn_local(post_entity(
@@ -134,6 +144,7 @@ mod web {
         }
     }
 
+    // Three small range reads, 8 + 16 bytes + one blob, instead of downloading an 11 MB table.
     /// Read the head if unknown, then the record, then the blob.
     pub async fn read_entity(
         url: &str,
@@ -145,6 +156,7 @@ mod web {
         let table = match table {
             Some(table) => table,
             None => {
+                // the first read learns the file's ETag; every later read must match it
                 let (raw, revision) = range(url, 0, HEAD_BYTES, &None).await?;
                 let count = table_count(&raw)?;
 
@@ -183,6 +195,7 @@ mod web {
             ));
         }
 
+        // `ok_or` turns the None of an overflow into an error, and `?` returns it
         let at = record_at(table.count)
             .checked_add(offset)
             .ok_or("Entity record offset overflows")?;
@@ -192,7 +205,9 @@ mod web {
 }
 #[cfg(target_arch = "wasm32")]
 pub use web::fetch_entity;
+// --8<-- [end:read-entity]
 
+// --8<-- [start:side-table-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -253,3 +268,4 @@ mod tests {
         assert!(token.get());
     }
 }
+// --8<-- [end:side-table-tests]

@@ -1,3 +1,5 @@
+// --8<-- [start:number-state]
+// The number box: type an exact distance or angle for the gumball handle the pointer is on.
 use super::{Control, Output, record};
 use crate::State;
 use crate::app::gizmo::Handle;
@@ -16,13 +18,17 @@ pub(crate) struct NumberBox {
     closed: bool,                        // closed without a value this frame
 }
 
+// egui redraws the box from scratch every frame, so what it must remember lives here, outside egui
 thread_local! { static STATE: RefCell<NumberBox> = RefCell::default(); } // kept between frames
+// --8<-- [end:number-state]
 
+// --8<-- [start:number-hooks]
 /// The number box, registered in PANELS.
 pub(super) struct Hooks;
 
 impl super::Panel for Hooks {
     fn fill(&self, state: &mut State) {
+        // the viewer's state from lesson 21 says whether a box is open and for which handle
         let prompt = state.number_prompt();
 
         // a box whose handle went behind the eye closes, so no unseen field keeps the keys
@@ -30,6 +36,7 @@ impl super::Panel for Hooks {
             state.close_number_box();
         }
 
+        // `with_borrow_mut` lends the value inside the thread-local for as long as the closure runs
         STATE.with_borrow_mut(|model| model.number_prompt = prompt);
     }
 
@@ -86,7 +93,9 @@ impl super::Panel for Hooks {
         });
     }
 }
+// --8<-- [end:number-hooks]
 
+// --8<-- [start:number-draw]
 /// The gumball number box beside its handle; Enter keeps the text in `typed`, Escape sets `closed`.
 fn draw(
     root: &mut egui::Ui,                 // the panel area
@@ -98,6 +107,7 @@ fn draw(
         model.number_rect = None;
         return;
     };
+    // an Id names a widget across frames: focus, and later the phone keyboard, find the field by it
     let id = egui::Id::new("number-input");
     let opened = model.number_handle != Some(prompt.handle);
 
@@ -112,6 +122,7 @@ fn draw(
     let focused = root.memory(|memory| memory.focused());
 
     // Escape, or another field taking the keys, closes it
+    // `consume_key` removes the key from the input, so no other widget sees the same Escape
     if root.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
         || focused.is_some_and(|other| other != id)
     {
@@ -125,8 +136,10 @@ fn draw(
     }
 
     let enter = root.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Enter));
+    // Area = a floating layer at any position; Foreground puts it above every panel
     let area = egui::Area::new(egui::Id::new("number-box"))
         .order(egui::Order::Foreground)
+        // the box's lower left corner sits 12 points right of and above the handle
         .pivot(egui::Align2::LEFT_BOTTOM)
         .fixed_pos(egui::pos2(prompt.at[0] + 12.0, prompt.at[1] - 12.0))
         .show(root.ctx(), |ui| {
@@ -143,7 +156,7 @@ fn draw(
                             egui::TextEdit::singleline(&mut model.number)
                                 .id(id)
                                 .hint_text(prompt.hint)
-                                .char_limit(64),
+                                .char_limit(64), // a pasted page stops at 64 characters
                         );
                         record(controls, "number/input", &prompt.title, &edit);
                         ui.label(prompt.unit);
@@ -160,3 +173,4 @@ fn draw(
         model.typed = Some(model.number.clone());
     }
 }
+// --8<-- [end:number-draw]

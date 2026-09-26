@@ -1,3 +1,4 @@
+// --8<-- [start:edit-transform]
 use crate::app::layers::{is_layer_key, newest};
 use crate::app::scene::Scene;
 use crate::app::scene::rows::TEXT;
@@ -5,6 +6,7 @@ use crate::app::scene::sync;
 use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
 
+// Methods of one type may spread over files: this second `impl Scene` adds the edits to the Scene of lesson 12.
 impl Scene {
     /// Move several rows by one world delta, one undo step for every document they belong to.
     pub fn transform_rows(
@@ -24,7 +26,7 @@ impl Scene {
                 let base = self.local_xform_of(row)?;
                 Some((doc, guid, self.local_for_world_delta(row, delta, &base)?))
             })
-            .collect::<Option<Vec<_>>>()?;
+            .collect::<Option<Vec<_>>>()?; // one row that cannot be edited refuses the whole move
         let selected: std::collections::HashSet<_> = changes
             .iter()
             .map(|(doc, guid, _)| (*doc, guid.to_string()))
@@ -44,8 +46,9 @@ impl Scene {
         docs.sort_unstable();
         docs.dedup(); // each document once
         for &doc in &docs {
+            // Rc::make_mut = copy on write: a session two placements share is cloned first, so only this one changes
             let session = Rc::make_mut(&mut self.docs[doc].session);
-            session.begin(label);
+            session.begin(label); // everything until commit is one undo step
             for (_, guid, local) in changes.iter().filter(|c| c.0 == doc) {
                 session.set_xform(guid, local.clone());
             }
@@ -61,7 +64,9 @@ impl Scene {
             .map(|&row| Some((row, self.placement_of(row)?)))
             .collect()
     }
+// --8<-- [end:edit-transform]
 
+// --8<-- [start:edit-rows]
     /// The row's document and guid, with its session made private.
     fn writable(&mut self, row: u32) -> Option<(usize, Rc<str>)> {
         let (doc, guid) = self.identity_of(row)?;
@@ -100,7 +105,7 @@ impl Scene {
         let placed = self.placement_of(row)?;
         let parent = &placed * &base.inverse()?; // everything above the object
         let back = parent.inverse()?;
-        Some(&(&back * &(delta * &parent)) * base) // delta moved into the parent frame
+        Some(&(&back * &(delta * &parent)) * base) // parent⁻¹ · delta · parent · base: the world move seen from the parent
     }
 
     /// Apply a world `delta` to one row; returns its new placement.
@@ -109,7 +114,9 @@ impl Scene {
         let local = self.local_for_world_delta(row, delta, &base)?;
         self.set_row_xform(row, local, label)
     }
+// --8<-- [end:edit-rows]
 
+// --8<-- [start:edit-delete]
     /// Delete one row's object; the caller syncs the rows.
     pub fn delete_row(&mut self, row: u32) -> bool {
         if self.delete_text(row) {
@@ -191,7 +198,9 @@ impl Scene {
 
         count
     }
+// --8<-- [end:edit-delete]
 
+// --8<-- [start:edit-history]
     /// Undo the newest edit, whichever documents it changed.
     pub fn undo(&mut self) -> bool {
         self.step_history(true)
@@ -203,6 +212,7 @@ impl Scene {
     }
 
     /// The newest step of each of `docs` is one new edit: undo reaches it next, nothing is left to redo.
+    // undo_steps is the scene's own list: each step names the (document, label) pairs one edit made
     pub(crate) fn edited(&mut self, docs: &[usize]) {
         let step: Vec<(usize, String)> = docs
             .iter()
@@ -268,7 +278,7 @@ impl Scene {
 
     /// Undo or redo the newest edit in every document it changed; a layer edit one of them forgot stays.
     fn step_history(&mut self, back: bool) -> bool {
-        loop {
+        loop { // a step no document still holds is skipped, and the next one tried
             let stack = if back {
                 &mut self.undo_steps
             } else {
@@ -327,7 +337,9 @@ impl Scene {
 
 /// Edits undo keeps in order across documents; each document itself keeps its newest 64.
 const MAX_STEPS: usize = 4096;
+// --8<-- [end:edit-history]
 
+// --8<-- [start:edit-control-point]
 impl Scene {
     /// Move one control point of a polyline or curve in one undo step.
     pub fn set_control_point(&mut self, row: u32, index: usize, to: &Point) -> bool {
@@ -380,7 +392,9 @@ impl Scene {
         replaced
     }
 }
+// --8<-- [end:edit-control-point]
 
+// --8<-- [start:edit-tests]
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
@@ -727,7 +741,9 @@ pub(crate) mod tests {
         );
     }
 }
+// --8<-- [end:edit-tests]
 
+// --8<-- [start:edit-subobject]
 impl Scene {
     /// Transform part of a row's geometry by a world `delta`.
     pub fn edit_subobject(
@@ -797,6 +813,7 @@ impl Scene {
             let session = Rc::make_mut(&mut self.docs[doc].session);
             session.begin(label);
 
+            // next_if takes the next item only while it matches: this document's changes, then stop
             while let Some((_, guid, geometry)) = changes.next_if(|(at, _, _)| *at == doc) {
                 session.replace(&guid, geometry);
             }
@@ -808,7 +825,9 @@ impl Scene {
         self.edited(&docs);
         Ok(count)
     }
+// --8<-- [end:edit-subobject]
 
+// --8<-- [start:edit-preview]
     /// Move one control point of an object to a world point.
     pub fn set_source_control(
         &mut self,
@@ -861,3 +880,4 @@ impl Scene {
         Ok(())
     }
 }
+// --8<-- [end:edit-preview]

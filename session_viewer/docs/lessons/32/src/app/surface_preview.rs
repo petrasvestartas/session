@@ -1,3 +1,4 @@
+// --8<-- [start:surface-preview-struct]
 use crate::engine::gpu::patch::Span;
 use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, Upload};
@@ -5,8 +6,9 @@ use session_rust::AABB;
 use session_rust::{Geometry, NurbsSurface, RenderVertex};
 use std::collections::HashMap;
 
-pub use crate::engine::gpu::arena::Sample;
+pub use crate::engine::gpu::arena::Sample; // `pub use` re-exports it: callers name it from this module
 
+// Each surface vertex keeps its (u, v) parameter, so after a control point moves the surface is evaluated again there.
 /// Enough of a surface upload to re-evaluate it after a control moves.
 pub struct SurfacePreview {
     samples: Vec<Sample>,              // uv of every vertex
@@ -17,7 +19,9 @@ pub struct SurfacePreview {
     pipe_normals: Vec<[usize; 2]>,     // vertex whose normal each pipe side uses
     chains: Vec<std::ops::Range<u32>>, // joined pipe runs
 }
+// --8<-- [end:surface-preview-struct]
 
+// --8<-- [start:surface-preview-capture]
 impl SurfacePreview {
     /// Remember the upload of one surface or BRep.
     pub(crate) fn capture(
@@ -49,7 +53,7 @@ impl SurfacePreview {
         }
 
         // vertices at each position
-        let mut positions = HashMap::<[u32; 3], Vec<usize>>::new();
+        let mut positions = HashMap::<[u32; 3], Vec<usize>>::new(); // `::<..>` names the key and value types
 
         for (i, vertex) in up.arena.verts[first..end].iter().enumerate() {
             positions
@@ -100,7 +104,9 @@ impl SurfacePreview {
             chains,
         })
     }
+// --8<-- [end:surface-preview-capture]
 
+// --8<-- [start:surface-preview-evaluate]
     /// Re-evaluate the vertices and pipes for the edited geometry.
     pub fn evaluate(&self, geometry: &Geometry) -> Option<(Vec<RenderVertex>, SegRows, AABB)> {
         let surfaces = surfaces(geometry)?;
@@ -139,7 +145,7 @@ impl SurfacePreview {
             vertices.push(RenderVertex {
                 position,
                 normal: [
-                    normal[0] as f32 * sample.sign,
+                    normal[0] as f32 * sample.sign, // -1 on a reversed face
                     normal[1] as f32 * sample.sign,
                     normal[2] as f32 * sample.sign,
                 ],
@@ -188,7 +194,9 @@ impl SurfacePreview {
             + self.chains.capacity() * std::mem::size_of::<std::ops::Range<u32>>()
     }
 }
+// --8<-- [end:surface-preview-evaluate]
 
+// --8<-- [start:surface-preview-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -353,7 +361,10 @@ mod tests {
         }
     }
 }
+// --8<-- [end:surface-preview-tests]
 
+// --8<-- [start:surface-preview-surfaces]
+// A helper may follow the tests: order inside a Rust file does not matter.
 /// The surfaces inside a geometry.
 fn surfaces(geometry: &Geometry) -> Option<&[NurbsSurface]> {
     match geometry {
@@ -366,3 +377,4 @@ fn surfaces(geometry: &Geometry) -> Option<&[NurbsSurface]> {
         _ => None,
     }
 }
+// --8<-- [end:surface-preview-surfaces]

@@ -1,3 +1,5 @@
+// --8<-- [start:phone-field]
+// One hidden input serves every text field: it types into whichever panel field is open, else the command line.
 use super::command_line::{STATE, command_cursor_end};
 use super::{PANELS, Panel, Ui};
 
@@ -6,9 +8,12 @@ fn open_field() -> Option<(&'static dyn Panel, &'static str)> {
     PANELS
         .iter()
         .rev()
+        // `&mut |_| {}` = a closure that leaves the text alone: here `field` is only asked for its id
         .find_map(|panel| panel.field(&mut |_| {}).map(|id| (*panel, id)))
 }
+// --8<-- [end:phone-field]
 
+// --8<-- [start:phone-agent]
 impl Ui {
     /// Feed the hidden input's typing into the field; returns keys for the viewport.
     pub fn agent(&mut self, event: crate::app::agent::AgentEvent) -> Vec<String> {
@@ -30,6 +35,7 @@ impl Ui {
         });
 
         match &event {
+            // command line closed: the typed letters are viewer shortcuts, so only the new ones go out as keys
             AgentEvent::Text(value) if !open => {
                 let shared = self
                     .agent_value
@@ -58,6 +64,7 @@ impl Ui {
             repeat: false,
             modifiers: egui::Modifiers::NONE,
         };
+        // keys join the events egui reads next frame, as if the real keyboard had pressed and released them
         let events = &mut self.input.egui_input_mut().events;
 
         match event {
@@ -85,7 +92,9 @@ impl Ui {
 
         Vec::new()
     }
+    // --8<-- [end:phone-agent]
 
+    // --8<-- [start:phone-type-into]
     /// Feed the hidden input's typing into a field other than the command line.
     fn type_into(
         &mut self,
@@ -121,7 +130,9 @@ impl Ui {
             }
         }
     }
+    // --8<-- [end:phone-type-into]
 
+    // --8<-- [start:phone-follow]
     /// The open field changed on its own: the hidden input follows.
     pub(super) fn follow_field(&mut self) {
         let open = open_field();
@@ -157,3 +168,4 @@ impl Ui {
         });
     }
 }
+// --8<-- [end:phone-follow]

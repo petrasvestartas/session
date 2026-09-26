@@ -1,3 +1,4 @@
+// --8<-- [start:widget-struct]
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::targets::{Attachment, Targets, TextureSpec};
 use super::widget_mesh;
@@ -8,6 +9,7 @@ use crate::engine::pipelines::{
 use session_rust::Xform;
 use wgpu::util::DeviceExt;
 
+// A tile is a small texture of its own: the gumball is drawn there at 4x MSAA, so it stays sharp and never meets the scene's depth.
 /// Draws the gumball into its own small texture, then over the frame.
 pub struct Widget {
     vertices: wgpu::Buffer,                 // the gumball mesh
@@ -24,7 +26,9 @@ pub struct Widget {
     pub placement: Option<([f64; 3], f64)>, // world position and scale; None = hidden
     pub active: f32,                        // handle under the cursor, -1 = none
 }
+// --8<-- [end:widget-struct]
 
+// --8<-- [start:widget-new]
 impl Widget {
     /// Upload the mesh and build both pipelines.
     pub fn new(ctx: &GpuCtx, target: Target) -> Self {
@@ -46,7 +50,7 @@ impl Widget {
                     ty: wgpu::BindingType::Buffer {
                         ty: wgpu::BufferBindingType::Uniform,
                         has_dynamic_offset: false,
-                        min_binding_size: wgpu::BufferSize::new(96),
+                        min_binding_size: wgpu::BufferSize::new(96), // 24 floats: matrix 16, rect 4, settings 4
                     },
                     count: None,
                 }],
@@ -97,7 +101,9 @@ impl Widget {
         });
         (self.vertices.size() + self.uniform.size(), textures)
     }
+// --8<-- [end:widget-new]
 
+// --8<-- [start:widget-prepare]
     /// Place the gumball for this frame and write its uniform.
     pub fn prepare(
         &mut self,
@@ -120,7 +126,7 @@ impl Widget {
         let Some(rect) = bounds(&matrix.m, size) else {
             return;
         };
-        // tile size: twice the box, in 64 px steps
+        // tile size: twice the box, in 64 px steps, so small moves reuse the same textures
         let extent = ((rect[2] * 2.0).ceil() as u32, (rect[3] * 2.0).ceil() as u32);
         let extent = (
             extent.0.div_ceil(64).clamp(1, 16) * 64,
@@ -133,7 +139,7 @@ impl Widget {
             self.tile = Some(Tile::new(ctx, &self.texture_layout, extent));
         }
 
-        // matrix that maps the box onto the tile
+        // scale and shift clip space so the screen box fills the whole tile: sx = canvas width / box width
         let mut uniform = [0.0_f32; 24];
         let [x, y, width, height] = rect;
         let sx = size.0 as f64 / width;
@@ -159,7 +165,9 @@ impl Widget {
             .write_buffer(&self.uniform, 0, bytemuck::bytes_of(&uniform));
         self.visible = true;
     }
+// --8<-- [end:widget-prepare]
 
+// --8<-- [start:widget-draw]
     /// Draw the mesh into the tile, then the tile over the frame.
     pub fn draw(
         &self,
@@ -184,8 +192,8 @@ impl Widget {
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &tile.depth,
                 depth_ops: Some(wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(0.0),
-                    store: wgpu::StoreOp::Discard,
+                    load: wgpu::LoadOp::Clear(0.0), // reversed depth: 0 is far
+                    store: wgpu::StoreOp::Discard, // depth is needed only inside this pass
                 }),
                 stencil_ops: None,
             }),
@@ -195,7 +203,7 @@ impl Widget {
         pass.set_bind_group(0, &self.group, &[]);
         pass.set_vertex_buffer(0, self.vertices.slice(..));
         pass.draw(0..self.count, 0..1);
-        drop(pass);
+        drop(pass); // a pass borrows the encoder; dropping it ends the pass so the next can begin
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("widget composite"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -213,20 +221,22 @@ impl Widget {
         pass.set_bind_group(0, &self.group, &[]);
         pass.set_bind_group(1, &tile.group, &[]);
         pass.draw(0..6, 0..1);
-        2
+        2 // draw calls made
     }
 }
 
 /// Free the buffers.
 impl Drop for Widget {
-    /// Remove the DOM listener.
+    /// Runs when the Widget is dropped: `destroy` frees the GPU memory at once.
     fn drop(&mut self) {
         self.vertices.destroy();
         self.uniform.destroy();
     }
 }
+// --8<-- [end:widget-draw]
 
-/// The mesh pipeline: lit, depth-tested, 4x MSAA.
+// --8<-- [start:widget-pipeline]
+/// The mesh pipeline: flat colour, depth-tested, 4x MSAA.
 fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> Pipeline {
     let shader = module(ctx, "widget", shader!("widget.wgsl"));
     let vertex = wgpu::VertexBufferLayout {
@@ -251,7 +261,9 @@ const MESH_TARGET: Target = Target {
     format: wgpu::TextureFormat::Rgba8Unorm,
     samples: 4,
 };
+// --8<-- [end:widget-pipeline]
 
+// --8<-- [start:widget-tile]
 /// The gumball's own textures.
 struct Tile {
     size: (u32, u32),       // texture size, px
@@ -348,7 +360,9 @@ fn texture_layout(ctx: &GpuCtx) -> wgpu::BindGroupLayout {
             ],
         })
 }
+// --8<-- [end:widget-tile]
 
+// --8<-- [start:widget-composite]
 /// The composite pipeline: the tile blended over the frame.
 fn composite_pipeline(
     ctx: &GpuCtx,
@@ -365,7 +379,9 @@ fn composite_pipeline(
         .color(ColorWrite::Blended);
     build(ctx, Target { format, samples: 1 }, &desc)
 }
+// --8<-- [end:widget-composite]
 
+// --8<-- [start:widget-bounds]
 /// Screen box of the gumball: x, y, width, height; None when behind the camera.
 fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
     let radius = crate::app::gizmo::ARM + 2.0;
@@ -375,7 +391,7 @@ fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
     // project the eight corners of its bounding cube
     for corner in 0..8 {
         let p = std::array::from_fn::<_, 3, _>(|i| {
-            if corner & (1 << i) == 0 {
+            if corner & (1 << i) == 0 { // bit i of 0..7 picks the low or high side on axis i
                 -radius
             } else {
                 radius
@@ -406,7 +422,10 @@ fn bounds(m: &[f64; 16], size: (u32, u32)) -> Option<[f64; 4]> {
     let height = (max[1] + 2.0).ceil().min(size.1 as f64) - y;
     (width > 0.0 && height > 0.0).then_some([x, y, width, height])
 }
+// --8<-- [end:widget-bounds]
 
+// --8<-- [start:widget-lane]
+// As a lane, the widget hears retarget and reset, and is counted in the GPU bytes.
 impl super::lane::Lane for Widget {
     fn on_retarget(&mut self, ctx: &GpuCtx, _layouts: &Layouts, target: Target) {
         self.retarget(ctx, target);
@@ -420,3 +439,4 @@ impl super::lane::Lane for Widget {
         self.allocated_bytes()
     }
 }
+// --8<-- [end:widget-lane]

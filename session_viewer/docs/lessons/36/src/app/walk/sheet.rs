@@ -1,22 +1,26 @@
+// --8<-- [start:sheet-rows]
+// A sheet is one drawing stored as flat arrays: a million line segments cost a few numbers each, not a kernel object each.
 use super::encode::{BLACK, FACING_UNKNOWN};
 use crate::engine::gpu::segments::{CylinderSegment, SegDraw, SegRows};
 use session_rust::AABB;
 
 /// Raw segment columns of one streamed slice.
 pub struct SheetRows {
-    pub positions: Vec<f32>, // six floats per segment
+    pub positions: Vec<f32>, // six floats per segment: start xyz, then end xyz
     pub colors: Vec<u32>,    // packed RGBA per segment
     pub widths: Vec<f32>,    // pen width in mm per segment
-    pub ids: Vec<u32>,       // entity id per segment
+    pub ids: Vec<u32>,       // entity id per segment: its record number in the .meta side table
 }
 
 /// One slice of a sheet and where it goes.
 pub struct SheetSlice {
-    pub rows: SheetRows, // the segments
+    pub rows: SheetRows,
     pub from: u32,       // first segment index in the sheet
-    pub row: u32,        // object row
+    pub row: u32,        // the whole sheet is one object row, so a pick selects the drawing first
 }
+// --8<-- [end:sheet-rows]
 
+// --8<-- [start:sheet-walk]
 /// Pen width in mm to a half width; 0 = hairline.
 fn sheet_radius(width: f32) -> f32 {
     if width.is_finite() && width > 0.0 {
@@ -28,7 +32,8 @@ fn sheet_radius(width: f32) -> f32 {
 
 /// Append one slice to the sheet rows; return its box.
 pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> AABB {
-    seg.sheet_ids.resize(seg.sheet_rows.len(), u32::MAX); // older rows have no id
+    // ids run parallel to the sheet rows; u32::MAX marks a row with no entity
+    seg.sheet_ids.resize(seg.sheet_rows.len(), u32::MAX);
     let first = seg.sheet_rows.len() as u32;
     let count = (s.rows.positions.len() / 6) as u32; // two points per segment
     seg.sheet_rows.reserve(count as usize);
@@ -51,7 +56,7 @@ pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> AABB {
             .push(s.rows.ids.get(i).copied().unwrap_or(u32::MAX));
     }
 
-    // one draw call per slice
+    // one draw per slice, not per line: a 500 000-segment slice is still a single draw
     seg.sheets.push(SegDraw {
         instance: s.row,
         from: s.from,
@@ -60,7 +65,9 @@ pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> AABB {
     });
     bounds
 }
+// --8<-- [end:sheet-walk]
 
+// --8<-- [start:sheet-walk-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -107,3 +114,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:sheet-walk-tests]

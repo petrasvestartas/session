@@ -1,3 +1,4 @@
+// --8<-- [start:mesh-preview-rows]
 use super::deform::{Target, mesh_keys};
 use crate::engine::gpu::glyphs::GlyphPoint;
 use crate::engine::gpu::patch::{Counts, Span};
@@ -6,6 +7,7 @@ use crate::engine::gpu::{Gpu, Upload};
 use session_rust::{Geometry, Mesh, RenderVertex, Xform};
 use std::collections::{HashMap, HashSet};
 
+// A preview changes only GPU rows while the pointer moves; the document changes once, on release.
 /// A mesh's GPU rows, each tagged with its source vertex key.
 pub struct MeshPreview {
     vertices: Vec<(usize, RenderVertex)>, // (vertex key, GPU vertex)
@@ -34,7 +36,9 @@ pub fn mesh(geometry: &Geometry) -> Option<&Mesh> {
         _ => None,
     }
 }
+// --8<-- [end:mesh-preview-rows]
 
+// --8<-- [start:mesh-preview-capture]
 impl MeshPreview {
     /// Match the uploaded rows back to the mesh's vertex keys.
     pub(crate) fn capture(
@@ -85,7 +89,7 @@ impl MeshPreview {
         let vertices = keys
             .into_iter()
             .zip(
-                up.arena.verts[local.verts as usize..(local.verts + span.count.verts) as usize]
+                up.arena.verts[local.verts as usize..(local.verts + span.count.verts) as usize] // this mesh's slice of the upload
                     .iter()
                     .copied(),
             )
@@ -116,15 +120,15 @@ impl MeshPreview {
                     up.seg.pipes[i as usize],
                 ))
             })
-            .collect::<Option<Vec<_>>>()?;
+            .collect::<Option<Vec<_>>>()?; // Options collect like Results: one None and there is no preview
         // markers are matched by position; a shared position gives up
         let mut positions = HashMap::new();
 
         for (&key, v) in &mesh.vertex {
-            let p = [v.x as f32, v.y as f32, v.z as f32].map(f32::to_bits);
+            let p = [v.x as f32, v.y as f32, v.z as f32].map(f32::to_bits); // f32 is not Hash (NaN != NaN); its bits are
             positions
                 .entry(p)
-                .and_modify(|value| *value = None)
+                .and_modify(|value| *value = None) // a second vertex here: ambiguous, no key
                 .or_insert(Some(key));
         }
 
@@ -147,7 +151,9 @@ impl MeshPreview {
             span,
         })
     }
+// --8<-- [end:mesh-preview-capture]
 
+// --8<-- [start:mesh-preview-begin]
     /// The rows a drag of `target` touches.
     pub fn begin(&self, geometry: &Geometry, target: Target) -> Option<Gesture> {
         let mesh = mesh(geometry)?;
@@ -204,14 +210,16 @@ impl MeshPreview {
                 * std::mem::size_of::<(usize, GlyphPoint)>()
     }
 }
+// --8<-- [end:mesh-preview-begin]
 
+// --8<-- [start:mesh-preview-apply]
 impl Gesture {
     /// Patch the GPU rows with `delta` applied, or put them back.
     pub fn apply(&self, gpu: &mut Gpu, delta: &Xform, restore: bool) {
         // transform a point by the 4x4 matrix
         let position = |p: [f32; 3]| {
             let m = &delta.m;
-            std::array::from_fn(|r| {
+            std::array::from_fn(|r| { // builds [f32; 3] by calling the closure for r = 0, 1, 2
                 (m[r] * p[0] as f64 + m[4 + r] * p[1] as f64 + m[8 + r] * p[2] as f64 + m[12 + r])
                     as f32
             })
@@ -226,7 +234,7 @@ impl Gesture {
                 v.normal = [0.; 3]; // flat shading while dragging
             }
 
-            gpu.arena.patch_vertices(&gpu.ctx, index, &[v]);
+            gpu.arena.patch_vertices(&gpu.ctx, index, &[v]); // a few bytes written in place, no new upload
         }
 
         for &(index, mut p, moved) in &self.pipes {
@@ -270,7 +278,9 @@ impl Gesture {
         gpu.objects.geometry_changed();
     }
 }
+// --8<-- [end:mesh-preview-apply]
 
+// --8<-- [start:mesh-preview-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -328,3 +338,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:mesh-preview-tests]

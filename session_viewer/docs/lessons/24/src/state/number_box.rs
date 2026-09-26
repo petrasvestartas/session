@@ -1,6 +1,8 @@
+// --8<-- [start:number-prompt]
 use super::State;
 use crate::app::gizmo::{Handle, typed_value};
 
+// The number box is the text field a clicked handle opens: type 250 on Move X to move the selection 250 mm.
 /// The number box of a clicked gumball handle, as the panel draws it.
 pub struct NumberPrompt {
     pub handle: Handle,     // the handle clicked
@@ -35,7 +37,9 @@ impl State {
             at: [(x / scale) as f32, (y / scale) as f32],
         })
     }
+// --8<-- [end:number-prompt]
 
+// --8<-- [start:number-typed]
     /// Close the number box; true when one was open.
     pub fn close_number_box(&mut self) -> bool {
         let Some(gizmo) = self
@@ -59,7 +63,7 @@ impl State {
         let Some(handle) = gizmo.typing else {
             return Ok(None);
         };
-        // a reason keeps the box open
+        // `?` hands a bad number back as Err, which keeps the box open; Ok(None) means nothing to change
         let Some(value) = typed_value(handle, text)? else {
             self.close_number_box();
             return Ok(None);
@@ -81,7 +85,9 @@ impl State {
         Ok(Some(format!("{} {value} {unit}", handle.title())))
     }
 }
+// --8<-- [end:number-typed]
 
+// --8<-- [start:number-tap]
 impl State {
     /// A tap that opened a number box raises the phone keyboard.
     pub(crate) fn number_box_tapped(&self, tap: bool) {
@@ -90,3 +96,4 @@ impl State {
         }
     }
 }
+// --8<-- [end:number-tap]

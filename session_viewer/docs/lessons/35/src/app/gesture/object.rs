@@ -1,3 +1,4 @@
+// --8<-- [start:object-gesture]
 use super::Gesture;
 
 /// A plain mouse drag on an object moves it, or the selection it belongs to.
@@ -8,3 +9,4 @@ pub const GESTURE: Gesture = Gesture {
     drag: |state, at| state.drag_object(at),
     release: |state, _, _| state.end_object_drag(),
 };
+// --8<-- [end:object-gesture]

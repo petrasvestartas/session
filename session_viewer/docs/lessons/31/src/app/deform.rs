@@ -1,8 +1,10 @@
+// --8<-- [start:deform-target]
 use super::selection::{ControlId, Controls, SelectionMode};
 use session_rust::{Geometry, Mesh, NurbsSurface, Point, Xform};
 use std::collections::HashSet;
 use std::rc::Rc;
 
+// A subobject is one part of an object, a vertex, an edge or a face, that moves while the rest stays.
 /// The part of a geometry an edit applies to.
 #[derive(Clone, Copy, Debug)]
 pub enum Target {
@@ -14,7 +16,7 @@ pub enum Target {
 impl Target {
     /// The target the current selection names, if any.
     pub fn selected(mode: &SelectionMode) -> Option<Self> {
-        match *mode {
+        match *mode { // match the value behind the reference; the Copy ids are copied out
             SelectionMode::Controls {
                 selected: Some(id), ..
             } => Some(Self::Control(id)),
@@ -24,7 +26,9 @@ impl Target {
         }
     }
 }
+// --8<-- [end:deform-target]
 
+// --8<-- [start:deform-keys]
 /// The mesh vertex keys a target covers.
 pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, String> {
     match target {
@@ -52,7 +56,7 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
                     let (a, b) = (keys[i], keys[(i + 1) % keys.len()]);
                     let pair = (a.min(b), a.max(b));
 
-                    if seen.insert(pair) {
+                    if seen.insert(pair) { // true only the first time: a shared edge counts once
                         if at == index {
                             return Ok(vec![pair.0, pair.1]);
                         }
@@ -71,7 +75,7 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
 /// The surface control (u, v) pairs a target covers.
 fn surface_keys(surface: &NurbsSurface, target: Target) -> Result<Vec<(usize, usize)>, String> {
     let [nu, nv] = surface.m_cv_count; // control grid size
-    let all = || (0..nu).flat_map(|u| (0..nv).map(move |v| (u, v))).collect();
+    let all = || (0..nu).flat_map(|u| (0..nv).map(move |v| (u, v))).collect(); // a closure: built only when a face asks
 
     match target {
         Target::Control(ControlId::Surface { surface: 0, u, v }) if u < nu && v < nv => {
@@ -91,10 +95,13 @@ fn surface_keys(surface: &NurbsSurface, target: Target) -> Result<Vec<(usize, us
         _ => Err("Unknown surface control, boundary or face".into()),
     }
 }
+// --8<-- [end:deform-keys]
 
+// --8<-- [start:deform-points]
 /// The world points a target covers.
 pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String> {
     match geometry {
+        // Results collect into one Result: all the points, or the first Err
         Geometry::Mesh(mesh) => mesh_keys(mesh, target)?
             .into_iter()
             .map(|k| mesh.vertex_point(k).ok_or("Missing mesh vertex".into()))
@@ -129,6 +136,7 @@ pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String>
             Target::Control(id) => control_point(geometry, id).map(|p| vec![p]),
         },
         Geometry::Element(element) => match element.geometry() {
+            // an element wraps a mesh or BRep: ask this same function again
             session_rust::element::ElementGeometry::Mesh(mesh) => {
                 points(&Geometry::Mesh(Rc::new(mesh.clone())), target)
             }
@@ -153,7 +161,9 @@ fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
         .map(|p| Point::new(p.position[0], p.position[1], p.position[2]))
         .ok_or("Unknown source control".into())
 }
+// --8<-- [end:deform-points]
 
+// --8<-- [start:deform-transform]
 /// A copy of the geometry with the target moved by `delta`.
 pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<Geometry, String> {
     if !delta.m.iter().all(|v| v.is_finite()) {
@@ -162,6 +172,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
 
     let edited = match geometry {
         Geometry::Mesh(source) => {
+            // `**` goes through the reference and the Rc to the Mesh; the edit is a copy, the source stays for undo
             let mut mesh = (**source).clone();
 
             for key in mesh_keys(&mesh, target)? {
@@ -229,6 +240,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
             };
             let mut ends = [source.start(), source.end()];
             ends[i] = ends[i].transformed(delta);
+            // a new Line gets a new guid: keep the old guid, name and pen so it stays the same object
             let mut next = session_rust::Line::from_points(&ends[0], &ends[1]);
             next.set_guid(source.guid().to_string());
             next.name = source.name.clone();
@@ -323,7 +335,10 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
     };
     Ok(edited)
 }
+// --8<-- [end:deform-transform]
 
+// --8<-- [start:deform-validate]
+// A BRep face is a surface trimmed by edge curves; moving surface points can pull a surface off its edge and break the solid.
 /// Refuse an edit whose edges no longer lie on their surfaces.
 fn validate_boundaries(
     brep: &session_rust::BRep,
@@ -360,7 +375,7 @@ fn validate_boundaries(
                 let uv = &brep.m_curves_2d[ci as usize];
                 let (u0, u1) = uv.domain();
 
-                for sample in 0..=16 {
+                for sample in 0..=16 { // 17 samples along the edge, ends included
                     let t = sample as f64 / 16.0;
                     let p = curve.point_at(a + (b - a) * t);
                     let q = uv.point_at(u0 + (u1 - u0) * t);
@@ -379,7 +394,9 @@ fn validate_boundaries(
 
     Ok(())
 }
+// --8<-- [end:deform-validate]
 
+// --8<-- [start:deform-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -511,3 +528,4 @@ mod tests {
         .unwrap();
     }
 }
+// --8<-- [end:deform-tests]

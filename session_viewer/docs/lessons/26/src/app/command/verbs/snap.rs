@@ -1,3 +1,4 @@
+// --8<-- [start:snap-spec]
 use crate::State;
 use crate::app::command::{Action, Spec, on_off};
 use crate::app::snap;
@@ -36,7 +37,9 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
         mode: 0,
     }))
 }
+// --8<-- [end:snap-spec]
 
+// --8<-- [start:snap-action]
 #[derive(Debug)]
 struct Snap {
     on: Option<bool>, // snapping and its toolbar, None flips
@@ -47,11 +50,11 @@ impl Action for Snap {
     /// Flip the flags the drawing code and the toolbar read.
     fn run(&self, state: &mut State) -> Result<String, String> {
         if self.mode != 0 {
-            state.features.snap.modes ^= self.mode;
+            state.features.snap.modes ^= self.mode; // `^=` flips one bit: on becomes off, off becomes on
             let (label, _) = snap::MODES
                 .iter()
                 .find(|(_, bit)| *bit == self.mode)
-                .unwrap();
+                .unwrap(); // every mode came from MODES, so it is found
             let on = state.features.snap.modes & self.mode != 0;
             return Ok(format!("Snap {label} {}", if on { "On" } else { "Off" }));
         }
@@ -73,3 +76,4 @@ impl Action for Snap {
         true
     }
 }
+// --8<-- [end:snap-action]

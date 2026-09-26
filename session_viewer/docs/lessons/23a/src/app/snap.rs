@@ -1,3 +1,4 @@
+// --8<-- [start:snap-kinds]
 use crate::app::selection::Controls;
 use session_rust::{AABB, Geometry, NurbsCurve, NurbsSurface, Point, Vector, Xform};
 
@@ -7,7 +8,9 @@ const CURVE_SAMPLES: usize = 64;
 /// Screen cells a row may cover before bins try it on every query instead.
 const LARGE_CELLS: f64 = 8.0;
 
+// A snap pulls the pointer onto an exact point of existing geometry, e.g. a line's end, once it comes within a few pixels.
 /// Kinds of snap point, best first.
+// Ord on an enum compares variants in the order written, so End < Vertex < Mid and `<` ranks two kinds.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum SnapKind {
     End,    // end of an open line
@@ -18,6 +21,7 @@ pub enum SnapKind {
     Near,   // nearest point on a segment
 }
 
+// Each switch is one bit, so a set of them fits in one u8: END | MID = 0b101 = 5.
 pub const END: u8 = 1; // ends and vertices
 pub const NEAR: u8 = 2; // anywhere on a curve or edge
 pub const MID: u8 = 4; // segment midpoints
@@ -71,7 +75,9 @@ pub fn mode(word: &str) -> Option<u8> {
         .find(|(label, _)| label.eq_ignore_ascii_case(word))
         .map(|(_, bit)| *bit)
 }
+// --8<-- [end:snap-kinds]
 
+// --8<-- [start:snap-candidates]
 /// One snap candidate.
 #[derive(Clone, Debug)]
 pub struct Snap {
@@ -106,7 +112,7 @@ pub fn from_polyline(points: &[Point], closed: bool, owner: u32, out: &mut Vec<S
 
     for i in 0..spans {
         let a = &points[i];
-        let b = &points[(i + 1) % points.len()];
+        let b = &points[(i + 1) % points.len()]; // % wraps the closing span back to point 0
         out.push(Snap {
             point: Point::new(
                 (a[0] + b[0]) * 0.5,
@@ -121,6 +127,7 @@ pub fn from_polyline(points: &[Point], closed: bool, owner: u32, out: &mut Vec<S
 
 /// The centre of a closed loop, when the points close.
 pub fn from_loop(points: &[Point], owner: u32, out: &mut Vec<Snap>) {
+    // a slice pattern: binds the first and last points, and fails for fewer than two
     let [first, .., last] = points else {
         return;
     };
@@ -144,6 +151,7 @@ pub fn nearest_on_segment(a: &Point, b: &Point, to: &Point, owner: u32) -> Snap 
     let ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
     let ap = [to[0] - a[0], to[1] - a[1], to[2] - a[2]];
     let len2 = ab[0] * ab[0] + ab[1] * ab[1] + ab[2] * ab[2];
+    // t = how far along a-b the foot of the perpendicular lies, clamped to 0..1 so it stays on the segment
     let t = if len2 > 0.0 {
         ((ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / len2).clamp(0.0, 1.0)
     } else {
@@ -163,7 +171,7 @@ pub fn nearest_to_ray(a: &Point, b: &Point, origin: &Point, direction: &Vector) 
     let d = [direction[0], direction[1], direction[2]];
     let dot = |p: [f64; 3], q: [f64; 3]| p[0] * q[0] + p[1] * q[1] + p[2] * q[2];
     let (uu, ud, dd) = (dot(u, u), dot(u, d), dot(d, d));
-    let denominator = uu * dd - ud * ud;
+    let denominator = uu * dd - ud * ud; // closest points of two lines, the textbook formula
     // parallel: any point is as near, take the start
     let t = if denominator > 1e-12 * uu * dd {
         ((ud * dot(d, w) - dd * dot(u, w)) / denominator).clamp(0.0, 1.0)
@@ -197,6 +205,7 @@ pub fn along_wires(
 ) {
     for (points, owner) in wires {
         for pair in points.windows(2) {
+            // `&` keeps the bits both sides have: non-zero when Near is switched on
             if modes & NEAR != 0 {
                 out.push(Snap {
                     point: nearest_to_ray(&pair[0], &pair[1], &ray.0, &ray.1),
@@ -205,6 +214,7 @@ pub fn along_wires(
                 });
             }
 
+            // a let chain: the block runs only when the test holds and the `let` matches
             if modes & PERP != 0
                 && let Some(foot) = from.and_then(|p| perpendicular(&pair[0], &pair[1], p))
             {
@@ -217,7 +227,10 @@ pub fn along_wires(
         }
     }
 }
+// --8<-- [end:snap-candidates]
 
+// --8<-- [start:snap-geometry]
+// A wire is a chain of points the pointer can snap anywhere along (Near) or square onto (Perp).
 /// Snap points and wires of one placed object; `room` caps the edges a mesh or BRep adds as wires.
 pub fn of_geometry(
     geometry: &Geometry,
@@ -326,7 +339,9 @@ fn brep_control_count(brep: &session_rust::BRep) -> usize {
             .map(NurbsSurface::cv_count_total)
             .sum::<usize>()
 }
+// --8<-- [end:snap-geometry]
 
+// --8<-- [start:snap-best]
 /// The best candidate of an enabled mode within `aperture` pixels of the cursor.
 pub fn best<F>(
     candidates: &[Snap],
@@ -336,7 +351,7 @@ pub fn best<F>(
     project: F,
 ) -> Option<Snap>
 where
-    F: Fn(&Point) -> Option<(f64, f64)>,
+    F: Fn(&Point) -> Option<(f64, f64)>, // any function or closure from world point to pixels; tests pass a fake one
 {
     best_in(candidates, modes, cursor, aperture, project)
 }
@@ -350,10 +365,10 @@ pub fn best_in<'a, I, F>(
     project: F,
 ) -> Option<Snap>
 where
-    I: IntoIterator<Item = &'a Snap>,
+    I: IntoIterator<Item = &'a Snap>, // a slice, or two lists chained; `'a` says the snaps outlive this call
     F: Fn(&Point) -> Option<(f64, f64)>,
 {
-    let mut winner: Option<(SnapKind, f64, &Snap)> = None;
+    let mut winner: Option<(SnapKind, f64, &Snap)> = None; // kind, pixel distance, the snap
 
     for c in candidates {
         if modes & c.kind.mode() == 0 {
@@ -383,7 +398,9 @@ where
 
     winner.map(|(_, _, c)| c.clone())
 }
+// --8<-- [end:snap-best]
 
+// --8<-- [start:snap-screen]
 /// One view's world to pixel mapping, made once and used for many points.
 #[derive(Clone, PartialEq)]
 pub struct Screen {
@@ -413,7 +430,7 @@ impl Screen {
         std::array::from_fn(|r| m[r] * v[0] + m[r + 4] * v[1] + m[r + 8] * v[2] + m[r + 12])
     }
 
-    /// Clip coordinates to pixels.
+    /// Clip coordinates to pixels: -1..1 becomes 0..width, and y flips because pixel rows count down.
     fn pixel(&self, clip: [f64; 4]) -> (f64, f64) {
         (
             (clip[0] / clip[3] * 0.5 + 0.5) * self.size.0,
@@ -424,7 +441,7 @@ impl Screen {
     /// A world point in pixels, None behind the eye.
     pub fn point(&self, p: &Point) -> Option<(f64, f64)> {
         let clip = self.clip([p[0], p[1], p[2]]);
-        (clip[3] > 0.0).then(|| self.pixel(clip))
+        (clip[3] > 0.0).then(|| self.pixel(clip)) // `bool::then`: true gives Some(value), false gives None
     }
 
     /// World coordinates in pixels, None behind the eye.
@@ -476,7 +493,10 @@ impl Screen {
         })
     }
 }
+// --8<-- [end:snap-screen]
 
+// --8<-- [start:snap-bins]
+// Bins are a grid of equal cells over the screen; a query reads the few cells around the pointer instead of every object.
 /// Ids sorted into screen cells by where their circles land: rows filled a slice at a time, or any id put in.
 pub struct Bins {
     cell: f64,            // cell size, pixels
@@ -507,7 +527,7 @@ impl Bins {
     where
         F: FnMut(u32) -> Option<(f64, f64, f64)>,
     {
-        let stop = self.next.saturating_add(budget).min(end);
+        let stop = self.next.saturating_add(budget).min(end); // saturating: stops at u32::MAX instead of overflowing
 
         for row in self.next..stop {
             if let Some((x, y, radius)) = circle(row) {
@@ -550,7 +570,7 @@ impl Bins {
         }
 
         out.sort_unstable();
-        out.dedup();
+        out.dedup(); // drops repeats that sit side by side, hence the sort
     }
 
     /// The cells a circle touches: left, top, right, bottom; None when it misses the screen.
@@ -558,7 +578,7 @@ impl Bins {
         let (left, right) = ((at.0 - radius) / self.cell, (at.0 + radius) / self.cell);
         let (top, bottom) = ((at.1 - radius) / self.cell, (at.1 + radius) / self.cell);
 
-        // off screen, or not a number
+        // off screen, or NaN: every comparison with NaN is false, so the negated test catches it too
         if !(right >= 0.0 && bottom >= 0.0 && left < self.columns as f64 && top < self.lines as f64)
         {
             return None;
@@ -573,7 +593,9 @@ impl Bins {
         ])
     }
 }
+// --8<-- [end:snap-bins]
 
+// --8<-- [start:snap-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -901,3 +923,4 @@ mod tests {
         assert_eq!(control_count(&line), 0, "no mesh or surface controls");
     }
 }
+// --8<-- [end:snap-tests]

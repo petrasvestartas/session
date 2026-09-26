@@ -1,3 +1,4 @@
+// --8<-- [start:widget-vertex]
 use crate::app::gizmo::{ARM, BALL_AT, HUB};
 use std::f32::consts::{FRAC_PI_2, PI, TAU};
 
@@ -10,7 +11,7 @@ pub struct Vertex {
     handle: u32,        // which of the ten handles it belongs to
 }
 
-/// Axis colors: red x, green y, blue z.
+/// Axis colors: red x, green y, blue z, packed 0xAABBGGRR, so the lowest byte is red.
 const COLORS: [u32; 3] = [0xff2424e8, 0xff30b820, 0xffef6628];
 
 /// Segments around a lathed shape.
@@ -21,10 +22,12 @@ const SHAFT: f32 = 2.2;
 
 /// Arrow tip length, CSS px.
 const TIP: f32 = 14.0;
+// --8<-- [end:widget-vertex]
 
+// --8<-- [start:widget-mesh]
 /// The gumball mesh: three arrows, three rings, three balls, one hub.
 pub fn vertices() -> Vec<Vertex> {
-    let mut out = Vec::with_capacity(18_576);
+    let mut out = Vec::with_capacity(18_576); // the exact count: the Vec never grows
 
     for (axis, color) in COLORS.into_iter().enumerate() {
         let arm = ARM as f32;
@@ -38,7 +41,7 @@ pub fn vertices() -> Vec<Vertex> {
         sphere(&mut out, axis, BALL_AT as f32, 5.0, color, axis as u32 + 6);
         // rotation ring, handle 3-5
         surface(&mut out, 48, 12, color, axis as u32 + 3, |s, t| {
-            let angle = s * FRAC_PI_2;
+            let angle = s * FRAC_PI_2; // a quarter circle, in the quadrant without arms
             let tube = t * TAU;
             let radius = arm + 1.8 * tube.cos();
             let position = [
@@ -54,8 +57,10 @@ pub fn vertices() -> Vec<Vertex> {
     sphere(&mut out, 0, 0.0, HUB as f32, 0xffd8d8d8, 9);
     out
 }
+// --8<-- [end:widget-mesh]
 
-/// Rotate a shape built along x onto `axis`.
+// --8<-- [start:widget-shapes]
+/// Rotate a shape built along x onto `axis` by cycling the coordinates.
 fn orient(p: [f32; 3], axis: usize) -> [f32; 3] {
     match axis {
         0 => p,
@@ -98,7 +103,7 @@ fn surface(
 ) {
     for row in 0..rows {
         for column in 0..columns {
-            for (i, j) in [(0, 0), (1, 0), (1, 1), (0, 0), (1, 1), (0, 1)] {
+            for (i, j) in [(0, 0), (1, 0), (1, 1), (0, 0), (1, 1), (0, 1)] { // two triangles per grid cell
                 let position = sample(
                     (row + i) as f32 / rows as f32,
                     (column + j) as f32 / columns as f32,
@@ -112,7 +117,9 @@ fn surface(
         }
     }
 }
+// --8<-- [end:widget-shapes]
 
+// --8<-- [start:widget-mesh-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -137,3 +144,4 @@ mod tests {
         assert!(handles.into_iter().all(|v| v));
     }
 }
+// --8<-- [end:widget-mesh-tests]

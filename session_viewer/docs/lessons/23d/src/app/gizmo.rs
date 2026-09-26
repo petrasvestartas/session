@@ -1,6 +1,9 @@
+// --8<-- [start:gizmo-handles]
 use session_rust::intersection::{line_line_parameters, line_plane};
 use session_rust::{Line, Plane, Point, Vector, Xform};
 
+// The gizmo (gumball) sits at the selection: drag an arm to move, an arc to turn, a ball to scale.
+// Its sizes are CSS pixels, so it looks the same size at any zoom.
 /// Arm length in CSS pixels.
 pub const ARM: f64 = 96.0;
 
@@ -16,7 +19,7 @@ const GRAB: f64 = 8.0;
 /// Radius of the centre ball.
 pub const HUB: f64 = 6.0;
 
-/// Exponent that slows a scale drag near the centre.
+/// Exponent that slows a scale drag: pulling 4 times as far out scales by 4^0.5 = 2.
 const SCALE_SOFTENING: f64 = 0.5;
 
 /// Smallest scale factor allowed.
@@ -103,14 +106,18 @@ pub fn typed_value(handle: Handle, text: &str) -> Result<Option<f64>, String> {
         .ok_or_else(|| format!("`{text}` is not a number"))?;
 
     match handle {
+        // a match guard: this arm is taken only when the `if` holds
         Handle::Scale(_) | Handle::ScaleUniform if value <= 0.0 => {
             Err("scale wants a factor above zero".into())
         }
+        // a factor of 1 or a move of 0 changes nothing: None, no undo step
         Handle::Scale(_) | Handle::ScaleUniform => Ok((value != 1.0).then_some(value)),
         Handle::Translate(_) | Handle::Rotate(_) => Ok((value != 0.0).then_some(value)),
     }
 }
+// --8<-- [end:gizmo-handles]
 
+// --8<-- [start:gizmo-struct]
 /// What a drag remembers from its grab.
 #[derive(Clone, Debug)]
 pub struct Drag {
@@ -163,7 +170,9 @@ impl Gizmo {
             }
         }
     }
+// --8<-- [end:gizmo-struct]
 
+// --8<-- [start:gizmo-hit]
     /// The handle under a ray, tested from the centre outward.
     pub fn hit(&self, from: &Point, dir: &Vector, world_per_px: f64) -> Option<Handle> {
         self.hit_with_radius(from, dir, world_per_px, GRAB)
@@ -228,13 +237,15 @@ impl Gizmo {
 
         None
     }
+// --8<-- [end:gizmo-hit]
 
+// --8<-- [start:gizmo-drag]
     /// Start a drag on `handle`; None when the ray runs along the axis.
     pub fn begin(&mut self, handle: Handle, from: &Point, dir: &Vector) -> Option<Drag> {
         let drag = match handle {
             Handle::Translate(axis) => Drag {
                 handle,
-                grabbed: closest_on_axis(from, dir, &self.origin, &axis.unit())?,
+                grabbed: closest_on_axis(from, dir, &self.origin, &axis.unit())?, // `?` works inside a struct literal too
                 angle: 0.0,
                 reach: 1.0,
                 plane: axis.unit(),
@@ -283,18 +294,18 @@ impl Gizmo {
         match drag.handle {
             Handle::Translate(axis) => {
                 let now = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
-                let d = &now - &drag.grabbed;
+                let d = &now - &drag.grabbed; // how far the grab point slid along the axis
                 Some(Xform::translation(d[0], d[1], d[2]))
             }
             Handle::Rotate(axis) => {
                 let now = plane_hit(from, dir, &self.origin, &axis.unit())?;
-                let turned = angle_in_plane(&now, &self.origin, axis) - drag.angle;
+                let turned = angle_in_plane(&now, &self.origin, axis) - drag.angle; // swept since the grab
                 Some(about(&self.origin, rotation(axis, turned)))
             }
             Handle::Scale(axis) => {
                 let now = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
                 let reach = (&now - &self.origin).dot(&axis.unit());
-                let k = softened(reach / drag.reach);
+                let k = softened(reach / drag.reach); // twice as far out as the grab: factor 2, before softening
                 let (x, y, z) = match axis {
                     Axis::X => (k, 1.0, 1.0),
                     Axis::Y => (1.0, k, 1.0),
@@ -334,7 +345,9 @@ impl Gizmo {
         }
     }
 }
+// --8<-- [end:gizmo-drag]
 
+// --8<-- [start:gizmo-math]
 /// A typed factor as typed, e.g. 0.001 for mm to m; only one at or below zero becomes the minimum.
 fn typed_factor(value: f64) -> f64 {
     if value <= 0.0 {
@@ -384,7 +397,7 @@ fn end_on(dir: &Vector, axis: Axis) -> bool {
 fn closest_on_axis(from: &Point, dir: &Vector, origin: &Point, axis: &Vector) -> Option<Point> {
     let ray = Line::from_point_direction_length(from, dir, 1.0);
     let line = Line::from_point_direction_length(origin, axis, 1.0);
-    let (_, t) = line_line_parameters(&ray, &line, 0.0, false, false)?;
+    let (_, t) = line_line_parameters(&ray, &line, 0.0, false, false)?; // t: where along the axis
 
     Some(origin + &(axis * t))
 }
@@ -419,7 +432,7 @@ fn within(from: &Point, dir: &Vector, at: &Point, radius: f64) -> bool {
 fn angle_in_plane(p: &Point, origin: &Point, axis: Axis) -> f64 {
     let (u, v) = axis.others();
     let d = p - origin;
-    d.dot(&v).atan2(d.dot(&u))
+    d.dot(&v).atan2(d.dot(&u)) // atan2(v, u): the angle from u towards v, -pi..pi
 }
 
 /// A rotation about one world axis, in radians.
@@ -436,9 +449,11 @@ fn about(pivot: &Point, m: Xform) -> Xform {
     let to = Xform::translation(pivot[0], pivot[1], pivot[2]);
     let back = Xform::translation(-pivot[0], -pivot[1], -pivot[2]);
 
-    &(&to * &m) * &back
+    &(&to * &m) * &back // read right to left: pivot to the origin, apply m, move back
 }
+// --8<-- [end:gizmo-math]
 
+// --8<-- [start:gizmo-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -665,3 +680,4 @@ mod tests {
         assert_eq!(Handle::Translate(Axis::X).title(), "Move X");
     }
 }
+// --8<-- [end:gizmo-tests]

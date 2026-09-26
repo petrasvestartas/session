@@ -1617,6 +1617,7 @@ mod tests {
 // --8<-- [end:clip-tests]
 
 // --8<-- [start:21-clip-scene-tests]
+// --8<-- [start:clip-scene-tests]
 #[cfg(test)]
 mod editing_tests {
     use super::tests::view;
@@ -2769,4 +2770,5 @@ mod editing_tests {
         }
     }
 }
+// --8<-- [end:clip-scene-tests]
 // --8<-- [end:21-clip-scene-tests]

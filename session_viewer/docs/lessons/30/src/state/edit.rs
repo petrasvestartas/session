@@ -1,3 +1,4 @@
+// --8<-- [start:gizmo-drag-struct]
 use crate::app::cplane::CPlane;
 use crate::app::gizmo::{Axis, Drag, Gizmo, Handle};
 use crate::app::layers::{self, Layer};
@@ -17,13 +18,15 @@ pub struct GizmoDrag {
     origin: Point,            // the gizmo center at the grab
     mesh_preview: Option<crate::app::mesh_preview::Gesture>, // a GPU-side mesh preview
 }
+// --8<-- [end:gizmo-drag-struct]
 
+// --8<-- [start:place-gizmo]
 impl State {
     /// Put the gizmo at the center of the selection, or remove it.
     pub fn place_gizmo(&mut self, row: Option<u32>) {
         let row = row.filter(|_| !self.tool_running()); // hidden while a tool asks for points; register:tools
         // no box, no gizmo
-        let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else {
+        let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else { // `box` is a reserved word, hence `box_`
             self.features.gizmo = None;
             self.upload_gizmo(); // register:gumball
             return;
@@ -78,7 +81,7 @@ impl State {
             .into_iter()
             .filter_map(|r| Some((r, self.scene.placement_of(r)?)))
             .collect();
-        let per_px = self.world_per_px(); // scene length of one pixel at the gizmo
+        let per_px = self.world_per_px(); // read now: `gizmo` below borrows self.features mutably
         let Some(gizmo) = self.features.gizmo.as_mut() else {
             return false;
         };
@@ -117,7 +120,9 @@ impl State {
         });
         true
     }
+// --8<-- [end:place-gizmo]
 
+// --8<-- [start:drag-gizmo]
     /// Move the selection with the pointer; a preview, the document is untouched.
     pub fn drag_gizmo(&mut self, x: f64, y: f64) -> bool {
         let Some(active) = self.features.dragging.as_ref() else {
@@ -126,7 +131,7 @@ impl State {
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
             return false;
         };
-        // the transform the gesture means so far
+        // the transform so far, measured from a gizmo left at the grab, not from where the gizmo is now
         let Some(delta) = Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir)
         else {
             return false;
@@ -194,13 +199,15 @@ impl State {
         self.touch();
         true
     }
+// --8<-- [end:drag-gizmo]
 
+// --8<-- [start:end-gizmo]
     /// Release: the document records the whole gesture as one undo step.
     pub fn end_gizmo(&mut self, x: f64, y: f64) -> bool {
         let Some(active) = self.features.dragging.take() else {
             return false;
         };
-        // put the preview back, the document applies the real move
+        // put the preview back: the document applies the real move, and the rows follow it
         self.gpu
             .objects
             .set_placement(&self.gpu.ctx, active.row, &active.base_place);
@@ -329,7 +336,9 @@ impl State {
             self.touch();
         }
     }
+// --8<-- [end:end-gizmo]
 
+// --8<-- [start:delete-undo]
     /// Delete key: the whole selection.
     pub fn delete_selected(&mut self) {
         if self.selected_rows().is_empty() {
@@ -403,7 +412,9 @@ impl State {
         self.commit_rows();
         self.place_gizmo(None);
     }
+// --8<-- [end:delete-undo]
 
+// --8<-- [start:commit-rows]
     /// Bring the rows in line with the documents after an edit; costs what the edit changed.
     pub(crate) fn commit_rows(&mut self) {
         self.scene.sync();
@@ -452,7 +463,9 @@ impl State {
             self.gpu.arena.source_faces.select(&self.gpu.ctx, address);
         }
     }
+// --8<-- [end:commit-rows]
 
+// --8<-- [start:world-per-px]
     /// Scene length of one CSS pixel at the gizmo.
     pub(super) fn world_per_px(&self) -> f64 {
         // at the gizmo: from its projected depth
@@ -464,8 +477,9 @@ impl State {
                 gizmo.origin[1] - anchor[1],
                 gizmo.origin[2] - anchor[2],
             ];
-            let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15]; // clip w: the depth
+            let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15]; // clip w: the depth of the gizmo
             let vertical = (m[1] * m[1] + m[5] * m[5] + m[9] * m[9]).sqrt(); // clip units per scene unit, vertical
+            // clip y spans 2 over the screen height, so one CSS pixel is 2w / (vertical * height) scene units
             return 2.0 * w.abs() / (vertical * self.logical_size()[1]).max(1e-12);
         }
 
@@ -499,7 +513,10 @@ fn world_per_css_px(world_distance: f64, physical_height: f64, physical_per_css:
         2.0 * world_distance * (crate::camera::FOVY_DEG * 0.5).to_radians().tan() / physical_height;
     per_physical * physical_per_css
 }
+// --8<-- [end:world-per-px]
 
+// --8<-- [start:rotation-about]
+// Empty impl blocks compile to nothing; these are left where code moved to its own file.
 impl State {}
 
 impl State {}
@@ -507,7 +524,7 @@ impl State {}
 /// A rotation about a point.
 pub(crate) fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
     let turn = match axis {
-        Axis::X => Xform::rotation_x(degrees, true),
+        Axis::X => Xform::rotation_x(degrees, true), // true: the angle is in degrees
         Axis::Y => Xform::rotation_y(degrees, true),
         Axis::Z => Xform::rotation_z(degrees, true),
     };
@@ -535,7 +552,9 @@ fn centred(inner: Xform, about: Option<&Point>) -> Xform {
 impl State {}
 
 impl State {}
+// --8<-- [end:rotation-about]
 
+// --8<-- [start:control-drag]
 /// A control point drag in progress.
 pub struct ControlDrag {
     parent: u32,   // the object's row
@@ -548,6 +567,7 @@ pub struct ControlDrag {
 impl State {
     /// Grab the selected control point, if the press is on it.
     pub fn begin_control_drag(&mut self, x: f64, y: f64) -> bool {
+        // the pattern checks the mode and that a control is picked; `..` skips the other fields
         let SelectionMode::Controls {
             parent,
             selected: Some(id),
@@ -615,7 +635,7 @@ impl State {
                     &Xform::translation(point[0] - from[0], point[1] - from[1], point[2] - from[2]),
                 )
             {
-                let _ = self.scene.preview_geometry(parent, edited, &mut self.gpu);
+                let _ = self.scene.preview_geometry(parent, edited, &mut self.gpu); // `let _ =` drops the Result: a refused preview shows nothing new
             }
         }
         self.controls.points[index].position = [point[0], point[1], point[2]];
@@ -665,7 +685,9 @@ impl State {
         self.touch();
         true
     }
+// --8<-- [end:control-drag]
 
+// --8<-- [start:control-target]
     /// Where the dragged control point lands: a snap, or the plane.
     fn control_target(&self, active: &ControlDrag, x: f64, y: f64) -> Option<Point> {
         let (from, dir) = self.camera.ray((x, y), self.viewport())?;
@@ -735,7 +757,9 @@ const GRAB_CSS: f64 = 10.0;
 const SNAP_APERTURE_PX: f64 = 12.0;
 
 const MAX_EDGE_ROWS: usize = 5000; // graph edges listed in the panel
+// --8<-- [end:control-target]
 
+// --8<-- [start:edit-state-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -765,7 +789,9 @@ mod tests {
         );
     }
 }
+// --8<-- [end:edit-state-tests]
 
+// --8<-- [start:edit-restore]
 impl State {
     /// Reselect `row` after its rows were redrawn, keeping the face, edge or control mode.
     fn restore_edit_selection(&mut self, row: u32) {
@@ -858,13 +884,14 @@ impl State {
         Ok(label.into())
     }
 }
+// --8<-- [end:edit-restore]
 
-// --8<-- [start:22]
+// --8<-- [start:22-egui-tests]
 #[cfg(test)]
 mod egui_tests {}
-// --8<-- [end:22]
+// --8<-- [end:22-egui-tests]
 
-// --8<-- [start:23]
+// --8<-- [start:23-run-command]
 impl State {
     /// Run one command line; the answer is what to show the person.
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
@@ -892,9 +919,10 @@ impl State {
         action.run(self)
     }
 }
-// --8<-- [end:23]
+// --8<-- [end:23-run-command]
 
-// --8<-- [start:25]
+// --8<-- [start:25-upload-gizmo]
+// --8<-- [start:upload-gizmo]
 impl State {
     /// Tell the GPU where the gizmo is and which handle lights up.
     pub fn upload_gizmo(&mut self) {
@@ -944,7 +972,11 @@ impl State {
         true
     }
 }
+// --8<-- [end:upload-gizmo]
+// --8<-- [end:25-upload-gizmo]
 
+// --8<-- [start:25-widget-test]
+// --8<-- [start:widget-test]
 #[cfg(test)]
 mod egui_tests_25 {
 
@@ -1008,9 +1040,10 @@ mod egui_tests_25 {
         );
     }
 }
-// --8<-- [end:25]
+// --8<-- [end:widget-test]
+// --8<-- [end:25-widget-test]
 
-// --8<-- [start:30]
+// --8<-- [start:30-layers-panel]
 impl State {
     /// L: open or close the layers panel.
     pub fn toggle_layers_panel(&mut self) {
@@ -1091,7 +1124,9 @@ fn edge_label(scene: &crate::app::scene::Scene, row: u32) -> String {
             .unwrap_or_default(),
     }
 }
+// --8<-- [end:30-layers-panel]
 
+// --8<-- [start:30-panel-tests]
 #[cfg(test)]
 mod panel_tests {
     use super::*;
@@ -1121,4 +1156,4 @@ mod panel_tests {
         assert_eq!(edge_label(&scene, 1), guid[..8]);
     }
 }
-// --8<-- [end:30]
+// --8<-- [end:30-panel-tests]

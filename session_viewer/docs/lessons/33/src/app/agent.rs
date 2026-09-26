@@ -1,4 +1,8 @@
+// --8<-- [start:agent-events]
 //! A hidden `<input>` that raises the phone keyboard for the command line and every other text field.
+
+// A phone shows its keyboard only when a real page input has focus; a canvas never gets one.
+// So index.html (lesson 00) carries a 1 x 1 pixel invisible <input id="command-agent">, and this file listens to it.
 
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
@@ -6,9 +10,11 @@ use winit::event_loop::EventLoopProxy;
 
 const AGENT: &str = "command-agent"; // id of the hidden input
 
+// IME = the phone keyboard or input method building a word from several keys, e.g. a suggestion or an accent
 thread_local! { static COMPOSING: std::cell::Cell<bool> = const { std::cell::Cell::new(false) }; } // the keyboard is composing a word
 thread_local! { static RAISED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) }; } // the tap being handled raised the keyboard
 
+// Each listener sends its message through the event loop proxy, so it reaches the viewer like any window event.
 /// One message from the hidden input.
 pub enum AgentEvent {
     Text(String),   // the whole typed text
@@ -30,10 +36,13 @@ fn element() -> Option<web_sys::HtmlInputElement> {
     web_sys::window()?
         .document()?
         .get_element_by_id(AGENT)?
+        // `dyn_into` checks at run time that the element really is an <input>
         .dyn_into()
         .ok()
 }
+// --8<-- [end:agent-events]
 
+// --8<-- [start:agent-listeners]
 impl CommandAgent {
     /// Install the listeners; each one sends a message.
     pub fn new(
@@ -45,6 +54,7 @@ impl CommandAgent {
         let on_input = {
             let proxy = proxy.clone();
             let input = input.clone();
+            // the whole text is sent, never a single letter: a suggestion may replace a word at once
             Closure::<dyn FnMut(web_sys::Event)>::new(move |_| {
                 let _ = proxy.send_event(crate::Msg::Agent(AgentEvent::Text(input.value())));
             })
@@ -63,6 +73,7 @@ impl CommandAgent {
                         "ArrowDown" => egui::Key::ArrowDown,
                         _ => return,
                     };
+                    // the input keeps no Enter or Tab of its own: e.g. Tab would move the focus off the page
                     event.prevent_default();
                     let _ = proxy.send_event(crate::Msg::Agent(AgentEvent::Key(key)));
                 },
@@ -126,7 +137,9 @@ impl CommandAgent {
         })
     }
 }
+// --8<-- [end:agent-listeners]
 
+// --8<-- [start:agent-drop]
 impl Drop for CommandAgent {
     /// Remove the listeners.
     fn drop(&mut self) {
@@ -152,7 +165,9 @@ impl Drop for CommandAgent {
         }
     }
 }
+// --8<-- [end:agent-drop]
 
+// --8<-- [start:agent-calls]
 /// Copy the command line text into the hidden input.
 pub fn sync(command: &str) {
     if let Some(input) = element()
@@ -170,6 +185,7 @@ pub fn edit(text: &str) {
     let focused = web_sys::window()
         .and_then(|window| window.document())
         .and_then(|document| document.active_element())
+        // `**input` follows two Derefs, <input> to HtmlElement to Element, the type active_element returns
         .is_some_and(|active| active == **input);
     input.set_value(text);
 
@@ -199,3 +215,4 @@ pub fn blur() {
 pub fn composing() -> bool {
     COMPOSING.with(|composing| composing.get())
 }
+// --8<-- [end:agent-calls]

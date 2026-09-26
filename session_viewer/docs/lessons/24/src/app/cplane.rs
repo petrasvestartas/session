@@ -1,6 +1,7 @@
+// --8<-- [start:cplane]
 use session_rust::{Point, Vector};
 
-/// A construction plane through two world axes.
+/// A construction plane is the flat sheet a dragged point slides on; here one of the three world planes.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CPlane {
     Xy, // ground, normal z
@@ -13,6 +14,7 @@ impl CPlane {
     pub fn facing(forward: &Vector) -> Self {
         let (x, y, z) = (forward[0].abs(), forward[1].abs(), forward[2].abs());
 
+        // the largest part of the view direction names the plane the eye sees most squarely
         if z >= x && z >= y {
             CPlane::Xy
         } else if y >= x {
@@ -34,7 +36,7 @@ impl CPlane {
     /// Where a ray hits this plane through `origin`, in front of the eye.
     pub fn hit(self, origin: &Point, from: &Point, direction: &Vector) -> Option<Point> {
         let n = self.normal();
-        let denom = direction[0] * n[0] + direction[1] * n[1] + direction[2] * n[2];
+        let denom = direction[0] * n[0] + direction[1] * n[1] + direction[2] * n[2]; // 0 when the ray runs along the plane
 
         if denom.abs() < 1e-12 {
             return None; // ray parallel to the plane
@@ -43,7 +45,7 @@ impl CPlane {
         let num = (origin[0] - from[0]) * n[0]
             + (origin[1] - from[1]) * n[1]
             + (origin[2] - from[2]) * n[2];
-        let t = num / denom;
+        let t = num / denom; // the point from + direction * t lies on the plane
 
         if !t.is_finite() || t <= 0.0 {
             return None; // behind the eye
@@ -56,7 +58,9 @@ impl CPlane {
         ))
     }
 }
+// --8<-- [end:cplane]
 
+// --8<-- [start:cplane-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -127,3 +131,4 @@ mod tests {
         assert_eq!(expected as f32, 1.0e6_f32, "and f32 would have lost it");
     }
 }
+// --8<-- [end:cplane-tests]
