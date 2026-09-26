@@ -7,6 +7,7 @@ pub mod device;
 pub mod faces;
 pub mod frame;
 pub mod glyphs;
+pub mod hull;
 pub mod instance;
 pub mod instanced;
 pub mod lod;

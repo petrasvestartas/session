@@ -23,6 +23,15 @@ impl Gpu {
         (lists, lists)
     }
 
+    /// True when this pick draws strokes, the only ids that read the triangle tables.
+    fn pick_reads_tiles(&self) -> bool {
+        let v = &self.view;
+        let pipes = v.show_mesh_edges && self.live_pipes() > 0;
+        let ribbons = v.show_lines && self.live_ribbons() > 0;
+        let lanes = self.registered.iter().any(|lane| lane.reads_tiles(v));
+        !self.pick.source_query() && pick_strokes(self.pick.mode, pipes, ribbons, lanes)
+    }
+
     /// Project the triangles, and bin them into screen tiles when `lists`; nothing when
     /// `projection` is false, and the stale tables rebuild on the next frame that reads them.
     fn triangle_tile_pass(
@@ -65,12 +74,16 @@ impl Gpu {
         self.mark(encoder, "start");
 
         // the arena changed: the instance triangle ids follow it
-        if self.arena.follow_arena(&self.ctx) {
-            self.objects.geometry_changed();
-        }
+        self.follow_arena();
 
         let tier = if self.view.ssao { 0 } else { self.performance.drag_tier() };
         let (projection, lists) = self.tile_readers();
+
+        // nothing reads the tables: free them, the ink bind group follows
+        if !projection && self.arena.tiles.release_unread(&self.ctx) {
+            self.rebind_ink();
+        }
+
         // a slow drag tests ink against the fitted planes alone; the lists return when it ends
         let rough = lists && tier >= 1;
         self.triangle_tile_pass(encoder, projection, lists && !rough);
@@ -391,8 +404,9 @@ impl Gpu {
 
     /// Draw object ids around the cursor for a pick, then copy them out.
     pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
-        // pick ink always tests against current lists
-        self.triangle_tile_pass(encoder, true, true);
+        // stroke ids test against current lists; faces, discs and text need no tables
+        let strokes = self.pick_reads_tiles();
+        self.triangle_tile_pass(encoder, strokes, strokes);
         let size = (self.config.width, self.config.height);
         let mode = self.pick.mode;
         // draw only the window around the cursor, plus its halo
@@ -532,5 +546,41 @@ impl Gpu {
         if let Some(at) = at {
             self.pick.copy_window(&self.ctx, encoder, at, size);
         }
+    }
+}
+
+/// Does a pick in `mode` draw strokes that read the tables: mesh edges, lines, or a lane's strokes?
+fn pick_strokes(mode: PickMode, pipes: bool, ribbons: bool, lanes: bool) -> bool {
+    lanes
+        || match mode {
+            PickMode::Edge | PickMode::Component => pipes,
+            PickMode::Object => pipes || ribbons,
+            PickMode::Controls { .. } => false,
+        }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A face-only scene picks without the tables; every stroke the mode draws needs them.
+    #[test]
+    fn only_stroke_picks_read_the_tables() {
+        let controls = PickMode::Controls {
+            parent: 0,
+            cloud: false,
+        };
+
+        for mode in [PickMode::Object, PickMode::Edge, PickMode::Component, controls] {
+            assert!(!pick_strokes(mode, false, false, false), "{mode:?} on faces alone");
+            assert!(pick_strokes(mode, false, false, true), "{mode:?} with a lane's strokes");
+        }
+
+        assert!(pick_strokes(PickMode::Object, true, false, false));
+        assert!(pick_strokes(PickMode::Object, false, true, false));
+        assert!(pick_strokes(PickMode::Edge, true, false, false));
+        assert!(pick_strokes(PickMode::Component, true, false, false));
+        assert!(!pick_strokes(PickMode::Edge, false, true, false), "edge picks skip lines");
+        assert!(!pick_strokes(controls, true, true, false), "control dots are discs");
     }
 }

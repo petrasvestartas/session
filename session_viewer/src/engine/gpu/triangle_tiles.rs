@@ -550,6 +550,11 @@ impl TriangleTiles {
         true
     }
 
+    /// Free the tables while nothing reads them; true when a buffer moved.
+    pub fn release_unread(&mut self, ctx: &GpuCtx) -> bool {
+        self.release_data(ctx)
+    }
+
     /// Forget the scene and free the buffers.
     pub fn release(&mut self, ctx: &GpuCtx) {
         self.release_data(ctx);
@@ -887,7 +892,7 @@ mod tests {
     #[ignore = "requires a native GPU adapter"]
     /// Lists are reused until camera, hiding or scene change.
     fn projection_cache_tracks_camera_hidden_state_replacement_and_release() {
-        use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
+        use crate::engine::gpu::{CylinderSegment, FrameInput, Gpu, ObjectRow, Upload};
         use session_rust::{RenderVertex, Xform};
         let mut gpu = pollster::block_on(Gpu::new_headless(128, 128)).unwrap();
         gpu.view.show_grid = false;
@@ -935,9 +940,23 @@ mod tests {
         gpu.render_offscreen(&input);
         assert_eq!(gpu.arena.tiles.allocated_bytes(), initial);
 
-        // Picking remains a reader and retains the normal invalidation rules.
+        // a pick of faces alone reads no tables either
         gpu.render_ids_offscreen(&input);
-        let key = gpu.arena.tiles.key.expect("picking prepares visibility");
+        assert!(gpu.arena.tiles.key.is_none(), "a face pick projects nothing");
+        assert_eq!(gpu.arena.tiles.allocated_bytes(), initial, "nor allocates");
+        // a line over the triangle: its ink and its pick read the tables, with the usual invalidation
+        upload.seg.ribbons.push(CylinderSegment {
+            p0: [-0.5, 0.0, 0.6],
+            radius: 0.0,
+            p1: [0.5, 0.0, 0.6],
+            instance_id: 0,
+            color: 0xff00_0000,
+            facing: 0,
+        });
+        gpu.reset();
+        gpu.set_scene(&upload);
+        gpu.render_ids_offscreen(&input);
+        let key = gpu.arena.tiles.key.expect("picking a line prepares visibility");
         gpu.set_selected(0, true);
         gpu.render_ids_offscreen(&input);
         assert_eq!(gpu.arena.tiles.key, Some(key), "highlighting does not reproject");
@@ -962,6 +981,15 @@ mod tests {
             gpu.arena.tiles.key.is_some() && gpu.arena.tiles.binned == gpu.arena.tiles.key,
             "ID-only rendering prepares its own current geometry and lists"
         );
+        // lines off: nothing reads the tables, so they are freed
+        gpu.view.show_lines = false;
+        gpu.render_offscreen(&input);
+        assert_eq!(gpu.arena.tiles.allocated_bytes(), initial, "unread tables are freed");
+        gpu.render_ids_offscreen(&input);
+        assert!(gpu.arena.tiles.key.is_none(), "and a face pick does not bring them back");
+        gpu.view.show_lines = true;
+        gpu.render_offscreen(&input);
+        assert!(gpu.arena.tiles.key.is_some(), "lines back on project again");
         gpu.release();
         assert_eq!(gpu.arena.tiles.allocated_bytes(), initial);
         assert!(gpu.arena.tiles.key.is_none());

@@ -380,7 +380,7 @@ impl Scene {
         self.selected = None;
         self.object_rows = 0;
         self.uploaded = Counts::default();
-        self.instancing = Default::default();
+        self.instancing.clear();
         #[cfg(test)]
         self.ledger.clear();
     }

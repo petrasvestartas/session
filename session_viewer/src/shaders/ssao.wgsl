@@ -25,6 +25,7 @@ struct Ambient {
 // Geometry access: ambient_geometry.wgsl, appended by ssao.rs
 @group(1) @binding(0) var linear: texture_2d<f32>;
 @group(1) @binding(1) var radii: texture_2d<u32>;
+@group(1) @binding(2) var normals: texture_2d<f32>;
 @group(2) @binding(0) var occlusion: texture_2d<f32>;
 @group(2) @binding(1) var linear_sampler: sampler;
 
@@ -49,7 +50,9 @@ fn depth_sample(pixel: vec2<f32>, sample: i32) -> f32 {
     return textureLoad(depth,clamp(vec2<i32>(pixel),vec2<i32>(0),vec2<i32>(ambient.params.zw)-1),sample);
 }
 fn surface(pixel: vec2<f32>, sample: i32) -> vec4<f32> {
-    let z = depth_sample(pixel,sample);
+    return surface_at_depth(pixel,depth_sample(pixel,sample));
+}
+fn surface_at_depth(pixel: vec2<f32>, z: f32) -> vec4<f32> {
     if z>0.0 { return vec4<f32>(world(pixel,z),1.0); }
     let near = ray_origin(pixel);
     let direction = ray_direction(pixel);
@@ -62,9 +65,25 @@ fn full_pixel(pixel: vec2<f32>) -> vec2<f32> {
 fn position_at(pixel: vec2<f32>, along: f32) -> vec3<f32> {
     return ray_origin(pixel)+ray_direction(pixel)*abs(along);
 }
+// Octahedral map of a unit normal onto the square [-1,1]^2 (Cigolle et al.).
+fn encode_normal(n: vec3<f32>) -> vec2<f32> {
+    let p = n.xy/(abs(n.x)+abs(n.y)+abs(n.z));
+    let folded = (1.0-abs(p.yx))*select(vec2<f32>(-1.0),vec2<f32>(1.0),p>=vec2<f32>(0.0));
+    return select(folded,p,n.z>=0.0);
+}
+fn decode_normal(e: vec2<f32>) -> vec3<f32> {
+    let z = 1.0-abs(e.x)-abs(e.y);
+    let t = max(-z,0.0);
+    let xy = e-select(vec2<f32>(-t),vec2<f32>(t),e>=vec2<f32>(0.0));
+    return normalize(vec3<f32>(xy,z));
+}
+fn normal_half(coord: vec2<i32>) -> vec3<f32> {
+    return decode_normal(textureLoad(normals,coord,0).xy*2.0-1.0);
+}
 struct DepthRadius {
     @location(0) depth: f32,
     @location(1) radius: u32,
+    @location(2) normal: vec2<f32>,
 };
 @fragment fn fs_prepare(@builtin(position) pixel: vec4<f32>) -> DepthRadius {
     let at = full_pixel(pixel.xy);
@@ -72,15 +91,17 @@ struct DepthRadius {
     let origin = ray_origin(at);
     let z = depth_sample(at,0);
     if z==0.0 {
-        if ray.z>=-1e-7 || origin.z<ambient.params.x { return DepthRadius(0.0,0u); }
-        return DepthRadius(-(ambient.params.x-origin.z)/ray.z,0u);
+        if ray.z>=-1e-7 || origin.z<ambient.params.x { return DepthRadius(0.0,0u,vec2<f32>(0.5)); }
+        return DepthRadius(-(ambient.params.x-origin.z)/ray.z,0u,vec2<f32>(0.5));
     }
-    let along = dot(world(at,z)-origin,ray)/dot(ray,ray);
-    let radius = triangle_at(at,0).w/ambient.params.y;
+    let p = world(at,z);
+    let along = dot(p-origin,ray)/dot(ray,ray);
+    let placed = primitive_at(at,0);
+    let radius = select(0.0,objects[placed.y].ao_radius,placed.x!=NO_TRIANGLE)/ambient.params.y;
     let bits = (pack2x16float(vec2<f32>(radius,0.0))+2u)>>2u;
     let coord = vec2<u32>(pixel.xy);
     let encoded = (bits<<4u)|(coord.x&3u)|((coord.y&3u)<<2u);
-    return DepthRadius(along,encoded);
+    return DepthRadius(along,encoded,encode_normal(normal_of(placed,at,p,0))*0.5+0.5);
 }
 
 fn radius_at(coord: vec2<i32>) -> f32 {
@@ -103,13 +124,23 @@ fn sample_hit(at: vec2<f32>, offset: vec2<f32>, level: i32) -> Hit {
     let pixel = full_pixel(vec2<f32>(source_coord)+0.5);
     return Hit(position_at(pixel,along),along,unpack2x16float((encoded>>4u)<<2u).x*ambient.params.y);
 }
-fn ground_contact(at: vec2<f32>, p: vec3<f32>, pixel_world: f32, noise: f32) -> f32 {
+// With reusable history a pixel takes every second direction, offset by its position, so the
+// filter's neighbourhood covers all of them; a fixed pattern keeps the history stable.
+fn stride() -> u32 {
+    return select(1u,2u,ambient.near.w!=0.0);
+}
+fn phase(pixel: vec2<f32>, stride: u32) -> u32 {
+    return (u32(pixel.x)+u32(pixel.y))%stride;
+}
+fn ground_contact(at: vec2<f32>, p: vec3<f32>, pixel_world: f32, noise: f32, phase: u32) -> f32 {
     let dims = vec2<i32>(textureDimensions(occlusion));
     let tile = clamp(vec2<i32>(at/ambient.params.zw*vec2<f32>(dims)),vec2<i32>(0),dims-1);
     if textureLoad(occlusion,tile,0).x==0.0 { return 0.0; }
     let radius_px = min(ambient.params.y*6.0/max(pixel_world,1e-6),64.0);
+    let stride = stride();
     var sum = 0.0;
-    for (var direction=0u; direction<24u; direction++) {
+    for (var index=0u; index<24u/stride; index++) {
+        let direction = index*stride+phase;
         let angle = (f32(direction)+noise)*0.261799388;
         let axis = vec2<f32>(cos(angle),sin(angle));
         var horizon = 0.0;
@@ -131,7 +162,7 @@ fn ground_contact(at: vec2<f32>, p: vec3<f32>, pixel_world: f32, noise: f32) -> 
         }
         sum += horizon;
     }
-    return clamp(sum*(2.6/24.0),0.0,0.65);
+    return clamp(sum*(2.6*f32(stride)/24.0),0.0,0.65);
 }
 @fragment fn fs_ground(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
     let at = pixel.xy/ambient.extent.xw*ambient.params.zw;
@@ -142,7 +173,7 @@ fn ground_contact(at: vec2<f32>, p: vec3<f32>, pixel_world: f32, noise: f32) -> 
     let p = origin+ray*along;
     let pixel_world = max(length(ambient.near_x.xyz+ambient.ray_x.xyz*along),1e-6);
     let noise = fract(52.9829189*fract(dot(floor(pixel.xy),vec2<f32>(0.06711056,0.00583715))));
-    return ground_contact(at,p,pixel_world,noise);
+    return ground_contact(at,p,pixel_world,noise,phase(pixel.xy,stride()));
 }
 fn filtered_ground(at: vec2<f32>) -> f32 {
     return textureSampleLevel(occlusion,linear_sampler,at/ambient.params.zw,0.0).x;
@@ -164,12 +195,15 @@ fn arc(h: f32, n: f32) -> f32 {
     if along<0.0 { return filtered_ground(at); }
     let radius = radius_at(coord);
     if radius<=0.0 { return 0.0; }
-    let normal = normal_at(at,p,0);
+    let normal = normal_half(coord);
     let view = -normalize(ray_direction(at));
     let radius_px = min(radius*8.0/pixel_world,128.0);
     let bias = radius*0.025;
+    let stride = stride();
+    let phase = phase(pixel.xy,stride);
     var occluded = 0.0;
-    for (var slice=0u; slice<4u; slice++) {
+    for (var index=0u; index<4u/stride; index++) {
+        let slice = index*stride+phase;
         let angle = (f32(slice)+noise)*0.785398163;
         let axis = vec2<f32>(cos(angle),sin(angle));
         let tangent = step_x*axis.x+step_y*axis.y;
@@ -201,7 +235,7 @@ fn arc(h: f32, n: f32) -> f32 {
         }
         occluded += normal_length*slice_occ;
     }
-    return clamp(occluded*(1.08/4.0),0.0,0.65);
+    return clamp(occluded*(1.08*f32(stride)/4.0),0.0,0.65);
 }
 fn weight_at(q: vec2<i32>, p: vec3<f32>, n: vec3<f32>, geometry: bool, radius: f32) -> f32 {
     let along = textureLoad(linear,q,0).x;
@@ -227,7 +261,7 @@ fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
     let at = full_pixel(pixel);
     let p = position_at(at,along);
     var n = vec3<f32>(0.0,0.0,1.0);
-    if along>0.0 { n = normal_at(at,p,0); }
+    if along>0.0 { n = normal_half(coord); }
     let radius = select(ambient.params.y,radius_at(coord),along>0.0);
     var sum = 0.0;
     var weights = 0.0;
@@ -269,23 +303,29 @@ fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
     return mix(current.x,clamp(previous,current.y,current.z),0.8);
 }
 @fragment fn fs_history(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
-    let at = pixel.xy/ambient.extent.xw*ambient.params.zw;
-    let p = surface(at,0);
-    if p.w==0.0 { return 0.0; }
-    let clip = ambient.mvp*vec4<f32>(p.xyz,1.0);
-    return select(-clip.z/clip.w,clip.z/clip.w,depth_sample(at,0)>0.0);
+    let coord = min(vec2<i32>(pixel.xy)*2+1,vec2<i32>(ambient.extent.yz)-1);
+    let along = textureLoad(linear,coord,0).x;
+    if along==0.0 { return 0.0; }
+    let p = position_at(full_pixel(vec2<f32>(coord)+0.5),along);
+    let clip = ambient.mvp*vec4<f32>(p,1.0);
+    return select(-clip.z/clip.w,clip.z/clip.w,along>0.0);
 }
 fn source_base(at: vec2<f32>) -> vec2<i32> {
     let base = vec2<i32>(floor(at/ambient.params.zw*ambient.extent.yz-0.5));
     return base-select(vec2<i32>(0),vec2<i32>(1),at<full_pixel(vec2<f32>(base)+0.5));
 }
-fn reconstruct(at: vec2<f32>, sample: i32, values: vec4<f32>) -> f32 {
+fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
     let base = source_base(at);
-    let p = surface(at,sample);
+    let p = surface_at_depth(at,z);
     if p.w==0.0 { return 0.0; }
-    let n = normal_at(at,p.xyz,sample);
-    let geometry = depth_sample(at,sample)>0.0;
-    let radius = select(ambient.params.y,triangle_at(at,sample).w,geometry);
+    let geometry = z>0.0;
+    var n = vec3<f32>(0.0,0.0,1.0);
+    var radius = ambient.params.y;
+    if geometry {
+        let placed = primitive_at(at,sample);
+        n = normal_of(placed,at,p.xyz,sample);
+        radius = select(0.0,objects[placed.y].ao_radius,placed.x!=NO_TRIANGLE);
+    }
     let origin = full_pixel(vec2<f32>(base)+0.5);
     let blend = (at-origin)/(full_pixel(vec2<f32>(base)+1.5)-origin);
     var sum = 0.0;
@@ -311,15 +351,15 @@ fn reconstruct(at: vec2<f32>, sample: i32, values: vec4<f32>) -> f32 {
         values[i] = textureLoad(occlusion,q,0).x;
     }
     if all(values==vec4<f32>(0.0)) { return 0.0; }
-    let first = reconstruct(pixel.xy,0,values);
-    if !MSAA { return first; }
     let center = depth_sample(pixel.xy,0);
+    let first = reconstruct(pixel.xy,0,center,values);
+    if !MSAA { return first; }
     var ao = vec4<f32>(first);
     var different = false;
     for (var i=1; i<4; i++) {
         let z = depth_sample(pixel.xy,i);
         if (z>0.0)!=(center>0.0) || abs(z-center)>max(center*0.001,1e-7) {
-            ao[i] = reconstruct(pixel.xy,i,values);
+            ao[i] = reconstruct(pixel.xy,i,z,values);
             different = different || ao[i]!=first;
         }
     }

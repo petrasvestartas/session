@@ -1,6 +1,6 @@
 use super::buffers::{GpuCtx, GrowBuf, INDICES, VERTS};
 use super::frame::Binds;
-use super::instanced::{Draw, SlotTable, arena_slot_layout, clamp, place};
+use super::instanced::{SlotSpace, SlotTable, arena_slot_layout, clamp};
 use super::text_outline::{OutlineBuffers, OutlineTextLane};
 use super::upload::drop_rows;
 use crate::engine::pipelines::{
@@ -132,8 +132,7 @@ pub struct ArenaLane {
     outline_text: OutlineTextLane, // draws sheet fills and lettering
     pub source_faces: super::faces::Faces, // solid faces with their source ids
     pub table: SlotTable, // where each instance's triangle ids lie
-    instances: Vec<u32>, // instance rows in slot order
-    placed: (u32, u32), // arena triangles the instance ids follow, and how many ids they take
+    pub space: SlotSpace, // where each instance's slot and triangle ids lie
 }
 
 impl ArenaLane {
@@ -166,41 +165,9 @@ impl ArenaLane {
         );
     }
 
-    /// Draw each definition once per instance of `rows`, their triangle ids after the arena's.
-    pub fn set_instanced(&mut self, ctx: &GpuCtx, rows: &[u32], draws: &[Draw]) {
-        self.instances = rows.to_vec();
-        self.place_instances(ctx, draws);
-    }
-
-    /// Number the instances' triangles after the arena's as it is now.
-    fn place_instances(&mut self, ctx: &GpuCtx, draws: &[Draw]) {
-        let arena = self.face_count() / 3;
-        let (slots, texels, count) = place(&self.instances, draws, arena);
-        self.source_faces.slots.set(ctx, &slots, draws);
-        self.table.write(ctx, &texels);
-        self.placed = (arena, count);
-        self.tiles.invalidate();
-    }
-
-    /// Number the instance triangles again once the arena's count changed; true when they moved.
-    pub fn follow_arena(&mut self, ctx: &GpuCtx) -> bool {
-        if !self.source_faces.slots.any() || self.placed.0 == self.face_count() / 3 {
-            return false;
-        }
-
-        let draws = self.source_faces.slots.draws().to_vec();
-        self.place_instances(ctx, &draws);
-        true
-    }
-
     /// Triangle ids in use: the arena's, then one per instance triangle.
     pub fn triangle_count(&self) -> u32 {
-        let instanced = if self.source_faces.slots.any() {
-            self.placed.1
-        } else {
-            0
-        };
-        self.face_count() / 3 + instanced
+        self.space.triangle_count().unwrap_or(self.face_count() / 3)
     }
 
     /// Bytes reserved on the GPU by this lane.
@@ -246,8 +213,7 @@ impl ArenaLane {
             pipes,
             outline_text: OutlineTextLane::new(ctx, l, target),
             table: SlotTable::new(ctx),
-            instances: Vec::new(),
-            placed: (0, 0),
+            space: SlotSpace::default(),
         }
     }
 
@@ -524,7 +490,8 @@ impl ArenaLane {
     pub fn reset(&mut self, ctx: &GpuCtx) {
         self.tiles.invalidate();
         self.source_faces.reset(ctx);
-        self.set_instanced(ctx, &[], &[]);
+        self.space = SlotSpace::default();
+        self.table.write(ctx, &[]);
         self.verts.reset();
         self.vids.reset();
         self.faces.reset();
@@ -536,7 +503,7 @@ impl ArenaLane {
     pub fn release(&mut self, ctx: &GpuCtx) {
         self.tiles.release(ctx);
         self.source_faces.release(ctx);
-        self.instances = Vec::new();
+        self.space = SlotSpace::default();
         self.table.write(ctx, &[]);
         self.verts.release(ctx);
         self.vids.release(ctx);

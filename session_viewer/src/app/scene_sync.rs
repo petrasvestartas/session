@@ -1686,6 +1686,7 @@ impl Scene {
                 held.flags = (held.flags & KEEP) | (object.flags & !KEEP);
                 held.place = object.place;
                 held.bounds = object.bounds;
+                held.hull = object.hull.clone();
                 held.spacing = object.spacing;
                 held.faces = object.faces;
             }
@@ -1781,6 +1782,7 @@ impl Scene {
             let want = &fresh.tables.obj.rows[other as usize];
             assert_eq!(bits(&held.place), bits(&want.place), "{id:?} placement");
             assert_eq!(boxed(&held.bounds), boxed(&want.bounds), "{id:?} box");
+            assert_eq!(held.hull.as_deref(), want.hull.as_deref(), "{id:?} extreme points");
             assert_eq!(
                 held.spacing.to_bits(),
                 want.spacing.to_bits(),

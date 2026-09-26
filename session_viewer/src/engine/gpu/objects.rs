@@ -1,4 +1,5 @@
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
+use super::hull::{Hull, placed_box};
 use super::instance::Instance;
 use super::targets::Targets;
 use crate::engine::pipelines::Layouts;
@@ -23,6 +24,7 @@ pub struct ObjectRow {
     pub bounds: AABB, // box in the object's own space
     pub spacing: f32, // vertex spacing, or point size for clouds
     pub faces: bool, // true when the object drew faces
+    pub hull: Option<Hull>, // extreme points in the object's own space, for an exact turned box
 }
 
 impl ObjectRow {
@@ -36,6 +38,7 @@ impl ObjectRow {
             bounds: AABB::empty(),
             spacing: 0.0,
             faces: false,
+            hull: None,
         }
     }
 }
@@ -60,9 +63,17 @@ struct BoundedRow {
     hi: [f64; 3], // box maximum
 }
 
-/// The row's box in world space.
-fn world_box(r: &ObjectRow) -> AABB {
-    r.bounds.transformed(&r.place)
+/// The row's box in world space: exact over its extreme points, else its own box turned.
+pub fn world_box(r: &ObjectRow) -> AABB {
+    placed_bounds(&r.bounds, r.hull.as_deref(), &r.place)
+}
+
+/// `local` placed by `place`, exact when the extreme points are known.
+fn placed_bounds(local: &AABB, hull: Option<&[[f32; 3]]>, place: &Xform) -> AABB {
+    match hull {
+        Some(points) if local.is_valid() => placed_box(points, place),
+        _ => local.transformed(place),
+    }
 }
 
 /// SSAO contact radius: 5% of the box diagonal.
@@ -74,8 +85,12 @@ fn ambient_radius(bounds: &AABB) -> f32 {
 }
 
 /// Split a placement into matrix, translation and world box.
-fn placed_row(local: &AABB, place: &Xform) -> ([f32; 16], [f64; 3], AABB) {
-    let world = local.transformed(place);
+fn placed_row(
+    local: &AABB,
+    hull: Option<&[[f32; 3]]>,
+    place: &Xform,
+) -> ([f32; 16], [f64; 3], AABB) {
+    let world = placed_bounds(local, hull, place);
     let mut model = place.to_f32();
     // translation goes in its own table
     model[12] = 0.0;
@@ -111,6 +126,14 @@ fn same_box(a: &AABB, b: &AABB) -> bool {
         .all(|(x, y)| x.to_bits() == y.to_bits())
 }
 
+/// True when two rows share the same extreme points, or neither has any.
+fn same_hull(a: Option<&Hull>, b: Option<&Hull>) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => Hull::ptr_eq(a, b),
+        (a, b) => a.is_none() && b.is_none(),
+    }
+}
+
 /// Translation relative to the origin, as the GPU reads it.
 fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
     [
@@ -127,6 +150,7 @@ pub struct InstanceTable {
     rows: Vec<Instance>, // the rows, as uploaded
     translation: Vec<[f64; 3]>, // exact world position per row
     local_bounds: Vec<AABB>, // box per row, in the object's own space
+    hulls: Vec<Option<Hull>>, // extreme points per row; empty until a row has some
     widget: Option<u32>, // identity row the gumball draws with
     bounded: Vec<BoundedRow>, // rows with faces, for the inside test
     bounded_at: Vec<u32>, // index of each row in `bounded`, u32::MAX = none
@@ -237,6 +261,7 @@ impl InstanceTable {
             rows: vec![Instance::placeholder()],
             translation: Vec::new(),
             local_bounds: Vec::new(),
+            hulls: Vec::new(),
             widget: None,
             bounded: Vec::new(),
             bounded_at: Vec::new(),
@@ -296,6 +321,7 @@ impl InstanceTable {
             self.rows.truncate(keep);
             self.translation.truncate(keep);
             self.local_bounds.truncate(keep);
+            self.hulls.truncate(keep);
             self.world_bounds.truncate(keep);
             self.bounded_at.truncate(keep);
             // rewind both buffers by re-appending the kept rows
@@ -325,6 +351,7 @@ impl InstanceTable {
             self.rows.clear();
             self.world_bounds.clear();
             self.local_bounds.clear();
+            self.hulls.clear();
             self.bounded_at.clear();
             self.buffer.reset();
             self.translations.reset();
@@ -361,6 +388,7 @@ impl InstanceTable {
                 AABB::empty()
             });
             self.local_bounds.push(r.bounds);
+            self.set_hull(base + i as u32, r.hull.clone());
 
             if r.flags & (Instance::FLAG_CLIPPING_PLANE | Instance::FLAG_CLOSED) != 0 {
                 self.track(base + i as u32, r.flags);
@@ -563,7 +591,8 @@ impl InstanceTable {
         let (Some(instance), Some(local)) = (self.rows.get_mut(i), self.local_bounds.get(i)) else {
             return false;
         };
-        let (model, translation, world) = placed_row(local, place);
+        let hull = self.hulls.get(i).and_then(|h| h.as_deref());
+        let (model, translation, world) = placed_row(local, hull, place);
         instance.model = model;
         instance.ao_radius = ambient_radius(&world);
         self.translation[i] = translation;
@@ -603,6 +632,7 @@ impl InstanceTable {
         place: &Xform,
     ) {
         self.local_bounds[row as usize] = bounds;
+        self.set_hull(row, None);
         self.rows[row as usize].spacing = spacing;
         self.set_placement(ctx, row, place);
     }
@@ -643,6 +673,21 @@ impl InstanceTable {
         }
     }
 
+    /// Keep `hull` for row `row`; the table grows only once some row has one.
+    fn set_hull(&mut self, row: u32, hull: Option<Hull>) {
+        let i = row as usize;
+
+        if i >= self.hulls.len() {
+            if hull.is_none() {
+                return;
+            }
+
+            self.hulls.resize(i + 1, None);
+        }
+
+        self.hulls[i] = hull;
+    }
+
     /// Write one row and its translation to the GPU.
     fn write_row(&mut self, ctx: &GpuCtx, row: u32) {
         let i = row as usize;
@@ -660,7 +705,7 @@ impl InstanceTable {
     /// Take a whole new row on an id that was free.
     pub fn set_row(&mut self, ctx: &GpuCtx, row: u32, r: &ObjectRow) {
         let i = row as usize;
-        let (model, translation, world) = placed_row(&r.bounds, &r.place);
+        let (model, translation, world) = placed_row(&r.bounds, r.hull.as_deref(), &r.place);
         self.rows[i] = Instance {
             model,
             color: r.color,
@@ -671,6 +716,7 @@ impl InstanceTable {
         };
         self.translation[i] = translation;
         self.local_bounds[i] = r.bounds;
+        self.set_hull(row, r.hull.clone());
         self.world_bounds[i] = world;
         self.set_bounded(row, r.faces && world.is_valid(), &world);
         self.track(row, r.flags);
@@ -718,7 +764,7 @@ impl InstanceTable {
             | Instance::FLAG_EDGE_COLOR
             | Instance::FLAG_DEAD;
         let i = row as usize;
-        let (model, translation, world) = placed_row(&r.bounds, &r.place);
+        let (model, translation, world) = placed_row(&r.bounds, r.hull.as_deref(), &r.place);
         let before = self.rows[i];
         let instance = &mut self.rows[i];
         instance.model = model;
@@ -731,6 +777,7 @@ impl InstanceTable {
         let same = bytemuck::bytes_of(&before) == bytemuck::bytes_of(&self.rows[i])
             && self.translation[i] == translation
             && same_box(&self.local_bounds[i], &r.bounds)
+            && same_hull(self.hulls.get(i).and_then(Option::as_ref), r.hull.as_ref())
             && (self.bounded_at[i] != u32::MAX) == bounded;
 
         // a compaction walks every row again; most come back unchanged
@@ -740,6 +787,7 @@ impl InstanceTable {
 
         self.translation[i] = translation;
         self.local_bounds[i] = r.bounds;
+        self.set_hull(row, r.hull.clone());
         self.world_bounds[i] = world;
         self.set_bounded(row, bounded, &world);
         self.write_row(ctx, row);
@@ -762,6 +810,7 @@ impl InstanceTable {
             instance.ao_radius = 0.0;
             self.track(row, Instance::FLAG_DEAD);
             self.local_bounds[i] = AABB::empty();
+            self.set_hull(row, None);
             self.world_bounds[i] = AABB::empty();
             self.set_bounded(row, false, &AABB::empty());
         }
@@ -813,7 +862,8 @@ impl InstanceTable {
             | Instance::FLAG_EDGE_COLOR
             | Instance::FLAG_DEAD;
         let i = row as usize;
-        let (model, translation, world) = placed_row(&self.local_bounds[i], &r.place);
+        let hull = self.hulls.get(i).and_then(|h| h.as_deref());
+        let (model, translation, world) = placed_row(&self.local_bounds[i], hull, &r.place);
         let instance = &mut self.rows[i];
         instance.model = model;
         instance.color = r.color;
@@ -839,6 +889,8 @@ impl InstanceTable {
 
         local.union_with(bounds);
         let world = local.transformed(place);
+        // the grown box outruns the extreme points
+        self.set_hull(row, None);
         let world = if world.is_valid() {
             world
         } else {
@@ -956,6 +1008,7 @@ impl InstanceTable {
         self.rows.clear();
         self.translation.clear();
         self.local_bounds.clear();
+        self.hulls.clear();
         self.bounded.clear();
         self.bounded_at.clear();
         self.world_bounds.clear();
@@ -972,6 +1025,7 @@ impl InstanceTable {
         self.rows.shrink_to_fit();
         self.translation.shrink_to_fit();
         self.local_bounds.shrink_to_fit();
+        self.hulls = Vec::new();
         self.bounded.shrink_to_fit();
         self.bounded_at.shrink_to_fit();
         self.world_bounds.shrink_to_fit();
@@ -1071,7 +1125,7 @@ mod tests {
     fn a_move_goes_into_the_translation_not_the_matrix() {
         let local = AABB::new(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
         let place = Xform::translation(10.0, 20.0, 30.0);
-        let (model, translation, world) = placed_row(&local, &place);
+        let (model, translation, world) = placed_row(&local, None, &place);
 
         assert_eq!([model[12], model[13], model[14]], [0.0, 0.0, 0.0]);
         assert_eq!(translation, [10.0, 20.0, 30.0]);
@@ -1132,7 +1186,7 @@ mod tests {
     /// A row with no box stays empty, never infinite.
     #[test]
     fn a_row_with_no_box_stays_empty() {
-        let (_, _, world) = placed_row(&AABB::empty(), &Xform::translation(1.0, 0.0, 0.0));
+        let (_, _, world) = placed_row(&AABB::empty(), None, &Xform::translation(1.0, 0.0, 0.0));
         assert!(!world.is_valid());
     }
 

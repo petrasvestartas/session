@@ -30,7 +30,7 @@ pub fn file_extent(t: &Upload, from: &Baselines) -> AABB {
     for r in t.obj.rows.iter().skip(from.obj) {
         // a dead row is never drawn: the sink, or a definition its instances place
         if r.flags & Instance::FLAG_DEAD == 0 {
-            out.union_with(&r.bounds.transformed(&r.place));
+            out.union_with(&crate::engine::gpu::objects::world_box(r));
         }
     }
 

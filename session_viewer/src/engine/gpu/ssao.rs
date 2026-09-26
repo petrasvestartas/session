@@ -73,13 +73,13 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
         .device
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("ambient depth pyramid"),
-            entries: &[0, 1].map(|binding| {
+            entries: &[0, 1, 2].map(|binding| {
                 texture_entry(
                     binding,
-                    if binding == 0 {
-                        wgpu::TextureSampleType::Float { filterable: false }
-                    } else {
+                    if binding == 1 {
                         wgpu::TextureSampleType::Uint
+                    } else {
+                        wgpu::TextureSampleType::Float { filterable: false }
                     },
                     false,
                 )
@@ -109,7 +109,10 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
         "ambient depth reduction",
         shader!("ambient_depth.wgsl"),
     );
-    let depth_pass = |shader: &wgpu::ShaderModule, entry, groups: &[&wgpu::BindGroupLayout]| {
+    let depth_pass = |shader: &wgpu::ShaderModule,
+                      entry,
+                      groups: &[&wgpu::BindGroupLayout],
+                      targets: &[Option<wgpu::ColorTargetState>]| {
         crate::engine::pipelines::count_pipeline();
         ctx.device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -124,10 +127,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
                 fragment: Some(wgpu::FragmentState {
                     module: shader,
                     entry_point: Some(entry),
-                    targets: &[
-                        Some(wgpu::TextureFormat::R32Float.into()),
-                        Some(wgpu::TextureFormat::R16Uint.into()),
-                    ],
+                    targets,
                     compilation_options: Default::default(),
                 }),
                 primitive: Default::default(),
@@ -137,8 +137,13 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
                 cache: None,
             })
     };
-    let prepare = depth_pass(&shader, "fs_prepare", &[&layout]);
-    let reduce = depth_pass(&depth_shader, "fs_reduce", &[&depth_layout]);
+    let pyramid = [
+        Some(wgpu::TextureFormat::R32Float.into()),
+        Some(wgpu::TextureFormat::R16Uint.into()),
+        Some(wgpu::TextureFormat::Rg8Unorm.into()),
+    ];
+    let prepare = depth_pass(&shader, "fs_prepare", &[&layout], &pyramid);
+    let reduce = depth_pass(&depth_shader, "fs_reduce", &[&depth_layout], &pyramid[..2]);
     let single = Target {
         format: wgpu::TextureFormat::R8Unorm,
         samples: 1,
@@ -206,7 +211,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
         },
         &PipelineDesc::new(
             &shader,
-            &[&layout],
+            &[&layout, &depth_layout],
             &[],
             wgpu::PrimitiveTopology::TriangleList,
         )
@@ -378,22 +383,15 @@ impl Drop for Image {
 fn depth_group(
     ctx: &GpuCtx,
     layout: &wgpu::BindGroupLayout,
-    depth: &wgpu::TextureView,
-    radius: &wgpu::TextureView,
+    views: [&wgpu::TextureView; 3],
 ) -> wgpu::BindGroup {
     ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("ambient depth"),
         layout,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::TextureView(depth),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: wgpu::BindingResource::TextureView(radius),
-            },
-        ],
+        entries: &std::array::from_fn::<_, 3, _>(|i| wgpu::BindGroupEntry {
+            binding: i as u32,
+            resource: wgpu::BindingResource::TextureView(views[i]),
+        }),
     })
 }
 
@@ -430,6 +428,7 @@ pub struct Ssao {
     size: (u32, u32),
     linear: Image,
     radius: Image,
+    normals: Image,
     occupancy: Image,
     occupancy_group: wgpu::BindGroup,
     ground: Image,
@@ -511,6 +510,13 @@ impl Ssao {
             6,
         );
         let radius = Image::new(ctx, "ambient radius", size, wgpu::TextureFormat::R16Uint, 6);
+        let normals = Image::new(
+            ctx,
+            "ambient normals",
+            size,
+            wgpu::TextureFormat::Rg8Unorm,
+            1,
+        );
         let levels = std::array::from_fn(|level| {
             [&linear, &radius].map(|image| {
                 image.texture.create_view(&wgpu::TextureViewDescriptor {
@@ -520,9 +526,17 @@ impl Ssao {
                 })
             })
         });
-        let depth_group = depth_group(ctx, &pipes.depth_layout, &linear.view, &radius.view);
+        let depth_group = depth_group(
+            ctx,
+            &pipes.depth_layout,
+            [&linear.view, &radius.view, &normals.view],
+        );
         let reduce_groups = std::array::from_fn(|i| {
-            self::depth_group(ctx, &pipes.depth_layout, &levels[i][0], &levels[i][1])
+            self::depth_group(
+                ctx,
+                &pipes.depth_layout,
+                [&levels[i][0], &levels[i][1], &normals.view],
+            )
         });
         let ao = std::array::from_fn(|i| {
             Image::new(
@@ -641,6 +655,7 @@ impl Ssao {
             size,
             linear,
             radius,
+            normals,
             occupancy,
             occupancy_group,
             ground,
@@ -671,7 +686,7 @@ impl Ssao {
             .map(|i| u64::from(self.size.0 >> i) * u64::from(self.size.1 >> i))
             .sum();
         (4 + u64::from(self.radius.texture.format().block_copy_size(None).unwrap())) * pyramid
-            + 2 * pixels
+            + 4 * pixels
             + u64::from(self.full.0) * u64::from(self.full.1)
             + 5 * u64::from(self.ground.texture.width()) * u64::from(self.ground.texture.height())
             + u64::from(self.occupancy.texture.width()) * u64::from(self.occupancy.texture.height())
@@ -801,12 +816,19 @@ impl Ssao {
             }
             let rectangle = projected_bounds(mvp, self.receiver_box, self.full);
             for level in 0..6 {
+                if level == 1
+                    && let Some(timer) = timer.as_deref_mut()
+                {
+                    timer.mark(encoder, "ao.prepare");
+                }
+                let attachments = [
+                    attachment(&self.levels[level][0], true),
+                    attachment(&self.levels[level][1], true),
+                    attachment(&self.normals.view, true),
+                ];
                 let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("ambient depth"),
-                    color_attachments: &[
-                        attachment(&self.levels[level][0], true),
-                        attachment(&self.levels[level][1], true),
-                    ],
+                    color_attachments: &attachments[..if level == 0 { 3 } else { 2 }],
                     depth_stencil_attachment: None,
                     timestamp_writes: None,
                     occlusion_query_set: None,
@@ -941,6 +963,7 @@ impl Ssao {
                 });
                 pass.set_pipeline(&pipes.history);
                 pass.set_bind_group(0, group, &[]);
+                pass.set_bind_group(1, &self.depth_group, &[]);
                 pass.draw(0..3, 0..1);
             }
             if let Some(timer) = timer.as_deref_mut() {
@@ -1372,6 +1395,14 @@ mod tests {
                 ao_total[12], frame_total[12]
             );
             gpu.timer = None;
+            if mode == "moved" {
+                // the last moving frame against a fresh frame at the same camera
+                write("moved", timed(&mut gpu, &camera, &anchor).1);
+                gpu.view.ssao = false;
+                timed(&mut gpu, &camera, &anchor);
+                gpu.view.ssao = true;
+                write("fresh", timed(&mut gpu, &camera, &anchor).1);
+            }
             if mode != "still" {
                 for _ in 0..24 {
                     camera.orbit(-1.745, 0.0);

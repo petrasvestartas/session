@@ -3,7 +3,9 @@ use super::super::{Scene, placement};
 use super::{Work, baked};
 use crate::app::walk::{Row, Walk, WalkCx, is_drawable, walk_features, walk_geometry};
 use crate::engine::gpu::glyphs::GlyphPoint;
-use crate::engine::gpu::instanced::Draw;
+use crate::engine::gpu::hull::{Hull, hull_of};
+use crate::engine::gpu::instanced::Definition;
+use crate::engine::gpu::objects::world_box;
 use crate::engine::gpu::patch::Counts;
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Upload};
 use session_rust::{AABB, Geometry, InstanceRef, Session, Xform};
@@ -19,10 +21,12 @@ struct Walked {
     faces: bool,              // the walk drew faces
     spheres: Vec<GlyphPoint>, // markers, drawn per instance: spheres index themselves by instance
     dots: Vec<GlyphPoint>,    // dots, drawn per instance with the markers
+    hull: Option<Hull>,       // extreme points of the walk, for exact turned boxes
 }
 
 /// One definition of one document: walked once under a hidden row, drawn once per instance.
 struct Batch {
+    key: u32,            // names it on the GPU for as long as it lives
     doc: usize,          // its document
     definition: Rc<str>, // the definition's guid
     row: u32,            // the hidden row its shared rows are walked under
@@ -38,9 +42,21 @@ pub(crate) struct Instancing {
     of_row: HashMap<u32, Option<usize>>, // batch of each instance row; None: walked per instance
     member_at: HashMap<u32, usize>,      // index of each shared instance row in its batch's members
     dirty: bool,                         // the GPU draw list is stale
+    full: bool,                          // every batch was walked again: all slots are stale
+    touched: Vec<(u32, u32)>,            // (batch key, member position) written since the upload
+    next_key: u32,                       // key of the next batch
 }
 
 impl Instancing {
+    /// Forget every batch; keys stay unique, so the GPU never takes a new batch for one it holds.
+    pub(crate) fn clear(&mut self) {
+        *self = Self {
+            next_key: self.next_key,
+            full: true,
+            ..Self::default()
+        };
+    }
+
     /// Live batches.
     fn live(&self) -> impl Iterator<Item = &Batch> {
         self.batches.iter().flatten()
@@ -66,12 +82,10 @@ impl Instancing {
     fn join(&mut self, row: u32, batch: Option<usize>) {
         self.of_row.insert(row, batch);
 
-        if let Some(members) = batch
-            .and_then(|b| self.batches[b].as_mut())
-            .map(|b| &mut b.members)
-        {
-            self.member_at.insert(row, members.len());
-            members.push(row);
+        if let Some(batch) = batch.and_then(|b| self.batches[b].as_mut()) {
+            self.member_at.insert(row, batch.members.len());
+            self.touched.push((batch.key, batch.members.len() as u32));
+            batch.members.push(row);
             self.dirty = true;
         }
     }
@@ -80,12 +94,14 @@ impl Instancing {
     fn leave(&mut self, row: u32) -> Option<(usize, usize)> {
         let index = self.of_row.remove(&row)??;
         let at = self.member_at.remove(&row)?;
-        let members = &mut self.batches[index].as_mut()?.members;
+        let batch = self.batches[index].as_mut()?;
+        let members = &mut batch.members;
         members.swap_remove(at);
 
         // the last member moved into the gap
         if let Some(&moved) = members.get(at) {
             self.member_at.insert(moved, at);
+            self.touched.push((batch.key, at as u32));
         }
 
         self.dirty = true;
@@ -138,10 +154,10 @@ impl Scene {
             let at = placement(world, place, guid);
             let row = self.push_row(doc, guid, at.clone(), flags);
             placed.insert(guid, row);
-            let (foot, walked) = self.draw_instance(doc, row, instance, definition, &at);
+            let (foot, walked, hull) = self.draw_instance(doc, row, instance, definition, &at);
             self.feet[row as usize] = foot;
             let at = (row - self.object_rows) as usize;
-            take_walk(&mut self.tables.obj.rows[at], &walked);
+            take_walk(&mut self.tables.obj.rows[at], &walked, hull);
         }
     }
 
@@ -155,8 +171,23 @@ impl Scene {
         instance: &InstanceRef,
         definition: &Geometry,
         place: &Xform,
-    ) -> (Footprint, Row) {
+    ) -> (Footprint, Row, Option<Hull>) {
         let batch = self.batch_for(doc, &instance.definition_guid, definition, place);
+        let (foot, walked, hull) = self.walk_instance(doc, row, instance, definition, batch);
+        self.instancing.join(row, batch);
+        (foot, walked, hull)
+    }
+
+    /// Walk what an instance row owns alone, drawing a shared definition from `batch`; its
+    /// footprint, what its object row takes and its extreme points.
+    fn walk_instance(
+        &mut self,
+        doc: usize,
+        row: u32,
+        instance: &InstanceRef,
+        definition: &Geometry,
+        batch: Option<usize>,
+    ) -> (Footprint, Row, Option<Hull>) {
         let mut up = Upload::default();
         let cx = WalkCx {
             vert_base: 0,
@@ -182,9 +213,9 @@ impl Scene {
             }
             None => walk_geometry(&mut Walk::of(&mut up), &cx, definition),
         };
-        self.instancing.join(row, batch);
+        let features = self.attributes && !instance.features.is_empty();
 
-        if self.attributes {
+        if features {
             walk_features(
                 &mut Walk::of(&mut up),
                 &cx,
@@ -193,8 +224,15 @@ impl Scene {
             );
         }
 
+        let shared = batch.and_then(|index| self.instancing.batches[index].as_ref());
+        let hull = match shared.map(|b| b.walked.hull.clone()) {
+            // the definition's points, and the instance's own features when it draws any
+            Some(Some(hull)) if features => hull_of(&up, &hull, &walked.bounds),
+            Some(hull) => hull,
+            None => hull_of(&up, &[], &walked.bounds),
+        };
         let cloud = matches!(definition, Geometry::PointCloud(_));
-        (self.append(up, cloud), walked)
+        (self.append(up, cloud), walked, hull)
     }
 
     /// The batch of a definition of `doc`, walked now if it is new, its hidden row placed like the
@@ -242,8 +280,6 @@ impl Scene {
         let row = self.hidden_row();
         let (mut up, walk) = self.shared_walk(row, definition);
         let counts = Counts::of(&up);
-        let spheres = std::mem::take(&mut up.glyph.spheres);
-        let dots = std::mem::take(&mut up.glyph.dots);
 
         // sheet fills, lettering and registered lanes have no instanced draw
         if counts.print + counts.text > 0 || counts.lanes.iter().any(|rows| *rows > 0) {
@@ -251,12 +287,19 @@ impl Scene {
             return None;
         }
 
+        let hull = hull_of(&up, &[], &walk.bounds);
+        let spheres = std::mem::take(&mut up.glyph.spheres);
+        let dots = std::mem::take(&mut up.glyph.dots);
+
         self.feet[row as usize] = self.append(up, false);
         // hidden and dead: never drawn, boxed or cut; ambient occlusion reads its box
         let mut object = ObjectRow::new(place.clone(), Instance::FLAG_HIDDEN | Instance::FLAG_DEAD);
         object.bounds = walk.bounds;
         self.set_object_row(row, object);
+        let key = self.instancing.next_key;
+        self.instancing.next_key += 1;
         let batch = Batch {
+            key,
             doc,
             definition: Rc::clone(guid),
             row,
@@ -267,6 +310,7 @@ impl Scene {
                 faces: walk.faces,
                 spheres,
                 dots,
+                hull,
             },
             members: Vec::new(),
         };
@@ -461,7 +505,7 @@ impl Scene {
         let i = row as usize;
         self.nodes[i] = item.node.as_ref().map(Rc::downgrade).unwrap_or_default();
         self.guid_to_row.insert((doc, Rc::clone(&item.guid)), row);
-        let (foot, walked) = self.draw_instance(doc, row, instance, definition, &place);
+        let (foot, walked, hull) = self.draw_instance(doc, row, instance, definition, &place);
         self.feet[i] = foot;
         let hidden = if self.hidden.contains(&(doc, Rc::clone(&item.guid))) {
             Instance::FLAG_HIDDEN
@@ -469,10 +513,10 @@ impl Scene {
             0
         };
         let mut object = self.object_row(doc, &item.guid, place, hidden);
-        take_walk(&mut object, &walked);
+        take_walk(&mut object, &walked, hull);
 
         if row >= self.object_rows {
-            let world = object.bounds.transformed(&object.place);
+            let world = world_box(&object);
 
             if world.is_valid() {
                 self.tables.bounds.union_with(&world);
@@ -502,10 +546,10 @@ impl Scene {
 
         self.instancing.leave(row);
         let doc = self.owners[i];
-        let (foot, walked) = self.draw_instance(doc, row, instance, definition, &place);
+        let (foot, walked, hull) = self.draw_instance(doc, row, instance, definition, &place);
         self.feet[i] = foot;
         let mut object = ObjectRow::new(place, 0);
-        take_walk(&mut object, &walked);
+        take_walk(&mut object, &walked, hull);
         self.staged.geometry.push((row, object));
         self.bounds_stale = true;
     }
@@ -561,6 +605,7 @@ impl Scene {
 
         // the shared rows moved: the draws are stale only when this document has any
         self.instancing.dirty |= !batches.is_empty();
+        self.instancing.full |= !batches.is_empty();
 
         for index in batches {
             let (row, guid) = {
@@ -572,6 +617,7 @@ impl Scene {
             };
             let (mut up, walk) = self.shared_walk(row, definition);
             // the attributes may have been switched: what instances take is walked again too
+            let hull = hull_of(&up, &[], &walk.bounds);
             let walked = Walked {
                 bounds: walk.bounds,
                 spacing: walk.spacing,
@@ -579,6 +625,7 @@ impl Scene {
                 faces: walk.faces,
                 spheres: std::mem::take(&mut up.glyph.spheres),
                 dots: std::mem::take(&mut up.glyph.dots),
+                hull,
             };
             self.feet[row as usize] = self.append(up, false);
 
@@ -600,50 +647,18 @@ impl Scene {
             }
 
             let batch = self.instancing.of_row.get(&row).copied().flatten();
-            let mut up = Upload::default();
-            let cx = WalkCx {
-                vert_base: 0,
-                cloud_px: self.docs[doc].point_px,
-                row,
-                attributes: self.attributes,
-            };
-            let mut walked = match batch.and_then(|index| self.instancing.batches[index].as_ref()) {
-                Some(batch) => {
-                    let own = |glyph: &GlyphPoint| GlyphPoint {
-                        instance_id: row,
-                        ..*glyph
-                    };
-                    up.glyph.spheres = batch.walked.spheres.iter().map(own).collect();
-                    up.glyph.dots = batch.walked.dots.iter().map(own).collect();
-                    Row {
-                        bounds: batch.walked.bounds,
-                        spacing: batch.walked.spacing,
-                        flags: batch.walked.flags,
-                        faces: batch.walked.faces,
-                    }
-                }
-                None => walk_geometry(&mut Walk::of(&mut up), &cx, definition),
-            };
-
-            if self.attributes {
-                walk_features(
-                    &mut Walk::of(&mut up),
-                    &cx,
-                    &instance.features,
-                    &mut walked.bounds,
-                );
-            }
-
-            self.feet[row as usize] = self.append(up, false);
+            let (foot, walked, hull) = self.walk_instance(doc, row, instance, definition, batch);
+            self.feet[row as usize] = foot;
             let place = self.placement_of(row).unwrap_or_else(Xform::identity);
             let mut object = ObjectRow::new(place, 0);
-            take_walk(&mut object, &walked);
+            take_walk(&mut object, &walked, hull);
             self.staged.geometry.push((row, object));
         }
     }
 
     /// The instance rows in slot order and one draw per batch, from where the shared rows sit now.
-    pub(crate) fn instanced_draws(&self) -> (Vec<u32>, Vec<Draw>) {
+    #[cfg(test)]
+    pub(crate) fn instanced_draws(&self) -> (Vec<u32>, Vec<crate::engine::gpu::instanced::Draw>) {
         let mut rows = Vec::new();
         let mut draws = Vec::new();
 
@@ -656,7 +671,7 @@ impl Scene {
             let first = 1 + rows.len() as u32; // slot 0 keeps plain rows their own
             let (s, c) = (span.start, span.count);
             rows.extend_from_slice(&batch.members);
-            draws.push(Draw {
+            draws.push(crate::engine::gpu::instanced::Draw {
                 faces: s.faces..s.faces + c.faces,
                 pipes: s.pipes..s.pipes + c.pipes,
                 ribbons: s.ribbons..s.ribbons + c.ribbons,
@@ -673,8 +688,24 @@ impl Scene {
             return;
         }
 
-        let (rows, draws) = self.instanced_draws();
-        gpu.set_instanced(&rows, &draws);
+        let touched = std::mem::take(&mut self.instancing.touched);
+        let full = std::mem::take(&mut self.instancing.full);
+        let definitions: Vec<Definition> = self
+            .instancing
+            .live()
+            .map(|batch| {
+                let span = self.spans.span(self.feet[batch.row as usize]);
+                let (s, c) = (span.start, span.count);
+                Definition {
+                    key: batch.key,
+                    rows: &batch.members,
+                    faces: s.faces..s.faces + c.faces,
+                    pipes: s.pipes..s.pipes + c.pipes,
+                    ribbons: s.ribbons..s.ribbons + c.ribbons,
+                }
+            })
+            .collect();
+        gpu.set_instanced(&definitions, &touched, full);
     }
 
     /// The definition an instance row draws, in its own frame; the row's placement places it.
@@ -737,10 +768,11 @@ impl Scene {
     }
 }
 
-/// Box, spacing, flags and faces of a walk onto an object row.
-fn take_walk(object: &mut ObjectRow, walked: &Row) {
+/// Box, extreme points, spacing, flags and faces of a walk onto an object row.
+fn take_walk(object: &mut ObjectRow, walked: &Row, hull: Option<Hull>) {
     object.flags |= walked.flags;
     object.bounds = walked.bounds;
+    object.hull = hull;
     object.spacing = walked.spacing;
     object.faces = walked.faces;
 
@@ -1133,13 +1165,9 @@ mod tests {
             std::fs::write(std::path::Path::new(dir).join(format!("{name}.ppm")), ppm).unwrap();
         }
 
-        /// Colors and object ids of one frame of `session`, fitted to its box, with ambient
-        /// occlusion when `ssao`.
-        fn shot_with(
-            session: Session,
-            rotate: bool,
-            ssao: bool,
-        ) -> (Vec<u8>, Vec<Option<String>>, Gpu, Scene) {
+        /// `session` on a headless GPU, with ambient occlusion when `ssao`, and a camera fitted
+        /// to it, orbited when `rotate`.
+        fn loaded(session: Session, rotate: bool, ssao: bool) -> (Gpu, Scene, Camera) {
             let mut gpu =
                 pollster::block_on(Gpu::new_headless(400, 300)).expect("a native adapter");
             gpu.view.show_grid = false;
@@ -1155,6 +1183,23 @@ mod tests {
                 camera.orbit(0.6, 0.4);
             }
 
+            (gpu, scene, camera)
+        }
+
+        /// Colors and object ids of one frame of `session`, fitted to its box, with ambient
+        /// occlusion when `ssao`.
+        fn shot_with(
+            session: Session,
+            rotate: bool,
+            ssao: bool,
+        ) -> (Vec<u8>, Vec<Option<String>>, Gpu, Scene) {
+            let (mut gpu, scene, camera) = loaded(session, rotate, ssao);
+            let (color, ids) = frame(&mut gpu, &scene, &camera);
+            (color, ids, gpu, scene)
+        }
+
+        /// Colors and object ids of one frame seen by `camera`.
+        fn frame(gpu: &mut Gpu, scene: &Scene, camera: &Camera) -> (Vec<u8>, Vec<Option<String>>) {
             let anchor = gpu
                 .rebase_anchor(&camera.origin(), camera.distance_world(), 0.0)
                 .anchor;
@@ -1171,7 +1216,7 @@ mod tests {
                     (object != 0).then(|| scene.identity_of(object - 1).unwrap().1.to_string())
                 })
                 .collect();
-            (color, ids, gpu, scene)
+            (color, ids)
         }
 
         /// Instances drawn from one upload look and pick exactly like the same objects baked:
@@ -1187,7 +1232,15 @@ mod tests {
 
                 for (rotate, ssao) in [(false, false), (true, false), (true, true)] {
                     let (color, ids, gpu, scene) = shot_with(source.clone(), rotate, ssao);
-                    let (want_color, want_ids, _, _) = shot_with(baked.clone(), rotate, ssao);
+                    let (want_color, want_ids, want_gpu, _) =
+                        shot_with(baked.clone(), rotate, ssao);
+                    // the fitted box is exact over turned instances, as over their baked twins
+                    let ends = |b: &AABB| [b.min_point(), b.max_point()];
+
+                    for (got, want) in ends(&gpu.bounds).iter().zip(ends(&want_gpu.bounds)) {
+                        assert!((0..3).all(|k| (got[k] - want[k]).abs() < 1e-3), "fit box");
+                    }
+
                     assert_eq!(scene.instancing.batch_rows(), batches);
                     assert_eq!(gpu.arena.source_faces.slots.instances(), instances);
                     let drawn = ids.iter().filter(|id| id.is_some()).count();
@@ -1221,10 +1274,75 @@ mod tests {
                     // a turned normal shades a level or two apart, and f32 placement on the GPU
                     // against f64 baking flips a rare edge pixel
                     let pixels = color.len() / 4;
-                    assert!(differ * 250 <= pixels, "{differ} pixels differ in color");
+                    assert!(differ * 2_000 <= drawn, "{differ} pixels differ in color");
                     assert!(far * 20_000 <= pixels, "{far} pixels differ visibly");
                 }
             }
+        }
+
+        /// Deleting, moving, exploding and undoing turned instances on a live GPU: a delete writes
+        /// only its own slots, and after every edit the frame and its ids match the same objects
+        /// loaded fresh.
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        fn instance_edits_write_their_own_slots() {
+            let (mut gpu, mut scene, camera) = loaded(turned_grid(), true, true);
+            let beam = |name: &str| {
+                rows(&scene)
+                    .into_iter()
+                    .find(|(guid, _)| scene.docs[0].session.instance_lookup[guid].name == name)
+                    .unwrap()
+            };
+            let (deleted, moved, exploded) = (beam("beam_2").1, beam("beam_5").1, beam("beam_7").0);
+            let mut written = Vec::new();
+
+            for step in 0..6 {
+                match step {
+                    0 => assert!(scene.delete_row(deleted)),
+                    1 => {
+                        let turn = Xform::rotation_z(25.0, true);
+                        assert!(scene.transform_rows(&[moved], &turn, "Move").is_some());
+                    }
+                    2 => {
+                        let session = Rc::make_mut(&mut scene.docs[0].session);
+                        session.begin("Explode");
+                        assert!(session.explode(&exploded));
+                        let notes = super::super::super::commit(session);
+                        scene.noted(0, notes);
+                        scene.edited(&[0]);
+                    }
+                    _ => assert!(scene.undo()),
+                }
+
+                gpu.arena.space.written = 0;
+                scene.sync();
+                scene.upload_to(&mut gpu);
+                written.push(gpu.arena.space.written);
+                let (color, ids) = frame(&mut gpu, &scene, &camera);
+                let fresh = (*scene.docs[0].session).clone();
+                let (mut want_gpu, want_scene, _) = loaded(fresh, true, true);
+                let (want, want_ids) = frame(&mut want_gpu, &want_scene, &camera);
+                let drawn = ids.iter().filter(|id| id.is_some()).count();
+                let same = ids.iter().zip(&want_ids).filter(|(a, b)| a == b).count();
+                let differ = color
+                    .chunks_exact(4)
+                    .zip(want.chunks_exact(4))
+                    .filter(|(a, b)| (0..3).any(|k| a[k].abs_diff(b[k]) > 2))
+                    .count();
+                eprintln!(
+                    "step {step}: {} slots written, {drawn} object pixels, {} ids and {differ} colors apart",
+                    written[step],
+                    ids.len() - same
+                );
+                assert!(drawn > 1000);
+                // a leaver's slot takes the last member: where two beams meet, a pixel may flip
+                assert!((ids.len() - same) * 1000 <= drawn, "step {step}: ids");
+                assert!(differ * 1000 <= drawn, "step {step}: colors");
+            }
+
+            // head, the slot the last beam moved into, the slot it left
+            assert!(written[0] <= 3, "a delete writes {}", written[0]);
+            assert_eq!(written[1], 0, "a move writes no slot");
         }
 
         /// Walls standing on a floor, one of them turned a quarter: with ambient occlusion the
@@ -1269,6 +1387,42 @@ mod tests {
 
             eprintln!("ambient occlusion: {far} pixels differ by more than 24 levels");
             assert!(far * 20_000 <= 400 * 300, "{far} pixels differ");
+        }
+
+        /// INSTANCING_PAIR=<instanced.pb>,<baked.pb>: pixels of the two files' frames apart by more
+        /// than 2 and 8 levels, with ambient occlusion, and how far their fitted boxes are apart.
+        #[test]
+        #[ignore = "measurement: INSTANCING_PAIR=<instanced.pb>,<baked.pb>"]
+        fn instanced_file_against_its_baked_twin() {
+            let pair = std::env::var("INSTANCING_PAIR").expect("INSTANCING_PAIR=<a.pb>,<b.pb>");
+            let load = |path: &str| Session::pb_loads(&std::fs::read(path).unwrap()).unwrap();
+            let (on, off) = pair.split_once(',').expect("two paths");
+
+            for ssao in [false, true] {
+                let (color, _, gpu, _) = shot_with(load(on), true, ssao);
+                let (want, _, want_gpu, _) = shot_with(load(off), true, ssao);
+                let pairs = color.chunks_exact(4).zip(want.chunks_exact(4));
+                let apart = |levels: u8| {
+                    pairs
+                        .clone()
+                        .filter(|(a, b)| (0..3).any(|k| a[k].abs_diff(b[k]) > levels))
+                        .count()
+                };
+                let (a, b) = (&gpu.bounds, &want_gpu.bounds);
+                let fit = [a.min_point(), a.max_point()]
+                    .iter()
+                    .zip([b.min_point(), b.max_point()])
+                    .flat_map(|(p, q)| (0..3).map(move |k| (p[k] - q[k]).abs()))
+                    .fold(0.0, f64::max);
+                println!(
+                    "ssao {ssao}: {} of {} pixels apart by more than 2 levels, {} by more than 8; fit boxes {fit:.6} apart ({} and {})",
+                    apart(2),
+                    color.len() / 4,
+                    apart(8),
+                    a.str(),
+                    b.str()
+                );
+            }
         }
 
         /// Median wall time of an offscreen 1920x1080 frame of INSTANCING_BENCH (a .pb), orbiting,
