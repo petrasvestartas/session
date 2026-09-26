@@ -1,45 +1,38 @@
-# Documentation handoff (for a cloud session)
+# Viewer course handoff (for a cloud session)
 
-Written 2026-09-26 by the local viewer session (wood-research-75) so a cloud session can finish the documentation if the local usage budget runs out. Work only from git: the local machine, its caches and its GPU are not available to you.
+Written 2026-09-26 by the local session. Work only from git: the local machine, its caches and its GPU are not available.
 
-## Setup
+## What petras asked for (the requirements, in his words where possible)
 
-- `git submodule update --init session_cpp session_py session_rust session_proto session_data`
-- Rust stable, Node 20+, Python 3.12. Build jobs: `cargo -j8`, never `-j$(nproc)`.
-- Commit with plain messages, no Co-Authored-By or other AI trailers. Push to `main` after every finished piece (petras wants to see the tutorials update live). Watch CI with `gh run list` until green.
+- "I must be able from start to finish write the whole viewer." Typing every code block from the first page to the last gives exactly `session_viewer/src`.
+- "One tutorial section must work on its own, and code typing must not exceed one hour of a newbie learner." The reader has never learnt WebGPU. Budget: at most about 250 typed lines per lesson (Rust + WGSL + toml/html, tests/examples/assets excluded), and every lesson builds and runs and shows something new.
+- "Go step by step to the final viewer." Lesson 01 today adds 5,150 lines (whole final-version files); that is the failure to fix. Lesson 01 must be something like: open a window and clear it to a colour. Then a triangle. Then a camera. Small steps.
+- "As little sideways tutorials as possible; never follow a tutorial and then have to drop the previous code." Every typed line survives unchanged into the final viewer (write-once).
+- The voice: "the teacher who could teach the weakest student in the class - never verbose, extremely concise, every concept clear." Problem and idea first, concrete before general (numbers, "object 7 paints the value 7"), one idea per sentence, a term defined the moment it appears, step headings name the idea (not the file), a checkpoint "run it now, you should see ...", a 2-4 sentence recap.
+- Push to GitHub after every finished lesson group, and watch EVERY CI run the push triggers (viewer-pages, viewer-check, Session mini tests) to green before starting the next group.
 
-## Goal
+## Where things stand (measure, do not trust this)
 
-ONE documentation site, built on the Vue app in `session_tests/` (not MkDocs), served at `https://petrasvestartas.github.io/session/docs/` and opened by the viewer's black bottom-right corner triangle (`#viewer-docs` in `session_viewer/index.html`, `href="docs/"`). It has:
-- Course: the viewer tutorial, lessons 00 to 37 plus 04a-d and lettered lessons (e.g. 18a instancing, 18b clipping, 23a-d commands), pages `session_viewer/docs/NN-*.md`, code in lesson crates `session_viewer/docs/lessons/<id>/`.
-- Kernel API: the existing Tests view (each kernel class, every minitest in C++, Python and Rust side by side).
-- Install.
+- One chain of lesson crates `session_viewer/docs/lessons/<id>/`, ids in `docs/lessons/SERIES.txt` (00..37 with 04a-d, 18a, 18b, 23a-d). `docs/lessons/37` is the master (= src plus teaching comments and `// --8<-- [start:NN-slug]` markers); `docs/cut.py` cuts every earlier crate from it using `docs/lessons/FILES.txt` (file -> first lesson) and `REGISTER.txt` (`// register:` lines).
+- Checks (all must stay 0): `python3 docs/check_write_once.py`, `python3 docs/check_lesson37.py`, `python3 docs/cut.py --check`, `python3 docs/check_complete.py viewer` (lines a lesson adds that its page does not show; 1,878 left in the local tree, 5,728 in git).
+- Pages 00-03 were rewritten in the teacher voice (bacfb4fb) - use them as the voice model, not as the size model.
+- Lesson sizes today (added viewer lines): 01 5,150; 04a 2,568; 04b 2,785; 06 3,830; 12 4,343; 14 3,437; 21 9,449; 23 6,076; 23a 6,296 - far over budget.
+- The Vue docs site (`session_tests/`, `npm run build`) renders the pages at https://petrasvestartas.github.io/session/docs/ and fails on a missing snippet include.
 
-## Rules
+## The work
 
-- Course rules: `.claude/rules/viewer-docs.md`. One write-once chain: lesson N+1 = lesson N plus only added files and appended or `// register:` lines; lesson 37 equals `session_viewer/src`; a feature goes in the lesson that owns its subject.
-- Pages: plain markdown plus `--8<--` snippet includes of named sections (`// --8<-- [start:x]` / `[end:x]`). No MkDocs-only syntax: no `!!!` callouts, no `===` tabs, no `{: attrs}`.
-- Voice: plain teacher, short. Only non-obvious lines get a comment; each technical term is defined once where it first appears, in few natural words; never restate an identifier. Page prose: one sentence per step, under 25 words.
-- Look: system fonts, black text, grey rules, white background. No coloured accents, no decorative tables.
+1. Add a size check: `docs/check_budget.py` prints typed lines added per lesson (viewer code only) and fails above 250.
+2. Re-plan the chain into small lessons that each build, run and show one new thing, in a straight line to the final viewer. Expect many more lessons than today (77,700 viewer lines / ~250 = about 300 lessons); group them into parts (e.g. Part 1 "First pixels": window, clear colour, triangle, buffer, camera, depth, mesh ...). Write the plan to `docs/plans/course-plan.md` first and push it.
+3. Make that possible in `src`, behaviour-neutral only: split big files so an early lesson only needs a small piece (the core frame loop must not need picking, text, clipping ... - later features join through the existing registries: `// register:` lines, the verbs!/panels! macros, the PASSES list, `#include` in build.rs). Gates for any src change: `cargo test` (native, RUST_TEST_THREADS=4), `cargo xtest`, wasm `cargo check --target wasm32-unknown-unknown`, and the viewer-check CI run. No visual change allowed.
+4. Re-cut with `cut.py` into the new ids, rewrite the pages lesson by lesson in the voice, and keep all checks at 0 plus `check_budget.py`. Tests, examples and assets are listed as download links, not typed.
+5. After each part: commit (plain message, no AI trailers), push, watch all CI to green, then continue.
+6. Afterwards (lower priority): remove MkDocs (`mkdocs.yml`, `docs/hooks`, `build_site.sh`, `serve.sh`), command reference page, ARCHITECTURE/README pages, illustrations in black and grey.
 
-## Find out what is left (do not trust any status list; measure)
+## Machine and git rules
 
-- `python3 session_viewer/docs/check_write_once.py`: must report 0 violations.
-- `python3 session_viewer/docs/check_lesson37.py`: must pass.
-- `grep -c "Replaces\|Added after the line" session_viewer/docs/*.md`: must be 0.
-- Every lesson crate: `cd session_viewer/docs/lessons/<id> && cargo clean -p session_viewer && cargo check -j8 --lib` (all crates share one package name, so clean first or use a separate target dir per crate).
-- Vue site: `cd session_tests && npm ci && npm run build` must pass with no unresolved snippet includes; if the Vue course plugin does not exist yet, build it (plan in "Vue site" below).
-- `git log --oneline -30` shows what was already pushed ("Viewer course, wave N", "Vue docs", ...).
-
-## Remaining work, in order
-
-1. Finish the write-once re-cut of the course (the checks above at zero), pushing after each group of lessons.
-2. Vue site: course pages rendered from the markdown (Vite plugin resolving `--8<--` includes and kernel line ranges, failing on a missing one), lazy route per lesson, nav from `docs/lessons/SERIES.txt`, previous/next, table of contents, copy buttons, images; one search over course and kernel API; home page with Course and Kernel API; corner link back to the viewer; plain look.
-3. One Pages deploy: the viewer dist, the kernel test-result JSONs (artifact from the "Session mini tests" workflow) and the Vue build under `/docs/`. Only one workflow deploys Pages.
-4. Remove MkDocs (`session_viewer/mkdocs.yml`, `docs/hooks`, `build_site.sh`, `serve.sh`, the Trunk copy of `target/docs/site`) once the Vue site renders every page; update `.claude/rules/viewer-docs.md` so the check is `npm run build`.
-5. Reference pages in the Vue site: every viewer command in Title Case with options and phone use; ARCHITECTURE and README; link the kernels' `docs/history.md` undo pages.
-6. Illustrations and diagrams redrawn in black and grey (`session_viewer/docs/illustrations/draw.py`, D2 sources under `docs/diagrams/`).
+- Build jobs: `cargo -j8` at most, one heavy build at a time. Initialise only what you need: `git submodule update --init session_rust session_proto` (the viewer depends on them).
+- Never `git add -A`; stage named paths. Commit messages plain, no Co-Authored-By or other AI trailers.
 
 ## Done when
 
-All checks above pass, `https://petrasvestartas.github.io/session/docs/` shows the Course and the Kernel API, the viewer's corner triangle opens it, and CI is green.
+Every lesson passes `check_budget.py` (at most 250 typed lines) and builds and runs on its own; typing all lessons in order gives `src` (checks at 0); every page reads in the teacher voice; the site builds and CI is green.
