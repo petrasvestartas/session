@@ -1,6 +1,6 @@
 """Every line lesson N adds to the viewer is shown on page N. Usage: check_complete.py [viewer] (viewer skips tests/, examples/, assets/)."""
 import re, glob, os, sys, collections
-NORM = re.compile(r'lessons/[0-9]{2}[a-d]?\b')
+NORM = re.compile(r'lessons/[0-9]{2,3}[a-z]?\b')
 norm = lambda l: NORM.sub('lessons/N', l.strip())
 V = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D = f'{V}/docs'

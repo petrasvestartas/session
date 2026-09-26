@@ -12,7 +12,7 @@ MARKER = re.compile(
     r"^\s*(//|#|<!--|/\*)\s*--8<-- \[(start|end):([^\]]+)\]\s*(-->|\*/)?\s*$"
 )
 REGISTER = re.compile(r"register:([A-Za-z0-9_-]+)")
-LESSON_NAME = re.compile(r"^(\d\d[a-z]?)(?:-|$)")
+LESSON_NAME = re.compile(r"^(\d{2,3}[a-z]?)(?:-|$)")
 SLASH = {".rs", ".wgsl", ".js", ".cjs", ".ts", ".css", ".c", ".h", ".cpp"}
 HASH = {".toml", ".yaml", ".yml", ".sh", ".py"}
 
