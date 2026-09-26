@@ -1,5 +1,3 @@
-// `pub mod x;` makes src/app/x.rs part of the crate; each lesson adds the one line of the module it teaches.
-// `#[cfg(target_arch = "wasm32")]` above a line compiles that module for the browser only.
 pub mod feedback; // register:feedback
 pub mod gesture; // register:gesture
 pub mod input; // register:input
@@ -7,8 +5,8 @@ pub mod input; // register:input
 pub mod inspection; // register:inspection
 pub mod keys; // register:keys
 pub mod knobs; // register:knobs
-#[cfg(target_arch = "wasm32")] // register:route
-pub mod route; // register:route
+#[cfg(target_arch = "wasm32")] // register:loader
+pub mod loader; // register:loader
 pub mod scene; // register:scene
 pub mod selection; // register:selection
 pub mod touch; // register:touch

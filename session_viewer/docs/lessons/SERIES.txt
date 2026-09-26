@@ -1,8 +1,9 @@
-00 - 00-environment.md
-01 00 01-first-frame.md
-02 01 02-camera.md
-03 02 03-identity.md
-04a 03 04a-meshes.md
+000 - 000-project.md
+001 000 001-window.md
+002 001 002-gpu.md
+003 002 003-textures.md
+004 003 004-clear.md
+04a 004 04a-meshes.md
 04b 04a 04b-strokes.md
 04c 04b 04c-markers.md
 04d 04c 04d-clouds.md

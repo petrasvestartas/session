@@ -1,13 +1,17 @@
-use crate::app::scene::{FileDoc, Scene};
-use crate::app::selection::{ControlId, Controls, SelectionMode};
-use crate::app::walk::encode::FACING_UNKNOWN;
-use crate::camera::Camera;
-use crate::engine::gpu::glyphs::GlyphRows;
-use crate::engine::gpu::pick::PickMode;
-use crate::engine::gpu::segments::SegRows;
-use crate::engine::gpu::{CylinderSegment, GlyphPoint};
-use crate::engine::gpu::{FrameInput, Gpu, Pick};
-use crate::engine::performance::{heap_mb, now_ms};
+use crate::app::scene::Scene; // register:scene
+use crate::app::scene::FileDoc; // register:scene
+use crate::app::selection::{ControlId, Controls, SelectionMode}; // register:selection
+use crate::app::walk::encode::FACING_UNKNOWN; // register:selection
+use crate::camera::Camera; // register:camera
+use crate::engine::gpu::glyphs::GlyphRows; // register:controls
+use crate::engine::gpu::pick::PickMode; // register:pick
+use crate::engine::gpu::segments::SegRows; // register:controls
+use crate::engine::gpu::{CylinderSegment, GlyphPoint}; // register:controls
+use crate::engine::gpu::FrameInput; // register:render
+use crate::engine::gpu::Gpu; // register:gpu
+use crate::engine::gpu::Pick; // register:pick
+use crate::engine::performance::now_ms; // register:gpu
+use crate::engine::performance::heap_mb; // register:scene
 mod clipping; // register:clipping
 mod cloud_query; // register:cloud_query
 mod drag; // register:drag
@@ -21,9 +25,86 @@ mod sheet_query; // register:sheet_query
 mod splitting; // register:splitting
 mod text; // register:text
 mod tool; // register:tool
-use features::Features;
+use features::Features; // register:features
 use std::sync::Arc;
 use winit::window::Window;
+
+/// Everything the viewer holds: window, GPU, camera, scene, selection.
+pub struct State {
+    pub window: Arc<Window>,                // the winit window on the canvas
+    pub gpu: Gpu,                           // device, buffers, pipelines; register:gpu
+    pub camera: Camera,                     // the view; register:camera
+    load_camera: crate::camera::CameraPose, // the view before loading started; register:fit
+    pub scene: Scene,                       // the loaded documents; register:scene
+    pub needs_frame: bool,                  // draw again on the next redraw
+    pub interacting: bool,                  // a drag or pinch is in progress; register:input
+    dirty: bool,                            // the picture changed
+    last_frame_ms: f64,                     // when the last frame was drawn
+    last_resize_ms: f64,                    // when the last resize was applied
+    pub selection: SelectionMode,           // object, edge, face or control points; register:selection
+    pub selection_tool: crate::app::selection::SelectionTool, // what a click selects; register:selection
+    controls: Controls,                     // control points of the selected object; register:controls
+    requested: PickMode,                    // what the pending pick looks for; register:pick
+    pub(crate) additive_selection: bool,    // Shift held: add to the selection; register:selection
+    selection_order: Vec<u32>,              // selected rows in pick order; register:selection
+    highlighted: Vec<u32>,                  // rows highlighted, when several are selected; register:selection
+    pub selection_radius_css: f64,          // click tolerance in CSS pixels; register:pick
+    show_selected_names: bool,              // name label on the selection, T toggles; register:scene_text
+    pub(crate) features: Features,          // what each feature keeps, features.rs; register:features
+}
+
+impl State {
+    /// Open the GPU and upload the scene.
+    pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
+        let t0 = now_ms(); // register:gpu
+        let mut gpu = Gpu::new(window.clone()).await?; // register:gpu
+        let mut scene = Scene::new(); // register:scene
+        scene.upload_to(&mut gpu); // the scene rows go to the GPU once; register:scene
+        log::info!("gpu init {:.0} ms", now_ms() - t0); // register:gpu
+        let camera = Camera::new(); // register:camera
+        Ok(Self {
+            window,
+            gpu, // register:gpu
+            load_camera: camera.pose(), // register:fit
+            camera,                     // register:camera
+            scene,                      // register:scene
+            needs_frame: true,
+            interacting: false, // register:input
+            dirty: true,
+            last_frame_ms: 0.0,
+            last_resize_ms: f64::NEG_INFINITY,
+            selection: SelectionMode::Object, // register:selection
+            selection_tool: crate::app::selection::SelectionTool::default(), // register:selection
+            controls: Controls::default(),    // register:controls
+            requested: PickMode::Object,      // register:pick
+            additive_selection: false,        // register:selection
+            selection_order: Vec::new(),      // register:selection
+            highlighted: Vec::new(),          // register:selection
+            selection_radius_css: 6.0,        // register:pick
+            show_selected_names: true,        // register:scene_text
+            features: Features::default(),    // register:features
+        })
+    }
+
+    /// Width over height of the canvas.
+    pub fn aspect(&self) -> f64 { // register:gpu
+        self.gpu.config.width.max(1) as f64 / self.gpu.config.height.max(1) as f64
+    }
+
+    /// Canvas size in device pixels.
+    pub fn viewport(&self) -> (f64, f64) { // register:gpu
+        (self.gpu.config.width as f64, self.gpu.config.height as f64)
+    }
+
+    /// Something changed: drop pending picks, draw again.
+    pub fn touch(&mut self) {
+        self.fetch_wanted(); // register:editing
+        self.cancel_cloud_query(); // register:cloud_query
+        self.gpu.pick.cancel(); // register:pick
+        self.dirty = true;
+        self.needs_frame = true;
+    }
+}
 
 /// Background color.
 const CLEAR: wgpu::Color = wgpu::Color {
@@ -34,75 +115,92 @@ const CLEAR: wgpu::Color = wgpu::Color {
 };
 
 /// Orbit step per frame in `?spin=1` mode.
-const SPIN_STEP: f32 = 0.004;
-const ELEMENT_OPACITY: f32 = 0.9; // default element opacity: nearly solid, hidden edges still show faintly
+const SPIN_STEP: f32 = 0.004; // register:spin
+const ELEMENT_OPACITY: f32 = 0.9; // default element opacity: nearly solid, hidden edges still show faintly; register:opacity
 
-/// Everything the viewer holds: window, GPU, camera, scene, selection.
-pub struct State {
-    pub window: Arc<Window>,                // the winit window on the canvas
-    pub gpu: Gpu,                           // device, buffers, pipelines
-    pub camera: Camera,                     // the view
-    load_camera: crate::camera::CameraPose, // the view before loading started
-    pub scene: Scene,                       // the loaded documents
-    pub needs_frame: bool,                  // draw again on the next redraw
-    pub interacting: bool,                  // a drag or pinch is in progress
-    dirty: bool,                            // the picture changed
-    last_frame_ms: f64,                     // when the last frame was drawn
-    last_resize_ms: f64,                    // when the last resize was applied
-    pub selection: SelectionMode,           // object, edge, face or control points
-    pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
-    controls: Controls,                     // control points of the selected object
-    requested: PickMode,                    // what the pending pick looks for
-    pub(crate) additive_selection: bool,    // Shift held: add to the selection
-    selection_order: Vec<u32>,              // selected rows in pick order
-    highlighted: Vec<u32>,                  // rows highlighted, when several are selected
-    pub selection_radius_css: f64,          // click tolerance in CSS pixels
-    show_selected_names: bool,              // name label on the selection, T toggles
-    pub(crate) features: Features,          // what each feature keeps, features.rs
+impl State {
+
+    /// Draw one frame; a still scene asks for no more.
+    pub fn render(&mut self) {
+        self.before_picks(); // register:features
+        self.upload_gizmo(); // register:gumball
+        self.follow_logical_size();
+
+        if self.gpu_failed() {
+            return;
+        }
+
+        self.take_picks(); // register:pick
+        self.needs_frame = false;
+        self.after_picks(); // register:features
+        self.spin(); // register:spin
+        let now_ms = now_ms();
+        let rebase = self.rebase(now_ms); // register:anchor
+        let input = FrameInput {
+            view_proj: self.camera.view_proj_anchored(self.aspect(), &rebase.anchor), // register:anchor
+            clear: CLEAR,
+            now_ms,
+        };
+        // redraw reasons
+        self.dirty |= rebase.moved; // register:anchor
+        self.dirty |= self.gpu.view.perf; // register:perf
+        self.dirty |= self.gpu.view.spin; // register:spin
+        self.dirty |= self.gpu.ambient_pending(); // register:ssao
+        self.dirty |= self.gpu.performance.rough() && !self.interacting; // register:perf
+
+        let mut dropped = false;
+        let mut waiting = false;
+        waiting |= self.cloud_query_awaiting_gpu(); // a point-cloud query waits for its answer; register:cloud_query
+
+        if self.dirty && !waiting {
+            let gap = now_ms - self.last_frame_ms; // time since the last frame
+            self.last_frame_ms = now_ms;
+            self.gpu.performance.interacting = self.interacting; // register:perf
+            let drawn = self.gpu.present(&input); // encode time, None when the frame was dropped
+            self.reduce_if_slow(); // register:perf
+            dropped = drawn.is_none() && self.gpu.surface.is_some(); // try again next frame
+            self.dirty = dropped;
+            self.perf_frame(gap, drawn); // register:perf
+        }
+
+        self.pick_frame(dropped, &input); // register:pick
+        // reasons to draw again; a drag frame is redrawn in full once the drag ends
+        self.needs_frame |= dropped;
+        self.needs_frame |= rebase.pending; // register:anchor
+        self.needs_frame |= self.gpu.pick.busy(); // register:pick
+        self.needs_frame |= self.gpu.view.perf; // register:perf
+        self.needs_frame |= self.gpu.view.spin; // register:spin
+        self.needs_frame |= self.gpu.ambient_pending(); // register:ssao
+        self.needs_frame |= self.gpu.performance.rough(); // register:perf
+        #[cfg(target_arch = "wasm32")] // register:inspection
+        crate::app::inspection::publish(self); // register:inspection
+    }
+
+    /// A GPU error from the last frame stops drawing; a lost device reloads the page.
+    fn gpu_failed(&mut self) -> bool {
+        let failure = match self.gpu.failure.lock() {
+            Ok(failure) => failure.clone(),
+            Err(_) => None,
+        };
+        let Some(message) = failure else {
+            return false;
+        };
+
+        #[cfg(target_arch = "wasm32")] // register:recovery
+        if crate::app::route::recover_from_device_loss(&message) { // register:recovery
+            self.needs_frame = false;
+            return true;
+        }
+
+        crate::app::feedback::error(&message);
+        self.cancel_cloud_query(); // register:cloud_query
+        self.gpu.pick.cancel(); // register:pick
+        self.needs_frame = false;
+        true
+    }
 }
 
 impl State {
-    /// Open the GPU and upload the scene.
-    pub async fn new(window: Arc<Window>, mut scene: Scene) -> anyhow::Result<Self> {
-        let t0 = now_ms();
-        let mut gpu = Gpu::new(window.clone()).await?;
-        // the scene rows go to the GPU once
-        scene.upload_to(&mut gpu);
-        log::info!("gpu init {:.0} ms", now_ms() - t0);
-        let camera = Camera::new();
-        Ok(Self {
-            window,
-            gpu,
-            load_camera: camera.pose(),
-            camera,
-            scene,
-            needs_frame: true,
-            interacting: false,
-            dirty: true,
-            last_frame_ms: 0.0,
-            last_resize_ms: f64::NEG_INFINITY,
-            selection: SelectionMode::Object,
-            selection_tool: crate::app::selection::SelectionTool::default(),
-            controls: Controls::default(),
-            requested: PickMode::Object,
-            additive_selection: false,
-            selection_order: Vec::new(),
-            highlighted: Vec::new(),
-            selection_radius_css: 6.0,
-            show_selected_names: true,
-            features: Features::default(),
-        })
-    }
-
-    /// Width over height of the canvas.
-    pub fn aspect(&self) -> f64 {
-        self.gpu.config.width.max(1) as f64 / self.gpu.config.height.max(1) as f64
-    }
-
-    /// Canvas size in device pixels.
-    pub fn viewport(&self) -> (f64, f64) {
-        (self.gpu.config.width as f64, self.gpu.config.height as f64)
-    }
 
     /// Add one loaded document to the scene.
     pub fn append(&mut self, doc: FileDoc, source: Option<String>) {
@@ -250,15 +348,6 @@ impl State {
         self.needs_frame = true;
     }
 
-    /// Something changed: drop pending picks, draw again.
-    pub fn touch(&mut self) {
-        self.fetch_wanted(); // register:editing
-        self.cancel_cloud_query(); // register:cloud_query
-        self.gpu.pick.cancel();
-        self.dirty = true;
-        self.needs_frame = true;
-    }
-
     /// Select one row, or nothing.
     pub fn select(&mut self, row: Option<u32>) {
         self.cancel_split(); // register:split
@@ -401,6 +490,22 @@ impl State {
         self.touch();
     }
 
+    /// Apply a pick answer first, so this frame shows it.
+    fn take_picks(&mut self) {
+        if let Some(pick) = self.gpu.pick.poll() {
+            self.apply_pick(pick);
+        } else {
+            self.cloud_query_lost(); // register:cloud_query
+        }
+    }
+
+    /// A pending pick draws its own id frame.
+    fn pick_frame(&mut self, dropped: bool, input: &FrameInput) {
+        if !dropped && let Some(at) = self.gpu.pick.take_pending() {
+            self.gpu.pick_frame(input, at);
+        }
+    }
+
     /// A pick answer arrived: select what it hit.
     fn apply_pick(&mut self, pick: Option<Pick>) {
         // a feature waiting for this answer takes it: a drag, a tool, a split, a point-cloud query
@@ -482,129 +587,15 @@ impl State {
         }
     }
 
-    /// Draw one frame; a still scene asks for no more.
-    pub fn render(&mut self) {
-        for hook in features::BEFORE_PICKS {
-            hook(self);
-        }
-
-        self.upload_gizmo(); // register:gumball
+    /// The CSS size changed: control dots keep their pixel size.
+    fn follow_logical_size(&mut self) {
         let logical = self.logical_size();
 
-        // the CSS size changed: control dots keep their pixel size
         if logical != self.gpu.logical_size {
             self.gpu.logical_size = logical;
             self.upload_controls(); // register:controls
             self.touch();
         }
-
-        // a GPU error from the last frame
-        let failure = match self.gpu.failure.lock() {
-            Ok(failure) => failure.clone(),
-            Err(_) => None,
-        };
-
-        if let Some(message) = failure {
-            // a lost device reloads the page
-            #[cfg(target_arch = "wasm32")]
-            if crate::app::route::recover_from_device_loss(&message) {
-                self.needs_frame = false;
-                return;
-            }
-
-            crate::app::feedback::error(&message);
-            self.cancel_cloud_query(); // register:cloud_query
-            self.gpu.pick.cancel();
-            self.needs_frame = false;
-            return;
-        }
-
-        // apply a pick answer first, so this frame shows it
-        if let Some(pick) = self.gpu.pick.poll() {
-            self.apply_pick(pick);
-        } else {
-            self.cloud_query_lost(); // register:cloud_query
-        }
-
-        self.needs_frame = false;
-
-        for hook in features::AFTER_PICKS {
-            hook(self);
-        }
-
-        if self.gpu.view.spin {
-            self.cancel_cloud_query(); // register:cloud_query
-            self.camera.orbit(SPIN_STEP, 0.0);
-        }
-
-        let now_ms = now_ms();
-        self.camera.grow_extent(&self.gpu.bounds);
-        let origin = self.camera.origin();
-        // the point GPU rows are measured from
-        let rebase = self
-            .gpu
-            .rebase_anchor(&origin, self.camera.distance_world(), now_ms);
-        let view_proj = self
-            .camera
-            .view_proj_anchored(self.aspect(), &rebase.anchor);
-        let input = FrameInput {
-            view_proj,
-            clear: CLEAR,
-            now_ms,
-        };
-        self.dirty |= rebase.moved
-            || self.gpu.view.perf
-            || self.gpu.view.spin
-            || self.gpu.ambient_pending()
-            || (self.gpu.performance.rough() && !self.interacting); // redraw reasons
-
-        let mut dropped = false;
-        let mut waiting = false;
-        waiting |= self.cloud_query_awaiting_gpu(); // a point-cloud query waits for its answer; register:cloud_query
-
-        if self.dirty && !waiting {
-            let gap = now_ms - self.last_frame_ms; // time since the last frame
-            self.last_frame_ms = now_ms;
-            self.gpu.performance.interacting = self.interacting;
-            let drawn = self.gpu.present(&input); // encode time, None when the frame was dropped
-
-            // slow even at the top drag tier: drop to device scale 1 and no antialiasing
-            if self.gpu.performance.take_slow_interaction()
-                && (crate::engine::gpu::view::device_pixel_ratio() > 1.0
-                    || self.gpu.targets.samples > 1)
-            {
-                crate::engine::gpu::view::reduce();
-                self.gpu
-                    .resize(self.gpu.config.width, self.gpu.config.height);
-                log::warn!(
-                    "slow interaction frames; rendering at device scale 1 without antialiasing"
-                );
-                self.status("Slow frames: rendering at device scale 1 without antialiasing");
-            }
-
-            dropped = drawn.is_none() && self.gpu.surface.is_some(); // try again next frame
-            self.dirty = dropped;
-
-            if let (true, Some(encode_ms)) = (self.gpu.view.perf, drawn) {
-                self.perf_line(gap, encode_ms);
-            }
-        }
-
-        // a pending pick draws its own id frame
-        if !dropped && let Some(at) = self.gpu.pick.take_pending() {
-            self.gpu.pick_frame(&input, at);
-        }
-
-        // reasons to draw again; a drag frame is redrawn in full once the drag ends
-        self.needs_frame |= dropped
-            || rebase.pending
-            || self.gpu.pick.busy()
-            || self.gpu.view.perf
-            || self.gpu.view.spin
-            || self.gpu.ambient_pending()
-            || self.gpu.performance.rough();
-        #[cfg(target_arch = "wasm32")]
-        crate::app::inspection::publish(self);
     }
 
     /// Canvas size in CSS pixels; device pixels natively.
@@ -693,6 +684,27 @@ impl State {
     /// Show a message in the status line.
     fn status(&self, message: &str) {
         crate::app::feedback::status(message);
+    }
+
+    /// The `?perf=1` line after a drawn frame.
+    fn perf_frame(&self, gap: f64, drawn: Option<f64>) {
+        if let (true, Some(encode_ms)) = (self.gpu.view.perf, drawn) {
+            self.perf_line(gap, encode_ms);
+        }
+    }
+
+    /// Slow even at the top drag tier: drop to device scale 1 and no antialiasing.
+    fn reduce_if_slow(&mut self) {
+        if self.gpu.performance.take_slow_interaction()
+            && (crate::engine::gpu::view::device_pixel_ratio() > 1.0
+                || self.gpu.targets.samples > 1)
+        {
+            crate::engine::gpu::view::reduce();
+            self.gpu
+                .resize(self.gpu.config.width, self.gpu.config.height);
+            log::warn!("slow interaction frames; rendering at device scale 1 without antialiasing");
+            self.status("Slow frames: rendering at device scale 1 without antialiasing");
+        }
     }
 
     /// The `?perf=1` line: frame number, gap, encode time, heap.
@@ -1051,5 +1063,25 @@ impl State {
         self.gpu.view.opacity = value.clamp(0.0, 1.0);
         self.features.opacity_chosen = true;
         self.touch();
+    }
+}
+
+impl State {
+    /// `?spin=1`: orbit a little every frame.
+    fn spin(&mut self) {
+        if self.gpu.view.spin {
+            self.cancel_cloud_query(); // register:cloud_query
+            self.camera.orbit(SPIN_STEP, 0.0);
+        }
+    }
+}
+
+impl State {
+    /// The point GPU rows are measured from, moved when the camera drifted far.
+    fn rebase(&mut self, now_ms: f64) -> crate::engine::gpu::Rebase {
+        self.camera.grow_extent(&self.gpu.bounds);
+        let origin = self.camera.origin();
+        self.gpu
+            .rebase_anchor(&origin, self.camera.distance_world(), now_ms)
     }
 }

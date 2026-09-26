@@ -40,32 +40,64 @@ def lines(path, rename=None):
 
 
 def violations(old, new):
-    """(kind, line, text): removed or modified lines numbered in the parent, mid-file inserts without register: in the child."""
-    found = []
-    matcher = difflib.SequenceMatcher(
-        None, [line for _, line in old], [line for _, line in new], autojunk=False
-    )
-    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-        if tag == "equal":
+    """(kind, line, text): with registration lines, their blocks and lead-in comments and blank lines dropped from both,
+    the child must be the parent followed by appended lines; the first difference and every line of the parent after
+    it are reported, numbered in the parent."""
+    old = registered_out(old)
+    new = registered_out(new)
+    for i, ((number, text), (_, child)) in enumerate(zip(old, new)):
+        if text != child:
+            return [("modified", number, text)] + [("removed", n, t) for n, t in old[i + 1 :]]
+
+    if len(new) < len(old):
+        return [("removed", n, t) for n, t in old[len(new) :]]
+
+    return []
+
+
+def registered_out(rows):
+    """The rows without registration lines, the blocks they open, the comment lines above them, and blank lines."""
+    lines = [line for _, line in rows]
+    drop = set()
+    for start, end in blocks(lines):
+        drop.update(range(start, end + 1))
+
+    for i, line in enumerate(lines):
+        if "register:" in line:
+            drop.add(i)
+
+    for i in range(len(lines) - 2, -1, -1):
+        if lines[i].lstrip().startswith(("#[", "///", "//")) and i + 1 in drop and not MARKER.match(lines[i]):
+            drop.add(i)
+
+    return [row for i, row in enumerate(rows) if i not in drop and row[1].strip()]
+
+
+def blocks(lines):
+    """(start, end) of every block a `register:` line opens with a bracket, as docs/cut.py cuts it."""
+    out = []
+    for start, line in enumerate(lines):
+        code = line.split("//", 1)[0].rstrip()
+        if not ("register:" in line and code.endswith(("{", "(", "["))):
             continue
 
-        if tag == "insert":
-            if i1 == len(old):
-                continue
+        indent = len(line) - len(line.lstrip())
+        end = start
+        for i in range(start + 1, len(lines)):
+            text = lines[i].strip()
+            if text and len(lines[i]) - len(lines[i].lstrip()) <= indent:
+                if not text.startswith(("}", ")", "]")):
+                    break
 
-            found += [
-                ("inserted", *new[j])
-                for j in range(j1, j2)
-                if "register:" not in new[j][1]
-            ]
-            continue
+                end = i
+                if not text.split("//", 1)[0].rstrip().endswith(("{", "(", "[")):
+                    break
+            else:
+                end = i
 
-        found += [
-            ("removed" if tag == "delete" else "modified", *old[i])
-            for i in range(i1, i2)
-        ]
+        out.append((start, end))
 
-    return found
+    return out
 
 
 def check(parent, lesson):
@@ -122,7 +154,8 @@ sys.exit(1 if total else 0)
 
 """
 description: write-once gate for the course - for each pair in lessons/SERIES.txt, a file both crates have may only
-grow by lines appended at its end, or by single lines tagged `register:` inserted into a registration list.
+grow by lines appended at its end, or by single lines tagged `register:` inserted into a registration list (a tagged
+line ending in an open bracket brings its whole block).
 Removed and modified lines are numbered in the parent file, inserted lines in the child file. Exits 1 on any violation.
 Snippet markers are skipped (MARKERS = True counts them), and the parent's own id in `lessons/<id>/` and
 `Checkpoint <id>` reads as the child's, so the per-crate dist dir and status line are no violation.

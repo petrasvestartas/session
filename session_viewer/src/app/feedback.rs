@@ -2,7 +2,7 @@
 pub fn status(message: &str) {
     // an empty message shows the reload notice, if any
     #[cfg(target_arch = "wasm32")]
-    let message = if message.is_empty() {
+    let message = if message.is_empty() { // register:recovery
         super::route::recovered_notice().unwrap_or(message)
     } else {
         message
@@ -22,23 +22,6 @@ pub fn status(message: &str) {
     log::info!("{message}");
 }
 
-/// Show a download's progress, unless another message is up; nothing is logged.
-#[cfg(target_arch = "wasm32")]
-pub fn progress(message: &str, last: &str) {
-    if let Some(window) = web_sys::window()
-        && let Some(document) = window.document()
-        && let Some(status) = document.get_element_by_id("viewer-status")
-    {
-        let shown = status.text_content().unwrap_or_default();
-
-        if shown.is_empty() || shown == last {
-            status.set_text_content(Some(message));
-            super::ui::command_line::STATE // register:commands
-                .with_borrow_mut(|model| model.status = message.to_string()); // register:commands
-        }
-    }
-}
-
 /// Show the error panel with a reload button.
 pub fn error(message: &str) {
     #[cfg(target_arch = "wasm32")]
@@ -54,6 +37,23 @@ pub fn error(message: &str) {
     }
 
     log::error!("{message}");
+}
+
+/// Show a download's progress, unless another message is up; nothing is logged.
+#[cfg(target_arch = "wasm32")]
+pub fn progress(message: &str, last: &str) {
+    if let Some(window) = web_sys::window()
+        && let Some(document) = window.document()
+        && let Some(status) = document.get_element_by_id("viewer-status")
+    {
+        let shown = status.text_content().unwrap_or_default();
+
+        if shown.is_empty() || shown == last {
+            status.set_text_content(Some(message));
+            super::ui::command_line::STATE // register:commands
+                .with_borrow_mut(|model| model.status = message.to_string()); // register:commands
+        }
+    }
 }
 
 /// Give the canvas keyboard focus.

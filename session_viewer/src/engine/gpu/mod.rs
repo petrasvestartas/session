@@ -1,9 +1,9 @@
 pub mod arena; // register:arena
 pub mod backdrop; // register:backdrop
-pub mod buffers; // register:buffers
+pub mod buffers;
 pub mod clip; // register:clip
 pub mod cloud; // register:cloud
-pub mod device; // register:device
+pub mod device;
 pub mod faces; // register:faces
 pub mod frame; // register:frame
 pub mod glyphs; // register:glyphs
@@ -11,7 +11,7 @@ pub mod hull; // register:hull
 pub mod instance; // register:instance
 pub mod instanced; // register:instanced
 pub mod lod; // register:lod
-pub mod objects;
+pub mod objects; // register:objects
 pub mod slots; // register:slots
 
 pub mod lane; // register:lane
@@ -32,51 +32,52 @@ mod triangle_tiles; // register:triangle_tiles
 pub mod ui; // register:ui
 pub mod upload; // register:upload
 pub mod vectors; // register:vectors
-pub mod view; // register:view
+pub mod view; // register:knobs
 mod widget; // register:widget
 mod widget_mesh; // register:widget_mesh
 
-use crate::engine::performance::Performance;
-use crate::engine::pipelines::{Layouts, Target};
-use session_rust::{AABB, Point};
+use crate::engine::performance::Performance; // register:perf
+use crate::engine::pipelines::{Layouts, Target}; // register:pipelines
+use session_rust::AABB; // register:anchor
+use session_rust::Point; // register:anchor
 
 use arena::ArenaLane; // register:meshes
-use backdrop::BackdropLane;
+use backdrop::BackdropLane; // register:backdrop
 use buffers::GpuCtx;
 use cloud::CloudLane; // register:clouds
 use device::DeviceSetup;
-use frame::FrameUniforms;
+use frame::FrameUniforms; // register:frame
 use glyphs::GlyphLane; // register:markers
-use lane::{Lane, RowLane};
+use lane::{Lane, RowLane}; // register:lane
 use objects::InkScene; // register:ink
-use objects::InstanceTable;
-use pass::Pass;
-use pick::Picker; // register:shell
+use objects::InstanceTable; // register:objects
+use pass::Pass; // register:pass
+use pick::Picker; // register:pick
 use segments::SegmentLane; // register:strokes
 use splat::Splat; // register:clouds
-use targets::Targets;
+use targets::Targets; // register:targets
 
 pub use cloud::{CloudDraw, LodNode, NO_NORMALS}; // register:clouds
-pub use frame::FrameInput;
+pub use present::FrameInput; // register:present
 pub use glyphs::GlyphPoint; // register:markers
-pub use instance::Instance;
-pub use objects::{ObjectRow, Rebase};
-pub use pick::Pick; // register:shell
+pub use instance::Instance; // register:instance
+pub use objects::{ObjectRow, Rebase}; // register:objects
+pub use pick::Pick; // register:pick
 pub use segments::CylinderSegment; // register:strokes
-pub use upload::Upload;
-pub use view::View;
+pub use upload::Upload; // register:upload
+pub use view::View; // register:view
 
 /// Everything on the GPU: the device, the frame and one field per lane.
 pub struct Gpu {
     pub surface: Option<wgpu::Surface<'static>>, // the canvas; None when headless
     pub ctx: GpuCtx,                             // device and queue
     pub config: wgpu::SurfaceConfiguration,      // canvas size and format
-    pub layouts: Layouts,                        // shared bind group layouts
-    pub frame: FrameUniforms,                    // per-frame uniform buffers
-    pub targets: Targets,                        // depth and color textures
-    pub view: View,                              // display settings
-    pub objects: InstanceTable,                  // one row per object
-    pub backdrop: BackdropLane,                  // background and grid
+    pub layouts: Layouts,                        // shared bind group layouts; register:layouts
+    pub frame: FrameUniforms,                    // per-frame uniform buffers; register:frame
+    pub targets: Targets,                        // depth and color textures; register:targets
+    pub view: View,                              // display settings; register:view
+    pub objects: InstanceTable,                  // one row per object; register:objects
+    pub backdrop: BackdropLane,                  // background and grid; register:backdrop
     pub arena: ArenaLane,                        // meshes; register:meshes
     pub segments: SegmentLane,                   // lines; register:strokes
     pub glyphs: GlyphLane,                       // markers and dots; register:markers
@@ -85,24 +86,24 @@ pub struct Gpu {
     pub widget: widget::Widget,                  // gumball mesh, own depth; register:gumball
     pub ui: Option<ui::Ui>,                      // egui overlay; register:egui
     pub text: text::TextLane,                    // labels; register:text
-    pub selection_revision: u64,                 // bumps on every selection change
+    pub selection_revision: u64,                 // bumps on every selection change; register:selection
     pub logical_size: [f64; 2],                  // canvas size in CSS pixels
     pub cloud: CloudLane,                        // point cloud buffers; register:clouds
-    registered: Vec<Box<dyn RowLane>>,           // lanes from lane::REGISTRY
-    passes: Vec<Box<dyn Pass>>,                  // passes from pass::PASSES, in frame order
+    registered: Vec<Box<dyn RowLane>>,           // lanes from lane::REGISTRY; register:lane
+    passes: Vec<Box<dyn Pass>>,                  // passes from pass::PASSES, in frame order; register:pass
     dead: patch::Counts, // editable rows retired and not yet reclaimed; register:patch
     dead_points: u32,    // cloud points retired and not yet reclaimed; register:clouds
     pub splat: Splat,    // point cloud drawing; register:clouds
-    pub pick: Picker,    // reads object ids under the cursor; register:shell
-    pub performance: Performance, // frame timing
+    pub pick: Picker,    // reads object ids under the cursor; register:pick
+    pub performance: Performance, // frame timing; register:perf
     pub timer: Option<timing::PassTimer>, // GPU time per pass, when a bench installs it; register:gtao
-    pub bounds: AABB,                     // world box of everything uploaded
-    device_type: wgpu::DeviceType,        // discrete, integrated or CPU
+    pub bounds: AABB,                     // world box of everything uploaded; register:anchor
+    device_type: wgpu::DeviceType,        // discrete, integrated or CPU; register:msaa
     pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>, // first GPU error
 }
 
 /// Every lane, once. Adding one means writing its `Lane` impl and one line here.
-macro_rules! lane_list {
+macro_rules! lane_list { // register:lane
     ($apply:ident, $g:ident) => {
         $apply!($g;
             frame,             // register:frame
@@ -123,16 +124,113 @@ macro_rules! lane_list {
 }
 
 /// The lanes, shared.
-macro_rules! shared {
+macro_rules! shared { // register:lane
     ($g:ident; $($lane:ident),* $(,)?) => { [$(&$g.$lane as &dyn Lane),*] };
 }
 
 /// The lanes, mutable. Each field is borrowed once, so `ctx` stays free.
-macro_rules! owned {
+macro_rules! owned { // register:lane
     ($g:ident; $($lane:ident),* $(,)?) => { [$(&mut $g.$lane as &mut dyn Lane),*] };
 }
 
 impl Gpu {
+    /// Open the GPU for a window.
+    pub async fn new(window: std::sync::Arc<winit::window::Window>) -> anyhow::Result<Self> {
+        let size = window.inner_size();
+        Self::build(Some(window), (size.width, size.height)).await
+    }
+
+    /// Open the GPU with no window, drawing into a texture.
+    pub async fn new_headless(width: u32, height: u32) -> anyhow::Result<Self> {
+        Self::build(None, (width, height)).await
+    }
+
+    /// Open the device and create every lane, empty.
+    async fn build(
+        window: Option<std::sync::Arc<winit::window::Window>>,
+        size: (u32, u32),
+    ) -> anyhow::Result<Self> {
+        let DeviceSetup {
+            surface,
+            device,
+            queue,
+            config,
+            device_type, // register:msaa
+            failure,
+        } = device::open(window, size).await?;
+        crate::engine::performance::mark("device ready"); // register:perf
+        let ctx = GpuCtx::new(device, queue);
+        let size = (config.width, config.height);
+        // start without MSAA; retarget flips it later
+        let samples = 1; // register:targets
+        let targets = Targets::new(&ctx, size, config.format, samples); // register:targets
+        let target = Target { // register:pipelines
+            format: config.format,
+            samples,
+        };
+        let layouts = Layouts::new(&ctx.device); // register:layouts
+        let frame = FrameUniforms::new(&ctx, &layouts, size); // register:frame
+        let arena = ArenaLane::new(&ctx, &layouts, target); // register:meshes
+        let objects = InstanceTable::new(&ctx, &layouts); // register:objects
+        let backdrop = BackdropLane::new(&ctx, &layouts, target); // register:backdrop
+        let segments = SegmentLane::new(&ctx, &layouts, target); // register:strokes
+        let glyphs = GlyphLane::new(&ctx, &layouts, target); // register:markers
+        let controls = GlyphLane::new(&ctx, &layouts, target); // register:shell
+        let control_net = SegmentLane::new(&ctx, &layouts, target); // register:shell
+        let widget = widget::Widget::new(&ctx, target); // register:gumball
+        let text = text::TextLane::new(&ctx, target); // register:text
+        let cloud = CloudLane::new(&ctx); // register:clouds
+        let splat = Splat::new(&ctx, &layouts, target, cloud.buffers()); // register:clouds
+        let registered = lane::make_all(&ctx, &layouts, target); // register:lane
+        let passes = pass::make_all(&ctx, target); // register:pass
+
+        log::info!(
+            "viewer init OK - surface {}x{}, format {:?}",
+            config.width,
+            config.height,
+            config.format
+        );
+        crate::engine::performance::mark("gpu built"); // register:perf
+        let mut gpu = Self {
+            surface,
+            ctx,
+            config,
+            layouts, // register:layouts
+            frame,   // register:frame
+            targets,                // register:targets
+            view: View::from_env(), // register:view
+            objects,                // register:objects
+            backdrop,               // register:backdrop
+            arena,                  // register:meshes
+            segments,               // register:strokes
+            glyphs,                 // register:markers
+            controls,               // register:shell
+            control_net,            // register:shell
+            widget,                 // register:gumball
+            ui: None,               // register:egui
+            text,                   // register:text
+            selection_revision: 0,  // register:selection
+            logical_size: [size.0 as f64, size.1 as f64],
+            cloud,      // register:clouds
+            registered, // register:lane
+            passes,     // register:pass
+            dead: patch::Counts::default(), // register:patch
+            dead_points: 0,                 // register:clouds
+            splat,                          // register:clouds
+            pick: Picker::new(),            // register:pick
+            performance: Performance::new(), // register:perf
+            timer: None,                     // register:gtao
+            bounds: AABB::empty(),           // register:anchor
+            device_type,                     // register:msaa
+            failure,
+        };
+        gpu.rebind_ink(); // register:ink
+        Ok(gpu)
+    }
+}
+
+impl Gpu {
+
     /// Bytes reserved on the GPU: (buffers, textures).
     pub fn allocated_bytes(&self) -> (u64, u64) {
         let mut buffers = 0;
@@ -158,103 +256,6 @@ impl Gpu {
         let frame_textures =
             pixels * if samples > 1 { samples * 12 } else { 8 } + if samples > 1 { 8 } else { 32 };
         (buffers, textures + frame_textures)
-    }
-
-    /// Open the GPU for a window.
-    pub async fn new(window: std::sync::Arc<winit::window::Window>) -> anyhow::Result<Self> {
-        let size = window.inner_size();
-        Self::build(Some(window), (size.width, size.height)).await
-    }
-
-    /// Open the GPU with no window, drawing into a texture.
-    pub async fn new_headless(width: u32, height: u32) -> anyhow::Result<Self> {
-        Self::build(None, (width, height)).await
-    }
-
-    /// Open the device and create every lane, empty.
-    async fn build(
-        window: Option<std::sync::Arc<winit::window::Window>>,
-        size: (u32, u32),
-    ) -> anyhow::Result<Self> {
-        let DeviceSetup {
-            surface,
-            device,
-            queue,
-            config,
-            device_type,
-            failure,
-        } = device::open(window, size).await?;
-        crate::engine::performance::mark("device ready");
-        let ctx = GpuCtx::new(device, queue);
-        let size = (config.width, config.height);
-        // start without MSAA; retarget flips it later
-        let target = Target {
-            format: config.format,
-            samples: 1,
-        };
-
-        let layouts = Layouts::new(&ctx.device);
-        let frame = FrameUniforms::new(&ctx, &layouts, size);
-        let targets = Targets::new(&ctx, size, config.format, target.samples);
-        let arena = ArenaLane::new(&ctx, &layouts, target); // register:meshes
-        let objects = InstanceTable::new(&ctx, &layouts);
-        let backdrop = BackdropLane::new(&ctx, &layouts, target);
-        let segments = SegmentLane::new(&ctx, &layouts, target); // register:strokes
-        let glyphs = GlyphLane::new(&ctx, &layouts, target); // register:markers
-        let controls = GlyphLane::new(&ctx, &layouts, target); // register:shell
-        let control_net = SegmentLane::new(&ctx, &layouts, target); // register:shell
-        let widget = widget::Widget::new(&ctx, target); // register:gumball
-        let text = text::TextLane::new(&ctx, target); // register:text
-        let cloud = CloudLane::new(&ctx); // register:clouds
-        let splat = Splat::new(&ctx, &layouts, target, cloud.buffers()); // register:clouds
-        let registered = lane::REGISTRY
-            .iter()
-            .map(|lane| (lane.make)(&ctx, &layouts, target))
-            .collect();
-        let passes = pass::PASSES.iter().map(|make| make(&ctx, target)).collect();
-
-        log::info!(
-            "viewer init OK - surface {}x{}, format {:?}",
-            config.width,
-            config.height,
-            config.format
-        );
-        crate::engine::performance::mark("gpu built");
-        let mut gpu = Self {
-            surface,
-            ctx,
-            config,
-            layouts,
-            frame,
-            targets,
-            view: View::from_env(),
-            objects,
-            backdrop,
-            arena,       // register:meshes
-            segments,    // register:strokes
-            glyphs,      // register:markers
-            controls,    // register:shell
-            control_net, // register:shell
-            widget,      // register:gumball
-            ui: None,    // register:egui
-            text,        // register:text
-            selection_revision: 0,
-            logical_size: [size.0 as f64, size.1 as f64],
-            cloud, // register:clouds
-            registered,
-            passes,
-            dead: patch::Counts::default(), // register:patch
-            dead_points: 0,                 // register:clouds
-            splat,                          // register:clouds
-            pick: Picker::new(),            // register:shell
-            performance: Performance::new(),
-            timer: None, // register:gtao
-            bounds: AABB::empty(),
-            device_type,
-            failure,
-        };
-        gpu.rebind_ink(); // register:ink
-        Ok(gpu)
     }
 
     /// Append one upload to every lane.
@@ -284,7 +285,7 @@ impl Gpu {
 
     /// Remake targets and pipelines when the sample count changes.
     fn retarget(&mut self, resized: bool) {
-        let samples = self.msaa_now();
+        let samples = self.samples_wanted();
         let flip = samples != self.targets.samples;
 
         if flip || resized {
@@ -298,7 +299,7 @@ impl Gpu {
             self.rebind_ink(); // register:ink
         }
 
-        if flip {
+        if flip { // register:pipelines
             self.rebuild_pipelines();
             log::info!("msaa: {}x", samples);
         }
@@ -312,10 +313,10 @@ impl Gpu {
         for lane in lane_list!(owned, self) {
             lane.on_retarget(ctx, layouts, target);
         }
-        for lane in &mut self.registered {
+        for lane in &mut self.registered { // register:lane
             lane.on_retarget(ctx, layouts, target);
         }
-        for pass in &mut self.passes {
+        for pass in &mut self.passes { // register:pass
             pass.on_retarget(ctx, layouts, target);
         }
     }
@@ -331,7 +332,7 @@ impl Gpu {
     }
 
     /// MSAA samples for the current scene: 4x only with solid geometry.
-    fn msaa_now(&self) -> u32 {
+    fn samples_wanted(&self) -> u32 {
         let mut solid = false;
         solid |= self.live_faces() > 0; // register:meshes
         solid |= self.live_sheet() > 0; // register:meshes
@@ -361,7 +362,7 @@ impl Gpu {
 
         self.retarget(true);
         self.splat.resize(); // register:clouds
-        self.pick.resize(); // register:shell
+        self.pick.resize(); // register:pick
     }
 
     /// Forget every row; keep the buffers.

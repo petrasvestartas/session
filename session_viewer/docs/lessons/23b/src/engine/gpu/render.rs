@@ -1,66 +1,72 @@
-// --8<-- [start:encode]
+// --8<-- [start:004-encode]
 use super::Gpu;
-use super::frame::Binds;
-use super::pass::Frame;
+use super::frame::Binds; // register:frame
+
+/// What every pass of one frame shares.
+pub struct Frame<'a> {
+    pub view: &'a wgpu::TextureView, // the canvas
+    pub clear: wgpu::Color,          // background color
+    pub tier: u8,                    // drag tier; 0 is full quality; register:perf
+    pub rough: bool,                 // ink tests against the fitted planes alone; register:tiles
+}
 
 // `impl Gpu` blocks may sit in any file of the crate: this one adds the frame encoding.
 impl Gpu {
-    /// Encode one frame into `view`; returns (draws, objects).
+    /// Encode one frame into `view`; returns the draw count.
     pub fn encode_frame(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         view: &wgpu::TextureView,
         clear: wgpu::Color,
-    ) -> (u32, u32) {
-        self.each_pass(|pass, g| pass.prepare(g, encoder));
-
-        let tier = if self.view.ssao {
-            0
-        } else {
-            self.performance.drag_tier()
-        };
+    ) -> u32 {
+        self.each_pass(|pass, g| pass.prepare(g, encoder)); // register:pass
+        let tier = self.performance.drag_tier(); // register:perf
         let rough = self.tile_passes(encoder, tier); // register:tiles
         self.point_pass(encoder); // register:clouds
 
         let frame = Frame {
             view,
             clear,
-            tier,
+            tier,  // register:perf
             rough, // register:tiles
         };
         // pass 1: background, section caps, faces and clouds write depth
         let mut draws = self.face_passes(encoder, &frame);
         // pass 2: ambient occlusion and the outline masks, each pass in turn
-        self.each_pass(|pass, g| draws += pass.after_faces(g, encoder, &frame));
+        self.each_pass(|pass, g| draws += pass.after_faces(g, encoder, &frame)); // register:pass
         draws += self.ink_pass(encoder, view); // pass 3: lines, markers, outlines and text; register:ink
-        self.pending_pick(encoder); // a click waiting: draw the id pass now; register:shell
+        self.pending_pick(encoder); // a click waiting: draw the id pass now; register:pick
         self.draw_panels(encoder, view); // register:egui
-        (draws, self.objects.len())
+        draws
     }
-// --8<-- [end:encode]
 
-// --8<-- [start:face-passes]
     /// The first pass: each pass's own face passes, then the one the faces draw in.
     fn face_passes(&mut self, encoder: &mut wgpu::CommandEncoder, f: &Frame) -> u32 {
         let mut draws = 0;
         let mut drew = false;
-        self.each_pass(|pass, g| draws += pass.before_faces(g, encoder, f, &mut drew));
+        self.each_pass(|pass, g| draws += pass.before_faces(g, encoder, f, &mut drew)); // register:pass
 
-        let b = self.frame.binds(&self.objects.group);
         let mut pass = self
             .targets
             .begin_faces(encoder, f.view, (!drew).then_some(f.clear));
+        let b = self.frame.binds(&self.objects.group); // register:objects
 
-        if !drew {
+        if !drew { // register:backdrop
             draws += self.backdrop_list(&mut pass, &b);
         }
 
-        for other in &self.passes {
+        for other in &self.passes { // register:pass
             draws += other.in_faces(self, &mut pass, &b);
         }
 
-        draws + self.face_list(&mut pass, &b)
+        draws += self.face_list(&mut pass, &b); // register:meshes
+        draws
     }
+}
+// --8<-- [end:004-encode]
+
+// --8<-- [start:04a-tail]
+impl Gpu {
 
     /// Draws of the backdrop: background and grid.
     pub(super) fn backdrop_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
@@ -80,10 +86,7 @@ impl Gpu {
         draws
     }
 }
-// --8<-- [end:face-passes]
 
-// --8<-- [start:02-grid]
-// --8<-- [start:grid-list]
 impl Gpu {
     /// The grid, when shown.
     fn grid_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
@@ -94,11 +97,7 @@ impl Gpu {
         }
     }
 }
-// --8<-- [end:grid-list]
-// --8<-- [end:02-grid]
 
-// --8<-- [start:04b-ink-pass]
-// --8<-- [start:ink-pass]
 impl Gpu {
     /// Pass 3: lines, markers, outlines and text over the faces.
     fn ink_pass(&mut self, encoder: &mut wgpu::CommandEncoder, view: &wgpu::TextureView) -> u32 {
@@ -139,11 +138,7 @@ impl Gpu {
         draws
     }
 }
-// --8<-- [end:ink-pass]
-// --8<-- [end:04b-ink-pass]
 
-// --8<-- [start:04c-marker-draws]
-// --8<-- [start:marker-draws]
 impl Gpu {
     /// The vertex markers, when mesh edges and markers are shown.
     fn sphere_draws(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
@@ -165,11 +160,7 @@ impl Gpu {
         }
     }
 }
-// --8<-- [end:marker-draws]
-// --8<-- [end:04c-marker-draws]
 
-// --8<-- [start:04d-point-pass]
-// --8<-- [start:point-pass]
 use super::splat::RecordCx;
 
 impl Gpu {
@@ -197,11 +188,7 @@ impl Gpu {
         );
     }
 }
-// --8<-- [end:point-pass]
-// --8<-- [end:04d-point-pass]
 
-// --8<-- [start:12-id-pass]
-// --8<-- [start:id-pass]
 use super::lane::PickMode;
 
 impl Gpu {
@@ -351,11 +338,7 @@ impl Gpu {
         }
     }
 }
-// --8<-- [end:id-pass]
-// --8<-- [end:12-id-pass]
 
-// --8<-- [start:18-tile-passes]
-// --8<-- [start:tile-passes]
 impl Gpu {
     /// Build the triangle tables the frame reads; true when a slow drag tests ink against the fitted planes alone.
     fn tile_passes(&mut self, encoder: &mut wgpu::CommandEncoder, tier: u8) -> bool {
@@ -439,9 +422,7 @@ fn pick_strokes(mode: PickMode, pipes: bool, ribbons: bool, lanes: bool) -> bool
             PickMode::Controls { .. } => false,
         }
 }
-// --8<-- [end:tile-passes]
 
-// --8<-- [start:tile-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -484,11 +465,7 @@ mod tests {
         );
     }
 }
-// --8<-- [end:tile-tests]
-// --8<-- [end:18-tile-passes]
 
-// --8<-- [start:22-panels]
-// --8<-- [start:panels]
 impl Gpu {
     /// The egui panels on top.
     fn draw_panels(&self, encoder: &mut wgpu::CommandEncoder, view: &wgpu::TextureView) {
@@ -497,5 +474,13 @@ impl Gpu {
         }
     }
 }
-// --8<-- [end:panels]
-// --8<-- [end:22-panels]
+
+impl Gpu {
+    /// Timestamp the GPU here when a bench installed a pass timer.
+    pub(super) fn mark(&mut self, encoder: &mut wgpu::CommandEncoder, label: &'static str) {
+        if let Some(timer) = self.timer.as_mut() {
+            timer.mark(encoder, label);
+        }
+    }
+}
+// --8<-- [end:04a-tail]

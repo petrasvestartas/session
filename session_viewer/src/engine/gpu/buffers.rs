@@ -5,7 +5,7 @@ use wgpu::util::DeviceExt;
 pub struct GpuCtx {
     pub device: wgpu::Device, // creates buffers, textures, pipelines
     pub queue: wgpu::Queue,   // uploads data and submits commands
-    pub cache: crate::engine::pipelines::Cache, // shaders, layouts and pipelines asked for so far
+    pub cache: crate::engine::pipelines::Cache, // shaders, layouts and pipelines asked for so far; register:pipelines
 }
 
 impl GpuCtx {
@@ -14,7 +14,7 @@ impl GpuCtx {
         Self {
             device,
             queue,
-            cache: Default::default(),
+            cache: Default::default(), // register:pipelines
         }
     }
 }

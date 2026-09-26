@@ -7,7 +7,7 @@ pub struct DeviceSetup {
     pub device: wgpu::Device,                    // creates GPU resources
     pub queue: wgpu::Queue,                      // runs GPU commands
     pub config: wgpu::SurfaceConfiguration,      // size and format of the canvas
-    pub device_type: wgpu::DeviceType,           // discrete, integrated or CPU
+    pub device_type: wgpu::DeviceType,           // discrete, integrated or CPU; register:msaa
     pub failure: Arc<std::sync::Mutex<Option<String>>>, // first GPU error, read each frame
 }
 
@@ -51,7 +51,9 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         force_fallback_adapter: false,
     };
     // the GPU: named, else preferred, else default
-    let adapter = match named_adapter(&instance, backends).await {
+    let named = None;
+    let named = named_adapter(&instance, backends).await.or(named); // register:native_adapter
+    let adapter = match named {
         Some(named) => named,
         None => match instance.request_adapter(&options(preferred)).await {
             Ok(adapter) => adapter,
@@ -82,19 +84,12 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         ..wgpu::Limits::default()
     };
 
-    // natively, `VIEWER_GPU_TIMING` asks for timestamps between passes
-    let timing =
-        !cfg!(target_arch = "wasm32") && super::view::knob("VIEWER_GPU_TIMING", "").is_some();
-    let timestamps =
-        wgpu::Features::TIMESTAMP_QUERY | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
+    let features = wgpu::Features::empty();
+    let features = timing_features(&adapter).unwrap_or(features); // register:gtao
     let (device, queue) = adapter
         .request_device(&wgpu::DeviceDescriptor {
             label: None,
-            required_features: if timing {
-                adapter.features() & timestamps
-            } else {
-                wgpu::Features::empty()
-            },
+            required_features: features,
             required_limits: limits,
             memory_hints: Default::default(),
             ..Default::default()
@@ -103,7 +98,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
     // browser errors are stored, not thrown
     let failure = Arc::new(std::sync::Mutex::new(None));
     #[cfg(target_arch = "wasm32")]
-    {
+    { // register:errors
         let errors = failure.clone();
         device.on_uncaptured_error(Arc::new(move |error| remember_gpu_error(&errors, error)));
         let lost = failure.clone();
@@ -162,9 +157,15 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         device,
         queue,
         config,
-        device_type: info.device_type,
+        device_type: info.device_type, // register:msaa
         failure,
     })
+}
+
+/// Native: a GPU error stops the program.
+#[cfg(not(target_arch = "wasm32"))]
+fn report_gpu_error(e: wgpu::Error) {
+    panic!("wgpu: {e}");
 }
 
 /// Pick the native GPU named by `VIEWER_ADAPTER`, if any.
@@ -193,20 +194,6 @@ async fn named_adapter(
     }
 }
 
-/// Store the first error message; later ones are ignored.
-#[cfg(any(target_arch = "wasm32", test))]
-fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String) {
-    if let Ok(mut state) = failure.lock() {
-        state.get_or_insert(message);
-    }
-}
-
-/// Native: a GPU error stops the program.
-#[cfg(not(target_arch = "wasm32"))]
-fn report_gpu_error(e: wgpu::Error) {
-    panic!("wgpu: {e}");
-}
-
 /// A broken shader must reach the error callback.
 #[cfg(all(test, not(target_arch = "wasm32")))]
 #[test]
@@ -222,6 +209,14 @@ fn invalid_gpu_shader_is_fatal() {
                 "@compute @workgroup_size(1) fn main() { let broken: u32 = true; }".into(),
             ),
         });
+}
+
+/// Store the first error message; later ones are ignored.
+#[cfg(any(target_arch = "wasm32", test))]
+fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String) {
+    if let Ok(mut state) = failure.lock() {
+        state.get_or_insert(message);
+    }
 }
 
 /// Store a browser GPU error.
@@ -254,4 +249,13 @@ fn first_gpu_error_survives_follow_on_submission_errors() {
         failure.lock().unwrap().as_deref(),
         Some("texture allocation failed")
     );
+}
+
+/// Natively, `VIEWER_GPU_TIMING` asks for timestamps between passes.
+fn timing_features(adapter: &wgpu::Adapter) -> Option<wgpu::Features> {
+    let timing =
+        !cfg!(target_arch = "wasm32") && super::view::knob("VIEWER_GPU_TIMING", "").is_some();
+    let timestamps =
+        wgpu::Features::TIMESTAMP_QUERY | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
+    timing.then(|| adapter.features() & timestamps)
 }

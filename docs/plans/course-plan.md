@@ -99,25 +99,32 @@ lessons than its range pushes the later ranges, which are re-stated here.
 
 ## Part 1 in detail (first pixels)
 
-Every lesson ends in the browser with `trunk serve`. The old lesson 00 is the model for 000.
+Every lesson ends in the browser with `trunk serve`. Lessons 000-004 are cut and pushed (2026-09-26); their typed
+lines are measured by `check_budget.py`.
 
-| Id | Lesson | Types | You should see |
-|---|---|---|---|
-| 000 | Empty project to a wasm message | `Cargo.toml`, `.cargo/config.toml`, `Trunk.toml`, `.gitignore`, bare `index.html`, `lib.rs` entry | the page loads, the console shows the panic hook is set |
-| 001 | A window and a GPU | `lib.rs` App, `resumed`, `viewer_canvas`; `device.rs` open (instance, surface, adapter, device, config); `loader.rs` boot; `State::new`; `Msg::Ready` | console: `adapter: ...` and `viewer init OK - surface WxH` |
-| 002 | Clear to a colour | `buffers.rs` GpuCtx; `Gpu` with surface, ctx, config; `present` (current texture, encoder, submit); `encode_frame` clearing; `State::render`; `RedrawRequested`, `needs_frame`, `touch` | a light grey canvas |
-| 003 | Shaders in the crate | `build.rs`, the `shader!` macro, `background.wgsl`, the pipeline cache core | a white canvas: the fullscreen triangle |
-| 004 | Layouts and the frame uniform | `layouts.rs`, `frame.rs` (view_proj, size), `scene.wgsl` shared code | the same picture, drawn through the frame bind group |
-| 005 | The camera | `camera.rs` pose, view and projection | the grid lesson needs it; a test prints a projected point |
-| 006 | The grid | `backdrop.rs` grid pass, `grid.wgsl` | a grid on the floor plane |
-| 007 | Orbit, pan and zoom | `input.rs` mouse, `camera.rs` orbit/pan/zoom | the grid turns under the mouse |
-| 008 | Touch | `touch.rs`, pinch and two-finger pan | the same on a phone |
-| 009 | Depth and MSAA targets | `targets.rs`, `view.rs` knobs | `?msaa=4` smooths the grid lines |
-| 010 | Resize and device pixels | `resize`, `desired_canvas_size`, device pixel ratio, `logical_size` | the grid stays sharp when the window changes |
-| 011 | Lanes and passes | `lane.rs`, `pass.rs`, the `lane_list!` macro, `PASSES` | no new picture; every later lesson registers here |
-| 012 | Frame timing | `performance.rs`, `?perf=1` | a perf line in the status area |
-| 013 | The status line | `feedback.rs`, `src/page/status.css` | "Ready" in the corner |
-| ... | camera fit and extent, orbit inertia, spin mode, the error box, the GPU-loss reload, the docs corner | the rest of the Part 1 files, each under 250 lines | |
+| Id | Lesson | Types | You should see | Typed |
+|---|---|---|---|---|
+| 000 | Empty project to a wasm page | `Cargo.toml`, `.cargo/config.toml`, `Trunk.toml`, `.gitignore`, bare `index.html`, `lib.rs` entry | a grey page from CSS, an empty console | 201 |
+| 001 | A window on the canvas | `lib.rs` App, Msg, events, `mouse`, `viewer_canvas`, `start`; `state.rs` skeleton; `app/mod.rs`; `feedback.rs` status and error; `loader.rs` boot | the canvas carries winit's width and height | 197 |
+| 002 | Open the GPU | `engine/mod.rs`, `performance.rs` clock, `gpu/mod.rs` list and `Gpu`, `buffers.rs` GpuCtx, `view.rs` knobs, `device.rs` open; the state's GPU lines | console: `adapter: ...`, `viewer init OK - surface WxH`, `gpu init N ms` | 243 |
+| 003 | The frame's textures | `targets.rs` TextureSpec, Attachment, Targets, `begin_faces`; the `targets` lines of `gpu/mod.rs` | cargo check passes, same console | 126 |
+| 004 | Clear to a colour | `present.rs` FrameInput and present, `render.rs` Frame and encode_frame, `state.rs` render and gpu_failed, `lib.rs` redraw | the GPU paints the canvas 0.9 grey; a red experiment proves it | 121 |
+| 005 | Resize and device pixels | `Gpu::resize`, `retarget`, `samples_wanted`, `State::resize`, `logical_size`, `page_hidden`, `desired_canvas_size`, `fit_canvas`, `resize_held`, `view.rs` device pixel ratio and `View` | the canvas stays sharp when the window changes | |
+| 006 | The pipeline cache | `pipelines/mod.rs` Lazy, Cache, Target, DepthMode, ColorWrite, PipelineDesc, build, compile | tests pass | |
+| 007 | Shaders in the crate | `build.rs`, the `shader!` macro, `scene.wgsl`, `normals.wgsl`, `physical.wgsl`, `background.wgsl`, `layouts.rs` mvp and line | tests pass | |
+| 008 | The frame uniform | `frame.rs` LineUniform, FrameUniforms, write; `write_frame_uniforms` | same picture, drawn through the frame bind group | |
+| 009 | The object table | `instance.rs`, `buffers.rs` GrowBuf, `objects.rs` core: rows, translations, group 2 | tests pass | |
+| 010 | The background triangle | `backdrop.rs`, `lane.rs` trait, `lane_list!`, the backdrop pass | a white canvas: the fullscreen triangle | |
+| 011 | The camera | `camera.rs` pose, view and projection | tests print a projected point | |
+| 012 | The anchor | `objects.rs` rebase, `State::rebase`, `view_proj_anchored` | tests pass | |
+| 013 | The grid | `grid.wgsl`, `draw_grid`, `grid_list` | a grid on the floor plane | |
+| 014 | Orbit, pan and zoom | `input.rs` mouse, `camera.rs` orbit, pan, zoom | the grid turns under the mouse | |
+| 015 | Touch | `touch.rs`, pinch and two-finger pan | the same on a phone | |
+| ... | frame timing and drag tiers, GPU errors and device loss, MSAA, the status line, camera fit and extent, spin, the docs corner | the rest of the Part 1 files | | |
+
+While a part is being cut, the old lessons that follow it stay in `SERIES.txt` as the tail (today `04a` holds
+everything Part 1 has not yet cut: 9,400 typed lines). `mkdocs.yml` sets `check_paths: false` so the old pages, whose
+includes moved, build with warnings until they are re-cut.
 
 ## Page template (the voice)
 

@@ -301,7 +301,6 @@ impl Input {
                         state.request_selection(at.0 as u32, at.1 as u32, false, false);
                         false
                     }
-                    // a command waiting for points takes both taps
                     Act::Fit(_) => {
                         state.fit_all();
                         true
@@ -346,7 +345,6 @@ impl Input {
                 closed |= state.close_number_box(); // a press in the scene closes the number box; register:editing
                 self.left_down = Some(self.last_cursor);
                 self.dragged = false;
-                // a running command that draws with the button, e.g. a lasso
 
                 if self.tool_held {
                     self.plain = false;

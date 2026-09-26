@@ -13,33 +13,33 @@ pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
 }
 
 /// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
-macro_rules! shader {
+macro_rules! shader { // register:shaders
     ($name:literal) => {
         include_str!(concat!(env!("OUT_DIR"), "/shaders/", $name))
     };
 }
 
-mod engine;
+mod engine; // register:gpu
 
-mod camera;
+mod camera; // register:camera
 
 pub mod app;
 
-#[cfg(target_arch = "wasm32")]
-pub mod text_quality;
+#[cfg(target_arch = "wasm32")] // register:text_quality
+pub mod text_quality; // register:text_quality
 
 mod state;
 
-use crate::app::scene::FileDoc;
+use crate::app::scene::FileDoc; // register:scene
 pub use state::State;
 
 /// Messages the async loader sends to the event loop.
 pub enum Msg {
     Ready(Box<State>),                              // GPU is up, here is the state
-    File(FileDoc, Option<String>), // one loaded file; a display-only one names its file
+    File(FileDoc, Option<String>), // one loaded file; a display-only one names its file; register:scene
     Texts(Vec<app::manifest::TextItem>), // text labels to place; register:scene_text
-    Clear,                         // empty the scene
-    Fit,                           // frame the camera on everything
+    Clear,                         // empty the scene; register:scene
+    Fit,                           // frame the camera on everything; register:scene
     StreamedCloud(Box<StreamedInit>), // a point cloud starts streaming; register:stream
     CloudChunk(CloudChunk),        // more points arrived; register:stream
     CloudQueryBatch(app::cloud_query::Batch), // points asked for on click; register:cloud_query
@@ -47,7 +47,7 @@ pub enum Msg {
     Sheet(Box<SheetInit>),         // a drawing sheet starts streaming; register:sheets
     SheetChunk(SheetChunk),        // more segments arrived; register:sheets
     SheetEntity(app::sheet_query::Resolved), // a picked sheet entity answered; register:sheets
-    CancelPointer,                 // the browser lost the pointer
+    CancelPointer,                 // the browser lost the pointer; register:input
     #[cfg(target_arch = "wasm32")] // register:phone
     Agent(app::agent::AgentEvent), // a phone keyboard key; register:phone
     SavedScene(Box<app::scene::Scene>), // a saved session loaded; register:commands
@@ -57,7 +57,7 @@ pub enum Msg {
 
 #[cfg(target_arch = "wasm32")]
 use {
-    crate::app::input::Input,
+    crate::app::input::Input, // register:input
     std::sync::Arc,
     wasm_bindgen::JsCast,
     winit::application::ApplicationHandler,
@@ -72,8 +72,8 @@ use {
 pub struct App {
     state: Option<State>,               // everything drawn, once the GPU is up
     proxy: Option<EventLoopProxy<Msg>>, // sends messages into the loop
-    input: Input,                       // mouse and key gestures
-    pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener
+    input: Input,                       // mouse and key gestures; register:input
+    pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener; register:input
     agent: Option<app::agent::CommandAgent>, // phone keyboard listener; register:phone
     ui: Option<app::ui::Ui>,            // the egui panels; register:egui
 }
@@ -88,8 +88,8 @@ impl App {
         let app = App {
             proxy: Some(event_loop.create_proxy()),
             state: None,
-            input: Input::new(),
-            pointer_cancellation: None,
+            input: Input::new(),        // register:input
+            pointer_cancellation: None, // register:input
             agent: None, // register:phone
             ui: None,    // register:egui
         };
@@ -99,11 +99,7 @@ impl App {
 
     /// Take the ready state, size it to the canvas, draw.
     fn adopt(&mut self, mut state: State) {
-        // match the canvas pixel size
-        if let Some((w, h)) = desired_canvas_size() {
-            let _ = state.resize(w, h);
-        }
-
+        fit_canvas(&mut state); // register:resize
         self.adopt_panels(&mut state); // register:egui
         state.window.request_redraw();
         self.state = Some(state);
@@ -143,14 +139,10 @@ impl ApplicationHandler<Msg> for App {
         };
 
         if let Some(proxy) = self.proxy.take() {
-            match app::input::PointerCancellation::new(canvas.clone(), proxy.clone()) {
-                Ok(listener) => self.pointer_cancellation = Some(listener),
-                Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
-            }
-
+            self.listen_pointer(canvas.clone(), &proxy); // register:input
             self.listen_agent(canvas, &proxy); // register:phone
             // async: GPU setup, then Msg::Ready
-            wasm_bindgen_futures::spawn_local(app::loader::boot(window, proxy)); // register:loading
+            wasm_bindgen_futures::spawn_local(app::loader::boot(window, proxy)); // register:boot
         }
     }
 
@@ -165,9 +157,9 @@ impl ApplicationHandler<Msg> for App {
 
         match msg {
             Msg::Ready(_) => {}
-            Msg::Clear => state.clear(),
-            Msg::Fit => state.fit_loaded(),
-            Msg::File(doc, source) => state.append(doc, source),
+            Msg::Clear => state.clear(), // register:scene
+            Msg::Fit => state.fit_loaded(), // register:scene
+            Msg::File(doc, source) => state.append(doc, source), // register:scene
             Msg::Hydrated(back) => state.hydrated(*back), // register:editing
             Msg::Fonts(faces) => self.use_fonts(faces),   // register:loading
             Msg::Texts(texts) => state.set_texts(texts),  // register:scene_text
@@ -179,11 +171,7 @@ impl ApplicationHandler<Msg> for App {
             Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to), // register:sheets
             Msg::SheetEntity(resolved) => state.sheet_entity(resolved), // register:sheets
             Msg::SavedScene(scene) => open_saved(state, scene), // register:commands
-            Msg::CancelPointer => {
-                state.cancel_gesture(); // register:editing
-                self.input.cancel();
-                state.touch();
-            }
+            Msg::CancelPointer => self.pointer_lost(), // register:input
             Msg::Agent(event) => self.agent_keys(event), // register:phone
         }
 
@@ -193,7 +181,10 @@ impl ApplicationHandler<Msg> for App {
     /// Handle one window event: redraw, resize, key or mouse.
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
         let taken = self.panels_take(&event); // the panels get the event first; register:egui
-        let Some(state) = &mut self.state else { return };
+
+        if self.state.is_none() {
+            return;
+        }
 
         // true when the scene must be drawn again
         let changed = match event {
@@ -202,46 +193,30 @@ impl ApplicationHandler<Msg> for App {
                 event_loop.exit();
                 false
             }
-            WindowEvent::RedrawRequested => {
-                if page_hidden() || desired_canvas_size().is_none() {
-                    return;
-                }
-
-                // resize first; a resize not ready yet holds the frame
-                let held = match desired_canvas_size() {
-                    Some((w, h)) if (w, h) != (state.gpu.config.width, state.gpu.config.height) => {
-                        !state.resize(w, h)
-                    }
-                    _ => false,
-                };
-
-                if held {
-                    state.needs_frame = true;
-                } else {
-                    // panels lay out, then the scene draws; register:egui
-                    let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state)); // register:egui
-                    state.render();
-                    repaint_if(state, repaint); // register:egui
-                }
-
-                false
-            }
-            WindowEvent::Resized(_) => true,
-            WindowEvent::KeyboardInput { event, .. } => {
-                // first press only, and only while the canvas has focus
-                viewer_focused()
-                    && event.state == ElementState::Pressed
-                    && !event.repeat
-                    && self.input.key(state, event.logical_key.as_ref())
-            }
-            other => self.input.mouse(state, &other),
+            WindowEvent::RedrawRequested => self.redraw(), // register:redraw
+            WindowEvent::Resized(_) => true, // register:redraw
+            WindowEvent::KeyboardInput { event, .. } => self.key(&event), // register:keys
+            other => self.mouse(&other),
         };
 
-        if changed {
+        if changed && let Some(state) = &mut self.state {
             state.touch();
         }
 
         self.request_if_needed();
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl App {
+    /// A pointer event; true when the picture changed.
+    fn mouse(&mut self, event: &WindowEvent) -> bool {
+        let Some(state) = &mut self.state else {
+            return false;
+        };
+        let mut changed = false;
+        changed |= self.input.mouse(state, event); // register:input
+        changed
     }
 }
 
@@ -253,6 +228,66 @@ fn viewer_canvas() -> Option<web_sys::HtmlCanvasElement> {
         .get_element_by_id("canvas")?
         .dyn_into()
         .ok()
+}
+
+/// Start the viewer, unless this is the text-quality page.
+#[cfg(target_arch = "wasm32")]
+fn start() {
+    // the text-quality page runs its own code
+    if let Some(window) = web_sys::window()
+        && let Some(document) = window.document()
+        && document.get_element_by_id("text-quality-canvas").is_some()
+    {
+        return;
+    }
+
+    // after a GPU-loss reload, show the notice
+    if let Some(notice) = app::route::adopt_recovery() { // register:recovery
+        app::feedback::status(notice);
+    }
+
+    if let Err(error) = App::run() {
+        app::feedback::error(&format!("Cannot start the viewer: {error}"));
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl App {
+    /// The browser asked for a frame: resize first, then draw; a resize not ready yet holds the frame.
+    fn redraw(&mut self) -> bool {
+        let Some(state) = &mut self.state else {
+            return false;
+        };
+
+        if page_hidden() || desired_canvas_size().is_none() { // register:resize
+            return false;
+        }
+
+        if resize_held(state) { // register:resize
+            state.needs_frame = true;
+            return false;
+        }
+
+        // panels lay out, then the scene draws; register:egui
+        let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state)); // register:egui
+        state.render();
+        repaint_if(state, repaint); // register:egui
+        false
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl App {
+    /// A key press: first press only, and only while the canvas has focus.
+    fn key(&mut self, event: &winit::event::KeyEvent) -> bool {
+        let Some(state) = &mut self.state else {
+            return false;
+        };
+        viewer_focused()
+            && event.state == ElementState::Pressed
+            && !event.repeat
+            && self.input.key(state, event.logical_key.as_ref())
+    }
 }
 
 /// True while the canvas has keyboard focus.
@@ -268,6 +303,25 @@ fn viewer_focused() -> bool {
     match document.active_element() {
         Some(element) => element.id() == "canvas",
         None => false,
+    }
+}
+
+/// Match the canvas pixel size.
+#[cfg(target_arch = "wasm32")]
+fn fit_canvas(state: &mut State) {
+    if let Some((w, h)) = desired_canvas_size() {
+        let _ = state.resize(w, h);
+    }
+}
+
+/// Resize first; true when a resize not ready yet holds the frame.
+#[cfg(target_arch = "wasm32")]
+fn resize_held(state: &mut State) -> bool {
+    match desired_canvas_size() {
+        Some((w, h)) if (w, h) != (state.gpu.config.width, state.gpu.config.height) => {
+            !state.resize(w, h)
+        }
+        _ => false,
     }
 }
 
@@ -294,27 +348,6 @@ fn desired_canvas_size() -> Option<(u32, u32)> {
     (w > 0 && h > 0).then_some((w, h))
 }
 
-/// Start the viewer, unless this is the text-quality page.
-#[cfg(target_arch = "wasm32")]
-fn start() {
-    // the text-quality page runs its own code
-    if let Some(window) = web_sys::window()
-        && let Some(document) = window.document()
-        && document.get_element_by_id("text-quality-canvas").is_some()
-    {
-        return;
-    }
-
-    // after a GPU-loss reload, show the notice
-    if let Some(notice) = app::route::adopt_recovery() {
-        app::feedback::status(notice);
-    }
-
-    if let Err(error) = App::run() {
-        app::feedback::error(&format!("Cannot start the viewer: {error}"));
-    }
-}
-
 #[cfg(target_arch = "wasm32")]
 impl App {
     /// Keep the whole fonts for the page's life, shared by the labels and the panels.
@@ -329,6 +362,25 @@ impl App {
             state.use_fonts(faces); // register:scene_text
             self.panel_fonts(faces); // register:egui
         }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl App {
+    /// Listen for the browser taking the pointer away.
+    fn listen_pointer(&mut self, canvas: web_sys::HtmlCanvasElement, proxy: &EventLoopProxy<Msg>) {
+        match app::input::PointerCancellation::new(canvas, proxy.clone()) {
+            Ok(listener) => self.pointer_cancellation = Some(listener),
+            Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
+        }
+    }
+
+    /// The browser lost the pointer: end every gesture.
+    fn pointer_lost(&mut self) {
+        let Some(state) = &mut self.state else { return };
+        state.cancel_gesture(); // register:editing
+        self.input.cancel();
+        state.touch();
     }
 }
 

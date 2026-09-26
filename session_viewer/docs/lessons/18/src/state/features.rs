@@ -31,4 +31,20 @@ pub(super) const TAKE_PICK: &[fn(&mut State, Option<crate::engine::gpu::Pick>) -
 /// Features that widen what a viewport click on a row selects, e.g. to its whole group.
 pub(super) const CLICK_ROWS: &[fn(&State, u32) -> Option<Vec<u32>>] = &[
 ];
+
+impl State {
+    /// Feature work before the pick answers are applied.
+    pub(super) fn before_picks(&mut self) {
+        for hook in BEFORE_PICKS {
+            hook(self);
+        }
+    }
+
+    /// Feature work once the pick answers are applied.
+    pub(super) fn after_picks(&mut self) {
+        for hook in AFTER_PICKS {
+            hook(self);
+        }
+    }
+}
 // --8<-- [end:features-hooks]

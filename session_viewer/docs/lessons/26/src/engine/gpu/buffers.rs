@@ -1,4 +1,4 @@
-// --8<-- [start:ctx]
+// --8<-- [start:002-ctx]
 use bytemuck::Pod; // Pod = plain old data: a type that may be copied as raw bytes
 use wgpu::util::DeviceExt; // a trait: `use` brings its methods, such as create_buffer_init, into scope
 
@@ -6,7 +6,7 @@ use wgpu::util::DeviceExt; // a trait: `use` brings its methods, such as create_
 pub struct GpuCtx {
     pub device: wgpu::Device, // creates buffers, textures, pipelines
     pub queue: wgpu::Queue,   // uploads data and submits commands
-    pub cache: crate::engine::pipelines::Cache, // shaders, layouts and pipelines asked for so far
+    pub cache: crate::engine::pipelines::Cache, // shaders, layouts and pipelines asked for so far; register:pipelines
 }
 
 impl GpuCtx {
@@ -15,13 +15,13 @@ impl GpuCtx {
         Self {
             device,
             queue,
-            cache: Default::default(),
+            cache: Default::default(), // register:pipelines
         }
     }
 }
-// --8<-- [end:ctx]
+// --8<-- [end:002-ctx]
 
-// --8<-- [start:usages]
+// --8<-- [start:04a-tail]
 // Usage flags say what the GPU may do with a buffer: STORAGE = shaders read it as an array, COPY_DST = we write it, COPY_SRC = it can be copied out.
 /// Usage flags for a storage buffer that grows.
 pub const ROWS: wgpu::BufferUsages = wgpu::BufferUsages::STORAGE
@@ -40,9 +40,7 @@ pub const VERTS: wgpu::BufferUsages = wgpu::BufferUsages::VERTEX
 pub const INDICES: wgpu::BufferUsages = wgpu::BufferUsages::INDEX
     .union(wgpu::BufferUsages::COPY_DST)
     .union(wgpu::BufferUsages::COPY_SRC);
-// --8<-- [end:usages]
 
-// --8<-- [start:growbuf]
 /// A GPU buffer that grows by half when full.
 pub struct GrowBuf {
     pub buf: wgpu::Buffer,
@@ -122,9 +120,7 @@ impl GrowBuf {
         replace_buffer(&mut self.buf, nb);
         self.cap = new_cap;
     }
-// --8<-- [end:growbuf]
 
-// --8<-- [start:rows]
     /// Overwrite existing rows starting at `at`.
     pub fn write_at<T: Pod>(&self, ctx: &GpuCtx, at: u32, data: &[T]) {
         if data.is_empty() {
@@ -197,9 +193,7 @@ impl GrowBuf {
         self.len = fresh.len;
         self.cap = fresh.cap;
     }
-// --8<-- [end:rows]
 
-// --8<-- [start:growbuf-state]
     /// Forget the rows; keep the buffer.
     pub fn reset(&mut self) {
         self.len = 0;
@@ -242,9 +236,7 @@ impl GrowBuf {
         self.len == 0
     }
 }
-// --8<-- [end:growbuf-state]
 
-// --8<-- [start:template]
 /// A small mesh drawn many times, once per instance.
 pub struct Template {
     pub vbo: wgpu::Buffer, // vertex positions
@@ -283,9 +275,7 @@ impl Template {
         pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint32);
     }
 }
-// --8<-- [end:template]
 
-// --8<-- [start:helpers]
 /// A new buffer of `size` bytes, filled with zeros.
 pub fn zeroed_buffer(
     device: &wgpu::Device,
@@ -350,9 +340,7 @@ fn grown(cap: u64, need: u64, most: u64) -> u64 {
 fn reserved(need: u64, spare: u64, most: u64) -> u64 {
     need.saturating_add(spare).min(most).max(need)
 }
-// --8<-- [end:helpers]
 
-// --8<-- [start:tests]
 #[cfg(test)]
 mod tests {
     use super::{grown, reserved};
@@ -383,4 +371,4 @@ mod tests {
         );
     }
 }
-// --8<-- [end:tests]
+// --8<-- [end:04a-tail]

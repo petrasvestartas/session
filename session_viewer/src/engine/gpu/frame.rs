@@ -1,14 +1,8 @@
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::view::View;
 use crate::engine::pipelines::Layouts;
+pub use super::present::FrameInput;
 use session_rust::Xform;
-
-/// What the caller gives each frame.
-pub struct FrameInput {
-    pub view_proj: Xform,   // camera matrix
-    pub clear: wgpu::Color, // background color
-    pub now_ms: f64,        // time of this frame, ms
-}
 
 /// Extra inputs for writing the frame uniforms.
 pub struct FrameCx<'a> {

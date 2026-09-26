@@ -1,3 +1,4 @@
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -6,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cut import KEEP, LESSONS, strip, table
 
 BUDGET = 250
+ID = re.compile(r"lessons/\d{2,3}[a-z]?/")
 SKIP = ("tests/", "examples/", "assets/", "Cargo.lock")
 
 
@@ -20,7 +22,7 @@ def typed(lesson):
 
         lines = strip(rel, path.read_bytes())
         if isinstance(lines, list):
-            out[rel] = Counter(lines)
+            out[rel] = Counter(ID.sub("lessons/N/", line) for line in lines)
 
     return out
 

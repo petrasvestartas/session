@@ -107,10 +107,18 @@ class Course:
         if len(stack) != 1:
             sys.exit(f"{path}: section left open")
 
-        # an attribute line directly above a registration line joins its lesson
+        # a registration line that opens a block registers the whole block
+        for start, end in blocks(lines):
+            for i in range(start + 1, end + 1):
+                out[i] = self.later(out[i], out[start])
+
+        # attribute and comment lines directly above a registration line join its lesson
+        joined = [False] * len(lines)
         for i in range(len(lines) - 2, -1, -1):
-            if lines[i].lstrip().startswith("#[") and REGISTER.search(lines[i + 1]):
+            comment = lines[i].lstrip().startswith(("#[", "///", "//")) and not MARKER.match(lines[i])
+            if comment and (REGISTER.search(lines[i + 1]) or joined[i + 1]):
                 out[i] = self.later(out[i], out[i + 1])
+                joined[i] = True
 
         return out
 
@@ -175,6 +183,34 @@ class Course:
             if p.is_file() and not KEEP.intersection(p.relative_to(master).parts)
         }
         return sorted(on_disk - set(self.first)), sorted(set(self.first) - on_disk)
+
+
+def blocks(lines):
+    """(start, end) of every block a `register:` line opens with a bracket: the lines indented deeper, and the closing
+    lines at its own indentation that start with the closer (a `} else {` keeps the block open)."""
+    out = []
+    for start, line in enumerate(lines):
+        code = line.split("//", 1)[0].rstrip()
+        if not (REGISTER.search(line) and code.endswith(("{", "(", "["))):
+            continue
+
+        indent = len(line) - len(line.lstrip())
+        end = start
+        for i in range(start + 1, len(lines)):
+            text = lines[i].strip()
+            if text and len(lines[i]) - len(lines[i].lstrip()) <= indent:
+                if not text.startswith(("}", ")", "]")):
+                    break
+
+                end = i
+                if not text.split("//", 1)[0].rstrip().endswith(("{", "(", "[")):
+                    break
+            else:
+                end = i
+
+        out.append((start, end))
+
+    return out
 
 
 def write(root, crate):
@@ -378,8 +414,8 @@ if __name__ == "__main__":
 """
 description: cut every lesson crate from the master docs/lessons/37 (the viewer src plus teaching comments and
 snippet markers). A line belongs to lesson NN when it sits in a section `NN` or `NN-<slug>`, or carries
-`register:<tag>` (lesson from REGISTER.txt; an attribute line directly above follows it); every other line belongs to
-its file's first lesson in FILES.txt. Crate N is every file with first lesson <= N, keeping its lines of lesson <= N,
+`register:<tag>` (lesson from REGISTER.txt; an attribute line directly above follows it, and a tagged line ending in
+an open bracket takes its whole block with it); every other line belongs to its file's first lesson in FILES.txt. Crate N is every file with first lesson <= N, keeping its lines of lesson <= N,
 with blank runs left by a cut collapsed and `lessons/37/`, `Checkpoint 37` renamed. --check compares every cut,
 comments stripped, with the raw cuts saved under ~/.cache/viewer-push/recut/raw/<id>/.
 

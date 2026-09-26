@@ -1,0 +1,18 @@
+/* The documentation corner: a black folded-corner triangle, always above the canvas. */
+#viewer-docs {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  z-index: 10;
+  display: block;
+  border-bottom: 20px solid #111;
+  border-left: 20px solid transparent;
+  transition: border-bottom-width .25s cubic-bezier(.2, .8, .3, 1.25), border-left-width .25s cubic-bezier(.2, .8, .3, 1.25);
+}
+#viewer-docs:hover, #viewer-docs:focus-visible {
+  border-bottom-width: 26px;
+  border-left-width: 26px;
+  outline: none;
+}

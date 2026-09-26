@@ -1,0 +1,9 @@
+#no-webgpu {
+  position: fixed;
+  inset: 0;
+  background: #111;
+  color: #eee;
+  font: 1rem system-ui;
+  text-align: center;
+  padding-top: 40vh;
+}

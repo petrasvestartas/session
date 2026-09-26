@@ -55,12 +55,13 @@ Open <http://localhost:8780/>. Stop with Ctrl+C.
 
 ## Lessons
 
-The course is one chain, from 00 to 37. Every lesson adds new files or appends to files it already owns, so nothing you type is ever replaced later; the crate in `docs/lessons/37` is the finished viewer. Letter ids (04a-04d, 18a, 18b, 23a-23d) are lessons inserted where their subject belongs. The numbers 27, 28, 29 and 34 are retired: their code now sits in the lessons that own its subject.
+The course is one chain, from 000 to 37. Every lesson adds new files or appends to files it already owns, so nothing you type is ever replaced later; the crate in `docs/lessons/37` is the finished viewer. Lessons 000 to 004 are the re-cut course: one hour each, one new thing on screen. The lessons from 04a on are being re-cut the same way (`docs/plans/course-plan.md`); until then they are large and their pages are incomplete.
 
-- [00 · Empty project to a WASM message](00-environment.md)
-- [01 · First WebGPU frame](01-first-frame.md)
-- [02 · Camera](02-camera.md)
-- [03 · Object rows and identity](03-identity.md)
+- [000 · Empty project to a wasm page](000-project.md)
+- [001 · A window on the canvas](001-window.md)
+- [002 · Open the GPU](002-gpu.md)
+- [003 · The frame's textures](003-textures.md)
+- [004 · Clear to a colour](004-clear.md)
 - [04a · Meshes on the GPU](04a-meshes.md)
 - [04b · Strokes and arrows](04b-strokes.md)
 - [04c · Markers](04c-markers.md)

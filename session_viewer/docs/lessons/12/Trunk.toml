@@ -7,7 +7,14 @@ public_url = "./"
 
 [watch]
 # This replaces Trunk's default watch set, so the shared path dependency is explicit.
-watch = ["src", "Cargo.toml", "index.html", "assets/view_local.yaml", "assets/text", "assets/text-quality.html", "../../../../session_rust/src"]
+watch = [
+    "src",
+    "Cargo.toml",
+    "index.html",
+    "assets/text", # register:text
+    "assets/text-quality.html", # register:text_quality
+    "../../../../session_rust/src",
+]
 enable_cooldown = true
 
 [serve]

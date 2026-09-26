@@ -2,14 +2,8 @@
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::view::View;
 use crate::engine::pipelines::Layouts;
+pub use super::present::FrameInput;
 use session_rust::Xform;
-
-/// Everything that changes from one frame to the next; the renderer keeps no camera or clock of its own.
-pub struct FrameInput {
-    pub view_proj: Xform, // camera: world to screen in one matrix
-    pub clear: wgpu::Color, // the colour the frame starts from
-    pub now_ms: f64, // browser clock, used to time each frame
-}
 
 /// Extra inputs for the frame uniforms; it borrows the View, so it carries the View's lifetime `'a`.
 pub struct FrameCx<'a> {

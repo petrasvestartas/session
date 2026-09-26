@@ -87,6 +87,14 @@ pub const REGISTRY: &[Registered] = &[
 /// How many lanes are registered.
 pub const REGISTERED: usize = REGISTRY.len();
 
+/// Every registered lane, made empty.
+pub fn make_all(ctx: &GpuCtx, layouts: &Layouts, target: Target) -> Vec<Box<dyn RowLane>> {
+    REGISTRY
+        .iter()
+        .map(|lane| (lane.make)(ctx, layouts, target))
+        .collect()
+}
+
 /// Rows for registered lanes, one table per row type, so `Upload` needs no field per lane.
 #[derive(Default)]
 pub struct LaneRows {

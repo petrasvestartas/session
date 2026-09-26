@@ -1,9 +1,62 @@
 use super::Gpu;
-use super::frame::{FrameCx, FrameInput};
+use super::frame::FrameCx; // register:frame
+use session_rust::Xform; // register:frame
 #[cfg(not(target_arch = "wasm32"))]
 use super::targets::{TextureSpec, texture};
 
+/// What the caller gives each frame.
+pub struct FrameInput {
+    pub view_proj: Xform,   // camera matrix; register:frame
+    pub clear: wgpu::Color, // background color
+    pub now_ms: f64,        // time of this frame, ms
+}
+
 impl Gpu {
+    /// Draw one frame to the canvas; returns encode time in ms.
+    pub fn present(&mut self, input: &FrameInput) -> Option<f64> {
+        self.write_frame_uniforms(input); // register:frame
+        let surface = self.surface.as_ref()?;
+        // this frame's canvas texture; None means try again
+        let output = match surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(t)
+            | wgpu::CurrentSurfaceTexture::Suboptimal(t) => t,
+            _ => {
+                surface.configure(&self.ctx.device, &self.config);
+                return None;
+            }
+        };
+        let view = output
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+        let mut encoder = self
+            .ctx
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("frame"),
+            });
+
+        let t0 = crate::engine::performance::now_ms();
+        let draws = self.encode_frame(&mut encoder, &view, input.clear);
+        let encode_ms = crate::engine::performance::now_ms() - t0;
+        self.ctx.queue.submit([encoder.finish()]);
+        self.pick.map(); // start reading back any pick copied this frame; register:pick
+        self.arena.tiles.map_report(); // register:tiles
+        output.present();
+        self.mark_startup(); // register:perf
+        self.each_pass(|pass, g| pass.after_present(g)); // compile ahead, outside the frame; register:pass
+        self.performance.frame(draws, self.objects.len(), input.now_ms, self.view.perf); // register:perf
+
+        if self.view.ssao { // register:ssao
+            self.performance.keep_arctic_quality();
+        }
+
+        Some(encode_ms)
+    }
+
+}
+
+impl Gpu {
+
     /// Write this frame's uniforms and prepare the widget and text.
     fn write_frame_uniforms(&mut self, input: &FrameInput) {
         let size = (self.config.width, self.config.height);
@@ -27,39 +80,8 @@ impl Gpu {
         self.passes.iter().any(|pass| pass.pending(self))
     }
 
-    /// Draw one frame to the canvas; returns encode time in ms.
-    pub fn present(&mut self, input: &FrameInput) -> Option<f64> {
-        self.write_frame_uniforms(input);
-        let surface = self.surface.as_ref()?;
-        // this frame's canvas texture; None means try again
-        let output = match surface.get_current_texture() {
-            wgpu::CurrentSurfaceTexture::Success(t)
-            | wgpu::CurrentSurfaceTexture::Suboptimal(t) => t,
-            _ => {
-                surface.configure(&self.ctx.device, &self.config);
-                return None;
-            }
-        };
-        let view = output
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
-        let mut encoder = self
-            .ctx
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("frame"),
-            });
-
-        let t0 = crate::engine::performance::now_ms();
-        let (draws, objects) = self.encode_frame(&mut encoder, &view, input.clear);
-        let encode_ms = crate::engine::performance::now_ms() - t0;
-        self.ctx.queue.submit([encoder.finish()]);
-        // start reading back any pick copied this frame
-        self.pick.map(); // register:shell
-        self.arena.tiles.map_report(); // register:tiles
-        output.present();
-
-        // startup marks; the GPU-side one also times the pipelines the first frames compiled
+    /// Startup marks; the GPU-side one also times the pipelines the first frames compiled.
+    fn mark_startup(&mut self) {
         let mut geometry = false;
         geometry |= self.live_faces() + self.live_sheet() > 0; // register:meshes
         geometry |= self.live_pipes() + self.live_ribbons() > 0; // register:strokes
@@ -71,18 +93,7 @@ impl Gpu {
                 .queue
                 .on_submitted_work_done(move || crate::engine::performance::mark(done));
         }
-
-        // compile ahead outside the frame, after the first geometry has been presented
-        self.each_pass(|pass, g| pass.after_present(g));
-        self.performance
-            .frame(draws, objects, input.now_ms, self.view.perf);
-        if self.view.ssao {
-            self.performance.keep_arctic_quality();
-        }
-
-        Some(encode_ms)
     }
-
     /// Draw one frame into a texture and return its RGBA8 pixels; native only.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn render_offscreen(&mut self, input: &FrameInput) -> Vec<u8> {
@@ -110,7 +121,8 @@ impl Gpu {
 
         self.write_frame_uniforms(input);
         let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
-        let (draws, objects) = self.encode_frame(&mut encoder, &view, input.clear);
+        let draws = self.encode_frame(&mut encoder, &view, input.clear);
+        let objects = self.objects.len();
         encoder.copy_texture_to_buffer(
             wgpu::TexelCopyTextureInfo {
                 texture: &tex,

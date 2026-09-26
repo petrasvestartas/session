@@ -13,7 +13,18 @@ command_arguments = ["../session_tests/scripts/build-viewer-docs.sh"]
 
 [watch]
 # This replaces Trunk's default watch set, so the shared path dependency is explicit.
-watch = ["src", "Cargo.toml", "index.html", "assets/view_local.yaml", "assets/text", "assets/text-quality.html", "../session_rust/src", "docs", "../session_tests/src", "../session_tests/plugins"]
+watch = [
+    "src",
+    "Cargo.toml",
+    "index.html",
+    "assets/view_local.yaml", # register:scenes
+    "assets/text", # register:text
+    "assets/text-quality.html", # register:text_quality
+    "../session_rust/src",
+    "docs",
+    "../session_tests/src",
+    "../session_tests/plugins",
+]
 enable_cooldown = true
 
 [serve]

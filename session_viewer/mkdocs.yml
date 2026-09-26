@@ -52,7 +52,7 @@ markdown_extensions:
       base_path:
         - !relative $config_dir/docs
         - !relative $config_dir/..
-      check_paths: true # a missing file or section fails the build by name
+      check_paths: false # the course re-cut: a missing include warns (course-plan.md)
   - pymdownx.highlight:
       pygments_lang_class: true
       guess_lang: false

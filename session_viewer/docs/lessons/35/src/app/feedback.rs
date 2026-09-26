@@ -1,10 +1,10 @@
-// --8<-- [start:feedback-status]
+// --8<-- [start:001-feedback]
 /// Show a message in the status line.
 pub fn status(message: &str) {
     // an empty message shows the reload notice, if any
     // `#[cfg]` on a `let`: this shadowing line exists only in the browser build
     #[cfg(target_arch = "wasm32")]
-    let message = if message.is_empty() {
+    let message = if message.is_empty() { // register:recovery
         super::route::recovered_notice().unwrap_or(message)
     } else {
         message
@@ -25,6 +25,24 @@ pub fn status(message: &str) {
     log::info!("{message}");
 }
 
+/// Show the error panel with a reload button.
+pub fn error(message: &str) {
+    #[cfg(target_arch = "wasm32")]
+    if let Some(window) = web_sys::window()
+        && let Some(document) = window.document()
+        && let Some(panel) = document.get_element_by_id("viewer-error")
+    {
+        if let Some(text) = document.get_element_by_id("viewer-error-message") {
+            text.set_text_content(Some(message));
+        }
+
+        let _ = panel.remove_attribute("hidden");
+    }
+
+    log::error!("{message}");
+}
+// --8<-- [end:001-feedback]
+// --8<-- [start:04a-tail]
 /// Show a download's progress, unless another message is up; nothing is logged.
 #[cfg(target_arch = "wasm32")]
 pub fn progress(message: &str, last: &str) {
@@ -42,25 +60,7 @@ pub fn progress(message: &str, last: &str) {
     }
 }
 
-/// Show the error panel with a reload button.
-pub fn error(message: &str) {
-    #[cfg(target_arch = "wasm32")]
-    if let Some(window) = web_sys::window()
-        && let Some(document) = window.document()
-        && let Some(panel) = document.get_element_by_id("viewer-error")
-    {
-        if let Some(text) = document.get_element_by_id("viewer-error-message") {
-            text.set_text_content(Some(message));
-        }
 
-        let _ = panel.remove_attribute("hidden");
-    }
-
-    log::error!("{message}");
-}
-// --8<-- [end:feedback-status]
-
-// --8<-- [start:feedback-focus]
 /// Give the canvas keyboard focus.
 #[cfg(target_arch = "wasm32")]
 pub fn focus_canvas() {
@@ -77,9 +77,7 @@ pub fn focus_canvas() {
 /// No canvas on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn focus_canvas() {}
-// --8<-- [end:feedback-focus]
 
-// --8<-- [start:feedback-rows]
 // The rows the layers panel shows: this lesson fills them, lesson 30 draws the panel.
 /// One row of the layers panel.
 #[derive(Clone, Default, serde::Serialize)]
@@ -109,10 +107,7 @@ pub struct EdgeRow {
     pub guids: String,  // both guids, for the tooltip
     pub selected: bool, // both ends selected
 }
-// --8<-- [end:feedback-rows]
 
-// --8<-- [start:23-command-line]
-// --8<-- [start:command-line]
 /// Open or close the command line.
 #[cfg(target_arch = "wasm32")]
 pub fn command_line(open: bool) {
@@ -139,11 +134,7 @@ pub fn raise_keyboard() {
 /// No phone keyboard on native.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn raise_keyboard() {}
-// --8<-- [end:command-line]
-// --8<-- [end:23-command-line]
 
-// --8<-- [start:30-layers-panel]
-// --8<-- [start:layers-panel]
 /// Replace the rows of the layers panel.
 #[cfg(target_arch = "wasm32")]
 pub fn layers_panel(rows: &[LayerRow]) {
@@ -234,5 +225,4 @@ pub fn layers_visible(_open: bool) {}
 pub fn layers_open() -> bool {
     false
 }
-// --8<-- [end:layers-panel]
-// --8<-- [end:30-layers-panel]
+// --8<-- [end:04a-tail]

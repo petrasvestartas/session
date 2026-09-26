@@ -56,3 +56,19 @@ pub(super) const TAKE_PICK: &[fn(&mut State, Option<crate::engine::gpu::Pick>) -
 pub(super) const CLICK_ROWS: &[fn(&State, u32) -> Option<Vec<u32>>] = &[
     State::group_of, // register:editing
 ];
+
+impl State {
+    /// Feature work before the pick answers are applied.
+    pub(super) fn before_picks(&mut self) {
+        for hook in BEFORE_PICKS {
+            hook(self);
+        }
+    }
+
+    /// Feature work once the pick answers are applied.
+    pub(super) fn after_picks(&mut self) {
+        for hook in AFTER_PICKS {
+            hook(self);
+        }
+    }
+}

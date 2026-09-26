@@ -1,19 +1,62 @@
-use super::decode::{Body, session_from_body};
-use super::fetch::{Reply, fetch_buffer, fetch_bytes, gunzip, sleep_ms};
-use super::live::LiveSource;
-use super::manifest::Manifest;
-use super::route::AUTO_GRID;
-use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
-use super::scene::{FileDoc, Scene};
-use crate::engine::performance::now_ms;
+use super::decode::{Body, session_from_body}; // register:scenes
+use super::fetch::{Reply, fetch_buffer, fetch_bytes, gunzip, sleep_ms}; // register:scenes
+use super::live::LiveSource; // register:live
+use super::manifest::Manifest; // register:scenes
+use super::route::AUTO_GRID; // register:scenes
+use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route}; // register:scenes
+use super::scene::FileDoc; // register:scenes
+use crate::engine::performance::now_ms; // register:scenes
 use crate::{Msg, State};
-use session_rust::Xform;
+use session_rust::Xform; // register:scenes
 use std::cell::{Cell, RefCell};
-use std::rc::Rc;
+use std::rc::Rc; // register:scenes
 use std::sync::Arc;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::prelude::*; // register:scenes
 use winit::event_loop::EventLoopProxy;
 use winit::window::Window;
+
+thread_local! {
+    /// Sends messages into the event loop.
+    static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
+}
+
+/// Start the viewer, load the first scene, then keep polling.
+pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
+    PROXY.with_borrow_mut(|slot| *slot = Some(proxy.clone()));
+    let mut live = LiveSource::from_query(); // register:live
+    // without a live source the manifest downloads while the GPU starts
+    let route = scene_route().filter(|_| live.is_none()); // register:scenes
+    let early = route.as_ref().map(prefetch); // register:scenes
+    let state = match State::new(window).await {
+        Ok(state) => state,
+        Err(error) => {
+            super::feedback::error(&format!(
+                "Unable to start WebGPU: {error}. Use a browser with an available WebGPU adapter, then reload."
+            ));
+            return;
+        }
+    };
+    crate::engine::performance::mark("state ready"); // register:perf
+    let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+
+    let mut loaded = false; // register:live
+
+    if let Some(src) = live.as_mut() { // register:live
+        log::info!("live: watching {} every {:.0} ms", src.url, src.poll_ms);
+        loaded = post_live(src).await;
+    }
+
+    if !loaded && let Some(route) = route.or_else(scene_route) { // register:scenes
+        load_route(&route, None, early).await;
+    }
+
+    let Some(mut src) = live else { return }; // register:live
+
+    loop { // register:live
+        sleep_ms(src.tick_ms).await;
+        post_live(&mut src).await;
+    }
+}
 
 /// Points a streamed cloud reads before its first frame.
 const STREAM_PREFIX_POINTS: u32 = 2_000_000;
@@ -40,9 +83,6 @@ const SHEET_CHUNK_SEGMENTS: u32 = 500_000;
 const SHEET_MAX_SEGMENTS: u32 = 3_000_000;
 
 thread_local! {
-    /// Sends messages into the event loop.
-    static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
-
     /// Streamed points loaded so far.
     static RESIDENT: Cell<u32> = const { Cell::new(0) };
 
@@ -130,44 +170,6 @@ fn sheet_budget_left() -> u32 {
 /// Count `n` segments as loaded.
 fn sheet_budget_spend(n: u32) {
     SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_add(n));
-}
-
-/// Start the viewer, load the first scene, then keep polling.
-pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
-    PROXY.with_borrow_mut(|slot| *slot = Some(proxy.clone()));
-    let mut live = LiveSource::from_query();
-    // without a live source the manifest downloads while the GPU starts
-    let route = scene_route().filter(|_| live.is_none());
-    let early = route.as_ref().map(prefetch);
-    let state = match State::new(window, Scene::new()).await {
-        Ok(state) => state,
-        Err(error) => {
-            super::feedback::error(&format!(
-                "Unable to start WebGPU: {error}. Use a browser with an available WebGPU adapter, then reload."
-            ));
-            return;
-        }
-    };
-    crate::engine::performance::mark("state ready");
-    let _ = proxy.send_event(Msg::Ready(Box::new(state)));
-
-    let mut loaded = false;
-
-    if let Some(src) = live.as_mut() {
-        log::info!("live: watching {} every {:.0} ms", src.url, src.poll_ms);
-        loaded = post_live(src).await;
-    }
-
-    if !loaded && let Some(route) = route.or_else(scene_route) {
-        load_route(&route, None, early).await;
-    }
-
-    let Some(mut src) = live else { return };
-
-    loop {
-        sleep_ms(src.tick_ms).await;
-        post_live(&mut src).await;
-    }
 }
 
 /// One live poll; true when the scene was replaced.

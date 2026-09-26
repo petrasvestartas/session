@@ -2,16 +2,9 @@ use super::Gpu;
 use super::buffers::GpuCtx;
 use super::frame::{Binds, FrameInput, MAX_PLANES};
 use super::lane::Lane;
+pub use super::render::Frame;
 use crate::engine::pipelines::Target;
 use std::any::Any;
-
-/// What every pass of one frame shares.
-pub struct Frame<'a> {
-    pub view: &'a wgpu::TextureView, // the canvas
-    pub clear: wgpu::Color,          // background color
-    pub tier: u8,                    // drag tier; 0 is full quality
-    pub rough: bool,                 // ink tests against the fitted planes alone; register:tiles
-}
 
 /// One optional pass of the frame owning its GPU state; each hook runs on every pass in `PASSES` order.
 pub trait Pass: Lane + Any {
@@ -104,6 +97,11 @@ pub const PASSES: &[fn(&GpuCtx, Target) -> Box<dyn Pass>] = &[
     super::ssao::pass,            // register:ambient
     super::surface_outline::pass, // register:outline
 ];
+
+/// Every pass, made for `target`, in frame order.
+pub fn make_all(ctx: &GpuCtx, target: Target) -> Vec<Box<dyn Pass>> {
+    PASSES.iter().map(|make| make(ctx, target)).collect()
+}
 
 /// Stands in the list for a pass while its own hook runs.
 pub(super) struct Nothing;

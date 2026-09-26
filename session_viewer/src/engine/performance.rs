@@ -1,3 +1,43 @@
+/// Milliseconds now: `performance.now()` in the browser.
+#[cfg(target_arch = "wasm32")]
+pub fn now_ms() -> f64 {
+    web_sys::window().unwrap().performance().unwrap().now()
+}
+
+/// Milliseconds now: the system clock natively.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn now_ms() -> f64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs_f64()
+        * 1000.0
+}
+
+/// A startup milestone on the browser timeline, with the pipelines and shaders made so far.
+#[cfg(target_arch = "wasm32")]
+pub fn mark(name: &str) {
+    if let Some(performance) = web_sys::window().and_then(|window| window.performance()) {
+        let _ = performance.mark(name);
+    }
+
+    let (pipelines, shaders) = crate::engine::pipelines::created();
+    log::info!("{name}: {pipelines} pipelines, {shaders} shaders");
+}
+
+/// A startup milestone: time since the first one, with the pipelines and shaders made so far.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn mark(name: &str) {
+    static START: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
+    let ms = START
+        .get_or_init(std::time::Instant::now)
+        .elapsed()
+        .as_secs_f64()
+        * 1000.0;
+    let (pipelines, shaders) = crate::engine::pipelines::created();
+    log::info!("{name}: {ms:.1} ms, {pipelines} pipelines, {shaders} shaders");
+}
+
 /// Frame timing, the drag quality tiers and the slow-interaction detector.
 pub struct Performance {
     prev_frame: f64,       // time of the last frame, ms
@@ -188,46 +228,6 @@ impl Performance {
             self.recent.clear();
         }
     }
-}
-
-/// Milliseconds now: `performance.now()` in the browser.
-#[cfg(target_arch = "wasm32")]
-pub fn now_ms() -> f64 {
-    web_sys::window().unwrap().performance().unwrap().now()
-}
-
-/// A startup milestone on the browser timeline, with the pipelines and shaders made so far.
-#[cfg(target_arch = "wasm32")]
-pub fn mark(name: &str) {
-    if let Some(performance) = web_sys::window().and_then(|window| window.performance()) {
-        let _ = performance.mark(name);
-    }
-
-    let (pipelines, shaders) = crate::engine::pipelines::created();
-    log::info!("{name}: {pipelines} pipelines, {shaders} shaders");
-}
-
-/// A startup milestone: time since the first one, with the pipelines and shaders made so far.
-#[cfg(not(target_arch = "wasm32"))]
-pub fn mark(name: &str) {
-    static START: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
-    let ms = START
-        .get_or_init(std::time::Instant::now)
-        .elapsed()
-        .as_secs_f64()
-        * 1000.0;
-    let (pipelines, shaders) = crate::engine::pipelines::created();
-    log::info!("{name}: {ms:.1} ms, {pipelines} pipelines, {shaders} shaders");
-}
-
-/// Milliseconds now: the system clock natively.
-#[cfg(not(target_arch = "wasm32"))]
-pub fn now_ms() -> f64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs_f64()
-        * 1000.0
 }
 
 /// WASM memory size in MiB.
