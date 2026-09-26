@@ -51,15 +51,17 @@ kbd {
 
 /* Code colours (src/codeTheme.ts), only code is coloured; each is at least 4.7:1 on #f6f6f6. */
 pre { color: #1f2328; }
-.hk { color: #8b1fc4; }                      /* keyword */
-.ht, .hu, .ha { color: #00758a; }            /* type or class, module, attribute or decorator */
-.hf { color: #0550ae; }                      /* function or method */
-.hx { color: #0550ae; font-weight: 600; }    /* macro */
-.hv { color: #0a3069; }                      /* variable */
-.hp { color: #8a6200; font-style: italic; }  /* parameter */
-.hm { color: #c4262e; }                      /* field */
-.hn { color: #8a6200; }                      /* number or constant */
-.hs { color: #067d17; }                      /* string */
-.hc { color: #5e7263; font-style: italic; }  /* comment */
+.hk { color: #cf222e; }                      /* keyword */
+.ht { color: #953800; }                      /* type or class */
+.hu { color: #6639ba; }                      /* module or namespace */
+.ha { color: #116329; }                      /* attribute or decorator */
+.hf { color: #8250df; }                      /* function or method */
+.hx { color: #a0169e; font-weight: 600; }    /* macro */
+.hv { color: #0969da; }                      /* variable */
+.hp { color: #bc4c00; font-style: italic; }  /* parameter */
+.hm { color: #1b7c83; }                      /* field */
+.hn { color: #9a6700; }                      /* number or constant */
+.hs { color: #0a3069; }                      /* string */
+.hc { color: #5c6570; font-style: italic; }  /* comment */
 .ho { color: #57606a; }                      /* operator or punctuation */
 </style>
