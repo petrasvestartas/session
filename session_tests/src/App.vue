@@ -55,13 +55,13 @@ pre { color: #1f2328; }
 .ht { color: #953800; }                      /* type or class */
 .hu { color: #6639ba; }                      /* module or namespace */
 .ha { color: #116329; }                      /* attribute or decorator */
-.hf { color: #1f2328; }                      /* function or method: black */
+.hf { color: #8250df; }                      /* function or method */
 .hx { color: #a0169e; font-weight: 600; }    /* macro */
 .hv { color: #0969da; }                      /* variable */
 .hp { color: #bc4c00; font-style: italic; }  /* parameter */
 .hm { color: #1b7c83; }                      /* field */
-.hn { color: #9a6700; }                      /* number or constant */
-.hs { color: #0a3069; }                      /* string */
+.hn { color: #1f2328; }                      /* number or constant: black, like any typed-in value */
+.hs { color: #1f2328; }                      /* string: black, like any typed-in value */
 .hc { color: #5c6570; font-style: italic; }  /* comment */
 .ho { color: #57606a; }                      /* operator or punctuation */
 </style>
