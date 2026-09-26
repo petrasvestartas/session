@@ -22,7 +22,7 @@ struct Ambient {
 @group(0) @binding(0) var depth: texture_depth_2d;
 @group(0) @binding(1) var<uniform> ambient: Ambient;
 @group(0) @binding(2) var physical: texture_2d<u32>;
-// Geometry access
+// Geometry access: ambient_geometry.wgsl, appended by ssao.rs
 @group(1) @binding(0) var linear: texture_2d<f32>;
 @group(1) @binding(1) var radii: texture_2d<u32>;
 @group(2) @binding(0) var occlusion: texture_2d<f32>;

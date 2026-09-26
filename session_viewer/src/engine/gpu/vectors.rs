@@ -11,7 +11,7 @@ use wgpu::PrimitiveTopology::TriangleList;
 
 /// Shader sources the tests compare against the files.
 #[cfg(test)]
-pub const SHADERS: &[(&str, &str)] = &[("vector.wgsl", include_str!("../../shaders/vector.wgsl"))];
+pub const SHADERS: &[(&str, &str)] = &[("vector.wgsl", shader!("vector.wgsl"))];
 
 /// Vertices per vector: a shaft quad and a quad per head.
 const VECTOR_VERTS: u32 = 18;
@@ -86,7 +86,7 @@ impl VectorLane {
         let shader = ink_module(
             ctx,
             "vector.shader",
-            include_str!("../../shaders/vector.wgsl"),
+            shader!("vector.wgsl"),
         );
         let (color, id) = build_pipelines(ctx, l, &shader, target);
         let buf = GrowBuf::new(

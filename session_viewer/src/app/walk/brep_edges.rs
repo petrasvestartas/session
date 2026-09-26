@@ -67,7 +67,7 @@ fn sample_values(fm: &Mesh, name: &str) -> Vec<f64> {
         }
     }
 
-    vals.sort_by(sample_order);
+    vals.sort_unstable_by(sample_order);
     vals.dedup();
     vals
 }
@@ -157,7 +157,7 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
         return None;
     }
 
-    on_line.sort_by(parameter_order);
+    on_line.sort_unstable_by(parameter_order);
     let mut keys = Vec::with_capacity(on_line.len());
 
     for (_, key) in on_line {
@@ -241,7 +241,7 @@ fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
             }
         }
 
-        ordered.sort_by(total_parameter_order);
+        ordered.sort_unstable_by(total_parameter_order);
         ordered.dedup_by(same_parameter);
         let mut keys = Vec::with_capacity(ordered.len());
 

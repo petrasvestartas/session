@@ -1,3 +1,10 @@
+/// A WGSL file from src/shaders as build.rs wrote it: no comments, indentation or blank lines.
+macro_rules! shader {
+    ($name:literal) => {
+        include_str!(concat!(env!("OUT_DIR"), "/shaders/", $name))
+    };
+}
+
 pub mod app;
 mod camera;
 mod engine;

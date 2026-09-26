@@ -10,8 +10,8 @@ use wgpu::PrimitiveTopology::TriangleList;
 /// Shader sources the tests compare against the files.
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[
-    ("sphere.wgsl", include_str!("../../shaders/sphere.wgsl")),
-    ("glyph.wgsl", include_str!("../../shaders/glyph.wgsl")),
+    ("sphere.wgsl", shader!("sphere.wgsl")),
+    ("glyph.wgsl", shader!("glyph.wgsl")),
 ];
 
 /// Vertices per dot: one triangle around the disc.
@@ -140,12 +140,12 @@ impl GlyphLane {
             sphere: ink_module(
                 ctx,
                 "sphere.shader",
-                include_str!("../../shaders/sphere.wgsl"),
+                shader!("sphere.wgsl"),
             ),
             dot: ink_module(
                 ctx,
                 "glyph.shader",
-                include_str!("../../shaders/glyph.wgsl"),
+                shader!("glyph.wgsl"),
             ),
         };
         let gpu = build_pipelines(ctx, l, &shaders, target);

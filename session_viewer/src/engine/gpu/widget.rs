@@ -231,7 +231,7 @@ fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> Pip
     let shader = module(
         ctx,
         "widget",
-        include_str!("../../shaders/widget.wgsl"),
+        shader!("widget.wgsl"),
     );
     let vertex = wgpu::VertexBufferLayout {
         array_stride: std::mem::size_of::<widget_mesh::Vertex>() as u64,
@@ -363,7 +363,7 @@ fn composite_pipeline(
     let shader = module(
         ctx,
         "widget composite",
-        include_str!("../../shaders/widget.wgsl"),
+        shader!("widget.wgsl"),
     );
     let groups = [layout, texture];
     let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)

@@ -601,7 +601,7 @@ impl TilePipelines {
             "triangle.project",
             &format!(
                 "{}\n{}",
-                include_str!("../../shaders/project_triangles.wgsl"),
+                shader!("project_triangles.wgsl"),
                 crate::engine::pipelines::CLIP
             ),
         );
@@ -619,7 +619,7 @@ impl TilePipelines {
         let raster_shader = shader(
             ctx,
             "triangle.tiles",
-            include_str!("../../shaders/triangle_tiles.wgsl"),
+            shader!("triangle_tiles.wgsl"),
         );
         // the fragment shader writes buffers, not pixels
         let raster_groups = [
@@ -645,7 +645,7 @@ impl TilePipelines {
         let scan_shader = shader(
             ctx,
             "triangle.scan",
-            include_str!("../../shaders/scan_triangle_tiles.wgsl"),
+            shader!("scan_triangle_tiles.wgsl"),
         );
         let scan_pipeline_layout =
             pipeline_layout(device, "triangle.scan", &[&layouts.line, &scan_layout]);
@@ -687,7 +687,7 @@ impl TilePipelines {
 fn shader(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
     let source = format!(
         "{source}\n{}",
-        include_str!("../../shaders/projected_triangle.wgsl")
+        shader!("projected_triangle.wgsl")
     );
     wgsl(ctx, label, source)
 }

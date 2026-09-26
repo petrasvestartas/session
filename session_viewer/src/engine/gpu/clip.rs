@@ -24,10 +24,10 @@ const COUNT_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::R16Float;
 const PICK_WORDS: u64 = 4;
 
 /// The section cap shader, before its per-sample-count prefix.
-const CAP: &str = include_str!("../../shaders/cap.wgsl");
+const CAP: &str = shader!("cap.wgsl");
 
 /// The face shader the section counts share.
-const TRIANGLE: &str = include_str!("../../shaders/triangle.wgsl");
+const TRIANGLE: &str = shader!("triangle.wgsl");
 
 /// One clipping plane in world space.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -975,7 +975,7 @@ mod tests {
             ((3, 1), naga::ShaderStage::Vertex),
             ((3, 5), naga::ShaderStage::Vertex),
         ];
-        let text_outline = include_str!("../../shaders/text_outline.wgsl");
+        let text_outline = shader!("text_outline.wgsl");
 
         for (name, source, forbidden) in [
             ("triangle.wgsl", scene(TRIANGLE), triangle),

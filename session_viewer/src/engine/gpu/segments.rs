@@ -10,7 +10,7 @@ use wgpu::PrimitiveTopology::TriangleList;
 
 /// Shader sources the tests compare against the files.
 #[cfg(test)]
-pub const SHADERS: &[(&str, &str)] = &[("ribbon.wgsl", include_str!("../../shaders/ribbon.wgsl"))];
+pub const SHADERS: &[(&str, &str)] = &[("ribbon.wgsl", shader!("ribbon.wgsl"))];
 
 /// Vertices per segment: two triangles, placed by the shader.
 const RIBBON_VERTS: u32 = 6;
@@ -275,7 +275,7 @@ impl SegmentLane {
         let shader = ink_module(
             ctx,
             "ribbon.shader",
-            include_str!("../../shaders/ribbon.wgsl"),
+            shader!("ribbon.wgsl"),
         );
         let gpu = build_pipelines(ctx, l, &shader, target);
         let selection = uniform_buffer(&ctx.device, "edge.selection", &[u32::MAX; 4]);

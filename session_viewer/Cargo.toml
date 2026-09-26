@@ -19,6 +19,8 @@ egui = { version = "=0.34.3", default-features = false }
 egui-wgpu = { version = "=0.34.3", default-features = false }
 egui-winit = { version = "=0.34.3", default-features = false }
 glyphon = "=0.11.0" # The maintained text renderer release compatible with wgpu 29.
+# Cargo.lock holds swash on skrifa 0.40 (egui's) so one font stack ships (-135 KB gz); after any
+# `cargo update`, re-run `cargo update -p skrifa@0.44.0 --precise 0.40.0` if skrifa appears twice.
 ttf-parser = { version = "0.25", default-features = false } # glyph coverage; already linked by the shaper
 log = "0.4"
 console_error_panic_hook = "0.1.6"

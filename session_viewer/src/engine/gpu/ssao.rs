@@ -106,7 +106,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
     let depth_shader = module(
         ctx,
         "ambient depth reduction",
-        include_str!("../../shaders/ambient_depth.wgsl"),
+        shader!("ambient_depth.wgsl"),
     );
     let depth_pass = |shader: &wgpu::ShaderModule, entry, groups: &[&wgpu::BindGroupLayout]| {
         crate::engine::pipelines::count_pipeline();
@@ -252,7 +252,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
     let composite_shader = module(
         ctx,
         "ambient composite",
-        include_str!("../../shaders/ambient_composite.wgsl"),
+        shader!("ambient_composite.wgsl"),
     );
     let composite_groups = [&composite_layout, &sample_layout];
     let composite_desc = PipelineDesc::new(
@@ -1004,10 +1004,7 @@ fn projected_bounds(matrix: [f32; 16], bounds: [f32; 6], full: (u32, u32)) -> [f
 }
 
 fn shader_source(samples: u32) -> String {
-    let source = include_str!("../../shaders/ssao.wgsl").replace(
-        "// Geometry access",
-        include_str!("../../shaders/ambient_geometry.wgsl"),
-    );
+    let source = concat!(shader!("ssao.wgsl"), "\n", shader!("ambient_geometry.wgsl"));
     if samples > 1 {
         source
             .replace("const MSAA: bool = false;", "const MSAA: bool = true;")
@@ -1680,8 +1677,8 @@ mod tests {
         let sources = [
             super::shader_source(1),
             super::shader_source(4),
-            include_str!("../../shaders/ambient_depth.wgsl").to_owned(),
-            include_str!("../../shaders/ambient_composite.wgsl").to_owned(),
+            shader!("ambient_depth.wgsl").to_owned(),
+            shader!("ambient_composite.wgsl").to_owned(),
         ];
         for source in sources {
             let module = naga::front::wgsl::parse_str(&source).unwrap();

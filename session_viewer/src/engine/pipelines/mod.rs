@@ -302,10 +302,10 @@ impl<'a> PipelineDesc<'a> {
 }
 
 /// Shared WGSL: groups 0-2, Instance, LineUniform, flags, `place`.
-pub const SCENE: &str = include_str!("../../shaders/scene.wgsl");
+pub const SCENE: &str = shader!("scene.wgsl");
 
 /// Shared WGSL: the clipping planes and their tests; the includer binds `clipping`.
-pub const CLIP: &str = include_str!("../../shaders/clip.wgsl");
+pub const CLIP: &str = shader!("clip.wgsl");
 
 /// A shader with the shared scene and clipping code appended.
 pub fn scene_module(ctx: &GpuCtx, label: &str, source: &str) -> Shader {
@@ -353,8 +353,8 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
 pub fn shared(source: &str) -> String {
     format!(
         "{source}\n{}\n{}",
-        include_str!("../../shaders/normals.wgsl"),
-        include_str!("../../shaders/physical.wgsl")
+        shader!("normals.wgsl"),
+        shader!("physical.wgsl")
     )
 }
 
@@ -409,9 +409,9 @@ pub fn layout(
 
 /// Shared WGSL for ink: the visibility test and projected triangles.
 pub const INK: &str = concat!(
-    include_str!("../../shaders/ink_visibility.wgsl"),
+    shader!("ink_visibility.wgsl"),
     "\n",
-    include_str!("../../shaders/projected_triangle.wgsl")
+    shader!("projected_triangle.wgsl")
 );
 
 /// An ink shader: scene code plus the ink code.

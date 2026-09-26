@@ -124,7 +124,7 @@ fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
         (2.0 * bounds.hy) as f32,
         (2.0 * bounds.hz) as f32,
     ];
-    e.sort_by(descending_extent);
+    e.sort_unstable_by(descending_extent);
     let area = e[0] as f64 * e[1] as f64; // two longest sides
 
     if area <= 0.0 || !area.is_finite() {

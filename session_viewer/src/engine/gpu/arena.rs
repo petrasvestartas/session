@@ -13,10 +13,10 @@ use wgpu::PrimitiveTopology::TriangleList;
 /// Shader sources the tests compare against the files.
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[
-    ("triangle.wgsl", include_str!("../../shaders/triangle.wgsl")),
+    ("triangle.wgsl", shader!("triangle.wgsl")),
     (
         "text_outline.wgsl",
-        include_str!("../../shaders/text_outline.wgsl"),
+        shader!("text_outline.wgsl"),
     ),
 ];
 
@@ -184,7 +184,7 @@ impl ArenaLane {
         let shader = scene_module(
             ctx,
             "triangle.shader",
-            include_str!("../../shaders/triangle.wgsl"),
+            shader!("triangle.wgsl"),
         );
         let pipes = build_pipelines(ctx, l, &shader, target);
 

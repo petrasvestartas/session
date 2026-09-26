@@ -176,13 +176,15 @@ pub fn network(input: &[NurbsCurve]) -> Result<NurbsSurface, String> {
 
     // v curves in order along the first u curve, u curves along the first v curve
     let first = us[0];
-    vs.sort_by(|&a, &b| {
-        cross[first][a]
+    let along = |row: usize, a: usize, b: usize| {
+        cross[row][a]
             .unwrap()
-            .total_cmp(&cross[first][b].unwrap())
-    });
+            .total_cmp(&cross[row][b].unwrap())
+            .then(a.cmp(&b)) // ties keep index order, as a stable sort would
+    };
+    vs.sort_unstable_by(|&a, &b| along(first, a, b));
     let lead = vs[0];
-    us.sort_by(|&a, &b| cross[lead][a].unwrap().total_cmp(&cross[lead][b].unwrap()));
+    us.sort_unstable_by(|&a, &b| along(lead, a, b));
     let mut curves: Vec<NurbsCurve> = input.to_vec();
 
     // each curve runs so its crossings increase

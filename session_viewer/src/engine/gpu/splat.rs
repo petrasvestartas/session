@@ -167,14 +167,14 @@ impl Splat {
             "splat.shader",
             &format!(
                 "{}\n{}",
-                include_str!("../../shaders/splat.wgsl"),
+                shader!("splat.wgsl"),
                 crate::engine::pipelines::CLIP
             ),
         );
         let resolve_shader = module(
             ctx,
             "splat.resolve.shader",
-            include_str!("../../shaders/splat_resolve.wgsl"),
+            shader!("splat_resolve.wgsl"),
         );
         let point_pipeline = build_point(
             ctx,

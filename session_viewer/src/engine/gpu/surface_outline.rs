@@ -769,7 +769,7 @@ fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> Pip
     let shader = module(
         ctx,
         "selection outline",
-        include_str!("../../shaders/surface_outline.wgsl"),
+        shader!("surface_outline.wgsl"),
     );
     let groups = [layout];
     let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
@@ -788,7 +788,7 @@ fn alpha_pipeline(
     let shader = module(
         ctx,
         "selection outline alpha",
-        include_str!("../../shaders/surface_outline.wgsl"),
+        shader!("surface_outline.wgsl"),
     );
     let groups = [layout, layout, table];
     let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
@@ -806,7 +806,7 @@ fn pool_pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, fs: &str) -> Pipe
     let shader = module(
         ctx,
         "selection outline pool",
-        include_str!("../../shaders/surface_outline.wgsl"),
+        shader!("surface_outline.wgsl"),
     );
     let groups = [layout];
     let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
@@ -828,7 +828,7 @@ fn face_coverage_source(samples: u32) -> String {
     };
     format!(
         "@group(0) @binding(0) var physical: {texture}; // triangle index + 1 per sample\nconst SAMPLES: u32 = {samples}u; // samples per pixel of `physical`\n{}",
-        include_str!("../../shaders/face_coverage.wgsl")
+        shader!("face_coverage.wgsl")
     )
 }
 

@@ -163,7 +163,7 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
         crate::engine::pipelines::count_pipeline();
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("text plate shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/text_plate.wgsl").into()),
+            source: wgpu::ShaderSource::Wgsl(shader!("text_plate.wgsl").into()),
         });
         let id_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("text plate ids"),

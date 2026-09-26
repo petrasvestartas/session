@@ -8,10 +8,10 @@ use wgpu::PrimitiveTopology::{LineList, TriangleList};
 /// Shader sources the tests compare against the files.
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[
-    ("grid.wgsl", include_str!("../../shaders/grid.wgsl")),
+    ("grid.wgsl", shader!("grid.wgsl")),
     (
         "background.wgsl",
-        include_str!("../../shaders/background.wgsl"),
+        shader!("background.wgsl"),
     ),
 ];
 
@@ -32,12 +32,12 @@ impl BackdropLane {
         let background_shader = scene_module(
             ctx,
             "background.shader",
-            include_str!("../../shaders/background.wgsl"),
+            shader!("background.wgsl"),
         );
         let grid_shader = scene_module(
             ctx,
             "grid.shader",
-            include_str!("../../shaders/grid.wgsl"),
+            shader!("grid.wgsl"),
         );
         let background = build_background(ctx, l, &background_shader, target);
         let grid = build_grid(ctx, l, &grid_shader, target);

@@ -26,7 +26,7 @@ impl OutlineTextLane {
         let shader = scene_module(
             ctx,
             "text-outline.shader",
-            include_str!("../../shaders/text_outline.wgsl"),
+            shader!("text_outline.wgsl"),
         );
         let (color, id, physical_id) = pipelines(ctx, layouts, &shader, target);
         Self {

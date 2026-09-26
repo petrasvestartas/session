@@ -613,7 +613,7 @@ fn pipeline(
         crate::engine::pipelines::count_pipeline();
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("world text shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/text_plane.wgsl").into()),
+            source: wgpu::ShaderSource::Wgsl(shader!("text_plane.wgsl").into()),
         });
         let colour_groups = [Some(&layout)];
         let id_groups = [Some(&layout), Some(&pick)];

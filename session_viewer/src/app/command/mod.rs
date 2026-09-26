@@ -267,7 +267,7 @@ pub fn completions(line: &str) -> Vec<&'static str> {
         .flat_map(|spec| spec.names)
         .copied()
         .collect();
-    names.sort_by_key(|name| name.to_ascii_lowercase());
+    names.sort_unstable_by_key(|name| name.to_ascii_lowercase());
     names.retain(|name| compact(name).starts_with(&typed));
 
     // a whole alias puts its command first, so `m` stays Move beside Measure Distance
