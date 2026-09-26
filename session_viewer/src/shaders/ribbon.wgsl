@@ -129,11 +129,15 @@ fn corner_of(k: u32) -> u32 {
     return 3u;
 }
 
-// True when the segment is drawn: a face beside it faces the camera.
+// True in the color pass: back edges show faint through translucent faces; set by the vertex entry points.
+var<private> through_faces: bool = false;
+
+// True when the segment is drawn: a face beside it faces the camera, or the faces are glass.
 fn neighbor_visible(seg: StrokeSegment) -> bool {
     let inst = instances[seg.instance_id];
+    let glass = through_faces && line.opacity < 1.0; // hidden ink fades to 1 - opacity, never pops
 
-    if ((inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || seg.facing == FACING_UNKNOWN || line.opacity <= 0.0) {
+    if ((inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || seg.facing == FACING_UNKNOWN || line.opacity <= 0.0 || glass) {
         return true;
     }
 
@@ -291,17 +295,39 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
 @vertex
 fn vs_main(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
     slot_row = slot;
+    through_faces = true;
     return stroke_vertex(vid, 0u);
 }
 
 @vertex
 fn vs_unselected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
     slot_row = slot;
+    through_faces = true;
     return stroke_vertex(vid, 1u);
 }
 
 @vertex
 fn vs_selected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
+    slot_row = slot;
+    through_faces = true;
+    return stroke_vertex(vid, 2u);
+}
+
+// Pick ids and outline masks drop hidden ink, so they keep culling back edges.
+@vertex
+fn vs_front(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
+    slot_row = slot;
+    return stroke_vertex(vid, 0u);
+}
+
+@vertex
+fn vs_front_unselected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
+    slot_row = slot;
+    return stroke_vertex(vid, 1u);
+}
+
+@vertex
+fn vs_front_selected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) -> VsOut {
     slot_row = slot;
     return stroke_vertex(vid, 2u);
 }

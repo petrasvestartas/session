@@ -1810,7 +1810,8 @@ mod tests {
                 instance_id: 2,
                 color: 0xff00_0000,
                 head: 0.0,
-                pad: [0; 2],
+                heads: VectorRow::HEAD_END,
+                pad: 0,
             });
             gpu.set_scene(&up);
             // ink left and right of x = 0, and pick ids right of it

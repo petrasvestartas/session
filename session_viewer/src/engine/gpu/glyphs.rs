@@ -287,7 +287,10 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &GlyphShaders, target: Target) 
         id_sphere: build(
             ctx,
             Target::ID,
-            &marker.with("sphere.id", "fs_id").scene_samples(1),
+            &marker
+                .with("sphere.id", "fs_id")
+                .vertex("vs_front")
+                .scene_samples(1),
         ),
         id_dot: build(
             ctx,

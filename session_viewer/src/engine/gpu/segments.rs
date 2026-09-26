@@ -669,19 +669,25 @@ fn build_pipelines(
         id_ribbon: build(
             ctx,
             Target::ID,
-            &quad.with("ribbon.id", "fs_id").scene_samples(1),
+            &quad
+                .with("ribbon.id", "fs_id")
+                .vertex("vs_front")
+                .scene_samples(1),
         ),
         id_edge: build(
             ctx,
             Target::ID,
-            &quad.with("edge.id", "fs_edge_id").scene_samples(1),
+            &quad
+                .with("edge.id", "fs_edge_id")
+                .vertex("vs_front")
+                .scene_samples(1),
         ),
         mask_unselected: build(
             ctx,
             mask,
             &quad
                 .with("ribbon.mask", "fs_mask")
-                .vertex("vs_unselected")
+                .vertex("vs_front_unselected")
                 .color(ColorWrite::Max),
         ),
         mask_selected: build(
@@ -689,7 +695,7 @@ fn build_pipelines(
             mask,
             &quad
                 .with("ribbon.mask.selected", "fs_mask")
-                .vertex("vs_selected")
+                .vertex("vs_front_selected")
                 .color(ColorWrite::Max),
         ),
         masks_unselected: build(
@@ -697,7 +703,7 @@ fn build_pipelines(
             mask,
             &quad
                 .with("ribbon.masks", "fs_masks")
-                .vertex("vs_unselected")
+                .vertex("vs_front_unselected")
                 .masks(),
         ),
         masks_selected: build(
@@ -705,7 +711,7 @@ fn build_pipelines(
             mask,
             &quad
                 .with("ribbon.masks.selected", "fs_masks_selected")
-                .vertex("vs_selected")
+                .vertex("vs_front_selected")
                 .masks(),
         ),
     }

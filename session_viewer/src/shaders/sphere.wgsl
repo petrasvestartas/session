@@ -78,8 +78,19 @@ fn faces_front(g: GlyphPoint, model: mat4x4<f32>, to_eye: vec3<f32>) -> vec2<boo
 }
 
 @vertex
-// Place one corner of a marker's quad.
+// Place one corner of a marker's quad; back markers show faint through translucent faces.
 fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> VsOut {
+    return marker_vertex(tmpl, gi, true);
+}
+
+@vertex
+// Marker corner for pick ids, which drop hidden markers anyway.
+fn vs_front(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> VsOut {
+    return marker_vertex(tmpl, gi, false);
+}
+
+// One corner of marker `gi`'s quad; `through_faces` keeps back markers behind glass.
+fn marker_vertex(tmpl: vec3<f32>, gi: u32, through_faces: bool) -> VsOut {
     let g = glyphs[gi];
     let inst = instances[g.instance_id];
 
@@ -125,8 +136,9 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
         return dead_dot();
     }
 
-    // back-facing vertices are skipped, unless inside, open or x-ray
-    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || line.opacity <= 0.0;
+    // back-facing vertices are skipped, unless inside, open, x-ray or behind glass
+    let glass = through_faces && line.opacity < 1.0;
+    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || line.opacity <= 0.0 || glass;
 
     if (!inside) {
         let kf = faces_front(g, inst.model, toward_eye(centre));
