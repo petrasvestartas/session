@@ -52,7 +52,7 @@ kbd {
 /* Code colours (src/codeTheme.ts), only code is coloured; each is at least 4.7:1 on #f6f6f6. */
 pre { color: #1f2328; }
 .hk { color: #cf222e; }                      /* keyword */
-.ht { color: #953800; }                      /* type or class */
+.ht { color: #1f2328; font-weight: 700; }   /* type or class: bold black */
 .hu { color: #6639ba; }                      /* module or namespace */
 .ha { color: #116329; }                      /* attribute or decorator */
 .hf { color: #8250df; }                      /* function or method */
