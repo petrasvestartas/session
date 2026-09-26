@@ -10,12 +10,12 @@
       </details>
       <div class="columns">
         <article class="doc" v-html="page.html" @click="onClick"></article>
-        <aside v-if="page.toc.length" class="toc">
+        <aside v-if="page.toc.length" class="toc" aria-label="On this page">
           <p class="toc-title">On this page</p>
           <a v-for="t in page.toc" :key="t.id" :href="'#/course/' + slug + '#' + t.id" :class="'l' + t.level" @click.prevent="go(t.id)">{{ t.text }}</a>
         </aside>
       </div>
-      <nav class="pager">
+      <nav class="pager" aria-label="Previous and next lesson">
         <router-link v-if="meta?.prev" :to="'/course/' + meta.prev" class="prev">
           <span>Previous</span>{{ pages[meta.prev].title }}
         </router-link>
@@ -239,6 +239,7 @@ const onClick = (e: MouseEvent) => {
 .doc :deep(h3),
 .doc :deep(h4) {
   scroll-margin-top: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .doc :deep(.anchor) {
@@ -252,7 +253,8 @@ const onClick = (e: MouseEvent) => {
 .doc :deep(h1:hover .anchor),
 .doc :deep(h2:hover .anchor),
 .doc :deep(h3:hover .anchor),
-.doc :deep(h4:hover .anchor) {
+.doc :deep(h4:hover .anchor),
+.doc :deep(.anchor:focus) {
   visibility: visible;
 }
 
@@ -332,6 +334,10 @@ const onClick = (e: MouseEvent) => {
   .doc :deep(.copy) {
     opacity: 1;
   }
+
+  .doc :deep(.anchor) {
+    display: none;
+  }
 }
 
 .doc :deep(blockquote) {
@@ -351,6 +357,9 @@ const onClick = (e: MouseEvent) => {
 .doc :deep(details.note summary) {
   font-weight: 600;
   margin: 0.4rem 0;
+}
+
+.doc :deep(details.note summary) {
   cursor: pointer;
 }
 

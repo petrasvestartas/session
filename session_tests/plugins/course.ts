@@ -290,7 +290,9 @@ export default function coursePlugin(): Plugin {
         },
         code({ text, lang }: Tokens.Code) {
           const l = (lang || '').trim().split(/\s+/)[0].toLowerCase();
-          return `<div class="code"><button class="copy" type="button" aria-label="Copy code">Copy</button><pre><code>${highlight(text, l)}</code></pre></div>\n`;
+          // Pygments drops blank lines at both ends; an include that starts on a blank line would show one.
+          const body = text.replace(/^\n+|\n+$/g, '');
+          return `<div class="code"><button class="copy" type="button" aria-label="Copy code">Copy</button><pre><code>${highlight(body, l)}</code></pre></div>\n`;
         },
         link(this: any, { href, title, tokens }: Tokens.Link) {
           const r = rewrite(href);
@@ -298,11 +300,19 @@ export default function coursePlugin(): Plugin {
           const ext = r.external ? ' target="_blank" rel="noopener"' : '';
           return `<a href="${esc(r.url)}"${t}${ext}>${this.parser.parseInline(tokens)}</a>`;
         },
-        image({ href, title, text }: Tokens.Image) {
+        image(this: any, { href, title, tokens }: Tokens.Image) {
           const r = rewrite(href);
           const t = title ? ` title="${esc(title)}"` : '';
-          return `<img src="${esc(r.url)}" alt="${esc(text)}"${t} loading="lazy" decoding="async">`;
+          const alt = this.parser.parseInline(tokens, this.parser.textRenderer);
+          return `<img src="${esc(r.url)}" alt="${esc(unesc(alt))}"${t} loading="lazy" decoding="async">`;
         },
+      },
+      // marked reads "~`x`" as literal text (a GFM strikethrough edge case); lex it again with the
+      // tilde escaped so the code span renders, as in Python-Markdown.
+      walkTokens(token) {
+        if (token.type === 'text' && !('tokens' in token && token.tokens) && /~`/.test(token.raw)) {
+          (token as Tokens.Text).tokens = md.Lexer.lexInline(token.raw.replace(/~`/g, '\\~`'));
+        }
       },
     });
 
