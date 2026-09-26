@@ -2,6 +2,7 @@ use crate::app::scene::FileDoc;
 use crate::app::scene::Scene;
 use crate::app::scene::rows::DocState;
 use crate::app::scene::sync;
+use session_rust::Arrowhead;
 use session_rust::Geometry;
 use session_rust::Line;
 use session_rust::Point;
@@ -18,6 +19,7 @@ pub const MAX_POINTS: usize = 4096;
 pub enum Modeling {
     Point([f64; 3]),          // create a point
     Line([f64; 3], [f64; 3]), // create a line
+    Arrow([f64; 3], [f64; 3]), // create a line with a head at its end
     Polyline(Vec<[f64; 3]>),  // create a polyline
     Curve(Vec<[f64; 3]>),     // create a curve through control points
     Trim(f64, f64),           // keep this part of the selected curve, 0..1
@@ -31,11 +33,15 @@ impl Scene {
             Modeling::Point(p) => self
                 .create_geometry(Geometry::Point(Rc::new(point(*p)?)))
                 .map(Some),
-            Modeling::Line(a, b) => {
-                let line = Line::from_points(&point(*a)?, &point(*b)?);
+            Modeling::Line(a, b) | Modeling::Arrow(a, b) => {
+                let mut line = Line::from_points(&point(*a)?, &point(*b)?);
 
                 if line.length() <= 1e-12 {
                     return Err("line endpoints must differ".into());
+                }
+
+                if matches!(command, Modeling::Arrow(..)) {
+                    line.arrowhead = Arrowhead::END;
                 }
 
                 self.create_geometry(Geometry::Line(Rc::new(line)))

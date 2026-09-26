@@ -20,6 +20,7 @@ impl Action for Model {
         let name = match self.0 {
             Modeling::Point(_) => "point",
             Modeling::Line(..) => "line",
+            Modeling::Arrow(..) => "arrow",
             Modeling::Curve(_) => "NURBS curve",
             _ => "polyline",
         };

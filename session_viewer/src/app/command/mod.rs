@@ -41,6 +41,7 @@ pub struct Spec {
 pub const REGISTRY: &[&Spec] = &[
     &verbs::point::SPEC,      // register:point
     &verbs::line::SPEC,       // register:line
+    &verbs::arrow::SPEC,      // register:arrow
     &verbs::polyline::SPEC,   // register:polyline
     &verbs::curve::SPEC,      // register:curve
     &verbs::close::SPEC,      // register:close
@@ -404,7 +405,7 @@ pub fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modelin
                 Modeling::Extend(a, b)
             })
         }
-        "point" | "line" | "polyline" | "curve" => {
+        "point" | "line" | "arrow" | "polyline" | "curve" => {
             let mut points = Vec::new();
 
             if words.len() > crate::app::modeling::MAX_POINTS {
@@ -421,10 +422,11 @@ pub fn model(verb: &str, words: &[&str]) -> Result<crate::app::modeling::Modelin
             match (verb.as_str(), points.len()) {
                 ("point", 1) => Ok(Modeling::Point(points[0])),
                 ("line", 2) => Ok(Modeling::Line(points[0], points[1])),
+                ("arrow", 2) => Ok(Modeling::Arrow(points[0], points[1])),
                 ("polyline", 2..) => Ok(Modeling::Polyline(points)),
                 ("curve", 2..) => Ok(Modeling::Curve(points)),
                 _ => {
-                    Err("Point needs one coordinate, Line two, Polyline and Curve at least two".into())
+                    Err("Point needs one coordinate, Line and Arrow two, Polyline and Curve at least two".into())
                 }
             }
         }
@@ -537,6 +539,7 @@ mod tests {
                 "Add Group",
                 "Arctic",
                 "Area",
+                "Arrow",
                 "Arrowhead",
                 "Block With Hole",
                 "Box",
@@ -733,12 +736,17 @@ mod tests {
             parsed("point 1,2,3"),
             Ok("Model(Point([1.0, 2.0, 3.0]))".into())
         );
+        assert_eq!(
+            parsed("arrow 0,0,0 1,0,0"),
+            Ok("Model(Arrow([0.0, 0.0, 0.0], [1.0, 0.0, 0.0]))".into())
+        );
         assert_eq!(parsed("trim 0.2 0.8"), Ok("Model(Trim(0.2, 0.8))".into()));
         assert_eq!(parsed("explode"), Ok("Explode".into()));
 
         for line in [
             "point @1,2,3",
             "line 0,0,0",
+            "arrow 0,0,0",
             "trim 0 1 extra",
             "explode extra",
             "scale 2 extra",

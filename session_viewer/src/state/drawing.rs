@@ -68,7 +68,7 @@ impl State {
             None
         };
         // a drawing verb with too few points starts a draft
-        if matches!(verb.as_str(), "point" | "line" | "polyline" | "curve")
+        if matches!(verb.as_str(), "point" | "line" | "arrow" | "polyline" | "curve")
             && (construction.is_some() || words.len() < if verb == "point" { 2 } else { 3 })
         {
             let start = if construction.is_some() { 2 } else { 1 }; // where the points begin
@@ -76,7 +76,7 @@ impl State {
             self.cancel_split();
             let needed = match verb.as_str() {
                 "point" => 1,
-                "line" => 2,
+                "line" | "arrow" => 2,
                 _ if construction.as_deref().is_some_and(|kind| kind != "points") => 2,
                 _ => 0,
             };
