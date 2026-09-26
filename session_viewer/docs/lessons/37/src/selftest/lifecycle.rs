@@ -1,3 +1,4 @@
+// --8<-- [start:lifecycle]
 //! Check that resize, a second walk, edits undone and reload draw the same pixels and ids.
 
 use crate::{
@@ -10,7 +11,7 @@ use crate::{
 use session_rust::{Color, Line, Point, Session, Xform};
 use std::{collections::HashSet, path::Path, rc::Rc};
 
-type Source = (String, Rc<Session>, Xform); // name, session, placement
+type Source = (String, Rc<Session>, Xform); // a type alias names the tuple once: name, session, placement
 
 /// One rendered frame: the picture and the id picture.
 #[derive(PartialEq, Eq)]
@@ -72,6 +73,7 @@ fn render(gpu: &mut Gpu, scene: &Scene, camera: &Camera) -> Frame {
             .resolve(Pick { row, sub: decoded }, gpu)
             .expect("rendered object ID resolves");
         assert_eq!(hit.row, row);
+        // `&& let` (a let chain) tests the edge bit and unpacks the range in one condition
         if sub & 0x8000_0000 != 0
             && let Some(range) = scene.ribbon_range(row)
         {
@@ -111,7 +113,7 @@ fn same(label: &str, reference: &Frame, current: &Frame) {
     println!("{label}: identical full color and picking frames");
 }
 
-/// Write a frame as a PPM image.
+/// Write a frame as a PPM image; `super` is the parent module, selftest.rs.
 fn write_frame(path: &Path, frame: &Frame) {
     super::write_ppm(path.to_str().unwrap(), &frame.color, 800, 600).unwrap();
 }
@@ -337,3 +339,4 @@ pub fn run() {
         "lifecycle OK: no-face rendering, runtime MSAA toggles, resize, rewalk, edit and undo, streamed sources, release, incremental uploads and picking"
     );
 }
+// --8<-- [end:lifecycle]

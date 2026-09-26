@@ -1,212 +1,48 @@
-# 36 · Translucent faces and the Opacity command
-Elements open at 0.7 opacity so the features inside them show, `Opacity 0..1` sets it, and hidden ink dims through the glass instead of vanishing.
+# 36 · Translucent faces and Opacity
 
-## Step 1 · src/app/command.rs
-`Opacity 0..1` is parsed, listed and offered with four presets.
+Elements open at 0.9 opacity, nearly solid, so the edges hidden inside them still show faintly; `Opacity 0..1` changes it. The shaders already know how: a translucent solid drops its far side ([04a, Step 7](04a-meshes.md)), and hidden edges fade to 1 − opacity instead of vanishing ([04b, Step 21](04b-strokes.md), [05, Step 8](05-visibility.md)).
 
-`lessons/36/src/app/command.rs` · edit · type this
+## Step 1 · src/state.rs
 
-Added after the line `Layers(Option<bool>),` in `lessons/35/src/app/command.rs`
+A new `impl State` block: dim a document's elements when they first arrive, and set the opacity from the command.
 
-```rust
---8<-- "lessons/36/src/app/command.rs:l36-step-1a"
-```
-
-Added after the line `"Attributes (On Off): draw or remove the element features…` in `lessons/35/src/app/command.rs`
+`lessons/36/src/state.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/36/src/app/command.rs:l36-step-1b"
+--8<-- "lessons/36/src/state.rs:opacity"
 ```
 
-Added after the line `},` in `lessons/35/src/app/command.rs`
+## Step 2 · src/app/command/verbs/opacity.rs
+
+New file: the `Opacity` verb takes one number from 0 to 1 and offers four presets.
+
+`lessons/36/src/app/command/verbs/opacity.rs` · type this, new file
 
 ```rust
---8<-- "lessons/36/src/app/command.rs:l36-step-1c"
+--8<-- "lessons/36/src/app/command/verbs/opacity.rs:opacity-verb"
 ```
 
-Added after the line `"attributes" => &["Attributes On", "Attributes Off"],` in `lessons/35/src/app/command.rs`
+## Step 3 · registration lines
+
+A feature field remembers that an opacity was chosen, so a later document never overrides the user's choice.
+
+`lessons/36/src/state/features.rs` · type the line tagged `register:opacity`
 
 ```rust
---8<-- "lessons/36/src/app/command.rs:l36-step-1d"
+--8<-- "lessons/36/src/state/features.rs:features-struct"
 ```
 
-Added after the line `"Object",` in `lessons/35/src/app/command.rs`
+Copy the other two lines tagged `register:opacity` from these files of `lessons/36/`:
 
-```rust
---8<-- "lessons/36/src/app/command.rs:step-1e"
-```
+- `src/app/command/verbs/mod.rs`: `opacity` in the verb list.
+- `src/state.rs`: `dim_elements` after each document is appended.
 
-Added after the line `assert_eq!(parse("Attributes"), Ok(Command::Attributes(No…` in `lessons/35/src/app/command.rs`
-
-```rust
---8<-- "lessons/36/src/app/command.rs:step-1f"
-```
-
-## Step 2 · src/state.rs
-Elements arrive at 0.7 unless a knob or command already chose an opacity.
-
-`lessons/36/src/state.rs` · edit · type this
-
-Added after the line `const SPIN_STEP: f32 = 0.004;` in `lessons/35/src/state.rs`
-
-```rust
---8<-- "lessons/36/src/state.rs:step-2a"
-```
-
-Added after the line `show_selected_names: bool,` in `lessons/35/src/state.rs`
-
-```rust
---8<-- "lessons/36/src/state.rs:step-2b"
-```
-
-Added after the line `show_selected_names: true,` in `lessons/35/src/state.rs`
-
-```rust
---8<-- "lessons/36/src/state.rs:step-2c"
-```
-
-Added after the line `self.annotate_document(first_row);` in `lessons/35/src/state.rs`
-
-```rust
---8<-- "lessons/36/src/state.rs:step-2d"
-```
-
-Added after the line `show` in `lessons/35/src/state.rs`
-
-```rust
---8<-- "lessons/36/src/state.rs:step-2e"
-```
-
-## Step 3 · src/state/edit.rs
-The selection label follows a moved object, and `Opacity` is an edit command.
-
-`lessons/36/src/state/edit.rs` · edit · type this
-
-Added after the line `}` in `lessons/35/src/state/edit.rs`
-
-```rust
---8<-- "lessons/36/src/state/edit.rs:step-3a"
-```
-
-Added after the line `self.place_gizmo(Some(active.row));` in `lessons/35/src/state/edit.rs`
-
-```rust
---8<-- "lessons/36/src/state/edit.rs:step-3b"
-```
-
-Added after the line `self.place_gizmo(Some(active.row));` in `lessons/35/src/state/edit.rs`
-
-```rust
---8<-- "lessons/36/src/state/edit.rs:step-3c"
-```
-
-Added after the line `}` in `lessons/35/src/state/edit.rs`
-
-```rust
---8<-- "lessons/36/src/state/edit.rs:step-3d"
-```
-
-Added after the line `self.place_gizmo(Some(row));` in `lessons/35/src/state/edit.rs`
-
-```rust
---8<-- "lessons/36/src/state/edit.rs:step-3e"
-```
-
-## Step 4 · src/shaders/triangle.wgsl
-A translucent solid drops its back faces, so it reads as one sheet of glass.
-
-`lessons/36/src/shaders/triangle.wgsl` · edit · type this
-
-Added after the line `let front = raster_front != (in.mirrored != 0u);` in `lessons/35/src/shaders/triangle.wgsl`
-
-```wgsl
---8<-- "lessons/36/src/shaders/triangle.wgsl:step-4"
-```
-
-## Step 5 · src/shaders/ink_visibility.wgsl
-`through_glass` returns how much ink behind a translucent face still shows.
-
-`lessons/36/src/shaders/ink_visibility.wgsl` · edit · type this
-
-Added after the line `}` in `lessons/35/src/shaders/ink_visibility.wgsl`
-
-```wgsl
---8<-- "lessons/36/src/shaders/ink_visibility.wgsl:step-5"
-```
-
-## Step 6 · src/shaders/glyph.wgsl
-Glyph coverage is scaled by `through_glass`.
-
-`lessons/36/src/shaders/glyph.wgsl` · edit · type this
-
-Replaces the 2 lines from `let alpha = coverage(in);` in `lessons/35/src/shaders/glyph.wgsl`
-
-```wgsl
---8<-- "lessons/36/src/shaders/glyph.wgsl:step-6"
-```
-
-## Step 7 · src/shaders/ribbon.wgsl
-Ribbon coverage is scaled by `through_glass`.
-
-`lessons/36/src/shaders/ribbon.wgsl` · edit · type this
-
-Replaces the 2 lines from `let alpha = coverage(in);` in `lessons/35/src/shaders/ribbon.wgsl`
-
-```wgsl
---8<-- "lessons/36/src/shaders/ribbon.wgsl:step-7"
-```
-
-## Step 8 · src/shaders/sphere.wgsl
-Sphere coverage is scaled by `through_glass`.
-
-`lessons/36/src/shaders/sphere.wgsl` · edit · type this
-
-Replaces the 2 lines from `let alpha = coverage(in);` in `lessons/35/src/shaders/sphere.wgsl`
-
-```wgsl
---8<-- "lessons/36/src/shaders/sphere.wgsl:step-8"
-```
-
-## Step 9 · src/app/ui.rs
-With the command box closed, phone keys are the viewport's own bindings.
-
-`lessons/36/src/app/ui.rs` · edit · type this
-
-Replaces the lines from `pub fn agent(&mut self, event: super::agent::AgentEvent) {` in `lessons/35/src/app/ui.rs`
-
-```rust
---8<-- "lessons/36/src/app/ui.rs:step-9a"
-```
-
-Added after the line `}` in `lessons/35/src/app/ui.rs`
-
-```rust
---8<-- "lessons/36/src/app/ui.rs:step-9b"
-```
-
-Added after the line `.font(egui::FontId::proportional(14.0))` in `lessons/35/src/app/ui.rs`
-
-```rust
---8<-- "lessons/36/src/app/ui.rs:step-9c"
-```
-
-## Step 10 · src/lib.rs
-Keys the agent hands back are fed to the input handler.
-
-`lessons/36/src/lib.rs` · edit · type this
-
-Replaces the line `ui.agent(event);` in `lessons/35/src/lib.rs`
-
-```rust
---8<-- "lessons/36/src/lib.rs:step-10"
-```
+Run `cargo check` in `lessons/36/`.
 
 ## Check
 
-Run `trunk serve` in `lessons/36/` and open <http://127.0.0.1:8770/>.
-
-Load elements: faces are see-through and the features inside show dimmed; type `Opacity 1` for solid, `Opacity 0` for x-ray.
+Load a scene with wood elements: their faces are slightly see-through and the edges behind them show faintly. `Opacity 1` makes them solid, `Opacity 0` is x-ray, and a document loaded afterwards keeps the value you chose.
 
 ## Next
 
-[37 · Attribute features in red and a one-row command dock](37-command-dock.md)
+[37 · Self-test: the finished viewer](37-command-dock.md)

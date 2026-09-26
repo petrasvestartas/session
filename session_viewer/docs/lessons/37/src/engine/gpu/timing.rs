@@ -1,3 +1,5 @@
+// --8<-- [start:pass-timer]
+// Timestamp query = the GPU writes its clock into a query set; two readings bracket the work between them.
 use super::buffers::GpuCtx;
 
 /// Most marks one frame may place.
@@ -16,6 +18,7 @@ pub struct PassTimer {
 impl PassTimer {
     /// A timer, when the device writes timestamps between passes.
     pub fn new(ctx: &GpuCtx) -> Option<Self> {
+        // writing timestamps between passes needs TIMESTAMP_QUERY_INSIDE_ENCODERS, which only native devices offer
         let wanted =
             wgpu::Features::TIMESTAMP_QUERY | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
 
@@ -91,6 +94,7 @@ impl PassTimer {
         let slice = self
             .readback
             .slice(..marks.len() as u64 * wgpu::QUERY_SIZE as u64);
+        // map_async asks for CPU access; the poll waits until the GPU is done and the bytes are readable
         slice.map_async(wgpu::MapMode::Read, |_| {});
         let _ = ctx.device.poll(wgpu::PollType::Wait {
             submission_index: None,
@@ -104,6 +108,7 @@ impl PassTimer {
         self.readback.unmap();
 
         for (at, label) in marks.iter().enumerate().skip(1) {
+            // ticks x nanoseconds per tick / 1e6 = milliseconds
             let ms = ticks[at].saturating_sub(ticks[at - 1]) as f64 * self.period / 1e6;
 
             match self.spans.iter_mut().find(|span| span.0 == *label) {
@@ -125,3 +130,4 @@ impl PassTimer {
             .collect()
     }
 }
+// --8<-- [end:pass-timer]

@@ -1,3 +1,5 @@
+// --8<-- [start:ambient-geometry]
+// One object row, as the Rust Instance; the layout test in ssao.rs checks the offsets.
 struct Object {
     model: mat4x4<f32>,
     color: vec4<f32>,
@@ -6,6 +8,7 @@ struct Object {
     spacing: f32,
     padding: u32,
 };
+// the mesh arena: 5 words per vertex, each vertex's owning row, 3 indices per triangle
 @group(0) @binding(3) var<storage,read> vertices: array<u32>;
 @group(0) @binding(4) var<storage,read> owners: array<u32>;
 @group(0) @binding(5) var<storage,read> indices: array<u32>;
@@ -31,10 +34,12 @@ fn normal_of(placed: vec2<u32>, pixel: vec2<f32>, p: vec3<f32>, sample: i32) -> 
         let first = indices[base];
         let origin = vertex_position(first);
         let model = objects[placed.y].model;
+        // the cross product of two edges is the face normal: exact, where one rebuilt from depth is noisy
         let a = (model*vec4<f32>(vertex_position(indices[base+1u])-origin,0.0)).xyz;
         let b = (model*vec4<f32>(vertex_position(indices[base+2u])-origin,0.0)).xyz;
         cross_n = cross(a,b);
     } else {
+        // no triangle here: take the normal from the neighbours' depths, the nearer side of each
         let a = surface(pixel+vec2<f32>(1.0,0.0),sample);
         let b = surface(pixel-vec2<f32>(1.0,0.0),sample);
         let c = surface(pixel+vec2<f32>(0.0,1.0),sample);
@@ -44,5 +49,7 @@ fn normal_of(placed: vec2<u32>, pixel: vec2<f32>, p: vec3<f32>, sample: i32) -> 
         cross_n = cross(dx,dy);
     }
     let normal = cross_n/max(length(cross_n),1e-12);
+    // turned to face the camera
     return select(-normal,normal,dot(normal,-ray_direction(pixel))>0.0);
 }
+// --8<-- [end:ambient-geometry]

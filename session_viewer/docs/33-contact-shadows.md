@@ -1,133 +1,45 @@
-# 33 · Contact shadows that follow object size
-Each object carries its own ambient-occlusion radius, so a small part and a large one both get a soft contact shadow that fits.
+# 33 · GTAO, Arctic and Outline
 
-## Step 1 · src/engine/gpu/instance.rs
-Each object row carries a contact radius where the padding word used to be.
+Lesson 32 built the GTAO pass; this lesson gives it a command, `Arctic`, and gives the black surface outlines their own, `Outline`. Each is one file in `verbs/` and one line in the verb list.
 
-`lessons/33/src/engine/gpu/instance.rs` · edit · type this
+![Contact shadows under plates and small parts](screenshots/ssao-plates.png)
 
-Replaces the line `pub _pad0: f32,` in `lessons/32/src/engine/gpu/instance.rs`
+## Step 1 · registration lines
 
-```rust
---8<-- "lessons/33/src/engine/gpu/instance.rs:step-1a"
-```
+Two lines in the verb list add Arctic and Outline to the command line and its completion.
 
-Replaces the line `_pad0: 0.0,` in `lessons/32/src/engine/gpu/instance.rs`
+`lessons/33/src/app/command/verbs/mod.rs` · type the lines tagged `register:arctic` and `register:outline`
 
 ```rust
---8<-- "lessons/33/src/engine/gpu/instance.rs:step-1b"
+--8<-- "lessons/33/src/app/command/verbs/mod.rs:verbs-list"
 ```
 
-Replaces the line `let rust = ["model", "color", "flags", "_pad0", "spacing"…` in `lessons/32/src/engine/gpu/instance.rs`
+Copy the line tagged `register:arctic` in `src/app/command/verbs/measure_distance.rs` of `lessons/33/`: a test line, since typing `Ar` now completes to `Arctic`.
+
+## Step 2 · src/app/command/verbs/arctic.rs
+
+New file: `Arctic On`, `Off` or a toggle switches ambient occlusion and studio lighting, and turns outlines on with it.
+
+`lessons/33/src/app/command/verbs/arctic.rs` · type this, new file
 
 ```rust
---8<-- "lessons/33/src/engine/gpu/instance.rs:step-1c"
+--8<-- "lessons/33/src/app/command/verbs/arctic.rs:arctic-verb"
 ```
 
-## Step 2 · src/engine/gpu/objects.rs
-The radius is 5% of the object's diagonal, so it survives a move and scales with a resize.
+## Step 3 · src/app/command/verbs/outline.rs
 
-`lessons/33/src/engine/gpu/objects.rs` · edit · type this
+New file: `Outline On`, `Off` or a toggle for the black surface outlines, independent of Arctic.
 
-Added after the line `r.bounds.transformed(&r.place)` in `lessons/32/src/engine/gpu/objects.rs`
+`lessons/33/src/app/command/verbs/outline.rs` · type this, new file
 
 ```rust
---8<-- "lessons/33/src/engine/gpu/objects.rs:step-2a"
+--8<-- "lessons/33/src/app/command/verbs/outline.rs:outline-verb"
 ```
 
-Replaces the line `_pad0: 0.0,` in `lessons/32/src/engine/gpu/objects.rs`
+Copy `tests/ambient-details.cjs`, `tests/ambient-floor.cjs`, `tests/ambient-motion.cjs` and `tests/ambient-scenes.cjs` from `lessons/33/`: browser checks of small-part shadows, the floor scene, orbiting, and every published scene.
 
-```rust
---8<-- "lessons/33/src/engine/gpu/objects.rs:step-2b"
-```
-
-Added after the line `instance.model = model;` in `lessons/32/src/engine/gpu/objects.rs`
-
-```rust
---8<-- "lessons/33/src/engine/gpu/objects.rs:step-2c"
-```
-
-Added after the line `#[test]` in `lessons/32/src/engine/gpu/objects.rs`
-
-```rust
---8<-- "lessons/33/src/engine/gpu/objects.rs:step-2d"
-```
-
-Added after the line `assert_eq!(gpu.objects.len(), 2);` in `lessons/32/src/engine/gpu/objects.rs`
-
-```rust
---8<-- "lessons/33/src/engine/gpu/objects.rs:step-2e"
-```
-
-Added after the line `assert_eq!(second.min_point()[1], -1.0, "the neighbour di…` in `lessons/32/src/engine/gpu/objects.rs`
-
-```rust
---8<-- "lessons/33/src/engine/gpu/objects.rs:step-2f"
-```
-
-## Step 3 · src/engine/gpu/render.rs
-The projected-triangle tiles are handed to the ambient pass.
-
-`lessons/33/src/engine/gpu/render.rs` · edit · type this
-
-Added after the line `&self.targets,` in `lessons/32/src/engine/gpu/render.rs`
-
-```rust
---8<-- "lessons/33/src/engine/gpu/render.rs:step-3"
-```
-
-## Step 4 · src/engine/gpu/ssao.rs
-Replace the whole file: the ambient pass samples a hemisphere per pixel and blends it with a contact term.
-
-`lessons/33/src/engine/gpu/ssao.rs` · replace the whole file · type this
-
-```rust
---8<-- "lessons/33/src/engine/gpu/ssao.rs:step-4"
-```
-
-## Step 5 · src/shaders/scene.wgsl
-The shared scene layout names the new radius field.
-
-`lessons/33/src/shaders/scene.wgsl` · edit · type this
-
-Replaces the line `_pad0: f32,` in `lessons/32/src/shaders/scene.wgsl`
-
-```wgsl
---8<-- "lessons/33/src/shaders/scene.wgsl:step-5b"
-```
-
-## Step 6 · src/shaders/project_triangles.wgsl
-The projection pass writes each triangle's contact radius next to its depth slope.
-
-`lessons/33/src/shaders/project_triangles.wgsl` · edit · type this
-
-Replaces the line `_pad0: f32,` in `lessons/32/src/shaders/project_triangles.wgsl`
-
-```wgsl
---8<-- "lessons/33/src/shaders/project_triangles.wgsl:step-6a"
-```
-
-Replaces the line `out.gradient = vec4<f32>(gradient, nearest, 0.0);` in `lessons/32/src/shaders/project_triangles.wgsl`
-
-```wgsl
---8<-- "lessons/33/src/shaders/project_triangles.wgsl:step-6b"
-```
-
-## Step 7 · src/shaders/ssao.wgsl
-Replace the whole file: the shader reconstructs positions from depth and softens the contact by each object's radius.
-
-`lessons/33/src/shaders/ssao.wgsl` · replace the whole file · type this
-
-```wgsl
---8<-- "lessons/33/src/shaders/ssao.wgsl:step-8"
-```
+Run `cargo check` in `lessons/33/`.
 
 ## Check
 
-Run `trunk serve` in `lessons/33/` and open <http://127.0.0.1:8770/>.
-
-Load a scene with several solids of different sizes; each one sits in a soft shadow proportional to itself, and moving one keeps its shadow.
-
-## Next
-
-[34 · Polyline options, ordered input and a remembered view](34-polyline-options.md)
+`cargo check` compiles, and `cargo xtest --lib measure_distance` passes. Type `Arctic On`: creases darken, the lighting turns neutral and outlines appear. `Outline Off` hides the outlines and keeps the shading, and `Arctic Off` returns the plain view with the camera unchanged.

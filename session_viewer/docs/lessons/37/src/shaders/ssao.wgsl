@@ -1,28 +1,35 @@
+// --8<-- [start:ao-bindings]
+// ssao.rs patches this to true for the 4x pipelines, together with the depth and id texture types below.
 const MSAA: bool = false;
+// group 3 in the 4x upsample: per-sample fixes, one flag per 16 px tile, and the list of flagged tiles
 @group(3) @binding(0) var<storage,read_write> corrections: array<u32>;
 @group(3) @binding(1) var<storage,read_write> edge_flags: array<atomic<u32>>;
 @group(3) @binding(2) var<storage,read_write> edge_tiles: array<u32>;
+// group 3 in the y blur: last frame's AO and depth
 @group(3) @binding(4) var history_ao: texture_2d<f32>;
 @group(3) @binding(5) var history_depth: texture_2d<f32>;
 struct Draw { vertices: u32, instances: atomic<u32>, first_vertex: u32, first_instance: u32 };
 @group(3) @binding(3) var<storage,read_write> draw_edges: Draw;
+// The uniform ssao.rs writes, 320 bytes; a test in ssao.rs checks every offset.
 struct Ambient {
     inverse_mvp: mat4x4<f32>,
     mvp: mat4x4<f32>,
-    params: vec4<f32>,
-    extent: vec4<f32>,
-    near: vec4<f32>,
+    params: vec4<f32>, // floor height, largest radius, canvas width and height
+    extent: vec4<f32>, // ground width, AO width and height, ground height
+    near: vec4<f32>, // ray origin at pixel (0,0); w = 1 when last frame may be reused
     near_x: vec4<f32>,
     near_y: vec4<f32>,
-    ray: vec4<f32>,
+    ray: vec4<f32>, // ray direction at pixel (0,0), to depth 0.5
     ray_x: vec4<f32>,
     ray_y: vec4<f32>,
-    previous_mvp: mat4x4<f32>,
+    previous_mvp: mat4x4<f32>, // last frame's camera, for reprojection
 };
 @group(0) @binding(0) var depth: texture_depth_2d;
 @group(0) @binding(1) var<uniform> ambient: Ambient;
+// the id target: which triangle covers each pixel
 @group(0) @binding(2) var physical: texture_2d<u32>;
 // Geometry access: ambient_geometry.wgsl, appended by ssao.rs
+// group 1: one level of the depth pyramid
 @group(1) @binding(0) var linear: texture_2d<f32>;
 @group(1) @binding(1) var radii: texture_2d<u32>;
 @group(1) @binding(2) var normals: texture_2d<f32>;
@@ -34,12 +41,16 @@ fn fullscreen(i: u32) -> vec4<f32> {
     return vec4<f32>(p[i],0.0,1.0);
 }
 @vertex fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> { return fullscreen(i); }
+// --8<-- [end:ao-bindings]
 
+// --8<-- [start:ao-rays]
+// Unproject: a pixel and its depth back to a world point, through the inverse camera matrix.
 fn world(pixel: vec2<f32>, z: f32) -> vec3<f32> {
     let uv = pixel / ambient.params.zw;
     let p = ambient.inverse_mvp * vec4<f32>(uv.x*2.0-1.0, 1.0-uv.y*2.0, z, 1.0);
     return p.xyz / p.w;
 }
+// Any pixel's ray as base + x * step_x + y * step_y, from rays pixel_rays computed in f64.
 fn ray_origin(pixel: vec2<f32>) -> vec3<f32> {
     return ambient.near.xyz+ambient.near_x.xyz*pixel.x+ambient.near_y.xyz*pixel.y;
 }
@@ -52,6 +63,7 @@ fn depth_sample(pixel: vec2<f32>, sample: i32) -> f32 {
 fn surface(pixel: vec2<f32>, sample: i32) -> vec4<f32> {
     return surface_at_depth(pixel,depth_sample(pixel,sample));
 }
+// Reverse Z: depth 0 = nothing drawn; such a pixel hits the virtual floor at height params.x, and w = 0 misses both.
 fn surface_at_depth(pixel: vec2<f32>, z: f32) -> vec4<f32> {
     if z>0.0 { return vec4<f32>(world(pixel,z),1.0); }
     let near = ray_origin(pixel);
@@ -59,13 +71,15 @@ fn surface_at_depth(pixel: vec2<f32>, z: f32) -> vec4<f32> {
     if direction.z>=-1e-7 || near.z<ambient.params.x { return vec4<f32>(0.0); }
     return vec4<f32>(near+direction*((ambient.params.x-near.z)/direction.z),1.0);
 }
+// The full-resolution pixel centre an AO pixel stands for.
 fn full_pixel(pixel: vec2<f32>) -> vec2<f32> {
     return floor(pixel/ambient.extent.yz*ambient.params.zw)+0.5;
 }
+// `along` = position on the pixel's ray, in ray lengths; the floor stores it negative, geometry positive.
 fn position_at(pixel: vec2<f32>, along: f32) -> vec3<f32> {
     return ray_origin(pixel)+ray_direction(pixel)*abs(along);
 }
-// Octahedral map of a unit normal onto the square [-1,1]^2 (Cigolle et al.).
+// Octahedral map (Cigolle et al.): a unit normal folded onto the square [-1,1]^2, two numbers that fit one RG8 texel.
 fn encode_normal(n: vec3<f32>) -> vec2<f32> {
     let p = n.xy/(abs(n.x)+abs(n.y)+abs(n.z));
     let folded = (1.0-abs(p.yx))*select(vec2<f32>(-1.0),vec2<f32>(1.0),p>=vec2<f32>(0.0));
@@ -80,6 +94,10 @@ fn decode_normal(e: vec2<f32>) -> vec3<f32> {
 fn normal_half(coord: vec2<i32>) -> vec3<f32> {
     return decode_normal(textureLoad(normals,coord,0).xy*2.0-1.0);
 }
+// --8<-- [end:ao-rays]
+
+// --8<-- [start:ao-prepare]
+// fs_prepare writes three images at once: position along the ray, packed radius, and normal.
 struct DepthRadius {
     @location(0) depth: f32,
     @location(1) radius: u32,
@@ -98,8 +116,10 @@ struct DepthRadius {
     let along = dot(p-origin,ray)/dot(ray,ray);
     let placed = primitive_at(at,0);
     let radius = select(0.0,objects[placed.y].ao_radius,placed.x!=NO_TRIANGLE)/ambient.params.y;
+    // the radius relative to the largest one, as a 16-bit float without its two lowest bits
     let bits = (pack2x16float(vec2<f32>(radius,0.0))+2u)>>2u;
     let coord = vec2<u32>(pixel.xy);
+    // the low 4 bits keep the pixel's place in its 4 x 4 block, so a coarse level still knows its exact source pixel
     let encoded = (bits<<4u)|(coord.x&3u)|((coord.y&3u)<<2u);
     return DepthRadius(along,encoded,encode_normal(normal_of(placed,at,p,0))*0.5+0.5);
 }
@@ -112,6 +132,7 @@ struct Hit {
     along: f32,
     radius: f32,
 };
+// The occluder `offset` pixels away, read from pyramid `level`, at the source pixel rebuilt from the low bits.
 fn sample_hit(at: vec2<f32>, offset: vec2<f32>, level: i32) -> Hit {
     let dims = vec2<i32>(textureDimensions(linear,level));
     let coord = vec2<i32>(floor((at+offset)/ambient.params.zw*ambient.extent.yz))>>vec2<u32>(u32(level));
@@ -124,6 +145,9 @@ fn sample_hit(at: vec2<f32>, offset: vec2<f32>, level: i32) -> Hit {
     let pixel = full_pixel(vec2<f32>(source_coord)+0.5);
     return Hit(position_at(pixel,along),along,unpack2x16float((encoded>>4u)<<2u).x*ambient.params.y);
 }
+// --8<-- [end:ao-prepare]
+
+// --8<-- [start:ao-ground]
 // With reusable history a pixel takes every second direction, offset by its position, so the
 // filter's neighbourhood covers all of them; a fixed pattern keeps the history stable.
 fn stride() -> u32 {
@@ -132,10 +156,13 @@ fn stride() -> u32 {
 fn phase(pixel: vec2<f32>, stride: u32) -> u32 {
     return (u32(pixel.x)+u32(pixel.y))%stride;
 }
+// Ground contact: how high the solids around a floor point rise above it, over 24 directions of 6 steps.
 fn ground_contact(at: vec2<f32>, p: vec3<f32>, pixel_world: f32, noise: f32, phase: u32) -> f32 {
     let dims = vec2<i32>(textureDimensions(occlusion));
     let tile = clamp(vec2<i32>(at/ambient.params.zw*vec2<f32>(dims)),vec2<i32>(0),dims-1);
+    // no geometry near this 16 x 16 tile: skip the search
     if textureLoad(occlusion,tile,0).x==0.0 { return 0.0; }
+    // reach six radii, at most 64 px
     let radius_px = min(ambient.params.y*6.0/max(pixel_world,1e-6),64.0);
     let stride = stride();
     var sum = 0.0;
@@ -145,16 +172,19 @@ fn ground_contact(at: vec2<f32>, p: vec3<f32>, pixel_world: f32, noise: f32, pha
         let axis = vec2<f32>(cos(angle),sin(angle));
         var horizon = 0.0;
         for (var step=0u; step<6u; step++) {
+            // a different start per direction, so the steps of neighbouring pixels do not line up in bands
             let jitter = fract(noise+f32(direction)*0.618034);
             let fraction = (f32(step)+0.5+jitter*0.5)/6.0;
             let span = max(1.5,radius_px*fraction*fraction);
             let scaled = span*ambient.extent.y/ambient.params.z;
+            // far steps read a coarser level: from 8 px away level 1, from 16 px level 2
             let level = i32(scaled>=8.0)+i32(scaled>=16.0);
             let hit = sample_hit(at,axis*span,level);
             let radius = hit.radius*6.0;
             if hit.along<=0.0 || radius<=0.0 { continue; }
             let delta = hit.point-p;
             if delta.z<=0.0 || delta.z>=radius { continue; }
+            // how steeply the occluder rises, seen from the floor point
             let elevation = max(delta.z/max(length(delta),1e-6)-0.04,0.0);
             let radial = 1.0-smoothstep(radius*0.1,radius,length(delta.xy));
             let vertical = 1.0-smoothstep(0.0,radius,delta.z);
@@ -162,6 +192,7 @@ fn ground_contact(at: vec2<f32>, p: vec3<f32>, pixel_world: f32, noise: f32, pha
         }
         sum += horizon;
     }
+    // 2.6 sets the strength; 0.65 caps it, so a contact never turns black
     return clamp(sum*(2.6*f32(stride)/24.0),0.0,0.65);
 }
 @fragment fn fs_ground(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
@@ -172,16 +203,21 @@ fn ground_contact(at: vec2<f32>, p: vec3<f32>, pixel_world: f32, noise: f32, pha
     let along = (ambient.params.x-origin.z)/ray.z;
     let p = origin+ray*along;
     let pixel_world = max(length(ambient.near_x.xyz+ambient.ray_x.xyz*along),1e-6);
+    // interleaved gradient noise: a fixed number in 0..1 per pixel, which turns banding into fine grain
     let noise = fract(52.9829189*fract(dot(floor(pixel.xy),vec2<f32>(0.06711056,0.00583715))));
     return ground_contact(at,p,pixel_world,noise,phase(pixel.xy,stride()));
 }
 fn filtered_ground(at: vec2<f32>) -> f32 {
     return textureSampleLevel(occlusion,linear_sampler,at/ambient.params.zw,0.0).x;
 }
+// --8<-- [end:ao-ground]
+
+// --8<-- [start:ao-horizons]
 // Integral of cosine-weighted visibility over a horizon slice (Jimenez et al., GTAO).
 fn arc(h: f32, n: f32) -> f32 {
     return (cos(n)+2.0*h*sin(n)-cos(2.0*h-n))*0.25;
 }
+// The horizon search for one AO pixel: 4 slices through the view, 6 steps to each side.
 @fragment fn fs_main(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
     let coord = vec2<i32>(pixel.xy);
     let along = textureLoad(linear,coord,0).x;
@@ -192,11 +228,13 @@ fn arc(h: f32, n: f32) -> f32 {
     let step_y = ambient.near_y.xyz+ambient.ray_y.xyz*abs(along);
     let pixel_world = max(length(step_x),1e-6);
     let noise = fract(52.9829189*fract(dot(floor(pixel.xy),vec2<f32>(0.06711056,0.00583715))));
+    // a floor pixel takes the ground image instead
     if along<0.0 { return filtered_ground(at); }
     let radius = radius_at(coord);
     if radius<=0.0 { return 0.0; }
     let normal = normal_half(coord);
     let view = -normalize(ray_direction(at));
+    // reach eight radii, at most 128 px; the bias skips the surface's own depth noise
     let radius_px = min(radius*8.0/pixel_world,128.0);
     let bias = radius*0.025;
     let stride = stride();
@@ -206,9 +244,11 @@ fn arc(h: f32, n: f32) -> f32 {
         let slice = index*stride+phase;
         let angle = (f32(slice)+noise)*0.785398163;
         let axis = vec2<f32>(cos(angle),sin(angle));
+        // the slice direction on screen, turned into a world step at this depth
         let tangent = step_x*axis.x+step_y*axis.y;
         let side = normalize(tangent-view*dot(tangent,view));
         let plane_normal = cross(side,view);
+        // the normal projected into the slice plane; its angle n tilts the visible half-circle
         let projected = normal-plane_normal*dot(normal,plane_normal);
         let normal_length = length(projected);
         let n = atan2(dot(projected,side),dot(projected,view));
@@ -226,17 +266,25 @@ fn arc(h: f32, n: f32) -> f32 {
                 if hit.along<=0.0 { continue; }
                 let delta = hit.point-p;
                 let span = max(length(delta),1e-6);
+                // under the tangent plane: the surface itself, not an occluder
                 if dot(delta,normal)<=span*0.07+bias { continue; }
+                // full weight within half a radius, fading out to 16 radii
                 let weight = max(1.0-smoothstep(radius*0.5,radius*2.0,span),0.75*(1.0-smoothstep(radius*4.0,radius*16.0,span)));
                 horizon = max(horizon,mix(low,dot(delta/span,view),weight));
             }
+            // h = horizon angle; the arc between the hemisphere's edge and h is blocked sky
             let h = acos(clamp(horizon,-1.0,1.0));
             slice_occ += arc(signed_n+1.570796327,signed_n)-arc(h,signed_n);
         }
         occluded += normal_length*slice_occ;
     }
+    // 1.08 sets the strength, 0.65 caps it
     return clamp(occluded*(1.08*f32(stride)/4.0),0.0,0.65);
 }
+// --8<-- [end:ao-horizons]
+
+// --8<-- [start:ao-filter]
+// Bilateral weight: a neighbour counts only if it lies on the same surface, so shadows do not bleed across edges.
 fn weight_at(q: vec2<i32>, p: vec3<f32>, n: vec3<f32>, geometry: bool, radius: f32) -> f32 {
     let along = textureLoad(linear,q,0).x;
     if along==0.0 || (along>0.0)!=geometry { return 0.0; }
@@ -246,6 +294,7 @@ fn weight_at(q: vec2<i32>, p: vec3<f32>, n: vec3<f32>, geometry: bool, radius: f
     let ground_weight = select(1.0-smoothstep(0.0,radius,length(delta.xy)),1.0,geometry);
     return exp(-separation/max(tolerance,1e-6))*ground_weight;
 }
+// A 7-tap blur along `axis`: the weighted average, and the lowest and highest neighbour for the history clamp.
 fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
     let coord = vec2<i32>(pixel);
     var values: array<f32, 7>;
@@ -279,6 +328,7 @@ fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
 @fragment fn fs_filter_x(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
     return denoise(pixel.xy,vec2<i32>(1,0)).x;
 }
+// Reprojection: find this point in last frame's image and blend in 80% of its AO, clamped to this frame's range.
 @fragment fn fs_filter_y(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
     let current = denoise(pixel.xy,vec2<i32>(0,1));
     if ambient.near.w==0.0 || current.z==0.0 { return current.x; }
@@ -287,10 +337,12 @@ fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
     let p = position_at(full_pixel(pixel.xy),along);
     let clip = ambient.previous_mvp*vec4<f32>(p,1.0);
     let uv = vec2<f32>(clip.x,-clip.y)/clip.w*0.5+0.5;
+    // off screen last frame: nothing to reuse
     if clip.w<=0.0 || any(uv<=vec2<f32>(0.0)) || any(uv>=vec2<f32>(1.0)) { return current.x; }
     let expected = clip.z/clip.w;
     let dims = vec2<i32>(textureDimensions(history_depth));
     let base = vec2<i32>(floor(uv*vec2<f32>(dims)-0.5));
+    // reuse only where last frame saw the same surface: depth within 0.25%
     var valid = false;
     for(var i=0; i<4; i++) {
         let q = clamp(base+vec2<i32>(i%2,i/2),vec2<i32>(0),dims-1);
@@ -302,6 +354,7 @@ fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
     let previous = textureSampleLevel(history_ao,linear_sampler,uv,0.0).x;
     return mix(current.x,clamp(previous,current.y,current.z),0.8);
 }
+// This frame's depth at a quarter of the canvas, for the next frame's check; the floor stores it negative.
 @fragment fn fs_history(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
     let coord = min(vec2<i32>(pixel.xy)*2+1,vec2<i32>(ambient.extent.yz)-1);
     let along = textureLoad(linear,coord,0).x;
@@ -310,10 +363,15 @@ fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
     let clip = ambient.mvp*vec4<f32>(p,1.0);
     return select(-clip.z/clip.w,clip.z/clip.w,along>0.0);
 }
+// --8<-- [end:ao-filter]
+
+// --8<-- [start:ao-upsample]
+// The AO pixel whose centre lies up and to the left of full-resolution point `at`.
 fn source_base(at: vec2<f32>) -> vec2<i32> {
     let base = vec2<i32>(floor(at/ambient.params.zw*ambient.extent.yz-0.5));
     return base-select(vec2<i32>(0),vec2<i32>(1),at<full_pixel(vec2<f32>(base)+0.5));
 }
+// Depth-aware upsample: blend the four nearest AO pixels, each by its bilateral weight.
 fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
     let base = source_base(at);
     let p = surface_at_depth(at,z);
@@ -341,6 +399,7 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
     return sum/max(weights,1e-6);
 }
 
+// The full-resolution cache; at 4x, samples that see another surface than sample 0 get their own value.
 @fragment fn fs_upsample(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
     let xy = vec2<u32>(pixel.xy);
     if MSAA { corrections[xy.y*u32(ambient.params.z)+xy.x] = 0u; }
@@ -364,12 +423,14 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
         }
     }
     if !different { return first; }
+    // the cache keeps the lightest sample; the others are stored as byte differences, four in one word
     let base = round(min(min(ao.x,ao.y),min(ao.z,ao.w))*255.0)/255.0;
     let packed = pack4x8unorm((ao-vec4<f32>(base))/max(1.0-base,1e-6));
     if packed!=0u {
         corrections[xy.y*u32(ambient.params.z)+xy.x] = packed;
         let tile_width = (u32(ambient.params.z)+15u)/16u;
         let tile = (xy.y/16u)*tile_width+xy.x/16u;
+        // the first pixel of a tile to need a fix lists the tile and adds 4 instances, one per sample
         if atomicOr(&edge_flags[tile],1u)==0u {
             let index = atomicAdd(&draw_edges.instances,4u)/4u;
             edge_tiles[index] = tile;
@@ -380,3 +441,4 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
 
 #include "ambient_geometry.wgsl"
 #include "slot_table.wgsl"
+// --8<-- [end:ao-upsample]

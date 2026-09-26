@@ -1,3 +1,4 @@
+// --8<-- [start:ambient-depth]
 @group(0) @binding(0) var linear: texture_2d<f32>;
 @group(0) @binding(1) var radii: texture_2d<u32>;
 @vertex fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
@@ -8,6 +9,7 @@ struct DepthRadius {
     @location(0) depth: f32,
     @location(1) radius: u32,
 };
+// Each coarser level keeps the nearest of 4 depths, with that pixel's radius and position bits.
 @fragment fn fs_reduce(@builtin(position) pixel: vec4<f32>) -> DepthRadius {
     let dims = vec2<i32>(textureDimensions(linear));
     let at = vec2<i32>(pixel.xy)*2;
@@ -24,6 +26,7 @@ struct DepthRadius {
     return DepthRadius(select(nearest,0.0,nearest==1e30),radius);
 }
 
+// 1 where a 5 x 5 block of level-4 texels, 16 AO pixels each, holds geometry; the ground search skips the rest.
 @fragment fn fs_occupancy(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
     let dims = vec2<i32>(textureDimensions(linear));
     let at = vec2<i32>(pixel.xy);
@@ -33,3 +36,4 @@ struct DepthRadius {
     }
     return 0.0;
 }
+// --8<-- [end:ambient-depth]

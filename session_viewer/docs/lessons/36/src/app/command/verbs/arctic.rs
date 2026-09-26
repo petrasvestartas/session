@@ -1,3 +1,4 @@
+// --8<-- [start:arctic-verb]
 use crate::State;
 use crate::app::command::{Action, Spec, on_off};
 
@@ -23,6 +24,7 @@ struct Arctic(Option<bool>);
 impl Action for Arctic {
     /// Flip the view flag the frame reads.
     fn run(&self, state: &mut State) -> Result<String, String> {
+        // `on_off` gives None when no word follows Arctic: toggle; set_arctic also turns outlines on
         state
             .gpu
             .view
@@ -33,3 +35,4 @@ impl Action for Arctic {
         ))
     }
 }
+// --8<-- [end:arctic-verb]

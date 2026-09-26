@@ -1,24 +1,29 @@
+// --8<-- [start:warm-job]
+// Idle callback = a function the browser runs when it has spare time between frames (requestIdleCallback).
 use super::{GpuCtx, SsaoPipelines, Target, pipelines};
 use std::cell::RefCell;
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
+/// Compiling the AO pipelines can drop frames, so the browser build compiles one sample count per idle callback.
 struct Warmup {
     device: wgpu::Device,
     queue: wgpu::Queue,
     format: wgpu::TextureFormat,
-    ready: [Option<SsaoPipelines>; 2],
-    compiled: u8,
-    pending: bool,
-    idle: bool,
+    ready: [Option<SsaoPipelines>; 2], // compiled, waiting for `take`
+    compiled: u8,                      // bit 0 = 1x done, bit 1 = 4x done
+    pending: bool,                     // a callback is already requested
+    idle: bool,                        // false while the user drags
 }
 
 thread_local! {
     static WARMUP: RefCell<Option<Warmup>> = const { RefCell::new(None) };
 }
 
+/// The pipelines compiled for `target`, once the idle callback has made them.
 pub fn take(ctx: &GpuCtx, target: Target) -> Option<SsaoPipelines> {
     WARMUP.with_borrow_mut(|job| {
         let job = job.as_mut()?;
+        // a new device or colour format makes old pipelines useless
         if job.device != ctx.device || job.format != target.format {
             return None;
         }
@@ -26,6 +31,7 @@ pub fn take(ctx: &GpuCtx, target: Target) -> Option<SsaoPipelines> {
     })
 }
 
+/// Request an idle callback, unless one is pending, both are compiled, or the user is dragging.
 pub fn schedule(ctx: &GpuCtx, target: Target, idle: bool) {
     let schedule = WARMUP.with_borrow_mut(|job| {
         if job
@@ -54,12 +60,18 @@ pub fn schedule(ctx: &GpuCtx, target: Target, idle: bool) {
         request();
     }
 }
+// --8<-- [end:warm-job]
 
+// --8<-- [start:warm-idle]
+/// One idle callback compiles one sample count, then asks again until both are done.
 fn request() {
+    // `Closure::once_into_js` turns a Rust closure into a JS function the browser may call once; `move` hands it what it uses.
     let callback = Closure::once_into_js(move |deadline: JsValue| {
+        // setTimeout passes no deadline, so assume there is time
         let remaining = if deadline.is_undefined() {
             1.0
         } else {
+            // Reflect::get reads a JS property by name, here the deadline's timeRemaining function
             js_sys::Reflect::get(&deadline, &"timeRemaining".into())
                 .ok()
                 .and_then(|function| function.dyn_into::<js_sys::Function>().ok())
@@ -96,6 +108,7 @@ fn request() {
         }
     });
     let result = web_sys::window().and_then(|window| {
+        // some browsers lack requestIdleCallback: fall back to a 50 ms timeout
         if let Ok(function) = js_sys::Reflect::get(&window, &"requestIdleCallback".into())
             .and_then(|value| value.dyn_into::<js_sys::Function>())
         {
@@ -108,6 +121,7 @@ fn request() {
             function.call2(&window, &callback, &50.into()).ok()
         }
     });
+    // nothing was scheduled: clear `pending` so a later frame tries again
     if result.is_none() {
         WARMUP.with_borrow_mut(|job| {
             if let Some(job) = job {
@@ -116,3 +130,4 @@ fn request() {
         });
     }
 }
+// --8<-- [end:warm-idle]

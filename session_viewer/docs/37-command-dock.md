@@ -1,96 +1,117 @@
-# 37 · Attribute features in red and a one-row command dock
-Attribute features draw in red at twice the default pen, centroids are no longer a feature, and the command dock starts collapsed with its options before the field.
+# 37 · Self-test: the finished viewer
 
-## Step 1 · src/app/walk/mod.rs
-Outline, axis and section draw red at 2 px and a one-point section is a 12 px red dot; centroid is gone.
+The last lesson adds a native harness: it loads scenes, draws them without a window and writes the image, so the viewer can be checked from a terminal. With it, `lessons/37` is the viewer itself: the same files as `session_viewer/src`, plus the teaching comments.
 
-`lessons/37/src/app/walk/mod.rs` · edit · type this
+## Step 1 · src/lib.rs
 
-Added after the line `use session_rust::AABB;` in `lessons/36/src/app/walk/mod.rs`
+The harness module exists only in native builds, because the browser has no files to read or write.
 
-```rust
---8<-- "lessons/37/src/app/walk/mod.rs:step-1a"
-```
-
-Replaces the line `const ATTRIBUTE_FEATURES: [&str; 4] = ["outline", "axis",…` in `lessons/36/src/app/walk/mod.rs`
+`lessons/37/src/lib.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/37/src/app/walk/mod.rs:step-1b"
+--8<-- "lessons/37/src/lib.rs:selftest-mod"
 ```
 
-Replaces the line `let r = if let (1, Some(p)) = (outline.point_count(), out…` in `lessons/36/src/app/walk/mod.rs`
+## Step 2 · src/selftest.rs
+
+New file: the files to load, read from manifests or single `.pb` paths given on the command line.
+
+`lessons/37/src/selftest.rs` · type this, new file
 
 ```rust
---8<-- "lessons/37/src/app/walk/mod.rs:step-1c"
+--8<-- "lessons/37/src/selftest.rs:selftest-files"
 ```
 
-Replaces the 7 lines from `let centroid = Polyline::new(vec![Point::new(5.0, 5.0, 5.…` in `lessons/36/src/app/walk/mod.rs`
+## Step 3 · src/selftest.rs
+
+Fit the camera to the scene, adjust it from `VIEWER_*` environment variables, and log where it looks from.
+
+`lessons/37/src/selftest.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/37/src/app/walk/mod.rs:step-1e"
+--8<-- "lessons/37/src/selftest.rs:selftest-camera"
 ```
 
-## Step 2 · src/app/ui.rs
-The dock starts as one row, options sit before the field, and `+` opens the history.
+## Step 4 · src/selftest.rs
 
-`lessons/37/src/app/ui.rs` · edit · type this
+Decode and walk each file, timing both, then upload once; build the per-frame input from the camera.
 
-Replaces the line `command_collapsed: bool,` in `lessons/36/src/app/ui.rs`
+`lessons/37/src/selftest.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/37/src/app/ui.rs:l37-step-3a"
+--8<-- "lessons/37/src/selftest.rs:selftest-load"
 ```
 
-Replaces the line `let panel = if model.command_collapsed {` in `lessons/36/src/app/ui.rs`
+## Step 5 · src/selftest.rs
+
+Benchmark helpers: drag frame times per quality tier, forty test labels, and up to six clipping planes.
+
+`lessons/37/src/selftest.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/37/src/app/ui.rs:l37-step-3b"
+--8<-- "lessons/37/src/selftest.rs:selftest-bench"
 ```
 
-Replaces the line `.inner_margin(6),` in `lessons/36/src/app/ui.rs`
+## Step 6 · src/selftest.rs
+
+Write a PPM image, then `render_scene`: load, frame, optionally time many frames, draw one and count its ink.
+
+`lessons/37/src/selftest.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/37/src/app/ui.rs:l37-step-3c"
+--8<-- "lessons/37/src/selftest.rs:selftest-render"
 ```
 
-Replaces the line `ui.max_rect().top() - 6.0,` in `lessons/36/src/app/ui.rs`
+## Step 7 · src/selftest.rs
+
+Write the id frame with a guid map beside it, and report what one pixel picks.
+
+`lessons/37/src/selftest.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/37/src/app/ui.rs:l37-step-3d"
+--8<-- "lessons/37/src/selftest.rs:selftest-ids"
 ```
 
-Replaces the line `if !model.command_collapsed {` in `lessons/36/src/app/ui.rs`
+## Step 8 · src/selftest.rs
+
+Declare the lifecycle checks, and check that every BRep edge keeps its id after upload.
+
+`lessons/37/src/selftest.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/37/src/app/ui.rs:l37-step-3e"
+--8<-- "lessons/37/src/selftest.rs:selftest-cad"
 ```
 
-Added after the line `.sum();` in `lessons/36/src/app/ui.rs`
+## Step 9 · src/selftest/lifecycle.rs
+
+New file: MSAA changes, resize, a second walk, an edit and its undo, and a reload must all draw identical pixels and ids.
+
+`lessons/37/src/selftest/lifecycle.rs` · copy the file
 
 ```rust
---8<-- "lessons/37/src/app/ui.rs:l37-step-3f"
+--8<-- "lessons/37/src/selftest/lifecycle.rs:lifecycle"
 ```
 
-Delete the 21 lines from `for name in inline_options {` in `lessons/36/src/app/ui.rs`.
+Copy these files from `lessons/37/`:
 
-Replaces the line `.button(if model.command_collapsed { "+" } else { "−" })` in `lessons/36/src/app/ui.rs`
+- `examples/selftest.rs`: renders the given scenes to a PPM file and prints the ink count.
+- `examples/check_cad_fixture.rs`: runs the BRep edge check on the `cad_fixture` files.
+- `examples/check_hidden_line_lifecycle.rs`: runs the lifecycle checks.
+- `tests/color-channels.cjs`: a browser check of face and edge colours, reset, save and open.
+- `tests/final-review.md`: the last review's record of what was checked.
 
-```rust
---8<-- "lessons/37/src/app/ui.rs:l37-step-3h"
-```
-
-Replaces the line `model.command_collapsed = !model.command_collapsed;` in `lessons/36/src/app/ui.rs`
-
-```rust
---8<-- "lessons/37/src/app/ui.rs:l37-step-3i"
-```
+Run `cargo check` in `lessons/37/`.
 
 ## Check
 
-Run `trunk serve` in `lessons/37/` and open <http://127.0.0.1:8770/>.
+`cargo run --target x86_64-unknown-linux-gnu --example selftest -- frame.ppm assets/view_local.yaml` in `lessons/37/` writes `frame.ppm` and prints how many pixels hold ink.
 
-Type `Attributes On`: features are red and thicker; the command dock is a single row until you press `+`.
+`lessons/37` now equals the viewer, and three commands prove it from `session_viewer/`:
+
+- `python3 docs/check_lesson37.py` reads zero differences between `src` and `docs/lessons/37` once comments are stripped.
+- `cargo xtest` passes the native tests, the same in `session_viewer/` and in `lessons/37/`.
+- `node tests/lifecycle.cjs`, with the viewer served by `trunk serve`, runs the browser self-test: focus, pointer cancel, a hidden canvas and a DPR change.
 
 ## Next
 
-[Capstone](capstone.md): the viewer as it is today.
+[Capstone](capstone.md): what to build on top of the finished viewer.

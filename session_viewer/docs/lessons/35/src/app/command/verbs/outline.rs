@@ -1,3 +1,4 @@
+// --8<-- [start:outline-verb]
 use crate::State;
 use crate::app::command::{Action, Spec, on_off};
 
@@ -21,6 +22,7 @@ struct Outline(Option<bool>);
 
 impl Action for Outline {
     fn run(&self, state: &mut State) -> Result<String, String> {
+        // independent of Arctic: Outline Off hides the outlines and keeps the shading
         state.gpu.view.show_outlines = self.0.unwrap_or(!state.gpu.view.show_outlines);
         Ok(format!(
             "Outline {}",
@@ -32,3 +34,4 @@ impl Action for Outline {
         ))
     }
 }
+// --8<-- [end:outline-verb]

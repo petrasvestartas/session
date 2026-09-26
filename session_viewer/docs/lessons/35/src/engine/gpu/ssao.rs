@@ -1,29 +1,36 @@
+// --8<-- [start:ssao-layouts]
+// Ambient occlusion (AO) = how much nearby geometry hides a point from the sky; creases and contacts come out darker.
+// Screen-space = the effect reads only the depth and ids of the frame just drawn, so hidden or off-screen objects cast nothing.
+// GTAO = along a few screen directions, find the highest horizon a pixel sees, then integrate the sky left above it.
+// Depth pyramid = the depth image halved five times; a far sample reads a small level, so a long reach costs few reads.
 use super::pass::{Frame, Pass};
 use super::{Gpu, buffers::GpuCtx, targets::Targets};
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Pipeline, PipelineDesc, Target, build, module, pipeline_layout,
 };
 
+/// Every AO pipeline, compiled for one colour format and one sample count (1x or 4x MSAA).
 pub struct SsaoPipelines {
     target: Target,
     layout: wgpu::BindGroupLayout,
     depth_layout: wgpu::BindGroupLayout,
     sample_layout: wgpu::BindGroupLayout,
     history_layout: wgpu::BindGroupLayout,
-    prepare: wgpu::RenderPipeline,
-    reduce: wgpu::RenderPipeline,
-    occupancy: Pipeline,
-    raw: Pipeline,
-    ground: Pipeline,
-    filter: [Pipeline; 2],
-    history: Pipeline,
-    upsample: Pipeline,
-    composite: Pipeline,
-    edges: Pipeline,
+    prepare: wgpu::RenderPipeline, // full-resolution depth to the AO-size level 0, plus normals
+    reduce: wgpu::RenderPipeline,  // each pyramid level from the one below
+    occupancy: Pipeline, // a coarse mask of tiles near geometry, so empty floor is skipped
+    raw: Pipeline,       // the horizon search
+    ground: Pipeline,    // shadows on the virtual floor
+    filter: [Pipeline; 2], // blur along x, then along y blended with last frame
+    history: Pipeline,   // this frame's depth, for next frame's reuse check
+    upsample: Pipeline,  // AO size back to full size, per MSAA sample
+    composite: Pipeline, // darken the frame by the cache
+    edges: Pipeline,     // 4x: correct the samples that differ from their pixel
     write_layout: wgpu::BindGroupLayout,
     composite_layout: wgpu::BindGroupLayout,
 }
 
+/// A texture the fragment stage reads; `multisampled` when it is the 4x depth or id target.
 fn texture_entry(
     binding: u32,
     sample_type: wgpu::TextureSampleType,
@@ -53,8 +60,12 @@ fn buffer_entry(binding: u32, ty: wgpu::BufferBindingType) -> wgpu::BindGroupLay
         count: None,
     }
 }
+// --8<-- [end:ssao-layouts]
 
+// --8<-- [start:ssao-pipelines]
+/// Compile the whole effect for one target; compiling is slow in a browser, so the result is kept.
 pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
+    // group 0: the frame's depth and ids, the camera uniform, and the mesh buffers that give exact normals
     let layout = ctx
         .device
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -70,6 +81,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
                 texture_entry(7, wgpu::TextureSampleType::Uint, false),
             ],
         });
+    // group 1: one pyramid level of depth, radius and normal
     let depth_layout = ctx
         .device
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -86,6 +98,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
                 )
             }),
         });
+    // group 2: one AO image, read with bilinear filtering
     let sample_layout = ctx
         .device
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -110,6 +123,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
         "ambient depth reduction",
         shader!("ambient_depth.wgsl"),
     );
+    // `build` makes pipelines with one colour target; these write two or three images at once, so they are built by hand
     let depth_pass = |shader: &wgpu::ShaderModule,
                       entry,
                       groups: &[&wgpu::BindGroupLayout],
@@ -138,6 +152,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
                 cache: None,
             })
     };
+    // three images at once: linear depth, packed radius, octahedral normal
     let pyramid = [
         Some(wgpu::TextureFormat::R32Float.into()),
         Some(wgpu::TextureFormat::R16Uint.into()),
@@ -145,6 +160,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
     ];
     let prepare = depth_pass(&shader, "fs_prepare", &[&layout], &pyramid);
     let reduce = depth_pass(&depth_shader, "fs_reduce", &[&depth_layout], &pyramid[..2]);
+    // every working image holds one byte per pixel
     let single = Target {
         format: wgpu::TextureFormat::R8Unorm,
         samples: 1,
@@ -188,6 +204,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
                 ),
             ],
         });
+    // the y filter also reads last frame's AO and depth, to reuse it
     let history_groups = [&layout, &depth_layout, &sample_layout, &history_layout];
     let filter = [
         build(
@@ -219,6 +236,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
         .depth(DepthMode::Detached)
         .with("ambient history depth", "fs_history"),
     );
+    // 4x only: per-sample corrections, flagged tiles, the tile list and the indirect draw arguments
     let write_layout = ctx
         .device
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -239,6 +257,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
             ..desc.with("ambient upsample", "fs_upsample")
         },
     );
+    // read in the vertex stage too, where each flagged tile becomes one square
     let composite_layout = ctx
         .device
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -265,7 +284,7 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
         wgpu::PrimitiveTopology::TriangleList,
     )
     .depth(DepthMode::Detached)
-    .color(ColorWrite::Blended);
+    .color(ColorWrite::Blended); // alpha blending: black at alpha = occlusion darkens what is drawn
     let composite = build(
         ctx,
         target,
@@ -298,11 +317,15 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
         composite_layout,
     }
 }
+// --8<-- [end:ssao-pipelines]
 
+// --8<-- [start:ssao-cache]
+// In the browser, ambient_warm.rs compiles in idle time; `#[path]` names the file because the module is called `warm`.
 #[cfg(target_arch = "wasm32")]
 #[path = "ambient_warm.rs"]
 mod warm;
 
+/// The pipelines for `target`, compiled on first use; slot 0 holds 1x, slot 1 holds 4x.
 pub fn cached<'a>(
     slots: &'a mut [Option<SsaoPipelines>; 2],
     ctx: &GpuCtx,
@@ -316,6 +339,7 @@ pub fn cached<'a>(
         }
         #[cfg(target_arch = "wasm32")]
         {
+            // None until the idle callback has compiled them; the frame draws without AO meanwhile
             *slot = warm::take(ctx, target);
         }
     }
@@ -331,6 +355,7 @@ pub fn prewarm(slots: &mut [Option<SsaoPipelines>; 2], ctx: &GpuCtx, target: Tar
             cached(slots, ctx, Target { samples, ..target });
         }
     }
+    // natively there is no idle callback: compile whenever the user is not dragging
     #[cfg(not(target_arch = "wasm32"))]
     if idle {
         for samples in [1, 4] {
@@ -338,7 +363,10 @@ pub fn prewarm(slots: &mut [Option<SsaoPipelines>; 2], ctx: &GpuCtx, target: Tar
         }
     }
 }
+// --8<-- [end:ssao-cache]
 
+// --8<-- [start:ssao-images]
+/// A texture and its default view.
 struct Image {
     texture: wgpu::Texture,
     view: wgpu::TextureView,
@@ -373,10 +401,12 @@ impl Image {
 
 impl Drop for Image {
     fn drop(&mut self) {
+        // destroy frees the GPU memory now, instead of when the last handle to the texture is gone
         self.texture.destroy();
     }
 }
 
+/// Bind the depth, radius and normal views as group 1.
 fn depth_group(
     ctx: &GpuCtx,
     layout: &wgpu::BindGroupLayout,
@@ -392,6 +422,7 @@ fn depth_group(
     })
 }
 
+/// A colour attachment that starts from zero, or keeps what is there.
 fn attachment(
     view: &wgpu::TextureView,
     clear: bool,
@@ -411,6 +442,7 @@ fn attachment(
     })
 }
 
+// About one AO pixel per CSS pixel, never more than half the canvas: 1920 x 1080 at DPR 1 gives 960 x 540.
 fn resolution(full: (u32, u32), dpr: f64) -> (u32, u32) {
     let scale = (1.0 / dpr.max(1.0)).clamp(0.25, 0.5);
     (
@@ -418,31 +450,35 @@ fn resolution(full: (u32, u32), dpr: f64) -> (u32, u32) {
         (f64::from(full.1) * scale).ceil().max(1.0) as u32,
     )
 }
+// --8<-- [end:ssao-images]
 
+// --8<-- [start:ssao-struct]
+/// The images and buffers of the effect at one canvas size; turning AO off drops them all.
 pub struct Ssao {
     full: (u32, u32),
-    samples: u32,
-    size: (u32, u32),
-    linear: Image,
-    radius: Image,
-    normals: Image,
+    samples: u32,     // 1 or 4
+    size: (u32, u32), // AO size, px
+    linear: Image,    // distance along each pixel's ray, six levels
+    radius: Image,    // each pixel's object AO radius, packed, six levels
+    normals: Image,   // octahedral normal, two bytes
     occupancy: Image,
     occupancy_group: wgpu::BindGroup,
-    ground: Image,
+    ground: Image, // floor shadows at half the AO size
     ground_group: wgpu::BindGroup,
-    levels: [[wgpu::TextureView; 2]; 6],
+    levels: [[wgpu::TextureView; 2]; 6], // one view per level, to render into it
     depth_group: wgpu::BindGroup,
-    reduce_groups: [wgpu::BindGroup; 5],
+    reduce_groups: [wgpu::BindGroup; 5], // level i, read while writing level i + 1
     ao: [Image; 3],
     sampled: [wgpu::BindGroup; 3],
-    history: Image,
+    history: Image, // this frame's depth, checked by the next frame
     history_group: wgpu::BindGroup,
     #[cfg(test)]
-    history_enabled: bool,
-    inverse: wgpu::Buffer,
-    edge_buffers: [wgpu::Buffer; 4],
+    history_enabled: bool, // tests switch reuse off to compare
+    inverse: wgpu::Buffer,           // the camera uniform, 320 bytes
+    edge_buffers: [wgpu::Buffer; 4], // 4x corrections, tile flags, tile list, indirect draw
     edge_write: wgpu::BindGroup,
     edge_read: wgpu::BindGroup,
+    // the scene group, and the views it was made from, to see when it is stale
     group: Option<(
         wgpu::TextureView,
         wgpu::TextureView,
@@ -450,14 +486,17 @@ pub struct Ssao {
         wgpu::TextureView,
         wgpu::BindGroup,
     )>,
-    cached: Option<([f32; 64], u64)>,
-    receiver_bounds: Option<(u64, session_rust::AABB, f32)>,
+    cached: Option<([f32; 64], u64)>, // last uniform and geometry revision
+    receiver_bounds: Option<(u64, session_rust::AABB, f32)>, // floor bounds and largest radius, per revision
     receiver_box: [f32; 6],
 }
 
+// The `impl Ssao` block stays open over the next three steps.
 impl Ssao {
+    /// Floor height and largest AO radius; the virtual floor lies under the lowest visible solid.
     pub fn receiver(&mut self, objects: &super::objects::InstanceTable) -> [f32; 2] {
         let revision = objects.geometry_revision();
+        // the loop over every row runs once per edit, not once per frame
         if self
             .receiver_bounds
             .as_ref()
@@ -467,6 +506,7 @@ impl Ssao {
             let mut radius = 0.01_f32;
             for i in 0..objects.len() {
                 let flags = objects.row(i).unwrap().flags;
+                // lines, points, sheets and hidden rows do not lower the floor
                 if flags & super::Instance::FLAG_HAS_FACES != 0
                     && flags & (super::Instance::FLAG_HIDDEN | super::Instance::FLAG_SHEET) == 0
                     && let Some(b) = objects.row_bounds(i)
@@ -488,14 +528,17 @@ impl Ssao {
         ];
         [self.receiver_box[2], *radius]
     }
+    // --8<-- [end:ssao-struct]
 
+    // --8<-- [start:ssao-new]
+    /// Allocate every image and buffer for a canvas of `full` pixels.
     pub fn new(ctx: &GpuCtx, pipes: &SsaoPipelines, full: (u32, u32), dpr: f64) -> Self {
         let size = resolution(full, dpr);
-        // Small windows still have six valid mip levels.
+        // 32 px halved five times is 1 px, so even a tiny window keeps six valid levels
         let size = (size.0.max(32), size.1.max(32));
         let inverse = ctx.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("ambient camera"),
-            size: 320,
+            size: 320, // 64 floats of camera and rays plus the previous matrix: 80 x 4 bytes
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -514,6 +557,7 @@ impl Ssao {
             wgpu::TextureFormat::Rg8Unorm,
             1,
         );
+        // a view of one mip level alone, so a pass can render into that level
         let levels = std::array::from_fn(|level| {
             [&linear, &radius].map(|image| {
                 image.texture.create_view(&wgpu::TextureViewDescriptor {
@@ -535,6 +579,7 @@ impl Ssao {
                 [&levels[i][0], &levels[i][1], &normals.view],
             )
         });
+        // images 0 and 1 at AO size take turns through the filters; image 2 is the full-size cache the composite reads
         let ao = std::array::from_fn(|i| {
             Image::new(
                 ctx,
@@ -544,6 +589,7 @@ impl Ssao {
                 1,
             )
         });
+        // bilinear = blend the four nearest texels, used when a small image is read at a larger size
         let sampler = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("ambient interpolation"),
             mag_filter: wgpu::FilterMode::Linear,
@@ -570,7 +616,7 @@ impl Ssao {
         let occupancy = Image::new(
             ctx,
             "ambient ground occupancy",
-            (size.0 >> 4, size.1 >> 4),
+            (size.0 >> 4, size.1 >> 4), // one texel per 16 x 16 AO pixels
             wgpu::TextureFormat::R8Unorm,
             1,
         );
@@ -604,6 +650,7 @@ impl Ssao {
                 },
             ],
         });
+        // at 4x: one packed word per pixel for its four samples, one flag per 16 x 16 tile, and the list of flagged tiles
         let pixels = u64::from(full.0) * u64::from(full.1);
         let tiles = u64::from(full.0.div_ceil(16)) * u64::from(full.1.div_ceil(16));
         let edge_buffers = std::array::from_fn(|i| {
@@ -628,6 +675,7 @@ impl Ssao {
                 mapped_at_creation: false,
             })
         });
+        // indirect draw = the GPU reads the draw's counts from a buffer: 6 vertices per tile, instances added by the upsample shader
         ctx.queue
             .write_buffer(&edge_buffers[3], 0, bytemuck::cast_slice(&[6_u32, 0, 0, 0]));
         let edge_write = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -676,7 +724,10 @@ impl Ssao {
             receiver_box: [0.0; 6],
         }
     }
+    // --8<-- [end:ssao-new]
 
+    // --8<-- [start:ssao-bytes]
+    /// GPU bytes of the images, for the memory counters.
     pub fn texture_bytes(&self) -> u64 {
         let pixels = u64::from(self.size.0) * u64::from(self.size.1);
         let pyramid: u64 = (0..self.linear.texture.mip_level_count())
@@ -689,6 +740,7 @@ impl Ssao {
             + u64::from(self.occupancy.texture.width()) * u64::from(self.occupancy.texture.height())
     }
 
+    /// GPU bytes of the uniform and the correction buffers.
     pub fn buffer_bytes(&self) -> u64 {
         320 + self
             .edge_buffers
@@ -697,13 +749,17 @@ impl Ssao {
             .sum::<u64>()
     }
 
+    /// False after a resize, a DPR change or a switch between 1x and 4x; then the images are rebuilt.
     pub fn fits(&self, pipes: &SsaoPipelines, full: (u32, u32), dpr: f64) -> bool {
         let size = resolution(full, dpr);
         self.full == full
             && self.samples == pipes.target.samples
             && self.size == (size.0.max(32), size.1.max(32))
     }
+    // --8<-- [end:ssao-bytes]
 
+    // --8<-- [start:ssao-draw]
+    /// Record the AO passes and return the draw count; with the camera and scene unchanged it only blends the cache.
     #[allow(clippy::too_many_arguments)]
     pub fn draw(
         &mut self,
@@ -719,12 +775,15 @@ impl Ssao {
         revision: u64,
         mut timer: Option<&mut super::timing::PassTimer>,
     ) -> u32 {
+        // let-else: bind the value or leave the function; a degenerate camera matrix has no inverse
         let Some(inverse) = inverse_projection(mvp) else {
             return 0;
         };
+        // the same layout as `Ambient` in ssao.wgsl: 16 floats per matrix, 4 per vec4
         let mut uniform = [0.0; 64];
         uniform[..16].copy_from_slice(&inverse);
         uniform[16..32].copy_from_slice(&mvp);
+        // params = floor height, largest radius, canvas size; extent = ground width, AO size, ground height
         uniform[32..40].copy_from_slice(&[
             ground[0],
             ground[1],
@@ -736,10 +795,12 @@ impl Ssao {
             self.ground.texture.height() as f32,
         ]);
         uniform[40..].copy_from_slice(&pixel_rays(&inverse, self.full));
+        // same camera, same geometry: last frame's cache is still right
         let changed = self.cached != Some((uniform, revision));
         if changed {
             let mut data = [0.0; 80];
             data[..64].copy_from_slice(&uniform);
+            // same geometry, moved camera: pass the previous matrix, and near.w = 1 tells the shader it may reuse last frame
             if let Some((previous, key)) = &self.cached {
                 if *key == revision {
                     data[64..].copy_from_slice(&previous[16..32]);
@@ -753,6 +814,7 @@ impl Ssao {
             ctx.queue
                 .write_buffer(&self.inverse, 0, bytemuck::cast_slice(&data));
         }
+        // rebuild the bind group only when a target or buffer was replaced, after a resize or an upload
         if self
             .group
             .as_ref()
@@ -811,12 +873,16 @@ impl Ssao {
         }
         let group = &self.group.as_ref().unwrap().4;
         if changed {
+            // 4x: clear the tile flags and the instance count before the upsample fills them
             if self.samples > 1 {
                 encoder.clear_buffer(&self.edge_buffers[1], 0, None);
                 encoder.clear_buffer(&self.edge_buffers[3], 4, Some(4));
             }
+            // only the screen rectangle around the visible solids, plus a margin, is shaded
             let rectangle = projected_bounds(mvp, self.receiver_box, self.full);
+            // level 0 from the frame's depth, then each level from the one below it
             for level in 0..6 {
+                // `as_deref_mut` lends the timer for this call and leaves the Option usable afterwards
                 if level == 1
                     && let Some(timer) = timer.as_deref_mut()
                 {
@@ -845,6 +911,7 @@ impl Ssao {
                         (rectangle[3] * self.size.1 as f32).ceil() as u32,
                     ];
                     if hi[0] > lo[0] && hi[1] > lo[1] {
+                        // a scissor rectangle limits drawing to these pixels; the rest of the pass costs nothing
                         pass.set_scissor_rect(lo[0], lo[1], hi[0] - lo[0], hi[1] - lo[1]);
                     }
                 }
@@ -864,6 +931,7 @@ impl Ssao {
                 );
                 pass.draw(0..3, 0..1);
             }
+            // the braces end `pass`, which borrows `encoder`, so the next pass can begin
             {
                 let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("ambient ground occupancy"),
@@ -898,6 +966,7 @@ impl Ssao {
             if let Some(timer) = timer.as_deref_mut() {
                 timer.mark(encoder, "ao.ground");
             }
+            // horizons, blur x, blur y with history, upsample to full size; each reads what the previous one wrote
             for (index, pipe) in [
                 &pipes.raw,
                 &pipes.filter[0],
@@ -916,6 +985,7 @@ impl Ssao {
                     multiview_mask: None,
                 });
                 let size = if index == 3 { self.full } else { self.size };
+                // snapped to 16 px tiles, the tiles of the 4x correction
                 let lo: [u32; 2] = std::array::from_fn(|i| {
                     ((rectangle[i] * [size.0, size.1][i] as f32).floor() as u32) / 16 * 16
                 });
@@ -945,6 +1015,7 @@ impl Ssao {
                     pass.set_bind_group(3, &self.edge_write, &[]);
                 }
                 pass.draw(0..3, 0..1);
+                // end the pass before the timer writes into the encoder
                 drop(pass);
                 if let Some(timer) = timer.as_deref_mut() {
                     timer.mark(
@@ -972,6 +1043,7 @@ impl Ssao {
             }
             self.cached = Some((uniform, revision));
         }
+        // runs every frame: blend the cached AO over the scene, before the MSAA resolve
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("ambient composite"),
             color_attachments: &[attachment(targets.msaa.as_deref().unwrap_or(view), false)],
@@ -992,6 +1064,7 @@ impl Ssao {
             (rectangle[2] * self.full.0 as f32).ceil() as u32,
             (rectangle[3] * self.full.1 as f32).ceil() as u32,
         ];
+        // 13 draws to recompute: 6 levels, occupancy, ground, 4 shading passes, history
         let mut draws = if changed { 13 } else { 0 };
         if hi[0] > lo[0] && hi[1] > lo[1] {
             pass.set_scissor_rect(lo[0], lo[1], hi[0] - lo[0], hi[1] - lo[1]);
@@ -999,6 +1072,7 @@ impl Ssao {
             draws += 1;
             if self.samples > 1 {
                 pass.set_pipeline(&pipes.edges);
+                // how many tile squares to draw comes from the buffer the upsample shader filled
                 pass.draw_indirect(&self.edge_buffers[3], 0);
                 draws += 1;
             }
@@ -1006,7 +1080,10 @@ impl Ssao {
         draws
     }
 }
+// --8<-- [end:ssao-draw]
 
+// --8<-- [start:ssao-math]
+/// The screen rectangle, 0 to 1, of a world box; the whole screen when a corner is behind the camera.
 fn projected_bounds(matrix: [f32; 16], bounds: [f32; 6], full: (u32, u32)) -> [f32; 4] {
     let mut rect = [1.0_f32, 1.0, 0.0, 0.0];
     for corner in 0..8 {
@@ -1017,6 +1094,7 @@ fn projected_bounds(matrix: [f32; 16], bounds: [f32; 6], full: (u32, u32)) -> [f
             1.0,
         ];
         let clip: [f32; 4] =
+            // column-major: element (row, col) sits at col * 4 + row
             std::array::from_fn(|row| (0..4).map(|col| matrix[col * 4 + row] * p[col]).sum());
         if clip[3] <= 0.0 {
             return [0.0, 0.0, 1.0, 1.0];
@@ -1036,6 +1114,7 @@ fn projected_bounds(matrix: [f32; 16], bounds: [f32; 6], full: (u32, u32)) -> [f
     rect
 }
 
+/// The AO shader for 1x or 4x: WGSL has separate types for multisampled textures, so the source is patched.
 fn shader_source(samples: u32) -> String {
     let source = shader!("ssao.wgsl");
     if samples > 1 {
@@ -1068,6 +1147,7 @@ fn pixel_rays(inverse: &[f32; 16], size: (u32, u32)) -> [f32; 24] {
         });
         [p[0] / p[3], p[1] / p[3], p[2] / p[3]]
     };
+    // the shader rebuilds any pixel's ray as base + x * step_x + y * step_y, with no matrix product per pixel
     let near = [
         world(0.0, 0.0, 1.0),
         world(1.0, 0.0, 1.0),
@@ -1115,7 +1195,9 @@ fn inverse_projection(matrix: [f32; 16]) -> Option<[f32; 16]> {
     }
     Some(inverse.map(|v| v as f32))
 }
+// --8<-- [end:ssao-math]
 
+// --8<-- [start:ssao-tests]
 #[cfg(test)]
 mod tests {
     #[cfg(not(target_arch = "wasm32"))]
@@ -1773,13 +1855,16 @@ mod tests {
         }
     }
 }
+// --8<-- [end:ssao-tests]
 
+// --8<-- [start:ambient-pass]
 /// Ambient occlusion over the faces; its pipelines at 1x and 4x stay while it is off.
 pub struct Ambient {
     ssao: Option<Ssao>,                // the textures and buffers, when on
     pipes: [Option<SsaoPipelines>; 2], // at 1x and 4x
 }
 
+// PASSES calls this at start-up; nothing is allocated until AO is switched on
 /// The ambient pass, off.
 pub fn pass(_ctx: &GpuCtx, _target: Target) -> Box<dyn Pass> {
     Box::new(Ambient {
@@ -1796,6 +1881,7 @@ impl Ambient {
     }
 }
 
+// `bytes` feeds the memory counters, so the AO images show in ?inspect=1
 impl super::lane::Lane for Ambient {
     fn bytes(&self) -> (u64, u64) {
         (
@@ -1808,11 +1894,13 @@ impl super::lane::Lane for Ambient {
 impl Pass for Ambient {
     /// The same quality throughout navigation.
     fn after_faces(&mut self, g: &mut Gpu, encoder: &mut wgpu::CommandEncoder, f: &Frame) -> u32 {
+        // opacity 0 hides the faces, so there is nothing to occlude
         let ambient = g.view.ssao && g.view.opacity > 0.0 && g.live_faces() > 0;
         let mut draws = 0;
 
         if ambient {
             let full = (g.config.width, g.config.height);
+            // device pixels per CSS pixel, e.g. 2 on a HiDPI laptop
             let dpr = f64::from(full.0) / g.logical_size[0].max(1.0);
             let target = g.target();
             if let Some(pipes) = cached(&mut self.pipes, &g.ctx, target) {
@@ -1824,6 +1912,7 @@ impl Pass for Ambient {
                 {
                     self.ssao = None;
                 }
+                // `get_or_insert_with` runs the closure only when the Option is None
                 let ssao = self
                     .ssao
                     .get_or_insert_with(|| Ssao::new(&g.ctx, pipes, full, dpr));
@@ -1844,6 +1933,7 @@ impl Pass for Ambient {
                 );
             }
         } else {
+            // off: drop the images at once, keep the compiled pipelines
             self.ssao = None;
         }
 
@@ -1858,6 +1948,7 @@ impl Pass for Ambient {
             && self.pipes[usize::from(g.targets.samples > 1)].is_none()
     }
 
+    // after the frame is on screen, compile ahead; natively only while not dragging
     fn after_present(&mut self, g: &mut Gpu) {
         if g.live_faces() > 0 {
             let target = g.target();
@@ -1865,3 +1956,4 @@ impl Pass for Ambient {
         }
     }
 }
+// --8<-- [end:ambient-pass]
