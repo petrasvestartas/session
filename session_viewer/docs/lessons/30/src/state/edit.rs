@@ -892,6 +892,7 @@ mod egui_tests {}
 // --8<-- [end:22-egui-tests]
 
 // --8<-- [start:23-run-command]
+// --8<-- [start:run-command]
 impl State {
     /// Run one command line; the answer is what to show the person.
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
@@ -919,6 +920,7 @@ impl State {
         action.run(self)
     }
 }
+// --8<-- [end:run-command]
 // --8<-- [end:23-run-command]
 
 // --8<-- [start:25-upload-gizmo]
@@ -1044,6 +1046,7 @@ mod egui_tests_25 {
 // --8<-- [end:25-widget-test]
 
 // --8<-- [start:30-layers-panel]
+// --8<-- [start:layers-panel]
 impl State {
     /// L: open or close the layers panel.
     pub fn toggle_layers_panel(&mut self) {
@@ -1124,9 +1127,11 @@ fn edge_label(scene: &crate::app::scene::Scene, row: u32) -> String {
             .unwrap_or_default(),
     }
 }
+// --8<-- [end:layers-panel]
 // --8<-- [end:30-layers-panel]
 
 // --8<-- [start:30-panel-tests]
+// --8<-- [start:panel-tests]
 #[cfg(test)]
 mod panel_tests {
     use super::*;
@@ -1156,4 +1161,5 @@ mod panel_tests {
         assert_eq!(edge_label(&scene, 1), guid[..8]);
     }
 }
+// --8<-- [end:panel-tests]
 // --8<-- [end:30-panel-tests]

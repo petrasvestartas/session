@@ -1,3 +1,4 @@
+// --8<-- [start:text-parse]
 use crate::State;
 use crate::app::command::tool::{Next, Tool, typed_number};
 use crate::app::command::{Action, Spec};
@@ -11,7 +12,7 @@ pub const SPEC: Spec = Spec {
     hint: "Text Hello world · then click or type the lower-left point · Height N sets the letter height",
     options: &[],
     arity: None,
-    wait_for_option: true,
+    wait_for_option: true, // completing `Te` gives `Text ` and waits for the words instead of running
     wait_after_option: false,
     parse,
 };
@@ -45,6 +46,7 @@ impl Action for Text {
     /// Start asking for the insertion point.
     fn run(&self, state: &mut State) -> Result<String, String> {
         let height = match HEIGHT.get() {
+            // The first text is a 25th of the view distance, rounded to a tidy 1, 2 or 5.
             0.0 => nice(state.camera.distance_world() / 25.0),
             last => last,
         };
@@ -55,7 +57,9 @@ impl Action for Text {
         }))
     }
 }
+// --8<-- [end:text-parse]
 
+// --8<-- [start:placing]
 /// Picks the lower-left point; `Height N` changes the letter height first.
 #[derive(Debug)]
 struct Placing {
@@ -119,6 +123,7 @@ impl Tool for Placing {
         plane: &Plane,
     ) -> Result<Next, String> {
         let camera = &state.camera.orientation;
+        // The text lies in the drawing plane, turned so it reads left to right from where the camera looks.
         let (right, up) = reading_axes(
             &plane.x_axis(),
             &plane.y_axis(),
@@ -126,6 +131,7 @@ impl Tool for Placing {
             &camera.rotate_vector(Vector::z_axis()),
         );
         let label = label(&self.text, &points[0], right, up, self.height);
+        // The label joins the scene texts as one undo step.
         state.add_text(label);
         HEIGHT.set(self.height);
         Ok(Next::Done(format!(
@@ -134,7 +140,9 @@ impl Tool for Placing {
         )))
     }
 }
+// --8<-- [end:placing]
 
+// --8<-- [start:text-label]
 /// A white-on-black label standing on `point` in the plane of `right` and `up`.
 fn label(text: &str, point: &Point, right: [f64; 3], up: [f64; 3], height: f64) -> TextLabel {
     let lift = height * f64::from(LINE_HEIGHT) / f64::from(FONT_SIZE); // the line box above the point
@@ -157,6 +165,7 @@ fn label(text: &str, point: &Point, right: [f64; 3], up: [f64; 3], height: f64) 
 
 /// Of the plane axes `a` and `b`, the one along the screen's right and the other toward its top.
 fn reading_axes(a: &Vector, b: &Vector, right: &Vector, up: &Vector) -> ([f64; 3], [f64; 3]) {
+    // The plane axis closest to the screen's right runs along the text; each axis is flipped if it points backward.
     let (along, across) = if a.dot(right).abs() >= b.dot(right).abs() {
         (a, b)
     } else {
@@ -183,7 +192,9 @@ fn nice(value: f64) -> f64 {
     };
     step * power
 }
+// --8<-- [end:text-label]
 
+// --8<-- [start:text-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -263,3 +274,4 @@ mod tests {
         assert_eq!(nice(f64::NAN), 1.0);
     }
 }
+// --8<-- [end:text-tests]

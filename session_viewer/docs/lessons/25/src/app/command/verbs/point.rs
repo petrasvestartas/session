@@ -3,6 +3,7 @@ use crate::app::command::{Action, Spec};
 use session_rust::{Geometry, Point};
 use std::rc::Rc;
 
+// The whole verb is this one constant: REGISTRY lists `&point::SPEC`, and nothing else in the viewer names Point.
 pub const SPEC: Draw = Draw {
     spec: Spec {
         names: &["Point"],
@@ -12,15 +13,15 @@ pub const SPEC: Draw = Draw {
         arity: None,
         wait_for_option: false,
         wait_after_option: false,
-        parse,
+        parse, // shorthand for `parse: parse`, the function below
     },
-    points: 1..=1,
+    points: 1..=1, // exactly one point, so the first click finishes it
     what: "point",
     buttons: &[],
     build,
 };
 
-/// One point at a typed coordinate.
+/// `Point 1,2,3`: the shared Draw parser checks the words and the count.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     Draw::parse(&SPEC, rest)
 }

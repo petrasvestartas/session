@@ -1,3 +1,4 @@
+// --8<-- [start:lasso-spec]
 use super::selecting;
 use crate::State;
 use crate::app::command::tool::cut::planar;
@@ -40,7 +41,9 @@ impl Action for SelectLasso {
         state.open_tool(Box::new(Lasso::default()))
     }
 }
+// --8<-- [end:lasso-spec]
 
+// --8<-- [start:lasso-tool]
 /// The loop being drawn, device pixels.
 #[derive(Debug, Default)]
 struct Lasso {
@@ -105,6 +108,7 @@ impl Tool for Lasso {
         Vec::new()
     }
 
+    /// The left button went down: start a new loop; true claims the drag, so the view does not orbit.
     fn pressed(&mut self, _state: &mut State, at: (f64, f64)) -> bool {
         self.points.clear();
         self.points.push(at);
@@ -173,8 +177,10 @@ impl Tool for Lasso {
         serde_json::json!({ "command": self.name(), "outline": self.points.len() })
     }
 }
+// --8<-- [end:lasso-tool]
 
-/// A closed loop indexed by pixel row: where each row's centre line crosses it, for the even-odd test.
+// --8<-- [start:lasso-region]
+/// A closed loop indexed by pixel row. Even-odd rule: a point is inside when its row crosses the loop an odd number of times to its left.
 struct Region {
     top: f64,            // the first row's top edge, device pixels
     rows: Vec<Vec<f64>>, // crossings per row, ascending
@@ -223,7 +229,7 @@ impl Region {
             return false;
         }
 
-        self.rows[row as usize].partition_point(|x| *x < at.0) % 2 == 1
+        self.rows[row as usize].partition_point(|x| *x < at.0) % 2 == 1 // partition_point counts the crossings left of `at` by binary search on the sorted row
     }
 }
 
@@ -238,7 +244,9 @@ fn screen(m: &[f64; 16], p: [f64; 3], size: (f64, f64)) -> Option<(f64, f64)> {
         )
     })
 }
+// --8<-- [end:lasso-region]
 
+// --8<-- [start:lasso-inside]
 /// Selectable rows whose samples all land inside `region`, ascending.
 fn inside(state: &State, region: &Region) -> Vec<u32> {
     let origin = state.camera.origin();
@@ -273,7 +281,7 @@ fn inside(state: &State, region: &Region) -> Vec<u32> {
         .collect()
 }
 
-/// Whether every sample of `geometry`, in its own frame, passes `inside`; None when only its box can tell.
+/// Whether every sample, in the object's own frame, passes `inside`, any function or closure taking a point; None when only its box can tell.
 fn enclosed(geometry: &Geometry, inside: &dyn Fn([f64; 3]) -> bool) -> Option<bool> {
     match geometry {
         Geometry::Point(point) => every(std::iter::once(xyz(point)), inside),
@@ -329,7 +337,7 @@ fn xyz(point: &Point) -> [f64; 3] {
     [point[0], point[1], point[2]]
 }
 
-/// A straight curve's corners, else `steps` even steps over its domain.
+/// A straight curve's corners, else `steps` even steps. `impl Iterator + '_`: an iterator borrowing the curve, making samples one at a time, never stored.
 fn curve_samples(curve: &NurbsCurve, steps: usize) -> impl Iterator<Item = [f64; 3]> + '_ {
     let straight = curve.degree() == 1;
     let (t0, t1) = curve.domain();
@@ -372,7 +380,9 @@ fn brep_samples(brep: &BRep) -> impl Iterator<Item = [f64; 3]> + '_ {
         .flat_map(|surface| surface_samples(surface, FACE_STEPS));
     vertices.chain(edges).chain(faces)
 }
+// --8<-- [end:lasso-inside]
 
+// --8<-- [start:lasso-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -611,3 +621,4 @@ mod tests {
         assert_eq!(accept("select l"), ("Select Lasso".into(), true));
     }
 }
+// --8<-- [end:lasso-tests]

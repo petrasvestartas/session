@@ -1,3 +1,4 @@
+// --8<-- [start:cutter]
 use session_rust::{Geometry, Line, NurbsCurve, NurbsSurface, Plane, Point, Vector, Xform};
 
 /// A cutting or bounding object, in the frame of the object it acts on.
@@ -8,7 +9,7 @@ pub enum Cutter {
 }
 
 impl Cutter {
-    /// The cutter moved by `xform`; a plane is rebuilt from three moved points.
+    /// The cutter moved by `xform`, e.g. into a target's own coordinates, where the cut is computed; a plane is rebuilt from three moved points.
     pub fn moved(&self, xform: &Xform) -> Option<Cutter> {
         match self {
             Cutter::Curve(curve) => Some(Cutter::Curve(curve.transformed(xform))),
@@ -54,10 +55,10 @@ pub fn planar(surface: &NurbsSurface) -> Option<Plane> {
     }
 
     let mut plane = Plane::invalid();
-    (surface.is_planar(Some(&mut plane), 1e-6 * size) && plane.is_valid()).then_some(plane)
+    (surface.is_planar(Some(&mut plane), 1e-6 * size) && plane.is_valid()).then_some(plane) // flat when every control point lies within a millionth of its size of one plane
 }
 
-/// The plane through `line` that holds `normal`: a vertical cut when `normal` is the view's up.
+/// The plane standing on `line` along `normal`: a line drawn in Top view cuts like a knife held upright.
 pub fn fence_plane(line: &Line, normal: &Vector) -> Result<Plane, String> {
     let across = line.to_vector().cross(normal);
 
@@ -133,7 +134,9 @@ pub fn nearest_px(polylines: &[Vec<(f64, f64)>], at: (f64, f64), aperture: f64) 
 
     best.map(|(index, _)| index)
 }
+// --8<-- [end:cutter]
 
+// --8<-- [start:cutter-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -239,3 +242,4 @@ mod tests {
         assert!((hits[0][2] - 0.001).abs() < 1e-9);
     }
 }
+// --8<-- [end:cutter-tests]

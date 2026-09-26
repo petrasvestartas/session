@@ -27,7 +27,7 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
 
 /// The line with a head at its end.
 fn build(points: &[Point]) -> Result<Geometry, String> {
-    let mut line = super::line::segment(points)?;
-    line.arrowhead = Arrowhead::END;
+    let mut line = super::line::segment(points)?; // `super::line` is the sibling file verbs/line.rs
+    line.arrowhead = Arrowhead::END; // the kernel line carries the head; lesson 04b draws it with its tip exactly on the end point
     Ok(Geometry::Line(Rc::new(line)))
 }

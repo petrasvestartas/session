@@ -1,3 +1,5 @@
+// --8<-- [start:add-edge-verb]
+// Add Edge: join the two selected objects by an edge of their session's graph.
 use crate::State;
 use crate::app::command::{Action, Spec};
 use crate::app::feedback;
@@ -50,10 +52,13 @@ impl Action for AddEdge {
         true
     }
 }
+// --8<-- [end:add-edge-verb]
 
+// --8<-- [start:add-edge-scene]
 impl Scene {
     /// Join two objects of one document by a graph edge without an attribute, in one undo step.
     pub(crate) fn connect(&mut self, rows: &[u32]) -> Result<String, String> {
+        // a slice pattern: it matches a slice of exactly two rows and names them
         let &[first, second] = rows else {
             return Err(format!(
                 "Add Edge connects exactly two selected objects ({} selected)",
@@ -112,7 +117,7 @@ impl Scene {
             .retain(|(held, label), _| in_history(&self.docs, *held, label));
         self.edge_steps.insert((doc, key), step);
         self.edited(&[doc]);
-        self.row_revision = self.row_revision.wrapping_add(1);
+        self.row_revision = self.row_revision.wrapping_add(1); // a new revision makes the panel rebuild its graph table
         Ok(format!(
             "Connected {} and {}",
             self.object_name(first),
@@ -120,7 +125,9 @@ impl Scene {
         ))
     }
 }
+// --8<-- [end:add-edge-scene]
 
+// --8<-- [start:add-edge-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -231,3 +238,4 @@ mod tests {
         assert!(scene.docs[0].session.history.undo_stack.is_empty());
     }
 }
+// --8<-- [end:add-edge-tests]

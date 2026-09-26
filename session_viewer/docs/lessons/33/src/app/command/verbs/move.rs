@@ -1,3 +1,4 @@
+// --8<-- [start:move-spec]
 use crate::State;
 use crate::app::command::tool::{Next, Tool, translation};
 use crate::app::command::{Action, Spec, offset};
@@ -14,7 +15,7 @@ pub const SPEC: Spec = Spec {
     parse,
 };
 
-/// Pick a base and a target point, or shift the selection by a typed offset.
+/// Two actions: `Move 10,0,0` acts at once; a bare `Move` starts the Moving tool, which asks for two points.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     if rest.is_empty() {
         return Ok(Box::new(Moving));
@@ -38,7 +39,7 @@ impl Action for Move {
 }
 
 /// Move by two picked points; the selection follows the cursor.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug)] // Clone, so run can box a copy of itself as the tool
 struct Moving;
 
 impl Action for Moving {
@@ -51,7 +52,9 @@ impl Action for Moving {
         true
     }
 }
+// --8<-- [end:move-spec]
 
+// --8<-- [start:move-tool]
 impl Tool for Moving {
     fn name(&self) -> &'static str {
         "Move"
@@ -82,13 +85,15 @@ impl Tool for Moving {
         points: &[Point],
         _plane: &Plane,
     ) -> Result<Next, String> {
-        let [from, to] = points else {
+        let [from, to] = points else { // a slice pattern: exactly two points, else ask for the next
             return Ok(Next::More);
         };
         state.apply(translation(from, to), "move").map(Next::Done)
     }
 }
+// --8<-- [end:move-tool]
 
+// --8<-- [start:move-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -115,3 +120,4 @@ mod tests {
         assert!(Moving.prompt(&base).starts_with("Point to move to"));
     }
 }
+// --8<-- [end:move-tests]

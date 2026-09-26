@@ -1,3 +1,4 @@
+// --8<-- [start:mark-target]
 use crate::State;
 use crate::app::command::tool::{Overlay, Stroke};
 use crate::app::selection::SelectionMode;
@@ -5,6 +6,7 @@ use crate::camera::Unit;
 use session_rust::{Geometry, Mesh, Point, Vector, Xform};
 
 /// A measured answer drawn in the scene until the next command, Esc or a change of rows.
+// A mark remembers the scene's row revision, which grows on every change; once they differ the objects may have moved and it hides.
 pub(crate) struct Mark {
     points: Vec<Point>, // world points, joined by a line
     label: String,      // the value beside them
@@ -12,6 +14,7 @@ pub(crate) struct Mark {
 }
 
 /// One selected object to measure.
+// `'a` ties each Target to the State it borrows the geometry from, so no kernel object is copied to measure it.
 pub(crate) struct Target<'a> {
     pub row: u32,               // scene row
     pub geometry: &'a Geometry, // its kernel object
@@ -45,6 +48,7 @@ pub(crate) fn selected(state: &State) -> (Vec<Target<'_>>, usize) {
 
 /// Ask for released documents of the selection back; the error says to try again.
 pub(crate) fn loading(state: &mut State) -> Result<(), String> {
+    // A released document (lesson 16) keeps no kernel objects in memory, so it is fetched back before anything is measured.
     let docs: Vec<usize> = state
         .selected_rows()
         .iter()
@@ -65,7 +69,9 @@ pub(crate) fn loading(state: &mut State) -> Result<(), String> {
         state.scene.docs[doc].name
     ))
 }
+// --8<-- [end:mark-target]
 
+// --8<-- [start:face-area]
 /// Visit the triangles the viewer draws for face `face`, in world coordinates: the cached triangulation, else a fan.
 pub(crate) fn for_each_triangle(
     mesh: &Mesh,
@@ -73,6 +79,7 @@ pub(crate) fn for_each_triangle(
     place: &Xform,
     visit: impl FnMut([Point; 3]),
 ) {
+    // A fan = triangles from the first corner to each next pair of corners, the simplest way to cut a polygon.
     let at = |key: usize| mesh.vertex_point(key).map(|p| p.transformed(place));
     let triangle = |[a, b, c]: [usize; 3]| Some([at(a)?, at(b)?, at(c)?]);
 
@@ -100,6 +107,7 @@ pub(crate) fn compute_face_area(mesh: &Mesh, face: usize, place: &Xform) -> f64 
         .triangulation
         .get(&face)
         .is_some_and(|tris| !tris.is_empty());
+    // A triangle's cross product is as long as twice its area; summed as vectors, the parts where a concave fan overlaps cancel.
     let mut summed = Vector::new(0.0, 0.0, 0.0); // signed fan normals
     let mut unsigned = 0.0; // triangle areas, doubled
 
@@ -141,6 +149,7 @@ pub(crate) fn compute_mesh_area(mesh: &Mesh, place: &Xform, face: Option<usize>)
 
 /// Six times the signed volume the mesh's triangles sweep from `origin`, in world units.
 pub(crate) fn compute_swept(mesh: &Mesh, place: &Xform, origin: &Point) -> f64 {
+    // Each triangle and the origin make a tetrahedron whose triple product is six times its signed volume; over a closed mesh the outside parts cancel.
     let mut total = 0.0;
 
     for face in mesh.faces() {
@@ -151,7 +160,9 @@ pub(crate) fn compute_swept(mesh: &Mesh, place: &Xform, origin: &Point) -> f64 {
 
     total
 }
+// --8<-- [end:face-area]
 
+// --8<-- [start:value-text]
 /// A value with at most three decimals, no trailing zeros, and no minus on zero.
 pub fn to_text(value: f64) -> String {
     // too small for three decimals but not zero
@@ -192,7 +203,10 @@ pub fn skipped_text(count: usize) -> String {
         _ => format!(" · {} skipped", plural(count, "other object")),
     }
 }
+// --8<-- [end:value-text]
 
+// --8<-- [start:mark-state]
+// The measure verbs keep their State methods here, in one more `impl State` block.
 impl State {
     /// Draw `label` along world `points` until the next command, Esc or a change of rows.
     pub(crate) fn set_mark(&mut self, points: Vec<Point>, label: String) {
@@ -235,6 +249,7 @@ impl State {
             return None;
         }
 
+        // One point: a chip under the selection. Two: a line with end squares and the value in the middle.
         if let [(x, y)] = points[..] {
             let below = 30.0 * self.pixel_scale(); // clear of the selected-name chip
             return Some(Overlay {
@@ -270,7 +285,9 @@ impl State {
         }
     }
 }
+// --8<-- [end:mark-state]
 
+// --8<-- [start:measure-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -337,3 +354,4 @@ mod tests {
         assert!((swept - 1.6).abs() < 1e-9);
     }
 }
+// --8<-- [end:measure-tests]

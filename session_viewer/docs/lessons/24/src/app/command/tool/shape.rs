@@ -1,3 +1,4 @@
+// --8<-- [start:shape-ask]
 use crate::State;
 use crate::app::command::tool::{Next, Overlay, Stroke, Tool, typed_number};
 use crate::app::command::{Action, verbs};
@@ -10,6 +11,7 @@ use std::sync::OnceLock;
 pub const MESH_QUALITY: (f64, f64) = (10.0, 0.002); // tessellation of a Mesh option: degrees, chord factor
 pub const RING: usize = 64; // preview samples of a full circle
 
+// The buttons a kind of shape offers; with no option typed, the first one is chosen.
 pub const BREP_MESH: &[(&str, &str)] = &[("Brep", "Brep"), ("Mesh", "Mesh"), ("Cancel", "Escape")];
 pub const MESH_ONLY: &[(&str, &str)] = &[("Mesh", "Mesh"), ("Cancel", "Escape")];
 pub const CURVE: &[(&str, &str)] = &[("Cancel", "Escape")];
@@ -23,6 +25,7 @@ pub enum Answer {
 
 /// How a question reads a bare number.
 #[derive(Clone, Copy, Debug, PartialEq)]
+// A bare `30` is a distance along the rubber band for a point, and simply 30 for a size or height.
 pub enum Kind {
     Point,  // a distance along the rubber band
     Size,   // the value itself
@@ -73,9 +76,12 @@ impl Ask {
         }
     }
 }
+// --8<-- [end:shape-ask]
 
+// --8<-- [start:shape-frame]
 /// A right-handed frame: in-plane x and y, normal z.
 #[derive(Clone, Debug)]
+// Every shape is built around the world origin in these local axes, then one matrix puts it on the drawing plane.
 pub struct Frame {
     pub origin: Point, // the first point answered
     pub x: Vector,     // in the plane
@@ -151,12 +157,12 @@ impl Frame {
 
     /// Local to world.
     pub fn to_xform(&self) -> Xform {
-        Xform::frame_to_world(&self.origin, &self.x, &self.y, &self.z)
+        Xform::frame_to_world(&self.origin, &self.x, &self.y, &self.z) // local (1, 0, 0) lands at origin + x
     }
 
     /// A closed ellipse of radii `rx`, `ry` at height `w`.
     pub fn oval(&self, rx: f64, ry: f64, w: f64) -> Vec<Point> {
-        (0..=RING)
+        (0..=RING) // RING + 1 samples: the last repeats the first and closes the wire
             .map(|i| {
                 let angle = std::f64::consts::TAU * i as f64 / RING as f64;
                 self.at(rx * angle.cos(), ry * angle.sin(), w)
@@ -216,7 +222,9 @@ impl Frame {
         }
     }
 }
+// --8<-- [end:shape-frame]
 
+// --8<-- [start:shape-static]
 /// What the answers say so far: the placed frame and the sizes known.
 #[derive(Clone, Debug)]
 pub struct Part {
@@ -235,6 +243,7 @@ impl Part {
 }
 
 /// A creation command: its questions, preview and kernel object.
+// A Shape is plain data: a command fills one `static` with five functions, so a new shape needs no new type or trait.
 pub struct Shape {
     pub name: &'static str,                               // shown name, e.g. `Box`
     pub options: &'static [(&'static str, &'static str)], // buttons: (label, line)
@@ -261,6 +270,7 @@ impl Shape {
     }
 
     /// The option `words` start with and how many words spell it, ignoring case and spaces.
+    // Letters are compared across word breaks, so `3 Points` and `3points` both pick the option `3 Points`.
     fn option_in(&self, words: &[&str]) -> Option<(usize, usize)> {
         self.choices().enumerate().find_map(|(index, label)| {
             let target = compact(label);
@@ -289,9 +299,12 @@ fn compact(text: &str) -> String {
         .collect::<String>()
         .to_ascii_lowercase()
 }
+// --8<-- [end:shape-static]
 
+// --8<-- [start:shape-helpers]
 /// A positive, finite size, or a message naming it.
 pub fn positive(value: f64, what: &str) -> Result<f64, String> {
+    // NaN fails every comparison, so the `!` refuses it too
     if !(value.is_finite() && value > 1e-9 && value <= 1e9) {
         return Err(format!("{what} must be above zero"));
     }
@@ -317,6 +330,7 @@ pub fn frame_of(plane: &Plane, answers: &[Answer]) -> Frame {
     Frame::new(plane, origin)
 }
 
+// Shapes that ask the same questions share these functions: Sphere, the polyhedra and Quad Sphere all point at them.
 /// Center, then radius: the questions of a sphere-like shape.
 pub fn center_radius(answers: &[Answer], _part: &Part, _option: &str) -> Option<Ask> {
     match answers.len() {
@@ -350,9 +364,12 @@ pub fn sphere_outline(part: &Part) -> Vec<Vec<Point>> {
         side.rolled().ring(radius, 0.0),
     ]
 }
+// --8<-- [end:shape-helpers]
 
+// --8<-- [start:shape-kernel]
 /// One mesh of every part's faces; corners within a billionth of the size share a vertex.
 pub fn to_mesh(parts: &[Mesh]) -> Mesh {
+    // The kernel meshes each BRep face on its own, so a corner shared by three faces arrives three times.
     let polygons: Vec<Vec<Point>> = parts
         .iter()
         .flat_map(|part| part.face_outlines())
@@ -365,7 +382,7 @@ pub fn to_mesh(parts: &[Mesh]) -> Mesh {
     let size = polygons.iter().flatten().fold(0.0_f64, |size, p| {
         size.max(p[0].abs()).max(p[1].abs()).max(p[2].abs())
     });
-    let step = (size * 1e-9).max(1e-12);
+    let step = (size * 1e-9).max(1e-12); // a model 1000 units across welds corners closer than 0.000001
     let mut cells: HashMap<[i64; 3], Point> = HashMap::new();
     let welded = polygons
         .into_iter()
@@ -381,6 +398,7 @@ pub fn to_mesh(parts: &[Mesh]) -> Mesh {
 
 /// The point already stored within `step` of `p` in this or a neighbouring cell, else `p`.
 fn weld(cells: &mut HashMap<[i64; 3], Point>, p: Point, step: f64) -> Point {
+    // Rounding puts the point in a grid cell; two copies can straddle a cell border, so the 26 neighbours are searched too.
     let key = [0, 1, 2].map(|i| (p[i] / step).round() as i64);
 
     for dx in -1..=1 {
@@ -440,6 +458,7 @@ pub fn unit_faces(
     cache: &'static OnceLock<Vec<Vec<[f64; 3]>>>,
     make: fn(f64) -> Mesh,
 ) -> &'static [Vec<[f64; 3]>] {
+    // Built on the first preview, then every later frame only scales these unit corners.
     cache.get_or_init(|| {
         let mesh = make(1.0);
         let scale = 1.0 / circumradius(&mesh);
@@ -487,11 +506,14 @@ pub fn polyhedron_of(
         return Err("The radius must be at least 0.001 for a Brep".into());
     }
 
-    let mesh = make(radius / circumradius(&make(1.0)));
+    let mesh = make(radius / circumradius(&make(1.0))); // the kernel's size is not the corner radius; a unit build gives the ratio
     Ok(polyhedron(mesh, option, &part.frame.to_xform(), name))
 }
+// --8<-- [end:shape-kernel]
 
+// --8<-- [start:shape-start]
 /// Start drawing `shape`: a leading word picks an option, the rest answer its questions.
+// `&'static Shape`: the Shape is a static that lives as long as the program, so the Action may keep the reference.
 pub fn start(shape: &'static Shape, words: &[&str]) -> Result<Box<dyn Action>, String> {
     let (option, rest) = match shape.option_in(words) {
         Some((index, count)) => (index, &words[count..]),
@@ -535,6 +557,7 @@ impl Action for Start {
             return Ok(prompt);
         }
 
+        // Typed answers go through the command line one after another, exactly as if typed after each prompt.
         let answer = state.run_command(&self.words.join(" "));
 
         if answer.is_err() {
@@ -544,7 +567,9 @@ impl Action for Start {
         answer
     }
 }
+// --8<-- [end:shape-start]
 
+// --8<-- [start:shaping]
 /// A shape being drawn: its option and the answers so far.
 pub struct Shaping {
     shape: &'static Shape, // what it makes
@@ -605,6 +630,7 @@ impl Shaping {
             return Ok(Next::More);
         }
 
+        // No question left: build the kernel object and add it to the document as one undo step.
         let geometry = (self.shape.build)(&part, self.choice())?;
         let what = match self.choice() {
             "" => self.shape.name.to_ascii_lowercase(),
@@ -615,11 +641,13 @@ impl Shaping {
 
     /// The cursor on the normal through the first point, None when the view looks along it.
     fn on_axis(&self, state: &State, at: (f64, f64)) -> Option<Point> {
+        // The point on the normal line closest to the view ray under the cursor: the standard closest-points formula for two lines.
         let (origin, direction) = state.camera.ray(at, state.viewport())?;
         let axis = &self.part.frame;
         let (a, b) = (direction.dot(&direction), direction.dot(&axis.z));
         let denominator = a - b * b; // |z| = 1
 
+        // the ray runs almost along the normal: no single closest point
         if denominator <= 0.01 * a {
             return None;
         }
@@ -638,7 +666,9 @@ impl Shaping {
             .map_or_else(|| self.part.clone(), |(_, part)| part)
     }
 }
+// --8<-- [end:shaping]
 
+// --8<-- [start:shaping-tool]
 impl Tool for Shaping {
     fn name(&self) -> &'static str {
         self.shape.name
@@ -779,7 +809,7 @@ impl Tool for Shaping {
             for p in &wire {
                 match screen.point(p) {
                     Some(at) => points.push(at),
-                    None if points.len() >= 2 => strokes.push(stroke(std::mem::take(&mut points))),
+                    None if points.len() >= 2 => strokes.push(stroke(std::mem::take(&mut points))), // behind the eye: end this piece of the wire
                     None => points.clear(),
                 }
             }
@@ -816,7 +846,9 @@ fn stroke(points: Vec<(f64, f64)>) -> Stroke {
         dashed: false,
     }
 }
+// --8<-- [end:shaping-tool]
 
+// --8<-- [start:shape-tests]
 #[cfg(test)]
 pub mod tests {
     use super::*;
@@ -984,8 +1016,10 @@ pub mod tests {
         }
     }
 }
+// --8<-- [end:shape-tests]
 
-// --8<-- [start:23c]
+// --8<-- [start:23c-option-words]
+// --8<-- [start:option-words]
 #[cfg(test)]
 mod surfacing_tests {
     use super::*;
@@ -1004,4 +1038,5 @@ mod surfacing_tests {
         assert_eq!(arc.option_in(&["3"]), None);
     }
 }
-// --8<-- [end:23c]
+// --8<-- [end:option-words]
+// --8<-- [end:23c-option-words]

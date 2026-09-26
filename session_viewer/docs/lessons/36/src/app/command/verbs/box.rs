@@ -1,3 +1,5 @@
+// --8<-- [start:box-spec]
+// `self` in the list also imports the module itself, so `shape::start` and `shape::solid` read as calls into it.
 use crate::app::command::tool::shape::{
     self, Answer, Ask, BREP_MESH, Frame, Part, Shape, nonzero, positive,
 };
@@ -16,6 +18,7 @@ pub const SPEC: Spec = Spec {
     parse,
 };
 
+// `ask,` is short for `ask: ask`: each field names the function of the same name below.
 pub static SHAPE: Shape = Shape {
     name: "Box",
     options: BREP_MESH,
@@ -30,10 +33,13 @@ pub static SHAPE: Shape = Shape {
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     shape::start(&SHAPE, rest)
 }
+// --8<-- [end:box-spec]
 
+// --8<-- [start:box-questions]
 /// Base center, a corner or the length, the width after a typed length, then the height.
 pub fn ask(answers: &[Answer], part: &Part, _option: &str) -> Option<Ask> {
     match (answers.len(), part.sizes.as_slice()) {
+        // The count of sizes read so far says which question comes next: one size means the length was typed.
         (0, _) => Some(Ask::point("Base center")),
         (1, _) => Some(Ask::size("Corner or length")),
         (_, &[length]) => Some(Ask::size("Width").or(length)),
@@ -45,10 +51,12 @@ pub fn ask(answers: &[Answer], part: &Part, _option: &str) -> Option<Ask> {
 /// Length, width and signed height; a corner click gives length and width at once.
 pub fn read(frame: &Frame, answers: &[Answer], _option: &str) -> Result<Part, String> {
     let mut part = Part::new(frame.clone());
+    // The first answer is the base center, which the frame already holds.
     let mut rest = answers.iter().skip(1);
 
     match rest.next() {
         Some(Answer::Point(corner)) => {
+            // The base center sits in the middle, so each size is twice the corner's offset from it.
             let [u, v, _] = frame.local(corner);
             let message = "The corner must lie off both axes of the base center";
             part.sizes.push(positive(2.0 * u.abs(), message)?);
@@ -80,7 +88,9 @@ pub fn width_of(frame: &Frame, answer: &Answer) -> f64 {
         Answer::Point(p) => 2.0 * frame.local(p)[1].abs(),
     }
 }
+// --8<-- [end:box-questions]
 
+// --8<-- [start:box-build]
 /// The length as a line, the base, then the whole box.
 pub fn outline(part: &Part) -> Vec<Vec<Point>> {
     let frame = &part.frame;
@@ -101,6 +111,8 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
     let [length, width, height] = part.sizes[..] else {
         return Err("Box needs a length, a width and a height".into());
     };
+    // The kernel box is centred on the origin: lift it half its height, then the frame puts it on the plane.
+    // A negative height lifts by a negative half, so the box hangs below the plane.
     let place = &part.frame.to_xform() * &Xform::translation(0.0, 0.0, height * 0.5);
 
     if option == "Mesh" {
@@ -117,7 +129,9 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
         "box",
     ))
 }
+// --8<-- [end:box-build]
 
+// --8<-- [start:box-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -216,3 +230,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:box-tests]

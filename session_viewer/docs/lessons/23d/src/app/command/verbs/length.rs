@@ -1,3 +1,4 @@
+// --8<-- [start:length]
 use crate::State;
 use crate::app::command::verbs::measure::{self, plural, skipped_text, to_text, unit_suffix};
 use crate::app::command::{Action, Spec};
@@ -24,6 +25,7 @@ struct Length;
 
 impl Action for Length {
     fn run(&self, state: &mut State) -> Result<String, String> {
+        // `?` stops here with the loading message while a released document comes back.
         measure::loading(state)?;
         let (targets, mut skipped) = measure::selected(state);
         let mut total = 0.0;
@@ -64,11 +66,13 @@ fn compute_length(geometry: &Geometry, place: &Xform) -> Option<f64> {
     match geometry {
         Geometry::Line(line) => Some(line.transformed(place).length()),
         Geometry::Polyline(polyline) => Some(polyline.transformed(place).length()),
-        Geometry::NurbsCurve(curve) => Some(curve.transformed(place).length(None)),
+        Geometry::NurbsCurve(curve) => Some(curve.transformed(place).length(None)), // placed first, so a block scaled 1.5 times reports 1.5 times the length
         _ => None,
     }
 }
+// --8<-- [end:length]
 
+// --8<-- [start:length-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,3 +104,4 @@ mod tests {
         assert_eq!(compute_length(&mesh, &identity), None);
     }
 }
+// --8<-- [end:length-tests]

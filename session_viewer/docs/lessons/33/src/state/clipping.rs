@@ -149,6 +149,7 @@ impl State {
 // --8<-- [end:clipping-status]
 
 // --8<-- [start:23-clipping-verbs]
+// --8<-- [start:clipping-verbs]
 impl State {
     /// Half the rectangle of a new clipping plane: a little more than the scene's widest half.
     pub(crate) fn clipping_half_size(&mut self) -> f64 {
@@ -240,4 +241,5 @@ impl State {
         )
     }
 }
+// --8<-- [end:clipping-verbs]
 // --8<-- [end:23-clipping-verbs]

@@ -1,3 +1,4 @@
+// --8<-- [start:loft-recipe]
 use crate::app::command::tool::gather::{self, Input, Made, Recipe, Step};
 use crate::app::command::tool::surfacing::{self, checked, count, curves};
 use crate::app::command::{Action, Spec};
@@ -14,18 +15,19 @@ pub const SPEC: Spec = Spec {
     parse,
 };
 
+// Loft is a Recipe from lesson 23a, not a Shape: it gathers picked curves instead of answering questions with points.
 pub static RECIPE: Recipe = Recipe {
     name: "Loft",
     chips: &[
         ("Open", "Open"),
         ("Closed", "Closed"),
-        ("Finish", ""),
+        ("Finish", ""), // an empty line is Enter
         ("Cancel", "Escape"),
     ],
     steps: &[Step::Curves {
         prompt: "select curves in order",
         min: 2,
-        max: usize::MAX,
+        max: usize::MAX, // no upper limit: Enter ends the picking
     }],
     axis: no_axis,
     build,
@@ -40,11 +42,13 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
 pub fn no_axis(_input: &Input) -> (Point, Vector) {
     (Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0))
 }
+// --8<-- [end:loft-recipe]
 
+// --8<-- [start:loft-build]
 /// A cubic loft through the curves in pick order; Closed returns to the first.
 fn build(input: &Input) -> Result<Made, String> {
     let sections = curves(&input.curves[0]);
-    let surface = surfacing::loft(&sections, input.choice == "Closed", 3)?;
+    let surface = surfacing::loft(&sections, input.choice == "Closed", 3)?; // 3 = cubic across the sections
     Ok(Made {
         geometries: vec![checked(surface, "loft")?],
         message: format!(
@@ -53,7 +57,9 @@ fn build(input: &Input) -> Result<Made, String> {
         ),
     })
 }
+// --8<-- [end:loft-build]
 
+// --8<-- [start:loft-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -111,3 +117,4 @@ mod tests {
         assert!(build(&input(squares[..1].to_vec(), "Open")).is_err());
     }
 }
+// --8<-- [end:loft-tests]

@@ -1,3 +1,4 @@
+// --8<-- [start:gather-steps]
 use crate::State;
 use crate::app::command::tool::{Next, Overlay, Stroke, Tool, typed_number};
 use crate::app::command::{Action, verbs};
@@ -5,7 +6,7 @@ use crate::app::coords;
 use crate::app::cplane::CPlane;
 use session_rust::{Geometry, NurbsCurve, Plane, Point, Vector, Xform};
 
-/// One question a gathering command asks; Curves steps come first.
+/// One question a gathering command asks; Curves steps come first. A Number step is a small number box: type a value, or Enter keeps the default.
 #[derive(Clone, Copy, Debug)]
 pub enum Step {
     Curves {
@@ -115,8 +116,10 @@ pub struct Made {
     pub geometries: Vec<Geometry>, // added as one undo step
     pub message: String,           // e.g. `Lofted 3 curves into a NURBS surface`
 }
+// --8<-- [end:gather-steps]
 
-/// A command that gathers curves and answers, then builds.
+// --8<-- [start:gather-recipe]
+/// A command written as data: Loft is one Curves step, Revolve is Curves, Point, Point, Number. The one tool below asks any such list.
 pub struct Recipe {
     pub name: &'static str,                             // shown name
     pub chips: &'static [(&'static str, &'static str)], // buttons: options, then Finish and Cancel
@@ -230,7 +233,9 @@ pub fn start(recipe: &'static Recipe, words: &[&str]) -> Result<Box<dyn Action>,
         answers,
     }))
 }
+// --8<-- [end:gather-recipe]
 
+// --8<-- [start:gather-progress]
 /// Where a gathering command is: rows per Curves step, answers per other step.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Progress {
@@ -271,6 +276,7 @@ impl Progress {
 
     /// Step over other steps whose answers were typed already.
     fn skip(&mut self, steps: &[Step]) {
+        // A let chain: the loop runs while the pattern matches and both conditions hold.
         while let Some(step) = steps.get(self.step)
             && !step.curves()
             && self.other(steps) < self.answered
@@ -352,7 +358,9 @@ impl Progress {
         self.step >= steps.len()
     }
 }
+// --8<-- [end:gather-progress]
 
+// --8<-- [start:gather-start]
 /// A gathering command about to start.
 #[derive(Debug)]
 pub struct Gather {
@@ -376,7 +384,9 @@ impl Action for Gather {
         answer
     }
 }
+// --8<-- [end:gather-start]
 
+// --8<-- [start:gathering]
 /// A gathering command running.
 pub struct Gathering {
     recipe: &'static Recipe,       // what it builds
@@ -472,6 +482,7 @@ impl Gathering {
         progress: Progress,
         answers: Vec<Answer>,
     ) -> Result<Next, String> {
+        // Swap the new progress in and keep the old, to put back if the build refuses.
         let (before, kept) = (
             std::mem::replace(&mut self.progress, progress),
             std::mem::replace(&mut self.answers, answers),
@@ -510,7 +521,7 @@ impl Gathering {
         self.outlines = input.curves.iter().flatten().map(Picked::outline).collect();
     }
 
-    /// The cursor on the Distance axis, None when the view looks along it.
+    /// The point of the Distance axis nearest the cursor ray: the closest points of two lines, solved directly; None when the view looks along it.
     fn on_axis(&self, state: &State, at: (f64, f64)) -> Option<Point> {
         let (origin, direction) = state.camera.ray(at, state.viewport())?;
         let (base, axis) = self.axis.as_ref()?;
@@ -538,7 +549,9 @@ fn facing(state: &State) -> Vector {
     let forward = state.camera.orientation.rotate_vector(Vector::y_axis());
     CPlane::facing(&forward).normal()
 }
+// --8<-- [end:gathering]
 
+// --8<-- [start:gathering-tool]
 impl Tool for Gathering {
     fn name(&self) -> &'static str {
         self.recipe.name
@@ -632,7 +645,7 @@ impl Tool for Gathering {
             return Err("Pick a line, polyline or curve".into());
         }
 
-        let mut progress = self.progress.clone();
+        let mut progress = self.progress.clone(); // work on a copy: a refused pick leaves the tool as it was
         progress.pick(self.recipe.steps, row)?;
         let on = progress.picked().contains(&row);
         state.gpu.set_selected(row, on);
@@ -820,7 +833,9 @@ impl Tool for Gathering {
         })
     }
 }
+// --8<-- [end:gathering-tool]
 
+// --8<-- [start:gather-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -988,7 +1003,9 @@ mod tests {
         assert!(read(&EXTRUDING, &["sideways"]).is_err());
     }
 }
+// --8<-- [end:gather-tests]
 
+// --8<-- [start:gather-picked]
 /// A picked curve in world coordinates.
 #[derive(Clone, Debug)]
 pub struct Picked {
@@ -1052,3 +1069,4 @@ impl Picked {
 }
 
 pub const SAMPLES: usize = 48; // points per curve for normals and previews
+// --8<-- [end:gather-picked]

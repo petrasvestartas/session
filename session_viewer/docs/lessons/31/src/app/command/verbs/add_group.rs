@@ -1,3 +1,5 @@
+// --8<-- [start:add-group-verb]
+// Add Group: put the selected objects under one new node of their document's tree.
 use crate::State;
 use crate::app::command::{Action, Spec};
 use crate::app::layers::{index, place, placement};
@@ -59,7 +61,9 @@ impl Action for AddGroup {
         true
     }
 }
+// --8<-- [end:add-group-verb]
 
+// --8<-- [start:add-group-scene]
 impl Scene {
     /// Group the objects of `rows` under a new node of their document; returns (document, name, count).
     pub(crate) fn add_group(
@@ -67,6 +71,7 @@ impl Scene {
         rows: &[u32],
         name: &str,
     ) -> Result<(usize, String, usize), String> {
+        // collecting Results into one Result stops at the first Err, which `?` then returns
         let mut objects = rows
             .iter()
             .map(|&row| self.identity_of(row).ok_or("An object no longer exists"))
@@ -92,16 +97,19 @@ impl Scene {
         let key = self.step_key("add group")?;
         let (id, name) =
             self.layer_step(doc, &key, |session| group(session, &guids, name.trim()))?;
-        self.groups.insert((doc, Rc::from(id)));
+        self.groups.insert((doc, Rc::from(id))); // a click on one member now reaches the whole group
         Ok((doc, name, guids.len()))
     }
 }
+// --8<-- [end:add-group-scene]
 
+// --8<-- [start:add-group-tree]
 /// Hang `guids` under a new node in their deepest shared layer, in place; returns (guid, name).
 fn group(session: &mut Session, guids: &[Rc<str>], name: &str) -> Result<(String, String), String> {
     let nodes = index(session);
     let taken = |name: &str| nodes.contains_key(name) || session.lookup.contains_key(name);
     let name = if name.is_empty() {
+        // `(1..)` counts 1, 2, 3 without end; `find` stops at the first free name
         (1..)
             .map(|i| format!("Group {i}"))
             .find(|name| !taken(name))
@@ -160,6 +168,7 @@ fn group(session: &mut Session, guids: &[Rc<str>], name: &str) -> Result<(String
     let parent = shared
         .and_then(|layers| layers.last().cloned())
         .unwrap_or_else(|| Rc::clone(&root));
+    // members keep their place in the world: each world placement is expressed again in the parent's frame
     let back = placement(session, &parent)
         .inverse()
         .ok_or("The layer is degenerate")?;
@@ -186,7 +195,9 @@ fn group(session: &mut Session, guids: &[Rc<str>], name: &str) -> Result<(String
 
     Ok((id, name))
 }
+// --8<-- [end:add-group-tree]
 
+// --8<-- [start:add-group-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -385,3 +396,4 @@ mod tests {
         assert_eq!(restored.group_rows(0), vec![0, 1]);
     }
 }
+// --8<-- [end:add-group-tests]

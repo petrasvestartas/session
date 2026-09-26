@@ -1,21 +1,28 @@
-pub mod geometry; // register:geometry
+// --8<-- [start:verbs-modules]
+pub mod geometry; // shared code of the drawing verbs, not a verb itself; register:geometry
 pub mod measure; // register:measure
 pub mod selecting; // register:selecting
+// --8<-- [end:verbs-modules]
 
+// --8<-- [start:verbs-macro]
+// One list of names becomes both the `pub mod` lines and the REGISTRY array.
 /// Declare each verb's module and list its SPEC in REGISTRY, so a verb is one file plus one line.
 macro_rules! verbs {
-    ($($name:ident),* $(,)?) => {
-        $(pub mod $name;)*
+    ($($name:ident),* $(,)?) => { // `$name:ident` matches one name; `$(...),*` repeats for each comma-separated name
+        $(pub mod $name;)* // `pub mod point;` for every name, so Rust compiles verbs/point.rs
 
         /// Every verb the command line knows.
-        pub const REGISTRY: &[&dyn super::Verb] = &[
+        pub const REGISTRY: &[&dyn super::Verb] = &[ // `&dyn Verb`: each entry points at a different type, a Spec or a Draw, through the one trait
             $(&$name::SPEC,)*
             #[cfg(test)]
-            &geometry::tests::SPEC, // Wedge, a drawing verb for tests
+            &geometry::tests::SPEC, // Wedge exists only in test builds, proving a verb needs no other file
         ];
     };
 }
+// --8<-- [end:verbs-macro]
 
+// --8<-- [start:verbs-list]
+// Each line below is one verb; its tag tells docs/cut.py which lesson adds it. `r#move`: `move` is a Rust keyword, `r#` makes it a plain name.
 verbs! {
     point,                   // register:point
     line,                    // register:line
@@ -85,3 +92,4 @@ verbs! {
     add_group,               // register:add_group
     add_edge,                // register:add_edge
 }
+// --8<-- [end:verbs-list]

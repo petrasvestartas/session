@@ -1,3 +1,4 @@
+// --8<-- [start:distance-parse]
 use crate::State;
 use crate::app::command::tool::{Next, Tool};
 use crate::app::command::verbs::measure::{to_text, unit_suffix};
@@ -31,6 +32,7 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
             return Err(format!("`{word}` is not a point; {USAGE}"));
         };
 
+        // A relative point such as `@3,4` needs the point before it, so only two absolute points answer at once.
         if let coords::Typed::Absolute { x, y, z } = typed {
             points.push([x, y, z.unwrap_or(0.0)]);
         }
@@ -41,9 +43,12 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
         _ => Ok(Box::new(Pick(rest.join(" ")))),
     }
 }
+// --8<-- [end:distance-parse]
 
+// --8<-- [start:distance-actions]
 /// The distance between two typed world points.
 #[derive(Debug)]
+// A tuple struct: its fields have no names and are read as `self.0` and `self.1`.
 struct Distance([f64; 3], [f64; 3]);
 
 impl Action for Distance {
@@ -74,7 +79,9 @@ impl Action for Pick {
         answer
     }
 }
+// --8<-- [end:distance-actions]
 
+// --8<-- [start:measuring-tool]
 /// Asks for two points, then answers with their distance.
 #[derive(Debug)]
 struct Measuring;
@@ -105,6 +112,7 @@ impl Tool for Measuring {
         _plane: &Plane,
     ) -> Result<Next, String> {
         match points {
+            // Clicks arrive already snapped, so two clicked line ends measure exactly.
             [a, b] => Ok(Next::Done(answer(state, a, b))),
             _ => Ok(Next::More),
         }
@@ -118,7 +126,9 @@ impl Tool for Measuring {
         }
     }
 }
+// --8<-- [end:measuring-tool]
 
+// --8<-- [start:distance-answer]
 /// `Distance 141.421 mm · dx 100 · dy 100 · dz 0`, drawn between the points until the next command.
 fn answer(state: &mut State, a: &Point, b: &Point) -> String {
     let (distance, delta) = compute_distance(a, b);
@@ -138,7 +148,9 @@ fn compute_distance(a: &Point, b: &Point) -> (f64, [f64; 3]) {
     let delta = b - a;
     (delta.magnitude(), [delta[0], delta[1], delta[2]])
 }
+// --8<-- [end:distance-answer]
 
+// --8<-- [start:distance-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -182,7 +194,7 @@ mod tests {
         assert_eq!(accept("len"), ("Length".into(), true));
         assert_eq!(accept("are"), ("Area".into(), true));
         assert_eq!(accept("vol"), ("Volume".into(), true));
-        assert_eq!(accept("Ar"), ("Arctic ".into(), false));
+        assert_eq!(accept("Ar"), ("Arctic ".into(), false)); // register:arctic
         assert_eq!(accept("Lin"), ("Line".into(), true));
         assert_eq!(
             crate::app::command::completions("m")[..2],
@@ -194,3 +206,4 @@ mod tests {
         assert!(parsed("Area 2").is_err());
     }
 }
+// --8<-- [end:distance-tests]

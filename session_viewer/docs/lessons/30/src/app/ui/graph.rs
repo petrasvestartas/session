@@ -1,3 +1,5 @@
+// --8<-- [start:graph-table]
+// The graph table under the tree: one line per edge the session graph holds between two objects.
 use super::layers::Layers;
 use super::layers::SELECTED;
 use super::{Control, record};
@@ -66,6 +68,7 @@ pub(super) fn show(
         );
     }
 
+    // `show_rows` lays out only the rows in view, so 100,000 edges scroll as fast as ten
     egui::ScrollArea::vertical()
         .id_salt("graph-edges")
         .auto_shrink([false, false])
@@ -112,3 +115,4 @@ pub(super) fn show(
             }
         });
 }
+// --8<-- [end:graph-table]

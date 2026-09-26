@@ -1,3 +1,4 @@
+// --8<-- [start:trim-spec]
 use super::geometry::{Edit, range};
 use crate::State;
 use crate::app::command::tool::cut::{
@@ -10,7 +11,7 @@ use crate::app::modeling::Interval;
 use parts::{Blade, Parts};
 use session_rust::{Geometry, Line, Plane, Point, Vector, Xform, intersection};
 
-mod parts;
+mod parts; // trim/parts.rs, a module only Trim uses: Rust looks for it in a folder named after this file
 
 pub const SPEC: Spec = Spec {
     names: &["Trim"],
@@ -46,8 +47,10 @@ impl Action for Trim {
         state.open_tool(Box::new(Trimming::default()))
     }
 }
+// --8<-- [end:trim-spec]
 
-/// Which question the trim asks.
+// --8<-- [start:trim-state]
+/// Trim asks three questions in turn; `#[default]` makes Targets the phase of `Trimming::default()`.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 enum Phase {
     #[default]
@@ -99,7 +102,9 @@ fn trimmable(geometry: &Geometry) -> bool {
             | Geometry::Mesh(_)
     )
 }
+// --8<-- [end:trim-state]
 
+// --8<-- [start:trim-pick]
 impl Trimming {
     /// Add `row` as a target, or take it away again.
     fn toggle_target(&mut self, state: &mut State, row: u32) -> Result<(), String> {
@@ -169,7 +174,7 @@ impl Trimming {
         Ok(())
     }
 
-    /// Every cutter in the world, a straight line with its vertical plane too.
+    /// Every cutter in the world. A straight line also cuts as a fence: the plane standing on it along the view, slicing a solid top to bottom.
     fn blades(&self, state: &State) -> Vec<(Cutter, Option<Plane>)> {
         let forward = state.camera.orientation.rotate_vector(Vector::y_axis());
         let normal = CPlane::facing(&forward).normal();
@@ -208,7 +213,9 @@ impl Trimming {
 
         blades
     }
+    // --8<-- [end:trim-pick]
 
+    // --8<-- [start:trim-preview]
     /// Cut every target; the ones not crossed drop out.
     fn preview(&mut self, state: &mut State) -> Result<String, String> {
         let blades = self.blades(state);
@@ -222,7 +229,7 @@ impl Trimming {
             ) else {
                 continue;
             };
-            let Some(back) = place.inverse() else {
+            let Some(back) = place.inverse() else { // the inverse placement takes world points into the object's own coordinates
                 continue;
             };
             // the cutters in the target's frame
@@ -343,7 +350,9 @@ impl Trimming {
 
         best.map(|(_, hit)| hit)
     }
+    // --8<-- [end:trim-preview]
 
+    // --8<-- [start:trim-commit]
     /// Draw `row` without its removed parts, or as its document has it.
     fn show(state: &mut State, cut: &mut Cut) {
         // the document's geometry now, which an undo during the trim may have changed
@@ -397,6 +406,7 @@ impl Trimming {
 
     /// Write every trimmed target in one undo step.
     fn commit(&mut self, state: &mut State) -> Result<Next, String> {
+        // Collecting Results into one Result stops at the first Err: one refused target refuses the whole trim.
         let edits: Result<Vec<(u32, Vec<Geometry>)>, String> = self
             .cuts
             .iter()
@@ -461,7 +471,9 @@ impl Trimming {
 fn world(points: &[Point], place: &Xform) -> Vec<Point> {
     points.iter().map(|p| p.transformed(place)).collect()
 }
+// --8<-- [end:trim-commit]
 
+// --8<-- [start:trim-tool]
 impl Tool for Trimming {
     fn name(&self) -> &'static str {
         "Trim"
@@ -490,6 +502,7 @@ impl Tool for Trimming {
         }
     }
 
+    /// Trim clicks objects and parts, never points, so its prompt offers no x,y,z.
     fn asks_points(&self) -> bool {
         false
     }
@@ -524,6 +537,7 @@ impl Tool for Trimming {
         }
     }
 
+    /// In the first two phases a click picks a whole object through the GPU pick of lesson 12.
     fn picks(&self) -> bool {
         self.phase != Phase::Parts
     }
@@ -668,7 +682,7 @@ impl Tool for Trimming {
 
     fn cancel(&mut self, state: &mut State) {
         self.restore(state);
-        state.select_rows(std::mem::take(&mut self.before), false);
+        state.select_rows(std::mem::take(&mut self.before), false); // `mem::take` moves the list out and leaves an empty one behind
         crate::app::feedback::status("Trim cancelled · nothing changed");
     }
 
@@ -700,7 +714,9 @@ impl Tool for Trimming {
         })
     }
 }
+// --8<-- [end:trim-tool]
 
+// --8<-- [start:trim-tests]
 #[cfg(test)]
 mod tests {
     use crate::app::command::{accept, completions, parse};
@@ -720,3 +736,4 @@ mod tests {
         assert_eq!(accept("Tri"), ("Trim".into(), true));
     }
 }
+// --8<-- [end:trim-tests]

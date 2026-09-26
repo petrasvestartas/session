@@ -1,3 +1,5 @@
+// --8<-- [start:panel-actions]
+// What a click in the layers panel does to the viewer, and the rows the panel is sent.
 use crate::app::layers::Layer;
 use crate::state::State;
 use std::rc::Rc;
@@ -9,6 +11,7 @@ impl State {
     }
 
     /// A click in the layers panel, by its key.
+    // The panel names each click with a text key such as `hide/12` (action/node), so its drawing code never touches the scene.
     pub fn panel_action(&mut self, key: &str) {
         // a layer row: hide or show it
         if let Some(layer) = Layer::from_key(key) {
@@ -29,6 +32,7 @@ impl State {
                 let color = if parts[2] == "original" {
                     None
                 } else {
+                    // the hex text `ff8800` read as one number, then split into its three bytes
                     let Ok(rgb) = u32::from_str_radix(parts[2], 16) else {
                         return;
                     };
@@ -136,7 +140,7 @@ impl State {
                         return;
                     }
 
-                    // while splitting, a click picks cutters
+                    // a later feature may take the click first, one `taken |=` line each; Split does in lesson 31
                     let mut taken = false;
                     taken |= self.take_split_rows(&rows); // register:split
 
@@ -163,6 +167,7 @@ impl State {
                     let lock = rows.iter().any(|row| self.scene.selectable(*row)); // anything unlocked: lock all
 
                     // a locked row cannot stay selected
+                    // `rows` is sorted, so `binary_search` finds a row in about 20 steps among a million
                     if lock
                         && (self
                             .scene
@@ -227,7 +232,9 @@ impl State {
         self.refresh_layers();
         self.touch();
     }
+// --8<-- [end:panel-actions]
 
+// --8<-- [start:panel-layers]
     /// Unfold the panel down to layer `name` of `doc` and open it, while the panel is shown.
     pub(crate) fn reveal_layer(&mut self, doc: usize, name: &str) {
         if !crate::app::feedback::layers_open() {
@@ -339,6 +346,7 @@ impl State {
                     .map(|node| (node.doc, node.name.clone()))
                     .collect();
                 self.commit_rows();
+                // an edit renumbers rows, so the kept selection is found again by (document, guid)
                 let mut rows: Vec<u32> = keep
                     .iter()
                     .filter_map(|(doc, guid)| self.scene.row_of(*doc, guid))
@@ -366,7 +374,9 @@ impl State {
         self.update_label();
         self.touch();
     }
+// --8<-- [end:panel-layers]
 
+// --8<-- [start:panel-hidden]
     /// Hide or show sorted rows.
     pub(super) fn set_rows_hidden(&mut self, rows: &[u32], hide: bool) {
         // a hidden row cannot stay selected
@@ -402,7 +412,9 @@ impl State {
         self.update_label();
         self.touch();
     }
+// --8<-- [end:panel-hidden]
 
+// --8<-- [start:panel-labels]
     /// The rows of the layers panel for the current page.
     pub(super) fn hierarchy_labels(&mut self, rows: &mut Vec<crate::app::feedback::LayerRow>) {
         use crate::app::feedback::LayerRow;
@@ -413,6 +425,7 @@ impl State {
             .hierarchy
             .page
             .min(visible.len().saturating_sub(1) / PAGE_SIZE); // keep the page in range
+        // one page of 128 lines is sent, so a tree of 200,000 nodes costs the panel no more than a small one
         let first = self.features.hierarchy.page * PAGE_SIZE;
         let current = self.scene.current_layer();
         let chosen = |row: &u32| {
@@ -526,3 +539,4 @@ impl State {
         }
     }
 }
+// --8<-- [end:panel-labels]

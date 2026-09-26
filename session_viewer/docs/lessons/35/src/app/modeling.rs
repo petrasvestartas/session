@@ -1,3 +1,4 @@
+// --8<-- [start:modeling-create]
 use crate::app::command::verbs::geometry::Draw;
 use crate::app::scene::FileDoc;
 use crate::app::scene::Scene;
@@ -10,7 +11,7 @@ use session_rust::Xform;
 use std::rc::Rc;
 
 /// Most points one command may create.
-pub const MAX_POINTS: usize = 4096;
+pub const MAX_POINTS: usize = 4096; // a cap on typed input: a pasted line of a million points is refused, not drawn
 
 /// A part of the selected curve over 0..1 of its length.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -19,10 +20,11 @@ pub enum Interval {
     Extend(f64, f64), // grow to this range
 }
 
+// Another `impl Scene` block, in this file: any module of the crate may add methods to a type the crate owns.
 impl Scene {
     /// Draw `verb` through `points` as one undo step; the new object's (document, guid) comes back.
     pub fn model(&mut self, verb: &Draw, points: &[[f64; 3]]) -> Result<(usize, String), String> {
-        self.create_geometry(verb.geometry(points)?)
+        self.create_geometry(verb.geometry(points)?) // `?` hands a refused point list back to the caller as the Err
     }
 
     /// Add a geometry to the current layer, else the `Created` document, making it if needed.
@@ -30,7 +32,7 @@ impl Scene {
         &mut self,
         geometry: Geometry,
     ) -> Result<(usize, String), String> {
-        let mut made = self.create_many(vec![geometry], "create")?;
+        let mut made = self.create_many(vec![geometry], "create")?; // one object is a list of one, so there is one path to test
         Ok(made.remove(0))
     }
 
@@ -47,6 +49,7 @@ impl Scene {
         let layer = self
             .current_layer()
             .filter(|(doc, _)| !self.docs[*doc].display_only);
+        // Where it goes: the current layer's document, else the `Created` document, made on first use.
         let doc = match (&layer, self.created_doc) {
             (Some((doc, _)), _) => *doc,
             (None, Some(index)) => index,
@@ -80,7 +83,7 @@ impl Scene {
             .ok_or("this document has no tree")?;
         let name = parent.borrow().name.clone();
         let back = super::layers::frame(session, &place, &name);
-        session.begin(label);
+        session.begin(label); // everything until commit is one undo step
         let mut nodes = Vec::with_capacity(geometries.len());
 
         for geometry in &geometries {
@@ -114,12 +117,14 @@ impl Scene {
         self.edited(&[doc]);
         Ok(made)
     }
+// --8<-- [end:modeling-create]
 
+    // --8<-- [start:modeling-interval]
     /// Trim or extend the selected object.
     pub fn edit_interval(&mut self, interval: Interval) -> Result<(), String> {
         let row = self.selected.ok_or("select one object first")?;
         let (doc, guid) = self.identity_of(row).ok_or("object no longer exists")?;
-        self.editable(doc)?; // a released document comes back first
+        self.editable(doc)?; // lesson 16 may have released the document; it comes back first
         let file = self.docs.get(doc).ok_or("this object has no document")?;
 
         if file.display_only {
@@ -192,7 +197,9 @@ fn edited(source: &Geometry, interval: Interval) -> Result<Geometry, String> {
         _ => Err("trim and extend currently accept lines and NURBS curves".into()),
     }
 }
+// --8<-- [end:modeling-interval]
 
+// --8<-- [start:modeling-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -275,3 +282,4 @@ mod tests {
         assert!((curve.point_at_end()[0] - 8.0).abs() < 1e-9);
     }
 }
+// --8<-- [end:modeling-tests]

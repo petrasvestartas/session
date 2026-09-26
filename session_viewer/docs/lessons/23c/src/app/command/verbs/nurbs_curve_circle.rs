@@ -1,3 +1,4 @@
+// --8<-- [start:circle-spec]
 use crate::app::command::tool::shape::{self, Answer, Ask, CURVE, Frame, Part, Shape, positive};
 use crate::app::command::{Action, Spec};
 use session_rust::{Geometry, Point, Primitives};
@@ -16,6 +17,7 @@ pub const SPEC: Spec = Spec {
 
 pub static SHAPE: Shape = Shape {
     name: "Nurbs Curve Circle",
+    // A curve has no Brep or Mesh choice: its only button is Cancel.
     options: CURVE,
     upfront: false,
     ask,
@@ -28,7 +30,9 @@ pub static SHAPE: Shape = Shape {
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     shape::start(&SHAPE, rest)
 }
+// --8<-- [end:circle-spec]
 
+// --8<-- [start:circle-questions]
 /// Center, then radius.
 fn ask(answers: &[Answer], _part: &Part, _option: &str) -> Option<Ask> {
     match answers.len() {
@@ -43,6 +47,7 @@ fn read(frame: &Frame, answers: &[Answer], _option: &str) -> Result<Part, String
     let mut part = Part::new(frame.clone());
 
     if let Some(radius) = answers.get(1) {
+        // `size` measures a click in the plane only, so a snapped point off the plane still gives the radius seen along the normal.
         part.sizes.push(positive(frame.size(radius), "The radius")?);
     }
 
@@ -62,12 +67,15 @@ fn build(part: &Part, _option: &str) -> Result<Geometry, String> {
     let [radius] = part.sizes[..] else {
         return Err("Nurbs Curve Circle needs a radius".into());
     };
+    // The kernel circle lies flat on world XY around the origin; the frame turns it onto the drawing plane.
     let mut curve = Primitives::circle(0.0, 0.0, 0.0, radius);
     curve.transform(&part.frame.to_xform());
     curve.name = "circle".into();
     Ok(Geometry::NurbsCurve(Rc::new(curve)))
 }
+// --8<-- [end:circle-questions]
 
+// --8<-- [start:circle-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -94,3 +102,4 @@ mod tests {
         }
     }
 }
+// --8<-- [end:circle-tests]

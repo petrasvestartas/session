@@ -1,3 +1,4 @@
+// --8<-- [start:tool-start]
 use super::State;
 use super::drawing::Draft;
 use crate::app::command::tool::{Next, Overlay, Tool};
@@ -54,7 +55,8 @@ impl State {
         answer
     }
 
-    /// Call the running tool with it taken out of `self`; None when no tool runs.
+    // `impl FnOnce(..) -> T`: any closure that is called once; `T` is whatever it returns.
+    /// Call the running tool. It is taken out of the draft, and the draft out of `self`, so the tool may borrow all of State; both go back after.
     fn with_tool<T>(&mut self, call: impl FnOnce(&mut dyn Tool, &mut State) -> T) -> Option<T> {
         let mut draft = self.features.draft.take()?;
         let Some(mut tool) = draft.tool.take() else {
@@ -66,7 +68,9 @@ impl State {
         self.features.draft = Some(draft);
         Some(answer)
     }
+    // --8<-- [end:tool-start]
 
+    // --8<-- [start:tool-events]
     /// True while the running tool wants an object pick.
     pub(super) fn tool_picks(&self) -> bool {
         self.features
@@ -80,7 +84,7 @@ impl State {
     pub(super) fn tool_click(&mut self, x: f64, y: f64) -> Option<bool> {
         // an object pick answers later; a redraw now would cancel it
         if self.tool_picks() {
-            self.request_selection(x as u32, y as u32, false, false);
+            self.request_selection(x as u32, y as u32, false, false); // the GPU answers a frame later, in tool_picked
             return Some(false);
         }
 
@@ -179,7 +183,9 @@ impl State {
         self.place_gizmo(None);
         Ok(self.drawing_prompt())
     }
+    // --8<-- [end:tool-events]
 
+    // --8<-- [start:tool-command]
     /// A command line entry for a running tool or object pick; None when it is some other command.
     pub(super) fn tool_command(&mut self, text: &str) -> Option<Result<String, String>> {
         let draft = self.features.draft.as_ref()?;
@@ -281,7 +287,7 @@ impl State {
                 Ok(self.drawing_prompt())
             }
             Ok(Next::Repeat(message)) => {
-                draft.points.truncate(1);
+                draft.points.truncate(1); // Repeat keeps the base point: Copy places copy after copy from it
                 draft.targets = None; // what it made offers snaps too
                 self.features.draft = Some(draft);
                 self.place_gizmo(None);
@@ -300,7 +306,9 @@ impl State {
             }
         }
     }
+    // --8<-- [end:tool-command]
 
+    // --8<-- [start:tool-show]
     /// The prompt of a running tool or object pick.
     pub(super) fn tool_prompt(&self) -> Option<String> {
         let draft = self.features.draft.as_ref()?;
@@ -391,7 +399,7 @@ impl State {
     fn show_group(&mut self, group: &[(u32, Xform)], delta: Option<&Xform>) {
         for (row, place) in group {
             let placed = match delta {
-                Some(delta) => delta * place,
+                Some(delta) => delta * place, // the tool's move applied after the object's own placement
                 None => place.clone(),
             };
             self.gpu.objects.set_placement(&self.gpu.ctx, *row, &placed);
@@ -433,7 +441,10 @@ impl State {
             .is_some_and(|draft| draft.tool.is_some() || draft.then.is_some())
     }
 }
+// --8<-- [end:tool-show]
 
+// --8<-- [start:tool-hooks]
+// A second `impl State` block: these are the hooks other files call through lines tagged `register:`.
 impl State {
     /// Cancel a tool that asks for points.
     pub(super) fn cancel_running_tool(&mut self) {
@@ -472,3 +483,4 @@ impl State {
         true
     }
 }
+// --8<-- [end:tool-hooks]

@@ -1,3 +1,5 @@
+// --8<-- [start:layers-state]
+// The layers panel: the document tree down the right edge, a bulb, lock and colour per row, the graph table under it.
 use super::command_line::command_cursor_select;
 use super::{Control, Output, record};
 use crate::State;
@@ -26,7 +28,9 @@ pub(crate) struct Rename {
     pub focused: bool, // the field has the keys
     pub done: bool,    // kept by Enter or a click elsewhere, applied after the frame
 }
+// --8<-- [end:layers-state]
 
+// --8<-- [start:layers-hooks]
 /// The layers panel, registered in PANELS.
 pub(super) struct Hooks;
 
@@ -78,7 +82,9 @@ impl super::Panel for Hooks {
         });
     }
 }
+// --8<-- [end:layers-hooks]
 
+// --8<-- [start:layers-draw]
 /// The layers panel; a click sets `action`.
 fn draw(
     root: &mut egui::Ui,                 // the panel area
@@ -99,6 +105,7 @@ fn draw(
     } else {
         (root.available_width() * 0.25).clamp(180.0, 310.0)
     };
+    // two ids, so egui remembers the width dragged on the open panel apart from the 32 px strip
     egui::Panel::right(if collapsed {
         "session-layers-collapsed"
     } else {
@@ -112,7 +119,6 @@ fn draw(
     })
     .show_separator_line(false)
     .frame(
-        // the panel frame
         egui::Frame::new()
             .fill(egui::Color32::from_gray(245))
             .inner_margin(4),
@@ -154,6 +160,7 @@ fn draw(
                 ui.spacing_mut().item_spacing.y = 0.;
                 ui.spacing_mut().interact_size.y = height;
                 ui.spacing_mut().button_padding.y = 0.;
+                // borrow three fields apart, so the loop reads `rows` while it writes `renaming`
                 let Layers {
                     rows,
                     renaming,
@@ -162,7 +169,7 @@ fn draw(
                 } = &mut *model;
 
                 for row in rows.iter() {
-                    // painted under the row once its height is known
+                    // reserve a place in the paint order now, filled once the row is laid out, so the strip sits under it
                     let strip = ui.painter().add(egui::Shape::Noop);
                     let line = ui.horizontal(|ui| {
                         if let Some(index) = row.key.strip_prefix("select/") {
@@ -200,7 +207,9 @@ fn draw(
 
 /// The selection yellow, as in the scene.
 pub(super) const SELECTED: egui::Color32 = egui::Color32::from_rgb(255, 255, 0);
+// --8<-- [end:layers-draw]
 
+// --8<-- [start:layers-row]
 /// One tree row: arrow, name, bulb or check, lock, swatch; returns where a tap raises the keyboard.
 fn layer_row(
     ui: &mut egui::Ui,
@@ -213,7 +222,7 @@ fn layer_row(
 ) -> Vec<egui::Rect> {
     let mut keyboard = Vec::new();
     ui.spacing_mut().item_spacing.x = 2.;
-    ui.add_space(row.depth.min(8) as f32 * 10.);
+    ui.add_space(row.depth.min(8) as f32 * 10.); // 10 px of indent per level, at most 8 levels
     let response = layer_icon(ui, "open", row, height);
     record(controls, &format!("open/{index}"), &row.label, &response);
 
@@ -324,7 +333,9 @@ fn layer_row(
     layer_color(ui, row, index, height, controls, action);
     keyboard
 }
+// --8<-- [end:layers-row]
 
+// --8<-- [start:layers-menu]
 /// The right-click menu of a layer row; items that open a name field go to `keyboard`.
 fn layer_menu(
     ui: &mut egui::Ui,
@@ -433,13 +444,16 @@ fn menu_item(
 
     response
 }
+// --8<-- [end:layers-menu]
 
+// --8<-- [start:layers-icon]
 /// One icon of a layer row: eye, lock or arrow.
 fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow, height: f32) -> egui::Response {
     let (rect, response) =
         ui.allocate_exact_size(egui::vec2(height + 4., height), egui::Sense::click());
-    let scale = height / 18.; // drawn for an 18 pixel row
+    let scale = height / 18.;
     let c = rect.center();
+    // icon coordinates are pixels from the centre of an 18 px row, scaled to the real one
     let at = |x: f32, y: f32| c + egui::vec2(x, y) * scale;
     let ink = ui.visuals().text_color();
     let stroke = egui::Stroke::new(1.4_f32, ink);
@@ -525,7 +539,9 @@ fn layer_icon(ui: &mut egui::Ui, kind: &str, row: &LayerRow, height: f32) -> egu
         }
     }
 }
+// --8<-- [end:layers-icon]
 
+// --8<-- [start:layers-color]
 /// The colour swatches of a layer row.
 fn layer_color(
     ui: &mut egui::Ui,
@@ -550,10 +566,12 @@ fn layer_color(
         1.,
         egui::Color32::from_rgb(color[0], color[1], color[2]),
     );
+    // stays open while a slider is dragged, closes on a click outside
     let menu =
         egui::Popup::menu(&response).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside);
     menu.show(|ui| {
         let channel_id = egui::Id::new(("layer-color-channel", index));
+        // egui's temporary memory, keyed by id, remembers Faces or Edges between frames without a field of ours
         let mut edge = ui
             .ctx()
             .data_mut(|data| data.get_temp::<bool>(channel_id).unwrap_or(false))
@@ -659,3 +677,4 @@ fn layer_color(
         &response,
     );
 }
+// --8<-- [end:layers-color]

@@ -30,11 +30,11 @@ fn build(points: &[Point]) -> Result<Geometry, String> {
     Ok(Geometry::Line(Rc::new(segment(points)?)))
 }
 
-/// A line of some length from the first point to the second.
+/// A line of some length from the first point to the second; `pub` so Arrow builds on it.
 pub fn segment(points: &[Point]) -> Result<Line, String> {
     let line = Line::from_points(&points[0], &points[1]);
 
-    if line.length() <= 1e-12 {
+    if line.length() <= 1e-12 { // two clicks on one spot make no line
         return Err("line endpoints must differ".into());
     }
 

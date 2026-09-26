@@ -129,6 +129,7 @@ impl State {
 }
 
 // --8<-- [start:23]
+// --8<-- [start:save-when-back]
 impl State {
     /// Save once every released document is back; false when none is released.
     pub(crate) fn save_when_back(&mut self) -> bool {
@@ -156,4 +157,5 @@ impl State {
         self.status(&message);
     }
 }
+// --8<-- [end:save-when-back]
 // --8<-- [end:23]

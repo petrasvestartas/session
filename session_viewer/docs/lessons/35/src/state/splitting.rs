@@ -1,3 +1,5 @@
+// --8<-- [start:split-pending]
+// The Split command in steps: take the selected target, collect clicked cutters, cut on Enter or a second Split.
 use super::State;
 use crate::app::{feedback, splitting};
 
@@ -7,7 +9,9 @@ pub(super) struct Pending {
     pub face: Option<usize>, // the face of it, for a BRep
     pub cutters: Vec<u32>,   // the rows chosen as cutters
 }
+// --8<-- [end:split-pending]
 
+// --8<-- [start:split-command]
 impl State {
     /// The pending split, for the inspection tests.
     #[cfg(target_arch = "wasm32")]
@@ -47,7 +51,7 @@ impl State {
             face,
             cutters: vec![],
         });
-        self.place_gizmo(None);
+        self.place_gizmo(None); // the gumball hides while cutters are picked
         feedback::command_line(false);
         feedback::focus_canvas();
         Ok("Split: select cutter lines, polylines or curves, then press Enter or tap Split again. Esc cancels. Faces require on-surface cutters.".into())
@@ -148,7 +152,10 @@ impl State {
         }
     }
 }
+// --8<-- [end:split-command]
 
+// --8<-- [start:split-hooks]
+// A second `impl State` block: the hooks other files call, one tagged line each.
 impl State {
     /// While splitting, clicked layer rows are cutters; false when no split waits.
     pub(super) fn take_split_rows(&mut self, rows: &[u32]) -> bool {
@@ -191,3 +198,4 @@ impl State {
         true
     }
 }
+// --8<-- [end:split-hooks]

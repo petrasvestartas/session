@@ -1,12 +1,15 @@
+// --8<-- [start:surfacing-helpers]
 use session_rust::{Geometry, NurbsCurve, NurbsSurface, Point, Primitives, Vector};
 use std::rc::Rc;
 
+// `pub use` re-exports: the surfacing verbs import these from here, though they live in gather.
 pub use super::gather::SAMPLES;
 
 pub use super::gather::{Picked, count, picked};
 
 /// The unit normal of a loop by Newell's method; None when it encloses no area.
 pub fn loop_normal(points: &[Point]) -> Option<Vector> {
+    // Newell's method, met in lesson 06, here on the samples of a closed curve.
     let mut sum = [0.0; 3];
 
     for (index, a) in points.iter().enumerate() {
@@ -19,6 +22,7 @@ pub fn loop_normal(points: &[Point]) -> Option<Vector> {
     let length = (sum[0] * sum[0] + sum[1] * sum[1] + sum[2] * sum[2]).sqrt();
     let size = diagonal(points);
 
+    // The sum is twice the enclosed area, so its threshold grows with the size squared.
     if length <= 1e-12 * size * size {
         return None;
     }
@@ -59,7 +63,9 @@ pub fn planar(points: &[Point], normal: &Vector) -> bool {
         .iter()
         .all(|p| (p - first).dot(normal).abs() <= tolerance)
 }
+// --8<-- [end:surfacing-helpers]
 
+// --8<-- [start:align-sections]
 /// Sections run the same way with their seams lined up; all open or all closed.
 pub fn align_sections(sections: &mut [NurbsCurve]) -> Result<(), String> {
     let closed = sections.first().is_some_and(|curve| curve.is_closed());
@@ -69,6 +75,7 @@ pub fn align_sections(sections: &mut [NurbsCurve]) -> Result<(), String> {
     }
 
     for index in 1..sections.len() {
+        // Rust allows no second borrow of a slice while one part is being changed; `split_at_mut` gives two separate halves.
         let (before, after) = sections.split_at_mut(index);
         let previous = &before[index - 1];
         let section = &mut after[0];
@@ -83,6 +90,7 @@ pub fn align_sections(sections: &mut [NurbsCurve]) -> Result<(), String> {
                 section.reverse();
             }
 
+            // The seam is where a closed curve starts; seams far apart would twist the surface between them.
             let t = section.closest_parameter(&previous.point_at_start());
             section.change_closed_curve_seam(t);
         } else {
@@ -96,12 +104,15 @@ pub fn align_sections(sections: &mut [NurbsCurve]) -> Result<(), String> {
             }
         }
 
+        // One parameter range on every section, so the loft matches them point for point.
         section.set_domain(0.0, 1.0);
     }
 
     Ok(())
 }
+// --8<-- [end:align-sections]
 
+// --8<-- [start:loft-checked]
 /// A loft through `sections` in order, cubic or `degree` in v; `closed` repeats the first.
 pub fn loft(sections: &[NurbsCurve], closed: bool, degree: usize) -> Result<NurbsSurface, String> {
     if sections.len() < 2 {
@@ -130,6 +141,7 @@ pub fn loft(sections: &[NurbsCurve], closed: bool, degree: usize) -> Result<Nurb
 
 /// The surface as a named geometry, when valid with finite control points.
 pub fn checked(mut surface: NurbsSurface, name: &str) -> Result<Geometry, String> {
+    // An infinite or NaN control point is refused here, so a broken surface never reaches the document.
     let finite = (0..surface.cv_count(0)).all(|i| {
         (0..surface.cv_count(1)).all(|j| {
             surface
@@ -150,7 +162,9 @@ pub fn checked(mut surface: NurbsSurface, name: &str) -> Result<Geometry, String
 pub fn curves(picked: &[Picked]) -> Vec<NurbsCurve> {
     picked.iter().map(|picked| picked.curve.clone()).collect()
 }
+// --8<-- [end:loft-checked]
 
+// --8<-- [start:surfacing-tests]
 #[cfg(test)]
 pub mod tests {
     use super::*;
@@ -290,3 +304,4 @@ pub mod tests {
         assert!(loop_normal(&[p(0., 0., 0.), p(1., 0., 0.), p(2., 0., 0.)]).is_none());
     }
 }
+// --8<-- [end:surfacing-tests]

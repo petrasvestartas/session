@@ -1,3 +1,4 @@
+// --8<-- [start:split-verb]
 use crate::State;
 use crate::app::command::{Action, Spec};
 
@@ -31,3 +32,4 @@ impl Action for Split {
         true
     }
 }
+// --8<-- [end:split-verb]

@@ -1,3 +1,5 @@
+// --8<-- [start:split-cutters]
+// Split: cut a curve, or one face of a surface or solid, with cutter curves; the kernel does the geometry.
 use super::scene::{Scene, sync};
 use session_rust::simple_split;
 use session_rust::{BRep, Geometry, NurbsCurve, TreeNode};
@@ -42,6 +44,7 @@ fn brep_face(brep: &BRep, selected: Option<usize>) -> Result<usize, String> {
 
 /// A cutter as a NURBS curve.
 fn curve(geometry: &Geometry) -> Result<NurbsCurve, String> {
+    // a line or polyline is a NURBS curve of degree 1, so one kernel routine cuts with all three
     match geometry {
         Geometry::Line(line) => Ok(NurbsCurve::create(
             false,
@@ -53,7 +56,9 @@ fn curve(geometry: &Geometry) -> Result<NurbsCurve, String> {
         _ => Err("Choose a line, polyline or NURBS curve as cutter".into()),
     }
 }
+// --8<-- [end:split-cutters]
 
+// --8<-- [start:split-rows]
 impl Scene {
     /// Split `target` by the cutters; returns how many pieces.
     pub fn split_rows(
@@ -96,6 +101,7 @@ impl Scene {
                 return Err("Cannot transform the cutter into target coordinates".into());
             }
 
+            // cutter frame to world, then world to target frame, as one matrix
             cutter.transform(&(&back * &place));
             tools.push(cutter);
         }
@@ -104,7 +110,7 @@ impl Scene {
             .geometry(target)
             .ok_or("Source geometry is unavailable")?;
         let face = face_index(source, face)?;
-        let tolerance = 1e-6;
+        let tolerance = 1e-6; // closer than a millionth of a unit counts as touching
         // the new geometries and how many regions the cut made
         let (mut pieces, regions) = match source {
             Geometry::Line(line) => {
@@ -214,7 +220,7 @@ impl Scene {
         let mut made = Vec::new();
         session.begin("split");
         let replaced = session.replace(&guid, first);
-        debug_assert!(replaced);
+        debug_assert!(replaced); // checked in debug builds only; a release build drops the test
 
         for piece in pieces {
             let node = match piece {
@@ -251,7 +257,9 @@ impl Scene {
         Ok(regions)
     }
 }
+// --8<-- [end:split-rows]
 
+// --8<-- [start:split-top]
 /// The top of the tree a node hangs in.
 fn top(node: &Rc<RefCell<TreeNode>>) -> Rc<RefCell<TreeNode>> {
     let mut top = Rc::clone(node);
@@ -265,7 +273,9 @@ fn top(node: &Rc<RefCell<TreeNode>>) -> Rc<RefCell<TreeNode>> {
         }
     }
 }
+// --8<-- [end:split-top]
 
+// --8<-- [start:split-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -404,3 +414,4 @@ mod tests {
         assert!(original.is_solid());
     }
 }
+// --8<-- [end:split-tests]

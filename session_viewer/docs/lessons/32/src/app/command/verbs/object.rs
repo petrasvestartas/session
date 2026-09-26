@@ -29,7 +29,7 @@ impl Action for Selection {
     /// Clear the selection, then pick this kind from now on.
     fn run(&self, state: &mut State) -> Result<String, String> {
         state.escape_selection();
-        state.selection_tool = self.0;
+        state.selection_tool = self.0; // from now on a click picks this kind: whole objects, edges, faces or control points
         Ok(format!("{:?} selection", self.0))
     }
 }

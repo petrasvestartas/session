@@ -1,3 +1,5 @@
+// --8<-- [start:hierarchy-model]
+// The model behind the layers panel: every document's tree flattened into one list of lines.
 use crate::app::scene::Scene;
 #[cfg(test)]
 use session_rust::Session;
@@ -8,6 +10,7 @@ use std::collections::HashSet;
 use std::ops::Range;
 use std::rc::Rc;
 
+// Caps, so a scene of millions of objects still opens; past them the panel lists less.
 const MAX_NODES: usize = 200_000; // most tree nodes shown
 
 const MAX_ROWS: usize = 1_000_000; // most object rows indexed
@@ -42,10 +45,13 @@ pub struct Hierarchy {
     revision: Option<u64>,          // scene revision this was built from
     away: HashSet<(usize, String)>, // open nodes an undo took away, open again when they return
 }
+// --8<-- [end:hierarchy-model]
 
+// --8<-- [start:hierarchy-build]
 impl Hierarchy {
     /// Rebuild when the scene changed.
     pub fn refresh(&mut self, scene: &Scene) {
+        // every edit that adds or removes rows bumps the revision, so an unchanged scene costs one comparison
         if self.revision != Some(scene.row_revision) {
             self.rebuild(scene);
         }
@@ -61,6 +67,7 @@ impl Hierarchy {
         self.revision = Some(scene.row_revision);
         // open and clicked nodes by name, so a rebuilt tree keeps them
         let mut open = self.names(self.open.iter());
+        // `drain` moves every name out of `away` and leaves it empty
         open.extend(self.away.drain());
         let active = self.names(self.active.iter());
         self.active.clear();
@@ -115,13 +122,16 @@ impl Hierarchy {
     }
 
     /// The (document, name) of some nodes, which outlive a rebuild.
+    // `impl Iterator` as an argument type accepts any iterator of `&usize`, such as a set's `iter()`
     fn names<'a>(&self, indices: impl Iterator<Item = &'a usize>) -> HashSet<(usize, String)> {
         indices
             .filter_map(|index| self.nodes.get(*index))
             .map(|node| (node.doc, node.name.clone()))
             .collect()
     }
+// --8<-- [end:hierarchy-build]
 
+// --8<-- [start:hierarchy-edges]
     /// Collect every graph edge whose two ends are object rows, in the order they were made.
     fn connect(&mut self, scene: &Scene, lookup: &Lookup) {
         let mut edges = Vec::new(); // (document, edge index, from row, to row)
@@ -147,7 +157,7 @@ impl Hierarchy {
             }
         }
 
-        edges.sort_unstable();
+        edges.sort_unstable(); // by (document, edge index): the order the edges were made
         self.edges = edges.into_iter().map(|(_, _, a, b)| [a, b]).collect();
     }
 
@@ -170,7 +180,9 @@ impl Hierarchy {
             self.page = at / PAGE_SIZE;
         }
     }
+// --8<-- [end:hierarchy-edges]
 
+// --8<-- [start:hierarchy-tree]
     /// Add one document and its tree, a line per object when `objects`; false when a limit is hit.
     fn tree(&mut self, scene: &Scene, doc: usize, lookup: &Lookup, objects: bool) -> bool {
         let file = &scene.docs[doc];
@@ -201,7 +213,8 @@ impl Hierarchy {
         // without object lines one layer may hold every row
         let most = if objects { MAX_NODES } else { MAX_ROWS };
 
-        // depth first; a node is pushed again to close it after its children
+        // depth first on an explicit stack, not recursion, so a tree thousands of levels deep cannot overflow the call stack
+        // a node is pushed twice: once to list it, once more to close it after its children
         for _ in 0..most * 2 {
             let Some((node, depth, exit, inside)) = stack.pop() else {
                 break;
@@ -212,6 +225,7 @@ impl Hierarchy {
                 continue;
             }
 
+            // a node's address identifies it; `insert` is false for one already listed
             if !seen.insert(Rc::as_ptr(&node)) {
                 continue;
             }
@@ -281,18 +295,23 @@ impl Hierarchy {
         self.finish(start);
         self.rows.len() <= MAX_ROWS
     }
+// --8<-- [end:hierarchy-tree]
 
+// --8<-- [start:hierarchy-graph]
     /// Add the graph's vertices and edges as groups.
+    // only tests call it; lesson 30 lists the graph as a table of its own
     #[cfg(test)]
     fn graph(&mut self, session: &Session, doc: usize, name: &str, lookup: &Lookup) -> bool {
         let vertices = session.graph.number_of_vertices();
         let edges: usize = session.graph.edges.values().map(|edges| edges.len()).sum();
+        // `saturating_sub` stops at 0 instead of wrapping around to a huge number
         let remaining = MAX_ROWS.saturating_sub(self.rows.len());
 
         if vertices > MAX_NODES || vertices > remaining || edges > remaining - vertices {
             return false;
         }
 
+        // a BTreeMap keeps its keys sorted, so the groups come out in name order
         let mut groups: BTreeMap<String, Vec<u32>> = BTreeMap::new();
 
         for vertex in session.graph.get_vertices() {
@@ -341,7 +360,9 @@ impl Hierarchy {
 
         true
     }
+// --8<-- [end:hierarchy-graph]
 
+// --8<-- [start:hierarchy-rows]
     /// Add one open node; false at the limit.
     fn push(&mut self, label: &str, depth: usize, doc: usize, name: String, layer: bool) -> bool {
         if self.nodes.len() >= MAX_NODES {
@@ -349,6 +370,7 @@ impl Hierarchy {
         }
 
         let start = self.rows.len();
+        // 160 characters, not bytes, so a letter of several bytes is never cut in half
         let label = label.chars().take(160).collect();
         self.nodes.push(Node {
             label,
@@ -378,6 +400,7 @@ impl Hierarchy {
                 break;
             };
             result.push(index);
+            // an open node steps into its children; a closed one jumps past its subtree
             index = if self.open.contains(&index) {
                 index + 1
             } else {
@@ -404,7 +427,9 @@ impl Hierarchy {
 fn row_of(lookup: &Lookup, doc: usize, guid: &str) -> Option<u32> {
     lookup.get(&doc)?.get(guid).copied()
 }
+// --8<-- [end:hierarchy-rows]
 
+// --8<-- [start:hierarchy-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -561,3 +586,4 @@ mod tests {
         assert_eq!(index.nodes.len(), 6, "with a line per object and group");
     }
 }
+// --8<-- [end:hierarchy-tests]

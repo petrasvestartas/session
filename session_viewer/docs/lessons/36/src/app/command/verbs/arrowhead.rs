@@ -1,3 +1,4 @@
+// --8<-- [start:arrowhead-parse]
 use crate::State;
 use crate::app::command::{Action, Spec};
 use session_rust::{Arrowhead, Geometry};
@@ -13,7 +14,7 @@ pub const SPEC: Spec = Spec {
         "Arrowhead End",
         "Arrowhead Both",
     ],
-    arity: Some(1),
+    arity: Some(1), // exactly one word after the name
     wait_for_option: true,
     wait_after_option: false,
     parse,
@@ -35,7 +36,9 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
         .map(|&(name, head)| Box::new(Heads { name, head }) as Box<dyn Action>)
         .ok_or_else(|| "try Arrowhead None, Start, End or Both".into())
 }
+// --8<-- [end:arrowhead-parse]
 
+// --8<-- [start:heads]
 /// Set the arrowheads of every selected curve.
 #[derive(Debug)]
 struct Heads {
@@ -48,6 +51,7 @@ impl Action for Heads {
     fn run(&self, state: &mut State) -> Result<String, String> {
         let rows = state.selected_rows();
 
+        // A streamed file, or a released document still loading, refuses the whole command before anything changes.
         if let Some(reason) = state.locked_reason(&rows) {
             return Err(reason);
         }
@@ -75,6 +79,7 @@ impl Action for Heads {
         let count = if edits.is_empty() {
             0
         } else {
+            // Every changed curve is swapped in one document edit, so a single Undo takes all the heads off.
             state.scene.replace_rows(edits, "arrowhead")?
         };
         state.commit_rows();
@@ -89,11 +94,14 @@ impl Action for Heads {
         true
     }
 }
+// --8<-- [end:heads]
 
+// --8<-- [start:headed]
 /// The curve with `head` and whether that changed it; None when it is no curve.
 fn headed(geometry: &Geometry, head: Arrowhead) -> Option<(Geometry, bool)> {
     let out = match geometry {
         Geometry::Line(line) => {
+            // `**line` goes through the reference and the `Rc` to the Line itself, so `clone` copies the Line, not the pointer.
             let mut next = (**line).clone();
             next.arrowhead = head;
             (Geometry::Line(Rc::new(next)), line.arrowhead != head)
@@ -115,7 +123,9 @@ fn headed(geometry: &Geometry, head: Arrowhead) -> Option<(Geometry, bool)> {
     };
     Some(out)
 }
+// --8<-- [end:headed]
 
+// --8<-- [start:arrowhead-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -201,3 +211,4 @@ mod tests {
         assert_eq!(heads(&scene), Arrowhead::END);
     }
 }
+// --8<-- [end:arrowhead-tests]

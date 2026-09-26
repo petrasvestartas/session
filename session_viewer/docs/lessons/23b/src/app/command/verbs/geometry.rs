@@ -1,3 +1,4 @@
+// --8<-- [start:draw-verb]
 use crate::State;
 use crate::app::command::{Action, Spec, Verb};
 use crate::app::coords;
@@ -5,13 +6,13 @@ use crate::app::modeling::{Interval, MAX_POINTS};
 use session_rust::{Geometry, Point};
 use std::ops::RangeInclusive;
 
-/// A verb that makes one geometry from picked or typed points.
+/// A verb that makes one geometry from points, clicked or typed: Point, Line, Polyline and Curve are all a Draw.
 pub struct Draw {
     pub spec: Spec,                                       // how it is typed
-    pub points: RangeInclusive<usize>, // how many; a fixed count finishes by itself
+    pub points: RangeInclusive<usize>, // `1..=1` is exactly one point and finishes by itself; `2..=4096` takes two or more until Enter
     pub what: &'static str,            // named in the answer, e.g. `NURBS curve`
     pub buttons: &'static [(&'static str, &'static str)], // under the command line while drawing
-    pub build: fn(&[Point]) -> Result<Geometry, String>, // the checked points into geometry
+    pub build: fn(&[Point]) -> Result<Geometry, String>, // the verb's own function: checked points in, geometry out
 }
 
 impl Verb for Draw {
@@ -19,6 +20,7 @@ impl Verb for Draw {
         &self.spec
     }
 
+    /// Every entry is asked for a Draw; only this impl answers Some, which is how the drawing code finds its verbs.
     fn draw(&self) -> Option<&Draw> {
         Some(self)
     }
@@ -30,7 +32,7 @@ impl Draw {
         self.points.start() != self.points.end()
     }
 
-    /// The typed points as a creation, or what is wrong with them.
+    /// The typed points as a creation. `&'static self`: the Draw lives in a const, so the Create below may keep a pointer to it.
     pub fn parse(&'static self, words: &[&str]) -> Result<Box<dyn Action>, String> {
         if words.len() > MAX_POINTS {
             return Err("too many points".into());
@@ -85,13 +87,16 @@ fn point(p: [f64; 3]) -> Result<Point, String> {
 
     Ok(Point::new(p[0], p[1], p[2]))
 }
+// --8<-- [end:draw-verb]
 
+// --8<-- [start:draw-create]
 /// One geometry from a drawing verb and its points.
 pub struct Create {
     draw: &'static Draw,   // the verb
     points: Vec<[f64; 3]>, // its checked count of world points
 }
 
+/// Debug written by hand, printing `Create(Line, [[0.0, 0.0, 0.0], ..])` with the verb's shown name.
 impl std::fmt::Debug for Create {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Create({}, {:?})", self.draw.spec.names[0], self.points)
@@ -109,7 +114,7 @@ impl Action for Create {
 
 /// The selected curve trimmed or extended over a part of its length.
 #[derive(Debug)]
-pub struct Edit(pub Interval);
+pub struct Edit(pub Interval); // a tuple struct: one unnamed field, read as `self.0`
 
 impl Action for Edit {
     /// Replace the curve as one undo step.
@@ -157,7 +162,7 @@ pub(crate) fn create_all(
     Ok(format!("{message} · Undo removes it"))
 }
 
-/// Select the new object, on the layer it went to, and say so.
+/// Select the new object and name the layer it went to, read from its node's parent in the document tree.
 fn created(state: &mut State, doc: usize, guid: &str, what: &str) -> String {
     let row = state.scene.row_of(doc, guid);
     state.select(row);
@@ -168,7 +173,9 @@ fn created(state: &mut State, doc: usize, guid: &str, what: &str) -> String {
         .unwrap_or_default();
     format!("Created and selected {what} on {layer}. Type Fit to locate it; Undo to remove it.")
 }
+// --8<-- [end:draw-create]
 
+// --8<-- [start:draw-tests]
 #[cfg(test)]
 pub mod tests {
     use super::*;
@@ -224,3 +231,4 @@ pub mod tests {
         assert!(scene.model(&SPEC, &[[0.0, 0.0, 0.0]]).is_err());
     }
 }
+// --8<-- [end:draw-tests]

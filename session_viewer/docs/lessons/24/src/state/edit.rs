@@ -883,6 +883,7 @@ mod egui_tests {}
 // --8<-- [end:22-egui-tests]
 
 // --8<-- [start:23-run-command]
+// --8<-- [start:run-command]
 impl State {
     /// Run one command line; the answer is what to show the person.
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
@@ -910,4 +911,5 @@ impl State {
         action.run(self)
     }
 }
+// --8<-- [end:run-command]
 // --8<-- [end:23-run-command]

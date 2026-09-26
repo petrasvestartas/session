@@ -1,10 +1,13 @@
+// --8<-- [start:tool-modules]
 use crate::State;
 use session_rust::{Plane, Point, Xform};
 pub mod cut; // register:cut
 pub mod gather; // register:gather
 pub mod shape; // register:shape
+// --8<-- [end:tool-modules]
 
-/// What a tool wants after a point or a word.
+// --8<-- [start:tool-trait]
+/// What a tool answers after each point or word: ask again, act and start over from the first point, or finish.
 #[derive(Debug, PartialEq)]
 pub enum Next {
     More,           // ask for the next point
@@ -12,7 +15,7 @@ pub enum Next {
     Done(String),   // finished, with the message to show
 }
 
-/// A command that asks for points; `state.features.draft` is empty while its methods run.
+/// A command that asks for points one at a time, e.g. Move: a base point, then a target. Only name, prompt and placed have no default.
 pub trait Tool: std::fmt::Debug {
     /// The command shown while it runs, e.g. `Move`.
     fn name(&self) -> &'static str;
@@ -30,6 +33,7 @@ pub trait Tool: std::fmt::Debug {
         None
     }
 
+    // A leading `_` marks an argument the default body ignores, so the compiler does not warn about it.
     /// A typed word the tool takes itself, e.g. an angle; None leaves it to coordinates.
     fn word(
         &mut self,
@@ -48,7 +52,7 @@ pub trait Tool: std::fmt::Debug {
 
     /// The rubber band: one polyline in the scene.
     fn guide(&self, points: &[Point], cursor: Option<&Point>) -> Vec<Point> {
-        points.iter().chain(cursor).cloned().collect()
+        points.iter().chain(cursor).cloned().collect() // an Option iterates as zero or one item, so the cursor joins only when there is one
     }
 
     /// A value shown beside the cursor, e.g. a distance.
@@ -130,7 +134,9 @@ pub trait Tool: std::fmt::Debug {
         serde_json::json!({ "command": self.name() })
     }
 }
+// --8<-- [end:tool-trait]
 
+// --8<-- [start:tool-overlay]
 /// One polyline on screen, in device pixels.
 pub struct Stroke {
     pub points: Vec<(f64, f64)>, // device pixels
@@ -139,7 +145,7 @@ pub struct Stroke {
     pub dashed: bool,            // dashes instead of a solid line
 }
 
-/// What a tool draws over the scene.
+/// What a tool draws over the scene; `Default` gives an empty one, so a tool fills in only what it needs.
 #[derive(Default)]
 pub struct Overlay {
     pub strokes: Vec<Stroke>,                // lines
@@ -156,3 +162,4 @@ pub fn translation(from: &Point, to: &Point) -> Xform {
 pub fn typed_number(word: &str) -> Option<f64> {
     word.parse::<f64>().ok().filter(|value| value.is_finite())
 }
+// --8<-- [end:tool-overlay]

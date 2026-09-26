@@ -1,8 +1,10 @@
+// --8<-- [start:coords-parse]
 use session_rust::{Point, Vector};
 
-/// A typed coordinate, not yet placed in the world.
+/// A coordinate as typed, before it becomes a point: the four forms CAD programs accept on the command line.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Typed {
+    // z is None when only two numbers were typed: the point then lands on the construction plane.
     Absolute { x: f64, y: f64, z: Option<f64> }, // `1,2,3` or `1,2` on the plane
     Relative { x: f64, y: f64, z: Option<f64> }, // `@1,2` from the previous point
     Polar { distance: f64, degrees: f64 },       // `5<45` in the plane
@@ -49,7 +51,9 @@ pub fn parse(text: &str) -> Option<Typed> {
         _ => None,
     }
 }
+// --8<-- [end:coords-parse]
 
+// --8<-- [start:coords-resolve]
 /// A typed coordinate as a point on the plane.
 pub fn resolve(
     typed: Typed,
@@ -75,7 +79,7 @@ pub fn resolve(
             let p = previous?;
             Some(Point::new(p[0] + x, p[1] + y, p[2] + z))
         }
-        Typed::Relative { x, y, z: None } => Some(on_plane(x, y, previous?)),
+        Typed::Relative { x, y, z: None } => Some(on_plane(x, y, previous?)), // `previous?` gives None when there is no earlier point to measure from
         Typed::Polar { distance, degrees } => {
             let r = degrees.to_radians();
             let base = previous.unwrap_or(origin);
@@ -98,7 +102,9 @@ fn number(text: &str) -> Option<f64> {
     let value: f64 = text.trim().parse().ok()?;
     value.is_finite().then_some(value)
 }
+// --8<-- [end:coords-resolve]
 
+// --8<-- [start:coords-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -202,3 +208,4 @@ mod tests {
         assert_eq!(p[0], 1_000_000.001);
     }
 }
+// --8<-- [end:coords-tests]

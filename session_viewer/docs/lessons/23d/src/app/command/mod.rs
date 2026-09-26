@@ -1,17 +1,19 @@
+// --8<-- [start:command-action]
 pub mod tool;
 pub mod verbs;
 
-pub use verbs::REGISTRY;
+pub use verbs::REGISTRY; // `pub use` re-exports it: callers write `command::REGISTRY` and never name the verbs module
 
 use crate::State;
 use crate::app::coords;
 
-/// What a parsed command does.
+// `: Debug` asks every Action to print with {:?} too, so a test can compare `Create(Point, ..)` as text.
+/// What a parsed line does. A trait is a promise of methods; every verb's parsed line is some type that keeps it.
 pub trait Action: std::fmt::Debug {
     /// Carry it out; the answer is what to show the person.
     fn run(&self, state: &mut State) -> Result<String, String>;
 
-    /// True when it acts on the selection.
+    /// A method with a body is a default: a verb overrides only what differs, e.g. Delete says true here.
     fn needs_selection(&self) -> bool {
         false
     }
@@ -27,19 +29,20 @@ pub trait Action: std::fmt::Debug {
     }
 }
 
-/// One verb: how it is typed, completed and parsed.
+/// One verb as the command line sees it: the names it answers to, its help line, its options and its parser.
 pub struct Spec {
-    pub names: &'static [&'static str], // shown in completion, first is canonical
+    pub names: &'static [&'static str], // `'static`: text stored in the binary for the whole run, so a const can hold it; the first name is the one shown
     pub aliases: &'static [&'static str], // accepted when typed, never shown
     pub hint: &'static str,             // help line, empty for the generic one
     pub options: &'static [&'static str], // clickable choices
-    pub arity: Option<usize>,           // exact argument count, when fixed
+    pub arity: Option<usize>, // exact argument count, when fixed: Delete takes Some(0)
     pub wait_for_option: bool,          // completing the bare verb waits for an option
     pub wait_after_option: bool,        // completing verb and option waits for more
+    // A function pointer: each verb file names its own parser here. `Box<dyn Action>` is any Action on the heap; the caller never learns which type.
     pub parse: fn(verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String>,
 }
 
-/// A registry entry: a Spec, or a verb that carries one.
+/// A REGISTRY entry. Two kinds share one list: a plain Spec, and a Draw that also turns points into geometry.
 pub trait Verb {
     /// How it is typed, completed and parsed.
     fn spec(&self) -> &Spec;
@@ -50,12 +53,15 @@ pub trait Verb {
     }
 }
 
+/// A Spec is itself a Verb, so a plain verb puts `&SPEC` straight into the list.
 impl Verb for Spec {
     fn spec(&self) -> &Spec {
         self
     }
 }
+// --8<-- [end:command-action]
 
+// --8<-- [start:command-lookup]
 /// A name lowercased without its spaces, so `clippingplane` spells `Clipping Plane`.
 fn compact(name: &str) -> String {
     name.split_whitespace()
@@ -69,6 +75,7 @@ fn spells(name: &str, words: &[&str]) -> Option<usize> {
 
     for (index, word) in words.iter().enumerate() {
         let word = word.to_ascii_lowercase();
+        // `?` on an Option returns None from the whole function the moment a word does not continue the name.
         let tail = rest.strip_prefix(word.as_str())?.to_owned();
 
         if tail.is_empty() {
@@ -81,7 +88,7 @@ fn spells(name: &str, words: &[&str]) -> Option<usize> {
     None
 }
 
-/// Match the longest command name, leaving its arguments untouched.
+/// The verb the first words spell and how many words it took; when several names fit, the longest wins.
 fn verb_words(words: &[&str]) -> Option<(&'static dyn Verb, usize)> {
     REGISTRY
         .iter()
@@ -91,6 +98,7 @@ fn verb_words(words: &[&str]) -> Option<(&'static dyn Verb, usize)> {
                 spells(name, words).map(|count| (*verb, count, compact(name).len()))
             })
         })
+        // `Nurbs Surface Loft` beats `Loft` typed alone because it spells more letters
         .max_by_key(|(_, _, letters)| *letters)
         .map(|(verb, count, _)| (verb, count))
 }
@@ -105,7 +113,9 @@ pub fn drawing(words: &[&str]) -> Option<(&'static verbs::geometry::Draw, usize)
     let (verb, count) = verb_words(words)?;
     Some((verb.draw()?, count))
 }
+// --8<-- [end:command-lookup]
 
+// --8<-- [start:command-text]
 /// The line with its command spelled as shown, e.g. `clippingplane xy` becomes `Clipping Plane XY`.
 pub fn canonical(line: &str) -> String {
     let words: Vec<_> = line.split_whitespace().collect();
@@ -179,7 +189,9 @@ pub fn hint(line: &str) -> &'static str {
         _ => "Type a command · Up/Down browse · Tab completes · Enter executes · Esc cancels",
     }
 }
+// --8<-- [end:command-text]
 
+// --8<-- [start:command-parse]
 /// Parse one line; the error is the message to show.
 pub fn parse(line: &str) -> Result<Box<dyn Action>, String> {
     if line.len() > 65536 {
@@ -262,7 +274,7 @@ pub fn browse(line: &str) -> Vec<&'static str> {
     matching.into_iter().chain(rest).collect()
 }
 
-/// Take the first completion; false when arguments are still needed.
+/// Tab or Enter on a partial line: the completed text, and whether it can run now; false leaves `Rotate x ` open for more.
 pub fn accept(line: &str) -> (String, bool) {
     let line = line.trim_start(); // a stray leading space must not hide the verb
 
@@ -291,7 +303,9 @@ pub fn accept(line: &str) -> (String, bool) {
         (text.to_owned(), true)
     }
 }
+// --8<-- [end:command-parse]
 
+// --8<-- [start:command-arguments]
 /// A move offset from `10 0 0`, `@10,0` or `10<45`.
 pub fn offset(words: &[&str]) -> Result<[f64; 3], String> {
     let joined = words.join(" ");
@@ -354,7 +368,9 @@ pub fn on_off(words: &[&str], usage: &str) -> Result<Option<bool>, String> {
         _ => Err(usage.into()),
     }
 }
+// --8<-- [end:command-arguments]
 
+// --8<-- [start:command-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -839,3 +855,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:command-tests]

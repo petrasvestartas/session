@@ -1,3 +1,4 @@
+// --8<-- [start:draft]
 use super::State;
 use super::drag::Targets;
 use crate::app::command::tool::Tool;
@@ -9,7 +10,7 @@ use crate::app::{
 };
 use session_rust::{Plane, Point, Polyline, Vector, Xform};
 
-/// A shape being drawn, or points being picked for a command, not yet in the scene.
+/// The command being drawn: points placed so far, the plane they land on and the tool asking; none of it is in the document yet.
 pub(crate) struct Draft {
     pub(super) verb: String, // point, line, polyline, curve, select, or the command asking
     draw: Option<&'static Draw>, // the drawing verb, when one draws
@@ -62,7 +63,9 @@ impl State {
         self.features.draft.is_some()
     }
 }
+// --8<-- [end:draft]
 
+// --8<-- [start:drawing-command]
 impl State {
     /// A command line entry while drawing; `None` if not one.
     pub(super) fn drawing_command(&mut self, text: &str) -> Option<Result<String, String>> {
@@ -105,7 +108,7 @@ impl State {
                 });
             }
         }
-        self.features.draft.as_ref()?; // not drawing: not ours
+        self.features.draft.as_ref()?; // `?` on an Option: not drawing, so None tells run_command to parse the line as a command
 
         // a tool or an object pick takes its own words
         if let Some(result) = self.tool_command(text) {
@@ -146,7 +149,9 @@ impl State {
         }
         None
     }
+    // --8<-- [end:drawing-command]
 
+    // --8<-- [start:drawing-points]
     /// Start picking points for command `verb`; they finish `prefix`, one per prompt.
     pub(crate) fn ask_points(
         &mut self,
@@ -231,6 +236,7 @@ impl State {
                 crate::app::command::canonical(&draft.verb)
             ));
         }
+        // `mem::replace` swaps the new points in and hands back the old ones, kept to restore if finishing fails.
         let previous = std::mem::replace(&mut self.features.draft.as_mut().unwrap().points, points);
         let result = self.advance_drawing();
         // a failed finish keeps the old points
@@ -282,7 +288,9 @@ impl State {
         }
         result
     }
+    // --8<-- [end:drawing-points]
 
+    // --8<-- [start:drawing-prompt]
     /// The draft as JSON, for the inspection tests.
     pub fn drawing_status(&self) -> serde_json::Value {
         let Some(draft) = &self.features.draft else {
@@ -356,7 +364,9 @@ impl State {
             }
         )
     }
+    // --8<-- [end:drawing-prompt]
 
+    // --8<-- [start:drawing-cursor]
     /// Move the cursor while drawing: snap or land on the plane.
     pub fn hover_drawing(&mut self, x: f64, y: f64) -> bool {
         // a tool that follows the cursor itself
@@ -374,6 +384,7 @@ impl State {
             return false;
         }
 
+        // Take the draft out of `self`: its fields and `self`'s methods can then be borrowed together; it goes back at the end.
         let mut draft = self.features.draft.take().unwrap();
         let tool = draft.tool.is_some();
         let ray = self.camera.ray((x, y), self.viewport());
@@ -409,7 +420,7 @@ impl State {
                 );
                 let targets = draft
                     .targets
-                    .get_or_insert_with(|| Targets::new(screen.clone(), Vec::new()));
+                    .get_or_insert_with(|| Targets::new(screen.clone(), Vec::new())); // collected on the first hover, reused for every move after
                 if let Some(hit) = self.snap_near(targets, draft.points.last(), (x, y), ray) {
                     candidates.push(hit);
                 }
@@ -495,7 +506,9 @@ impl State {
         crate::app::feedback::command_line(true);
         true
     }
+    // --8<-- [end:drawing-cursor]
 
+    // --8<-- [start:drawing-overlay]
     /// The draft as screen points for the preview, plus the snap name.
     pub fn drawing_overlay(&self) -> (Vec<(f64, f64)>, String) {
         let Some(draft) = &self.features.draft else {
@@ -538,8 +551,10 @@ impl State {
         draft.draw.map_or(&[], |draw| draw.buttons)
     }
 }
+// --8<-- [end:drawing-overlay]
 
-const OWN: u32 = u32::MAX; // owner of the draft's own snaps
+// --8<-- [start:drawing-construction]
+const OWN: u32 = u32::MAX; // owner id of the draft's own snaps; no scene row is this large
 
 /// The two axes of a construction plane; x × y faces the viewer in Top, Front and Right.
 pub(super) fn axes(plane: CPlane) -> (Vector, Vector) {
@@ -600,7 +615,9 @@ fn construction_points(
         })
         .collect())
 }
+// --8<-- [end:drawing-construction]
 
+// --8<-- [start:drawing-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -637,3 +654,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:drawing-tests]

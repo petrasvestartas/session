@@ -78,6 +78,7 @@ src/app/command/verbs/mod.rs arctic 33
 src/app/command/verbs/mod.rs outline 33
 src/app/command/verbs/mod.rs attributes 35
 src/app/command/verbs/mod.rs opacity 36
+src/app/command/verbs/measure_distance.rs arctic 33
 src/app/feedback.rs commands 23
 src/app/gesture/mod.rs control-drag 21
 src/app/gesture/mod.rs gizmo-drag 21

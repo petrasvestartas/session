@@ -1,3 +1,4 @@
+// --8<-- [start:command-line-state]
 use super::{Control, Output, record};
 use crate::State;
 use std::cell::RefCell;
@@ -38,7 +39,9 @@ pub(super) fn remember(line: String) {
         model.history.push_back(line);
     });
 }
+// --8<-- [end:command-line-state]
 
+// --8<-- [start:command-line-panel]
 /// The command line, registered in PANELS.
 pub(super) struct Hooks;
 
@@ -111,8 +114,10 @@ impl super::Panel for Hooks {
         });
     }
 }
+// --8<-- [end:command-line-panel]
 
-/// The command dock; an executed line goes to `command`.
+// --8<-- [start:dock-frame]
+/// The command dock at the bottom: one row when folded, the history above the field when unfolded; an executed line goes to `out.command`.
 fn draw(
     root: &mut egui::Ui,                 // the panel area
     model: &mut CommandLine,             // the panel state
@@ -123,6 +128,7 @@ fn draw(
     let drawing_options = !model.drawing_options.is_empty();
     // each button row adds this much
     let extra = 28.0 * (usize::from(drawing_options) + usize::from(model.snap_bar)) as f32;
+    // Folded it is exactly one row, 30 px plus a row per button bar; unfolded the person drags its top edge.
     let panel = if !model.command_expanded {
         egui::Panel::bottom("command-line-collapsed").exact_size(30.0 + extra)
     } else {
@@ -204,6 +210,8 @@ fn draw(
                     }
                 });
             }
+            // --8<-- [end:dock-frame]
+            // --8<-- [start:dock-input]
             ui.horizontal(|ui| {
                 // keep clear of the docs corner
                 ui.set_max_width((ui.available_width() - 26.0).max(80.0));
@@ -265,7 +273,7 @@ fn draw(
                     0
                 };
                 let enter = has_focus
-                    && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Enter)); // run the line
+                    && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Enter)); // consume_key takes the key out of egui's input, so no other widget sees it too
                 let tab = has_focus
                     && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Tab)); // accept the completion
                 let deletes = ui.input(|i| {
@@ -292,6 +300,8 @@ fn draw(
                     command_cursor_end(ui.ctx(), id, &model.command);
                     model.inline_suffix = false;
                 }
+                // --8<-- [end:dock-input]
+                // --8<-- [start:dock-field]
                 let option_prefix = if model.inline_suffix {
                     &model.completion_prefix
                 } else {
@@ -398,6 +408,7 @@ fn draw(
                         let prefix = spelled(name, &crate::app::command::canonical(&model.command));
                         if name.chars().count() > prefix {
                             model.command = (*name).into();
+                            // the completed tail stays selected, so the next letter replaces it: `Lin` shows `Line` with `e` selected
                             command_cursor_select(
                                 ui.ctx(),
                                 id,
@@ -411,6 +422,8 @@ fn draw(
                 } else if !model.inline_suffix {
                     model.completion_prefix.clone_from(&model.command);
                 }
+                // --8<-- [end:dock-field]
+                // --8<-- [start:dock-completions]
                 // the completion list
                 let choices = crate::app::command::browse(&model.completion_prefix);
                 let mut complete = None; // completion chosen this frame
@@ -462,6 +475,7 @@ fn draw(
                             (ui.ctx().content_rect().right() - response.rect.left() - 12.0)
                                 .clamp(60.0, 220.0);
                         let popup_height = (response.rect.top() - 12.0).clamp(22.0, 220.0);
+                        // An Area floats above the panels; pivot LEFT_BOTTOM puts its bottom-left corner on the field's top-left.
                         let popup = egui::Area::new(egui::Id::new("command-completions"))
                             .pivot(egui::Align2::LEFT_BOTTOM)
                             .fixed_pos(egui::pos2(response.rect.left(), response.rect.top()))
@@ -505,6 +519,8 @@ fn draw(
                         model.completion_rect = Some(popup.response.rect);
                     }
                 }
+                // --8<-- [end:dock-completions]
+                // --8<-- [start:dock-run]
                 // a chosen completion fills the field, maybe runs it
                 if let Some(name) = complete {
                     let (text, run) = crate::app::command::accept(name);
@@ -589,7 +605,9 @@ fn draw(
         });
     }
 }
+// --8<-- [end:dock-run]
 
+// --8<-- [start:command-line-helpers]
 /// Put the caret at the end of the field.
 pub(super) fn command_cursor_end(context: &egui::Context, id: egui::Id, command: &str) {
     let end = command.chars().count();
@@ -643,7 +661,9 @@ pub(super) fn command_cursor_select(
         egui::TextEdit::store_state(context, id, state);
     }
 }
+// --8<-- [end:command-line-helpers]
 
+// --8<-- [start:command-line-tests]
 #[cfg(test)]
 mod tests {
     use super::super::theme::{BUNDLED, fonts};
@@ -755,3 +775,4 @@ mod tests {
         assert_eq!(model.command, "Snap End");
     }
 }
+// --8<-- [end:command-line-tests]
