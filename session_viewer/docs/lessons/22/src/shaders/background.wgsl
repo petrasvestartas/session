@@ -22,7 +22,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 
 // Location 0 is the colour; location 1 the triangle id, 0 here because the background is no triangle.
 @fragment
-// White background; slightly grey when SSAO is on.
+// White background; slightly grey while the soft shadows of lesson 32 (SSAO) are on.
 fn fs_main(in: VsOut) -> PhysicalColor {
     let value = select(1.0,0.94,line.lit > 1.5);
     return PhysicalColor(vec4<f32>(vec3<f32>(value),1.0), vec2<u32>(0u));

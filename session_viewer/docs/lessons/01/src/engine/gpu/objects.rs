@@ -863,7 +863,9 @@ impl InstanceTable {
         model[14] = 0.0;
         instance.model == model && *translation == [place.m[12], place.m[13], place.m[14]]
     }
+// --8<-- [end:queries]
 
+// --8<-- [start:colors]
     /// Set a row's face or edge color; None restores its own.
     pub fn set_color(&mut self, ctx: &GpuCtx, row: u32, edge: bool, color: Option<[u8; 3]>) {
         if let Some(r) = self.rows.get_mut(row as usize) {
@@ -936,7 +938,9 @@ impl InstanceTable {
     pub(crate) fn geometry_changed(&mut self) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
     }
+// --8<-- [end:colors]
 
+// --8<-- [start:forget]
     /// Forget every row; keep the buffers.
     pub fn reset(&mut self) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
@@ -970,7 +974,9 @@ impl InstanceTable {
         self.translations.release(ctx);
         self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
     }
+// --8<-- [end:forget]
 
+// --8<-- [start:lookups]
     /// Row `i` as uploaded.
     pub fn row(&self, i: u32) -> Option<&Instance> {
         self.rows.get(i as usize)
@@ -1010,7 +1016,7 @@ impl InstanceTable {
         }
     }
 }
-// --8<-- [end:queries]
+// --8<-- [end:lookups]
 
 // --8<-- [start:tests]
 #[cfg(test)]

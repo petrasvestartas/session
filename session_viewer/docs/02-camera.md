@@ -1,132 +1,136 @@
 # 02 · Camera
 
-The orbit camera turns mouse pixels and wheel steps into a view-projection matrix, and the backdrop gains a floor grid drawn through it. The camera is complete here, standard views and the remembered pose included.
+Every shader multiplies each point by one matrix, group 0, which maps the world onto the screen. You never think in matrices, though: you drag to orbit, drag to pan, and roll the wheel to zoom. So the camera stores three things you can picture, a target point, a distance and an orientation, and rebuilds the matrix from them every frame.
+
+Each gesture changes one of the three. Orbit turns the orientation, pan slides the target, the wheel scales the distance. For example, at distance 3 m with the 60° view from lesson 01, the picture is 2 × 3 × tan 30° = 3.46 m tall at the target.
 
 ![Orbit turns the orientation about the target, pan slides the target across the camera's own plane, and the wheel scales the distance; the view-projection is rebuilt from those three every frame.](illustrations/camera-basis.svg)
 
-## Step 1 · src/lib.rs
+This lesson writes the whole camera, standard views and zoom-to-cursor included, and a floor grid drawn through it.
 
-Add the camera module.
+## The camera
 
-`lessons/02/src/lib.rs` · type this, append at the end of the file
+### Add the module
+
+`lessons/02/src/lib.rs` · append at the end of the file
+
+The camera is its own file; this line brings it into the crate.
 
 ```rust
 --8<-- "lessons/02/src/lib.rs:camera-mod"
 ```
 
-## Step 2 · src/camera.rs
+### Units and the named views
 
-Scene units, the near plane as a fraction of the distance, and the seven standard views.
+`lessons/02/src/camera.rs` · new file
 
-`lessons/02/src/camera.rs` · type this, new file
+The camera works in meters; a scene file may be written in millimetres, so `Unit` converts. The near plane is the closest distance the camera sees, one ten-thousandth of the distance to the target: 0.3 mm at 3 m. `View` names the seven standard views a key will jump to.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:units"
 ```
 
-## Step 3 · src/camera.rs
+### Store target, distance and orientation
 
-The orbit camera, and the pose a view remembers: where the camera looks from and at.
+`lessons/02/src/camera.rs` · append at the end of the file
 
-`lessons/02/src/camera.rs` · type this, append at the end of the file
+A quaternion stores a rotation in four numbers. Unlike three angles, it never locks up when you look straight down. The eye position and the up direction are computed from the three stored values, never set by hand.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:camera"
 ```
 
-## Step 4 · src/camera.rs
+### Start at the isometric view
 
-Read the current pose, and make a camera at the isometric view.
+`lessons/02/src/camera.rs` · append at the end of the file
 
-`lessons/02/src/camera.rs` · type this, append at the end of the file
+Turn 30° about the vertical axis, then tilt 30° down: the familiar three-quarter view.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:camera-new"
 ```
 
-## Step 5 · src/camera.rs
+### Orbit, pan and zoom
 
-Orbit, pan and zoom by mouse pixels and wheel steps.
+`lessons/02/src/camera.rs` · append at the end of the file
 
-`lessons/02/src/camera.rs` · type this, append at the end of the file
+Orbit turns 0.005 radians per mouse pixel, so a 100-pixel drag turns about 29°. Pan moves the target by 0.15 % of the distance per pixel, so a pixel covers more when you are far away. Zoom multiplies the distance.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:navigate"
 ```
 
-## Step 6 · src/camera.rs
+### Shoot a ray through a pixel
 
-The world ray under a cursor pixel, for perspective and orthographic views.
+`lessons/02/src/camera.rs` · append at the end of the file
 
-`lessons/02/src/camera.rs` · type this, append at the end of the file
+A ray is a start point and a direction. The cursor pixel becomes a point on the plane through the target. In perspective, where far things look smaller, every ray starts at the eye; in orthographic, where size does not shrink with distance, all rays are parallel. Zoom-to-cursor needs it now, picking in lesson 12.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:ray"
 ```
 
-## Step 7 · src/camera.rs
+### Zoom toward the cursor
 
-Zoom toward the cursor, and switch projection while keeping what was on screen in view.
+`lessons/02/src/camera.rs` · append at the end of the file
 
-`lessons/02/src/camera.rs` · type this, append at the end of the file
+Zooming in by 10 % also moves the target 10 % of the way toward the point under the cursor, so that point stays under the cursor. Switching from orthographic to perspective refits the view to what was on screen.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:zoom-at"
 ```
 
-## Step 8 · src/camera.rs
+### Build the matrix
 
-The view-projection matrix, measured from the anchor, with near and far swapped for reverse-Z depth.
+`lessons/02/src/camera.rs` · append at the end of the file
 
-`lessons/02/src/camera.rs` · type this, append at the end of the file
+Read `projection * view * scale` from right to left: scale scene units to meters, turn the world so the eye sits at the origin looking ahead, then project onto the screen. Near and far are swapped for reverse-Z, and everything is measured from the anchor, as the object rows are.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:view-proj"
 ```
 
-## Step 9 · src/camera.rs
+### Jump to a standard view
 
-Turn to a standard view in orthographic projection, or reset the camera.
+`lessons/02/src/camera.rs` · append at the end of the file
 
-`lessons/02/src/camera.rs` · type this, append at the end of the file
+Front, top, iso and the rest set the orientation directly and switch to orthographic, so a drawing measures the same anywhere on screen.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:standard-views"
 ```
 
-## Step 10 · src/camera.rs
+### Fit a box in view
 
-Fit a box in view, widen the far plane for boxes that arrive later, and recompute the eye.
+`lessons/02/src/camera.rs` · append at the end of the file
 
-`lessons/02/src/camera.rs` · type this, append at the end of the file
+Look at the box centre, then back off until all eight corners are inside the picture, plus 5 %. A box that arrives later only widens the far plane, so the view does not jump.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:fit"
 ```
 
-## Step 11 · src/camera.rs
-
-The pose and depth tests.
+### Prove poses and depth
 
 `lessons/02/src/camera.rs` · copy this part, append at the end of the file
+
+The near plane cuts just ahead of the eye at any distance, and orthographic depth still tells apart two faces 4 mm apart.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:tests"
 ```
 
-## Step 12 · src/camera.rs
+### Turn wheel steps into a distance
 
-The distance after some wheel steps: 0.9 per step, at most ten per event.
+`lessons/02/src/camera.rs` · append at the end of the file
 
-`lessons/02/src/camera.rs` · type this, append at the end of the file
+Each wheel step multiplies the distance by 0.9: 3 m becomes 2.7 m. A fast wheel sends many steps in one event, so we count at most ten, and the distance never reaches zero.
 
 ```rust
 --8<-- "lessons/02/src/camera.rs:zoom-distance"
 ```
 
-## Step 13 · src/camera.rs
-
-The ray and wheel tests.
+### Prove rays and the wheel
 
 `lessons/02/src/camera.rs` · copy this part, append at the end of the file
 
@@ -134,62 +138,66 @@ The ray and wheel tests.
 --8<-- "lessons/02/src/camera.rs:wheel-tests"
 ```
 
-## Step 14 · src/shaders/grid.wgsl
+## A floor grid
 
-The floor grid and the three axes, each endpoint placed from its vertex index alone.
+The grid is 22 floor lines, 1 m apart over 10 m, and three short axes: x red, y green, z blue. Like the background, it needs no vertex buffer.
 
-`lessons/02/src/shaders/grid.wgsl` · type this, new file
+### Place 50 vertices from their index
+
+`lessons/02/src/shaders/grid.wgsl` · new file
+
+Vertex 0 and 1 are the two ends of the first line, vertex 2 and 3 the next, and so on. From its index alone each vertex works out which line it belongs to and which end it is, then goes through the camera matrix.
 
 ```wgsl
 --8<-- "lessons/02/src/shaders/grid.wgsl"
 ```
 
-## Step 15 · src/engine/gpu/backdrop.rs
-
-Give the backdrop its grid shader and pipeline beside the background ones.
+### Give the backdrop a grid
 
 `lessons/02/src/engine/gpu/backdrop.rs` · add the lines tagged `register:camera`
+
+Eight lines, each tagged: the grid shader in the test list, two fields, making them, storing them, and rebuilding the grid pipeline on a new sample count.
 
 ```rust
 --8<-- "lessons/02/src/engine/gpu/backdrop.rs:backdrop"
 ```
 
-## Step 16 · src/engine/gpu/backdrop.rs
+### Draw lines that hide behind geometry
 
-Draw the grid lines, through a pipeline that hides the lines behind geometry.
+`lessons/02/src/engine/gpu/backdrop.rs` · append at the end of the file
 
-`lessons/02/src/engine/gpu/backdrop.rs` · type this, append at the end of the file
+The grid tests depth but never writes it, so a solid hides the grid and the grid never hides a solid.
 
 ```rust
 --8<-- "lessons/02/src/engine/gpu/backdrop.rs:grid"
 ```
 
-## Step 17 · src/engine/gpu/render.rs
-
-The backdrop draws the grid right after the background.
+### Draw it after the background
 
 `lessons/02/src/engine/gpu/render.rs` · add the line tagged `register:camera`
+
+The grid draws in the face pass, right after the background, so the depth test can hide it behind solids.
 
 ```rust
 --8<-- "lessons/02/src/engine/gpu/render.rs:face-passes"
 ```
 
-## Step 18 · src/engine/gpu/render.rs
+### Only while it is switched on
 
-Draw the grid only while it is switched on.
+`lessons/02/src/engine/gpu/render.rs` · append at the end of the file
 
-`lessons/02/src/engine/gpu/render.rs` · type this, append at the end of the file
+`?nogrid` in the page address turns it off.
 
 ```rust
 --8<-- "lessons/02/src/engine/gpu/render.rs:grid-list"
 ```
 
-Run `cargo check` in `lessons/02/`.
+## Checkpoint
 
-## Check
+Run `cargo xtest camera`. You should see `10 passed`: poses, near and far planes, rays and the wheel. The whole suite, `cargo xtest`, now shows `36 passed; 0 failed; 2 ignored`. From lesson 12 on, the grid turns under your mouse.
 
-`cargo xtest camera` runs the ten camera tests: poses, the near and far planes, rays and the wheel. The screen shows nothing new yet; from lesson 12 the grid turns with the mouse.
+## Recap
 
-## Next
+The camera stores a target, a distance and an orientation; each gesture changes one, and the matrix is rebuilt from them every frame. A ray through a pixel keeps the point under the cursor fixed while zooming. The grid shows that group 0 now holds a real camera. Next, every object's row gets the edits a click will need.
 
-[03 · Object rows and identity](03-identity.md)
+Next: [03 · Object rows and identity](03-identity.md)

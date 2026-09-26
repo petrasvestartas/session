@@ -1,0 +1,15 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: right
+
+obj: "object 7" { class: box }
+row: "object table\nrow 7, 96 bytes" { class: box }
+mesh: "mesh lane\nrows 120 to 159" { class: box }
+line: "line lane\nrows 30 to 33" { class: box }
+
+obj -> row: "select, colour, hide" { style: { stroke: "#57606a"; stroke-width: 2; font-size: 13; font-color: "#1f2328" } }
+obj -> mesh: "start 120, count 40" { style: { stroke: "#57606a"; stroke-width: 2; font-size: 13; font-color: "#1f2328" } }
+obj -> line: "start 30, count 4" { style: { stroke: "#57606a"; stroke-width: 2; font-size: 13; font-color: "#1f2328" } }

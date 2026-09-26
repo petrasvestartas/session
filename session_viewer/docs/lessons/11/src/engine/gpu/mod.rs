@@ -419,8 +419,7 @@ pub(crate) fn lane_shaders() -> Vec<(&'static str, &'static str)> {
 // --8<-- [end:lane-shaders]
 
 // --8<-- [start:03-rows]
-// --8<-- [start:row-edits]
-// Every edit below writes one 96-byte row and never the geometry: selecting a mesh of a million triangles is one small write.
+// --8<-- [start:scene-edits]
 impl Gpu {
     /// Grow the scene box to include object `row`.
     pub fn grew_bounds(&mut self, row: u32) {
@@ -447,7 +446,10 @@ impl Gpu {
         self.dead = dead;
         self.dead_points = points; // register:clouds
     }
+// --8<-- [end:scene-edits]
 
+// --8<-- [start:row-edits]
+    // Every edit below writes one 96-byte row and never the geometry: selecting a mesh of a million triangles is one small write.
     /// Select or deselect object `row`.
     pub fn set_selected(&mut self, row: u32, on: bool) {
         self.selection_revision = self.selection_revision.wrapping_add(1);
@@ -466,7 +468,7 @@ impl Gpu {
         self.splat.invalidate(); // register:clouds
     }
 
-    /// Hidden, not freed: the row stays on the GPU, so showing it again is one more write.
+    // Hidden, not freed: the row stays on the GPU, so showing it again is one more write.
     /// Hide or show object `row`.
     pub fn set_hidden(&mut self, row: u32, on: bool) {
         self.objects

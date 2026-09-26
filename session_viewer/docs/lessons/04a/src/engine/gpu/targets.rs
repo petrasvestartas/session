@@ -268,7 +268,7 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
 
 /// A texture and its view; dropping it frees the memory at once.
 pub struct Attachment {
-    texture: wgpu::Texture,      // the texture
+    texture: wgpu::Texture,
     pub view: wgpu::TextureView, // its default view
 }
 

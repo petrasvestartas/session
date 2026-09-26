@@ -77,11 +77,11 @@ pub struct CloudUniform {
     pub vp_w: f32,        // target width, px
     pub vp_h: f32,        // target height, px
     pub edl: f32,         // eye-dome lighting strength; 0 = off
-    pub _pad0: f32,       // padding
-    pub _pad1: f32,       // padding
+    pub _pad0: f32,       // unused; the WGSL struct has the same two floats
+    pub _pad1: f32,
     pub origin: [f32; 2], // top-left of this target in the canvas, px
     pub frame: [f32; 2],  // canvas size, px
-    pub _pad: [f32; 2],   // padding
+    pub _pad: [f32; 2],   // keeps the size a multiple of 16
 }
 
 const _: () = {

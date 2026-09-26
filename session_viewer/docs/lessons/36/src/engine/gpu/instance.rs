@@ -11,7 +11,7 @@ pub struct Instance {
     pub flags: u32,       // FLAG_* bits below
     pub ao_radius: f32,   // SSAO contact radius, world units
     pub spacing: f32,     // vertex spacing, world units; 0 = unknown
-    pub _pad: u32,        // padding
+    pub _pad: u32,        // the edge colour, packed into four bytes
 }
 
 const _: () = assert!(std::mem::size_of::<Instance>() == 96);

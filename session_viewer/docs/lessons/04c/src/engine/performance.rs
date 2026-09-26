@@ -85,6 +85,7 @@ impl Performance {
         std::mem::take(&mut self.slow)
     }
 
+    // Arctic = the ambient occlusion look (lesson 32); it trades frame rate for quality on purpose.
     /// Keep Arctic's chosen canvas scale and MSAA during sustained slow navigation.
     pub fn keep_arctic_quality(&mut self) {
         self.slow = false;

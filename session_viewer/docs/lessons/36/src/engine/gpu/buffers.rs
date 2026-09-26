@@ -45,7 +45,7 @@ pub const INDICES: wgpu::BufferUsages = wgpu::BufferUsages::INDEX
 // --8<-- [start:growbuf]
 /// A GPU buffer that grows by half when full.
 pub struct GrowBuf {
-    pub buf: wgpu::Buffer,     // the GPU buffer
+    pub buf: wgpu::Buffer,
     len: u32,                  // rows in use
     cap: u64,                  // rows allocated
     stride: u64,               // bytes per row

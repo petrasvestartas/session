@@ -1,6 +1,8 @@
 # 00 · Empty project to a WASM message
 
-Seven files make a Rust crate that compiles to WebAssembly for the browser. The manifest and the page are already the final ones, so no later lesson edits them.
+A browser runs JavaScript and WebAssembly, not Rust. WebAssembly (wasm) is a compact binary format that every modern browser runs at near-native speed. So we compile our Rust to wasm, and two tools wrap it: wasm-bindgen writes the JavaScript that loads the `.wasm` file, and Trunk builds the web page around both.
+
+This lesson makes that crate: seven files and one function. Six of the files are final, so you write them once and never open them again.
 
 ![Four tools and four artefacts: cargo produces a .wasm a browser cannot load on its own, wasm-bindgen writes the JavaScript that can, Trunk assembles the page around it, and the browser runs the start function.](illustrations/toolchain.svg)
 
@@ -12,80 +14,84 @@ mkdir -p mine/src mine/.cargo
 cd mine
 ```
 
-The folder sits beside the lesson crates, so the kernel path `../../../../session_rust` in Cargo.toml resolves; every command below runs here.
+Your crate sits beside the lesson crates, so the path `../../../../session_rust` in the manifest reaches the geometry kernel four folders up: the library of points, curves and meshes the viewer will draw. Every command below runs in `mine/`.
 
-## Step 1 · Cargo.toml
-
-The crate's name and every dependency the course uses, with the font stack pinned so only one ships in the wasm.
+## Name the crate and its libraries
 
 `lessons/00/Cargo.toml` · copy the file
+
+`Cargo.toml` is the crate's manifest: its name and the libraries it uses. Two lines matter today. `crate-type = ["cdylib", ...]` asks for a library a browser can load, and `wgpu` is the library that talks to the GPU. The other libraries serve later lessons; listing them now means this file never changes again.
 
 ```toml
 --8<-- "lessons/00/Cargo.toml"
 ```
 
-## Step 2 · .cargo/config.toml
+## Build for the browser by default
 
-Every cargo command builds for the browser, and `cargo xtest` runs the tests on this machine instead.
+`lessons/00/.cargo/config.toml` · new file
 
-`lessons/00/.cargo/config.toml` · type this, new file
+A target is the machine cargo compiles for. We make the browser, `wasm32-unknown-unknown`, the default, so a plain `cargo check` checks the browser build. Tests cannot run inside wasm, so the alias `cargo xtest` runs them on your own machine instead.
 
 ```toml
 --8<-- "lessons/00/.cargo/config.toml"
 ```
 
-## Step 3 · Trunk.toml
-
-How Trunk builds the page, which files it watches, and where it serves the result.
+## Tell Trunk how to build and serve
 
 `lessons/00/Trunk.toml` · copy the file
+
+Trunk builds the page into a `dist` folder and, with `trunk serve`, serves it at `http://127.0.0.1:8770` and rebuilds when a watched file changes.
 
 ```toml
 --8<-- "lessons/00/Trunk.toml"
 ```
 
-## Step 4 · .gitignore
-
-Build output and local datasets stay out of git; the lock file stays in.
+## Keep build output out of git
 
 `lessons/00/.gitignore` · copy the file
+
+`target` and `dist` are rebuilt from the source, so git never stores them.
 
 ```text
 --8<-- "lessons/00/.gitignore"
 ```
 
-## Step 5 · Cargo.lock
+## Pin every library version
 
-The exact dependency versions, including the skrifa 0.40 pin that keeps a second font stack out of the wasm.
+`lessons/00/Cargo.lock` · [download the file](https://github.com/petrasvestartas/session/blob/main/session_viewer/docs/lessons/00/Cargo.lock) into `mine/`
 
-`lessons/00/Cargo.lock` · copy the file; never edit it by hand
+`Cargo.lock` records the exact version of every library, so your build uses the same code as ours. Never edit it by hand.
 
-## Step 6 · index.html
-
-The page: a canvas, a hidden text field that opens the phone keyboard, a status line, and the scene prefetch.
+## The page the browser opens
 
 `lessons/00/index.html` · copy the file
+
+Three parts matter. The `<canvas>` fills the window; the viewer will draw into it. The line `<link data-trunk rel="rust" ...>` tells Trunk to build this crate and load it into the page. The script at the top starts downloading the scene, the file of geometry to show, while the wasm is still loading, so the first picture comes sooner.
 
 ```html
 --8<-- "lessons/00/index.html"
 ```
 
-## Step 7 · src/lib.rs
+## The first function the browser runs
 
-The function the browser runs once the module has loaded; for now it only routes panics to the console.
+`lessons/00/src/lib.rs` · new file
 
-`lessons/00/src/lib.rs` · type this, new file
+`#[wasm_bindgen(start)]` marks the function the JavaScript glue calls once the module has loaded. For now it does one thing: a Rust panic will print its message in the browser console instead of a bare "unreachable".
 
 ```rust
 --8<-- "lessons/00/src/lib.rs:entry"
 ```
 
-Run `cargo check` in `lessons/00/`.
+## Checkpoint
 
-## Check
+Run `cargo check`. It compiles without producing a file, so it is the fast way to find mistakes. The first run compiles every library once, which takes a few minutes; after that your crate checks in seconds.
 
-`cargo check` compiles every dependency once, which takes a few minutes, and then the crate itself in seconds. Nothing runs in the browser yet: `index.html` copies fonts, fixtures and a docs folder that later lessons add, so `trunk serve` comes later. If cargo cannot find `session_rust`, the folder is not four levels below the one that holds it.
+Run `cargo build`. You should now have `target/wasm32-unknown-unknown/debug/session_viewer.wasm`: your Rust, compiled for the browser.
 
-## Next
+`trunk serve` has to wait. The page also copies fonts and a sample scene into `dist`, and those folders arrive in later lessons. If cargo cannot find `session_rust`, your folder is not four levels below the one that holds it.
 
-[01 · First WebGPU frame](01-first-frame.md)
+## Recap
+
+The browser runs wasm; cargo makes it, wasm-bindgen writes the JavaScript that loads it, and Trunk builds the page. Your crate compiles for the browser by default and tests on your machine with `cargo xtest`. Next we write the renderer that this function will one day start.
+
+Next: [01 · First WebGPU frame](01-first-frame.md)
