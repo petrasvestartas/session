@@ -2,6 +2,7 @@ use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
 use super::frame::Binds;
 use super::instanced::{Slots, clamp, row_slot_layout};
 use super::upload::drop_rows;
+use super::vectors::VectorRow;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
 };
@@ -46,6 +47,7 @@ pub struct SegRows {
     pub ribbon_chains: Vec<std::ops::Range<u32>>, // runs of ribbons that form one curve
     pub ribbons: Vec<CylinderSegment>, // standalone lines and curves
     pub ribbon_ids: Vec<u32>, // source entity per ribbon, or u32::MAX
+    pub ribbon_heads: Vec<(u32, u32)>, // (ribbon, HEAD_END or HEAD_START): that end stops under an arrowhead
     pub sheet_rows: Vec<CylinderSegment>, // streamed sheet segments, kept apart from editable lines
     pub sheet_ids: Vec<u32>, // source entity per sheet segment, or u32::MAX
     pub sheets: Vec<SegDraw>, // sheet batches among the sheet rows
@@ -60,6 +62,7 @@ impl SegRows {
         drop_rows(&mut self.ribbon_chains);
         drop_rows(&mut self.ribbons);
         drop_rows(&mut self.ribbon_ids);
+        drop_rows(&mut self.ribbon_heads);
         drop_rows(&mut self.sheet_rows);
         drop_rows(&mut self.sheet_ids);
         drop_rows(&mut self.sheets);
@@ -132,19 +135,23 @@ fn sheet_of(sheets: &[SegSheet], row: u32) -> Option<(usize, u32)> {
     None
 }
 
+/// Neighbour code of an end under an arrowhead: no joint, and the ribbon stops at the head's base.
+pub(super) const HEAD_MARK: u32 = u32::MAX - 1;
+
 /// A segment with its neighbours, so joints are drawn once.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub(super) struct StrokeSegment {
     pub(super) segment: CylinderSegment, // the segment
-    pub(super) previous: u32, // row of the segment before it, or u32::MAX
-    pub(super) next: u32, // row of the segment after it, or u32::MAX
+    pub(super) previous: u32, // row of the segment before it, u32::MAX, or HEAD_MARK
+    pub(super) next: u32, // row of the segment after it, u32::MAX, or HEAD_MARK
 }
 
-/// Link neighbouring segments inside each chain.
+/// Link neighbouring segments inside each chain; a headed end joins nothing.
 fn joined_rows(
     rows: &[CylinderSegment],
     chains: &[std::ops::Range<u32>],
+    heads: &[(u32, u32)],
     base: u32,
 ) -> Vec<StrokeSegment> {
     let mut result = Vec::with_capacity(rows.len());
@@ -181,6 +188,27 @@ fn joined_rows(
                 result[index as usize].next = next + base;
                 result[next as usize].previous = index + base;
             }
+        }
+    }
+
+    for &(index, end) in heads {
+        let Some(row) = result.get(index as usize).copied() else {
+            continue;
+        };
+
+        // a closed chain opens where the head sits
+        if end == VectorRow::HEAD_END {
+            if row.next < HEAD_MARK {
+                result[(row.next - base) as usize].previous = u32::MAX;
+            }
+
+            result[index as usize].next = HEAD_MARK;
+        } else {
+            if row.previous < HEAD_MARK {
+                result[(row.previous - base) as usize].next = u32::MAX;
+            }
+
+            result[index as usize].previous = HEAD_MARK;
         }
     }
 
@@ -306,7 +334,7 @@ impl SegmentLane {
         // pad missing ids with u32::MAX
         let mut ids = up.pipe_ids.clone();
         ids.resize(up.pipes.len(), u32::MAX);
-        let pipes = joined_rows(&up.pipes, &up.pipe_chains, self.pipes.buf.len());
+        let pipes = joined_rows(&up.pipes, &up.pipe_chains, &[], self.pipes.buf.len());
         let pipes_changed = self.pipes.buf.append(ctx, &pipes);
 
         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
@@ -316,7 +344,12 @@ impl SegmentLane {
         let ribbon_base = self.ribbons.buf.len();
         let mut ribbon_ids = up.ribbon_ids.clone();
         ribbon_ids.resize(up.ribbons.len(), u32::MAX);
-        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, ribbon_base);
+        let ribbons = joined_rows(
+            &up.ribbons,
+            &up.ribbon_chains,
+            &up.ribbon_heads,
+            ribbon_base,
+        );
         let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
 
         if self.ribbons.ids.append(ctx, &ribbon_ids) || ribbons_changed {
@@ -326,7 +359,7 @@ impl SegmentLane {
         let sheet_base = self.sheet_table.buf.len();
         let mut sheet_ids = up.sheet_ids.clone();
         sheet_ids.resize(up.sheet_rows.len(), u32::MAX);
-        let sheet_rows = joined_rows(&up.sheet_rows, &[], sheet_base);
+        let sheet_rows = joined_rows(&up.sheet_rows, &[], &[], sheet_base);
         let sheets_changed = self.sheet_table.buf.append(ctx, &sheet_rows);
 
         if self.sheet_table.ids.append(ctx, &sheet_ids) || sheets_changed {
@@ -389,18 +422,18 @@ impl SegmentLane {
 
     /// Overwrite pipe rows starting at `first`.
     pub(crate) fn patch_pipes(&mut self, ctx: &GpuCtx, first: u32, up: &SegRows) {
-        let pipes = joined_rows(&up.pipes, &up.pipe_chains, first);
+        let pipes = joined_rows(&up.pipes, &up.pipe_chains, &[], first);
         self.pipes.buf.write_at(ctx, first, &pipes);
     }
 
     /// Overwrite one object's rows in place.
     pub(crate) fn patch(&mut self, ctx: &GpuCtx, at: super::patch::Counts, up: &SegRows) {
-        let pipes = joined_rows(&up.pipes, &up.pipe_chains, at.pipes);
+        let pipes = joined_rows(&up.pipes, &up.pipe_chains, &[], at.pipes);
         self.pipes.buf.write_at(ctx, at.pipes, &pipes);
         let mut ids = up.pipe_ids.clone();
         ids.resize(up.pipes.len(), u32::MAX);
         self.pipes.ids.write_at(ctx, at.pipes, &ids);
-        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, at.ribbons);
+        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, &up.ribbon_heads, at.ribbons);
         self.ribbons.buf.write_at(ctx, at.ribbons, &ribbons);
         let mut ids = up.ribbon_ids.clone();
         ids.resize(up.ribbons.len(), u32::MAX);
@@ -773,6 +806,77 @@ mod tests {
         assert_eq!(sheet_of(&sheets, 30), None);
         assert_eq!(sheets[0].ids[4], 104);
         assert_eq!(sheets[1].ids[0], u32::MAX);
+    }
+
+    /// A headed end joins nothing and carries the mark; a closed chain opens there; other joints stay.
+    #[test]
+    fn headed_ends_are_marked_and_unjoined() {
+        let at = |p0: [f32; 3], p1: [f32; 3]| CylinderSegment {
+            p0,
+            radius: 0.0,
+            p1,
+            instance_id: 0,
+            color: 0,
+            facing: u32::MAX,
+        };
+        let (a, b, c) = ([0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0]);
+        let rows = [at(a, b), at(b, c), at(c, a)];
+        let ends = |rows: &[StrokeSegment]| {
+            rows.iter()
+                .map(|r| (r.previous, r.next))
+                .collect::<Vec<_>>()
+        };
+        let closed = joined_rows(&rows, &[0..3], &[], 10);
+        assert_eq!(ends(&closed), [(12, 11), (10, 12), (11, 10)]);
+
+        let end = joined_rows(&rows, &[0..3], &[(2, VectorRow::HEAD_END)], 10);
+        assert_eq!(ends(&end), [(u32::MAX, 11), (10, 12), (11, HEAD_MARK)]);
+
+        let both = joined_rows(
+            &rows,
+            &[0..3],
+            &[(0, VectorRow::HEAD_START), (2, VectorRow::HEAD_END)],
+            10,
+        );
+        assert_eq!(ends(&both), [(HEAD_MARK, 11), (10, 12), (11, HEAD_MARK)]);
+
+        let line = joined_rows(
+            &rows[..1],
+            &[],
+            &[(0, VectorRow::HEAD_START), (0, VectorRow::HEAD_END)],
+            0,
+        );
+        assert_eq!(ends(&line), [(HEAD_MARK, HEAD_MARK)]);
+    }
+
+    /// The ribbon cuts under the head the vector lane draws: the same mark, head length and tuck.
+    #[test]
+    fn ribbon_cut_matches_the_vector_head() {
+        let (_, ribbon) = SHADERS[0];
+        let (_, vector) = super::super::vectors::SHADERS[0];
+        // a constant's line, or a function up to its closing brace
+        let text = |src: &str, start: &str| {
+            let from = src.find(start).unwrap_or_else(|| panic!("{start}"));
+            let end = if start.starts_with("fn") {
+                "\n}\n"
+            } else {
+                "\n"
+            };
+            let to = src[from..].find(end).unwrap();
+            src[from..from + to].to_string()
+        };
+        assert!(ribbon.contains(&format!("const HEAD_MARK: u32 = {HEAD_MARK:#x}u;")));
+        assert!(ribbon.contains(&format!("const FLAG_HEADS: u32 = {}u;", super::super::Instance::FLAG_HEADS)));
+
+        for start in [
+            "const HEAD_PENS",
+            "const HEAD_ASPECT",
+            "const FILTER_REACH",
+            "fn head_px(",
+            "fn tuck(",
+        ] {
+            assert_eq!(text(ribbon, start), text(vector, start), "{start}");
+        }
     }
 }
 

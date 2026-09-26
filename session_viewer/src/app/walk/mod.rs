@@ -2,6 +2,7 @@ use crate::engine::gpu::Upload;
 use crate::engine::gpu::arena::ArenaRows;
 use crate::engine::gpu::cloud::CloudRows;
 use crate::engine::gpu::glyphs::GlyphRows;
+use crate::engine::gpu::lane::LaneRows;
 use crate::engine::gpu::segments::SegRows;
 use brep::{walk_brep, walk_surface};
 use cloud::walk_cloud;
@@ -11,6 +12,7 @@ use mesh::{MeshCx, MeshOpts, walk_mesh};
 use mesh_ink::Ink;
 use points::walk_point;
 use session_rust::AABB;
+use session_rust::Arrowhead;
 use session_rust::Element;
 use session_rust::Geometry;
 use session_rust::element::{ElementFeature, ElementGeometry};
@@ -29,12 +31,13 @@ pub mod mesh_topology;
 pub mod points;
 pub mod sheet;
 
-/// The four row tables one object writes into.
+/// The row tables one object writes into.
 pub struct Walk<'a> {
     pub arena: &'a mut ArenaRows, // triangles of faces
     pub seg: &'a mut SegRows,     // line segments
     pub glyph: &'a mut GlyphRows, // dots and labels
     pub cloud: &'a mut CloudRows, // point cloud points
+    pub lanes: &'a mut LaneRows,  // registered lanes, e.g. arrowheads
 }
 
 impl<'a> Walk<'a> {
@@ -45,6 +48,7 @@ impl<'a> Walk<'a> {
             seg: &mut t.seg,
             glyph: &mut t.glyph,
             cloud: &mut t.cloud,
+            lanes: &mut t.lanes,
         }
     }
 
@@ -118,7 +122,8 @@ pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bou
             } else {
                 let mut outline = outline.clone();
                 outline.width = ATTRIBUTE_LINE_PX;
-                walk_polyline(w.seg, &outline, cx.row)
+                outline.arrowhead = Arrowhead::NONE; // the feature row carries no head flag
+                walk_polyline(w.seg, w.lanes, &outline, cx.row)
             };
             bounds.union_with(&r.bounds);
         }
@@ -156,9 +161,9 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
             let (arena, mut ink) = w.solid();
             walk_surface(arena, &mut ink, s, cx)
         }
-        Geometry::Line(l) => walk_line(w.seg, l, cx.row),
-        Geometry::Polyline(pl) => walk_polyline(w.seg, pl, cx.row),
-        Geometry::NurbsCurve(c) => walk_nurbscurve(w.seg, c, cx.row),
+        Geometry::Line(l) => walk_line(w.seg, w.lanes, l, cx.row),
+        Geometry::Polyline(pl) => walk_polyline(w.seg, w.lanes, pl, cx.row),
+        Geometry::NurbsCurve(c) => walk_nurbscurve(w.seg, w.lanes, c, cx.row),
         Geometry::Plane(p) if crate::app::clipping::is_clipping(p) => {
             crate::app::clipping::walk(w.seg, p, cx.row)
         }

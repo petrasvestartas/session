@@ -235,6 +235,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
             next.width = source.width;
             next.dash = source.dash.clone();
             next.linecolor = source.linecolor.clone();
+            next.arrowhead = source.arrowhead;
             Geometry::Line(Rc::new(next))
         }
         Geometry::Point(source) => {

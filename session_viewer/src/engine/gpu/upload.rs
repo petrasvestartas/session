@@ -116,6 +116,14 @@ impl Upload {
                 .map(|chain| chain.start + ribbons..chain.end + ribbons),
         );
 
+        seg.ribbon_heads.extend(
+            other
+                .seg
+                .ribbon_heads
+                .iter()
+                .map(|&(row, end)| (row + ribbons, end)),
+        );
+
         for mut draw in other.seg.sheets.drain(..) {
             draw.first += sheet_rows;
             seg.sheets.push(draw);

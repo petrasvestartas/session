@@ -219,6 +219,7 @@ fn edited(source: &Geometry, command: &Modeling) -> Result<Geometry, String> {
             next.linecolor = line.linecolor.clone();
             next.width = line.width;
             next.dash = line.dash.clone();
+            next.arrowhead = line.arrowhead;
             Ok(Geometry::Line(Rc::new(next)))
         }
         Geometry::NurbsCurve(curve) => {

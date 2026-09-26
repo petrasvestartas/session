@@ -2,6 +2,7 @@ pub mod add_edge;
 pub mod add_group;
 pub mod arctic;
 pub mod area;
+pub mod arrowhead;
 pub mod attributes;
 pub mod block_with_hole;
 pub mod r#box;

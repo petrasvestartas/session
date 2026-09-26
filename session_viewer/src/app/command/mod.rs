@@ -64,6 +64,7 @@ pub const REGISTRY: &[&Spec] = &[
     &verbs::escape::SPEC,     // register:escape
     &verbs::layers::SPEC,     // register:layers
     &verbs::opacity::SPEC,    // register:opacity
+    &verbs::arrowhead::SPEC,  // register:arrowhead
     &verbs::attributes::SPEC, // register:attributes
     &verbs::snap::SPEC,       // register:snap
     &verbs::arctic::SPEC,     // register:arctic
@@ -536,6 +537,7 @@ mod tests {
                 "Add Group",
                 "Arctic",
                 "Area",
+                "Arrowhead",
                 "Block With Hole",
                 "Box",
                 "Capsule",

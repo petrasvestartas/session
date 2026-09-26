@@ -60,6 +60,9 @@ impl Instance {
     /// A closed solid whose faces wind inward.
     pub const FLAG_INWARD: u32 = 1 << 14;
 
+    /// A curve with arrowheads: its ribbons look along the curve for a head to stop under.
+    pub const FLAG_HEADS: u32 = 1 << 15;
+
     /// The one row an empty scene binds: identity, grey, no flags.
     pub fn placeholder() -> Self {
         Self {

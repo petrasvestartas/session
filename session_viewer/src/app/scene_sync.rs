@@ -4,7 +4,7 @@ use super::rows::{
 };
 use crate::app::mesh_preview::MeshPreview;
 use crate::app::surface_preview::SurfacePreview;
-use crate::app::walk::bounds::{in_band, mark_pens_from};
+use crate::app::walk::bounds::{Baselines, in_band, mark_pens_from};
 use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
 use crate::engine::gpu::faces::FaceSource;
 use crate::engine::gpu::glyphs::GlyphPoint;
@@ -728,7 +728,7 @@ impl Scene {
             && in_band(band, &walked.bounds, place, &file.place)
         {
             object.flags |= Instance::FLAG_SHEET;
-            mark_pens_from(&mut up, 0, 0);
+            mark_pens_from(&mut up, &Baselines::default());
         }
 
         (up, object)
@@ -1448,6 +1448,7 @@ impl Scene {
             };
             let place = self.world_place(doc, node.as_ref(), in_tree, &guid);
             let before = Counts::of(&self.tables);
+            let from = Baselines::capture(&self.tables);
             let start = self.uploaded.plus(before);
             let cx = WalkCx {
                 vert_base: self.uploaded.verts,
@@ -1470,11 +1471,7 @@ impl Scene {
                 && in_band(band, &walked.bounds, &object.place, &self.docs[doc].place)
             {
                 object.flags |= Instance::FLAG_SHEET;
-                mark_pens_from(
-                    &mut self.tables,
-                    before.pipes as usize,
-                    before.ribbons as usize,
-                );
+                mark_pens_from(&mut self.tables, &from);
             }
 
             self.feet[row as usize] = self.spans.foot(Span {
@@ -3516,6 +3513,136 @@ mod tests {
                 scene.upload_to(&mut gpu);
                 same(&mut gpu, "drag, cancel");
             }
+        }
+
+        /// Arrowheads follow set, move, copy and undo: each frame equals a fresh load of the document.
+        #[test]
+        #[ignore = "requires a native GPU adapter"]
+        fn arrowheads_follow_edits() {
+            use session_rust::Arrowhead;
+
+            let mut session = Session::new("heads");
+            // not flat, so the document loads as models, not as a drawing sheet
+            session.add_polyline(
+                Polyline::new(vec![
+                    p(0.0, 0.0, 0.0),
+                    p(20.0, 10.0, 5.0),
+                    p(40.0, 0.0, 10.0),
+                ]),
+                None,
+            );
+            session.add_nurbscurve(arc(), None);
+            let (mut gpu, mut scene, camera) = loaded(&Rc::new(session));
+            let before = shot(&mut gpu, &camera);
+            let fresh = |scene: &Scene, gpu: &mut Gpu, label: &str| {
+                let (mut fresh_gpu, _, _) = loaded(&scene.docs[0].session);
+                let want = shot(&mut fresh_gpu, &camera);
+                assert!(
+                    shot(gpu, &camera).color == want.color,
+                    "{label}: pixels differ from a fresh load"
+                );
+            };
+            let rows: Vec<u32> = (0..scene.object_count() as u32).collect();
+            let edits = rows
+                .iter()
+                .map(|&row| {
+                    let geometry = match scene.geometry(row).unwrap() {
+                        Geometry::Polyline(pl) => {
+                            let mut pl = (**pl).clone();
+                            pl.arrowhead = Arrowhead::BOTH;
+                            Geometry::Polyline(Rc::new(pl))
+                        }
+                        Geometry::NurbsCurve(c) => {
+                            let mut c = (**c).clone();
+                            c.arrowhead = Arrowhead::END;
+                            Geometry::NurbsCurve(Rc::new(c))
+                        }
+                        _ => panic!("a curve"),
+                    };
+                    (row, geometry)
+                })
+                .collect();
+            scene.replace_rows(edits, "arrowhead").unwrap();
+            commit(&mut scene, &mut gpu);
+            assert!(
+                shot(&mut gpu, &camera).color != before.color,
+                "the heads draw"
+            );
+            fresh(&scene, &mut gpu, "heads");
+
+            scene
+                .transform_rows(&rows, &Xform::translation(5.0, 5.0, 0.0), "move")
+                .unwrap();
+            commit(&mut scene, &mut gpu);
+            fresh(&scene, &mut gpu, "move");
+
+            scene
+                .copy_rows(&rows, &Xform::translation(0.0, -30.0, 0.0))
+                .unwrap();
+            commit(&mut scene, &mut gpu);
+            fresh(&scene, &mut gpu, "copy");
+
+            // selected, every head turns yellow; hidden, nothing is drawn
+            let dark = |rgba: &[u8]| {
+                rgba.chunks_exact(4)
+                    .filter(|c| c[0] < 128 && c[1] < 128)
+                    .count()
+            };
+            let all: Vec<u32> = (0..64)
+                .filter(|&row| scene.identity_of(row).is_some())
+                .collect();
+            assert_eq!(all.len(), 4, "two curves and their copies");
+            assert!(dark(&shot(&mut gpu, &camera).color) > 100);
+
+            for &row in &all {
+                gpu.set_selected(row, true);
+            }
+
+            assert_eq!(
+                dark(&shot(&mut gpu, &camera).color),
+                0,
+                "no black head while selected"
+            );
+
+            for &row in &all {
+                gpu.set_selected(row, false);
+                gpu.set_hidden(row, true);
+            }
+
+            assert_eq!(
+                dark(&shot(&mut gpu, &camera).color),
+                0,
+                "hidden heads draw nothing"
+            );
+
+            for &row in &all {
+                gpu.set_hidden(row, false);
+            }
+
+            // a clipping plane with every curve on its cut side leaves no head behind
+            use crate::app::clipping::{Mode, clip_plane, plane_from};
+            let plane = plane_from(
+                Mode::Normal,
+                &[[-1000.0, 0.0, 0.0], [-999.0, 0.0, 0.0]],
+                2000.0,
+            )
+            .unwrap();
+            gpu.set_clip_planes(&[clip_plane(&plane, &Xform::identity()).unwrap()]);
+            assert_eq!(
+                dark(&shot(&mut gpu, &camera).color),
+                0,
+                "clipped heads draw nothing"
+            );
+            gpu.set_clip_planes(&[]);
+
+            for _ in 0..3 {
+                assert!(scene.undo());
+                commit(&mut scene, &mut gpu);
+            }
+
+            let back = shot(&mut gpu, &camera);
+            assert!(back.color == before.color, "undo takes the heads off");
+            assert!(back.ids == before.ids, "undo restores the ids");
         }
 
         /// A compaction draws what a fresh load draws, ids mapped by identity, and shrinks the lanes.
