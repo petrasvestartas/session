@@ -23,13 +23,13 @@ if (legacySuite) {
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { path: '/', component: () => import('./views/HomeView.vue') },
+    { path: '/', redirect: '/tests' },
     { path: '/course', component: () => import('./views/CourseIndex.vue') },
     { path: '/course/:slug(.*)', component: () => import('./views/CourseView.vue') },
     { path: '/tests', component: () => import('./views/TestsView.vue'),
       beforeEnter: async () => { await ensureTestData(); } },
     { path: '/install', component: () => import('./views/InstallView.vue') },
-    { path: '/:rest(.*)', redirect: '/' },
+    { path: '/:rest(.*)', redirect: '/tests' },
   ],
 });
 

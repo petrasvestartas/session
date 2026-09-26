@@ -19,23 +19,6 @@
 
         <button type="button" class="search-open" @click="searchOpen = true">Search <kbd>/</kbd></button>
 
-        <router-link to="/" class="nav-button" :class="{ active: currentRoute === 'home' }">Home</router-link>
-
-        <router-link to="/course" class="nav-button" :class="{ active: currentRoute === 'course' }">Viewer course</router-link>
-
-        <div v-if="currentRoute === 'course'" class="suites-section course-section">
-          <template v-for="g in courseGroups" :key="g.title">
-            <div class="group-title">{{ g.title }}</div>
-            <router-link
-              v-for="s in g.slugs" :key="s"
-              :to="'/course/' + s"
-              class="suite-button course-link"
-              :class="{ active: s === currentSlug }">
-              {{ coursePages[s]?.title }}
-            </router-link>
-          </template>
-        </div>
-
         <a
           href="#/tests"
           class="nav-button"
@@ -85,6 +68,21 @@
             @click="selectInstall(s.id)">
             {{ s.title }}
           </button>
+        </div>
+
+        <router-link to="/course" class="nav-button" :class="{ active: currentRoute === 'course' }">Viewer course</router-link>
+
+        <div v-if="currentRoute === 'course'" class="suites-section course-section">
+          <template v-for="g in courseGroups" :key="g.title">
+            <div class="group-title">{{ g.title }}</div>
+            <router-link
+              v-for="s in g.slugs" :key="s"
+              :to="'/course/' + s"
+              class="suite-button course-link"
+              :class="{ active: s === currentSlug }">
+              {{ coursePages[s]?.title }}
+            </router-link>
+          </template>
         </div>
       </div>
     </nav>
