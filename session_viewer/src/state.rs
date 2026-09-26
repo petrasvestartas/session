@@ -35,7 +35,7 @@ const CLEAR: wgpu::Color = wgpu::Color {
 
 /// Orbit step per frame in `?spin=1` mode.
 const SPIN_STEP: f32 = 0.004;
-const ELEMENT_OPACITY: f32 = 0.7; // default element opacity
+const ELEMENT_OPACITY: f32 = 0.9; // default element opacity: nearly solid, hidden edges still show faintly
 
 /// Everything the viewer holds: window, GPU, camera, scene, selection.
 pub struct State {
@@ -487,7 +487,7 @@ impl State {
         show
     }
 
-    /// Make elements a little see-through the first time they arrive.
+    /// Make elements slightly see-through the first time they arrive.
     fn dim_elements(&mut self, first_row: usize) {
         // an opacity was already chosen
         if self.opacity_chosen || self.gpu.view.opacity < 1.0 {
