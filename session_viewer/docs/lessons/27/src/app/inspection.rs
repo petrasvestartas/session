@@ -1,3 +1,4 @@
+//! With ?inspect=1, a JSON snapshot of counts, memory and timings for the browser tests.
 #[cfg(target_arch = "wasm32")]
 use crate::State;
 mod source_memory;
@@ -6,7 +7,7 @@ thread_local! {
     static SOURCE_MEMORY: std::cell::RefCell<source_memory::SourceCache> = Default::default();
 }
 
-/// Write the viewer state onto the canvas for browser tests.
+/// Stored in the canvas attribute data-viewer-inspection, so a test reads it without calling into wasm.
 #[cfg(target_arch = "wasm32")]
 pub fn publish(state: &State) {
     if super::route::query("inspect").as_deref() != Some("1") {
@@ -110,6 +111,7 @@ fn text_labels(state: &State) -> Vec<serde_json::Value> {
         let mut width = 0.0f32;
         let mut height = 0.0f32;
 
+        // the widest line and the lowest line bottom give the label's box
         for line in run.buffer.layout_runs() {
             width = width.max(line.line_w);
             height = height.max(line.line_top + line.line_height);

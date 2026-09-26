@@ -7,13 +7,13 @@ use crate::engine::gpu::{CloudDraw, LodNode, NO_NORMALS};
 use session_rust::AABB;
 use session_rust::PointCloud;
 
-/// Spacing for a cloud too small to measure.
+/// 20 mm, for a cloud too small or too flat to measure.
 const DEFAULT_SPACING: f32 = 20.0;
 
 /// A point cloud: points, octree nodes, one draw.
 pub fn walk_cloud(c: &mut CloudRows, pc: &PointCloud, cx: &WalkCx) -> Row {
-    let first = c.point_count(); // index of this cloud's first point
-    let node_first = c.nodes.len() as u32; // index of this cloud's first node
+    let first = c.point_count(); // every cloud shares the tables; this one starts here
+    let node_first = c.nodes.len() as u32;
     // normals only when every point has one
     let nrm_first = if pc.normals().len() >= pc.len() * 3 {
         c.nrm.len() as u32
@@ -76,7 +76,7 @@ fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> AABB {
 
         if has_normals {
             rows.nrm.push(
-                oct16(&[normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]]).unwrap_or(0),
+                oct16(&[normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]]).unwrap_or(0), // a zero normal decodes as +z
             );
         }
     }
@@ -90,7 +90,7 @@ fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> AABB {
 fn push_nodes(rows: &mut CloudRows, pc: &PointCloud) {
     for k in 0..pc.lod_node_count() {
         let (c, size) = pc.lod_cube(k);
-        let (nf, nc) = pc.lod_range(k); // its points
+        let (nf, nc) = pc.lod_range(k); // a node's points are one run: first, count
         let mut children = [-1i32; 8]; // -1 = no child
 
         for (slot, v) in pc.lod_children(k).into_iter().enumerate().take(8) {
@@ -108,7 +108,7 @@ fn push_nodes(rows: &mut CloudRows, pc: &PointCloud) {
     }
 }
 
-/// Four 0-255 channels to one word.
+/// Four 0-255 channels, red in the lowest byte like pack_rgba.
 fn pack_color(c: &[i32]) -> u32 {
     (c[0] as u32 & 255)
         | (c[1] as u32 & 255) << 8
@@ -116,7 +116,7 @@ fn pack_color(c: &[i32]) -> u32 {
         | (c[3] as u32 & 255) << 24
 }
 
-/// Point spacing from the cloud's density.
+/// Treats the cloud as a surface: sqrt(area / points), e.g. 10 m x 10 m with 1 M points gives 10 mm.
 fn cloud_spacing(pc: &PointCloud, bounds: &AABB) -> f32 {
     let n = pc.len();
 
@@ -149,7 +149,7 @@ pub struct StreamRows {
 
 /// One slice of a streamed cloud and where it goes.
 pub struct StreamSlice<'a> {
-    pub rows: StreamRows, // the points
+    pub rows: StreamRows,
     pub lod: &'a CloudLod, // the whole node table
     pub from: u32, // first point index in the cloud
     pub to: u32, // one past the last
@@ -213,7 +213,7 @@ fn resident_spacing(lod: &CloudLod, to: u32) -> Option<f32> {
     spacing.is_finite().then_some(spacing as f32)
 }
 
-/// One node of a streamed cloud's node table.
+/// The file stores a node's min corner; the GPU wants its centre.
 fn lod_node(lod: &CloudLod, k: usize) -> LodNode {
     let mut children = [-1i32; 8];
 
@@ -236,7 +236,7 @@ fn lod_node(lod: &CloudLod, k: usize) -> LodNode {
     }
 }
 
-/// Largest first.
+/// Largest first; unwrap panics on NaN, which a valid box never has.
 fn descending_extent(a: &f32, b: &f32) -> std::cmp::Ordering {
     b.partial_cmp(a).unwrap()
 }

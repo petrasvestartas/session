@@ -484,18 +484,18 @@ mod tests {
     /// A translated local box lands at the translated world position.
     #[test]
     fn world_box_translates() {
-        let mut r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0).m, 0);
+        let mut r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0), 0);
         r.bounds = AABB::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 2.0, 3.0)], 0.0);
         let b = world_box(&r);
-        assert_eq!(b.min, [10.0, 20.0, 30.0]);
-        assert_eq!(b.max, [11.0, 22.0, 33.0]);
+        assert_eq!(b.min_point(), Point::new(10.0, 20.0, 30.0));
+        assert_eq!(b.max_point(), Point::new(11.0, 22.0, 33.0));
     }
 
     /// A row with no local box stays empty, translated or not.
     #[test]
     fn world_box_empty_stays_empty() {
-        let r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0).m, 0);
-        assert!(!world_box(&r).is_finite());
+        let r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0), 0);
+        assert!(!world_box(&r).is_valid());
     }
 }
 // --8<-- [end:step-12i]

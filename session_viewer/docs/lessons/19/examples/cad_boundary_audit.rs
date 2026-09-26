@@ -245,7 +245,7 @@ fn main() {
         session.pb_dump(output.join(format!("{name}.pb")).to_str().unwrap());
     }
     for path in arguments {
-        let session = Session::pb_load(&path);
+        let session = Session::pb_load(&path).unwrap();
         for brep in &session.objects.breps {
             records.push(audit(brep));
             let mut isolated = Session::new(&brep.name);

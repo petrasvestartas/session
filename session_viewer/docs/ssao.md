@@ -12,13 +12,15 @@ Arctic keeps authored colors under neutral sky and ground lighting, with soft co
 
 The same occlusion calculation runs during orbit, pan, zoom and stationary redraws. Drag tiers never disable it or lower its resolution. Arctic also keeps exact line visibility and the complete outline mask during slow drags, preventing lines from thinning while moving and thickening again on release. It suppresses the automatic canvas-scale/MSAA downgrade after sustained slow frames. Preserving line quality can cost more than the approximate drag rendering, especially in line-heavy scenes. While the camera moves, the filter reprojects the previous shading onto the same surface points to reduce sampling shimmer. Depth and surface-type checks reject newly exposed geometry, and neighborhood clamping bounds reused shading. Geometry edits, toggles and resizes discard history. Releasing a drag holds the last image without a quality transition or additional settling frames; a stationary camera reuses it.
 
+A frame that can reuse history evaluates every second horizon slice and every second ground direction, the subset chosen by pixel position, so the spatial filter's neighbourhood sees every direction within one frame; a frame without history (the first after a toggle or an edit) evaluates all of them. The pattern is fixed in screen space, as the per-pixel noise already was, because a pattern that changes per frame shimmers through the history blend. On the dragon at 1080p the last moving frame differs from a fresh frame at the same camera on 0.73% of pixels by more than 2/255 (0.44% before this change), with the same maximum.
+
 Surface occlusion runs at `clamp(1 / DPR, 0.25, 0.5)` times the canvas dimensions. On high-DPI phones this approaches CSS-pixel resolution. The broad ground-shadow field uses half that resolution with more horizon samples, then interpolates into the surface pass. These resolutions remain fixed throughout navigation.
 
 ## Rendering
 
 - Four cosine-weighted horizon slices estimate surface visibility from a linear-depth pyramid. Triangle normals remain faceted.
 - Ground contacts use twenty-four directions and six steps, with the original height and distance fades. They retain each object's contact radius.
-- The depth pyramid carries the original sampled pixel coordinates alongside a compact radius, so coarser levels reconstruct the actual occluder position.
+- The depth pyramid carries the original sampled pixel coordinates alongside a compact radius, so coarser levels reconstruct the actual occluder position. The same pass stores each half-resolution pixel's faceted normal as an octahedral RG8 image, which the horizon and filter passes read instead of re-deriving it from the triangle buffers; full-resolution reconstruction still derives exact per-sample normals.
 - Separable bilateral filtering, motion reprojection and depth-aware reconstruction produce a full-resolution R8 shading cache. Reconstruction follows the actual depth-sample centers to prevent subpixel drift.
 - At 4× MSAA, the cache stores the least occlusion among the pixel's samples. A cached correction buffer shades the other samples only in affected screen tiles. Both blends happen before MSAA resolve.
 - Browser pipelines compile after geometry appears, in idle callbacks or a deferred callback on browsers without that API. The 1× and 4× pipelines survive toggles and resizes. Camera movement creates no AO textures, bind groups or pipelines.
@@ -27,7 +29,7 @@ The horizon integral follows [Jimenez et al., Practical Real-Time Strategies for
 
 ## Memory
 
-At **1920×1080, DPR 1**, AO textures reserve **7,905,780 bytes** (7.91 MB): a six-level R32 depth/R16 metadata pyramid, two half-resolution R8 working images, quarter-resolution ground and history-depth images, a coarse occupancy mask and the full-resolution R8 cache. Resource estimates exclude driver alignment and internal allocations.
+At **1920×1080, DPR 1**, AO textures reserve **8,942,580 bytes** (8.94 MB): a six-level R32 depth/R16 metadata pyramid, a half-resolution RG8 normal image, two half-resolution R8 working images, quarter-resolution ground and history-depth images, a coarse occupancy mask and the full-resolution R8 cache. Resource estimates exclude driver alignment and internal allocations.
 
 AO buffers add **348 bytes at 1×**, or **8,360,016 bytes at 4×**. The latter includes per-pixel sample corrections and tile indices for the cached MSAA blend. Turning Arctic off releases these textures and buffers; compiled pipelines remain available.
 
@@ -39,12 +41,12 @@ Native GPU timestamp medians on the dragon at 1920×1080, DPR 1, **baseline → 
 
 | GPU | MSAA | Cached AO | Moved AO | Drag AO |
 | --- | ---: | ---: | ---: | ---: |
-| Intel Raptor Lake-S UHD | 1× | 0.345 → 0.217 | 26.593 → 5.146 | 11.720 → 5.199 |
-| Intel Raptor Lake-S UHD | 4× | 10.934 → 1.976 | 45.055 → 11.500 | 17.671 → 11.577 |
+| Intel Raptor Lake-S UHD | 1× | 0.345 → 0.193 | 26.593 → 3.304 | 11.720 → 3.304 |
+| Intel Raptor Lake-S UHD | 4× | 10.934 → 0.652 | 45.055 → 5.804 | 17.671 → 5.814 |
 | NVIDIA RTX 4080 Laptop | 1× | 0.020 → 0.014 | 1.113 → 0.467 | 0.449 → 0.456 |
 | NVIDIA RTX 4080 Laptop | 4× | 0.292 → 0.042 | 1.812 → 0.607 | 0.640 → 0.499 |
 
-Intel 4× moving AO measures 11.500 ms moved / 11.577 ms drag. The 6 ms target remains unmet. Intel 1× moving AO is 5.146 ms moved / 5.199 ms drag against the 4 ms goal; that target also remains unmet. Intel whole GPU frames during drag: 1× 14.271 ms; 4× 21.822 ms. Timings measure GPU work, not browser input latency. The full effect includes depth preparation, ground shadows, filtering, history validation, MSAA reconstruction and compositing; it costs more than the GTAO horizon pass alone. The bunny also has an expensive existing edge-rendering pass independent of Arctic.
+Intel moving AO is 3.30 ms at 1× and 5.80 ms at 4×, within the 4 ms and 6 ms goals; the preceding pass measured 5.0 ms and 8.6 ms. Intel whole GPU frames during drag: 1× 11.44 ms; 4× 14.90 ms. Of the 4× figure, 1.3 to 1.7 ms (it varies between runs) is the first shader read of the multisampled depth and id textures in the half-resolution preparation pass, a cost any pass reading them pays once per frame. The NVIDIA rows predate the reduced sample sets; that GPU could not be measured afterwards because its kernel module and user-space driver versions differed. Timings measure GPU work, not browser input latency. The full effect includes depth preparation, ground shadows, filtering, history validation, MSAA reconstruction and compositing; it costs more than the GTAO horizon pass alone. The bunny also has an expensive existing edge-rendering pass independent of Arctic.
 
 In a controlled native rotation regression, ground sampling and reprojection reduce variation at fixed ground points by about **54%** versus the spatial draft, retaining approximately **97%** of mean shadow strength. In a 32-frame browser capture of `view_live`, the denser ground sampling reduces variation by another **16%** over reprojection alone, with essentially unchanged shadow strength. Some view dependence remains because this is a screen-space approximation. Native validation passes 276 library tests; the AO GPU suite, browser contact/rotation checks and 42 published-scene configurations pass. Phone viewport checks use the desktop GPU.
 

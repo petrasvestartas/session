@@ -1,22 +1,21 @@
-// Point cloud settings, 48 bytes; matches CloudUniform in Rust.
+// The first 16 bytes of CloudUniform, as in splat.wgsl.
 struct CloudUniform {
-    size: f32, // point size scale; applied on the CPU
-    vp_w: f32, // target width, px
-    vp_h: f32, // target height, px
-    edl: f32, // eye-dome lighting strength; 0 = off
+    size: f32,
+    vp_w: f32,
+    vp_h: f32,
+    edl: f32,
 };
 
-@group(0) @binding(0) var<uniform> cloud: CloudUniform; // cloud settings
+@group(0) @binding(0) var<uniform> cloud: CloudUniform;
 @group(1) @binding(0) var sdepth: texture_depth_2d; // nearest point depth per pixel
 @group(1) @binding(1) var scolor: texture_2d<f32>; // its color
 
-// One vertex of the fullscreen triangle.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>, // clip position
+    @builtin(position) pos: vec4<f32>,
 };
 
 @vertex
-// Place the three corners of a screen-covering triangle.
+// Corners (-1, -1), (3, -1), (-1, 3): one triangle covers the whole -1..1 screen.
 fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     var o: VsOut;
     let x = f32(i32(vid & 1u) * 4 - 1);
@@ -25,13 +24,13 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     return o;
 }
 
-// Output: color, depth slope, and the depth written to the scene.
+// frag_depth: the fragment sets its own depth instead of taking the triangle's.
 struct FsOut {
-    @location(0) color: vec4<f32>, // rgba
+    @location(0) color: vec4<f32>,
     // --8<-- [start:step-8a]
     @location(1) gradient: vec2<f32>,
     // --8<-- [end:step-8a]
-    @builtin(frag_depth) depth: f32, // point depth into the scene
+    @builtin(frag_depth) depth: f32,
 };
 
 // Depth on a log scale that grows with distance.
@@ -44,7 +43,7 @@ fn shade(in: VsOut) -> FsOut {
     let pix = vec2<i32>(in.pos.xy);
     let d = textureLoad(sdepth, pix, 0);
 
-    // no point here
+    // depth 0 is still the clear value: no point here
     if (d == 0.0) {
         discard;
     }
@@ -90,7 +89,6 @@ fn shade(in: VsOut) -> FsOut {
 }
 
 @fragment
-// Resolve one pixel.
 fn fs_main(in: VsOut) -> FsOut {
     return shade(in);
 }

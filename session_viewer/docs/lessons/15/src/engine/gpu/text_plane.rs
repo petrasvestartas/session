@@ -1,38 +1,38 @@
-//! Text lying flat in the scene on a plane, so it turns and shrinks with the model like writing on paper.
+//! Text lying on a plane in the scene, turning and shrinking with the model like writing on paper.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use super::TextFrame;
 use crate::engine::pipelines::Target;
 use crate::engine::text::{TextDocument, TextLabel, TextPlacement, TextRun};
 use glyphon::{FontSystem, SwashCache, SwashContent};
 
-/// Most bytes all world text textures may use.
+/// All plane textures together, one byte per texel: two labels at the 4096 x 4096 limit fill it.
 const TEXTURE_BUDGET: u64 = 32 * 1024 * 1024;
 
-/// One label rasterized into a texture.
+/// One label rasterized into its own texture, reused until its text, font or needed sharpness changes.
 struct CachedPlane {
-    label: TextLabel, // the label it was made from
-    font_revision: u64, // font set it was made with
-    em_pixels: u32, // pixels per em it was rasterized at
-    size: [u32; 2], // texture size, px
-    extent: [f32; 4], // glyph box in font units: left, top, right, bottom
-    _texture: wgpu::Texture, // kept alive for the view
-    bind: wgpu::BindGroup, // texture and sampler
+    label: TextLabel,
+    font_revision: u64,
+    em_pixels: u32, // raster sharpness: pixels per em, where 1 em = the font size
+    size: [u32; 2], // texels
+    extent: [f32; 4], // the texture's box in font units (the label's own pixels): left, top, right, bottom
+    _texture: wgpu::Texture, // `_` = never read, only owned: dropping the entry frees the texture
+    bind: wgpu::BindGroup,
 }
 
-/// Draws text labels that sit on a plane in the world.
+/// Every plane label: cached textures, and this frame's quads.
 pub(super) struct Planes {
-    cached: Vec<CachedPlane>, // one texture per label
-    draws: Vec<(usize, u32)>, // (texture index, first vertex) per label
-    vertices: GrowBuf, // six vertices per label
-    layout: wgpu::BindGroupLayout, // texture and sampler
-    sampler: wgpu::Sampler, // linear filtering
-    pipeline: wgpu::RenderPipeline, // in color
-    target: Target, // scene color format and samples
-    pub(super) rasterizations: u64, // textures made so far
+    cached: Vec<CachedPlane>,
+    draws: Vec<(usize, u32)>, // (cache index, first vertex) per label drawn this frame
+    vertices: GrowBuf, // six per label: two triangles
+    layout: wgpu::BindGroupLayout, // slot 0 texture, slot 1 sampler
+    sampler: wgpu::Sampler,
+    pipeline: wgpu::RenderPipeline,
+    target: Target,
+    pub(super) rasterizations: u64, // textures made so far, for the stats
 }
 
 impl Planes {
-    /// Create the layout, sampler and pipelines.
+    /// The layout and sampler are made once and shared by every label's texture.
     pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
         let layout = ctx
             .device
@@ -43,7 +43,7 @@ impl Planes {
                         binding: 0,
                         visibility: wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true }, // Linear needs this
                             view_dimension: wgpu::TextureViewDimension::D2,
                             multisampled: false,
                         },
@@ -57,6 +57,7 @@ impl Planes {
                     },
                 ],
             });
+        // a sampler reads between texels; Linear blends the nearest four, so a scaled label stays smooth
         let sampler = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("world text coverage"),
             mag_filter: wgpu::FilterMode::Linear,
@@ -67,7 +68,7 @@ impl Planes {
         Self {
             cached: Vec::new(),
             draws: Vec::new(),
-            vertices: GrowBuf::new(ctx, "world text vertices", 56, VERTS), // 14 floats per vertex
+            vertices: GrowBuf::new(ctx, "world text vertices", 56, VERTS), // 14 floats: clip position 4, uv 2, color 4, clip box 4
             layout,
             sampler,
             pipeline,
@@ -82,7 +83,7 @@ impl Planes {
         self.pipeline = pipeline(ctx, target, &self.layout);
     }
 
-    /// Rasterize new or changed labels and place every label's quad.
+    /// Rasterize new, changed or too blurry labels, then place every label's quad.
     pub(super) fn prepare(
         &mut self,
         ctx: &GpuCtx,
@@ -115,7 +116,7 @@ impl Planes {
             {
                 continue;
             }
-            // resolution the label needs on screen now
+            // sharpness the label needs at the current zoom
             let em_pixels = raster_em(&run.label, frame);
             let mut index = None;
 
@@ -140,7 +141,7 @@ impl Planes {
             if rebuild {
                 let (pixels, size, extent) =
                     rasterize(run, &mut document.fonts, raster, em_pixels)?;
-                // bytes of every texture after this one
+                // bytes of every texture once this one is added
                 let mut allocated = u64::from(size[0]) * u64::from(size[1]);
 
                 for (at, cached) in self.cached.iter().enumerate() {
@@ -163,8 +164,8 @@ impl Planes {
                     mip_level_count: 1,
                     sample_count: 1,
                     dimension: wgpu::TextureDimension::D2,
-                    format: wgpu::TextureFormat::R8Unorm,
-                    usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                    format: wgpu::TextureFormat::R8Unorm, // one byte of coverage; color comes from the vertex
+                    usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST, // COPY_DST lets write_texture fill it
                     view_formats: &[],
                 });
                 ctx.queue.write_texture(
@@ -198,7 +199,7 @@ impl Planes {
                     em_pixels,
                     size,
                     extent,
-                    _texture: texture, // kept alive for the view
+                    _texture: texture,
                     bind,
                 };
 
@@ -212,7 +213,7 @@ impl Planes {
 
                 self.rasterizations += 1;
 
-                // drop the CPU glyph cache when it grows large
+                // past 4096 glyph bitmaps, start the CPU cache over instead of growing forever
                 if raster.image_cache.len() > 4096 {
                     *raster = SwashCache::new();
                 }
@@ -234,7 +235,7 @@ impl Planes {
         Ok(())
     }
 
-    /// Draw every label in color; returns the draw count.
+    /// One draw per label: each has its own texture, so each needs its own bind group.
     pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
         if self.draws.is_empty() {
             return 0;
@@ -281,16 +282,16 @@ impl Planes {
     }
 }
 
-/// True when the cached texture still fits the label.
+/// True when the cached texture can still draw the label.
 fn same_raster(cached: &CachedPlane, label: &TextLabel, revision: u64, em_pixels: u32) -> bool {
     cached.font_revision == revision
         && cached.label.text == label.text
         && cached.label.font_size == label.font_size
         && cached.label.line_height == label.line_height
-        && cached.em_pixels >= em_pixels
+        && cached.em_pixels >= em_pixels // sharper than needed is fine, blurrier is not
 }
 
-/// World point to clip space, keeping w for perspective.
+/// World point to clip space; in perspective w grows with distance, and dividing by it makes far things small.
 fn project(world: [f64; 3], frame: &TextFrame) -> [f32; 4] {
     let point = [
         (world[0] - frame.origin[0]) as f32,
@@ -302,14 +303,14 @@ fn project(world: [f64; 3], frame: &TextFrame) -> [f32; 4] {
 
     for (row, out) in clip.iter_mut().enumerate() {
         for (column, value) in point.iter().enumerate() {
-            *out += frame.mvp[column * 4 + row] * value;
+            *out += frame.mvp[column * 4 + row] * value; // column-major: each column's 4 numbers are adjacent
         }
     }
 
     clip
 }
 
-/// Pixels per em to rasterize at: a power of two from 32 to 256.
+/// Pixels per em to rasterize at: 32, 64, 128 or 256, so zooming from 40 to 50 px reuses the 64 texture.
 fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
     let TextPlacement::WorldPlane {
         world,
@@ -323,6 +324,7 @@ fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
     };
     let a = project(world, frame);
 
+    // behind the eye
     if a[3] <= 0.0 {
         return 32;
     }
@@ -343,6 +345,7 @@ fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
             continue;
         }
 
+        // clip space is 2 wide, so one clip unit is half the framebuffer
         let x = (a[0] / a[3] - b[0] / b[3]) * frame.framebuffer[0] as f32 * 0.5;
         let y = (a[1] / a[3] - b[1] / b[3]) * frame.framebuffer[1] as f32 * 0.5;
         projected_em = projected_em.max(x.hypot(y));
@@ -359,7 +362,7 @@ fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
     bucket
 }
 
-/// Draw the label's glyphs into one coverage image.
+/// Paint the glyphs into one coverage image: 0 = empty, 255 = fully inside a letter.
 fn rasterize(
     run: &TextRun,
     fonts: &mut FontSystem,
@@ -375,7 +378,7 @@ fn rasterize(
         bounds[2] = bounds[2].max((line.line_w * scale).ceil() as i32);
         bounds[3] = bounds[3].max(((line.line_top + line.line_height) * scale).ceil() as i32);
         anyhow::ensure!(
-            bounds[2] <= 4092 && bounds[3] <= 4092,
+            bounds[2] <= 4092 && bounds[3] <= 4092, // early exit; the exact 4096 limit is checked on the final box
             "world text layout exceeds 4096px extent"
         );
 
@@ -394,7 +397,7 @@ fn rasterize(
         }
     }
 
-    bounds[0] -= 2;
+    bounds[0] -= 2; // 2 px of empty border, so the quad's edge samples zero coverage
     bounds[1] -= 2;
     bounds[2] += 2;
     bounds[3] += 2;
@@ -417,7 +420,7 @@ fn rasterize(
         for row in 0..image.placement.height {
             for column in 0..image.placement.width {
                 let source = (row * image.placement.width + column) as usize;
-                // coverage byte from whichever image format the font gave
+                // swash gives a mask, a color emoji or a subpixel mask: one coverage byte from each
                 let coverage = match image.content {
                     SwashContent::Mask => image.data[source],
                     SwashContent::Color => image.data[source * 4 + 3],
@@ -431,7 +434,7 @@ fn rasterize(
                 let target = ((y - bounds[1] + row as i32) as u32 * size[0]
                     + (x - bounds[0] + column as i32) as u32) as usize;
                 let previous = u16::from(pixels[target]);
-                // blend over what is already there
+                // overlapping glyphs combine as a + b(1 - a), so coverage never passes 255
                 pixels[target] = (previous + u16::from(coverage) * (255 - previous) / 255) as u8;
             }
         }
@@ -440,6 +443,7 @@ fn rasterize(
     Ok((
         pixels,
         size,
+        // back to font units, so the quad does not depend on em_pixels
         [
             bounds[0] as f32 / scale,
             bounds[1] as f32 / scale,
@@ -449,7 +453,7 @@ fn rasterize(
     ))
 }
 
-/// Add the label's quad: six clip-space vertices.
+/// The label's quad as six clip-space vertices, projected on the CPU.
 fn append_quad(
     vertices: &mut Vec<[f32; 14]>,
     label: &TextLabel,
@@ -470,7 +474,7 @@ fn append_quad(
     let unit = world_height / f64::from(label.font_size);
     let mut color = [0.0; 4];
 
-    // color to linear when the canvas is sRGB
+    // an sRGB canvas re-encodes what it stores, so it wants linear values: undo the sRGB curve
     for (index, component) in color.iter_mut().enumerate() {
         let value = f32::from(label.color[index]) / 255.0;
         *component = if srgb && index < 3 {
@@ -484,7 +488,7 @@ fn append_quad(
         };
     }
 
-    let scale = frame.framebuffer[0] as f32 / frame.logical[0] as f32;
+    let scale = frame.framebuffer[0] as f32 / frame.logical[0] as f32; // real pixels per CSS pixel
     let mut bounds = [
         0.0,
         0.0,
@@ -492,14 +496,12 @@ fn append_quad(
         frame.framebuffer[1] as f32,
     ];
 
-    // screen box the label is cut to
     if let Some(clip) = label.clip {
         for (index, value) in bounds.iter_mut().enumerate() {
             *value = clip[index] * scale;
         }
     }
 
-    // two triangles
     for [u, v] in [
         [0.0, 0.0],
         [0.0, 1.0],
@@ -513,7 +515,7 @@ fn append_quad(
         let mut point = world;
 
         for axis in 0..3 {
-            point[axis] += right[axis] * x - up[axis] * y;
+            point[axis] += right[axis] * x - up[axis] * y; // text y points down, `up` points up
         }
 
         let clip = project(point, frame);
@@ -524,7 +526,7 @@ fn append_quad(
     }
 }
 
-/// Coverage blends with the same depth rule as solids.
+/// Depth-tested but never written: a solid in front hides the label, and labels never hide each other.
 fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
     let shader = ctx
         .device
@@ -536,7 +538,7 @@ fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout) -> wgp
         .device
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("world text"),
-            bind_group_layouts: &[Some(layout)], // camera only
+            bind_group_layouts: &[Some(layout)], // only the texture: the camera is already in the vertices
             immediate_size: 0,
         });
     ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {

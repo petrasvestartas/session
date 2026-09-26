@@ -44,9 +44,9 @@ Two one-line files that put the new folder into the build.
 
 ## Step 3 · `src/scene.rs`
 
-New file: two source objects, each with a row and a placement.
+New file: two objects that share one triangle, each with its own row: placement and colour.
 
-`lessons/03/src/scene.rs` · 30 lines · type this, new file
+`lessons/03/src/scene.rs` · type this, new file
 
 ```rust
 --8<-- "lessons/03/src/scene.rs"
@@ -133,7 +133,7 @@ Replaces the lines from `pass.draw(0..3, 0..1);` to `Ok(serde_json::json!({"stag
 
 ## Step 6 · `index.html`
 
-Two edits: the checkpoint number in the title and the status line.
+Three edits: the checkpoint number in the title, the starting status and the status text.
 
 `lessons/03/index.html` · edit · copy the file
 

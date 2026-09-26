@@ -5,10 +5,10 @@ use winit::event::{Touch, TouchPhase};
 use crate::camera::Camera;
 use crate::engine::performance::now_ms;
 
-/// Pan units one pixel of finger is worth, over the viewport height.
+/// 2·tan(30°) / 0.0015: with a 60° view the point under the finger stays under it; `pan` multiplies by 0.0015.
 const PAN_PER_PX: f64 = 2.0 * 0.577_350_269_189_625_7 / 0.001_5; // 769.8
 
-/// ln 0.9, the wheel zoom step; a pinch is converted through it.
+/// ln 0.9: zoom counts wheel steps of x0.9, so a pinch ratio r is -ln r / ln 0.9 steps, i.e. distance / r.
 const PINCH_LOG: f64 = -0.105_360_515_657_826_28;
 
 /// Largest pinch ratio one event may apply.
@@ -30,7 +30,7 @@ const DOUBLE_TAP_SLOP: f64 = 40.0;
 // --8<-- [start:step-5b]
 /// What one touch event asks the caller to do.
 pub enum Act {
-    None, // nothing
+    None,
     Moved, // the camera moved, redraw
     Fit, // double tap: fit the scene
     Tap((f64, f64)), // single tap: pick at these pixels
@@ -38,8 +38,8 @@ pub enum Act {
 
 /// One finger on the screen, in physical pixels.
 struct Finger {
-    id: u64, // browser touch id
-    pos: (f64, f64), // where it is now
+    id: u64, // the same while this finger stays down
+    pos: (f64, f64),
     down: (f64, f64), // where it landed
     t0: f64, // when it landed, ms
 }
@@ -162,7 +162,6 @@ impl Touches {
         Act::Tap(p)
     }
 
-    /// Index of the finger with this id.
     fn finger_index(&self, id: u64) -> Option<usize> {
         for (index, finger) in self.fingers.iter().enumerate() {
             if finger.id == id {
@@ -182,7 +181,7 @@ impl Touches {
 }
 
 impl Default for Touches {
-    /// Same as `new`.
+    /// Clippy asks for Default whenever a type has a no-argument `new`.
     fn default() -> Self {
         Self::new()
     }

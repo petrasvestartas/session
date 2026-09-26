@@ -10,7 +10,7 @@ Copy each file from the lesson folder to the path shown.
 
 Read the kernel mesher; the lesson uses it, never changes it.
 
-??? example "`session_rust/src/remesh_nurbssurface_grid.rs` · read only · 812 lines"
+??? example "`session_rust/src/remesh_nurbssurface_grid.rs` · read only"
 
     [Open the full listing](kernel/remesh_nurbssurface_grid.md)
     
@@ -19,7 +19,7 @@ Run `cargo check` in `lessons/06/`.
 
 ## Step 2 · src/app/walk/encode.rs
 
-New file: pen colour, width and facing packed for the shaders.
+New file: pack pen width, colour and face normals into the few bytes the shaders read.
 
 `lessons/06/src/app/walk/encode.rs` · 78 lines · type this, new file
 
@@ -49,7 +49,7 @@ New file: bounds collected from the rows one document adds.
 
 ## Step 5 · src/app/walk/mesh_topology.rs
 
-New file: vertex and edge adjacency of a mesh.
+New file: find each mesh edge once, with the faces beside it and one normal per face.
 
 `lessons/06/src/app/walk/mesh_topology.rs` · type this, new file, start with these lines
 
@@ -71,7 +71,7 @@ New file: vertex and edge adjacency of a mesh.
 
 ## Step 6 · src/app/walk/mesh_ink.rs
 
-New file: which mesh edges are drawn as ink.
+New file: turn mesh edges into pipes and vertices into dots, skipping flat diagonals and smooth seams.
 
 `lessons/06/src/app/walk/mesh_ink.rs` · type this, new file, start with these lines
 
@@ -119,7 +119,7 @@ Copy this part from the lesson folder to the path shown.
 
 ## Step 7 · src/app/walk/mesh.rs
 
-New file: the mesh walk, vertices, indices and face ids.
+New file: walk one mesh into arena triangles, then hand its edges and dots to the ink.
 
 `lessons/06/src/app/walk/mesh.rs` · type this, new file, start with these lines
 
@@ -191,8 +191,7 @@ New file: the BRep walk, shaded faces and their edges.
 
 ## Step 11 · src/app/knobs.rs
 
-Copy the file: tuning constants with their defaults.
-Copy this file from the lesson folder to the path shown.
+Copy the file: debug switches read once from environment variables such as VIEWER_PROFILE.
 
 `lessons/06/src/app/knobs.rs` · 54 lines · copy the file, new file
 

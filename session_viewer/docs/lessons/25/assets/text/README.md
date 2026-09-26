@@ -1,9 +1,8 @@
 # Bundled text fonts
 
-Noto Sans Regular, Noto Sans Symbols Regular and Noto Sans Symbols 2 Regular are distributed under the adjacent
-SIL Open Font License 1.1 (`OFL.txt`). All are embedded in the WASM text document;
-Trunk also copies these exact bytes for `text-quality.html`'s browser reference.
-No machine-installed font discovery or asynchronous placeholder font is used.
+Noto Sans Regular, Noto Sans Symbols Regular and Noto Sans Symbols 2 Regular, under the SIL Open Font License 1.1
+(`OFL.txt`, next to this file). All three are compiled into the wasm, and Trunk copies the same bytes
+so `text-quality.html` can compare against the browser. Fonts installed on the machine are never used.
 
 Upstream sources:
 - https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf
@@ -11,29 +10,23 @@ Upstream sources:
 - https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSansSymbols/NotoSansSymbols-Regular.ttf
 - https://github.com/notofonts/noto-fonts/blob/main/LICENSE
 
-`src/engine/text.rs` owns advanced shaping and explicit font fallback.
-`src/engine/gpu/text.rs` integrates Glyphon **0.11.0**, compatible with the existing
-wgpu **29.0.4**. Glyphon **0.12.0** requires wgpu 30 and is intentionally not selected.
-The maintained dedicated WGSL is the pinned dependency's `src/shader.wgsl`:
+`src/engine/text.rs` shapes the text and picks the fallback font.
+`src/engine/gpu/text.rs` draws it with Glyphon **0.11.0**, the release that matches wgpu **29.0.4**;
+Glyphon **0.12.0** needs wgpu 30. Its shader is Glyphon's own `src/shader.wgsl`:
 https://docs.rs/crate/glyphon/0.11.0/source/src/shader.wgsl
 
-The primary font covers the Latin, Lithuanian, German and CAD specimen characters;
-the symbols fonts are explicit fallback. Other scripts require an additional licensed
-font, loaded through `TextDocument::replace_fonts`, which invalidates every affected
-shape and GPU resource. Missing glyph IDs remain visible .notdef boxes and are counted.
+Noto Sans covers the Latin, Lithuanian, German and CAD characters in the samples; the two symbol fonts
+fill the gaps. Another script needs another licensed font, loaded with `TextDocument::replace_fonts`,
+which reshapes every label and resets the GPU text. A glyph no font has shows as a .notdef box and is
+counted in `missing_glyphs`.
 
-Existing imported PDF letters are vector meshes with per-glyph geometry already baked
-by `session_rust::pdf`; source strings and font runs are absent from that mesh contract.
-`text_outline.wgsl` preserves those exact positions and source font shapes through an
-unlit, alpha-preserving coverage pipeline. Legacy PDFs can mix letters into page fills,
-so both sheet index runs use it without guessing glyph boundaries or changing order.
-The automatic sample policy requests four coverage samples for sheet vectors as well
-as solids, within the existing adapter memory budget. Forced 1x and canvases above that
-budget retain visibly lower quality on thin outlines. Source strings/font runs are not
-reconstructed or substituted; the Glyphon lane is for actual source-text labels.
+Letters in imported PDFs are not text: `session_rust::pdf` already turned them into meshes, with no
+string or font left. `text_outline.wgsl` draws those meshes unlit, in their exact positions, with
+coverage as alpha. Old PDFs can mix letters into page fills, so both sheet index runs use that pipeline
+instead of guessing where a letter ends. Sheet vectors get 4x MSAA like solids, within the adapter
+memory budget; at a forced 1x, or on a canvas past that budget, thin outlines look rougher. The Glyphon
+lane is only for real text labels.
 
-`TextStats` reports actual Swash raster image counts and byte-vector capacities on the CPU,
-separately from candidate raster keys and active instance payload. The pinned Glyphon API
-does not expose GPU atlas/instance capacity, upload bytes or isolated rasterization time.
-Those are excluded from measured GPU totals; combined preparation time is not labeled as
-rasterization or upload time.
+`TextStats` counts Swash's glyph images on the CPU and their byte capacity, apart from raster keys and
+the bytes of drawn glyph instances. Glyphon 0.11 does not report GPU atlas size, upload bytes or raster
+time, so those are left out; `preparation_ms` is the whole rebuild, not raster or upload alone.

@@ -9,22 +9,22 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use session_rust::Mesh;
 use session_rust::mesh::ColorMode;
 
-/// Where a mesh's edges and vertex dots go.
+/// The two row tables a mesh's ink is appended to; `&'a mut` lets them grow in place.
 pub struct Ink<'a> {
-    pub seg: &'a mut SegRows,     // edge pipes
-    pub glyph: &'a mut GlyphRows, // vertex spheres
+    pub seg: &'a mut SegRows,     // one pipe per drawn edge
+    pub glyph: &'a mut GlyphRows, // one sphere per vertex dot
 }
 
 /// What the ink pass needs from the face pass.
 pub struct InkCx<'a> {
-    pub row: u32,             // object row
-    pub vpos: &'a [[f32; 3]], // vertex positions by slot
-    pub slots: &'a SlotMap,   // vertex key to slot
+    pub row: u32,
+    pub vpos: &'a [[f32; 3]], // indexed by slot
+    pub slots: &'a SlotMap,
     pub smooth: bool,         // only borders and creases are ink
-    pub lap: &'a mut Lap,     // profiling timer
+    pub lap: &'a mut Lap,     // prints the time of each phase when VIEWER_PROFILE is set
 }
 
-/// Pen width of edge `i`; one entry applies to all.
+/// One width may stand for every edge; a missing entry is the default 1.0.
 fn width_at(w: &[f64], i: usize) -> f64 {
     if w.len() == 1 {
         w[0]
@@ -38,7 +38,7 @@ fn hidden(w: &[f64], i: usize) -> bool {
     width_at(w, i) == 0.0
 }
 
-/// Normal of one of an edge's two faces.
+/// None for the missing side of a border edge, or for a zero-area face.
 fn normal_of(topo: &MeshTopo, faces: [u32; 2], side: usize) -> Option<[f64; 3]> {
     if faces[side] == u32::MAX {
         return None;
@@ -47,7 +47,7 @@ fn normal_of(topo: &MeshTopo, faces: [u32; 2], side: usize) -> Option<[f64; 3]> 
     topo.normals[faces[side] as usize]
 }
 
-/// The two outward normals of edge `ei`.
+/// Both normals point out of the solid, even where the mesh winds one face backwards.
 fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3]>) {
     let f = topo.edge_faces[ei];
     let n0 = normal_of(topo, f, 0);
@@ -62,12 +62,11 @@ fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3
     (n0, n1.map(reversed_normal)) // badly wound: flip the second
 }
 
-/// Dot product of two vectors.
 fn dot3(a: &[f64; 3], b: &[f64; 3]) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
-/// True for a border or crease edge of a smooth mesh.
+/// On a smooth surface only borders and creases count; the other mesh edges are sampling seams.
 fn smooth_feature(topo: &MeshTopo, ei: usize, pair: (Option<[f64; 3]>, Option<[f64; 3]>)) -> bool {
     if topo.edge_faces[ei][1] == u32::MAX {
         return true; // border
@@ -79,7 +78,7 @@ fn smooth_feature(topo: &MeshTopo, ei: usize, pair: (Option<[f64; 3]>, Option<[f
     }
 }
 
-/// Append edge `ei`'s faces to `fkeys`, deduped.
+/// Adds the faces beside edge ei, each once.
 fn push_faces(edge_faces: &[[u32; 2]], ei: usize, fkeys: &mut Vec<usize>) {
     for &f in edge_faces[ei].iter() {
         if f == u32::MAX {
@@ -94,7 +93,7 @@ fn push_faces(edge_faces: &[[u32; 2]], ei: usize, fkeys: &mut Vec<usize>) {
     }
 }
 
-/// Two normal codes packed into word `k`.
+/// Word k holds codes 2k and 2k + 1; an odd count repeats the last code.
 fn facing_word(codes: &[u32], k: usize) -> u32 {
     match (codes.get(2 * k).copied(), codes.get(2 * k + 1).copied()) {
         (Some(a), b) => {
@@ -106,12 +105,12 @@ fn facing_word(codes: &[u32], k: usize) -> u32 {
     }
 }
 
-/// One pipe per drawn edge.
+/// Pipes for the edges worth drawing: hidden, flat-diagonal and smooth-seam edges are skipped.
 fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     let w = m.widths();
     // --8<-- [end:step-6b]
     // --8<-- [start:step-6c]
-    let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN; // dense mesh: black edges
+    let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN; // a dense mesh reads as a wireframe: all black
     ink.seg.pipes.reserve(topo.edges.len());
 
     for (i, (a, b, col)) in topo.edges.iter().enumerate() {
@@ -122,7 +121,7 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
             continue;
         }
 
-        // skip a diagonal inside a flat region
+        // skip the diagonal between two triangles of one flat quad
         if let (Some(n0), Some(n1)) = (na, nb)
             && dot3(&n0, &n1) >= COPLANAR_DOT
             && !knobs::all_edges()
@@ -136,7 +135,7 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
 
         ink.seg
             .pipe_ids
-            .push(if cx.smooth { u32::MAX } else { i as u32 }); // edge id for picking
+            .push(if cx.smooth { u32::MAX } else { i as u32 }); // the edge picking reports; none on a sampled surface
         ink.seg.pipes.push(CylinderSegment {
             p0: cx.vpos[cx.slots.slot(*a)],
             radius: encode_width(width_at(w, i)),
@@ -148,14 +147,14 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     }
 }
 
-/// Which edges touch each vertex.
+/// Which edges touch each vertex, in one flat list: vertex i owns vinc[vstart[i]..vstart[i + 1]].
 struct Incidence {
     best: Vec<(f64, usize)>, // per vertex: widest edge (width, index)
-    vstart: Vec<u32>,        // per vertex: start into `vinc`
-    vinc: Vec<u32>,          // edge indices, grouped by vertex
+    vstart: Vec<u32>,
+    vinc: Vec<u32>,
 }
 
-/// Build the vertex to edge tables.
+/// Count first, then place: one allocation holds every vertex's list.
 fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
     let w = m.widths();
     let nv = cx.vpos.len();
@@ -170,6 +169,7 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
 
         let wi = width_at(w, i);
 
+        // a vertex dot is as wide as its widest edge
         for vk in [*a, *b] {
             let e = &mut best[cx.slots.slot(vk)];
 
@@ -179,7 +179,7 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
         }
     }
 
-    // count edges per vertex, then prefix sum
+    // count edges per vertex; a running sum turns counts into starts: [0, 3, 2] -> [0, 3, 5]
     let mut vstart = vec![0u32; nv + 1];
 
     for (a, b, _) in topo.edges.iter() {
@@ -191,9 +191,9 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
         vstart[i + 1] += vstart[i];
     }
 
-    // fill each vertex's edge list
+    // fill each vertex's range
     let mut vinc = vec![0u32; 2 * topo.edges.len()];
-    let mut cur = vstart.clone();
+    let mut cur = vstart.clone(); // cur[s] = next free place in vertex s's range
 
     for (i, (a, b, _)) in topo.edges.iter().enumerate() {
         for vk in [*a, *b] {
@@ -206,20 +206,20 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
     Incidence { best, vstart, vinc }
 }
 
-/// What the marker loop reads.
+/// Two lifetimes: this borrow of InkCx ('a) may end before the data InkCx itself borrows ('b).
 struct MarkerCx<'a, 'b> {
-    cx: &'a InkCx<'b>,  // ink context
-    inc: &'a Incidence, // vertex to edge tables
+    cx: &'a InkCx<'b>,
+    inc: &'a Incidence,
 }
 
 /// One dot per vertex with a visible edge.
 fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
     let (cx, inc) = (input.cx, input.inc);
     let pc = m.get_pointcolors();
-    let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices(); // per-vertex colours
+    let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices(); // only with one colour per vertex
     let nv = cx.vpos.len();
     let mut fkeys: Vec<usize> = Vec::new(); // faces around one vertex
-    let mut codes: Vec<u32> = Vec::new(); // packed normals of those faces
+    let mut codes: Vec<u32> = Vec::new(); // their normals as 16-bit codes, no repeats
     ink.glyph.spheres.reserve(nv);
 
     for (i, &(vw, ei)) in inc.best.iter().enumerate().take(nv) {
@@ -256,7 +256,7 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
                 [0.1, 0.1, 0.1, 1.0]
             },
             instance_id: cx.row,
-            // more than six faces: always draw
+            // 3 words hold 6 normals; with more faces, always draw the dot
             facing: if codes.len() > 6 {
                 FACING_UNKNOWN
             } else {
@@ -271,7 +271,7 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
     }
 }
 
-/// Edges, then vertex dots.
+/// The ink of one mesh: a pipe per drawn edge, a dot per vertex, each phase timed.
 pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) {
     let inc = incidence(m, topo, cx);
     cx.lap.mark("incidence");
@@ -286,7 +286,6 @@ pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) 
     cx.lap.mark("markers");
 }
 
-/// The opposite direction.
 fn reversed_normal(n: [f64; 3]) -> [f64; 3] {
     [-n[0], -n[1], -n[2]]
 }

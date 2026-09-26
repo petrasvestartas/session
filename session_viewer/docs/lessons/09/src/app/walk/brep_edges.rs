@@ -688,7 +688,8 @@ mod tests {
         let scene = Session::pb_load(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/assets/pb/view_mixed_teapot.pb"
-        ));
+        ))
+        .unwrap();
         let brep = &scene.objects.breps[0];
         let meshes = brep.face_meshes_q(Some(QUALITY));
         let chains = edge_chains(brep, &meshes);

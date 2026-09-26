@@ -1,39 +1,39 @@
-use bytemuck::Pod;
+use bytemuck::Pod; // Pod = plain old data: no pointers, so its bytes can go straight to the GPU
 use wgpu::util::DeviceExt;
 
-/// The GPU connection: device makes resources, queue runs commands.
+/// Device and queue travel together; one borrow of this passes both.
 pub struct GpuCtx {
-    pub device: wgpu::Device, // creates buffers, textures, pipelines
-    pub queue: wgpu::Queue, // uploads data and submits commands
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
 }
 
-/// Usage flags for a storage buffer that grows.
+/// Row buffers: COPY_DST so rows can be written, COPY_SRC so growing can copy them on the GPU.
 pub const ROWS: wgpu::BufferUsages = wgpu::BufferUsages::STORAGE
     .union(wgpu::BufferUsages::COPY_DST)
     .union(wgpu::BufferUsages::COPY_SRC);
 
-/// Usage flags for a vertex buffer that grows.
+/// A vertex buffer holds the corner positions; the GPU walks it once per drawn vertex.
 pub const VERTS: wgpu::BufferUsages = wgpu::BufferUsages::VERTEX
     .union(wgpu::BufferUsages::COPY_DST)
     .union(wgpu::BufferUsages::COPY_SRC);
 
-/// Usage flags for an index buffer that grows.
+/// An index buffer lists the corners of each triangle, so a cube stores 8 corners for its 12 triangles, not 36.
 pub const INDICES: wgpu::BufferUsages = wgpu::BufferUsages::INDEX
     .union(wgpu::BufferUsages::COPY_DST)
     .union(wgpu::BufferUsages::COPY_SRC);
 
-/// A GPU buffer that grows by half when full.
+/// A GPU buffer cannot grow in place: growing allocates a bigger one and copies, so each growth adds half to keep that rare.
 pub struct GrowBuf {
-    pub buf: wgpu::Buffer, // the GPU buffer
+    pub buf: wgpu::Buffer,
     len: u32, // rows in use
     cap: u64, // rows allocated
     stride: u64, // bytes per row
-    usage: wgpu::BufferUsages, // how the GPU may use it
+    usage: wgpu::BufferUsages,
     label: &'static str, // name shown in GPU errors
 }
 
 impl GrowBuf {
-    /// Create with one empty row.
+    /// Room for one row, since a zero-size buffer cannot be bound.
     pub fn new(ctx: &GpuCtx, label: &'static str, stride: u64, usage: wgpu::BufferUsages) -> Self {
         let buf = zeroed_buffer(&ctx.device, label, stride, usage);
 
@@ -47,9 +47,9 @@ impl GrowBuf {
         }
     }
 
-    /// Append rows; returns true if the buffer was replaced.
+    /// true = the buffer was replaced, so every bind group that points at it must be rebuilt.
     pub fn append<T: Pod>(&mut self, ctx: &GpuCtx, data: &[T]) -> bool {
-        debug_assert_eq!(std::mem::size_of::<T>() as u64, self.stride);
+        debug_assert_eq!(std::mem::size_of::<T>() as u64, self.stride); // checked in debug builds only, free in release
 
         if data.is_empty() {
             return false;
@@ -120,12 +120,10 @@ impl GrowBuf {
         self.cap = 1;
     }
 
-    /// Rows in use.
     pub fn len(&self) -> u32 {
         self.len
     }
 
-    /// True when no rows are in use.
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
@@ -133,9 +131,9 @@ impl GrowBuf {
 
 /// A small mesh drawn many times, once per instance.
 pub struct Template {
-    pub vbo: wgpu::Buffer, // vertex positions
-    pub ibo: wgpu::Buffer, // triangle indices
-    pub index_count: u32, // indices to draw
+    pub vbo: wgpu::Buffer, // vbo = vertex buffer object
+    pub ibo: wgpu::Buffer, // ibo = index buffer object
+    pub index_count: u32,
 }
 
 impl Template {
@@ -163,14 +161,14 @@ impl Template {
         }
     }
 
-    /// Set the mesh as vertex slot 0 and the index buffer.
+    /// Vertex slot 0 = the first entry in the pipeline's list of vertex buffers.
     pub fn bind(&self, pass: &mut wgpu::RenderPass<'_>) {
         pass.set_vertex_buffer(0, self.vbo.slice(..));
         pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint32);
     }
 }
 
-/// A new buffer of `size` bytes, filled with zeros.
+/// WebGPU zero-fills every new buffer, so the zeros cost no upload.
 pub fn zeroed_buffer(
     device: &wgpu::Device,
     label: &str,

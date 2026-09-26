@@ -5,7 +5,7 @@ use crate::engine::gpu::segments::SegRows;
 use session_rust::AABB;
 use session_rust::{OBB, Plane, Point, Vector};
 
-/// Half size of the square drawn for a plane, mm.
+/// A plane is infinite; it is drawn as a 1 m square, 500 mm each way from its origin.
 const PLANE_SIZE: f64 = 500.0;
 
 /// The 12 box edges, corners bottom 0-3 then top 4-7.
@@ -24,7 +24,7 @@ const BOX_EDGES: [[usize; 2]; 12] = [
     [3, 7],
 ];
 
-/// One corner of the plane square.
+/// s = (±1, ±1) picks the corner.
 fn corner(o: &Point, x: &Vector, y: &Vector, s: [f64; 2]) -> [f32; 3] {
     let mut position = [0.0; 3];
 
@@ -50,7 +50,7 @@ fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pe
             p1: pts[j],
             instance_id: pen.row,
             color: pen.color,
-            facing: FACING_UNKNOWN, // no face orientation
+            facing: FACING_UNKNOWN,
         });
     }
 
@@ -79,7 +79,7 @@ pub fn walk_obb(seg: &mut SegRows, b: &OBB, row: u32) -> Row {
     let c = b.corners_f32();
     let pen = Pen {
         row,
-        radius: 0.0, // default pen
+        radius: 0.0,
         color: pack_rgba([0.0, 0.0, 0.0, 1.0]),
     };
     Row::thin(push_loop(seg, &c, &BOX_EDGES, &pen))

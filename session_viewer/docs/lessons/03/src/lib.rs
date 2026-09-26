@@ -1,7 +1,7 @@
 use session_rust::AABB;
 use session_rust::Point;
-use wasm_bindgen::prelude::*; // Rust/WASM toolchain
-use wgpu::util::DeviceExt; // wgpu utility functions
+use wasm_bindgen::prelude::*;
+use wgpu::util::DeviceExt; // a trait that adds create_buffer_init to Device; its methods work only once imported
 pub mod camera;
 // --8<-- [start:step-5a]
 pub mod engine;
@@ -9,37 +9,37 @@ pub mod scene;
 // --8<-- [end:step-5a]
 
 /// Everything needed to draw one frame: the browser owns the canvas, this struct owns the GPU.
-#[wasm_bindgen]
+#[wasm_bindgen] // JavaScript sees this struct as a class
 pub struct Tutorial {
     canvas: web_sys::HtmlCanvasElement,
-    surface: wgpu::Surface<'static>,
+    surface: wgpu::Surface<'static>, // 'static: borrows nothing, so it may live as long as the struct
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     pipeline: wgpu::RenderPipeline,
-    uniform: wgpu::Buffer, // the camera matrix on the GPU
+    uniform: wgpu::Buffer, // kept, so every frame can rewrite the camera matrix
     group: wgpu::BindGroup,
-    scale: f64,
-    camera: camera::Camera, // orbit, pan and zoom state
+    scale: f64, // device pixels per CSS pixel, 2.0 on most phones
+    camera: camera::Camera,
     // --8<-- [start:step-5b]
     objects: [scene::SourceObject; 2],
     // --8<-- [end:step-5b]
 }
 
-#[wasm_bindgen] // Everything in this block is exported to JavaScript
+#[wasm_bindgen] // every pub fn in this block becomes a JavaScript method
 impl Tutorial {
-    /// Negotiate a presentation compatible browser adapter and build the first pipeline.
+    /// async: JavaScript receives a Promise, because asking the browser for a GPU takes a moment.
     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
-        console_error_panic_hook::set_once(); // Better error messages in the console
-        Self::open(canvas).await.map_err(js_error)
+        console_error_panic_hook::set_once();
+        Self::open(canvas).await.map_err(js_error) // JavaScript cannot read a Rust error, so it becomes text
     }
 
-    /// Clear and draw one frame at full device-pixel resolution.
+    /// The page calls this after loading, on resize and on every drag; it returns a JSON status line.
     pub fn render(&mut self, width: u32, height: u32, scale: f64) -> Result<String, JsValue> {
         self.render_frame(width, height, scale).map_err(js_error)
     }
 
-    /// Apply one camera gesture. The first GPU checkpoint intentionally has no camera yet.
+    /// dx, dy: CSS pixels since the last pointer event.
     pub fn drag(&mut self, dx: f32, dy: f32, pan: bool) {
         if pan {
             self.camera.pan(dx, dy);
@@ -48,11 +48,11 @@ impl Tutorial {
         }
     }
 
-    /// Apply one cursor-centered camera zoom when the camera checkpoint is installed.
+    /// delta in wheel steps; x, y: the cursor in CSS pixels.
     pub fn zoom(&mut self, delta: f32, x: f64, y: f64) {
         self.camera.zoom_at(
             delta,
-            (x * self.scale, y * self.scale),
+            (x * self.scale, y * self.scale), // CSS to device pixels, the unit of config.width
             (self.config.width as f64, self.config.height as f64),
         );
     }
@@ -60,67 +60,68 @@ impl Tutorial {
 
 // A second impl block without #[wasm_bindgen]: these helpers return Rust errors JavaScript cannot see.
 impl Tutorial {
-    /// Create surface, device, bindings and a triangle without any scene loader.
+    /// anyhow::Result = Ok(value) or Err(any error with a message).
     async fn open(canvas: web_sys::HtmlCanvasElement) -> anyhow::Result<Self> {
-        // Starting point to talk to GPU through wgpu.
+        // Instance = the WebGPU API itself
+        // Surface  = the canvas, as something the GPU can draw into
+        // Adapter  = one physical GPU that can draw to that surface
+        // Device   = your connection to that GPU; it creates every GPU object
+        // Queue    = where finished command lists are sent
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::BROWSER_WEBGPU,
+            backends: wgpu::Backends::BROWSER_WEBGPU, // WebGPU only, no WebGL fallback
             flags: Default::default(),
             memory_budget_thresholds: Default::default(),
             backend_options: Default::default(),
             display: None,
         });
-        // The surface is the thing the wgpu will render into.
+        // `?` returns the error to the caller at once, so below this line the surface exists.
+        // clone() makes a second handle to the same canvas; the struct keeps the first.
         let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))?;
-        // Select gpu device. The ? returns early with the error, so the next line always has an adapter.
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 compatible_surface: Some(&surface),
-                ..Default::default()
+                ..Default::default() // every field not written above keeps its default
             })
-            .await?;
-        // Print information about selected wgpu
+            .await?; // await: wait for the browser's answer without freezing the page
         log::info!("tutorial adapter: {:?}", adapter.get_info());
-        // Device - logical connection to wgpu, Queue - is used to send command to the gpu
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor::default())
             .await?;
-        // Registers wgpu errors
+        // A validation error would otherwise only log a warning and leave the canvas black.
         device.on_uncaptured_error(std::sync::Arc::new(gpu_error));
-        // What can this surface support when used with this GPU adapter?
+        // What this canvas supports on this GPU; index 0 of each list is the preferred choice.
         let caps = surface.get_capabilities(&adapter);
-        // How the surface should behave?
         let config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT, // You will render into it
-            format: caps.formats[0], // pixel color format [Bgra8UnormSrgb, Rgba8UnormSrgb, ...]
-            width: 1,                // canvas size in pixels, the first frame replaces this
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT, // a render pass may draw into it
+            format: caps.formats[0], // e.g. Bgra8UnormSrgb: 4 bytes per pixel, blue first
+            width: 1,                // 1 x 1 for now; the first frame sets the real size
             height: 1,
-            present_mode: caps.present_modes[0], // how rendered frames are presented to the screen
-            alpha_mode: caps.alpha_modes[0],     // how transparency is handled
-            view_formats: vec![],                // optional extra texture formats
-            desired_maximum_frame_latency: 2,    // roughly how many frames may be queued ahead
+            present_mode: caps.present_modes[0], // on the web always Fifo: one frame per display refresh
+            alpha_mode: caps.alpha_modes[0],     // whether the canvas blends with the page behind it
+            view_formats: vec![],
+            desired_maximum_frame_latency: 2,    // at most 2 frames queued ahead of the screen
         };
-        // Starting contents of the camera buffer: a matrix that changes nothing.
+        // The identity matrix: points pass through unchanged until the first frame writes the camera.
         let identity = [
             1.0f32, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
         ];
         // A uniform buffer is one small block of GPU memory that every vertex reads, the same for all of them.
         let uniform = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("camera matrix"),
-            contents: bytemuck::cast_slice(&identity), // converts raw bytes so the GPU can receive it
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, // GPU shader reads it | CPU / copy operation can update it
+            contents: bytemuck::cast_slice(&identity), // the same 64 bytes seen as &[u8]; nothing is copied
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, // shaders read it; write_buffer may overwrite it
         });
-        // Layout describing what resource the shader expects
+        // A bind group layout is the shape of the shader's inputs; the bind group below fills it with real buffers.
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("camera"),
             // --8<-- [start:step-5c]
             entries: &[
                 wgpu::BindGroupLayoutEntry {
-                    binding: 0, // the shader will receive one uniform buffer, -> @group(0) @binding(0)
-                    visibility: wgpu::ShaderStages::VERTEX, // only the vertex shader can use it
+                    binding: 0, // @binding(0) in first.wgsl
+                    visibility: wgpu::ShaderStages::VERTEX,
                     ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform, // the resource must be a uniform buffer
-                        has_dynamic_offset: false, // This binding always reads from the same fixed place, if true we could read multiple cameras
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false, // true would let one buffer hold several cameras, chosen per draw
                         min_binding_size: None,
                     },
                     count: None,
@@ -129,7 +130,7 @@ impl Tutorial {
                     binding: 1,
                     visibility: wgpu::ShaderStages::VERTEX,
                     ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        ty: wgpu::BufferBindingType::Storage { read_only: true }, // storage = a large array the shader indexes
                         has_dynamic_offset: false,
                         min_binding_size: None,
                     },
@@ -137,20 +138,19 @@ impl Tutorial {
                 },
             ],
         });
-        let records = [scene::objects()[0].row, scene::objects()[1].row];
+        let records = [scene::objects()[0].row, scene::objects()[1].row]; // 2 rows x 96 bytes
         let rows = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("source instances"),
             contents: bytemuck::cast_slice(&records),
             usage: wgpu::BufferUsages::STORAGE,
         });
-        // What actual buffer you gave to it.
         let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("camera"),
             layout: &layout,
             entries: &[
                 wgpu::BindGroupEntry {
-                    binding: 0, // must match the binding:0 from BindGroupLayout
-                    resource: uniform.as_entire_binding(), // use the whole uniform buffer as the resource for this binding
+                    binding: 0, // fills the layout entry with the same number
+                    resource: uniform.as_entire_binding(),
                 },
                 wgpu::BindGroupEntry {
                     binding: 1,
@@ -164,41 +164,40 @@ impl Tutorial {
             label: Some("first triangle"),
             source: wgpu::ShaderSource::Wgsl(include_str!("shaders/first.wgsl").into()),
         });
-        // This defines what bind groups the render pipeline will use, there can be a camera layout, material layout, lights layout
+        // One bind group layout per @group number; this pipeline has only group 0.
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("first triangle"),
             bind_group_layouts: &[Some(&layout)],
-            immediate_size: 0, // not using any immediate data here
+            immediate_size: 0,
         });
         // Create render pipeline: the full set of rules the GPU uses to draw, built and checked once.
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("first triangle"),
-            layout: Some(&pipeline_layout), // use the resource layout - camera uniform
+            layout: Some(&pipeline_layout),
             vertex: wgpu::VertexState {
-                // uses vs_main from WGSL file as the vertex shader
                 module: &shader,
-                entry_point: Some("vs_main"),
-                buffers: &[], // no vertex buffer is defined here, as triangle is generated in the shader
+                entry_point: Some("vs_main"), // the function name in first.wgsl
+                buffers: &[], // no vertex buffer: the shader makes its three corners itself
                 compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
-                entry_point: Some("fs_main"), // fs_main as the fragment shader
+                entry_point: Some("fs_main"),
                 targets: &[Some(wgpu::ColorTargetState {
-                    // the fragment shader outputs color same format as the surface
+                    // must equal the canvas format, or the pass is rejected
                     format: config.format,
-                    blend: None,                        // no transparency blending
-                    write_mask: wgpu::ColorWrites::ALL, // allow writing R, G, B, A
+                    blend: None,                        // overwrite the pixel, no transparency
+                    write_mask: wgpu::ColorWrites::ALL,
                 })],
                 compilation_options: Default::default(),
             }),
-            primitive: Default::default(),
-            depth_stencil: None, // no depth buffer - front / behind testing
-            multisample: Default::default(), // no special MSAA settings
+            primitive: Default::default(), // a list of triangles, none culled
+            depth_stencil: None, // no depth test yet: a later draw simply covers an earlier one
+            multisample: Default::default(), // 1 sample per pixel, no anti-aliasing
             multiview_mask: None,
             cache: None,
         });
-        // fit() picks the distance where this box fills the view, so the triangle is framed at startup.
+        // Back off until a 3 x 2 m box around the triangle fills the view.
         let mut camera = camera::Camera::new();
         camera.unit = camera::Unit::Meters;
         camera.set_view(camera::View::Top);
@@ -207,12 +206,12 @@ impl Tutorial {
                 &[Point::new(-1.5, -1.0, -0.1), Point::new(1.5, 1.0, 0.1)],
                 0.0,
             ),
-            1.5,
+            1.5, // width / height, a guess until the first frame
         );
         // --8<-- [start:step-5d]
         let objects = scene::objects();
         // --8<-- [end:step-5d]
-        // Create an instance of the struct, Ok is needed to return also the error message Err(...)
+        // Create an instance of the struct; Ok is needed to return also the error message Err(...).
         Ok(Self {
             canvas,
             surface,
@@ -230,15 +229,15 @@ impl Tutorial {
         })
     }
 
-    /// Render once, upload the camera transform, encode the lane, submit and present.
+    /// One frame: resize if needed, record the commands, submit them, show the result.
     fn render_frame(&mut self, width: u32, height: u32, scale: f64) -> anyhow::Result<String> {
-        anyhow::ensure!(scale.is_finite() && scale > 0.0, "invalid device scale");
+        anyhow::ensure!(scale.is_finite() && scale > 0.0, "invalid device scale"); // returns Err when false
         self.scale = scale;
-        // Convert the logical size to real pixel size, e.g. width = 800, scale = 2.0
+        // Convert the logical size to real pixel size, e.g. width = 800, scale = 2.0 gives 1600.
         let width = (f64::from(width.max(1)) * scale).round() as u32;
         let height = (f64::from(height.max(1)) * scale).round() as u32;
 
-        // Resize step
+        // Reconfigure only when the size changed: it reallocates the canvas textures.
         if self.canvas.width() != width || self.canvas.height() != height || self.config.width == 1
         {
             self.canvas.set_width(width);
@@ -248,14 +247,14 @@ impl Tutorial {
             self.surface.configure(&self.device, &self.config);
         }
 
-        // The camera changed since the last frame, so its matrix is written into the uniform buffer again.
+        // Overwrite the 64-byte uniform; the queue copies it before this frame's draw runs.
         let mvp = self.camera.view_proj_anchored(
             width as f64 / height as f64,
             &session_rust::Point::new(0.0, 0.0, 0.0),
         );
         self.queue
             .write_buffer(&self.uniform, 0, bytemuck::cast_slice(&mvp.to_f32()));
-        // Hand you the browser's canvas image itself.
+        // The texture the canvas shows next; any result other than these two ends the frame with an error.
         let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(output)
             | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
@@ -270,49 +269,48 @@ impl Tutorial {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("first frame"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    // draw into the canvas texture view from above
                     view: &view,
                     depth_slice: None,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        // before drawing fill with the color
+                        // fill with dark blue before drawing; channels run 0 to 1, not 0 to 255
                         load: wgpu::LoadOp::Clear(wgpu::Color {
                             r: 0.025,
                             g: 0.035,
                             b: 0.055,
                             a: 1.0,
                         }),
-                        store: wgpu::StoreOp::Store,
+                        store: wgpu::StoreOp::Store, // keep the pixels, so they can be shown
                     },
                 })],
-                depth_stencil_attachment: None, // no depth buffer
+                depth_stencil_attachment: None,
                 timestamp_writes: None,
                 occlusion_query_set: None,
                 multiview_mask: None,
             });
-            pass.set_pipeline(&self.pipeline); // which shaders + vertex layout + blend state to use
-            pass.set_bind_group(0, &self.group, &[]); // attach the uniform buffer
+            pass.set_pipeline(&self.pipeline);
+            pass.set_bind_group(0, &self.group, &[]); // 0 = @group(0) in the shader; &[] = no dynamic offsets
 // --8<-- [start:step-5f]
 
             for row in 0..self.objects.len() as u32 {
-                pass.draw(0..3, row..row + 1);
+                pass.draw(0..3, row..row + 1); // instances row..row + 1: the shader's instance_index is this row
             }
         }
-        // close the recording and send to GPU
+        // The GPU starts working only now.
         self.queue.submit([encoder.finish()]);
-        // tells the browser the frame texture is finished, the canvas now shows it
+        // The canvas shows the new frame at the next display refresh.
         output.present();
         Ok(serde_json::json!({"stage": 3, "objects": self.objects.len(), "width":width,"height":height,"scale":scale,"drawn":true}).to_string())
         // --8<-- [end:step-5f]
     }
 }
 
-/// Keep initialization/render errors visible at the browser boundary.
+/// `impl Display` accepts any error type that can print itself.
 fn js_error(error: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&error.to_string())
 }
 
-/// A shader validation failure must fail the browser checkpoint rather than look like success.
+/// Panic, so a validation error appears in the console instead of a silently black canvas.
 fn gpu_error(error: wgpu::Error) {
     panic!("tutorial WebGPU error: {error}");
 }

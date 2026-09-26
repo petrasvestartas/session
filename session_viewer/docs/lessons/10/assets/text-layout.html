@@ -7,12 +7,13 @@ body{background:#171717;color:white;font:14px sans-serif;margin:20px}.line{displ
 <h1>Source text → shaped runs</h1><p>Browser reference in the same explicit fonts; chapter 11 adds the GPU coverage renderer.</p>
 <div id="specimens"></div><output id="layout-status">Loading exact fonts and WASM…</output><details><summary>Glyph IDs, byte clusters, advances, offsets and baselines</summary><pre id="diagnostics"></pre></details>
 <script type="module">
-/** Reject stale/missing generated bundle discovery before interpreting HTML. */
+/** A failed fetch throws instead of handing an error page to the parser. */
 function readText(response){if(!response.ok)throw Error(`HTTP ${response.status}`);return response.text();}
-/** Shape once, measure the matching browser run, and retain assertions for browser automation. */
+/** Shape in wasm, lay out the same text in the browser, and fail when a width differs by over 0.2 px. */
 async function start(){
  await Promise.all([document.fonts.load('16px "Noto Sans"'),document.fonts.load('16px "Noto Sans Symbols"'),document.fonts.load('16px "Noto Sans Symbols 2"')]);
  await document.fonts.ready;
+ // Trunk adds a hash to the .js and .wasm names; read the real names from index.html
  const html=await fetch('./index.html',{cache:'no-store'}).then(readText);
  const js=html.match(/(?:import[^;]*?from\s*|import\s*)["']([^"']*session_viewer[^"']*\.js)["']/);
  const wasm=html.match(/module_or_path:\s*["']([^"']+\.wasm)["']/);
@@ -39,7 +40,7 @@ async function start(){
  document.getElementById('diagnostics').textContent=JSON.stringify(window.textLayout,null,2);
  document.getElementById('layout-status').textContent='PASS: five sizes, matched fonts/widths, clusters and unchanged shaping after placement/color edits.';
 }
-/** Keep a font/layout failure explicit on the fixture page and in browser logs. */
+/** Show a failure on the page and in the console. */
 function failed(error){document.getElementById('layout-status').textContent=String(error);document.getElementById('layout-status').className='failed';console.error(error);}
 start().catch(failed);
 </script></html>

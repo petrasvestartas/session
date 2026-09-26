@@ -1,6 +1,6 @@
-//! What is selected: a whole object, or one edge inside it, which the outline pass and the commands both read.
+//! The picked object lives in Scene; this says what inside that object is picked, if anything.
 
-/// What is selected inside one object.
+/// `#[default]` marks the variant that `Default::default()` returns.
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize)]
 pub enum SelectionMode {
     #[default]
@@ -12,7 +12,7 @@ pub enum SelectionMode {
 }
 
 impl SelectionMode {
-    /// The object row of a sub-selection.
+    /// The object holding the sub-selection; None when the whole object is selected.
     pub fn parent(&self) -> Option<u32> {
         match self {
             Self::Object => None,
@@ -20,7 +20,6 @@ impl SelectionMode {
         }
     }
 
-    /// Select one edge.
     pub fn select_edge(&mut self, parent: u32, edge: u32) {
         *self = Self::Edge { parent, edge };
     }

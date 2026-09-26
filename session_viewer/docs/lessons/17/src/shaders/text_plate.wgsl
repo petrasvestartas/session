@@ -2,7 +2,7 @@
 struct PlateVertex {
     @builtin(position) position: vec4<f32>,
     @location(0) local: vec2<f32>, // pixel offset from the plate center
-    @location(1) half_size: vec2<f32>, // half width and height, px
+    @location(1) half_size: vec2<f32>, // px
     @location(2) radius: f32, // corner radius, px
     // --8<-- [start:step-19]
     @location(3) @interpolate(flat) object: u32, // object row + 1, or 0

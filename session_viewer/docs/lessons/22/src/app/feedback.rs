@@ -1,3 +1,5 @@
+//! Messages for the person using the viewer: what loaded, what failed, what is selected.
+
 /// Show a message in the status line.
 pub fn status(message: &str) {
     // an empty message shows the reload notice, if any
@@ -8,6 +10,7 @@ pub fn status(message: &str) {
         message
     };
 
+    // #[cfg] on a statement: the native build drops it and only logs
     #[cfg(target_arch = "wasm32")]
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()
@@ -38,6 +41,7 @@ pub fn error(message: &str) {
 
 /// Open or close the command line.
 #[cfg(target_arch = "wasm32")]
+/// Show or hide the command box; returns it.
 pub fn command_line(open: bool) -> Option<web_sys::HtmlInputElement> {
     use wasm_bindgen::JsCast;
     let document = web_sys::window()?.document()?;
@@ -82,6 +86,7 @@ pub fn focus_canvas() {}
 
 /// The command line, when it is open.
 #[cfg(target_arch = "wasm32")]
+/// The text typed in the command box.
 pub fn command_text() -> Option<String> {
     use wasm_bindgen::JsCast;
     let input: web_sys::HtmlInputElement = web_sys::window()?
@@ -97,10 +102,10 @@ pub fn command_text() -> Option<String> {
 pub fn command_line(_open: bool) {}
 
 pub struct LayerRow {
-    pub key: String,                 // unique id of the row
-    pub label: String,               // text shown
-    pub count: usize,                // objects under it
-    pub hidden: bool,                // eye toggled off
+    pub key: String, // unique id of the row
+    pub label: String, // text shown
+    pub count: usize, // objects under it
+    pub hidden: bool, // eye toggled off
 }
 
 /// Replace the rows of the layers panel.
@@ -115,7 +120,7 @@ pub fn layers_panel(rows: &[LayerRow]) {
     panel.set_text_content(None);
 
     for row in rows {
-        // a real button, so keyboard focus works
+        // one button per layer row
         let Ok(line) = document.create_element("button") else {
             continue;
         };
@@ -140,8 +145,9 @@ pub fn layers_panel(rows: &[LayerRow]) {
     }
 }
 
-/// Show or hide the layers panel.
+/// Show or hide the panel; returns it so a caller can attach its one listener.
 #[cfg(target_arch = "wasm32")]
+/// Show or hide the layers panel; returns it.
 pub fn layers_visible(open: bool) -> Option<web_sys::Element> {
     let panel = web_sys::window()?
         .document()?

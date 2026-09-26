@@ -6,7 +6,7 @@ F10 shows original curve and surface controls, and clicking a control highlights
 
 ## Step 1 · src/app/selection.rs
 
-Selection keeps original edge, face and control IDs under their parent object.
+Add control points: a selection can now hold one object's controls, collected from its kernel geometry.
 
 `lessons/13/src/app/selection.rs` · edit · type this
 
@@ -58,7 +58,7 @@ Copy this part from the lesson folder to the path shown.
 
 ## Step 3 · src/app/cloud_query.rs
 
-Cloud queries resolve original points beyond the display prefix.
+New file: a click on a streamed cloud reads only the pages under the cursor, including points not yet downloaded.
 
 `lessons/13/src/app/cloud_query.rs` · type this, new file, start with these lines
 
@@ -368,7 +368,7 @@ Added after the `#[cfg(target_arch = "wasm32")]` line of `lessons/12/src/app/mod
 
 ## Step 11 · src/app/inspection.rs
 
-Copy this file from the lesson folder to the path shown.
+Copy the change: the snapshot now lists the controls on screen.
 
 `lessons/13/src/app/inspection.rs` · edit · copy the file
 

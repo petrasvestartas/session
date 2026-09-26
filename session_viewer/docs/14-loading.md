@@ -304,6 +304,8 @@ Copy each file from the lesson folder to the path shown.
 
 Copy from `lessons/14/` (tooling this checkpoint needs but the course does not teach):
 
+- `lessons/14/src/selftest.rs`
+- `lessons/14/src/selftest/lifecycle.rs`
 - `lessons/14/tests/lifecycle.cjs`
 - `lessons/14/tests/loading.cjs`
 

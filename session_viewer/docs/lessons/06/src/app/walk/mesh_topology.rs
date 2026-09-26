@@ -2,18 +2,18 @@
 use super::encode::{BLACK, pack_rgba};
 use session_rust::{Mesh, Tolerance};
 
-/// Two corners at the same spot are the same vertex; the key is that spot, so a shared corner is found by lookup.
+/// Kernel vertex keys can have gaps (3, 7, 250); a slot is the vertex's index 0..n in our own arrays.
 pub struct SlotMap {
-    dense: Vec<u32>,                                 // key indexes directly
-    sparse: std::collections::HashMap<usize, u32>, // used for sparse keys
+    dense: Vec<u32>,                               // dense[key] = slot, while keys are close together
+    sparse: std::collections::HashMap<usize, u32>, // key -> slot, when they are spread out
 }
 
 impl SlotMap {
-    /// Build from the sorted vertex keys.
+    /// `keys` must be sorted: the last one is the largest.
     pub fn new(keys: &[usize]) -> Self {
         let max_key = keys.last().copied().unwrap_or(0);
 
-        // dense when keys are not too spread out
+        // a plain array wins while fewer than 3 in 4 of its entries are unused
         if max_key < 4 * keys.len().max(1) {
             let mut dense = vec![u32::MAX; max_key + 1];
 
@@ -39,7 +39,7 @@ impl SlotMap {
         }
     }
 
-    /// The slot of key `k`.
+    /// Panics on an unknown key: every face corner must be a vertex of the mesh.
     pub fn slot(&self, k: usize) -> usize {
         if self.dense.is_empty() {
             self.sparse[&k] as usize
@@ -49,24 +49,24 @@ impl SlotMap {
     }
 }
 
-/// Edges, faces and normals of one mesh.
+/// Each edge once, the faces beside it and one normal per face: what the ink and the shading need.
 pub struct MeshTopo {
     pub edges: Vec<(usize, usize, u32)>, // (low key, high key, pen colour)
     pub edge_faces: Vec<[u32; 2]>,       // two faces per edge, u32::MAX = none
-    pub opposed: Vec<bool>,              // per edge: faces wind opposite ways
-    pub normals: Vec<Option<[f64; 3]>>,  // per face, None when degenerate
-    pub closed: bool,                    // every edge has two faces
+    pub opposed: Vec<bool>,              // the two faces walk the edge in opposite directions, as consistent winding requires
+    pub normals: Vec<Option<[f64; 3]>>,  // per face, None for a zero-area face
+    pub closed: bool,                    // watertight: every edge has two faces
     // --8<-- [end:step-5a]
 // --8<-- [start:step-5b]
 }
 
-/// Unit normal of one face, None when degenerate.
+/// None when the polygon has no area, e.g. three corners on one line.
 fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64; 3]> {
     if vs.len() < 3 {
         return None;
     }
 
-    // Newell normal: sums over every edge
+    // Newell's method: works for any polygon, even a slightly bent one, not just triangles
     let mut n = [0.0f64; 3];
 
     for i in 0..vs.len() {
@@ -88,12 +88,12 @@ fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64;
 // --8<-- [end:step-5b]
 // --8<-- [start:step-5c]
 
-/// Sort key of a face.
+/// Faces sort by kernel key, so the same mesh always yields the same edge order.
 fn face_key(face: &(usize, &Vec<usize>)) -> usize {
     face.0
 }
 
-/// Collect unique edges, their faces and the face normals.
+/// Finds each edge once with a linked list per vertex, no HashMap of vertex pairs.
 pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> MeshTopo {
     let mut faces: Vec<(usize, &Vec<usize>)> = Vec::with_capacity(m.face.len());
 
@@ -109,8 +109,8 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
     let mut edge_faces: Vec<[u32; 2]> = Vec::new();
     let mut dir0: Vec<u8> = Vec::new(); // direction the first face walked each edge
     let mut opposed: Vec<bool> = Vec::new();
-    let mut head: Vec<u32> = vec![u32::MAX; keys.len()]; // first edge at each low vertex
-    let mut next: Vec<u32> = Vec::new(); // next edge at the same low vertex
+    let mut head: Vec<u32> = vec![u32::MAX; keys.len()]; // head[slot] = first edge whose lower key is this vertex
+    let mut next: Vec<u32> = Vec::new(); // next[edge] = the next one from the same vertex: a linked list in two arrays
 
     for (fs, (_, vs)) in faces.iter().enumerate() {
         normals.push(face_normal(vs, vpos, slots));
@@ -118,19 +118,19 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
 
         for i in 0..n {
             let (u, v) = (vs[i], vs[(i + 1) % n]);
-            let (lo, hi, dir) = if u < v { (u, v, 0) } else { (v, u, 1) }; // edge key
+            let (lo, hi, dir) = if u < v { (u, v, 0) } else { (v, u, 1) }; // (lo, hi) names the edge whichever way a face walks it
             let ls = slots.slot(lo);
             let mut ei = head[ls];
 
-            // look for the edge among those at `lo`
+            // follow lo's list until an edge ends at hi
             while ei != u32::MAX && edges[ei as usize].1 != hi {
                 ei = next[ei as usize];
             }
 
-            // new edge
+            // not found: append it and put it at the front of lo's list
             if ei == u32::MAX {
                 ei = edges.len() as u32;
-                let pen = match cols.get(edges.len()) {
+                let pen = match cols.get(edges.len()) { // the n-th new edge takes the n-th kernel line colour
                     Some(color) => pack_rgba(color.to_f32()),
                     None => BLACK,
                 };
@@ -142,7 +142,7 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
                 head[ls] = ei;
             }
 
-            // record this face on the edge, first free slot
+            // the first two faces only; a third (a non-manifold edge) is ignored
             let ef = &mut edge_faces[ei as usize];
 
             if ef[0] == u32::MAX {
@@ -155,7 +155,7 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
         }
     }
 
-    // closed when no edge is missing its second face
+    // closed = no edge is missing its second face
     let mut closed = !m.vertex.is_empty();
 
     for f in edge_faces.iter() {
@@ -164,7 +164,7 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
         }
     }
 
-    // hole rings look open here; ask the kernel
+    // an edge of a hole ring has one face here, so ask the kernel instead
     if !closed && !m.face_holes.is_empty() {
         closed = m.is_closed();
     }

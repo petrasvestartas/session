@@ -6,7 +6,7 @@ A blue triangle draws from mesh buffers while the camera still orbits and zooms.
 
 ## Step 1 · src/engine/gpu/buffers.rs
 
-New file: a GPU buffer that grows when full.
+New file: buffer usage flags, a GPU buffer that grows by half when full, and small buffer helpers.
 
 `lessons/04a/src/engine/gpu/buffers.rs` · type this, new file, start with these lines
 
@@ -96,9 +96,9 @@ New file: one builder for every render pipeline.
 
 ## Step 4 · src/shaders/scene.wgsl
 
-New file: the shader prelude every scene shader includes.
+New file: the bindings, structs and helpers every scene shader starts with.
 
-`lessons/04a/src/shaders/scene.wgsl` · 57 lines · type this, new file
+`lessons/04a/src/shaders/scene.wgsl` · type this, new file
 
 ```wgsl
 --8<-- "lessons/04a/src/shaders/scene.wgsl"
@@ -118,9 +118,9 @@ Replaces the `struct Instance` lines in `lessons/03/src/engine/gpu/instance.rs`
 
 ## Step 6 · src/shaders/normals.wgsl
 
-New file: shader helpers that rotate normals correctly.
+New file: two helpers that turn a normal with its object, and one that unpacks a 2-byte normal.
 
-`lessons/04a/src/shaders/normals.wgsl` · 26 lines · type this, new file
+`lessons/04a/src/shaders/normals.wgsl` · type this, new file
 
 ```wgsl
 --8<-- "lessons/04a/src/shaders/normals.wgsl"
@@ -152,7 +152,7 @@ New file: the colour and depth textures of one frame.
 
 ## Step 8 · src/engine/gpu/frame.rs
 
-New file: the per-frame uniform with the camera and pen scale.
+New file: what the app hands the renderer each frame, the uniforms it writes, and the three bind groups every draw sets first.
 
 `lessons/04a/src/engine/gpu/frame.rs` · type this, new file, start with these lines
 
@@ -218,10 +218,10 @@ Copy this part from the lesson folder to the path shown.
 
 ## Step 9 · src/engine/gpu/view.rs
 
-New file: the anchored view matrix as f32.
+New file: the display settings, each read once from the page URL or an env variable.
 Copy this file from the lesson folder to the path shown.
 
-`lessons/04a/src/engine/gpu/view.rs` · 74 lines · copy the file, new file
+`lessons/04a/src/engine/gpu/view.rs` · copy the file, new file
 
 ```rust
 --8<-- "lessons/04a/src/engine/gpu/view.rs"
@@ -367,10 +367,10 @@ New file: the mesh arena, vertices and indices of every mesh.
 
 ## Step 15 · src/shaders/text_outline.wgsl
 
-New file: the outline text shader.
+New file: the shader for sheet fills and lettering: placed, flat-coloured, yellow when selected.
 Copy this file from the lesson folder to the path shown.
 
-`lessons/04a/src/shaders/text_outline.wgsl` · 44 lines · copy the file, new file
+`lessons/04a/src/shaders/text_outline.wgsl` · copy the file, new file
 
 ```wgsl
 --8<-- "lessons/04a/src/shaders/text_outline.wgsl"
@@ -378,7 +378,7 @@ Copy this file from the lesson folder to the path shown.
 
 ## Step 16 · src/engine/gpu/text_outline.rs
 
-New file: outline text drawn as vector glyphs.
+New file: the lane that draws sheet fills and lettering, in colour and as pick ids.
 
 `lessons/04a/src/engine/gpu/text_outline.rs` · type this, new file, start with these lines
 

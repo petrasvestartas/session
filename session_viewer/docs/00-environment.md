@@ -18,9 +18,9 @@ Every command below runs here.
 
 ## Step 1 · `Cargo.toml`
 
-The crate's name and every dependency it will ever need, listed once.
+New file: the crate's name and every dependency the course will use, listed once.
 
-`lessons/00/Cargo.toml` · 72 lines · type this, new file
+`lessons/00/Cargo.toml` · type this, new file
 
 ```toml
 --8<-- "lessons/00/Cargo.toml"
@@ -28,9 +28,9 @@ The crate's name and every dependency it will ever need, listed once.
 
 ## Step 2 · `.cargo/config.toml`
 
-Makes the browser the default target, and `cargo xtest` runs tests natively.
+New file: every cargo command builds for the browser, and `cargo xtest` runs tests on this machine.
 
-`lessons/00/.cargo/config.toml` · 11 lines · type this, new file
+`lessons/00/.cargo/config.toml` · type this, new file
 
 ```toml
 --8<-- "lessons/00/.cargo/config.toml"
@@ -38,9 +38,9 @@ Makes the browser the default target, and `cargo xtest` runs tests natively.
 
 ## Step 3 · `Trunk.toml`
 
-Release build, page-relative assets, and the dev server address.
+New file: how Trunk builds the page, what it watches, and where it serves it.
 
-`lessons/00/Trunk.toml` · 8 lines · type this, new file
+`lessons/00/Trunk.toml` · type this, new file
 
 ```toml
 --8<-- "lessons/00/Trunk.toml"
@@ -56,9 +56,9 @@ cargo generate-lockfile
 
 ## Step 5 · `index.html`
 
-The page: Trunk fills the `rust` link, Rust writes into `status`.
+New file: the page Trunk fills with the compiled module, and one line for Rust to write into.
 
-`lessons/00/index.html` · 11 lines · type this, new file
+`lessons/00/index.html` · type this, new file
 
 ```html
 --8<-- "lessons/00/index.html"
@@ -66,9 +66,9 @@ The page: Trunk fills the `rust` link, Rust writes into `status`.
 
 ## Step 6 · `src/lib.rs`
 
-Runs when the module loads and writes one line into the page.
+New file: the function the browser runs once the module loads; it writes one line into the page.
 
-`lessons/00/src/lib.rs` · 18 lines · type this, new file
+`lessons/00/src/lib.rs` · type this, new file
 
 ```rust
 --8<-- "lessons/00/src/lib.rs"

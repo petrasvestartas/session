@@ -1,37 +1,38 @@
+//! The picked object lives in Scene; this says what inside that object is picked, if anything.
 use session_rust::element::ElementGeometry;
 use session_rust::{Geometry, NurbsCurve, NurbsSurface, Point};
 
-/// One control point of a geometry.
+/// Which control point, in the kernel's own numbering: a vertex, or a CV (control vertex) of a curve or surface.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
 pub enum ControlId {
-    Vertex(usize),                                 // mesh, polyline or BRep vertex
-    Curve { curve: usize, point: usize },          // curve control point
-    Surface { surface: usize, u: usize, v: usize }, // surface control point
-    Point(u32),                                    // cloud point
+    Vertex(usize), // mesh, polyline or BRep vertex
+    Curve { curve: usize, point: usize },
+    Surface { surface: usize, u: usize, v: usize },
+    Point(u32), // one point of a cloud
 }
 
-/// What is selected inside one object.
+/// `#[default]` marks the variant that `Default::default()` returns.
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize)]
 pub enum SelectionMode {
     #[default]
-    Object, // whole objects only
+    Object,
     Edge {
         parent: u32, // object row
-        edge: u32,   // edge index
+        edge: u32,
     },
     Face {
         parent: u32, // object row
-        face: usize, // face key
+        face: usize,
     },
     Controls {
-        parent: u32,                 // object row
-        selected: Option<ControlId>, // the picked control
-        cloud: bool,                 // parent is a point cloud
+        parent: u32, // object row
+        selected: Option<ControlId>,
+        cloud: bool, // parent is a point cloud
     },
 }
 
 impl SelectionMode {
-    /// The object row of a sub-selection.
+    /// The object holding the sub-selection; None when the whole object is selected.
     pub fn parent(&self) -> Option<u32> {
         match self {
             Self::Object => None,
@@ -41,7 +42,6 @@ impl SelectionMode {
         }
     }
 
-    /// Select one edge.
     pub fn select_edge(&mut self, parent: u32, edge: u32) {
         *self = Self::Edge { parent, edge };
     }
@@ -50,6 +50,7 @@ impl SelectionMode {
     pub fn enable_controls(&mut self, parent: Option<u32>, cloud: bool) -> bool {
         let Some(parent) = parent else { return false };
 
+        // already showing this object's controls
         if matches!(self, Self::Controls { parent: active, .. } if *active == parent) {
             return false;
         }
@@ -73,16 +74,16 @@ impl SelectionMode {
 /// One control point and where it is.
 #[derive(Clone, Debug)]
 pub struct Control {
-    pub id: ControlId,      // which control
-    pub position: [f64; 3], // world position
+    pub id: ControlId,
+    pub position: [f64; 3],
 }
 
 /// Every control of one object and the lines between them.
 #[derive(Default)]
 pub struct Controls {
-    pub points: Vec<Control>,   // the controls
-    pub links: Vec<[usize; 2]>, // control net lines, by index
-    pub cloud: bool,            // a point cloud, controls stay on the GPU
+    pub points: Vec<Control>,
+    pub links: Vec<[usize; 2]>, // lines of the control polygon or net, as index pairs into points
+    pub cloud: bool, // a point cloud, controls stay on the GPU
 }
 
 impl Controls {
@@ -99,14 +100,13 @@ impl Controls {
         Some(index)
     }
 
-    /// The controls of one geometry.
     pub fn from_geometry(geometry: &Geometry) -> Self {
         let mut controls = Self::default();
         controls.append_geometry(geometry);
         controls
     }
 
-    /// Add the controls of one geometry.
+    /// One arm per kind; a plane or a box has no controls.
     fn append_geometry(&mut self, geometry: &Geometry) {
         match geometry {
             Geometry::Mesh(mesh) => self.mesh(mesh),
@@ -114,6 +114,7 @@ impl Controls {
                 self.push(ControlId::Vertex(0), &line.start());
                 self.push(ControlId::Vertex(1), &line.end());
 
+                // link only when both ends were finite
                 if self.points.len() == 2 {
                     self.links.push([0, 1]);
                 }
@@ -177,7 +178,7 @@ impl Controls {
         }
     }
 
-    /// A curve's control polygon.
+    /// The control polygon: the CVs joined in order; the curve follows it loosely.
     fn curve(&mut self, curve: &NurbsCurve, index: usize) {
         let mut previous = None;
 
@@ -201,13 +202,13 @@ impl Controls {
         }
     }
 
-    /// A surface's control net.
+    /// The control net: a grid of CVs, joined along u and along v.
     fn surface(&mut self, surface: &NurbsSurface, index: usize) {
         let [width, height] = surface.m_cv_count;
-        let mut previous = vec![None; height];
+        let mut previous = vec![None; height]; // previous[v] = the CV at (u - 1, v)
 
         for u in 0..width {
-            let mut last = None;
+            let mut last = None; // the CV at (u, v - 1)
 
             for (v, above) in previous.iter_mut().enumerate() {
                 let current = match surface.get_cv(u, v) {

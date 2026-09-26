@@ -40,7 +40,7 @@ New file: point cloud positions, colours and source ids on the GPU.
 
 ## Step 2 · src/engine/gpu/lod.rs
 
-New file: the octree walk that picks visible detail.
+New file: the octree walk that picks which runs of points to draw at this distance.
 
 `lessons/04d/src/engine/gpu/lod.rs` · type this, new file, start with these lines
 
@@ -62,7 +62,7 @@ New file: the octree walk that picks visible detail.
 
 ## Step 3 · src/engine/gpu/splat.rs
 
-New file: the splat pass that projects points, then resolves them into the scene.
+New file: the point lane: points drawn into an offscreen texture, then resolved into the scene.
 
 `lessons/04d/src/engine/gpu/splat.rs` · type this, new file, start with these lines
 
@@ -150,7 +150,7 @@ New file: the shader that writes the nearest point per pixel.
 
 New file: the shader that copies point colour and depth into the scene.
 
-`lessons/04d/src/shaders/splat_resolve.wgsl` · 83 lines · type this, new file
+`lessons/04d/src/shaders/splat_resolve.wgsl` · type this, new file
 
 ```wgsl
 --8<-- "lessons/04d/src/shaders/splat_resolve.wgsl"

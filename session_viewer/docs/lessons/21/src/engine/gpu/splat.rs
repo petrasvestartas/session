@@ -10,13 +10,12 @@ use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, 
 use session_rust::Xform;
 use wgpu::PrimitiveTopology::TriangleList;
 
-/// Most point runs drawn in one frame.
+/// At most 4096 runs a frame, so the record buffer is sized once: 16 + 4096 x 160 bytes, about 640 KB.
 pub const MAX_RECORDS: usize = 4096;
 
-/// Color format of the point texture.
 const COLOR_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
 
-/// Vertices per point: one quad, placed by the shader.
+/// Each point is a screen-facing square of 2 triangles, 6 vertices, so it keeps its size however the camera turns.
 const POINT_VERTS: u32 = 6;
 
 /// Bytes before the records: record count, point total, 0, 0.
@@ -29,13 +28,13 @@ pub struct SplatRecord {
     pub mvp_model: [f32; 16], // camera matrix times object matrix
     pub tint: [f32; 4], // rgb tint; a = smallest radius in px
     pub first: u32, // first GPU point row
-    pub count: u32, // points in the run
-    pub cum: u32, // points drawn before this run
+    pub count: u32,
+    pub cum: u32, // points drawn before this run, so the shader can tell which run a vertex is in
     pub k: f32, // radius factor; the shader divides by depth
-    pub rot: [f32; 12], // object rotation, for the normals
+    pub rot: [f32; 12], // object rotation, 3 columns of 4 floats: WGSL pads each vec3 column to 16 bytes
     pub nrm_first: u32, // first normal row, or NO_NORMALS
-    pub instance: u32, // object row
-    pub flags: u32, // Instance::FLAG_* bits
+    pub instance: u32,
+    pub flags: u32,
     pub selected_point: u32, // highlighted point row + 1, or 0
 }
 
@@ -43,11 +42,11 @@ const _: () = assert!(std::mem::size_of::<SplatRecord>() == 160);
 
 /// Frame facts the record builder needs.
 pub struct RecordCx<'a> {
-    pub mvp: &'a [f32; 16], // camera matrix
-    pub ortho_h: f32, // ortho half-height; 0 = perspective
-    pub eye: [f32; 3], // camera position
-    pub size: (u32, u32), // framebuffer size, px
-    pub cloud_size: f32, // point size scale
+    pub mvp: &'a [f32; 16],
+    pub ortho_h: f32,
+    pub eye: [f32; 3],
+    pub size: (u32, u32),
+    pub cloud_size: f32,
     pub lod_px: f32, // split octree nodes wider than this
     pub objects: &'a InstanceTable,
     pub clouds: &'a [Cloud],
@@ -57,10 +56,10 @@ pub struct RecordCx<'a> {
 /// What the last point pass depended on; same key = skip it.
 #[derive(Clone, PartialEq)]
 struct Key {
-    mvp: [f32; 16], // camera matrix
-    cloud_size: f32, // point size scale
+    mvp: [f32; 16],
+    cloud_size: f32,
     lod_px: f32,
-    point_count: u32,
+    point_count: u32, // grows while a cloud streams in
 }
 
 /// Textures the point pass draws into, made when the first cloud arrives.
@@ -69,14 +68,13 @@ struct SplatTargets {
     depth: Attachment, // nearest point per pixel
     color: Attachment,
     // --8<-- [end:step-27b]
-    size: (u32, u32), // texture size, px
+    size: (u32, u32),
     resolve_group: wgpu::BindGroup, // both textures, for the resolve
 }
 
 impl SplatTargets {
-    /// Create both textures and their bind group.
     fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
-        let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
+        let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING; // drawn into, then read by the resolve
         // --8<-- [start:step-27c]
         let depth = Attachment::new(
         // --8<-- [end:step-27c]
@@ -126,26 +124,26 @@ impl SplatTargets {
 
 /// Settings that differ between the color and id point pipelines.
 struct PointVariant {
-    target: Target, // output format
-    label: &'static str, // name shown in GPU errors
+    target: Target,
+    label: &'static str,
     fs: &'static str, // fragment shader entry point
 }
 
-/// Draws point clouds: points into a texture, then the texture into the scene.
+/// Two passes: points into an offscreen texture, then a resolve pass copies it, with depth, into the scene.
 pub struct Splat {
     control_parent: Option<u32>, // cloud being edited, drawn without LOD
-    selected_point: Option<u32>, // highlighted point row
+    selected_point: Option<u32>,
     records: Vec<SplatRecord>, // runs to draw this frame
-    walk: LodWalk, // octree walk scratch
+    walk: LodWalk,
     record_buf: wgpu::Buffer,
     total: u32, // points drawn last pass
-    key: Option<Key>, // what the last pass depended on
-    targets: Option<SplatTargets>, // point textures
-    points_group: wgpu::BindGroup, // records and point buffers, bound
+    key: Option<Key>,
+    targets: Option<SplatTargets>, // None until the first cloud arrives
+    points_group: wgpu::BindGroup,
     resolve_shader: wgpu::ShaderModule,
     point_pipeline: wgpu::RenderPipeline,
-    resolve_pipeline: wgpu::RenderPipeline, // point texture into the scene
-    id_pipeline: wgpu::RenderPipeline, // points as ids
+    resolve_pipeline: wgpu::RenderPipeline,
+    id_pipeline: wgpu::RenderPipeline,
 }
 
 impl Splat {
@@ -155,10 +153,9 @@ impl Splat {
             Some(target) => u64::from(target.size.0) * u64::from(target.size.1),
             None => 0,
         };
-        (self.record_buf.size(), pixels * 8)
+        (self.record_buf.size(), pixels * 8) // 4 bytes of depth + 4 of colour per pixel
     }
 
-    /// Create the record buffer, bind group and pipelines.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target, bufs: PointBufs) -> Self {
         let record_buf = zeroed_buffer(
             &ctx.device,
@@ -261,7 +258,6 @@ impl Splat {
         self.key = None;
     }
 
-    /// Points drawn last pass.
     pub fn total(&self) -> u32 {
         self.total
     }
@@ -301,7 +297,7 @@ impl Splat {
         }
 
         // remake the textures when the size changed
-        if !matches!(&self.targets, Some(targets) if targets.size == cx.size) {
+        if !matches!(&self.targets, Some(targets) if targets.size == cx.size) { // matches!: true when the value fits the pattern
             self.targets = Some(SplatTargets::new(ctx, l, cx.size));
         }
 
@@ -320,7 +316,7 @@ impl Splat {
         pass.set_pipeline(&self.point_pipeline);
         pass.set_bind_group(0, cloud_group, &[]);
         pass.set_bind_group(1, &self.points_group, &[]);
-        pass.draw(0..POINT_VERTS * self.total, 0..1);
+        pass.draw(0..POINT_VERTS * self.total, 0..1); // no vertex buffer: the shader finds each point's run and row
     }
 
     /// Draw the point texture into the scene; returns the draw count.
@@ -340,7 +336,7 @@ impl Splat {
         pass.set_pipeline(&self.resolve_pipeline);
         pass.set_bind_group(0, cloud_group, &[]);
         pass.set_bind_group(1, &targets.resolve_group, &[]);
-        pass.draw(0..3, 0..1);
+        pass.draw(0..3, 0..1); // one triangle big enough to cover the whole screen
         1
     }
 
@@ -391,7 +387,7 @@ impl Splat {
                 cx.lod_px
             };
             self.walk.select(&p, c, &model);
-            // camera times object, one matrix per point
+            // camera times object, so the shader does one multiply per point
             let m = (&Xform::from_matrix(cx.mvp.map(f64::from))
                 * &Xform::from_matrix(model.map(f64::from)))
                 .to_f32();
@@ -456,7 +452,7 @@ impl Splat {
     }
 }
 
-/// Open the point pass: color cleared, depth cleared to far.
+/// Colour cleared to transparent, depth to 0.0, which is far under reverse-Z.
 fn begin_point_pass<'a>(
     encoder: &'a mut wgpu::CommandEncoder,
     t: &'a SplatTargets,

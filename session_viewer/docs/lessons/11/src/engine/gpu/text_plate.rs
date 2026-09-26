@@ -1,26 +1,27 @@
 // --8<-- [start:step-1a]
-//! Text that always faces the viewer at a fixed pixel size, for labels that must stay readable from any angle.
+//! Plates: the box drawn behind a label, with no texture: the shader works out the rounded shape per pixel.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use crate::engine::pipelines::Target;
 
-/// One label background rectangle, in screen pixels.
+/// One plate, in framebuffer pixels.
 pub(super) struct Rectangle {
     pub(super) bounds: [f32; 4], // left, top, right, bottom
-    pub(super) clip: [f32; 4], // screen box it is cut to
-    pub(super) rounded: bool,
+    pub(super) clip: [f32; 4], // the label's clip box
+    pub(super) rounded: bool, // corner radius = half the height: a pill
 }
 
-/// Draws label backgrounds as rounded rectangles.
+/// Every plate of the frame, in one vertex buffer.
 pub(super) struct Plates {
-    vertices: GrowBuf, // six vertices per rectangle
-    pipeline: wgpu::RenderPipeline, // in color
+    vertices: GrowBuf, // six per plate: two triangles
+    pipeline: wgpu::RenderPipeline,
 }
 
 impl Plates {
-    /// Create the buffer and pipelines.
+    /// Starts empty; the buffer grows with the first plates.
     pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
         Self {
-            vertices: GrowBuf::new(ctx, "text.plates", 28, VERTS), // 7 floats per vertex
+            // 7 floats = 28 bytes: clip position 2, offset from the center 2, half size 2, radius 1
+            vertices: GrowBuf::new(ctx, "text.plates", 28, VERTS),
             pipeline: pipeline(ctx, target),
         }
     }
@@ -30,13 +31,13 @@ impl Plates {
         self.pipeline = pipeline(ctx, target);
     }
 
-    /// Build six vertices per rectangle; depth-tested ones first.
+    /// Two triangles per plate, cut to its clip box.
     pub(super) fn prepare(&mut self, ctx: &GpuCtx, rectangles: &[Rectangle], size: [u32; 2]) {
         self.vertices.reset();
         let mut vertices = Vec::with_capacity(rectangles.len() * 6);
 
         for rectangle in rectangles {
-            // shape before clipping, for the rounded corners
+            // measure before cutting, so a cut plate keeps its true corners
             let [left, top, right, bottom] = rectangle.bounds;
             let half = [(right - left) * 0.5, (bottom - top) * 0.5];
             let center = [(left + right) * 0.5, (top + bottom) * 0.5];
@@ -45,7 +46,6 @@ impl Plates {
             } else {
                 0.0
             };
-            // cut to the clip box
             let left = left.max(rectangle.clip[0]);
             let top = top.max(rectangle.clip[1]);
             let right = right.min(rectangle.clip[2]);
@@ -55,7 +55,7 @@ impl Plates {
                 continue;
             }
 
-            // two triangles in clip space
+            // pixels to clip space: x 0..width becomes -1..1, and y flips because clip y points up
             for [x, y] in [
                 [left, top],
                 [left, bottom],
@@ -81,7 +81,7 @@ impl Plates {
 
 // --8<-- [end:step-1a]
     // --8<-- [start:step-1b]
-    /// Plates draw before glyphs, ignoring scene depth.
+    /// Draw before the overlay text, so the glyphs land on top.
     pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
         if self.vertices.is_empty() {
             return 0;
@@ -111,7 +111,7 @@ impl Plates {
 
 // --8<-- [end:step-1b]
 // --8<-- [start:step-1c]
-/// A black quad pipeline behind overlay text.
+/// Depth test Always: a plate is never hidden by the scene.
 fn pipeline(ctx: &GpuCtx, target: Target) -> wgpu::RenderPipeline {
     let shader = ctx
         .device
@@ -127,7 +127,7 @@ fn pipeline(ctx: &GpuCtx, target: Target) -> wgpu::RenderPipeline {
                 module: &shader,
                 entry_point: Some("vs_main"),
                 buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: 28, // 7 floats per vertex
+                    array_stride: 28,
                     step_mode: wgpu::VertexStepMode::Vertex,
                     attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Float32x2, 3 => Float32],
                 }],
@@ -138,7 +138,7 @@ fn pipeline(ctx: &GpuCtx, target: Target) -> wgpu::RenderPipeline {
                 entry_point: Some("fs_main"),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: target.format,
-                    blend: Some(wgpu::BlendState::ALPHA_BLENDING), // plates are translucent
+                    blend: Some(wgpu::BlendState::ALPHA_BLENDING), // alpha = edge coverage: a smooth rim
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
                 compilation_options: Default::default(),

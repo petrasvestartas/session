@@ -24,9 +24,9 @@ Copy this file from the lesson folder to the path shown.
 
 ## Step 2 · assets/text/README.md
 
-Copy this file from the lesson folder to the path shown.
+Copy the font notes: license, sources, and why glyphon is pinned to 0.11.
 
-`lessons/10/assets/text/README.md` · 39 lines · copy the file, new file
+`lessons/10/assets/text/README.md` · 32 lines · copy the file, new file
 
 ```markdown
 --8<-- "lessons/10/assets/text/README.md"
@@ -34,9 +34,9 @@ Copy this file from the lesson folder to the path shown.
 
 ## Step 3 · src/engine/performance.rs
 
-Performance counters separate frame timing from resource capacity.
+New file: frame time and memory counters, and a flag raised when a drag runs below 25 frames per second.
 
-`lessons/10/src/engine/performance.rs` · 197 lines · type this, new file
+`lessons/10/src/engine/performance.rs` · 206 lines · type this, new file
 
 ```rust
 --8<-- "lessons/10/src/engine/performance.rs"
@@ -112,9 +112,9 @@ Run `cargo check` in `lessons/10/`.
 
 ## Step 6 · src/text_layout.rs
 
-Copy this file from the lesson folder to the path shown.
+Copy the wasm export that shapes one string at five sizes and returns every glyph as JSON.
 
-`lessons/10/src/text_layout.rs` · 64 lines · copy the file, new file
+`lessons/10/src/text_layout.rs` · 67 lines · copy the file, new file
 
 ```rust
 --8<-- "lessons/10/src/text_layout.rs"
@@ -140,9 +140,9 @@ Replaces the `Ok(serde_json::json!({"stage":9,"objects":sel…` line in `fn rend
 
 ## Step 8 · assets/text-layout.html
 
-Copy this file from the lesson folder to the path shown.
+Copy the check page: it sets the same string in browser text and fails when a width differs.
 
-`lessons/10/assets/text-layout.html` · 45 lines · copy the file, new file
+`lessons/10/assets/text-layout.html` · 46 lines · copy the file, new file
 
 ```html
 --8<-- "lessons/10/assets/text-layout.html"

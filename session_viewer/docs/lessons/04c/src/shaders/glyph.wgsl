@@ -1,33 +1,32 @@
 // --8<-- [start:step-3b]
 // One marker or dot, 48 bytes; matches GlyphPoint in Rust.
 struct GlyphPoint {
-    center: vec3<f32>, // world position
-    radius: f32, // 0 = pen width; > 0 world mm; < 0 screen px
-    color: vec4<f32>, // rgba
-    instance_id: u32, // object row
-    facing: u32, // packed normals of the faces around it
-    facing_ext: vec2<u32>, // more packed normals
+    center: vec3<f32>,
+    radius: f32,
+    color: vec4<f32>,
+    instance_id: u32,
+    facing: u32,
+    facing_ext: vec2<u32>,
 };
 
-@group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>; // one row per marker
+@group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 
 // --8<-- [end:step-3b]
 // --8<-- [start:step-3c]
-// One triangle around the disc; the fragment shader cuts the circle.
+// Corners at radius 2: the triangle's inscribed circle then has radius 1, just holding the disc.
 const CORNERS = array<vec2<f32>, 3>(
     vec2<f32>(0.0, 2.0),
     vec2<f32>(-1.7320508, -1.0),
     vec2<f32>(1.7320508, -1.0),
 );
 
-// What the vertex shader hands the fragment shader.
 struct VsOut {
-    @builtin(position) pos: vec4<f32>, // clip position
-    @location(0) color: vec4<f32>, // rgba
+    @builtin(position) pos: vec4<f32>,
+    @location(0) color: vec4<f32>,
     @location(1) corner: vec2<f32>, // -1..1 across the disc
-    @location(2) @interpolate(linear) px: f32, // disc radius, px
+    @location(2) @interpolate(linear) px: f32, // disc radius, px; linear = blended on screen, no perspective correction
     @location(3) @interpolate(linear) fade: f32, // alpha for discs thinner than a pixel
-    @location(4) @interpolate(flat) inst_id: u32, // object row
+    @location(4) @interpolate(flat) inst_id: u32,
     @location(5) @interpolate(flat) centre: vec2<f32>, // disc center, screen px
     @location(6) @interpolate(flat) depth: f32, // disc depth, 0..1
     @location(7) @interpolate(flat) point_index: u32, // row in the glyph table
@@ -42,7 +41,7 @@ fn dead_dot() -> VsOut {
 
 // Place one corner of a dot's triangle.
 fn glyph_vertex(vid: u32) -> VsOut {
-    let g = glyphs[vid / 3u];
+    let g = glyphs[vid / 3u]; // 3 vertices per dot: vertex 7 is corner 1 of dot 2
     let inst = instances[g.instance_id];
 
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
@@ -86,7 +85,7 @@ fn glyph_vertex(vid: u32) -> VsOut {
     }
 
     let corner = CORNERS[vid % 3u];
-    // corner offset in clip units
+    // px to clip units: 2 / viewport size, times w to undo the perspective divide
     let off = corner * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
 
     var o: VsOut;
@@ -122,12 +121,12 @@ fn coverage(in: VsOut) -> f32 {
 }
 
 @fragment
-// Color: the disc, faded where geometry hides it.
+// Color: the disc, faded where geometry hides it; sample_index makes it run once per MSAA sample.
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
     let alpha = coverage(in);
 
     if (alpha <= 0.0 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample)) {
-        discard;
+        discard; // this pixel writes nothing
     }
 
     return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));

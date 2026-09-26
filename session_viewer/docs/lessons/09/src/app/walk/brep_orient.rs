@@ -1,7 +1,7 @@
 use super::brep_edges::EdgeChain;
 use session_rust::{BRep, Mesh};
 
-/// Two faces sharing an edge must walk it in opposite directions; that is how a consistent outside is defined.
+/// Which way this face walks the edge s -> n: Some(true) forwards, Some(false) backwards, None if unclear.
 fn walks(fm: &Mesh, s: usize, n: usize) -> Option<bool> {
     let fwd = occupied_halfedge(fm, s, n);
     let back = occupied_halfedge(fm, n, s);
@@ -13,7 +13,7 @@ fn walks(fm: &Mesh, s: usize, n: usize) -> Option<bool> {
     }
 }
 
-/// True when the halfedge `from -> to` has a face.
+/// A halfedge is one direction of an edge; it is occupied when some face walks from -> to.
 fn occupied_halfedge(fm: &Mesh, from: usize, to: usize) -> bool {
     let Some(neighbours) = fm.halfedge.get(&from) else {
         return false;
@@ -21,13 +21,12 @@ fn occupied_halfedge(fm: &Mesh, from: usize, to: usize) -> bool {
     matches!(neighbours.get(&to), Some(Some(_)))
 }
 
-/// Position of vertex `k`.
 fn at(fm: &Mesh, k: usize) -> [f64; 3] {
     let v = &fm.vertex[&k];
     [v.x, v.y, v.z]
 }
 
-/// Neighbour of `s` closest to direction `dir`.
+/// Each face is meshed on its own, so the other face's copy of an edge is found by direction, not by key.
 fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
     let p = at(fm, s);
     let mut best: Option<(f64, usize)> = None;
@@ -43,8 +42,9 @@ fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
 
         let c = (d[0] * dir[0] + d[1] * dir[1] + d[2] * dir[2]) / l; // cosine to `dir`
 
+        // a match as the if condition: true when this neighbour beats the best so far
         if match best {
-            Some((bc, bw)) => c > bc || (c == bc && w < bw),
+            Some((bc, bw)) => c > bc || (c == bc && w < bw), // a tie goes to the smaller key, whatever the HashMap order
             None => true,
         } {
             best = Some((c, w));
@@ -54,7 +54,7 @@ fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
     Some(best?.1)
 }
 
-/// Vertex nearest to `p`, ties to the smaller key.
+/// Nearest vertex; a tie goes to the smaller key.
 fn vertex_at(fm: &Mesh, p: [f64; 3]) -> Option<usize> {
     let mut best: Option<(f64, usize)> = None;
 
@@ -72,24 +72,24 @@ fn vertex_at(fm: &Mesh, p: [f64; 3]) -> Option<usize> {
     Some(best?.1)
 }
 
-/// True when the two faces walk the shared edge in opposite directions.
+/// Neighbouring faces agree on which side is outside when they walk their shared edge in opposite directions.
 fn opposed(fms: &[Mesh], c: &EdgeChain) -> Option<bool> {
     let other = c.other?;
     let (fa, fb) = (&fms[c.face], &fms[other]);
     let (s, n) = (c.keys[0], c.keys[1]);
-    let away_a = walks(fa, s, n)?; // owner's direction
+    let away_a = walks(fa, s, n)?; // the owner face's way along s -> n
     let (ps, pn) = (at(fa, s), at(fa, n));
     let dir = [pn[0] - ps[0], pn[1] - ps[1], pn[2] - ps[2]];
     let sb = vertex_at(fb, ps)?; // same start on the other face
     let nb = neighbour_along(fb, sb, dir)?; // same next point there
-    let away_b = walks(fb, sb, nb)?; // other face's direction
+    let away_b = walks(fb, sb, nb)?;
     Some(away_a != away_b)
 }
 
-/// Six times the signed volume under one face mesh.
+/// a · (b × c) per triangle: six times the signed volume of the cone from the origin to the face.
 fn six_volume(fm: &Mesh) -> f64 {
     let mut keys: Vec<usize> = fm.face.keys().copied().collect();
-    keys.sort_unstable(); // fixed order, fixed rounding
+    keys.sort_unstable(); // the same sum, bit for bit, on every run
     let mut v = 0.0;
 
     for k in keys {
@@ -133,10 +133,10 @@ pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f
         }
 
         sign[start] = 1.0;
-        let mut group = vec![start]; // connected faces
+        let mut group = vec![start]; // faces reached from start; also the queue, read from `head`
         let mut head = 0;
 
-        // breadth first: neighbours agree with each other
+        // breadth first: a neighbour takes our sign if the pair agrees, else the opposite
         while head < group.len() {
             let f = group[head];
             head += 1;

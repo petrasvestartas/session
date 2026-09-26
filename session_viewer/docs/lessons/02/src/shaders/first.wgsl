@@ -1,12 +1,13 @@
 // The @group and @binding numbers must match the bind group layout built in Rust, or the draw is rejected.
-@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>; // mvp = model, view and projection in one 4x4 matrix
 
+// Vertex output, fragment input
 struct VertexOut {
-    @builtin(position) position: vec4<f32>,
+    @builtin(position) position: vec4<f32>, // the one output the GPU requires
     @location(0) color: vec3<f32>,
 }
 
-// Runs three times, index 0, 1, 2
+// Runs once per vertex: draw(0..3, ..) gives index 0, 1 and 2.
 @vertex
 fn vs_main(@builtin(vertex_index) index: u32) -> VertexOut {
     let points = array<vec3<f32>, 3>(

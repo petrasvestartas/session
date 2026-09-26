@@ -84,10 +84,10 @@ fn main() {
             if ma.to_vertices_and_faces().1 != mb.to_vertices_and_faces().1 {
                 m("to_vertices_and_faces")
             }
-            if ma.jsondump() != mb.jsondump() {
+            if ma.jsondump().unwrap() != mb.jsondump().unwrap() {
                 m("jsondump");
                 if std::env::var("DETAIL").is_ok() {
-                    let (x, y) = (ma.jsondump().to_string(), mb.jsondump().to_string());
+                    let (x, y) = (ma.jsondump().unwrap(), mb.jsondump().unwrap());
                     let at = x
                         .bytes()
                         .zip(y.bytes())

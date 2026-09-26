@@ -668,13 +668,13 @@ Use very light grey for default geometry colors throughout the kernel.
 The kernel's `Color::lightgrey` is now 0.94 grey instead of 0.9; this is the live kernel, already changed:
 
 ```rust
---8<-- "session_rust/src/color.rs:171:173"
+--8<-- "session_rust/src/color.rs:230:232"
 ```
 
 The kernel's default colour is the same 0.94 grey:
 
 ```rust
---8<-- "session_rust/src/color.rs:365:367"
+--8<-- "session_rust/src/color.rs:66:71"
 ```
 
 ## Step 23 · src/app/command.rs

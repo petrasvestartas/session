@@ -7,20 +7,19 @@ use crate::engine::pipelines::{
 
 /// The three mesh buffers one sheet draw reads, borrowed from the arena.
 pub struct OutlineBuffers<'a> {
-    pub vertices: &'a GrowBuf, // vertex positions
+    pub vertices: &'a GrowBuf,
     pub objects: &'a GrowBuf, // object row per vertex
-    pub indices: &'a GrowBuf, // triangle indices
+    pub indices: &'a GrowBuf,
 }
 
-/// Draws sheet fills and lettering: flat color, no lighting.
+/// Lane = one kind of geometry with its own shader and pipelines; this one draws sheet fills and lettering, unlit.
 pub struct OutlineTextLane {
-    shader: wgpu::ShaderModule, // text outline shader
-    color: wgpu::RenderPipeline, // in color
-    id: wgpu::RenderPipeline, // object ids
+    shader: wgpu::ShaderModule, // kept, so retarget rebuilds without compiling again
+    color: wgpu::RenderPipeline,
+    id: wgpu::RenderPipeline, // writes object ids for picking
 }
 
 impl OutlineTextLane {
-    /// Compile the shader and build the three pipelines.
     pub fn new(ctx: &GpuCtx, layouts: &Layouts, target: Target) -> Self {
         let shader = scene_module(
             &ctx.device,
@@ -31,12 +30,11 @@ impl OutlineTextLane {
         Self { shader, color, id }
     }
 
-    /// Rebuild the pipelines for a new MSAA sample count.
+    /// A pipeline is built for one MSAA sample count, so a new count needs new pipelines.
     pub fn retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
         (self.color, self.id) = pipelines(ctx, layouts, &self.shader, target);
     }
 
-    /// Draw in color.
     pub fn draw(
         &self,
         pass: &mut wgpu::RenderPass<'_>,
@@ -47,7 +45,6 @@ impl OutlineTextLane {
         draw(pass, binds, buffers)
     }
 
-    /// Draw object ids.
     pub fn draw_ids(
         &self,
         pass: &mut wgpu::RenderPass<'_>,
@@ -59,7 +56,7 @@ impl OutlineTextLane {
     }
 }
 
-/// One indexed draw over the buffers; returns the draw count.
+/// Returns the number of draw calls, for the frame statistics.
 fn draw(pass: &mut wgpu::RenderPass<'_>, binds: &Binds, buffers: &OutlineBuffers<'_>) -> u32 {
     if buffers.indices.is_empty() {
         return 0;
@@ -67,13 +64,13 @@ fn draw(pass: &mut wgpu::RenderPass<'_>, binds: &Binds, buffers: &OutlineBuffers
 
     binds.set(pass);
     pass.set_vertex_buffer(0, buffers.vertices.buf.slice(..));
-    pass.set_vertex_buffer(1, buffers.objects.buf.slice(..));
+    pass.set_vertex_buffer(1, buffers.objects.buf.slice(..)); // slot 1: each vertex's object row
     pass.set_index_buffer(buffers.indices.buf.slice(..), wgpu::IndexFormat::Uint32);
-    pass.draw_indexed(0..buffers.indices.len(), 0, 0..1);
+    pass.draw_indexed(0..buffers.indices.len(), 0, 0..1); // all indices, base vertex 0, one instance
     1
 }
 
-/// Build the three pipelines: color, id, physical id.
+/// The two pipelines differ only in fragment entry point and target.
 fn pipelines(
     ctx: &GpuCtx,
     layouts: &Layouts,

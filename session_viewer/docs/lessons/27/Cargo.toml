@@ -6,7 +6,7 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the crate
+crate-type = ["cdylib", "rlib"]  # cdylib = the .wasm the browser loads; rlib lets tests and examples link the same code
 
 [dependencies]
 session_rust = { path = "../../../../session_rust" }
@@ -22,7 +22,7 @@ egui = { version = "=0.34.3", default-features = false, features = ["default_fon
 egui-wgpu = { version = "=0.34.3", default-features = false }
 egui-winit = { version = "=0.34.3", default-features = false }
 # --8<-- [end:step-1a]
-glyphon = "=0.11.0" # The maintained text renderer release compatible with wgpu 29.
+glyphon = "=0.11.0" # text renderer; `=` pins the one release built for wgpu 29
 log = "0.4"
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
@@ -50,16 +50,14 @@ web-sys = { version = "0.3", features = [
     "AbortController",
     "AbortSignal",
     ] }
-# No use site here: session_rust -> rand 0.8 -> getrandom 0.2, which refuses wasm32-unknown-unknown
-# without the `js` feature.
+# Never called here: the kernel's rand 0.8 pulls in getrandom 0.2, which builds for wasm32 only with `js`.
 getrandom = { version = "0.2", features = ["js"] }
 js-sys = "0.3"
 prost = "0.14"
 bytemuck = { version = "1", features = ["derive"] }
 
-# Optimized dependencies keep debug builds fast enough to parse real scenes.
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = 3 # dependencies optimised even in debug builds, so a large scene still parses fast
 
 [profile.release]
 strip = true
@@ -67,8 +65,7 @@ strip = true
 [dev-dependencies]
 naga = { version = "=29.0.4", features = ["wgsl-in"] }
 
-# Native-only: the headless verification harness (examples/selftest.rs). MUST stay at the end -
-# a target table placed mid-file silently swallows every [dependencies] entry after it, which is
-# how prost and bytemuck vanished from the wasm build.
+# Native builds only (tests, examples). A TOML table runs to the next header, so keep this one
+# near the end: a wasm dependency written below it would silently leave the wasm build.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 pollster = "0.4"

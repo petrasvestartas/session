@@ -1,23 +1,25 @@
-/// Frame timing and the slow-interaction detector.
+//! Frame time and memory counters, so a slow frame is blamed on a number, not a guess.
+
+/// Frame timing, plus a detector for drags the GPU cannot keep up with.
 pub struct Performance {
-    prev_frame: f64, // time of the last frame, ms
-    last_log: f64, // time of the last log line, ms
-    frame_ms: f64, // smoothed frame time
-    pub frames: u64, // frames so far
+    prev_frame: f64, // ms
+    last_log: f64, // ms
+    frame_ms: f64, // smoothed, see `frame`
+    pub frames: u64,
     pub draws: u32, // draw calls in the last frame
     pub interacting: bool, // a drag or pinch is in progress
-    slow_run: u32, // slow interaction frames in a row
-    slow: bool, // the run reached SLOW_FRAMES; read once
+    slow_run: u32, // slow drag frames in a row
+    slow: bool,
 }
 
-/// An interaction frame slower than this is slow.
+/// 40 ms is 25 frames per second; slower than that, a drag feels sticky.
 const SLOW_FRAME_MS: f64 = 40.0;
 
-/// This many slow frames in a row mean the GPU cannot keep up.
+/// 30 slow frames in a row, over a second, means the GPU cannot keep up; one hiccup does not.
 const SLOW_FRAMES: u32 = 30;
 
 impl Performance {
-    /// Start the clock now.
+    /// The first frame is timed from this moment.
     pub fn new() -> Self {
         let t = now_ms();
         Self {
@@ -32,29 +34,30 @@ impl Performance {
         }
     }
 
-    /// True once when a run of slow frames was seen.
+    /// True once per slow run: `take` hands back the flag and leaves `false` in its place.
     pub fn take_slow_interaction(&mut self) -> bool {
         std::mem::take(&mut self.slow)
     }
 
-    /// Record one frame; logs once a second when `perf` is on.
+    /// Record one frame; with `perf` on, log a summary once a second.
     pub fn frame(&mut self, draws: u32, objects: u32, now: f64, perf: bool) {
         let dt = now - self.prev_frame;
         self.prev_frame = now;
         self.frames += 1;
         self.draws = draws;
-        // count slow frames during a drag
+        // a slow drag frame extends the run; any other frame ends it
         self.slow_run = if self.interacting && dt > SLOW_FRAME_MS {
             self.slow_run + 1
         } else {
             0
         };
 
+        // `==`, not `>=`: fires once per run, not on every later frame
         if self.slow_run == SLOW_FRAMES {
             self.slow = true;
         }
 
-        // smooth the frame time
+        // each new frame counts 10 %, so one 100 ms spike moves a 16 ms average only to about 24 ms
         self.frame_ms = if self.frame_ms == 0.0 {
             dt
         } else {
@@ -80,13 +83,13 @@ impl Performance {
     }
 }
 
-/// Milliseconds now: `performance.now()` in the browser.
+/// Milliseconds since the page loaded.
 #[cfg(target_arch = "wasm32")]
 pub fn now_ms() -> f64 {
     web_sys::window().unwrap().performance().unwrap().now()
 }
 
-/// Milliseconds now: the system clock natively.
+/// Milliseconds since 1970; only differences between two calls matter.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn now_ms() -> f64 {
     std::time::SystemTime::now()
@@ -96,18 +99,19 @@ pub fn now_ms() -> f64 {
         * 1000.0
 }
 
-/// WASM memory size in MiB.
+/// The wasm heap in MiB: one JavaScript ArrayBuffer that only grows, so this is capacity, not use.
 #[cfg(target_arch = "wasm32")]
 pub fn heap_mb() -> f64 {
     use wasm_bindgen::JsCast;
+    // `dyn_into` is a checked cast of a JavaScript value; a wrong type gives Err, not a crash
     let Ok(memory) = wasm_bindgen::memory().dyn_into::<js_sys::WebAssembly::Memory>() else {
         return 0.0;
     };
     memory
         .buffer()
-        .unchecked_into::<js_sys::ArrayBuffer>()
+        .unchecked_into::<js_sys::ArrayBuffer>() // no check needed: wasm memory is always an ArrayBuffer
         .byte_length() as f64
-        / 1.048576e6
+        / 1.048576e6 // bytes per MiB
 }
 
 /// Process resident memory in MiB, Linux.
@@ -116,6 +120,7 @@ pub fn heap_mb() -> f64 {
     let Ok(stats) = std::fs::read_to_string("/proc/self/statm") else {
         return 0.0;
     };
+    // statm lists sizes in 4096-byte pages; the second number is the pages in RAM
     let Some(resident) = stats.split_whitespace().nth(1) else {
         return 0.0;
     };
@@ -132,7 +137,7 @@ pub fn heap_mb() -> f64 {
     0.0
 }
 
-/// Show one line of text in the page's top-left corner.
+/// Show one line of text in the page's top-left corner; the element is made on first use.
 #[cfg(target_arch = "wasm32")]
 pub fn perf_line(text: &str) {
     let Some(window) = web_sys::window() else {
@@ -146,6 +151,7 @@ pub fn perf_line(text: &str) {
                 return;
             };
             e.set_id("perf");
+            // `let _ =` drops a Result on purpose: an unstyled debug line is harmless
             let _ = e.set_attribute("style", "position:fixed;left:0;top:0;margin:0;padding:2px 6px;font:12px monospace;color:#000;background:rgba(255,255,255,.7);z-index:9;pointer-events:none");
 
             if let Some(b) = doc.body() {

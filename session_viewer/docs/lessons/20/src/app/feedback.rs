@@ -1,4 +1,4 @@
-//! Messages shown to the person using the viewer - what loaded, what failed, what is selected.
+//! Messages for the person using the viewer: what loaded, what failed, what is selected.
 
 /// Show a message in the status line.
 pub fn status(message: &str) {
@@ -10,6 +10,7 @@ pub fn status(message: &str) {
         message
     };
 
+    // #[cfg] on a statement: the native build drops it and only logs
     #[cfg(target_arch = "wasm32")]
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()

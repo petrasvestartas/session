@@ -2,8 +2,8 @@
 dist = "../../../target/lessons/15/dist"
 # Benchmarks and tutorial checkpoints use this same optimized browser build.
 release = true
-no_sri = true
-public_url = "./"
+no_sri = true # SRI = a hash on each script tag that the browser checks; not used here
+public_url = "./" # links relative to the page, so the site works from any folder
 
 
 [watch]

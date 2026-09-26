@@ -10,7 +10,7 @@ Copy each file from the lesson folder to the path shown.
 
 Read the kernel's trimmed surface; the lesson uses it as is.
 
-??? example "`session_rust/src/nurbssurface_trimmed.rs` · read only · 3335 lines"
+??? example "`session_rust/src/nurbssurface_trimmed.rs` · read only"
 
     [Open the full listing](kernel/nurbssurface_trimmed.md)
     
@@ -19,7 +19,7 @@ Read the kernel's trimmed surface; the lesson uses it as is.
 
 Read the kernel's BRep; the lesson uses it as is.
 
-??? example "`session_rust/src/brep.rs` · read only · 2950 lines"
+??? example "`session_rust/src/brep.rs` · read only"
 
     [Open the full listing](kernel/brep.md)
     
@@ -82,7 +82,7 @@ Copy this part from the lesson folder to the path shown.
 
 ## Step 4 · src/app/walk/brep_orient.rs
 
-New file: which way each face is walked, from its shared edges.
+New file: give each face of a solid a sign, +1 or -1, so every normal points outward.
 
 `lessons/07/src/app/walk/brep_orient.rs` · type this, new file, start with these lines
 

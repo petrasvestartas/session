@@ -2,10 +2,12 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <!-- Without this a phone lays the page out 980 px wide and shrinks it to fit. -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- --8<-- [start:step-10a] -->
     <title>Session checkpoint 04c</title>
     <!-- --8<-- [end:step-10a] -->
+    <!-- data-target-name = the crate to compile, the name in Cargo.toml. -->
     <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
     <style>
       html, body {
@@ -33,16 +35,17 @@
     </style>
   </head>
   <body>
+    <!-- wgpu wraps this canvas as the Surface; tabindex="0" lets it take keyboard focus. -->
     <canvas id="canvas" tabindex="0"></canvas>
     <!-- --8<-- [start:step-10b] -->
     <output id="status">Starting checkpoint 04c</output>
     <!-- --8<-- [end:step-10b] -->
     <script>
-      let tutorial;
-      let pointer;
+      let tutorial; // the Rust Tutorial, once create() has finished
+      let pointer; // [x, y] of the last event while dragging, else undefined
 
-      /// Read the generated WASM exports after Trunk has initialized the module.
       async function start() {
+        // Trunk sets window.wasmBindings once the .wasm has loaded; until then, try again every 20 ms.
         if (!window.wasmBindings) {
           setTimeout(start, 20);
           return;
@@ -50,6 +53,7 @@
 
         try {
           tutorial = await window.wasmBindings.Tutorial.create(document.getElementById('canvas'));
+          // Try it in the console: tutorial.render(800, 600, 1)
           window.tutorial = tutorial;
           render();
         } catch (error) {
@@ -58,56 +62,52 @@
         }
       }
 
-      /// Keep the framebuffer at the actual CSS size times browser device scale.
+      // Draw one frame, then show the status Rust returns.
       function render() {
         const canvas = document.getElementById('canvas');
         const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
-        canvas.dataset.tutorialInspection = JSON.stringify(state);
+        canvas.dataset.tutorialInspection = JSON.stringify(state); // kept on the canvas for automated checks
         // --8<-- [start:step-10c]
         document.getElementById('status').textContent = 'Checkpoint 04c · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
         // --8<-- [end:step-10c]
       }
 
-      /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
       function down(event) {
         pointer = [event.clientX, event.clientY];
-        event.target.setPointerCapture(event.pointerId);
+        event.target.setPointerCapture(event.pointerId); // keep receiving moves when the pointer leaves the canvas
       }
 
-      /// Forward one CSS-pixel gesture to the production camera.
       function move(event) {
-        if (!pointer)
+        if (!pointer) // not dragging
           return;
-        const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1];
+        const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1]; // CSS pixels since the last event
         pointer = [event.clientX, event.clientY];
-        tutorial.drag(dx, dy, event.shiftKey);
-        render();
+        tutorial.drag(dx, dy, event.shiftKey); // Shift = pan, otherwise orbit
+        render(); // no animation loop: a frame is drawn only when something changed
       }
 
-      /// End pointer ownership without retaining a stale gesture.
       function up() {
         pointer = undefined;
       }
 
-      /// Normalize DOM wheel pixels to the production camera step, then dolly toward the actual cursor in the same physical-pixel space as the framebuffer.
       function wheel(event) {
-        event.preventDefault();
-        tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY);
+        event.preventDefault(); // the page must not scroll
+        tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY); // one wheel notch is deltaY 100 = one step; up zooms in
         render();
       }
 
-      /// Schedule a resize only after initialization completed.
       function resize() {
-        if (tutorial)
+        if (tutorial) // resize can fire before create() has finished
           render();
       }
 
       const canvas = document.getElementById('canvas');
+      // Pointer events cover mouse, pen and touch with one set of handlers.
       canvas.addEventListener('pointerdown', down);
       canvas.addEventListener('pointermove', move);
       canvas.addEventListener('pointerup', up);
       canvas.addEventListener('pointercancel', up);
-      canvas.addEventListener('wheel', wheel, { passive: false });
+      canvas.addEventListener('wheel', wheel, { passive: false }); // passive: false, or preventDefault is ignored
       window.addEventListener('resize', resize);
       start();
     </script>

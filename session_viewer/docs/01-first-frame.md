@@ -12,7 +12,7 @@ This lesson is the **Shell** and **Shaders** part of the map.
 
 ## Step 1 · `src/lib.rs`, part 1: the struct
 
-Replace the whole file: this struct holds every GPU object, and the four public methods are what the web page can call.
+Replace the whole file: one struct owns every GPU object, and its four public methods are what the page calls.
 
 `lessons/01/src/lib.rs` · type this, replace the whole file, start with these lines
 
@@ -66,7 +66,7 @@ Append: draw one frame — resize if needed, clear the canvas, draw three vertic
 
 New file: the vertex shader places three corners, the fragment shader colors the pixels between them.
 
-`lessons/01/src/shaders/first.wgsl` · 20 lines · type this, new file
+`lessons/01/src/shaders/first.wgsl` · type this, new file
 
 ```wgsl
 --8<-- "lessons/01/src/shaders/first.wgsl"
@@ -74,7 +74,7 @@ New file: the vertex shader places three corners, the fragment shader colors the
 
 Run `cargo check` in `lessons/01/`.
 
-Left is the WGSL space and the right is our applicaiton canvas.
+Left: clip space, as the shader sees it. Right: the canvas in pixels.
 ![Clip space is a square from -1 to +1 with y up; the viewport transform turns it into pixels with y down.](illustrations/clip-space.svg)
 
 ## Step 7 · `index.html`

@@ -117,7 +117,7 @@ Added above
 --8<-- "lessons/02/src/lib.rs:step-2f"
 ```
 
-Replaces the lines from `Ok(serde_json::json!({` to `}).to_string())` in `lessons/01/src/lib.rs`
+Replaces the lines from `Ok(serde_json::json!({` to `.to_string())` in `lessons/01/src/lib.rs`
 
 ```rust
 --8<-- "lessons/02/src/lib.rs:step-2g"
@@ -130,7 +130,7 @@ Copy this file from the lesson folder to the path shown.
 
 `lessons/02/index.html` · edit · copy the file
 
-Replaces the line `<title>Session checkpoint 01</title>` in `lessons/01/index.html`
+Replaces the line `<title>01 - First WebGPU frame</title>` in `lessons/01/index.html`
 
 ```html
 --8<-- "lessons/02/index.html:step-3a"

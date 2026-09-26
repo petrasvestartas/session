@@ -8,7 +8,7 @@ The sphere shades smoothly and sharp rims retain separate normals under transfor
 
 Read the kernel's trimmed surface normals; used as is.
 
-??? example "`session_rust/src/nurbssurface_trimmed.rs` · read only · 3335 lines"
+??? example "`session_rust/src/nurbssurface_trimmed.rs` · read only"
 
     [Open the full listing](kernel/nurbssurface_trimmed.md)
     

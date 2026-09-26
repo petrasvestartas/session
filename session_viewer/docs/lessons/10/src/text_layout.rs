@@ -1,25 +1,25 @@
-//! Layout decides where a label sits - line breaks, alignment, the box it occupies - before a single pixel is drawn.
+//! A check on shaping alone, before any GPU text: one string at five sizes, sent to text-layout.html as JSON.
 use crate::engine::text::{FONT_FAMILY, TextDocument, TextLabel, TextPlacement};
 use wasm_bindgen::prelude::*;
 
-/// Shape five sizes; return clusters and advances.
+/// JavaScript calls this as `module.text_layout()`; an Err arrives there as a thrown error.
 #[wasm_bindgen]
-/// Shape the sample text at five sizes; returns JSON.
 pub fn text_layout() -> Result<String, JsValue> {
     layout_report().map_err(js_error)
 }
 
-/// Source strings and clusters for the DOM reference.
+/// Shape once, then move and recolor every label: the shape count must stay the same.
 fn layout_report() -> anyhow::Result<String> {
     let mut document = TextDocument::new();
     let mut labels = Vec::new();
 
     for (index, size) in [12.0, 14.0, 16.0, 18.0, 24.0].into_iter().enumerate() {
         labels.push(TextLabel {
-            id: index as u32, // one per size
+            id: index as u32,
+            // kerning (AV, To), a ligature (ffi), é typed two ways, and ⚙ from a fallback font
             text: "AVATAR To office ffi • é e\u{301} • Ø 25 ± 0.1 mm • ⚙".into(),
-            font_size: size, // CSS pixels
-            line_height: size * 1.5, // CSS pixels
+            font_size: size,
+            line_height: size * 1.5,
             color: [255; 4],
             placement: TextPlacement::Screen {
                 left: 0.0,
@@ -32,11 +32,12 @@ fn layout_report() -> anyhow::Result<String> {
     document.set_labels(labels.clone())?;
     let shaped = document.shape_count;
 
+    // color and position are not part of the shape, so this must reuse it
     for label in &mut labels {
         label.color = [255, 255, 0, 255];
         label.placement = TextPlacement::Screen {
-            left: 10.0, // CSS pixels from the left
-            top: 20.0, // CSS pixels from the top
+            left: 10.0,
+            top: 20.0,
         };
     }
 
@@ -60,7 +61,7 @@ fn layout_report() -> anyhow::Result<String> {
     )
 }
 
-/// Preserve layout/font validation failures at the JavaScript boundary.
+/// JavaScript receives the error message as a plain string.
 fn js_error(error: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&error.to_string())
 }

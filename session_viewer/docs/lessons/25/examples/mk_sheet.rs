@@ -129,7 +129,7 @@ fn main() {
     let meta_path = out.with_extension("meta");
     let meta_name = meta_path.file_name().unwrap().to_string_lossy().to_string();
 
-    let session = Session::pb_load(src);
+    let session = Session::pb_load(src).unwrap();
     let world = session.world_xforms();
     let identity = Xform::identity();
     let mut sheet = Sheet {

@@ -145,6 +145,8 @@ pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Result<Session, St
         }
     }
 
+    s.reindex(); // filled directly, not via add_*: rebuild the guid maps that delete and undo search
+
     Ok(s)
 }
 

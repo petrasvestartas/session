@@ -1,38 +1,38 @@
-// Point cloud settings, 48 bytes; matches CloudUniform in Rust.
+// The first 16 of CloudUniform's 48 bytes: a shader may declare less than the buffer holds.
 struct CloudUniform {
-    size: f32, // point size scale; applied on the CPU
-    vp_w: f32, // target width, px
-    vp_h: f32, // target height, px
-    edl: f32, // eye-dome lighting strength; 0 = off
+    size: f32,
+    vp_w: f32,
+    vp_h: f32,
+    edl: f32,
 };
 
-@group(0) @binding(0) var<uniform> cloud: CloudUniform; // cloud settings
+@group(0) @binding(0) var<uniform> cloud: CloudUniform;
 
-// Words per record; the layout matches SplatRecord in Rust.
+// SplatRecord read as raw u32 words: 160 bytes = 40 words; word 20 is first, 22 cum, 23 k.
 const REC_WORDS: u32 = 40u;
 const NO_NORMALS: u32 = 0xffffffffu; // marker for a run without normals
 @group(1) @binding(0) var<storage, read> table: array<u32>; // header {records, points, 0, 0}, then the records
 @group(1) @binding(1) var<storage, read> positions: array<f32>; // x, y, z per point
 @group(1) @binding(2) var<storage, read> colors: array<u32>; // packed rgba per point
-@group(1) @binding(3) var<storage, read> normals: array<u32>; // packed normal per point
+@group(1) @binding(3) var<storage, read> normals: array<u32>; // octahedral normal per point
 
 // One point projected to the screen.
 struct Splat {
     px: vec2<i32>, // center pixel
     r: f32, // radius, px
-    z: f32, // depth, 0..1
+    z: f32,
     color: u32, // packed rgba, lit
-    row: u32, // point row
-    instance: u32, // object row
+    row: u32,
+    instance: u32,
     ok: bool, // false = off screen or behind the camera
 };
 
-// Word `w` of the record at `base`, as a float.
+// bitcast: the same 32 bits read as an f32, no conversion.
 fn rec_f(base: u32, w: u32) -> f32 {
     return bitcast<f32>(table[base + w]);
 }
 
-// Record holding drawn point `gid`, by binary search on the cumulative counts.
+// Which record holds drawn point gid: a binary search on cum, 12 steps for 4096 records.
 fn record_of(gid: u32) -> u32 {
     let n = table[0];
     var lo = 0u;
@@ -64,7 +64,6 @@ fn project(gid: u32) -> Splat {
     // index within the run
     let offset = gid - table[base + 22u];
     let i = table[base + 20u] + offset;
-    // camera times object matrix
     let m = mat4x4<f32>(
         vec4<f32>(rec_f(base, 0u), rec_f(base, 1u), rec_f(base, 2u), rec_f(base, 3u)),
         vec4<f32>(rec_f(base, 4u), rec_f(base, 5u), rec_f(base, 6u), rec_f(base, 7u)),
@@ -75,7 +74,7 @@ fn project(gid: u32) -> Splat {
     s.instance = table[base + 37u];
     let clip = m * vec4<f32>(positions[i * 3u], positions[i * 3u + 1u], positions[i * 3u + 2u], 1.0);
 
-    if (clip.w <= 0.0) {
+    if (clip.w <= 0.0) { // behind the eye
         return s;
     }
 
@@ -112,7 +111,7 @@ fn project(gid: u32) -> Splat {
         );
         let nw = transform_normal(rot, oct16_decode(packed_n));
         let light = normalize(vec3<f32>(0.4, 0.4, 0.8));
-        let lambert = 0.25 + 0.75 * abs(dot(nw, light));
+        let lambert = 0.25 + 0.75 * abs(dot(nw, light)); // Lambert: brightness follows the cosine to the light; 0.25 keeps the dark side visible
         rgba = vec4<f32>(rgba.rgb * lambert, rgba.a);
     }
 
@@ -126,21 +125,20 @@ fn project(gid: u32) -> Splat {
     return s;
 }
 
-// What the vertex shader hands the fragment shader.
 struct PointOut {
-    @builtin(position) pos: vec4<f32>, // clip position
-    @location(0) @interpolate(flat) center: vec2<i32>, // center pixel
+    @builtin(position) pos: vec4<f32>,
+    @location(0) @interpolate(flat) center: vec2<i32>,
     @location(1) @interpolate(flat) rr: f32, // radius squared, px
-    @location(2) @interpolate(flat) color: vec4<f32>, // rgba
-    @location(3) @interpolate(flat) row: u32, // point row
-    @location(4) @interpolate(flat) instance: u32, // object row
+    @location(2) @interpolate(flat) color: vec4<f32>,
+    @location(3) @interpolate(flat) row: u32,
+    @location(4) @interpolate(flat) instance: u32,
 };
 
 // One corner of a pixel-aligned square around the point.
 @vertex
 fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
     var o: PointOut;
-    let s = project(vid / 6u);
+    let s = project(vid / 6u); // 6 vertices per point: vertex 13 is corner 1 of point 2
 
     if (!s.ok) {
         o.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
@@ -153,11 +151,11 @@ fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
     let corner_rr = 2.0 * f32(ir * ir) - 0.001;
     let lo = vec2<f32>(f32(s.px.x - ir), f32(s.px.y - ir));
     let hi = vec2<f32>(f32(s.px.x + ir + 1), f32(s.px.y + ir + 1));
-    let c = vid % 6u;
+    let c = vid % 6u; // two triangles: corners 0-1-2 and 3-4-5
     let right = c == 1u || c == 4u || c == 5u;
     let bottom = c == 2u || c == 3u || c == 5u;
     let p = vec2<f32>(select(lo.x, hi.x, right), select(lo.y, hi.y, bottom));
-    o.pos = vec4<f32>(p.x / cloud.vp_w * 2.0 - 1.0, 1.0 - p.y / cloud.vp_h * 2.0, s.z, 1.0);
+    o.pos = vec4<f32>(p.x / cloud.vp_w * 2.0 - 1.0, 1.0 - p.y / cloud.vp_h * 2.0, s.z, 1.0); // pixel back to clip space; w = 1, no perspective divide
     o.center = s.px;
     o.rr = select(s.r * s.r, min(s.r * s.r, corner_rr), ir >= 1);
     o.color = unpack4x8unorm(s.color);
@@ -174,7 +172,6 @@ fn outside(in: PointOut) -> bool {
 }
 
 @fragment
-// Color of the disc.
 fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
     if (outside(in)) {
         discard;

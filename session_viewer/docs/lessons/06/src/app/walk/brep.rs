@@ -78,7 +78,7 @@ pub fn walk_surface(
     surface: &NurbsSurface,
     cx: &WalkCx,
 ) -> Row {
-    let mut mesh = RemeshNurbsSurfaceGrid::from_u_v_q(surface.clone(), 0, 0, QUALITY.0, QUALITY.1);
+    let mut mesh = RemeshNurbsSurfaceGrid::from_u_v_q(surface, 0, 0, QUALITY.0, QUALITY.1);
 
     if let Some(color) = surface.facecolors.first() {
         mesh.set_objectcolor(color.clone());

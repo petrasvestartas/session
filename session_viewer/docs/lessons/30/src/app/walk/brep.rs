@@ -179,7 +179,7 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
     let mut sm = if let Some(mesh) = &s.m_mesh {
         mesh.clone()
     } else {
-        RemeshNurbsSurfaceGrid::from_u_v_q(s.clone(), 0, 0, QUALITY.0, QUALITY.1)
+        RemeshNurbsSurfaceGrid::from_u_v_q(s, 0, 0, QUALITY.0, QUALITY.1)
     };
 
     if let Some(c) = s.facecolors.first() {

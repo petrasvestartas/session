@@ -12,7 +12,7 @@ Copy from `lessons/11/` (tooling this checkpoint needs but the course does not t
 
 ## Step 1 · src/engine/gpu/text_plate.rs
 
-Text plates draw a backing around shaped labels.
+New file: the plate behind a nameplate, two triangles per plate, cut to the label's clip box.
 
 `lessons/11/src/engine/gpu/text_plate.rs` · type this, new file, start with these lines
 
@@ -34,9 +34,9 @@ Text plates draw a backing around shaped labels.
 
 ## Step 2 · src/shaders/text_plate.wgsl
 
-Text plates draw rounded backing shapes behind labels.
+New shader: a rounded-box distance gives each plate a soft edge one pixel wide at any size.
 
-`lessons/11/src/shaders/text_plate.wgsl` · 27 lines · type this, new file
+`lessons/11/src/shaders/text_plate.wgsl` · 28 lines · type this, new file
 
 ```wgsl
 --8<-- "lessons/11/src/shaders/text_plate.wgsl"
@@ -44,7 +44,7 @@ Text plates draw rounded backing shapes behind labels.
 
 ## Step 3 · src/engine/gpu/text_plane.rs
 
-Plane text projects labels through their scene placement.
+New file: text lying on a world plane, rasterized once into its own texture and drawn as one quad.
 
 `lessons/11/src/engine/gpu/text_plane.rs` · type this, new file, start with these lines
 
@@ -102,9 +102,9 @@ Plane text projects labels through their scene placement.
 
 ## Step 4 · src/shaders/text_plane.wgsl
 
-Plane labels project shaped glyphs onto their scene plane.
+New shader: read the label's coverage texture and cut it to the clip box.
 
-`lessons/11/src/shaders/text_plane.wgsl` · 28 lines · type this, new file
+`lessons/11/src/shaders/text_plane.wgsl` · 31 lines · type this, new file
 
 ```wgsl
 --8<-- "lessons/11/src/shaders/text_plane.wgsl"
@@ -112,7 +112,7 @@ Plane labels project shaped glyphs onto their scene plane.
 
 ## Step 5 · src/engine/gpu/text_plane.rs
 
-Copy this file from the lesson folder to the path shown.
+Copy the GPU test for plane text to the end of the file.
 
 `lessons/11/src/engine/gpu/text_plane.rs` · copy the file, append at the end of the file
 
@@ -122,7 +122,7 @@ Copy this file from the lesson folder to the path shown.
 
 ## Step 6 · src/engine/gpu/text.rs
 
-The GPU text owner coordinates glyphs and label backgrounds.
+New file: the text lane places every label each frame, then draws planes, depth-tested text, plates and overlays.
 
 `lessons/11/src/engine/gpu/text.rs` · type this, new file, start with these lines
 
@@ -280,21 +280,21 @@ Added after the `}` line of `lessons/10/src/lib.rs`
 
 ## Step 9 · src/text_layout.rs
 
-Remove this file; its replacement is now part of the rendering modules.
+Delete lesson 10's shaping check; the text-quality page below replaces it.
 
 Delete `src/text_layout.rs` (it exists in `lessons/10/`, not in `lessons/11/`).
 
 ## Step 10 · assets/text-layout.html
 
-Remove this file; its replacement is now part of the rendering modules.
+Delete its check page too.
 
 Delete `assets/text-layout.html` (it exists in `lessons/10/`, not in `lessons/11/`).
 
 ## Step 11 · assets/text-quality.html
 
-Copy this file from the lesson folder to the path shown.
+Copy the test page that draws GPU text beside browser text at five sizes and any device scale.
 
-`lessons/11/assets/text-quality.html` · 166 lines · copy the file, new file
+`lessons/11/assets/text-quality.html` · 167 lines · copy the file, new file
 
 ```html
 --8<-- "lessons/11/assets/text-quality.html"
@@ -312,7 +312,7 @@ Replaces the `<title>Session checkpoint 10</title>` line of `lessons/10/index.ht
 --8<-- "lessons/11/index.html:step-12a"
 ```
 
-Replaces the 6 lines from `<link data-trunk rel="copy-file" href="assets…` of `lessons/10/index.html`
+Replaces the 7 lines from `<link data-trunk rel="copy-file" href="assets…` of `lessons/10/index.html`
 
 ```html
 --8<-- "lessons/11/index.html:step-12b"

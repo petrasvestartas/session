@@ -1,23 +1,23 @@
-/// Display settings; most start from a `?query` or an env variable.
+/// Display settings; each starts from the page URL, e.g. `?msaa=4`, or natively from an env variable.
 pub struct View {
     // --8<-- [start:step-34a]
     pub ssao: bool,
     // --8<-- [end:step-34a]
-    pub show_grid: bool, // floor grid
+    pub show_grid: bool,
     pub show_points: bool, // point markers, `Q`
     pub show_lines: bool, // lines and curves, `W`
     pub show_mesh_edges: bool, // mesh edges and their vertex markers, `E`
     pub show_outlines: bool, // black outlines around surfaces, `O`
     pub markers: bool, // vertex markers on mesh edges
     pub cloud_size: f32, // point size scale, `[` and `]`
-    pub edl_strength: f32, // eye-dome lighting strength; 0 = off
-    pub lod_px: f32, // cloud LOD cutoff, px; 0 = draw every point
-    pub thickness_px: f32, // pen width, CSS px
+    pub edl_strength: f32, // 0 = off
+    pub lod_px: f32, // LOD = level of detail: skip cloud points smaller than this, px; 0 = draw all
+    pub thickness_px: f32, // line width, CSS px
     pub feather_px: f32, // edge softness of dots, px
     pub lit: bool, // headlight on mesh faces, `D`
     pub backface: bool, // back faces painted red, `B`
     pub opacity: f32, // face alpha; 0 = x-ray, `P` toggles
-    pub msaa_forced: Option<u32>, // 4 forces 4x, other values 1x
+    pub msaa_forced: Option<u32>, // 4 forces 4x MSAA, other values 1x
     pub perf: bool, // draw every frame and show timing
     pub spin: bool, // orbit a little every frame
 }
@@ -100,6 +100,7 @@ pub fn surface_per_physical() -> f64 {
 
 /// One setting's text: `?query=` in the browser, `ENV` natively.
 pub fn knob(env: &str, query: &str) -> Option<String> {
+    // cfg: only one of these two blocks is compiled, picked by the build target.
     #[cfg(target_arch = "wasm32")]
     {
         let _ = env;
@@ -114,17 +115,18 @@ pub fn knob(env: &str, query: &str) -> Option<String> {
 
 /// A float setting, or `default`.
 fn knob_f32(env: &str, query: &str, default: f32) -> f32 {
+    // let-else: bind raw, or leave the function when there is nothing to bind.
     let Some(raw) = knob(env, query) else {
         return default;
     };
 
     match raw.parse::<f32>() {
-        Ok(value) if value.is_finite() => value,
+        Ok(value) if value.is_finite() => value, // a match guard: "inf" and "NaN" parse too, but are refused
         _ => default,
     }
 }
 
 /// An integer setting, or None.
 fn knob_u32(env: &str, query: &str) -> Option<u32> {
-    knob(env, query)?.parse().ok()
+    knob(env, query)?.parse().ok() // `?` on an Option returns None early, as it returns Err on a Result
 }

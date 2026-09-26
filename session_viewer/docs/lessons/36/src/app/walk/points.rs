@@ -5,7 +5,7 @@ use crate::engine::gpu::glyphs::GlyphRows;
 use session_rust::AABB;
 use session_rust::Point;
 
-/// One SDF dot.
+/// A point becomes one dot row and a box of zero size.
 pub fn walk_point(glyph: &mut GlyphRows, p: &Point, row: u32) -> Row {
     let center = p.to_f32();
     let radius = encode_width(p.width); // negative = pixels
@@ -14,8 +14,8 @@ pub fn walk_point(glyph: &mut GlyphRows, p: &Point, row: u32) -> Row {
         radius: if radius == 0.0 { -3.0 } else { radius }, // no pen: 3 px dot
         color: p.pointcolor.to_f32(),
         instance_id: row,
-        facing: FACING_UNKNOWN, // no face orientation
-        facing_ext: [FACING_UNKNOWN; 2], // no neighbour orientation
+        facing: FACING_UNKNOWN,
+        facing_ext: [FACING_UNKNOWN; 2],
     });
     let mut bounds = AABB::empty();
     bounds.union_with_point(center[0] as f64, center[1] as f64, center[2] as f64);

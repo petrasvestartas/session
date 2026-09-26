@@ -1,3 +1,5 @@
+//! Messages for the person using the viewer: what loaded, what failed, what is selected.
+
 /// Show a message in the status line.
 pub fn status(message: &str) {
     // an empty message shows the reload notice, if any
@@ -8,6 +10,7 @@ pub fn status(message: &str) {
         message
     };
 
+    // #[cfg] on a statement: the native build drops it and only logs
     #[cfg(target_arch = "wasm32")]
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()
@@ -75,10 +78,10 @@ pub fn command_line(_open: bool) {}
 /// One row of the layers panel, as the panel needs it.
 #[derive(Clone)]
 pub struct LayerRow {
-    pub key: String,                 // unique id of the row
-    pub label: String,               // text shown
-    pub count: usize,                // objects under it
-    pub hidden: bool,                // eye toggled off
+    pub key: String, // unique id of the row
+    pub label: String, // text shown
+    pub count: usize, // objects under it
+    pub hidden: bool, // eye toggled off
 }
 
 /// Replace the rows of the layers panel.

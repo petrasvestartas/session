@@ -14,7 +14,7 @@ Copy from `lessons/12/` (tooling this checkpoint needs but the course does not t
 
 ## Step 1 · src/engine/gpu/device.rs
 
-Device setup chooses supported limits and reports GPU failures.
+New file: open the GPU as in lesson 01, now with adapter choice, a larger buffer limit and stored errors.
 
 `lessons/12/src/engine/gpu/device.rs` · type this, new file, start with these lines
 
@@ -44,7 +44,7 @@ Copy this part from the lesson folder to the path shown.
 
 ## Step 2 · src/engine/gpu/present.rs
 
-Presentation acquires the frame and submits rendering work.
+New file: draw a frame to the canvas, run a pick-only frame, or render off-screen for native tests.
 
 `lessons/12/src/engine/gpu/present.rs` · type this, new file, start with these lines
 
@@ -120,7 +120,7 @@ Copy this part from the lesson folder to the path shown.
 
 ## Step 5 · src/app/touch.rs
 
-Copy this file from the lesson folder to the path shown.
+New file: one finger orbits, two fingers pan and pinch, a tap picks and a double tap fits.
 
 `lessons/12/src/app/touch.rs` · copy the file, new file, start with these lines
 
@@ -202,9 +202,9 @@ The scene owns source documents and maps their identities to GPU rows.
 
 ## Step 7 · src/app/selection.rs
 
-Selection keeps original edge, face and control IDs under their parent object.
+New file: what inside the picked object is selected, nothing or one edge.
 
-`lessons/12/src/app/selection.rs` · 32 lines · type this, new file
+`lessons/12/src/app/selection.rs` · 31 lines · type this, new file
 
 ```rust
 --8<-- "lessons/12/src/app/selection.rs"
@@ -212,7 +212,7 @@ Selection keeps original edge, face and control IDs under their parent object.
 
 ## Step 8 · src/app/walk/cloud.rs
 
-The cloud walk uploads point attributes and original IDs.
+New file: walk a point cloud, or one streamed slice of it, into point rows, octree nodes and one draw.
 
 `lessons/12/src/app/walk/cloud.rs` · type this, new file, start with these lines
 
@@ -246,7 +246,7 @@ The cloud walk uploads point attributes and original IDs.
 
 ## Step 9 · src/app/walk/frames.rs
 
-Frame geometry turns planes and boxes into visible primitives.
+New file: draw a plane as a 1 m square and a box as its 12 edges.
 
 `lessons/12/src/app/walk/frames.rs` · 86 lines · type this, new file
 
@@ -256,7 +256,7 @@ Frame geometry turns planes and boxes into visible primitives.
 
 ## Step 10 · src/app/walk/points.rs
 
-Point conversion builds visible markers from source coordinates.
+New file: draw a point as one dot.
 
 `lessons/12/src/app/walk/points.rs` · 22 lines · type this, new file
 
@@ -276,7 +276,7 @@ Streaming reads bounded chunks and keeps stable source addresses.
 
 ## Step 12 · src/app/feedback.rs
 
-Feedback publishes status and panel information from the same application state.
+New file: status messages, and the error panel with its reload button.
 
 `lessons/12/src/app/feedback.rs` · 29 lines · type this, new file
 
@@ -286,9 +286,9 @@ Feedback publishes status and panel information from the same application state.
 
 ## Step 13 · src/app/inspection.rs
 
-Copy this file from the lesson folder to the path shown.
+Copy the file: with ?inspect=1, a JSON snapshot of counts and memory for the browser tests.
 
-`lessons/12/src/app/inspection.rs` · 112 lines · copy the file, new file
+`lessons/12/src/app/inspection.rs` · 113 lines · copy the file, new file
 
 ```rust
 --8<-- "lessons/12/src/app/inspection.rs"

@@ -6,7 +6,7 @@ An orange point appears below the triangle and fades smoothly at small sizes.
 
 ## Step 1 · src/engine/gpu/glyphs.rs
 
-New file: free dots and vertex markers with their object rows.
+New file: the lane that draws vertex markers and flat dots, one 48-byte row each.
 
 `lessons/04c/src/engine/gpu/glyphs.rs` · type this, new file, start with these lines
 
@@ -76,7 +76,7 @@ New file: the sphere shader, a round marker with real depth.
 
 ## Step 3 · src/shaders/glyph.wgsl
 
-New file: the dot shader with a soft edge.
+New file: the dot shader: one triangle per dot, cut to a soft-edged disc.
 
 `lessons/04c/src/shaders/glyph.wgsl` · type this, new file, start with these lines
 

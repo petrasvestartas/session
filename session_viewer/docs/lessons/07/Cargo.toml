@@ -6,7 +6,7 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the crate
+crate-type = ["cdylib", "rlib"]  # cdylib = the .wasm the browser loads; rlib lets tests and examples link the same code
 
 [dependencies]
 session_rust = { path = "../../../../session_rust" }
@@ -17,7 +17,7 @@ toml = "=0.8.23"
 serde_json = { version = "1.0", features = ["float_roundtrip"] }
 winit = "0.30"
 wgpu = "29.0"
-glyphon = "=0.11.0" # The maintained text renderer release compatible with wgpu 29.
+glyphon = "=0.11.0" # text renderer; `=` pins the one release built for wgpu 29
 log = "0.4"
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
@@ -50,9 +50,8 @@ prost = "0.14"
 bytemuck = { version = "1", features = ["derive"] }
 
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = 3 # dependencies optimised even in debug builds, so a large scene still parses fast
 
-# parse speed in debug builds
 [profile.release]
 strip = true
 
@@ -60,9 +59,8 @@ strip = true
 wasm-opt = false
 
 
-# Native-only: the headless verification harness (examples/selftest.rs). MUST stay at the end -
-# a target table placed mid-file silently swallows every [dependencies] entry after it, which is
-# how prost and bytemuck vanished from the wasm build.
+# Native builds only (tests, examples). A TOML table runs to the next header, so keep this one
+# near the end: a wasm dependency written below it would silently leave the wasm build.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 pollster = "0.4"
 

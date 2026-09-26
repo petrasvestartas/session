@@ -1,4 +1,4 @@
-//! Owns the surface and hands out the texture for this frame.
+//! More methods of Gpu: one type may have several `impl` blocks, so each file adds its own.
 use super::Gpu;
 use super::frame::{FrameCx, FrameInput};
 #[cfg(not(target_arch = "wasm32"))]
@@ -12,7 +12,7 @@ impl Gpu {
             view: &self.view,
             anchor: self.objects.anchor_f32(),
             size,
-            // framebuffer pixels per CSS pixel
+            // e.g. 1600 real pixels over 800 CSS pixels = 2.0
             pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
         };
         self.frame.write(&self.ctx, input, &cx);
@@ -35,7 +35,7 @@ impl Gpu {
     pub fn present(&mut self, input: &FrameInput) -> Option<f64> {
         self.write_frame_uniforms(input);
         let surface = self.surface.as_ref()?;
-        // this frame's canvas texture; None means try again
+        // Suboptimal still draws; lost or outdated: reconfigure and skip this frame
         let output = match surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(t)
             | wgpu::CurrentSurfaceTexture::Suboptimal(t) => t,
@@ -58,7 +58,7 @@ impl Gpu {
         let (draws, objects) = self.encode_frame(&mut encoder, &view, input.clear);
         let encode_ms = crate::engine::performance::now_ms() - t0;
         self.ctx.queue.submit([encoder.finish()]);
-        self.pick.map();
+        self.pick.map(); // after submit: start reading back a pending pick, if any
         // --8<-- [start:step-22a]
         self.arena.tiles.map_report();
         // --8<-- [end:step-22a]
@@ -102,7 +102,7 @@ impl Gpu {
             },
         );
         let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
-        // bytes per row, 256-aligned as wgpu requires
+        // wgpu copies rows 256-byte aligned: a 100 px row of 400 bytes is padded to 512
         let padded = (w * 4).div_ceil(256) * 256;
         let readback = self.ctx.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("headless.readback"),
@@ -143,7 +143,7 @@ impl Gpu {
         log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
 
         let slice = readback.slice(..);
-        // wait for the copy to land on the CPU
+        // map_async only asks; poll(Wait) blocks until the copy has reached the CPU
         slice.map_async(wgpu::MapMode::Read, |_| {});
         let _ = self.ctx.device.poll(wgpu::PollType::Wait {
             submission_index: None,
@@ -158,7 +158,7 @@ impl Gpu {
             out.extend_from_slice(&data[a..a + (w * 4) as usize]);
         }
 
-        drop(data);
+        drop(data); // the mapped view must be gone before unmap
         readback.unmap();
         out
     }
