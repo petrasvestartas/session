@@ -55,8 +55,8 @@ pre { color: #1f2328; }
 .ht { color: #1f2328; font-weight: 700; }   /* type or class: bold black */
 .hu { color: #8e0b61; }                      /* module or namespace: plum from the palette, saturated */
 .ha { color: #647906; }                      /* attribute or decorator: leaf green, saturated */
-.hf { color: #7580c7; }                      /* function or method: lavender from the palette, saturated */
-.hx { color: #7580c7; font-weight: 600; }    /* macro: lavender bold */
+.hf { color: #d97757; }                      /* function or method: Claude orange */
+.hx { color: #d97757; font-weight: 600; }    /* macro: Claude orange bold */
 .hv { color: #1f50ad; }                      /* variable: slate blue, saturated */
 .hp { color: #1f50ad; font-style: italic; }  /* parameter: slate blue italic */
 .hm { color: #647906; }                      /* field: leaf green, saturated */
