@@ -35,7 +35,7 @@ check_large_files() {
 # (check .gitmodules). Including it made every git command in the loop body operate on the parent
 # instead - it worked only because session_viewer sorted last, so the parent happened to be
 # committed after the real submodules. The "=== main repo ===" block below is what pushes it.
-for d in session_cpp session_py session_rust session_data session_proto session_rhino; do
+for d in session_cpp session_py session_rust session_data session_proto; do
     if [ -d "$d" ]; then
         echo -e "\n=== $d ==="
         cd "$d"
@@ -86,7 +86,7 @@ done
 
 echo -e "\n=== main repo ==="
 git add -A
-git add session_cpp session_py session_rust session_data session_proto session_rhino session_viewer 2>/dev/null
+git add session_cpp session_py session_rust session_data session_proto session_viewer 2>/dev/null
 git commit -m "$m" 2>/dev/null
 if ! git push -u origin "$BRANCH"; then
     echo "FAILED: main repo push"

@@ -51,7 +51,7 @@ Dev order: Python → Rust → C++. `/build` has the full reference.
 - `/test-rules` has the full import patterns and conventions
 
 ## Code Style
-- Python: 3.12 is the floor, matching wood_nano (nanobind 3, abi3); Rhino 9 embeds CPython 3.13 (`~/.rhinocode/<env>`, see bash/install_rhino.sh). Style stays modern — `X | None`, builtin generics (`list[str]`), never `typing.Union/Optional/List`. `from __future__ import annotations` still heads EVERY module (it neutralizes the house `str` property shadowing builtins in class-body annotations). protobuf 7.x (`protobuf>=7.35.1,<8`, 7.36.2 current) + grpcio-tools 1.84.0, whose protoc 35.1 stamps 7.35.1 into the `*_pb2.py` (the runtime must be at least the gencode version). One import per line. TOLERANCE/PI from `.tolerance` at top of file. Geometry imports inside test functions. Use flat imports: `from session_py import Line, Plane` not `from session_py.line import Line`. Exception: `from session_py.intersection import line_line`.
+- Python: 3.12 is the floor, matching wood_nano (nanobind 3, abi3). Style stays modern — `X | None`, builtin generics (`list[str]`), never `typing.Union/Optional/List`. `from __future__ import annotations` still heads EVERY module (it neutralizes the house `str` property shadowing builtins in class-body annotations). protobuf 7.x (`protobuf>=7.35.1,<8`, 7.36.2 current) + grpcio-tools 1.84.0, whose protoc 35.1 stamps 7.35.1 into the `*_pb2.py` (the runtime must be at least the gencode version). One import per line. TOLERANCE/PI from `.tolerance` at top of file. Geometry imports inside test functions. Use flat imports: `from session_py import Line, Plane` not `from session_py.line import Line`. Exception: `from session_py.intersection import line_line`.
 - C++: never `#include "tolerance.h"` in production code. Use `std::cout << point` not manual coords.
 - Rust: `use crate::tolerance::{TOLERANCE, PI};` at top. Geometry imports inside MINI_TEST blocks.
 
@@ -59,7 +59,7 @@ Dev order: Python → Rust → C++. `/build` has the full reference.
 - `/new-class <name>`, `/port <class>`, `/sync <class>` — add, port, audit a geometry class;
   templates and field/method/operator/serialization notes live under `new-class/`
 - `/build [class]`, `/ci`, `/test-rules`, `/recipe <desc>`, `/publish <what>` (asks first; R2 keeps no history)
-- `/step-format`, `/decompile`, `/docstrings`, `/highlighting`, `/format-points` — reference skills
+- `/step-format`, `/docstrings`, `/highlighting` — reference skills
 - Path-scoped rules in `.claude/rules/` (viewer lesson docs load only when `session_viewer/` is touched)
 - Cross-repo skills (session-viewer-wgpu, session-comments, session-format,
   session-polyline-rectangle) live in github.com/petrasvestartas/skills — clone it into

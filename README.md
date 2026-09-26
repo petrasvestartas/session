@@ -36,7 +36,6 @@ Each class is `session_cpp/src/<class>.h|.cpp`, `session_py/src/session_py/<clas
 | [`session_rust`](https://github.com/petrasvestartas/session_rust) | Rust kernel |
 | [`session_proto`](https://github.com/petrasvestartas/session_proto) | Protobuf schemas shared by all three |
 | [`session_data`](https://github.com/petrasvestartas/session_data) | Test and demo datasets |
-| [`session_rhino`](https://github.com/petrasvestartas/session_rhino) | RhinoCommon converters |
 | `session_viewer` | WebGPU viewer (Rust to WASM) and its course in `docs/` |
 | `session_tests` | Web page showing the three languages' test results side by side |
 | `bash` | Build, test and git scripts |
