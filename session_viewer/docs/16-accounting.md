@@ -1,192 +1,157 @@
-# 16 · Resource accounting
+# 16 · Resource accounting and release
 
-The scene stays visible while the inspection snapshot reports retained source memory.
+Accounting counts the bytes the loaded documents keep alive, once per shared value, for the inspection snapshot. Release then drops a display-only document's kernel objects once the walk has copied it to the GPU, keeping only each row's name and type.
 
 ![Scene owns documents through Rc; the cache keeps Weak identities and a payload figure, reuses it while the pointers match, walks once when a document is replaced, and never keeps a dropped document alive.](illustrations/source-cache.svg)
 
-Copy each file from the lesson folder to the path shown.
+## Step 1 · src/app/inspection/source_memory.rs
 
-Copy from `lessons/16/` (tooling this checkpoint needs but the course does not teach):
+The payload figures by category, and how a Vec, a Collection, a slice, a map or a String adds to them.
 
-- `lessons/16/.gitignore`
-- `lessons/16/assets/pb/.gitkeep`
-- `lessons/16/examples/add_lod.rs`
-- `lessons/16/examples/cad_boundary_audit.rs`
-- `lessons/16/examples/cad_fixture.rs`
-- `lessons/16/examples/census_plates.rs`
-- `lessons/16/examples/check_cad_fixture.rs`
-- `lessons/16/examples/check_determinism.rs`
-- `lessons/16/examples/check_hidden_line_lifecycle.rs`
-- `lessons/16/examples/interaction_fixture.rs`
-- `lessons/16/examples/mk_brep_probe.rs`
-- `lessons/16/examples/mk_cylinder_hidden_probe.rs`
-- `lessons/16/examples/mk_hidden_line_probe.rs`
-- `lessons/16/examples/mk_joint_probe.rs`
-- `lessons/16/examples/mk_mixed_solids.rs`
-- `lessons/16/examples/mk_plate_outline.rs`
-- `lessons/16/examples/mk_shade_probe.rs`
-- `lessons/16/examples/mk_teapot.rs`
-- `lessons/16/examples/selftest.rs`
-- `lessons/16/src/selftest.rs`
-- `lessons/16/src/selftest/lifecycle.rs`
-- `lessons/16/tests/README.md`
-- `lessons/16/tests/cad-boundary-plot.py`
-- `lessons/16/tests/cad-quality.py`
-- `lessons/16/tests/depth/_closeup_box.py`
-- `lessons/16/tests/depth/_count_colors.py`
-- `lessons/16/tests/depth/_gate.sh`
-- `lessons/16/tests/depth/_hidden_line_matrix.py`
-- `lessons/16/tests/depth/_ink_suite.sh`
-- `lessons/16/tests/depth/_orbit_check.py`
-- `lessons/16/tests/depth/_probe_matrix.py`
-- `lessons/16/tests/depth/_shade_scanline.py`
-- `lessons/16/tests/depth/_stroke_weight.py`
-- `lessons/16/tests/format.py`
-- `lessons/16/tests/interaction.cjs`
-- `lessons/16/tests/nameplate-scene.cjs`
-- `lessons/16/tests/nameplate.cjs`
-- `lessons/16/tests/teapot.cjs`
-- `lessons/16/tests/text-quality.cjs`
-- `lessons/16/tests/world-text.cjs`
+`lessons/16/src/app/inspection/source_memory.rs` · type this, new file
 
-## Step 1 · Cargo.toml
-
-Copy this file from the lesson folder to the path shown.
-
-`lessons/16/Cargo.toml` · edit · copy the file
-
-Replaces the 16 lines from `getrandom = { version = "0.2", features = ["j…` of `lessons/15/Cargo.toml`
-
-```toml
---8<-- "lessons/16/Cargo.toml:step-1"
+```rust
+--8<-- "lessons/16/src/app/inspection/source_memory.rs:payload"
 ```
 
 ## Step 2 · src/app/inspection/source_memory.rs
 
-The source cache counts retained payload once per shared identity.
-
-`lessons/16/src/app/inspection/source_memory.rs` · type this, new file, start with these lines
-
-```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:step-2a"
-```
+Reuse the last count while the documents are the same Rc pointers; count again once when one is replaced.
 
 `lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:step-2b"
+--8<-- "lessons/16/src/app/inspection/source_memory.rs:source-cache"
 ```
+
+## Step 3 · src/app/inspection/source_memory.rs
+
+Count each shared Rc value once, whichever list or lookup reaches it.
 
 `lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:step-2c"
+--8<-- "lessons/16/src/app/inspection/source_memory.rs:shared-values"
 ```
 
-Copy this part from the lesson folder to the path shown.
+## Step 4 · src/app/inspection/source_memory.rs
 
-`lessons/16/src/app/inspection/source_memory.rs` · copy the file, append at the end of the file
+One session's bytes: every object list with its dead slots, the undo history, lookups, placements, instances and definitions.
+
+`lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:step-2d"
+--8<-- "lessons/16/src/app/inspection/source_memory.rs:session-payload"
 ```
 
-Copy this part from the lesson folder to the path shown.
+## Step 5 · src/app/inspection/source_memory.rs
 
-`lessons/16/src/app/inspection/source_memory.rs` · copy the file, append at the end of the file
+Counters for points, lines, planes, boxes, polylines, clouds and curves.
+
+`lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
 
 ```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:step-2e"
+--8<-- "lessons/16/src/app/inspection/source_memory.rs:simple-payload"
 ```
+
+## Step 6 · src/app/inspection/source_memory.rs
+
+Counters for surfaces, trimmed surfaces, BReps, meshes and elements.
+
+`lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/16/src/app/inspection/source_memory.rs:solid-payload"
+```
+
+## Step 7 · src/app/inspection/source_memory.rs
+
+Tests: a shared geometry counts once, a replaced session is counted again and freed, and cloud slices count apart.
+
+`lessons/16/src/app/inspection/source_memory.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/16/src/app/inspection/source_memory.rs:memory-tests"
+```
+
+## Step 8 · src/app/inspection.rs
+
+One source cache for the page, kept between inspection snapshots.
+
+`lessons/16/src/app/inspection.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/16/src/app/inspection.rs:source-memory"
+```
+
+## Step 9 · src/app/scene.rs
+
+A released row keeps its geometry type; a released document keeps its file, a token and each row's name.
+
+`lessons/16/src/app/scene.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/16/src/app/scene.rs:released"
+```
+
+## Step 10 · src/app/scene_release.rs
+
+Open `impl Scene` in its own file: drop a display-only document's objects, keeping its rows, names, types and tree.
+
+`lessons/16/src/app/scene_release.rs` · type this, new file
+
+```rust
+--8<-- "lessons/16/src/app/scene_release.rs:release"
+```
+
+## Step 11 · src/app/scene_release.rs
+
+Answer a released row's document, type and name without its objects; the brace closes the impl.
+
+`lessons/16/src/app/scene_release.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/16/src/app/scene_release.rs:release-rows"
+```
+
+## Step 12 · src/app/scene_release.rs
+
+Test fixtures that lesson 21 reuses: a small sheet, and a scene holding it as its one document.
+
+`lessons/16/src/app/scene_release.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/16/src/app/scene_release.rs:release-fixtures"
+```
+
+## Step 13 · src/state.rs
+
+After the walk, State releases a display-only document that came with its file URL.
+
+`lessons/16/src/state.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/16/src/state.rs:release-state"
+```
+
+## Step 14 · examples, tests and assets
+
+Copy these files from `lessons/16/`; they are checked, not explained.
+
+- `assets/pb/.gitkeep` and `assets/pb/view_mixed_teapot.pb`
+- `examples/`: `add_lod.rs`, `cad_boundary_audit.rs`, `cad_fixture.rs`, `census_plates.rs`, `check_determinism.rs`, `interaction_fixture.rs`, `mk_brep_probe.rs`, `mk_cylinder_hidden_probe.rs`, `mk_hidden_line_probe.rs`, `mk_joint_probe.rs`, `mk_mixed_solids.rs`, `mk_plate_outline.rs`, `mk_shade_probe.rs` and `mk_teapot.rs`
+- `tests/`: `README.md`, `cad-boundary-plot.py`, `cad-quality.py`, `format.py`, `interaction.cjs`, `nameplate-scene.cjs`, `nameplate.cjs`, `teapot.cjs`, `text-quality.cjs`, `world-text.cjs` and the whole `tests/depth/` folder
+
+## Step 15 · registration lines
+
+Copy the lines tagged `register:release` from these files of `lessons/16/`:
+
+- `src/app/scene.rs`: the `release` module with its `#[path]` line, the released-name hook, the `released` and `asked` fields, their start values and clear.
+- `src/app/inspection.rs`: the `source_memory` module, the snapshot count and its four `source_cpu_*` fields.
+- `src/state.rs`: releasing the document after it is appended.
 
 Run `cargo check` in `lessons/16/`.
 
-## Step 3 · src/app/inspection.rs
-
-Inspection reports retained resources and source information.
-
-`lessons/16/src/app/inspection.rs` · edit · type this
-
-Added after the `use crate::State;` line of `lessons/15/src/app/inspection.rs`
-
-```rust
---8<-- "lessons/16/src/app/inspection.rs:step-3a"
-```
-
-Added after the `let (buffers, textures) = state.gpu.allocated…` line in `fn publish` of `lessons/15/src/app/inspection.rs`
-
-```rust
---8<-- "lessons/16/src/app/inspection.rs:step-3b"
-```
-
-Added after the `"samples": state.gpu.targets.samples,` line in `fn publish` of `lessons/15/src/app/inspection.rs`
-
-```rust
---8<-- "lessons/16/src/app/inspection.rs:step-3c"
-```
-
 ## Check
 
-Run `trunk serve` in `lessons/16/` and open <http://127.0.0.1:8770/>.
-
-Expected: The scene stays visible while the inspection snapshot reports retained source memory; status: **the status clears when loading finishes**.
-
-![Checkpoint 16: the scene is unchanged; the new figures live in the inspection snapshot above.](screenshots/16.png)
-
-If it fails:
-
-- Payload bytes double for shared files: shared source values are counted more than once.
-- The scan count grows each frame: accounting is not cached by document identity.
-
-## What changed
-
-```text
-lessons/16/src/app/
-├── inspection/
-│   └── source_memory.rs  +
-├── walk/
-│   ├── bounds.rs
-│   ├── brep.rs
-│   ├── brep_edges.rs
-│   ├── brep_orient.rs
-│   ├── cloud.rs
-│   ├── curves.rs
-│   ├── encode.rs
-│   ├── frames.rs
-│   ├── mesh.rs
-│   ├── mesh_ink.rs
-│   ├── mesh_topology.rs
-│   ├── mod.rs
-│   └── points.rs
-├── cloud_query.rs
-├── decode.rs
-├── feedback.rs
-├── fetch.rs
-├── input.rs
-├── inspection.rs  ~
-├── knobs.rs
-├── live.rs
-├── loader.rs
-├── manifest.rs
-├── mod.rs
-├── route.rs
-├── scene.rs
-├── selection.rs
-├── stream.rs
-├── touch.rs
-└── validate.rs
-```
-
-`+` new in this lesson · `~` changed in this lesson
-
-Every file at this point: `lessons/16/`.
-
-## Next
-
-[17 · Source faces, text objects and one silhouette](17-source-presentation.md)
-
-## Expected viewer result
-
-Checkpoint 16: the scene is unchanged; the new figures live in the inspection snapshot above.
-
-[![Full viewer result for 16 accounting](screenshots/16.png)](screenshots/16.png)
+`cargo check` compiles with the tests and examples, and `cargo xtest --lib source_memory` passes. The scene looks the same; with `?inspect=1` the snapshot adds `source_cpu_known_payload_bytes`, and a display-only document keeps its rows drawn after its objects are freed.

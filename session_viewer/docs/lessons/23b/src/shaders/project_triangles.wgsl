@@ -1,3 +1,4 @@
+// --8<-- [start:project-inputs]
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>; // camera matrix
 
 // The first five fields of LineUniform; this shader needs no more.
@@ -29,9 +30,12 @@ struct ProjectInstance {
 @group(3) @binding(3) var<storage, read_write> projected: array<ProjectedTriangle>; // output: one record per triangle
 @group(3) @binding(4) var<uniform> live_count: vec4<u32>; // x = triangle ids, the instances' included
 @group(3) @binding(5) var slot_table: texture_2d<u32>; // where the instances' triangle ids lie
+// --8<-- [end:project-inputs]
 
+// --8<-- [start:project-main]
 // Project one triangle id per invocation into `projected`: an arena triangle, or one instance's
 // copy of its definition's.
+// A workgroup = 64 invocations the GPU runs side by side; the Rust side dispatches one per 64 triangles.
 @compute @workgroup_size(64)
 fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
     // rows of 32768 workgroups (PROJECT_ROW_GROUPS): a dispatch dimension holds at most 65535
@@ -96,8 +100,10 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
 
     projected[index] = out;
 }
-// A triangle clipped to the near plane: up to four screen-space corners.
+// --8<-- [end:project-main]
 
+// --8<-- [start:project-polygon]
+// A triangle clipped to the near plane: up to four screen-space corners.
 struct ProjectedPolygon {
     points: array<vec3<f32>,
     4>,
@@ -210,7 +216,10 @@ fn physical_polygon_area(polygon: ProjectedPolygon) -> f32 {
     // zero only for a degenerate polygon
     return physical_cross(polygon.points[1].xy-polygon.points[0].xy, polygon.points[2].xy-polygon.points[0].xy);
 }
+// --8<-- [end:project-polygon]
 
+// --8<-- [start:project-includes]
 #include "slot_table.wgsl"
 #include "clip.wgsl"
 #include "projected_triangle.wgsl"
+// --8<-- [end:project-includes]

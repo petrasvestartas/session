@@ -1,3 +1,5 @@
+// --8<-- [start:payload]
+// Resource accounting: count the bytes the loaded documents keep alive, so `?inspect=1` shows where the memory goes.
 use super::super::scene::FileDoc;
 use session_rust::{
     BRep, Collection, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, NurbsSurfaceTrimmed,
@@ -7,9 +9,11 @@ use std::collections::{HashMap, HashSet};
 use std::mem::{size_of, size_of_val};
 use std::rc::{Rc, Weak};
 
+// `serde::Serialize` writes the struct out as JSON for the inspection snapshot.
 /// Memory held by the loaded documents, by category.
 #[derive(Clone, Copy, Default, serde::Serialize)]
 pub(super) struct Payload {
+    // capacity, not length: a Vec holding 10 values with room for 128 keeps all 128 allocated
     pub vector_capacity_bytes: usize,    // Vec capacities
     pub string_capacity_bytes: usize,    // String capacities
     pub exposed_slice_bytes: usize,      // slices whose capacity is hidden
@@ -33,10 +37,12 @@ impl Payload {
     }
 
     /// Add a Vec's capacity.
+    // `size_of::<T>()` is the bytes of one T: 8 for an f64, 24 for a String's pointer, length and capacity
     fn vector<T>(&mut self, value: &Vec<T>) {
         self.vector_capacity_bytes += value.capacity() * size_of::<T>();
     }
 
+    // A kernel Collection keeps a removed object's slot until a purge, so undo can put it back; those dead slots still cost memory.
     /// Add a Collection's slots, dead ones included.
     fn collection<T>(&mut self, value: &Collection<T>) {
         self.vector_capacity_bytes += value.number_of_slots() * size_of::<T>();
@@ -57,7 +63,9 @@ impl Payload {
         self.string_capacity_bytes += value.capacity();
     }
 }
+// --8<-- [end:payload]
 
+// --8<-- [start:source-cache]
 /// The last count, reused while the documents are the same.
 #[derive(Default)]
 pub(super) struct SourceCache {
@@ -70,6 +78,7 @@ impl SourceCache {
     pub fn snapshot(&mut self, docs: &[FileDoc]) -> Payload {
         let mut matches = docs.len() == self.documents.len();
 
+        // an Rc's address is its identity: the same addresses in the same order mean nothing was replaced
         if matches {
             for (old, doc) in self.documents.iter().zip(docs) {
                 if old.as_ptr() != Rc::as_ptr(&doc.session) {
@@ -94,7 +103,7 @@ impl SourceCache {
         for doc in docs {
             self.documents.push(Rc::downgrade(&doc.session));
 
-            if seen_sessions.insert(Rc::as_ptr(&doc.session) as usize) {
+            if seen_sessions.insert(Rc::as_ptr(&doc.session) as usize) { // two documents sharing one session count it once
                 payload.unique_sessions += 1;
                 payload.shared_value_bytes += size_of::<Session>();
                 session_payload(&doc.session, &mut payload, &mut seen_geometry);
@@ -105,13 +114,15 @@ impl SourceCache {
         payload
     }
 }
+// --8<-- [end:source-cache]
 
+// --8<-- [start:shared-values]
 /// Add a Collection of Rc values, each live value once.
 fn shared_all<T>(
     values: &Collection<Rc<T>>,
     payload: &mut Payload,
     seen: &mut HashSet<usize>,
-    children: fn(&T, &mut Payload),
+    children: fn(&T, &mut Payload), // a plain function passed as a value: each type brings its own counter
 ) {
     payload.collection(values);
 
@@ -135,7 +146,9 @@ fn shared<T>(
     payload.shared_value_bytes += size_of::<T>();
     children(value, payload);
 }
+// --8<-- [end:shared-values]
 
+// --8<-- [start:session-payload]
 /// Add one session's bytes.
 fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>) {
     p.string(&session.name);
@@ -160,7 +173,7 @@ fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>
     shared_all(&objects.elements, p, seen, element_payload);
     p.collection(&objects.components);
     p.dead_slots += session.number_of_dead();
-    p.history_bytes += session.history.bytes;
+    p.history_bytes += session.history.bytes; // undo keeps removed objects alive; the kernel keeps this figure
 
     for component in &objects.components {
         p.string(&component.name);
@@ -263,7 +276,9 @@ fn instances_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usiz
         p.string(name);
     }
 }
+// --8<-- [end:session-payload]
 
+// --8<-- [start:simple-payload]
 /// Add a point's name bytes.
 fn point_payload(value: &Point, p: &mut Payload) {
     p.string(&value.name);
@@ -321,7 +336,9 @@ fn curve_payload(value: &NurbsCurve, p: &mut Payload) {
     color_names(&value.pointcolors, p);
     color_names(&value.linecolors, p);
 }
+// --8<-- [end:simple-payload]
 
+// --8<-- [start:solid-payload]
 /// Add a surface's bytes, cached mesh included.
 fn surface_payload(value: &NurbsSurface, p: &mut Payload) {
     p.string(&value.name);
@@ -545,7 +562,9 @@ fn element_payload(value: &Element, p: &mut Payload) {
         ElementGeometry::None => {}
     }
 }
+// --8<-- [end:solid-payload]
 
+// --8<-- [start:memory-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -624,3 +643,4 @@ mod tests {
         assert_eq!(payload.vector_capacity_bytes, 0);
     }
 }
+// --8<-- [end:memory-tests]

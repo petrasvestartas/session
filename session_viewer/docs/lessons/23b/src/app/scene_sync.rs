@@ -1,3 +1,5 @@
+// --8<-- [start:sync-budgets]
+// Sync = apply the notes of one edit to the GPU rows they name: editing 1 object of 100 000 touches 1 row.
 use super::Scene;
 use super::rows::{
     Cap, FREE, Footprint, GEOMETRY, Note, PLACE, PRESENCE, SINK, SUBTREE, TOMB, Tomb,
@@ -16,6 +18,7 @@ use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::{Rc, Weak};
 
+// `type` names a long type once; a tree node is shared by the tree and its caches, and changed through the RefCell.
 type Node = Rc<RefCell<TreeNode>>;
 
 /// Dead editable bytes that start a compaction, at least.
@@ -29,7 +32,10 @@ pub(crate) const TOMB_CAP: u64 = 256 * 1024 * 1024;
 
 /// GPU bytes of one cloud point: position, colour and packed normal.
 const CLOUD_POINT_BYTES: u64 = 20;
+// --8<-- [end:sync-budgets]
 
+// --8<-- [start:sync-notes]
+// Transaction = the ops of one user action: moving 3 objects is 1 transaction of 3 Xform ops, undone by 1 undo.
 /// Commit the open transaction; its ops name the objects it touched. Every viewer edit commits here.
 pub(crate) fn commit(session: &mut Session) -> Vec<Note> {
     let notes = match &session.history.current {
@@ -42,6 +48,7 @@ pub(crate) fn commit(session: &mut Session) -> Vec<Note> {
 
 /// Notes of the transaction an undo (`back`) or redo just stepped.
 pub(crate) fn stepped(history: &History, back: bool) -> Vec<Note> {
+    // an undo moved the transaction onto the redo stack, a redo moved it back onto the undo stack
     let notes = if back {
         history.redo_stack.last().map(reverted)
     } else {
@@ -85,7 +92,7 @@ fn applied(transaction: &Transaction) -> Vec<Note> {
                 tomb: Some(Rc::downgrade(&t.tomb)),
             },
             Op::Replace(r) => Note::new(&r.guid, GEOMETRY),
-            // the marker pair an Add Edge step leaves
+            // `if` on an arm is a match guard; `continue` skips the marker pair an Add Edge step leaves
             Op::Xform(x) if x.guid == transaction.label => continue,
             Op::Xform(x) => Note::new(&x.guid, PLACE | SUBTREE),
             Op::Tree(t) => tree_note(t),
@@ -127,9 +134,12 @@ fn reverted(transaction: &Transaction) -> Vec<Note> {
 
     notes
 }
+// --8<-- [end:sync-notes]
 
+// --8<-- [start:sync-addresses]
 /// The address of the object a geometry wraps.
 fn address(geometry: &Geometry) -> usize {
+    // the heap address inside the Rc is the object's identity: equal addresses mean the very object, not a copy
     match geometry {
         Geometry::OBB(g) => Rc::as_ptr(g) as usize,
         Geometry::BRep(g) => Rc::as_ptr(g) as usize,
@@ -147,11 +157,12 @@ fn address(geometry: &Geometry) -> usize {
 
 /// The address of the object in a kernel tomb's slot, dead or alive; None for a definition or a node.
 fn slot_address(session: &Session, record: &history::Tomb) -> Option<usize> {
+    // a kernel tomb records the collection slot a removed object still sits in, dead, until a purge frees it
     if record.definition {
         return None;
     }
 
-    let slot = record.slot.get();
+    let slot = record.slot.get(); // a Cell: a purge can renumber the slot through a shared reference
     let objects = &session.objects;
 
     match record.collection.as_str() {
@@ -184,9 +195,13 @@ fn cloud_points(session: &Session, record: &history::Tomb) -> Option<u64> {
 
 /// The address of the object in `slot` of `list`.
 fn held<T>(list: &Collection<Rc<T>>, slot: usize) -> Option<usize> {
+    // a Collection keeps dead slots in place, so slot numbers stay valid for an undo; `then` turns true into Some
     (slot < list.number_of_slots()).then(|| Rc::as_ptr(list.get_item(slot)) as usize)
 }
+// --8<-- [end:sync-addresses]
 
+// --8<-- [start:sync-work]
+// Identity = (document index, guid): one file placed twice gives each of its objects two identities.
 /// One identity a sync looks at.
 pub(super) struct Work {
     pub(super) doc: usize,                            // its document
@@ -201,6 +216,7 @@ pub(super) struct Work {
 
 /// Add one identity, or merge it into the entry already there.
 fn merge(work: &mut Vec<Work>, at: &mut HashMap<(usize, Rc<str>), usize>, item: Work) {
+    // two notes on one object become one entry with both bits: a move then a recolour is PLACE | GEOMETRY
     match at.get(&(item.doc, Rc::clone(&item.guid))) {
         Some(&index) => {
             let entry = &mut work[index];
@@ -236,6 +252,7 @@ fn check(session: &Session, node: Node, guid: &str) -> Option<(Node, bool)> {
         return None;
     }
 
+    // climb to the top: a removed subtree keeps its nodes, so its top is not the document's root
     let mut top = Rc::clone(&node);
 
     loop {
@@ -254,6 +271,7 @@ fn check(session: &Session, node: Node, guid: &str) -> Option<(Node, bool)> {
     Some((node, in_tree))
 }
 
+// `pub(crate) use` re-exports scene.rs's tree_key, so callers reach it as sync::tree_key too
 pub(crate) use super::tree_key;
 
 /// True when an ancestor below the root is an `attributes` group: the object is drawn by its element.
@@ -272,7 +290,10 @@ pub(super) fn baked(node: &Node) -> bool {
 
     false
 }
+// --8<-- [end:sync-work]
 
+// --8<-- [start:sync-queue]
+// A second `impl Scene` in another file: this file is a child module of scene.rs, so it also sees Scene's private fields.
 impl Scene {
     /// True while an edit's notes wait for a sync.
     pub(crate) fn has_pending(&self) -> bool {
@@ -326,6 +347,7 @@ impl Scene {
 
     /// Fix only the rows named by `commit` and `stepped`; the GPU work waits in `staged`.
     pub(crate) fn sync(&mut self) {
+        // `mem::take` moves the queue out and leaves an empty one, so the loop owns the notes while `self` stays free
         let pending = std::mem::take(&mut self.pending);
         let hints = std::mem::take(&mut self.hints);
         let mut work = Vec::new();
@@ -369,7 +391,9 @@ impl Scene {
             self.row_revision = self.row_revision.wrapping_add(1);
         }
     }
+    // --8<-- [end:sync-queue]
 
+    // --8<-- [start:sync-find-nodes]
     /// Find each identity's tree node: a hint, the note's node, the row's cache, then one search per document.
     fn find_nodes(&mut self, work: &mut [Work], hints: Vec<(usize, Weak<RefCell<TreeNode>>)>) {
         let mut hinted: HashMap<(usize, String), Node> = HashMap::new();
@@ -387,6 +411,7 @@ impl Scene {
             let session = Rc::clone(&self.docs[item.doc].session);
             let hint = hinted.remove(&(item.doc, item.guid.to_string()));
             let noted = item.weak.take().and_then(|weak| weak.upgrade());
+            // each `or_else` runs only when the finder before it found nothing, so the cheap ones go first
             let found = hint
                 .and_then(|node| check(&session, node, &item.guid))
                 .or_else(|| noted.and_then(|node| check(&session, node, &item.guid)))
@@ -431,6 +456,7 @@ impl Scene {
         let (doc, guid) = self.identity_of(row)?;
         let file = self.docs.get(doc)?;
 
+        // the cache names the tree it was filled from; a replaced tree fails this one compare
         if self.doc_state.get(doc)?.nodes_from != tree_key(&file.session) {
             return None;
         }
@@ -487,6 +513,7 @@ impl Scene {
         let Some(root) = session.tree.root() else {
             return found;
         };
+        // a Vec used as a stack walks the tree depth first without recursion; reversed children pop in order
         let mut stack = vec![root];
 
         while let Some(node) = stack.pop() {
@@ -537,6 +564,7 @@ impl Scene {
 
     /// Add every object below each SUBTREE identity, to be placed and judged again.
     fn expand(&mut self, work: &mut Vec<Work>, at: &mut HashMap<(usize, Rc<str>), usize>) {
+        // an index loop, not an iterator: `merge` pushes onto `work` inside it, which a live borrow would forbid
         for index in 0..work.len() {
             if work[index].what & SUBTREE == 0 {
                 continue;
@@ -572,7 +600,9 @@ impl Scene {
             }
         }
     }
+    // --8<-- [end:sync-find-nodes]
 
+    // --8<-- [start:sync-reconcile]
     /// One row's world placement: file placement times every transform down its tree path.
     pub fn placement_of(&self, row: u32) -> Option<Xform> {
         let (doc, guid) = self.identity_of(row)?;
@@ -586,6 +616,7 @@ impl Scene {
 
     /// Kill, create, redraw or move the row of one identity; true when a row came or went.
     fn reconcile(&mut self, item: &Work) -> bool {
+        // from lesson 21 an instanced object answers here first; None means an ordinary object
         let mut instance: Option<bool> = None;
         instance = instance.or_else(|| self.reconcile_instance(item)); // register:instancing
 
@@ -602,8 +633,10 @@ impl Scene {
             .get(&(item.doc, Rc::clone(&item.guid)))
             .copied();
 
+        // one match over a tuple names all four cases: a row not wanted, wanted without a row, both, neither
         match (row, geometry) {
             (Some(row), _) if !wanted => {
+                // a delete an undo can reach is buried, anything else is killed
                 match self.record_of(row, item) {
                     Some(record) => self.bury(row, record, item),
                     None => self.kill(row),
@@ -665,11 +698,12 @@ impl Scene {
                 }
             }
 
+            // multiply from the root down: file x group x object, so moving a group moves everything below it
             let mut acc = Xform::identity();
 
             for step in path.iter().rev() {
                 if let Some(local) = xforms.get(&step.borrow().name) {
-                    acc = &acc * local;
+                    acc = &acc * local; // `&a * &b` multiplies borrowed matrices: neither is moved or copied
                 }
             }
 
@@ -704,7 +738,7 @@ impl Scene {
         let file = &self.docs[doc];
         let mut up = Upload::default();
         let cx = WalkCx {
-            vert_base: 0,
+            vert_base: 0, // walked alone from vertex 0; `shift_vertices` moves the rows to their real place later
             cloud_px: file.point_px,
             row,
             attributes: self.attributes,
@@ -729,7 +763,9 @@ impl Scene {
 
         (up, object)
     }
+    // --8<-- [end:sync-reconcile]
 
+    // --8<-- [start:sync-create]
     /// Give an identity a row: a freed id, else one after every row.
     fn create(&mut self, item: &Work, geometry: &Geometry) {
         let doc = item.doc;
@@ -770,6 +806,7 @@ impl Scene {
         let cloud = matches!(geometry, Geometry::PointCloud(_));
         self.feet[i] = self.place_rows(doc, &item.guid, up, cloud);
 
+        // rows below object_rows are already on the GPU and change through `staged`; newer ones still wait in the tables
         if row < self.object_rows {
             self.staged.rows.push((row, object));
         } else {
@@ -818,7 +855,9 @@ impl Scene {
 
         self.spans.foot(Span { start, count })
     }
+    // --8<-- [end:sync-create]
 
+    // --8<-- [start:sync-redraw]
     /// Draw `row` from `geometry` again: at its grave, in its own rows, or after every row.
     fn redraw_row(
         &mut self,
@@ -964,16 +1003,17 @@ impl Scene {
         let new = Counts::of(&up);
         self.tables.merge(up, start.verts);
         let mut alloc = new;
-        let pad = |rows: u32| rows.div_ceil(2);
-        let t = &mut self.tables;
+        // headroom = spare dead rows behind a dragged object, so the next frames can grow it by half without moving it
+        let pad = |rows: u32| rows.div_ceil(2); // a closure, a small unnamed function; div_ceil rounds up: 5 gives 3
+        let t = &mut self.tables; // a short name for one mutable borrow; it ends before `self.dead` is used below
         let vertex = start.verts;
 
         for _ in 0..pad(new.verts) {
-            t.arena.verts.push(bytemuck::Zeroable::zeroed());
+            t.arena.verts.push(bytemuck::Zeroable::zeroed()); // an all-zero vertex owned by the sink draws nothing
             t.arena.vids.push(sink);
         }
 
-        let dead_index = |rows: u32| pad(rows).div_ceil(3) * 3;
+        let dead_index = |rows: u32| pad(rows).div_ceil(3) * 3; // index lanes grow in whole triangles
 
         for _ in 0..dead_index(new.faces) {
             t.arena.idx.push(vertex);
@@ -1053,11 +1093,14 @@ impl Scene {
         );
         self.spans.keep(span)
     }
+    // --8<-- [end:sync-redraw]
 
+    // --8<-- [start:sync-bury]
     /// Drop an identity's row: its lane rows go to the sink, its id waits for the end of the sync.
     pub(super) fn kill(&mut self, row: u32) {
         let i = row as usize;
         let doc = self.owners[i];
+        // `mem::replace` puts the empty name in and hands the old one back, so the guid is moved, not cloned
         let guid = std::mem::replace(&mut self.order[i], Rc::clone(&self.empty));
         let foot = self.feet[i];
         let key = (doc, guid);
@@ -1161,7 +1204,9 @@ impl Scene {
 
         self.forget_preview(row); // register:editing
     }
+    // --8<-- [end:sync-bury]
 
+    // --8<-- [start:sync-revive]
     /// Show a buried identity again when its tomb holds this very object walked the same way; false when it walks anew.
     fn revive(&mut self, item: &Work, geometry: &Geometry) -> bool {
         let key = (item.doc, Rc::clone(&item.guid));
@@ -1172,6 +1217,7 @@ impl Scene {
 
         let place = self.world_place(item.doc, item.node.as_ref(), item.in_tree, &item.guid);
         let session = &self.docs[item.doc].session;
+        // placements compared as bits: the same placement is the very same 16 numbers, no tolerance
         let bits = |x: &Xform| x.m.map(f64::to_bits);
         let same = self.tombs.get(&key).is_some_and(|tomb| {
             tomb.attributes == self.attributes
@@ -1247,7 +1293,7 @@ impl Scene {
         let gone: Vec<_> = self
             .tombs
             .iter()
-            .filter(|(_, tomb)| tomb.record.strong_count() == 0)
+            .filter(|(_, tomb)| tomb.record.strong_count() == 0) // history dropped the record: no undo reaches it
             .map(|(key, _)| key.clone())
             .collect();
 
@@ -1298,7 +1344,9 @@ impl Scene {
         self.sink = Some(row);
         row
     }
+    // --8<-- [end:sync-revive]
 
+    // --8<-- [start:sync-compaction]
     /// Draw `row` from `geometry` without touching its document; `preview` during a drag.
     pub(crate) fn redraw(&mut self, row: u32, geometry: &Geometry, preview: bool) {
         let Some((doc, guid)) = self.identity_of(row) else {
@@ -1316,6 +1364,7 @@ impl Scene {
         self.redraw_row(row, doc, &guid, geometry, place, preview);
     }
 
+    // Compaction = walk every editable object again into fresh lanes without gaps; row ids stay, so selection survives.
     /// True when the dead editable rows pass 16 MiB and, with the tombs, outweigh the live ones.
     pub(crate) fn compaction_due(&self) -> bool {
         let dead = self.dead.bytes();
@@ -1324,6 +1373,7 @@ impl Scene {
         dead >= COMPACT_MIN && dead + tombs >= live
     }
 
+    // Purge = the kernel freeing what no undo reaches, 16 384 slots per idle frame (about 2 ms), so no frame stalls.
     /// Spend one idle kernel purge step on every document that owes one; true while a cycle is unfinished.
     pub(crate) fn purge_step(&mut self) -> bool {
         let mut running = false;
@@ -1336,6 +1386,7 @@ impl Scene {
                 continue;
             }
 
+            // `Rc::make_mut` gives mutable access to the inside; with one owner, checked above, it copies nothing
             running |= Rc::make_mut(&mut file.session).purge_step(PURGE_WORK);
         }
 
@@ -1363,6 +1414,7 @@ impl Scene {
     /// Walk every editable document again into fresh lanes, in load order; ids and everything else stay.
     /// False, having asked for them, while a released document would lose its rows.
     pub fn rewalk_editable(&mut self, gpu: &mut Gpu) -> bool {
+        // from lesson 21 a released document first asks for its kernel data back
         let mut waiting = false;
         waiting |= self.want_all(); // register:editing
 
@@ -1484,7 +1536,9 @@ impl Scene {
 
         self.rewalk_instances(doc); // register:instancing
     }
+    // --8<-- [end:sync-compaction]
 
+    // --8<-- [start:sync-counters]
     /// CPU bytes of the per-row tables and the maps keyed by identity.
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn row_table_bytes(&self) -> usize {
@@ -1518,7 +1572,9 @@ impl Scene {
         )
     }
 }
+// --8<-- [end:sync-counters]
 
+// --8<-- [start:sync-test-scene]
 #[cfg(test)]
 impl Scene {
     /// What `upload_to` does, without a GPU: the ledger takes the object rows, the tables count as uploaded.
@@ -1741,7 +1797,9 @@ impl Scene {
         assert_eq!(self.pending.len(), 0);
     }
 }
+// --8<-- [end:sync-test-scene]
 
+// --8<-- [start:sync-test-helpers]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1961,8 +2019,10 @@ mod tests {
         }
     }
 }
+// --8<-- [end:sync-test-helpers]
 
 // --8<-- [start:21]
+// --8<-- [start:sync-previews]
 use crate::app::mesh_preview::MeshPreview;
 
 use crate::app::surface_preview::SurfacePreview;
@@ -2083,7 +2143,9 @@ impl Scene {
         }
     }
 }
+// --8<-- [end:sync-previews]
 
+// --8<-- [start:sync-editing-tests]
 #[cfg(test)]
 mod editing_tests {
     use super::tests::{check, file, find, live, p, scene};
@@ -2292,9 +2354,11 @@ mod editing_tests {
         );
     }
 }
+// --8<-- [end:sync-editing-tests]
 // --8<-- [end:21]
 
 // --8<-- [start:23]
+// --8<-- [start:sync-commands-tests]
 #[cfg(test)]
 mod commands_tests {
     use super::tests::{Dice, check, file, find, live, p, scene};
@@ -2852,4 +2916,5 @@ mod commands_tests {
         scene.settle();
     }
 }
+// --8<-- [end:sync-commands-tests]
 // --8<-- [end:23]

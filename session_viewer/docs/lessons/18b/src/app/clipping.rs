@@ -1,3 +1,4 @@
+// --8<-- [start:clip-mode]
 use crate::engine::gpu::clip::ClipPlane;
 use session_rust::{Plane, Point, Vector, Xform};
 
@@ -65,7 +66,9 @@ impl Mode {
         }
     }
 }
+// --8<-- [end:clip-mode]
 
+// --8<-- [start:plane-from]
 /// A clipping plane through picked points, its rectangle `half` wide each way from the origin.
 pub fn plane_from(mode: Mode, points: &[[f64; 3]], half: f64) -> Result<Plane, String> {
     if points.len() != mode.points() {
@@ -113,6 +116,7 @@ pub fn plane_from(mode: Mode, points: &[[f64; 3]], half: f64) -> Result<Plane, S
         Mode::Yz => ([0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0]),
         Mode::Zx => ([0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]),
     };
+    // the x and y axes are `half` long: the rectangle drawn for the plane is 2 * half wide
     let mut plane = Plane::from_frame(
         Point::new(origin[0], origin[1], origin[2]),
         Vector::new(x[0] * half, x[1] * half, x[2] * half),
@@ -129,7 +133,9 @@ pub fn flipped(plane: &Plane) -> Plane {
     plane.reverse();
     plane
 }
+// --8<-- [end:plane-from]
 
+// --8<-- [start:clip-plane]
 /// The world clipping plane of `plane` placed at `place`; None when its rectangle is flat.
 pub fn clip_plane(plane: &Plane, place: &Xform) -> Option<ClipPlane> {
     let origin = array(&place.transform_point(&plane.origin()));
@@ -141,6 +147,7 @@ pub fn clip_plane(plane: &Plane, place: &Xform) -> Option<ClipPlane> {
         return None;
     }
 
+    // the kept side is opposite the arrow, so the normal points into what stays
     let normal = unit(cut).map(|v| -v);
     // across the 45 degree lines, in the plane
     let across = sub(unit(x), unit(y));
@@ -156,7 +163,9 @@ pub fn clip_plane(plane: &Plane, place: &Xform) -> Option<ClipPlane> {
         hatch,
     })
 }
+// --8<-- [end:clip-plane]
 
+// --8<-- [start:clipping-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -309,3 +318,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:clipping-tests]

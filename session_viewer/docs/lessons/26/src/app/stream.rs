@@ -1,3 +1,5 @@
+// --8<-- [start:stream-fields]
+// A streamed file is read by byte range, never whole; these structs remember where each array starts, so one slice is one range read.
 /// Byte positions of a cloud's arrays in its file.
 #[derive(Clone, Debug)]
 pub struct CloudFields {
@@ -11,6 +13,7 @@ pub struct CloudFields {
     pub count: u32,               // points in the cloud
     pub ids_at: u64,              // start of the original ids, 0 = none
     pub ids_len: u64,             // their length
+    // a file replaced mid-stream answers with a new ETag, and its reads fail instead of mixing two versions
     pub revision: Option<String>, // file ETag every read must match
 }
 
@@ -31,7 +34,9 @@ pub struct SheetFields {
     pub meta: String,             // side table file name, empty = none
     pub revision: Option<String>, // file ETag every read must match
 }
+// --8<-- [end:stream-fields]
 
+// --8<-- [start:stream-field-at]
 /// One protobuf field header.
 #[derive(Clone, Copy)]
 pub struct Field {
@@ -107,14 +112,16 @@ impl SheetFields {
                 Ok(meta) => self.meta = meta.to_string(),
                 Err(_) => return false,
             },
-            (1..=8, _) | (15, _) => return false,
+            (1..=8, _) | (15, _) => return false, // a known field with the wrong wire type or size
             _ => {}
         }
 
         true
     }
 }
+// --8<-- [end:stream-field-at]
 
+// --8<-- [start:stream-lod]
 /// A cloud's octree node table.
 #[derive(Clone, Default)]
 pub struct CloudLod {
@@ -150,6 +157,7 @@ impl CloudLod {
             }
         }
 
+        // fields 8 to 14 of the cloud message are the octree's parallel arrays, one entry per node
         match field {
             8 => self.min = packed_f64(raw),
             9 => self.size = packed_f64(raw),
@@ -186,6 +194,7 @@ impl CloudLod {
             return false;
         }
 
+        // a node has one parent only: a child claimed twice would turn the tree into a loop
         let mut parents = vec![false; n];
 
         for node in 0..n {
@@ -259,7 +268,10 @@ impl CloudLod {
         self.size.is_empty()
     }
 }
+// --8<-- [end:stream-lod]
 
+// --8<-- [start:stream-layout]
+// A `use` may stand anywhere in a module and applies to all of it.
 use super::validate::varint;
 
 /// Byte length of a scalar field of wire type `wire`.
@@ -281,6 +293,7 @@ pub fn walk_to_coords(head: &[u8]) -> Option<(u64, u64)> {
     Some((at, length))
 }
 
+// The path to a cloud's points: Session field 3 (Objects) → Objects field 8 (PointCloud) → its field 3 (coords).
 /// Start, length of `coords` and end of the cloud message.
 fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
     let mut at = 0usize;
@@ -383,10 +396,12 @@ fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u
         *at = usize::try_from(next).ok()?;
     }
 }
+// --8<-- [end:stream-layout]
 
+// --8<-- [start:stream-checks]
 /// True when the value fits an f32.
 fn finite_float(value: f64) -> bool {
-    value.is_finite() && (value as f32).is_finite()
+    value.is_finite() && (value as f32).is_finite() // 1e39 is a finite double but infinity as an f32
 }
 
 /// `count` xyz triples as f32; None when short or not finite.
@@ -430,6 +445,7 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
     if next <= end { Some(next) } else { None }
 }
 
+// One 64 KiB read answers the many small header reads that follow it, instead of one network request each.
 /// A cached slice of the file's header bytes.
 #[cfg(any(target_arch = "wasm32", test))]
 #[derive(Default)]
@@ -457,7 +473,9 @@ impl MetadataWindow {
         Some(length.max(64 * 1024).min(end - at))
     }
 }
+// --8<-- [end:stream-checks]
 
+// --8<-- [start:stream-packed]
 /// A packed `int32` (varint) array in full.
 pub fn packed_i32(raw: &[u8]) -> Vec<i32> {
     let mut out = Vec::new();
@@ -533,6 +551,7 @@ pub fn normals_from(raw: &[u8]) -> Vec<u32> {
     out
 }
 
+// A colour is stored as four varints, r g b a, so one point takes 4 to 8 bytes and a slice's colours end where they end.
 /// `count` colours from packed varints, and where they ended.
 pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
     let mut out = Vec::with_capacity(count as usize);
@@ -552,14 +571,18 @@ pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
 
     Some((out, i))
 }
+// --8<-- [end:stream-packed]
 
+// --8<-- [start:stream-web]
+// `pub use web::*` re-exports the browser-only reads, so callers write `stream::probe`, not `stream::web::probe`.
 #[cfg(target_arch = "wasm32")]
 pub use web::*;
 
+// An inline module groups everything that needs the browser, so the one #[cfg] above it covers all of it.
 /// The reads: find the arrays, then fetch slices by range.
 #[cfg(target_arch = "wasm32")]
 mod web {
-    use super::*;
+    use super::*; // everything the file declares above
     use crate::app::fetch::{GetOpts, PROBE_BYTES, Reply, Task, fetch_range, get, retryable};
     use crate::app::manifest::immutable_key;
     use crate::app::range_gate::{RANGE_READS, RangeGate};
@@ -643,7 +666,9 @@ mod web {
         let (url, revision) = (url.to_string(), revision.clone());
         Task::start(async move { source_range(&url, at, length, &revision).await })
     }
+// --8<-- [end:stream-web]
 
+// --8<-- [start:stream-probe]
     /// The first 8 KB of a file, read once for every layout check and the file's size.
     pub async fn probe(url: &str) -> Option<Reply> {
         let reply = get(
@@ -661,7 +686,7 @@ mod web {
 
     /// Find where a cloud's arrays are in the file, from its `probe`.
     pub async fn cloud_fields(url: &str, probe: &Reply) -> Option<CloudFields> {
-        if probe.status != 206 {
+        if probe.status != 206 { // 206 = the server honoured the range; 200 means it ignores ranges
             return None;
         }
 
@@ -700,7 +725,9 @@ mod web {
             revision: probe.etag.clone(),
         })
     }
+// --8<-- [end:stream-probe]
 
+// --8<-- [start:stream-lod-read]
     /// Read the cloud's node table.
     pub async fn cloud_lod(url: &str, fields: &mut CloudFields) -> Option<CloudLod> {
         let mut at = body_end(fields.colors_at, fields.colors_len, fields.end)?;
@@ -787,7 +814,9 @@ mod web {
         (fields.normals_at, fields.normals_len) = normals;
         Some(lod)
     }
+// --8<-- [end:stream-lod-read]
 
+// --8<-- [start:stream-arrays]
     /// Points `[from, to)` of the cloud.
     pub async fn fetch_positions(
         url: &str,
@@ -861,7 +890,9 @@ mod web {
         Some((colors, body_end(at, used as u64, end)?))
     }
 }
+// --8<-- [end:stream-arrays]
 
+// --8<-- [start:stream-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1151,8 +1182,11 @@ mod tests {
         assert_eq!(used, 8);
     }
 }
+// --8<-- [end:stream-tests]
 
-// --8<-- [start:19]
+// --8<-- [start:19-sheet-read]
+// --8<-- [start:sheet-fields]
+// A sheet's arrays are found the same way, then each slice reads coords, colours, widths and ids as four ranges at once.
 #[cfg(target_arch = "wasm32")]
 pub use web_sheets::*;
 
@@ -1212,7 +1246,9 @@ mod web_sheets {
 
         Some(fields)
     }
+// --8<-- [end:sheet-fields]
 
+// --8<-- [start:sheet-slice]
     /// The byte range of entries `[from, to)` of one fixed-width array.
     fn sheet_range(
         fields: &SheetFields,
@@ -1263,4 +1299,5 @@ mod web_sheets {
         })
     }
 }
-// --8<-- [end:19]
+// --8<-- [end:sheet-slice]
+// --8<-- [end:19-sheet-read]

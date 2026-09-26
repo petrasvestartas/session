@@ -1,3 +1,5 @@
+// --8<-- [start:fonts]
+// The wasm carries small font subsets; the whole fonts, a few MB, download only when a name needs a character the subsets lack, e.g. Ω.
 use crate::engine::text::covers;
 use session_rust::Session;
 use std::cell::Cell;
@@ -18,7 +20,7 @@ pub fn need(text: &str) {
         text.chars().take(40).collect::<String>()
     );
     #[cfg(target_arch = "wasm32")]
-    wasm_bindgen_futures::spawn_local(fetch());
+    wasm_bindgen_futures::spawn_local(fetch()); // starts the download and returns at once; the fonts arrive later as a message
 }
 
 /// `need` for a document's name, tree node names and object names.
@@ -56,3 +58,4 @@ async fn fetch() {
 
     super::loader::post(crate::Msg::Fonts(faces));
 }
+// --8<-- [end:fonts]

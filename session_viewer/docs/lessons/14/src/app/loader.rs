@@ -1,3 +1,5 @@
+// --8<-- [start:loader-state]
+// The loader is the async task that fetches the manifest and every file, decodes them and posts each result to the event loop.
 use super::decode::{Body, session_from_body};
 use super::fetch::{Reply, fetch_buffer, fetch_bytes, gunzip, sleep_ms};
 use super::live::LiveSource;
@@ -49,6 +51,7 @@ thread_local! {
     /// Sheet segments loaded so far.
     static SHEET_RESIDENT: Cell<u32> = const { Cell::new(0) };
 
+    // A generation counter: each clear or reload adds one, and a task that sees the number change knows its scene is gone.
     /// Bumped when the scene is cleared; old stream tasks stop.
     static GENERATION: Cell<u32> = const { Cell::new(0) };
 
@@ -59,6 +62,7 @@ thread_local! {
     static LOADING: Cell<u32> = const { Cell::new(0) };
 }
 
+// A unit struct used as a guard: `start()` counts up and Drop counts down, whichever `return` the load leaves by.
 /// Counts one manifest load while alive.
 struct Loading;
 
@@ -91,7 +95,9 @@ fn clear_scene() {
     SHEET_RESIDENT.set(0);
     post(Msg::Clear);
 }
+// --8<-- [end:loader-state]
 
+// --8<-- [start:loader-budget]
 /// Send one message to the event loop; false when it is gone.
 pub(super) fn post(msg: Msg) -> bool {
     PROXY.with_borrow(|proxy| {
@@ -130,7 +136,9 @@ fn sheet_budget_left() -> u32 {
 fn sheet_budget_spend(n: u32) {
     SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_add(n));
 }
+// --8<-- [end:loader-budget]
 
+// --8<-- [start:loader-boot]
 /// Start the viewer, load the first scene, then keep polling.
 pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
     PROXY.with_borrow_mut(|slot| *slot = Some(proxy.clone()));
@@ -197,6 +205,7 @@ async fn post_live(src: &mut LiveSource) -> bool {
     true
 }
 
+// `#[wasm_bindgen]` exports the function to JavaScript: the page or a browser test calls `reload_scene()` directly.
 /// Load a named scene, or reload the page's own, keeping the camera.
 #[wasm_bindgen]
 pub fn reload_scene(url: Option<String>) {
@@ -245,7 +254,9 @@ async fn fetch_manifest(route: &SceneRoute) -> Result<Vec<u8>, String> {
         result => result,
     }
 }
+// --8<-- [end:loader-boot]
 
+// --8<-- [start:loader-route]
 /// Load every item of a manifest, from `early` when it was prefetched; a reload swaps the scene
 /// only once complete.
 async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<js_sys::Promise>) {
@@ -473,7 +484,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
     );
     crate::engine::performance::mark("scene posted");
 }
+// --8<-- [end:loader-route]
 
+// --8<-- [start:loader-ahead]
 /// A file's probe and, when read ahead, its whole body in a JS buffer or why it failed.
 type Read = (Option<Reply>, Option<Result<js_sys::Uint8Array, String>>);
 
@@ -550,7 +563,7 @@ enum PendingDocument {
 /// True when a body starts with the gzip magic.
 fn packed(body: &Body) -> bool {
     match body {
-        Body::Bytes(bytes) => bytes.starts_with(&[0x1f, 0x8b]),
+        Body::Bytes(bytes) => bytes.starts_with(&[0x1f, 0x8b]), // every gzip stream starts with the bytes 1f 8b
         Body::Js(array) => {
             array.length() >= 2 && array.get_index(0) == 0x1f && array.get_index(1) == 0x8b
         }
@@ -565,7 +578,9 @@ async fn unpack(body: Body) -> Result<Body, String> {
     };
     gunzip(&array).await.map(Body::Js)
 }
+// --8<-- [end:loader-ahead]
 
+// --8<-- [start:loader-item]
 /// What the manifest loop does after a file was streamed.
 enum Step {
     Next, // go on with the next file
@@ -607,10 +622,10 @@ fn scene_budget_bytes() -> u64 {
 
     let gigabytes = web_sys::window()
         .map(|window| window.navigator())
-        .and_then(|navigator| js_sys::Reflect::get(&navigator, &"deviceMemory".into()).ok())
+        .and_then(|navigator| js_sys::Reflect::get(&navigator, &"deviceMemory".into()).ok()) // a JS property web-sys has no method for; the RAM in GB
         .and_then(|value| value.as_f64())
         .unwrap_or(4.0);
-    ((gigabytes * 16.0) as u64) << 20
+    ((gigabytes * 16.0) as u64) << 20 // `<< 20` = × 1 MiB: 4 GB of RAM allows 64 MB
 }
 
 /// The message naming skipped files, if any.
@@ -625,3 +640,4 @@ fn skipped_notice(skipped: &[String], budget: u64) -> String {
         skipped.join(", ")
     )
 }
+// --8<-- [end:loader-item]

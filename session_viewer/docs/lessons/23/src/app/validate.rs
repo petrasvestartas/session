@@ -1,3 +1,5 @@
+// --8<-- [start:validate-limits]
+// Validation checks every count, index and number of a file before the kernel allocates from it: a bad file fails with a message, not a crash.
 use prost::Message;
 use session_rust::proto;
 
@@ -12,13 +14,17 @@ pub const MAX_DEPTH: usize = 64;
 
 /// Why a scene with a deeper tree is refused.
 pub const TOO_DEEP: &str = "scene hierarchy exceeds 64 levels";
+// --8<-- [end:validate-limits]
 
+// --8<-- [start:validate-json]
+// `any(feature = ..., test)`: compiled when the Cargo feature is on, and always for the tests
 #[cfg(any(feature = "json-sessions", test))]
 /// Check every NURBS record in session JSON before it is parsed.
 pub fn json(text: &str) -> Result<(), String> {
     let source: serde_json::Value = serde_json::from_str(text).map_err(json_error)?;
     let mut pending = vec![(&source, 0usize)];
 
+    // a stack of pending values instead of recursion: a file nested 100,000 levels deep cannot overflow the call stack
     while let Some((value, depth)) = pending.pop() {
         if depth > 64 {
             return Err("session JSON exceeds 64 nested levels".into());
@@ -85,6 +91,7 @@ fn addressed_surface_controls(
     stride_v: usize,
     size: usize,
 ) -> Option<usize> {
+    // `checked_mul` / `checked_add` return None on overflow instead of wrapping around to a small, wrong index
     (rows - 1)
         .checked_mul(stride_u)?
         .checked_add((columns - 1).checked_mul(stride_v)?)?
@@ -157,7 +164,9 @@ fn json_axis(
     axis(order as i32, count as i32, &knots)?;
     Ok(())
 }
+// --8<-- [end:validate-json]
 
+// --8<-- [start:validate-session]
 /// Check every geometry of a loaded session.
 pub fn retained(source: &session_rust::Session) -> Result<(), String> {
     for item in &source.objects.meshes {
@@ -314,7 +323,9 @@ pub fn definitions(d: &proto::Objects, instances: usize) -> Result<(), String> {
 
     Ok(())
 }
+// --8<-- [end:validate-session]
 
+// --8<-- [start:validate-records]
 /// Check one protobuf point.
 pub fn point(source: &proto::Point) -> Result<(), String> {
     finite(&[source.x, source.y, source.z, source.width], "point")
@@ -337,6 +348,7 @@ pub fn polyline(source: &proto::Polyline) -> Result<(), String> {
 
 /// Check one protobuf element's mesh or BRep.
 pub fn element(source: &proto::Element) -> Result<(), String> {
+    // an element stores its shape as nested protobuf bytes, decoded here only to check them
     match source.geometry_type.as_str() {
         "Mesh" => {
             mesh(&proto::Mesh::decode(source.geometry_data.as_slice()).map_err(decode_error)?)
@@ -396,13 +408,16 @@ fn triples(values: &[f64], label: &str) -> Result<(), String> {
 
     finite(values, label)
 }
+// --8<-- [end:validate-records]
 
+// --8<-- [start:validate-nurbs]
 /// Check order, count and knots; returns the knot count.
 fn axis(order: i32, count: i32, knots: &[f64]) -> Result<usize, String> {
     if !(2..=64).contains(&order) || count < order || count > 1_000_000 {
         return Err("invalid or oversized NURBS order/control count".into());
     }
 
+    // n controls of order k need n + k - 2 knots, e.g. 4 cubic (order 4) controls need 6
     if knots.len() != (order + count - 2) as usize {
         return Err("NURBS knot count does not match its order and controls".into());
     }
@@ -415,6 +430,7 @@ fn axis(order: i32, count: i32, knots: &[f64]) -> Result<usize, String> {
         }
     }
 
+    // the curve's parameter range runs from knot k - 2 to knot n - 1 and must not be empty
     if knots[(order - 2) as usize] >= knots[(count - 1) as usize] {
         return Err("NURBS parameter domain is empty".into());
     }
@@ -452,6 +468,7 @@ pub fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
     }
 
     let size = 3 + usize::from(source.is_rational);
+    // stride = how many numbers apart two neighbouring controls sit in the flat `cvs` array
     let stride_u = if source.cv_stride_u > 0 {
         source.cv_stride_u as usize
     } else {
@@ -476,11 +493,13 @@ pub fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
 
     Ok(())
 }
+// --8<-- [end:validate-nurbs]
 
+// --8<-- [start:validate-mesh]
 /// Check one protobuf mesh.
 pub fn mesh(source: &proto::Mesh) -> Result<(), String> {
     for (key, vertex) in &source.vertices {
-        if *key > u32::MAX as u64 {
+        if *key > u32::MAX as u64 { // GPU index buffers hold 32-bit indices
             return Err("mesh vertex key exceeds the browser index range".into());
         }
 
@@ -597,7 +616,9 @@ pub fn brep(source: &proto::BRep) -> Result<(), String> {
 
     Ok(())
 }
+// --8<-- [end:validate-mesh]
 
+// --8<-- [start:validate-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -655,7 +676,10 @@ mod tests {
         assert!(json(r#"{"control_points":[[0,0,0],[1,0,0]],"cv_count":2,"dimension":3,"order":2,"nurbsknots":[0,1]}"#).is_ok());
     }
 }
+// --8<-- [end:validate-tests]
 
+// --8<-- [start:validate-varint]
+// A varint stores 7 bits per byte, low bits first; a set top bit means another byte follows: 300 = 0xAC 0x02.
 /// The varint at `i` and its byte length.
 pub fn varint(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
     let (mut v, mut shift) = (0u64, 0u32);
@@ -664,7 +688,7 @@ pub fn varint(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
     loop {
         let byte = *b.get(i)?;
 
-        if shift == 63 && byte > 1 {
+        if shift == 63 && byte > 1 { // the tenth byte may add only one bit to a u64
             return None;
         }
 
@@ -682,3 +706,4 @@ pub fn varint(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
         }
     }
 }
+// --8<-- [end:validate-varint]

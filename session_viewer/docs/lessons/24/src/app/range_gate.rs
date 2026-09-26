@@ -1,3 +1,5 @@
+// --8<-- [start:gate-turn]
+// A range gate lets 3 reads of a scene run at once and queues the rest in order: 40 parallel reads would split the bandwidth and all arrive late.
 use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
 use std::future::Future;
@@ -8,6 +10,7 @@ use std::task::{Context, Poll, Waker};
 /// Range reads a scene keeps in flight; the rest wait their turn.
 pub const RANGE_READS: usize = 3;
 
+// A Waker is the handle the async runtime gives a waiting future; `wake()` asks the runtime to poll that future again.
 /// A waiting read's place in the queue.
 #[derive(Default)]
 struct Turn {
@@ -23,7 +26,9 @@ impl Turn {
         }
     }
 }
+// --8<-- [end:gate-turn]
 
+// --8<-- [start:gate]
 /// Lets a few reads run at once, first come first served; a closed gate turns waiting reads away.
 pub struct RangeGate {
     limit: usize,                       // slots
@@ -43,6 +48,7 @@ impl RangeGate {
         })
     }
 
+    // `self: &Rc<Self>`: a method on the shared pointer itself, so the returned future can keep its own clone of the gate
     /// Wait for a slot; None once the gate closed.
     pub fn enter(self: &Rc<Self>) -> Enter {
         Enter {
@@ -83,18 +89,22 @@ impl RangeGate {
         }
     }
 }
+// --8<-- [end:gate]
 
+// --8<-- [start:gate-enter]
 /// A read waiting at the gate.
 pub struct Enter {
     gate: Rc<RangeGate>,    // the gate
     turn: Option<Rc<Turn>>, // its place in the queue, once queued
 }
 
+// A hand-written Future: the runtime calls `poll`; Ready(v) ends the `.await` with v, Pending parks it until its waker is called.
 impl Future for Enter {
     type Output = Option<Permit>;
 
     /// A slot when one is free and no older read waits.
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        // `Pin` promises the future stays at one address while polled; `get_mut` is allowed because Enter holds no pointer into itself
         let this = self.get_mut();
         let gate = this.gate.clone();
 
@@ -104,7 +114,7 @@ impl Future for Enter {
         }
 
         match &this.turn {
-            None if gate.running.get() < gate.limit && gate.queue.borrow().is_empty() => {
+            None if gate.running.get() < gate.limit && gate.queue.borrow().is_empty() => { // a free slot and nobody queued ahead
                 gate.running.set(gate.running.get() + 1);
                 Poll::Ready(Some(Permit { gate }))
             }
@@ -115,7 +125,7 @@ impl Future for Enter {
                 this.turn = Some(turn);
                 Poll::Pending
             }
-            Some(turn) if turn.given.get() => {
+            Some(turn) if turn.given.get() => { // `release` handed this turn its slot
                 this.turn = None;
                 Poll::Ready(Some(Permit { gate }))
             }
@@ -127,6 +137,7 @@ impl Future for Enter {
     }
 }
 
+// Dropping a future cancels it, e.g. when the scene is replaced; it must then leave the queue or pass its slot on, or the slot is lost.
 impl Drop for Enter {
     /// A read dropped while waiting leaves the queue, or passes on a slot it was given.
     fn drop(&mut self) {
@@ -144,7 +155,10 @@ impl Drop for Enter {
         }
     }
 }
+// --8<-- [end:gate-enter]
 
+// --8<-- [start:gate-permit]
+// A guard: the slot is held exactly as long as the Permit lives, so every return path of a read frees it.
 /// A slot at the gate, freed when dropped.
 pub struct Permit {
     gate: Rc<RangeGate>, // the gate it came from
@@ -156,7 +170,9 @@ impl Drop for Permit {
         self.gate.release();
     }
 }
+// --8<-- [end:gate-permit]
 
+// --8<-- [start:gate-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -250,3 +266,4 @@ mod tests {
         assert_eq!(gate.load(), (0, 0));
     }
 }
+// --8<-- [end:gate-tests]

@@ -1,8 +1,8 @@
-# Optional design reference · Section plane
+# Section plane design
 
-This proposed feature is not implemented in the current viewer. This page gives its design answers and acceptance criteria, not a code tutorial. For complete runnable code, follow the course through to [lesson 37](37-command-dock.md).
+[Lesson 18b](18b-clipping.md) builds this feature. This page keeps the design answers and acceptance criteria behind it, not the code.
 
-The proposal is a **section plane**: a movable plane that cuts the scene, so faces, edges, markers and text on the far side disappear and a solid's interior becomes visible.
+The feature is a **section plane**: a movable plane that cuts the scene, so faces, edges, markers and text on the far side disappear and a solid's interior becomes visible.
 
 
 ![Diagram: keyboard · pointer\ which plane, where · state\ the plane as data · uniform\ plane reaches the GPU · every shader that draws\ faces · ink · markers · text · pixels\ cut away or kept · picking\ does a cut object still answer?](illustrations/capstone-01.svg)

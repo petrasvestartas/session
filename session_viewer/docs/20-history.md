@@ -1,117 +1,190 @@
-# 20 · The document: undo, redo and save
+# 20 · The document and its rows
 
-The sheet scene stays visible while document edits gain undo, redo and history-free saving.
-
-A removal marks the object dead in place, so undo revives the same object without a copy; checkpoints purge what history can no longer reach.
+An edit changes the kernel document; a sync then changes only the GPU rows of the objects it touched. A deleted object's rows stay on the GPU, hidden, so an undo shows them again without walking the object.
 
 ![Edits group into transactions and a removal leaves a tombstone to restore from; the cursor moves back and forward through them, and a save purges the whole buffer because history never crosses pb or JSON.](illustrations/history.svg)
 
-## Step 1 · session_rust/src/history.rs
+Kernel code this lesson relies on, read only: [history.rs](kernel/history.md) (transactions, tombstone undo, the byte budget), [session.rs](kernel/session.md) (commit, idle purge, purge on save), [collection.rs](kernel/collection.md) (lists that keep dead slots for an undo).
 
-Read this source file from its link; the checkpoint already contains it.
+## Step 1 · src/app/scene_sync.rs
 
-??? example "`session_rust/src/history.rs` · read only"
+New file: the imports, and the budgets that start a compaction or release the oldest hidden rows.
 
-    [Open the full listing](kernel/history.md)
-    
+`lessons/20/src/app/scene_sync.rs` · type this, new file
 
-## Step 2 · session_rust/src/session.rs
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-budgets"
+```
 
-Read this source file from its link; the checkpoint already contains it.
+## Step 2 · src/app/scene_sync.rs
 
-??? example "`session_rust/src/session.rs` · read only"
+Turn a committed, undone or redone transaction into notes that name each object it touched and what changed.
 
-    [Open the full listing](kernel/session.md)
-    
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-notes"
+```
+
+## Step 3 · src/app/scene_sync.rs
+
+Read an object's heap address, directly or through a kernel tomb's slot, to tell the very same object from a copy.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-addresses"
+```
+
+## Step 4 · src/app/scene_sync.rs
+
+The work list of one sync, one merged entry per identity, and two tree helpers.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-work"
+```
+
+## Step 5 · src/app/scene_sync.rs
+
+Open a second `impl Scene`: queue the notes, then one `sync` finds nodes, expands subtrees and reconciles each identity.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-queue"
+```
+
+## Step 6 · src/app/scene_sync.rs
+
+Find each identity's tree node cheaply, walking a document's tree at most once per sync, and add everything below a moved group.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-find-nodes"
+```
+
+## Step 7 · src/app/scene_sync.rs
+
+Decide per identity whether to bury, kill, create, redraw or only move its row, and compute its placement down the tree.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-reconcile"
+```
+
+## Step 8 · src/app/scene_sync.rs
+
+Give a new identity a row id, and put its rows back in its grave or after every row.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-create"
+```
+
+## Step 9 · src/app/scene_sync.rs
+
+Redraw a row into its grave, in place or at the end, and pad a dragged object's rows with headroom.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-redraw"
+```
+
+## Step 10 · src/app/scene_sync.rs
+
+Kill a row for good, or bury it: its rows stay on the GPU, hidden, while an undo can still reach them.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-bury"
+```
+
+## Step 11 · src/app/scene_sync.rs
+
+Show a tomb again on undo, release tombs no undo reaches or past the budget, and make the sink row.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-revive"
+```
+
+## Step 12 · src/app/scene_sync.rs
+
+Redraw without a document write, the idle kernel purge, and compaction: every editable object walked again into lanes without gaps.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-compaction"
+```
+
+## Step 13 · src/app/scene_sync.rs
+
+The row and tomb counters the inspection reports; the brace closes the impl.
+
+`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-counters"
+```
+
+## Step 14 · src/app/scene_sync.rs
+
+A test-only impl: `settle` stands in for the GPU upload and `verify` compares every row with a fresh scene.
+
+`lessons/20/src/app/scene_sync.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-test-scene"
+```
+
+## Step 15 · src/app/scene_sync.rs
+
+The test scenes and helpers the edit tests of later lessons build on.
+
+`lessons/20/src/app/scene_sync.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene_sync.rs:sync-test-helpers"
+```
+
+## Step 16 · src/app/inspection.rs
+
+The undo depth of every open document, for the inspection snapshot.
+
+`lessons/20/src/app/inspection.rs` · type this, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/inspection.rs:undo-depth"
+```
+
+## Step 17 · src/app/scene.rs
+
+A test that objects baked into an element's `attributes` group never get a row.
+
+`lessons/20/src/app/scene.rs` · copy, append at the end of the file
+
+```rust
+--8<-- "lessons/20/src/app/scene.rs:document-tests"
+```
+
+## Step 18 · registration lines
+
+Copy the lines tagged `register:document` from these files of `lessons/20/`:
+
+- `src/app/scene.rs`: the `sync` module, the five tomb fields and their start values, their reset, packing clouds before an upload that would not fit, tomb rows counted as dead, and tombs left out of the object count.
+- `src/app/inspection.rs`: the undo depth and the row and tomb counters in the snapshot.
 
 Run `cargo check` in `lessons/20/`.
 
 ## Check
 
-Run `trunk serve` in `lessons/20/` and open <http://127.0.0.1:8770/>.
-
-Expected: The sheet scene stays visible while document edits gain undo, redo and history-free saving; status: **the status clears when loading finishes**.
-
-[![Full viewer result for 20 history](screenshots/19-sheets-overview.png)](screenshots/19-sheets-overview.png)
-
-If it fails:
-
-- Undo fails to restore a removed object: its geometry and tree position are not both recorded.
-- Saved history reappears: serialization includes the undo stack.
-
-## What changed
-
-```text
-lessons/20/session_rust/src/
-├── bin/
-│   ├── minitest.rs
-│   └── pdf_import.rs
-├── proto/
-│   ├── .gitattributes
-│   └── session_proto.rs
-├── aabb.rs
-├── boolean_polyline.rs
-├── brep.rs
-├── closest.rs
-├── color.rs
-├── convex_hull.rs
-├── element.rs
-├── file_encoders.rs
-├── file_obj.rs
-├── file_step.rs
-├── graph.rs
-├── guid_serde.rs
-├── history.rs
-├── instance_ref.rs
-├── intersection.rs
-├── io_xyz.rs
-├── lib.rs
-├── line.rs
-├── main.rs
-├── matrix.rs
-├── mesh.rs
-├── mesh_offset.rs
-├── nurbscurve.rs
-├── nurbsknot.rs
-├── nurbssurface.rs
-├── nurbssurface_trimmed.rs
-├── obb.rs
-├── objects.rs
-├── pdf.rs
-├── plane.rs
-├── point.rs
-├── pointcloud.rs
-├── polyline.rs
-├── primitives.rs
-├── quaternion.rs
-├── remesh_cdt.rs
-├── remesh_nurbssurface_adaptive.rs
-├── remesh_nurbssurface_grid.rs
-├── render_mesh.rs
-├── session.rs
-├── session_config.rs
-├── simple_split.rs
-├── spatial_aabbtree.rs
-├── spatial_bvh.rs
-├── spatial_kdtree.rs
-├── spatial_octree.rs
-├── spatial_rtree.rs
-├── tolerance.rs
-├── tree.rs
-├── vector.rs
-└── xform.rs
-```
-
-`+` new in this lesson · `~` changed in this lesson
-
-Every file at this point: `lessons/20/`.
-
-## Next
-
-[21 · Editing: the gumball, the command line and the layers panel](21-editing.md)
-
-## Expected viewer result
-
-The picture is unchanged from lesson 19; undo, redo and save are the new behavior.
-
-[![Full viewer result for 20 history](screenshots/19-sheets-overview.png)](screenshots/19-sheets-overview.png)
+`cargo check` compiles, and in `lessons/20/` `cargo xtest --lib document_tests` passes. The picture is the one of lesson 19; with `?inspect=1` the snapshot now reports `undo_depth`, `tombs`, `dead_rows` and `compactions`, all 0 until lesson 21 makes the first edit.

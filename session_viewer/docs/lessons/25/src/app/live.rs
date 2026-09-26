@@ -1,3 +1,5 @@
+// --8<-- [start:live-notify]
+// Live mode: the page watches one published scene and reloads it when the publisher uploads a new version.
 use super::decode::session_from_bytes;
 use super::fetch::{GetOpts, get};
 use super::manifest::{Manifest, immutable_key};
@@ -25,6 +27,7 @@ const DEFAULT_POLL_SECONDS: f64 = 5.0; // network check interval
 /// How often the relay flag is looked at, ms.
 const NOTIFY_TICK_MS: i32 = 100;
 
+// An EventSource holds one HTTP connection open and the server pushes a line down it per event; here each line means "new upload".
 /// An open relay connection.
 struct Notify {
     _source: web_sys::EventSource, // the event stream
@@ -70,7 +73,9 @@ impl Drop for Notify {
         self._source.close();
     }
 }
+// --8<-- [end:live-notify]
 
+// --8<-- [start:live-source]
 /// What one read found.
 enum Read {
     Changed(Vec<u8>), // new bytes
@@ -166,7 +171,9 @@ impl LiveSource {
             notify_url,
         })
     }
+// --8<-- [end:live-source]
 
+// --8<-- [start:live-read]
     /// Log a message once until it changes.
     fn warn(&mut self, message: String) {
         if self.last_warning.as_deref() != Some(message.as_str()) {
@@ -183,6 +190,7 @@ impl LiveSource {
         self.warn(message);
     }
 
+    // An ETag is the server's version tag for a file: sent back as If-None-Match, an unchanged file answers 304 with no body.
     /// Read `url`, reporting Same when it did not change.
     async fn read(&mut self, url: &str) -> Read {
         let known = self.etags.get(url).cloned();
@@ -248,7 +256,9 @@ impl LiveSource {
             }
         }
     }
+// --8<-- [end:live-read]
 
+// --8<-- [start:live-check]
     /// One tick; Some(docs) when the scene changed.
     pub async fn check(&mut self) -> Option<Vec<FileDoc>> {
         let announced = self.notify.as_ref().is_some_and(Notify::take);
@@ -345,7 +355,9 @@ impl LiveSource {
 
         Some(docs)
     }
+// --8<-- [end:live-check]
 
+// --8<-- [start:live-load]
     /// Decode one file and keep it; an empty file is dropped.
     async fn decode(&mut self, url: &str, bytes: Vec<u8>) {
         let n = bytes.len();
@@ -430,7 +442,9 @@ impl LiveSource {
         out
     }
 }
+// --8<-- [end:live-load]
 
+// --8<-- [start:live-relay]
 /// `url` up to and including its last `/`.
 fn dir_of(url: &str) -> String {
     match url.rfind('/') {
@@ -452,6 +466,7 @@ fn on_relay_message(flag: &Rc<RefCell<bool>>, e: &web_sys::MessageEvent) {
 
 /// True for a publish message, false for relay housekeeping.
 fn is_change_notification(text: &str) -> bool {
+    // a struct declared inside a function exists only there: it is this one parse's shape
     #[derive(serde::Deserialize)]
     struct Envelope {
         event: Option<String>,
@@ -462,3 +477,4 @@ fn is_change_notification(text: &str) -> bool {
         Err(_) => !text.trim().is_empty(),
     }
 }
+// --8<-- [end:live-relay]

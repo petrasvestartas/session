@@ -1,3 +1,7 @@
+// --8<-- [start:clip-plane]
+// Clipping plane = a plane object that hides everything on the side its arrow points to; up to MAX_PLANES cut at once.
+// Section cap = the flat face a cut reveals inside a closed solid; without it the solid looks hollow.
+// Crossing count = the surfaces behind the plane along the view ray, leaving minus entering: above zero, the pixel is inside a solid.
 use super::Gpu;
 use super::arena::ArenaLane;
 use super::buffers::{GpuCtx, zeroed_buffer};
@@ -61,7 +65,9 @@ impl ClipPlane {
         self.distance(center).abs() <= reach + slack
     }
 }
+// --8<-- [end:clip-plane]
 
+// --8<-- [start:clip-resources]
 /// What the uniform is built from each frame.
 pub struct ClipView<'a> {
     pub view_proj: &'a Xform, // camera matrix relative to the anchor
@@ -86,7 +92,9 @@ struct PickCaps {
     size: (u32, u32),       // window size, px
     group: wgpu::BindGroup, // the records, for the pick draws
 }
+// --8<-- [end:clip-resources]
 
+// --8<-- [start:clip-placed]
 /// Instanced solids a plane crosses: per plane, (definition face indices, placed range), and one
 /// (row, plane) record per placed solid, drawn as the instances of the definition's faces.
 #[derive(Default)]
@@ -175,7 +183,9 @@ fn placed_layout() -> wgpu::VertexBufferLayout<'static> {
         attributes: &PLACED_ATTRIBUTES,
     }
 }
+// --8<-- [end:clip-placed]
 
+// --8<-- [start:clip-struct]
 /// Pipelines at the scene's sample count.
 struct CapPipelines {
     counts: wgpu::BindGroupLayout, // group 3 of the caps: the count texture
@@ -212,7 +222,9 @@ pub struct Clip {
     placed: Placed,                  // the instanced closed solids each plane crosses
     runs_for: Option<u64>,           // the geometry revision the runs were found for
 }
+// --8<-- [end:clip-struct]
 
+// --8<-- [start:clip-find]
 impl Clip {
     /// No planes and no pipelines: they are made when a plane first cuts a closed solid.
     pub fn new(target: Target) -> Self {
@@ -295,7 +307,9 @@ impl Clip {
     fn cuts(&self, plane: usize) -> bool {
         !self.runs[plane].is_empty() || !self.placed.runs[plane].is_empty()
     }
+    // --8<-- [end:clip-find]
 
+    // --8<-- [start:clip-set]
     /// Take `planes`, at most MAX_PLANES; true when they differ from the last ones.
     pub fn set(&mut self, planes: &[ClipPlane]) -> bool {
         let count = planes.len().min(MAX_PLANES);
@@ -346,7 +360,9 @@ impl Clip {
     pub fn uniform(&self, v: &ClipView) -> ClipUniform {
         clip_uniform(self.planes(), self.fill, v)
     }
+    // --8<-- [end:clip-set]
 
+    // --8<-- [start:clip-counts]
     /// Make the pipelines, then the count texture for a `size` canvas.
     pub fn prepare_counts(&mut self, ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) {
         let target = self.target;
@@ -422,6 +438,7 @@ impl Clip {
             occlusion_query_set: None,
             multiview_mask: None,
         });
+        // additive blending makes the draw a counter: each surface adds +1 leaving or -1 entering at every sample
         arena.draw_solids(
             &mut pass,
             b,
@@ -443,10 +460,13 @@ impl Clip {
         pass.set_pipeline(&pipes.cap);
         b.set(pass);
         pass.set_bind_group(3, &counts.group, &[]);
+        // the instance index carries the plane number into the shader
         pass.draw(0..3, plane..plane + 1);
         1
     }
+    // --8<-- [end:clip-counts]
 
+    // --8<-- [start:clip-masks]
     /// Bind the face pass's triangle ids for the mask draws.
     pub fn bind_primitives(&mut self, ctx: &GpuCtx, targets: &Targets) {
         let Some(pipes) = &self.pipes else {
@@ -503,7 +523,9 @@ impl Clip {
         pass.draw(0..3, 0..instances);
         1
     }
+    // --8<-- [end:clip-masks]
 
+    // --8<-- [start:clip-pick]
     /// Count every plane's crossings over the pick window `size`, then name each pixel's owner.
     pub fn encode_pick(
         &mut self,
@@ -634,7 +656,9 @@ impl Clip {
         (buffer, texture + window)
     }
 }
+// --8<-- [end:clip-pick]
 
+// --8<-- [start:clip-gpu]
 impl Clip {
     /// The planes whose sections this frame draws, and how many: each crosses a closed solid.
     fn cap_planes(&self, view: &View) -> ([u32; MAX_PLANES], usize) {
@@ -668,6 +692,7 @@ impl super::Gpu {
         self.objects.geometry_changed();
         let cutting = self.pass::<Clip>().count > 0;
 
+        // `replace` stores the new value and returns the old one: true only when cutting starts or stops
         if self.ctx.cache.clipping.replace(cutting) != cutting {
             self.rebuild_pipelines();
         }
@@ -683,7 +708,9 @@ impl super::Gpu {
 pub fn pass(_ctx: &GpuCtx, target: Target) -> Box<dyn Pass> {
     Box::new(Clip::new(target))
 }
+// --8<-- [end:clip-gpu]
 
+// --8<-- [start:clip-pass]
 impl Pass for Clip {
     fn clip_world(&self) -> Option<[[f64; 4]; MAX_PLANES]> {
         Some(self.world())
@@ -812,7 +839,9 @@ impl super::lane::Lane for Clip {
         self.allocated_bytes()
     }
 }
+// --8<-- [end:clip-pass]
 
+// --8<-- [start:clip-uniform]
 /// The uniform of `planes`: relative to the anchor, over clip space, with their hatch.
 pub fn clip_uniform(planes: &[ClipPlane], fill: u32, v: &ClipView) -> ClipUniform {
     let mut u = ClipUniform::default();
@@ -920,7 +949,9 @@ fn inverse(m: &Xform) -> Option<Xform> {
 fn dot(a: [f64; 3], b: [f64; 3]) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
+// --8<-- [end:clip-uniform]
 
+// --8<-- [start:clip-pipelines]
 /// The cap shader for a face pass at `samples`: its textures and their loaders first.
 fn cap_source(samples: u32) -> String {
     let (counts, primitives, count, primitive) = if samples > 1 {
@@ -1147,7 +1178,9 @@ fn cap_pipelines(ctx: &GpuCtx, l: &Layouts, target: Target) -> CapPipelines {
         selection,
     }
 }
+// --8<-- [end:clip-pipelines]
 
+// --8<-- [start:clip-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1581,8 +1614,9 @@ mod tests {
         [v[0], v[1], v[2]]
     }
 }
+// --8<-- [end:clip-tests]
 
-// --8<-- [start:21]
+// --8<-- [start:21-clip-scene-tests]
 #[cfg(test)]
 mod editing_tests {
     use super::tests::view;
@@ -2735,4 +2769,4 @@ mod editing_tests {
         }
     }
 }
-// --8<-- [end:21]
+// --8<-- [end:21-clip-scene-tests]

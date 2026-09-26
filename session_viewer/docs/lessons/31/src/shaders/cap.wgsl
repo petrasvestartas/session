@@ -1,3 +1,4 @@
+// --8<-- [start:cap-vertex]
 // Prefixed in Rust: `counts` and `primitives` at group 3, SAMPLES, `count_at` and `primitive_at`.
 
 // One corner of a fullscreen triangle; the instance picks the plane or the caps.
@@ -15,7 +16,9 @@ fn vs_cap(@builtin(vertex_index) vertex: u32, @builtin(instance_index) plane: u3
     out.plane = plane;
     return out;
 }
+// --8<-- [end:cap-vertex]
 
+// --8<-- [start:cap-hatch]
 // A section cap fragment: color, triangle id, the plane's depth and the samples it covers.
 struct CapOut {
     @location(0) color: vec4<f32>, // hatch or light grey, with a black boundary
@@ -57,7 +60,9 @@ fn hatch_ink(u: f32, slope: vec2<f32>) -> f32 {
     let ink = clamp(band_area(distance, clipping.width * 0.5, slope / rate), 0.0, 1.0);
     return ink * select(1.0, 1.0 - fade, odd);
 }
+// --8<-- [end:cap-hatch]
 
+// --8<-- [start:cap-outline]
 // Coverage of the section's union, including holes, without a border at the viewport edge.
 fn section_coverage(at: vec2<i32>) -> f32 {
     if (any(at < vec2<i32>(0)) || any(at >= vec2<i32>(textureDimensions(counts)))) {
@@ -70,6 +75,7 @@ fn section_coverage(at: vec2<i32>) -> f32 {
     return covered / f32(SAMPLES);
 }
 
+// 1 where a point `clipping.outline` px away, in any of eight directions, lies outside the section: a black border.
 fn section_outline(at: vec2<f32>) -> f32 {
     let directions = array<vec2<f32>, 8>(
         vec2<f32>(1.0, 0.0), vec2<f32>(-1.0, 0.0),
@@ -83,12 +89,15 @@ fn section_outline(at: vec2<f32>) -> f32 {
     }
     return edge;
 }
+// --8<-- [end:cap-outline]
 
+// --8<-- [start:cap-fragment]
 @fragment
 // Where the view ray meets a plane inside a closed solid: outlined hatch or solid grey.
 fn fs_cap(in: CapVertex) -> CapOut {
     let i = in.plane;
     let ndc = clip_ndc(in.pos.xy + line.origin, line.frame, 0.0).xy;
+    // the plane's own depth at this pixel: the cap is a picture of the plane, so it writes that depth
     let z = clip_plane_depth(i, ndc);
     let h = vec3<f32>(ndc, 1.0);
     // scene units across the hatch lines, and their change per pixel
@@ -134,7 +143,9 @@ fn fs_cap(in: CapVertex) -> CapOut {
     let marker = CAP_PRIMITIVE + i * 2u + select(0u, 1u, selected);
     return CapOut(vec4<f32>(color, 1.0), physical_primitive(marker), z, mask);
 }
+// --8<-- [end:cap-fragment]
 
+// --8<-- [start:cap-masks]
 // Samples of this pixel showing a section cap; only selected caps when `selected`.
 fn cap_samples(at: vec2<i32>, selected: bool) -> u32 {
     var mask = 0u;
@@ -185,7 +196,9 @@ fn fs_cap_selection(in: CapVertex) -> CapSelection {
 
     return CapSelection(vec4<f32>(1.0), mask);
 }
+// --8<-- [end:cap-masks]
 
+// --8<-- [start:cap-pick]
 @group(3) @binding(5) var<storage, read_write> pick_caps: array<atomic<u32>>; // per plane and pick pixel: count, id sum, nearest exit, owner
 
 // A section cap in the pick.
@@ -216,3 +229,4 @@ fn fs_cap_id(in: CapVertex) -> CapId {
 
     return CapId(vec2<u32>(owner, 0u), physical_primitive(CAP_PRIMITIVE + i * 2u), z);
 }
+// --8<-- [end:cap-pick]

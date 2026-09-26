@@ -1,3 +1,4 @@
+// --8<-- [start:update-clipping]
 use super::State;
 use crate::app::clipping::{self, Mode};
 use crate::engine::gpu::Instance;
@@ -15,6 +16,7 @@ impl State {
         let mut hidden = 0;
         let enabled = self.gpu.pass::<Clip>().enabled;
 
+        // a clipping plane is an ordinary scene object; its row carries FLAG_CLIPPING_PLANE, so the table lists them
         for &row in self.gpu.objects.clipping_rows() {
             if !enabled || count == MAX_PLANES {
                 break;
@@ -60,7 +62,9 @@ impl State {
         let scene = &self.scene;
         self.gpu.find_solids(|row| scene.solid_faces(row));
     }
+    // --8<-- [end:update-clipping]
 
+    // --8<-- [start:verify-solids]
     /// Flag every mesh walked so far as closed or not, once; open edges already say not.
     fn verify_solids(&mut self) {
         let skip = Instance::FLAG_OPEN
@@ -69,6 +73,7 @@ impl State {
             | Instance::FLAG_SHEET
             | Instance::FLAG_SINGLE;
         // instances of one definition share its geometry: walk it once
+        // keyed by the geometry's address: `from_ref` turns a reference into a raw pointer, used only as a number
         let mut walked: HashMap<*const Geometry, u32> = HashMap::new();
 
         for row in 0..self.gpu.objects.len() {
@@ -81,7 +86,9 @@ impl State {
             }
 
             let mut shape = self.scene.geometry(row);
+            // --8<-- [start:21-instance-definition]
             shape = shape.or_else(|| self.scene.instance_definition(row)); // register:instancing
+            // --8<-- [end:21-instance-definition]
 
             let Some(shape) = shape else {
                 continue;
@@ -110,7 +117,9 @@ impl State {
             }
         }
     }
+    // --8<-- [end:verify-solids]
 
+    // --8<-- [start:clipping-status]
     /// The clipping planes as JSON, for the inspection tests.
     pub fn clipping_status(&self) -> serde_json::Value {
         let clip = self.gpu.pass::<Clip>();
@@ -137,3 +146,4 @@ impl State {
         })
     }
 }
+// --8<-- [end:clipping-status]

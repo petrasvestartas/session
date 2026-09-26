@@ -1,3 +1,6 @@
+// --8<-- [start:slot-table]
+// Slot table = a texture that maps an instance's triangle id to (definition triangle, instance row); texel 0 is the header.
+// With no instances drawn the header is zero, so every id is an arena triangle at its own row.
 // Row an arena triangle draws with: its own vertex's.
 const SLOT_OWN_ROW: u32 = 0xffffffffu;
 
@@ -43,3 +46,4 @@ fn placed_triangle(id: u32, arena: u32) -> vec2<u32> {
 
     return vec2<u32>(slot.z + index - slot.y, slot.x);
 }
+// --8<-- [end:slot-table]

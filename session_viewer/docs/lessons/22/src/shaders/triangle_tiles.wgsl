@@ -1,3 +1,4 @@
+// --8<-- [start:tiles-inputs]
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>; // camera matrix
 
 // The first five fields of LineUniform; this shader needs no more.
@@ -31,7 +32,9 @@ struct TileVertex {
     @location(6) @interpolate(flat) gradient: vec3<f32>, // depth slope and nearest depth
     @location(7) @interpolate(flat) reference: vec3<f32>, // reference point and its depth
 };
+// --8<-- [end:tiles-inputs]
 
+// --8<-- [start:tiles-vertex]
 @vertex
 // A quad over the tiles the triangle's box touches; one instance per triangle.
 fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance: u32) -> TileVertex {
@@ -62,7 +65,9 @@ fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance
     out.reference = vec3<f32>(triangle.edge0.w, triangle.edge1.w, triangle.edge2.w);
     return out;
 }
+// --8<-- [end:tiles-vertex]
 
+// --8<-- [start:tiles-cover]
 // True when a whole tile lies outside one edge.
 fn tile_outside(edge: vec3<f32>, centre: vec2<f32>) -> bool {
     return dot(edge.xy, centre)+edge.z+0.5*f32(visibility_tile_span())*(abs(edge.x)+abs(edge.y)) < -0.00390625;
@@ -80,7 +85,9 @@ fn covered_tile(v: TileVertex) -> u32 {
     let tile = 1u+u32(v.clip.y)*size.x+u32(v.clip.x);
     return tile;
 }
+// --8<-- [end:tiles-cover]
 
+// --8<-- [start:tiles-count]
 @fragment
 // Count one triangle for the tile.
 fn fs_count(v: TileVertex) -> @location(0) f32 {
@@ -88,7 +95,9 @@ fn fs_count(v: TileVertex) -> @location(0) f32 {
     atomicAdd(&tile_records[tile].values[0], 1u);
     return 0.0;
 }
+// --8<-- [end:tiles-count]
 
+// --8<-- [start:tiles-fill]
 @fragment
 // Append (triangle, nearest depth) to the tile's list.
 fn fs_fill(v: TileVertex) -> @location(0) f32 {
@@ -120,3 +129,4 @@ fn fs_fill(v: TileVertex) -> @location(0) f32 {
 }
 
 #include "projected_triangle.wgsl"
+// --8<-- [end:tiles-fill]

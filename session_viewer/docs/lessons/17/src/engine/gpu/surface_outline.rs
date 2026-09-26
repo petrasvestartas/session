@@ -1,3 +1,7 @@
+// --8<-- [start:outline-mask]
+// Coverage mask = a one-byte texture: 1 where a surface covers the pixel, 0 elsewhere, a fraction along an edge.
+// Outline = black on the pixels just outside a mask: each pixel searches its neighbours for coverage.
+// Coarse mask = one pixel per 4 x 4 or 8 x 8 block holding its maximum, so empty blocks are skipped in one read.
 use std::collections::HashSet;
 
 use super::Gpu;
@@ -26,7 +30,7 @@ struct Mask {
 }
 
 impl Mask {
-    /// Keep the drawn samples only when there is no resolve.
+    /// Keep the drawn samples only when there is no resolve: once averaged into `resolved`, nothing reads them again.
     fn store(&self) -> wgpu::StoreOp {
         if self.multisampled.is_some() {
             wgpu::StoreOp::Discard
@@ -35,7 +39,10 @@ impl Mask {
         }
     }
 }
+// --8<-- [end:outline-mask]
 
+// --8<-- [start:outline-tables]
+// Tap = one neighbour offset the search reads; sorted nearest first, the shader can stop early.
 /// Most offsets the tap table holds; must match the shader.
 const TAPS: usize = 512;
 
@@ -60,7 +67,9 @@ struct FaceCoverage {
     with_edges: Pipeline,          // face samples inside a mask pass, before the edges
     group: Option<(wgpu::TextureView, wgpu::BindGroup)>, // the texture it binds
 }
+// --8<-- [end:outline-tables]
 
+// --8<-- [start:outline-struct]
 /// What a mask depends on; same key = reuse the old mask.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct MaskKey {
@@ -101,7 +110,9 @@ pub struct SurfaceOutline {
     valid_for: Option<MaskKey>,          // what the mask was drawn for
     faces: Option<FaceCoverage>,         // faces from triangle ids, only around every solid
 }
+// --8<-- [end:outline-struct]
 
+// --8<-- [start:outline-new]
 impl SurfaceOutline {
     /// Create the layouts and pipelines; textures come with the first frame.
     pub fn new(ctx: &GpuCtx, target: Target, kind: OutlineKind) -> Self {
@@ -226,10 +237,13 @@ impl SurfaceOutline {
             dilate_pipeline,
             mask: None,
             valid_for: None,
+            // `bool::then` runs the closure only when true: Some(coverage) around every solid, None around the selection
             faces: (kind == OutlineKind::AllSolids).then(|| face_coverage(ctx, target.samples)),
         }
     }
+    // --8<-- [end:outline-new]
 
+    // --8<-- [start:outline-masks]
     /// True when the mask was drawn for `key`.
     pub fn is_valid(&self, key: &MaskKey) -> bool {
         self.mask.is_some() && self.valid_for.as_ref() == Some(key)
@@ -267,7 +281,9 @@ impl SurfaceOutline {
     ) -> wgpu::RenderPass<'a> {
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("visible coverage masks"),
+            // two targets in one pass: the shader writes @location(0) to the solid mask, @location(1) to the selection mask
             color_attachments: &[solid.attachment(), selected.attachment()],
+            // the scene depth, read only: a surface behind another fails the depth test and leaves no coverage
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &targets.depth,
                 depth_ops: None,
@@ -311,7 +327,9 @@ impl SurfaceOutline {
         self.mask = None;
         self.free_alpha();
     }
+    // --8<-- [end:outline-masks]
 
+    // --8<-- [start:outline-prepare]
     /// Make sure the mask textures exist; returns false when no outline is due.
     pub fn prepare(
         &mut self,
@@ -437,7 +455,9 @@ impl SurfaceOutline {
             ],
         })
     }
+    // --8<-- [end:outline-prepare]
 
+    // --8<-- [start:outline-alpha]
     /// Free the tap table and alpha texture.
     fn free_alpha(&mut self) {
         self.table = None;
@@ -520,7 +540,9 @@ impl SurfaceOutline {
             radius,
         });
     }
+    // --8<-- [end:outline-alpha]
 
+    // --8<-- [start:outline-passes]
     /// Open the pass that draws this mask, cleared, against the scene depth.
     pub fn begin_mask<'a>(
         &'a self,
@@ -664,7 +686,9 @@ impl SurfaceOutline {
             pass.draw(0..3, 0..1);
         }
     }
+    // --8<-- [end:outline-passes]
 
+    // --8<-- [start:outline-composite]
     /// Search both masks into the alpha texture, when forced or the masks in use changed.
     pub fn encode_alpha(
         &mut self,
@@ -706,6 +730,7 @@ impl SurfaceOutline {
         pass.set_bind_group(1, &selection.group, &[]);
         pass.set_bind_group(2, &table.group, &[]);
         pass.draw(0..3, 0..1);
+        // the pass borrows `self.alpha`; `drop` ends it here so the next line may write `self`
         drop(pass);
         self.alpha_for = Some(from);
     }
@@ -725,6 +750,7 @@ impl SurfaceOutline {
     pub fn allocated_bytes(&self) -> (u64, u64) {
         let textures = match &self.mask {
             Some(mask) => {
+                // MSAA keeps every sample plus the one-sample resolve: at 4x a mask costs 5 bytes a pixel
                 let samples = if mask.samples > 1 {
                     u64::from(mask.samples) + 1
                 } else {
@@ -743,7 +769,9 @@ impl SurfaceOutline {
         (self.uniform.size() + table, textures + alpha)
     }
 }
+// --8<-- [end:outline-composite]
 
+// --8<-- [start:outline-radius]
 /// Outline width in framebuffer pixels for a canvas `size` shown `css_width` CSS pixels wide.
 pub fn radius(size: (u32, u32), css_width: f64) -> f32 {
     // outline width in CSS pixels
@@ -779,7 +807,9 @@ fn taps(radius: f32) -> Vec<[f32; 4]> {
     taps.sort_by(|a, b| a[3].total_cmp(&b[3]));
     taps
 }
+// --8<-- [end:outline-radius]
 
+// --8<-- [start:outline-pipelines]
 /// Outline pipeline: fullscreen, the alpha blended over the scene.
 fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> Pipeline {
     let shader = module(ctx, "selection outline", shader!("surface_outline.wgsl"));
@@ -831,6 +861,7 @@ fn pool_pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, fs: &str) -> Pipe
     build(ctx, target, &desc)
 }
 
+// WGSL has no generics, so Rust writes the texture type for one or four samples in front of the shared text.
 /// The face coverage shader for a face pass at `samples`.
 fn face_coverage_source(samples: u32) -> String {
     let texture = if samples > 1 {
@@ -895,7 +926,9 @@ fn face_coverage(ctx: &GpuCtx, samples: u32) -> FaceCoverage {
         group: None,
     }
 }
+// --8<-- [end:outline-pipelines]
 
+// --8<-- [start:outline-tests]
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
     use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
@@ -1383,7 +1416,9 @@ mod tests {
         std::fs::write("target/review/bench-outline.txt", &report).unwrap();
     }
 }
+// --8<-- [end:outline-tests]
 
+// --8<-- [start:outline-pass]
 impl super::lane::Lane for SurfaceOutline {
     fn on_retarget(&mut self, ctx: &GpuCtx, _layouts: &Layouts, target: Target) {
         self.retarget(ctx, target);
@@ -1398,6 +1433,7 @@ impl super::lane::Lane for SurfaceOutline {
     }
 }
 
+// Two outlines, one pass: the selection keeps its own mask, so a selected solid touching another still gets a border between them.
 /// The outlines around the selection and around every solid.
 pub struct Outline {
     pub selection: SurfaceOutline, // around the selection
@@ -1430,6 +1466,7 @@ impl super::lane::Lane for Outline {
     }
 }
 
+// The frame calls each registered pass at fixed points: this one masks after the faces and blends over the ink.
 impl Pass for Outline {
     /// Redraw the masks only when something changed, then search them into the alpha texture.
     fn after_faces(&mut self, g: &mut Gpu, encoder: &mut wgpu::CommandEncoder, f: &Frame) -> u32 {
@@ -1525,3 +1562,4 @@ impl Pass for Outline {
         self.selection.set_selected(row, on);
     }
 }
+// --8<-- [end:outline-pass]

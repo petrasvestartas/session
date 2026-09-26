@@ -1,3 +1,6 @@
+// --8<-- [start:release]
+// Release: once the walk has copied a document into GPU rows, a display-only document drops its kernel objects and keeps each row's name and type.
+// This file is `mod release` inside scene.rs (its #[path] line), so it may add an `impl Scene` that reads Scene's private fields.
 use super::{Fetch, Released, Scene, Shape};
 use session_rust::tree::Tree;
 use session_rust::{Geometry, Session};
@@ -21,13 +24,14 @@ impl Scene {
             return;
         };
 
-        if !file.session.history.undo_stack.is_empty() {
+        if !file.session.history.undo_stack.is_empty() { // an edited document has history to keep
             return;
         }
 
         let session = &file.session;
         let count = self.order.len().saturating_sub(first as usize);
         let (mut shapes, mut names) = (Vec::with_capacity(count), Vec::with_capacity(count));
+        // each distinct name is stored once, as a Box<str> (a String without spare room), and rows keep its index
         let mut table: Vec<Box<str>> = vec!["".into()];
         let mut index: HashMap<&str, u32> = HashMap::from([("", 0)]);
 
@@ -85,10 +89,12 @@ impl Scene {
             },
         );
         let file = &mut self.docs[doc];
-        file.session = Rc::new(shell);
+        file.session = Rc::new(shell); // the last Rc to the full session goes, and its objects are freed
         file.display_only = true;
     }
+// --8<-- [end:release]
 
+// --8<-- [start:release-rows]
     /// The released document a row belongs to.
     pub fn released_doc(&self, row: u32) -> Option<usize> {
         let doc = *self.owners.get(row as usize)?;
@@ -136,7 +142,10 @@ impl Scene {
         !self.released.is_empty()
     }
 }
+// --8<-- [end:release-rows]
 
+// --8<-- [start:release-fixtures]
+// Test fixtures only: `pub(super)` lets the editing tests of lesson 21 reuse them.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -170,8 +179,10 @@ mod tests {
         scene
     }
 }
+// --8<-- [end:release-fixtures]
 
-// --8<-- [start:21]
+// --8<-- [start:21-hydrate]
+// --8<-- [start:hydrate]
 impl Scene {
     /// Ask for document `doc`'s objects back; false when it is not released.
     pub fn want(&mut self, doc: usize) -> bool {
@@ -316,7 +327,9 @@ impl Scene {
             .is_some_and(|released| released.token == token)
     }
 }
+// --8<-- [end:hydrate]
 
+// --8<-- [start:hydrate-tests]
 #[cfg(test)]
 mod editing_tests {
     use super::tests::{scene, sheet};
@@ -415,4 +428,5 @@ mod editing_tests {
         assert!(scene.take_wanted().is_empty());
     }
 }
-// --8<-- [end:21]
+// --8<-- [end:hydrate-tests]
+// --8<-- [end:21-hydrate]

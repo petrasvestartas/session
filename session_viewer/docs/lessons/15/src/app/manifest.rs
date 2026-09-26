@@ -1,10 +1,14 @@
+// --8<-- [start:manifest-types]
+// Manifest = the scene file: which geometry files to load, where each one goes, and the texts to place.
 use serde::Deserialize;
 use session_rust::Xform;
 
+// `Deserialize` writes the reader for us: each field is filled from the key of the same name.
 /// One manifest entry: a file and its placement.
 #[derive(Clone, Deserialize)]
 pub struct Item {
     pub file: String, // path like `pb/box.pb`, relative to the scene
+    // `#[serde(default)]`: a missing key gets the type's default ("", 0, None) instead of failing the parse
     #[serde(default)]
     pub name: String, // display name, empty = the file's own
     #[serde(default)]
@@ -14,7 +18,7 @@ pub struct Item {
     #[serde(default)]
     pub point_size: f64, // cloud point size in px, 0 = the file's own
     #[serde(default)]
-    pub display_only: bool, // old flag, no longer changes anything
+    pub display_only: bool, // the objects are freed after the walk and fetched again for an edit
     #[serde(default)]
     pub size: u64, // decoded bytes, 0 = unknown
     #[serde(default)]
@@ -27,6 +31,7 @@ pub struct TextItem {
     pub text: String, // the text
     #[serde(default)]
     pub at: [f64; 3], // world origin of the text
+    // the default can also come from a function: a text without `right` runs along +X
     #[serde(default = "text_right")]
     pub right: [f64; 3], // unit direction of the text line
     #[serde(default = "text_up")]
@@ -45,7 +50,9 @@ pub struct Manifest {
     #[serde(default)]
     pub texts: Vec<TextItem>, // world texts
 }
+// --8<-- [end:manifest-types]
 
+// --8<-- [start:manifest-item]
 impl Item {
     /// The decoded size of a file stored encoded: it is never range-read.
     pub fn encoded_size(&self) -> Option<u64> {
@@ -63,7 +70,9 @@ impl Item {
         self.at.map(translation)
     }
 }
+// --8<-- [end:manifest-item]
 
+// --8<-- [start:manifest-parse]
 impl Manifest {
     /// Parse YAML, JSON or TOML and check every value.
     pub fn parse(bytes: &[u8]) -> Result<Self, String> {
@@ -75,6 +84,7 @@ impl Manifest {
             Ok(text) => text,
             Err(error) => return Err(format!("manifest is not UTF-8: {error}")),
         };
+        // YAML is a superset of JSON, so one parser reads both; TOML is tried only when YAML fails
         let manifest: Self = match serde_yaml_ng::from_str(text) {
             Ok(manifest) => manifest,
             Err(yaml) => match toml_form(text) {
@@ -89,6 +99,7 @@ impl Manifest {
             },
         };
 
+        // limits first: a hostile or broken file is refused before it can allocate gigabytes
         if manifest.items.len() > 100_000 {
             return Err("manifest exceeds 100,000 items".to_string());
         }
@@ -115,7 +126,7 @@ impl Manifest {
             }
 
             if let Some(matrix) = item.xform
-                && (matrix[3] != 0.0 || matrix[7] != 0.0 || matrix[11] != 0.0 || matrix[15] != 1.0)
+                && (matrix[3] != 0.0 || matrix[7] != 0.0 || matrix[11] != 0.0 || matrix[15] != 1.0) // the bottom row of an affine matrix is 0 0 0 1: no perspective
             {
                 return Err(format!("item {index}: placement must be affine"));
             }
@@ -159,7 +170,9 @@ impl Manifest {
         }
     }
 }
+// --8<-- [end:manifest-parse]
 
+// --8<-- [start:manifest-text]
 impl TextItem {
     /// Check the text, height and plane axes.
     fn validate(&self, index: usize) -> Result<(), String> {
@@ -201,7 +214,9 @@ impl TextItem {
         Ok(())
     }
 }
+// --8<-- [end:manifest-text]
 
+// --8<-- [start:manifest-helpers]
 /// World +X.
 fn text_right() -> [f64; 3] {
     [1.0, 0.0, 0.0]
@@ -217,12 +232,14 @@ fn translation(at: [f64; 3]) -> Xform {
     Xform::translation(at[0], at[1], at[2])
 }
 
+// `const N: usize` makes the array length a parameter: the same function takes [f64; 3] and [f64; 16].
 /// True when any value is not finite.
 fn nonfinite_transform<const N: usize>(values: [f64; N]) -> bool {
     !values.into_iter().all(f64::is_finite)
 }
 
 /// A TOML manifest.
+// A Cargo feature is an optional switch in Cargo.toml; the TOML parser is compiled in only when it is on.
 #[cfg(feature = "toml-manifests")]
 fn toml_form(text: &str) -> Result<Manifest, String> {
     toml::from_str(text).map_err(|error| error.to_string())
@@ -243,6 +260,7 @@ fn yaml_at(e: &serde_yaml_ng::Error) -> String {
 }
 
 /// True for a content-addressed key, whose bytes never change: the browser cache may answer it.
+// e.g. `pb/revisions/4f24e928....pb`: the name is a hash of the bytes, so a new version gets a new name
 pub fn immutable_key(url: &str) -> bool {
     let name = url.rsplit('/').next().unwrap_or(url);
     let stem = name.split('.').next().unwrap_or(name);
@@ -252,14 +270,16 @@ pub fn immutable_key(url: &str) -> bool {
 
 /// Grid slot `index` of `count`, `cell` apart.
 pub fn auto_grid(index: usize, count: usize, cell: [f64; 2]) -> Xform {
-    let cols = (count as f64).sqrt().ceil().max(1.0) as usize;
+    let cols = (count as f64).sqrt().ceil().max(1.0) as usize; // 10 items: 4 columns, 3 rows
     Xform::translation(
         (index % cols) as f64 * cell[0],
         (index / cols) as f64 * cell[1],
         0.0,
     )
 }
+// --8<-- [end:manifest-helpers]
 
+// --8<-- [start:manifest-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -418,3 +438,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:manifest-tests]

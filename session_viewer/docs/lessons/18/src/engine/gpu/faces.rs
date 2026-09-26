@@ -1,3 +1,5 @@
+// --8<-- [start:faces-struct]
+// Source face = one face of the original BRep or mesh; Component picking selects it instead of the whole object.
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::frame::Binds;
 use super::slots::{Slots, clamp, slot_layout};
@@ -33,6 +35,9 @@ struct FacePipelines {
     masks: Pipeline,          // selected face into both masks
 }
 
+// --8<-- [end:faces-struct]
+
+// --8<-- [start:faces-new]
 impl Faces {
     /// Create the layout, the selection buffer and the pipelines.
     pub fn new(ctx: &GpuCtx, layouts: &Layouts, shader: &Shader, target: Target) -> Self {
@@ -84,7 +89,9 @@ impl Faces {
     pub fn retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, shader: &Shader, target: Target) {
         self.pipes = pipelines(ctx, layouts, shader, target, &self.layout);
     }
+    // --8<-- [end:faces-new]
 
+    // --8<-- [start:faces-upload]
     /// Append one upload's faces and rebuild the bind group.
     pub fn append(
         &mut self,
@@ -95,7 +102,7 @@ impl Faces {
         // faces before this upload
         let base = self.sources.len() as u32;
         self.sources.extend_from_slice(&up.face_sources);
-        // one face id per triangle, u32::MAX = none
+        // one face id per triangle; u32::MAX = a triangle with no source face, e.g. a mesh without faces
         let ids: Vec<u32> = (0..up.idx.len() / 3)
             .map(|i| match up.face_ids.get(i) {
                 Some(&id) if id != u32::MAX => base + id,
@@ -160,7 +167,9 @@ impl Faces {
 
         self.revision = self.revision.wrapping_add(1);
     }
+    // --8<-- [end:faces-upload]
 
+    // --8<-- [start:faces-draw]
     /// Draw the colored faces; `opaque` skips blending, which full opacity does not need, and
     /// `clipped` cuts them sample by sample while clipping planes are active.
     pub fn draw_physical(
@@ -221,7 +230,7 @@ impl Faces {
         binds.set(pass);
         pass.set_bind_group(3, group, &[]);
         self.slots.bind(pass, 0);
-        // three vertices per triangle, read by index in the shader
+        // no vertex buffer: the shader reads three corners per triangle from storage, by vertex_index
         pass.draw(0..self.ids.len() * 3, 0..1);
         let mut draws = 1;
 
@@ -237,7 +246,9 @@ impl Faces {
 
         draws
     }
+    // --8<-- [end:faces-draw]
 
+    // --8<-- [start:faces-select]
     /// Select a face; None clears the selection.
     pub fn select(&mut self, ctx: &GpuCtx, face: Option<u32>) {
         self.active = face;
@@ -271,7 +282,9 @@ impl Faces {
         self.ids.buf.size() + self.selected.size() + self.slots.allocated_bytes()
     }
 }
+// --8<-- [end:faces-select]
 
+// --8<-- [start:faces-pipelines]
 /// Build the face pipelines.
 fn pipelines(
     ctx: &GpuCtx,
@@ -363,12 +376,15 @@ fn pipelines(
         object_ids,
     }
 }
+// --8<-- [end:faces-pipelines]
 
-// --8<-- [start:17]
+// --8<-- [start:17-face-source]
+// --8<-- [start:face-source]
+// A second `impl Faces` block: Rust lets one type have several, so this lesson adds methods without reopening the first.
 impl Faces {
     /// Face behind a pick id, if it belongs to object `row`.
     pub fn source(&self, row: u32, sub: u32) -> Option<(u32, FaceSource)> {
-        // top three bits say what kind of pick
+        // the top three bits of a sub id say what was hit: an edge, a face, a dot, a point
         if sub & 0xe000_0000 != FACE_TAG {
             return None;
         }
@@ -400,4 +416,5 @@ impl Faces {
         self.revision
     }
 }
-// --8<-- [end:17]
+// --8<-- [end:face-source]
+// --8<-- [end:17-face-source]

@@ -1,3 +1,4 @@
+// --8<-- [start:face-fraction]
 // Prefixed in Rust: `physical`, the face pass's triangle id texture, and SAMPLES.
 
 @vertex
@@ -29,11 +30,13 @@ fn fs_fraction(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32>
 
     return vec4<f32>(f32(count) / f32(SAMPLES));
 }
+// --8<-- [end:face-fraction]
 
+// --8<-- [start:face-samples]
 // Full coverage and the samples that take it.
 struct Samples {
     @location(0) coverage: vec4<f32>, // 1 on every written sample
-    @builtin(sample_mask) mask: u32, // samples that show a face
+    @builtin(sample_mask) mask: u32, // bit k set = write MSAA sample k of this pixel
 };
 
 @fragment
@@ -52,3 +55,4 @@ fn fs_samples(@builtin(position) position: vec4<f32>) -> Samples {
 
     return Samples(vec4<f32>(1.0), mask);
 }
+// --8<-- [end:face-samples]

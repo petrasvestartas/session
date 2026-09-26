@@ -1,3 +1,4 @@
+// --8<-- [start:scan-inputs]
 // The first five fields of LineUniform; this shader needs no more.
 struct ScanLine {
     thickness: f32, // pen width, px
@@ -15,7 +16,7 @@ struct ScanRecord {
 };
 
 @group(1) @binding(0) var<storage, read_write> records: array<ScanRecord>; // tile records, then the reference pool
-var<workgroup> scan: array<u32, 256>; // scratch for one workgroup's prefix sum
+var<workgroup> scan: array<u32, 256>; // var<workgroup> = memory the 256 invocations of one workgroup share
 
 // Tiles in the grid.
 fn tile_count() -> u32 {
@@ -26,13 +27,16 @@ fn tile_count() -> u32 {
 fn blocks(count: u32) -> u32 {
     return (count+255u)/256u;
 }
+// --8<-- [end:scan-inputs]
 
+// --8<-- [start:scan-prefix]
 // Exclusive prefix sum across the workgroup; saturates at the buffer size.
 fn prefix(lane: u32, value: u32) -> u32 {
     // an overflowing sum sticks at capacity instead of wrapping
     let capacity = arrayLength(&records)*4u;
     let bounded = min(value, capacity);
     scan[lane] = bounded;
+    // a barrier waits until all 256 reach it, so nobody reads scan[] half written
     workgroupBarrier();
 
     for (var stride = 1u;stride<256u;stride*=2u) {
@@ -49,7 +53,9 @@ fn prefix(lane: u32, value: u32) -> u32 {
 
     return select(scan[lane]-bounded, capacity, scan[lane]==capacity);
 }
+// --8<-- [end:scan-prefix]
 
+// --8<-- [start:scan-passes]
 @compute @workgroup_size(256)
 // Pass 1: prefix sum of tile counts inside each block of 256 tiles.
 fn scan_tiles(@builtin(global_invocation_id) id: vec3<u32>, @builtin(local_invocation_index) lane: u32, @builtin(workgroup_id) group: vec3<u32>) {
@@ -131,3 +137,4 @@ fn finish_offsets(@builtin(global_invocation_id) id: vec3<u32>) {
 }
 
 #include "projected_triangle.wgsl"
+// --8<-- [end:scan-passes]

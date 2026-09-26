@@ -1,3 +1,5 @@
+// --8<-- [start:instancing-state]
+// Batch = one definition walked once under a hidden row; every instance row that draws it is a member.
 use super::rows::{FREE, Footprint, GEOMETRY, SINK};
 use super::sync::{Work, baked};
 use super::{Scene, placement};
@@ -92,6 +94,7 @@ impl Instancing {
 
     /// Row `row` draws no instance any more, in O(1); its batch and the members it has left.
     fn leave(&mut self, row: u32) -> Option<(usize, usize)> {
+        // `??` unwraps twice, the map entry and the Option inside it; either None returns None
         let index = self.of_row.remove(&row)??;
         let at = self.member_at.remove(&row)?;
         let batch = self.batches[index].as_mut()?;
@@ -114,7 +117,9 @@ impl Instancing {
         self.live().any(|batch| batch.row == row)
     }
 }
+// --8<-- [end:instancing-state]
 
+// --8<-- [start:add-instances]
 impl Scene {
     /// One row per drawable instance of document `doc`, placed like any object; `placed` gets
     /// each for the node cache. Instance flags seed hidden and locked; their colour is not used.
@@ -234,7 +239,9 @@ impl Scene {
         let cloud = matches!(definition, Geometry::PointCloud(_));
         (self.append(up, cloud), walked, hull)
     }
+    // --8<-- [end:add-instances]
 
+    // --8<-- [start:batches]
     /// The batch of a definition of `doc`, walked now if it is new, its hidden row placed like the
     /// instance at `place`; None when it is drawn per instance: a type without faces, or a walk
     /// with rows no instanced draw reads.
@@ -408,7 +415,9 @@ impl Scene {
 
         self.kill(row);
     }
+    // --8<-- [end:batches]
 
+    // --8<-- [start:reconcile-instance]
     /// Kill, create, redraw or move the row of an instance, or walk a changed definition again;
     /// None when `item` names neither.
     pub(super) fn reconcile_instance(&mut self, item: &Work) -> Option<bool> {
@@ -591,7 +600,9 @@ impl Scene {
             self.redraw_instance(row, reference, definition, place);
         }
     }
+    // --8<-- [end:reconcile-instance]
 
+    // --8<-- [start:rewalk-instances]
     /// Walk the batches and instance rows of `doc` again into fresh lanes, after `rewalk_doc`.
     pub(super) fn rewalk_instances(&mut self, doc: usize) {
         let session = Rc::clone(&self.docs[doc].session);
@@ -707,7 +718,9 @@ impl Scene {
             .collect();
         gpu.set_instanced(&definitions, &touched, full);
     }
+    // --8<-- [end:rewalk-instances]
 
+    // --8<-- [start:instance-lookup]
     /// The definition an instance row draws, in its own frame; the row's placement places it.
     pub fn instance_definition(&self, row: u32) -> Option<&Geometry> {
         if !self.instancing.is_instance(row) {
@@ -772,7 +785,9 @@ fn take_walk(object: &mut ObjectRow, walked: &Row, hull: Option<Hull>) {
         object.flags |= Instance::FLAG_HAS_FACES;
     }
 }
+// --8<-- [end:instance-lookup]
 
+// --8<-- [start:instance-tests]
 #[cfg(test)]
 mod tests {
     use super::super::FileDoc;
@@ -1473,3 +1488,4 @@ mod tests {
         }
     }
 }
+// --8<-- [end:instance-tests]

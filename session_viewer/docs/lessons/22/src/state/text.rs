@@ -1,3 +1,4 @@
+// --8<-- [start:annotate-document]
 use super::State;
 use crate::app::selection::SelectionMode;
 use crate::engine::text::{TextLabel, TextPlacement};
@@ -41,9 +42,12 @@ impl State {
         self.update_label();
         self.touch();
     }
+    // --8<-- [end:annotate-document]
 
+    // --8<-- [start:update-label]
     /// Draw the labels with the whole fonts, main font first.
     pub fn use_fonts(&mut self, faces: [&'static [u8]; 3]) {
+        // fontdb wants shared bytes, an Arc; wrapping the static slice copies nothing
         let sources = faces
             .into_iter()
             .map(|face| glyphon::fontdb::Source::Binary(std::sync::Arc::new(face)))
@@ -84,7 +88,9 @@ impl State {
 
         self.include_text_bounds();
     }
+    // --8<-- [end:update-label]
 
+    // --8<-- [start:text-bounds]
     /// Grow the scene box and each text row's box around the shaped text.
     pub(super) fn include_text_bounds(&mut self) {
         for run in &self.gpu.text.document.runs {
@@ -123,6 +129,7 @@ impl State {
                 height = height.max(f64::from(line.line_top + line.line_height) * unit);
             }
 
+            // the same padding ratio as a nameplate, so the box matches the drawn plate
             let vertical_padding = world_height * 2.0 / 9.0;
             let horizontal_padding = height * 0.5 + vertical_padding;
             let mut bounds = AABB::empty();
@@ -163,7 +170,9 @@ impl State {
         }
     }
 }
+// --8<-- [end:text-bounds]
 
+// --8<-- [start:nameplate]
 /// The center of a box.
 fn label_center(bounds: &AABB) -> [f64; 3] {
     [bounds.cx, bounds.cy, bounds.cz]
@@ -191,7 +200,9 @@ fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
         clip: None,
     }
 }
+// --8<-- [end:nameplate]
 
+// --8<-- [start:set-texts]
 impl State {
     /// Replace the scene's text labels.
     pub fn set_texts(&mut self, texts: Vec<crate::app::manifest::TextItem>) {
@@ -200,3 +211,4 @@ impl State {
         self.touch();
     }
 }
+// --8<-- [end:set-texts]

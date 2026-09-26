@@ -1,3 +1,6 @@
+// --8<-- [start:instanced-gpu]
+// Instancing = one definition's triangles uploaded once and drawn once per placed copy: 500 equal beams, one mesh.
+// Slot = one placed copy, naming the instance row whose placement it takes; slot 0 is the arena drawing itself.
 use super::buffers::GpuCtx;
 use super::slots::{Change, Slot};
 use std::ops::Range;
@@ -38,6 +41,7 @@ impl super::Gpu {
         let ctx = &self.ctx;
         let space = &self.arena.space;
         let end = space.end();
+        // a closure: the texels of a slot range, read from `space` each time it is called
         let texels =
             |range: Range<u32>| -> Vec<[u32; 4]> { range.map(|at| space.texel(at)).collect() };
         let mut all = change.all;
@@ -75,11 +79,14 @@ impl super::Gpu {
         } else {
             change.slots.iter().map(|range| range.len() as u32).sum()
         };
+        // the tile lists hold the instances' triangles too, so they are built again
         self.arena.tiles.invalidate();
         self.objects.geometry_changed();
     }
 }
+// --8<-- [end:instanced-gpu]
 
+// --8<-- [start:instanced-pass]
 /// The pass that keeps the instance slots following the arena.
 pub struct Instanced;
 
@@ -98,3 +105,4 @@ pub fn pass(
 ) -> Box<dyn super::pass::Pass> {
     Box::new(Instanced)
 }
+// --8<-- [end:instanced-pass]

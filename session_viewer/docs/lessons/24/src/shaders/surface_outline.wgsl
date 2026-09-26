@@ -1,3 +1,4 @@
+// --8<-- [start:outline-inputs]
 @group(0) @binding(0) var mask: texture_2d<f32>; // coverage of every solid
 @group(0) @binding(1) var<uniform> radius: vec4<f32>; // x: outline width, px; y: 1 for the selection mask; z: block size, px
 @group(0) @binding(2) var coarse: texture_2d<f32>; // max of the 3x3 blocks around each block of the mask
@@ -17,7 +18,9 @@ struct Taps {
 fn near_any_coverage(coarse_mask: texture_2d<f32>, block: f32, p: vec2<i32>) -> bool {
     return textureLoad(coarse_mask, p / i32(block), 0).r > 0.0;
 }
+// --8<-- [end:outline-inputs]
 
+// --8<-- [start:outline-search]
 @vertex
 // Fullscreen triangle.
 fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
@@ -40,6 +43,7 @@ fn coverage_at(position: vec2<f32>) -> f32 {
         return 0.0;
     }
 
+    // select(a, b, c) is the WGSL ternary: b when c is true, else a
     var first = select(0.0, 1.0, done);
     var second = select(0.0, 1.0, done_two);
 
@@ -66,6 +70,7 @@ fn coverage_at(position: vec2<f32>) -> f32 {
         }
     }
 
+    // (1 - center) keeps the outline outside: a covered pixel gets none
     return max(select(first * (1.0 - center), 0.0, done), select(second * (1.0 - center_two), 0.0, done_two));
 }
 
@@ -74,7 +79,9 @@ fn coverage_at(position: vec2<f32>) -> f32 {
 fn fs_alpha(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
     return vec4<f32>(coverage_at(position.xy), 0.0, 0.0, 1.0);
 }
+// --8<-- [end:outline-search]
 
+// --8<-- [start:outline-blend]
 @fragment
 // Black outline; `mask` is bound to the alpha texture here.
 fn fs_main(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
@@ -87,7 +94,9 @@ fn fs_main(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
 
     return vec4<f32>(0.0, 0.0, 0.0, alpha);
 }
+// --8<-- [end:outline-blend]
 
+// --8<-- [start:outline-pool]
 // One coarse pixel: the maximum of its block of the mask.
 @fragment
 fn fs_pool(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
@@ -127,3 +136,4 @@ fn fs_dilate(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
 
     return vec4<f32>(highest, 0.0, 0.0, 1.0);
 }
+// --8<-- [end:outline-pool]

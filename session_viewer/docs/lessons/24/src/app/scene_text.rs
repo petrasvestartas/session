@@ -1,3 +1,5 @@
+// --8<-- [start:scene-text]
+// Text object = a label the scene owns like any geometry: it has a row, so it can be picked, hidden and undone.
 use super::Scene;
 use crate::engine::gpu::Gpu;
 use crate::engine::text::{TextLabel, TextObject, TextPlacement};
@@ -13,9 +15,12 @@ pub struct SceneText {
     pub(crate) key: String,  // stable name, e.g. manifest-text/3
     pub(crate) active: bool, // false once replaced
 }
+// --8<-- [end:scene-text]
 
+// --8<-- [start:manifest-texts]
 impl Scene {
     /// Replace the manifest's texts, keeping their rows.
+    // `super::super` climbs two modules: from scene::text up to scene, then up to app
     pub fn set_texts(&mut self, texts: Vec<super::super::manifest::TextItem>, gpu: &mut Gpu) {
         // retire the old manifest texts
         for text in &mut self.texts {
@@ -68,7 +73,9 @@ impl Scene {
         self.upload_to(gpu);
         self.restore_text_visibility(gpu);
     }
+    // --8<-- [end:manifest-texts]
 
+    // --8<-- [start:register-text]
     /// Reuse the row for `key`, or add a new one.
     pub(crate) fn register_text(&mut self, key: String, mut label: TextLabel, active: bool) {
         for text in &mut self.texts {
@@ -97,7 +104,9 @@ impl Scene {
             active,
         });
     }
+    // --8<-- [end:register-text]
 
+    // --8<-- [start:text-undo]
     /// Add a text object as one undo step; returns its row.
     pub fn add_text(&mut self, label: TextLabel) -> u32 {
         let next = self
@@ -110,7 +119,9 @@ impl Scene {
         let loaded = self.loaded; // an edit keeps the GPU anchor, only a load re-centres it
         self.register_text(key.clone(), label, true);
         self.loaded = loaded;
+        // --8<-- [start:21-text-edited-add]
         self.text_edited(format!("+{key}")); // register:editing
+        // --8<-- [end:21-text-edited-add]
         let row = self.texts[self.texts.len() - 1].row;
         self.text_rows.push(row);
         row
@@ -121,7 +132,9 @@ impl Scene {
         let Some(label) = self.retire_text(row) else {
             return false;
         };
+        // --8<-- [start:21-text-edited-delete]
         self.text_edited(label); // register:editing
+        // --8<-- [end:21-text-edited-delete]
         true
     }
 
@@ -140,6 +153,7 @@ impl Scene {
 
     /// Show or hide the text an undo step `label` made or deleted.
     pub(crate) fn step_text(&mut self, label: &str, back: bool) {
+        // an undo label is a sign and a key: "+created-text/0" made it, "-created-text/0" deleted it
         let (sign, key) = label.split_at(1);
         let shown = (sign == "+") != back;
 
@@ -174,7 +188,9 @@ impl Scene {
             gpu.set_hidden(text.row, !text.active || hidden);
         }
     }
+    // --8<-- [end:text-undo]
 
+    // --8<-- [start:text-lookup]
     /// The words a text row shows.
     pub fn text_name(&self, row: u32) -> Option<&str> {
         self.text_at(row).map(|text| text.label.text.as_str())
@@ -219,3 +235,4 @@ impl Scene {
         labels
     }
 }
+// --8<-- [end:text-lookup]

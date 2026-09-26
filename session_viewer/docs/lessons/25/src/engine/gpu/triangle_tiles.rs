@@ -1,3 +1,8 @@
+// --8<-- [start:tile-layout]
+// Finite visibility = ink hides only behind a triangle that really covers its pixel, not behind that plane extended past the edges.
+// Screen tile = a square of 4 x 4 pixels (8 x 8 on large canvases) that keeps a list of the triangles that may cover it.
+// Reference pool = one buffer with every tile's list back to back; a prefix sum gives each list its start.
+// Prefix sum = each entry's total of the entries before it: counts 3, 0, 2 give starts 0, 3, 3.
 use super::buffers::{GpuCtx, ROWS, bind_group, replace_buffer, uniform_buffer, zeroed_buffer};
 use super::frame::Binds;
 use super::targets::{Attachment, TextureSpec};
@@ -79,8 +84,11 @@ impl TileLayout {
             .min(self.max_pool_words())
     }
 }
+// --8<-- [end:tile-layout]
 
+// --8<-- [start:pool-report]
 /// Reads back how many words the last scan needed.
+// The GPU knows how long the lists got; the CPU learns it frames later and grows the pool for the next build.
 struct PoolReport {
     buffer: wgpu::Buffer, // 16-byte CPU-readable copy
     ready: Arc<AtomicU8>, // 0 waiting, 1 mapped, 2 failed
@@ -157,7 +165,9 @@ impl PoolReport {
         Some(u64::from(words))
     }
 }
+// --8<-- [end:pool-report]
 
+// --8<-- [start:pool-sizing]
 /// Projection workgroups across and down for `triangles`, 64 each, rows of PROJECT_ROW_GROUPS.
 fn project_groups(triangles: u32) -> (u32, u32) {
     let groups = triangles.div_ceil(64);
@@ -167,7 +177,6 @@ fn project_groups(triangles: u32) -> (u32, u32) {
     )
 }
 
-/// Next pool size: at least `floor`; doubled when the report overflowed.
 /// Records for a table of `need` triangles, None while `capacity` fits: exact after a load jump, an eighth spare after an edit.
 fn projected_records(need: u64, capacity: u64, most: u64) -> Option<u64> {
     if need <= capacity && need * 4 >= capacity {
@@ -178,6 +187,7 @@ fn projected_records(need: u64, capacity: u64, most: u64) -> Option<u64> {
     Some((need + spare).min(most).max(need))
 }
 
+/// Next pool size: at least `floor`; doubled when the report overflowed.
 fn next_pool_words(
     current: u64,
     floor: u64,
@@ -196,7 +206,9 @@ fn next_pool_words(
 
     want.min(ceiling)
 }
+// --8<-- [end:pool-sizing]
 
+// --8<-- [start:tile-struct]
 /// What the tile lists were built for; same key = reuse them.
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct ProjectionKey {
@@ -232,7 +244,9 @@ pub struct TriangleTiles {
     pool_words: u64,         // reference pool size, words
     report: PoolReport,      // readback of the words needed
 }
+// --8<-- [end:tile-struct]
 
+// --8<-- [start:tiles-prepare]
 impl TriangleTiles {
     /// Create with tiny placeholder buffers.
     pub fn new(ctx: &GpuCtx, layouts: &Layouts) -> Self {
@@ -376,7 +390,9 @@ impl TriangleTiles {
 
         changed
     }
+    // --8<-- [end:tiles-prepare]
 
+    // --8<-- [start:tiles-encode]
     /// Reproject the triangles unless camera and objects are unchanged; bin them into the tile
     /// lists too when `lists`.
     pub(super) fn encode(
@@ -414,6 +430,7 @@ impl TriangleTiles {
             .into_iter()
             .enumerate()
         {
+            // a compute pass runs a shader over a grid of workgroups: no vertices, no pixels, only buffers
             let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
                 label: Some("triangle.scan"),
                 timestamp_writes: None,
@@ -494,6 +511,7 @@ impl TriangleTiles {
 
     /// Draw every triangle over the tile grid with `pipeline`.
     fn bin(&self, encoder: &mut wgpu::CommandEncoder, binds: &Binds, pipeline: &Pipeline) {
+        // the rasterizer bins: the target has one pixel per tile, so each fragment is one (triangle, tile) pair
         let Some(view) = &self.target else {
             return;
         };
@@ -519,7 +537,9 @@ impl TriangleTiles {
         // a four-corner strip per triangle, covering its tiles
         pass.draw(0..4, 0..self.requested_triangles);
     }
+    // --8<-- [end:tiles-encode]
 
+    // --8<-- [start:tiles-release]
     /// Shrink the buffers back to placeholders; returns true if they were bigger.
     fn release_data(&mut self, ctx: &GpuCtx) -> bool {
         if self.layout.take().is_none() {
@@ -565,7 +585,9 @@ impl TriangleTiles {
         )
     }
 }
+// --8<-- [end:tiles-release]
 
+// --8<-- [start:tile-input]
 /// What `encode` needs from the frame and the arena.
 pub(super) struct TileInput<'a> {
     pub binds: &'a Binds<'a>,            // bind groups 0-2
@@ -592,7 +614,9 @@ fn entry(
         count: None,
     }
 }
+// --8<-- [end:tile-input]
 
+// --8<-- [start:tile-pipelines]
 impl TilePipelines {
     /// Create the layouts, shaders and pipelines.
     fn new(ctx: &GpuCtx, layouts: &Layouts) -> Self {
@@ -735,7 +759,9 @@ fn compute_pipeline(
         })
     })
 }
+// --8<-- [end:tile-pipelines]
 
+// --8<-- [start:tile-tests]
 /// Pool sizing and grid tests.
 #[cfg(test)]
 mod tests {
@@ -1104,3 +1130,4 @@ mod tests {
         bytemuck::pod_read_unaligned(&bytes[..16])
     }
 }
+// --8<-- [end:tile-tests]

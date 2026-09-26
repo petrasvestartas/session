@@ -1,3 +1,5 @@
+// --8<-- [start:decode-limits]
+// A .pb file is protobuf: a run of fields, each a varint key (field number × 8 + wire type) then a value; wire type 2 = a length, then that many bytes.
 use super::validate;
 use super::validate::varint;
 use prost::Message;
@@ -11,6 +13,7 @@ use session_rust::{InstanceRef, Objects};
 use std::cell::RefCell;
 use std::rc::Rc;
 
+// `next_tick` exists twice under opposite cfgs, so the decoder below calls it the same way in the browser and in native tests.
 #[cfg(target_arch = "wasm32")]
 use super::fetch::next_tick;
 
@@ -18,6 +21,7 @@ use super::fetch::next_tick;
 #[cfg(not(target_arch = "wasm32"))]
 async fn next_tick() {}
 
+// The page redraws and answers input only between tasks, so a long decode pauses every 25,000 objects.
 /// Objects converted before yielding to the browser.
 const CHUNK: usize = 25_000;
 
@@ -36,7 +40,9 @@ const TRUNCATED: &str = "invalid session protobuf: the file ends inside a field"
 
 /// Why a file with a broken field header is refused.
 const MALFORMED: &str = "invalid session protobuf: malformed field";
+// --8<-- [end:decode-limits]
 
+// --8<-- [start:decode-body]
 /// A session file; a JS buffer stays outside wasm memory and is read a window at a time.
 pub enum Body {
     Bytes(Vec<u8>), // bytes already in wasm memory
@@ -54,7 +60,9 @@ impl Body {
         }
     }
 }
+// --8<-- [end:decode-body]
 
+// --8<-- [start:decode-reader]
 /// One protobuf field: number, wire type and where its value lies.
 #[derive(Clone, Copy)]
 struct Field {
@@ -66,6 +74,7 @@ struct Field {
 }
 
 /// A body read through one bounded window.
+// `cfg_attr` adds an attribute only under a condition: natively `at` and `window` go unused, so that warning is silenced there.
 #[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 struct Reader<'a> {
     body: &'a Body,  // the file
@@ -98,7 +107,7 @@ impl<'a> Reader<'a> {
             Body::Js(array) => {
                 let held = self.at + self.window.len() as u64;
 
-                if at < self.at || end > held {
+                if at < self.at || end > held { // not in the window: copy up to 1 MiB from the JS array
                     let to = end.max(at + WINDOW).min(self.size);
                     self.window.resize((to - at) as usize, 0);
                     array
@@ -115,12 +124,13 @@ impl<'a> Reader<'a> {
 
     /// The field starting at `at` inside a message ending at `end`.
     fn field(&mut self, at: u64, end: u64) -> Result<Field, String> {
-        let head = self.bytes(at, (end - at).min(20))?;
+        let head = self.bytes(at, (end - at).min(20))?; // a key and a length take at most 10 bytes each
         let (key, used) = varint(head, 0).ok_or(MALFORMED)?;
         let (number, wire) = (key >> 3, key & 7);
         let mut value = used;
         let mut len = 0;
 
+        // wire types: 0 = varint, 1 = eight bytes, 2 = length then bytes, 5 = four bytes
         match wire {
             0 => value += varint(head, value).ok_or(MALFORMED)?.1,
             1 => value += 8,
@@ -157,6 +167,7 @@ impl<'a> Reader<'a> {
             .map_err(|_| "invalid session protobuf: text is not UTF-8".into())
     }
 
+    // `M: Message + Default`: any prost message type; the caller names it, e.g. `r.message::<proto::Vertex>(field)`
     /// A length-delimited field's value as one message; a window grown past its size for a large
     /// object is freed at once. Decoding from a slice alone keeps one copy of prost's code.
     fn message<M: Message + Default>(&mut self, f: Field) -> Result<M, String> {
@@ -185,7 +196,9 @@ fn expect(f: Field) -> Result<(), String> {
 fn invalid(error: prost::DecodeError) -> String {
     format!("invalid session protobuf: {error}")
 }
+// --8<-- [end:decode-reader]
 
+// --8<-- [start:decode-object]
 /// Counts conversions.
 struct Pacer {
     n: usize, // objects converted so far
@@ -199,6 +212,7 @@ impl Pacer {
     }
 }
 
+// `$proto:ty` takes a type, `$check:path` a function, `$slot:ident` a field name; the body is pasted once per object kind below.
 /// Convert one object record: decode, check, add to the session.
 macro_rules! object {
     ($s:expr, $r:expr, $f:expr, $proto:ty, $check:path, $ty:ident, $slot:ident) => {{
@@ -209,6 +223,7 @@ macro_rules! object {
             .insert(g.guid().to_string(), Geometry::$ty(Rc::clone(&g)));
         $s.objects.$slot.push(g);
     }};
+    // a second form, chosen by the word `fallible`, for kinds whose `from_proto` can fail
     (fallible $s:expr, $r:expr, $f:expr, $proto:ty, $check:path, $ty:ident, $slot:ident) => {{
         let source: $proto = $r.message($f)?;
         $check(&source)?;
@@ -221,7 +236,9 @@ macro_rules! object {
         $s.objects.$slot.push(g);
     }};
 }
+// --8<-- [end:decode-object]
 
+// --8<-- [start:decode-session]
 /// A session from file bytes, yielding while converting.
 pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Result<Session, String> {
     session_from_body(url, Body::Bytes(bytes), true).await
@@ -250,6 +267,7 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
     let mut folds = Vec::new(); // (instance guid, stored placement), folded into xforms
     let mut at = 0;
 
+    // first pass: only note where each top-level field lies; the objects are read one at a time below
     while at < r.size {
         let f = r.field(at, r.size)?;
 
@@ -328,7 +346,7 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
             }
 
             if pacer.tick() {
-                next_tick().await;
+                next_tick().await; // give the browser a turn
             }
         }
 
@@ -367,11 +385,14 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
         s.tree = read_tree(&mut r, f)?;
     }
 
+    // the tables were filled by hand above; `reindex` rebuilds the kernel's guid → slot and guid → tree-node indexes, or delete and undo by guid would miss these objects
     s.reindex();
 
     Ok(s)
 }
+// --8<-- [end:decode-session]
 
+// --8<-- [start:decode-count]
 /// Records per `Objects` field number, checked against the scene cap.
 fn count(r: &mut Reader, objects: &[Field]) -> Result<[usize; 16], String> {
     let mut counts = [0usize; 16];
@@ -433,7 +454,9 @@ fn reserve(s: &mut Session, counts: &[usize; 16]) {
     s.objects.instances.reserve_exact(counts[0]);
     s.instance_lookup.reserve(counts[0]);
 }
+// --8<-- [end:decode-count]
 
+// --8<-- [start:decode-graph]
 /// The graph message `f`; without `vertices` only the edges and the vertices they name.
 fn read_graph(r: &mut Reader, f: Field, vertices: bool) -> Result<session_rust::Graph, String> {
     let (mut name, mut guid) = (String::new(), String::new());
@@ -558,7 +581,10 @@ fn read_node(r: &mut Reader, f: Field) -> Result<Rc<RefCell<TreeNode>>, String> 
 
     Ok(root)
 }
+// --8<-- [end:decode-graph]
 
+// --8<-- [start:decode-instances]
+// An instance places a shared definition: one bolt stored once and drawn 400 times, each copy with its own placement.
 /// One instance: added with its lookup; a stored placement waits in `folds` for the xforms.
 fn instance(
     s: &mut Session,
@@ -627,7 +653,9 @@ fn define(s: &mut Session, r: &mut Reader, f: Field) -> Result<(), String> {
     );
     Ok(())
 }
+// --8<-- [end:decode-instances]
 
+// --8<-- [start:decode-json]
 /// A session from JSON text.
 #[cfg(feature = "json-sessions")]
 fn json(body: Body) -> Result<Session, String> {
@@ -654,7 +682,9 @@ fn json(body: Body) -> Result<Session, String> {
 fn json(_body: Body) -> Result<Session, String> {
     Err("JSON sessions are not read by this build (feature json-sessions); publish the .pb".into())
 }
+// --8<-- [end:decode-json]
 
+// --8<-- [start:decode-tests]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -883,3 +913,4 @@ mod tests {
         }
     }
 }
+// --8<-- [end:decode-tests]
