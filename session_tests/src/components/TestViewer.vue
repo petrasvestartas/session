@@ -6,17 +6,17 @@
           <tr>
             <th>
               <a href="https://github.com/petrasvestartas/session_cpp" target="_blank" class="lang-link">
-                <img :src="base + 'icons/session_cpp_black.png'" class="lang-icon" alt="C++" title="C++">
+                <img :src="base + 'icons/lang_cpp.svg'" class="lang-icon" alt="C++" title="C++">
               </a>
             </th>
             <th>
               <a href="https://github.com/petrasvestartas/session_py" target="_blank" class="lang-link">
-                <img :src="base + 'icons/session_py_black.png'" class="lang-icon" alt="Python" title="Python">
+                <img :src="base + 'icons/lang_py.svg'" class="lang-icon" alt="Python" title="Python">
               </a>
             </th>
             <th>
               <a href="https://github.com/petrasvestartas/session_rust" target="_blank" class="lang-link">
-                <img :src="base + 'icons/session_rust_black.png'" class="lang-icon" alt="Rust" title="Rust">
+                <img :src="base + 'icons/lang_rust.svg'" class="lang-icon" alt="Rust" title="Rust">
               </a>
             </th>
           </tr>

@@ -51,17 +51,17 @@ kbd {
 
 /* Code colours (src/codeTheme.ts), only code is coloured; each is at least 4.7:1 on #f6f6f6. */
 pre { color: #1f2328; }
-.hk { color: #cf222e; }                      /* keyword */
+.hk { color: #47273c; font-weight: 600; }   /* keyword: plum */
 .ht { color: #1f2328; font-weight: 700; }   /* type or class: bold black */
-.hu { color: #6639ba; }                      /* module or namespace */
-.ha { color: #116329; }                      /* attribute or decorator */
-.hf { color: #8250df; }                      /* function or method */
-.hx { color: #a0169e; font-weight: 600; }    /* macro */
-.hv { color: #0969da; }                      /* variable */
-.hp { color: #bc4c00; font-style: italic; }  /* parameter */
-.hm { color: #1b7c83; }                      /* field */
+.hu { color: #47273c; }                      /* module or namespace: plum */
+.ha { color: #6e8424; }                      /* attribute or decorator: leaf green, darkened for white */
+.hf { color: #8a6283; }                      /* function or method: mauve */
+.hx { color: #8a6283; font-weight: 600; }    /* macro: mauve bold */
+.hv { color: #4e5d79; }                      /* variable: slate blue */
+.hp { color: #4e5d79; font-style: italic; }  /* parameter: slate blue italic */
+.hm { color: #6e8424; }                      /* field: leaf green, darkened for white */
 .hn { color: #1f2328; }                      /* number or constant: black, like any typed-in value */
 .hs { color: #1f2328; }                      /* string: black, like any typed-in value */
-.hc { color: #5c6570; font-style: italic; }  /* comment */
-.ho { color: #57606a; }                      /* operator or punctuation */
+.hc { color: #83869a; font-style: italic; }  /* comment: lavender grey */
+.ho { color: #83869a; }                      /* operator or punctuation: lavender grey */
 </style>
