@@ -1,6 +1,6 @@
 # 20 · Keep a changing window in proportion
 
-**Plan about 3–5 hours.** 172 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 220 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Resize the drawing buffer, depth attachment and camera together, including on dense displays.
 
@@ -22,7 +22,7 @@ The browser will update three things together: the canvas and surface, the depth
 
 Clicks and window resize events can share one callback. Browser events arrive one at a time; the callback already owns our mutable editor and renderer. The window clone is another handle to the same browser window, not another window. We check size before every redraw, but recreate textures only when the dimensions change.
 
-One small trap remains: Reset view used to replace the whole camera. Keep the aspect while resetting its pose. The new test catches this, so resizing cannot quietly stop working after a reset.
+One small trap remains: View Reset used to replace the whole camera. Keep the aspect while resetting its pose. The new test catches this, so resizing cannot quietly stop working after a reset.
 
 ## Type the change
 
@@ -38,23 +38,7 @@ Create the file and type:
 --8<-- "journey/code/20-resize-01.rs"
 ```
 
-### 2. `src/lib.rs`
-
-Make the size calculation usable by browser code and Rust tests.
-
-Find this exact block:
-
-```rust
-pub mod editor;
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/20-resize-02.rs"
-```
-
-### 3. `src/renderer.rs`
+### 2. `src/renderer.rs`
 
 Move depth-image construction into one helper that also serves resize.
 
@@ -80,7 +64,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-03.rs"
 ```
 
-### 4. `src/renderer.rs`
+### 3. `src/renderer.rs`
 
 Recreate the depth attachment when the colour image changes size. The old view is dropped when replaced.
 
@@ -96,7 +80,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-04.rs"
 ```
 
-### 5. `src/editor.rs`
+### 4. `src/editor.rs`
 
 Reset the camera pose while retaining the current viewport proportions.
 
@@ -112,7 +96,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-05.rs"
 ```
 
-### 6. `src/editor.rs`
+### 5. `src/editor.rs`
 
 Catch a resize bug that would otherwise return whenever the learner presses Reset view.
 
@@ -129,159 +113,190 @@ Replace that block with:
 --8<-- "journey/code/20-resize-06.rs"
 ```
 
-### 7. `index.html`
+### 6. `src/lib.rs`
 
-Let the page become wider than the original fixed canvas.
+Make the size calculation usable by browser code and Rust tests.
 
 Find this exact block:
 
-```html
-max-width: 640px;
+```rust
+pub mod picking;
+pub mod history;
+pub mod editor;
+pub mod gpu_mesh;
+pub mod renderer;
+#[cfg(target_arch = "wasm32")]
 ```
 
 Replace that block with:
 
-```html
---8<-- "journey/code/20-resize-07.html"
+```rust
+--8<-- "journey/code/20-resize-dock-01.rs"
 ```
 
-### 8. `index.html`
+### 7. `src/browser.rs`
 
-Give the canvas a CSS height independent of its drawing-buffer dimensions, avoiding a resize feedback loop.
+Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
-```html
-width: 100%; background:
+```rust
+use crate::background::Background;
+use crate::editor::{Action, Change, Editor};
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+
+pub fn report(message: &str) {
 ```
 
 Replace that block with:
 
-```html
---8<-- "journey/code/20-resize-08.html"
+```rust
+--8<-- "journey/code/20-resize-dock-02.rs"
+```
+
+### 8. `src/browser.rs`
+
+Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+        ],
+    );
+    panel.update(None, &canvas)?;
+    present(
+        &surface,
+        &renderer,
+        &editor.background,
+        &editor.camera.uniform(),
+        &mut panel,
+    )?;
+    let input_canvas = canvas.clone();
+    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        let line = match panel.update(Some(&event), &input_canvas) {
+            Ok(line) => line,
+            Err(error) => {
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/20-resize-dock-03.rs"
 ```
 
 ### 9. `src/browser.rs`
 
-Use the same size conversion that the native tests check.
+Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-use crate::editor::{Action, Change, Editor};
+                return;
+            }
+        };
+
+        let line = line.or_else(|| {
+            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
+            (event.type_() == "click"
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/20-resize-09.rs"
+--8<-- "journey/code/20-resize-dock-04.rs"
 ```
 
 ### 10. `src/browser.rs`
 
-Configure the actual visible size before presenting the first frame.
+Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    present(&surface, &renderer, &editor.background, &editor.camera.uniform())?;
+                }
+            }
+        }
+        if let Err(error) = panel.update(None, &input_canvas) {
+            report(&format!("Cannot lay out commands: {error:?}"));
+            return;
+        }
+        if let Err(error) = present(
+            &surface,
+            &renderer,
+            &editor.background,
+            &editor.camera.uniform(),
+            &mut panel,
+        ) {
+            report(&format!("Cannot redraw: {error:?}"));
+        }
+    });
+    for name in [
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/20-resize-10.rs"
+--8<-- "journey/code/20-resize-dock-05.rs"
 ```
 
 ### 11. `src/browser.rs`
 
-Use one callback for clicks and window resizing. Only click events need a mouse position and an editor action.
+Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    let click = Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |event: web_sys::MouseEvent| {
-        let Some(target) = event.target()
-            .and_then(|target| target.dyn_into::<web_sys::Element>().ok()) else { return; };
-        let action = match target.id().as_str() {
-            "canvas" => {
-                let rect = canvas.get_bounding_client_rect();
-                if rect.width() <= 0.0 || rect.height() <= 0.0 {
-                    return;
-                }
-                Action::Pick([
-                    (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
-                    (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
-                ])
-            }
-            "box" => Action::AddBox,
-            "scene" => Action::ToggleExtra,
-            "select" => Action::SelectNext,
-            "delete" => Action::Delete,
-            "undo" => Action::Undo,
-            "redo" => Action::Redo,
-            "background" => Action::Background,
-            "zoom-in" => Action::Zoom(2.0),
-            "zoom-out" => Action::Zoom(0.5),
-            "left" => Action::Pan(-0.25, 0.0),
-            "right" => Action::Pan(0.25, 0.0),
-            "turn" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-            "tilt" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-            "iso" => Action::Isometric,
-            "reset" => Action::ResetView,
-            _ => return,
-        };
-        match editor.apply(action) {
-            Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),
-            Ok(Change::View) => {}
-            Err(error) => { report(error); return; }
-        }
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/20-resize-11.rs"
-```
-
-### 12. `src/browser.rs`
-
-Both event sources finish by checking size and drawing. A hidden canvas waits until it has a positive size.
-
-Find this exact block:
-
-```rust
-        if let Err(error) = present(&surface, &renderer, &editor.background, &editor.camera.uniform()) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
-    document.add_event_listener_with_callback("click", click.as_ref().unchecked_ref())?;
-    controls.remove_attribute("disabled")?;
+        "blur",
+        "click",
+    ] {
+        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
+    }
+    let options = web_sys::AddEventListenerOptions::new();
+    options.set_passive(false);
+    canvas.add_event_listener_with_callback_and_add_event_listener_options(
+        "wheel",
+        click.as_ref().unchecked_ref(),
+        &options,
+    )?;
     // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
     click.forget();
     report("Every document action follows the same editor path.");
+    Ok(())
+}
+
+fn present(
+    surface: &wgpu::Surface<'_>,
+    renderer: &Renderer,
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/20-resize-12.rs"
+--8<-- "journey/code/20-resize-dock-06.rs"
 ```
 
-### 13. `src/browser.rs`
+### 12. `index.html`
 
-Keep drawing-buffer size, surface size, depth size and projection aspect synchronized before acquiring a frame.
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
 
 Find this exact block:
 
-```rust
-fn present(
+```html
+  <title>My viewer</title>
+  <link data-trunk rel="rust">
+  <style>
+    body { margin: 2rem auto; padding: 0 1rem; max-width: 640px; font: 18px/1.5 system-ui; color: #172238; }
+    canvas { display: block; width: 100%; background: #e9e9ec; outline: 1px solid #455b6b; }
+  </style>
+</head>
+<body>
 ```
 
 Replace that block with:
 
-```rust
---8<-- "journey/code/20-resize-13.rs"
+```html
+--8<-- "journey/code/20-resize-page-1.html"
 ```
 
 ## Run and look
@@ -296,7 +311,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Add a box and choose Isometric. Widen and narrow the browser: the box should retain its proportions while more or less horizontal space becomes visible. Try Reset view after resizing. The canvas drawing dimensions should reflect display density rather than always reading 640 × 480.
+Run `Example Box` and `View Isometric`. Widen and narrow the browser: the box keeps its proportions while the visible horizontal space changes. Run `View Reset` after resizing. The drawing dimensions should follow display density.
 
 **Actual Chrome screenshot.**
 

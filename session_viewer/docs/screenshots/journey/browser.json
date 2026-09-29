@@ -7,199 +7,435 @@
     "--disable-vulkan-surface",
     "--ozone-platform=x11"
   ],
-  "captured": "2026-09-29T20:51:29.392Z",
+  "captured": "2026-09-29T22:03:06.122Z",
   "steps": {
     "01-canvas": {
-      "source": "7a1f9d6a60ee094674ea4a7e9a8b14d6ad36178f733fb85002e91f4aeaabe5f1",
+      "source": "e0606f9ecf949589c6459a32aa9c202a6192833bd23f18eddf24645c747e3cfc",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:06.625Z",
       "status": "Rust is running. The canvas is ready.",
       "canvas": "3630e065eb7b4540fbab11dbfd2619e8500f211b9c404380a1867fdc44b77c0c",
       "file": "01-canvas-browser.png",
-      "bundle": "23ff51675ae17fd698c9c0865e8cb1f4e82e72468d4a5ede9069a7ab1f05f83e",
-      "clickAndKeyboard": false
+      "bundle": "bc37d7b77a0d55e4d33ad51d3123a9a1ab3c51cf191ef666564f1c4b348042d7",
+      "commands": [],
+      "keyboardRoundtrip": false
     },
     "02-clear": {
-      "source": "bc857a580d27a5be25c0de7dbed10f15d3c2abc61274460e9e79680389df3f05",
+      "source": "742a44c6e3fe43254ca7f3aad7fe8fc6851a7ef73119825d393f7a1e3bed12fc",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:06.858Z",
       "status": "The GPU painted the canvas.",
       "canvas": "9d4eb35d24be22c16dc60251fcca56794b8c3afb6a02fbb1ab29feeaac43213a",
       "file": "02-clear-browser.png",
-      "bundle": "71b37c009fef3ef4a1de636ca8576d2f8962d8868c46664e32085da7590e0996",
-      "clickAndKeyboard": false
+      "bundle": "398bc1ddda45b6bd10e085ba0334e2a87aa072bf216f78d72ab4dce8014022bc",
+      "commands": [],
+      "keyboardRoundtrip": false
     },
     "03-triangle": {
-      "source": "f2628eb1728232cacc14c534966bf08a0857e9ecc33f66cf98458b3edcdfff72",
+      "source": "5e051ea9a5685f838b54771c5541f905235ea25520718326f3447764d7b390b3",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:07.107Z",
       "status": "Three corners became a triangle.",
       "canvas": "e8af4ae92c9937c91839209e777d3fd9442029fbb2838269c56862d48857f756",
       "file": "03-triangle-browser.png",
-      "bundle": "10f90ee6b843a7abffe11b854980a9e6617040201d7dc2493264fd769377bbb0",
-      "clickAndKeyboard": false
+      "bundle": "c7bb965d5198427e442450d96858fe2b2aa3a2dcff21733b9897a224731e4391",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "03a-panel": {
+      "source": "9317c681e7cc7ac7a1d9aabdce60d46231db799007ba8af76caf755f27a1526d",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:07.544Z",
+      "status": "Our command line is drawn. Input comes next.",
+      "canvas": "08cbc09f7e10dbe226e37b3db4d85332eb5dea06473a00acad4e36185d92da2c",
+      "file": "03a-panel-browser.png",
+      "bundle": "8622479ba23741009ca785c0129cc693dc4f57d0b2bd84cd47444ed896d35cd9",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "03b-state": {
+      "source": "e55711d768d5376380ef903b1ede2c4c30d433b3700b01a9d719315ed5538822",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:07.976Z",
+      "status": "The command model owns the text and history.",
+      "canvas": "28980b472c2aeb05f750d8349834fbe323c43f6a97971e5c50171bc9b94e8cf4",
+      "file": "03b-state-browser.png",
+      "bundle": "98ff7da5ca0fb40aa971577523fbe480744ae9121a6df0b372ceb41ec585cee8",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "03c-layout": {
+      "source": "422a305c9f470727b1a3bb63a7833bd7b1ed34b5214d210731c9546f7d3243ad",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:08.460Z",
+      "status": "The real dock lays out history and the command field.",
+      "canvas": "2f3c34ed2d50831e2cdc2d9a18aba5995a4014d89df8bf1d8ce9e252ffb116ef",
+      "file": "03c-layout-browser.png",
+      "bundle": "5b83bc04716481a627b81d8cd6329f7b35fde865adce0d798fc04160c1f472d3",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "03d-input": {
+      "source": "bb98f50fbfcc2d9f1fce3ff9ef7ca3ecef527be7a365eae96fbfe62b5c2fa95f",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:09.276Z",
+      "status": "Type Help in the command field and press Enter.",
+      "canvas": "e87f224e91eef4aa5aea399f1653804d8c5a50758fa73db71cb5427710dc9f91",
+      "file": "03d-input-browser.png",
+      "bundle": "4df9cd6c70952d3401938aa33d5764d6a95ea45ffc74a4d0fc0b5b01c03211ed",
+      "commands": [],
+      "keyboardRoundtrip": false
     },
     "04-input": {
-      "source": "48eacdd0505449f8b8d74ac2f7dc69a50ece47e767149f4e4be76a1a9377ec79",
+      "source": "008ee8bd3d16a732dcf02cd2c3e35e8e36f4fa6ebfba4ae8a2eb6a4445fa8e5e",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:10.995Z",
       "status": "Change the background. The triangle keeps its shape and colour.",
-      "canvas": "c9299e3cf88bdd00aaf256005ba74df63228cb38fdce1a4954ed2769c5509ae8",
+      "canvas": "1abeced9c6e7e99bda9e3d8a9b0b2a713641436049706fbdd553c577501006af",
       "file": "04-input-browser.png",
-      "bundle": "b290a9779cb74031422f95786d5b80a622e4c8a85e467116c4d09591fec3f562",
-      "clickAndKeyboard": true
+      "bundle": "4d00dd99627a30224af2e1eb25a6c3fe61bcd60563378700ca0ee8259f296bd9",
+      "commands": [],
+      "keyboardRoundtrip": true
     },
     "05-vertices": {
-      "source": "3f813802ade08a8b7c4b6b18bec7e9aa9c9b61395ebe525a67df57bf9a2ec2ec",
+      "source": "e50d630b94a3bb64fab112faf754a140cf13d247db3bcc44ff367b9834c82f37",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:11.962Z",
       "status": "Six uploaded corners make one rectangle.",
-      "canvas": "502f8b9b24f3f007bc998fc35a60c231d00b192ac8c4439f41affeb744aa205c",
+      "canvas": "a6bb9e121b69f89cda6cb04dfe61c85db5ca243fa62c2a36aea1023b3c72f687",
       "file": "05-vertices-browser.png",
-      "bundle": "4e4c3d9c84d4a16a93be4b7fc53b789548b216949d1ec82beb769e5e145db395",
-      "clickAndKeyboard": false
+      "bundle": "1097638fab693495d627c90161063e4b5462d973086b945fd879aed2297dd1b6",
+      "commands": [],
+      "keyboardRoundtrip": false
     },
     "06-indices": {
-      "source": "fd9abc8cffdbdac9e9f72227b74bfc4b71074c6facadf0e9c2f7009df1b4a1fe",
+      "source": "458a8fa88fb7094457945c19724ba31c7046a6c61675724cd37e4447e4b9870e",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:12.975Z",
       "status": "Four shared corners make two triangles.",
-      "canvas": "e0f4cf2b14b77a284091b0e4e39579c2d81c2ff1bf0cf144b5a59056b3288bba",
+      "canvas": "191aecd161ff1cfd3fb9d8e40a6af407e1364814a87e3221a1de639fe64a10d6",
       "file": "06-indices-browser.png",
-      "bundle": "3ea70f468291fd1cbdd8d4f7295875fef7e168af7b752bfc8134cd0c79325eaa",
-      "clickAndKeyboard": false
+      "bundle": "c3754a2aec87244bf933d89b02844b118b0e3b9eb025c8547523a0b57755f8d0",
+      "commands": [],
+      "keyboardRoundtrip": false
     },
     "07-uniforms": {
-      "source": "f67e0e65bba55ec6aac1f07bf706f067b7c8820b004e5a96e5c33acebb86c458",
+      "source": "48cfe67f2695418ffb3dba5ba7a5fc3b345e24526bd6b3478bb773167af81c9d",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:13.941Z",
       "status": "One view setting moves all four corners.",
-      "canvas": "ef92697b4c2dfc4750043e221942d8be970ede82c5fd39cdfbfbb6823be2cf60",
+      "canvas": "508df403ad34f1dacc212531139cbcc5755b0843a4848d0d24436ad82a15362c",
       "file": "07-uniforms-browser.png",
-      "bundle": "e9c12318c437da47280c2a9eb3e2ff8ae6c8b27134092c6fdf358a0f9f5f832e",
-      "clickAndKeyboard": false
+      "bundle": "2b01b0035808c2456fea512bd7797bcfd7cf41f8483633c678b063803d6182e8",
+      "commands": [],
+      "keyboardRoundtrip": false
     },
     "08-camera": {
-      "source": "ae2c15d9c77d66f9a1105684605720e20a8565377c7abda5e6e7c64921ce08c7",
+      "source": "0a953626206eda0be5c8d8e20638c08eca32709d814712815a85cdcfd81922df",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:15.377Z",
       "status": "Pan and zoom change the view, not the mesh.",
-      "canvas": "9ea6ca105193e4bb20960765765c859709a4252123717178073b6e2e4d89595b",
+      "canvas": "a90ff4b1699ac9bd7fcac8f74206de18409d6428d3260a48e9330df26be243ea",
       "file": "08-camera-browser.png",
-      "bundle": "51d6218d3d03f38d43a50c266d68cc02cf8a3172c6bd4e6adad5b72bc983c112",
-      "clickAndKeyboard": false
+      "bundle": "a7d648e7faac7a95672365c2f92b8ab13b6bc50b3189e68d308648c6caf0f031",
+      "commands": [
+        "Zoom Out"
+      ],
+      "keyboardRoundtrip": false
     },
     "09-matrices": {
-      "source": "712a453bebba1a048e2d00f7ca81687607f78cc75f3b70a3b98ade12d1b8e1b1",
+      "source": "d730ee147e3706723199a9b799d94c30986949f606058a003734405a144aa3d0",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:16.858Z",
       "status": "A matrix carries pan, scale and rotation.",
-      "canvas": "23c7108439bc7d28d6ab3edf89e4d042c8d7f7484be9c13e88255c628daac4a1",
+      "canvas": "68e8a6133d459d397e9955787942fb95d774b757c3b8affca9cb87ef6e69367e",
       "file": "09-matrices-browser.png",
-      "bundle": "9e0d7c0975e2b7b3f504b5bd86e33b77ed51e1b2e14979ae230de1beea047db9",
-      "clickAndKeyboard": false
+      "bundle": "60c83b73368082500e151ca82a95be39b4c93f5227903f4d031f2cd8bd444170",
+      "commands": [
+        "Orbit Right"
+      ],
+      "keyboardRoundtrip": false
     },
     "10-depth": {
-      "source": "4383f2d5556ed462d266d9975fb3803d09e306fe11dab3c01028aaec4bc8fd52",
+      "source": "7a817e1bdaf0828ea1d681d0d5f064bfe1b3995940d94a3a85d47f9e14aae948",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:17.858Z",
       "status": "The nearer pink triangle wins the overlap.",
-      "canvas": "bdc53d822748c978ff36f47fef81c14d8c9ad5c0bfd42747f1301aa1bd7f0e3e",
+      "canvas": "ca501c5ff868733c29d5418e74956e352f41606a71a6a0391f238a426d13be0b",
       "file": "10-depth-browser.png",
-      "bundle": "4bd7e81c2d2134c6316980b007f9f973fe516b24e8e42e72eee155695503e3b2",
-      "clickAndKeyboard": false
+      "bundle": "bd821ae9723f51d588a18c8b271b1833cafad16a3a4799bad48b1f9b7be31659",
+      "commands": [],
+      "keyboardRoundtrip": false
     },
     "11-scene": {
-      "source": "1101f7dd5e018e80cc266086663f6d636b883fef8a4f5ed85006755de076ea7b",
+      "source": "e640f68e54a821a502bddcc9410e6260d7b66ed941b8acad55d02db9d94a63e9",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:19.327Z",
       "status": "Scene data owns the meshes; the renderer displays them.",
-      "canvas": "28eb5372f0ffc4d7d060c1779f0652211c8b4d8c1bd1cb7c4f66a53ef6de9bc5",
+      "canvas": "7dcbb0aa8af98d84d894fdd643f27141bf2764b5148014136c273d73a5ea4661",
       "file": "11-scene-browser.png",
-      "bundle": "d5037c1b58dfa7a2ad8328ac3f7c94db3ed6b5bedc7cdef7ab058f20e90657f4",
-      "clickAndKeyboard": false
+      "bundle": "1958bca6c2cda3ab2a136c070a0d0bc49b37faf38f0ba367f649d9d4a5c52f29",
+      "commands": [
+        "Example Triangle"
+      ],
+      "keyboardRoundtrip": false
     },
     "12-identity": {
-      "source": "57d93133e6f3707b35115a3011ebbd3edbe828a686e586b2e7b80083fb76fdb2",
+      "source": "29f8133009253da379aae4bd81ce4083d6db6e64135e8adecadd596b7383aa3e",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:20.813Z",
       "status": "Selection follows object identity, even when rows move.",
-      "canvas": "074fe1a537cc3942e056ca3a3fe2ddeb6c560ee873db5f9c47875713389a010b",
+      "canvas": "5246573a07c1fe1838508ff1d66ba202232acbc6a34eb228b59245386adf677a",
       "file": "12-identity-browser.png",
-      "bundle": "77631c666f0cd836b795be78f2a04b19a3995e08c6e06322c4c1cf831c293ffa",
-      "clickAndKeyboard": false
+      "bundle": "bea783d2df8cbe917c0c5b271d43b7ad72889b47ad9b76e177344701ab69d692",
+      "commands": [
+        "Select Next"
+      ],
+      "keyboardRoundtrip": false
     },
     "13-picking": {
-      "source": "917a6fdffe56f3771a0d0496e28225ffe938c3233cf20257a98bc7705c644c24",
+      "source": "ba3cc35356d56c9b71ad27ef63530452617938cb513a29ad341e1bb7f7ac85a9",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:22.111Z",
       "status": "Click a triangle; the visible object is selected.",
-      "canvas": "5faccfb188933965c013d1a594952fc5ee1797be72fc35b6d3f3d86b8bba98ca",
+      "canvas": "7f551fb52cdb29fcb0371ee9f77c87fdc748c7da720458c804b85050c8f39246",
       "file": "13-picking-browser.png",
-      "bundle": "9ec42de68914e930868bc4305ffd6cb13b74adf64c26c616ad18a838dd0e2739",
-      "clickAndKeyboard": false
+      "bundle": "12ee9a284cbbfca0b36ac71198bdb5f4ece23b6e642a41e3f735fcf3db3da1ba",
+      "commands": [],
+      "keyboardRoundtrip": false
     },
     "14-history": {
-      "source": "c948128ba582a35e7bf000db5264a74732714844859fd4dc3bb20f86d12d1e6b",
+      "source": "476b3cc3467c8c29a1af83718869c9ba00753be95ccf1096e6aa995b556c136f",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:26.112Z",
       "status": "Undo restores the document while the view stays put.",
-      "canvas": "49bca55d63fb5f1e323ec2ada56db2ffa7a4b30cd50cfb41d5e08da159a2dc46",
+      "canvas": "a24a2b9d9f1405dc80e6243f5c8d042191b68ad2c35847d62a6d971939997daf",
       "file": "14-history-browser.png",
-      "bundle": "9d8de0626ac43e1ca9f8d2575b4dd18ad6edb6c307a873c0ef0d8f288db8e0be",
-      "clickAndKeyboard": false
+      "bundle": "304f2f6b991755172258cf3b569c5221b812830c10d20d8903a032be49786da0",
+      "commands": [
+        "Example Triangle",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Delete",
+        "Undo",
+        "Select Next"
+      ],
+      "keyboardRoundtrip": false
     },
     "15-perspective": {
-      "source": "32084b54664cd5f96873d470cd5944ec04a3535b50c3a12d2ca986189a8d7561",
+      "source": "4d6ec4adc869c904c88b2c1f74e26dfe535d88f6f91339b1bfb89e1d2dae2c40",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:27.180Z",
       "status": "Perspective and picking use the same camera.",
-      "canvas": "d3aa6303c74e2b471f637a776b2d48b8c097d469df4ab967c6b895635282a6a9",
+      "canvas": "d3952e35b75b9cddda33879615339c53eb40bd12b1c7292f4560a20b39030d9b",
       "file": "15-perspective-browser.png",
-      "bundle": "b932fe4afe9f2a840df3a4e0fe7052c026c5ecd94c277af541e63149f9864025",
-      "clickAndKeyboard": false
+      "bundle": "f5dd3e4eb97c9d071f3687f96a73260071cf5bcae6443aab91d7a88369145626",
+      "commands": [],
+      "keyboardRoundtrip": false
     },
     "16-orbit": {
-      "source": "be4a1a5511f4962cd25f847b61df902db18169a96a130002ffb925225350a02a",
+      "source": "897bad1e40a06b89c67a9ed780f4253040ebdf9108dd070516b1ef71b0945536",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:28.725Z",
       "status": "Orbit moves the eye around a fixed target.",
-      "canvas": "bd699d22ab2a470b234aa533fe11810696823ac47cc6ba362060351fd6528979",
+      "canvas": "d0efa1750949a94823e2d04354da53ae5a6ec9a97408b276500549cc45e4fb52",
       "file": "16-orbit-browser.png",
-      "bundle": "52dc8bc013db1e561025db779b9eb576f1eaa5c33f51b610be33330e4b5d6dea",
-      "clickAndKeyboard": false
+      "bundle": "a81a43d0c7fe1bda16990ca4174a0dffdccd485e8ba5e8d9cc7674ea91a70eef",
+      "commands": [
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
     },
     "17-solid": {
-      "source": "354ff5eaf1e905422a700ef6bc019a021a4bc525c827bd2272b849412be103f6",
+      "source": "7d18543ec029c6fb42a05f7d66c7cd380666f13534caae8af7306157b6e02390",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:30.842Z",
       "status": "Kernel geometry becomes an undoable scene object.",
-      "canvas": "344ce08dcad8b4daee15686be493b6f5b52f1e93b7df89244354ef7823e70b0f",
+      "canvas": "172042aac8bad5ced83eb95bb067b0aca771d227f8c43452c6fd562f56a400a9",
       "file": "17-solid-browser.png",
-      "bundle": "e6ba6c533ec76207e61745e629822b7bb3929a939acb888c1f9030e9a47f45ce",
-      "clickAndKeyboard": false
+      "bundle": "03a1d6564edf46356f47db918ced2676d1890c50bad1a79c99a06de9acac2bd0",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
     },
     "18-light": {
-      "source": "86a8a5a8fda89c38441b9a1585eec4837a332a3677ab622225309906e1c41d4d",
+      "source": "84b27ee4c0445e3986ce4cab816658e335d0a6abb5c9d522a2c32a324e55bb0b",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:32.795Z",
       "status": "Surface direction changes brightness, not geometry.",
-      "canvas": "ea671335775eae6465c6d11dc596bb1bdc450e6a52b2a18b74b252dd3ad73556",
+      "canvas": "de364b7cf667a4daf73e21ad2995805d9d8a7abd311d6d894ce6f5ba27ff6283",
       "file": "18-light-browser.png",
-      "bundle": "3637eeb6c20b5b0011a2ab5c0c964e4e183f243f7e3da603c9b67be489f05a83",
-      "clickAndKeyboard": false
+      "bundle": "22afe80e8f7d8e7ddd47caed3799b5f58bd5ab890afd8e556f216ea51d815476",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
     },
     "19-actions": {
-      "source": "1aec3acf501dddef2089347dd82772252e4ff8c611279f24c625d9b0e0954208",
+      "source": "167f121725f09dd25f7c80b5f6e0fd9407ffc627acc68e67d509518207834064",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:36.093Z",
       "status": "Every document action follows the same editor path.",
-      "canvas": "c28bdf2341d9553cc814894c4396b7b80057cda4a755e7306682740cebc428f5",
+      "canvas": "eb6705468f22a53c09303993f3c5a833c36d7ceff0173464f0ebc27c3cea1f04",
       "file": "19-actions-browser.png",
-      "bundle": "bd977d3b80bf7ba74e8e2db8be1b9a7cdaf04551ec8fa9e55a05be11eed3a935",
-      "clickAndKeyboard": false
+      "bundle": "5dbc28861f1cd5b82fc895318c9bde6c7222d467064d890d56acb7fc16628b39",
+      "commands": [
+        "Example Box",
+        "View Isometric",
+        "Select Next",
+        "Select Next",
+        "Select Next"
+      ],
+      "keyboardRoundtrip": false
     },
     "20-resize": {
-      "source": "b6599b9c5b4ea11344b86f0a112e4178b082494386db6dc165bc17d91431d155",
+      "source": "7aeef845e56cf0a75ca54bcbe77b530d9391726d91515aaaae01d4192e699f0b",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:38.290Z",
       "status": "Canvas pixels, depth and camera resize together.",
-      "canvas": "d64090a10bf57073ab183438b399eb0b31dfb28f90f8e2697c15194e9fd6bf72",
+      "canvas": "8bd9c7f608729da9c182cd4e57ce2b6eb5789f159e5cecdd947e840ef1337d4d",
       "file": "20-resize-browser.png",
-      "bundle": "01197a76f07134bd3eae6846271c731b45c4fb7174f3e48052b1b377d0642803",
-      "clickAndKeyboard": false
+      "bundle": "d2d964ac2853776e5921f3b5d074f00ab487cf6e76634d452529634736880895",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
     },
     "21-gestures": {
-      "source": "f26eed07b342a29a80f851894b31f55722ba6ad1baba92a515c67cd8e3c94e03",
+      "source": "a278258e2ba6218a1fa089c904d9d23ac695072a865c3a871abfdb51daea06e4",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:41.197Z",
       "status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
-      "canvas": "b7c23045ef257db11a2c0f22695f2b8d5e1b7a7187dfdfebd9d067e9899efadb",
+      "canvas": "ede6d9e1b1baee72c258eb4ea0405cd804af216674cc80e19620514e3cd3c349",
       "file": "21-gestures-browser.png",
-      "bundle": "d249126f623f6d9dee2c4a72b1034adc1e4ee2d8e964274ac276362a38e178ab",
-      "clickAndKeyboard": false
+      "bundle": "f9acfded093ed7754d893aa7f9feb80ae8111e3f98c662fff820c8138a186b48",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
     },
     "22-shortcuts": {
-      "source": "dc094947a2ed00224cad3be09f5dacd5a955ef524f0c778db8c8191dfdf58604",
+      "source": "a4fa3375a89a6da62fe67fc07c06f748d97a49fb428e8eb82f03291cc4055a51",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:45.510Z",
       "status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
-      "canvas": "f1085b834c9a47fe1e1b6be5c1085f89be79a19ff6ac27eb9cd1627190ebec4b",
+      "canvas": "401b87bbac08c9fc78f62011553dee7936609eeef7a6930d90e702e2c36f90cf",
       "file": "22-shortcuts-browser.png",
-      "bundle": "70c717ce56d303dfdf20a503298b5e0d9ff21bdf41790aba9fd982823bde0b3f",
-      "clickAndKeyboard": false
+      "bundle": "17075b17564f3015c90d127be0bcc7622070b084cb729fae5e2c4221566a6968",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
     },
     "23-import": {
-      "source": "c1b7546d50f1e7775da2073f494d5fc0e800d701e1172e5b0699f733e650c5a8",
+      "source": "bc5a805a283a48d5c058c5987b50dc2d839bb19a7623c7facc939a3c853185c9",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:48.728Z",
       "status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
-      "canvas": "45457c06d17d332e504221c63b8f0626af700a8a35510d8baf12a63174b7a43d",
+      "canvas": "7b2ce30abd60fe644f37f7b6bd2ed671ec99d22cd769ce53d6599c776d67d86a",
       "file": "23-import-browser.png",
-      "bundle": "ea1095c1b2cc15603f9a5cc10ff3c0edbdda9b9e92d78972e1e5dab5bab3450f",
-      "clickAndKeyboard": false
+      "bundle": "15e9826ebbdebd193439fcb91b2f73e38d70cd177cbe5d5775050144dd8d73a9",
+      "commands": [
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
     },
     "24-fit": {
-      "source": "74037854b8759f0b33a0824cf5357914b3a000c19c14f0f821e17fd64863768d",
+      "source": "85dad6ca657704aa9776fc9c1b4d423e724909d8ed710513db96ba16d3f2e342",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:03:59.078Z",
       "status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
-      "canvas": "37e1ebae936a32a8eec50e515d542a3c69f5f278e1f846e79f502be68b848ace",
+      "canvas": "f2d916ebe872bca032bb04dff1d5124bf0d68ced3cfc5457ceede98ad6bde09c",
       "file": "24-fit-browser.png",
-      "bundle": "39e2d33c4854f62a424f99e9fc83db9f01af9217ee52deb9a4cd8dfc45fc1ef3",
-      "clickAndKeyboard": false
+      "bundle": "08b958c832b922103c3c55593be2d0b61670230e615c51f5175ebfc3125f7a39",
+      "commands": [
+        "View Isometric",
+        "Pan Right",
+        "Pan Right",
+        "Pan Right",
+        "Fit"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "25-projection": {
+      "source": "ae3edeee89d94358e209cbc27a39e8b3ec158addcfe2bee2d543fd1bcb09b8b2",
+      "checker": "6bb2cda7537da2bd8001815777998559d4285abf7fa14e62b38856901c35839e",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-09-29T22:04:10.057Z",
+      "status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
+      "canvas": "e7c10fbeb1552033a5d42ba8ebc52d3837cb67cd8eaa0733095d30f659495f6a",
+      "file": "25-projection-browser.png",
+      "bundle": "8a16df4634d50f453ddfa656e02491731c1871c36486a348e586d0965c6fb77c",
+      "commands": [
+        "View Isometric",
+        "View Orthographic",
+        "Fit"
+      ],
+      "keyboardRoundtrip": false
     }
   }
 }

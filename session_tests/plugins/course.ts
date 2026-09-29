@@ -1,5 +1,6 @@
 // Resolve lesson snippets, assets and search into lazy Vue routes.
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Plugin, ViteDevServer } from 'vite';
@@ -126,7 +127,7 @@ function navGroups(bySlug: Map<string, string>): Group[] {
   if (fs.existsSync(journey)) {
     const opening = JSON.parse(fs.readFileSync(journey, 'utf8'));
     const slugs = opening.steps.map((step: { page: string }) => pageSlug(path.join(DOCS, step.page)));
-    groups.splice(1, 0, { title: 'First working viewer · preview', slugs });
+    groups.splice(1, 0, { title: 'Build the viewer · command line', slugs });
     const reference = groups.find((g) => g.title === 'Course');
     if (reference) reference.title = 'Complete viewer reference';
   }
@@ -253,7 +254,8 @@ export default function coursePlugin(): Plugin {
         if (abs.startsWith(VIEWER + path.sep)) {
           const key = posix(path.relative(VIEWER, abs));
           assets.set(key, abs);
-          return { url: `${base}course/${key}`, external: false };
+          const revision = createHash('sha256').update(fs.readFileSync(abs)).digest('hex').slice(0, 12);
+          return { url: `${base}course/${key}?v=${revision}`, external: false };
         }
         if (abs.startsWith(SESSION + path.sep)) return { url: GITHUB + posix(path.relative(SESSION, abs)), external: true };
       }

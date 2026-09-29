@@ -1,22 +1,22 @@
 # 24 · Find the whole scene
 
-**Plan about 3–5 hours.** 144 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 169 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Frame all current objects without rotating them or changing the document.
 
 **In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
 
-**Follow:** Fit button → Editor → Scene bounds → Camera target, distance and clipping → existing Renderer.
+**Follow:** Fit command → Editor → Scene bounds → Camera target, distance and clipping → existing Renderer.
 
 **Before you finish, explain:** Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?
 
-Imagine opening a model drawn far from the origin. The file loaded correctly, but the canvas looks empty. More clicking is not a reliable way to find it. Let us give the viewer a button that asks: “How much space do all these objects occupy?”
+Imagine opening a model drawn far from the origin. The file loaded correctly, but the canvas looks empty. More clicking is not a reliable way to find it. Let us give the viewer a command that asks: “How much space do all these objects occupy?”
 
 ![Scene bounds and a camera fitting the enclosing sphere.](../illustrations/journey-24.svg)
 
 **Keep the ownership clear.** Scene can measure its vertices. Camera can decide where to look. Editor connects those two decisions. Renderer already knows how to draw with a new camera matrix, so we leave its code alone.
 
-A box is easy to measure; a sphere around that box is easy to fit from any direction. The sphere can leave extra empty space around a long, thin object. That is a deliberate first fit: predictable, small, and testable. A later tighter fit can project the eight box corners without changing the button or renderer.
+A box is easy to measure; a sphere around that box is easy to fit from any direction. The sphere can leave extra empty space around a long, thin object. That is a deliberate first fit: predictable, small, and testable. A later tighter fit can project the eight box corners without changing the command or renderer.
 
 Think of the viewing angle as a pair of scissors opened at the eye. In a tall window, the horizontal opening is narrower. We must fit through that opening too. The diagram shows the right triangle behind the one-line distance calculation.
 
@@ -36,23 +36,7 @@ Create the file and type:
 --8<-- "journey/code/24-fit-01.rs"
 ```
 
-### 2. `src/lib.rs`
-
-Register the bounds module beside the camera. It owns numbers, not GPU resources.
-
-Find this exact block:
-
-```rust
-pub mod camera;
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/24-fit-02.rs"
-```
-
-### 3. `src/scene.rs`
+### 2. `src/scene.rs`
 
 Walk the displayed positions once. The first vertex starts the box; later vertices enlarge it. None means there was no vertex at all. We use f64 for the calculation even though the GPU mesh stores f32.
 
@@ -68,7 +52,7 @@ Replace that block with:
 --8<-- "journey/code/24-fit-03.rs"
 ```
 
-### 4. `src/camera.rs`
+### 3. `src/camera.rs`
 
 Keep the fitted scene scale with the camera. Distance says where the eye is; radius says how large the scene is.
 
@@ -84,7 +68,7 @@ Replace that block with:
 --8<-- "journey/code/24-fit-04.rs"
 ```
 
-### 5. `src/camera.rs`
+### 4. `src/camera.rs`
 
 The original small demonstration scene starts with a one-unit radius. Fit will measure the real bounds.
 
@@ -100,7 +84,7 @@ Replace that block with:
 --8<-- "journey/code/24-fit-05.rs"
 ```
 
-### 6. `src/camera.rs`
+### 5. `src/camera.rs`
 
 The smaller half-angle limits the view: horizontal in a tall window, vertical in a wide one. A tangent from the eye to the enclosing sphere gives sin(angle) = radius / distance. Multiply by 1.1 for a little breathing room. A single point has no size, so give it a one-unit viewing scale.
 
@@ -116,7 +100,7 @@ Replace that block with:
 --8<-- "journey/code/24-fit-06.rs"
 ```
 
-### 7. `src/camera.rs`
+### 6. `src/camera.rs`
 
 Keep the existing zoom limits proportional to the measured scene. Otherwise the first wheel event after fitting a large model would jump back to a distance of 50 units.
 
@@ -132,7 +116,7 @@ Replace that block with:
 --8<-- "journey/code/24-fit-07.rs"
 ```
 
-### 8. `src/camera.rs`
+### 7. `src/camera.rs`
 
 Move the clipping planes with the viewing scale too. The near plane stays in front of the eye; the far plane reaches beyond the fitted sphere. A fixed far plane at 100 would erase a large fitted scene. Zooming inside geometry can still clip it, as it should.
 
@@ -148,7 +132,7 @@ Replace that block with:
 --8<-- "journey/code/24-fit-08.rs"
 ```
 
-### 9. `src/editor.rs`
+### 8. `src/editor.rs`
 
 Fit is an explicit action, like Isometric. Import still changes the document; Fit only changes how you look at it.
 
@@ -164,7 +148,7 @@ Replace that block with:
 --8<-- "journey/code/24-fit-09.rs"
 ```
 
-### 10. `src/editor.rs`
+### 9. `src/editor.rs`
 
 Read the current scene, including imported meshes. An empty scene leaves the camera alone. This branch returns Change::View, so it neither uploads meshes nor creates a history entry.
 
@@ -180,39 +164,7 @@ Replace that block with:
 --8<-- "journey/code/24-fit-10.rs"
 ```
 
-### 11. `src/browser.rs`
-
-The button uses the same Editor entry point as every other control. There is no camera calculation in the browser adapter.
-
-Find this exact block:
-
-```rust
-                "iso" => Action::Isometric,
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/24-fit-11.rs"
-```
-
-### 12. `index.html`
-
-Place Fit beside Reset. Fit finds the current geometry; Reset returns to the original demonstration camera. These are useful for different reasons.
-
-Find this exact block:
-
-```html
-    <button id="reset" type="button">Reset view</button>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/24-fit-12.html"
-```
-
-### 13. `src/fit_tests.rs`
+### 10. `src/fit_tests.rs`
 
 Test the promise rather than one distance: every box corner must survive projection and clipping. Also check that Fit preserves selection, leaves the import as one undoable action, and handles an empty scene or one point.
 
@@ -222,21 +174,109 @@ Create the file and type:
 --8<-- "journey/code/24-fit-13.rs"
 ```
 
-### 14. `src/lib.rs`
+### 11. `src/lib.rs`
 
-Compile these checks only for tests. The browser bundle does not contain the test module.
+Register the bounds module beside the camera. It owns numbers, not GPU resources.
+
+Find this exact block:
+
+```rust
+pub mod background;
+pub mod camera;
+pub mod mesh;
+pub mod scene;
+pub mod picking;
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/24-fit-dock-01.rs"
+```
+
+### 12. `src/lib.rs`
+
+Register the bounds module beside the camera. It owns numbers, not GPU resources.
 
 Find this exact block:
 
 ```rust
 #[cfg(test)]
 mod document_tests;
+#[cfg(test)]
+mod shortcut_tests;
+#[cfg(test)]
+mod gesture_tests;
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/24-fit-14.rs"
+--8<-- "journey/code/24-fit-dock-02.rs"
+```
+
+### 13. `src/browser.rs`
+
+Connect find the whole scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+            "Orbit Right",
+            "Orbit Up",
+            "View Isometric",
+            "View Reset",
+        ],
+    );
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/24-fit-dock-03.rs"
+```
+
+### 14. `src/browser.rs`
+
+Connect find the whole scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
+                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                    "view isometric" => Action::Isometric,
+                    "view reset" => Action::ResetView,
+                    _ => return,
+                };
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/24-fit-dock-04.rs"
+```
+
+### 15. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+    Home resets. Delete removes the selection. Ctrl/Cmd+Z undoes; Shift adds redo.</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480"
+    aria-label="Viewer drawing" aria-describedby="navigation"></canvas>
+  <p>Commands: Help · Open · Example Box · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · View Reset. Type in the white Command field and press Enter.</p>
+  <input id="open" type="file" accept=".pb" hidden>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/24-fit-page-1.html"
 ```
 
 ## Run and look
@@ -251,9 +291,9 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Create the sample file as in lesson 23: stop Trunk if needed, run `cargo run --example sample --target x86_64-unknown-linux-gnu`, then restart Trunk. Open `sample.pb`, click **Isometric**, then **Look right** three times. Click **Fit scene**. The orange frame and both triangles should return together with space around them. The viewing angle should stay isometric.
+Create `sample.pb` as in lesson 23. Run `Open` and choose it, then `View Isometric`, `Pan Right` three times, and `Fit`. The whole scene returns with a margin; the isometric orientation stays.
 
-Click **Undo**: the whole imported frame disappears even though you fitted afterward. **Redo** restores it. Now narrow the browser and click **Fit scene** again. Resizing keeps the existing camera distance; Fit deliberately recalculates it for the new shape.
+Run `Undo`: the import disappears although Fit came later. `Redo` restores it. Narrow the browser and run `Fit` again. Resizing keeps the distance; Fit recalculates it for the new window shape.
 
 **Actual Chrome screenshot.**
 
@@ -271,7 +311,7 @@ cargo test --lib --locked -j4
 
 ## Try one small experiment
 
-Before pressing Fit, predict whether a tall window needs the eye farther away. Resize, fit and compare. Then temporarily change the 1.1 margin to 1.4: the scene should become smaller, not larger. Restore 1.1 when you finish.
+Before running Fit, predict whether a tall window needs the eye farther away. Resize, fit and compare. Then temporarily change the 1.1 margin to 1.4: the scene should become smaller, not larger. Restore 1.1 when you finish.
 
 ## Explain it in your own words
 
@@ -297,6 +337,6 @@ The comparison spots typing differences; it does not prove behaviour. Keep three
 
 ## Where this grows
 
-Production also measures scene bounds and keeps fitting out of document history. Its corner-based fit is tighter and adds units, selection-only bounds and orthographic views. This checkpoint fits all displayed meshes and assumes ordinary coordinates that f32 can represent accurately. Very large offsets with tiny details need a later coordinate-origin strategy; fitting alone cannot restore precision lost in mesh storage. Pan buttons still move by a fixed world-unit amount.
+Production also measures scene bounds and keeps fitting out of document history. Its corner-based fit is tighter and adds units, selection-only bounds and orthographic views. This checkpoint fits all displayed meshes and assumes ordinary coordinates that f32 can represent accurately. Very large offsets with tiny details need a later coordinate-origin strategy; fitting alone cannot restore precision lost in mesh storage. Pan commands still move by a fixed world-unit amount.
 
 [Validation status and course release](release.md).

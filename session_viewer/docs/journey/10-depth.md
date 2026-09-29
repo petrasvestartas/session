@@ -1,6 +1,6 @@
 # 10 · Keep the nearest surface
 
-**Plan about 2–4 hours.** 62 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–4 hours.** 68 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
 
@@ -187,18 +187,23 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Describe the visibility rule demonstrated by this checkpoint.
+Connect keep the nearest surface to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("A matrix carries pan, scale and rotation.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/10-depth-10.rs"
+--8<-- "journey/code/10-depth-dock-01.rs"
 ```
 
 ## Run and look
@@ -213,7 +218,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Two overlapping triangles appear. Pink remains in front at the centre, even though the turquoise triangle is drawn afterward. Pan, zoom and rotation move the view without reversing that relationship.
+Pink remains in front at the overlap, although turquoise is drawn afterward. Run `Pan Right`, `Zoom Out` and `Orbit Right`: moving the view must not reverse the depth relationship.
 
 **Actual Chrome screenshot.**
 

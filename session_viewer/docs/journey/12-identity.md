@@ -1,6 +1,6 @@
 # 12 · Name objects without depending on their row
 
-**Plan about 3–5 hours.** 149 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 175 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Select and delete objects using stable identities, then highlight the selected object.
 
@@ -162,83 +162,108 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Keep the selected identity in interaction state, separate from the document’s mesh data.
+Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    let mut background = Background::default();
+        &[
+            "Help",
+            "Example Triangle",
+            "Background",
+            "Zoom In",
+            "Zoom Out",
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-07.rs"
+--8<-- "journey/code/12-identity-dock-01.rs"
 ```
 
 ### 8. `src/browser.rs`
 
-Clear a selected ID only if the scene change removed that object.
+Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-                scene.toggle_extra();
-                renderer.set_scene(&scene);
+        ],
+    );
+    panel.update(None, &canvas)?;
+    let mut background = Background::default();
+    let mut camera = Camera::default();
+    present(
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-08.rs"
+--8<-- "journey/code/12-identity-dock-02.rs"
 ```
 
 ### 9. `src/browser.rs`
 
-Add selection and deletion actions. take returns the current selected ID and leaves None in its place.
+Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-            "background" => background.toggle(),
+            match line.as_str() {
+                "example triangle" => {
+                    scene.toggle_extra();
+                    renderer.set_scene(&scene);
+                }
+                "background" => background.toggle(),
+                "zoom in" => camera.zoom(2.0),
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-09.rs"
+--8<-- "journey/code/12-identity-dock-03.rs"
 ```
 
-### 10. `index.html`
+### 10. `src/browser.rs`
 
-Add the two object actions beside the scene toggle.
-
-Find this exact block:
-
-```html
-    <button id="scene" type="button">Toggle third triangle</button>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/12-identity-10.html"
-```
-
-### 11. `src/browser.rs`
-
-Describe the identity rule this checkpoint demonstrates.
+Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("Scene data owns the meshes; the renderer displays them.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-11.rs"
+--8<-- "journey/code/12-identity-dock-04.rs"
+```
+
+### 11. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+  <h1>My viewer</h1>
+  <p id="status" role="status">Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+  <p>Commands: Help · Example Triangle · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · View Reset. Type in the white Command field and press Enter.</p>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/12-identity-page-1.html"
 ```
 
 ## Run and look
@@ -253,7 +278,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Select next cycles through the objects and colours the selected one yellow. Delete selected removes that object. The remaining objects keep their IDs, and the third-triangle toggle still removes the correct object after other deletions.
+Run `Select Next` to cycle the yellow selection. `Delete` removes that object. Add or remove the third triangle with `Example Triangle`; the remaining objects keep their IDs.
 
 **Actual Chrome screenshot.**
 

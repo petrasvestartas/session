@@ -1,6 +1,6 @@
 # 17 · Bring a solid into the scene
 
-**Plan about 3–5 hours.** 81 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 105 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Create a kernel box, convert it to display data, and add it as one undoable scene object.
 
@@ -118,52 +118,88 @@ Replace that block with:
 --8<-- "journey/code/17-solid-05.rs"
 ```
 
-### 6. `index.html`
+### 6. `src/browser.rs`
 
-Add the first solid-creation action to the controls.
+Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
-```html
-    <button id="scene" type="button">Toggle third triangle</button>
+```rust
+        config.format.add_srgb_suffix(),
+        &[
+            "Help",
+            "Example Triangle",
+            "Select Next",
+            "Delete",
 ```
 
 Replace that block with:
 
-```html
---8<-- "journey/code/17-solid-06.html"
+```rust
+--8<-- "journey/code/17-solid-dock-01.rs"
 ```
 
 ### 7. `src/browser.rs`
 
-Create the box within a transaction and upload only the successful result. Report a recoverable creation error on the page.
+Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-            "scene" => {
+                        .and_then(|ray| crate::picking::pick(&scene, &ray));
+                    renderer.set_scene(&scene, selected);
+                }
+                "example triangle" => {
+                    history.edit(&mut scene, Scene::toggle_extra);
+                    selected = selected.filter(|id| scene.contains(*id));
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/17-solid-07.rs"
+--8<-- "journey/code/17-solid-dock-02.rs"
 ```
 
 ### 8. `src/browser.rs`
 
-Describe the new document-to-rendering path.
+Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("Orbit moves the eye around a fixed target.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/17-solid-08.rs"
+--8<-- "journey/code/17-solid-dock-03.rs"
+```
+
+### 9. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+  <h1>My viewer</h1>
+  <p id="status" role="status">Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+  <p>Commands: Help · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · View Reset. Type in the white Command field and press Enter.</p>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/17-solid-page-1.html"
 ```
 
 ## Run and look
@@ -178,11 +214,11 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Add box places a grey box to the right of the original triangles. Choose Isometric to see its solid silhouette. Click it to select it, delete it, and undo. Its identity and geometry should return without resetting the view.
+Run `Example Box`, then `View Isometric`. A grey solid appears to the right of the triangles. Click it, run `Delete`, then `Undo`. Its identity and geometry return while the camera stays put.
 
 **Actual Chrome screenshot.**
 
-Add box inserts the grey solid behind the triangles. Its faces have one flat colour at this checkpoint.
+Example Box inserts the grey solid behind the triangles. Its faces have one flat colour at this checkpoint.
 
 ![Actual browser result: Bring a solid into the scene.](../screenshots/journey/17-solid-browser.png)
 

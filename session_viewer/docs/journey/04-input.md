@@ -1,48 +1,28 @@
 # 04 · Make a choice change the picture
 
-**Plan about 1–2 hours.** 47 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 1–2 hours.** 87 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
-**Today:** Use a button to switch backgrounds without changing the triangle.
+**Today:** Use a command to switch backgrounds without changing the triangle.
 
 **In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
 
-**Follow:** Button event → Background changes → renderer clears → same triangle is drawn again.
+**Follow:** Typed Background → Panel returns a line → Background toggles → Renderer redraws.
 
-**Before you finish, explain:** Why does changing the background not require rebuilding the shader or pipeline?
+**Before you finish, explain:** Does submitting Background create a new GPU pipeline?
 
-Let us make the picture respond to a choice. The button will change the background while the triangle keeps the same shape and colour. This is our first complete input → state → drawing path.
+We can already type in the viewer’s own command line. Today one submitted word changes the picture. Type Background and press Enter: one boolean flips, and the existing renderer draws again.
 
-`Background` owns one boolean. The browser owns the click handler and asks that state to change. The renderer reads the state when drawing. The state does not know what a browser or GPU is; that makes its behaviour easy to reason about.
+The browser owns Background beside Panel and Renderer. Panel reads the line; Background owns the choice; Renderer turns that choice into pixels. No new device or pipeline is created when you run the command.
 
-![A button toggles Background; the renderer reads its colour and draws with the existing triangle pipeline.](../illustrations/journey-04.svg)
+![The command changes one background value, then redraws with the existing renderer.](../illustrations/journey-04.svg)
 
-`mut` permits a binding to change. `&mut self` lets `toggle` change its own state. `!` reverses a boolean. A **closure** is a function that can retain values from where it was created. Here, `move` transfers the surface, renderer and background into the callback so they outlive the setup function.
-
-The listener lasts for this page's lifetime. `forget` deliberately leaves it registered; there is only one. Later, when tools and windows can come and go, we must give their listeners an owner that unregisters them. Keeping that lifetime explicit is part of maintaining the application.
-
-The browser expects a JavaScript function. `Closure` wraps our Rust callback for that boundary, and `FnMut` says calling it may change retained state. `as_ref().unchecked_ref()` supplies the JavaScript function reference expected by the event-listener API; this particular value came from that callback wrapper. The button is enabled only after this connection succeeds.
+`Option<String>` means a submitted line may or may not be present. Most events only move a caret or update completion. Only the recognised Background line changes the background. The match reads that result without inventing a second input path.
 
 ## Type the change
 
-Continue [Give the GPU three corners](03-triangle.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-04-input`. A save keeps your own work; it does not fill in the next lesson.
+Continue [Type into the real command dock](03d-input.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-04-input`. A save keeps your own work; it does not fill in the next lesson.
 
-### 1. `index.html`
-
-Add a native HTML button. It remains disabled until GPU setup and the first frame succeed; keyboard activation works too.
-
-Find this exact block:
-
-```html
-  <canvas id="canvas" width="640" height="480" aria-label="Viewer drawing"></canvas>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/04-input-01.html"
-```
-
-### 2. `src/background.rs`
+### 1. `src/background.rs`
 
 Create the small piece of application state. It knows colours, but knows nothing about HTML or GPU resources.
 
@@ -52,23 +32,7 @@ Create the file and type:
 --8<-- "journey/code/04-input-02.rs"
 ```
 
-### 3. `src/lib.rs`
-
-Register the state module so both the browser and the renderer can use it.
-
-Find this exact block:
-
-```rust
-pub mod renderer;
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/04-input-03.rs"
-```
-
-### 4. `src/renderer.rs`
+### 2. `src/renderer.rs`
 
 The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice.
 
@@ -84,7 +48,7 @@ Replace that block with:
 --8<-- "journey/code/04-input-04.rs"
 ```
 
-### 5. `src/renderer.rs`
+### 3. `src/renderer.rs`
 
 Use the three values just read instead of a colour fixed inside the renderer.
 
@@ -100,69 +64,147 @@ Replace that block with:
 --8<-- "journey/code/04-input-05.rs"
 ```
 
-### 6. `src/browser.rs`
+### 4. `src/lib.rs`
 
-The browser is the coordinator: it knows the input, state and renderer, then connects them.
+Register the state module so both the browser and the renderer can use it.
 
 Find this exact block:
 
 ```rust
-use wasm_bindgen::{JsCast, JsValue};
+pub mod renderer;
+#[cfg(target_arch = "wasm32")]
+mod browser;
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/04-input-06.rs"
+--8<-- "journey/code/04-input-dock-01.rs"
+```
+
+### 5. `src/browser.rs`
+
+Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/04-input-dock-02.rs"
+```
+
+### 6. `src/browser.rs`
+
+Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
+    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
+    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
+    panel.update(None, &canvas)?;
+    present(&surface, &renderer, &mut panel)?;
+    let input_canvas = canvas.clone();
+    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        let _line = match panel.update(Some(&event), &input_canvas) {
+            Ok(line) => line,
+            Err(error) => {
+                report(&format!("Cannot read command: {error:?}"));
+                return;
+            }
+        };
+        if let Err(error) = panel.update(None, &input_canvas) {
+            report(&format!("Cannot lay out commands: {error:?}"));
+            return;
+        }
+        if let Err(error) = present(&surface, &renderer, &mut panel) {
+            report(&format!("Cannot redraw: {error:?}"));
+        }
+    });
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/04-input-dock-03.rs"
 ```
 
 ### 7. `src/browser.rs`
 
-Replace the first present call and status message with this block. move lets the callback own the objects after run returns. No shared mutable global state is needed.
+Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    present(&surface, &renderer)?;
-    report("Three corners became a triangle.");
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
+    report("Type Help in the command field and press Enter.");
+    Ok(())
+}
+
+fn present(
+    surface: &wgpu::Surface<'_>,
+    renderer: &Renderer,
+    panel: &mut crate::panel::Panel,
+) -> Result<(), JsValue> {
+    let frame = match surface.get_current_texture() {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/04-input-07.rs"
+--8<-- "journey/code/04-input-dock-04.rs"
 ```
 
 ### 8. `src/browser.rs`
 
-Give present the same state for the first frame and for every button click.
+Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsValue> {
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/04-input-08.rs"
-```
-
-### 9. `src/browser.rs`
-
-Forward that state to the renderer. This completes the path from a user action to new pixels.
-
-Find this exact block:
-
-```rust
+        format: Some(frame.texture.format().add_srgb_suffix()),
+        ..Default::default()
+    });
     renderer.draw(&view);
+    panel.draw(renderer, &view);
+    frame.present();
+    Ok(())
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/04-input-09.rs"
+--8<-- "journey/code/04-input-dock-05.rs"
+```
+
+### 9. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+  <h1>My viewer</h1>
+  <p id="status" role="status">Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/04-input-page-1.html"
 ```
 
 ## Run and look
@@ -177,7 +219,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The button becomes enabled after the first frame. One click gives a light background; another returns to blue. The triangle stays pink. Tab to the button and press Enter: this should make the same change.
+Type `Background` in the white command field and press Enter. Blue becomes light. Submit `Background` again: every scene pixel should return to its original colour, while the dock remembers both commands. The triangle stays pink.
 
 **Actual Chrome screenshot.**
 
@@ -187,7 +229,7 @@ The button becomes enabled after the first frame. One click gives a light backgr
 
 ## Try one small experiment
 
-Before clicking twice, predict the final picture. Then add a temporary sentence to `toggle` in your notebook: “I change ___; I do not create ___.” Fill the blanks with “one boolean” and “a GPU pipeline”. Check that every click reuses the renderer constructed once in `run`.
+Before submitting Background twice, predict the final picture. Then trace the one boolean changed by toggle. Find the Renderer constructor and explain why neither command calls it again.
 
 ## Explain it in your own words
 
@@ -196,7 +238,7 @@ Trace the values through the files without reading the answer first. If you lose
 <details>
 <summary>Compare your explanation</summary>
 
-The pipeline describes how to draw the triangle and does not depend on the clear colour. Each new frame reads the current background and reuses that pipeline.
+No. The browser keeps the existing Renderer and changes one boolean in Background. The next draw reuses the device, queue and pipeline.
 
 </details>
 
@@ -214,5 +256,7 @@ The comparison spots typing differences; it does not prove behaviour. Keep three
 ## Where this grows
 
 In the full viewer, input similarly requests a change before a new frame reads the result. This background is view state, not geometry. Moving an object will instead change the document and refresh its display data.
+
+This uses the production dock and styling. Background is a course practice command; later chapters build the production vocabulary. The command names below each checkpoint tell you exactly what it currently accepts.
 
 [Validation status and course release](release.md).

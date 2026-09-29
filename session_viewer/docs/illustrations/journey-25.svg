@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="370" viewBox="0 0 780 370" role="img" aria-labelledby="title desc">
+  <title id="title">Two ways to project depth</title>
+  <desc id="desc">In perspective, rays spread from the eye: equal-height near and far objects subtend different angles. In orthographic view the rays are parallel and equal heights occupy equal screen distances. Both retain depth for occlusion.</desc>
+  <rect width="780" height="370" rx="12" fill="#fff"/>
+  <g font-family="system-ui,sans-serif" fill="#172238" font-size="16">
+    <text x="30" y="34" font-size="21" font-weight="700">Perspective</text>
+    <text x="419" y="34" font-size="21" font-weight="700">Orthographic</text>
+    <path d="M390 20 V338" stroke="#cbd5df"/>
+    <rect x="160" y="130" width="9" height="80" fill="#d18b46"/>
+    <rect x="290" y="130" width="9" height="80" fill="#d18b46"/>
+    <path d="M48 170 L164 130 M48 170 L164 210" stroke="#a23c60" stroke-width="2"/>
+    <path d="M48 170 L294 130 M48 170 L294 210" stroke="#455b6b" stroke-width="2" stroke-dasharray="5 4"/>
+    <circle cx="48" cy="170" r="5" fill="#172238"/>
+    <path d="M89 156 A44 44 0 0 1 89 184" fill="none" stroke="#a23c60" stroke-width="2"/>
+    <text x="26" y="202">Eye</text>
+    <text x="145" y="240">Near</text>
+    <text x="282" y="240">Far</text>
+    <text x="30" y="79">Equal heights, different angles.</text>
+    <text x="30" y="290">Nearby geometry appears larger.</text>
+    <rect x="515" y="130" width="9" height="80" fill="#d18b46"/>
+    <rect x="667" y="130" width="9" height="80" fill="#d18b46"/>
+    <path d="M441 130 H714 M441 210 H714" stroke="#455b6b" stroke-width="2" stroke-dasharray="5 4"/>
+    <path d="M442 130 L452 124 M442 130 L452 136 M442 210 L452 204 M442 210 L452 216" fill="none" stroke="#455b6b" stroke-width="2"/>
+    <text x="504" y="240">Near</text>
+    <text x="658" y="240">Far</text>
+    <text x="419" y="79">Equal heights, parallel rays.</text>
+    <text x="419" y="290">Depth does not change size.</text>
+    <text x="30" y="338" font-size="15">Both views still use depth to keep the nearer surface. Switching changes the matrix, not the mesh.</text>
+  </g>
+</svg>

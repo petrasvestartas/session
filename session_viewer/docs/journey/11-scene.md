@@ -1,12 +1,12 @@
 # 11 · Give the scene an owner
 
-**Plan about 3–5 hours.** 141 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 177 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Add and remove a mesh through scene data while reusing the renderer and camera.
 
 **In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
 
-**Follow:** Button → Scene adds or removes Mesh → GpuMesh uploads → Renderer draws the current list.
+**Follow:** command → Scene adds or removes Mesh → GpuMesh uploads → Renderer draws the current list.
 
 **Before you finish, explain:** Which values should survive if we recreate all GPU mesh buffers?
 
@@ -16,7 +16,7 @@ Our renderer still contains the coordinates of the demonstration triangles. That
 
 ![The browser owns Scene; each Mesh supplies CPU data to a derived GpuMesh, and the renderer draws those uploaded resources.](../illustrations/journey-11.svg)
 
-Follow an addition all the way through. The button changes the scene list. The renderer uploads that list. Its next frame loops over the uploaded meshes, with one shared pipeline and one camera uniform. Nothing creates a second renderer or resets the camera.
+Follow an addition all the way through. The command changes the scene list. The renderer uploads that list. Its next frame loops over the uploaded meshes, with one shared pipeline and one camera uniform. Nothing creates a second renderer or resets the camera.
 
 The small `Mesh::new` constructor returns a `Result` because bad indices must be caught before a draw. Its fields are private, and its accessors lend read-only slices. A caller can inspect the data without changing it behind the constructor's checks. Our fixed demonstration coordinates use `expect`: a failure there is a mistake in our own listing. A later file loader must show invalid user data as a recoverable error instead.
 
@@ -58,23 +58,7 @@ Create the file and type:
 --8<-- "journey/code/11-scene-03.rs"
 ```
 
-### 4. `src/lib.rs`
-
-Register the three new owners.
-
-Find this exact block:
-
-```rust
-pub mod camera;
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/11-scene-04.rs"
-```
-
-### 5. `src/renderer.rs`
+### 4. `src/renderer.rs`
 
 The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
 
@@ -90,7 +74,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-05.rs"
 ```
 
-### 6. `src/renderer.rs`
+### 5. `src/renderer.rs`
 
 Remove the geometry constants from the renderer. Their coordinates now live in Scene::demo.
 
@@ -111,7 +95,7 @@ const INDICES: [u16; 6] = [0, 1, 2, 3, 4, 5];
 
 Delete this block.
 
-### 7. `src/renderer.rs`
+### 6. `src/renderer.rs`
 
 Replace the one built-in mesh with a list of uploaded meshes.
 
@@ -128,7 +112,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-07.rs"
 ```
 
-### 8. `src/renderer.rs`
+### 7. `src/renderer.rs`
 
 Borrow the caller’s scene for the first upload. The renderer does not take ownership of it.
 
@@ -144,7 +128,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-08.rs"
 ```
 
-### 9. `src/renderer.rs`
+### 8. `src/renderer.rs`
 
 Build one GPU representation per mesh instead of uploading the old constants.
 
@@ -172,7 +156,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-09.rs"
 ```
 
-### 10. `src/renderer.rs`
+### 9. `src/renderer.rs`
 
 Retain the uploaded list with the shared drawing resources.
 
@@ -188,7 +172,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-10.rs"
 ```
 
-### 11. `src/renderer.rs`
+### 10. `src/renderer.rs`
 
 Add an explicit synchronization operation for scene changes. Drawing alone does not rebuild mesh buffers.
 
@@ -204,7 +188,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-11.rs"
 ```
 
-### 12. `src/renderer.rs`
+### 11. `src/renderer.rs`
 
 Draw every uploaded mesh with the pipeline, camera binding and depth attachment already selected.
 
@@ -222,84 +206,135 @@ Replace that block with:
 --8<-- "journey/code/11-scene-12.rs"
 ```
 
-### 13. `src/browser.rs`
+### 12. `src/lib.rs`
 
-Let the browser coordinator own scene state alongside camera and background.
+Register the three new owners.
 
 Find this exact block:
 
 ```rust
-use crate::camera::Camera;
+pub mod background;
+pub mod camera;
+pub mod renderer;
+#[cfg(target_arch = "wasm32")]
+mod browser;
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/11-scene-13.rs"
+--8<-- "journey/code/11-scene-dock-01.rs"
+```
+
+### 13. `src/browser.rs`
+
+Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+use crate::background::Background;
+use crate::camera::Camera;
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+
+pub fn report(message: &str) {
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/11-scene-dock-02.rs"
 ```
 
 ### 14. `src/browser.rs`
 
-Create scene data before its GPU representation. Both owners move into the existing callback.
+Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+        .ok_or("No compatible surface format")?;
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
     let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
+    let mut panel = crate::panel::Panel::new(
+        &renderer,
+        config.format.add_srgb_suffix(),
+        &[
+            "Help",
+            "Background",
+            "Zoom In",
+            "Zoom Out",
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/11-scene-14.rs"
+--8<-- "journey/code/11-scene-dock-03.rs"
 ```
 
 ### 15. `src/browser.rs`
 
-Change CPU scene data, then refresh its uploaded representation before the existing present call.
+Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-            "background" => background.toggle(),
+
+        if let Some(line) = line {
+            match line.as_str() {
+                "background" => background.toggle(),
+                "zoom in" => camera.zoom(2.0),
+                "zoom out" => camera.zoom(0.5),
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/11-scene-15.rs"
+--8<-- "journey/code/11-scene-dock-04.rs"
 ```
 
-### 16. `index.html`
+### 16. `src/browser.rs`
 
-Add a scene action to the same group of controls.
-
-Find this exact block:
-
-```html
-    <button id="background" type="button">Change background</button>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/11-scene-16.html"
-```
-
-### 17. `src/browser.rs`
-
-Describe the newly separated ownership.
+Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("The nearer pink triangle wins the overlap.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/11-scene-17.rs"
+--8<-- "journey/code/11-scene-dock-05.rs"
+```
+
+### 17. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+  <h1>My viewer</h1>
+  <p id="status" role="status">Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+  <p>Commands: Help · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · View Reset. Type in the white Command field and press Enter.</p>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/11-scene-page-1.html"
 ```
 
 ## Run and look
@@ -314,7 +349,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The initial two triangles look as before. Toggle third triangle adds a green triangle at the upper left; another click removes it. Pan or zoom first, then toggle: your view should stay where you put it.
+Run `Example Triangle`: a green triangle appears at the upper left. Run it again to remove it. Pan or zoom first, then repeat the two commands. Your camera should stay where you put it.
 
 **Actual Chrome screenshot.**
 
@@ -330,7 +365,7 @@ cargo test --lib --locked -j4
 
 ## Try one small experiment
 
-Zoom out and change the background, then toggle the third triangle twice. Predict the final image. It should be exactly the same as before those two toggles. In the click handler, locate the one branch that uploads scene data and explain why the camera branches do not need it.
+Zoom Out and change the background, then toggle the third triangle twice. Predict the final image. It should be exactly the same as before those two toggles. In the command handler, locate the one branch that uploads scene data and explain why the camera branches do not need it.
 
 ## Explain it in your own words
 

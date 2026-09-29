@@ -1,0 +1,16 @@
+  <style>
+    body { margin: 2rem auto; padding: 0 1rem; max-width: 960px; font: 18px/1.5 system-ui; color: #172238; }
+    canvas { touch-action: none; display: block; width: 100%; height: min(60vh, 480px); background: #e9e9ec; outline: 1px solid #455b6b; }
+    canvas:focus-visible { outline: 3px solid #172238; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <h1>My viewer</h1>
+  <p id="status" role="status">Waiting for Rust…</p>
+  <p id="navigation">Click or Tab into the drawing. Wheel or +/− zooms; arrows pan;
+    Home resets. Delete removes the selection. Ctrl/Cmd+Z undoes; Shift adds redo.</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480"
+    aria-label="Viewer drawing" aria-describedby="navigation"></canvas>
+  <p>Commands: Help · Example Box · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · View Reset. Type in the white Command field and press Enter.</p>
+</body>
+</html>

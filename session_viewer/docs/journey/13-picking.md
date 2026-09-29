@@ -1,6 +1,6 @@
 # 13 · Ask which object is under the pointer
 
-**Plan about 2–4 hours.** 105 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–4 hours.** 149 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Click a visible triangle to select its stable object ID, including after camera movement.
 
@@ -28,39 +28,7 @@ This small CPU query teaches coordinate conversion and visibility. It does not r
 
 Continue [Name objects without depending on their row](12-identity.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-13-picking`. A save keeps your own work; it does not fill in the next lesson.
 
-### 1. `Cargo.toml`
-
-Enable the existing browser bindings for mouse coordinates and the canvas rectangle. These are features of the same pinned library.
-
-Find this exact block:
-
-```toml
-"EventTarget", "Event"
-```
-
-Replace that block with:
-
-```toml
---8<-- "journey/code/13-picking-01.toml"
-```
-
-### 2. `index.html`
-
-Draw the canvas outline outside its measured rectangle so its bounding box matches the displayed content.
-
-Find this exact block:
-
-```html
-border: 1px solid #455b6b;
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/13-picking-02.html"
-```
-
-### 3. `src/camera.rs`
+### 1. `src/camera.rs`
 
 Add the inverse conversion for our flat camera. Rust’s sin_cos returns the sine and cosine as a pair.
 
@@ -76,7 +44,7 @@ Replace that block with:
 --8<-- "journey/code/13-picking-03.rs"
 ```
 
-### 4. `src/picking.rs`
+### 2. `src/picking.rs`
 
 Create the CPU query and tests. It reads scene data and returns identity without changing selection or GPU resources.
 
@@ -86,100 +54,112 @@ Create the file and type:
 --8<-- "journey/code/13-picking-04.rs"
 ```
 
-### 5. `src/lib.rs`
+### 3. `Cargo.toml`
+
+Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
+
+Find this exact block:
+
+```toml
+
+[dependencies]
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "PointerEvent", "MouseEvent", "KeyboardEvent", "WheelEvent", "FocusOptions", "DomRect", "HtmlElement"] }
+console_error_panic_hook = "=0.1.7"
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
+```
+
+Replace that block with:
+
+```toml
+--8<-- "journey/code/13-picking-dock-01.toml"
+```
+
+### 4. `src/lib.rs`
 
 Register the query module.
 
 Find this exact block:
 
 ```rust
+pub mod camera;
+pub mod mesh;
 pub mod scene;
+pub mod gpu_mesh;
+pub mod renderer;
+#[cfg(target_arch = "wasm32")]
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-05.rs"
+--8<-- "journey/code/13-picking-dock-02.rs"
+```
+
+### 5. `src/browser.rs`
+
+Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+            }
+        };
+
+        if let Some(line) = line {
+            match line.as_str() {
+                "example triangle" => {
+                    scene.toggle_extra();
+                    selected = selected.filter(|id| scene.contains(*id));
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/13-picking-dock-03.rs"
 ```
 
 ### 6. `src/browser.rs`
 
-Keep a browser handle to the canvas for input measurements while the surface retains its own handle.
+Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-wgpu::SurfaceTarget::Canvas(canvas)
+        "keydown",
+        "keyup",
+        "blur",
+    ] {
+        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
+    }
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-06.rs"
+--8<-- "journey/code/13-picking-dock-04.rs"
 ```
 
 ### 7. `src/browser.rs`
 
-Read mouse coordinates from click events. Button activation still uses the same click listener.
+Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event|
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/13-picking-07.rs"
-```
-
-### 8. `src/browser.rs`
-
-Convert a canvas click, query the scene and refresh the selected display colour.
-
-Find this exact block:
-
-```rust
-        match target.id().as_str() {
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/13-picking-08.rs"
-```
-
-### 9. `src/browser.rs`
-
-Listen at the document so one callback receives both canvas and control clicks. Unknown targets already return without changing state.
-
-Find this exact block:
-
-```rust
-    controls.add_event_listener_with_callback("click", click.as_ref().unchecked_ref())?;
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/13-picking-09.rs"
-```
-
-### 10. `src/browser.rs`
-
-Describe the new direct selection action.
-
-Find this exact block:
-
-```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("Selection follows object identity, even when rows move.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-10.rs"
+--8<-- "journey/code/13-picking-dock-05.rs"
 ```
 
 ## Run and look
@@ -194,7 +174,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Click the pink triangle to highlight it yellow. Click the turquoise part outside the overlap to select the far object. Click their overlap: the nearer object must win. Click blue background to clear selection. These actions should still agree with the picture after pan, zoom and rotation.
+Click the pink triangle, then the visible turquoise part. Each becomes yellow. Click their overlap: the nearer object must win. Click empty space to clear selection. Use `Pan Right`, `Zoom Out` and `Orbit Right`, then repeat the picks.
 
 **Actual Chrome screenshot.**
 

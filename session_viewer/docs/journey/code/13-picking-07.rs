@@ -1,1 +1,0 @@
-Closure::<dyn FnMut(web_sys::MouseEvent)>::new(move |event: web_sys::MouseEvent|

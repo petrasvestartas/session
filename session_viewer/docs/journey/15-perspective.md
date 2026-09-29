@@ -1,6 +1,6 @@
 # 15 · Look through a perspective camera
 
-**Plan about 4–7 hours.** 181 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 4–7 hours.** 200 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** View the scene in perspective and select surfaces with a ray that agrees with the camera.
 
@@ -30,23 +30,7 @@ The fixed field of view and clipping planes are enough for this small specimen. 
 
 Continue [Make document changes reversible](14-history.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-15-perspective`. A save keeps your own work; it does not fill in the next lesson.
 
-### 1. `Cargo.toml`
-
-Add the existing geometry kernel without its mini-test registrations. The js feature supplies its random-number dependency on WebAssembly.
-
-Find this exact block:
-
-```toml
-wgpu = "=29.0.4"
-```
-
-Replace that block with:
-
-```toml
---8<-- "journey/code/15-perspective-01.toml"
-```
-
-### 2. `src/camera.rs`
+### 1. `src/camera.rs`
 
 Replace the flat camera conversion with a perspective view and a clipped world-space ray. Retain the same pan, zoom, rotate and uniform entry points.
 
@@ -138,7 +122,7 @@ Replace that block with:
 --8<-- "journey/code/15-perspective-02.rs"
 ```
 
-### 3. `src/picking.rs`
+### 2. `src/picking.rs`
 
 Replace the flat coverage query with ray–triangle intersections and update the visibility tests for the new camera.
 
@@ -233,23 +217,7 @@ Replace that block with:
 --8<-- "journey/code/15-perspective-03.rs"
 ```
 
-### 4. `src/browser.rs`
-
-Ask the camera for a ray, then resolve that ray to a stable object ID.
-
-Find this exact block:
-
-```rust
-                selected = crate::picking::pick(&scene, camera.world_from_screen(screen));
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/15-perspective-04.rs"
-```
-
-### 5. `src/scene.rs`
+### 3. `src/scene.rs`
 
 Name the mesh by colour; which surface is nearer now depends on the camera.
 
@@ -265,7 +233,7 @@ Replace that block with:
 --8<-- "journey/code/15-perspective-05.rs"
 ```
 
-### 6. `src/scene.rs`
+### 4. `src/scene.rs`
 
 Give the other mesh a camera-independent name.
 
@@ -281,7 +249,7 @@ Replace that block with:
 --8<-- "journey/code/15-perspective-06.rs"
 ```
 
-### 7. `src/scene.rs`
+### 5. `src/scene.rs`
 
 Keep the diagnostic name consistent.
 
@@ -297,7 +265,7 @@ Replace that block with:
 --8<-- "journey/code/15-perspective-07.rs"
 ```
 
-### 8. `src/scene.rs`
+### 6. `src/scene.rs`
 
 Keep the diagnostic name consistent.
 
@@ -313,7 +281,7 @@ Replace that block with:
 --8<-- "journey/code/15-perspective-08.rs"
 ```
 
-### 9. `src/scene.rs`
+### 7. `src/scene.rs`
 
 Insert the same two mesh data sets in the same order. Their identities are unchanged.
 
@@ -330,25 +298,73 @@ Replace that block with:
 --8<-- "journey/code/15-perspective-09.rs"
 ```
 
-### 10. `src/browser.rs`
+### 8. `Cargo.toml`
 
-Describe the new camera contract.
+Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
+
+Find this exact block:
+
+```toml
+console_error_panic_hook = "=0.1.7"
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
+
+egui = { version = "=0.34.3", default-features = false }
+egui-wgpu = { version = "=0.34.3", default-features = false }
+```
+
+Replace that block with:
+
+```toml
+--8<-- "journey/code/15-perspective-dock-01.toml"
+```
+
+### 9. `src/browser.rs`
+
+Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    report("Undo restores the document while the view stays put.");
+                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
+                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
+                    ];
+                    selected = crate::picking::pick(&scene, camera.world_from_screen(screen));
+                    renderer.set_scene(&scene, selected);
+                }
+                "example triangle" => {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/15-perspective-10.rs"
+--8<-- "journey/code/15-perspective-dock-02.rs"
+```
+
+### 10. `src/browser.rs`
+
+Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
+    report("Undo restores the document while the view stays put.");
+    Ok(())
+}
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/15-perspective-dock-03.rs"
 ```
 
 ## Run and look
 
-After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates only Cargo.lock and preserves the previous lock:
+After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 15-perspective
@@ -364,7 +380,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The triangles appear smaller and have perspective-dependent sizes. Turquoise wins the central overlap from this camera position. Clicking it, deleting it and undoing the deletion still work. Pan, zoom and Turn view retain their roles.
+The triangles now have perspective-dependent sizes. Turquoise wins the central overlap from this camera position. Click it, run `Delete`, then `Undo`. Run `Zoom In` and repeat: picking should still agree with the picture.
 
 **Actual Chrome screenshot.**
 

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {course, docs, viewer, read, json, write, hash, fingerprint, expected, materialize, filesIn, reference, lockFor, compare} from './model.ts';
+import {course, docs, viewer, read, json, write, hash, fingerprint, expected, materialize, filesIn, reference, lockFor, compare, assetsFor} from './model.ts';
 import {png, ppm} from './png.ts';
 
 export const evidence = path.join(viewer, 'target/course-checks');
@@ -16,6 +16,7 @@ export function signature(id: string) {
     const inputs = files['Cargo.toml'].includes('session_rust')
         ? [...filesIn(path.join(kernel, 'src')), path.join(kernel, 'Cargo.toml'), path.join(kernel, 'build.rs')] : [];
     return fingerprint({...files, 'Cargo.lock': read(lockFor(id)),
+        ...Object.fromEntries(assetsFor(id).map(name => [name, hash(fs.readFileSync(path.join(viewer, name)))])),
         kernel: fingerprint(Object.fromEntries(inputs.map(file => [path.relative(kernel, file), hash(fs.readFileSync(file))]))),
         constructor: step.frame_constructor || '',
         frame_size: JSON.stringify(step.frame_size || [640, 480]),
@@ -65,7 +66,7 @@ export function verify(ids: string[], stored = false) {
         write(report, JSON.stringify(records, null, 2) + '\n');
         const target = path.join(viewer, 'target', `course-${id}`);
         fs.rmSync(target, {recursive: true, force: true});
-        materialize(expected(id), target, lockFor(id));
+        materialize(expected(id), target, lockFor(id), assetsFor(id));
         assert.deepEqual(compare(expected(id), target), [], `${id}: the build must use the displayed source`);
         const record: any = {source: signature(id), commands: [], browser: 'not verified'};
         record.commands.push(runCommand(`${id}-wasm`, ['cargo', 'build', '--lib', '--locked', '--target', 'wasm32-unknown-unknown', '-j4'], target));

@@ -1,6 +1,6 @@
 # 01 · A page that Rust can reach
 
-**Plan about 1–2 hours.** 50 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 1–2 hours.** 49 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Open a canvas and let Rust tell us it has started.
 
@@ -34,17 +34,7 @@ Create the file and type:
 --8<-- "journey/code/01-canvas-01.toml"
 ```
 
-### 2. `index.html`
-
-Create the page. Its fixed 640 × 480 drawing area lets us postpone resizing until we understand one frame.
-
-Create the file and type:
-
-```html
---8<-- "journey/code/01-canvas-02.html"
-```
-
-### 3. `src/lib.rs`
+### 2. `src/lib.rs`
 
 Create Rust’s entry point. The browser calls start after loading WebAssembly; ? returns an error if a required element is missing.
 
@@ -52,6 +42,16 @@ Create the file and type:
 
 ```rust
 --8<-- "journey/code/01-canvas-03.rs"
+```
+
+### 3. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Create the file and type:
+
+```html
+--8<-- "journey/code/01-canvas-page-1.html"
 ```
 
 ## Run and look

@@ -1,6 +1,6 @@
 # 05 · Let Rust supply the corners
 
-**Plan about 1–2 hours.** 36 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 1–2 hours.** 42 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Draw a rectangle from six positions stored in a GPU buffer.
 
@@ -153,18 +153,23 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Describe the new visible result. The button handler and background state stay useful.
+Connect let rust supply the corners to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("Change the background. The triangle keeps its shape and colour.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/05-vertices-08.rs"
+--8<-- "journey/code/05-vertices-dock-01.rs"
 ```
 
 ## Run and look
@@ -179,7 +184,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-A pink rectangle replaces the triangle. The background button still works. Its diagonal is invisible because both triangles have the same colour.
+A pink rectangle replaces the triangle. Type `Background` and press Enter: only the background changes. The shared diagonal is invisible because both triangles have the same colour.
 
 **Actual Chrome screenshot.**
 

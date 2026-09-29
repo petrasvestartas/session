@@ -1,6 +1,6 @@
 # 06 · Share a corner between triangles
 
-**Plan about 1–2 hours.** 18 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 1–2 hours.** 24 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Draw a diamond from four positions and six small index numbers.
 
@@ -111,18 +111,23 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Update the status so you can tell which checkpoint is running.
+Connect share a corner between triangles to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("Six uploaded corners make one rectangle.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/06-indices-06.rs"
+--8<-- "journey/code/06-indices-dock-01.rs"
 ```
 
 ## Run and look
@@ -137,7 +142,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The rectangle becomes a diamond. Its upper and lower triangles meet along the horizontal diagonal. The background button continues to switch colours.
+The rectangle becomes a diamond. Its upper and lower triangles meet along the horizontal diagonal. Run `Background` to check that the command path still works.
 
 **Actual Chrome screenshot.**
 

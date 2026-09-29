@@ -1,0 +1,9 @@
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
+
+egui = { version = "=0.34.3", default-features = false }
+egui-wgpu = { version = "=0.34.3", default-features = false }
+
+[dev-dependencies]
+pollster = "=0.4.0"
+log = "=0.4.34"

@@ -1,20 +1,28 @@
 # The complete draft lesson checklist
 
-**Draft plan: 97 lesson slots. 24 are built and verified; 73 remain planned.** This is a teaching plan, not a promised final count. Complex command families, CAD topics or long typing sessions may need additional lessons. Published lessons keep their IDs; only the unpublished part of the sequence may be rearranged.
+**Draft plan: 101 lesson slots; 29 current checkpoints have build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
-The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current 24 lessons are the opening of the course, not 25% of the implementation. Lesson count is not a measure of remaining engineering work.
+The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
 A checked box means the implementation exists, the displayed code builds, its Rust checks pass where applicable, and its scripted Chrome checkpoint passed. It does not mean every production acceptance case has been covered. An unchecked box is a proposed tutorial, not content you can follow yet. [Read the exact verification scope](release.md).
 
 Each future lesson will get its own typing estimate, architecture diagram, experiment, buildable endpoint and screenshot when it is authored. No reliable total study-time estimate exists for the unpublished lessons.
 
-## Built and verified
+## Published checkpoints and current work
 
 - [x] 01 · [A page that Rust can reach](01-canvas.md).
 
 - [x] 02 · [Ask the GPU to paint](02-clear.md).
 
 - [x] 03 · [Give the GPU three corners](03-triangle.md).
+
+- [x] 03a · [Draw our command line](03a-panel.md): actual production fonts, field and GPU painting.
+
+- [x] 03b · [Give the command line its memory](03b-state.md).
+
+- [x] 03c · [Draw completion and history](03c-layout.md).
+
+- [x] 03d · [Type into the real command dock](03d-input.md).
 
 - [x] 04 · [Make a choice change the picture](04-input.md).
 
@@ -58,11 +66,11 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 - [x] 24 · [Find the whole scene](24-fit.md).
 
+- [x] 25 · [Choose how depth changes size](25-projection.md).
+
 ## A camera and scene ready for real documents
 
 Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
-
-- [ ] 25 · Compare perspective and orthographic views — keep the same target in both projections.
 
 - [ ] 26 · Fit selected objects and work in model units — distinguish display scale from stored coordinates.
 

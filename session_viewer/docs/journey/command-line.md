@@ -1,69 +1,60 @@
-# Our command line, from the beginning
+# Learn through our command line
 
-**Work in progress.** The real command dock now runs in the small triangle project. The typing lessons for this revision are not finished. The last published, browser-verified lesson is [24 · Find the whole scene](24-fit.md).
+**Every interactive checkpoint uses the viewer’s own Rust/egui command dock.** Type a command in the white field and press Enter. The lessons and browser checks use that route for features; picking and camera gestures still happen on the drawing.
 
-You were right to ask for the viewer's own command line. We should learn the interface we will actually use. The preview uses the production Rust/egui component: the same Noto fonts, white panel, caret, completion list and folding history.
+Start with these lessons, in order:
 
-[Open the working command-line preview](http://127.0.0.1:8781/real-dock/dist/). This local link needs the course server running. It is an integration check, not a replacement for typing the lessons.
+| Lesson | What you understand afterward |
+| --- | --- |
+| [03a · Draw our command line](03a-panel.md) | Fonts, layout and the second GPU pass |
+| [03b · Give it memory](03b-state.md) | Who owns text, suggestions and history |
+| [03c · Draw completion and history](03c-layout.md) | How the production dock reads that state |
+| [03d · Type into the dock](03d-input.md) | How browser keys become text and submitted lines |
+| [04 · Change the picture](04-input.md) | How a submitted command changes application state |
+
+Each page gives its typing estimate and complete source changes. The first three dock stages draw and organise the interface; keyboard input becomes usable in 03d. Some production layout code is long, so 03c needs several sittings. Its estimate includes that time.
 
 ## Follow one command
 
-Type `Bac`. The dock suggests `Background`. Press Enter: the background changes, while the triangle stays where it was. Enter `Background` again to return to blue. Use `+` to see both commands and their answers.
-
-`Background` is a practice command in this small project; it is not an existing production viewer command. Later commands will reach the camera, document and editing tools through the same submission route.
+In lesson 04, type `Bac`. Completion suggests `Background`. Press Enter: the background changes while the triangle stays put. Submit `Background` again to return to blue. The dock remembers both commands.
 
 ![A typed command passes through the real dock to application state, then the GPU draws the scene and interface.](../illustrations/journey-command-dock.svg)
 
-Think of the dock as a receptionist. It helps you write a request and keeps the answer. It does not change the geometry itself. The application receives the completed line, changes the relevant value, then asks for another picture.
+The dock helps you write a request and keeps the answer. The application receives the completed line and changes the relevant value. Renderer then paints the new state.
 
-| Part | Owns | Does not own |
-| --- | --- | --- |
-| Browser input | Keys, pointer positions and focus | Geometry or command meaning |
-| Command dock | Edited text, suggestions and history | Camera and document state |
-| Command vocabulary | Recognised words and options | Drawing the input field |
-| Application | Applying a submitted command | Font layout |
-| GPU painters | Geometry and egui triangles | Choosing which command to run |
+| Part | Owns |
+| --- | --- |
+| Browser adapter | Event translation, coordinates and focus |
+| Command dock | Edited text, completion and history |
+| Command vocabulary | Accepted words and options |
+| Application or Editor | Camera and document changes |
+| GPU painters | Geometry and interface drawing |
 
-## Two actual Chrome captures
+The dock, Noto fonts and styling are the production implementation. Early vocabulary such as `Background`, `Pan Right` and `Example Box` is for teaching. `Example Box` creates a fixed specimen; later lessons build the production Box command and its arguments. Type `Help` to see what the current checkpoint accepts.
 
-The first capture shows `Bac` completed to `Background`, with the suggested suffix selected. This is the production completion widget rendered inside the course canvas.
+## Review the working checkpoints
 
-![Real course prototype in Chrome: Background completion above the white command field.](../screenshots/journey/command-dock-preview-completion.png)
+These local links require the course bundle server:
 
-The second capture shows the expanded history after two commands. It is a different interface state, not the same screenshot with another filename.
+- [Type your first command](http://127.0.0.1:8781/03d-input/dist/).
+- [Change the background](http://127.0.0.1:8781/04-input/dist/).
+- [Use commands in the projection checkpoint](http://127.0.0.1:8781/25-projection/dist/).
 
-![Real course prototype in Chrome: two Background commands and their answers in expanded history.](../screenshots/journey/command-dock-preview-history.png)
+The lesson pages include their own Chrome captures. [Release evidence](release.md) describes the exact checks and remaining limitations. The full viewer course continues according to the [complete lesson checklist](roadmap.md); these opening checkpoints do not yet contain all production features.
 
-The browser check verifies completion, Enter, Escape and history expansion. It also compares every drawing pixel above the folded dock: two background changes must restore the original picture exactly. Separately, five production dock states were compared before and after extraction and matched pixel for pixel.
+## Reproduce the checks
 
-## What changes in the lessons
-
-The early lessons will introduce the actual dock in small, runnable parts: drawing its panel and text; delivering keyboard input; submitting a command; then completion and history. You will type these parts, with a diagram showing who owns each value. A large unexplained module is not a finished lesson.
-
-After that, subsequent lessons will test actions through commands and natural canvas gestures. Their screenshots and browser checks must be recaptured against the revised code. The existing button-based typing pages still describe the previous course revision; this preview does not mark them updated.
-
-- [x] Extract the production dock and preserve its appearance.
-- [x] Run it in the small project with real Chrome input.
-- [ ] Finish the early typing lessons and their time estimates.
-- [ ] Update the later lessons and rerun their browser checks.
-- [ ] Finish lesson 25 and continue the [complete course plan](roadmap.md).
-- [ ] Remove the old tutorials after the complete replacement is verified.
-
-## Reproduce the preview
-
-These are maintainer checks. They build under `target`; they do not write into your handwritten project.
-
-From `session_viewer`:
+From `session_viewer`, build the displayed sources:
 
 ```sh
-npm --prefix ../session_tests run course -- dock-preview
+npm --prefix ../session_tests run course -- verify
 npm --prefix ../session_tests run course -- serve 8781
 ```
 
-Then, in another terminal from the same directory:
+In another terminal:
 
 ```sh
-NODE_PATH="$PWD/target/course-tools/node_modules" node tests/course_command_dock.cjs
+npm --prefix ../session_tests run course -- capture
 ```
 
-The browser check needs Playwright, pngjs and visible Google Chrome. The preview shares `src/command_dock` directly during assembly, so its interface cannot quietly drift into an HTML imitation. Its simple browser adapter still needs the later lessons on clipboard, composition, touch, focus loss and resource lifetimes; this check does not claim those behaviours are finished.
+The capture tool launches visible Chrome and types into the drawn egui field. It checks the build fingerprints first. It does not inject commands directly into Rust or use an HTML input substitute. These maintainer commands work under `target`; they do not write into your handwritten project.

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {save, restore, savedPath} from './checkpoints.ts';
-import {expected, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer} from './model.ts';
+import {expected, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer, assetsFor, course} from './model.ts';
 
 function fixture(run: (folder: string) => void) {
     const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'viewer-course-'));
@@ -69,13 +69,31 @@ test('a dependency update preserves the previous lock and never writes applicati
     assert.equal(read(path.join(folder, 'Cargo.lock.before-15-perspective')), read(lockFor('01-canvas')));
     dependencies('15-perspective', folder);
     assert.equal(read(path.join(folder, 'my-work.rs')), 'my unfinished work');
+    for (const name of assetsFor('15-perspective')) {
+        assert(fs.readFileSync(path.join(folder, name)).equals(fs.readFileSync(path.join(viewer, name))));
+    }
+    const changedFont = path.join(folder, assetsFor('15-perspective')[0]);
+    fs.writeFileSync(changedFont, 'my changed font');
+    assert.throws(() => dependencies('15-perspective', folder), /Asset differs/);
+    assert.equal(read(changedFont), 'my changed font');
     fs.appendFileSync(path.join(folder, 'Cargo.toml'), '# my own dependency experiment\n');
     assert.throws(() => dependencies('15-perspective', folder), /Cargo.toml/);
 }));
 
 test('a reference exported at another depth still finds the geometry kernel', () => fixture(folder => {
     const target = path.join(folder, 'reference');
-    materialize(expected('15-perspective'), target, lockFor('15-perspective'));
+    materialize(expected('15-perspective'), target, lockFor('15-perspective'), assetsFor('15-perspective'));
     const relative = read(path.join(target, 'Cargo.toml')).match(/session_rust = \{ path = "([^"]+)"/)![1];
     assert.equal(path.resolve(target, relative), path.resolve(viewer, '../session_rust'));
 }));
+
+test('interactive lessons type into the production dock without feature buttons', () => {
+    for (const step of course().steps.filter(step => parseInt(step.id) >= 4)) {
+        const files = expected(step.id);
+        assert(!/<button|<form|id="controls"/.test(files['index.html']), step.id);
+        assert((step.browser_actions || []).every(action => !('button' in action)), step.id);
+        for (const name of ['mod.rs', 'theme.rs', 'view.rs']) {
+            assert.equal(files['src/command_dock/' + name], read(path.join(viewer, 'src/command_dock', name)), step.id + ': production dock ' + name);
+        }
+    }
+});

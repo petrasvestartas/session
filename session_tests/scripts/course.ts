@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {course, docs, viewer, work, expected, referenceFiles, compare, materialize, referenceAssets, safeOutput, lockFor, dependencies} from './course/model.ts';
+import {course, docs, viewer, work, expected, referenceFiles, compare, materialize, referenceAssets, safeOutput, lockFor, dependencies, assetsFor} from './course/model.ts';
 import {save, restore} from './course/checkpoints.ts';
 import {generate} from './course/render.ts';
 import {structure, verify} from './course/verify.ts';
@@ -27,7 +27,7 @@ function main() {
         console.log('Source matches. Build and run the lesson experiment to check behavior.');
     } else if (action === 'dependencies') {
         dependencies(name);
-        console.log('Dependency lock is current. Any previous lock was preserved; implementation files were not changed.');
+        console.log('Dependency lock and supplied binary assets are current. Any previous lock was preserved; implementation files were not changed.');
     } else if (action === 'save') {
         console.log(`Saved your files in ${save(name)}`);
     } else if (action === 'restore') {
@@ -38,7 +38,7 @@ function main() {
         if (at < 0 || !args[at + 1]) throw Error('Choose a new --output directory.');
         const output = path.resolve(process.env.INIT_CWD || process.cwd(), args[at + 1]);
         safeOutput(output);
-        materialize(expected(name), output, lockFor(name));
+        materialize(expected(name), output, lockFor(name), assetsFor(name));
         console.log(`Reference assembled in ${output}. Your project was not changed.`);
     } else if (action === 'reference-check') {
         const failures = compare(referenceFiles(name), path.join(viewer, 'workspace/handwritten'));
@@ -70,7 +70,8 @@ function main() {
         const stored = ids.includes('--stored');
         verify(ids.filter(id => id !== '--stored'), stored);
     } else if (action === 'capture') {
-        const result = spawnSync(process.execPath, [path.join(docs, 'capture_journey.cjs')], {cwd: viewer, stdio: 'inherit',
+        verify([name, ...args].filter(Boolean), true);
+        const result = spawnSync(process.execPath, [path.join(docs, 'capture_journey.cjs'), ...[name, ...args].filter(Boolean)], {cwd: viewer, stdio: 'inherit',
             env: {...process.env, NODE_PATH: path.join(viewer, 'target/course-tools/node_modules')}});
         if (result.status !== 0) throw Error('Browser capture failed; see the error above.');
     } else if (action === 'serve') {

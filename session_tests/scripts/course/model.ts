@@ -19,9 +19,10 @@ export interface Step {
     frame_constructor?: string;
     frame_size?: [number, number];
     tests?: boolean;
-    browser_actions?: ({button: string} | {canvas: [number, number]} | {viewport: [number, number]} | {drag: [[number, number], [number, number]]} | {wheel: number} | {key: string} | {file: string})[];
+    browser_actions?: ({command: string} | {canvas: [number, number]} | {viewport: [number, number]} | {drag: [[number, number], [number, number]]} | {wheel: number} | {key: string} | {file: string})[];
     image_result?: string;
     lock?: string;
+    assets?: string[];
 }
 export interface Course { release: string; steps: Step[] }
 
@@ -43,9 +44,29 @@ export function lockFor(id: string): string {
     throw Error(`Unknown lesson: ${id}`);
 }
 
+export function assetsFor(id: string): string[] {
+    const assets = new Set<string>();
+    for (const step of course().steps) {
+        for (const name of step.assets || []) assets.add(name);
+        if (step.id === id) return [...assets];
+    }
+    throw Error(`Unknown lesson: ${id}`);
+}
+
+export function installAssets(names: string[], destination: string) {
+    for (const name of names) {
+        const source = fs.readFileSync(path.join(viewer, name));
+        const target = path.join(destination, name);
+        if (fs.existsSync(target)) {
+            if (!fs.readFileSync(target).equals(source)) throw Error(`Asset differs: ${target}. Preserve your changed file before installing the course asset.`);
+        } else write(target, source);
+    }
+}
+
 export function dependencies(id: string, project = work) {
     const failures = compare({'Cargo.toml': expected(id)['Cargo.toml']}, project);
     if (failures.length) throw Error(failures.join('\n'));
+    installAssets(assetsFor(id), project);
     const lock = path.join(project, 'Cargo.lock');
     const wanted = read(lockFor(id));
     if (read(lock) === wanted) return;
@@ -117,7 +138,7 @@ export function compare(files: Files, target: string): string[] {
     return failures;
 }
 
-export function materialize(files: Files, destination: string, lock: string) {
+export function materialize(files: Files, destination: string, lock: string, assets: string[] = []) {
     fs.mkdirSync(path.dirname(destination), {recursive: true});
     fs.mkdirSync(destination, {recursive: false});
     const kernel = path.relative(destination, path.join(viewer, '../session_rust')).split(path.sep).join('/');
@@ -125,6 +146,7 @@ export function materialize(files: Files, destination: string, lock: string) {
         write(path.join(destination, name), name === 'Cargo.toml' ? text.replaceAll('../../../session_rust', kernel) : text);
     }
     fs.copyFileSync(lock, path.join(destination, 'Cargo.lock'));
+    installAssets(assets, destination);
 }
 
 export function referenceAssets(destination: string) {

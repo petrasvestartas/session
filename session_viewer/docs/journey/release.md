@@ -1,76 +1,62 @@
-# Course release: journey-2
+# Course release: command-line checkpoints
 
-The cumulative lessons progress from a canvas through indexed geometry, scene ownership, stable identity, picking, undo/redo, a perspective orbit camera, a lit kernel box, shared editor actions, synchronized resizing, cancellable pointer gestures, focused keyboard/wheel navigation and small mesh-session imports. Imported objects retain their source session and GUID; one history transaction covers the whole file. Rust checks inspect shape coverage, landmark pixels and state invariants. The background lesson also proves that two toggles restore the original pixels. The course route lists the current lessons and estimates; use the commands below to check their build evidence.
+**All 29 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–25 plus the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging, wheel and focused navigation retain their natural input paths.
 
-**All 24 published checkpoints passed their scripted browser checks in headed Chrome 153.0.8010.36 on September 29.** Each lesson includes its actual browser page. The run uses Linux, a 900 × 760 CSS-pixel initial viewport, device-pixel ratio 1, and the WebGPU launch flags in `open-chrome.sh`. Source and bundle fingerprints, browser version and canvas hashes are recorded in `screenshots/journey/browser.json`. This proves the tested cases, not every interaction or another browser.
+This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
-Lesson 24 adds scene fitting. Its 35 Rust tests include fitting box corners across scales, orientations and aspect ratios, preserving document history, and empty/point bounds. Chrome checks repeated Fit, recovery after panning, import Undo/Redo after fitting, and geometry margins at both 900 × 760 and 480 × 900 browser sizes. The native readback separately checks every vertex against the view and the imported beam's visible colour.
+## What was checked
 
-Checks include the background’s mouse/keyboard round trip, button and picking actions, window resizing, right-drag orbit and release, wheel zoom without page scrolling, focused keys without navigation outside the canvas, and file import with whole-import Undo/Redo. The production viewer also passed a separate Chrome test that destroys its GPU device, checks that GPU work stops, downloads a diagnostic report, and recovers that report after reload. The reported Firefox driver crash has not been reproduced or proven fixed.
+- Every displayed checkpoint reconstructs, builds for WebAssembly, and produces a Trunk browser bundle. Native state tests and GPU readbacks run where applicable.
+- The course’s dock model, layout and theme match the production source. An automated check rejects HTML feature buttons and button-based lesson actions.
+- Chrome types commands through actual keyboard events. Enter clears the field and records exactly one command. Completion and Escape are checked separately.
+- Lesson 04 submits Background twice and compares every scene pixel above the folded dock. The second submission restores the original drawing exactly.
+- Later checks cover command actions, picking, resizing, orbit and release, wheel without page scrolling, command-field focus, and Open with whole-import Undo/Redo.
+- Fit is checked for repeatability, recovery after panning, document history, and geometry margins in wide and tall windows.
+- Lesson 25 checks the perspective/orthographic pixel round trip and selects a visible imported beam in each projection. Its 39 Rust tests also check camera, fitting, picking and document invariants.
 
-Lesson 04’s earlier failure came from a button’s keyboard focus outline overlapping 197 pixels of the canvas border. The GPU drawing was restored correctly. Rendering assertions now compare pixels read from the canvas itself; the full-page screenshots retain the real interface and its focus indicators.
+The scene comparison excludes the command strip. When a key opens completion over the drawing, the test dismisses that overlay before checking camera pixels. Full-page screenshots still show the real interface.
 
-Native GPU readbacks remain separate supporting evidence. The generated lesson pages prefer current browser screenshots and fall back to explicitly labelled native output when browser evidence no longer matches the checkpoint source.
+## Screenshot evidence
 
-## Command-line revision in progress
+Each lesson includes its own Chrome capture from the reconstructed browser bundle. The capture file records source and bundle fingerprints, checker hash, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`. Screenshots are included only while their source and checker fingerprints match.
 
-The published record above belongs to the button-based revision. The [real command-dock preview](command-line.md) has separate source fingerprints and Chrome captures. The revised typing lessons and a fresh complete course-browser run are still pending; the preview does not replace the published 24-lesson record.
+The initial browser viewport is 900 × 760 CSS pixels at display density 1. Resize and Fit checks also change the window size. Linux WebGPU uses the flags documented in `open-chrome.sh`. This verifies those scripted cases on this machine; it does not establish complete browser or hardware coverage.
 
-## What the similar pictures show
+The early dock stages have different purposes: 03a draws the styling, 03b adds the model, 03c draws production history/layout, and 03d connects keyboard input. Their captions state when input becomes usable. Native GPU images are separate evidence and are never labelled browser screenshots.
 
-These lessons deliberately keep the same small scene so you can compare one change. Their images are different, but a still image cannot establish that an interaction works. The scripted browser actions provide that additional evidence; the captions explain what to look for.
+## Fixed inputs and remaining scope
 
-| Lesson | Visible difference | Browser action checked |
-| --- | --- | --- |
-| [16 · Orbit](16-orbit.md) | Two triangles seen from an isometric camera | Isometric button |
-| [17 · Solid](17-solid.md) | A grey box joins the triangles | Add box and Isometric buttons |
-| [18 · Light](18-light.md) | Three different face brightnesses on the same box | Shader output in Chrome |
-| [19 · Actions](19-actions.md) | The selected box is yellow | Buttons reaching the shared Editor path |
-| [20 · Resize](20-resize.md) | The canvas grows with the browser window | Resize from 900 × 760 to 1000 × 800 at DPR 1 |
-| [21 · Gestures](21-gestures.md) | The scene rotates after a right drag | Drag changes pixels; movement after release does not |
+The course pins wgpu 29.0.4 and egui/egui-wgpu 0.34.3. Locks are introduced for the initial project, egui drawing, dock inspection dependencies, the Rust geometry kernel, and protobuf import. The dependency command preserves the previous lock and installs binary fonts; all implementation code is displayed for typing.
 
-On September 29, all six source PNGs were compared byte-for-byte with fresh PNG encodings of their saved GPU readbacks. The raw pixels matched their verification records, and the two documentation builds contained the same six distinct assets. This audit verifies the files; it does not verify what a running localhost server or browser cache returns.
+Early commands such as Background, Pan and Example are teaching vocabulary. The component and its styling are the real viewer dock. Later command chapters build the complete production vocabulary, argument handling, clipboard, composition and touch integration.
 
-## Fixed inputs
+The original production destination remains fingerprinted separately. Browser diagnostics, device-loss guards and the shared command dock are newer than that reference, so the full source-parity audit still reports differences. The course has not yet reached production feature parity. Old reference tutorials remain until their complete replacement is verified.
 
-The package pins wgpu 29.0.4 and the browser bindings. `journey/release/Cargo.lock` fixes the initial transitive dependencies. Lesson 15 introduces the existing Rust geometry kernel and its separate `15-perspective.lock`. Lesson 23 adds direct protobuf and JavaScript dependencies using `23-import.lock`; their versions were already used transitively. The dependency command preserves the old lock and installs the versions for that stage. The init command supplies only the first lock; all viewer implementation code appears in the lessons. Verification also fingerprints the kernel source used by the later checkpoints.
+The production viewer separately passed a Chrome device-loss check: stop GPU work, attempt a diagnostic download, and recover the report on reload. The reported Firefox QueueId driver crash has not been reproduced or proven fixed. A web application cannot guarantee a dump when the browser process itself crashes.
 
-The September 28 viewer is fingerprinted separately in `destination.json`; production source has not been replaced by the teaching renderer. September 29 browser diagnostics and device-loss guards are newer than that reference. Its fingerprint and source-parity checks intentionally report this difference until the fixes enter the checkpoints. The shorter course has not yet reached the full viewer.
+## Reproduce
 
-## Reproduce the checks
-
-From `session_viewer`, the authoring checks are:
+From `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- structure
 npm --prefix ../session_tests run course -- verify
 npm --prefix ../session_tests run course -- verify --stored
+npm --prefix ../session_tests run course -- serve 8781
 ```
 
-The TypeScript command validates lesson edits, displayed listings and the destination inventory. Rust performs the executable pixel assertions. The second reconstructs reference projects under `target/course-ID` and keeps browser bundles in `target/course-checks`, builds browser bundles and checks native frames. The third rejects stale build evidence. None writes to `workspace/journey`.
-
-For a browser run, first complete those builds. Then serve their parent directory:
-
-```sh
-npm --prefix ../session_tests run course -- serve
-```
-
-Install the capture dependencies once from `session_viewer`; Chrome must also be installed:
+Install browser-test dependencies once if needed:
 
 ```sh
 npm install --prefix target/course-tools playwright@1.58.2 pngjs@7.0.0
 ```
 
-In a second terminal:
+In another terminal:
 
 ```sh
 npm --prefix ../session_tests run course -- capture
+npm --prefix ../session_tests run course -- generate
 ```
 
-Set `JOURNEY_URL` if serving on another address. The tool checks startup errors, distinct canvas results, button activation by mouse and keyboard, and the two-toggle round trip. It writes actual page screenshots and source/bundle fingerprints to `docs/screenshots/journey`. Regenerate the lesson pages with `npm --prefix ../session_tests run course -- generate` after a successful capture to include current browser screenshots.
-
-## Before declaring the full course finished
-
-Every planned feature needs cumulative lessons, a working browser checkpoint and the acceptance cases in [the destination contract](destination.md). Compare representative scenes at fixed camera poses and viewport sizes. Record hardware and performance conditions. Source coverage alone cannot establish equivalent visual quality or responsiveness.
+Capture checks the build fingerprints before launching Chrome. These commands use `target` and leave `workspace/journey` untouched. The separate `structure` audit includes the unfinished production destination comparison; its remaining differences must be resolved before declaring the entire course complete.
 
 [Return to the course](../journey.md)

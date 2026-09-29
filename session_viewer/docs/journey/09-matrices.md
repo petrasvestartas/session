@@ -1,6 +1,6 @@
 # 09 · Let one matrix describe the view
 
-**Plan about 2–4 hours.** 33 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–4 hours.** 61 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Rotate the flat view using a matrix, ready for the third dimension.
 
@@ -163,66 +163,108 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Forward the complete matrix when presenting a frame.
+Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    transform: &[f32; 4],
+            "Zoom Out",
+            "Pan Left",
+            "Pan Right",
+            "View Reset",
+        ],
+    );
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/09-matrices-09.rs"
+--8<-- "journey/code/09-matrices-dock-01.rs"
 ```
 
-### 10. `index.html`
+### 10. `src/browser.rs`
 
-Add one button to the existing event group.
+Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
-```html
-    <button id="reset" type="button">Reset view</button>
+```rust
+                "zoom out" => camera.zoom(0.5),
+                "pan left" => camera.pan(-0.25, 0.0),
+                "pan right" => camera.pan(0.25, 0.0),
+                "view reset" => camera = Camera::default(),
+                _ => return,
+            }
 ```
 
 Replace that block with:
 
-```html
---8<-- "journey/code/09-matrices-10.html"
+```rust
+--8<-- "journey/code/09-matrices-dock-02.rs"
 ```
 
 ### 11. `src/browser.rs`
 
-Connect that button to the camera angle. The next present call already uploads the new matrix.
+Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-            "reset" => camera = Camera::default(),
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
+    report("Pan and zoom change the view, not the mesh.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/09-matrices-11.rs"
+--8<-- "journey/code/09-matrices-dock-03.rs"
 ```
 
 ### 12. `src/browser.rs`
 
-Describe the new camera capability.
+Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    report("Pan and zoom change the view, not the mesh.");
+    surface: &wgpu::Surface<'_>,
+    renderer: &Renderer,
+    background: &Background,
+    transform: &[f32; 4],
+    panel: &mut crate::panel::Panel,
+) -> Result<(), JsValue> {
+    let frame = match surface.get_current_texture() {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/09-matrices-12.rs"
+--8<-- "journey/code/09-matrices-dock-04.rs"
+```
+
+### 13. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+  <h1>My viewer</h1>
+  <p id="status" role="status">Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+  <p>Commands: Help · Background · Zoom In · Zoom Out · Pan Left · Pan Right · View Reset. Type in the white Command field and press Enter.</p>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/09-matrices-page-1.html"
 ```
 
 ## Run and look
@@ -237,7 +279,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The Turn view button rotates the diamond by 45 degrees per click. After one click it appears as a rectangle aligned with the screen. Pan, zoom and reset still work; reset also clears the angle.
+Run `Orbit Right`. The diamond turns 45 degrees and appears as a screen-aligned rectangle. `View Reset` clears the angle. Pan and zoom commands still move the camera without editing positions.
 
 **Actual Chrome screenshot.**
 
@@ -253,7 +295,7 @@ cargo test --lib --locked -j4
 
 ## Try one small experiment
 
-Look right, then turn the view. Predict where the origin will appear before you run it. Reset, turn twice, and locate the original right-hand corner: a 90-degree camera turn places it below the centre. The position buffer must remain unchanged throughout.
+Pan Right, then turn the view. Predict where the origin will appear before you run it. Reset, turn twice, and locate the original right-hand corner: a 90-degree camera turn places it below the centre. The position buffer must remain unchanged throughout.
 
 ## Explain it in your own words
 

@@ -1,6 +1,6 @@
 # 23 · Keep the document behind the picture
 
-**Plan about 5–8 hours.** 258 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 5–8 hours.** 338 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
 
@@ -68,23 +68,7 @@ Create the file and type:
 --8<-- "journey/code/23-import-04.rs"
 ```
 
-### 5. `src/lib.rs`
-
-Register the reader, specimen and native checks.
-
-Find this exact block:
-
-```rust
-pub mod shortcuts;
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/23-import-05.rs"
-```
-
-### 6. `src/scene.rs`
+### 5. `src/scene.rs`
 
 An imported display object remembers the document and source GUID it came from. Demo objects have no source document.
 
@@ -100,7 +84,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-06.rs"
 ```
 
-### 7. `src/scene.rs`
+### 6. `src/scene.rs`
 
 Keep the existing insertion path for demo objects.
 
@@ -116,7 +100,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-07.rs"
 ```
 
-### 8. `src/scene.rs`
+### 7. `src/scene.rs`
 
 All imported rows share one retained source session. History will wrap this entire insertion in one transaction.
 
@@ -132,7 +116,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-08.rs"
 ```
 
-### 9. `src/editor.rs`
+### 8. `src/editor.rs`
 
 Make file import an ordinary document action.
 
@@ -148,7 +132,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-09.rs"
 ```
 
-### 10. `src/editor.rs`
+### 9. `src/editor.rs`
 
 Prepare first, commit second. A decode or mesh error cannot clear redo or leave half an import in the scene.
 
@@ -164,39 +148,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-10.rs"
 ```
 
-### 11. `Cargo.toml`
-
-Use the kernel’s protobuf implementation and the already pinned JavaScript bindings directly.
-
-Find this exact block:
-
-```toml
-console_error_panic_hook = "=0.1.7"
-```
-
-Replace that block with:
-
-```toml
---8<-- "journey/code/23-import-11.toml"
-```
-
-### 12. `Cargo.toml`
-
-Enable the file picker, asynchronous bytes and the browser message that delivers a completed read.
-
-Find this exact block:
-
-```toml
-"HtmlElement"
-```
-
-Replace that block with:
-
-```toml
---8<-- "journey/code/23-import-12.toml"
-```
-
-### 13. `src/file_input.rs`
+### 10. `src/file_input.rs`
 
 Read asynchronously without borrowing Editor across await. A numbered request prevents a slow earlier file from replacing a newer choice. Deliver bytes to the callback that already owns Editor.
 
@@ -206,105 +158,219 @@ Create the file and type:
 --8<-- "journey/code/23-import-13.rs"
 ```
 
-### 14. `src/lib.rs`
+### 11. `Cargo.toml`
 
-Keep browser file APIs out of native builds.
+Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
+
+Find this exact block:
+
+```toml
+
+[dependencies]
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "FocusOptions"] }
+console_error_panic_hook = "=0.1.7"
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
+session_rust = { path = "../../../session_rust", default-features = false }
+```
+
+Replace that block with:
+
+```toml
+--8<-- "journey/code/23-import-dock-01.toml"
+```
+
+### 12. `src/lib.rs`
+
+Register the reader, specimen and native checks.
 
 Find this exact block:
 
 ```rust
-mod browser;
+pub mod viewport;
+pub mod gesture;
+pub mod shortcuts;
+#[cfg(test)]
+mod shortcut_tests;
+#[cfg(test)]
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-14.rs"
+--8<-- "journey/code/23-import-dock-02.rs"
+```
+
+### 13. `src/lib.rs`
+
+Register the reader, specimen and native checks.
+
+Find this exact block:
+
+```rust
+pub mod renderer;
+#[cfg(target_arch = "wasm32")]
+mod browser;
+
+use wasm_bindgen::prelude::*;
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/23-import-dock-03.rs"
+```
+
+### 14. `src/browser.rs`
+
+Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+        config.format.add_srgb_suffix(),
+        &[
+            "Help",
+            "Example Box",
+            "Example Triangle",
+            "Select Next",
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/23-import-dock-04.rs"
 ```
 
 ### 15. `src/browser.rs`
 
-Retain only a request number across asynchronous file reads. The editor itself still has one owner.
+Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    let browser_window = window.clone();
+    let pointer_canvas = canvas.clone();
     let mut gesture = Gesture::default();
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        let line = match panel.update(Some(&event), &input_canvas) {
+            Ok(line) => line,
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-15.rs"
+--8<-- "journey/code/23-import-dock-05.rs"
 ```
 
 ### 16. `src/browser.rs`
 
-File selection starts a read; its later completion becomes Import. Both events enter the existing callback.
+Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-        let action = if event.type_() == "click" {
+                return;
+            }
+        };
+        let action = if let Some(line) = line {
+            let action = match line.as_str() {
+                "example box" => Action::AddBox,
+                "example triangle" => Action::ToggleExtra,
+                "select next" => Action::SelectNext,
+                "delete" => Action::Delete,
+                "undo" => Action::Undo,
+                "redo" => Action::Redo,
+                "background" => Action::Background,
+                "zoom in" => Action::Zoom(2.0),
+                "zoom out" => Action::Zoom(0.5),
+                "pan left" => Action::Pan(-0.25, 0.0),
+                "pan right" => Action::Pan(0.25, 0.0),
+                "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
+                "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                "view isometric" => Action::Isometric,
+                "view reset" => Action::ResetView,
+                _ => return,
+            };
+            Some(action)
+        } else if !panel.consumed {
+            navigation_action(&event, &pointer_canvas, &mut gesture)
+        } else {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-16.rs"
+--8<-- "journey/code/23-import-dock-06.rs"
 ```
 
 ### 17. `src/browser.rs`
 
-Announce success only after the editor accepted every mesh and committed the transaction.
+Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-        if resize(&browser_window, &pointer_canvas, &surface, &mut config, &mut renderer, &mut editor) {
+                }
+            }
+        }
+        if resize(
+            &browser_window,
+            &pointer_canvas,
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-17.rs"
+--8<-- "journey/code/23-import-dock-07.rs"
 ```
 
 ### 18. `src/browser.rs`
 
-Register file choice and read completion alongside existing input.
+Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    document.add_event_listener_with_callback("click", update.as_ref().unchecked_ref())?;
+    )?;
+    window.add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
+    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
+    // Both event sources retain this one callback for the lifetime of the page.
+    update.forget();
+    report("Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.");
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-18.rs"
+--8<-- "journey/code/23-import-dock-08.rs"
 ```
 
 ### 19. `index.html`
 
-Expose a labelled native file picker. The extension is a hint; the reader still validates the actual bytes.
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
 
 Find this exact block:
 
 ```html
-    <legend>View</legend>
+    Home resets. Delete removes the selection. Ctrl/Cmd+Z undoes; Shift adds redo.</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480"
+    aria-label="Viewer drawing" aria-describedby="navigation"></canvas>
+  <p>Commands: Help · Example Box · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · View Reset. Type in the white Command field and press Enter.</p>
+</body>
+</html>
 ```
 
 Replace that block with:
 
 ```html
---8<-- "journey/code/23-import-19.html"
+--8<-- "journey/code/23-import-page-1.html"
 ```
 
 ## Run and look
 
-After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates only Cargo.lock and preserves the previous lock:
+After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 23-import
@@ -320,7 +386,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-In a second terminal inside workspace/journey, run `cargo run --example sample --locked --target x86_64-unknown-linux-gnu -j4` to create sample.pb (use your native target on another platform). Choose that file with Open mesh session, then Isometric. The three orange pieces should join the existing triangles. Undo once: all three disappear together. Redo: all three return. Choose the same file again: it imports a second independent set. Try choosing a text file renamed to .pb: the scene and its undo history must stay intact.
+In another terminal inside `workspace/journey`, run `cargo run --example sample --locked --target x86_64-unknown-linux-gnu -j4` to create `sample.pb`. Type `Open`, press Enter, and choose it. Run `View Isometric`: three orange pieces join the triangles. `Undo` removes the entire import; `Redo` restores it. Importing the file again creates an independent set. A text file renamed .pb must leave the document unchanged.
 
 **Actual Chrome screenshot.**
 

@@ -1,6 +1,6 @@
 # 07 · Send one view setting to every corner
 
-**Plan about 2–3 hours.** 39 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–3 hours.** 68 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Scale and shift the diamond without changing its stored positions.
 
@@ -126,82 +126,110 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Supply the four view values for the first frame.
+Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    present(&surface, &renderer, &background)?;
+    );
+    panel.update(None, &canvas)?;
+    let mut background = Background::default();
+    present(&surface, &renderer, &background, &mut panel)?;
+    let input_canvas = canvas.clone();
+    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        let line = match panel.update(Some(&event), &input_canvas) {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-07.rs"
+--8<-- "journey/code/07-uniforms-dock-01.rs"
 ```
 
 ### 8. `src/browser.rs`
 
-Keep the same transform when the button changes the background.
+Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-        if let Err(error) = present(&surface, &renderer, &background) {
+            report(&format!("Cannot lay out commands: {error:?}"));
+            return;
+        }
+        if let Err(error) = present(&surface, &renderer, &background, &mut panel) {
+            report(&format!("Cannot redraw: {error:?}"));
+        }
+    });
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-08.rs"
+--8<-- "journey/code/07-uniforms-dock-02.rs"
 ```
 
 ### 9. `src/browser.rs`
 
-Let present forward the view values along with the image and background.
+Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    background: &Background,
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
+    report("Four shared corners make two triangles.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-09.rs"
+--8<-- "journey/code/07-uniforms-dock-03.rs"
 ```
 
 ### 10. `src/browser.rs`
 
-Complete the connection from the caller to the shader uniform.
+Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    renderer.draw(&view, background);
+    surface: &wgpu::Surface<'_>,
+    renderer: &Renderer,
+    background: &Background,
+    panel: &mut crate::panel::Panel,
+) -> Result<(), JsValue> {
+    let frame = match surface.get_current_texture() {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-10.rs"
+--8<-- "journey/code/07-uniforms-dock-04.rs"
 ```
 
 ### 11. `src/browser.rs`
 
-Describe the new visible result.
+Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    report("Four shared corners make two triangles.");
+        format: Some(frame.texture.format().add_srgb_suffix()),
+        ..Default::default()
+    });
+    renderer.draw(&view, background);
+    panel.draw(renderer, &view);
+    frame.present();
+    Ok(())
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-11.rs"
+--8<-- "journey/code/07-uniforms-dock-05.rs"
 ```
 
 ## Run and look
@@ -216,7 +244,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The diamond becomes smaller and moves toward the upper right. The background button still changes only the background. Its four stored positions and six indices are unchanged.
+The diamond becomes smaller and moves toward the upper right. `Background` still changes only the background. Its stored positions and indices are unchanged.
 
 **Actual Chrome screenshot.**
 

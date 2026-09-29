@@ -1,0 +1,8 @@
+            "Example Triangle",
+            "Select Next",
+            "Delete",
+            "Undo",
+            "Redo",
+            "Background",
+            "Zoom In",
+            "Zoom Out",

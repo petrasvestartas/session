@@ -1,6 +1,6 @@
 # 18 · Read the shape through light
 
-**Plan about 1–2 hours.** 27 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 1–2 hours.** 33 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Shade the box faces according to their direction, using the same mesh and renderer.
 
@@ -64,18 +64,23 @@ Replace that block with:
 
 ### 2. `src/browser.rs`
 
-Describe what the new shading changes.
+Connect read the shape through light to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("Kernel geometry becomes an undoable scene object.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/18-light-02.rs"
+--8<-- "journey/code/18-light-dock-01.rs"
 ```
 
 ## Run and look
@@ -90,7 +95,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Add box, then choose Isometric. The top should be lightest, the left-facing side darkest, and the other side between them. Turn the view: the light stays fixed in the world. Selection still uses yellow, now shaded by face direction.
+Run `Example Box`, then `View Isometric`. Compare the three visible face colours. Run `Orbit Right`: the light stays fixed in the world. Click a face to see shaded yellow selection.
 
 **Actual Chrome screenshot.**
 

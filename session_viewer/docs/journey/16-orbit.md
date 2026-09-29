@@ -1,6 +1,6 @@
 # 16 · Walk around the model
 
-**Plan about 2–4 hours.** 71 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–4 hours.** 93 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Orbit and tilt a perspective camera while keeping its target in place.
 
@@ -169,52 +169,88 @@ Replace that block with:
 --8<-- "journey/code/16-orbit-08.rs"
 ```
 
-### 9. `index.html`
+### 9. `src/browser.rs`
 
-Add tilt and the repeatable isometric pose to the existing controls.
+Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
-```html
-    <button id="turn" type="button">Turn view</button>
+```rust
+            "Pan Left",
+            "Pan Right",
+            "Orbit Right",
+            "View Reset",
+        ],
+    );
 ```
 
 Replace that block with:
 
-```html
---8<-- "journey/code/16-orbit-09.html"
+```rust
+--8<-- "journey/code/16-orbit-dock-01.rs"
 ```
 
 ### 10. `src/browser.rs`
 
-Route those view actions through camera state; scene data and GPU mesh buffers stay unchanged.
+Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-            "turn" => camera.rotate(std::f32::consts::FRAC_PI_4),
+                "pan left" => camera.pan(-0.25, 0.0),
+                "pan right" => camera.pan(0.25, 0.0),
+                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
+                "view reset" => camera = Camera::default(),
+                _ => return,
+            }
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/16-orbit-10.rs"
+--8<-- "journey/code/16-orbit-dock-02.rs"
 ```
 
 ### 11. `src/browser.rs`
 
-Describe the camera operation now available.
+Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("Perspective and picking use the same camera.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/16-orbit-11.rs"
+--8<-- "journey/code/16-orbit-dock-03.rs"
+```
+
+### 12. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+  <h1>My viewer</h1>
+  <p id="status" role="status">Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+  <p>Commands: Help · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · View Reset. Type in the white Command field and press Enter.</p>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/16-orbit-page-1.html"
 ```
 
 ## Run and look
@@ -229,7 +265,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Tilt view lets you see the two triangles as surfaces at different heights. Turn view moves around the target. Isometric chooses a repeatable oblique view. Clicking a visible surface continues to select it after these changes.
+Run `Orbit Up` to see the triangles at different heights. `Orbit Right` moves around the target. `View Isometric` chooses a repeatable oblique view. Click a visible surface after each change and check the selection.
 
 **Actual Chrome screenshot.**
 
@@ -247,7 +283,7 @@ cargo test --lib --locked -j4
 
 ## Try one small experiment
 
-Choose Isometric, pan, then tilt. Predict whether the point at the screen centre will stay centred during the tilt. It should: pan chose a new target, and orbit keeps that target fixed. Delete a selected surface and undo; the camera should keep its current orientation.
+Type `View Isometric` and press Enter, pan, then tilt. Predict whether the point at the screen centre will stay centred during the tilt. It should: pan chose a new target, and orbit keeps that target fixed. Delete a selected surface and undo; the camera should keep its current orientation.
 
 ## Explain it in your own words
 

@@ -1,6 +1,6 @@
 # 14 · Make document changes reversible
 
-**Plan about 2–4 hours.** 119 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–4 hours.** 166 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Undo and redo adding or deleting an object without changing the camera or losing identity.
 
@@ -141,125 +141,169 @@ Register history as a document operation, independent of the browser and GPU.
 Find this exact block:
 
 ```rust
+pub mod mesh;
+pub mod scene;
 pub mod picking;
+pub mod gpu_mesh;
+pub mod renderer;
+#[cfg(target_arch = "wasm32")]
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-08.rs"
+--8<-- "journey/code/14-history-dock-01.rs"
 ```
 
 ### 9. `src/browser.rs`
 
-Let the coordinator retain history alongside the scene.
+Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+use crate::background::Background;
+use crate::camera::Camera;
+use crate::renderer::Renderer;
 use crate::scene::Scene;
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-09.rs"
+--8<-- "journey/code/14-history-dock-02.rs"
 ```
 
 ### 10. `src/browser.rs`
 
-Start with no past or future edits.
+Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-    let mut selected = None;
+            "Example Triangle",
+            "Select Next",
+            "Delete",
+            "Background",
+            "Zoom In",
+            "Zoom Out",
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-10.rs"
+--8<-- "journey/code/14-history-dock-03.rs"
 ```
 
 ### 11. `src/browser.rs`
 
-Record adding or removing the demonstration object as one document edit.
+Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-                scene.toggle_extra();
+        ],
+    );
+    panel.update(None, &canvas)?;
+    let mut selected = None;
+    let mut background = Background::default();
+    let mut camera = Camera::default();
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-11.rs"
+--8<-- "journey/code/14-history-dock-04.rs"
 ```
 
 ### 12. `src/browser.rs`
 
-Record deletion before refreshing the GPU representation.
+Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-                    scene.remove(id);
+                    renderer.set_scene(&scene, selected);
+                }
+                "example triangle" => {
+                    scene.toggle_extra();
+                    selected = selected.filter(|id| scene.contains(*id));
+                    renderer.set_scene(&scene, selected);
+                }
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-12.rs"
+--8<-- "journey/code/14-history-dock-05.rs"
 ```
 
 ### 13. `src/browser.rs`
 
-Restore a document state, discard any dangling selection, and synchronize the resulting scene.
+Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
-            "background" => background.toggle(),
+                }
+                "delete" => {
+                    if let Some(id) = selected.take() {
+                        scene.remove(id);
+                        renderer.set_scene(&scene, selected);
+                    }
+                }
+                "background" => background.toggle(),
+                "zoom in" => camera.zoom(2.0),
+                "zoom out" => camera.zoom(0.5),
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-13.rs"
+--8<-- "journey/code/14-history-dock-06.rs"
 ```
 
-### 14. `index.html`
+### 14. `src/browser.rs`
 
-Add history controls beside the document-editing controls.
-
-Find this exact block:
-
-```html
-    <button id="delete" type="button">Delete selected</button>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/14-history-14.html"
-```
-
-### 15. `src/browser.rs`
-
-Describe the boundary between document history and view state.
+Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
 Find this exact block:
 
 ```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
     report("Click a triangle; the visible object is selected.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-15.rs"
+--8<-- "journey/code/14-history-dock-07.rs"
+```
+
+### 15. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+  <h1>My viewer</h1>
+  <p id="status" role="status">Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+  <p>Commands: Help · Example Triangle · Select Next · Delete · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · View Reset. Type in the white Command field and press Enter.</p>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/14-history-page-1.html"
 ```
 
 ## Run and look
@@ -274,7 +318,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Add or delete a triangle, then use Undo and Redo. The correct object and its original colour return. Camera and background choices remain unchanged. After undoing, making a new document edit removes the abandoned redo path.
+Run `Example Triangle`, `Undo`, then `Redo`. The object and its original colour return. Change the view or background and undo a document edit: those view choices stay put. A new document edit after Undo removes the abandoned redo path.
 
 **Actual Chrome screenshot.**
 

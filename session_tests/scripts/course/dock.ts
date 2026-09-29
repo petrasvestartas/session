@@ -10,6 +10,8 @@ export function dockPreview() {
     const files = expected('04-input');
     for (const name of ['Cargo.toml', 'index.html']) files[name] = read(path.join(source, name));
     for (const name of ['browser.rs', 'dock.rs']) files['src/' + name] = read(path.join(source, name));
+    delete files['src/panel.rs'];
+    files['src/lib.rs'] = files['src/lib.rs'].replace(/#\[cfg\(target_arch = "wasm32"\)\]\nmod (command_dock|panel);\n/g, '');
     files['src/lib.rs'] += '\n#[cfg(target_arch = "wasm32")]\nmod command_dock;\n#[cfg(target_arch = "wasm32")]\nmod dock;\n';
     for (const file of filesIn(path.join(viewer, 'src/command_dock'))) {
         files[path.relative(viewer, file)] = read(file);

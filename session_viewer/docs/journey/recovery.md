@@ -40,6 +40,6 @@ The destination must not already exist and cannot be your handwritten project or
 
 ## When the course itself is wrong
 
-Keep your last working save and record the lesson ID, release name and first error. A correction must identify the affected block, explain the cause and pass the checkpoint checks. It should preserve your project and unaffected work. We do not yet have a published correction history for this first release.
+Keep your last working save and record the lesson ID, release name and first error. A correction must identify the affected block, explain the cause and pass the checkpoint checks. It should preserve your project and unaffected work. Follow the [small corrections for existing projects](corrections.md); each names the affected lessons and exact changes.
 
 [Return to the course](../journey.md)
