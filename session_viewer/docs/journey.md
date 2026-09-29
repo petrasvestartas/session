@@ -2,7 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 23 cumulative lessons, about 51–90 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 24 cumulative lessons, about 54–95 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+
+The [complete draft lesson checklist](journey/roadmap.md) currently has **97 proposed lesson slots: 24 verified and 73 planned**. The final count can grow when a topic needs splitting. The feature target stays fixed; the checklist marks actual completed lessons separately from plans.
 
 ## Start small, keep the destination
 
@@ -31,6 +33,7 @@ Start with a picture you understand, then grow it into the viewer we already use
 | [21 · Remember a press until it ends](journey/21-gestures.md) | 3–5 hours | Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus. |
 | [22 · Give the keyboard a place to work](journey/22-shortcuts.md) | 2–4 hours | Zoom with the wheel and use focused keyboard shortcuts without stealing keys from the rest of the page. |
 | [23 · Keep the document behind the picture](journey/23-import.md) | 5–8 hours | Import a real mesh-session file, keep its source identity, and undo the whole import as one action. |
+| [24 · Find the whole scene](journey/24-fit.md) | 3–5 hours | Frame all current objects without rotating them or changing the document. |
 
 The first two lessons separate the browser from the renderer. The fourth adds state. Before adding a camera or editable objects, follow this whole path without the listing: **button → state → drawing commands → picture**.
 
@@ -42,7 +45,7 @@ The final project must retain the current viewer’s features and crafted appear
 
 | Course | Destination | Availability |
 | --- | --- | --- |
-| 1 · A small viewer you understand | Mesh, camera, input and object identity. | Available through lit solids, perspective orbit, pointer picking and resizing; gesture input still to come. |
+| 1 · A small viewer you understand | Mesh, camera, input and object identity. | Available through lit solids, orbit, pointer gestures, focused shortcuts, resizing, mesh import and scene fitting; advanced picking still pending. |
 | 2 · Geometry that reads clearly | Curves, points, CAD faces, boundaries, normals and text. | Pending conversion. |
 | 3 · Documents that stay reliable | Loading, streaming, instancing, sheets and resource lifetimes. | Pending conversion. |
 | 4 · Editing that can be undone | Selection, gestures, snapping, gumball, panels and transactions. | Basic selection, undo/redo and fallible transactions available; advanced tools pending. |

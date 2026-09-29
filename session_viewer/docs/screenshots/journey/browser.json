@@ -7,7 +7,7 @@
     "--disable-vulkan-surface",
     "--ozone-platform=x11"
   ],
-  "captured": "2026-09-29T20:40:26.058Z",
+  "captured": "2026-09-29T20:51:29.392Z",
   "steps": {
     "01-canvas": {
       "source": "7a1f9d6a60ee094674ea4a7e9a8b14d6ad36178f733fb85002e91f4aeaabe5f1",
@@ -191,6 +191,14 @@
       "canvas": "45457c06d17d332e504221c63b8f0626af700a8a35510d8baf12a63174b7a43d",
       "file": "23-import-browser.png",
       "bundle": "ea1095c1b2cc15603f9a5cc10ff3c0edbdda9b9e92d78972e1e5dab5bab3450f",
+      "clickAndKeyboard": false
+    },
+    "24-fit": {
+      "source": "74037854b8759f0b33a0824cf5357914b3a000c19c14f0f821e17fd64863768d",
+      "status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
+      "canvas": "37e1ebae936a32a8eec50e515d542a3c69f5f278e1f846e79f502be68b848ace",
+      "file": "24-fit-browser.png",
+      "bundle": "39e2d33c4854f62a424f99e9fc83db9f01af9217ee52deb9a4cd8dfc45fc1ef3",
       "clickAndKeyboard": false
     }
   }

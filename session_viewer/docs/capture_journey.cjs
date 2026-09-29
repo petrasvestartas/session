@@ -16,6 +16,37 @@ async function drawing(page) {
     return hash(pixels.data);
 }
 
+async function fitted(page) {
+    const button = page.getByRole('button', {name: 'Fit scene', exact: true});
+    await button.click();
+    await page.waitForTimeout(200);
+    const result = await drawing(page);
+    await button.click();
+    await page.waitForTimeout(200);
+    assert.equal(await drawing(page), result, 'Repeated Fit must leave the view unchanged');
+    await page.getByRole('button', {name: 'Look right', exact: true}).click();
+    await page.waitForTimeout(200);
+    assert.notEqual(await drawing(page), result, 'Pan must move the fitted picture');
+    await button.click();
+    await page.waitForTimeout(200);
+    assert.equal(await drawing(page), result, 'Fit must recover the same view after panning');
+
+    const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+    const {data, width, height} = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
+    let count = 0;
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const i = (y * width + x) * 4;
+            if (data[i] === data[0] && data[i + 1] === data[1] && data[i + 2] === data[2]) continue;
+            assert(x > width * 0.04 && x < width * 0.96 && y > height * 0.04 && y < height * 0.96,
+                'Fitted geometry must have space around it');
+            count++;
+        }
+    }
+    assert(count > 2000, 'Fit must leave visible geometry');
+    return result;
+}
+
 async function capture() {
     fs.rmSync(path.join(output, 'browser.json'), {force: true});
     const args = process.env.VIEWER_CHROME_ARGS ? JSON.parse(process.env.VIEWER_CHROME_ARGS)
@@ -64,6 +95,19 @@ async function capture() {
                     const button = page.getByRole('button', {name: action.button, exact: true});
                     assert(await button.isEnabled());
                     await button.click();
+                    if (action.button === 'Fit scene') {
+                        const wide = await fitted(page);
+                        await page.getByRole('button', {name: 'Undo', exact: true}).click();
+                        await page.waitForTimeout(200);
+                        assert.notEqual(await drawing(page), wide, 'Fit must leave import undoable');
+                        await page.getByRole('button', {name: 'Redo', exact: true}).click();
+                        await page.waitForTimeout(200);
+                        assert.equal(await drawing(page), wide, 'Redo must restore the fitted import');
+                        await page.setViewportSize({width: 480, height: 900});
+                        await fitted(page);
+                        await page.setViewportSize({width: 900, height: 760});
+                        assert.equal(await fitted(page), wide, 'Fit after restoring the viewport must recover its picture');
+                    }
                 } else if (action.file) {
                     const canvas = page.locator('canvas');
                     const before = await drawing(page);

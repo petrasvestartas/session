@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="310" viewBox="0 0 720 310" role="img" aria-labelledby="title desc">
+  <title id="title">Why radius divided by sine gives the camera distance</title>
+  <desc id="desc">The eye, sphere centre, and tangent point form a right triangle. Radius is opposite the half view angle. Eye-to-centre distance is its hypotenuse.</desc>
+  <rect width="720" height="310" rx="12" fill="#fff"/>
+  <g font-family="system-ui,sans-serif" fill="#172238" font-size="16">
+    <circle cx="320" cy="170" r="85" fill="#e9e9ec" stroke="#455b6b" stroke-width="2"/>
+    <rect x="274" y="124" width="92" height="92" fill="#fa9ebc" stroke="#a23c60" stroke-width="2"/>
+    <path d="M70 170 L291.1 90 L320 170 Z" fill="#ffffff" fill-opacity=".55" stroke="#172238" stroke-width="2"/>
+    <path d="M70 170 L425 41 M70 170 L425 299" fill="none" stroke="#455b6b" stroke-width="2" stroke-dasharray="6 5"/>
+    <path d="M120 170 A50 50 0 0 0 117 153" fill="none" stroke="#a23c60" stroke-width="3"/>
+    <path d="M280 94 L284 105 L295 101" fill="none" stroke="#172238"/>
+    <circle cx="70" cy="170" r="5" fill="#172238"/>
+    <circle cx="320" cy="170" r="4" fill="#172238"/>
+    <text x="40" y="199">Eye</text>
+    <text x="147" y="159">distance</text>
+    <path d="M350 102 L307 132" fill="none" stroke="#172238"/>
+    <text x="339" y="96">radius</text>
+    <text x="127" y="138" fill="#a23c60">half-angle</text>
+    <text x="321" y="239">Centre</text>
+    <text x="447" y="78" font-weight="700">A right triangle</text>
+    <text x="447" y="112">sin(half-angle)</text>
+    <text x="447" y="137">= radius / distance</text>
+    <text x="447" y="183">So we choose:</text>
+    <text x="447" y="209">distance = radius / sin(angle)</text>
+    <text x="447" y="253" font-size="14">Then add 10% breathing room.</text>
+    <text x="26" y="30" font-size="14">Side view through the enclosing sphere — the pink box holds the scene.</text>
+  </g>
+</svg>

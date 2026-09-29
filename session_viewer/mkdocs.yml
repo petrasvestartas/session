@@ -5,6 +5,7 @@ nav:
     - Course route: docs/journey.md
     - Save and recover: docs/journey/recovery.md
     - Destination contract: docs/journey/destination.md
+    - Complete lesson checklist: docs/journey/roadmap.md
     - Release evidence: docs/journey/release.md
   - Reference guides:
     - Complete implementation: docs/reference-course.md

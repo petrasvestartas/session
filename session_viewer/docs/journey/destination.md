@@ -6,7 +6,7 @@ Reference: `viewer-2026-09-28-local`. 271 source files and 77 command implementa
 
 The September 29 [browser-recovery fixes](../debugging.md) must also be taught and verified before this contract is complete. Their production code is ahead of the frozen reference. Acceptance includes a downloadable diagnostic after device loss, recovery of saved context after an interrupted run, no GPU submissions after loss, and feature ownership that follows the Wood interaction's first argument.
 
-[Course route and availability](../journey.md) · [Release checks](release.md)
+[Course route and availability](../journey.md) · [Complete draft lesson checklist](roadmap.md) · [Release checks](release.md)
 
 ## Feature destinations
 
