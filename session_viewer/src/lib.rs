@@ -25,6 +25,7 @@ macro_rules! shader {
 mod engine;
 
 mod camera;
+pub mod command_dock;
 
 pub mod app;
 

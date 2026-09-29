@@ -2,7 +2,7 @@
 
 The cumulative lessons progress from a canvas through indexed geometry, scene ownership, stable identity, picking, undo/redo, a perspective orbit camera, a lit kernel box, shared editor actions, synchronized resizing, cancellable pointer gestures, focused keyboard/wheel navigation and small mesh-session imports. Imported objects retain their source session and GUID; one history transaction covers the whole file. Rust checks inspect shape coverage, landmark pixels and state invariants. The background lesson also proves that two toggles restore the original pixels. The course route lists the current lessons and estimates; use the commands below to check their build evidence.
 
-**All 24 current checkpoints passed their scripted browser checks in headed Chrome 153.0.8010.36 on September 29.** Each lesson includes its actual browser page. The run uses Linux, a 900 × 760 CSS-pixel initial viewport, device-pixel ratio 1, and the WebGPU launch flags in `open-chrome.sh`. Source and bundle fingerprints, browser version and canvas hashes are recorded in `screenshots/journey/browser.json`. This proves the tested cases, not every interaction or another browser.
+**All 24 published checkpoints passed their scripted browser checks in headed Chrome 153.0.8010.36 on September 29.** Each lesson includes its actual browser page. The run uses Linux, a 900 × 760 CSS-pixel initial viewport, device-pixel ratio 1, and the WebGPU launch flags in `open-chrome.sh`. Source and bundle fingerprints, browser version and canvas hashes are recorded in `screenshots/journey/browser.json`. This proves the tested cases, not every interaction or another browser.
 
 Lesson 24 adds scene fitting. Its 35 Rust tests include fitting box corners across scales, orientations and aspect ratios, preserving document history, and empty/point bounds. Chrome checks repeated Fit, recovery after panning, import Undo/Redo after fitting, and geometry margins at both 900 × 760 and 480 × 900 browser sizes. The native readback separately checks every vertex against the view and the imported beam's visible colour.
 
@@ -11,6 +11,10 @@ Checks include the background’s mouse/keyboard round trip, button and picking 
 Lesson 04’s earlier failure came from a button’s keyboard focus outline overlapping 197 pixels of the canvas border. The GPU drawing was restored correctly. Rendering assertions now compare pixels read from the canvas itself; the full-page screenshots retain the real interface and its focus indicators.
 
 Native GPU readbacks remain separate supporting evidence. The generated lesson pages prefer current browser screenshots and fall back to explicitly labelled native output when browser evidence no longer matches the checkpoint source.
+
+## Command-line revision in progress
+
+The published record above belongs to the button-based revision. The [real command-dock preview](command-line.md) has separate source fingerprints and Chrome captures. The revised typing lessons and a fresh complete course-browser run are still pending; the preview does not replace the published 24-lesson record.
 
 ## What the similar pictures show
 

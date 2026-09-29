@@ -6,6 +6,8 @@ Start with a picture you understand, then grow it into the viewer we already use
 
 The [complete draft lesson checklist](journey/roadmap.md) currently has **97 proposed lesson slots: 24 verified and 73 planned**. The final count can grow when a topic needs splitting. The feature target stays fixed; the checklist marks actual completed lessons separately from plans.
 
+**Current revision:** [Use our real command line from the early lessons](journey/command-line.md). The integration preview works; the revised typing pages are still being written. The published lessons below retain their existing checkpoints.
+
 ## Start small, keep the destination
 
 | Lesson | Time | Working result |

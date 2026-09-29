@@ -10,6 +10,7 @@ import {serve} from './course/serve.ts';
 import {verifyReference, parity} from './course/reference.ts';
 import {diagrams} from './course/diagrams.ts';
 import {foundations} from './course/foundations.ts';
+import {dockPreview} from './course/dock.ts';
 import {referenceStructure} from './course/reference-checks.ts';
 
 function main() {
@@ -48,6 +49,8 @@ function main() {
         fs.mkdirSync(target);
         referenceAssets(target);
         console.log('Created the reference workspace with external assets only.');
+    } else if (action === 'dock-preview') {
+        dockPreview();
     } else if (action === 'generate') {
         generate();
     } else if (action === 'structure') {
@@ -76,7 +79,7 @@ function main() {
         for (const step of course().steps) console.log(`${step.id}  ${step.title}`);
     } else {
         console.log('npm run course -- init | check ID | dependencies ID | save NAME | restore NAME | reference ID --output NEW_FOLDER');
-        console.log('Authoring: generate | structure | verify [ID] [--stored] | verify-reference [ID] [--stored] | parity | foundations | diagrams [--check] | serve [PORT] | capture | list');
+        console.log('Authoring: dock-preview | generate | structure | verify [ID] [--stored] | verify-reference [ID] [--stored] | parity | foundations | diagrams [--check] | serve [PORT] | capture | list');
     }
 }
 
