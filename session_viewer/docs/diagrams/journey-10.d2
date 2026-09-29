@@ -1,0 +1,12 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+clear: "Depth starts at 1.0" {class: box}
+front_fragment: "Pink fragment: 0.25 < 1.0\nwrite colour and depth" {class: focus}
+far: "Later turquoise fragment: 0.75 < 0.25?\nNo: keep the existing pixel" {class: box}
+result: "Pink remains in front" {class: focus}
+clear -> front_fragment -> far -> result

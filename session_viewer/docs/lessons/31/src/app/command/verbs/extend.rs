@@ -14,14 +14,13 @@ use std::rc::Rc;
 mod reach;
 
 pub const SPEC: Spec = Spec {
-    names: &["Extend"],
-    aliases: &[],
-    hint: "Extend · pick boundaries, Enter, click near curve ends · Extend Distance 5 grows ends by a length · Extend -0.2 1.2 extends a curve's domain",
     options: &["Extend Distance"],
-    arity: None,
-    wait_for_option: false,
     wait_after_option: true,
-    parse,
+    ..Spec::new(
+        &["Extend"],
+        "Extend · pick boundaries, Enter, click near curve ends · Extend Distance 5 grows ends by a length · Extend -0.2 1.2 extends a curve's domain",
+        parse,
+    )
 };
 
 const APERTURE_CSS: f64 = 12.0; // how near the cursor must be to a curve

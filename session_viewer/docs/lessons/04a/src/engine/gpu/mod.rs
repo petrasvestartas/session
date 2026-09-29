@@ -19,6 +19,7 @@ pub mod present; // register:present
 pub mod render; // register:render
 pub mod targets; // register:targets
 pub mod text_outline; // register:text_outline
+mod triangle_tiles; // register:triangle_tiles
 pub mod upload; // register:upload
 pub mod view; // register:view
 // --8<-- [end:modules]

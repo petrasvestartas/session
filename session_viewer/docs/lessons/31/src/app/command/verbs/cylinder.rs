@@ -1,3 +1,4 @@
+// --8<-- [start:cylinder]
 use crate::app::command::tool::shape::{
     self, Answer, Ask, BREP_MESH, Frame, Part, Shape, nonzero, positive,
 };
@@ -5,14 +6,12 @@ use crate::app::command::{Action, Spec};
 use session_rust::{BRep, Geometry, Point};
 
 pub const SPEC: Spec = Spec {
-    names: &["Cylinder"],
-    aliases: &[],
-    hint: "Cylinder (Brep Mesh): base center, radius, height · Example: Cylinder 0,0,0 5 20",
     options: &["Cylinder Brep", "Cylinder Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Cylinder"],
+        "Cylinder (Brep Mesh): base center, radius, height · Example: Cylinder 0,0,0 5 20",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -129,3 +128,4 @@ mod tests {
         assert!(build(&SHAPE, &plane(XY.0, XY.1), &zero, "Brep").is_err());
     }
 }
+// --8<-- [end:cylinder]

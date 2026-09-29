@@ -4,9 +4,6 @@ use session_rust::{Arrowhead, Geometry};
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
-    names: &["Arrowhead"],
-    aliases: &[],
-    hint: "Arrowhead: heads on the selected lines, polylines and curves · None, Start, End or Both · Example: Arrowhead End",
     options: &[
         "Arrowhead None",
         "Arrowhead Start",
@@ -15,8 +12,11 @@ pub const SPEC: Spec = Spec {
     ],
     arity: Some(1),
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Arrowhead"],
+        "Arrowhead: heads on the selected lines, polylines and curves · None, Start, End or Both · Example: Arrowhead End",
+        parse,
+    )
 };
 
 /// Each option's word and the heads it sets.

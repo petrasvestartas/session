@@ -1,4 +1,5 @@
 // --8<-- [start:head]
+pub(crate) mod bindings;
 pub mod layouts;
 
 pub use layouts::Layouts; // `pub use` re-exports: other files write `pipelines::Layouts`

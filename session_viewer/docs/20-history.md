@@ -1,190 +1,466 @@
 # 20 · The document and its rows
 
-An edit changes the kernel document; a sync then changes only the GPU rows of the objects it touched. A deleted object's rows stay on the GPU, hidden, so an undo shows them again without walking the object.
+**Estimated study time: about 25–50 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Connect document transactions, undo/redo and display synchronization.
+
+**In the whole viewer:** The editable document is authoritative. Synchronization translates changes in that document into updates to its displayed rows.
+
+**Follow the data:** Transaction → changed identities → synchronization notes → display/GPU updates.
+
+**Start with these files:** [`src/app/scene_sync.rs`](20-history.md#code-20-012), [`src/app/scene_sync/notes.rs`](20-history.md#code-20-016).
+
+**Aim to explain:** When undo restores a removed object, why must more than the visible pixels be restored?
+
+[Whole-viewer map and course milestones](map.md)
+
+Undo moves the most recent transaction from the undo stack to the redo stack. Redo moves it back. The viewer reads the transaction from its new stack and creates notes describing which display rows need attention. This keeps editing and GPU synchronization separate.
 
 ![Edits group into transactions and a removal leaves a tombstone to restore from; the cursor moves back and forward through them, and a save purges the whole buffer because history never crosses pb or JSON.](illustrations/history.svg)
 
-Kernel code this lesson relies on, read only: [history.rs](kernel/history.md) (transactions, tombstone undo, the byte budget), [session.rs](kernel/session.md) (commit, idle purge, purge on save), [collection.rs](kernel/collection.md) (lists that keep dead slots for an undo).
+Start from the working result of [step 19](19-sheets.md).
 
-## Step 1 · src/app/scene_sync.rs
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 2,056 lines across 12 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-New file: the imports, and the budgets that start a compaction or release the oldest hidden rows.
+<span id="code-20-001"></span>
 
-`lessons/20/src/app/scene_sync.rs` · type this, new file
+## `src/app/inspection.rs`
 
-```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-budgets"
-```
+Insert **after line 78** of your current file.
 
-## Step 2 · src/app/scene_sync.rs
-
-Turn a committed, undone or redone transaction into notes that name each object it touched and what changed.
-
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-notes"
+            .map(|r| state.gpu.objects.anchored_model(*r))
+            .collect::<Vec<_>>()
+    );
+    snapshot["clipping"] = state.clipping_status(); // register:clipping
 ```
 
-## Step 3 · src/app/scene_sync.rs
-
-Read an object's heap address, directly or through a kernel tomb's slot, to tell the very same object from a copy.
-
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-addresses"
+    snapshot["ssao"] = serde_json::json!(state.gpu.view.ssao);
+    snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
+    snapshot["color_count"] = serde_json::json!(state.scene.colors.len());
+    snapshot["edge_color_count"] = serde_json::json!(state.scene.edge_colors.len());
 ```
 
-## Step 4 · src/app/scene_sync.rs
-
-The work list of one sync, one merged entry per identity, and two tree helpers.
-
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-work"
+--8<-- "typing/code/20-001.rs"
 ```
 
-## Step 5 · src/app/scene_sync.rs
+<span id="code-20-002"></span>
 
-Open a second `impl Scene`: queue the notes, then one `sync` finds nodes, expands subtrees and reconciles each identity.
+## `src/app/inspection.rs`
 
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Insert **after line 102** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-queue"
+            [b.cx + b.hx, b.cy + b.hy, b.cz + b.hz],
+        ])
+    }));
+    snapshot["scene_revision"] = serde_json::json!(state.scene.row_revision);
 ```
 
-## Step 6 · src/app/scene_sync.rs
-
-Find each identity's tree node cheaply, walking a document's tree at most once per sync, and add everything below a moved group.
-
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-find-nodes"
+    let docs = &state.scene.docs;
+    let slots = &state.gpu.arena.source_faces.slots;
+    snapshot["instancing"] = serde_json::json!({
+        "definitions": docs.iter().map(|d| d.session.definition_lookup.len()).sum::<usize>(),
 ```
 
-## Step 7 · src/app/scene_sync.rs
-
-Decide per identity whether to bury, kill, create, redraw or only move its row, and compute its placement down the tree.
-
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-reconcile"
+--8<-- "typing/code/20-002.rs"
 ```
 
-## Step 8 · src/app/scene_sync.rs
+<span id="code-20-003"></span>
 
-Give a new identity a row id, and put its rows back in its grave or after every row.
+## `src/app/inspection.rs`
 
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Append **after line 215** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-create"
+--8<-- "typing/code/20-003.rs"
 ```
 
-## Step 9 · src/app/scene_sync.rs
+<span id="code-20-004"></span>
 
-Redraw a row into its grave, in place or at the end, and pad a dragged object's rows with headroom.
+## `src/app/scene.rs`
 
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Insert **after line 4** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-redraw"
+#[path = "scene_release.rs"] // register:release
+mod release; // register:release
+#[path = "scene_rows.rs"]
+pub(crate) mod rows;
 ```
 
-## Step 10 · src/app/scene_sync.rs
-
-Kill a row for good, or bury it: its rows stay on the GPU, hidden, while an undo can still reach them.
-
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-bury"
+#[path = "scene_text.rs"] // register:scene_text
+mod text; // register:scene_text
+pub use text::SceneText; // register:scene_text
 ```
 
-## Step 11 · src/app/scene_sync.rs
-
-Show a tomb again on undo, release tombs no undo reaches or past the budget, and make the sink row.
-
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-revive"
+--8<-- "typing/code/20-004.rs"
 ```
 
-## Step 12 · src/app/scene_sync.rs
+<span id="code-20-005"></span>
 
-Redraw without a document write, the idle kernel purge, and compaction: every editable object walked again into lanes without gaps.
+## `src/app/scene.rs`
 
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Insert **after line 107** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-compaction"
+    pub(crate) text_rows: Vec<u32>, // text rows an undo, redo or delete showed or hid, for the GPU
+    pub(crate) released: HashMap<usize, Released>, // documents drawn without their kernel objects; register:release
+    asked: RefCell<Vec<usize>>, // released documents a read-only path needs; register:release
+    stream_ceiling: u32,        // most streamed points on the page; register:stream
 ```
 
-## Step 13 · src/app/scene_sync.rs
-
-The row and tomb counters the inspection reports; the brace closes the impl.
-
-`lessons/20/src/app/scene_sync.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-counters"
+    #[cfg(test)]
+    pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
+    #[cfg(test)]
+    pub(crate) searches: usize,   // tree walks the syncs needed
 ```
 
-## Step 14 · src/app/scene_sync.rs
-
-A test-only impl: `settle` stands in for the GPU upload and `verify` compares every row with a fresh scene.
-
-`lessons/20/src/app/scene_sync.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-test-scene"
+--8<-- "typing/code/20-005.rs"
 ```
 
-## Step 15 · src/app/scene_sync.rs
+<span id="code-20-006"></span>
 
-The test scenes and helpers the edit tests of later lessons build on.
+## `src/app/scene.rs`
 
-`lessons/20/src/app/scene_sync.rs` · copy, append at the end of the file
+Insert **after line 153** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene_sync.rs:sync-test-helpers"
+            nodes: Vec::new(),
+            spans: Spans::default(),
+            caps: HashMap::new(),
+            graves: HashMap::new(),
 ```
 
-## Step 16 · src/app/inspection.rs
-
-The undo depth of every open document, for the inspection snapshot.
-
-`lessons/20/src/app/inspection.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/20/src/app/inspection.rs:undo-depth"
+            ids: Ids::default(),
+            sink: None,
+            empty: Rc::from(""),
+            doc_state: Vec::new(),
 ```
 
-## Step 17 · src/app/scene.rs
-
-A test that objects baked into an element's `attributes` group never get a row.
-
-`lessons/20/src/app/scene.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/20/src/app/scene.rs:document-tests"
+--8<-- "typing/code/20-006.rs"
 ```
 
-## Step 18 · registration lines
+<span id="code-20-007"></span>
 
-Copy the lines tagged `register:document` from these files of `lessons/20/`:
+## `src/app/scene.rs`
 
-- `src/app/scene.rs`: the `sync` module, the five tomb fields and their start values, their reset, packing clouds before an upload that would not fit, tomb rows counted as dead, and tombs left out of the object count.
-- `src/app/inspection.rs`: the undo depth and the row and tomb counters in the snapshot.
+Insert **after line 226** of your current file.
 
-Run `cargo check` in `lessons/20/`.
+Keep these preceding lines:
 
-## Check
+```rust
+        self.nodes.clear();
+        self.spans.clear();
+        self.caps.clear();
+        self.graves.clear();
+```
 
-`cargo check` compiles, and in `lessons/20/` `cargo xtest --lib document_tests` passes. The picture is the one of lesson 19; with `?inspect=1` the snapshot now reports `undo_depth`, `tombs`, `dead_rows` and `compactions`, all 0 until lesson 21 makes the first edit.
+Keep these following lines:
+
+```rust
+        self.ids.clear();
+        self.sink = None;
+        self.pending.clear();
+        self.hints.clear();
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/20-007.rs"
+```
+
+<span id="code-20-008"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 315** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            // clouds coming back would not fit beside the dead points: pack the live ones first
+            let incoming = self.tables.cloud.point_count();
+
+            if incoming > 0 && self.dead_points > 0 && !gpu.cloud.fits(&gpu.ctx, incoming) {
+```
+
+Keep these following lines:
+
+```rust
+            }
+
+            (self.tables.cloud.expect, self.tables.cloud.expect_normals) = self.stream_expect(); // register:stream
+            gpu.set_scene(&self.tables);
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/20-008.rs"
+```
+
+<span id="code-20-009"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 361** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            self.bounds_stale = true;
+        }
+
+        let mut dead = self.dead;
+```
+
+Keep these following lines:
+
+```rust
+        gpu.set_dead(dead, self.dead_points);
+        gpu.refresh_samples();
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/20-009.rs"
+```
+
+<span id="code-20-010"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 705** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    /// Rows holding an object, a text or a streamed shell.
+    pub fn object_count(&self) -> usize {
+        self.order.len()
+            - self.ids.len()
+```
+
+Keep these following lines:
+
+```rust
+            - usize::from(self.sink.is_some())
+    }
+}
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/20-010.rs"
+```
+
+<span id="code-20-011"></span>
+
+## `src/app/scene.rs`
+
+Append **after line 1303** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/20-011.rs"
+```
+
+<span id="code-20-012"></span>
+
+## `src/app/scene_sync.rs`
+
+This module connects smaller synchronization responsibilities. Read it as a sequence of ownership decisions: which source changed, which display records are affected, and which update is required. Detailed allocation and preview work belongs in its submodules.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/20-012.rs"
+```
+
+<span id="code-20-013"></span>
+
+## `src/app/scene_sync/allocation.rs`
+
+An edit can add geometry without rebuilding the entire scene. Allocation gives the new data a range and records its ownership. A failed or cancelled operation must not leave ranges claimed by objects that were never committed.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/20-013.rs"
+```
+
+<span id="code-20-014"></span>
+
+## `src/app/scene_sync/compaction.rs`
+
+After deletions, live records may be scattered. Compaction moves them into a tighter arrangement. Every dependent offset or mapping must follow those moves; logical object identity should remain unchanged.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/20-014.rs"
+```
+
+<span id="code-20-015"></span>
+
+## `src/app/scene_sync/nodes.rs`
+
+The document is authoritative; GPU rows are a display representation. Synchronization finds additions, removals and changes, then updates allocations and mappings. A stale row can draw or pick an object that no longer exists.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/20-015.rs"
+```
+
+<span id="code-20-016"></span>
+
+## `src/app/scene_sync/notes.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/20-016.rs"
+```
+
+<span id="code-20-017"></span>
+
+## `src/app/scene_sync/testing.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/20-017.rs"
+```
+
+<span id="code-20-018"></span>
+
+## `src/app/scene_sync/tests.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/20-018.rs"
+```
+
+<span id="code-20-019"></span>
+
+## `src/app/scene_sync/tombs.rs`
+
+A tombstone marks something that has been removed while related bookkeeping catches up. It prevents dead records from behaving like live objects during incremental updates. Distinguish deletion from temporary invisibility.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/20-019.rs"
+```
+
+<span id="code-20-020"></span>
+
+## `src/engine/gpu/upload.rs`
+
+Insert **before the first line** of your current file.
+
+Keep these following lines:
+
+```rust
+use super::lane::LaneRows;
+use super::objects::ObjectRows;
+use session_rust::AABB;
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/20-020.rs"
+```
+
+<span id="code-20-021"></span>
+
+## `src/engine/gpu/upload_padding.rs`
+
+GPU copies and shader reads impose size and alignment rules. A logical array length can differ from the allocated byte count. Padding fills the unused bytes while preserving the number of meaningful elements.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/20-021.rs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 20
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native history and synchronization tests. In the viewer, select an object, delete it, press Ctrl+Z, then Ctrl+Y; its identity should remain consistent after undo. The command text interface arrives in lesson 23.
+
+If undo changes the document but not the display, inspect the generated notes and synchronization queue. Rebuilding the whole scene can conceal a missing invalidation.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+Undo restores the source identity and data. Source mappings, display rows and dependent state must then agree with that restored document.
+
+</details>
+
+[Next step: 21](21-editing.md)

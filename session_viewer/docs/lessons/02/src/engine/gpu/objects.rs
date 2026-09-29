@@ -1,5 +1,5 @@
 // --8<-- [start:rows]
-use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
+use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, resource_group};
 use super::hull::{Hull, placed_box};
 use super::instance::Instance;
 use super::targets::Targets;

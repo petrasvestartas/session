@@ -1,0 +1,1345 @@
+{
+  "captured": "2026-09-28T04:24:27.538Z",
+  "browser": "153.0.8010.36",
+  "viewerIndex": "d5a575d3803c6e3a2fd0c25d8df96816173f0d5159a24f08489db994a002a6f2",
+  "description": "Actual finished-viewer captures from a served handwritten-course build, with no scene or network request interception. Earlier lessons use these only as labelled visual references.",
+  "frames": {
+    "loaded": {
+      "canvas": [
+        1100,
+        760
+      ],
+      "clipping": {
+        "count": 0,
+        "enabled": true,
+        "fill": "Solid",
+        "hidden": 0,
+        "planes": [],
+        "rows": [],
+        "scene_box": [
+          300,
+          -100,
+          0,
+          1100,
+          700,
+          200
+        ]
+      },
+      "cloud_points": 0,
+      "color_count": 0,
+      "compactions": 0,
+      "control_segments": 0,
+      "controls": [],
+      "current_layer": null,
+      "dead_bytes": 0,
+      "dead_rows": 0,
+      "draw_calls": 7,
+      "drawing": null,
+      "edge_color_count": 0,
+      "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+      "frames": 3,
+      "free_rows": 0,
+      "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+      "gpu_buffer_capacity_bytes": 2715276,
+      "gpu_texture_estimate_bytes": 40180274,
+      "graves": 0,
+      "hidden_count": 0,
+      "identity": null,
+      "instancing": {
+        "definition_uploads": 0,
+        "definitions": 0,
+        "gpu_draws": 0,
+        "gpu_instances": 0,
+        "instances": 0,
+        "shared_instance_rows": 0
+      },
+      "locked_count": 0,
+      "logical_canvas": [
+        1100,
+        760
+      ],
+      "mark": null,
+      "markers": 0,
+      "model": null,
+      "mvp": [
+        0.0010363636538386345,
+        0.00043301269761286676,
+        -4.330170444433179e-9,
+        0.00043301269761286676,
+        -0.0005983448354527354,
+        0.000750000006519258,
+        -7.500075227540037e-9,
+        0.000750000006519258,
+        0,
+        0.001500000013038516,
+        5.000050151693358e-9,
+        -0.0005000000237487257,
+        0,
+        3.845925303739569e-16,
+        0.0002081504208035767,
+        2.3127593994140625
+      ],
+      "number_box": null,
+      "object_drag": null,
+      "objects": 5,
+      "origin": [
+        300,
+        -100,
+        0
+      ],
+      "outlines": false,
+      "pick_busy": false,
+      "pipes": 36,
+      "preview_cache_bytes": 0,
+      "ribbons": 2,
+      "row_table_bytes": 1200,
+      "samples": 4,
+      "scene_revision": 6,
+      "selected": null,
+      "selected_bounds": null,
+      "selected_geometry": null,
+      "selected_group_count": 0,
+      "selected_instance": null,
+      "selected_kind": null,
+      "selected_models": [],
+      "selected_rows": [],
+      "selection": "Object",
+      "sheet_entity": null,
+      "snap_bar": false,
+      "snap_enabled": true,
+      "snap_modes": 15,
+      "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+      "source_cpu_known_payload": {
+        "dead_slots": 0,
+        "exposed_slice_bytes": 3720,
+        "history_bytes": 0,
+        "occupied_map_entry_bytes": 1916,
+        "scans": 1,
+        "shared_value_bytes": 6688,
+        "string_capacity_bytes": 1049,
+        "unique_geometry_values": 5,
+        "unique_sessions": 1,
+        "vector_capacity_bytes": 436
+      },
+      "source_cpu_known_payload_bytes": 13809,
+      "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+      "source_faces": null,
+      "split": null,
+      "ssao": false,
+      "submitted_at_ms": 393.69999998807907,
+      "text": {
+        "active_instance_bytes": 0,
+        "atlas_resets": 0,
+        "distinct_raster_keys": 0,
+        "missing_glyphs": 0,
+        "nameplate_capacity_bytes": 40,
+        "new_raster_images": 0,
+        "new_raster_keys": 0,
+        "preparation_ms": 0,
+        "preparations": 2,
+        "raster_image_capacity_bytes": 0,
+        "raster_images": 0,
+        "requested_glyphs": 0,
+        "shape_count": 0,
+        "shaping_ms": 0,
+        "skipped_preparations": 1,
+        "world_plane_buffer_bytes": 64,
+        "world_plane_rasterizations": 0,
+        "world_plane_texture_bytes": 0
+      },
+      "text_cpu_raster_image_capacity_bytes": 0,
+      "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+      "text_labels": [],
+      "tomb_bytes": 0,
+      "tombs": 0,
+      "tool": null,
+      "undo_depth": 0,
+      "vertices": 52,
+      "wasm_capacity_bytes": 3866624,
+      "widget": null,
+      "widget_bytes": [
+        371616,
+        0
+      ],
+      "widget_highlight": -1
+    },
+    "point": {
+      "canvas": [
+        1100,
+        760
+      ],
+      "clipping": {
+        "count": 0,
+        "enabled": true,
+        "fill": "Solid",
+        "hidden": 0,
+        "planes": [],
+        "rows": [],
+        "scene_box": [
+          300,
+          -100,
+          0,
+          1100,
+          700,
+          200
+        ]
+      },
+      "cloud_points": 0,
+      "color_count": 0,
+      "compactions": 0,
+      "control_segments": 0,
+      "controls": [],
+      "current_layer": [
+        1,
+        "Created"
+      ],
+      "dead_bytes": 0,
+      "dead_rows": 0,
+      "draw_calls": 13,
+      "drawing": null,
+      "edge_color_count": 0,
+      "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+      "frames": 11,
+      "free_rows": 0,
+      "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+      "gpu_buffer_capacity_bytes": 2715748,
+      "gpu_texture_estimate_bytes": 54925874,
+      "graves": 0,
+      "hidden_count": 0,
+      "identity": [
+        1,
+        "86bcd96c-6ebe-4c71-bb69-2bf15873388c"
+      ],
+      "instancing": {
+        "definition_uploads": 0,
+        "definitions": 0,
+        "gpu_draws": 0,
+        "gpu_instances": 0,
+        "instances": 0,
+        "shared_instance_rows": 0
+      },
+      "locked_count": 0,
+      "logical_canvas": [
+        1100,
+        760
+      ],
+      "mark": null,
+      "markers": 0,
+      "model": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -300,
+        100,
+        0,
+        1
+      ],
+      "mvp": [
+        0.0010363636538386345,
+        0.00043301269761286676,
+        -4.330170444433179e-9,
+        0.00043301269761286676,
+        -0.0005983448354527354,
+        0.000750000006519258,
+        -7.500075227540037e-9,
+        0.000750000006519258,
+        0,
+        0.001500000013038516,
+        5.000050151693358e-9,
+        -0.0005000000237487257,
+        0,
+        3.845925303739569e-16,
+        0.0002081504208035767,
+        2.3127593994140625
+      ],
+      "number_box": null,
+      "object_drag": null,
+      "objects": 6,
+      "origin": [
+        300,
+        -100,
+        0
+      ],
+      "outlines": false,
+      "pick_busy": false,
+      "pipes": 36,
+      "preview_cache_bytes": 0,
+      "ribbons": 2,
+      "row_table_bytes": 1240,
+      "samples": 4,
+      "scene_revision": 7,
+      "selected": 5,
+      "selected_bounds": [
+        [
+          300,
+          200,
+          200
+        ],
+        [
+          300,
+          200,
+          200
+        ]
+      ],
+      "selected_geometry": {
+        "kind": "Point"
+      },
+      "selected_group_count": 0,
+      "selected_instance": null,
+      "selected_kind": "Point",
+      "selected_models": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -300,
+          100,
+          0,
+          1
+        ]
+      ],
+      "selected_rows": [
+        5
+      ],
+      "selection": "Object",
+      "sheet_entity": null,
+      "snap_bar": false,
+      "snap_enabled": true,
+      "snap_modes": 15,
+      "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+      "source_cpu_known_payload": {
+        "dead_slots": 0,
+        "exposed_slice_bytes": 3720,
+        "history_bytes": 256,
+        "occupied_map_entry_bytes": 1936,
+        "scans": 2,
+        "shared_value_bytes": 10912,
+        "string_capacity_bytes": 1115,
+        "unique_geometry_values": 6,
+        "unique_sessions": 2,
+        "vector_capacity_bytes": 440
+      },
+      "source_cpu_known_payload_bytes": 18123,
+      "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+      "source_faces": null,
+      "split": null,
+      "ssao": false,
+      "submitted_at_ms": 2093.300000011921,
+      "text": {
+        "active_instance_bytes": 224,
+        "atlas_resets": 0,
+        "distinct_raster_keys": 8,
+        "missing_glyphs": 0,
+        "nameplate_capacity_bytes": 240,
+        "new_raster_images": 0,
+        "new_raster_keys": 8,
+        "preparation_ms": 1.600000023841858,
+        "preparations": 3,
+        "raster_image_capacity_bytes": 0,
+        "raster_images": 0,
+        "requested_glyphs": 8,
+        "shape_count": 1,
+        "shaping_ms": 5.300000011920929,
+        "skipped_preparations": 8,
+        "world_plane_buffer_bytes": 64,
+        "world_plane_rasterizations": 0,
+        "world_plane_texture_bytes": 0
+      },
+      "text_cpu_raster_image_capacity_bytes": 0,
+      "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+      "text_labels": [
+        {
+          "color": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "font_size": 13.5,
+          "id": 0,
+          "line_box": [
+            58.670997619628906,
+            19.5
+          ],
+          "line_height": 19.5,
+          "object": null,
+          "padding": [
+            12.75,
+            3
+          ],
+          "placement": "nameplate",
+          "plane": null,
+          "rounded": true,
+          "text": "my_point",
+          "world": [
+            300,
+            200,
+            200
+          ],
+          "world_height": null
+        }
+      ],
+      "tomb_bytes": 0,
+      "tombs": 0,
+      "tool": null,
+      "undo_depth": 1,
+      "vertices": 52,
+      "wasm_capacity_bytes": 3866624,
+      "widget": [
+        [
+          300,
+          200,
+          200
+        ],
+        3.703792136737071
+      ],
+      "widget_bytes": [
+        371616,
+        14745600
+      ],
+      "widget_highlight": -1
+    },
+    "layers": {
+      "canvas": [
+        1100,
+        760
+      ],
+      "clipping": {
+        "count": 0,
+        "enabled": true,
+        "fill": "Solid",
+        "hidden": 0,
+        "planes": [],
+        "rows": [],
+        "scene_box": [
+          300,
+          -100,
+          0,
+          1100,
+          700,
+          200
+        ]
+      },
+      "cloud_points": 0,
+      "color_count": 0,
+      "compactions": 0,
+      "control_segments": 0,
+      "controls": [],
+      "current_layer": [
+        1,
+        "Created"
+      ],
+      "dead_bytes": 0,
+      "dead_rows": 0,
+      "draw_calls": 7,
+      "drawing": null,
+      "edge_color_count": 0,
+      "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+      "frames": 30,
+      "free_rows": 0,
+      "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+      "gpu_buffer_capacity_bytes": 2715748,
+      "gpu_texture_estimate_bytes": 40180274,
+      "graves": 0,
+      "hidden_count": 0,
+      "identity": null,
+      "instancing": {
+        "definition_uploads": 0,
+        "definitions": 0,
+        "gpu_draws": 0,
+        "gpu_instances": 0,
+        "instances": 0,
+        "shared_instance_rows": 0
+      },
+      "locked_count": 0,
+      "logical_canvas": [
+        1100,
+        760
+      ],
+      "mark": null,
+      "markers": 0,
+      "model": null,
+      "mvp": [
+        0.0010363636538386345,
+        0.00043301269761286676,
+        -4.330170444433179e-9,
+        0.00043301269761286676,
+        -0.0005983448354527354,
+        0.000750000006519258,
+        -7.500075227540037e-9,
+        0.000750000006519258,
+        0,
+        0.001500000013038516,
+        5.000050151693358e-9,
+        -0.0005000000237487257,
+        0,
+        3.845925303739569e-16,
+        0.0002081504208035767,
+        2.3127593994140625
+      ],
+      "number_box": null,
+      "object_drag": null,
+      "objects": 5,
+      "origin": [
+        300,
+        -100,
+        0
+      ],
+      "outlines": false,
+      "pick_busy": false,
+      "pipes": 36,
+      "preview_cache_bytes": 0,
+      "ribbons": 2,
+      "row_table_bytes": 1240,
+      "samples": 4,
+      "scene_revision": 9,
+      "selected": null,
+      "selected_bounds": null,
+      "selected_geometry": null,
+      "selected_group_count": 0,
+      "selected_instance": null,
+      "selected_kind": null,
+      "selected_models": [],
+      "selected_rows": [],
+      "selection": "Object",
+      "sheet_entity": null,
+      "snap_bar": false,
+      "snap_enabled": true,
+      "snap_modes": 15,
+      "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+      "source_cpu_known_payload": {
+        "dead_slots": 1,
+        "exposed_slice_bytes": 3720,
+        "history_bytes": 256,
+        "occupied_map_entry_bytes": 1916,
+        "scans": 3,
+        "shared_value_bytes": 10808,
+        "string_capacity_bytes": 1066,
+        "unique_geometry_values": 5,
+        "unique_sessions": 2,
+        "vector_capacity_bytes": 440
+      },
+      "source_cpu_known_payload_bytes": 17950,
+      "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+      "source_faces": null,
+      "split": null,
+      "ssao": false,
+      "submitted_at_ms": 6692.099999964237,
+      "text": {
+        "active_instance_bytes": 0,
+        "atlas_resets": 0,
+        "distinct_raster_keys": 8,
+        "missing_glyphs": 0,
+        "nameplate_capacity_bytes": 240,
+        "new_raster_images": 0,
+        "new_raster_keys": 0,
+        "preparation_ms": 0,
+        "preparations": 4,
+        "raster_image_capacity_bytes": 0,
+        "raster_images": 0,
+        "requested_glyphs": 0,
+        "shape_count": 1,
+        "shaping_ms": 5.300000011920929,
+        "skipped_preparations": 26,
+        "world_plane_buffer_bytes": 64,
+        "world_plane_rasterizations": 0,
+        "world_plane_texture_bytes": 0
+      },
+      "text_cpu_raster_image_capacity_bytes": 0,
+      "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+      "text_labels": [],
+      "tomb_bytes": 48,
+      "tombs": 1,
+      "tool": null,
+      "undo_depth": 0,
+      "vertices": 52,
+      "wasm_capacity_bytes": 3866624,
+      "widget": null,
+      "widget_bytes": [
+        371616,
+        0
+      ],
+      "widget_highlight": -1
+    },
+    "selected": {
+      "canvas": [
+        1100,
+        760
+      ],
+      "clipping": {
+        "count": 0,
+        "enabled": true,
+        "fill": "Solid",
+        "hidden": 0,
+        "planes": [],
+        "rows": [],
+        "scene_box": [
+          300,
+          -100,
+          0,
+          1100,
+          700,
+          200
+        ]
+      },
+      "cloud_points": 0,
+      "color_count": 0,
+      "compactions": 0,
+      "control_segments": 0,
+      "controls": [],
+      "current_layer": [
+        1,
+        "Created"
+      ],
+      "dead_bytes": 0,
+      "dead_rows": 0,
+      "draw_calls": 13,
+      "drawing": null,
+      "edge_color_count": 0,
+      "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+      "frames": 33,
+      "free_rows": 0,
+      "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+      "gpu_buffer_capacity_bytes": 2715748,
+      "gpu_texture_estimate_bytes": 54778418,
+      "graves": 0,
+      "hidden_count": 0,
+      "identity": [
+        0,
+        "6264c89b-594f-4bda-acc1-4e46cf7e3486"
+      ],
+      "instancing": {
+        "definition_uploads": 0,
+        "definitions": 0,
+        "gpu_draws": 0,
+        "gpu_instances": 0,
+        "instances": 0,
+        "shared_instance_rows": 0
+      },
+      "locked_count": 0,
+      "logical_canvas": [
+        1100,
+        760
+      ],
+      "mark": null,
+      "markers": 0,
+      "model": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -900,
+        100,
+        0,
+        1
+      ],
+      "mvp": [
+        0.0010363636538386345,
+        0.00043301269761286676,
+        -4.330170444433179e-9,
+        0.00043301269761286676,
+        -0.0005983448354527354,
+        0.000750000006519258,
+        -7.500075227540037e-9,
+        0.000750000006519258,
+        0,
+        0.001500000013038516,
+        5.000050151693358e-9,
+        -0.0005000000237487257,
+        0,
+        3.845925303739569e-16,
+        0.0002081504208035767,
+        2.3127593994140625
+      ],
+      "number_box": null,
+      "object_drag": null,
+      "objects": 5,
+      "origin": [
+        300,
+        -100,
+        0
+      ],
+      "outlines": false,
+      "pick_busy": false,
+      "pipes": 36,
+      "preview_cache_bytes": 0,
+      "ribbons": 2,
+      "row_table_bytes": 1240,
+      "samples": 4,
+      "scene_revision": 9,
+      "selected": 2,
+      "selected_bounds": [
+        [
+          -800,
+          -200,
+          -200
+        ],
+        [
+          -400,
+          200,
+          200
+        ]
+      ],
+      "selected_geometry": {
+        "kind": "Mesh"
+      },
+      "selected_group_count": 0,
+      "selected_instance": null,
+      "selected_kind": "Mesh",
+      "selected_models": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -900,
+          100,
+          0,
+          1
+        ]
+      ],
+      "selected_rows": [
+        2
+      ],
+      "selection": "Object",
+      "sheet_entity": null,
+      "snap_bar": false,
+      "snap_enabled": true,
+      "snap_modes": 15,
+      "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+      "source_cpu_known_payload": {
+        "dead_slots": 1,
+        "exposed_slice_bytes": 3720,
+        "history_bytes": 256,
+        "occupied_map_entry_bytes": 1916,
+        "scans": 3,
+        "shared_value_bytes": 10808,
+        "string_capacity_bytes": 1066,
+        "unique_geometry_values": 5,
+        "unique_sessions": 2,
+        "vector_capacity_bytes": 440
+      },
+      "source_cpu_known_payload_bytes": 17950,
+      "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+      "source_faces": null,
+      "split": null,
+      "ssao": false,
+      "submitted_at_ms": 8275.599999964237,
+      "text": {
+        "active_instance_bytes": 196,
+        "atlas_resets": 0,
+        "distinct_raster_keys": 15,
+        "missing_glyphs": 0,
+        "nameplate_capacity_bytes": 240,
+        "new_raster_images": 0,
+        "new_raster_keys": 7,
+        "preparation_ms": 0.40000003576278687,
+        "preparations": 5,
+        "raster_image_capacity_bytes": 0,
+        "raster_images": 0,
+        "requested_glyphs": 7,
+        "shape_count": 2,
+        "shaping_ms": 5.400000035762787,
+        "skipped_preparations": 28,
+        "world_plane_buffer_bytes": 64,
+        "world_plane_rasterizations": 0,
+        "world_plane_texture_bytes": 0
+      },
+      "text_cpu_raster_image_capacity_bytes": 0,
+      "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+      "text_labels": [
+        {
+          "color": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "font_size": 13.5,
+          "id": 0,
+          "line_box": [
+            60.5474967956543,
+            19.5
+          ],
+          "line_height": 19.5,
+          "object": null,
+          "padding": [
+            12.75,
+            3
+          ],
+          "placement": "nameplate",
+          "plane": null,
+          "rounded": true,
+          "text": "my_mesh",
+          "world": [
+            -600,
+            0,
+            0
+          ],
+          "world_height": null
+        }
+      ],
+      "tomb_bytes": 48,
+      "tombs": 1,
+      "tool": null,
+      "undo_depth": 0,
+      "vertices": 52,
+      "wasm_capacity_bytes": 3866624,
+      "widget": [
+        [
+          -600,
+          0,
+          0
+        ],
+        3.035719732896331
+      ],
+      "widget_bytes": [
+        371616,
+        14598144
+      ],
+      "widget_highlight": -1
+    },
+    "arctic": {
+      "canvas": [
+        1100,
+        760
+      ],
+      "clipping": {
+        "count": 0,
+        "enabled": true,
+        "fill": "Solid",
+        "hidden": 0,
+        "planes": [],
+        "rows": [],
+        "scene_box": [
+          300,
+          -100,
+          0,
+          1100,
+          700,
+          200
+        ]
+      },
+      "cloud_points": 0,
+      "color_count": 0,
+      "compactions": 0,
+      "control_segments": 0,
+      "controls": [],
+      "current_layer": [
+        1,
+        "Created"
+      ],
+      "dead_bytes": 0,
+      "dead_rows": 0,
+      "draw_calls": 16,
+      "drawing": null,
+      "edge_color_count": 0,
+      "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+      "frames": 49,
+      "free_rows": 0,
+      "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+      "gpu_buffer_capacity_bytes": 6094788,
+      "gpu_texture_estimate_bytes": 67788030,
+      "graves": 0,
+      "hidden_count": 0,
+      "identity": [
+        0,
+        "6264c89b-594f-4bda-acc1-4e46cf7e3486"
+      ],
+      "instancing": {
+        "definition_uploads": 0,
+        "definitions": 0,
+        "gpu_draws": 0,
+        "gpu_instances": 0,
+        "instances": 0,
+        "shared_instance_rows": 0
+      },
+      "locked_count": 0,
+      "logical_canvas": [
+        1100,
+        760
+      ],
+      "mark": null,
+      "markers": 0,
+      "model": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -900,
+        100,
+        0,
+        1
+      ],
+      "mvp": [
+        0.0010363636538386345,
+        0.00043301269761286676,
+        -4.330170444433179e-9,
+        0.00043301269761286676,
+        -0.0005983448354527354,
+        0.000750000006519258,
+        -7.500075227540037e-9,
+        0.000750000006519258,
+        0,
+        0.001500000013038516,
+        5.000050151693358e-9,
+        -0.0005000000237487257,
+        0,
+        3.845925303739569e-16,
+        0.0002081504208035767,
+        2.3127593994140625
+      ],
+      "number_box": null,
+      "object_drag": null,
+      "objects": 5,
+      "origin": [
+        300,
+        -100,
+        0
+      ],
+      "outlines": true,
+      "pick_busy": false,
+      "pipes": 36,
+      "preview_cache_bytes": 0,
+      "ribbons": 2,
+      "row_table_bytes": 1240,
+      "samples": 4,
+      "scene_revision": 9,
+      "selected": 2,
+      "selected_bounds": [
+        [
+          -800,
+          -200,
+          -200
+        ],
+        [
+          -400,
+          200,
+          200
+        ]
+      ],
+      "selected_geometry": {
+        "kind": "Mesh"
+      },
+      "selected_group_count": 0,
+      "selected_instance": null,
+      "selected_kind": "Mesh",
+      "selected_models": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -900,
+          100,
+          0,
+          1
+        ]
+      ],
+      "selected_rows": [
+        2
+      ],
+      "selection": "Object",
+      "sheet_entity": null,
+      "snap_bar": false,
+      "snap_enabled": true,
+      "snap_modes": 15,
+      "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+      "source_cpu_known_payload": {
+        "dead_slots": 1,
+        "exposed_slice_bytes": 3720,
+        "history_bytes": 256,
+        "occupied_map_entry_bytes": 1916,
+        "scans": 3,
+        "shared_value_bytes": 10808,
+        "string_capacity_bytes": 1066,
+        "unique_geometry_values": 5,
+        "unique_sessions": 2,
+        "vector_capacity_bytes": 440
+      },
+      "source_cpu_known_payload_bytes": 17950,
+      "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+      "source_faces": null,
+      "split": null,
+      "ssao": true,
+      "submitted_at_ms": 12213,
+      "text": {
+        "active_instance_bytes": 196,
+        "atlas_resets": 0,
+        "distinct_raster_keys": 15,
+        "missing_glyphs": 0,
+        "nameplate_capacity_bytes": 240,
+        "new_raster_images": 0,
+        "new_raster_keys": 7,
+        "preparation_ms": 0.40000003576278687,
+        "preparations": 5,
+        "raster_image_capacity_bytes": 0,
+        "raster_images": 0,
+        "requested_glyphs": 7,
+        "shape_count": 2,
+        "shaping_ms": 5.400000035762787,
+        "skipped_preparations": 44,
+        "world_plane_buffer_bytes": 64,
+        "world_plane_rasterizations": 0,
+        "world_plane_texture_bytes": 0
+      },
+      "text_cpu_raster_image_capacity_bytes": 0,
+      "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+      "text_labels": [
+        {
+          "color": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "font_size": 13.5,
+          "id": 0,
+          "line_box": [
+            60.5474967956543,
+            19.5
+          ],
+          "line_height": 19.5,
+          "object": null,
+          "padding": [
+            12.75,
+            3
+          ],
+          "placement": "nameplate",
+          "plane": null,
+          "rounded": true,
+          "text": "my_mesh",
+          "world": [
+            -600,
+            0,
+            0
+          ],
+          "world_height": null
+        }
+      ],
+      "tomb_bytes": 48,
+      "tombs": 1,
+      "tool": null,
+      "undo_depth": 0,
+      "vertices": 52,
+      "wasm_capacity_bytes": 3866624,
+      "widget": [
+        [
+          -600,
+          0,
+          0
+        ],
+        3.035719732896331
+      ],
+      "widget_bytes": [
+        371616,
+        14598144
+      ],
+      "widget_highlight": -1
+    },
+    "opacity": {
+      "canvas": [
+        1100,
+        760
+      ],
+      "clipping": {
+        "count": 0,
+        "enabled": true,
+        "fill": "Solid",
+        "hidden": 0,
+        "planes": [],
+        "rows": [],
+        "scene_box": [
+          300,
+          -100,
+          0,
+          1100,
+          700,
+          200
+        ]
+      },
+      "cloud_points": 0,
+      "color_count": 0,
+      "compactions": 0,
+      "control_segments": 0,
+      "controls": [],
+      "current_layer": [
+        1,
+        "Created"
+      ],
+      "dead_bytes": 0,
+      "dead_rows": 0,
+      "draw_calls": 16,
+      "drawing": null,
+      "edge_color_count": 0,
+      "egui_private_gpu_capacity": "renderer buffers and font atlas are managed by egui; excluded from totals",
+      "frames": 57,
+      "free_rows": 0,
+      "glyphon_private_gpu_capacity": "not exposed by pinned dependency; separate from totals",
+      "gpu_buffer_capacity_bytes": 6094788,
+      "gpu_texture_estimate_bytes": 67788030,
+      "graves": 0,
+      "hidden_count": 0,
+      "identity": [
+        0,
+        "6264c89b-594f-4bda-acc1-4e46cf7e3486"
+      ],
+      "instancing": {
+        "definition_uploads": 0,
+        "definitions": 0,
+        "gpu_draws": 0,
+        "gpu_instances": 0,
+        "instances": 0,
+        "shared_instance_rows": 0
+      },
+      "locked_count": 0,
+      "logical_canvas": [
+        1100,
+        760
+      ],
+      "mark": null,
+      "markers": 0,
+      "model": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -900,
+        100,
+        0,
+        1
+      ],
+      "mvp": [
+        0.0010363636538386345,
+        0.00043301269761286676,
+        -4.330170444433179e-9,
+        0.00043301269761286676,
+        -0.0005983448354527354,
+        0.000750000006519258,
+        -7.500075227540037e-9,
+        0.000750000006519258,
+        0,
+        0.001500000013038516,
+        5.000050151693358e-9,
+        -0.0005000000237487257,
+        0,
+        3.845925303739569e-16,
+        0.0002081504208035767,
+        2.3127593994140625
+      ],
+      "number_box": null,
+      "object_drag": null,
+      "objects": 5,
+      "origin": [
+        300,
+        -100,
+        0
+      ],
+      "outlines": true,
+      "pick_busy": false,
+      "pipes": 36,
+      "preview_cache_bytes": 0,
+      "ribbons": 2,
+      "row_table_bytes": 1240,
+      "samples": 4,
+      "scene_revision": 9,
+      "selected": 2,
+      "selected_bounds": [
+        [
+          -800,
+          -200,
+          -200
+        ],
+        [
+          -400,
+          200,
+          200
+        ]
+      ],
+      "selected_geometry": {
+        "kind": "Mesh"
+      },
+      "selected_group_count": 0,
+      "selected_instance": null,
+      "selected_kind": "Mesh",
+      "selected_models": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -900,
+          100,
+          0,
+          1
+        ]
+      ],
+      "selected_rows": [
+        2
+      ],
+      "selection": "Object",
+      "sheet_entity": null,
+      "snap_bar": false,
+      "snap_enabled": true,
+      "snap_modes": 15,
+      "source_cpu_exclusions": "allocator/Rc/map overhead and spare map slots, private cloud LOD/capacity, GUID allocations, private nested metadata/element/BVH caches, tree/graph/component-extra payloads, streamed descriptors, upload staging and loader buffers",
+      "source_cpu_known_payload": {
+        "dead_slots": 1,
+        "exposed_slice_bytes": 3720,
+        "history_bytes": 256,
+        "occupied_map_entry_bytes": 1916,
+        "scans": 3,
+        "shared_value_bytes": 10808,
+        "string_capacity_bytes": 1066,
+        "unique_geometry_values": 5,
+        "unique_sessions": 2,
+        "vector_capacity_bytes": 440
+      },
+      "source_cpu_known_payload_bytes": 17950,
+      "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+      "source_faces": null,
+      "split": null,
+      "ssao": true,
+      "submitted_at_ms": 14491.699999988079,
+      "text": {
+        "active_instance_bytes": 196,
+        "atlas_resets": 0,
+        "distinct_raster_keys": 15,
+        "missing_glyphs": 0,
+        "nameplate_capacity_bytes": 240,
+        "new_raster_images": 0,
+        "new_raster_keys": 7,
+        "preparation_ms": 0.40000003576278687,
+        "preparations": 5,
+        "raster_image_capacity_bytes": 0,
+        "raster_images": 0,
+        "requested_glyphs": 7,
+        "shape_count": 2,
+        "shaping_ms": 5.400000035762787,
+        "skipped_preparations": 52,
+        "world_plane_buffer_bytes": 64,
+        "world_plane_rasterizations": 0,
+        "world_plane_texture_bytes": 0
+      },
+      "text_cpu_raster_image_capacity_bytes": 0,
+      "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+      "text_labels": [
+        {
+          "color": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "font_size": 13.5,
+          "id": 0,
+          "line_box": [
+            60.5474967956543,
+            19.5
+          ],
+          "line_height": 19.5,
+          "object": null,
+          "padding": [
+            12.75,
+            3
+          ],
+          "placement": "nameplate",
+          "plane": null,
+          "rounded": true,
+          "text": "my_mesh",
+          "world": [
+            -600,
+            0,
+            0
+          ],
+          "world_height": null
+        }
+      ],
+      "tomb_bytes": 48,
+      "tombs": 1,
+      "tool": null,
+      "undo_depth": 0,
+      "vertices": 52,
+      "wasm_capacity_bytes": 3866624,
+      "widget": [
+        [
+          -600,
+          0,
+          0
+        ],
+        3.035719732896331
+      ],
+      "widget_bytes": [
+        371616,
+        14598144
+      ],
+      "widget_highlight": -1
+    }
+  }
+}

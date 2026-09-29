@@ -41,6 +41,7 @@ pub fn progress(message: &str, last: &str) {
 
 /// Show the error panel with a reload button.
 pub fn error(message: &str) {
+    diagnostic("fatal", message);
     #[cfg(target_arch = "wasm32")]
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()
@@ -54,6 +55,23 @@ pub fn error(message: &str) {
     }
 
     log::error!("{message}");
+}
+
+/// Record context before a recovery reload, even when the error panel cannot run.
+pub fn diagnostic(kind: &str, message: &str) {
+    #[cfg(target_arch = "wasm32")]
+    {
+        use wasm_bindgen::{JsCast, JsValue};
+
+        let global = js_sys::global();
+        if let Ok(callback) = js_sys::Reflect::get(&global, &"viewerDiagnostic".into())
+            && let Some(callback) = callback.dyn_ref::<js_sys::Function>()
+        {
+            let _ = callback.call2(&JsValue::NULL, &kind.into(), &message.into());
+        }
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    let _ = (kind, message);
 }
 
 /// Give the canvas keyboard focus.

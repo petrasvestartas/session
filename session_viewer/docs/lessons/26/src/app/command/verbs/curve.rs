@@ -5,16 +5,11 @@ use session_rust::{Geometry, NurbsCurve, Point};
 use std::rc::Rc;
 
 pub const SPEC: Draw = Draw {
-    spec: Spec {
-        names: &["Curve"],
-        aliases: &[],
-        hint: "Curve control points… · Example: Curve 0,0,0 50,100,0 100,0,0",
-        options: &[],
-        arity: None,
-        wait_for_option: false,
-        wait_after_option: false,
+    spec: Spec::new(
+        &["Curve"],
+        "Curve control points… · Example: Curve 0,0,0 50,100,0 100,0,0",
         parse,
-    },
+    ),
     points: 2..=MAX_POINTS,
     what: "NURBS curve",
     buttons: &[("Close", "Close"), ("Finish", "")],

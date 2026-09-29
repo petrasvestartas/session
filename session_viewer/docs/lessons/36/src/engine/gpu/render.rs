@@ -302,7 +302,7 @@ impl Gpu {
             &self.layouts,
             [depth, &self.targets.depth_msaa],
             [self.pick.gradient(), &self.targets.gradient_msaa],
-            &self.arena.tiles, // register:tiles
+            &self.arena.tiles, // register:tile-binding
         );
         let ink = self.frame.pick_binds(&group);
         {

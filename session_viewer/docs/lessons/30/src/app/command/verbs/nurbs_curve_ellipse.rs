@@ -1,18 +1,14 @@
+// --8<-- [start:nurbs-curve-ellipse]
 use crate::app::command::tool::shape::{self, Answer, Ask, CURVE, Frame, Part, Shape, positive};
 use crate::app::command::{Action, Spec};
 use session_rust::{Geometry, Point, Primitives};
 use std::rc::Rc;
 
-pub const SPEC: Spec = Spec {
-    names: &["Nurbs Curve Ellipse"],
-    aliases: &[],
-    hint: "Nurbs Curve Ellipse: center, end of the first axis or its radius, second radius · Example: Nurbs Curve Ellipse 0,0,0 20 10",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
+pub const SPEC: Spec = Spec::new(
+    &["Nurbs Curve Ellipse"],
+    "Nurbs Curve Ellipse: center, end of the first axis or its radius, second radius · Example: Nurbs Curve Ellipse 0,0,0 20 10",
     parse,
-};
+);
 
 pub static SHAPE: Shape = Shape {
     name: "Nurbs Curve Ellipse",
@@ -117,3 +113,4 @@ mod tests {
         }
     }
 }
+// --8<-- [end:nurbs-curve-ellipse]

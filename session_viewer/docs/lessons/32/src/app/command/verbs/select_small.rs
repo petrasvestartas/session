@@ -4,14 +4,13 @@ use crate::app::command::{Action, Spec, number};
 use session_rust::AABB;
 
 pub const SPEC: Spec = Spec {
-    names: &["Select Small"],
-    aliases: &[],
-    hint: "Select Small length · selects visible objects whose bounding-box diagonal is shorter, in scene units · Example: Select Small 10",
-    options: &[],
     arity: Some(1),
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Select Small"],
+        "Select Small length · selects visible objects whose bounding-box diagonal is shorter, in scene units · Example: Select Small 10",
+        parse,
+    )
 };
 
 /// One length above zero.

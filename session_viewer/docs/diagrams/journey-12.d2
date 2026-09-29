@@ -1,0 +1,13 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+before: "Before removal\nrow 0 = ID 1, row 1 = ID 2" {class: box}
+remove: "Remove ID 1" {class: box}
+after: "After removal\nrow 0 = ID 2" {class: focus}
+selection: "Selection stores ID 2\nIts row may change" {class: focus}
+before -> remove -> after
+selection -> after: "lookup"

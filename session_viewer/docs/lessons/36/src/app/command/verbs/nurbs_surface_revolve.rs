@@ -1,17 +1,16 @@
+// --8<-- [start:nurbs-surface-revolve]
 use crate::app::command::tool::gather::{self, Input, Made, Recipe, Step};
 use crate::app::command::tool::surfacing::{checked, count};
 use crate::app::command::{Action, Spec};
 use session_rust::{NurbsCurve, NurbsSurface, Point, Primitives};
 
 pub const SPEC: Spec = Spec {
-    names: &["Nurbs Surface Revolve"],
     aliases: &["nurbssurface_revolve"],
-    hint: "Nurbs Surface Revolve: profile curves, Enter, axis start, axis end, angle · Example: Nurbs Surface Revolve 0,0,0 0,0,1 90",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Nurbs Surface Revolve"],
+        "Nurbs Surface Revolve: profile curves, Enter, axis start, axis end, angle · Example: Nurbs Surface Revolve 0,0,0 0,0,1 90",
+        parse,
+    )
 };
 
 pub static RECIPE: Recipe = Recipe {
@@ -116,3 +115,4 @@ mod tests {
         assert!(revolve(&line, &p(0., 0., 0.), &p(0., 0., 1.), 400.0).is_err());
     }
 }
+// --8<-- [end:nurbs-surface-revolve]

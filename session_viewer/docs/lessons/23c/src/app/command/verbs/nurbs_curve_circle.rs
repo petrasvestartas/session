@@ -4,16 +4,11 @@ use crate::app::command::{Action, Spec};
 use session_rust::{Geometry, Point, Primitives};
 use std::rc::Rc;
 
-pub const SPEC: Spec = Spec {
-    names: &["Nurbs Curve Circle"],
-    aliases: &[],
-    hint: "Nurbs Curve Circle: center, radius · Example: Nurbs Curve Circle 0,0,0 10",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
+pub const SPEC: Spec = Spec::new(
+    &["Nurbs Curve Circle"],
+    "Nurbs Curve Circle: center, radius · Example: Nurbs Curve Circle 0,0,0 10",
     parse,
-};
+);
 
 pub static SHAPE: Shape = Shape {
     name: "Nurbs Curve Circle",

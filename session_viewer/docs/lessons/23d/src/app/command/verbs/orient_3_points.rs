@@ -5,14 +5,12 @@ use crate::app::coords;
 use session_rust::{Plane, Point, Vector, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Orient 3 Points"],
     aliases: &["orient3pt"],
-    hint: "Orient 3 Points · pick three reference points, then three target points · the selection moves rigidly",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Orient 3 Points"],
+        "Orient 3 Points · pick three reference points, then three target points · the selection moves rigidly",
+        parse,
+    )
 };
 
 /// Pick the points, or orient at once by six typed x,y,z points.

@@ -1,0 +1,21 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+matrix: "A matrix has four columns" {class: focus}
+x_axis: "x column × point.x" {class: box}
+y_axis: "y column × point.y" {class: box}
+z_axis: "z column × point.z" {class: box}
+origin: "origin column × 1" {class: focus}
+sum: "Add the four contributions\n= transformed position" {class: box}
+matrix -> x_axis
+matrix -> y_axis
+matrix -> z_axis
+matrix -> origin
+x_axis -> sum
+y_axis -> sum
+z_axis -> sum
+origin -> sum

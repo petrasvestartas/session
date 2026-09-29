@@ -1,16 +1,16 @@
+// --8<-- [start:nurbs-surface-loft]
 use crate::app::command::tool::gather::{self, Input, Made, Recipe, Step};
 use crate::app::command::tool::surfacing::{self, checked, count, curves};
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Nurbs Surface Loft"],
     aliases: &["nurbssurface_loft"],
-    hint: "Nurbs Surface Loft (Smooth Straight): click curves in section order, Enter lofts",
     options: &["Nurbs Surface Loft Smooth", "Nurbs Surface Loft Straight"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Nurbs Surface Loft"],
+        "Nurbs Surface Loft (Smooth Straight): click curves in section order, Enter lofts",
+        parse,
+    )
 };
 
 pub static RECIPE: Recipe = Recipe {
@@ -48,3 +48,4 @@ fn build(input: &Input) -> Result<Made, String> {
         ),
     })
 }
+// --8<-- [end:nurbs-surface-loft]

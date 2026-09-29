@@ -1,51 +1,53 @@
 # 07 · Shared boundaries
 
-Two faces that meet must show one edge: the kernel meshes both on the same edge samples, and the walk draws the edge once from those vertices. This lesson reads the chain code lesson 06 copied.
+**Estimated study time: about 1–3 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Follow the sampling and ordering of a shared CAD boundary.
+
+**In the whole viewer:** This explains how neighbouring surface producers agree before their triangles reach the renderer.
+
+**Follow the data:** One source edge → ordered samples → both adjacent face boundaries → matching display edges.
+
+**Start with these files:** [`src/app/walk/brep_edges.rs`](06-cad-contract.md#code-06-006).
+
+**Aim to explain:** Why can independently sampling two mathematically identical edges leave a crack?
+
+[Whole-viewer map and course milestones](map.md)
+
+Two faces meeting at an edge must use matching boundary samples. Otherwise a tiny crack may appear even when both faces describe the same mathematical edge. Before we join samples, we need a predictable order and a clear rule for coincident parameters.
 
 ![Before: face A, face B and the ink each chord the same edge differently. After: one canonical chain constrains both meshes and the ink is drawn from those nodes.](illustrations/shared-boundary.svg)
 
-## Step 1 · src/app/walk/brep_edges.rs
+Start from the working result of [step 06](06-cad-contract.md).
 
-The imports, and the sort orders both chain builders use.
+This is a review step. Keep your existing code and use the experiment below to check your understanding.
 
-`lessons/07/src/app/walk/brep_edges.rs` · read, copied in 06
+## Check the completed chapter
 
-```rust
---8<-- "lessons/07/src/app/walk/brep_edges.rs:edge-order"
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 07
 ```
 
-## Step 2 · src/app/walk/brep_edges.rs
+From `workspace/handwritten`:
 
-Read an edge's vertices back, in order, from the labels the kernel mesher left on them.
-
-`lessons/07/src/app/walk/brep_edges.rs` · read, copied in 06
-
-```rust
---8<-- "lessons/07/src/app/walk/brep_edges.rs:constrained-chain"
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
 ```
 
-## Step 3 · src/app/walk/brep_edges.rs
+Run the native boundary tests. Follow the sorting helpers into the edge-chain builder you typed and locate where neighbouring faces share a sample.
 
-One chain per BRep edge, from the first face that carries it, with the face on its other side.
+If a seam appears, inspect the sample identifiers and ordering before increasing the tessellation density. More mismatched samples still leave a mismatch.
 
-`lessons/07/src/app/walk/brep_edges.rs` · read, copied in 06
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
 
-```rust
---8<-- "lessons/07/src/app/walk/brep_edges.rs:edge-chains"
-```
+<details>
+<summary>Check your explanation of the opening question</summary>
 
-## Step 4 · src/app/walk/brep_edges.rs
+The two samplers may choose different positions or ordering. Shared boundary samples make the displayed faces meet consistently.
 
-A chain becomes pipes, one per segment, each tagged with its BRep edge for picking.
+</details>
 
-`lessons/07/src/app/walk/brep_edges.rs` · read, copied in 06
-
-```rust
---8<-- "lessons/07/src/app/walk/brep_edges.rs:edge-pipes"
-```
-
-Run `cargo check` in `lessons/07/`.
-
-## Check
-
-Run `cargo xtest --lib brep_edges` in `lessons/07/`: every solid edge has a chain, and remeshing keeps each edge's identity.
+[Next step: 08](08-trimming.md)

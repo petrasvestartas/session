@@ -3,9 +3,10 @@
 // Screen tile = a square of 4 x 4 pixels (8 x 8 on large canvases) that keeps a list of the triangles that may cover it.
 // Reference pool = one buffer with every tile's list back to back; a prefix sum gives each list its start.
 // Prefix sum = each entry's total of the entries before it: counts 3, 0, 2 give starts 0, 3, 3.
-use super::buffers::{GpuCtx, ROWS, bind_group, replace_buffer, uniform_buffer, zeroed_buffer};
+use super::buffers::{GpuCtx, ROWS, bind_group, resource_group, replace_buffer, uniform_buffer, zeroed_buffer};
 use super::frame::Binds;
 use super::targets::{Attachment, TextureSpec};
+use crate::engine::pipelines::bindings::{buffer_entry, texture_entry};
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Lazy, Pipeline, PipelineDesc, Shader, Target, build,
     count_pipeline, pipeline_layout, wgsl,
@@ -14,6 +15,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
 
 /// Bytes per projected triangle record.
+use wgpu::{BufferBindingType, TextureSampleType};
 pub(super) const PROJECTED_BYTES: u64 = 96;
 
 /// Projection workgroups a dispatch row, under the 65535 limit; 64 triangles each.
@@ -462,30 +464,14 @@ impl TriangleTiles {
         });
 
         if stale {
-            let buffers = [
-                input.geometry[0],
-                input.geometry[1],
-                input.geometry[2],
-                &self.projected,
-                &self.live_count,
-            ];
-            let mut entries: Vec<_> = buffers
-                .iter()
-                .enumerate()
-                .map(|(binding, buffer)| wgpu::BindGroupEntry {
-                    binding: binding as u32,
-                    resource: buffer.as_entire_binding(),
-                })
-                .collect();
-            entries.push(wgpu::BindGroupEntry {
-                binding: 5,
-                resource: wgpu::BindingResource::TextureView(input.table),
-            });
-            let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("triangle.project.bindings"),
-                layout: &self.pipes.project_layout,
-                entries: &entries,
-            });
+            let group = resource_group(ctx, &self.pipes.project_layout, "triangle.project.bindings", [
+                (0, input.geometry[0].as_entire_binding()),
+                (1, input.geometry[1].as_entire_binding()),
+                (2, input.geometry[2].as_entire_binding()),
+                (3, self.projected.as_entire_binding()),
+                (4, self.live_count.as_entire_binding()),
+                (5, wgpu::BindingResource::TextureView(input.table)),
+            ]);
             self.project_group = Some((
                 group,
                 input.geometry.map(|buffer| buffer.clone()),
@@ -598,61 +584,40 @@ pub(super) struct TileInput<'a> {
 }
 
 /// One buffer binding for a layout.
-fn entry(
-    binding: u32,
-    visibility: wgpu::ShaderStages,
-    ty: wgpu::BufferBindingType,
-) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility,
-        ty: wgpu::BindingType::Buffer {
-            ty,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
 // --8<-- [end:tile-input]
 
 // --8<-- [start:tile-pipelines]
 impl TilePipelines {
     /// Create the layouts, shaders and pipelines.
     fn new(ctx: &GpuCtx, layouts: &Layouts) -> Self {
-        use wgpu::BufferBindingType::{Storage, Uniform};
+        use BufferBindingType::{Storage, Uniform};
         use wgpu::ShaderStages as Stages;
         let device = &ctx.device;
         let project_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("triangle.project.layout"),
             entries: &[
-                entry(0, Stages::COMPUTE, Storage { read_only: true }),
-                entry(1, Stages::COMPUTE, Storage { read_only: true }),
-                entry(2, Stages::COMPUTE, Storage { read_only: true }),
-                entry(3, Stages::COMPUTE, Storage { read_only: false }),
-                entry(4, Stages::COMPUTE, Uniform),
-                wgpu::BindGroupLayoutEntry {
-                    binding: 5,
-                    visibility: Stages::COMPUTE,
-                    ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Uint,
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
-                    },
-                    count: None,
-                },
+                buffer_entry(0, Stages::COMPUTE, Storage { read_only: true }),
+                buffer_entry(1, Stages::COMPUTE, Storage { read_only: true }),
+                buffer_entry(2, Stages::COMPUTE, Storage { read_only: true }),
+                buffer_entry(3, Stages::COMPUTE, Storage { read_only: false }),
+                buffer_entry(4, Stages::COMPUTE, Uniform),
+                texture_entry(5, Stages::COMPUTE, TextureSampleType::Uint, false),
             ],
         });
         let raster_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("triangle.tiles.layout"),
             entries: &[
-                entry(0, Stages::VERTEX, Storage { read_only: true }),
-                entry(1, Stages::FRAGMENT, Storage { read_only: false }),
+                buffer_entry(0, Stages::VERTEX, Storage { read_only: true }),
+                buffer_entry(1, Stages::FRAGMENT, Storage { read_only: false }),
             ],
         });
         let scan_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("triangle.scan.layout"),
-            entries: &[entry(0, Stages::COMPUTE, Storage { read_only: false })],
+            entries: &[buffer_entry(
+                0,
+                Stages::COMPUTE,
+                Storage { read_only: false },
+            )],
         });
         let project_shader = wgsl(
             ctx,
@@ -761,6 +726,7 @@ fn compute_pipeline(
 }
 // --8<-- [end:tile-pipelines]
 
+// --8<-- [start:18-tile-tests]
 // --8<-- [start:tile-tests]
 /// Pool sizing and grid tests.
 #[cfg(test)]
@@ -1131,3 +1097,4 @@ mod tests {
     }
 }
 // --8<-- [end:tile-tests]
+// --8<-- [end:18-tile-tests]

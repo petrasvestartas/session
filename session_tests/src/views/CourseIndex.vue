@@ -2,17 +2,20 @@
   <div class="course-index">
     <h1>Viewer course</h1>
     <p class="lead">
-      Each lesson adds one piece to a working viewer; its code lives in a lesson crate that builds on
-      its own. Start at the top and keep the order.
+      Build a small viewer you can explain, then grow toward the full viewer’s features and quality.
+      Follow a working picture through geometry buffers, view state and drawing.
+      The course is being extended; browser checks and the later feature lessons remain pending.
+      The complete implementation reference stays available below.
     </p>
-    <section v-for="g in groups" :key="g.title">
-      <h2>{{ g.title }}</h2>
+    <p><router-link to="/course/journey">Start with the course route</router-link></p>
+    <details v-for="g in groups" :key="g.title" :open="g.slugs.includes('readme') || g.slugs.includes('journey/01-canvas')">
+      <summary>{{ g.title }}</summary>
       <ol :class="{ plain: g.title !== 'Course' }">
         <li v-for="s in g.slugs" :key="s">
           <router-link :to="'/course/' + s">{{ pages[s]?.title }}</router-link>
         </li>
       </ol>
-    </section>
+    </details>
   </div>
 </template>
 
@@ -33,12 +36,13 @@ h1 {
   margin: 0 0 0.4rem;
 }
 
-h2 {
+summary {
   font-size: 15px;
   font-weight: 600;
   margin: 2rem 0 0.4rem;
   padding-bottom: 0.3rem;
   border-bottom: 1px solid var(--rule);
+  cursor: pointer;
 }
 
 .lead {

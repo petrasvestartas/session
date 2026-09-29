@@ -1,0 +1,1 @@
+let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else { return; };

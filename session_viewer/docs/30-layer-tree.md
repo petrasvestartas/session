@@ -1,267 +1,836 @@
 # 30 · The layers panel and the layer tree
 
-The layers panel docks on the right: lesson 26's tree with a bulb, lock and colour per line, a right-click menu of layer edits, and the graph's edges in a table below. Three commands join the command line: `Layers On|Off`, `Add Group` and `Add Edge`.
+**Estimated study time: about 20–35 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
 
-## Step 1 · registration lines
+**This section:** Apply layer visibility and selection through shared source identities.
 
-The panel is one more entry in `PANELS`, and L toggles it.
+**In the whole viewer:** The layer panel is a view of the same document, so its actions must agree with picking and scene drawing.
 
-`lessons/30/src/app/ui/mod.rs` · type the lines tagged `register:graph` and `register:layers`
+**Follow the data:** Panel action → affected source identities → row flags/state → redraw.
 
-```rust
---8<-- "lessons/30/src/app/ui/mod.rs:panels-registry"
-```
+**Start with these files:** [`src/app/ui/layers.rs`](30-layer-tree.md#code-30-012), [`src/state/panel.rs`](30-layer-tree.md#code-30-032).
 
-`lessons/30/src/app/keys.rs` · type the line tagged `register:layers`
+**Aim to explain:** Why should hiding a group use the same identity mapping as selection?
 
-```rust
---8<-- "lessons/30/src/app/keys.rs:keys-table"
-```
+[Whole-viewer map and course milestones](map.md)
 
-Copy the other lines tagged `register:` with a lesson 30 tag from these files of `lessons/30/`:
+A layer or group can contain many objects. Hiding it should update the same source identities used by selection and drawing. This helper applies the requested visibility to a sorted row set and records which identities actually changed.
 
-- `src/app/command/verbs/mod.rs`: `layers`, `add_group` and `add_edge` in the verb list.
-- `src/app/ui/mod.rs`: the clicked key handed to `panel_action` after the frame.
-- `src/state.rs`: the `panel` module, and the `register:panel` calls that refill the panel, reset it for a new scene, drop the clicked layers and hide several selected rows.
-- `src/state/edit.rs`, `src/state/hydrate.rs` and `src/lib.rs`: `refresh_layers` after a gumball edit, delete, undo, hydration and opening a file.
-- `src/app/inspection.rs`: `selected_group_count` in the snapshot.
+![Group selection → Descendant rows → Hidden source identities → Next frame.](illustrations/30-practice.svg)
 
-## Step 2 · src/app/feedback.rs
+Start from the working result of [step 26](26-nested-panel.md).
 
-Hand rows to the panel, fold the graph table, start a rename, and show or hide the panel; on native they do nothing.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 2,248 lines across 17 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/30/src/app/feedback.rs` · type this, append at the end of the file
+<span id="code-30-001"></span>
+
+## `src/lib.rs`
+
+Insert **after line 484** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/30/src/app/feedback.rs:layers-panel"
+    state.scene.upload_to(&mut state.gpu);
+    state.scene.restore_text_visibility(&mut state.gpu); // register:scene_text
+    state.update_label(); // the saved texts reach the GPU; register:scene_text
+    state.fit_all();
 ```
 
-## Step 3 · src/state/edit.rs
-
-L toggles the panel, a layer hides as a whole, and `refresh_layers` refills the tree and graph rows.
-
-`lessons/30/src/state/edit.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/30/src/state/edit.rs:layers-panel"
+    state.touch();
+    app::feedback::status("Session opened");
+}
 ```
 
-## Step 4 · src/state/edit.rs
-
-Test: a graph edge end is named like its tree line, or by a short guid.
-
-`lessons/30/src/state/edit.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/30/src/state/edit.rs:panel-tests"
+--8<-- "typing/code/30-001.rs"
 ```
 
-## Step 5 · src/state/panel.rs
+<span id="code-30-002"></span>
 
-New file: what each panel key does, from hide, lock, colour and rename to select, fold and page.
+## `src/app/command/tests.rs`
 
-`lessons/30/src/state/panel.rs` · type this, new file
+Append **after line 344** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/30/src/state/panel.rs:panel-actions"
+--8<-- "typing/code/30-002.rs"
 ```
 
-## Step 6 · src/state/panel.rs
+<span id="code-30-003"></span>
 
-Reveal a layer, and run a layer menu action as one undo step that keeps the selection and clicked layers.
+## `src/app/command/verbs/add_edge.rs`
 
-`lessons/30/src/state/panel.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/30/src/state/panel.rs:panel-layers"
+--8<-- "typing/code/30-003.rs"
 ```
 
-## Step 7 · src/state/panel.rs
+<span id="code-30-004"></span>
 
-Hide or show rows on the GPU, dropping any selection among them.
+## `src/app/command/verbs/add_group.rs`
 
-`lessons/30/src/state/panel.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/30/src/state/panel.rs:panel-hidden"
+--8<-- "typing/code/30-004.rs"
 ```
 
-## Step 8 · src/state/panel.rs
+<span id="code-30-005"></span>
 
-The rows of the current page: counts, bulb, lock, shared colours and the current layer; the brace closes the impl.
+## `src/app/command/verbs/layers.rs`
 
-`lessons/30/src/state/panel.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/30/src/state/panel.rs:panel-labels"
+--8<-- "typing/code/30-005.rs"
 ```
 
-## Step 9 · src/app/ui/layers.rs
+<span id="code-30-006"></span>
 
-New file: the panel's state kept between frames, and a layer name being edited in its row.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/30/src/app/ui/layers.rs` · type this, new file
+Insert **after line 44** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/30/src/app/ui/layers.rs:layers-state"
+    hide,                    // register:hide
+    show,                    // register:show
+    fit,                     // register:fit
+    escape,                  // register:escape
 ```
 
-## Step 10 · src/app/ui/layers.rs
-
-The panel's hooks: draw, apply a finished rename, and hold the keys and Escape while a name is edited.
-
-`lessons/30/src/app/ui/layers.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/30/src/app/ui/layers.rs:layers-hooks"
+    arrowhead,               // register:arrowhead
+    snap,                    // register:snap
+    object,                  // register:object
+    edge,                    // register:edge
 ```
 
-## Step 11 · src/app/ui/layers.rs
-
-Dock the panel on the right, collapsible, with the tree in a scroll area and the graph section under it.
-
-`lessons/30/src/app/ui/layers.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/30/src/app/ui/layers.rs:layers-draw"
+--8<-- "typing/code/30-006.rs"
 ```
 
-## Step 12 · src/app/ui/layers.rs
+<span id="code-30-007"></span>
 
-One tree row: fold arrow, the name or its rename field, then bulb, lock and colour swatch.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/30/src/app/ui/layers.rs` · type this, append at the end of the file
+Insert **after line 86** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/30/src/app/ui/layers.rs:layers-row"
+    measure_distance,        // register:measure_distance
+    length,                  // register:length
+    area,                    // register:area
+    volume,                  // register:volume
 ```
 
-## Step 13 · src/app/ui/layers.rs
-
-The right-click menu of a layer: current, new, rename, delete after a confirmation, duplicate, change and copy object layer.
-
-`lessons/30/src/app/ui/layers.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/30/src/app/ui/layers.rs:layers-menu"
+}
 ```
 
-## Step 14 · src/app/ui/layers.rs
-
-Paint the fold arrow, the bulb or the current-layer check, and the lock, scaled to the row height.
-
-`lessons/30/src/app/ui/layers.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/30/src/app/ui/layers.rs:layers-icon"
+--8<-- "typing/code/30-007.rs"
 ```
 
-## Step 15 · src/app/ui/layers.rs
+<span id="code-30-008"></span>
 
-The colour swatch and its popup: faces or edges, nine colours, the original ones, and RGB sliders.
+## `src/app/feedback.rs`
 
-`lessons/30/src/app/ui/layers.rs` · type this, append at the end of the file
+Append **after line 133** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/30/src/app/ui/layers.rs:layers-color"
+--8<-- "typing/code/30-008.rs"
 ```
 
-## Step 16 · src/app/ui/graph.rs
+<span id="code-30-009"></span>
 
-New file: a folding header with the edge count, then From and To columns; a row click selects both ends.
+## `src/app/inspection.rs`
 
-`lessons/30/src/app/ui/graph.rs` · type this, new file
+Insert **after line 38** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/30/src/app/ui/graph.rs:graph-table"
+        "widget": state.gpu.widget.placement, // register:gumball
+        "widget_highlight": state.gpu.widget.active, // register:gumball
+        "widget_bytes": state.gpu.widget.allocated_bytes(), // register:gumball
+        "selected": parent,
 ```
 
-## Step 17 · src/app/command/verbs/layers.rs
-
-New file: `Layers On` and `Layers Off` open or close the panel from the command line.
-
-`lessons/30/src/app/command/verbs/layers.rs` · type this, new file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/30/src/app/command/verbs/layers.rs:layers-verb"
+        "hidden_count": state.scene.hidden.len(),
+        "identity": identity,
+        "selection": state.selection,
+        "controls": state.inspected_controls(),
 ```
 
-## Step 18 · src/app/command/verbs/add_group.rs
-
-New file: the Add Group verb takes an optional name, makes one undo step and unfolds the panel to the group.
-
-`lessons/30/src/app/command/verbs/add_group.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/30/src/app/command/verbs/add_group.rs:add-group-verb"
+--8<-- "typing/code/30-009.rs"
 ```
 
-## Step 19 · src/app/command/verbs/add_group.rs
+<span id="code-30-010"></span>
 
-Another `impl Scene` block: the rows must share one document, and the grouping runs as one layer step.
+## `src/app/keys.rs`
 
-`lessons/30/src/app/command/verbs/add_group.rs` · type this, append at the end of the file
+Insert **after line 73** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/30/src/app/command/verbs/add_group.rs:add-group-scene"
+    named(NamedKey::Enter, |s| s.enter()), // register:enter
+    named(NamedKey::F10, |s| s.enable_controls()), // register:controls
+    named(NamedKey::Delete, |s| s.delete_selected()), // register:delete
+    plain(&[":"], |_| crate::app::feedback::command_line(true)), // register:command-line
 ```
 
-## Step 20 · src/app/command/verbs/add_group.rs
-
-Name the group, find the deepest layer all members share, and move them under the new node without moving them in the world.
-
-`lessons/30/src/app/command/verbs/add_group.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/30/src/app/command/verbs/add_group.rs:add-group-tree"
+    ctrl(&["z", "Z"], Some(true), |s| s.redo()), // register:redo-shift
+    ctrl(&["z", "Z"], Some(false), |s| s.undo()), // register:undo
+    ctrl(&["y", "Y"], None, |s| s.redo()), // register:redo
+    // register:view-front
 ```
 
-## Step 21 · src/app/command/verbs/add_group.rs
-
-Tests: undo and redo, the outermost group wins a click, placements kept, names counting up, and save and open.
-
-`lessons/30/src/app/command/verbs/add_group.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/30/src/app/command/verbs/add_group.rs:add-group-tests"
+--8<-- "typing/code/30-010.rs"
 ```
 
-## Step 22 · src/app/command/verbs/add_edge.rs
+<span id="code-30-011"></span>
 
-New file: the Add Edge verb joins the two selected objects in one undo step and unfolds the graph table.
+## `src/app/ui/graph.rs`
 
-`lessons/30/src/app/command/verbs/add_edge.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/30/src/app/command/verbs/add_edge.rs:add-edge-verb"
+--8<-- "typing/code/30-011.rs"
 ```
 
-## Step 23 · src/app/command/verbs/add_edge.rs
+<span id="code-30-012"></span>
 
-Join two objects of one document in the graph, keep the step on the undo stack, and bump the row revision.
+## `src/app/ui/layers.rs`
 
-`lessons/30/src/app/command/verbs/add_edge.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/30/src/app/command/verbs/add_edge.rs:add-edge-scene"
+--8<-- "typing/code/30-012.rs"
 ```
 
-## Step 24 · src/app/command/verbs/add_edge.rs
+<span id="code-30-013"></span>
 
-Tests: undo and redo of an edge, an existing edge refused, and exactly two objects of one document.
+## `src/app/ui/mod.rs`
 
-`lessons/30/src/app/command/verbs/add_edge.rs` · copy, append at the end of the file
+Insert **after line 5** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/30/src/app/command/verbs/add_edge.rs:add-edge-tests"
+use crate::State;
+use std::cell::Cell;
+use theme::{BUNDLED, fonts, visuals};
+use winit::window::Window;
 ```
 
-## Step 25 · tests
+Keep these following lines:
 
-Copy `tests/layer-workspace.cjs` from `lessons/30/`: a browser check of hiding, locking, colouring and saving through the panel. Lesson 22's `tests/docked-workspace.cjs` runs from this lesson on.
+```rust
+mod overlay; // register:overlay
+#[cfg(target_arch = "wasm32")] // register:phone
+mod phone; // register:phone
+mod pointer; // register:pointer
+```
 
-Run `cargo check` in `lessons/30/`.
+Type these new lines:
 
-## Check
+```rust
+--8<-- "typing/code/30-013.rs"
+```
 
-`cargo check` compiles, and `cargo xtest --lib add_group` and `cargo xtest --lib add_edge` pass. Press L: the tree docks on the right, the bulb hides a layer, the lock stops selection, and a right-click edits layers; `Add Group` and `Add Edge` show up in the tree and the graph table.
+<span id="code-30-014"></span>
+
+## `src/app/ui/mod.rs`
+
+Insert **after line 27** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+panels! {
+    number_box,   // register:number_box
+    command_line, // register:command_line
+```
+
+Keep these following lines:
+
+```rust
+}
+
+// As with Lane in 04a, every hook but `show` has a default body, so a panel writes only the hooks it uses.
+/// One panel. Its state lives in its own file; these hooks are all the frame needs from it.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-014.rs"
+```
+
+<span id="code-30-015"></span>
+
+## `src/app/ui/mod.rs`
+
+Insert **after line 268** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        let Output { action, command } = out;
+        changed |= action.is_some() || command.is_some();
+
+        if let Some(key) = action {
+```
+
+Keep these following lines:
+
+```rust
+        }
+
+        if let Some(text) = command {
+            self.run_line(state, &text); // register:commands
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-015.rs"
+```
+
+<span id="code-30-016"></span>
+
+## `src/state.rs`
+
+Insert **after line 19** of your current file.
+
+Keep these preceding lines:
+
+```rust
+pub mod edit; // register:edit
+mod features; // register:features
+mod hydrate; // register:hydrate
+pub(crate) mod number_box; // register:number_box
+```
+
+Keep these following lines:
+
+```rust
+mod sheet_query; // register:sheet_query
+mod text; // register:text
+mod tool; // register:tool
+use features::Features;
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-016.rs"
+```
+
+<span id="code-30-017"></span>
+
+## `src/state.rs`
+
+Insert **after line 122** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        self.annotate_document(first_row); // register:scene_text
+        self.release_display_only(index, first_row, source); // register:release
+
+        // the layer panel lists the new rows
+```
+
+Keep these following lines:
+
+```rust
+        self.update_label(); // register:scene_text
+        log::info!(
+            "appended: walk {:.0} ms, upload {:.0} ms | {} docs | memory observation {:.0} MiB",
+            t1 - t0,
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-017.rs"
+```
+
+<span id="code-30-018"></span>
+
+## `src/state.rs`
+
+Insert **after line 139** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    pub fn clear(&mut self) {
+        self.load_camera = self.camera.pose(); // remember the view
+        self.cancel_gesture(); // register:editing
+        self.features.draft = None; // its rows are gone; register:commands
+```
+
+Keep these following lines:
+
+```rust
+        self.selection = SelectionMode::Object;
+        self.features.sheet_query = None; // register:sheets
+        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+        self.controls = Controls::default();
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-018.rs"
+```
+
+<span id="code-30-019"></span>
+
+## `src/state.rs`
+
+Insert **after line 147** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        self.controls = Controls::default();
+        self.features.resume.clear(); // a waiting Save or F10 belonged to the old scene; register:editing
+        self.scene.clear(&mut self.gpu);
+        self.place_gizmo(None); // register:editing
+```
+
+Keep these following lines:
+
+```rust
+        self.touch();
+    }
+
+    /// Fit the camera, unless the user already moved it.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-019.rs"
+```
+
+<span id="code-30-020"></span>
+
+## `src/state.rs`
+
+Insert **after line 268** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        let row = row.filter(|row| self.scene.selectable(*row));
+        self.cancel_gesture(); // register:editing
+
+        // unhighlight the old selection and the clicked layers
+```
+
+Keep these following lines:
+
+```rust
+
+        for old in self.highlighted.drain(..) {
+            self.gpu.set_selected(old, false);
+        }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-020.rs"
+```
+
+<span id="code-30-021"></span>
+
+## `src/state.rs`
+
+Insert **after line 294** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        }
+
+        self.scene.selected = row;
+        self.selection_order = row.into_iter().collect();
+```
+
+Keep these following lines:
+
+```rust
+        self.place_gizmo(row); // register:editing
+        self.update_label(); // register:scene_text
+        self.touch();
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-021.rs"
+```
+
+<span id="code-30-022"></span>
+
+## `src/state.rs`
+
+Insert **after line 343** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        if selected.len() > 1 {
+            self.highlighted = selected;
+        }
+        self.place_gizmo(self.scene.selected); // register:editing
+```
+
+Keep these following lines:
+
+```rust
+        self.update_label(); // register:scene_text
+        self.touch();
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-022.rs"
+```
+
+<span id="code-30-023"></span>
+
+## `src/state.rs`
+
+Insert **after line 375** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            for row in &rows {
+                self.gpu.set_selected(*row, false);
+            }
+```
+
+Keep these following lines:
+
+```rust
+            return;
+        }
+
+        let Some(row) = self.scene.selected else {
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-023.rs"
+```
+
+<span id="code-30-024"></span>
+
+## `src/state.rs`
+
+Insert **after line 388** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        };
+        self.select(None);
+        self.scene.hidden.insert(guid); // by id, so a new row of it stays hidden
+        self.gpu.set_hidden(row, true);
+```
+
+Keep these following lines:
+
+```rust
+        self.update_label(); // register:scene_text
+        self.touch();
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-024.rs"
+```
+
+<span id="code-30-025"></span>
+
+## `src/state.rs`
+
+Insert **after line 400** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            self.gpu.set_hidden(row, false);
+        }
+
+        self.scene.hidden.clear();
+```
+
+Keep these following lines:
+
+```rust
+        self.update_label(); // register:scene_text
+        self.touch();
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-025.rs"
+```
+
+<span id="code-30-026"></span>
+
+## `src/state/edit.rs`
+
+Insert **after line 242** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                self.status(&error);
+                return false;
+            }
+```
+
+Keep these following lines:
+
+```rust
+            self.touch();
+            return true;
+        }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-026.rs"
+```
+
+<span id="code-30-027"></span>
+
+## `src/state/edit.rs`
+
+Insert **after line 398** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    /// After an undo, redo or delete: sync the rows, drop the selection.
+    pub(crate) fn after_history(&mut self) {
+        self.cancel_running_tool(); // a tool's preview and bases belong to the documents as they were; register:tools
+```
+
+Keep these following lines:
+
+```rust
+        self.selection = SelectionMode::Object;
+        self.select(None);
+        self.scene.flag_texts(&mut self.gpu);
+        self.commit_rows();
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-027.rs"
+```
+
+<span id="code-30-028"></span>
+
+## `src/state/edit.rs`
+
+Insert **after line 442** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        if lost {
+            self.select_rows(rows, false);
+        }
+```
+
+Keep these following lines:
+
+```rust
+        self.update_label();
+        self.touch();
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-028.rs"
+```
+
+<span id="code-30-029"></span>
+
+## `src/state/edit.rs`
+
+Insert **after line 801** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            SelectionMode::Object => {}
+        }
+
+        self.place_gizmo(Some(row));
+```
+
+Keep these following lines:
+
+```rust
+        self.touch();
+    }
+}
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-029.rs"
+```
+
+<span id="code-30-030"></span>
+
+## `src/state/edit.rs`
+
+Append **after line 1008** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/30-030.rs"
+```
+
+<span id="code-30-031"></span>
+
+## `src/state/hydrate.rs`
+
+Insert **after line 74** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        for resume in waiting {
+            self.run_resume(resume);
+        }
+```
+
+Keep these following lines:
+
+```rust
+        self.touch();
+    }
+
+    /// Idle work between edits: one kernel purge step, frames kept coming until the cycle ends.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/30-031.rs"
+```
+
+<span id="code-30-032"></span>
+
+## `src/state/panel.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/30-032.rs"
+```
+
+<span id="code-30-033"></span>
+
+## `tests/layer-workspace.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/30-033.cjs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 30
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native layer tests. Hide a group, confirm its descendants disappear, then show it and check selection behavior.
+
+If the panel and canvas disagree, trace the identity set through the display update. Changing only the panel checkbox leaves the rendered state untouched.
+
+![The finished viewer with the supplied box group expanded in the layers panel.](screenshots/practice/viewer-layers.png)
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+Both actions refer to the same source objects even when each object has several display rows. Separate identity schemes could hide one object and select another.
+
+</details>
+
+[Next step: 31](31-splitting.md)

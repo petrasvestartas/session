@@ -1,8 +1,11 @@
+use crate::engine::gpu::buffers::resource_group;
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use super::TextFrame;
+use crate::engine::pipelines::bindings::texture_entry;
 use crate::engine::pipelines::{Pipeline, Target};
 use crate::engine::text::{TextDocument, TextLabel, TextPlacement, TextRun};
 use glyphon::{FontSystem, SwashCache, SwashContent};
+use wgpu::{ShaderStages, TextureSampleType};
 
 /// Most bytes all world text textures may use.
 const TEXTURE_BUDGET: u64 = 32 * 1024 * 1024;
@@ -46,19 +49,15 @@ impl Planes {
             .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 label: Some("world text texture"),
                 entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            multisampled: false,
-                        },
-                        count: None,
-                    },
+                    texture_entry(
+                        0,
+                        ShaderStages::FRAGMENT,
+                        TextureSampleType::Float { filterable: true },
+                        false,
+                    ),
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        visibility: ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                         count: None,
                     },
@@ -194,20 +193,15 @@ impl Planes {
                     texture.size(),
                 );
                 let view = texture.create_view(&Default::default());
-                let bind = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("world text coverage"),
-                    layout: &self.layout,
-                    entries: &[
-                        wgpu::BindGroupEntry {
-                            binding: 0,
-                            resource: wgpu::BindingResource::TextureView(&view),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 1,
-                            resource: wgpu::BindingResource::Sampler(&self.sampler),
-                        },
+                let bind = resource_group(
+                    ctx,
+                    &self.layout,
+                    "world text coverage",
+                    [
+                        (0, wgpu::BindingResource::TextureView(&view)),
+                        (1, wgpu::BindingResource::Sampler(&self.sampler)),
                     ],
-                });
+                );
                 let cached = CachedPlane {
                     label: run.label.clone(),
                     font_revision: document.font_revision,

@@ -51,7 +51,7 @@ while (queue.length) {
   await page.goto(`${root}#/course/${slug}`);
   try {
     await page.waitForFunction(
-      (s) => location.hash.startsWith('#/course/' + s) && document.querySelector('.doc h1, .missing'),
+      (s) => location.hash.startsWith('#/course/' + s) && (document.querySelector('.missing') || document.querySelector('.doc h1 .anchor')?.getAttribute('href')?.startsWith('#/course/' + s + '#')),
       slug,
     );
     await page.waitForFunction((t) => !t || document.querySelector('.doc h1')?.textContent.replace(/#$/, '').trim() === t, titles.get(slug) || '');

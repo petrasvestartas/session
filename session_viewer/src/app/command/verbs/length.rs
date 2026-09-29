@@ -4,14 +4,12 @@ use crate::app::command::{Action, Spec};
 use session_rust::{Geometry, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Length"],
-    aliases: &[],
-    hint: "Length · total length of the selected lines, polylines and NURBS curves",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Length"],
+        "Length · total length of the selected lines, polylines and NURBS curves",
+        parse,
+    )
 };
 
 fn parse(_verb: &str, _rest: &[&str]) -> Result<Box<dyn Action>, String> {

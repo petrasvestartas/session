@@ -1,346 +1,1000 @@
 # 15 · Publication and streamed reads
 
-A point cloud too large to load whole is streamed: an 8 KB probe finds its arrays, then byte-range reads bring 2 million points at a time through the range gate. A click on a streamed cloud reads exact positions back from the file, page by page.
+**Estimated study time: about 35–65 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Read large published files through metadata and selected byte ranges.
+
+**In the whole viewer:** Streaming supplies the scene loader and large-data drawing paths without requiring every byte up front.
+
+**Follow the data:** Published metadata → array offsets → ranged reads → staged data → display.
+
+**Start with these files:** [`src/app/stream.rs`](15-publication.md#code-15-022), [`src/app/fetch.rs`](14-loading.md#code-14-006).
+
+**Aim to explain:** Why must metadata and later byte ranges refer to the same published file version?
+
+[Whole-viewer map and course milestones](map.md)
+
+A streamed file can be useful before the entire download finishes. First we read enough metadata to locate its arrays; then we request selected byte ranges. The offsets must refer to the exact same published file throughout the load.
 
 ![The file is small fields between huge arrays; the window fetches the small fields once and skips the arrays by length.](illustrations/metadata-window.svg)
 
-## Step 1 · src/app/stream.rs
+Start from the working result of [step 14](14-loading.md).
 
-Where a cloud's and a sheet's arrays sit in the file, and the ETag every read must match.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 2,869 lines across 12 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/15/src/app/stream.rs` · type this, new file
+<span id="code-15-001"></span>
 
-```rust
---8<-- "lessons/15/src/app/stream.rs:stream-fields"
-```
+## `src/lib.rs`
 
-## Step 2 · src/app/stream.rs
+Insert **after line 47** of your current file.
 
-Parse one field header, and record a sheet's fields that follow its coordinates.
-
-`lessons/15/src/app/stream.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-field-at"
+    Ready(Box<State>),                              // GPU is up, here is the state
+    File(FileDoc, Option<String>), // one loaded file; a display-only one names its file
+    Clear,                         // empty the scene
+    Fit,                           // frame the camera on everything
 ```
 
-## Step 3 · src/app/stream.rs
-
-The cloud's octree table and its checks: equal array lengths, finite cubes, and one parent per child.
-
-`lessons/15/src/app/stream.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-lod"
+    CancelPointer,                 // the browser lost the pointer
+    Fonts(Vec<Vec<u8>>),           // the whole label fonts, main font first; register:loading
+}
 ```
 
-## Step 4 · src/app/stream.rs
-
-Find a cloud's or a sheet's coordinates in the first 8 KB; a file that shows neither loads whole.
-
-`lessons/15/src/app/stream.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-layout"
+--8<-- "typing/code/15-001.rs"
 ```
 
-## Step 5 · src/app/stream.rs
+<span id="code-15-002"></span>
 
-Checks for doubles and ranges, and a 64 KiB window that answers many small header reads.
+## `src/lib.rs`
 
-`lessons/15/src/app/stream.rs` · type this, append at the end of the file
+Insert **after line 166** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-checks"
+            Msg::Clear => state.clear(),
+            Msg::Fit => state.fit_loaded(),
+            Msg::File(doc, source) => state.append(doc, source),
+            Msg::Fonts(faces) => self.use_fonts(faces),   // register:loading
 ```
 
-## Step 6 · src/app/stream.rs
-
-Decode packed arrays: varints, doubles, floats, positions, octahedral normals and colours.
-
-`lessons/15/src/app/stream.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-packed"
+            Msg::CancelPointer => {
+                self.input.cancel();
+                state.touch();
+            }
 ```
 
-## Step 7 · src/app/stream.rs
-
-Open the browser-only module: the scene's range gate, and one gated range read retried once.
-
-`lessons/15/src/app/stream.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-web"
+--8<-- "typing/code/15-002.rs"
 ```
 
-## Step 8 · src/app/stream.rs
+<span id="code-15-003"></span>
 
-Probe the first 8 KB of a file, and find a cloud's positions and colours from it.
+## `src/lib.rs`
 
-`lessons/15/src/app/stream.rs` · type this, append at the end of the file
+Append **after line 314** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-probe"
+--8<-- "typing/code/15-003.rs"
 ```
 
-## Step 9 · src/app/stream.rs
+<span id="code-15-004"></span>
 
-Read the octree table after the colours, and note where the normals and original ids lie.
+## `src/app/cloud_query.rs`
 
-`lessons/15/src/app/stream.rs` · type this, append at the end of the file
+A cloud query asks for samples near a region or view rather than reading every point. The result has an identity and a lifetime. A later query may make an earlier result obsolete before it arrives.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-lod-read"
+--8<-- "typing/code/15-004.rs"
 ```
 
-## Step 10 · src/app/stream.rs
+<span id="code-15-005"></span>
 
-Fetch the positions, normals and colours of one slice; the brace closes the module.
+## `src/app/loader.rs`
 
-`lessons/15/src/app/stream.rs` · type this, append at the end of the file
+Insert **after line 92** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-arrays"
+
+/// Clear the scene and stop every stream.
+fn clear_scene() {
+    GENERATION.set(GENERATION.get().wrapping_add(1));
 ```
 
-## Step 11 · src/app/stream.rs
-
-Tests: packed arrays, the header window, octree checks, safe offsets, varints and the sheet layout.
-
-`lessons/15/src/app/stream.rs` · copy, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/15/src/app/stream.rs:stream-tests"
+    RESIDENT.set(0);
+    SHEET_RESIDENT.set(0);
+    post(Msg::Clear);
+}
 ```
 
-## Step 12 · src/app/walk/cloud.rs
-
-Append one streamed slice to the cloud rows; the first slice also brings the octree.
-
-`lessons/15/src/app/walk/cloud.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/15/src/app/walk/cloud.rs:stream-slice"
+--8<-- "typing/code/15-005.rs"
 ```
 
-## Step 13 · src/app/scene.rs
+<span id="code-15-006"></span>
 
-A streamed cloud's first slice, and its slot in the scene.
+## `src/app/loader.rs`
 
-`lessons/15/src/app/scene.rs` · type this, append at the end of the file
+Insert **after line 319** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/app/scene.rs:streamed-types"
+        // the first 8 KB, read once: the cloud and sheet checks and the size come from it;
+        // an encoded file is never range-read
+        let (head, body) = match ahead.take() {
+            Some(read) => read.wait().await,
 ```
 
-## Step 14 · src/app/scene.rs
-
-Add a streamed cloud from its first slice and grow it with each later one, within the page's point ceiling.
-
-`lessons/15/src/app/scene.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/15/src/app/scene.rs:streamed-scene"
+            None => (None, None),
+        };
+
+        if let Some(next) = manifest.items.get(i + 1)
 ```
 
-## Step 15 · src/app/scene.rs
-
-Test: the points still expected are what the files hold, never past the page's ceiling.
-
-`lessons/15/src/app/scene.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/15/src/app/scene.rs:stream-tests"
+--8<-- "typing/code/15-006.rs"
 ```
 
-## Step 16 · src/app/loader.rs
+<span id="code-15-007"></span>
 
-Start a cloud by range: its first share of points is posted now, or staged for a reload.
+## `src/app/loader.rs`
 
-`lessons/15/src/app/loader.rs` · type this, append at the end of the file
+Insert **after line 465** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/app/loader.rs:stream-start"
+
+        for document in pending {
+            match document {
+                PendingDocument::Whole(doc, source) => _ = post(Msg::File(doc, source)),
 ```
 
-## Step 17 · src/app/loader.rs
-
-Read a cloud's first slice: fields, octree, then positions, colours and normals.
-
-`lessons/15/src/app/loader.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/15/src/app/loader.rs:stream-prefix"
+            }
+        }
+    }
 ```
 
-## Step 18 · src/app/loader.rs
-
-Keep reading slices in the background until the cloud is complete, the budget is spent or the scene is gone.
-
-`lessons/15/src/app/loader.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/15/src/app/loader.rs:stream-rest"
+--8<-- "typing/code/15-007.rs"
 ```
 
-## Step 19 · src/state.rs
+<span id="code-15-008"></span>
 
-State adds a streamed cloud and each later slice, and grows the camera's extent to fit.
+## `src/app/loader.rs`
 
-`lessons/15/src/state.rs` · type this, append at the end of the file
+Insert **after line 503** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/state.rs:stream-state"
+        let read = Rc::new(RefCell::new((None, None)));
+        let (slot, target) = (read.clone(), url.clone());
+        let probed = wasm_bindgen_futures::future_to_promise(async move {
+            if encoded.is_none() {
 ```
 
-## Step 20 · src/lib.rs
-
-The `CloudChunk` message, and starting the background reads when a cloud's first slice arrives.
-
-`lessons/15/src/lib.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/15/src/lib.rs:cloud-stream"
+            }
+
+            Ok(JsValue::UNDEFINED)
+        });
 ```
 
-## Step 21 · src/app/cloud_query.rs
-
-The page size of a point query, and a point's original id from its four stored bytes.
-
-`lessons/15/src/app/cloud_query.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/15/src/app/cloud_query.rs:query-id"
+--8<-- "typing/code/15-008.rs"
 ```
 
-## Step 22 · src/app/cloud_query.rs
+<span id="code-15-009"></span>
 
-The click and its camera: project a point to pixels, and keep every octree cube that may reach the click.
+## `src/app/loader.rs`
 
-`lessons/15/src/app/cloud_query.rs` · type this, append at the end of the file
+Insert **after line 528** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/app/cloud_query.rs:query-view"
+            let whole = match encoded {
+                Some(size) => size <= room,
+                None => slot.borrow().0.as_ref().is_some_and(|head| {
+                    head.status == 206
 ```
 
-## Step 23 · src/app/cloud_query.rs
-
-Clip-space tests, and helpers for a cube's corners and a pixel box.
-
-`lessons/15/src/app/cloud_query.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/15/src/app/cloud_query.rs:query-clip"
+                        && head
+                            .total
+                            .is_some_and(|total| total > head.bytes.len() as u64 && total <= room)
+                }),
 ```
 
-## Step 24 · src/app/cloud_query.rs
-
-Merge the point ranges of every octree node near the click.
-
-`lessons/15/src/app/cloud_query.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/15/src/app/cloud_query.rs:query-ranges"
+--8<-- "typing/code/15-009.rs"
 ```
 
-## Step 25 · src/app/cloud_query.rs
+<span id="code-15-010"></span>
 
-One pick, read page by page and cancelled through a shared flag when dropped, and the answers it posts.
+## `src/app/loader.rs`
 
-`lessons/15/src/app/cloud_query.rs` · type this, append at the end of the file
+Insert **after line 557** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/app/cloud_query.rs:query-pages"
+
+/// One staged item of a reload.
+enum PendingDocument {
+    Whole(FileDoc, Option<String>), // a decoded file and, when display-only, its file
 ```
 
-## Step 26 · src/app/cloud_query.rs
-
-The browser half: read each page, keep the points near the click, then read the winner's id and position.
-
-`lessons/15/src/app/cloud_query.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/15/src/app/cloud_query.rs:query-web"
+}
+
+/// True when a body starts with the gzip magic.
+fn packed(body: &Body) -> bool {
 ```
 
-## Step 27 · src/app/cloud_query.rs
-
-Tests: ids keep 32 bits, far nodes stay eligible, pages cover every row, and a drop cancels.
-
-`lessons/15/src/app/cloud_query.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/15/src/app/cloud_query.rs:query-tests"
+--8<-- "typing/code/15-010.rs"
 ```
 
-## Step 28 · src/state/cloud_query.rs
+<span id="code-15-011"></span>
 
-Open `impl State` in its own file: the waiting flag, the streamed slot of a row, and cancel.
+## `src/app/loader.rs`
 
-`lessons/15/src/state/cloud_query.rs` · type this, new file
+Insert **after line 600** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/state/cloud_query.rs:query-state"
+
+/// A probed file that streams: its first slice is posted, or staged for a reload; `Err` tells the
+/// manifest loop what comes next, `Ok` loads the file whole.
+async fn stream_item(cx: &mut ItemCx<'_>, head: &Reply, slot: &Placement) -> Result<(), Step> {
 ```
 
-## Step 29 · src/state/cloud_query.rs
-
-Start a query on a click in cloud control mode, and fetch pages until the best point is known.
-
-`lessons/15/src/state/cloud_query.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/15/src/state/cloud_query.rs:query-start"
+    Ok(())
+}
+
+/// Name and placement of a streamed document.
 ```
 
-## Step 30 · src/state/cloud_query.rs
-
-Draw each arrived page as dots for the GPU to pick, and keep the pick.
-
-`lessons/15/src/state/cloud_query.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/15/src/state/cloud_query.rs:query-batch"
+--8<-- "typing/code/15-011.rs"
 ```
 
-## Step 31 · src/state/cloud_query.rs
+<span id="code-15-012"></span>
 
-Select the winning point once its id and position arrive; the brace closes the impl.
+## `src/app/loader.rs`
 
-`lessons/15/src/state/cloud_query.rs` · type this, append at the end of the file
+Append **after line 639** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/15/src/state/cloud_query.rs:query-resolved"
+--8<-- "typing/code/15-012.rs"
 ```
 
-## Step 32 · src/state/cloud_query.rs
+<span id="code-15-013"></span>
 
-The hooks that hand a query the click and the GPU's answer, and drop it when the readback fails.
+## `src/app/mod.rs`
 
-`lessons/15/src/state/cloud_query.rs` · type this, append at the end of the file
+Insert **after line 2** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/15/src/state/cloud_query.rs:query-hooks"
+// `pub mod x;` makes src/app/x.rs part of the crate; each lesson adds the one line of the module it teaches.
+// `#[cfg(target_arch = "wasm32")]` above a line compiles that module for the browser only.
 ```
 
-## Step 33 · tests
+Keep these following lines:
 
-Copy `tests/publication.py` and `tests/streamed-controls.cjs` from `lessons/15/`; they are checked, not explained.
+```rust
+#[cfg(any(target_arch = "wasm32", test))] // register:decode
+pub mod decode; // register:decode
+pub mod feedback; // register:feedback
+#[cfg(target_arch = "wasm32")] // register:fetch
+```
 
-## Step 34 · registration lines
+Type these new lines:
 
-Copy the lines tagged `register:stream` and `register:cloud_query` from these files of `lessons/15/`:
+```rust
+--8<-- "typing/code/15-013.rs"
+```
 
-- `src/app/mod.rs`: the modules `cloud_query` and `stream`.
-- `src/app/loader.rs`: reset the range gate on clear, probe each plain `.pb` file, stage and post a streamed cloud, and start it from `stream_item`.
-- `src/app/scene.rs`: the streamed clouds and the point ceiling, their start values and clear, and the rows still expected.
-- `src/lib.rs`: the stream and query messages and their handlers.
-- `src/state.rs`: the `cloud_query` module, cancelling a query when the view or selection changes, and starting one on a click.
-- `src/state/features.rs`: the query in flight, its generation counter and its pick hook.
+<span id="code-15-014"></span>
 
-Run `cargo check` in `lessons/15/`.
+## `src/app/mod.rs`
 
-## Check
+Insert **after line 26** of your current file.
 
-`cargo check` compiles, and `cargo xtest --lib stream` and `cargo xtest --lib cloud_query` pass. The local scene looks the same; on `?scene=scenes/view_pointclouds.yaml` the clouds appear 2 million points at a time, and the network panel shows range requests.
+Keep these preceding lines:
+
+```rust
+#[cfg(target_arch = "wasm32")] // register:route
+pub mod route; // register:route
+pub mod scene; // register:scene
+pub mod selection; // register:selection
+```
+
+Keep these following lines:
+
+```rust
+pub mod touch; // register:touch
+pub mod validate; // register:validate
+pub mod walk; // register:walk
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-014.rs"
+```
+
+<span id="code-15-015"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 54** of your current file.
+
+Keep these preceding lines:
+
+```rust
+/// The open documents and their object rows; a row id stays with its object for the object's life.
+pub struct Scene {
+    pub docs: Vec<FileDoc>,                              // loaded files
+    pub tables: Upload,                                  // rows walked but not yet uploaded
+```
+
+Keep these following lines:
+
+```rust
+    pub hidden: HashSet<(usize, Rc<str>)>,               // (document, guid) hidden
+    pub locked: HashSet<(usize, Rc<str>)>,               // (document, guid) not selectable
+    pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,      // face colour overrides
+    pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>, // edge colour overrides
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-015.rs"
+```
+
+<span id="code-15-016"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 92** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    pub(crate) current_layer: Option<(usize, String)>, // (document, tree node) new objects go to
+    pub(crate) layer_steps: u64,                      // layer steps made, for unique labels
+    pub(crate) groups: HashSet<(usize, Rc<str>)>, // (document, tree node guid) of each group
+    pub(crate) text_rows: Vec<u32>, // text rows an undo, redo or delete showed or hid, for the GPU
+```
+
+Keep these following lines:
+
+```rust
+    #[cfg(test)]
+    pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
+    #[cfg(test)]
+    pub(crate) searches: usize,   // tree walks the syncs needed
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-016.rs"
+```
+
+<span id="code-15-017"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 118** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    pub fn new() -> Self {
+        Self {
+            docs: Vec::new(),
+            tables: Upload::default(),
+```
+
+Keep these following lines:
+
+```rust
+            hidden: HashSet::new(),
+            locked: HashSet::new(),
+            colors: HashMap::new(),
+            edge_colors: HashMap::new(),
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-017.rs"
+```
+
+<span id="code-15-018"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 156** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            current_layer: None,
+            layer_steps: 0,
+            groups: HashSet::new(),
+            text_rows: Vec::new(),
+```
+
+Keep these following lines:
+
+```rust
+            #[cfg(test)]
+            ledger: HashMap::new(),
+            #[cfg(test)]
+            searches: 0,
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-018.rs"
+```
+
+<span id="code-15-019"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 186** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    /// Forget every row.
+    fn reset_rows(&mut self) {
+        self.row_revision = self.row_revision.wrapping_add(1);
+        self.tables = Upload::default();
+```
+
+Keep these following lines:
+
+```rust
+        self.order.clear();
+        self.owners.clear();
+        self.feet.clear();
+        self.nodes.clear();
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-019.rs"
+```
+
+<span id="code-15-020"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 282** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+            if incoming > 0 && self.dead_points > 0 && !gpu.cloud.fits(&gpu.ctx, incoming) {
+            }
+```
+
+Keep these following lines:
+
+```rust
+            gpu.set_scene(&self.tables);
+
+            // a loaded document re-centres the origin at the camera, as it always did; an edit keeps it
+            if std::mem::take(&mut self.loaded) {
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-020.rs"
+```
+
+<span id="code-15-021"></span>
+
+## `src/app/scene.rs`
+
+Append **after line 828** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/15-021.rs"
+```
+
+<span id="code-15-022"></span>
+
+## `src/app/stream.rs`
+
+Streaming lets a large scene become useful before every byte is loaded. Publication must preserve ownership and order, and cancelled work must stop affecting the live scene. Progress is separate from correctness: partial data still needs valid mappings.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/15-022.rs"
+```
+
+<span id="code-15-023"></span>
+
+## `src/app/walk/cloud.rs`
+
+Append **after line 141** of your current file.
+
+Blank lines before: **1**; after: **1**. End with a newline.
+
+```rust
+--8<-- "typing/code/15-023.rs"
+```
+
+<span id="code-15-024"></span>
+
+## `src/state.rs`
+
+Insert **after line 11** of your current file.
+
+Keep these preceding lines:
+
+```rust
+use crate::engine::gpu::{CylinderSegment, GlyphPoint};
+use crate::engine::gpu::{FrameInput, Gpu, Pick};
+use crate::engine::performance::{heap_mb, now_ms};
+// Each `mod` line below carries a `register` tag naming its feature; the course adds the line in that feature's lesson.
+```
+
+Keep these following lines:
+
+```rust
+mod features; // register:features
+use features::Features;
+use std::sync::Arc;
+use winit::window::Window;
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-024.rs"
+```
+
+<span id="code-15-025"></span>
+
+## `src/state.rs`
+
+Insert **after line 233** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    }
+
+    /// Something changed: drop pending picks, draw again.
+    pub fn touch(&mut self) {
+```
+
+Keep these following lines:
+
+```rust
+        self.gpu.pick.cancel();
+        self.dirty = true;
+        self.needs_frame = true;
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-025.rs"
+```
+
+<span id="code-15-026"></span>
+
+## `src/state.rs`
+
+Insert **after line 476** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                return;
+            }
+
+            crate::app::feedback::error(&message);
+```
+
+Keep these following lines:
+
+```rust
+            self.gpu.pick.cancel();
+            self.needs_frame = false;
+            return;
+        }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-026.rs"
+```
+
+<span id="code-15-027"></span>
+
+## `src/state.rs`
+
+Insert **after line 486** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        // apply a pick answer first, so this frame shows it
+        if let Some(pick) = self.gpu.pick.poll() {
+            self.apply_pick(pick);
+        } else {
+```
+
+Keep these following lines:
+
+```rust
+        }
+
+        self.needs_frame = false;
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-027.rs"
+```
+
+<span id="code-15-028"></span>
+
+## `src/state.rs`
+
+Insert **after line 496** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            hook(self);
+        }
+
+        if self.gpu.view.spin {
+```
+
+Keep these following lines:
+
+```rust
+            self.camera.orbit(SPIN_STEP, 0.0);
+        }
+
+        let now_ms = now_ms();
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-028.rs"
+```
+
+<span id="code-15-029"></span>
+
+## `src/state.rs`
+
+Insert **after line 524** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+        let mut dropped = false;
+        // starts false; a later feature ORs in its own reason on a line of its own, so this line never changes
+        let mut waiting = false;
+```
+
+Keep these following lines:
+
+```rust
+
+        if self.dirty && !waiting {
+            let gap = now_ms - self.last_frame_ms; // time since the last frame
+            self.last_frame_ms = now_ms;
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-029.rs"
+```
+
+<span id="code-15-030"></span>
+
+## `src/state.rs`
+
+Insert **after line 598** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        let face = !splitting
+            && (face || self.selection_tool == crate::app::selection::SelectionTool::Face);
+        let edge = !splitting
+            && (edge || self.selection_tool == crate::app::selection::SelectionTool::Edge);
+```
+
+Keep these following lines:
+
+```rust
+        self.gpu.pick.cancel();
+
+        // a point cloud answers by its own query
+        let mut queried = false;
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-030.rs"
+```
+
+<span id="code-15-031"></span>
+
+## `src/state.rs`
+
+Insert **after line 603** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        self.gpu.pick.cancel();
+
+        // a point cloud answers by its own query
+        let mut queried = false;
+```
+
+Keep these following lines:
+
+```rust
+
+        if queried {
+            return;
+        }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-031.rs"
+```
+
+<span id="code-15-032"></span>
+
+## `src/state.rs`
+
+Insert **after line 746** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+        // the points come from the source geometry
+        let controls = match self.scene.geometry(parent) {
+            Some(geometry) => Controls::from_geometry(geometry),
+```
+
+Keep these following lines:
+
+```rust
+            None => {
+                self.status("Source controls are unavailable for this display-only object");
+                return;
+            }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-032.rs"
+```
+
+<span id="code-15-033"></span>
+
+## `src/state.rs`
+
+Append **after line 873** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/15-033.rs"
+```
+
+<span id="code-15-034"></span>
+
+## `src/state/cloud_query.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/15-034.rs"
+```
+
+<span id="code-15-035"></span>
+
+## `src/state/features.rs`
+
+Insert **after line 6** of your current file.
+
+Keep these preceding lines:
+
+```rust
+/// What each feature keeps between frames; a feature adds its own file and one line here.
+// Every field starts from its Default, so `State::new` never names one.
+#[derive(Default)]
+pub(crate) struct Features {
+```
+
+Keep these following lines:
+
+```rust
+}
+
+// Each list starts empty; a later lesson adds one line per hook.
+// `fn(&mut State)` is a function pointer; a method such as `State::purge_idle` is one, with `self` as its first argument.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-035.rs"
+```
+
+<span id="code-15-036"></span>
+
+## `src/state/features.rs`
+
+Insert **after line 23** of your current file.
+
+Keep these preceding lines:
+
+```rust
+];
+
+/// Features that take a pick answer before the selection does, in this order.
+pub(super) const TAKE_PICK: &[fn(&mut State, Option<crate::engine::gpu::Pick>) -> bool] = &[
+```
+
+Keep these following lines:
+
+```rust
+];
+
+/// Features that widen what a viewport click on a row selects, e.g. to its whole group.
+pub(super) const CLICK_ROWS: &[fn(&State, u32) -> Option<Vec<u32>>] = &[
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/15-036.rs"
+```
+
+<span id="code-15-037"></span>
+
+## `tests/publication.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/15-037.py"
+```
+
+<span id="code-15-038"></span>
+
+## `tests/streamed-controls.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/15-038.cjs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 15
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native streaming tests. Read one range calculation you typed and label its units: bytes, points or rows. Publishing to a remote service is not required for this lesson.
+
+If decoded values look random, check the requested range, the server’s range response and the element size. Never mix offsets from one file revision with bytes from another.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+The metadata describes the offsets and layout of that version. Mixing versions can interpret unrelated bytes as valid geometry.
+
+</details>
+
+[Next step: 16](16-accounting.md)

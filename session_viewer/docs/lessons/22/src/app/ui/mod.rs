@@ -52,6 +52,7 @@ trait Panel {
 
     /// Its open text field for the phone keyboard: the egui id, after `edit` ran on the text.
     // `&mut dyn FnMut(&mut String)` = any closure that may change the text; lesson 23's phone keyboard writes through it
+    #[cfg(target_arch = "wasm32")]
     fn field(&self, _edit: &mut dyn FnMut(&mut String)) -> Option<&'static str> {
         None
     }

@@ -62,6 +62,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         },
     };
     let info = adapter.get_info();
+    crate::app::feedback::diagnostic("adapter", &format!("{info:?}"));
     log::info!(
         "adapter: {} ({:?}, {:?})",
         info.name,
@@ -105,7 +106,13 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
     #[cfg(target_arch = "wasm32")]
     {
         let errors = failure.clone();
-        device.on_uncaptured_error(Arc::new(move |error| remember_gpu_error(&errors, error)));
+        let redraw = window.clone();
+        device.on_uncaptured_error(Arc::new(move |error| {
+            remember_gpu_error(&errors, error);
+            if let Some(window) = &redraw {
+                window.request_redraw();
+            }
+        }));
         let lost = failure.clone();
         // ask for a frame so the loss is seen
         let redraw = window.clone();
@@ -197,7 +204,10 @@ async fn named_adapter(
 #[cfg(any(target_arch = "wasm32", test))]
 fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String) {
     if let Ok(mut state) = failure.lock() {
-        state.get_or_insert(message);
+        if state.is_none() {
+            crate::app::feedback::diagnostic("fatal", &message);
+            *state = Some(message);
+        }
     }
 }
 

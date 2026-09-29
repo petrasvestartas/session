@@ -4,9 +4,6 @@ use crate::app::command::{Action, Spec, on_off};
 use crate::app::snap;
 
 pub const SPEC: Spec = Spec {
-    names: &["Snap"],
-    aliases: &[],
-    hint: "Snap (On Off): snapping and its toolbar · Snap End / Near / Mid / Center / Perp toggles one kind",
     options: &[
         "Snap On",
         "Snap Off",
@@ -16,10 +13,12 @@ pub const SPEC: Spec = Spec {
         "Snap Center",
         "Snap Perp",
     ],
-    arity: None,
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Snap"],
+        "Snap (On Off): snapping and its toolbar · Snap End / Near / Mid / Center / Perp toggles one kind",
+        parse,
+    )
 };
 
 /// Turn snapping on or off, or toggle one snap kind.

@@ -8,14 +8,12 @@ use session_rust::{BRep, Geometry, Mesh, Point, Xform};
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
-    names: &["Box"],
-    aliases: &[],
-    hint: "Box (Brep Mesh): base center, corner or length and width, height · Example: Box 0,0,0 100 50 30",
     options: &["Box Brep", "Box Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Box"],
+        "Box (Brep Mesh): base center, corner or length and width, height · Example: Box 0,0,0 100 50 30",
+        parse,
+    )
 };
 
 // `ask,` is short for `ask: ask`: each field names the function of the same name below.

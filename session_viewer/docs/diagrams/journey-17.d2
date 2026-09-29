@@ -1,0 +1,13 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+kernel: "Kernel box\n8 corners, 6 faces" {class: box}
+triangles: "Triangle extraction\n12 triangles" {class: box}
+mesh: "Validated display Mesh" {class: focus}
+transaction: "Successful scene transaction" {class: box}
+gpu: "Upload → draw" {class: focus}
+kernel -> triangles -> mesh -> transaction -> gpu

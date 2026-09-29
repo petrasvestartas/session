@@ -1,0 +1,15 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+record: "Record: 32 bytes\nalignment: 16" { class: box }
+position: "bytes 0–15\nposition: four f32 values" { class: focus }
+colour: "bytes 16–31\ncolour: four f32 values" { class: box }
+shader: "WGSL must read the same offsets\nfield names alone are insufficient" { class: box }
+
+record -> position: "offset 0" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+position -> colour: "offset 16" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+colour -> shader: "shared byte contract" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

@@ -1,0 +1,19 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box: { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+}
+direction: down
+file: "sample.pb\nSession protobuf bytes" {class: box}
+read: "Decode + validate\nAn error leaves Editor alone" {class: focus}
+source: "Retained Session\nNames / GUIDs / tree / graph" {class: box}
+meshes: "Prepared display meshes\nPositions / colours / indices" {class: box}
+commit: "One History transaction\nAppend objects with source references" {class: focus}
+view: "Renderer uploads and draws" {class: box}
+file -> read
+read -> source
+read -> meshes
+source -> commit
+meshes -> commit
+commit -> view

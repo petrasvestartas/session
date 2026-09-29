@@ -1,0 +1,769 @@
+{
+  "00": {
+    "title": "00 · Load Rust in the browser",
+    "page": "00-environment.md",
+    "idea": "Before we draw, let us make sure the browser can call Rust. Rust produces a WebAssembly file: a compact program the browser can run. Trunk builds that file and the small JavaScript bridge that starts it. Today, success is a program that loads without an error; we have not asked it to draw anything yet.\n\n![Four tools and four artefacts: cargo produces a .wasm a browser cannot load on its own, wasm-bindgen writes the JavaScript that can, Trunk assembles the page around it, and the browser runs the start function.](illustrations/toolchain.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\n```\n\nRun `trunk serve --port 8780` after the check, then open http://localhost:8780/. Look for a successful WASM request in the Network panel and no startup error in the Console. The canvas is not drawing yet.\n\nIf Rust cannot find the WebAssembly target, run the target-install command in the course introduction. If the browser reports a panic, open its Console and read the first error.\n\n![Lesson 00, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/00-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Create the browser page and the Rust entry point.",
+      "global": "This is the outer shell. It must load successfully before a renderer can present pixels.",
+      "trace": "HTML → Trunk’s JavaScript bridge → WebAssembly → run_web",
+      "question": "Why does a successful Rust build not yet give us a picture?",
+      "answer": "The entry point starts Rust, but we have not created a GPU device, recorded drawing commands or presented a frame.",
+      "files": [
+        "index.html",
+        "src/lib.rs"
+      ]
+    }
+  },
+  "01": {
+    "title": "01 · First WebGPU frame",
+    "page": "01-first-frame.md",
+    "idea": "Imagine stretching one paper triangle beyond the edges of a picture frame. Only the part inside the frame is visible. The GPU uses the same trick to paint our background with three vertices. A vertex shader places the corners; a fragment shader chooses the colour at covered samples. This is real drawing, even when the finished image is plain white.\n\n![Rust records a draw; the vertex shader places three corners, the fragment shader chooses colour, and the texture is saved as lesson.ppm.](illustrations/01-practice.svg)\n\nFollow the drawing from left to right in your mind: Rust creates a **device**, which makes the resources, and a **queue**, which receives the work. A **pipeline** connects our shader to the texture format. An **encoder** records a render pass; the queue submits the finished commands. Writing a shader by itself does not send any work to the GPU.\n\nOur small native example draws into an offscreen texture, then reads its pixels into a file. The browser later presents a texture on its canvas. Both paths use the same background shader.\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun `cargo run --example course_frame --target x86_64-unknown-linux-gnu -j4` to save `lesson.ppm`. Open the image: it should be white. The browser shell arrives in lesson 12 and startup is connected in lesson 14; this small example lets us inspect the renderer immediately.\n\nFor a quick experiment, change the first `1.0` in `select(1.0,0.94,...)` to `0.5` and rerun the example. The frame should turn grey. Restore `1.0` afterwards. This checks that you changed the shader actually used by the renderer.\n\nIf the shader fails, read the first WGSL error, not the later pipeline errors. The shared `PhysicalColor` and `line` declarations come from the shader support you typed; do not delete those files.\n\n![Lesson 01, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/01-3.png)\n\n![The actual first frame: a white 640 by 480 image produced by the headless GPU renderer.](screenshots/practice/01-frame.png)\n\n![The same renderer after changing the shader value to 0.5: the GPU readback is grey.](screenshots/practice/01-frame-grey.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Connect the GPU, allocate its shared resources and draw the first offscreen frame.",
+      "global": "This is the drawing foundation used by every later geometry type. The browser event loop comes later.",
+      "trace": "Device → shader and pipeline → recorded draw → queue submission → texture pixels",
+      "question": "Why should changing the background shader change lesson.ppm, while changing a camera target need not change a uniform background?",
+      "answer": "The shader chooses each background pixel’s colour. A uniform background contains no positioned object for the camera to move relative to.",
+      "files": [
+        "src/engine/gpu/device.rs",
+        "src/engine/gpu/render.rs",
+        "src/shaders/background.wgsl"
+      ]
+    }
+  },
+  "02": {
+    "title": "02 · Camera",
+    "page": "02-camera.md",
+    "idea": "Hold a small model on the table. Walking around it changes your view, but not its shape. Our camera works the same way. Orbit changes its orientation, pan shifts its target, and zoom changes its distance. The geometry stays in its own coordinates.\n\n![Orbit turns the orientation about the target, pan slides the target across the camera's own plane, and the wheel scales the distance; the view-projection is rebuilt from those three every frame.](illustrations/camera-basis.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native camera tests. They check projection and navigation numerically. Trace one call to each of orbit, pan and zoom; a model vertex should not be changed by any of them.\n\nIf a method is missing, use the cumulative source checker to find the first difference in `src/camera.rs`. Check that methods are inside the intended `impl Camera` block and that every brace you typed is still present.\n\n![Lesson 02, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/02-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Implement orbit, pan and zoom, and turn a camera into a projection.",
+      "global": "The camera changes the view of the scene. It supplies frame data to the renderer without editing source geometry.",
+      "trace": "Pointer movement → camera values → view-projection matrix → screen position",
+      "question": "Which data should change when you orbit, and which should remain unchanged?",
+      "answer": "Camera orientation and the view-projection matrix change. The document’s vertices and the stored geometry remain unchanged.",
+      "files": [
+        "src/camera.rs",
+        "src/engine/gpu/frame.rs"
+      ]
+    }
+  },
+  "03": {
+    "title": "03 · Object rows and identity",
+    "page": "03-identity.md",
+    "idea": "A triangle, an edge and a dot may all belong to the same object. We must remember that relationship when drawing or selecting them. A lane names one kind of GPU data; a row is one record in that lane. The size of a row tells us how many bytes a group of records occupies.\n\n![Object 7 owns row 7 of the object table, which select, colour and hide rewrite, and a span in each lane: mesh rows 120 to 159 (start 120, count 40) and line rows 30 to 33 (start 30, count 4).](illustrations/03-span.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native tests and locate one upload that carries both object rows and geometry rows. Point to the field that joins them.\n\nIf the compiler cannot find `Upload`, keep the import at the top of the listing. A `use` line brings an existing name into this file; it does not create another copy of the data.\n\n![Lesson 03, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/03-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Give displayed objects stable rows, placement and identity.",
+      "global": "Rows connect compact GPU records with the original source objects. Rendering and picking must agree about that connection.",
+      "trace": "Source object → display row → GPU object record → source lookup",
+      "question": "Why is a triangle number insufficient to identify the object you selected?",
+      "answer": "One source object can produce many display triangles. We need the owning row and its source mapping to recover the original object.",
+      "files": [
+        "src/engine/gpu/instance.rs",
+        "src/engine/gpu/objects.rs"
+      ]
+    }
+  },
+  "04a": {
+    "title": "04a · Meshes on the GPU",
+    "page": "04a-meshes.md",
+    "idea": "A mesh is a set of vertices plus a list telling us which three vertices form each triangle. Reusing an index avoids storing a shared corner again and again. Here the shader follows an index into the shared vertex storage and reconstructs its position, normal and colour.\n\n![One growable arena holds every mesh's vertices and a parallel table gives every vertex its object row; a mesh is a range of indices, and a draw binds both vertex buffers, binds one index run and calls draw_indexed.](illustrations/arena.svg)\n\nKeep three jobs separate. A buffer stores bytes. A bind-group layout describes the numbered resources a shader may read. A bind group supplies the actual buffers for that layout. The pipeline you typed connects these declarations to the shader; a draw call tells it how many vertices to process. Separately, the Rust writer and shader reader must agree on each record: if one writes five words per vertex and the other reads six, the picture cannot be trusted.\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native tests, including the vertex packing tests. Read your triangle pipeline and find where this shader is connected to a draw call.\n\nIf colours or positions are scrambled, compare the five-word shader layout with `GpuVertex` in your arena file. Both sides must agree about every byte.\n\n![Lesson 04a, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/04a-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Pack meshes into shared GPU storage and draw indexed triangles.",
+      "global": "This is the first major geometry drawing path, built on the device, camera and object rows.",
+      "trace": "Mesh vertices and indices → shared arena → triangle shader → surface pixels",
+      "question": "What must agree when Rust writes a vertex and the shader reads it?",
+      "answer": "Field order, byte offsets, stride and the index addressing rule must agree. Valid bytes with the wrong interpretation can still produce a wrong image.",
+      "files": [
+        "src/engine/gpu/arena.rs",
+        "src/shaders/triangle.wgsl"
+      ]
+    }
+  },
+  "04b": {
+    "title": "04b · Strokes and arrows",
+    "page": "04b-strokes.md",
+    "idea": "A mathematical line has no thickness, so we draw a narrow strip around it. Some widths describe a real object, such as a cable radius in millimetres. Others describe a pen width in screen pixels. These two widths should respond differently when the camera moves.\n\n![Six vertices place a quad around the projected segment, and each pixel's coverage is the area of its square inside the band.](illustrations/ribbon.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native tests. Follow the half-width result into the ribbon vertex shader and identify how it moves the two sides of the strip.\n\nIf widths change unexpectedly, first check whether the input radius means world units or the default screen pen. Do not adjust the visibility tolerance to repair a width error.\n\n![Lesson 04b, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/04b-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Draw readable strokes and arrows with width and visibility rules.",
+      "global": "Strokes add readable edges and curves to the surfaces already drawn. Their depth decisions must agree with those surfaces.",
+      "trace": "Curve samples → segment records → screen-space coverage → depth-tested ink",
+      "question": "Why can a thick edge disappear when compared only with the depth at a neighbouring pixel?",
+      "answer": "That pixel may lie on a different part of a sloping surface. Its depth is not necessarily the surface depth at the stroke’s axis.",
+      "files": [
+        "src/engine/gpu/segments.rs"
+      ]
+    }
+  },
+  "04c": {
+    "title": "04c · Markers",
+    "page": "04c-markers.md",
+    "idea": "The GPU covers triangles, but a point marker should look round. We draw a small triangle around the marker and calculate how far each fragment lies from its centre. Fragments near the circle edge fade gradually. This avoids the staircase you would see with a hard inside-or-outside decision.\n\n![A marker is four quad corners pushed out by the pixel radius plus half the feather; a dot is one triangle whose inner circle is the disc.](illustrations/markers.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native tests and compare the colour fragment function with its ID-picking companion. Both must describe the same visible marker.\n\nIf a marker becomes a square or triangle, inspect the coverage calculation. If it shows through a solid, inspect the separate visibility test.\n\n![Lesson 04c, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/04c-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Render points and control markers with identifiable owners.",
+      "global": "Markers make small positions visible and later provide targets for selecting original controls.",
+      "trace": "Source position and owner → marker row → screen-sized shape → visible marker",
+      "question": "What is the difference between a marker’s display slot and its original control identity?",
+      "answer": "The slot is temporary rendering storage. The control identity names the editable source point and must survive rebuilding that storage.",
+      "files": [
+        "src/engine/gpu/glyphs.rs"
+      ]
+    }
+  },
+  "04d": {
+    "title": "04d · Point clouds",
+    "page": "04d-clouds.md",
+    "idea": "A scan can contain millions of points. When many project onto the same pixel, drawing all of them adds work without revealing detail. An octree groups points into smaller and smaller regions. Projected spacing tells us whether a region needs more detail at the current view.\n\n![A node whose spacing projects wider than lod_px descends into its eight children; one that fits draws whole.](illustrations/lod.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native level-of-detail tests. Find the caller that compares projected spacing with its pixel threshold; explain why the threshold belongs in screen space.\n\nIf a cloud becomes too coarse near the camera, check the distance and unit conversion before changing the cutoff. Millimetres and metres differ by a factor of one thousand.\n\n![Lesson 04d, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/04d-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Organize point clouds and draw the detail needed for the current view.",
+      "global": "The cloud drawing path limits display work while later source queries preserve access to original points.",
+      "trace": "Cloud hierarchy → visible detail selection → splat records → pixels",
+      "question": "Why should selecting an original cloud point not depend only on the points currently drawn?",
+      "answer": "Display detail is reduced for speed and changes with the view. An original point may exist in source data even when its display sample is absent.",
+      "files": [
+        "src/engine/gpu/cloud.rs",
+        "src/engine/gpu/splat.rs"
+      ]
+    }
+  },
+  "05": {
+    "title": "05 · Depth and visible ink",
+    "page": "05-visibility.md",
+    "idea": "A depth image records the nearest surface at each sample. Near a sloping face, neighbouring pixels naturally have different depths. Treating that difference as a gap can make edges disappear or leak through. We use the actual face plane where possible, then a fallback when its data is unavailable.\n\n![Reversed depth, and why a thick stroke must transfer the surface depth to its axis before comparing.](illustrations/ink-visibility.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native visibility tests. Trace the background branch, the valid-plane branch and one fallback branch on paper.\n\nIf distant edges leak through, check the triangle identity and the fallback path. A larger universal depth offset can hide one defect while creating another.\n\n![Lesson 05, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/05-3.png)\n\n",
+    "guide": {
+      "pace": "review",
+      "local": "Trace how surfaces decide whether nearby ink is visible.",
+      "global": "This reviews the boundary between the surface depth pass and the stroke pass; you reuse the renderer already built.",
+      "trace": "Visible surface → depth and plane data → stroke comparison → kept or hidden ink",
+      "question": "Why can two nearby pixels on one face have different valid depths?",
+      "answer": "A sloping face changes depth across the image. A depth difference alone does not establish a gap or a second surface.",
+      "files": [
+        "src/shaders/ink_visibility.wgsl"
+      ]
+    }
+  },
+  "06": {
+    "title": "06 · CAD face rules",
+    "page": "06-cad-contract.md",
+    "idea": "The geometry kernel describes editable objects. The renderer needs compact records. A walker translates between them. For a point, it writes a marker, preserves the owning row, and returns bounds so the camera and selection can find it. The kernel remains the source of truth.\n\n![One face, three representations: BRep source in f64, kernel mesh with u,v, normals and boundary tags, viewer rows in f32 that keep the face and edge identities.](illustrations/cad-contract.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native walker tests. Explain why this function copies display data instead of replacing the editable kernel point.\n\nIf the point draws but cannot be framed or selected, compare its bounds and owner row with the marker position.\n\n![Lesson 06, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/06-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Translate editable CAD geometry into display records with source identity.",
+      "global": "The geometry kernel owns the source model. The walker makes the representation the GPU can draw without turning the GPU into a geometry editor.",
+      "trace": "Kernel object → walker → typed upload rows and bounds → GPU drawing path",
+      "question": "Which representation would you edit to change a face, and which would you rebuild afterwards?",
+      "answer": "Edit the kernel source object. Then rebuild its display geometry and update the corresponding GPU records while retaining source identity.",
+      "files": [
+        "src/app/walk/mod.rs",
+        "src/app/walk/brep.rs"
+      ]
+    }
+  },
+  "07": {
+    "title": "07 · Shared boundaries",
+    "page": "07-boundaries.md",
+    "idea": "Two faces meeting at an edge must use matching boundary samples. Otherwise a tiny crack may appear even when both faces describe the same mathematical edge. Before we join samples, we need a predictable order and a clear rule for coincident parameters.\n\n![Before: face A, face B and the ink each chord the same edge differently. After: one canonical chain constrains both meshes and the ink is drawn from those nodes.](illustrations/shared-boundary.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native boundary tests. Follow the sorting helpers into the edge-chain builder you typed and locate where neighbouring faces share a sample.\n\nIf a seam appears, inspect the sample identifiers and ordering before increasing the tessellation density. More mismatched samples still leave a mismatch.\n\n![Lesson 07, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/07-3.png)\n\n",
+    "guide": {
+      "pace": "review",
+      "local": "Follow the sampling and ordering of a shared CAD boundary.",
+      "global": "This explains how neighbouring surface producers agree before their triangles reach the renderer.",
+      "trace": "One source edge → ordered samples → both adjacent face boundaries → matching display edges",
+      "question": "Why can independently sampling two mathematically identical edges leave a crack?",
+      "answer": "The two samplers may choose different positions or ordering. Shared boundary samples make the displayed faces meet consistently.",
+      "files": [
+        "src/app/walk/brep_edges.rs"
+      ]
+    }
+  },
+  "08": {
+    "title": "08 · Trims, holes and periodic seams",
+    "page": "08-trimming.md",
+    "idea": "A curved surface has its own two-dimensional coordinates, usually called u and v. A trim curve in that space says which part of the surface remains. Two faces can use the same three-dimensional edge in opposite directions, so an edge use stores both the face and the direction.\n\n![Left: outer and inner loops select the face in u,v and the hole stays empty. Right: a cylinder's seam is one XYZ curve used at u=0 and u=1.](illustrations/trims-seams.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native trim and boundary tests. Follow one missing-curve case and one valid straight-curve case through the listing.\n\nIf a boundary is reversed or missing, check the edge-use orientation and its face-specific parameter curve. Do not assume one edge has the same parameter coordinates on both faces.\n\n![Lesson 08, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/08-3.png)\n\n",
+    "guide": {
+      "pace": "review",
+      "local": "Trace trims and holes from surface coordinates to displayed faces.",
+      "global": "The source model describes which part of a curved surface exists. Display generation must respect that domain before drawing.",
+      "trace": "Surface coordinates → directed trim loops → kept domain → face triangles",
+      "question": "Why do we need an edge’s use on a face as well as the three-dimensional edge itself?",
+      "answer": "Each face has its own surface coordinates and traversal direction. The same spatial edge can bound two faces in opposite directions.",
+      "files": [
+        "src/app/walk/brep.rs",
+        "src/app/walk/brep_edges.rs"
+      ]
+    }
+  },
+  "09": {
+    "title": "09 · Normals and shading",
+    "page": "09-normals.md",
+    "idea": "A normal points away from a face and controls how it responds to light. Two neighbouring faces with consistent orientation traverse their shared edge in opposite directions. We compare that traversal to decide whether their winding agrees, even when they use different local vertex numbers.\n\n![Analytic normal or finite fallback at a pole; two shading normals at a C0 crease; the cofactor transform keeps a normal perpendicular under nonuniform scale.](illustrations/normals.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native orientation tests. Explain why matching the two faces’ raw vertex indices would be unreliable.\n\nIf shading flips between neighbouring faces, compare the common positions and edge directions. Negating every normal may merely move the error to another face.\n\n![Lesson 09, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/09-3.png)\n\n",
+    "guide": {
+      "pace": "review",
+      "local": "Check face winding and the normals used for shading.",
+      "global": "This connects source topology and display orientation to the lighting decisions made in shaders.",
+      "trace": "Shared-edge traversal → consistent face orientation → normals → light response",
+      "question": "How can inconsistent face orientation become a visible shading problem?",
+      "answer": "A reversed face can produce a normal pointing the wrong way. Its light response or back-face treatment can then disagree with its neighbours.",
+      "files": [
+        "src/app/walk/brep_orient.rs"
+      ]
+    }
+  },
+  "10": {
+    "title": "10 · Text shaping",
+    "page": "10-text-layout.md",
+    "idea": "Text is more than one picture per character. The font can combine letters into ligatures, change their spacing, and select different glyphs for different scripts. Shaping turns the text into positioned glyphs. We do that only when the layout inputs change.\n\n![Shape once, place per frame, raster per device scale, then a plate pass and a glyph pass.](illustrations/text-pipeline.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native text-layout tests. Identify which changes invalidate layout and which can reuse it.\n\nIf glyphs are missing, first check that the bundled font covers the text. If spacing is wrong, inspect the shaping inputs before changing the GPU positions.\n\n![Lesson 10, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/10-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Turn text into shaped glyph runs and measured positions.",
+      "global": "Text layout sits before drawing. It decides which glyphs and placements the text renderer receives.",
+      "trace": "String and font → shaping → glyph sequence and advances → measured text",
+      "question": "Why can character count not determine the width of a label?",
+      "answer": "Glyph widths differ, and shaping can combine or reposition characters. The shaped glyph advances determine the layout.",
+      "files": [
+        "src/engine/text.rs"
+      ]
+    }
+  },
+  "11": {
+    "title": "11 · Text rendering",
+    "page": "11-text-rendering.md",
+    "idea": "A label needs contrast against the scene. Its background is a rectangle with rounded corners. Rather than storing a detailed outline mesh, the fragment shader measures distance to the intended boundary and turns that distance into smooth coverage.\n\n![Five placements of one shaped line, and the same label rasterized once per device scale.](illustrations/text-placement.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native text tests. Inspect the text-quality page you typed once you reach the browser shell, and compare the same font at more than one pixel ratio.\n\nIf the label looks fuzzy at every size, check the coverage scale and device pixel ratio. Enlarging a previously rasterized label is different from drawing it at the correct scale.\n\n![Lesson 11, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/11-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Render shaped text, its coverage and its placement in the scene.",
+      "global": "This joins text layout to the GPU while keeping world placement, screen size and source identity distinct.",
+      "trace": "Shaped run → placement and raster size → glyph atlas → text and plate passes",
+      "question": "Which part must run again when the text changes, and which work can a placement-only change reuse?",
+      "answer": "Changed text needs shaping and layout. Moving unchanged text can reuse its shaped run; rasterization or placement work depends on the display scale and mode.",
+      "files": [
+        "src/engine/gpu/text.rs",
+        "src/engine/gpu/text_plane.rs"
+      ]
+    }
+  },
+  "12": {
+    "title": "12 · The viewer shell and picking",
+    "page": "12-picking.md",
+    "idea": "To pick an object, we draw identifiers into a hidden image. A mouse position selects one of its pixels. The CPU cannot read GPU memory immediately: it requests a mapping, waits for completion, copies the useful bytes, then unmaps the buffer.\n\n![A pointer release becomes a scissored ID window, an asynchronous bounded readback, a Scene lookup and a selected flag; stale generations are dropped.](illustrations/picking.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native picking tests. In the readback test you typed, identify the pixel whose stored row ID becomes the selected object. The browser window exists at this checkpoint, but its asynchronous GPU startup is connected in lesson 14. Save the visible click experiment for that lesson.\n\nIf picks drift horizontally, check pixel coordinates and row stride. If mapping hangs, check that the device is polled in the native readback path.\n\n![Lesson 12, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/12-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Connect browser events, redraw requests and asynchronous picking.",
+      "global": "The shell now links the user to application state and the renderer. Scene startup is connected in step 14.",
+      "trace": "Pointer event → state request → GPU ID pass → source lookup → selection and redraw",
+      "question": "Why must an old pick result be rejected after the camera or scene changes?",
+      "answer": "Its pixel and object mapping describe an earlier state. Applying it to the current state could select the wrong source object.",
+      "files": [
+        "src/lib.rs",
+        "src/state.rs",
+        "src/engine/gpu/pick.rs"
+      ]
+    }
+  },
+  "13": {
+    "title": "13 · Source controls and cloud picks",
+    "page": "13-controls.md",
+    "idea": "A displayed triangle is often only an approximation of an editable shape. Control points belong to the original curve, surface or mesh. We first establish a selected parent, then ask that parent for controls. This keeps a control selection connected to the object it can change.\n\n![Select parent → Read source controls → Draw control markers.](illustrations/13-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native tests and trace the missing-parent and valid-parent branches. The browser startup is connected in lesson 14. After completing that lesson, select a supported object, press F10, then Escape; controls should disappear while the parent remains selected.\n\nIf controls belong to the wrong object, inspect the parent row before looking at the marker renderer.\n\n![Lesson 13, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/13-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Connect control selection and cloud picks to original source identities.",
+      "global": "This extends picking beyond a display row so editing can address the actual source control or point.",
+      "trace": "Selected object → eligible controls or source query → original ID → selected control",
+      "question": "Why should a control pick return an original identity instead of a marker-buffer index?",
+      "answer": "Marker storage can change when controls are rebuilt. The editing operation needs the stable source identity that the marker represents.",
+      "files": [
+        "src/app/keys.rs",
+        "src/state.rs"
+      ]
+    }
+  },
+  "14": {
+    "title": "14 · Loading scenes",
+    "page": "14-loading.md",
+    "idea": "A manifest is a small description of a scene. It tells the viewer which files to request and how to place them. Keeping that description separate from the heavy geometry lets the page decide what to load before it downloads every object.\n\n![Two request generations in flight: the older one is dropped, the newer one is staged in manifest order and swapped in whole while the previous scene stays on screen.](illustrations/loading.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native manifest tests. Open `assets/view_local.yaml` and trace `course-boxes.pb` to its geometry asset. Run `trunk serve --port 8780`, then open http://localhost:8780/?data=off. You should see the supplied boxes, a polyline and a point. Click a box to select it; press F10 to inspect its controls, then Escape.\n\nIf loading stops, read the first manifest or network error. Check the resolved file URL before changing the decoder.\n\n![Lesson 14, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/14-3.png)\n\n![Visual reference from the finished viewer using this same supplied box scene. Its command dock is added in a later lesson.](screenshots/practice/viewer-loaded.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Load a scene description and publish its geometry to the viewer.",
+      "global": "This completes the route from external files to the browser renderer. You can now inspect the course scene interactively.",
+      "trace": "Manifest → fetch and validation → source document → display upload → browser frame",
+      "question": "If a replacement scene is malformed, what should happen to the scene already on screen?",
+      "answer": "Keep the previous valid scene. Validate and stage a replacement before publishing it, and discard results belonging to an obsolete load request.",
+      "files": [
+        "src/app/loader.rs",
+        "src/app/scene.rs"
+      ]
+    }
+  },
+  "15": {
+    "title": "15 · Publication and streamed reads",
+    "page": "15-publication.md",
+    "idea": "A streamed file can be useful before the entire download finishes. First we read enough metadata to locate its arrays; then we request selected byte ranges. The offsets must refer to the exact same published file throughout the load.\n\n![The file is small fields between huge arrays; the window fetches the small fields once and skips the arrays by length.](illustrations/metadata-window.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native streaming tests. Read one range calculation you typed and label its units: bytes, points or rows. Publishing to a remote service is not required for this lesson.\n\nIf decoded values look random, check the requested range, the server’s range response and the element size. Never mix offsets from one file revision with bytes from another.\n\n![Lesson 15, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/15-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Read large published files through metadata and selected byte ranges.",
+      "global": "Streaming supplies the scene loader and large-data drawing paths without requiring every byte up front.",
+      "trace": "Published metadata → array offsets → ranged reads → staged data → display",
+      "question": "Why must metadata and later byte ranges refer to the same published file version?",
+      "answer": "The metadata describes the offsets and layout of that version. Mixing versions can interpret unrelated bytes as valid geometry.",
+      "files": [
+        "src/app/stream.rs",
+        "src/app/fetch.rs"
+      ]
+    }
+  },
+  "16": {
+    "title": "16 · Resource accounting and release",
+    "page": "16-accounting.md",
+    "idea": "Two objects can refer to the same allocation. Adding its size for every reference would exaggerate memory use. Resource accounting therefore tracks which shared allocations it has already seen. Releasing an unused GPU resource is a separate operation from merely forgetting a CPU reference.\n\n![Scene owns documents through Rc; the cache keeps Weak identities and a payload figure, reuses it while the pointers match, walks once when a document is replaced, and never keeps a dropped document alive.](illustrations/source-cache.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native accounting and lifecycle tests. Identify one shared allocation and one resource that must be destroyed when the scene releases it.\n\nIf reported memory is too high, inspect shared ownership before shrinking buffers. If browser memory stays high after release, check the explicit GPU destruction path.\n\n![Lesson 16, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/16-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Track shared CPU/GPU allocations and release resources at the right time.",
+      "global": "This controls the lifetime and cost of the viewer’s representations as scenes change, grow and disappear.",
+      "trace": "Scene ownership → shared allocations → accounting → reset or release",
+      "question": "Why can dropping a CPU reference fail to return the corresponding GPU allocation immediately?",
+      "answer": "CPU ownership and GPU resource lifetime are distinct. The renderer must follow its explicit destruction and release rules rather than assume a dropped wrapper has freed storage.",
+      "files": [
+        "src/app/inspection/source_memory.rs",
+        "src/app/scene_release.rs"
+      ]
+    }
+  },
+  "17": {
+    "title": "17 · Source faces, text objects and one silhouette",
+    "page": "17-source-presentation.md",
+    "idea": "A useful nameplate must follow the original object, even when that object is drawn as many pieces. We find the selected source, obtain its bounds, and place the label relative to those bounds. The text renderer then handles shaping and drawing.\n\n![Source bounds → World anchor → Nameplate.](illustrations/17-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native nameplate tests. Select and deselect an object in the browser and verify that the label follows the selection.\n\nIf a label follows only one triangle, check whether its bounds came from the source object or a tessellated face.\n\n![Lesson 17, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/17-3.png)\n\n![Visual reference from the finished viewer: a source object is selected and labelled. The layers panel and gumball are later lessons.](screenshots/practice/viewer-selected.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Present selected source faces, labels and a consistent silhouette.",
+      "global": "Presentation uses the same source identity as selection while combining several display pieces into one understandable object.",
+      "trace": "Selected source → mapped display rows and bounds → coverage and labels → highlighted object",
+      "question": "How can one source object drawn in many pieces still receive one meaningful nameplate?",
+      "answer": "Resolve the selected source identity and its bounds first. Place the label for that source object rather than independently labelling each display piece.",
+      "files": [
+        "src/state/text.rs",
+        "src/engine/gpu/surface_outline.rs"
+      ]
+    }
+  },
+  "18": {
+    "title": "18 · Finite-triangle visibility",
+    "page": "18-finite-visibility.md",
+    "idea": "We divide the screen into tiles so an edge tests only nearby triangles. Each tile has a count of triangles. A prefix sum turns those counts into starting offsets in one packed list. This is a small arithmetic operation with a large effect on the amount of visibility work.\n\n![The depth plane continues beyond the finite triangle; only a finite nearer hit can hide the axis.](illustrations/finite-triangle.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native finite-visibility tests. Follow the offsets from counting through list filling to the visibility lookup.\n\nIf one tile reads another’s triangles, check the prefix offsets and total list capacity. A zero-count tile still needs a valid offset.\n\n![Lesson 18, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/18-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Build screen-tile lists for precise triangle visibility tests.",
+      "global": "This refines the surface-to-ink relationship when an infinite face plane would hide an edge outside the actual triangle.",
+      "trace": "Projected triangles → tile counts → prefix offsets → packed lists → finite visibility test",
+      "question": "What goes wrong if a triangle’s infinite plane is treated as the triangle itself?",
+      "answer": "The plane extends beyond the triangle’s footprint and can incorrectly occlude ink there. The finite test checks the actual nearby triangles.",
+      "files": [
+        "src/engine/gpu/triangle_tiles.rs"
+      ]
+    }
+  },
+  "18a": {
+    "title": "18a · Instancing",
+    "page": "18a-instancing.md",
+    "idea": "Imagine a hundred identical chairs. Their shape can be stored once, with a different placement for each chair. The instancing pass prepares that shared geometry for the frame. The pass interface lets it join rendering without teaching the main loop about every instance detail.\n\n![One draw call covers a hundred objects: instance_index picks each one's row, so nothing is bound per object.](illustrations/instancing.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native instancing tests. Compare the shared definition with the list of placements, then locate this pass in the pass registry.\n\nIf moving one instance moves every copy, check whether the edit changed the definition or the selected placement.\n\n![Lesson 18a, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/18a-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Prepare shared geometry for drawing at multiple placements.",
+      "global": "Instancing reuses shape storage while object rows keep the placements and identities separate.",
+      "trace": "Shared shape → instance placements → frame preparation → repeated geometry on screen",
+      "question": "What can two identical chairs share, and what must remain separate?",
+      "answer": "They can share the same shape data. Their placement and source identity must remain separate so each chair can be moved or selected independently.",
+      "files": [
+        "src/engine/gpu/instanced.rs"
+      ]
+    }
+  },
+  "18b": {
+    "title": "18b · Clipping planes and section caps",
+    "page": "18b-clipping.md",
+    "idea": "A clipping plane separates kept space from removed space. Its normal sets the direction, and its offset sets the position. When a source plane is transformed, we derive the world plane from its transformed axes. A flattened rectangle cannot define a reliable cutting plane.\n\n![A vertex-stage rejection leaves a staircase, a fragment-stage discard cuts exactly on the plane, and a cap fills the opening.](illustrations/section-plane.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native clipping tests. Find the test that constructs a plane and check the expected signed side of a point. Interactive creation commands arrive in lesson 23; the GPU clipping tests you typed already exercise visible cuts and picking.\n\nIf a cut flips after a mirrored placement, check the transformed axes and cross product. Translating a normal as though it were a point is another common error.\n\n![Lesson 18b, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/18b-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Apply clipping planes and draw the cut surfaces of eligible solids.",
+      "global": "Clipping is a renderer pass driven by scene-space planes, using geometry and depth information from the existing drawing paths.",
+      "trace": "Source plane → world-space cutting plane → kept surfaces and cap pass → section view",
+      "question": "Why does changing a clipping plane not mean that we have permanently split the source model?",
+      "answer": "Clipping changes what is presented. A permanent geometry split is a separate source-editing transaction that creates new model geometry.",
+      "files": [
+        "src/app/clipping.rs",
+        "src/engine/gpu/clip.rs"
+      ]
+    }
+  },
+  "19": {
+    "title": "19 · Sheets: batched drawings with lazy metadata",
+    "page": "19-sheets.md",
+    "idea": "A technical drawing may have a million line segments. Giving each segment a full editable object would be expensive. A sheet instead stores positions, colours, widths and source identifiers in parallel arrays. Detailed source information can be fetched when a segment is selected.\n\n![As objects, every line pays for a GUID string, a name, a colour and four copies of itself; as one batch a line is a few numbers and a small source id, with guid, name and kind in a side table read only when something is selected.](illustrations/sheet-cost.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native sheet tests. Follow one segment ID into the metadata lookup and explain why the full metadata need not be resident while drawing.\n\nIf colours shift by one segment, check parallel-array lengths and the starting segment offset before investigating the shader.\n\n![Lesson 19, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/19-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Draw batched sheets while looking up detailed entity information on demand.",
+      "global": "Sheets combine streaming, compact display storage and picking without making every drawn segment a full viewer object.",
+      "trace": "Sheet arrays → ribbon batch → picked source ID → metadata lookup",
+      "question": "How can one sheet object still let you identify a particular drawn entity?",
+      "answer": "Segments carry their original entity IDs. Picking returns that ID alongside the sheet row, and the metadata lookup resolves the entity details.",
+      "files": [
+        "src/app/walk/sheet.rs",
+        "src/app/sheet_query.rs"
+      ]
+    }
+  },
+  "20": {
+    "title": "20 · The document and its rows",
+    "page": "20-history.md",
+    "idea": "Undo moves the most recent transaction from the undo stack to the redo stack. Redo moves it back. The viewer reads the transaction from its new stack and creates notes describing which display rows need attention. This keeps editing and GPU synchronization separate.\n\n![Edits group into transactions and a removal leaves a tombstone to restore from; the cursor moves back and forward through them, and a save purges the whole buffer because history never crosses pb or JSON.](illustrations/history.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native history and synchronization tests. In the viewer, select an object, delete it, press Ctrl+Z, then Ctrl+Y; its identity should remain consistent after undo. The command text interface arrives in lesson 23.\n\nIf undo changes the document but not the display, inspect the generated notes and synchronization queue. Rebuilding the whole scene can conceal a missing invalidation.\n\n![Lesson 20, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/20-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Connect document transactions, undo/redo and display synchronization.",
+      "global": "The editable document is authoritative. Synchronization translates changes in that document into updates to its displayed rows.",
+      "trace": "Transaction → changed identities → synchronization notes → display/GPU updates",
+      "question": "When undo restores a removed object, why must more than the visible pixels be restored?",
+      "answer": "Undo restores the source identity and data. Source mappings, display rows and dependent state must then agree with that restored document.",
+      "files": [
+        "src/app/scene_sync.rs",
+        "src/app/scene_sync/notes.rs"
+      ]
+    }
+  },
+  "21": {
+    "title": "21 · Direct editing",
+    "page": "21-editing.md",
+    "idea": "Moving a whole object and moving one of its controls are different operations. An edit target records which kind of source is selected before the gesture begins. The gesture previews a change, then commits one history transaction when the drag finishes.\n\n![A drag is three moments: grabbing remembers the object's own transform, every move frame writes a preview into the row's GPU placement and touches no document, and letting go writes the document once.](illustrations/one-gesture.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native editing tests. Drag a control, cancel once, then repeat and finish. Verify that the finished drag undoes in one step.\n\nIf cancelling leaves modified geometry behind, compare the saved source state with the preview state. If undo takes many steps for one drag, inspect when the transaction commits.\n\n![Lesson 21, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/21-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Implement direct editing, previews, cancellation and final commits.",
+      "global": "This joins input, source controls, document history and GPU synchronization. It is a large integration step because all four must stay consistent.",
+      "trace": "Drag input → edit target → temporary preview → one source transaction → synchronized display",
+      "question": "What should differ between cancelling a drag and releasing it to accept the edit?",
+      "answer": "Cancellation restores the saved state without committing the preview. Acceptance commits one transaction, so a single undo can reverse the whole gesture.",
+      "files": [
+        "src/app/edit.rs",
+        "src/app/gesture/mod.rs",
+        "src/app/scene_sync/preview.rs"
+      ]
+    }
+  },
+  "22": {
+    "title": "22 · The egui layer",
+    "page": "22-runtime-helpers.md",
+    "idea": "The controls sit above the 3D view, so their pass must preserve the colour already drawn. Egui prepares the interface geometry; this function records the draw into the same frame. Dropping the UI owner also releases the resources it owns.\n\n![One egui frame: winit events feed the egui context, its shapes are tessellated and uploaded with the font texture, and a last render pass draws them after the scene and the gumball.](illustrations/extend-ui.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native tests, then open the viewer and interact with a panel. Check that it appears above the scene and receives its own pointer events.\n\nIf panels appear on a blank background, inspect the attachment load operation and pass order before changing panel colours.\n\n![Lesson 22, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/22-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Draw the egui interface above the scene and manage its resources.",
+      "global": "The interface participates in input handling and the final frame, while geometry editing still goes through application state.",
+      "trace": "UI event → widget state or application action → UI draw data → final overlay pass",
+      "question": "Why must the interface pass preserve the scene colour already in the target?",
+      "answer": "It draws an overlay into the existing frame. Clearing that target would erase the 3D scene beneath the interface.",
+      "files": [
+        "src/app/ui/mod.rs",
+        "src/engine/gpu/ui.rs"
+      ]
+    }
+  },
+  "23": {
+    "title": "23 · The command line: one verb per file",
+    "page": "23-geometry-commands.md",
+    "idea": "A command definition tells the shared command system its name, input count and geometry builder. Point needs exactly one position. You also type the registry and parser in this chapter; sharing them keeps each verb small and the geometry creation has one clear home.\n\n![Typed coordinates → Command registry → Point builder → Source object.](illustrations/23-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native command tests. Enter `Point 300,200,200` in the browser and verify that one point appears and one undo removes it.\n\nIf Point is unknown, inspect its registration. If coordinates are rejected, inspect the shared coordinate parser before adding another parser inside this verb.\n\n![Lesson 23, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/23-3.png)\n\n![Visual reference from the finished viewer after Point 300,200,200. The point is selected above the boxes; the gumball is added in lesson 25.](screenshots/practice/viewer-point.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Connect command words and options to application actions.",
+      "global": "The command layer is another entry point to the same state and document operations used by interactive controls.",
+      "trace": "Command text → matched verb and options → validated action → state/document change",
+      "question": "Where should a command such as a display toggle hand off its work?",
+      "answer": "The command interprets the request and calls the relevant state operation. Buffer updates and rendering rules remain in the state and renderer layers.",
+      "files": [
+        "src/app/command/mod.rs",
+        "src/app/command/verbs/mod.rs"
+      ]
+    }
+  },
+  "23a": {
+    "title": "23a · Tools that ask for points",
+    "page": "23a-tools.md",
+    "idea": "An interactive tool remembers how far the conversation has progressed. Move first asks for a base point and then a target. Between those answers it previews a translation. Once the second point arrives, it commits the movement as one operation.\n\n![A tool prompts for a point, takes a click, a snap or typed coordinates, and answers More, Repeat or Done; between answers it only draws a preview.](illustrations/tool-loop.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native Move tests. Select an object, start Move, choose the base and target, then undo once.\n\nIf a half-finished tool reports an error, check whether it should return More. If the preview becomes permanent after Escape, inspect the runner’s cancellation path.\n\n![Lesson 23a, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/23a-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Build interactive tools that ask for a sequence of points or choices.",
+      "global": "Tools turn several input events into one intentional edit, reusing previews, snapping and document transactions.",
+      "trace": "Tool state → requested input → preview → next state or commit/cancel",
+      "question": "Why should the first and second points of Move be different tool states?",
+      "answer": "The same click has a different meaning in each phase. Explicit state records what is known, what is still requested and when a complete transaction can be committed.",
+      "files": [
+        "src/app/command/tool.rs",
+        "src/app/command/verbs/move.rs"
+      ]
+    }
+  },
+  "23b": {
+    "title": "23b · Shapes",
+    "page": "23b-shapes.md",
+    "idea": "The shared shape tool has gathered length, width, height and a construction frame. Now the box builder turns those answers into geometry. Preview outlines and final geometry use the same dimensions, so the shape you accept should match the one you saw while pointing.\n\n![A shape is a static of functions: ask names the next question, read turns the answers into a part, outline draws its wires, build makes the object once nothing is left to ask.](illustrations/shape-functions.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native shape tests. Enter `Box` in the command field and follow its size and output options. Use the native shape tests you typed to compare Mesh and Brep output with the same frame and dimensions.\n\nIf a box appears half below the intended base, inspect placement before changing its height. If Mesh and Brep disagree, compare the same frame and dimensions.\n\n![Lesson 23b, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/23b-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Construct shapes from the dimensions and frame collected by a tool.",
+      "global": "Shape builders sit between tool interaction and kernel geometry, keeping the preview consistent with the committed object.",
+      "trace": "Collected dimensions and frame → shape builder → preview/final geometry → transaction",
+      "question": "What would you inspect if the accepted box differs from its preview?",
+      "answer": "Check that preview and final construction use the same dimensions, frame and option interpretation before blaming the renderer.",
+      "files": [
+        "src/app/command/tool/shape.rs",
+        "src/app/command/verbs/box.rs"
+      ]
+    }
+  },
+  "23c": {
+    "title": "23c · Surfacing",
+    "page": "23c-surfacing.md",
+    "idea": "A loft stretches a surface through a sequence of curves, like fabric over a row of hoops. The order matters. The shared surfacing code checks and aligns the curves; this small command builder chooses whether the sequence closes back onto its first section.\n\n![A surface command is a recipe: picked curves first, then points, numbers or a distance, and a build function that makes the surfaces.](illustrations/recipe-steps.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native surfacing tests. Select ordered section curves and create an open loft; compare its first and last sections with the inputs.\n\nIf a loft twists, first inspect section order and orientation. Increasing display tessellation cannot untwist the source surface.\n\n![Lesson 23c, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/23c-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Turn selected curves and surfacing choices into new surface geometry.",
+      "global": "The tool gathers intent; the kernel performs geometry work; the scene then displays the committed result.",
+      "trace": "Ordered curves → validation and alignment → surface construction → document/display",
+      "question": "Why can reordering the same loft sections change the result?",
+      "answer": "A loft follows a sequence of sections. Their order and orientation determine how the surface connects them, so a set of curves alone is insufficient.",
+      "files": [
+        "src/app/command/tool/surfacing.rs",
+        "src/app/command/verbs/loft.rs"
+      ]
+    }
+  },
+  "23d": {
+    "title": "23d · Annotate and measure",
+    "page": "23d-annotate-measure.md",
+    "idea": "Two points give both a distance and a displacement. Distance is one non-negative length. Displacement records how far we travelled along each axis. The command reports both and places a temporary annotation between the measured points.\n\n![Length reads the selected curves in world units, prints the total and keeps a mark that the scene draws until the next command.](illustrations/measure-mark.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native measurement tests. Measure a simple pair of points and compare the numerical result with your prediction.\n\nIf the distance is correct but its unit is wrong, inspect the displayed unit conversion. If the displacement signs are wrong, check the order of subtraction.\n\n![Lesson 23d, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/23d-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Measure geometry and display the resulting annotations.",
+      "global": "Measurement reads scene positions and presents information through the existing command and text paths.",
+      "trace": "Chosen points → geometric calculation → numeric report and annotation",
+      "question": "Why do distance and displacement answer different questions?",
+      "answer": "Distance is a non-negative scalar length. Displacement retains the signed changes along the coordinate axes.",
+      "files": [
+        "src/app/command/verbs/measure_distance.rs"
+      ]
+    }
+  },
+  "24": {
+    "title": "24 · Snapping",
+    "page": "24-placed-controls.md",
+    "idea": "A snap should feel equally reachable near and far from the camera. We therefore compare projected candidates with the cursor in pixels. The snap mode filters candidates first; then priority and distance choose a winner inside the aperture.\n\n![World candidates → Project to pixels → Filter by aperture → Choose snap.](illustrations/24-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native snap tests. Start a point tool, approach an endpoint, move just outside the aperture and verify that the snap releases.\n\nIf snapping feels inconsistent on a high-density display, check whether cursor and aperture use the same pixel units.\n\n![Lesson 24, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/24-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Connect the Snap command to the snapping system introduced during direct editing.",
+      "global": "This step exposes an existing tool helper. The helper chooses source candidates in screen space; the command controls its mode.",
+      "trace": "Candidates → projection → mode/priority and pixel distance → chosen point",
+      "question": "Why should the snap aperture be measured in pixels rather than fixed world units?",
+      "answer": "A fixed world-space radius appears larger or smaller as the view changes. A pixel aperture gives the cursor a consistent reach on screen.",
+      "files": [
+        "src/app/command/verbs/snap.rs",
+        "src/app/snap.rs"
+      ]
+    }
+  },
+  "25": {
+    "title": "25 · Draw a solid, readable gumball",
+    "page": "25-gumball.md",
+    "idea": "A gumball is small geometry drawn for interaction: arrows, handles and a centre. Its vertices carry both a position and the information needed to colour and identify each part. Rust and the shader must agree about this record’s byte layout.\n\n![The gumball mesh is uploaded once, drawn into its own tile at 4x, resolved and sampled over the frame.](illustrations/extend-gumball.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native gumball tests. Select an object and verify that its handles are visible and can be picked independently.\n\nIf the gumball is distorted or its handles have mixed colours, compare offsets, formats and stride before changing geometry dimensions.\n\n![Lesson 25, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/25-3.png)\n\n![Visual reference from the finished viewer: axis handles surround the selected box. The layers panel is added in lesson 30.](screenshots/practice/viewer-selected.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Render identifiable gumball handles with a clear on-screen shape.",
+      "global": "The gumball is a visual input device for the editing system, layered over the scene without changing scene geometry itself.",
+      "trace": "Handle geometry and IDs → overlay draw → handle hit → editing action",
+      "question": "Why do the gumball and a scene mesh need separate depth behavior?",
+      "answer": "The gumball is an interaction overlay. Its rendering must not overwrite the physical scene depth used for surface visibility and picking.",
+      "files": [
+        "src/engine/gpu/widget.rs",
+        "src/shaders/widget.wgsl"
+      ]
+    }
+  },
+  "26": {
+    "title": "26 · The nested session panel",
+    "page": "26-nested-panel.md",
+    "idea": "The scene is a tree of documents, groups and objects. A panel displays a sequence of rows. Flattening the tree records each row’s depth and the end of its descendant range, so collapsing a group can skip that range without losing the original hierarchy.\n\n![Document tree → Rows with depth and ranges → Panel.](illustrations/26-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native hierarchy tests. Open a nested document and collapse then expand one group; neighbouring groups should keep their state.\n\nIf collapsing one group hides its next sibling, check the exclusive end index. If identical names select the wrong object, inspect the source identity.\n\n![Lesson 26, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/26-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Represent a nested scene as expandable panel rows.",
+      "global": "The hierarchy panel presents the same source objects and selection state that drawing and editing use.",
+      "trace": "Source tree → flattened rows and descendant ranges → expanded/collapsed panel",
+      "question": "What does collapsing a group change, and what should it leave untouched?",
+      "answer": "It changes which panel rows are shown. It should not delete or restructure the source objects represented by the hidden descendant rows.",
+      "files": [
+        "src/app/hierarchy.rs"
+      ]
+    }
+  },
+  "30": {
+    "title": "30 · The layers panel and the layer tree",
+    "page": "30-layer-tree.md",
+    "idea": "A layer or group can contain many objects. Hiding it should update the same source identities used by selection and drawing. This helper applies the requested visibility to a sorted row set and records which identities actually changed.\n\n![Group selection → Descendant rows → Hidden source identities → Next frame.](illustrations/30-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native layer tests. Hide a group, confirm its descendants disappear, then show it and check selection behavior.\n\nIf the panel and canvas disagree, trace the identity set through the display update. Changing only the panel checkbox leaves the rendered state untouched.\n\n![Lesson 30, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/30-3.png)\n\n![The finished viewer with the supplied box group expanded in the layers panel.](screenshots/practice/viewer-layers.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Apply layer visibility and selection through shared source identities.",
+      "global": "The layer panel is a view of the same document, so its actions must agree with picking and scene drawing.",
+      "trace": "Panel action → affected source identities → row flags/state → redraw",
+      "question": "Why should hiding a group use the same identity mapping as selection?",
+      "answer": "Both actions refer to the same source objects even when each object has several display rows. Separate identity schemes could hide one object and select another.",
+      "files": [
+        "src/app/ui/layers.rs",
+        "src/state/panel.rs"
+      ]
+    }
+  },
+  "31": {
+    "title": "31 · Split curves and faces",
+    "page": "31-splitting.md",
+    "idea": "Splitting is a multi-step interaction: choose the thing to split, choose cutters, then apply the result. The command’s job is to start that interaction. The geometry algorithms and preview state stay in their own modules, which keeps the verb easy to understand.\n\n![Split command → Choose source and cutters → Split geometry → One transaction.](illustrations/31-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native splitting tests. Split a simple curve, then undo and confirm that the original source returns.\n\nIf a cutter selection unexpectedly cancels the tool, inspect the conversation-preservation hook. If intersections are wrong, inspect the splitting module instead of the command parser.\n\n![Lesson 31, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/31-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Connect splitting tools, cutters and the resulting geometry edits.",
+      "global": "This is a modeling operation: interactive intent reaches the kernel and returns as a source transaction and display update.",
+      "trace": "Targets and cutters → split operation → replacement geometry → transaction and redraw",
+      "question": "How would you distinguish a wrong split from a correct split that is displayed incorrectly?",
+      "answer": "Inspect the committed source result first. If it is correct, follow synchronization and display generation; if it is wrong, inspect inputs and the geometry operation.",
+      "files": [
+        "src/app/splitting.rs",
+        "src/state/splitting.rs"
+      ]
+    }
+  },
+  "32": {
+    "title": "32 · Ambient occlusion",
+    "page": "32-colors-lighting.md",
+    "idea": "Ambient occlusion estimates how nearby geometry blocks light from the surroundings. Long searches are expensive at full resolution. A depth pyramid summarizes small groups of pixels into successively smaller images, letting distant samples inspect a coarser level.\n\n![Scene depth → Depth pyramid → Horizon samples → Filter and composite.](illustrations/32-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native ambient-lighting tests. Locate the reduction pass and trace one pixel block into its next pyramid level.\n\nIf dark halos appear around silhouettes, inspect background handling and the reduction rule before increasing the shadow radius.\n\n![Lesson 32, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/32-3.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Estimate ambient occlusion using depth data and a depth pyramid.",
+      "global": "This is a screen-space shading pass that reads existing frame information and changes the light response, not the source model.",
+      "trace": "Depth image → coarser depth levels → neighbourhood samples → occlusion → shaded frame",
+      "question": "Why can a camera change require new occlusion work even if no geometry was edited?",
+      "answer": "The pass uses screen-space depths and neighbours. Changing the view changes those inputs even when the underlying source geometry stays the same.",
+      "files": [
+        "src/engine/gpu/ssao.rs",
+        "src/shaders/ambient_depth.wgsl"
+      ]
+    }
+  },
+  "33": {
+    "title": "33 · GTAO, Arctic and Outline",
+    "page": "33-contact-shadows.md",
+    "idea": "A lighting switch should change presentation without moving the camera or changing the objects. Arctic connects the command system to the existing ambient-lighting state. The heavy shader work stays in the render passes you examined in the previous lesson.\n\n![On, Off or toggle → Shared display state → Ambient render pass.](illustrations/33-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native ambient-lighting tests. Toggle Arctic on and off in the browser and confirm the same camera and selection remain.\n\nIf toggling lighting moves the view, inspect whether the command is incorrectly refitting or reloading the scene.\n\n![Lesson 33, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/33-3.png)\n\n![The finished viewer with Arctic On, using the supplied box scene.](screenshots/practice/viewer-arctic.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Connect Arctic, outline and contact-shading controls to render state.",
+      "global": "These commands expose presentation choices built by earlier passes while preserving the camera and document.",
+      "trace": "Display command → view state → enabled passes and uniforms → new appearance",
+      "question": "Which data should remain unchanged when you switch a lighting style?",
+      "answer": "Source geometry, source identity and camera placement should remain unchanged. Presentation settings determine the different rendered appearance.",
+      "files": [
+        "src/app/command/verbs/arctic.rs",
+        "src/app/command/verbs/outline.rs"
+      ]
+    }
+  },
+  "35": {
+    "title": "35 · Element features",
+    "page": "35-attributes.md",
+    "idea": "Elements can carry visible features such as outlines, contacts and joints. The code uses the field name `attributes` for this display option. The `Element Features` command calls one state method to show or hide them. That method rebuilds display rows from the same source objects and clears the selection, so controls do not keep pointing at old rows.\n\n![Explicit value or toggle → Rebuild feature rows → Refresh selection and frame.](illustrations/35-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native element-feature tests. Enter `Element Features On`, repeat it, then enter `Element Features Off`. Ordinary boxes have no element features, so the test fixture you constructed is the useful example here. Source geometry stays intact; the display rows are rebuilt and selection is cleared.\n\nIf two controls disagree about visibility, check whether both call this method or maintain separate flags.\n\n![Lesson 35, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/35-3.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Show or hide element features through the shared display state.",
+      "global": "This is a display-generation choice for existing source elements, connected to the command system and selection handling.",
+      "trace": "Element Features command → state update → rebuilt display rows → redraw",
+      "question": "Why can rebuilding feature rows require clearing selection or controls?",
+      "answer": "Those controls may refer to old display rows. They must not continue pointing into storage that the rebuild has changed.",
+      "files": [
+        "src/app/command/verbs/attributes.rs",
+        "src/state.rs"
+      ]
+    }
+  },
+  "36": {
+    "title": "36 · Translucent faces and Opacity",
+    "page": "36-translucent-faces.md",
+    "idea": "Opacity controls how strongly faces contribute to the image. Zero makes faces invisible, while one restores opaque drawing. The command reads a number and sends it to the shared state method. Sorting, blending and depth rules remain the renderer’s responsibility.\n\n![Opacity number → Shared display state → Face blending and depth.](illustrations/36-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nRun the native opacity tests. Try the three values in the browser and check that edges and selection still behave as described.\n\nIf translucent faces look incorrectly ordered, distinguish a valid command value from the renderer’s blending and depth behavior.\n\n![Lesson 36, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/36-3.png)\n\n![The finished viewer with Arctic On and Opacity 0.4. Faces are translucent; source selection and the camera remain the same.](screenshots/practice/viewer-opacity.png)\n\n",
+    "guide": {
+      "pace": "standard",
+      "local": "Expose face opacity through the command and state layers.",
+      "global": "The small command relies on blending, ordering and depth behavior already implemented by the renderer.",
+      "trace": "Opacity value → state method → face rendering rules → transparent appearance",
+      "question": "Why is parsing a valid opacity number not enough to make transparency correct?",
+      "answer": "Correct appearance also depends on how faces are ordered, blended and compared against depth. Those responsibilities belong to the renderer.",
+      "files": [
+        "src/app/command/verbs/opacity.rs",
+        "src/state/features.rs"
+      ]
+    }
+  },
+  "37": {
+    "title": "37 · Self-test: the finished viewer",
+    "page": "37-command-dock.md",
+    "idea": "You now have the same source as the maintained viewer. The final chapter connects file loading to scene upload and prepares a frame with the correct camera anchor. Use it to explain the whole route from an editable document to pixels, rather than memorizing every support file.\n\n![File bytes → Kernel document → Display upload → GPU passes → Pixels.](illustrations/37-practice.svg)\n\n",
+    "check": "From `workspace/handwritten`:\n\n```sh\ncargo check --lib -j4\ncargo xtest --lib -j4\n```\n\nThe checks above run the native suite. Then render the supplied scene:\n\n```sh\ncargo run --example selftest --target x86_64-unknown-linux-gnu -j4 -- final.ppm assets/view_local.yaml\n```\n\nOpen `final.ppm`, then start the browser with `trunk serve --port 8780`. At http://localhost:8780/?data=off, enter `Point 300,200,200`, then `Undo`; the point should appear and disappear. Use `Save` to download the scene and `Open` to load that saved file. These commands exercise the same document that the renderer displays.\n\nIf the headless image differs from the browser, compare scene, camera, pixel size and display settings first. A screenshot alone cannot establish that those inputs were equal.\n\n![Lesson 37, step 3: Compiler and test results recorded from the completed exercise. Timings depend on your computer.](screenshots/practice/37-3.png)\n\n![The completed step’s actual offscreen GPU render of the course scene, produced by the selftest example.](screenshots/steps/37-native.png)\n\n",
+    "guide": {
+      "pace": "deep",
+      "local": "Exercise the finished viewer from a scene file through GPU output.",
+      "global": "This closes the full course loop: loading, source identity, display generation, rendering and interactive editing now belong to one application.",
+      "trace": "Scene bytes → document → display rows → GPU frame and IDs → selection/edit → updated document",
+      "question": "If a selected object moves on screen, how would you establish that the edit really changed the document?",
+      "answer": "Inspect the committed source change and its undo record, then verify display synchronization. A temporary GPU preview can move pixels without committing an edit.",
+      "files": [
+        "src/selftest.rs",
+        "src/lib.rs"
+      ]
+    }
+  }
+}

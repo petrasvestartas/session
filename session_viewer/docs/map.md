@@ -1,49 +1,119 @@
-# The map
+# The whole viewer and your place in it
 
-Learn this one picture and the rest of the course has an address.
+This page describes the complete implementation reference. For the new smaller lessons and their availability, start with [the course route](journey.md).
 
-![The whole viewer as one map: the top row is how documents come in, the bottom row is how a frame is drawn, and a pick answer travels back up.](illustrations/map.svg)
+You do not need to hold every function in your head. Start with three versions of the same object: its editable source, its display geometry, and the bytes the GPU draws. For any file, ask which version it owns and what it passes to the next part.
 
-The lesson pages do not repeat it. When a lesson names a file, find its zone below and you know which journey the code serves and what it may touch.
+![The whole viewer: documents arrive along the top, drawing proceeds along the bottom, and picking returns a source identity.](illustrations/map.svg)
 
-## The two paths
+## Five jobs to keep in mind
 
-Every file serves one of two journeys.
+| Part | What goes in | What comes out | Main responsibility |
+| --- | --- | --- | --- |
+| Loading | A manifest and file bytes | Validated source documents | Fetch, validate and stage a scene before publishing it. |
+| Document and geometry kernel | Source objects and editing requests | Geometry, stable identities and transactions | Keep the editable truth and its undo history. |
+| Display generation | Source geometry and identity | Triangles, strokes, markers, text and bounds | Make something efficient to draw while remembering its source. |
+| GPU renderer | Display records, camera and view settings | Colour, depth and object-ID images | Turn records into visible pixels and information for picking. |
+| Input, tools and interface | Gestures, commands and pick results | State changes and editing requests | Interpret what the user wants and ask the appropriate owner to act. |
 
-**Documents come in along the top row.** A file arrives over the network, decodes into kernel documents holding exact f64 geometry, and the walk turns those into rows — plain arrays with no wgpu types. It runs when a scene loads, then stops.
+Vue hosts this documentation. The viewer itself runs Rust compiled to WebAssembly, with WGSL shaders on the GPU. The geometry kernel is a dependency of the viewer; you do not rewrite that library in this course.
 
-**A frame is drawn along the bottom row.** The browser asks → the shell routes → input may have moved the camera → state decides what shows → the GPU core writes the per-frame uniforms and hands each lane its turn → lanes record draw calls → shaders make pixels. On demand, without tessellating source geometry again.
+## Follow three small stories
 
-They meet once: the walk's rows are uploaded, and the frame path reads only those. That junction keeps the frame path separate from geometry reconstruction; changing a camera does not re-walk the source.
+**Open a box.** A manifest points to a file. The loader validates its contents. The scene retains the source object. A walker turns its geometry into display rows and preserves its identity. The renderer uploads those rows and draws them. File bytes have become a picture, but the original source still exists.
 
-**One arrow goes backwards.** A pick: the lanes draw object ids into a small offscreen window, the answer is read back, and `Scene` turns a row number into the document object it came from. Two flows go further than the arrow shows — picking a streamed cloud point or a sheet entity continues left into the network, because the identity was never on this machine; and the tile pool reads its own size report back a frame later, never reaching the scene. Everything else points downward.
+**Orbit around the box.** A pointer movement changes the camera. The next frame receives a different view-projection matrix. The original box vertices have not moved. Some screen-dependent work must be recomputed, but camera movement does not mean rebuilding the source model.
 
-## The zones, one line each
+**Select and move the box.** Picking returns a displayed object ID. The scene maps it to the source box. A drag previews a placement; accepting the drag commits a document transaction. Display synchronization updates the affected rows. Undo reverses the source transaction and brings the display back into agreement.
 
-| Zone | What lives there | Why it is separate |
-|---|---|---|
-| **Page** | `index.html`, `Trunk.toml`, `Cargo.toml` | The browser's side of the contract: what gets loaded before any Rust runs. |
-| **Network** | `fetch`, `manifest`, `validate`, `decode`, `stream`, `live`, `route`, `loader`, `cloud_query`, `sheet_query` | The only code that touches bytes you did not create. Incoming file and manifest validation happens here. |
-| **Kernel** | `session_rust` | Shared with the C++ and Python kernels: exact f64 geometry and identity, plus the one shared display type, `RenderVertex`. It links wgpu for that and for the GPU buffers a `Mesh` caches, and decides nothing about how the viewer draws. |
-| **Scene + walk** | `app/scene.rs`, `app/scene_text.rs`, `app/selection.rs`, `app/walk/*`, `engine/text.rs` | Turns one document into rows and names what can be selected. No producer in `walk/` knows about files, selection or the camera; `Scene` holds the documents and their placements and hands finished rows to the GPU. |
-| **Shell** | `lib.rs`, `app/mod.rs`, `app/feedback.rs`, `app/inspection*`, `app/knobs.rs`, `selftest*`, `text_quality.rs`, `engine/performance.rs` | The window, the event loop, the one place a redraw is asked for, and the measurements that observe a frame without changing it. |
-| **Input** | `app/input.rs`, `app/touch.rs` | Gestures become intentions. It never touches a buffer or names a wgpu type: scene changes go through `State`. It does flip the view knobs (`view.lit`, `show_outlines`) and read the device scale directly — per-frame view state, not scene state. |
-| **State** | `state.rs`, `camera.rs` | Camera and selection transitions, and the demand for the next frame. |
-| **GPU core** | `device`, `present`, `render`, `frame`, `objects`, `targets`, `buffers`, `instance`, `upload`, `view`, `pipelines/` | One device, one set of uniforms, one list of passes, one row type, one growable buffer. Everything a lane needs but no lane should own. |
-| **Lanes** | `arena`, `faces`, `segments`, `glyphs`, `cloud`, `splat`, `lod`, `text*`, `surface_outline`, `backdrop`, `triangle_tiles`, `pick` | One per kind of thing drawn, so a new primitive is an addition rather than an edit. Most lanes ignore each other; the exceptions are deliberate and few — outline text borrows the arena's buffers rather than copying the geometry, the splat lane reads the cloud tables and the LOD walk it draws from, and the ink shader reads the projected triangles and the tile pool the arena's tile lane fills. |
-| **Shaders** | `src/shaders/*.wgsl` | The code that runs on the GPU, compiled against the scene contract in `scene.wgsl`. |
-| **Pixels** | the canvas | Where it all ends up. |
+These stories connect local code to the whole viewer. If you lose your place, return to the story your file serves and identify its input and output.
 
-## How to use it while you type
+## Course milestones
 
-**Lanes**: you are adding a way to draw something. Ask what rows it reads and which shader it feeds.
+| After this section | What you have | What is still ahead |
+| --- | --- | --- |
+| [00 · Browser startup](00-environment.md) | A Rust entry point that loads in the browser. | GPU drawing and interaction. |
+| [01 · First frame](01-first-frame.md) | A GPU connection and a native offscreen image. | The browser event loop, scene startup and most geometry paths. |
+| [09 · CAD display foundations](09-normals.md) | Camera, object rows, several drawing paths and the CAD-to-display contract. | Text, browser interaction and scene loading. |
+| [14 · Loading scenes](14-loading.md) | A connected browser viewer that loads and presents the course scene. | Streaming, resource lifetimes, fuller presentation and editing. |
+| [20 · Document history](20-history.md) | The connection between source transactions and displayed rows. | Direct-edit gestures and modeling tools. |
+| [31 · Modeling and panels](31-splitting.md) | Editing, commands, tools, snapping, panels and splitting. | The remaining presentation controls and final integrated checks. |
+| [37 · Finished viewer](37-command-dock.md) | The maintained viewer implementation and its verification examples. | Your own changes and deeper experiments. |
 
-**GPU core**: you are changing something *every* lane sees — a uniform field, a pass, a pipeline rule. These need the three declarations to agree; expect a validation error if you miss one.
+The course starts by building the lower-level drawing machinery, then connects the application around it. The order is not the same as the path a loaded file follows. A module may be built and tested before its browser caller arrives; each section says what can run at that stage.
 
-**Scene + walk**: you are deciding what a document *becomes*. Nothing here can see the camera; wanting to is the design telling you the work belongs one row down.
+## How to know you understand
 
-Two zones in one lesson: the change crosses a boundary — a file written across several steps, with the build red in between; the lesson says where to run `cargo check`.
+Before typing, read the section’s purpose, data path and two or three suggested starting files. Then make a small sketch: **input → owner → operation → output**. Name the actual value or object at each end; “some data” is too vague to help you debug.
 
-## Next
+After a complete file, close the listing and explain one function to yourself. After the whole section, predict the result of its experiment before running it. A successful build checks the program; explaining why an input produces an output checks your understanding. Use the opening question and its answer at the end of the page to compare your reasoning.
 
-[00 · Empty project to a WASM message](00-environment.md): the first box on the map, and the only one you can build without a GPU.
+For a long section, keep a four-line note between sittings: where I stopped; what this file owns; who uses its output; what I still cannot explain. At the next sitting, read that note before adding more code. Aim first to understand the responsibilities and connections. You can look up an API spelling when you need it.
+
+If your explanation becomes unclear, return to the last value you can follow and work forward from there. There is no advantage in typing another ten files while the first connection is still a mystery.
+
+## Time estimates
+
+The hour ranges are **planning assumptions, not measured learner completion times**. They assume you have completed the earlier sections and include active reading, typing all comments and code, tracing examples, checking results and ordinary debugging. Installation, unattended downloads/builds, long interruptions and major environment problems are extra.
+
+For a first plan, the generator allows roughly **80–160 listed lines per active study hour** for familiar patterns and **50–100** for sections with dense GPU, geometry, asynchronous or editing concepts. It adds 1–3 hours for orientation and experiments, or 2–4 for those deeper sections, then rounds the range. Review-only sections allow 1–3 hours. These are effective learning rates, not keyboard speeds; listed lines include comments and blank lines.
+
+The large ranges are deliberate. Typing the entire implementation once makes some sections substantial projects. This course teaches far more than the minimum needed for a first wgpu program, and completing it is not a prerequisite for understanding the architecture above.
+
+After your first two or three sittings, replace the default with your own pace. For example, if 120 listed lines took three active hours to type **and explain**, use about 40 lines per hour to budget similar remaining work, then allow time for the section’s final checks. Reading a familiar command pattern may be much faster than understanding a new shader. Revise the estimate rather than judging yourself against it.
+
+Take breaks at sensible file boundaries. Only the completed section is a build checkpoint; an hour is a useful session length, not a promise that a large section will be finished.
+
+[Find where each file is taught](file-map.md) · [Rust foundations](foundations.md) · [Start section 00](00-environment.md)
+
+<!-- course-time-plan -->
+
+## Section time plan
+
+The 43 viewer sections total roughly **1,000–2,100 active study hours** under the assumptions above. Allow another **8–21 hours** for the Rust foundations. This is a substantial project; you can learn its overall structure well before finishing every file.
+
+| Section | Estimated hours | What you are building or reviewing |
+| --- | ---: | --- |
+| [00 · Load Rust in the browser](00-environment.md) | 4–9 | Create the browser page and the Rust entry point. |
+| [01 · First WebGPU frame](01-first-frame.md) | 65–125 | Connect the GPU, allocate its shared resources and draw the first offscreen frame. |
+| [02 · Camera](02-camera.md) | 15–25 | Implement orbit, pan and zoom, and turn a camera into a projection. |
+| [03 · Object rows and identity](03-identity.md) | 3–6 | Give displayed objects stable rows, placement and identity. |
+| [04a · Meshes on the GPU](04a-meshes.md) | 45–90 | Pack meshes into shared GPU storage and draw indexed triangles. |
+| [04b · Strokes and arrows](04b-strokes.md) | 35–70 | Draw readable strokes and arrows with width and visibility rules. |
+| [04c · Markers](04c-markers.md) | 7–15 | Render points and control markers with identifiable owners. |
+| [04d · Point clouds](04d-clouds.md) | 20–40 | Organize point clouds and draw the detail needed for the current view. |
+| [05 · Depth and visible ink](05-visibility.md) | 1–3 | Trace how surfaces decide whether nearby ink is visible. |
+| [06 · CAD face rules](06-cad-contract.md) | 50–95 | Translate editable CAD geometry into display records with source identity. |
+| [07 · Shared boundaries](07-boundaries.md) | 1–3 | Follow the sampling and ordering of a shared CAD boundary. |
+| [08 · Trims, holes and periodic seams](08-trimming.md) | 1–3 | Trace trims and holes from surface coordinates to displayed faces. |
+| [09 · Normals and shading](09-normals.md) | 1–3 | Check face winding and the normals used for shading. |
+| [10 · Text shaping](10-text-layout.md) | 5–15 | Turn text into shaped glyph runs and measured positions. |
+| [11 · Text rendering](11-text-rendering.md) | 35–65 | Render shaped text, its coverage and its placement in the scene. |
+| [12 · The viewer shell and picking](12-picking.md) | 55–110 | Connect browser events, redraw requests and asynchronous picking. |
+| [13 · Source controls and cloud picks](13-controls.md) | 2–5 | Connect control selection and cloud picks to original source identities. |
+| [14 · Loading scenes](14-loading.md) | 45–90 | Load a scene description and publish its geometry to the viewer. |
+| [15 · Publication and streamed reads](15-publication.md) | 35–65 | Read large published files through metadata and selected byte ranges. |
+| [16 · Resource accounting and release](16-accounting.md) | 75–150 | Track shared CPU/GPU allocations and release resources at the right time. |
+| [17 · Source faces, text objects and one silhouette](17-source-presentation.md) | 30–60 | Present selected source faces, labels and a consistent silhouette. |
+| [18 · Finite-triangle visibility](18-finite-visibility.md) | 15–25 | Build screen-tile lists for precise triangle visibility tests. |
+| [18a · Instancing](18a-instancing.md) | 3–6 | Prepare shared geometry for drawing at multiple placements. |
+| [18b · Clipping planes and section caps](18b-clipping.md) | 30–55 | Apply clipping planes and draw the cut surfaces of eligible solids. |
+| [19 · Sheets: batched drawings with lazy metadata](19-sheets.md) | 15–30 | Draw batched sheets while looking up detailed entity information on demand. |
+| [20 · The document and its rows](20-history.md) | 25–50 | Connect document transactions, undo/redo and display synchronization. |
+| [21 · Direct editing](21-editing.md) | 115–230 | Implement direct editing, previews, cancellation and final commits. |
+| [22 · The egui layer](22-runtime-helpers.md) | 7–15 | Draw the egui interface above the scene and manage its resources. |
+| [23 · The command line: one verb per file](23-geometry-commands.md) | 45–85 | Connect command words and options to application actions. |
+| [23a · Tools that ask for points](23a-tools.md) | 85–165 | Build interactive tools that ask for a sequence of points or choices. |
+| [23b · Shapes](23b-shapes.md) | 20–35 | Construct shapes from the dimensions and frame collected by a tool. |
+| [23c · Surfacing](23c-surfacing.md) | 30–60 | Turn selected curves and surfacing choices into new surface geometry. |
+| [23d · Annotate and measure](23d-annotate-measure.md) | 15–30 | Measure geometry and display the resulting annotations. |
+| [24 · Snapping](24-placed-controls.md) | 2–5 | Connect the Snap command to the snapping system introduced during direct editing. |
+| [25 · Draw a solid, readable gumball](25-gumball.md) | 6–15 | Render identifiable gumball handles with a clear on-screen shape. |
+| [26 · The nested session panel](26-nested-panel.md) | 5–15 | Represent a nested scene as expandable panel rows. |
+| [30 · The layers panel and the layer tree](30-layer-tree.md) | 20–35 | Apply layer visibility and selection through shared source identities. |
+| [31 · Split curves and faces](31-splitting.md) | 20–40 | Connect splitting tools, cutters and the resulting geometry edits. |
+| [32 · Ambient occlusion](32-colors-lighting.md) | 35–65 | Estimate ambient occlusion using depth data and a depth pyramid. |
+| [33 · GTAO, Arctic and Outline](33-contact-shadows.md) | 3–7 | Connect Arctic, outline and contact-shading controls to render state. |
+| [35 · Element features](35-attributes.md) | 3–6 | Show or hide element features through the shared display state. |
+| [36 · Translucent faces and Opacity](36-translucent-faces.md) | 2–5 | Expose face opacity through the command and state layers. |
+| [37 · Self-test: the finished viewer](37-command-dock.md) | 15–30 | Exercise the finished viewer from a scene file through GPU output. |

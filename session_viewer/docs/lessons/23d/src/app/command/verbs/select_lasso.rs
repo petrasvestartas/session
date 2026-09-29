@@ -8,14 +8,12 @@ use session_rust::element::ElementGeometry;
 use session_rust::{BRep, Geometry, Mesh, NurbsCurve, NurbsSurface, Plane, Point, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Select Lasso"],
-    aliases: &[],
-    hint: "Select Lasso · drag a loop around objects · Shift adds · Ctrl removes · Esc cancels",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Select Lasso"],
+        "Select Lasso · drag a loop around objects · Shift adds · Ctrl removes · Esc cancels",
+        parse,
+    )
 };
 
 const SPACING: f64 = 2.0; // device pixels between recorded points

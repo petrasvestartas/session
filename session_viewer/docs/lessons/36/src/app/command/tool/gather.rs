@@ -1,4 +1,5 @@
 // --8<-- [start:gather-steps]
+use super::options;
 use crate::State;
 use crate::app::command::tool::{Next, Overlay, Stroke, Tool, typed_number};
 use crate::app::command::{Action, verbs};
@@ -137,45 +138,18 @@ impl std::fmt::Debug for Recipe {
 impl Recipe {
     /// The option labels, e.g. Open and Closed.
     fn choices(&self) -> impl Iterator<Item = &'static str> {
-        self.chips
-            .iter()
-            .filter(|(_, line)| !line.is_empty() && *line != "Escape")
-            .map(|(label, _)| *label)
+        options::choices(self.chips)
     }
 
     /// The option `words` start with and how many words spell it, ignoring case and spaces.
     fn option_in(&self, words: &[&str]) -> Option<(usize, usize)> {
-        self.choices().enumerate().find_map(|(index, label)| {
-            let target = compact(label);
-            let mut typed = String::new();
-
-            for (count, word) in words.iter().enumerate() {
-                typed.push_str(&word.to_ascii_lowercase());
-
-                if typed == target {
-                    return Some((index, count + 1));
-                }
-
-                if !target.starts_with(&typed) {
-                    return None;
-                }
-            }
-
-            None
-        })
+        options::find(self.chips, words)
     }
 
     /// The steps that are not curve picks.
     fn others(&self) -> impl Iterator<Item = &'static Step> {
         self.steps.iter().filter(|step| !step.curves())
     }
-}
-
-/// Lowercase without spaces.
-fn compact(text: &str) -> String {
-    text.split_whitespace()
-        .collect::<String>()
-        .to_ascii_lowercase()
 }
 
 /// Read typed words: options anywhere, the last one winning, and answers in step order.
@@ -671,7 +645,7 @@ impl Tool for Gathering {
         let whole = self
             .recipe
             .choices()
-            .position(|label| compact(label) == typed);
+            .position(|label| options::compact(label) == typed);
 
         if let Some(index) = whole {
             self.choice = index;
@@ -682,7 +656,7 @@ impl Tool for Gathering {
         if self
             .recipe
             .choices()
-            .any(|label| compact(label).starts_with(&typed))
+            .any(|label| options::compact(label).starts_with(&typed))
         {
             self.typed = typed;
             return Some(Ok(Next::More));

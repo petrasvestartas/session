@@ -4,16 +4,11 @@ use session_rust::{Geometry, Point};
 use std::rc::Rc;
 
 pub const SPEC: Draw = Draw {
-    spec: Spec {
-        names: &["Point"],
-        aliases: &[],
-        hint: "Point · Enter then click or type x,y,z",
-        options: &[],
-        arity: None,
-        wait_for_option: false,
-        wait_after_option: false,
+    spec: Spec::new(
+        &["Point"],
+        "Point · Enter then click or type x,y,z",
         parse,
-    },
+    ),
     points: 1..=1,
     what: "point",
     buttons: &[],

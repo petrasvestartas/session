@@ -1,117 +1,226 @@
 # 03 · Object rows and identity
 
-A click selects object 7. How much must the GPU change? Object 7 owns one 96-byte row in the object table, and from lesson 04a on it also owns runs of rows in the lanes: say mesh rows 120 to 159 and line rows 30 to 33.
+**Estimated study time: about 3–6 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
 
-Selecting, colouring and hiding change only the 96-byte row: one bit of its flags, or its colour. So selecting a mesh of a million triangles is one small write. Changing the object's shape is different: we must find its runs in every lane. A span records exactly that, per lane: the first row and the row count.
+**This section:** Give displayed objects stable rows, placement and identity.
+
+**In the whole viewer:** Rows connect compact GPU records with the original source objects. Rendering and picking must agree about that connection.
+
+**Follow the data:** Source object → display row → GPU object record → source lookup.
+
+**Start with these files:** [`src/engine/gpu/instance.rs`](01-first-frame.md#code-01-010), [`src/engine/gpu/objects.rs`](01-first-frame.md#code-01-013).
+
+**Aim to explain:** Why is a triangle number insufficient to identify the object you selected?
+
+[Whole-viewer map and course milestones](map.md)
+
+A triangle, an edge and a dot may all belong to the same object. We must remember that relationship when drawing or selecting them. A lane names one kind of GPU data; a row is one record in that lane. The size of a row tells us how many bytes a group of records occupies.
 
 ![Object 7 owns row 7 of the object table, which select, colour and hide rewrite, and a span in each lane: mesh rows 120 to 159 (start 120, count 40) and line rows 30 to 33 (start 30, count 4).](illustrations/03-span.svg)
 
-This lesson writes the span types and the row edits a click will call.
+Start from the working result of [step 02](02-camera.md).
 
-## Where an object's rows sit
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 170 lines across 2 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-### Add the module
+<span id="code-03-001"></span>
 
-`lessons/03/src/engine/gpu/mod.rs` · add the line tagged `register:patch`
+## `src/engine/gpu/mod.rs`
 
-`pub(crate)` makes the module visible inside this crate only.
+Insert **after line 12** of your current file.
 
-```rust
---8<-- "lessons/03/src/engine/gpu/mod.rs:modules"
-```
-
-### Name each lane's table
-
-`lessons/03/src/engine/gpu/patch.rs` · new file
-
-A lane table is identified by a `LaneId`. There are two kinds: fixed lanes, which lessons 04a to 04c add to this enum, and registered lanes from `REGISTRY`, found by their index. Today both lists are empty, and `stride` gives the bytes of one row, so we can count memory.
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/03/src/engine/gpu/patch.rs:lane-ids"
+pub mod objects;
+
+pub mod lane; // register:lane
+pub mod pass; // register:pass
 ```
 
-### Count rows per lane
-
-`lessons/03/src/engine/gpu/patch.rs` · append at the end of the file
-
-`Counts` holds one number per lane table. With no lanes yet, it holds an empty array, `[u32; 0]`; each lane lesson adds its field. The methods add, subtract and compare two counts lane by lane, which is all the arithmetic an edit needs.
+Keep these following lines:
 
 ```rust
---8<-- "lessons/03/src/engine/gpu/patch.rs:counts"
+pub mod present; // register:present
+pub mod render; // register:render
+pub mod targets; // register:targets
+pub mod upload; // register:upload
 ```
 
-### A span: where and how many
-
-`lessons/03/src/engine/gpu/patch.rs` · append at the end of the file
-
-Two counts make a span: the first row in each lane, and how many rows. Object 7 above has start 120 and count 40 in the mesh lane.
+Type these new lines:
 
 ```rust
---8<-- "lessons/03/src/engine/gpu/patch.rs:span"
+--8<-- "typing/code/03-001.rs"
 ```
 
-## Count what an edit leaves behind
+<span id="code-03-002"></span>
 
-When an edit gives object 7 a new shape with more rows, its old rows are hidden and new ones appended. The hidden rows are dead: they take memory until the scene is packed again. The `Gpu` counts them.
+## `src/engine/gpu/mod.rs`
 
-### Keep a dead count
+Insert **after line 53** of your current file.
 
-`lessons/03/src/engine/gpu/mod.rs` · add the line tagged `register:patch`
-
-One field: the dead rows per lane, as a `Counts`.
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/03/src/engine/gpu/mod.rs:gpu-struct"
+    pub selection_revision: u64,                 // bumps on every selection change
+    pub logical_size: [f64; 2],                  // canvas size in CSS pixels
+    registered: Vec<Box<dyn RowLane>>,           // lanes from lane::REGISTRY
+    passes: Vec<Box<dyn Pass>>,                  // passes from pass::PASSES, in frame order
 ```
 
-### Start at zero
-
-`lessons/03/src/engine/gpu/mod.rs` · add the line tagged `register:patch`
+Keep these following lines:
 
 ```rust
---8<-- "lessons/03/src/engine/gpu/mod.rs:gpu-build"
+    pub performance: Performance, // frame timing
+    pub bounds: AABB,                     // world box of everything uploaded
+    device_type: wgpu::DeviceType,        // discrete, integrated or CPU
+    pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>, // first GPU error
 ```
 
-### Clear it with the rows
-
-`lessons/03/src/engine/gpu/mod.rs` · add the lines tagged `register:patch`, one in each function
-
-A reset or a release forgets every row, the dead ones too.
+Type these new lines:
 
 ```rust
---8<-- "lessons/03/src/engine/gpu/mod.rs:reset"
-
---8<-- "lessons/03/src/engine/gpu/mod.rs:release"
+--8<-- "typing/code/03-002.rs"
 ```
 
-## Edit one object
+<span id="code-03-003"></span>
 
-### Grow the box, move the anchor, count the dead
+## `src/engine/gpu/mod.rs`
 
-`lessons/03/src/engine/gpu/mod.rs` · append at the end of the file
+Insert **after line 177** of your current file.
 
-Three edits for the whole scene: grow the scene box to take in one object, move the anchor when the camera travelled, and take the dead count. The empty `if rebase.moved { }` and the unused `points` are hooks: the point clouds of lesson 04d fill them with one line each.
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/03/src/engine/gpu/mod.rs:scene-edits"
+            selection_revision: 0,
+            logical_size: [size.0 as f64, size.1 as f64],
+            registered,
+            passes,
 ```
 
-### Select, colour and hide
-
-`lessons/03/src/engine/gpu/mod.rs` · append at the end of the file
-
-Each is one flag or colour in object `row`'s 96-byte row. Hiding keeps the row on the GPU, so showing the object again is one more small write. Selecting also bumps a counter, so anything that depends on the selection knows to update.
+Keep these following lines:
 
 ```rust
---8<-- "lessons/03/src/engine/gpu/mod.rs:row-edits"
+            performance: Performance::new(),
+            bounds: AABB::empty(),
+            device_type,
+            failure,
 ```
 
-## Checkpoint
+Type these new lines:
 
-Run `cargo check`: it compiles. Run `cargo xtest`: still `36 passed; 0 failed; 2 ignored`. Nothing new shows on screen; the first objects appear in lesson 04a, and these edits answer your clicks from lesson 12 on.
+```rust
+--8<-- "typing/code/03-003.rs"
+```
 
-## Recap
+<span id="code-03-004"></span>
 
-Select, colour and hide rewrite one 96-byte row, however large the object. A span says where an object's rows sit in each lane, so a shape edit can find and replace them; the dead count remembers what it left behind. Next, meshes arrive as the first lane with rows of their own.
+## `src/engine/gpu/mod.rs`
 
-Next: [04a · Meshes on the GPU](04a-meshes.md)
+Insert **after line 293** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        for pass in &mut self.passes {
+            pass.on_reset(ctx);
+        }
+        self.bounds = AABB::empty();
+```
+
+Keep these following lines:
+
+```rust
+    }
+
+    /// Forget every row and free the buffers.
+    pub fn release(&mut self) {
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/03-004.rs"
+```
+
+<span id="code-03-005"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 310** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        for pass in &mut self.passes {
+            pass.on_release(ctx, layouts);
+        }
+        self.bounds = AABB::empty();
+```
+
+Keep these following lines:
+
+```rust
+        self.retarget(false);
+    }
+}
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/03-005.rs"
+```
+
+<span id="code-03-006"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Append **after line 322** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/03-006.rs"
+```
+
+<span id="code-03-007"></span>
+
+## `src/engine/gpu/patch.rs`
+
+Editing a colour or transform should not require rebuilding all geometry. A patch records the affected range and writes the new bytes. Correct offsets and sizes matter as much as the new value.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/03-007.rs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 03
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native tests and locate one upload that carries both object rows and geometry rows. Point to the field that joins them.
+
+If the compiler cannot find `Upload`, keep the import at the top of the listing. A `use` line brings an existing name into this file; it does not create another copy of the data.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+One source object can produce many display triangles. We need the owning row and its source mapping to recover the original object.
+
+</details>
+
+[Next step: 04a](04a-meshes.md)

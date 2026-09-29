@@ -6,14 +6,12 @@ use std::rc::Rc;
 
 pub const SPEC: Draw = Draw {
     spec: Spec {
-        names: &["Polyline"],
-        aliases: &[],
-        hint: "Polyline · click points, or choose Rectangle / Polygon · Enter finishes",
         options: &["Polyline Points", "Polyline Rectangle", "Polyline Polygon"],
-        arity: None,
-        wait_for_option: false,
-        wait_after_option: false,
-        parse,
+        ..Spec::new(
+            &["Polyline"],
+            "Polyline · click points, or choose Rectangle / Polygon · Enter finishes",
+            parse,
+        )
     },
     points: 2..=MAX_POINTS,
     what: "polyline",

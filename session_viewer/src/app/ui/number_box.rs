@@ -64,6 +64,7 @@ impl super::Panel for Hooks {
         STATE.with_borrow(|model| model.number_prompt.is_some())
     }
 
+    #[cfg(target_arch = "wasm32")]
     fn field(&self, edit: &mut dyn FnMut(&mut String)) -> Option<&'static str> {
         STATE.with_borrow_mut(|model| {
             model.number_prompt.is_some().then(|| {

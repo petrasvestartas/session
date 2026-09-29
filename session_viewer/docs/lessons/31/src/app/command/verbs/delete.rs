@@ -2,14 +2,13 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Delete"],
     aliases: &["del"],
-    hint: "",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Delete"],
+        "",
+        parse,
+    )
 };
 
 /// Remove the selected objects.

@@ -1,43 +1,129 @@
-# 35 · Attributes On|Off
+# 35 · Element features
 
-Lesson 06 already draws an element's features, such as a beam's axis, inside the element's own row when the scene's `attributes` flag is on ([06, Steps 6 and 7](06-cad-contract.md)). This lesson adds the command that flips the flag: one method, one verb file and one registration line.
+**Estimated study time: about 3–6 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
 
-## Step 1 · src/state.rs
+**This section:** Show or hide element features through the shared display state.
 
-A new `impl State` block: set or flip the flag, then walk the editable rows again so the features appear or vanish.
+**In the whole viewer:** This is a display-generation choice for existing source elements, connected to the command system and selection handling.
 
-`lessons/35/src/state.rs` · type this, append at the end of the file
+**Follow the data:** Element Features command → state update → rebuilt display rows → redraw.
+
+**Start with these files:** [`src/app/command/verbs/attributes.rs`](35-attributes.md#code-35-002), [`src/state.rs`](35-attributes.md#code-35-005).
+
+**Aim to explain:** Why can rebuilding feature rows require clearing selection or controls?
+
+[Whole-viewer map and course milestones](map.md)
+
+Elements can carry visible features such as outlines, contacts and joints. The code uses the field name `attributes` for this display option. The `Element Features` command calls one state method to show or hide them. That method rebuilds display rows from the same source objects and clears the selection, so controls do not keep pointing at old rows.
+
+![Explicit value or toggle → Rebuild feature rows → Refresh selection and frame.](illustrations/35-practice.svg)
+
+Start from the working result of [step 33](33-contact-shadows.md).
+
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 189 lines across 5 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
+
+<span id="code-35-001"></span>
+
+## `src/app/command/tests.rs`
+
+Append **after line 360** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/35/src/state.rs:show-attributes"
+--8<-- "typing/code/35-001.rs"
 ```
 
-## Step 2 · src/app/command/verbs/attributes.rs
+<span id="code-35-002"></span>
 
-New file: the `Element Features` verb reads On, Off or nothing, and reports the state it ends in.
+## `src/app/command/verbs/attributes.rs`
 
-`lessons/35/src/app/command/verbs/attributes.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/35/src/app/command/verbs/attributes.rs:attributes-verb"
+--8<-- "typing/code/35-002.rs"
 ```
 
-## Step 3 · src/app/command/verbs/mod.rs
+<span id="code-35-003"></span>
 
-One entry in the verb list puts the command on the command line, with completion and help.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/35/src/app/command/verbs/mod.rs` · type the line tagged `register:attributes`
+Insert **after line 47** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/35/src/app/command/verbs/mod.rs:verbs-list"
+    fit,                     // register:fit
+    escape,                  // register:escape
+    layers,                  // register:layers
+    arrowhead,               // register:arrowhead
 ```
 
-Run `cargo check` in `lessons/35/`.
+Keep these following lines:
 
-## Check
+```rust
+    snap,                    // register:snap
+    arctic,                  // register:arctic
+    outline,                 // register:outline
+    object,                  // register:object
+```
 
-Load a scene with wood elements and type `Element Features On`: each element's axes and outlines appear, thick, inside it and move with it. `Element Features Off` removes them, and the verb alone toggles.
+Type these new lines:
 
-## Next
+```rust
+--8<-- "typing/code/35-003.rs"
+```
 
-[36 · Translucent faces and Opacity](36-translucent-faces.md)
+<span id="code-35-004"></span>
+
+## `src/app/ui/command_line/tests.rs`
+
+Append **after line 74** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/35-004.rs"
+```
+
+<span id="code-35-005"></span>
+
+## `src/state.rs`
+
+Append **after line 1016** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/35-005.rs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 35
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native element-feature tests. Enter `Element Features On`, repeat it, then enter `Element Features Off`. Ordinary boxes have no element features, so the test fixture you constructed is the useful example here. Source geometry stays intact; the display rows are rebuilt and selection is cleared.
+
+If two controls disagree about visibility, check whether both call this method or maintain separate flags.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+Those controls may refer to old display rows. They must not continue pointing into storage that the rebuild has changed.
+
+</details>
+
+[Next step: 36](36-translucent-faces.md)

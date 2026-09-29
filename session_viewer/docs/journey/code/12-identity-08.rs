@@ -1,0 +1,3 @@
+                scene.toggle_extra();
+                selected = selected.filter(|id| scene.contains(*id));
+                renderer.set_scene(&scene, selected);

@@ -1,3 +1,4 @@
+// --8<-- [start:pyramid]
 use crate::app::command::tool::shape::{
     self, Answer, Ask, BREP_MESH, Frame, Part, Shape, nonzero, positive,
 };
@@ -6,14 +7,12 @@ use session_rust::{BRep, Geometry, Point};
 use std::f64::consts::FRAC_1_SQRT_2;
 
 pub const SPEC: Spec = Spec {
-    names: &["Pyramid"],
-    aliases: &[],
-    hint: "Pyramid (Brep Mesh): base center, corner or edge length, height · Example: Pyramid 0,0,0 10 15",
     options: &["Pyramid Brep", "Pyramid Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Pyramid"],
+        "Pyramid (Brep Mesh): base center, corner or edge length, height · Example: Pyramid 0,0,0 10 15",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -148,3 +147,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:pyramid]

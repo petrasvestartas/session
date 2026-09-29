@@ -1,296 +1,691 @@
 # 32 · Ambient occlusion
 
-Ambient occlusion darkens creases and contacts by how much nearby geometry hides each point from the sky. Each object row already carries a radius, 5% of its half-diagonal, so a bolt and a building both get a contact shadow that fits.
+**Estimated study time: about 35–65 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
 
-![Contact shadows at the column bases of the floor model](screenshots/ssao-floor.png)
+**This section:** Estimate ambient occlusion using depth data and a depth pyramid.
 
-## Step 1 · registration lines
+**In the whole viewer:** This is a screen-space shading pass that reads existing frame information and changes the light response, not the source model.
 
-One line in `PASSES` adds the ambient pass, and two module lines add its file and the pass timer.
+**Follow the data:** Depth image → coarser depth levels → neighbourhood samples → occlusion → shaded frame.
 
-`lessons/32/src/engine/gpu/pass.rs` · type the line tagged `register:ambient`
+**Start with these files:** [`src/engine/gpu/ssao.rs`](32-colors-lighting.md#code-32-018), [`src/shaders/ambient_depth.wgsl`](32-colors-lighting.md#code-32-026).
 
-```rust
---8<-- "lessons/32/src/engine/gpu/pass.rs:passes"
-```
+**Aim to explain:** Why can a camera change require new occlusion work even if no geometry was edited?
 
-`lessons/32/src/engine/gpu/mod.rs` · type the lines tagged `register:ssao` and `register:timing`
+[Whole-viewer map and course milestones](map.md)
 
-```rust
---8<-- "lessons/32/src/engine/gpu/mod.rs:modules"
-```
+Ambient occlusion estimates how nearby geometry blocks light from the surroundings. Long searches are expensive at full resolution. A depth pyramid summarizes small groups of pixels into successively smaller images, letting distant samples inspect a coarser level.
 
-Copy the lines tagged `register:gtao` from these files of `lessons/32/`:
+![Scene depth → Depth pyramid → Horizon samples → Filter and composite.](illustrations/32-practice.svg)
 
-- `src/engine/gpu/mod.rs`: the `timer` field of `Gpu` and its `None` in the constructor.
-- `src/engine/gpu/present.rs`: resolve the timer before submit and collect it after the readback.
-- `src/engine/gpu/render.rs`: a mark between the frame's passes.
-- `src/engine/gpu/surface_outline.rs` and `src/engine/gpu/clip.rs`: marks inside the outline and clipping passes.
+Start from the working result of [step 31](31-splitting.md).
 
-## Step 2 · src/engine/gpu/timing.rs
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 2,901 lines across 16 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-New file: a pass timer that stamps the GPU clock at named marks and keeps milliseconds per span.
+<span id="code-32-001"></span>
 
-`lessons/32/src/engine/gpu/timing.rs` · type this, new file
+## `src/engine/gpu/ambient_warm.rs`
+
+Some GPU setup is expensive the first time it runs. Preparing resources ahead of use avoids putting all that work on an interactive frame. The warm-up path must still use the same formats and contracts as the real pass.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/32/src/engine/gpu/timing.rs:pass-timer"
+--8<-- "typing/code/32-001.rs"
 ```
 
-## Step 3 · src/engine/gpu/render.rs
+<span id="code-32-002"></span>
 
-A second `impl Gpu` block: `mark` stamps the clock only when a benchmark installed a timer.
+## `src/engine/gpu/clip.rs`
 
-`lessons/32/src/engine/gpu/render.rs` · type this, append at the end of the file
+Insert **after line 747** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/32/src/engine/gpu/render.rs:pass-marks"
+
+        if count > 0 {
+            let b = g.frame.binds(&g.objects.group);
+            draws += self.encode_count(encoder, &g.arena, &b, planes[count - 1]);
 ```
 
-## Step 4 · src/engine/gpu/present.rs
-
-A second `impl Gpu` block: resolve the timestamps before submit and read them back after, natively only.
-
-`lessons/32/src/engine/gpu/present.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/32/src/engine/gpu/present.rs:timer"
+        }
+
+        draws
+    }
 ```
 
-## Step 5 · src/shaders/ambient_geometry.wgsl
+Type these new lines:
 
-New file: the object rows and mesh buffers the AO shader reads, and the exact face normal under a pixel.
+```rust
+--8<-- "typing/code/32-002.rs"
+```
 
-`lessons/32/src/shaders/ambient_geometry.wgsl` · type this, new file
+<span id="code-32-003"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 26** of your current file.
+
+Keep these preceding lines:
+
+```rust
+pub mod present; // register:present
+pub mod render; // register:render
+pub mod segments; // register:segments
+pub mod splat; // register:splat
+```
+
+Keep these following lines:
+
+```rust
+pub mod surface_outline; // register:surface_outline
+pub mod targets; // register:targets
+pub mod text; // register:text
+pub mod text_outline; // register:text_outline
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-003.rs"
+```
+
+<span id="code-32-004"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 31** of your current file.
+
+Keep these preceding lines:
+
+```rust
+pub mod surface_outline; // register:surface_outline
+pub mod targets; // register:targets
+pub mod text; // register:text
+pub mod text_outline; // register:text_outline
+```
+
+Keep these following lines:
+
+```rust
+mod triangle_tiles; // register:triangle_tiles
+pub mod ui; // register:ui
+pub mod upload; // register:upload
+pub mod vectors; // register:vectors
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-004.rs"
+```
+
+<span id="code-32-005"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 99** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    dead_points: u32,    // cloud points retired and not yet reclaimed; register:clouds
+    pub splat: Splat,    // point cloud drawing; register:clouds
+    pub pick: Picker,    // reads object ids under the cursor; register:shell
+    pub performance: Performance, // frame timing
+```
+
+Keep these following lines:
+
+```rust
+    pub bounds: AABB,                     // world box of everything uploaded
+    device_type: wgpu::DeviceType,        // discrete, integrated or CPU
+    pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>, // first GPU error
+}
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-005.rs"
+```
+
+<span id="code-32-006"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 255** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            dead_points: 0,                 // register:clouds
+            splat,                          // register:clouds
+            pick: Picker::new(),            // register:shell
+            performance: Performance::new(),
+```
+
+Keep these following lines:
+
+```rust
+            bounds: AABB::empty(),
+            device_type,
+            failure,
+        };
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-006.rs"
+```
+
+<span id="code-32-007"></span>
+
+## `src/engine/gpu/pass.rs`
+
+Insert **after line 106** of your current file.
+
+Keep these preceding lines:
+
+```rust
+/// The passes in frame order. Adding one means its `Pass` impl in one file and one line here.
+pub const PASSES: &[fn(&GpuCtx, Target) -> Box<dyn Pass>] = &[
+    super::instanced::pass,       // register:instanced
+    super::clip::pass,            // register:clip
+```
+
+Keep these following lines:
+
+```rust
+    super::surface_outline::pass, // register:outline
+];
+
+// `pub(super)` = visible to the parent module, `gpu`, and no further.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-007.rs"
+```
+
+<span id="code-32-008"></span>
+
+## `src/engine/gpu/present.rs`
+
+Insert **after line 136** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                depth_or_array_layers: 1,
+            },
+        );
+```
+
+Keep these following lines:
+
+```rust
+        self.ctx.queue.submit([encoder.finish()]);
+        self.pick.map(); // register:shell
+        self.arena.tiles.map_report(); // register:tiles
+        log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-008.rs"
+```
+
+<span id="code-32-009"></span>
+
+## `src/engine/gpu/present.rs`
+
+Insert **after line 161** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+        drop(data);
+        readback.unmap();
+```
+
+Keep these following lines:
+
+```rust
+        out
+    }
+}
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-009.rs"
+```
+
+<span id="code-32-010"></span>
+
+## `src/engine/gpu/present.rs`
+
+Append **after line 245** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/32-010.rs"
+```
+
+<span id="code-32-011"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 13** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        encoder: &mut wgpu::CommandEncoder,
+        view: &wgpu::TextureView,
+        clear: wgpu::Color,
+    ) -> (u32, u32) {
+```
+
+Keep these following lines:
+
+```rust
+        self.each_pass(|pass, g| pass.prepare(g, encoder));
+
+        let tier = if self.view.ssao {
+            0
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-011.rs"
+```
+
+<span id="code-32-012"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 22** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        } else {
+            self.performance.drag_tier()
+        };
+        let rough = self.tile_passes(encoder, tier); // register:tiles
+```
+
+Keep these following lines:
+
+```rust
+        self.point_pass(encoder); // register:clouds
+
+        let frame = Frame {
+            view,
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-012.rs"
+```
+
+<span id="code-32-013"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 24** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        };
+        let rough = self.tile_passes(encoder, tier); // register:tiles
+        self.mark(encoder, "tiles"); // register:gtao
+        self.point_pass(encoder); // register:clouds
+```
+
+Keep these following lines:
+
+```rust
+
+        let frame = Frame {
+            view,
+            clear,
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-013.rs"
+```
+
+<span id="code-32-014"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 34** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            rough, // register:tiles
+        };
+        // pass 1: background, section caps, faces and clouds write depth
+        let mut draws = self.face_passes(encoder, &frame);
+```
+
+Keep these following lines:
+
+```rust
+        // pass 2: ambient occlusion and the outline masks, each pass in turn
+        self.each_pass(|pass, g| draws += pass.after_faces(g, encoder, &frame));
+        draws += self.ink_pass(encoder, view); // pass 3: lines, markers, outlines and text; register:ink
+        self.pending_pick(encoder); // a click waiting: draw the id pass now; register:shell
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-014.rs"
+```
+
+<span id="code-32-015"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 38** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        self.mark(encoder, "faces"); // register:gtao
+        // pass 2: ambient occlusion and the outline masks, each pass in turn
+        self.each_pass(|pass, g| draws += pass.after_faces(g, encoder, &frame));
+        draws += self.ink_pass(encoder, view); // pass 3: lines, markers, outlines and text; register:ink
+```
+
+Keep these following lines:
+
+```rust
+        self.pending_pick(encoder); // a click waiting: draw the id pass now; register:shell
+        draws += self.widget.draw(encoder, view, &self.targets); // gumball on top, own depth; register:gumball
+        self.draw_panels(encoder, view); // register:egui
+        (draws, self.objects.len())
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-015.rs"
+```
+
+<span id="code-32-016"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 42** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        self.mark(encoder, "ink"); // register:gtao
+        self.pending_pick(encoder); // a click waiting: draw the id pass now; register:shell
+        draws += self.widget.draw(encoder, view, &self.targets); // gumball on top, own depth; register:gumball
+        self.draw_panels(encoder, view); // register:egui
+```
+
+Keep these following lines:
+
+```rust
+        (draws, self.objects.len())
+    }
+
+    /// The first pass: each pass's own face passes, then the one the faces draw in.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-016.rs"
+```
+
+<span id="code-32-017"></span>
+
+## `src/engine/gpu/render.rs`
+
+Append **after line 474** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/32-017.rs"
+```
+
+<span id="code-32-018"></span>
+
+## `src/engine/gpu/ssao.rs`
+
+Screen-space ambient occlusion uses visible depth and normals to estimate how much nearby geometry blocks ambient light. It cannot see hidden geometry outside the image. Reprojection and filtering reduce noise, but must reject stale information after motion.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/32-018.rs"
+```
+
+<span id="code-32-019"></span>
+
+## `src/engine/gpu/ssao/pipelines.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+Blank lines before: **0**; after: **1**. End with a newline.
+
+```rust
+--8<-- "typing/code/32-019.rs"
+```
+
+<span id="code-32-020"></span>
+
+## `src/engine/gpu/ssao/tests.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/32-020.rs"
+```
+
+<span id="code-32-021"></span>
+
+## `src/engine/gpu/surface_outline.rs`
+
+Insert **after line 1001** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                if edges {
+                    draws += g.segments.draw_selection_mask(&mut pass, &ink);
+                }
+            }
+```
+
+Keep these following lines:
+
+```rust
+
+            if solid {
+                self.solid.encode_pool(encoder);
+                self.solid.mark_valid(key);
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-021.rs"
+```
+
+<span id="code-32-022"></span>
+
+## `src/engine/gpu/surface_outline.rs`
+
+Insert **after line 1013** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                self.selection.encode_pool(encoder);
+                self.selection.mark_valid(key);
+            }
+```
+
+Keep these following lines:
+
+```rust
+        }
+
+        self.solid.encode_alpha(&self.selection, encoder, stale);
+        draws
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-022.rs"
+```
+
+<span id="code-32-023"></span>
+
+## `src/engine/gpu/surface_outline.rs`
+
+Insert **after line 1017** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            g.mark(encoder, "pool"); // register:gtao
+        }
+
+        self.solid.encode_alpha(&self.selection, encoder, stale);
+```
+
+Keep these following lines:
+
+```rust
+        draws
+    }
+
+    fn over_ink(&self, _g: &Gpu, pass: &mut wgpu::RenderPass<'_>, _b: &Binds) -> u32 {
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/32-023.rs"
+```
+
+<span id="code-32-024"></span>
+
+## `src/engine/gpu/timing.rs`
+
+CPU submission time does not tell us how long the GPU spent drawing. Timestamp queries measure positions in the GPU command stream. Reading them back adds its own bookkeeping and may require an optional device feature.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/32-024.rs"
+```
+
+<span id="code-32-025"></span>
+
+## `src/shaders/ambient_composite.wgsl`
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```wgsl
---8<-- "lessons/32/src/shaders/ambient_geometry.wgsl:ambient-geometry"
+--8<-- "typing/code/32-025.wgsl"
 ```
 
-## Step 6 · src/shaders/ssao.wgsl
+<span id="code-32-026"></span>
 
-New file: the bindings of every AO pass, the camera uniform, and the full-screen triangle they all draw.
+## `src/shaders/ambient_depth.wgsl`
 
-`lessons/32/src/shaders/ssao.wgsl` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```wgsl
---8<-- "lessons/32/src/shaders/ssao.wgsl:ao-bindings"
+--8<-- "typing/code/32-026.wgsl"
 ```
 
-## Step 7 · src/shaders/ssao.wgsl
+<span id="code-32-027"></span>
 
-Rebuild a pixel's world point and ray, with a virtual floor under every empty pixel, and pack normals into two numbers.
+## `src/shaders/ambient_geometry.wgsl`
 
-`lessons/32/src/shaders/ssao.wgsl` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```wgsl
---8<-- "lessons/32/src/shaders/ssao.wgsl:ao-rays"
+--8<-- "typing/code/32-027.wgsl"
 ```
 
-## Step 8 · src/shaders/ssao.wgsl
+<span id="code-32-028"></span>
 
-Write the first pyramid level, position, packed radius and normal, and read an occluder back from any level.
+## `src/shaders/ssao.wgsl`
 
-`lessons/32/src/shaders/ssao.wgsl` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```wgsl
---8<-- "lessons/32/src/shaders/ssao.wgsl:ao-prepare"
+--8<-- "typing/code/32-028.wgsl"
 ```
 
-## Step 9 · src/shaders/ssao.wgsl
+<span id="code-32-029"></span>
 
-Floor shadows: how high the solids around each floor point rise above it, in 24 directions.
+## `tests/ambient-lighting.cjs`
 
-`lessons/32/src/shaders/ssao.wgsl` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
-```wgsl
---8<-- "lessons/32/src/shaders/ssao.wgsl:ao-ground"
+```javascript
+--8<-- "typing/code/32-029.cjs"
 ```
 
-## Step 10 · src/shaders/ssao.wgsl
+## Check the completed chapter
 
-The GTAO horizon search: four slices per pixel, turned into the share of sky that is blocked.
+From `session_viewer`, compare everything you have typed:
 
-`lessons/32/src/shaders/ssao.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/32/src/shaders/ssao.wgsl:ao-horizons"
+```sh
+npm --prefix ../session_tests run course -- reference-check 32
 ```
 
-## Step 11 · src/shaders/ssao.wgsl
+From `workspace/handwritten`:
 
-Two blurs that stay on one surface, the second blending in last frame's result where the same surface was seen.
-
-`lessons/32/src/shaders/ssao.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/32/src/shaders/ssao.wgsl:ao-filter"
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
 ```
 
-## Step 12 · src/shaders/ssao.wgsl
+Run the native ambient-lighting tests. Locate the reduction pass and trace one pixel block into its next pyramid level.
 
-Back to full resolution, with its own value for each MSAA sample that sees a different surface.
+If dark halos appear around silhouettes, inspect background handling and the reduction rule before increasing the shadow radius.
 
-`lessons/32/src/shaders/ssao.wgsl` · type this, append at the end of the file
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
 
-```wgsl
---8<-- "lessons/32/src/shaders/ssao.wgsl:ao-upsample"
-```
+<details>
+<summary>Check your explanation of the opening question</summary>
 
-## Step 13 · src/shaders/ambient_depth.wgsl
+The pass uses screen-space depths and neighbours. Changing the view changes those inputs even when the underlying source geometry stays the same.
 
-New file: build each coarser pyramid level, and mark the tiles that have geometry nearby.
+</details>
 
-`lessons/32/src/shaders/ambient_depth.wgsl` · type this, new file
-
-```wgsl
---8<-- "lessons/32/src/shaders/ambient_depth.wgsl:ambient-depth"
-```
-
-## Step 14 · src/shaders/ambient_composite.wgsl
-
-New file: darken the frame by the AO cache, and correct single MSAA samples inside flagged tiles.
-
-`lessons/32/src/shaders/ambient_composite.wgsl` · type this, new file
-
-```wgsl
---8<-- "lessons/32/src/shaders/ambient_composite.wgsl:ambient-composite"
-```
-
-## Step 15 · src/engine/gpu/ssao.rs
-
-New file: the pipelines the effect needs, and two helpers for bind group layout entries.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, new file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-layouts"
-```
-
-## Step 16 · src/engine/gpu/ssao.rs
-
-Compile every AO pipeline for one colour format and one sample count.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-pipelines"
-```
-
-## Step 17 · src/engine/gpu/ssao.rs
-
-Keep the 1x and 4x pipelines: natively compiled on first use, in the browser during idle time.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-cache"
-```
-
-## Step 18 · src/engine/gpu/ssao.rs
-
-Small helpers: an owned texture, the pyramid bind group, a colour attachment, and the AO resolution.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-images"
-```
-
-## Step 19 · src/engine/gpu/ssao.rs
-
-The images and buffers at one canvas size; `impl Ssao` opens with the floor height under the visible solids.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-struct"
-```
-
-## Step 20 · src/engine/gpu/ssao.rs
-
-Inside `impl Ssao`: allocate the pyramid, the working images, the history and the 4x correction buffers.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-new"
-```
-
-## Step 21 · src/engine/gpu/ssao.rs
-
-Inside `impl Ssao`: report the memory, and tell when a resize or an MSAA change needs new images.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-bytes"
-```
-
-## Step 22 · src/engine/gpu/ssao.rs
-
-Record every AO pass when the camera or scene changed, then blend the cache; the closing brace ends `impl Ssao`.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-draw"
-```
-
-## Step 23 · src/engine/gpu/ssao.rs
-
-The screen rectangle of the solids, the 1x and 4x shader source, the pixel rays, and a precise inverse matrix.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-math"
-```
-
-## Step 24 · src/engine/gpu/ssao.rs
-
-Tests: contact shading and memory release, no compiling after toggles, and the same image through a drag.
-
-`lessons/32/src/engine/gpu/ssao.rs` · copy, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ssao-tests"
-```
-
-## Step 25 · src/engine/gpu/ssao.rs
-
-The pass: allocate on switch-on, draw after the faces at the same quality while navigating, drop the images on switch-off.
-
-`lessons/32/src/engine/gpu/ssao.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ssao.rs:ambient-pass"
-```
-
-## Step 26 · src/engine/gpu/ambient_warm.rs
-
-New file: the browser's idle-time compile job, and the two calls `ssao.rs` makes into it.
-
-`lessons/32/src/engine/gpu/ambient_warm.rs` · type this, new file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ambient_warm.rs:warm-job"
-```
-
-## Step 27 · src/engine/gpu/ambient_warm.rs
-
-Request an idle callback that compiles one sample count, and ask again until both are ready.
-
-`lessons/32/src/engine/gpu/ambient_warm.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/32/src/engine/gpu/ambient_warm.rs:warm-idle"
-```
-
-Copy `tests/ambient-lighting.cjs` from `lessons/32/`: a browser check of real WebGPU, contact lighting, projection changes and released memory.
-
-Run `cargo check` in `lessons/32/`.
-
-## Check
-
-`cargo check` compiles, and `cargo xtest --lib ssao` passes. Serve the lesson, open a scene and press G: creases and the floor under each solid darken, and the shading stays the same while you orbit. The [ambient occlusion reference](ssao.md) lists its resolution, memory and timings.
+[Next step: 33](33-contact-shadows.md)

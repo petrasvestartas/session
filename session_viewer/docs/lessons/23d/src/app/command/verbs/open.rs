@@ -2,14 +2,12 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Open"],
-    aliases: &[],
-    hint: "Open restores a saved .session file",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Open"],
+        "Open restores a saved .session file",
+        parse,
+    )
 };
 
 /// Load a saved .session file.

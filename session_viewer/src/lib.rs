@@ -6,7 +6,10 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen(start)]
 pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
     // panics print to the console
-    console_error_panic_hook::set_once();
+    std::panic::set_hook(Box::new(|info| {
+        app::feedback::diagnostic("fatal", &info.to_string());
+        console_error_panic_hook::hook(info);
+    }));
     engine::performance::mark("wasm entry"); // register:frame
     start(); // register:shell
     Ok(())
@@ -99,6 +102,11 @@ impl App {
 
     /// Take the ready state, size it to the canvas, draw.
     fn adopt(&mut self, mut state: State) {
+        if state.gpu_failed() {
+            self.state = Some(state);
+            return;
+        }
+
         // match the canvas pixel size
         if let Some((w, h)) = desired_canvas_size() {
             let _ = state.resize(w, h);
@@ -163,6 +171,10 @@ impl ApplicationHandler<Msg> for App {
         };
         let Some(state) = &mut self.state else { return };
 
+        if state.gpu_failed() {
+            return;
+        }
+
         match msg {
             Msg::Ready(_) => {}
             Msg::Clear => state.clear(),
@@ -192,6 +204,10 @@ impl ApplicationHandler<Msg> for App {
 
     /// Handle one window event: redraw, resize, key or mouse.
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
+        if self.state.as_mut().is_some_and(State::gpu_failed) {
+            return;
+        }
+
         let taken = self.panels_take(&event); // the panels get the event first; register:egui
         let Some(state) = &mut self.state else { return };
 

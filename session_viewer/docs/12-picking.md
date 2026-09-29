@@ -1,849 +1,843 @@
 # 12 · The viewer shell and picking
 
-Picking draws each object's row number instead of its colour into a small window around the cursor and reads that window back a frame later. Around it this lesson builds the shell: the scene's row tables, State, keys, mouse and touch.
+**Estimated study time: about 55–110 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Connect browser events, redraw requests and asynchronous picking.
+
+**In the whole viewer:** The shell now links the user to application state and the renderer. Scene startup is connected in step 14.
+
+**Follow the data:** Pointer event → state request → GPU ID pass → source lookup → selection and redraw.
+
+**Start with these files:** [`src/lib.rs`](12-picking.md#code-12-002), [`src/state.rs`](12-picking.md#code-12-037), [`src/engine/gpu/pick.rs`](12-picking.md#code-12-028).
+
+**Aim to explain:** Why must an old pick result be rejected after the camera or scene changes?
+
+[Whole-viewer map and course milestones](map.md)
+
+To pick an object, we draw identifiers into a hidden image. A mouse position selects one of its pixels. The CPU cannot read GPU memory immediately: it requests a mapping, waits for completion, copies the useful bytes, then unmaps the buffer.
 
 ![A pointer release becomes a scissored ID window, an asynchronous bounded readback, a Scene lookup and a selected flag; stale generations are dropped.](illustrations/picking.svg)
 
-## Step 1 · src/engine/gpu/pick.rs
+Start from the working result of [step 11](11-text-rendering.md).
 
-The pick answer, the id textures, and the small window of pixels around the cursor that one pick reads.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 5,255 lines across 23 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/12/src/engine/gpu/pick.rs` · type this, new file
+<span id="code-12-001"></span>
 
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:pick-window"
-```
+## `index.html`
 
-## Step 2 · src/engine/gpu/pick.rs
+Insert **after line 196** of your current file.
 
-The Picker: one request at a time, a generation counter against late answers, and a readback buffer made on first use.
+Keep these preceding lines:
 
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:picker"
+```html
+    app/route.rs; their manifests and geometry are fetched from the configured data host. -->
+    <link data-trunk rel="copy-dir" href="assets/pb" data-target-path="pb"/>
+    <!-- The ONE local manifest. Every other scene is opened from the R2 bucket with
+    ?scene=scenes/view_<name>.yaml and is never copied into dist. -->
 ```
 
-## Step 3 · src/engine/gpu/pick.rs
+Keep these following lines:
 
-A native-only copy of the whole id frame, which the offscreen tests wait for and read.
-
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:id-readback"
+```html
+    <div id="viewer-error" role="alert" hidden>
+      <p id="viewer-error-message"></p>
+      <button type="button" onclick="location.reload()">Reload viewer</button>
+    </div>
 ```
-
-## Step 4 · src/engine/gpu/pick.rs
 
-Open `impl Picker`: request, configure, cancel, the paged source point query and the pending request.
+Type these new lines:
 
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:picker-request"
+```html
+--8<-- "typing/code/12-001.html"
 ```
-
-## Step 5 · src/engine/gpu/pick.rs
-
-The id pass targets, sized to the window, and a second pass that adds ink ids over them.
 
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+<span id="code-12-002"></span>
 
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:picker-passes"
-```
+## `src/lib.rs`
 
-## Step 6 · src/engine/gpu/pick.rs
+Insert **after line 12** of your current file.
 
-Copy the window out, map it after submit and poll for the answer frames later; the brace closes the impl.
+Keep these preceding lines:
 
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:picker-readback"
+pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
+    // a panic then prints its message to the browser console instead of a bare `unreachable`
+    console_error_panic_hook::set_once();
+    engine::performance::mark("wasm entry"); // a named point on the browser's performance timeline; register:frame
 ```
-
-## Step 7 · src/engine/gpu/pick.rs
-
-Choose the hit, ink before faces and then the nearest pixel; ids are one-based, so 0 means nothing.
 
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:pick-helpers"
-```
-
-## Step 8 · src/engine/gpu/pick.rs
-
-Tests: the window stays inside the canvas, and ink beats faces before distance counts.
-
-`lessons/12/src/engine/gpu/pick.rs` · copy, append at the end of the file
+    Ok(())
+}
 
-```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:pick-tests"
+// `macro_rules!` makes a macro, code that writes code; it must come before the `mod` lines that use it.
 ```
-
-## Step 9 · src/engine/gpu/pick.rs
 
-Implement the `Lane` trait, so the GPU resets the picker and counts its memory with the lanes.
+Type these new lines:
 
-`lessons/12/src/engine/gpu/pick.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/engine/gpu/pick.rs:pick-lane"
+--8<-- "typing/code/12-002.rs"
 ```
+
+<span id="code-12-003"></span>
 
-## Step 10 · src/engine/gpu/render.rs
+## `src/lib.rs`
 
-The id pass: faces and clouds over the window and its halo, then ink tested against that depth, then the copy.
+Append **after line 35** of your current file.
 
-`lessons/12/src/engine/gpu/render.rs` · type this, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/12/src/engine/gpu/render.rs:id-pass"
+--8<-- "typing/code/12-003.rs"
 ```
 
-## Step 11 · src/engine/gpu/present.rs
+<span id="code-12-004"></span>
 
-A frame that runs only the id pass for a pick, and a whole-frame id render for native tests.
+## `assets/view_local.yaml`
 
-`lessons/12/src/engine/gpu/present.rs` · type this, append at the end of the file
+This short YAML file points to a small box scene. The model bytes are a data asset, while this manifest is configuration you type. The loader resolves the listed file and publishes its objects.
 
-```rust
---8<-- "lessons/12/src/engine/gpu/present.rs:pick-frame"
+Create this file. Type the complete listing, including comments and blank lines.
+
+```yaml
+--8<-- "typing/code/12-004.yaml"
 ```
 
-## Step 12 · src/app/selection.rs
+<span id="code-12-005"></span>
 
-What is selected inside one object: the whole object, one edge, one face or its control points.
+## `src/app/feedback.rs`
 
-`lessons/12/src/app/selection.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/12/src/app/selection.rs:selection-mode"
+--8<-- "typing/code/12-005.rs"
 ```
-
-## Step 13 · src/app/selection.rs
-
-One control point, an object's list of them with their net lines, and the start of `impl Controls`.
 
-`lessons/12/src/app/selection.rs` · type this, append at the end of the file
+<span id="code-12-006"></span>
 
-```rust
---8<-- "lessons/12/src/app/selection.rs:controls"
-```
+## `src/app/gesture/mod.rs`
 
-## Step 14 · src/app/selection.rs
+A pointer movement means different things after clicking a handle, a control point or an object. A gesture records what began and keeps that interpretation until commit or cancel. Switching interpretation midway can move the wrong thing.
 
-Collect the controls of each geometry kind, from line ends and polyline vertices to elements.
+Create this file. Type the complete listing, including comments and blank lines.
 
-`lessons/12/src/app/selection.rs` · type this, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/12/src/app/selection.rs:controls-geometry"
+--8<-- "typing/code/12-006.rs"
 ```
 
-## Step 15 · src/app/selection.rs
+<span id="code-12-007"></span>
 
-Mesh vertices, BRep parts, and the control polygons and nets of curves and surfaces; the brace closes the impl.
+## `src/app/input.rs`
 
-`lessons/12/src/app/selection.rs` · type this, append at the end of the file
+Raw pointer and keyboard events arrive before we know their meaning. Input routing considers focus, active tools, modifiers and panels. One physical event should not accidentally trigger both UI and scene editing.
 
+Create this file. Type the complete listing, including comments and blank lines.
+
 ```rust
---8<-- "lessons/12/src/app/selection.rs:controls-nets"
+--8<-- "typing/code/12-007.rs"
 ```
 
-## Step 16 · src/app/selection.rs
+<span id="code-12-008"></span>
 
-Tests: a new parent replaces a sub-selection, and a line's controls are its two ends.
+## `src/app/inspection.rs`
 
-`lessons/12/src/app/selection.rs` · copy, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/12/src/app/selection.rs:selection-tests"
+--8<-- "typing/code/12-008.rs"
 ```
 
-## Step 17 · src/app/selection.rs
+<span id="code-12-009"></span>
 
-What a click selects: whole objects, edges or faces.
+## `src/app/keys.rs`
 
-`lessons/12/src/app/selection.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/12/src/app/selection.rs:selection-tool"
+--8<-- "typing/code/12-009.rs"
 ```
 
-## Step 18 · src/app/scene_rows.rs
+<span id="code-12-010"></span>
 
-Special row owners, and the note bits an edit uses to say what it changed.
+## `src/app/mod.rs`
 
-`lessons/12/src/app/scene_rows.rs` · type this, new file
+Insert **after line 2** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/12/src/app/scene_rows.rs:rows-owners"
+// `pub mod x;` makes src/app/x.rs part of the crate; each lesson adds the one line of the module it teaches.
+// `#[cfg(target_arch = "wasm32")]` above a line compiles that module for the browser only.
 ```
-
-## Step 19 · src/app/scene_rows.rs
 
-Where an object's rows sit in the lanes, spare capacity, per-document state and one edit's note.
+Keep these following lines:
 
-`lessons/12/src/app/scene_rows.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/app/scene_rows.rs:rows-footprint"
+pub mod knobs; // register:knobs
+pub mod walk; // register:walk
 ```
-
-## Step 20 · src/app/scene_rows.rs
 
-A deleted object's hidden rows, and the GPU work one sync stages.
+Type these new lines:
 
-`lessons/12/src/app/scene_rows.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/app/scene_rows.rs:rows-staged"
+--8<-- "typing/code/12-010.rs"
 ```
+
+<span id="code-12-011"></span>
 
-## Step 21 · src/app/scene_rows.rs
+## `src/app/mod.rs`
 
-The side table for footprints that span several lanes, with slots that are reused.
+Insert **after line 9** of your current file.
 
-`lessons/12/src/app/scene_rows.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/12/src/app/scene_rows.rs:rows-spans"
+#[cfg(any(target_arch = "wasm32", test))] // register:inspection
+pub mod inspection; // register:inspection
+pub mod keys; // register:keys
+pub mod knobs; // register:knobs
 ```
 
-## Step 22 · src/app/scene_rows.rs
+Keep these following lines:
 
-Freed row ids, handed out again only after the sync that freed them.
-
-`lessons/12/src/app/scene_rows.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/app/scene_rows.rs:rows-ids"
+pub mod walk; // register:walk
 ```
-
-## Step 23 · src/app/scene_rows.rs
-
-Tests: a footprint is 12 bytes, and freed ids come back last-freed first after the sync.
 
-`lessons/12/src/app/scene_rows.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/12/src/app/scene_rows.rs:rows-tests"
+--8<-- "typing/code/12-011.rs"
 ```
 
-## Step 24 · src/app/scene.rs
+<span id="code-12-012"></span>
 
-The row modules, a loaded file, what a pick landed on, and the list of row namers.
+## `src/app/route.rs`
 
-`lessons/12/src/app/scene.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:scene-types"
+--8<-- "typing/code/12-012.rs"
 ```
 
-## Step 25 · src/app/scene.rs
+<span id="code-12-013"></span>
 
-The Scene: documents, hidden, locked and coloured objects, and the tables that map row ids to objects.
+## `src/app/scene.rs`
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+The scene connects source objects, display rows and resource ownership. These are related but not interchangeable. One source object may create several rows, and a row is not a durable document identifier.
 
+Create this file. Type the complete listing, including comments and blank lines.
+
 ```rust
---8<-- "lessons/12/src/app/scene.rs:scene-struct"
+--8<-- "typing/code/12-013.rs"
 ```
 
-## Step 26 · src/app/scene.rs
+<span id="code-12-014"></span>
 
-Open `impl Scene`: an empty scene, clearing it, and forgetting every row.
+## `src/app/scene_rows.rs`
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:scene-new"
+--8<-- "typing/code/12-014.rs"
 ```
+
+<span id="code-12-015"></span>
 
-## Step 27 · src/app/scene.rs
+## `src/app/selection.rs`
 
-Upload: the staged edits first, then the newly walked rows appended to the GPU.
+Selection is a set of identities, not a colour painted onto the model. Highlighting is a consequence of that set. Add, replace and clear operations have different meanings, especially with modifier keys.
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:scene-upload"
+--8<-- "typing/code/12-015.rs"
 ```
 
-## Step 28 · src/app/scene.rs
+<span id="code-12-016"></span>
 
-Add a file: one row per drawable object, walked into GPU rows, then the flat-sheet test.
+## `src/app/touch.rs`
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+Touch input has identities and can involve several contacts at once. A one-finger action and a two-finger camera gesture need distinct state. Browser scrolling must not steal a gesture after the viewer has started handling it.
 
+Create this file. Type the complete listing, including comments and blank lines.
+
 ```rust
---8<-- "lessons/12/src/app/scene.rs:scene-add"
+--8<-- "typing/code/12-016.rs"
 ```
 
-## Step 29 · src/app/scene.rs
+<span id="code-12-017"></span>
 
-Questions about a row: what a pick hit, its document, geometry, name, edge, faces and cloud point; the brace closes the impl.
+## `src/engine/gpu/mod.rs`
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+Insert **after line 19** of your current file.
 
-```rust
---8<-- "lessons/12/src/app/scene.rs:scene-lookup"
-```
+Keep these preceding lines:
 
-## Step 30 · src/app/scene.rs
+```rust
 
-An object's placement, the attribute copies that get no row, and kills joined into runs per lane.
+pub mod lane; // register:lane
+pub mod pass; // register:pass
+pub(crate) mod patch; // register:patch
+```
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:scene-helpers"
+pub mod present; // register:present
+pub mod render; // register:render
+pub mod segments; // register:segments
+pub mod splat; // register:splat
 ```
-
-## Step 31 · src/app/scene.rs
-
-Tests: duplicate guids stay two objects, shared sessions split on edit, and kills merge into runs.
 
-`lessons/12/src/app/scene.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/12/src/app/scene.rs:scene-tests"
+--8<-- "typing/code/12-017.rs"
 ```
 
-## Step 32 · src/app/scene.rs
+<span id="code-12-018"></span>
 
-The key of the tree a node cache was filled from.
+## `src/engine/gpu/mod.rs`
 
-`lessons/12/src/app/scene.rs` · type this, append at the end of the file
+Insert **after line 47** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/12/src/app/scene.rs:scene-tree-key"
+use lane::{Lane, RowLane};
+use objects::InkScene; // register:ink
+use objects::InstanceTable;
+use pass::Pass;
 ```
-
-## Step 33 · src/app/feedback.rs
 
-The status line, download progress and the error panel, all plain elements of the page.
+Keep these following lines:
 
-`lessons/12/src/app/feedback.rs` · type this, new file
-
 ```rust
---8<-- "lessons/12/src/app/feedback.rs:feedback-status"
+use segments::SegmentLane; // register:strokes
+use splat::Splat; // register:clouds
+use targets::Targets;
 ```
-
-## Step 34 · src/app/feedback.rs
 
-Give the canvas keyboard focus; natively there is nothing to focus.
+Type these new lines:
 
-`lessons/12/src/app/feedback.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/app/feedback.rs:feedback-focus"
+--8<-- "typing/code/12-018.rs"
 ```
+
+<span id="code-12-019"></span>
 
-## Step 35 · src/app/feedback.rs
+## `src/engine/gpu/mod.rs`
 
-The rows of the layers panel and of the graph table.
+Insert **after line 57** of your current file.
 
-`lessons/12/src/app/feedback.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/12/src/app/feedback.rs:feedback-rows"
+pub use frame::FrameInput;
+pub use glyphs::GlyphPoint; // register:markers
+pub use instance::Instance;
+pub use objects::{ObjectRow, Rebase};
 ```
 
-## Step 36 · src/app/route.rs
+Keep these following lines:
 
-Where scenes come from: the public bucket, the local scene, and a scene route.
-
-`lessons/12/src/app/route.rs` · type this, new file
-
 ```rust
---8<-- "lessons/12/src/app/route.rs:route-consts"
+pub use segments::CylinderSegment; // register:strokes
+pub use upload::Upload;
+pub use view::View;
 ```
-
-## Step 37 · src/app/route.rs
 
-Read the page URL: integer knobs, localhost, the scene in the path, and a safe `?scene=`.
+Type these new lines:
 
-`lessons/12/src/app/route.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/app/route.rs:route-query"
+--8<-- "typing/code/12-019.rs"
 ```
+
+<span id="code-12-020"></span>
 
-## Step 38 · src/app/route.rs
+## `src/engine/gpu/mod.rs`
 
-Turn a scene name into its manifest URL and the prefix of its files.
+Insert **after line 76** of your current file.
 
-`lessons/12/src/app/route.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/12/src/app/route.rs:route-scene"
+    pub backdrop: BackdropLane,                  // background and grid
+    pub arena: ArenaLane,                        // meshes; register:meshes
+    pub segments: SegmentLane,                   // lines; register:strokes
+    pub glyphs: GlyphLane,                       // markers and dots; register:markers
 ```
-
-## Step 39 · src/app/route.rs
-
-After a lost GPU device, reload once at device scale 1 and show the reason.
 
-`lessons/12/src/app/route.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/12/src/app/route.rs:route-recovery"
+    pub text: text::TextLane,                    // labels; register:text
+    pub selection_revision: u64,                 // bumps on every selection change
+    pub logical_size: [f64; 2],                  // canvas size in CSS pixels
+    pub cloud: CloudLane,                        // point cloud buffers; register:clouds
 ```
 
-## Step 40 · src/state/features.rs
+Type these new lines:
 
-The Features sub-struct, empty for now: each later feature adds one field line here.
-
-`lessons/12/src/state/features.rs` · type this, new file
-
 ```rust
---8<-- "lessons/12/src/state/features.rs:features-struct"
+--8<-- "typing/code/12-020.rs"
 ```
 
-## Step 41 · src/state/features.rs
+<span id="code-12-021"></span>
 
-Four hook lists, also empty: before picks, after picks, pick takers and click wideners.
+## `src/engine/gpu/mod.rs`
 
-`lessons/12/src/state/features.rs` · type this, append at the end of the file
+Insert **after line 87** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/12/src/state/features.rs:features-hooks"
+    passes: Vec<Box<dyn Pass>>,                  // passes from pass::PASSES, in frame order
+    dead: patch::Counts, // editable rows retired and not yet reclaimed; register:patch
+    dead_points: u32,    // cloud points retired and not yet reclaimed; register:clouds
+    pub splat: Splat,    // point cloud drawing; register:clouds
 ```
-
-## Step 42 · src/state.rs
-
-State holds the window, GPU, camera, scene and selection, plus the Features sub-struct.
 
-`lessons/12/src/state.rs` · type this, new file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/12/src/state.rs:state-struct"
+    pub performance: Performance, // frame timing
+    pub bounds: AABB,                     // world box of everything uploaded
+    device_type: wgpu::DeviceType,        // discrete, integrated or CPU
+    pub failure: std::sync::Arc<std::sync::Mutex<Option<String>>>, // first GPU error
 ```
 
-## Step 43 · src/state.rs
+Type these new lines:
 
-Open `impl State`: open the GPU and upload the scene rows once.
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/state.rs:state-new"
+--8<-- "typing/code/12-021.rs"
 ```
 
-## Step 44 · src/state.rs
+<span id="code-12-022"></span>
 
-Canvas size, appending and clearing documents, and fitting the camera to everything or the selection.
+## `src/engine/gpu/mod.rs`
 
-`lessons/12/src/state.rs` · type this, append at the end of the file
+Insert **after line 105** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/12/src/state.rs:state-scene"
+            backdrop,          // register:backdrop
+            arena,             // register:meshes
+            segments,          // register:strokes
+            glyphs,            // register:markers
 ```
-
-## Step 45 · src/state.rs
 
-Resize at most every 100 ms, cloud point size, x-ray, and `touch` after any change.
+Keep these following lines:
 
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/state.rs:state-resize"
+            text,              // register:text
+            cloud,             // register:clouds
+            splat,             // register:clouds
+        )
 ```
-
-## Step 46 · src/state.rs
 
-Select one row, several rows or a click's whole group; hide the selection and show everything.
+Type these new lines:
 
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/state.rs:state-select"
+--8<-- "typing/code/12-022.rs"
 ```
+
+<span id="code-12-023"></span>
 
-## Step 47 · src/state.rs
+## `src/engine/gpu/mod.rs`
 
-Apply a pick answer: waiting features first, then an edge, face, control or object selection.
+Insert **after line 110** of your current file.
 
-`lessons/12/src/state.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/12/src/state.rs:state-apply-pick"
+            control_net,       // register:shell
+            text,              // register:text
+            cloud,             // register:clouds
+            splat,             // register:clouds
 ```
 
-## Step 48 · src/state.rs
+Keep these following lines:
 
-One frame: hooks, GPU errors, the pick answer, the anchored camera, present, then a waiting pick frame.
-
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/state.rs:state-render"
+        )
+    };
+}
 ```
-
-## Step 49 · src/state.rs
-
-Request a pick of the right kind, Esc, the status line and the perf line; the brace closes the impl.
 
-`lessons/12/src/state.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/12/src/state.rs:state-request"
+--8<-- "typing/code/12-023.rs"
 ```
 
-## Step 50 · src/state.rs
+<span id="code-12-024"></span>
 
-The control points as JSON for browser tests, and a position as the f32 the GPU takes.
+## `src/engine/gpu/mod.rs`
 
-`lessons/12/src/state.rs` · type this, append at the end of the file
+Insert **after line 195** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/12/src/state.rs:state-inspect"
+        let objects = InstanceTable::new(&ctx, &layouts);
+        let backdrop = BackdropLane::new(&ctx, &layouts, target);
+        let segments = SegmentLane::new(&ctx, &layouts, target); // register:strokes
+        let glyphs = GlyphLane::new(&ctx, &layouts, target); // register:markers
 ```
-
-## Step 51 · src/state.rs
 
-Keep the selected rows in the order they were picked.
+Keep these following lines:
 
-`lessons/12/src/state.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/state.rs:state-order"
+        let text = text::TextLane::new(&ctx, target); // register:text
+        let cloud = CloudLane::new(&ctx); // register:clouds
+        let splat = Splat::new(&ctx, &layouts, target, cloud.buffers()); // register:clouds
+        // each registered lane builds itself through its `make` function
 ```
-
-## Step 52 · src/state.rs
-
-Test: the selection keeps pick order.
 
-`lessons/12/src/state.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/12/src/state.rs:state-tests"
+--8<-- "typing/code/12-024.rs"
 ```
 
-## Step 53 · src/app/keys.rs
+<span id="code-12-025"></span>
 
-A key binding: the key, the modifiers it needs and the function it runs.
+## `src/engine/gpu/mod.rs`
 
-`lessons/12/src/app/keys.rs` · type this, new file
+Insert **after line 227** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/12/src/app/keys.rs:keys-binding"
+            backdrop,
+            arena,       // register:meshes
+            segments,    // register:strokes
+            glyphs,      // register:markers
 ```
-
-## Step 54 · src/app/keys.rs
 
-Two builders for the table: a plain character press and a named key.
+Keep these following lines:
 
-`lessons/12/src/app/keys.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/app/keys.rs:keys-builders"
+            text,        // register:text
+            selection_revision: 0,
+            logical_size: [size.0 as f64, size.1 as f64],
+            cloud, // register:clouds
 ```
-
-## Step 55 · src/app/keys.rs
 
-Every shortcut, first match wins: projection, standard views, display toggles, hide, show and x-ray.
+Type these new lines:
 
-`lessons/12/src/app/keys.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/app/keys.rs:keys-table"
+--8<-- "typing/code/12-025.rs"
 ```
+
+<span id="code-12-026"></span>
 
-## Step 56 · src/app/gesture/mod.rs
+## `src/engine/gpu/mod.rs`
 
-The Gesture registry: left-button tools tried in order, empty until lesson 21.
+Insert **after line 238** of your current file.
 
-`lessons/12/src/app/gesture/mod.rs` · type this, new file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/12/src/app/gesture/mod.rs:gesture-table"
+            passes,
+            dead: patch::Counts::default(), // register:patch
+            dead_points: 0,                 // register:clouds
+            splat,                          // register:clouds
 ```
 
-## Step 57 · src/app/gesture/mod.rs
+Keep these following lines:
 
-Find the first tool that takes a press, or a plain press dragged past the click slop.
-
-`lessons/12/src/app/gesture/mod.rs` · type this, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/app/gesture/mod.rs:gesture-find"
+            performance: Performance::new(),
+            bounds: AABB::empty(),
+            device_type,
+            failure,
 ```
-
-## Step 58 · src/app/gesture/mod.rs
 
-Test: the tools are tried control, gizmo, object.
+Type these new lines:
 
-`lessons/12/src/app/gesture/mod.rs` · copy, append at the end of the file
-
 ```rust
---8<-- "lessons/12/src/app/gesture/mod.rs:gesture-tests"
+--8<-- "typing/code/12-026.rs"
 ```
 
-## Step 59 · src/app/touch.rs
+<span id="code-12-027"></span>
 
-Touch thresholds, what one touch event asks for, and the fingers on the screen.
+## `src/engine/gpu/mod.rs`
 
-`lessons/12/src/app/touch.rs` · type this, new file
+Insert **after line 352** of your current file.
 
-```rust
---8<-- "lessons/12/src/app/touch.rs:touch-types"
-```
+Keep these preceding lines:
 
-## Step 60 · src/app/touch.rs
+```rust
+        }
 
-Open `impl Touches`: a finger lands, moves, lifts or is taken away by the browser.
+        self.retarget(true);
+        self.splat.resize(); // register:clouds
+```
 
-`lessons/12/src/app/touch.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/12/src/app/touch.rs:touch-event"
-```
+    }
 
-## Step 61 · src/app/touch.rs
-
-One finger orbits; two pan by their midpoint and zoom by their distance.
+    /// Forget every row; keep the buffers.
+    pub fn reset(&mut self) {
+```
 
-`lessons/12/src/app/touch.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/12/src/app/touch.rs:touch-moved"
+--8<-- "typing/code/12-027.rs"
 ```
+
+<span id="code-12-028"></span>
 
-## Step 62 · src/app/touch.rs
+## `src/engine/gpu/pick.rs`
 
-A lift may be a tap or a double tap; the brace closes the impl.
+A pick render writes object identifiers instead of display colours. Readback returns the identifier under the pointer. This must use the same camera and visibility rules as drawing, or it can select something the user cannot see.
 
-`lessons/12/src/app/touch.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/12/src/app/touch.rs:touch-lifted"
+--8<-- "typing/code/12-028.rs"
 ```
 
-## Step 63 · src/app/touch.rs
+<span id="code-12-029"></span>
 
-`Default` for Touches, the same as `new`.
+## `src/engine/gpu/present.rs`
 
-`lessons/12/src/app/touch.rs` · type this, append at the end of the file
+Insert **after line 57** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/12/src/app/touch.rs:touch-default"
+        let encode_ms = crate::engine::performance::now_ms() - t0;
+        // submit: the GPU starts on the recorded commands while the CPU moves on
+        self.ctx.queue.submit([encoder.finish()]);
+        // start reading back any pick copied this frame
 ```
-
-## Step 64 · src/app/input.rs
 
-Mouse, keyboard and finger state kept between events.
+Keep these following lines:
 
-`lessons/12/src/app/input.rs` · type this, new file
-
 ```rust
---8<-- "lessons/12/src/app/input.rs:input-struct"
-```
+        output.present();
 
-## Step 65 · src/app/input.rs
-
-`Default`, and `impl Input` opened with nothing held.
+        // startup marks; the GPU-side one also times the pipelines the first frames compiled
+        let mut geometry = false;
+```
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:input-new"
+--8<-- "typing/code/12-029.rs"
 ```
 
-## Step 66 · src/app/input.rs
+<span id="code-12-030"></span>
 
-A key press runs the first binding that matches it.
+## `src/engine/gpu/present.rs`
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+Insert **after line 135** of your current file.
 
-```rust
---8<-- "lessons/12/src/app/input.rs:input-key"
-```
+Keep these preceding lines:
 
-## Step 67 · src/app/input.rs
+```rust
+            },
+        );
 
-Right orbits, middle pans, left goes to `left`; a move past the slop turns a press into a drag.
+        self.ctx.queue.submit([encoder.finish()]);
+```
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:mouse-buttons"
-```
-
-## Step 68 · src/app/input.rs
+        log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
 
-Wheel zoom at the cursor, the modifier keys, and losing focus.
+        let slice = readback.slice(..);
+        // wait for the copy to land on the CPU
+```
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:mouse-wheel"
+--8<-- "typing/code/12-030.rs"
 ```
+
+<span id="code-12-031"></span>
 
-## Step 69 · src/app/input.rs
+## `src/engine/gpu/present.rs`
 
-Fingers: one may run a tool and a second cancels it; otherwise they move the camera, tap to pick, double tap to fit.
+Append **after line 178** of your current file.
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:mouse-touch"
+--8<-- "typing/code/12-031.rs"
 ```
 
-## Step 70 · src/app/input.rs
+<span id="code-12-032"></span>
 
-Forget every gesture in progress.
+## `src/engine/gpu/render.rs`
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+Insert **after line 32** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/12/src/app/input.rs:input-cancel"
+        let mut draws = self.face_passes(encoder, &frame);
+        // pass 2: ambient occlusion and the outline masks, each pass in turn
+        self.each_pass(|pass, g| draws += pass.after_faces(g, encoder, &frame));
+        draws += self.ink_pass(encoder, view); // pass 3: lines, markers, outlines and text; register:ink
 ```
-
-## Step 71 · src/app/input.rs
-
-Left press and release: a tool, a gesture, or a click that requests a pick; the brace closes the impl.
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:input-left"
-```
-
-## Step 72 · src/app/input.rs
+        (draws, self.objects.len())
+    }
 
-Listen for the browser's `pointercancel` and send it into the event loop as a message.
+    /// The first pass: each pass's own face passes, then the one the faces draw in.
+```
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/12/src/app/input.rs:pointer-cancel"
+--8<-- "typing/code/12-032.rs"
 ```
 
-## Step 73 · src/app/input.rs
+<span id="code-12-033"></span>
 
-Physical pixels per CSS pixel.
+## `src/engine/gpu/render.rs`
 
-`lessons/12/src/app/input.rs` · type this, append at the end of the file
+Insert **after line 121** of your current file.
 
-```rust
---8<-- "lessons/12/src/app/input.rs:input-dpr"
-```
+Keep these preceding lines:
 
-## Step 74 · src/lib.rs
+```rust
 
-Bring in State and define the messages the loader sends into the event loop.
+        draws += self.sphere_draws(pass, &b); // register:markers
+        draws += self.arena.draw_text(pass, &basic);
+        draws += self.dot_draws(pass, &b); // register:markers
+```
 
-`lessons/12/src/lib.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/12/src/lib.rs:state-msg"
+        draws += self.text.draw(pass); // register:text
+        draws
+    }
+}
 ```
-
-## Step 75 · src/lib.rs
-
-The App that winit calls with every event.
 
-`lessons/12/src/lib.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/12/src/lib.rs:app-struct"
+--8<-- "typing/code/12-033.rs"
 ```
 
-## Step 76 · src/lib.rs
+<span id="code-12-034"></span>
 
-Start the event loop, adopt the ready state, and ask for a redraw only when something changed.
+## `src/engine/gpu/render.rs`
 
-`lessons/12/src/lib.rs` · type this, append at the end of the file
+Append **after line 177** of your current file.
 
+Blank lines before: **1**; after: **0**. End with a newline.
+
 ```rust
---8<-- "lessons/12/src/lib.rs:app-run"
+--8<-- "typing/code/12-034.rs"
 ```
+
+<span id="code-12-035"></span>
 
-## Step 77 · src/lib.rs
+## `src/engine/gpu/text_outline.rs`
 
-Handle the window once it exists, each loader message, and each window event.
+Append **after line 131** of your current file.
 
-`lessons/12/src/lib.rs` · type this, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/12/src/lib.rs:app-events"
+--8<-- "typing/code/12-035.rs"
 ```
 
-## Step 78 · src/lib.rs
+<span id="code-12-036"></span>
 
-Canvas helpers: find it, check its focus, check the tab is visible, read its pixel size.
+## `src/engine/gpu/vectors.rs`
 
-`lessons/12/src/lib.rs` · type this, append at the end of the file
+Append **after line 868** of your current file.
 
+Blank lines before: **1**; after: **0**. End with a newline.
+
 ```rust
---8<-- "lessons/12/src/lib.rs:canvas"
+--8<-- "typing/code/12-036.rs"
 ```
+
+<span id="code-12-037"></span>
 
-## Step 79 · src/lib.rs
+## `src/state.rs`
 
-Start the viewer, showing the notice first if the page reloaded after a lost device.
+The state layer joins document operations, active interaction and renderer updates. It should coordinate the work rather than duplicate the geometry algorithms. Pay attention to which operation requests a redraw and which commits a history change.
 
-`lessons/12/src/lib.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/12/src/lib.rs:start"
+--8<-- "typing/code/12-037.rs"
 ```
 
-## Step 80 · src/app/inspection.rs
+<span id="code-12-038"></span>
 
-With `?inspect=1`, write a JSON snapshot of the viewer onto the canvas for browser tests.
+## `src/state/features.rs`
 
-`lessons/12/src/app/inspection.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/12/src/app/inspection.rs:inspection-publish"
+--8<-- "typing/code/12-038.rs"
 ```
 
-## Step 81 · src/app/inspection.rs
+<span id="code-12-039"></span>
 
-The selected identity, every drawn text label, and a geometry's kind name.
+## `tests/selection.cjs`
 
-`lessons/12/src/app/inspection.rs` · type this, append at the end of the file
+A test sets up a known state, performs an action and checks an observable result. Browser tests must wait for actual application readiness rather than assuming a fixed delay is enough. Keep fixtures and external dataset requirements explicit.
 
-```rust
---8<-- "lessons/12/src/app/inspection.rs:inspection-helpers"
-```
+Create this file. Type the complete listing, including comments and blank lines.
 
-## Step 82 · src/engine/gpu/text_outline.rs
+```javascript
+--8<-- "typing/code/12-039.cjs"
+```
 
-GPU tests from lesson 04a that need the id pass: an outlined glyph keeps its coverage, id and selection colour.
+## Check the completed chapter
 
-`lessons/12/src/engine/gpu/text_outline.rs` · copy, append at the end of the file
+From `session_viewer`, compare everything you have typed:
 
-```rust
---8<-- "lessons/12/src/engine/gpu/text_outline.rs:outline-tests"
+```sh
+npm --prefix ../session_tests run course -- reference-check 12
 ```
 
-## Step 83 · tests and assets
+From `workspace/handwritten`:
 
-Copy these files and test modules from `lessons/12/`; they are checked, not explained.
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
 
-- `src/engine/gpu/vectors.rs`: the test module `shell_tests` at the end, which draws, selects, hides and picks one arrow on a headless GPU.
-- `tests/selection.cjs`: the browser selection test.
-- `assets/view_local.yaml`: the scene a local `trunk serve` loads from lesson 14 on.
+Run the native picking tests. In the readback test you typed, identify the pixel whose stored row ID becomes the selected object. The browser window exists at this checkpoint, but its asynchronous GPU startup is connected in lesson 14. Save the visible click experiment for that lesson.
 
-## Step 84 · registration lines
+If picks drift horizontally, check pixel coordinates and row stride. If mapping hangs, check that the device is polled in the native readback path.
 
-Copy the lines tagged `register:shell`, `register:pick`, `register:features` and the module tags below from these files of `lessons/12/`:
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
 
-- `src/app/mod.rs`: the modules `feedback`, `gesture`, `input`, `inspection`, `keys`, `route`, `scene`, `selection` and `touch`.
-- `src/engine/gpu/mod.rs`: the `pick` module, the picker and the two control lanes, their creation, and the picker reset on resize.
-- `src/engine/gpu/present.rs` and `render.rs`: mapping the pick after submit, the waiting id pass, and the control draws.
-- `src/lib.rs`: the call to `start`.
-- `src/state.rs`: the `features` module.
+<details>
+<summary>Check your explanation of the opening question</summary>
 
-Run `cargo check` in `lessons/12/`.
+Its pixel and object mapping describe an earlier state. Applying it to the current state could select the wrong source object.
 
-## Check
+</details>
 
-`cargo check` compiles, and in `lessons/12/` the commands `cargo xtest --lib gpu::pick`, `cargo xtest --lib selection` and `cargo xtest --lib scene` pass this lesson's unit tests. The browser still shows an empty canvas: the loader that opens the GPU and sends `Ready` arrives in lesson 14.
+[Next step: 13](13-controls.md)

@@ -1,3 +1,4 @@
+// --8<-- [start:torus]
 use crate::app::command::tool::shape::{
     self, Answer, Ask, BREP_MESH, Frame, Part, Shape, positive,
 };
@@ -5,14 +6,12 @@ use crate::app::command::{Action, Spec};
 use session_rust::{BRep, Geometry, Point};
 
 pub const SPEC: Spec = Spec {
-    names: &["Torus"],
-    aliases: &[],
-    hint: "Torus (Brep Mesh): center, major radius, minor radius · Example: Torus 0,0,0 20 5",
     options: &["Torus Brep", "Torus Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Torus"],
+        "Torus (Brep Mesh): center, major radius, minor radius · Example: Torus 0,0,0 20 5",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -130,3 +129,4 @@ mod tests {
         assert!(build(&SHAPE, &top, &clicked, "Brep").is_ok());
     }
 }
+// --8<-- [end:torus]

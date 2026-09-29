@@ -1,3 +1,4 @@
+// --8<-- [start:project-to-plane]
 use crate::State;
 use crate::app::command::tool::{Next, Tool};
 use crate::app::command::{Action, Spec};
@@ -7,9 +8,6 @@ use session_rust::{Geometry, Plane, Point, Vector, Xform};
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
-    names: &["Project To Plane"],
-    aliases: &[],
-    hint: "Project To Plane: flatten the selected points, lines, polylines, curves and meshes · CPlane is the plane the view faces · XY / YZ / ZX through the origin · 3Point picks the plane · Example: Project To Plane XY",
     options: &[
         "Project To Plane CPlane",
         "Project To Plane XY",
@@ -17,10 +15,12 @@ pub const SPEC: Spec = Spec {
         "Project To Plane ZX",
         "Project To Plane 3Point",
     ],
-    arity: None,
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Project To Plane"],
+        "Project To Plane: flatten the selected points, lines, polylines, curves and meshes · CPlane is the plane the view faces · XY / YZ / ZX through the origin · 3Point picks the plane · Example: Project To Plane XY",
+        parse,
+    )
 };
 
 /// A plane word, or 3Point with none or three typed points.
@@ -465,3 +465,4 @@ mod tests {
         assert!(normal.cross(&expected).magnitude() < 1e-9);
     }
 }
+// --8<-- [end:project-to-plane]

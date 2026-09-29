@@ -1,117 +1,143 @@
 # 37 · Self-test: the finished viewer
 
-The last lesson adds a native harness: it loads scenes, draws them without a window and writes the image, so the viewer can be checked from a terminal. With it, `lessons/37` is the viewer itself: the same files as `session_viewer/src`, plus the teaching comments.
+**Estimated study time: about 15–30 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
 
-## Step 1 · src/lib.rs
+**This section:** Exercise the finished viewer from a scene file through GPU output.
 
-The harness module exists only in native builds, because the browser has no files to read or write.
+**In the whole viewer:** This closes the full course loop: loading, source identity, display generation, rendering and interactive editing now belong to one application.
 
-`lessons/37/src/lib.rs` · type this, append at the end of the file
+**Follow the data:** Scene bytes → document → display rows → GPU frame and IDs → selection/edit → updated document.
 
-```rust
---8<-- "lessons/37/src/lib.rs:selftest-mod"
-```
+**Start with these files:** [`src/selftest.rs`](37-command-dock.md#code-37-005), [`src/lib.rs`](37-command-dock.md#code-37-001).
 
-## Step 2 · src/selftest.rs
+**Aim to explain:** If a selected object moves on screen, how would you establish that the edit really changed the document?
 
-New file: the files to load, read from manifests or single `.pb` paths given on the command line.
+[Whole-viewer map and course milestones](map.md)
 
-`lessons/37/src/selftest.rs` · type this, new file
+You now have the same source as the maintained viewer. The final chapter connects file loading to scene upload and prepares a frame with the correct camera anchor. Use it to explain the whole route from an editable document to pixels, rather than memorizing every support file.
 
-```rust
---8<-- "lessons/37/src/selftest.rs:selftest-files"
-```
+![File bytes → Kernel document → Display upload → GPU passes → Pixels.](illustrations/37-practice.svg)
 
-## Step 3 · src/selftest.rs
+Start from the working result of [step 36](36-translucent-faces.md).
 
-Fit the camera to the scene, adjust it from `VIEWER_*` environment variables, and log where it looks from.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 1,088 lines across 8 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/37/src/selftest.rs` · type this, append at the end of the file
+<span id="code-37-001"></span>
 
-```rust
---8<-- "lessons/37/src/selftest.rs:selftest-camera"
-```
+## `src/lib.rs`
 
-## Step 4 · src/selftest.rs
+Append **after line 513** of your current file.
 
-Decode and walk each file, timing both, then upload once; build the per-frame input from the camera.
-
-`lessons/37/src/selftest.rs` · type this, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/37/src/selftest.rs:selftest-load"
+--8<-- "typing/code/37-001.rs"
 ```
 
-## Step 5 · src/selftest.rs
+<span id="code-37-002"></span>
 
-Benchmark helpers: drag frame times per quality tier, forty test labels, and up to six clipping planes.
+## `examples/check_cad_fixture.rs`
 
-`lessons/37/src/selftest.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/37/src/selftest.rs:selftest-bench"
+--8<-- "typing/code/37-002.rs"
 ```
 
-## Step 6 · src/selftest.rs
+<span id="code-37-003"></span>
 
-Write a PPM image, then `render_scene`: load, frame, optionally time many frames, draw one and count its ink.
+## `examples/check_hidden_line_lifecycle.rs`
 
-`lessons/37/src/selftest.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/37/src/selftest.rs:selftest-render"
+--8<-- "typing/code/37-003.rs"
 ```
 
-## Step 7 · src/selftest.rs
+<span id="code-37-004"></span>
 
-Write the id frame with a guid map beside it, and report what one pixel picks.
+## `examples/selftest.rs`
 
-`lessons/37/src/selftest.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/37/src/selftest.rs:selftest-ids"
+--8<-- "typing/code/37-004.rs"
 ```
 
-## Step 8 · src/selftest.rs
+<span id="code-37-005"></span>
 
-Declare the lifecycle checks, and check that every BRep edge keeps its id after upload.
+## `src/selftest.rs`
 
-`lessons/37/src/selftest.rs` · type this, append at the end of the file
+A render test creates a scene, draws it and inspects output rather than trusting compilation alone. The expected result should distinguish the failure we care about, such as missing ink or stale geometry after an edit.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/37/src/selftest.rs:selftest-cad"
+--8<-- "typing/code/37-005.rs"
 ```
 
-## Step 9 · src/selftest/lifecycle.rs
+<span id="code-37-006"></span>
 
-New file: MSAA changes, resize, a second walk, an edit and its undo, and a reload must all draw identical pixels and ids.
+## `src/selftest/lifecycle.rs`
 
-`lessons/37/src/selftest/lifecycle.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/37/src/selftest/lifecycle.rs:lifecycle"
+--8<-- "typing/code/37-006.rs"
 ```
 
-Copy these files from `lessons/37/`:
+<span id="code-37-007"></span>
 
-- `examples/selftest.rs`: renders the given scenes to a PPM file and prints the ink count.
-- `examples/check_cad_fixture.rs`: runs the BRep edge check on the `cad_fixture` files.
-- `examples/check_hidden_line_lifecycle.rs`: runs the lifecycle checks.
-- `tests/color-channels.cjs`: a browser check of face and edge colours, reset, save and open.
-- `tests/final-review.md`: the last review's record of what was checked.
+## `tests/color-channels.cjs`
 
-Run `cargo check` in `lessons/37/`.
+Create this file. Type the complete listing, including comments and blank lines.
 
-## Check
+```javascript
+--8<-- "typing/code/37-007.cjs"
+```
 
-`cargo run --target x86_64-unknown-linux-gnu --example selftest -- frame.ppm assets/view_local.yaml` in `lessons/37/` writes `frame.ppm` and prints how many pixels hold ink.
+<span id="code-37-008"></span>
 
-`lessons/37` now equals the viewer, and three commands prove it from `session_viewer/`:
+## `tests/final-review.md`
 
-- `python3 docs/check_lesson37.py` reads zero differences between `src` and `docs/lessons/37` once comments are stripped.
-- `cargo xtest` passes the native tests, the same in `session_viewer/` and in `lessons/37/`.
-- `node tests/lifecycle.cjs`, with the viewer served by `trunk serve`, runs the browser self-test: focus, pointer cancel, a hidden canvas and a DPR change.
+Create this file. Type the complete listing, including comments and blank lines.
 
-## Next
+```markdown
+--8<-- "typing/code/37-008.md"
+```
 
-[Capstone](capstone.md): what to build on top of the finished viewer.
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 37
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+The checks above run the native suite. Then render the supplied scene:
+
+```sh
+cargo run --example selftest --target x86_64-unknown-linux-gnu -j4 -- final.ppm assets/view_local.yaml
+```
+
+Open `final.ppm`, then start the browser with `trunk serve --port 8780`. At http://localhost:8780/?data=off, enter `Point 300,200,200`, then `Undo`; the point should appear and disappear. Use `Save` to download the scene and `Open` to load that saved file. These commands exercise the same document that the renderer displays.
+
+If the headless image differs from the browser, compare scene, camera, pixel size and display settings first. A screenshot alone cannot establish that those inputs were equal.
+
+![The completed step’s actual offscreen GPU render of the course scene, produced by the selftest example.](screenshots/steps/37-native.png)
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+Inspect the committed source change and its undo record, then verify display synchronization. A temporary GPU preview can move pixels without committing an edit.
+
+</details>

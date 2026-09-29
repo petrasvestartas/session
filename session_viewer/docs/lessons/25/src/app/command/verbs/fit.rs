@@ -2,14 +2,12 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Fit"],
-    aliases: &[],
-    hint: "Fit zooms to the selection, or the whole scene when nothing is selected",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Fit"],
+        "Fit zooms to the selection, or the whole scene when nothing is selected",
+        parse,
+    )
 };
 
 /// Zoom to the selection, or to everything.

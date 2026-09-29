@@ -1,17 +1,16 @@
+// --8<-- [start:quad-sphere]
 use crate::app::command::tool::shape::{self, MESH_ONLY, Part, Shape};
 use crate::app::command::{Action, Spec};
 use session_rust::{Geometry, Primitives};
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
-    names: &["Quad Sphere"],
-    aliases: &[],
-    hint: "Quad Sphere (Mesh): center, radius · six patches of 8 × 8 quads · Example: Quad Sphere 0,0,0 10",
     options: &["Quad Sphere Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Quad Sphere"],
+        "Quad Sphere (Mesh): center, radius · six patches of 8 × 8 quads · Example: Quad Sphere 0,0,0 10",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -71,3 +70,4 @@ mod tests {
         assert!(shape::start(&SHAPE, &["Brep"]).is_err());
     }
 }
+// --8<-- [end:quad-sphere]

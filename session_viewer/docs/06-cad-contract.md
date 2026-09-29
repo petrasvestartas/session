@@ -1,509 +1,247 @@
 # 06 · CAD face rules
 
-The walk turns each kernel object into rows of the tables from lessons 01 to 04d: triangles, pipes, ribbons, dots and cloud points. BRep faces follow one contract, written once at the top of brep.rs and used by lessons 07 to 09.
+**Estimated study time: about 50–95 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Translate editable CAD geometry into display records with source identity.
+
+**In the whole viewer:** The geometry kernel owns the source model. The walker makes the representation the GPU can draw without turning the GPU into a geometry editor.
+
+**Follow the data:** Kernel object → walker → typed upload rows and bounds → GPU drawing path.
+
+**Start with these files:** [`src/app/walk/mod.rs`](06-cad-contract.md#code-06-015), [`src/app/walk/brep.rs`](06-cad-contract.md#code-06-005).
+
+**Aim to explain:** Which representation would you edit to change a face, and which would you rebuild afterwards?
+
+[Whole-viewer map and course milestones](map.md)
+
+The geometry kernel describes editable objects. The renderer needs compact records. A walker translates between them. For a point, it writes a marker, preserves the owning row, and returns bounds so the camera and selection can find it. The kernel remains the source of truth.
 
 ![One face, three representations: BRep source in f64, kernel mesh with u,v, normals and boundary tags, viewer rows in f32 that keep the face and edge identities.](illustrations/cad-contract.svg)
 
-Kernel code the walk calls, read only: [remesh_nurbssurface_grid.rs](kernel/remesh_nurbssurface_grid.md), [brep.rs](kernel/brep.md), [nurbssurface_trimmed.rs](kernel/nurbssurface_trimmed.md).
+Start from the working result of [step 05](05-visibility.md).
 
-## Step 1 · src/app/mod.rs
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 4,393 lines across 18 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-The app's module list: one line per module, each added by the lesson that teaches it.
+<span id="code-06-001"></span>
 
-`lessons/06/src/app/mod.rs` · type this, new file
+## `src/lib.rs`
 
-```rust
---8<-- "lessons/06/src/app/mod.rs"
-```
+Append **after line 29** of your current file.
 
-## Step 2 · src/app/knobs.rs
-
-Debug switches read once from the environment, such as faces without edges.
-
-`lessons/06/src/app/knobs.rs` · type this, new file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/06/src/app/knobs.rs"
+--8<-- "typing/code/06-001.rs"
 ```
 
-## Step 3 · src/app/walk/encode.rs
+<span id="code-06-002"></span>
 
-Pack pen width, colour and face normals into the few bytes the shaders read.
+## `src/app/knobs.rs`
 
-`lessons/06/src/app/walk/encode.rs` · type this, new file
+The application layer sits between browser events, document state and rendering. Identify which values this file owns and which it borrows from neighbouring modules. State changes should have a clear path to both redraw and user feedback.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/encode.rs"
+--8<-- "typing/code/06-002.rs"
 ```
 
-## Step 4 · src/app/walk/mod.rs
+<span id="code-06-003"></span>
 
-The walk module: its files and the row tables it writes into.
+## `src/app/mod.rs`
 
-`lessons/06/src/app/walk/mod.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/mod.rs:walk-mods"
+--8<-- "typing/code/06-003.rs"
 ```
 
-## Step 5 · src/app/walk/mod.rs
+<span id="code-06-004"></span>
 
-The tables one object writes into, where its rows go, and what it reports back.
+## `src/app/walk/bounds.rs`
 
-`lessons/06/src/app/walk/mod.rs` · type this, append at the end of the file
+The geometry kernel describes curves, faces and object structure. The walker turns those descriptions into buffers and rows the renderer understands. It preserves the connection to source identity so display details do not replace the editable document.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/mod.rs:walk-tables"
+--8<-- "typing/code/06-004.rs"
 ```
 
-## Step 6 · src/app/walk/mod.rs
+<span id="code-06-005"></span>
 
-An element's features, drawn thick into the element's own row.
+## `src/app/walk/brep.rs`
 
-`lessons/06/src/app/walk/mod.rs` · type this, append at the end of the file
+A boundary representation stores faces and their oriented boundaries. Tessellation must respect holes and trims, and neighbouring faces should agree along shared edges. Otherwise a watertight source can appear cracked or show unwanted diagonals.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/mod.rs:walk-features"
+--8<-- "typing/code/06-005.rs"
 ```
 
-## Step 7 · src/app/walk/mod.rs
+<span id="code-06-006"></span>
 
-One match sends every kind of geometry to its walk.
+## `src/app/walk/brep_edges.rs`
 
-`lessons/06/src/app/walk/mod.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/mod.rs:walk-geometry"
+--8<-- "typing/code/06-006.rs"
 ```
 
-## Step 8 · src/app/walk/mod.rs
+<span id="code-06-007"></span>
 
-Test: visible features join the element's row, hidden ones add nothing.
+## `src/app/walk/brep_orient.rs`
 
-`lessons/06/src/app/walk/mod.rs` · copy this part, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/mod.rs:walk-tests"
+--8<-- "typing/code/06-007.rs"
 ```
 
-## Step 9 · src/app/walk/points.rs
+<span id="code-06-008"></span>
 
-A point becomes one dot, 3 px when it has no pen.
+## `src/app/walk/cloud.rs`
 
-`lessons/06/src/app/walk/points.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/points.rs"
+--8<-- "typing/code/06-008.rs"
 ```
 
-## Step 10 · src/app/walk/curves.rs
+<span id="code-06-009"></span>
 
-A polyline becomes one ribbon per span, joined into one chain.
+## `src/app/walk/curves.rs`
 
-`lessons/06/src/app/walk/curves.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/curves.rs:curve-segments"
+--8<-- "typing/code/06-009.rs"
 ```
 
-## Step 11 · src/app/walk/curves.rs
+<span id="code-06-010"></span>
 
-Arrowheads: a head-only vector row at each headed end, and the ribbon marked to stop under it.
+## `src/app/walk/encode.rs`
 
-`lessons/06/src/app/walk/curves.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/curves.rs:curve-heads"
+--8<-- "typing/code/06-010.rs"
 ```
 
-## Step 12 · src/app/walk/curves.rs
+<span id="code-06-011"></span>
 
-Lines and polylines, each with its heads.
+## `src/app/walk/frames.rs`
 
-`lessons/06/src/app/walk/curves.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/curves.rs:curve-walks"
+--8<-- "typing/code/06-011.rs"
 ```
 
-## Step 13 · src/app/walk/curves.rs
+<span id="code-06-012"></span>
 
-A NURBS curve becomes a polyline, one chord per 5° of turning.
+## `src/app/walk/mesh.rs`
 
-`lessons/06/src/app/walk/curves.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/curves.rs:curve-sampling"
+--8<-- "typing/code/06-012.rs"
 ```
 
-## Step 14 · src/app/walk/curves.rs
+<span id="code-06-013"></span>
 
-Tests: heads aim along the end segments and land on the curve's end point.
+## `src/app/walk/mesh_ink.rs`
 
-`lessons/06/src/app/walk/curves.rs` · copy this part, append at the end of the file
+Visible ink should describe boundaries and meaningful creases. Drawing every tessellation edge makes a smooth face look faceted. Use topology and orientation to distinguish geometry structure from the triangles used to display it.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/curves.rs:curve-tests"
+--8<-- "typing/code/06-013.rs"
 ```
 
-## Step 15 · src/app/walk/frames.rs
+<span id="code-06-014"></span>
 
-A plane becomes a 1 m square, a box its 12 edges.
+## `src/app/walk/mesh_topology.rs`
 
-`lessons/06/src/app/walk/frames.rs` · type this, new file
+A list of triangles gives positions but not all adjacency relationships. Topology records which vertices and edges belong together. Boundary and crease decisions use these relationships rather than guessing from one triangle alone.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/frames.rs"
+--8<-- "typing/code/06-014.rs"
 ```
 
-## Step 16 · src/app/walk/plane.rs
+<span id="code-06-015"></span>
 
-A clipping plane: its name, the closedness switch, and its rectangle with an arrow; lesson 18b cuts with it.
+## `src/app/walk/mod.rs`
 
-`lessons/06/src/app/walk/plane.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/plane.rs:plane-walk"
+--8<-- "typing/code/06-015.rs"
 ```
 
-## Step 17 · src/app/walk/plane.rs
+<span id="code-06-016"></span>
 
-Whether a mesh is a closed solid and whether its faces wind inward, the two facts a section cap needs.
+## `src/app/walk/plane.rs`
 
-`lessons/06/src/app/walk/plane.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/plane.rs:solid-orientation"
+--8<-- "typing/code/06-016.rs"
 ```
 
-## Step 18 · src/app/walk/plane.rs
+<span id="code-06-017"></span>
 
-Small vector helpers on three f64 numbers.
+## `src/app/walk/points.rs`
 
-`lessons/06/src/app/walk/plane.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/06/src/app/walk/plane.rs:plane-math"
+--8<-- "typing/code/06-017.rs"
 ```
 
-## Step 19 · src/app/walk/bounds.rs
+<span id="code-06-018"></span>
 
-Table lengths before a file is walked, and the box of everything it added.
+## `src/engine/gpu/vectors.rs`
 
-`lessons/06/src/app/walk/bounds.rs` · type this, new file
+Append **after line 660** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/06/src/app/walk/bounds.rs:bounds-baselines"
+--8<-- "typing/code/06-018.rs"
 ```
 
-## Step 20 · src/app/walk/bounds.rs
+## Check the completed chapter
 
-The z band of a flat drawing, and whether a row lies inside it.
+From `session_viewer`, compare everything you have typed:
 
-`lessons/06/src/app/walk/bounds.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/bounds.rs:bounds-bands"
+```sh
+npm --prefix ../session_tests run course -- reference-check 06
 ```
 
-## Step 21 · src/app/walk/bounds.rs
+From `workspace/handwritten`:
 
-Pipes, ribbons and heads of a sheet get a 1 mm pen where none was set.
-
-`lessons/06/src/app/walk/bounds.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/bounds.rs:bounds-pens"
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
 ```
 
-## Step 22 · src/app/walk/cloud.rs
+Run the native walker tests. Explain why this function copies display data instead of replacing the editable kernel point.
 
-A point cloud becomes points, octree nodes and one draw.
+If the point draws but cannot be framed or selected, compare its bounds and owner row with the marker position.
 
-`lessons/06/src/app/walk/cloud.rs` · type this, new file
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
 
-```rust
---8<-- "lessons/06/src/app/walk/cloud.rs:cloud-walk"
-```
+<details>
+<summary>Check your explanation of the opening question</summary>
 
-## Step 23 · src/app/walk/cloud.rs
+Edit the kernel source object. Then rebuild its display geometry and update the corresponding GPU records while retaining source identity.
 
-Copy points and nodes, and estimate the point spacing from the cloud's size.
+</details>
 
-`lessons/06/src/app/walk/cloud.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/cloud.rs:cloud-copy"
-```
-
-## Step 24 · src/app/walk/mesh_topology.rs
-
-Map sparse vertex keys to dense slots.
-
-`lessons/06/src/app/walk/mesh_topology.rs` · type this, new file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_topology.rs:slot-map"
-```
-
-## Step 25 · src/app/walk/mesh_topology.rs
-
-The edges, faces and normals of one mesh, and the normal of one face.
-
-`lessons/06/src/app/walk/mesh_topology.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_topology.rs:mesh-topo"
-```
-
-## Step 26 · src/app/walk/mesh_topology.rs
-
-Find each edge once, with its two faces and whether they agree on winding, hole rings included.
-
-`lessons/06/src/app/walk/mesh_topology.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_topology.rs:mesh-edges"
-```
-
-## Step 27 · src/app/walk/mesh_topology.rs
-
-Tests: hole rims carry both faces, and an open face keeps its hole boundary.
-
-`lessons/06/src/app/walk/mesh_topology.rs` · copy this part, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_topology.rs:topology-tests"
-```
-
-## Step 28 · src/app/walk/mesh_ink.rs
-
-Where a mesh's edges and dots go, and what the ink pass needs from the face pass.
-
-`lessons/06/src/app/walk/mesh_ink.rs` · type this, new file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_ink.rs:ink-context"
-```
-
-## Step 29 · src/app/walk/mesh_ink.rs
-
-Small rules: pen width per edge, the two outward normals, borders and creases.
-
-`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_ink.rs:ink-edge-rules"
-```
-
-## Step 30 · src/app/walk/mesh_ink.rs
-
-One pipe per drawn edge; diagonals inside flat regions are skipped.
-
-`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_ink.rs:ink-pipes"
-```
-
-## Step 31 · src/app/walk/mesh_ink.rs
-
-Which edges meet at each vertex, kept in one flat list.
-
-`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_ink.rs:ink-incidence"
-```
-
-## Step 32 · src/app/walk/mesh_ink.rs
-
-One marker per vertex with a visible edge, carrying up to six face normals.
-
-`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_ink.rs:ink-markers"
-```
-
-## Step 33 · src/app/walk/mesh_ink.rs
-
-Edges first, then vertex dots.
-
-`lessons/06/src/app/walk/mesh_ink.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_ink.rs:ink-entry"
-```
-
-## Step 34 · src/app/walk/mesh_ink.rs
-
-Tests: a box has 12 edges and 8 dots; a smooth mesh inks only borders and creases.
-
-`lessons/06/src/app/walk/mesh_ink.rs` · copy this part, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh_ink.rs:ink-tests"
-```
-
-## Step 35 · src/app/walk/mesh.rs
-
-The limits: raw meshes, black wireframes, flat regions and creases.
-
-`lessons/06/src/app/walk/mesh.rs` · type this, new file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh.rs:mesh-limits"
-```
-
-## Step 36 · src/app/walk/mesh.rs
-
-How a plain mesh, a sampled surface and an element's mesh are walked differently.
-
-`lessons/06/src/app/walk/mesh.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh.rs:mesh-opts"
-```
-
-## Step 37 · src/app/walk/mesh.rs
-
-A lap timer natively, an empty one in the browser.
-
-`lessons/06/src/app/walk/mesh.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh.rs:mesh-lap"
-```
-
-## Step 38 · src/app/walk/mesh.rs
-
-A mesh: triangles into the arena, its flags, then edges and dots.
-
-`lessons/06/src/app/walk/mesh.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh.rs:mesh-walk"
-```
-
-## Step 39 · src/app/walk/mesh.rs
-
-One source face address per triangle.
-
-`lessons/06/src/app/walk/mesh.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/mesh.rs:mesh-face-ids"
-```
-
-## Step 40 · src/app/walk/brep_edges.rs
-
-Edge chains, facets and edge pipes; lessons 07, 08 and 09 read this file part by part.
-
-`lessons/06/src/app/walk/brep_edges.rs` · copy the file
-
-```rust
---8<-- "lessons/06/src/app/walk/brep_edges.rs"
-```
-
-## Step 41 · src/app/walk/brep_orient.rs
-
-Face signs that turn every normal of a solid outward; lesson 09 reads this file.
-
-`lessons/06/src/app/walk/brep_orient.rs` · copy the file
-
-```rust
---8<-- "lessons/06/src/app/walk/brep_orient.rs"
-```
-
-## Step 42 · src/app/walk/brep.rs
-
-The CAD contract, the mesh quality, and the running totals of one solid.
-
-`lessons/06/src/app/walk/brep.rs` · type this, new file
-
-```rust
---8<-- "lessons/06/src/app/walk/brep.rs:brep-solid"
-```
-
-## Step 43 · src/app/walk/brep.rs
-
-Append one face mesh to the arena, with its source face.
-
-`lessons/06/src/app/walk/brep.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/brep.rs:brep-face"
-```
-
-## Step 44 · src/app/walk/brep.rs
-
-A BRep: mesh every face, turn inside-out faces, set the flags, then draw the edges.
-
-`lessons/06/src/app/walk/brep.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/brep.rs:brep-walk"
-```
-
-## Step 45 · src/app/walk/brep.rs
-
-Every BRep edge as pipes on the face meshes, or as a ribbon from its 3D curve.
-
-`lessons/06/src/app/walk/brep.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/brep.rs:brep-edges"
-```
-
-## Step 46 · src/app/walk/brep.rs
-
-A bare NURBS surface as a grid with its four border edges.
-
-`lessons/06/src/app/walk/brep.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/brep.rs:brep-surface"
-```
-
-## Step 47 · src/app/walk/brep.rs
-
-Tests: teapot patches, cylinder normals, open and reversed shells, poles and a pyramid apex.
-
-`lessons/06/src/app/walk/brep.rs` · copy this part, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/brep.rs:brep-tests"
-```
-
-## Step 48 · src/app/walk/brep.rs
-
-Remember each vertex's (u, v), so a later edit can move it on its surface.
-
-`lessons/06/src/app/walk/brep.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/app/walk/brep.rs:brep-samples"
-```
-
-## Step 49 · src/lib.rs
-
-The crate gains the app module.
-
-`lessons/06/src/lib.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/06/src/lib.rs:app-mod"
-```
-
-## Step 50 · src/engine/gpu/vectors.rs
-
-Copy the test module between the `06-curve-heads-test` markers at the end of the file: curve heads land on their end points.
-
-`lessons/06/src/engine/gpu/vectors.rs` · copy this part, append at the end of the file
-
-Run `cargo check` in `lessons/06/`.
-
-## Check
-
-Run `cargo xtest --lib app::walk` in `lessons/06/`: boxes, curves, clouds and solids walk into the expected pipes, dots and heads. The teapot test reads `assets/pb/view_mixed_teapot.pb`, which the crate gains in lesson 16.
+[Next step: 07](07-boundaries.md)

@@ -1,3 +1,4 @@
+use super::options;
 use crate::State;
 use crate::app::command::tool::{Next, Overlay, Stroke, Tool, typed_number};
 use crate::app::command::{Action, verbs};
@@ -254,40 +255,13 @@ impl std::fmt::Debug for Shape {
 impl Shape {
     /// The option labels a word can pick, without Cancel.
     fn choices(&self) -> impl Iterator<Item = &'static str> {
-        self.options
-            .iter()
-            .filter(|(_, line)| !line.is_empty() && *line != "Escape")
-            .map(|(label, _)| *label)
+        options::choices(self.options)
     }
 
     /// The option `words` start with and how many words spell it, ignoring case and spaces.
     fn option_in(&self, words: &[&str]) -> Option<(usize, usize)> {
-        self.choices().enumerate().find_map(|(index, label)| {
-            let target = compact(label);
-            let mut typed = String::new();
-
-            for (count, word) in words.iter().enumerate() {
-                typed.push_str(&word.to_ascii_lowercase());
-
-                if typed == target {
-                    return Some((index, count + 1));
-                }
-
-                if !target.starts_with(&typed) {
-                    return None;
-                }
-            }
-
-            None
-        })
+        options::find(self.options, words)
     }
-}
-
-/// Lowercase without spaces.
-fn compact(text: &str) -> String {
-    text.split_whitespace()
-        .collect::<String>()
-        .to_ascii_lowercase()
 }
 
 /// A positive, finite size, or a message naming it.

@@ -1,3 +1,4 @@
+// --8<-- [start:extrude]
 use crate::app::command::tool::gather::{self, Input, Made, Recipe, Step};
 use crate::app::command::tool::surfacing::{Picked, checked, count, loop_normal, planar};
 use crate::app::command::{Action, Spec};
@@ -8,14 +9,12 @@ use session_rust::{
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
-    names: &["Extrude"],
-    aliases: &[],
-    hint: "Extrude (Cap On Cap Off): curves, Enter, then a distance or x,y,z · Example: select curves, then Extrude 25",
     options: &["Extrude Cap On", "Extrude Cap Off"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Extrude"],
+        "Extrude (Cap On Cap Off): curves, Enter, then a distance or x,y,z · Example: select curves, then Extrude 25",
+        parse,
+    )
 };
 
 pub static RECIPE: Recipe = Recipe {
@@ -521,3 +520,4 @@ mod tests {
         assert!((direction[2] - 1.0).abs() < 1e-12);
     }
 }
+// --8<-- [end:extrude]

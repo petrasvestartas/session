@@ -4,14 +4,12 @@ use crate::app::command::{Action, Spec, number};
 use session_rust::{Plane, Point, Vector, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Scale"],
     aliases: &["s"],
-    hint: "Scale · pick the origin, then type a factor or pick two reference points · 1D, 2D or 3D · Scale 2 scales at once",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Scale"],
+        "Scale · pick the origin, then type a factor or pick two reference points · 1D, 2D or 3D · Scale 2 scales at once",
+        parse,
+    )
 };
 
 /// Pick an origin and a factor, or grow the selection by a typed factor about the gizmo.

@@ -4,14 +4,13 @@ use crate::app::command::{Action, Spec, on_off};
 
 // The command is typed "Element Features"; the code keeps the older name, attributes.
 pub const SPEC: Spec = Spec {
-    names: &["Element Features"],
-    aliases: &[],
-    hint: "Element Features (On Off): draw or remove the element features, moving with their element",
     options: &["Element Features On", "Element Features Off"],
-    arity: None,
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Element Features"],
+        "Element Features (On Off): draw or remove the element features, moving with their element",
+        parse,
+    )
 };
 
 /// Draw or remove the element features.

@@ -2,16 +2,11 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 use crate::app::selection::SelectionTool;
 
-pub const SPEC: Spec = Spec {
-    names: &["Edge"],
-    aliases: &[],
-    hint: "",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
+pub const SPEC: Spec = Spec::new(
+    &["Edge"],
+    "",
     parse,
-};
+);
 
 /// Click picks single edges.
 fn parse(verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {

@@ -1,12 +1,14 @@
-use super::buffers::{GpuCtx, bind_group, uniform_buffer};
+use super::buffers::{GpuCtx, bind_group, resource_group, uniform_buffer};
 use super::targets::{Attachment, Targets, TextureSpec};
 use super::widget_mesh;
 use crate::engine::pipelines::Layouts;
+use crate::engine::pipelines::bindings::texture_entry;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Pipeline, PipelineDesc, Target, build, module,
 };
 use session_rust::Xform;
 use wgpu::util::DeviceExt;
+use wgpu::{BufferBindingType, ShaderStages, TextureSampleType};
 
 /// Draws the gumball into its own small texture, then over the frame.
 pub struct Widget {
@@ -42,9 +44,9 @@ impl Widget {
                 label: Some("widget uniform"),
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+                    visibility: ShaderStages::VERTEX_FRAGMENT,
                     ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
+                        ty: BufferBindingType::Uniform,
                         has_dynamic_offset: false,
                         min_binding_size: wgpu::BufferSize::new(96),
                     },
@@ -299,20 +301,10 @@ impl Tile {
             min_filter: wgpu::FilterMode::Linear,
             ..Default::default()
         });
-        let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("widget image"),
-            layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&resolved),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&sampler),
-                },
-            ],
-        });
+        let group = resource_group(ctx, layout, "widget image", [
+            (0, wgpu::BindingResource::TextureView(&resolved)),
+            (1, wgpu::BindingResource::Sampler(&sampler)),
+        ]);
         Self {
             size,
             color,
@@ -329,19 +321,15 @@ fn texture_layout(ctx: &GpuCtx) -> wgpu::BindGroupLayout {
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("widget image"),
             entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    count: None,
-                    ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
-                    },
-                },
+                texture_entry(
+                    0,
+                    ShaderStages::FRAGMENT,
+                    TextureSampleType::Float { filterable: true },
+                    false,
+                ),
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    visibility: ShaderStages::FRAGMENT,
                     count: None,
                     ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 },

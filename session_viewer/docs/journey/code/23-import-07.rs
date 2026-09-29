@@ -1,0 +1,1 @@
+self.objects.push(Object { id, mesh: Rc::new(mesh), source: None });

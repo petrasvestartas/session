@@ -1,17 +1,16 @@
+// --8<-- [start:nurbs-surface-sweep1]
 use crate::app::command::tool::gather::{self, Input, Made, Recipe, Step};
 use crate::app::command::tool::surfacing::{SAMPLES, checked, count, curves};
 use crate::app::command::{Action, Spec};
 use session_rust::{NurbsCurve, NurbsSurface, Point, Primitives, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Nurbs Surface Sweep1"],
     aliases: &["nurbssurface_sweep1"],
-    hint: "Nurbs Surface Sweep1: the rail, then profile curves, Enter sweeps",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Nurbs Surface Sweep1"],
+        "Nurbs Surface Sweep1: the rail, then profile curves, Enter sweeps",
+        parse,
+    )
 };
 
 pub static RECIPE: Recipe = Recipe {
@@ -224,3 +223,4 @@ mod tests {
         assert!(sweep1(&rail, &[]).is_err());
     }
 }
+// --8<-- [end:nurbs-surface-sweep1]

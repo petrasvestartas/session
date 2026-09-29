@@ -1,3 +1,4 @@
+// --8<-- [start:lesson-code]
 // One vertex of the fullscreen triangle.
 struct VsOut {
     @builtin(position) pos: vec4<f32>, // clip position
@@ -27,3 +28,4 @@ fn fs_main(in: VsOut) -> PhysicalColor {
     let value = select(1.0,0.94,line.lit > 1.5);
     return PhysicalColor(vec4<f32>(vec3<f32>(value),1.0), vec2<u32>(0u));
 }
+// --8<-- [end:lesson-code]

@@ -1,9 +1,4 @@
-// Vite plugin: the viewer course (session_viewer/docs/*.md) as lazy Vue routes.
-// Resolves every --8<-- include the way pymdownx.snippets does (named sections and line ranges,
-// against the MkDocs base paths docs/ and ..), strips marker lines, fails the build naming the page
-// and include when a file or section is missing (a warning while mkdocs.yml sets check_paths: false),
-// renders with marked + Shiki and the site code colours (src/codeTheme.ts),
-// copies the images and files the pages link to, and builds the search index.
+// Resolve lesson snippets, assets and search into lazy Vue routes.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -127,6 +122,14 @@ function navGroups(bySlug: Map<string, string>): Group[] {
   } else {
     groups.push({ title: 'Course', slugs: course });
   }
+  const journey = path.join(DOCS, 'journey/course.json');
+  if (fs.existsSync(journey)) {
+    const opening = JSON.parse(fs.readFileSync(journey, 'utf8'));
+    const slugs = opening.steps.map((step: { page: string }) => pageSlug(path.join(DOCS, step.page)));
+    groups.splice(1, 0, { title: 'First working viewer · preview', slugs });
+    const reference = groups.find((g) => g.title === 'Course');
+    if (reference) reference.title = 'Complete viewer reference';
+  }
   const listed = new Set(groups.flatMap((g) => g.slugs));
   const rest = [...bySlug.keys()].filter((s) => !listed.has(s) && !s.includes('/')).sort();
   if (rest.length) groups.push({ title: 'More', slugs: rest });
@@ -181,12 +184,6 @@ export function include(spec: string, sources: Set<string>): string[] | string {
   return lines.filter((l) => !MARKER.test(l));
 }
 
-/** False only while mkdocs.yml sets snippets `check_paths: false` (the course re-cut); a missing include then warns. */
-function checkPaths(): boolean {
-  const mk = path.join(VIEWER, 'mkdocs.yml');
-  return !fs.existsSync(mk) || !/^\s*check_paths:\s*false\b/m.test(fs.readFileSync(mk, 'utf8'));
-}
-
 function resolveSnippets(text: string, page: string, errors: string[], sources: Set<string>): string {
   const out: string[] = [];
   for (const line of text.split('\n')) {
@@ -234,7 +231,7 @@ export default function coursePlugin(): Plugin {
     }
     raw = resolveSnippets(raw, rel, errors, sources);
 
-    const ids = new Set<string>();
+    const ids = new Set([...raw.matchAll(/^<span id="([\w-]+)"><\/span>$/gm)].map((m) => m[1]));
     const toc: Page['toc'] = [];
     const dir = path.dirname(file);
 
@@ -290,7 +287,7 @@ export default function coursePlugin(): Plugin {
           const r = rewrite(href);
           const t = title ? ` title="${esc(title)}"` : '';
           const alt = this.parser.parseInline(tokens, this.parser.textRenderer);
-          return `<img src="${esc(r.url)}" alt="${esc(unesc(alt))}"${t} loading="lazy" decoding="async">`;
+          return `<a href="${esc(r.url)}" target="_blank" rel="noopener" title="Open image at full size"><img src="${esc(r.url)}" alt="${esc(unesc(alt))}"${t} loading="lazy" decoding="async"></a>`;
         },
       },
       // marked reads "~`x`" as literal text (a GFM strikethrough edge case); lex it again with the
@@ -365,7 +362,7 @@ export default function coursePlugin(): Plugin {
     hl ??= await createHighlighter({ themes: [codeTheme as any], langs: LANGS as any });
     const t0 = Date.now();
     const files = listPages();
-    sources = new Set([...files, path.join(VIEWER, 'mkdocs.yml'), path.join(DOCS, 'lessons/SERIES.txt')]);
+    sources = new Set([...files, path.join(VIEWER, 'mkdocs.yml'), path.join(DOCS, 'lessons/SERIES.txt'), path.join(DOCS, 'typing/manifest.json')]);
     const bySlug = new Map(files.map((f) => [pageSlug(f), f]));
     const links: Link[] = [];
     const errors: string[] = [];
@@ -373,9 +370,7 @@ export default function coursePlugin(): Plugin {
     const next = new Map<string, Page>();
     for (const [slug, file] of bySlug) next.set(slug, renderPage(file, slug, bySlug, links, errors));
     if (errors.length) {
-      const msg = `course: ${errors.length} unresolved --8<-- include(s):\n  ${errors.join('\n  ')}`;
-      if (checkPaths()) throw new Error(msg);
-      console.warn(`course: ${errors.length} unresolved --8<-- include(s) left out, mkdocs.yml sets check_paths: false`);
+      throw new Error(`course: ${errors.length} unresolved --8<-- include(s):\n  ${errors.join('\n  ')}`);
     }
     const broken: string[] = [];
     for (const l of links) {
@@ -398,12 +393,32 @@ export default function coursePlugin(): Plugin {
 
   const courseModule = () => {
     const order = groups.flatMap((g) => g.slugs);
+    const chains: string[][] = [];
+    const manifest = path.join(DOCS, 'typing/manifest.json');
+    if (fs.existsSync(manifest)) {
+      const course = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+      const chain = ['reference-course', 'map', 'how-to-learn', 'foundations'];
+      chain.push(...[...pages.keys()].filter((s) => s.startsWith('foundations/')).sort());
+      for (const chapter of course.chapters) {
+        chain.push(pageSlug(path.join(DOCS, chapter.page)));
+      }
+      chains.push(chain);
+    }
+    const journey = path.join(DOCS, 'journey/course.json');
+    if (fs.existsSync(journey)) {
+      const opening = JSON.parse(fs.readFileSync(journey, 'utf8'));
+      chains.push(['readme', 'journey', ...opening.steps.map((step: { page: string }) => pageSlug(path.join(DOCS, step.page)))]);
+    }
+    const connected = new Set(chains.flat());
+    chains.push(order.filter((s) => !connected.has(s)));
     const meta: Record<string, { title: string; prev?: string; next?: string }> = {};
     for (const p of pages.values()) meta[p.slug] = { title: p.title };
-    order.forEach((s, i) => {
-      if (i > 0) meta[s].prev = order[i - 1];
-      if (i + 1 < order.length) meta[s].next = order[i + 1];
-    });
+    for (const chain of chains) {
+      chain.forEach((s, i) => {
+        if (i > 0) meta[s].prev = chain[i - 1];
+        if (i + 1 < chain.length) meta[s].next = chain[i + 1];
+      });
+    }
     const loaders = [...pages.keys()].map((s) => `${JSON.stringify(s)}: () => import(${JSON.stringify(V_PAGE + s)})`);
     return `export const groups = ${JSON.stringify(groups)};\nexport const pages = ${JSON.stringify(meta)};\nexport const loaders = {${loaders.join(',\n')}};\n`;
   };

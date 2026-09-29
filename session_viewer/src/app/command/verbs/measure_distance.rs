@@ -5,16 +5,11 @@ use crate::app::command::{Action, Spec};
 use crate::app::coords;
 use session_rust::{Plane, Point};
 
-pub const SPEC: Spec = Spec {
-    names: &["Measure Distance"],
-    aliases: &[],
-    hint: "Measure Distance · pick two points, snaps on · or type Measure Distance 0,0,0 100,0,0",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
+pub const SPEC: Spec = Spec::new(
+    &["Measure Distance"],
+    "Measure Distance · pick two points, snaps on · or type Measure Distance 0,0,0 100,0,0",
     parse,
-};
+);
 
 const USAGE: &str = "Measure Distance takes two points: Measure Distance 0,0,0 100,0,0";
 

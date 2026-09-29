@@ -1,804 +1,1789 @@
 # 23 · The command line: one verb per file
 
-A command is one file in `src/app/command/verbs/` plus one line in the `verbs!` list; nothing else in the viewer names it. This lesson builds that registry, typed coordinates, the drawing draft, the Tool trait for commands that ask for points, and the command dock.
+**Estimated study time: about 45–85 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
 
-![The command dock: typing `La` completes `Layers` in the field, and the list offers the match first, then every other verb alphabetically.](screenshots/command-completion.png)
+**This section:** Connect command words and options to application actions.
 
-## Step 1 · src/app/coords.rs
+**In the whole viewer:** The command layer is another entry point to the same state and document operations used by interactive controls.
 
-New file: a coordinate as typed, in its four forms, and the parser that reads one word.
+**Follow the data:** Command text → matched verb and options → validated action → state/document change.
 
-`lessons/23/src/app/coords.rs` · type this, new file
+**Start with these files:** [`src/app/command/mod.rs`](23-geometry-commands.md#code-23-010), [`src/app/command/verbs/mod.rs`](23-geometry-commands.md#code-23-024).
 
+**Aim to explain:** Where should a command such as a display toggle hand off its work?
+
+[Whole-viewer map and course milestones](map.md)
+
+A command definition tells the shared command system its name, input count and geometry builder. Point needs exactly one position. You also type the registry and parser in this chapter; sharing them keeps each verb small and the geometry creation has one clear home.
+
+![Typed coordinates → Command registry → Point builder → Source object.](illustrations/23-practice.svg)
+
+Start from the working result of [step 22](22-runtime-helpers.md).
+
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 6,511 lines across 54 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
+
+<span id="code-23-001"></span>
+
+## `src/lib.rs`
+
+Insert **after line 56** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    Sheet(Box<SheetInit>),         // a drawing sheet starts streaming; register:sheets
+    SheetChunk(SheetChunk),        // more segments arrived; register:sheets
+    SheetEntity(app::sheet_query::Resolved), // a picked sheet entity answered; register:sheets
+    CancelPointer,                 // the browser lost the pointer
+```
+
+Keep these following lines:
+
+```rust
+    Hydrated(Box<app::scene::Hydrated>), // a released document's objects are back; register:editing
+    Fonts(Vec<Vec<u8>>),           // the whole label fonts, main font first; register:loading
+}
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-001.rs"
+```
+
+<span id="code-23-002"></span>
+
+## `src/lib.rs`
+
+Insert **after line 82** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    state: Option<State>,               // everything drawn, once the GPU is up
+    proxy: Option<EventLoopProxy<Msg>>, // sends messages into the loop
+    input: Input,                       // mouse and key gestures
+    pointer_cancellation: Option<app::input::PointerCancellation>, // browser pointer-lost listener
+```
+
+Keep these following lines:
+
+```rust
+    ui: Option<app::ui::Ui>,            // the egui panels; register:egui
+}
+
+#[cfg(target_arch = "wasm32")]
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-002.rs"
+```
+
+<span id="code-23-003"></span>
+
+## `src/lib.rs`
+
+Insert **after line 99** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            proxy: Some(event_loop.create_proxy()),
+            state: None,
+            input: Input::new(),
+            pointer_cancellation: None,
+```
+
+Keep these following lines:
+
+```rust
+            ui: None,    // register:egui
+        };
+        // a browser loop cannot block: `spawn_app` hands the app over and returns at once
+        event_loop.spawn_app(app);
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-003.rs"
+```
+
+<span id="code-23-004"></span>
+
+## `src/lib.rs`
+
+Insert **after line 159** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                Ok(listener) => self.pointer_cancellation = Some(listener),
+                Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
+            }
+```
+
+Keep these following lines:
+
+```rust
+            // async: GPU setup, then Msg::Ready
+            wasm_bindgen_futures::spawn_local(app::loader::boot(window, proxy)); // register:loading
+        }
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-004.rs"
+```
+
+<span id="code-23-005"></span>
+
+## `src/lib.rs`
+
+Insert **after line 189** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved), // register:cloud_query
+            Msg::Sheet(init) => start_sheet(state, init), // register:sheets
+            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to), // register:sheets
+            Msg::SheetEntity(resolved) => state.sheet_entity(resolved), // register:sheets
+```
+
+Keep these following lines:
+
+```rust
+            Msg::CancelPointer => {
+                state.cancel_gesture(); // register:editing
+                self.input.cancel();
+                state.touch();
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-005.rs"
+```
+
+<span id="code-23-006"></span>
+
+## `src/lib.rs`
+
+Insert **after line 195** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                state.cancel_gesture(); // register:editing
+                self.input.cancel();
+                state.touch();
+            }
+```
+
+Keep these following lines:
+
+```rust
+        }
+
+        self.request_if_needed();
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-006.rs"
+```
+
+<span id="code-23-007"></span>
+
+## `src/lib.rs`
+
+Append **after line 474** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/23-007.rs"
+```
+
+<span id="code-23-008"></span>
+
+## `src/app/agent.rs`
+
+A phone keyboard appears for a focused editable HTML element. The viewer bridges that text into its command interface. Focus, composition and cancellation need explicit handling so browser text entry and scene shortcuts do not conflict.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-008.rs"
+```
+
+<span id="code-23-009"></span>
+
+## `src/app/clipping.rs`
+
+Append **after line 313** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/23-009.rs"
+```
+
+<span id="code-23-010"></span>
+
+## `src/app/command/mod.rs`
+
+A registry is a table of command descriptions. It supports lookup, completion and help without spreading a second list of names through the UI. A small constructor supplies common defaults while each verb declares its exceptions.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-010.rs"
+```
+
+<span id="code-23-011"></span>
+
+## `src/app/command/tests.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-011.rs"
+```
+
+<span id="code-23-012"></span>
+
+## `src/app/command/tool.rs`
+
+A command can finish immediately or start an interaction that continues across frames. The tool representation keeps those stages explicit. Cancellation must clear transient state and leave the committed document coherent.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-012.rs"
+```
+
+<span id="code-23-013"></span>
+
+## `src/app/command/verbs/arrow.rs`
+
+Each verb describes its accepted name, arguments and resulting action. Parsing recognizes the request; execution changes the document or starts a tool. Keeping these jobs separate makes invalid input easier to reject before anything changes.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-013.rs"
+```
+
+<span id="code-23-014"></span>
+
+## `src/app/command/verbs/clipping_plane.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-014.rs"
+```
+
+<span id="code-23-015"></span>
+
+## `src/app/command/verbs/close.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-015.rs"
+```
+
+<span id="code-23-016"></span>
+
+## `src/app/command/verbs/curve.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-016.rs"
+```
+
+<span id="code-23-017"></span>
+
+## `src/app/command/verbs/delete.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-017.rs"
+```
+
+<span id="code-23-018"></span>
+
+## `src/app/command/verbs/escape.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-018.rs"
+```
+
+<span id="code-23-019"></span>
+
+## `src/app/command/verbs/explode.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-019.rs"
+```
+
+<span id="code-23-020"></span>
+
+## `src/app/command/verbs/fit.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-020.rs"
+```
+
+<span id="code-23-021"></span>
+
+## `src/app/command/verbs/geometry.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-021.rs"
+```
+
+<span id="code-23-022"></span>
+
+## `src/app/command/verbs/hide.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-022.rs"
+```
+
+<span id="code-23-023"></span>
+
+## `src/app/command/verbs/line.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-023.rs"
+```
+
+<span id="code-23-024"></span>
+
+## `src/app/command/verbs/mod.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-024.rs"
+```
+
+<span id="code-23-025"></span>
+
+## `src/app/command/verbs/open.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-025.rs"
+```
+
+<span id="code-23-026"></span>
+
+## `src/app/command/verbs/point.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-026.rs"
+```
+
+<span id="code-23-027"></span>
+
+## `src/app/command/verbs/polyline.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-027.rs"
+```
+
+<span id="code-23-028"></span>
+
+## `src/app/command/verbs/redo.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-028.rs"
+```
+
+<span id="code-23-029"></span>
+
+## `src/app/command/verbs/save.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-029.rs"
+```
+
+<span id="code-23-030"></span>
+
+## `src/app/command/verbs/show.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-030.rs"
+```
+
+<span id="code-23-031"></span>
+
+## `src/app/command/verbs/undo.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-031.rs"
+```
+
+<span id="code-23-032"></span>
+
+## `src/app/coords.rs`
+
+Text coordinates have syntax and units before they become geometric values. Parsing separates separators, numbers and optional forms. Reject ambiguous or incomplete input before a geometry operation receives it.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23-032.rs"
+```
+
+<span id="code-23-033"></span>
+
+## `src/app/feedback.rs`
+
+Insert **after line 20** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    {
+        status.set_text_content(Some(message));
+    }
+```
+
+Keep these following lines:
+
+```rust
+    log::info!("{message}");
+}
+
+/// Show a download's progress, unless another message is up; nothing is logged.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-033.rs"
+```
+
+<span id="code-23-034"></span>
+
+## `src/app/feedback.rs`
+
+Insert **after line 37** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        let shown = status.text_content().unwrap_or_default();
+
+        if shown.is_empty() || shown == last {
+            status.set_text_content(Some(message));
+```
+
+Keep these following lines:
+
+```rust
+        }
+    }
+}
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-034.rs"
+```
+
+<span id="code-23-035"></span>
+
+## `src/app/feedback.rs`
+
+Append **after line 106** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/23-035.rs"
+```
+
+<span id="code-23-036"></span>
+
+## `src/app/input.rs`
+
+Insert **after line 150** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                }
+
+                self.last_cursor = at;
+                let mut redraw = dragging;
+```
+
+Keep these following lines:
+
 ```rust
---8<-- "lessons/23/src/app/coords.rs:coords-parse"
+                redraw
+            }
+            WindowEvent::MouseWheel { delta, .. } => {
+                // a mouse wheel reports lines, a touchpad pixels: 100 px count as one line
 ```
 
-## Step 2 · src/app/coords.rs
+Type these new lines:
 
-Place a typed coordinate on the construction plane, measured from the previous point when it is relative.
+```rust
+--8<-- "typing/code/23-036.rs"
+```
+
+<span id="code-23-037"></span>
+
+## `src/app/input.rs`
+
+Insert **after line 223** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                    self.touch_down = at;
+                    self.dragged = false;
+                    // while drawing, a tap is only a point, like a mouse press
+                    let mut drawing = false;
+```
+
+Keep these following lines:
+
+```rust
+
+                    if !drawing {
+                        self.gesture = gesture::press(state, at, TOUCH_REACH);
+                    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-037.rs"
+```
+
+<span id="code-23-038"></span>
+
+## `src/app/input.rs`
+
+Insert **after line 287** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                    Act::Moved => true,
+                    Act::Tap(at) => {
+                        // a command waiting for a point takes the tap, like a mouse click
+                        let mut drawing = false;
+```
+
+Keep these following lines:
+
+```rust
+
+                        if drawing {
+                        }
+```
+
+Type these new lines:
 
-`lessons/23/src/app/coords.rs` · type this, append at the end of the file
+```rust
+--8<-- "typing/code/23-038.rs"
+```
+
+<span id="code-23-039"></span>
+
+## `src/app/input.rs`
+
+Insert **after line 290** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                        let mut drawing = false;
+                        drawing |= state.drafting(); // register:commands
+
+                        if drawing {
+```
+
+Keep these following lines:
+
+```rust
+                        }
+
+                        state.request_selection(at.0 as u32, at.1 as u32, false, false);
+                        false
+```
 
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23-039.rs"
+```
+
+<span id="code-23-040"></span>
+
+## `src/app/input.rs`
+
+Insert **after line 297** of your current file.
+
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/coords.rs:coords-resolve"
+                        state.request_selection(at.0 as u32, at.1 as u32, false, false);
+                        false
+                    }
+                    // a command waiting for points takes both taps
 ```
 
-## Step 3 · src/app/coords.rs
+Keep these following lines:
 
-Tests: the four forms, words that are not coordinates, and a millimetre typed a kilometre out.
+```rust
+                    Act::Fit(_) => {
+                        state.fit_all();
+                        true
+                    }
+```
 
-`lessons/23/src/app/coords.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/coords.rs:coords-tests"
+--8<-- "typing/code/23-040.rs"
 ```
 
-## Step 4 · src/app/command/mod.rs
+<span id="code-23-041"></span>
 
-New file: the Action a parsed line becomes, the Spec each verb fills in, and the Verb trait REGISTRY holds.
+## `src/app/input.rs`
 
-`lessons/23/src/app/command/mod.rs` · type this, new file
+Insert **after line 347** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/command/mod.rs:command-action"
+                }
+
+                // while drawing, a press is only a click
+                let mut drawing = false;
 ```
 
-## Step 5 · src/app/command/mod.rs
+Keep these following lines:
 
-Find the verb the first words spell, in any case and with or without spaces.
+```rust
+                self.plain = !self.ctrl && !self.shift && !drawing;
+
+                if self.plain {
+                    self.gesture = gesture::press(state, self.last_cursor, MOUSE_REACH);
+```
 
-`lessons/23/src/app/command/mod.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/mod.rs:command-lookup"
+--8<-- "typing/code/23-041.rs"
 ```
+
+<span id="code-23-042"></span>
 
-## Step 6 · src/app/command/mod.rs
+## `src/app/input.rs`
 
-Text for the dock: a line in its shown spelling, whether an option is being typed, the option label and the hint.
+Insert **after line 381** of your current file.
 
-`lessons/23/src/app/command/mod.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/mod.rs:command-text"
+                    return false; // a drag, not a click
+                }
+
+                let mut drawing = false;
 ```
 
-## Step 7 · src/app/command/mod.rs
+Keep these following lines:
+
+```rust
 
-Parse a line into an Action, and complete, browse and accept names and options.
+                if drawing {
+                }
+                state.additive_selection = self.shift && !self.ctrl; // Shift adds to the selection
+```
 
-`lessons/23/src/app/command/mod.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/mod.rs:command-parse"
+--8<-- "typing/code/23-042.rs"
 ```
+
+<span id="code-23-043"></span>
 
-## Step 8 · src/app/command/mod.rs
+## `src/app/input.rs`
 
-Readers the verbs share: an offset, an axis and a number, a number alone, On or Off.
+Insert **after line 384** of your current file.
 
-`lessons/23/src/app/command/mod.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/mod.rs:command-arguments"
+                let mut drawing = false;
+                drawing |= state.drafting(); // register:commands
+
+                if drawing {
 ```
 
-## Step 9 · src/app/command/mod.rs
+Keep these following lines:
 
-Tests of completion, Title Case names and parsing; several name verbs of later lessons, so the whole module passes from lesson 37 on.
+```rust
+                }
+                state.additive_selection = self.shift && !self.ctrl; // Shift adds to the selection
+                state.request_selection(
+                    self.last_cursor.0 as u32,
+```
 
-`lessons/23/src/app/command/mod.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/mod.rs:command-tests"
+--8<-- "typing/code/23-043.rs"
 ```
+
+<span id="code-23-044"></span>
 
-## Step 10 · src/app/command/verbs/mod.rs
+## `src/app/inspection.rs`
 
-New file: the verbs folder's shared module for drawing verbs.
+Insert **after line 77** of your current file.
 
-`lessons/23/src/app/command/verbs/mod.rs` · type this, new file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/mod.rs:verbs-modules"
+            .iter()
+            .map(|r| state.gpu.objects.anchored_model(*r))
+            .collect::<Vec<_>>()
+    );
 ```
 
-## Step 11 · src/app/command/verbs/mod.rs
+Keep these following lines:
 
-The `verbs!` macro: one name per verb becomes its `pub mod` line and its REGISTRY entry.
+```rust
+    snapshot["clipping"] = state.clipping_status(); // register:clipping
+    snapshot["object_drag"] = state.object_drag_status(); // register:editing
+    snapshot["number_box"] = number_box(state); // register:editing
+    snapshot["undo_depth"] = undo_depth(state); // register:document
+```
 
-`lessons/23/src/app/command/verbs/mod.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/mod.rs:verbs-macro"
+--8<-- "typing/code/23-044.rs"
 ```
 
-## Step 12 · src/app/command/verbs/mod.rs
+<span id="code-23-045"></span>
 
-The list itself: this lesson's seventeen verbs, each on its own tagged line.
+## `src/app/keys.rs`
 
-`lessons/23/src/app/command/verbs/mod.rs` · type this, append at the end of the file
+Insert **after line 71** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/command/verbs/mod.rs:verbs-list"
+    // the first Esc cancels the command and keeps the selection, the next one clears it
+    named(NamedKey::Escape, |s| s.escape()),
+    named(NamedKey::F10, |s| s.enable_controls()), // register:controls
+    named(NamedKey::Delete, |s| s.delete_selected()), // register:delete
 ```
 
-## Step 13 · src/app/command/verbs/geometry.rs
+Keep these following lines:
 
-New file: Draw, the verb that turns points into one geometry, and its shared parser.
+```rust
+    ctrl(&["z", "Z"], Some(true), |s| s.redo()), // register:redo-shift
+    ctrl(&["z", "Z"], Some(false), |s| s.undo()), // register:undo
+    ctrl(&["y", "Y"], None, |s| s.redo()), // register:redo
+    // register:view-front
+```
 
-`lessons/23/src/app/command/verbs/geometry.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/geometry.rs:draw-verb"
+--8<-- "typing/code/23-045.rs"
 ```
+
+<span id="code-23-046"></span>
 
-## Step 14 · src/app/command/verbs/geometry.rs
+## `src/app/keys.rs`
 
-The Create and Edit actions, and the helpers that add geometry as one undo step and select it.
+Insert **after line 91** of your current file.
 
-`lessons/23/src/app/command/verbs/geometry.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/geometry.rs:draw-create"
+    // register:view-iso
+    plain(&["7"], |s| s.camera.set_view(View::Iso)),
+    // register:camera-reset
+    plain(&["c", "C"], |s| s.camera.reset()),
 ```
 
-## Step 15 · src/app/command/verbs/geometry.rs
+Keep these following lines:
 
-Tests: Wedge, a drawing verb that exists only in tests, registers from its own file alone.
+```rust
+    plain(&["f", "F"], |s| s.fit_selected_or_all()),
+    // register:show-points
+    plain(&["q", "Q"], |s| {
+        s.gpu.view.show_points = !s.gpu.view.show_points
+```
 
-`lessons/23/src/app/command/verbs/geometry.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/geometry.rs:draw-tests"
+--8<-- "typing/code/23-046.rs"
 ```
 
-## Step 16 · src/app/modeling.rs
+<span id="code-23-047"></span>
 
-New file: add geometry to the current layer, or a Created document, as one undo step.
+## `src/app/keys.rs`
 
-`lessons/23/src/app/modeling.rs` · type this, new file
+Insert **after line 113** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/modeling.rs:modeling-create"
+    // register:ssao
+    plain(&["g", "G"], |s| s.gpu.view.set_arctic(!s.gpu.view.ssao)),
+    // register:lit
+    plain(&["d", "D"], |s| s.gpu.view.lit = !s.gpu.view.lit),
 ```
 
-## Step 17 · src/app/modeling.rs
+Keep these following lines:
 
-Trim or extend the selected line or curve to a part of its length, then close the impl.
+```rust
+    plain(&["h", "H"], |s| s.hide_selected()),
+    // register:show-all
+    plain(&["s", "S"], |s| s.show_all()),
+    // register:names
+```
 
-`lessons/23/src/app/modeling.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/modeling.rs:modeling-interval"
+--8<-- "typing/code/23-047.rs"
 ```
+
+<span id="code-23-048"></span>
 
-## Step 18 · src/app/modeling.rs
+## `src/app/layers.rs`
 
-Tests: creation undoes and redoes, several objects are one step, trim and extend keep the pen.
+Append **after line 1669** of your current file.
 
-`lessons/23/src/app/modeling.rs` · copy, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23/src/app/modeling.rs:modeling-tests"
+--8<-- "typing/code/23-048.rs"
 ```
 
-## Step 19 · src/app/command/verbs/point.rs
+<span id="code-23-049"></span>
 
-The first verb, typed in full: a Draw constant, its parser and its build function.
+## `src/app/loader.rs`
 
-`lessons/23/src/app/command/verbs/point.rs` · type this, new file
+Append **after line 983** of your current file.
 
+Blank lines before: **1**; after: **0**. End with a newline.
+
 ```rust
---8<-- "lessons/23/src/app/command/verbs/point.rs"
+--8<-- "typing/code/23-049.rs"
 ```
+
+<span id="code-23-050"></span>
 
-## Step 20 · src/app/command/verbs/line.rs
+## `src/app/mod.rs`
 
-Line: two points, refused when they are the same point; `segment` is shared with Arrow.
+Insert **after line 2** of your current file.
 
-`lessons/23/src/app/command/verbs/line.rs` · type this, new file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/line.rs"
+// `pub mod x;` makes src/app/x.rs part of the crate; each lesson adds the one line of the module it teaches.
+// `#[cfg(target_arch = "wasm32")]` above a line compiles that module for the browser only.
 ```
 
-## Step 21 · src/app/command/verbs/arrow.rs
+Keep these following lines:
 
-Arrow: the Line segment with a head at its end.
+```rust
+pub mod clipping; // register:clipping
+pub mod cloud_query; // register:cloud_query
+pub mod cplane; // register:cplane
+#[cfg(any(target_arch = "wasm32", test))] // register:decode
+```
 
-`lessons/23/src/app/command/verbs/arrow.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/arrow.rs"
+--8<-- "typing/code/23-050.rs"
 ```
 
-## Step 22 · src/app/command/verbs/polyline.rs
+<span id="code-23-051"></span>
 
-Polyline: two points or more, with Rectangle and Polygon constructions offered as buttons.
+## `src/app/mod.rs`
 
-`lessons/23/src/app/command/verbs/polyline.rs` · copy the file
+Insert **after line 6** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/command/verbs/polyline.rs"
+#[cfg(target_arch = "wasm32")] // register:agent
+pub mod agent; // register:agent
+pub mod clipping; // register:clipping
+pub mod cloud_query; // register:cloud_query
 ```
 
-## Step 23 · src/app/command/verbs/curve.rs
+Keep these following lines:
 
-Curve: a NURBS curve on the control points, closed smoothly when it ends on its start.
+```rust
+pub mod cplane; // register:cplane
+#[cfg(any(target_arch = "wasm32", test))] // register:decode
+pub mod decode; // register:decode
+pub mod deform; // register:deform
+```
 
-`lessons/23/src/app/command/verbs/curve.rs` · copy the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/curve.rs"
+--8<-- "typing/code/23-051.rs"
 ```
+
+<span id="code-23-052"></span>
 
-## Step 24 · src/app/command/verbs/close.rs
+## `src/app/mod.rs`
 
-Close: join the polyline or curve being drawn back to its first point.
+Insert **after line 31** of your current file.
 
-`lessons/23/src/app/command/verbs/close.rs` · copy the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/close.rs"
+#[cfg(target_arch = "wasm32")] // register:loader
+pub mod loader; // register:loader
+pub mod manifest; // register:manifest
+pub mod mesh_preview; // register:mesh_preview
 ```
 
-## Step 25 · src/app/command/verbs/undo.rs
+Keep these following lines:
 
-The first verb without points: a Spec, a parser and a unit struct that implements Action.
+```rust
+#[cfg(any(target_arch = "wasm32", test))] // register:range_gate
+pub mod range_gate; // register:range_gate
+#[cfg(target_arch = "wasm32")] // register:route
+pub mod route; // register:route
+```
 
-`lessons/23/src/app/command/verbs/undo.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/undo.rs"
+--8<-- "typing/code/23-052.rs"
 ```
 
-## Step 26 · src/app/command/verbs/redo.rs
+<span id="code-23-053"></span>
 
-Redo: the same shape as Undo.
+## `src/app/mod.rs`
 
-`lessons/23/src/app/command/verbs/redo.rs` · copy the file
+Insert **after line 38** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/command/verbs/redo.rs"
+#[cfg(target_arch = "wasm32")] // register:route
+pub mod route; // register:route
+pub mod scene; // register:scene
+pub mod selection; // register:selection
 ```
 
-## Step 27 · src/app/command/verbs/delete.rs
+Keep these following lines:
 
-Delete: needs a selection, so a bare Delete first asks for objects.
+```rust
+pub mod sheet_query; // register:sheet_query
+pub mod snap; // register:snap
+pub mod stream; // register:stream
+pub mod surface_preview; // register:surface_preview
+```
 
-`lessons/23/src/app/command/verbs/delete.rs` · copy the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/delete.rs"
+--8<-- "typing/code/23-053.rs"
 ```
 
-## Step 28 · src/app/command/verbs/hide.rs
+<span id="code-23-054"></span>
 
-Hide: hide the selection.
+## `src/app/modeling.rs`
 
-`lessons/23/src/app/command/verbs/hide.rs` · copy the file
+A modeling action selects source geometry, computes a result and records a document change. The display is updated from that change. Kernel algorithms do the geometric calculation; this layer owns viewer interaction and history.
 
+Create this file. Type the complete listing, including comments and blank lines.
+
 ```rust
---8<-- "lessons/23/src/app/command/verbs/hide.rs"
+--8<-- "typing/code/23-054.rs"
 ```
+
+<span id="code-23-055"></span>
 
-## Step 29 · src/app/command/verbs/show.rs
+## `src/app/scene_sync.rs`
 
-Show: show everything hidden.
+Append **after line 602** of your current file.
 
-`lessons/23/src/app/command/verbs/show.rs` · copy the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/show.rs"
+--8<-- "typing/code/23-055.rs"
 ```
 
-## Step 30 · src/app/command/verbs/fit.rs
+<span id="code-23-056"></span>
 
-Fit: frame the selection, or the whole scene.
+## `src/app/scene_sync/commands_tests.rs`
 
-`lessons/23/src/app/command/verbs/fit.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/fit.rs"
+--8<-- "typing/code/23-056.rs"
 ```
 
-## Step 31 · src/app/command/verbs/escape.rs
+<span id="code-23-057"></span>
 
-Escape: cancel the running command, else clear the selection.
+## `src/app/session_io.rs`
 
-`lessons/23/src/app/command/verbs/escape.rs` · copy the file
+Saving serializes meaningful document state. GPU allocations, transient previews and pixels are derived data. Loading reconstructs the source document and then its display representation.
 
+Create this file. Type the complete listing, including comments and blank lines.
+
 ```rust
---8<-- "lessons/23/src/app/command/verbs/escape.rs"
+--8<-- "typing/code/23-057.rs"
 ```
 
-## Step 32 · src/app/command/verbs/explode.rs
+<span id="code-23-058"></span>
 
-Explode: a polyline into lines, a BRep or mesh into faces, a cloud into points, as one undo step.
+## `src/app/ui/command_line.rs`
 
-`lessons/23/src/app/command/verbs/explode.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/explode.rs"
+--8<-- "typing/code/23-058.rs"
 ```
 
-## Step 33 · src/app/session_io.rs
+<span id="code-23-059"></span>
 
-New file: write the scene as a `.session` file, read one back, and the browser download and file picker.
+## `src/app/ui/command_line/tests.rs`
 
-`lessons/23/src/app/session_io.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23/src/app/session_io.rs"
+--8<-- "typing/code/23-059.rs"
 ```
+
+<span id="code-23-060"></span>
 
-## Step 34 · src/app/command/verbs/save.rs
+## `src/app/ui/mod.rs`
 
-Save: download the scene, once every released document is back.
+Insert **after line 6** of your current file.
 
-`lessons/23/src/app/command/verbs/save.rs` · copy the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/save.rs"
+use std::cell::Cell;
+use theme::{BUNDLED, fonts, visuals};
+use winit::window::Window;
+mod overlay; // register:overlay
 ```
 
-## Step 35 · src/app/command/verbs/open.rs
+Keep these following lines:
 
-Open: ask the browser for a `.session` file.
+```rust
+mod pointer; // register:pointer
+mod theme; // register:theme
+
+/// Declare each panel's module and list it in PANELS, so a panel is one file plus one line.
+```
 
-`lessons/23/src/app/command/verbs/open.rs` · copy the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/open.rs"
+--8<-- "typing/code/23-060.rs"
 ```
+
+<span id="code-23-061"></span>
 
-## Step 36 · src/state/hydrate.rs
+## `src/app/ui/mod.rs`
 
-Another `impl State` block: save once the released documents are back.
+Insert **after line 25** of your current file.
 
-`lessons/23/src/state/hydrate.rs` · copy, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/state/hydrate.rs:save-when-back"
+}
+
+panels! {
+    number_box,   // register:number_box
 ```
+
+Keep these following lines:
 
-## Step 37 · src/app/loader.rs
+```rust
+}
 
-Hand an opened scene to the viewer as a message, like a loaded one.
+// As with Lane in 04a, every hook but `show` has a default body, so a panel writes only the hooks it uses.
+/// One panel. Its state lives in its own file; these hooks are all the frame needs from it.
+```
 
-`lessons/23/src/app/loader.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/loader.rs:install-saved"
+--8<-- "typing/code/23-061.rs"
 ```
 
-## Step 38 · src/lib.rs
+<span id="code-23-062"></span>
 
-Replace the scene with the opened one and frame it.
+## `src/app/ui/mod.rs`
 
-`lessons/23/src/lib.rs` · copy, append at the end of the file
+Insert **after line 127** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/lib.rs:open-saved"
+    pointer: egui::Pos2,                     // last pointer position
+    ui_drag: bool,                           // a drag started on a panel
+    over_panel: bool,                        // the pointer was last over a panel or popup
+    touches: std::collections::HashSet<u64>, // fingers on panels
 ```
+
+Keep these following lines:
 
-## Step 39 · src/app/command/verbs/clipping_plane.rs
+```rust
+}
 
-Clipping Plane: the command for the planes of [lesson 18b](18b-clipping.md), in the Title Case every name uses.
+impl Ui {
+    /// Draw the panels with the whole fonts, main font first.
+```
 
-`lessons/23/src/app/command/verbs/clipping_plane.rs` · copy the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/verbs/clipping_plane.rs"
+--8<-- "typing/code/23-062.rs"
 ```
 
-## Step 40 · src/state/clipping.rs
+<span id="code-23-063"></span>
 
-Another `impl State` block: size, pick, create, switch, flip and fill clipping planes for the verb.
+## `src/app/ui/mod.rs`
 
-`lessons/23/src/state/clipping.rs` · copy, append at the end of the file
+Insert **after line 148** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/state/clipping.rs:clipping-verbs"
+        // egui may lay a frame out twice to settle sizes; a second pass would type every letter twice
+        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
+        context.set_theme(egui::Theme::Light);
+        context.set_visuals(visuals());
 ```
 
-## Step 41 · src/app/command/tool.rs
+Keep these following lines:
 
-New file: the tool module's imports; later lessons add their tool families here.
+```rust
+        let input = egui_winit::State::new(
+            context.clone(),
+            egui::ViewportId::ROOT,
+            window,
+```
 
-`lessons/23/src/app/command/tool.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/tool.rs:tool-modules"
+--8<-- "typing/code/23-063.rs"
 ```
+
+<span id="code-23-064"></span>
 
-## Step 42 · src/app/command/tool.rs
+## `src/app/ui/mod.rs`
 
-Next and the Tool trait: every hook a command that asks for points may answer.
+Insert **after line 171** of your current file.
 
-`lessons/23/src/app/command/tool.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/tool.rs:tool-trait"
+            pointer: egui::Pos2::ZERO,
+            ui_drag: false,
+            over_panel: false,
+            touches: std::collections::HashSet::new(),
 ```
 
-## Step 43 · src/app/command/tool.rs
+Keep these following lines:
 
-Strokes, squares and a label a tool draws over the scene, and two small helpers.
+```rust
+        }
+    }
+
+    /// Lay out and draw the panels; true when the frame must be redrawn.
+```
 
-`lessons/23/src/app/command/tool.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/command/tool.rs:tool-overlay"
+--8<-- "typing/code/23-064.rs"
 ```
+
+<span id="code-23-065"></span>
 
-## Step 44 · src/state/drawing.rs
+## `src/app/ui/mod.rs`
 
-New file: the Draft, the command being drawn, and `drafting`.
+Insert **after line 201** of your current file.
 
-`lessons/23/src/state/drawing.rs` · type this, new file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/state/drawing.rs:draft"
+        }
+
+        // a dragged object's snap, else the shape being drawn
+        let mut drawing = state.drag_overlay();
 ```
 
-## Step 45 · src/state/drawing.rs
+Keep these following lines:
 
-A line typed while drawing: a new drawing verb, a tool's word, an option, Sides N, Enter or coordinates.
+```rust
+        // in one egui run, keys reach the field focused before that run's clicks;
+        // so every switch between clicks and keys starts a new run, and a tap then a typed 5 lands in the tapped field
+        let mut batches = Vec::new();
+        let mut events = Vec::new();
+```
 
-`lessons/23/src/state/drawing.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/state/drawing.rs:drawing-command"
+--8<-- "typing/code/23-065.rs"
 ```
+
+<span id="code-23-066"></span>
 
-## Step 46 · src/state/drawing.rs
+## `src/app/ui/mod.rs`
 
-Ask for points, close a shape, add typed coordinates, and finish by running the line as if typed.
+Insert **after line 268** of your current file.
 
-`lessons/23/src/state/drawing.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/state/drawing.rs:drawing-points"
+        if let Some(key) = action {
+        }
+
+        if let Some(text) = command {
 ```
 
-## Step 47 · src/state/drawing.rs
+Keep these following lines:
+
+```rust
+        }
 
-The draft as JSON for tests, and the prompt the dock shows while drawing.
+        self.publish();
+        let repaint = changed || self.context.has_requested_repaint();
+```
 
-`lessons/23/src/state/drawing.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/state/drawing.rs:drawing-prompt"
+--8<-- "typing/code/23-066.rs"
 ```
+
+<span id="code-23-067"></span>
 
-## Step 48 · src/state/drawing.rs
+## `src/app/ui/mod.rs`
 
-The cursor snaps within 12 pixels or lands on the plane; a click places the point.
+Insert **after line 272** of your current file.
 
-`lessons/23/src/state/drawing.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/state/drawing.rs:drawing-cursor"
+            self.run_line(state, &text); // register:commands
+        }
+
+        self.publish();
 ```
 
-## Step 49 · src/state/drawing.rs
+Keep these following lines:
 
-The rubber band on screen and the buttons under the field, then close the impl.
+```rust
+        let repaint = changed || self.context.has_requested_repaint();
+        // a 1600-pixel canvas 800 CSS pixels wide gives 2.0
+        output.pixels_per_point = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
+```
 
-`lessons/23/src/state/drawing.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/state/drawing.rs:drawing-overlay"
+--8<-- "typing/code/23-067.rs"
 ```
+
+<span id="code-23-068"></span>
 
-## Step 50 · src/state/drawing.rs
+## `src/app/ui/mod.rs`
 
-A rectangle from two corners and a polygon from centre and corner, on the plane's axes.
+Append **after line 338** of your current file.
 
-`lessons/23/src/state/drawing.rs` · type this, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23/src/state/drawing.rs:drawing-construction"
+--8<-- "typing/code/23-068.rs"
 ```
 
-## Step 51 · src/state/drawing.rs
+<span id="code-23-069"></span>
 
-Tests: rectangle and polygon follow the construction plane.
+## `src/app/ui/number_box.rs`
 
-`lessons/23/src/state/drawing.rs` · copy, append at the end of the file
+Insert **after line 56** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/state/drawing.rs:drawing-tests"
+        if let Some(text) = &typed {
+            match state.type_number(text) {
+                Ok(Some(done)) => {
+                    crate::app::feedback::status(&done);
 ```
 
-## Step 52 · src/state/tool.rs
+Keep these following lines:
 
-New file: start a tool on the selection or without one, and call it with the draft taken out.
+```rust
+                }
+                Ok(None) => {}
+                Err(error) => STATE.with_borrow_mut(|model| model.number_error = error),
+            }
+```
 
-`lessons/23/src/state/tool.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/state/tool.rs:tool-start"
+--8<-- "typing/code/23-069.rs"
 ```
 
-## Step 53 · src/state/tool.rs
+<span id="code-23-070"></span>
 
-Pass clicks, picks, hovers and drags to the running tool, and ask for objects when nothing is selected.
+## `src/app/ui/phone.rs`
 
-`lessons/23/src/state/tool.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23/src/state/tool.rs:tool-events"
+--8<-- "typing/code/23-070.rs"
 ```
+
+<span id="code-23-071"></span>
 
-## Step 54 · src/state/tool.rs
+## `src/engine/text.rs`
 
-Typed words go to the tool, then its answer decides: ask again, repeat, finish or refuse.
+Append **after line 568** of your current file.
 
-`lessons/23/src/state/tool.rs` · type this, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23/src/state/tool.rs:tool-command"
+--8<-- "typing/code/23-071.rs"
 ```
 
-## Step 55 · src/state/tool.rs
+<span id="code-23-072"></span>
 
-The tool's prompt and rubber band, its preview on the GPU only, and cancelling it.
+## `src/state.rs`
 
-`lessons/23/src/state/tool.rs` · type this, append at the end of the file
+Insert **after line 14** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/state/tool.rs:tool-show"
+// Each `mod` line below carries a `register` tag naming its feature; the course adds the line in that feature's lesson.
+mod clipping; // register:clipping
+mod cloud_query; // register:cloud_query
+mod drag; // register:drag
 ```
 
-## Step 56 · src/state/tool.rs
+Keep these following lines:
 
-A second `impl State` block with the hooks Esc, Enter and the pick call.
+```rust
+pub mod edit; // register:edit
+mod features; // register:features
+mod hydrate; // register:hydrate
+pub(crate) mod number_box; // register:number_box
+```
 
-`lessons/23/src/state/tool.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/state/tool.rs:tool-hooks"
+--8<-- "typing/code/23-072.rs"
 ```
+
+<span id="code-23-073"></span>
 
-## Step 57 · src/state/edit.rs
+## `src/state.rs`
 
-Another `impl State` block: run one line, with the draft first and objects asked for when needed.
+Insert **after line 21** of your current file.
 
-`lessons/23/src/state/edit.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/state/edit.rs:run-command"
+mod hydrate; // register:hydrate
+pub(crate) mod number_box; // register:number_box
+mod sheet_query; // register:sheet_query
+mod text; // register:text
 ```
 
-## Step 58 · src/app/ui/command_line.rs
+Keep these following lines:
 
-New file: what the dock remembers between frames, and its history of 200 lines.
+```rust
+use features::Features;
+use std::sync::Arc;
+use winit::window::Window;
+```
 
-`lessons/23/src/app/ui/command_line.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/ui/command_line.rs:command-line-state"
+--8<-- "typing/code/23-073.rs"
 ```
 
-## Step 59 · src/app/ui/command_line.rs
+<span id="code-23-074"></span>
 
-The dock's Panel hooks: focus on a press, keys while open, and its state for tests.
+## `src/state.rs`
 
-`lessons/23/src/app/ui/command_line.rs` · type this, append at the end of the file
+Insert **after line 136** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/ui/command_line.rs:command-line-panel"
+    /// Remove every document; camera and GPU stay.
+    pub fn clear(&mut self) {
+        self.load_camera = self.camera.pose(); // remember the view
+        self.cancel_gesture(); // register:editing
 ```
 
-## Step 60 · src/app/ui/command_line.rs
+Keep these following lines:
 
-Open `draw`: the folded row or resizable dock, the history, and the drawing buttons.
+```rust
+        self.selection = SelectionMode::Object;
+        self.features.sheet_query = None; // register:sheets
+        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+        self.controls = Controls::default();
+```
 
-`lessons/23/src/app/ui/command_line.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/ui/command_line.rs:dock-frame"
+--8<-- "typing/code/23-074.rs"
 ```
+
+<span id="code-23-075"></span>
 
-## Step 61 · src/app/ui/command_line.rs
+## `src/state/clipping.rs`
 
-The field's row: focus, the mouse wheel and arrow keys that browse, Enter and Tab.
+Append **after line 141** of your current file.
 
-`lessons/23/src/app/ui/command_line.rs` · type this, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23/src/app/ui/command_line.rs:dock-input"
+--8<-- "typing/code/23-075.rs"
 ```
 
-## Step 62 · src/app/ui/command_line.rs
+<span id="code-23-076"></span>
 
-Option buttons before the field, the field itself, and completion as the person types.
+## `src/state/drag.rs`
 
-`lessons/23/src/app/ui/command_line.rs` · type this, append at the end of the file
+Insert **after line 88** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/ui/command_line.rs:dock-field"
+    /// A plain press dragged past the click slop: ask the GPU what the press landed on.
+    pub(crate) fn start_object_drag(&mut self, down: (f64, f64), at: (f64, f64)) -> bool {
+        // F10 control points keep the left button
+        if matches!(self.selection, SelectionMode::Controls { .. })
 ```
 
-## Step 63 · src/app/ui/command_line.rs
+Keep these following lines:
 
-The completion list floating above the field, following the wheel and the arrow keys.
+```rust
+            || self.selection_tool != SelectionTool::Object
+        {
+            return false;
+        }
+```
 
-`lessons/23/src/app/ui/command_line.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/ui/command_line.rs:dock-completions"
+--8<-- "typing/code/23-076.rs"
 ```
 
-## Step 64 · src/app/ui/command_line.rs
+<span id="code-23-077"></span>
 
-Run a chosen completion or the line, Escape, the fold button, the snap bar, and close `draw`.
+## `src/state/drawing.rs`
 
-`lessons/23/src/app/ui/command_line.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23/src/app/ui/command_line.rs:dock-run"
+--8<-- "typing/code/23-077.rs"
 ```
+
+<span id="code-23-078"></span>
 
-## Step 65 · src/app/ui/command_line.rs
+## `src/state/edit.rs`
 
-Put the caret at the end, count the characters a name spells, the grey placeholder, and select a range.
+Append **after line 854** of your current file.
 
-`lessons/23/src/app/ui/command_line.rs` · type this, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23/src/app/ui/command_line.rs:command-line-helpers"
+--8<-- "typing/code/23-078.rs"
 ```
 
-## Step 66 · src/app/ui/command_line.rs
+<span id="code-23-079"></span>
 
-Tests: arrow keys cycle options, a space inside a name types on, browsing starts from the typed option.
+## `src/state/features.rs`
 
-`lessons/23/src/app/ui/command_line.rs` · copy, append at the end of the file
+Insert **after line 2** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/ui/command_line.rs:command-line-tests"
+use super::State;
+use super::drag; // register:object_drag
 ```
 
-## Step 67 · src/app/ui/mod.rs
+Keep these following lines:
 
-Another `impl Ui` block: run a typed line and remember it with its answer.
+```rust
+use super::edit; // register:gizmo_drag
+use super::hydrate; // register:hydrate
+use crate::app::gizmo::Gizmo; // register:gizmo
+use crate::app::snap::Snapping; // register:snap
+```
 
-`lessons/23/src/app/ui/mod.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/ui/mod.rs:run-line"
+--8<-- "typing/code/23-079.rs"
 ```
+
+<span id="code-23-080"></span>
 
-## Step 68 · src/app/feedback.rs
+## `src/state/features.rs`
 
-Open or close the dock, and raise the phone keyboard.
+Insert **after line 23** of your current file.
 
-`lessons/23/src/app/feedback.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/feedback.rs:command-line"
+    pub(super) control_drag: Option<edit::ControlDrag>, // register:control_drag
+    pub(crate) gizmo: Option<Gizmo>,  // register:gizmo
+    pub(super) dragging: Option<edit::GizmoDrag>, // register:gizmo_drag
+    pub(super) object_drag: Option<drag::ObjectDrag>, // register:object_drag
 ```
 
-## Step 69 · src/app/agent.rs
+Keep these following lines:
 
-New file: the hidden page input a phone keyboard types into, and its events.
+```rust
+    pub(crate) snap: Snapping,        // register:snap
+}
+
+// Each list starts empty; a later lesson adds one line per hook.
+```
 
-`lessons/23/src/app/agent.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/agent.rs:agent-events"
+--8<-- "typing/code/23-080.rs"
 ```
 
-## Step 70 · src/app/agent.rs
+<span id="code-23-081"></span>
 
-Listen to its typing, keys and composition, and send each as a message.
+## `src/state/hydrate.rs`
 
-`lessons/23/src/app/agent.rs` · type this, append at the end of the file
+Insert **after line 6** of your current file.
 
+Keep these preceding lines:
+
 ```rust
---8<-- "lessons/23/src/app/agent.rs:agent-listeners"
+
+/// What waits for released documents to come back.
+pub(crate) enum Resume {
+    Controls(u32), // F10 on this row
 ```
 
-## Step 71 · src/app/agent.rs
+Keep these following lines:
+
+```rust
+    Rewalk,        // walk the lanes again: a compaction or a features toggle
+}
 
-Remove the listeners when the agent goes away.
+impl State {
+```
 
-`lessons/23/src/app/agent.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/agent.rs:agent-drop"
+--8<-- "typing/code/23-081.rs"
 ```
+
+<span id="code-23-082"></span>
 
-## Step 72 · src/app/agent.rs
+## `src/state/hydrate.rs`
 
-Copy text into the input, raise or lower the keyboard, and ask whether a word is being composed.
+Insert **after line 94** of your current file.
 
-`lessons/23/src/app/agent.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/agent.rs:agent-calls"
+                if self.scene.selected == Some(row) {
+                    self.enable_controls();
+                }
+            }
 ```
 
-## Step 73 · src/app/ui/phone.rs
+Keep these following lines:
 
-New file: which open field the phone keyboard types into.
+```rust
+            Resume::Rewalk if !self.scene.has_released() => {
+                self.scene.rewalk_editable(&mut self.gpu);
+                self.reselect_face();
+                self.place_gizmo(None);
+```
 
-`lessons/23/src/app/ui/phone.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/ui/phone.rs:phone-field"
+--8<-- "typing/code/23-082.rs"
 ```
 
-## Step 74 · src/app/ui/phone.rs
+<span id="code-23-083"></span>
 
-Feed the hidden input's typing into that field, or the command line.
+## `src/state/hydrate.rs`
 
-`lessons/23/src/app/ui/phone.rs` · type this, append at the end of the file
+Append **after line 128** of your current file.
 
+Blank lines before: **1**; after: **0**. End with a newline.
+
 ```rust
---8<-- "lessons/23/src/app/ui/phone.rs:phone-agent"
+--8<-- "typing/code/23-083.rs"
 ```
+
+<span id="code-23-084"></span>
 
-## Step 75 · src/app/ui/phone.rs
+## `src/state/number_box.rs`
 
-Type the hidden input's text into a field.
+Insert **after line 89** of your current file.
 
-`lessons/23/src/app/ui/phone.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23/src/app/ui/phone.rs:phone-type-into"
+impl State {
+    /// A tap that opened a number box raises the phone keyboard.
+    pub(crate) fn number_box_tapped(&self, tap: bool) {
+        if tap && self.number_box_open() {
 ```
 
-## Step 76 · src/app/ui/phone.rs
+Keep these following lines:
 
-Keep the hidden input on the field that has focus, then close the impl.
+```rust
+        }
+    }
+}
+```
 
-`lessons/23/src/app/ui/phone.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23/src/app/ui/phone.rs:phone-follow"
+--8<-- "typing/code/23-084.rs"
 ```
 
-## Step 77 · src/lib.rs
+<span id="code-23-085"></span>
 
-Another `impl App` block: listen to the hidden input and turn its keys into key presses.
+## `src/state/tool.rs`
 
-`lessons/23/src/lib.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23/src/lib.rs:phone-keys"
+--8<-- "typing/code/23-085.rs"
 ```
 
-## Step 78 · registration lines
+<span id="code-23-086"></span>
+
+## `tests/command-workspace.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/23-086.cjs"
+```
+
+<span id="code-23-087"></span>
+
+## `tests/drawing-large-scene.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/23-087.cjs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 23
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
 
-Copy the lines tagged with a lesson 23 tag from these files of `lessons/23/`:
+Run the native command tests. Enter `Point 300,200,200` in the browser and verify that one point appears and one undo removes it.
 
-- `src/app/mod.rs`: the `agent`, `command`, `coords`, `modeling` and `session_io` modules.
-- `src/state.rs`: the `drawing` and `tool` modules, and the draft dropped when the scene is cleared (`register:commands`).
-- `src/state/features.rs`: the `draft` field (`register:drawing`).
-- `src/app/ui/mod.rs`: `command_line` in the `panels!` list, the `phone` module and fields, and the `run_line` and drawing-overlay calls.
-- `src/app/keys.rs`: `:` opens the command line.
-- `src/lib.rs`: the `Agent` and `SavedScene` messages, the `agent` field, `listen_agent`, and the two message arms.
-- `src/app/input.rs`, `src/state/drag.rs`: a draft takes hovers and clicks before the scene does.
-- `src/app/feedback.rs`, `src/app/ui/number_box.rs`, `src/state/number_box.rs`, `src/state/hydrate.rs`, `src/app/inspection.rs`: the status line, history, phone keyboard, Save resume and the `drawing` snapshot.
+If Point is unknown, inspect its registration. If coordinates are rejected, inspect the shared coordinate parser before adding another parser inside this verb.
 
-## Step 79 · tests
+![Visual reference from the finished viewer after Point 300,200,200. The point is selected above the boxes; the gumball is added in lesson 25.](screenshots/practice/viewer-point.png)
 
-Copy these tests from `lessons/23/`; they are checked, not explained:
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
 
-- `src/app/scene_sync.rs`: the `commands_tests` module at the end of the file.
-- `src/app/layers.rs`: the `commands_tests` module at the end of the file.
-- `src/engine/text.rs`: the `commands_tests` module, which checks the bundled fonts draw every command name.
-- `src/app/clipping.rs`: the `editing_tests_23` module, a clipping plane undone and saved.
-- `tests/command-workspace.cjs` and `tests/drawing-large-scene.cjs`: browser checks of the dock and of drawing in a large scene.
+<details>
+<summary>Check your explanation of the opening question</summary>
 
-Run `cargo check` in `lessons/23/`.
+The command interprets the request and calls the relevant state operation. Buffer updates and rendering rules remain in the state and renderer layers.
 
-## Check
+</details>
 
-`cargo check` compiles; `cargo xtest --lib coords` runs the coordinate tests. In `trunk serve`, press `:` and type `lin`: the dock completes `Line`; Enter, two clicks, and a line is drawn and selected. `Polyline Rectangle` draws from two corners, Undo removes it, and `poly line` or `POLYLINE` run the same verb.
+[Next step: 23a](23a-tools.md)

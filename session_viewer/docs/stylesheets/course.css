@@ -143,7 +143,8 @@
 /* A generated diagram keeps its own size and centres; it may shrink on a narrow screen but is
    never blown up to the column width, which was making a 489px drawing 970px wide. */
 .md-typeset img[src*="illustrations/0"], .md-typeset img[src*="illustrations/1"],
-.md-typeset img[src*="illustrations/2"], .md-typeset img[src*="illustrations/README"],
+.md-typeset img[src*="illustrations/2"], .md-typeset img[src*="illustrations/3"],
+.md-typeset img[src*="illustrations/README"],
 .md-typeset img[src*="illustrations/extend-"],
 .md-typeset img[src*="illustrations/capstone"], .md-typeset img[src*="illustrations/debugging"] {
   max-width: 100%;
@@ -190,3 +191,9 @@
 .md-typeset a { text-decoration: underline; }
 .md-typeset details.note > summary, .md-typeset details.example > summary { background: #e9e9e9; }
 .md-typeset mark { background: #e9e9e9; }
+
+.md-content img[src*="illustrations/rust-"] { width: auto; max-width: 100%; }
+
+.md-content img[src*="illustrations/typing-"] { width: auto; max-width: 100%; }
+
+.md-typeset img[src*="illustrations/journey-"] { max-width: 100%; width: auto; height: auto; }

@@ -1,97 +1,138 @@
-# 00 · Empty project to a WASM message
+# 00 · Load Rust in the browser
 
-A browser runs JavaScript and WebAssembly, not Rust. WebAssembly (wasm) is a compact binary format that every modern browser runs at near-native speed. So we compile our Rust to wasm, and two tools wrap it: wasm-bindgen writes the JavaScript that loads the `.wasm` file, and Trunk builds the web page around both.
+**Estimated study time: about 4–9 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
 
-This lesson makes that crate: seven files and one function. Six of the files are final, so you write them once and never open them again.
+**This section:** Create the browser page and the Rust entry point.
+
+**In the whole viewer:** This is the outer shell. It must load successfully before a renderer can present pixels.
+
+**Follow the data:** HTML → Trunk’s JavaScript bridge → WebAssembly → run_web.
+
+**Start with these files:** [`index.html`](00-environment.md#code-00-005), [`src/lib.rs`](00-environment.md#code-00-006).
+
+**Aim to explain:** Why does a successful Rust build not yet give us a picture?
+
+[Whole-viewer map and course milestones](map.md)
+
+Before we draw, let us make sure the browser can call Rust. Rust produces a WebAssembly file: a compact program the browser can run. Trunk builds that file and the small JavaScript bridge that starts it. Today, success is a program that loads without an error; we have not asked it to draw anything yet.
 
 ![Four tools and four artefacts: cargo produces a .wasm a browser cannot load on its own, wasm-bindgen writes the JavaScript that can, Trunk assembles the page around it, and the browser runs the start function.](illustrations/toolchain.svg)
 
-## Make the folder
+First finish [computer setup](README.md#prepare-your-computer) and [Rust foundations](foundations.md). From `session_viewer`, create your empty project:
 
 ```sh
-cd session/session_viewer/docs/lessons
-mkdir -p mine/src mine/.cargo
-cd mine
+npm --prefix ../session_tests run course -- reference-init
 ```
 
-Your crate sits beside the lesson crates, so the path `../../../../session_rust` in the manifest reaches the geometry kernel four folders up: the library of points, curves and meshes the viewer will draw. Every command below runs in `mine/`.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 405 lines across 6 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-## Name the crate and its libraries
+<span id="code-00-001"></span>
 
-`lessons/00/Cargo.toml` · copy the file
+## `.gitignore`
 
-`Cargo.toml` is the crate's manifest: its name and the libraries it uses. Two lines matter today. `crate-type = ["cdylib", ...]` asks for a library a browser can load, and `wgpu` is the library that talks to the GPU. The other libraries serve later lessons; listing them now means this file never changes again.
+Git records the files needed to reproduce your program. Compiled output can be rebuilt, while a scene you created cannot. A line beginning with ! makes an exception to an ignore rule.
 
-```toml
---8<-- "lessons/00/Cargo.toml"
-```
-
-## Build for the browser by default
-
-`lessons/00/.cargo/config.toml` · new file
-
-A target is the machine cargo compiles for. We make the browser, `wasm32-unknown-unknown`, the default, so a plain `cargo check` checks the browser build. Tests cannot run inside wasm, so the alias `cargo xtest` runs them on your own machine instead.
-
-```toml
---8<-- "lessons/00/.cargo/config.toml"
-```
-
-## Tell Trunk how to build and serve
-
-`lessons/00/Trunk.toml` · copy the file
-
-Trunk builds the page into a `dist` folder and, with `trunk serve`, serves it at `http://127.0.0.1:8770` and rebuilds when a watched file changes.
-
-```toml
---8<-- "lessons/00/Trunk.toml"
-```
-
-## Keep build output out of git
-
-`lessons/00/.gitignore` · copy the file
-
-`target` and `dist` are rebuilt from the source, so git never stores them.
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```text
---8<-- "lessons/00/.gitignore"
+--8<-- "typing/code/00-001.txt"
 ```
 
-## Pin every library version
+<span id="code-00-002"></span>
 
-`lessons/00/Cargo.lock` · [download the file](https://github.com/petrasvestartas/session/blob/main/session_viewer/docs/lessons/00/Cargo.lock) into `mine/`
+## `.cargo/config.toml`
 
-`Cargo.lock` records the exact version of every library, so your build uses the same code as ours. Never edit it by hand.
+The same Rust source can be compiled for different machines. wasm32 targets the browser; the native target can access files and GPU drivers directly. The xtest alias selects the native target for tests.
 
-## The page the browser opens
+Create this file. Type the complete listing, including comments and blank lines.
 
-`lessons/00/index.html` · copy the file
+```toml
+--8<-- "typing/code/00-002.toml"
+```
 
-Three parts matter. The `<canvas>` fills the window; the viewer will draw into it. The line `<link data-trunk rel="rust" ...>` tells Trunk to build this crate and load it into the page. The script at the top starts downloading the scene, the file of geometry to show, while the wasm is still loading, so the first picture comes sooner.
+<span id="code-00-003"></span>
+
+## `Cargo.toml`
+
+A manifest names our package and its dependencies. A feature turns on a dependency capability; it does not run that capability. Cargo.lock records the exact versions selected from these requirements. The path dependency points to the separate geometry kernel.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```toml
+--8<-- "typing/code/00-003.toml"
+```
+
+<span id="code-00-004"></span>
+
+## `Trunk.toml`
+
+Rust produces WebAssembly, but a browser also needs HTML, JavaScript glue and assets. Trunk builds and serves these together. Paths are relative to this project, so keep your handwritten project in the documented folder.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```toml
+--8<-- "typing/code/00-004.toml"
+```
+
+<span id="code-00-005"></span>
+
+## `index.html`
+
+The canvas is the rectangle the GPU presents into. CSS decides its display size; the renderer must separately choose its pixel size. Event handlers distinguish viewer gestures from browser scrolling. data-trunk links tell the build tool which files to package.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```html
---8<-- "lessons/00/index.html"
+--8<-- "typing/code/00-005.html"
 ```
 
-## The first function the browser runs
+<span id="code-00-006"></span>
 
-`lessons/00/src/lib.rs` · new file
+## `src/lib.rs`
 
-`#[wasm_bindgen(start)]` marks the function the JavaScript glue calls once the module has loaded. For now it does one thing: a Rust panic will print its message in the browser console instead of a bare "unreachable".
+A Rust library begins at lib.rs. A module declaration makes another source file part of this library. The wasm-bindgen start attribute gives the browser bridge an entry point. Declaring a module does not, by itself, run its functions.
+
+`use` makes a name available in this scope. `crate` starts at our library root; `super` starts at the parent module.
+
+`pub` makes an item visible outside its module. `pub(crate)` limits that visibility to this library.
+
+`fn` introduces a function. Parameters have types after colons. `->` names the returned type. A final expression without a semicolon supplies the return value.
+
+`Result<T, E>` is either `Ok(value)` or `Err(error)`. It makes success and failure part of the function interface.
+
+`#[...]` is metadata for the compiler or a code-generating macro. `cfg` selects code for a target; `derive` generates standard implementations.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/00/src/lib.rs:entry"
+--8<-- "typing/code/00-006.rs"
 ```
 
-## Checkpoint
+## Check the completed chapter
 
-Run `cargo check`. It compiles without producing a file, so it is the fast way to find mistakes. The first run compiles every library once, which takes a few minutes; after that your crate checks in seconds.
+From `session_viewer`, compare everything you have typed:
 
-Run `cargo build`. You should now have `target/wasm32-unknown-unknown/debug/session_viewer.wasm`: your Rust, compiled for the browser.
+```sh
+npm --prefix ../session_tests run course -- reference-check 00
+```
 
-`trunk serve` has to wait. The page also copies fonts and a sample scene into `dist`, and those folders arrive in later lessons. If cargo cannot find `session_rust`, your folder is not four levels below the one that holds it.
+From `workspace/handwritten`:
 
-## Recap
+```sh
+cargo build --lib --locked -j4
+```
 
-The browser runs wasm; cargo makes it, wasm-bindgen writes the JavaScript that loads it, and Trunk builds the page. Your crate compiles for the browser by default and tests on your machine with `cargo xtest`. Next we write the renderer that this function will one day start.
+Run `trunk serve --port 8780` after the check, then open http://localhost:8780/. Look for a successful WASM request in the Network panel and no startup error in the Console. The canvas is not drawing yet.
 
-Next: [01 · First WebGPU frame](01-first-frame.md)
+If Rust cannot find the WebAssembly target, run the target-install command in the course introduction. If the browser reports a panic, open its Console and read the first error.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+The entry point starts Rust, but we have not created a GPU device, recorded drawing commands or presented a frame.
+
+</details>
+
+[Next step: 01](01-first-frame.md)

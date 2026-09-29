@@ -1,5 +1,5 @@
 // --8<-- [start:rows]
-use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
+use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, resource_group};
 use super::hull::{Hull, placed_box};
 use super::instance::Instance;
 use super::targets::Targets;
@@ -1174,6 +1174,7 @@ impl super::lane::Lane for InstanceTable {
 // --8<-- [start:ink-group]
 /// Textures and tiles the ink bind group reads.
 pub struct InkScene<'a> {
+    pub tiles: &'a super::triangle_tiles::TriangleTiles, // screen tiles for visibility tests; register:tiles
     pub targets: &'a Targets,                            // depth and triangle id textures
 }
 
@@ -1185,29 +1186,19 @@ fn ink_instance_group(
     buffers: [&wgpu::Buffer; 2],
     depths: [&wgpu::TextureView; 2],
     gradients: [&wgpu::TextureView; 2],
+    tiles: &super::triangle_tiles::TriangleTiles, // register:tiles
 ) -> wgpu::BindGroup {
     let view = wgpu::BindingResource::TextureView;
-    let entries = [
-        buffers[0].as_entire_binding(),
-        buffers[1].as_entire_binding(),
-        view(depths[0]),
-        view(depths[1]),
-        view(gradients[0]),
-        view(gradients[1]),
-    ];
-    let entries: Vec<wgpu::BindGroupEntry> = entries
-        .into_iter()
-        .enumerate()
-        .map(|(binding, resource)| wgpu::BindGroupEntry {
-            binding: binding as u32,
-            resource,
-        })
-        .collect();
-    ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some(label),
-        layout: &l.ink_instance,
-        entries: &entries,
-    })
+    resource_group(ctx, &l.ink_instance, label, [
+        (0, buffers[0].as_entire_binding()),
+        (1, buffers[1].as_entire_binding()),
+        (2, view(depths[0])),
+        (3, view(depths[1])),
+        (4, view(gradients[0])),
+        (5, view(gradients[1])),
+        (6, tiles.projected.as_entire_binding()), // register:tiles
+        (7, tiles.buffer.as_entire_binding()),    // register:tiles
+    ])
 }
 
 impl InstanceTable {
@@ -1228,6 +1219,7 @@ impl InstanceTable {
             [&self.buffer.buf, &self.translations.buf],
             [&t.depth_single, &t.depth_msaa],
             [&t.gradient_single, &t.gradient_msaa],
+            scene.tiles, // register:tiles
         ));
     }
 
@@ -1238,6 +1230,7 @@ impl InstanceTable {
         layouts: &Layouts,
         depths: [&wgpu::TextureView; 2],
         gradients: [&wgpu::TextureView; 2],
+        tiles: &super::triangle_tiles::TriangleTiles, // register:tiles
     ) -> wgpu::BindGroup {
         ink_instance_group(
             ctx,
@@ -1246,6 +1239,7 @@ impl InstanceTable {
             [&self.buffer.buf, &self.translations.buf],
             depths,
             gradients,
+            tiles, // register:tiles
         )
     }
 }

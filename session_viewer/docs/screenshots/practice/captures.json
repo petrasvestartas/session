@@ -1,0 +1,318 @@
+{
+  "browser": "153.0.8010.36",
+  "captured": "2026-09-27T23:26:30.600Z",
+  "description": "Browser captures of real exercise source and recorded compiler/test output. These are source/check snapshots, not a running CAD scene.",
+  "lessons": {
+    "10": {
+      "source": "src/engine/text.rs",
+      "prepared": "c9143df39bc9b2499439cd48e037cc591d53f0128bfc4cb24781126c83ea3360",
+      "typed": "95f9aeb199ddaf5077d742cb8bef6571b666988f2721e96519717c8e2ef2d25e",
+      "wasm": "87a48a23eb6ac69de6759d95c879a3b762899f6f5a29f1e04990ee297d4316d8",
+      "native": "16607fb126d07007512388ed51661a20998efa58ddd7e3d20be24382c2525240"
+    },
+    "11": {
+      "source": "src/shaders/text_plate.wgsl",
+      "prepared": "345780c4b8fcea6dbcd5d794dc70feb9a7c94cbb3cdd4b3e389dc090084f66e0",
+      "typed": "4d5e089b5b219747226be963245d615a759ae6f9b4b0ea86661f2254ae28cc65",
+      "wasm": "93fc66bc0422b705525a8eadd1e26f1426cdac7cf5234a220c3bac6059344e1b",
+      "native": "96da0f62650655e3cea72a137ead6ad4d4931c65cbc626f11093ab55676e8eb0"
+    },
+    "12": {
+      "source": "src/engine/gpu/pick.rs",
+      "prepared": "c7e5ed3f2324c4c8af4b8505e4f72aedc0b3a6b1ac2604527dd91e38ed8ea3a4",
+      "typed": "ce55b9e4f1f921496ebe8bc0a398d56d7b99d27289025af5f2a8b2b5f9338506",
+      "wasm": "d05ce2c326801a4613649ae93b14f342e9f74a0249c2a2b515577b50ede04aaf",
+      "native": "ab9de597df30011ef4486c1c859c9525d83abf2381bcf0cd76198110d4dee69d"
+    },
+    "13": {
+      "source": "src/state.rs",
+      "prepared": "c8825a9eff842d0101b60da269e119b8651cb0dd119c11a68d8922379a125a11",
+      "typed": "287ffe7cb628cd82346f6d2bfd60b99e3a35fd22f2c1787b3641a0147e5c9da9",
+      "wasm": "9db87c84107812ce33df8f897a1030ee86b855bb2e7e43cc2b0daa647c6c96f7",
+      "native": "fb60f581763ed70f8bd2f6fa505bacaca96e0d3d56f32c7c4575c4489e3b91e3"
+    },
+    "14": {
+      "source": "src/app/manifest.rs",
+      "prepared": "5898af2a6cd5840af552ad117be7b8575fa0883efecde836d605de8d4cdd6183",
+      "typed": "ec76f26795a375f4c03b6a9abf3bd43f42bcbe13fc9e92ccc7a212f45c53e943",
+      "wasm": "d4aa57a77075d30a0f4b80519eb7fb3bcc46fc753b54c148847f0525ff2c0e7d",
+      "native": "6d65269bcc4ac07de073f436f4df840b5b9c08fe1839af43c66a776189044f38"
+    },
+    "15": {
+      "source": "src/app/stream.rs",
+      "prepared": "063babe2a25e8fd1604e96fc28f67162b228ae41592b0ecda37e15ea9e781ad2",
+      "typed": "94ba97417737168c37d11d1ca526607306b2d4205fa9418f310b28b0e800cf44",
+      "wasm": "1a3e501bab8e332bc3f30d8225763f368b58d3b42417b5afa5a62b4a13633dbb",
+      "native": "c4861529c4c46181afc3b04b49e6c02c53181c5afc392505cafb673d7c98be95"
+    },
+    "16": {
+      "source": "src/app/inspection/source_memory.rs",
+      "prepared": "58134944500db6bc34257a606138a36e30df94a1266c385b12f87f14885888ec",
+      "typed": "d02da3a5d4ad493274aff2cb53436852d3d76ef0b07f04126405b0d8afade7fe",
+      "wasm": "66af8486d356c63bcd93fac759738478c405cce35132d2c1fa588ad8e380c10f",
+      "native": "33b2f3d45241ec2130e835282c23063cc0450705822a58a1a835c625cd0b3523"
+    },
+    "17": {
+      "source": "src/state/text.rs",
+      "prepared": "75ba55093df13335e094529852505cb9094672494539d4c494eb882ae828c997",
+      "typed": "310301332b10e80115fd2937852b486fe9b0c2e2e2ab946b9be51c6c1a89e972",
+      "wasm": "849fb3f87e8e3659054442bb4cde11c65f4960cc34660ca20f5f899e2a064e0d",
+      "native": "776410d414a53244f1edbdb8af20c739447cf10bb5670421398bb4e4ede818fd"
+    },
+    "18": {
+      "source": "src/shaders/scan_triangle_tiles.wgsl",
+      "prepared": "7487457496b6cd2860f2a7a5dc71fc91493e0953ce900571135149e0484f8a8b",
+      "typed": "8ebc30efa4d9d86e624fe57f93e92b610cf0fbea4913e8f73c63c02f1253f87a",
+      "wasm": "eb28610d090cc944f6ce4e481753fde5919f0f7fab9616e715ce14affa12808a",
+      "native": "a50a6211c0b96c4e5c31d6dabf94e8b7edce09c550df51f0a39bed59279f8b7f"
+    },
+    "19": {
+      "source": "src/app/walk/sheet.rs",
+      "prepared": "84256ee60c29421136f1632dc56fac3470ebc393650bb21696f17b17d2020733",
+      "typed": "62bfce121a1ae5af5663b10674d582eae59f2254c2beb16d73ec360531e306dd",
+      "wasm": "550f57a0d9c31e0d7417e3b495f4b46d2b4069803cfeb2f3c7b9ec65e0a847fe",
+      "native": "b98bf9615c3209c4635cc317b20973a08b50e15e7d0b632adb02eb6075f780ed"
+    },
+    "20": {
+      "source": "src/app/scene_sync/notes.rs",
+      "prepared": "71c1d6aad8b141d99b231e31fb5dd5a0d99154e68cc6d848d3044f94c50f397c",
+      "typed": "9ac5f97e71390f29756cb3b5980fe108f104f70ee07f6716ba18179cd53925d6",
+      "wasm": "5021ca3f5b9fe2b8880eaa6ce84a391f9018d141ac8b34095fd0bf4513188582",
+      "native": "c9aa36e59468413927e68480b193200f74369232477bf163617a553d693144eb"
+    },
+    "21": {
+      "source": "src/app/deform.rs",
+      "prepared": "fd84851ddb22e7676992615026acfa0562982cdb006dcb82d0ccd98d45eb39ae",
+      "typed": "c80815684bd7cd225243387016c7792697ebf78045f865d4f72606bc98c5f824",
+      "wasm": "a660653035285cb1f7bb48cbdad6aceea8df3058f080491bc2daf8026c78b9cb",
+      "native": "8a593b7bce2e7180b3daf87ba2d22c69b793bbae807cc923b6102526f951af20"
+    },
+    "22": {
+      "source": "src/engine/gpu/ui.rs",
+      "prepared": "271669242b844c792b255da7a8de1da39281e35b03b962a0b004a2fadfa98942",
+      "typed": "2dcb7d9e22c0d05d5fea0bea8880414214b2ec986407b57d273da0f28c0f4814",
+      "wasm": "21ca25dcea2ad9cc48bdebc7e45b3c32ed532bec7b2f0f41e6d34ebd28b1e9ee",
+      "native": "a3d676eaefabd6578ef14feee71a8f403cb64bea55ca2e01dcd78ecb1acf4385"
+    },
+    "23": {
+      "source": "src/app/command/verbs/point.rs",
+      "prepared": "33502df27243f25c974a878a1278e265eda93021de3762f9c14e057ebed5cb2c",
+      "typed": "3f8b968e81c2e1fc6db350fd7cb91ffd9dc66db4a2a9666203ccc7a90b0a5bde",
+      "wasm": "19ee7f6b8e328bfb7ab1d585be0446577c1b00fba5fb9f5e423dd83d94c9f5bd",
+      "native": "248fa45b8c7ebb9bdfd9df4c97643e54ce4ea132d3df1fdd97f6983a92e5cc82"
+    },
+    "24": {
+      "source": "src/app/snap.rs",
+      "prepared": "6aa061ccf6fcfcf78e7040a7b060317ae511d8c8a1cbd460f7b4ae6f17db7923",
+      "typed": "76217b7cdac5119d63409ac32fc9491220e936d80b765a040124869b403c9424",
+      "wasm": "36b2e1fa9c38e6a1d3947065af1dcbd64aeee776c0fe3e35cc58f75708400fbc",
+      "native": "cf207d4e703ba237d8e31fd267a3f064b76d97f4aca8b8e65dc734f7ac2abad3"
+    },
+    "25": {
+      "source": "src/engine/gpu/widget_mesh.rs",
+      "prepared": "79bec55891b5bf087433212faa31f86bd4ca1f15a7cfa2d5db287ae128cab89f",
+      "typed": "0f2cb9b1673b49dd716ec36ff4f68c42d12239be6a6c49a63899e1f21000f8a8",
+      "wasm": "c92cc487493a6a16f1764b0b18f75508097e3f6f3332b97ead68893fcec82ba1",
+      "native": "22cdc99c1db6cac8678c13f6723ce8d4cfba0eca13b885013971c104d152aa22"
+    },
+    "26": {
+      "source": "src/app/hierarchy.rs",
+      "prepared": "e8e815f4d1992f7606747addc7eb2f615fb3539ae0e225e818d3dcd698a483ef",
+      "typed": "b81b6d47ef3808703a42381f37b799bec84b8b36ddfc027ca2a7a2e4253a9680",
+      "wasm": "0829110ab1a282227da35eee437626b6237fff3edf665bf861c45ad4c6ac43a2",
+      "native": "a54a31eba2b9cdb568263a68f99ab8ca48f1f555586a0b929852f598c090bc84"
+    },
+    "30": {
+      "source": "src/state/panel.rs",
+      "prepared": "3d945786bd3d12992dad1c9cee80975aa7ff98a3379d5e18e7c12c9120245d95",
+      "typed": "6e287e7c9cb0a71f94b9cbfa8fdd909813c5e08b2defec581b572f1a7444cbd4",
+      "wasm": "50c40546d29ae63975a6b7ffb46725da76de6fd6f4b25864a4ab147d0d477442",
+      "native": "e4cdde11e63df15ff6e463c723dbb04f3e8bdea375674d965fc1a4c7f0f096ce"
+    },
+    "31": {
+      "source": "src/app/command/verbs/split.rs",
+      "prepared": "c081550408f5f04840c4e1018f24d1a0616bbc6fb86b2d919ac6e5535ba046dc",
+      "typed": "8c029c76b77546dd5fb8831693397b48ef16852ed1379253c2a028349f99b54a",
+      "wasm": "6cfaaadb60f8340d5ed6e3ea2d258734996fffad6ce9236bdfa5a8482c9c13b5",
+      "native": "ad179b62420787a760f41aca5f6edb17ef384489faea7991cad6174137139a2e"
+    },
+    "32": {
+      "source": "src/shaders/ambient_depth.wgsl",
+      "prepared": "d8b3a7bc88fd519a7e1a65fda4ecc47e9ce2e0ce3c5e3f05a02555ea29610e8b",
+      "typed": "45f11bde0a0c47fcb2abc1bfa801a6162f5180afbaf98ba807ba90dd566f690e",
+      "wasm": "984be04d8c029450f6de3e639d93e8efcf09ea9242a187b625ff6b970ddc7ec3",
+      "native": "6d3f659b2fb1279277da57ac8997247031454cb58a56a01fd60a88569e3d62a7"
+    },
+    "33": {
+      "source": "src/app/command/verbs/arctic.rs",
+      "prepared": "0471e552d687b94c1abfddb62fe149447c321ee6524ecd22949d880f7902d606",
+      "typed": "b19f0c79f4af5c0bd82d7c32f0ea12d52caad951f23772d071d26dcc1ac98384",
+      "wasm": "870c1c08c818a7d2817caffbd5030c1f3f7bb12e2cf05f870d86fa67a9510d81",
+      "native": "114202a75efba5c1d405bcf3f60cfc687f0e0f2e64a547ce00c5952d8f5bc2d0"
+    },
+    "35": {
+      "source": "src/state.rs",
+      "prepared": "630033b6c40bb0752c86860eb708371973eb28937796af2f455e24fb0b1959df",
+      "typed": "fc08368078e22af90c7bb3833ca6bb75b86c3a1f91a69a82ae9dd1f8969c29f4",
+      "wasm": "735294e633b46d1fdc02e07d443825c0f7c8c06f6580bffcce37ba2e287c02df",
+      "native": "38aa58e1a242c24aa96b0274f3afc6c9f834cbefbde695f1f236f6595279a542"
+    },
+    "36": {
+      "source": "src/app/command/verbs/opacity.rs",
+      "prepared": "7c78b6288f7b82e39cd7ea9f0201afb7d004b6f516f82ad1a6b915251953e737",
+      "typed": "7f182e383d7ef4de821a4cfbc9ef268c1ed96b7ae1d2e14e581cf2effcdb5dfe",
+      "wasm": "322dd135e2c107ac9fb12a2538258c734fa31a5296b924dbdaa6692f90f9ef09",
+      "native": "345ee0971f68085fcd2d7dd5722e79bb4a99a433c586a0b1eaacd935fc536e5f"
+    },
+    "37": {
+      "source": "src/selftest.rs",
+      "prepared": "4f92e707a05fd19776dcdaedce425c6c9e64215cc7996091241263ab5af784ed",
+      "typed": "71ad96b4f8a72c05b206831d2a8c3ca4a59bca380fd5f9a48362394bdb523e11",
+      "wasm": "aee46e03f2271ffff209991057c897d24481890c1a94b60de518521b73120d93",
+      "native": "4c74badea7250c315993316c8b008af4e72ce6abe60b94aea82ca8337d54ffcb"
+    },
+    "00": {
+      "source": "src/lib.rs",
+      "prepared": "c64022381c0b73f4c42960e0d6e12cb75b9a69194cbf56e0b5de2002d079ad38",
+      "typed": "fc845819deedd97433592ff7d86b8f1202f6bc2c3f98cd0b478e4cf76f80621e",
+      "wasm": "007c0a32ff304018470e682f3d04b857c43d09e8cd7a7d81489b41415137d57d",
+      "native": "ec079aeec2432eeb6f34cebfdf5a31e99d3f7e073347b0be657d426df84d47c6"
+    },
+    "01": {
+      "source": "src/shaders/background.wgsl",
+      "prepared": "33502df27243f25c974a878a1278e265eda93021de3762f9c14e057ebed5cb2c",
+      "typed": "f0df60645bbebc5a9c327cdfc34443f28d58fac31604fde1fc79af95b2ca56b1",
+      "wasm": "669ebfbc8ddc333ae88bb7fa4d6a62fb5bd3f90cf006ba711cc8b9a7d6b34361",
+      "native": "cde94fffa4e932df96e163a3e9cde7720e83def44506a2dee117e7430bd454b0"
+    },
+    "02": {
+      "source": "src/camera.rs",
+      "prepared": "0ced0580b44b69c170400b2e8de77cb7bdf34fb2e27e54dd03dde5fe22c6ccf0",
+      "typed": "3c39aca434333eb6c1daecb06dce00ebace2709afdecd488714e01a808fb8521",
+      "wasm": "ecf5cc8539960eb9f755bbc2fa2ca4d8e6f94b25f74aa301ed4c367172291c80",
+      "native": "8eb1ac6823d17561b2a3c23d788b7d299447be6ac0696ee298ea2d26aa1c04bd"
+    },
+    "03": {
+      "source": "src/engine/gpu/patch.rs",
+      "prepared": "b25cfb9505a71134b280f0b5a295142c996a7f0c55ef8d9b74166c23a0260028",
+      "typed": "d2960a1b6913e744de06a62570690915d58d702e6c03ee5ba95acb768d601103",
+      "wasm": "0a5a8000b4f138a578a8fd45c7e4a3a7576070389b02e7d813fbd19f60692816",
+      "native": "9971d317bd4ec955f9ebb611a87f642d811fddb32b681030e2ee448b8940b568"
+    },
+    "04a": {
+      "source": "src/shaders/triangle.wgsl",
+      "prepared": "82860f565308c4492d828c2f90ccc6b8588e8f17645caebe589fae31758a6915",
+      "typed": "f837fdd3f2cb317b1877223b596274a7ef23d9e3912b072d5dfb9f777ae99615",
+      "wasm": "fa60c3bbe2c5dc546dcdcd01486de34aea211a21376ebe86e7730036c8c9cd7b",
+      "native": "32504f34e8cf5cb3ac7bc33bc9739dda27cf39df23fb54d11820656f84b4ab57"
+    },
+    "04b": {
+      "source": "src/shaders/ribbon.wgsl",
+      "prepared": "14dc92ae6e33b693afccdeb92824bb60ed1cefd5a0fa5c9f8493856ee252a738",
+      "typed": "f0bf558fbc23ed713dbcbfe5aca12da3cfda96259d937edee08301bfda4b342c",
+      "wasm": "dadb15e2df77d4e4383a36e114f9edb79ed155edfc5972d53f84989797141d6c",
+      "native": "b249c101470aca340f56121b8e5d01953635f2ed178cd8146ada27c54c6bff8e"
+    },
+    "04c": {
+      "source": "src/shaders/sphere.wgsl",
+      "prepared": "1623d7235172118d7a150ac0200801788bde147152d66dedb6dcbeb194d7cf4d",
+      "typed": "07e37eafcaa10088275b820f97a1bbccc4c83dde33617c3d7bfdc53fbab2b445",
+      "wasm": "40949522467ab9c7a8647641594dadac1a95c30a803f6c054874b3e6bc8cfa56",
+      "native": "02c5e72b0b5b7cb6ca85b5a46a383d51a95189a5cf4374d573e890ee3c95e150"
+    },
+    "04d": {
+      "source": "src/engine/gpu/lod.rs",
+      "prepared": "e6620839a80b9ab097adff5bdee5d03fc6aaf14e12454f8ec08a0561b26fb9dc",
+      "typed": "aefeeb00ef49495d55941fee491fb7cbf14431d9d8466f6f9433319e31267738",
+      "wasm": "eb96579116b8c932218cfd2a5c643441c3439de9d62db352959f04bb291c9e1e",
+      "native": "98679d4ac2d8c0bb255b611176d6825740c5ba0c6daafae0df390c5d84835e00"
+    },
+    "05": {
+      "source": "src/shaders/ink_visibility.wgsl",
+      "prepared": "9dcc011d30e142b178edf1a4fc88ec08ad7d50d93e7dab3086ff8675af95e8cb",
+      "typed": "cb53ac2706816c52c23d3b9e0bbbf8381c7c03db7694fe16e6e776d26560e487",
+      "wasm": "e0ba76e681f4a8511fc11802d33cc40d16282b5dc509872ec5c2c7719b94d49b",
+      "native": "63a6659976019fed234666807f8badec080e88fdc30f61ccdf126157be5e20ec"
+    },
+    "06": {
+      "source": "src/app/walk/points.rs",
+      "prepared": "33502df27243f25c974a878a1278e265eda93021de3762f9c14e057ebed5cb2c",
+      "typed": "af7baa2ff846c8ede26274635f105bd34377cf2aa63576424ff53da843d38330",
+      "wasm": "f5342b10382de4dd380d04ab99c67cf95e2f923e0aea7f42649e3bf703681a77",
+      "native": "6ed56eeb99bedd1262bef553373db036ee2653cf8f732ab5b612fd1c851e5303"
+    },
+    "07": {
+      "source": "src/app/walk/brep_edges.rs",
+      "prepared": "a8dcf045daf7a2b7c91d393c6efb626f39c1ec7ec72d53512bf2ef3a58617522",
+      "typed": "f695065ce7cd1dab5c9d893bfa7357cb3c48848b9e47746fa84cabae4bf464c2",
+      "wasm": "336b85e9cb2c50bb50eeccf03095f7e7d32d386ba549f3c4944b3ccffc06dadb",
+      "native": "243fd70fbae7f6a7da2cc3e94b0894969a6311a3f5cb9c18ed3fd0ed6820dc68"
+    },
+    "08": {
+      "source": "src/app/walk/brep_edges.rs",
+      "prepared": "e61f44123c5f2d9dc481cf3971e8dbcdab6b3c34c0fcb99d669a5d39465d842d",
+      "typed": "104e961bbef6f835fad69a5432a025567c43e7f3f3a50a9ce534997480c5944b",
+      "wasm": "11437a8f8777f53da276edab5881db42bf72d317d90c44e9d01b378b78ef081a",
+      "native": "f30a46ce91547f811ca3f8af1a5ab2e28f7cd2d86f6506bf0aa1121985ee6d06"
+    },
+    "09": {
+      "source": "src/app/walk/brep_orient.rs",
+      "prepared": "cf0bd29edf286365fadd8e595aadf09274b64561010c681b7738b82f463559ad",
+      "typed": "54cd5d60932c184e1977aabe747483d50bc3158e7a4c3a7abcb0484e1708ec41",
+      "wasm": "26cc7e6ce1c5979ff17818df5ed938cf33ccd4ba7f817027ce6ccce80b46718c",
+      "native": "53744dc9ee140d93d1351f07d449ee1d685b94de291d50c06b81d68bd3347140"
+    },
+    "18a": {
+      "source": "src/engine/gpu/instanced.rs",
+      "prepared": "6b6c58bd1ec14da853f4d45d6c243ec5c2a2a859669afbb2d5706a1e3f2b205f",
+      "typed": "741dfbb950000782bb0badf4b084cc212ea7c04376784726a3e0435abd58ee9c",
+      "wasm": "f7b362e4aeacfe33f830d3f51e4a401cca115ccb8ddf7f0244aa503d1672cf3a",
+      "native": "d6d8ab6b4959df6f57409573bf7f0d476f6180aa5a70abde71b157441ba316b3"
+    },
+    "18b": {
+      "source": "src/app/clipping.rs",
+      "prepared": "c87ad075cccdd64eaf72de37335890859cc7aed79fcd00bf64343d003a78be60",
+      "typed": "cc9b375817a1be85a062517941e9ed130f2e75544600ca45dfb2b731f946d310",
+      "wasm": "ed1bde657ce5948c2dfb848443ea87b9915d0a774f169d61b1022971eeca2f5c",
+      "native": "4c918f7d8f2690068d7e0d1080dfb3dcf0c0ad8a739fc34effddf352809e966e"
+    },
+    "23a": {
+      "source": "src/app/command/verbs/move.rs",
+      "prepared": "fddecaee51daf10cc0fdac21fece29afd9f439c8f8a5ce42ca4259c1e0338d53",
+      "typed": "e927f732cef13026a15198a5d2aa29c1f65e8fff695ff4b3b526567fefbcf9bf",
+      "wasm": "e6d590f1f12540f4ce1557a79abdd1a23947f186eea3623dfbf5145ea00f525d",
+      "native": "cd6e02d43da252aa15785190e57fff1f7d62860372f8d19e7e89f2d94140a7f8"
+    },
+    "23b": {
+      "source": "src/app/command/verbs/box.rs",
+      "prepared": "8f48ddd14eff11ff6664c4cc80cdb6fc89181a1bd35525ab03960f8857ac99bb",
+      "typed": "d3df75b9d6caad20f041da80b71590f414b194b551b57c50fdb1330905d91392",
+      "wasm": "8c85bc0a73150b26b240af2c694c5a028ebacf0a4319baddbbcf45349a7e5267",
+      "native": "df3c5a9673699e9ed4f8e8083b85ffd35086c1e7349c30a010ed8c56bc35aa69"
+    },
+    "23c": {
+      "source": "src/app/command/verbs/loft.rs",
+      "prepared": "6f5435d113845502adc22b3266f0741c137301b85763296084cc9df7ce686798",
+      "typed": "b3a8611449e1f32bb976717ae04592eb31c5a3dc43715f77510c32a4072d8552",
+      "wasm": "3e7e1c1b6f10df3e98abe90e9564d46d6580aec093b2030ef479a26046e641f6",
+      "native": "15527c8751dceb8db0a9ff1d1b7962196868d9f3c090140e9235d7fecf58a686"
+    },
+    "23d": {
+      "source": "src/app/command/verbs/measure_distance.rs",
+      "prepared": "b7ef2d68c13f3a36785828ac75facc21834f7e80811f9059ce76e5222db4d920",
+      "typed": "ea3393e05416b5b64d6a8eca30a06554155ba9d71b36c6e8d739e1b729a59799",
+      "wasm": "adfe1c3ad77de71d384c6bab32532b013aa9dfcb2408a97cb97da32edc86bd88",
+      "native": "0f9455de9e8f676e382d95ccc155ef8b17d806a97477e3b7773d6dd2929f262a"
+    }
+  },
+  "frame01": {
+    "frame": {
+      "source": "examples/course_frame.rs",
+      "readback": "0e2476ee4a789fb3afdaf323ca140ca4eaa1728316cbaf8620a6253188565f0c"
+    },
+    "frame-grey": {
+      "source": "examples/course_frame.rs",
+      "readback": "66f23cf82fad53acda5b44af45cf157a23ed9a250f6a5296361b637883e362d1"
+    }
+  }
+}

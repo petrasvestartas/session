@@ -27,6 +27,7 @@ pub mod surface_outline; // register:surface_outline
 pub mod targets; // register:targets
 pub mod text; // register:text
 pub mod text_outline; // register:text_outline
+mod triangle_tiles; // register:triangle_tiles
 pub mod upload; // register:upload
 pub mod vectors; // register:vectors
 pub mod view; // register:view
@@ -606,6 +607,7 @@ impl Gpu {
             &self.layouts,
             &InkScene {
                 targets: &self.targets,
+                tiles: &self.arena.tiles, // register:tiles
             },
         );
     }

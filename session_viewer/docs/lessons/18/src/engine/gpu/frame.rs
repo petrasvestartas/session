@@ -2,9 +2,11 @@
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::view::View;
 use crate::engine::pipelines::Layouts;
+use crate::engine::pipelines::bindings::buffer_entry;
 use session_rust::Xform;
 
 /// Everything that changes from one frame to the next; the renderer keeps no camera or clock of its own.
+use wgpu::{BufferBindingType, ShaderStages};
 pub struct FrameInput {
     pub view_proj: Xform, // camera: world to screen in one matrix
     pub clear: wgpu::Color, // the colour the frame starts from
@@ -134,16 +136,11 @@ pub fn pick_transform_layout(ctx: &GpuCtx) -> wgpu::BindGroupLayout {
     ctx.device
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("pick.transform.layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
+            entries: &[buffer_entry(
+                0,
+                ShaderStages::VERTEX,
+                BufferBindingType::Uniform,
+            )],
         })
 }
 

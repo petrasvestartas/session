@@ -95,8 +95,8 @@
         <router-link to="/course" class="nav-button" :class="{ active: currentRoute === 'course' }">Viewer course</router-link>
 
         <div v-if="currentRoute === 'course'" class="suites-section course-section">
-          <template v-for="g in courseGroups" :key="g.title">
-            <div class="group-title">{{ g.title }}</div>
+          <details v-for="g in courseGroups" :key="g.title" :open="g.slugs.includes('readme') || g.slugs.includes('journey/01-canvas') || g.slugs.includes(currentSlug)">
+            <summary class="group-title">{{ g.title }}</summary>
             <router-link
               v-for="s in g.slugs" :key="s"
               :to="'/course/' + s"
@@ -104,7 +104,7 @@
               :class="{ active: s === currentSlug }">
               {{ coursePages[s]?.title }}
             </router-link>
-          </template>
+          </details>
         </div>
       </div>
     </nav>

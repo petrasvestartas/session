@@ -1,0 +1,10 @@
+    let (dead_rows, free_rows, dead_bytes, graves, compactions) = state.scene.row_counters(); // register:document
+    snapshot["dead_rows"] = serde_json::json!(dead_rows); // register:document
+    snapshot["free_rows"] = serde_json::json!(free_rows); // register:document
+    snapshot["dead_bytes"] = serde_json::json!(dead_bytes); // register:document
+    snapshot["graves"] = serde_json::json!(graves); // register:document
+    snapshot["compactions"] = serde_json::json!(compactions); // register:document
+    let (tombs, tomb_bytes) = state.scene.tomb_counters(); // register:document
+    snapshot["tombs"] = serde_json::json!(tombs); // register:document
+    snapshot["tomb_bytes"] = serde_json::json!(tomb_bytes); // register:document
+    snapshot["row_table_bytes"] = serde_json::json!(state.scene.row_table_bytes()); // register:document

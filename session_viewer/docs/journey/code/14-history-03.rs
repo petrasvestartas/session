@@ -1,0 +1,1 @@
+    pub mesh: Rc<Mesh>,

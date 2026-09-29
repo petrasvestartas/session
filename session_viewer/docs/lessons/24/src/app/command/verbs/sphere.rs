@@ -1,16 +1,15 @@
+// --8<-- [start:sphere]
 use crate::app::command::tool::shape::{self, BREP_MESH, Part, Shape};
 use crate::app::command::{Action, Spec};
 use session_rust::{BRep, Geometry};
 
 pub const SPEC: Spec = Spec {
-    names: &["Sphere"],
-    aliases: &[],
-    hint: "Sphere (Brep Mesh): center, radius · Example: Sphere 0,0,0 10",
     options: &["Sphere Brep", "Sphere Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Sphere"],
+        "Sphere (Brep Mesh): center, radius · Example: Sphere 0,0,0 10",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -79,3 +78,4 @@ mod tests {
         assert!(build(&SHAPE, &front, &zero, "Brep").is_err());
     }
 }
+// --8<-- [end:sphere]

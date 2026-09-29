@@ -3,6 +3,7 @@ use crate::State;
 use session_rust::{Plane, Point, Xform};
 pub mod cut; // register:cut
 pub mod gather; // register:gather
+mod options; // register:gather
 // --8<-- [end:tool-modules]
 
 // --8<-- [start:tool-trait]

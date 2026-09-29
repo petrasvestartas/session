@@ -1,0 +1,4 @@
+name: Course specimen
+items:
+  - file: pb/course-boxes.pb
+    name: Boxes

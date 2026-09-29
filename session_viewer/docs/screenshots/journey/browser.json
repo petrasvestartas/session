@@ -1,0 +1,197 @@
+{
+  "browser": "153.0.8010.36",
+  "headless": false,
+  "args": [
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE",
+    "--disable-vulkan-surface",
+    "--ozone-platform=x11"
+  ],
+  "captured": "2026-09-29T20:40:26.058Z",
+  "steps": {
+    "01-canvas": {
+      "source": "7a1f9d6a60ee094674ea4a7e9a8b14d6ad36178f733fb85002e91f4aeaabe5f1",
+      "status": "Rust is running. The canvas is ready.",
+      "canvas": "3630e065eb7b4540fbab11dbfd2619e8500f211b9c404380a1867fdc44b77c0c",
+      "file": "01-canvas-browser.png",
+      "bundle": "23ff51675ae17fd698c9c0865e8cb1f4e82e72468d4a5ede9069a7ab1f05f83e",
+      "clickAndKeyboard": false
+    },
+    "02-clear": {
+      "source": "bc857a580d27a5be25c0de7dbed10f15d3c2abc61274460e9e79680389df3f05",
+      "status": "The GPU painted the canvas.",
+      "canvas": "9d4eb35d24be22c16dc60251fcca56794b8c3afb6a02fbb1ab29feeaac43213a",
+      "file": "02-clear-browser.png",
+      "bundle": "71b37c009fef3ef4a1de636ca8576d2f8962d8868c46664e32085da7590e0996",
+      "clickAndKeyboard": false
+    },
+    "03-triangle": {
+      "source": "f2628eb1728232cacc14c534966bf08a0857e9ecc33f66cf98458b3edcdfff72",
+      "status": "Three corners became a triangle.",
+      "canvas": "e8af4ae92c9937c91839209e777d3fd9442029fbb2838269c56862d48857f756",
+      "file": "03-triangle-browser.png",
+      "bundle": "10f90ee6b843a7abffe11b854980a9e6617040201d7dc2493264fd769377bbb0",
+      "clickAndKeyboard": false
+    },
+    "04-input": {
+      "source": "48eacdd0505449f8b8d74ac2f7dc69a50ece47e767149f4e4be76a1a9377ec79",
+      "status": "Change the background. The triangle keeps its shape and colour.",
+      "canvas": "c9299e3cf88bdd00aaf256005ba74df63228cb38fdce1a4954ed2769c5509ae8",
+      "file": "04-input-browser.png",
+      "bundle": "b290a9779cb74031422f95786d5b80a622e4c8a85e467116c4d09591fec3f562",
+      "clickAndKeyboard": true
+    },
+    "05-vertices": {
+      "source": "3f813802ade08a8b7c4b6b18bec7e9aa9c9b61395ebe525a67df57bf9a2ec2ec",
+      "status": "Six uploaded corners make one rectangle.",
+      "canvas": "502f8b9b24f3f007bc998fc35a60c231d00b192ac8c4439f41affeb744aa205c",
+      "file": "05-vertices-browser.png",
+      "bundle": "4e4c3d9c84d4a16a93be4b7fc53b789548b216949d1ec82beb769e5e145db395",
+      "clickAndKeyboard": false
+    },
+    "06-indices": {
+      "source": "fd9abc8cffdbdac9e9f72227b74bfc4b71074c6facadf0e9c2f7009df1b4a1fe",
+      "status": "Four shared corners make two triangles.",
+      "canvas": "e0f4cf2b14b77a284091b0e4e39579c2d81c2ff1bf0cf144b5a59056b3288bba",
+      "file": "06-indices-browser.png",
+      "bundle": "3ea70f468291fd1cbdd8d4f7295875fef7e168af7b752bfc8134cd0c79325eaa",
+      "clickAndKeyboard": false
+    },
+    "07-uniforms": {
+      "source": "f67e0e65bba55ec6aac1f07bf706f067b7c8820b004e5a96e5c33acebb86c458",
+      "status": "One view setting moves all four corners.",
+      "canvas": "ef92697b4c2dfc4750043e221942d8be970ede82c5fd39cdfbfbb6823be2cf60",
+      "file": "07-uniforms-browser.png",
+      "bundle": "e9c12318c437da47280c2a9eb3e2ff8ae6c8b27134092c6fdf358a0f9f5f832e",
+      "clickAndKeyboard": false
+    },
+    "08-camera": {
+      "source": "ae2c15d9c77d66f9a1105684605720e20a8565377c7abda5e6e7c64921ce08c7",
+      "status": "Pan and zoom change the view, not the mesh.",
+      "canvas": "9ea6ca105193e4bb20960765765c859709a4252123717178073b6e2e4d89595b",
+      "file": "08-camera-browser.png",
+      "bundle": "51d6218d3d03f38d43a50c266d68cc02cf8a3172c6bd4e6adad5b72bc983c112",
+      "clickAndKeyboard": false
+    },
+    "09-matrices": {
+      "source": "712a453bebba1a048e2d00f7ca81687607f78cc75f3b70a3b98ade12d1b8e1b1",
+      "status": "A matrix carries pan, scale and rotation.",
+      "canvas": "23c7108439bc7d28d6ab3edf89e4d042c8d7f7484be9c13e88255c628daac4a1",
+      "file": "09-matrices-browser.png",
+      "bundle": "9e0d7c0975e2b7b3f504b5bd86e33b77ed51e1b2e14979ae230de1beea047db9",
+      "clickAndKeyboard": false
+    },
+    "10-depth": {
+      "source": "4383f2d5556ed462d266d9975fb3803d09e306fe11dab3c01028aaec4bc8fd52",
+      "status": "The nearer pink triangle wins the overlap.",
+      "canvas": "bdc53d822748c978ff36f47fef81c14d8c9ad5c0bfd42747f1301aa1bd7f0e3e",
+      "file": "10-depth-browser.png",
+      "bundle": "4bd7e81c2d2134c6316980b007f9f973fe516b24e8e42e72eee155695503e3b2",
+      "clickAndKeyboard": false
+    },
+    "11-scene": {
+      "source": "1101f7dd5e018e80cc266086663f6d636b883fef8a4f5ed85006755de076ea7b",
+      "status": "Scene data owns the meshes; the renderer displays them.",
+      "canvas": "28eb5372f0ffc4d7d060c1779f0652211c8b4d8c1bd1cb7c4f66a53ef6de9bc5",
+      "file": "11-scene-browser.png",
+      "bundle": "d5037c1b58dfa7a2ad8328ac3f7c94db3ed6b5bedc7cdef7ab058f20e90657f4",
+      "clickAndKeyboard": false
+    },
+    "12-identity": {
+      "source": "57d93133e6f3707b35115a3011ebbd3edbe828a686e586b2e7b80083fb76fdb2",
+      "status": "Selection follows object identity, even when rows move.",
+      "canvas": "074fe1a537cc3942e056ca3a3fe2ddeb6c560ee873db5f9c47875713389a010b",
+      "file": "12-identity-browser.png",
+      "bundle": "77631c666f0cd836b795be78f2a04b19a3995e08c6e06322c4c1cf831c293ffa",
+      "clickAndKeyboard": false
+    },
+    "13-picking": {
+      "source": "917a6fdffe56f3771a0d0496e28225ffe938c3233cf20257a98bc7705c644c24",
+      "status": "Click a triangle; the visible object is selected.",
+      "canvas": "5faccfb188933965c013d1a594952fc5ee1797be72fc35b6d3f3d86b8bba98ca",
+      "file": "13-picking-browser.png",
+      "bundle": "9ec42de68914e930868bc4305ffd6cb13b74adf64c26c616ad18a838dd0e2739",
+      "clickAndKeyboard": false
+    },
+    "14-history": {
+      "source": "c948128ba582a35e7bf000db5264a74732714844859fd4dc3bb20f86d12d1e6b",
+      "status": "Undo restores the document while the view stays put.",
+      "canvas": "49bca55d63fb5f1e323ec2ada56db2ffa7a4b30cd50cfb41d5e08da159a2dc46",
+      "file": "14-history-browser.png",
+      "bundle": "9d8de0626ac43e1ca9f8d2575b4dd18ad6edb6c307a873c0ef0d8f288db8e0be",
+      "clickAndKeyboard": false
+    },
+    "15-perspective": {
+      "source": "32084b54664cd5f96873d470cd5944ec04a3535b50c3a12d2ca986189a8d7561",
+      "status": "Perspective and picking use the same camera.",
+      "canvas": "d3aa6303c74e2b471f637a776b2d48b8c097d469df4ab967c6b895635282a6a9",
+      "file": "15-perspective-browser.png",
+      "bundle": "b932fe4afe9f2a840df3a4e0fe7052c026c5ecd94c277af541e63149f9864025",
+      "clickAndKeyboard": false
+    },
+    "16-orbit": {
+      "source": "be4a1a5511f4962cd25f847b61df902db18169a96a130002ffb925225350a02a",
+      "status": "Orbit moves the eye around a fixed target.",
+      "canvas": "bd699d22ab2a470b234aa533fe11810696823ac47cc6ba362060351fd6528979",
+      "file": "16-orbit-browser.png",
+      "bundle": "52dc8bc013db1e561025db779b9eb576f1eaa5c33f51b610be33330e4b5d6dea",
+      "clickAndKeyboard": false
+    },
+    "17-solid": {
+      "source": "354ff5eaf1e905422a700ef6bc019a021a4bc525c827bd2272b849412be103f6",
+      "status": "Kernel geometry becomes an undoable scene object.",
+      "canvas": "344ce08dcad8b4daee15686be493b6f5b52f1e93b7df89244354ef7823e70b0f",
+      "file": "17-solid-browser.png",
+      "bundle": "e6ba6c533ec76207e61745e629822b7bb3929a939acb888c1f9030e9a47f45ce",
+      "clickAndKeyboard": false
+    },
+    "18-light": {
+      "source": "86a8a5a8fda89c38441b9a1585eec4837a332a3677ab622225309906e1c41d4d",
+      "status": "Surface direction changes brightness, not geometry.",
+      "canvas": "ea671335775eae6465c6d11dc596bb1bdc450e6a52b2a18b74b252dd3ad73556",
+      "file": "18-light-browser.png",
+      "bundle": "3637eeb6c20b5b0011a2ab5c0c964e4e183f243f7e3da603c9b67be489f05a83",
+      "clickAndKeyboard": false
+    },
+    "19-actions": {
+      "source": "1aec3acf501dddef2089347dd82772252e4ff8c611279f24c625d9b0e0954208",
+      "status": "Every document action follows the same editor path.",
+      "canvas": "c28bdf2341d9553cc814894c4396b7b80057cda4a755e7306682740cebc428f5",
+      "file": "19-actions-browser.png",
+      "bundle": "bd977d3b80bf7ba74e8e2db8be1b9a7cdaf04551ec8fa9e55a05be11eed3a935",
+      "clickAndKeyboard": false
+    },
+    "20-resize": {
+      "source": "b6599b9c5b4ea11344b86f0a112e4178b082494386db6dc165bc17d91431d155",
+      "status": "Canvas pixels, depth and camera resize together.",
+      "canvas": "d64090a10bf57073ab183438b399eb0b31dfb28f90f8e2697c15194e9fd6bf72",
+      "file": "20-resize-browser.png",
+      "bundle": "01197a76f07134bd3eae6846271c731b45c4fb7174f3e48052b1b377d0642803",
+      "clickAndKeyboard": false
+    },
+    "21-gestures": {
+      "source": "f26eed07b342a29a80f851894b31f55722ba6ad1baba92a515c67cd8e3c94e03",
+      "status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
+      "canvas": "b7c23045ef257db11a2c0f22695f2b8d5e1b7a7187dfdfebd9d067e9899efadb",
+      "file": "21-gestures-browser.png",
+      "bundle": "d249126f623f6d9dee2c4a72b1034adc1e4ee2d8e964274ac276362a38e178ab",
+      "clickAndKeyboard": false
+    },
+    "22-shortcuts": {
+      "source": "dc094947a2ed00224cad3be09f5dacd5a955ef524f0c778db8c8191dfdf58604",
+      "status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
+      "canvas": "f1085b834c9a47fe1e1b6be5c1085f89be79a19ff6ac27eb9cd1627190ebec4b",
+      "file": "22-shortcuts-browser.png",
+      "bundle": "70c717ce56d303dfdf20a503298b5e0d9ff21bdf41790aba9fd982823bde0b3f",
+      "clickAndKeyboard": false
+    },
+    "23-import": {
+      "source": "c1b7546d50f1e7775da2073f494d5fc0e800d701e1172e5b0699f733e650c5a8",
+      "status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
+      "canvas": "45457c06d17d332e504221c63b8f0626af700a8a35510d8baf12a63174b7a43d",
+      "file": "23-import-browser.png",
+      "bundle": "ea1095c1b2cc15603f9a5cc10ff3c0edbdda9b9e92d78972e1e5dab5bab3450f",
+      "clickAndKeyboard": false
+    }
+  }
+}

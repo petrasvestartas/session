@@ -4,16 +4,11 @@ use session_rust::{Arrowhead, Geometry, Point};
 use std::rc::Rc;
 
 pub const SPEC: Draw = Draw {
-    spec: Spec {
-        names: &["Arrow"],
-        aliases: &[],
-        hint: "Arrow · Enter then click or type start and tip · Example: Arrow 0,0,0 100,0,0",
-        options: &[],
-        arity: None,
-        wait_for_option: false,
-        wait_after_option: false,
+    spec: Spec::new(
+        &["Arrow"],
+        "Arrow · Enter then click or type start and tip · Example: Arrow 0,0,0 100,0,0",
         parse,
-    },
+    ),
     points: 2..=2,
     what: "arrow",
     buttons: &[],

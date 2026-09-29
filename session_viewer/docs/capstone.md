@@ -96,4 +96,4 @@ What is *not* in this design: no new lane, no new pipeline family, no trait, no 
 ## If you want more
 
 - **A dimension primitive.** Reuse stroke rows for the leader and arrow strokes, text placement for its label, and one source identity for their picks. Add a lane only if those existing representations cannot express the required drawing behavior.
-- **Change it.** Read "Adding a feature" in `ARCHITECTURE.md` and [Maintaining the course](maintaining.md): a change to code the course teaches goes into the master `docs/lessons/37`, and `docs/cut.py` carries it to every crate.
+- **Change it.** Read "Adding a feature" in `ARCHITECTURE.md` and [Maintaining the course](maintaining.md): the cumulative lesson edits are the teaching source. Reconstruct and verify every affected checkpoint with the TypeScript course command.

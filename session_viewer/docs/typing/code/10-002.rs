@@ -1,0 +1,568 @@
+// Glyphon draws text with wgpu; it brings cosmic-text, which shapes, and fontdb, which reads font files.
+use glyphon::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap, fontdb};
+use serde::Serialize;
+
+/// The font every label uses.
+pub const FONT_FAMILY: &str = "Noto Sans";
+
+/// The main font's Latin, Lithuanian, German and CAD subset, bundled into the binary once: a static,
+/// where a const is copied per use.
+// A subset keeps only the characters the viewer needs: 51 KB here, 569 KB for the whole font.
+// include_bytes! pastes the file into the wasm at compile time, so the first frame needs no download.
+pub static FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.subset.ttf");
+
+/// Symbol fallback font, only the symbols the viewer's own strings use.
+pub static SYMBOL_BYTES: &[u8] =
+    include_bytes!("../../assets/text/NotoSansSymbols-Regular.subset.ttf");
+
+/// Second symbol fallback font, only the symbols the viewer's own strings use.
+pub static FALLBACK_BYTES: &[u8] =
+    include_bytes!("../../assets/text/NotoSansSymbols2-Regular.subset.ttf");
+
+/// The whole fonts under `text/`, in the order of the bundled ones, fetched when a text needs them.
+// They stay out of the wasm; lesson 14's app/fonts.rs fetches them the first time a label needs one.
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
+pub const FULL_FONTS: [&str; 3] = [
+    "NotoSans-Regular.ttf",
+    "NotoSansSymbols2-Regular.ttf",
+    "NotoSansSymbols-Regular.ttf",
+];
+
+/// Most text bytes in one label set.
+const MAX_TEXT_BYTES: usize = 256 * 1024;
+
+/// Where a label sits and how it is sized.
+// Serialize and Deserialize let a scene file describe labels as plain YAML or JSON.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum TextPlacement {
+    Screen {
+        // fixed on screen, CSS px
+        left: f32,
+        top: f32,
+    },
+    Anchor {
+        // at a world point, screen-sized, hidden behind geometry
+        world: [f64; 3],
+        offset: [f32; 2], // shift from it, CSS px
+    },
+    Nameplate {
+        // centered on a world point with a plate, always on top
+        // world point
+        world: [f64; 3],
+        padding: [f32; 2], // space around the text, CSS px
+        rounded: bool,
+    },
+    WorldPlane {
+        // lying on a plane in the world
+        // top-left corner
+        world: [f64; 3],
+        right: [f64; 3],   // unit axis along the text
+        up: [f64; 3],      // unit axis up the text
+        world_height: f64, // em height, world units
+    },
+    WorldBillboard {
+        // facing the camera, world-sized
+        // world point
+        world: [f64; 3],
+        world_height: f64, // em height, world units
+    },
+}
+
+/// The object a label belongs to, for picks and selection.
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TextObject {
+    pub row: u32, // the object's row in the GPU tables
+    pub selected: bool,
+}
+
+/// One text label; sizes in CSS pixels.
+// A CSS pixel is the browser's layout unit; at device scale 2 one CSS pixel covers 2 x 2 real pixels.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TextLabel {
+    pub id: u32, // unique per label
+    pub object: Option<TextObject>,
+    pub text: String,
+    pub font_size: f32, // em size: 16 means the font's em square is 16 CSS px tall
+    pub line_height: f32, // distance between baselines
+    pub color: [u8; 4], // rgba
+    pub placement: TextPlacement,
+    pub clip: Option<[f32; 4]>, // screen box to cut it to: left, top, right, bottom
+}
+
+impl TextLabel {
+    /// Ink color: black when selected, else the label's own.
+    pub fn ink_color(&self) -> [u8; 4] {
+        // is_some_and runs the test only when there is an object, so None reads as not selected
+        if self.object.is_some_and(|object| object.selected) {
+            [0, 0, 0, 255]
+        } else {
+            self.color
+        }
+    }
+}
+
+/// A label with its shaped glyphs.
+pub struct TextRun {
+    pub label: TextLabel,
+    pub buffer: Buffer, // cosmic-text's result: every glyph with its font and position on the line
+}
+
+/// Every label, shaped, with the fonts.
+pub struct TextDocument {
+    pub fonts: FontSystem, // the loaded fonts plus their caches; shaping borrows it mutably
+    pub runs: Vec<TextRun>,
+    pub revision: u64, // bumps on every label change, so the GPU side knows to rebuild
+    pub font_revision: u64, // bumps on every font change
+    pub shape_count: u64, // labels shaped so far; the tests use it to prove reuse
+    pub shaping_ms: f64,
+}
+
+impl TextDocument {
+    /// An empty document with the bundled fonts.
+    pub fn new() -> Self {
+        Self {
+            fonts: bundled_fonts(),
+            runs: Vec::new(),
+            revision: 0,
+            font_revision: 1,
+            shape_count: 0,
+            shaping_ms: 0.0,
+        }
+    }
+
+    /// Replace every label; unchanged text keeps its shaping.
+    // Shaping turns characters into positioned glyphs: kerning, ligatures like "ffi", accents stacked on letters.
+    // It is the slow part of text, so it runs only when a label's text or size changes, never when the camera moves.
+    pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
+        let mut bytes = 0usize;
+        let mut ids = std::collections::HashSet::new();
+
+        // check every label before touching anything
+        for label in &labels {
+            // saturating_add stops at usize::MAX instead of wrapping around to a small number
+            bytes = bytes.saturating_add(label.text.len());
+            // ensure! returns Err with this message when the condition is false
+            anyhow::ensure!(bytes <= MAX_TEXT_BYTES, "text document exceeds 256 KiB");
+            anyhow::ensure!(ids.insert(label.id), "duplicate text label ID {}", label.id);
+            validate_label(label)?;
+        }
+
+        // same labels: nothing to do
+        if self.runs.len() == labels.len() {
+            let mut unchanged = true;
+
+            for (run, label) in self.runs.iter().zip(&labels) {
+                unchanged &= run.label == *label;
+            }
+
+            if unchanged {
+                return Ok(());
+            }
+        }
+
+        // mem::take moves the runs out and leaves an empty Vec, so self stays usable while we pick from them
+        let previous = std::mem::take(&mut self.runs);
+        let mut previous_by_id = std::collections::HashMap::new();
+
+        for run in previous {
+            previous_by_id.insert(run.label.id, run);
+        }
+
+        // reshape only labels whose text or size changed
+        for label in labels {
+            let old = previous_by_id.remove(&label.id);
+            // a match guard (`if ...`) picks the first arm only when the old run still fits
+            let buffer = match old {
+                Some(run) if same_layout(&run.label, &label) => run.buffer,
+                _ => {
+                    self.shape_count += 1;
+                    let started = crate::engine::performance::now_ms();
+                    let buffer = shape(&mut self.fonts, &label);
+                    self.shaping_ms += crate::engine::performance::now_ms() - started;
+                    buffer
+                }
+            };
+            self.runs.push(TextRun { label, buffer });
+        }
+
+        // wrapping_add goes from u64::MAX back to 0 instead of panicking; only "changed" matters
+        self.revision = self.revision.wrapping_add(1);
+        Ok(())
+    }
+
+    /// Replace the fonts and reshape everything; bad data changes nothing.
+    pub fn replace_fonts(&mut self, sources: Vec<Vec<u8>>) -> anyhow::Result<()> {
+        // Arc is a shared pointer: fontdb and the shaper read the same bytes without copying them
+        let sources = sources
+            .into_iter()
+            .map(|bytes| fontdb::Source::Binary(std::sync::Arc::new(bytes)))
+            .collect();
+        self.replace_sources(sources)
+    }
+
+    /// `replace_fonts` from font sources, read in place.
+    pub fn replace_sources(&mut self, sources: Vec<fontdb::Source>) -> anyhow::Result<()> {
+        // build the new set on the side; self.fonts changes only when every source loaded
+        let mut db = fontdb::Database::new();
+
+        for source in sources {
+            // a face is one font inside a file; a file with none is not a font
+            let before = db.faces().count();
+            db.load_font_source(source);
+            anyhow::ensure!(
+                db.faces().count() > before,
+                "font data contains no usable face"
+            );
+        }
+
+        anyhow::ensure!(db.faces().count() > 0, "font set is empty");
+        db.set_sans_serif_family(FONT_FAMILY);
+        self.fonts = FontSystem::new_with_locale_and_db("en-US".into(), db);
+
+        for run in &mut self.runs {
+            let started = crate::engine::performance::now_ms();
+            run.buffer = shape(&mut self.fonts, &run.label);
+            self.shaping_ms += crate::engine::performance::now_ms() - started;
+            self.shape_count += 1;
+        }
+
+        self.font_revision = self.font_revision.wrapping_add(1);
+        self.revision = self.revision.wrapping_add(1);
+        Ok(())
+    }
+
+    /// Forget every label.
+    pub fn clear(&mut self) {
+        self.runs.clear();
+        // clear keeps the allocation; shrink_to_fit hands the memory back
+        self.runs.shrink_to_fit();
+        self.revision = self.revision.wrapping_add(1);
+    }
+
+    /// Every shaped glyph with its metrics, for tests.
+    pub fn diagnostics(&self) -> Vec<GlyphDiagnostic> {
+        let mut out = Vec::new();
+
+        for run in &self.runs {
+            // a layout run is one line of the shaped text
+            for line in run.buffer.layout_runs() {
+                for glyph in line.glyphs {
+                    out.push(GlyphDiagnostic {
+                        label: run.label.id,
+                        line: line.line_i,
+                        cluster: [glyph.start, glyph.end],
+                        glyph: glyph.glyph_id,
+                        font: format!("{:?}", glyph.font_id),
+                        origin: [glyph.x, glyph.y],
+                        advance: glyph.w,
+                        offset: [
+                            glyph.x_offset * glyph.font_size,
+                            glyph.y_offset * glyph.font_size,
+                        ],
+                        baseline: line.line_y,
+                        line_width: line.line_w,
+                    });
+                }
+            }
+        }
+
+        out
+    }
+}
+
+// Default lets other structs derive Default and still get a document with fonts in it.
+impl Default for TextDocument {
+    /// Same as `new`.
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// One shaped glyph, for tests.
+#[derive(Clone, Debug, Serialize)]
+pub struct GlyphDiagnostic {
+    pub label: u32,
+    pub line: usize,
+    pub cluster: [usize; 2], // byte range in the text; "ffi" as one ligature glyph spans 3 bytes
+    pub glyph: u16,          // glyph id in its font; 0 = missing, drawn as an empty box
+    pub font: String,
+    pub origin: [f32; 2], // position on the line
+    pub advance: f32,     // how far the pen moves right after this glyph
+    pub offset: [f32; 2], // shaping offset, e.g. an accent moved onto its letter
+    pub baseline: f32,    // the line letters sit on, measured from the top
+    pub line_width: f32,
+}
+
+/// True when the bundled fonts draw every character of `text`.
+pub fn covers(text: &str) -> bool {
+    text.is_ascii() || text.chars().all(|c| c.is_control() || bundled_glyph(c))
+}
+
+/// True when a bundled font maps `c` to a glyph; only the character maps are read.
+// cmap = the table in a font file that maps each character code to a glyph id.
+fn bundled_glyph(c: char) -> bool {
+    // thread_local! builds the value once per thread, on first use, and keeps it; wasm has one thread
+    thread_local! {
+        static MAPS: Vec<ttf_parser::cmap::Table<'static>> = [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES]
+            .into_iter()
+            .filter_map(|bytes| {
+                // `?` inside filter_map's closure: a font without a cmap is skipped, not an error
+                let face = ttf_parser::RawFace::parse(bytes, 0).ok()?;
+                ttf_parser::cmap::Table::parse(face.table(ttf_parser::Tag::from_bytes(b"cmap"))?)
+            })
+            .collect();
+    }
+
+    MAPS.with(|maps| {
+        maps.iter().any(|map| {
+            map.subtables
+                .into_iter()
+                .any(|table| table.is_unicode() && table.glyph_index(u32::from(c)).is_some())
+        })
+    })
+}
+
+/// The bundled fonts as a font system, read in place rather than copied.
+fn bundled_fonts() -> FontSystem {
+    let mut db = fontdb::Database::new();
+
+    // the order is the fallback order: a character missing from the first font is looked up in the next
+    for bytes in [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES] {
+        db.load_font_source(fontdb::Source::Binary(std::sync::Arc::new(bytes)));
+    }
+
+    db.set_sans_serif_family(FONT_FAMILY);
+    // no system fonts are scanned: a label looks the same on every machine
+    FontSystem::new_with_locale_and_db("en-US".into(), db)
+}
+
+/// Reject sizes, positions and clips that are not finite or out of range.
+fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
+    anyhow::ensure!(
+        label.font_size.is_finite() && (1.0..=256.0).contains(&label.font_size),
+        "font size must be 1..256 CSS px"
+    );
+    anyhow::ensure!(
+        label.line_height.is_finite()
+            && label.line_height >= label.font_size
+            && label.line_height <= 1024.0,
+        "invalid text line height"
+    );
+    // `..` in a pattern ignores the fields this arm does not need
+    let valid_placement = match label.placement {
+        TextPlacement::Screen { left, top } => left.is_finite() && top.is_finite(),
+        TextPlacement::Anchor { world, offset } => {
+            world.iter().all(finite_f64) && offset.iter().all(finite_f32)
+        }
+        TextPlacement::Nameplate { world, padding, .. } => {
+            world.iter().all(finite_f64) && padding.iter().all(valid_padding)
+        }
+        TextPlacement::WorldPlane {
+            world,
+            right,
+            up,
+            world_height,
+        } => {
+            world.iter().all(finite_f64)
+                && valid_plane_axes(right, up)
+                && world_height.is_finite()
+                && world_height > 0.0
+        }
+        TextPlacement::WorldBillboard {
+            world,
+            world_height,
+        } => world.iter().all(finite_f64) && world_height.is_finite() && world_height > 0.0,
+    };
+    anyhow::ensure!(valid_placement, "invalid text placement");
+
+    if let Some(c) = label.clip {
+        anyhow::ensure!(
+            c.iter().all(finite_f32) && c[2] >= c[0] && c[3] >= c[1],
+            "invalid text clip rectangle"
+        );
+    }
+
+    Ok(())
+}
+
+/// True when both axes are unit length and perpendicular.
+fn valid_plane_axes(right: [f64; 3], up: [f64; 3]) -> bool {
+    let mut right_length = 0.0;
+    let mut up_length = 0.0;
+    let mut dot = 0.0;
+
+    for axis in 0..3 {
+        right_length += right[axis] * right[axis];
+        up_length += up[axis] * up[axis];
+        dot += right[axis] * up[axis];
+    }
+
+    // a dot product of 0 means perpendicular
+    (right_length.sqrt() - 1.0).abs() <= 1e-6
+        && (up_length.sqrt() - 1.0).abs() <= 1e-6
+        && dot.abs() <= 1e-6
+}
+
+// The three helpers take `&f32`/`&f64` because `iter().all` hands each element by reference.
+/// True for a finite f32.
+fn finite_f32(value: &f32) -> bool {
+    value.is_finite()
+}
+
+/// True for a finite f64.
+fn finite_f64(value: &f64) -> bool {
+    value.is_finite()
+}
+
+/// True for padding in 0..256.
+fn valid_padding(value: &f32) -> bool {
+    value.is_finite() && (0.0..=256.0).contains(value)
+}
+
+/// True when two labels shape the same: same text, size, line height.
+// Colour, placement and clip are left out: they change where glyphs go, not which glyphs they are.
+fn same_layout(a: &TextLabel, b: &TextLabel) -> bool {
+    a.text == b.text && a.font_size == b.font_size && a.line_height == b.line_height
+}
+
+/// Shape one label into glyphs.
+fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
+    let mut buffer = Buffer::new(fonts, Metrics::new(label.font_size, label.line_height));
+    // no width limit and no wrapping: a label breaks lines only at its own "\n"
+    buffer.set_size(fonts, None, None);
+    buffer.set_wrap(fonts, Wrap::None);
+    buffer.set_text(
+        fonts,
+        &label.text,
+        &Attrs::new()
+            .family(Family::Name(FONT_FAMILY))
+            .metadata(label.id as usize), // glyphon hands this id back when it asks for a label's depth
+        Shaping::Advanced, // full shaping: kerning, ligatures and fallback fonts; Basic maps one character to one glyph
+        None,
+    );
+    buffer.shape_until_scroll(fonts, false);
+    buffer
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A screen label with fixed metrics.
+    pub(super) fn label(text: &str) -> TextLabel {
+        TextLabel {
+            object: None,
+            id: 1,
+            text: text.into(),
+            font_size: 16.0,
+            line_height: 24.0,
+            color: [255; 4],
+            placement: TextPlacement::Screen {
+                left: 0.0,
+                top: 0.0,
+            },
+            clip: None,
+        }
+    }
+
+    #[test]
+    /// Ligatures, accents, kerning and symbols all shape to real glyphs.
+    fn ligatures_accents_spaces_and_symbols_are_shaped() {
+        let mut doc = TextDocument::new();
+        doc.set_labels(vec![label(
+            "office ffi fl ÄÖÜ ĄČĘĖĮŠŲŪŽ Ø ± 90° m² e\u{301}",
+        )])
+        .unwrap();
+        let glyphs = doc.diagnostics();
+        assert!(glyphs.iter().all(has_glyph));
+        assert!(glyphs.iter().any(multi_byte_cluster));
+        doc.set_labels(vec![label("AV")]).unwrap();
+        let pair_width = doc.diagnostics()[0].line_width;
+        doc.set_labels(vec![label("A V")]).unwrap();
+        assert!(doc.diagnostics()[0].line_width > pair_width);
+        doc.set_labels(vec![label("ffi")]).unwrap();
+        assert!(
+            doc.diagnostics().len() < 3,
+            "font's ffi ligature must preserve a multi-character cluster"
+        );
+    }
+
+    /// True when the glyph exists.
+    fn has_glyph(glyph: &GlyphDiagnostic) -> bool {
+        glyph.glyph != 0
+    }
+
+    /// True when the cluster spans several bytes.
+    fn multi_byte_cluster(glyph: &GlyphDiagnostic) -> bool {
+        glyph.cluster[1] - glyph.cluster[0] > 1
+    }
+
+    #[test]
+    /// Moving or recoloring keeps the shaping; new fonts reshape.
+    fn placement_and_color_do_not_reshape_but_font_reload_does() {
+        let mut doc = TextDocument::new();
+        let mut item = label("AVATAR");
+        doc.set_labels(vec![item.clone()]).unwrap();
+        let before = doc.diagnostics()[0].line_width;
+        item.color = [255, 255, 0, 255];
+        item.placement = TextPlacement::Screen {
+            left: 0.375,
+            top: 1.25,
+        };
+        doc.set_labels(vec![item]).unwrap();
+        assert_eq!(doc.shape_count, 1);
+        assert_eq!(doc.diagnostics()[0].line_width, before);
+        assert!(doc.replace_fonts(vec![vec![0; 8]]).is_err());
+        assert_eq!(doc.shape_count, 1);
+        doc.replace_fonts(vec![
+            FONT_BYTES.to_vec(),
+            FALLBACK_BYTES.to_vec(),
+            SYMBOL_BYTES.to_vec(),
+        ])
+        .unwrap();
+        assert_eq!(doc.shape_count, 2);
+        assert_eq!(doc.diagnostics()[0].line_width, before);
+    }
+
+    #[test]
+    /// é and e + accent shape alike; lines sit one line height apart.
+    fn composed_decomposed_accents_and_multiline_baselines_match() {
+        let mut doc = TextDocument::new();
+        doc.set_labels(vec![label("é\ne\u{301}")]).unwrap();
+        let glyphs = doc.diagnostics();
+        assert_eq!(glyphs.len(), 2);
+        assert_eq!(glyphs[0].glyph, glyphs[1].glyph);
+        assert_eq!(glyphs[0].advance, glyphs[1].advance);
+        assert!((glyphs[1].baseline - glyphs[0].baseline - 24.0).abs() < 0.001);
+    }
+
+    #[test]
+    /// Symbols come from the bundled fallback fonts.
+    fn bundled_fallback_covers_symbols_without_system_fonts() {
+        let mut doc = TextDocument::new();
+        doc.set_labels(vec![label("CAD ⚙ ⏳ ⌘")]).unwrap();
+        let glyphs = doc.diagnostics();
+        assert!(glyphs.iter().all(has_glyph));
+        let mut faces = std::collections::HashSet::new();
+
+        for glyph in glyphs {
+            faces.insert(glyph.font);
+        }
+
+        assert!(
+            faces.len() >= 2,
+            "sample must exercise explicit font fallback"
+        );
+    }
+
+    #[test]
+    /// A bad label set leaves the old one in place.
+    fn invalid_replacement_preserves_current_document() {
+        let mut doc = TextDocument::new();
+        doc.set_labels(vec![label("Keep")]).unwrap();
+        let mut invalid = label("Reject");
+        invalid.font_size = f32::NAN;
+        assert!(doc.set_labels(vec![invalid]).is_err());
+        assert_eq!(doc.runs[0].label.text, "Keep");
+    }
+}

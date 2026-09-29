@@ -1,6 +1,52 @@
 # Reading failures
 
-Most of the time you lose goes to an error that already told you the answer. Three habits solve almost every wgpu failure; then the ten this course actually produces.
+**Allow 20–30 minutes for the browser checks below.** You do not need to rebuild your project to investigate a browser failure. First find out which part stopped: the page, the GPU device, or the browser itself.
+
+## Open the viewer in Chrome on Linux
+
+Start the viewer from `session/session_viewer` with `trunk serve`. In another terminal, run:
+
+```sh
+./docs/open-chrome.sh http://127.0.0.1:8770/
+```
+
+The launcher opens a separate Chrome profile with the Vulkan settings used for the local viewer check. Your ordinary Chrome window keeps its own profile. Close this viewer profile before changing its launch settings; an already running Chrome process can keep its old flags.
+
+Open `chrome://gpu` in that window. Check the WebGPU status and the adapter name. Then return to the viewer, select an object, orbit, and resize the window. A browser exposing `navigator.gpu` has passed only the first check; it must also obtain a device and draw a real frame. Chrome's [GPU testing guide](https://developer.chrome.com/blog/supercharge-web-ai-testing) explains these separate checks and Vulkan launch options. The launcher's `--enable-unsafe-webgpu` option bypasses Chrome's adapter blocklist for this dedicated development profile.
+
+Use HTTPS or localhost. A plain `http://192.168…` address is a different security context and may hide WebGPU. The viewer cannot enable a browser feature from inside the page. It has no WebGL fallback.
+
+## Keep the evidence when something fails
+
+The page saves a small diagnostic record before WebAssembly starts. It records the browser, adapter, viewport, first reported error, and recent diagnostic events. A heartbeat updates every 15 seconds. It retains at most four runs in this browser profile on this origin; private browsing or storage restrictions can prevent persistence.
+
+When the page catches a fatal error, it attempts to download `session-viewer-….json`. If Chrome blocks that automatic download, press **Download diagnostic report** in the banner. Reloading after a failed or interrupted run also offers its saved report. Read the file before sharing it: error messages can contain scene names or paths. Geometry and keystrokes are not collected.
+
+![A GPU failure is saved before the event loop stops issuing GPU work; one recovery reload uses reduced resolution. A browser process crash instead requires its own native report.](illustrations/browser-recovery.svg)
+
+There are two different failures to recognise:
+
+- **The page is still alive.** A Rust panic, JavaScript error, or WebGPU error can reach our handler. The viewer saves its reason and stops GPU work. A device loss can trigger one reload with DPR 1 and antialiasing off. A second loss shows the error instead of reloading again.
+- **The browser process died.** The page cannot execute JavaScript or write a file after that happens. Its saved heartbeat is useful context, but it is not a native crash dump. An interrupted run can also mean a killed tab or a power failure.
+
+The reported Firefox 156.0.1 crash on Intel Mesa/iris 25.2.8 used the message `Cannot get non-existent resource QueueId(0,2)`. That report identifies a browser-side queue-resource failure; it does not establish the underlying cause. The viewer now checks device failure before processing loader messages, UI, resizing and rendering. This closes a path that could keep using a lost device, but it does not prove the Firefox crash is fixed.
+
+For another Firefox crash, reopen Firefox and enter `about:crashes`. Keep its report alongside the viewer JSON and the actions you performed just before failure. Mozilla documents how to [view native Firefox crash reports](https://support.mozilla.org/en-US/kb/mozillacrashreporter). The viewer does not submit either report automatically.
+
+## Understand which element owns a joint
+
+The graph answers “which two elements are connected?” The element's feature list answers “which element owns this visible geometry?” These are separate jobs.
+
+```cpp
+wood_session.add_interaction(beam, column, joint); // Beam owns the beam-joint feature.
+wood_session.add_interaction(column, beam, joint); // Column now owns that feature.
+```
+
+For contacts and beam joints, the first argument chooses the host, even if the graph edge already exists in the opposite order. Reusing the same beam joint moves its feature; it does not add a second copy. Contact face indices are relative to the chosen host. Plate joints contain two explicitly named sides, so each plate keeps its own side.
+
+The viewer reads those feature lists from the saved document. Turn on `Element Features On`, select the host, then hide it: the attached feature should disappear with it. After changing ownership in Wood, save the document again and reload that scene. Reopening an old file cannot show a change that was never saved.
+
+The rest of this page helps you locate mistakes inside your own rendering code.
 
 ## Habit 1 · Three declarations must agree
 
@@ -16,7 +62,7 @@ When something is wrong, name the thing (a vertex attribute, a binding, a unifor
 wgpu's validation messages are long and they bury the useful line in the middle. Read to the end.
 
 - In the **browser**, errors arrive asynchronously and print to the devtools console. The viewer also installs `on_uncaptured_error`, so a GPU error reaches the error panel instead of vanishing (`src/engine/gpu/device.rs`).
-- A **Rust panic** in wasm prints a proper stack trace only because `console_error_panic_hook::set_once()` runs first in `lib.rs`. Without it you get `unreachable executed` and nothing else.
+- A **Rust panic** in wasm reaches the hook installed in `lib.rs`. It saves the diagnostic first, then asks `console_error_panic_hook` to print the stack trace. Without a hook you may only see `unreachable executed`.
 - **Natively** (`cargo xtest`, the selftest binary) the same errors print to stderr, and naga validates every shader in a unit test — the cheapest place to catch WGSL mistakes.
 
 ## Habit 3 · Bisect the frame

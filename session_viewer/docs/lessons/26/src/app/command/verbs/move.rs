@@ -5,14 +5,12 @@ use crate::app::command::{Action, Spec, offset};
 use session_rust::{Plane, Point, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Move"],
     aliases: &["m"],
-    hint: "Move · pick a base point, then the target point · Move 10,0,0 moves by a typed offset",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Move"],
+        "Move · pick a base point, then the target point · Move 10,0,0 moves by a typed offset",
+        parse,
+    )
 };
 
 /// Two actions: `Move 10,0,0` acts at once; a bare `Move` starts the Moving tool, which asks for two points.

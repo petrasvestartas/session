@@ -1,0 +1,3 @@
+wgpu = "=29.0.4"
+session_rust = { path = "../../../session_rust", default-features = false }
+getrandom = { version = "=0.2.17", features = ["js"] }
