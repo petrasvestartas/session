@@ -1,308 +1,333 @@
 # 18b · Clipping planes and section caps
 
-A clipping plane is a plane object that hides everything on the side its arrow points to, and where it passes through a closed solid a hatched or grey cap fills the cut. The [section plane design](capstone.md) explains the choices; this lesson builds them.
+**Estimated study time: about 30–55 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Apply clipping planes and draw the cut surfaces of eligible solids.
+
+**In the whole viewer:** Clipping is a renderer pass driven by scene-space planes, using geometry and depth information from the existing drawing paths.
+
+**Follow the data:** Source plane → world-space cutting plane → kept surfaces and cap pass → section view.
+
+**Start with these files:** [`src/app/clipping.rs`](18b-clipping.md#code-18b-001), [`src/engine/gpu/clip.rs`](18b-clipping.md#code-18b-004).
+
+**Aim to explain:** Why does changing a clipping plane not mean that we have permanently split the source model?
+
+[Whole-viewer map and course milestones](map.md)
+
+A clipping plane separates kept space from removed space. Its normal sets the direction, and its offset sets the position. When a source plane is transformed, we derive the world plane from its transformed axes. A flattened rectangle cannot define a reliable cutting plane.
 
 ![A vertex-stage rejection leaves a staircase, a fragment-stage discard cuts exactly on the plane, and a cap fills the opening.](illustrations/section-plane.svg)
 
-## Step 1 · registration lines
+Start from the working result of [step 18a](18a-instancing.md).
 
-One line in `PASSES` adds the clip pass, and one line in `BEFORE_PICKS` hands the planes to it every frame.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 2,336 lines across 13 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/18b/src/engine/gpu/pass.rs` · type the line tagged `register:clip`
+<span id="code-18b-001"></span>
 
-```rust
---8<-- "lessons/18b/src/engine/gpu/pass.rs:passes"
-```
+## `src/app/clipping.rs`
 
-`lessons/18b/src/state/features.rs` · type the line tagged `register:clipping`
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/18b/src/state/features.rs:features-hooks"
+--8<-- "typing/code/18b-001.rs"
 ```
 
-Copy the other lines tagged `register:clip` and `register:clipping` from these files of `lessons/18b/`:
+<span id="code-18b-002"></span>
 
-- `src/engine/gpu/mod.rs`: the `clip` module.
-- `src/app/mod.rs` and `src/state.rs`: the two `clipping` modules.
-- `src/state/features.rs`: the `clip_hidden` count in `Features`.
-- `src/app/inspection.rs`: the planes in the inspection snapshot.
+## `src/app/inspection.rs`
 
-## Step 2 · src/app/clipping.rs
+Insert **after line 76** of your current file.
 
-The five ways to place a plane, the word typed for each, and the prompt for every point.
-
-`lessons/18b/src/app/clipping.rs` · type this, new file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18b/src/app/clipping.rs:clip-mode"
+            .iter()
+            .map(|r| state.gpu.objects.anchored_model(*r))
+            .collect::<Vec<_>>()
+    );
 ```
 
-## Step 3 · src/app/clipping.rs
-
-Build the plane object from the picked points, its rectangle `half` wide each way, and flip it.
-
-`lessons/18b/src/app/clipping.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18b/src/app/clipping.rs:plane-from"
+    snapshot["ssao"] = serde_json::json!(state.gpu.view.ssao);
+    snapshot["locked_count"] = serde_json::json!(state.scene.locked.len());
+    snapshot["color_count"] = serde_json::json!(state.scene.colors.len());
+    snapshot["edge_color_count"] = serde_json::json!(state.scene.edge_colors.len());
 ```
 
-## Step 4 · src/app/clipping.rs
-
-Turn a placed plane object into the world plane the GPU cuts with, hatch direction included.
-
-`lessons/18b/src/app/clipping.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/18b/src/app/clipping.rs:clip-plane"
+--8<-- "typing/code/18b-002.rs"
 ```
 
-## Step 5 · src/app/clipping.rs
+<span id="code-18b-003"></span>
 
-Tests: each mode cuts the side it names, bad picks are refused, and the cut follows its placement.
+## `src/app/mod.rs`
 
-`lessons/18b/src/app/clipping.rs` · copy, append at the end of the file
+Insert **after line 2** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18b/src/app/clipping.rs:clipping-tests"
+// `pub mod x;` makes src/app/x.rs part of the crate; each lesson adds the one line of the module it teaches.
+// `#[cfg(target_arch = "wasm32")]` above a line compiles that module for the browser only.
 ```
 
-## Step 6 · src/engine/gpu/clip.rs
-
-A world clipping plane, its signed distance, and whether it passes through a box.
-
-`lessons/18b/src/engine/gpu/clip.rs` · type this, new file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-plane"
+pub mod cloud_query; // register:cloud_query
+#[cfg(any(target_arch = "wasm32", test))] // register:decode
+pub mod decode; // register:decode
+pub mod feedback; // register:feedback
 ```
 
-## Step 7 · src/engine/gpu/clip.rs
-
-What the uniform is built from, the crossing count texture, and the pick records under the caps.
-
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-resources"
+--8<-- "typing/code/18b-003.rs"
 ```
 
-## Step 8 · src/engine/gpu/clip.rs
+<span id="code-18b-004"></span>
 
-Instanced solids a plane crosses, one draw per definition, with a row and plane record per copy.
+## `src/engine/gpu/clip.rs`
 
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+A clipping plane divides space using a signed plane equation. Keeping one side removes pixels or triangles on the other side. Section caps fill the exposed cut and require additional geometry or passes; discarding pixels alone does not make a cap.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-placed"
+--8<-- "typing/code/18b-004.rs"
 ```
 
-## Step 9 · src/engine/gpu/clip.rs
+<span id="code-18b-005"></span>
 
-The cap and pick pipelines, and Clip, which owns the planes and everything made for them.
+## `src/engine/gpu/clip/pipelines.rs`
 
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-struct"
+--8<-- "typing/code/18b-005.rs"
 ```
 
-## Step 10 · src/engine/gpu/clip.rs
+<span id="code-18b-006"></span>
 
-Open `impl Clip`: find, per plane, the closed solids it crosses, since only those can show a cap.
+## `src/engine/gpu/clip/tests.rs`
 
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-find"
+--8<-- "typing/code/18b-006.rs"
 ```
 
-## Step 11 · src/engine/gpu/clip.rs
+<span id="code-18b-007"></span>
 
-Take new planes, list them, and build this frame's uniform.
+## `src/engine/gpu/mod.rs`
 
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+Insert **after line 5** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-set"
+// A line tagged `register:<name>` is a registration: each later lesson adds its own line to lists like this one.
+pub mod arena; // register:arena
+pub mod backdrop; // register:backdrop
+pub mod buffers; // register:buffers
 ```
 
-## Step 12 · src/engine/gpu/clip.rs
-
-Count the crossings behind a plane into the count texture, then draw its caps into the face pass.
-
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-counts"
+pub mod cloud; // register:cloud
+pub mod device; // register:device
+pub mod faces; // register:faces
+pub mod frame; // register:frame
 ```
 
-## Step 13 · src/engine/gpu/clip.rs
-
-Draw the caps into the outline masks, so a cut solid keeps its silhouette.
-
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-masks"
+--8<-- "typing/code/18b-007.rs"
 ```
 
-## Step 14 · src/engine/gpu/clip.rs
+<span id="code-18b-008"></span>
 
-Name the solid under each cap pixel for the pick, and count the bytes; the brace closes the impl.
+## `src/engine/gpu/pass.rs`
 
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+Insert **after line 105** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-pick"
+// Empty in the first lessons: each pass a later lesson writes adds one line here.
+/// The passes in frame order. Adding one means its `Pass` impl in one file and one line here.
+pub const PASSES: &[fn(&GpuCtx, Target) -> Box<dyn Pass>] = &[
+    super::instanced::pass,       // register:instanced
 ```
 
-## Step 15 · src/engine/gpu/clip.rs
-
-Which planes cap this frame, the `Gpu` calls that set planes and find solids, and the pass constructor.
-
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-gpu"
+    super::surface_outline::pass, // register:outline
+];
+
+// `pub(super)` = visible to the parent module, `gpu`, and no further.
 ```
 
-## Step 16 · src/engine/gpu/clip.rs
-
-The Clip pass: uniform, counts and caps before the faces, the last caps inside the face pass, then masks and ids.
-
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-pass"
+--8<-- "typing/code/18b-008.rs"
 ```
 
-## Step 17 · src/engine/gpu/clip.rs
+<span id="code-18b-009"></span>
 
-The uniform: planes relative to the anchor, their clip-space form, and hatch coordinates across the screen.
+## `src/shaders/cap.wgsl`
 
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-uniform"
-```
-
-## Step 18 · src/engine/gpu/clip.rs
-
-The cap shader text for one or four samples, and the count, cap, mask and pick pipelines, made on first use.
-
-`lessons/18b/src/engine/gpu/clip.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-pipelines"
-```
-
-## Step 19 · src/engine/gpu/clip.rs
-
-Tests: the uniform matches the shader, planes survive far origins and millimetre cameras, and the hatch follows the plane.
-
-`lessons/18b/src/engine/gpu/clip.rs` · copy, append at the end of the file
-
-```rust
---8<-- "lessons/18b/src/engine/gpu/clip.rs:clip-tests"
-```
-
-## Step 20 · src/shaders/cap.wgsl
-
-One fullscreen triangle per plane, the instance index naming the plane.
-
-`lessons/18b/src/shaders/cap.wgsl` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```wgsl
---8<-- "lessons/18b/src/shaders/cap.wgsl:cap-vertex"
+--8<-- "typing/code/18b-009.wgsl"
 ```
 
-## Step 21 · src/shaders/cap.wgsl
+<span id="code-18b-010"></span>
 
-The cap's outputs and its hatch: diagonal lines whose spacing stays readable at any zoom.
+## `src/state.rs`
 
-`lessons/18b/src/shaders/cap.wgsl` · type this, append at the end of the file
+Insert **after line 11** of your current file.
 
-```wgsl
---8<-- "lessons/18b/src/shaders/cap.wgsl:cap-hatch"
-```
-
-## Step 22 · src/shaders/cap.wgsl
-
-A black border wherever the section's coverage ends.
-
-`lessons/18b/src/shaders/cap.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18b/src/shaders/cap.wgsl:cap-outline"
-```
-
-## Step 23 · src/shaders/cap.wgsl
-
-A cap pixel lies inside a solid and is kept by the other planes; it draws hatch or grey at the plane's depth.
-
-`lessons/18b/src/shaders/cap.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18b/src/shaders/cap.wgsl:cap-fragment"
-```
-
-## Step 24 · src/shaders/cap.wgsl
-
-The caps into both outline masks, or selected caps into the selection mask alone.
-
-`lessons/18b/src/shaders/cap.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18b/src/shaders/cap.wgsl:cap-masks"
-```
-
-## Step 25 · src/shaders/cap.wgsl
-
-In the pick, a cap pixel names the solid it lies inside, else the nearest one the ray leaves.
-
-`lessons/18b/src/shaders/cap.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18b/src/shaders/cap.wgsl:cap-pick"
-```
-
-## Step 26 · src/state/clipping.rs
-
-Every frame, collect the clipping plane rows where they are drawn and hand their planes to the GPU.
-
-`lessons/18b/src/state/clipping.rs` · type this, new file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18b/src/state/clipping.rs:update-clipping"
+use crate::engine::gpu::{CylinderSegment, GlyphPoint};
+use crate::engine::gpu::{FrameInput, Gpu, Pick};
+use crate::engine::performance::{heap_mb, now_ms};
+// Each `mod` line below carries a `register` tag naming its feature; the course adds the line in that feature's lesson.
 ```
 
-## Step 27 · src/state/clipping.rs
-
-On the first cut, flag each mesh closed and outward or inward, walking each shared geometry once.
-
-`lessons/18b/src/state/clipping.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18b/src/state/clipping.rs:verify-solids"
+mod cloud_query; // register:cloud_query
+mod features; // register:features
+mod text; // register:text
+use features::Features;
 ```
 
-## Step 28 · src/state/clipping.rs
-
-The planes as JSON for the inspection snapshot; the brace closes the impl.
-
-`lessons/18b/src/state/clipping.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/18b/src/state/clipping.rs:clipping-status"
+--8<-- "typing/code/18b-010.rs"
 ```
 
-## Step 29 · tests
+<span id="code-18b-011"></span>
 
-Copy `tests/clipping-mixed.cjs` from `lessons/18b/`: a browser check on the mixed scene; it types commands, so it runs from lesson 33 on.
+## `src/state/clipping.rs`
 
-Run `cargo check` in `lessons/18b/`.
+Create this file. Type the complete listing, including comments and blank lines.
 
-## Check
+```rust
+--8<-- "typing/code/18b-011.rs"
+```
 
-`cargo check` compiles, and `cargo xtest --lib clip` passes the plane, uniform and hatch tests. A scene that saved a clipping plane is cut when it loads; lesson 23 adds the Clipping Plane command that places, flips and switches planes.
+<span id="code-18b-012"></span>
+
+## `src/state/features.rs`
+
+Insert **after line 9** of your current file.
+
+Keep these preceding lines:
+
+```rust
+pub(crate) struct Features {
+    pub(super) cloud_query: Option<crate::app::cloud_query::Query>, // a point-cloud pick in flight; register:cloud_query
+    #[cfg(target_arch = "wasm32")] // register:cloud_query
+    pub(super) query_generation: u64, // counts cloud queries, old answers dropped; register:cloud_query
+```
+
+Keep these following lines:
+
+```rust
+}
+
+// Each list starts empty; a later lesson adds one line per hook.
+// `fn(&mut State)` is a function pointer; a method such as `State::purge_idle` is one, with `self` as its first argument.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/18b-012.rs"
+```
+
+<span id="code-18b-013"></span>
+
+## `src/state/features.rs`
+
+Insert **after line 16** of your current file.
+
+Keep these preceding lines:
+
+```rust
+// Each list starts empty; a later lesson adds one line per hook.
+// `fn(&mut State)` is a function pointer; a method such as `State::purge_idle` is one, with `self` as its first argument.
+/// Feature work on every frame, before the pick answers are applied.
+pub(super) const BEFORE_PICKS: &[fn(&mut State)] = &[
+```
+
+Keep these following lines:
+
+```rust
+];
+
+/// Feature work on every frame, once the pick answers are applied.
+pub(super) const AFTER_PICKS: &[fn(&mut State)] = &[
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/18b-013.rs"
+```
+
+<span id="code-18b-014"></span>
+
+## `tests/clipping-mixed.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/18b-014.cjs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 18b
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native clipping tests. Find the test that constructs a plane and check the expected signed side of a point. Interactive creation commands arrive in lesson 23; the GPU clipping tests you typed already exercise visible cuts and picking.
+
+If a cut flips after a mirrored placement, check the transformed axes and cross product. Translating a normal as though it were a point is another common error.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+Clipping changes what is presented. A permanent geometry split is a separate source-editing transaction that creates new model geometry.
+
+</details>
+
+[Next step: 19](19-sheets.md)

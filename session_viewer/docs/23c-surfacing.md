@@ -1,152 +1,264 @@
 # 23c · Surfacing
 
-NURBS curves are drawn with the shape tool of lesson 23b, and surfaces are made from picked curves with the gathering tool of lesson 23a. This lesson adds the shared surfacing helpers, types Circle and Loft in full and copies the other ten commands.
+**Estimated study time: about 30–60 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Turn selected curves and surfacing choices into new surface geometry.
+
+**In the whole viewer:** The tool gathers intent; the kernel performs geometry work; the scene then displays the committed result.
+
+**Follow the data:** Ordered curves → validation and alignment → surface construction → document/display.
+
+**Start with these files:** [`src/app/command/tool/surfacing.rs`](23c-surfacing.md#code-23c-004), [`src/app/command/verbs/loft.rs`](23c-surfacing.md#code-23c-006).
+
+**Aim to explain:** Why can reordering the same loft sections change the result?
+
+[Whole-viewer map and course milestones](map.md)
+
+A loft stretches a surface through a sequence of curves, like fabric over a row of hoops. The order matters. The shared surfacing code checks and aligns the curves; this small command builder chooses whether the sequence closes back onto its first section.
 
 ![A surface command is a recipe: picked curves first, then points, numbers or a distance, and a build function that makes the surfaces.](illustrations/recipe-steps.svg)
 
-## Step 1 · registration lines
+Start from the working result of [step 23b](23b-shapes.md).
 
-One line in `tool.rs` adds the surfacing module, and one line per command in `verbs!` adds the twelve commands.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 2,784 lines across 17 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/23c/src/app/command/tool.rs` · type the line tagged `register:surfacing`
+<span id="code-23c-001"></span>
 
-```rust
---8<-- "lessons/23c/src/app/command/tool.rs:tool-modules"
-```
+## `src/app/command/tests.rs`
 
-`lessons/23c/src/app/command/verbs/mod.rs` · type the twelve lines tagged `register:nurbs_curve_circle` to `register:nurbs_surface_sweep2`
+Append **after line 165** of your current file.
 
-```rust
---8<-- "lessons/23c/src/app/command/verbs/mod.rs:verbs-list"
-```
-
-## Step 2 · src/app/command/tool/surfacing.rs
-
-The normal of a closed loop, the size of a point cloud, and whether points lie in one plane.
-
-`lessons/23c/src/app/command/tool/surfacing.rs` · type this, new file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23c/src/app/command/tool/surfacing.rs:surfacing-helpers"
+--8<-- "typing/code/23c-001.rs"
 ```
 
-## Step 3 · src/app/command/tool/surfacing.rs
+<span id="code-23c-002"></span>
 
-Turn every section to run the same way as the one before it, with the seams of closed ones lined up.
+## `src/app/command/tool.rs`
 
-`lessons/23c/src/app/command/tool/surfacing.rs` · type this, append at the end of the file
+Insert **after line 6** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23c/src/app/command/tool/surfacing.rs:align-sections"
+pub mod cut; // register:cut
+pub mod gather; // register:gather
+mod options; // register:gather
+pub mod shape; // register:shape
 ```
 
-## Step 4 · src/app/command/tool/surfacing.rs
-
-The loft through aligned sections, a check that refuses a broken surface, and the picked curves in world space.
-
-`lessons/23c/src/app/command/tool/surfacing.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23c/src/app/command/tool/surfacing.rs:loft-checked"
+
+/// What a tool answers after each point or word: ask again, act and start over from the first point, or finish.
+#[derive(Debug, PartialEq)]
+pub enum Next {
 ```
 
-## Step 5 · src/app/command/tool/surfacing.rs
-
-Tests: picked curves keep their placement, periodic curves are clamped, sections align, loops find their normal.
-
-`lessons/23c/src/app/command/tool/surfacing.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23c/src/app/command/tool/surfacing.rs:surfacing-tests"
+--8<-- "typing/code/23c-002.rs"
 ```
 
-## Step 6 · src/app/command/tool/shape.rs
+<span id="code-23c-003"></span>
 
-Test: a leading word picks a shape's option, including the two-word `3 Points` of Nurbs Curve Arc.
+## `src/app/command/tool/shape.rs`
 
-`lessons/23c/src/app/command/tool/shape.rs` · copy, append at the end of the file
+Append **after line 975** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23c/src/app/command/tool/shape.rs:option-words"
+--8<-- "typing/code/23c-003.rs"
 ```
 
-## Step 7 · src/app/command/verbs/nurbs_curve_circle.rs
+<span id="code-23c-004"></span>
 
-The Circle command is a shape with a curve's buttons: a `Spec` and a `static SHAPE`.
+## `src/app/command/tool/surfacing.rs`
 
-`lessons/23c/src/app/command/verbs/nurbs_curve_circle.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23c/src/app/command/verbs/nurbs_curve_circle.rs:circle-spec"
+--8<-- "typing/code/23c-004.rs"
 ```
 
-## Step 8 · src/app/command/verbs/nurbs_curve_circle.rs
+<span id="code-23c-005"></span>
 
-Center, then radius; the preview is one ring, and `build` places the kernel circle on the plane.
+## `src/app/command/verbs/extrude.rs`
 
-`lessons/23c/src/app/command/verbs/nurbs_curve_circle.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23c/src/app/command/verbs/nurbs_curve_circle.rs:circle-questions"
+--8<-- "typing/code/23c-005.rs"
 ```
 
-## Step 9 · src/app/command/verbs/nurbs_curve_circle.rs
+<span id="code-23c-006"></span>
 
-Test: nine control points, closed, every sample at the radius in the Front plane.
+## `src/app/command/verbs/loft.rs`
 
-`lessons/23c/src/app/command/verbs/nurbs_curve_circle.rs` · copy, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23c/src/app/command/verbs/nurbs_curve_circle.rs:circle-tests"
+--8<-- "typing/code/23c-006.rs"
 ```
 
-## Step 10 · src/app/command/verbs/loft.rs
+<span id="code-23c-007"></span>
 
-The Loft command is a `Recipe`: pick two or more curves in order, with Open or Closed.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/23c/src/app/command/verbs/loft.rs` · type this, new file
+Insert **after line 64** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23c/src/app/command/verbs/loft.rs:loft-recipe"
+    dodecahedron,            // register:dodecahedron
+    icosahedron,             // register:icosahedron
+    quad_sphere,             // register:quad_sphere
+    capsule,                 // register:capsule
 ```
 
-## Step 11 · src/app/command/verbs/loft.rs
-
-Loft the picked curves into one cubic NURBS surface and say how many went in.
-
-`lessons/23c/src/app/command/verbs/loft.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23c/src/app/command/verbs/loft.rs:loft-build"
+}
 ```
 
-## Step 12 · src/app/command/verbs/loft.rs
-
-Tests: three arcs loft through the middle one, and Closed loops back and needs three curves.
-
-`lessons/23c/src/app/command/verbs/loft.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23c/src/app/command/verbs/loft.rs:loft-tests"
+--8<-- "typing/code/23c-007.rs"
 ```
 
-## Step 13 · the other commands
+<span id="code-23c-008"></span>
 
-Each is a shape like Circle or a recipe like Loft; copy these files from `lessons/23c/src/app/command/verbs/`:
+## `src/app/command/verbs/nurbs_curve_arc.rs`
 
-- `nurbs_curve_ellipse.rs`: center, end of the first axis or its radius, second radius.
-- `nurbs_curve_arc.rs`: center, start or radius, end or angle; or 3 Points.
-- `nurbs_curve_parabola.rs`: start, end or length, apex or height.
-- `nurbs_surface_loft.rs`: a loft with Smooth or Straight sections.
-- `nurbs_surface_network.rs`: a surface through curves running in two directions.
-- `nurbs_surface_revolve.rs`: profile curves turned about an axis by an angle.
-- `nurbs_surface_4_points.rs`: a surface from four corners.
-- `nurbs_surface_sweep1.rs`: profile curves swept along one rail.
-- `nurbs_surface_sweep2.rs`: shape curves swept between two rails.
-- `extrude.rs`: curves pushed along a distance or a vector, with or without caps.
+Create this file. Type the complete listing, including comments and blank lines.
 
-Run `cargo check` in `lessons/23c/`.
+```rust
+--8<-- "typing/code/23c-008.rs"
+```
 
-## Check
+<span id="code-23c-009"></span>
 
-`cargo check` compiles, and `cargo xtest --lib surfacing` passes. Draw two circles at different heights with `Nurbs Curve Circle`, type `Loft`, click both and press Enter: a smooth tube joins them.
+## `src/app/command/verbs/nurbs_curve_circle.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23c-009.rs"
+```
+
+<span id="code-23c-010"></span>
+
+## `src/app/command/verbs/nurbs_curve_ellipse.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23c-010.rs"
+```
+
+<span id="code-23c-011"></span>
+
+## `src/app/command/verbs/nurbs_curve_parabola.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23c-011.rs"
+```
+
+<span id="code-23c-012"></span>
+
+## `src/app/command/verbs/nurbs_surface_4_points.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23c-012.rs"
+```
+
+<span id="code-23c-013"></span>
+
+## `src/app/command/verbs/nurbs_surface_loft.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23c-013.rs"
+```
+
+<span id="code-23c-014"></span>
+
+## `src/app/command/verbs/nurbs_surface_network.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23c-014.rs"
+```
+
+<span id="code-23c-015"></span>
+
+## `src/app/command/verbs/nurbs_surface_revolve.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23c-015.rs"
+```
+
+<span id="code-23c-016"></span>
+
+## `src/app/command/verbs/nurbs_surface_sweep1.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23c-016.rs"
+```
+
+<span id="code-23c-017"></span>
+
+## `src/app/command/verbs/nurbs_surface_sweep2.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23c-017.rs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 23c
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native surfacing tests. Select ordered section curves and create an open loft; compare its first and last sections with the inputs.
+
+If a loft twists, first inspect section order and orientation. Increasing display tessellation cannot untwist the source surface.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+A loft follows a sequence of sections. Their order and orientation determine how the surface connects them, so a set of curves alone is insufficient.
+
+</details>
+
+[Next step: 23d](23d-annotate-measure.md)

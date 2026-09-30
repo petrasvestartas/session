@@ -1,17 +1,16 @@
+// --8<-- [start:nurbs-surface-4-points]
 use crate::app::command::tool::gather::{self, Input, Made, Recipe, Step};
 use crate::app::command::tool::surfacing::checked;
 use crate::app::command::{Action, Spec};
 use session_rust::{NurbsSurface, Point};
 
 pub const SPEC: Spec = Spec {
-    names: &["Nurbs Surface 4 Points"],
     aliases: &["nurbssurface_4_points"],
-    hint: "Nurbs Surface 4 Points: four corners in order · Example: Nurbs Surface 4 Points 0,0,0 10,0,0 10,10,3 0,10,0",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Nurbs Surface 4 Points"],
+        "Nurbs Surface 4 Points: four corners in order · Example: Nurbs Surface 4 Points 0,0,0 10,0,0 10,10,3 0,10,0",
+        parse,
+    )
 };
 
 pub static RECIPE: Recipe = Recipe {
@@ -95,3 +94,4 @@ mod tests {
         assert!(patch(&flat).is_err());
     }
 }
+// --8<-- [end:nurbs-surface-4-points]

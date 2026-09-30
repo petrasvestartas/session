@@ -319,25 +319,28 @@ pub fn uniform_buffer<T: Pod>(device: &wgpu::Device, label: &str, value: &T) -> 
 
 // A bind group is the bundle of buffers and textures one draw can read; its layout says which slot holds what.
 /// A bind group with `buffers` at bindings 0, 1, 2…
-pub fn bind_group(
+pub fn bind_group<const N: usize>(
     ctx: &GpuCtx,
     layout: &wgpu::BindGroupLayout,
     label: &str,
-    buffers: &[&wgpu::Buffer],
+    buffers: &[&wgpu::Buffer; N],
 ) -> wgpu::BindGroup {
-    let mut entries: Vec<wgpu::BindGroupEntry> = Vec::with_capacity(buffers.len());
+    resource_group(ctx, layout, label, std::array::from_fn::<_, N, _>(|i| {
+        (i as u32, buffers[i].as_entire_binding())
+    }))
+}
 
-    for (i, b) in buffers.iter().enumerate() {
-        entries.push(wgpu::BindGroupEntry {
-            binding: i as u32,
-            resource: b.as_entire_binding(),
-        });
-    }
-
+/// Bind explicit shader slots without allocating a temporary entry list.
+pub fn resource_group<const N: usize>(
+    ctx: &GpuCtx,
+    layout: &wgpu::BindGroupLayout,
+    label: &str,
+    resources: [(u32, wgpu::BindingResource<'_>); N],
+) -> wgpu::BindGroup {
     ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some(label),
         layout,
-        entries: &entries,
+        entries: &resources.map(|(binding, resource)| wgpu::BindGroupEntry { binding, resource }),
     })
 }
 

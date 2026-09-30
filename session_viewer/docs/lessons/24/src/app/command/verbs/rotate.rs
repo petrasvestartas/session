@@ -5,14 +5,14 @@ use crate::app::gizmo::Axis;
 use session_rust::{Plane, Point, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Rotate"],
     aliases: &["rot"],
-    hint: "Rotate · pick the center, then type an angle or pick two reference points · Rotate z 45 turns about a world axis",
     options: &["Rotate x", "Rotate y", "Rotate z"],
-    arity: None,
-    wait_for_option: false,
     wait_after_option: true,
-    parse,
+    ..Spec::new(
+        &["Rotate"],
+        "Rotate · pick the center, then type an angle or pick two reference points · Rotate z 45 turns about a world axis",
+        parse,
+    )
 };
 
 /// Pick a center and an angle, or turn the selection about a typed world axis.

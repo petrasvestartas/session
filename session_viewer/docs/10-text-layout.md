@@ -1,106 +1,77 @@
 # 10 · Text shaping
 
-Shaping turns a string into glyphs placed on a line, with kerning, ligatures and fallback fonts. This lesson builds the CPU half of text: fonts, labels, and a document that reshapes only the labels whose text changed.
+**Estimated study time: about 5–15 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Turn text into shaped glyph runs and measured positions.
+
+**In the whole viewer:** Text layout sits before drawing. It decides which glyphs and placements the text renderer receives.
+
+**Follow the data:** String and font → shaping → glyph sequence and advances → measured text.
+
+**Start with these files:** [`src/engine/text.rs`](10-text-layout.md#code-10-002).
+
+**Aim to explain:** Why can character count not determine the width of a label?
+
+[Whole-viewer map and course milestones](map.md)
+
+Text is more than one picture per character. The font can combine letters into ligatures, change their spacing, and select different glyphs for different scripts. Shaping turns the text into positioned glyphs. We do that only when the layout inputs change.
 
 ![Shape once, place per frame, raster per device scale, then a plate pass and a glyph pass.](illustrations/text-pipeline.svg)
 
-## Step 1 · assets/text/
+Start from the working result of [step 09](09-normals.md).
 
-The three Noto fonts, their small subsets that go into the wasm, the font license and the notes on where they came from.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 570 lines across 2 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/10/assets/text/` · copy the files
+<span id="code-10-001"></span>
 
-- `NotoSans-Regular.ttf`, `NotoSans-Regular.subset.ttf`
-- `NotoSansSymbols-Regular.ttf`, `NotoSansSymbols-Regular.subset.ttf`
-- `NotoSansSymbols2-Regular.ttf`, `NotoSansSymbols2-Regular.subset.ttf`
-- `OFL.txt`, `README.md`
+## `src/engine/mod.rs`
 
-## Step 2 · src/engine/text.rs
+Append **after line 4** of your current file.
 
-New file: the three font subsets compiled into the wasm, and the whole fonts that lesson 14 fetches only when a label needs them.
-
-`lessons/10/src/engine/text.rs` · type this, new file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/10/src/engine/text.rs:fonts"
+--8<-- "typing/code/10-001.rs"
 ```
 
-## Step 3 · src/engine/text.rs
+<span id="code-10-002"></span>
 
-A label: its text, size, colour, one of five placements, and the object it belongs to.
+## `src/engine/text.rs`
 
-`lessons/10/src/engine/text.rs` · type this, append at the end of the file
+A string is not a row of equally sized boxes. Shaping chooses glyphs, advances and placement; fallback fonts provide missing characters. Layout works in text coordinates before the renderer places the result in the world.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/10/src/engine/text.rs:labels"
+--8<-- "typing/code/10-002.rs"
 ```
 
-## Step 4 · src/engine/text.rs
+## Check the completed chapter
 
-Open `impl TextDocument`: shape a new label set, reusing the glyphs of every label whose text and size did not change.
+From `session_viewer`, compare everything you have typed:
 
-`lessons/10/src/engine/text.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/10/src/engine/text.rs:document"
+```sh
+npm --prefix ../session_tests run course -- reference-check 10
 ```
 
-## Step 5 · src/engine/text.rs
+From `workspace/handwritten`:
 
-Swap the font set and reshape, list every glyph for the tests; the impl block closes, then `Default` and the glyph record follow.
-
-`lessons/10/src/engine/text.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/10/src/engine/text.rs:font-swap"
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
 ```
 
-## Step 6 · src/engine/text.rs
+Run the native text-layout tests. Identify which changes invalidate layout and which can reuse it.
 
-Ask whether the bundled subsets can draw a string, and load them as the font system.
+If glyphs are missing, first check that the bundled font covers the text. If spacing is wrong, inspect the shaping inputs before changing the GPU positions.
 
-`lessons/10/src/engine/text.rs` · type this, append at the end of the file
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
 
-```rust
---8<-- "lessons/10/src/engine/text.rs:coverage"
-```
+<details>
+<summary>Check your explanation of the opening question</summary>
 
-## Step 7 · src/engine/text.rs
+Glyph widths differ, and shaping can combine or reposition characters. The shaped glyph advances determine the layout.
 
-Reject a label whose size, position or clip box is not finite or out of range.
+</details>
 
-`lessons/10/src/engine/text.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/10/src/engine/text.rs:validate"
-```
-
-## Step 8 · src/engine/text.rs
-
-Shape one label with cosmic-text: no wrapping, advanced shaping, and the label id carried along as metadata.
-
-`lessons/10/src/engine/text.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/10/src/engine/text.rs:shape"
-```
-
-## Step 9 · src/engine/text.rs
-
-Tests: ligatures, accents and symbols shape to real glyphs, and moving or recolouring a label never reshapes it.
-
-`lessons/10/src/engine/text.rs` · copy, append at the end of the file
-
-```rust
---8<-- "lessons/10/src/engine/text.rs:tests"
-```
-
-## Step 10 · registration lines
-
-Copy the line tagged `register:text` from `lessons/10/src/engine/mod.rs`: it declares the new module.
-
-Run `cargo check` in `lessons/10/`.
-
-## Check
-
-Run `cargo xtest --lib engine::text` in `lessons/10/`: five tests pass, and nothing on the canvas changes yet, because lesson 11 draws the labels.
+[Next step: 11](11-text-rendering.md)

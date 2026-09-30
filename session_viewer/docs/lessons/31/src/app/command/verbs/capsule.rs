@@ -1,3 +1,4 @@
+// --8<-- [start:capsule]
 use crate::app::command::tool::shape::{self, MESH_ONLY, Part, Shape};
 use crate::app::command::verbs::cylinder;
 use crate::app::command::{Action, Spec};
@@ -5,14 +6,12 @@ use session_rust::{Geometry, Line, Point, Primitives};
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
-    names: &["Capsule"],
-    aliases: &[],
-    hint: "Capsule (Mesh): base center, radius, total height · Example: Capsule 0,0,0 5 30",
     options: &["Capsule Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Capsule"],
+        "Capsule (Mesh): base center, radius, total height · Example: Capsule 0,0,0 5 30",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -111,3 +110,4 @@ mod tests {
         assert!(build(&SHAPE, &top, &short, "Mesh").is_err());
     }
 }
+// --8<-- [end:capsule]

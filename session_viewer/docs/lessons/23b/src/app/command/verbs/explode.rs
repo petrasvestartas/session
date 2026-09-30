@@ -8,14 +8,12 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
-    names: &["Explode"],
-    aliases: &[],
-    hint: "Explode · a polyline into lines, a BRep into faces, a mesh into faces, a point cloud into points",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Explode"],
+        "Explode · a polyline into lines, a BRep into faces, a mesh into faces, a point cloud into points",
+        parse,
+    )
 };
 
 /// Break the selection into its parts.

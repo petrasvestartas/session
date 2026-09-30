@@ -1,0 +1,8 @@
+            "Orbit Right",
+            "Orbit Up",
+            "View Isometric",
+            "View Perspective",
+            "View Orthographic",
+            "Fit",
+            "View Reset",
+        ],

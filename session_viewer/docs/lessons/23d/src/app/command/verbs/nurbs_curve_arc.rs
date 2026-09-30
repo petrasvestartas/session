@@ -1,17 +1,16 @@
+// --8<-- [start:nurbs-curve-arc]
 use crate::app::command::tool::shape::{self, Answer, Ask, Frame, Part, RING, Shape, positive};
 use crate::app::command::{Action, Spec};
 use session_rust::{Geometry, NurbsCurve, Point};
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
-    names: &["Nurbs Curve Arc"],
-    aliases: &[],
-    hint: "Nurbs Curve Arc (Center 3 Points): center, start or radius, end or angle · Example: Nurbs Curve Arc 0,0,0 10 90",
     options: &["Nurbs Curve Arc Center", "Nurbs Curve Arc 3 Points"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Nurbs Curve Arc"],
+        "Nurbs Curve Arc (Center 3 Points): center, start or radius, end or angle · Example: Nurbs Curve Arc 0,0,0 10 90",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -330,3 +329,4 @@ mod tests {
         assert!(build(&SHAPE, &top, &line, "3 Points").is_err());
     }
 }
+// --8<-- [end:nurbs-curve-arc]

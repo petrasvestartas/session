@@ -1,3 +1,4 @@
+// --8<-- [start:block-with-hole]
 use crate::app::command::tool::shape::{
     self, Answer, Ask, BREP_MESH, Frame, Part, Shape, positive,
 };
@@ -6,14 +7,12 @@ use crate::app::command::{Action, Spec};
 use session_rust::{BRep, Geometry, Point, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Block With Hole"],
-    aliases: &[],
-    hint: "Block With Hole (Brep Mesh): base center, corner or length and width, height, hole radius · Example: Block With Hole 0,0,0 40 30 20 5",
     options: &["Block With Hole Brep", "Block With Hole Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Block With Hole"],
+        "Block With Hole (Brep Mesh): base center, corner or length and width, height, hole radius · Example: Block With Hole 0,0,0 40 30 20 5",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -121,3 +120,4 @@ mod tests {
         assert!(build(&SHAPE, &top, &wide, "Brep").is_err());
     }
 }
+// --8<-- [end:block-with-hole]

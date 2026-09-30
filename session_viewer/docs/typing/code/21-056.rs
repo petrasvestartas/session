@@ -1,0 +1,1 @@
+            - self.instancing.batch_rows() // register:instancing

@@ -1,171 +1,262 @@
 # 23b · Shapes
 
-Box, Sphere and eleven more solids ask a few questions, draw blue wires while you answer, and add a BRep or a mesh to the document. One tool, `Shaping`, runs them all: each shape is one file with a `static SHAPE` of five functions.
+**Estimated study time: about 20–35 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Construct shapes from the dimensions and frame collected by a tool.
+
+**In the whole viewer:** Shape builders sit between tool interaction and kernel geometry, keeping the preview consistent with the committed object.
+
+**Follow the data:** Collected dimensions and frame → shape builder → preview/final geometry → transaction.
+
+**Start with these files:** [`src/app/command/tool/shape.rs`](23b-shapes.md#code-23b-003), [`src/app/command/verbs/box.rs`](23b-shapes.md#code-23b-005).
+
+**Aim to explain:** What would you inspect if the accepted box differs from its preview?
+
+[Whole-viewer map and course milestones](map.md)
+
+The shared shape tool has gathered length, width, height and a construction frame. Now the box builder turns those answers into geometry. Preview outlines and final geometry use the same dimensions, so the shape you accept should match the one you saw while pointing.
 
 ![A shape is a static of functions: ask names the next question, read turns the answers into a part, outline draws its wires, build makes the object once nothing is left to ask.](illustrations/shape-functions.svg)
 
-## Step 1 · registration lines
+Start from the working result of [step 23a](23a-tools.md).
 
-One line in `tool.rs` adds the shape module, and one line per shape in `verbs!` adds its command.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 2,422 lines across 17 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/23b/src/app/command/tool.rs` · type the line tagged `register:shape`
+<span id="code-23b-001"></span>
 
-```rust
---8<-- "lessons/23b/src/app/command/tool.rs:tool-modules"
-```
+## `src/app/command/tests.rs`
 
-`lessons/23b/src/app/command/verbs/mod.rs` · type the thirteen lines tagged `register:box` to `register:capsule`
+Append **after line 122** of your current file.
 
-```rust
---8<-- "lessons/23b/src/app/command/verbs/mod.rs:verbs-list"
-```
-
-## Step 2 · src/app/command/tool/shape.rs
-
-An answer is a point or a number, and each question says what a bare number means.
-
-`lessons/23b/src/app/command/tool/shape.rs` · type this, new file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23b/src/app/command/tool/shape.rs:shape-ask"
+--8<-- "typing/code/23b-001.rs"
 ```
 
-## Step 3 · src/app/command/tool/shape.rs
+<span id="code-23b-002"></span>
 
-The frame: local axes on the drawing plane, plus the rings, rectangles and boxes the previews draw in it.
+## `src/app/command/tool.rs`
 
-`lessons/23b/src/app/command/tool/shape.rs` · type this, append at the end of the file
+Insert **after line 5** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23b/src/app/command/tool/shape.rs:shape-frame"
+use session_rust::{Plane, Point, Xform};
+pub mod cut; // register:cut
+pub mod gather; // register:gather
+mod options; // register:gather
 ```
 
-## Step 4 · src/app/command/tool/shape.rs
-
-`Shape`: a name, option buttons and five functions that ask, read, preview and build one kind of solid.
-
-`lessons/23b/src/app/command/tool/shape.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23b/src/app/command/tool/shape.rs:shape-static"
+
+/// What a tool answers after each point or word: ask again, act and start over from the first point, or finish.
+#[derive(Debug, PartialEq)]
+pub enum Next {
 ```
 
-## Step 5 · src/app/command/tool/shape.rs
-
-Size checks, the frame at the first point, and the center-and-radius questions the round shapes share.
-
-`lessons/23b/src/app/command/tool/shape.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23b/src/app/command/tool/shape.rs:shape-helpers"
+--8<-- "typing/code/23b-002.rs"
 ```
 
-## Step 6 · src/app/command/tool/shape.rs
+<span id="code-23b-003"></span>
 
-Turn a kernel BRep or mesh into the chosen option, welding separately meshed faces into one closed mesh.
+## `src/app/command/tool/shape.rs`
 
-`lessons/23b/src/app/command/tool/shape.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23b/src/app/command/tool/shape.rs:shape-kernel"
+--8<-- "typing/code/23b-003.rs"
 ```
 
-## Step 7 · src/app/command/tool/shape.rs
+<span id="code-23b-004"></span>
 
-Parse `Box Mesh 0,0,0 100 50 30`: a leading option word, then answers fed in once the tool is open.
+## `src/app/command/verbs/block_with_hole.rs`
 
-`lessons/23b/src/app/command/tool/shape.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23b/src/app/command/tool/shape.rs:shape-start"
+--8<-- "typing/code/23b-004.rs"
 ```
 
-## Step 8 · src/app/command/tool/shape.rs
+<span id="code-23b-005"></span>
 
-`Shaping` keeps the answers, builds the object after the last one, and finds a height on the normal.
+## `src/app/command/verbs/box.rs`
 
-`lessons/23b/src/app/command/tool/shape.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23b/src/app/command/tool/shape.rs:shaping"
+--8<-- "typing/code/23b-005.rs"
 ```
 
-## Step 9 · src/app/command/tool/shape.rs
+<span id="code-23b-006"></span>
 
-The `Tool` methods: prompt, option words, typed numbers, clicks on the normal and the blue preview wires.
+## `src/app/command/verbs/capsule.rs`
 
-`lessons/23b/src/app/command/tool/shape.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23b/src/app/command/tool/shape.rs:shaping-tool"
+--8<-- "typing/code/23b-006.rs"
 ```
 
-## Step 10 · src/app/command/tool/shape.rs
+<span id="code-23b-007"></span>
 
-Tests: right-handed frames on every plane, Enter defaults, closed welded meshes and solid polyhedra.
+## `src/app/command/verbs/cone.rs`
 
-`lessons/23b/src/app/command/tool/shape.rs` · copy, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23b/src/app/command/tool/shape.rs:shape-tests"
+--8<-- "typing/code/23b-007.rs"
 ```
 
-## Step 11 · src/app/command/verbs/box.rs
+<span id="code-23b-008"></span>
 
-The Box command: a `Spec` for the command line and a `static SHAPE` for the questions.
+## `src/app/command/verbs/cylinder.rs`
 
-`lessons/23b/src/app/command/verbs/box.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23b/src/app/command/verbs/box.rs:box-spec"
+--8<-- "typing/code/23b-008.rs"
 ```
 
-## Step 12 · src/app/command/verbs/box.rs
+<span id="code-23b-009"></span>
 
-Base center, then a corner click or a typed length and width, then the height.
+## `src/app/command/verbs/dodecahedron.rs`
 
-`lessons/23b/src/app/command/verbs/box.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23b/src/app/command/verbs/box.rs:box-questions"
+--8<-- "typing/code/23b-009.rs"
 ```
 
-## Step 13 · src/app/command/verbs/box.rs
+<span id="code-23b-010"></span>
 
-The preview grows from a line to a rectangle to a box, and `build` stands a kernel box on the plane.
+## `src/app/command/verbs/icosahedron.rs`
 
-`lessons/23b/src/app/command/verbs/box.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23b/src/app/command/verbs/box.rs:box-build"
+--8<-- "typing/code/23b-010.rs"
 ```
 
-## Step 14 · src/app/command/verbs/box.rs
+<span id="code-23b-011"></span>
 
-Tests: typed sizes and a corner click give the same box, the Front plane stands it along −Y, zero sizes are refused.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/23b/src/app/command/verbs/box.rs` · copy, append at the end of the file
+Insert **after line 51** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23b/src/app/command/verbs/box.rs:box-tests"
+    select_lasso,            // register:select_lasso
+    select_by_name,          // register:select_by_name
+    select_small,            // register:select_small
+    clipping_plane,          // register:clipping_plane
 ```
 
-## Step 15 · the other shapes
+Keep these following lines:
 
-Each is a `Spec`, a `static SHAPE` and its tests, built like `box.rs`; copy these files from `lessons/23b/src/app/command/verbs/`:
+```rust
+}
+```
 
-- `sphere.rs`: center, radius.
-- `cylinder.rs`: base center, radius, height.
-- `cone.rs`: base center, radius, height to the apex.
-- `pyramid.rs`: base center, corner or edge length, height.
-- `torus.rs`: center, major radius, minor radius.
-- `block_with_hole.rs`: a box with a round hole through it.
-- `tetrahedron.rs`, `octahedron.rs`, `dodecahedron.rs`, `icosahedron.rs`: center, radius to the corners.
-- `quad_sphere.rs`: a mesh sphere of six patches of 8 × 8 quads.
-- `capsule.rs`: a mesh cylinder with round ends, base center, radius, total height.
+Type these new lines:
 
-Run `cargo check` in `lessons/23b/`.
+```rust
+--8<-- "typing/code/23b-011.rs"
+```
 
-## Check
+<span id="code-23b-012"></span>
 
-`cargo check` compiles, and `cargo xtest --lib shape` passes. Type `Box`, click a center and a corner, then lift the height: blue wires follow the cursor and a solid box appears. `Box Mesh 0,0,0 100 50 30` makes the same box as a mesh in one line.
+## `src/app/command/verbs/octahedron.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23b-012.rs"
+```
+
+<span id="code-23b-013"></span>
+
+## `src/app/command/verbs/pyramid.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23b-013.rs"
+```
+
+<span id="code-23b-014"></span>
+
+## `src/app/command/verbs/quad_sphere.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23b-014.rs"
+```
+
+<span id="code-23b-015"></span>
+
+## `src/app/command/verbs/sphere.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23b-015.rs"
+```
+
+<span id="code-23b-016"></span>
+
+## `src/app/command/verbs/tetrahedron.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23b-016.rs"
+```
+
+<span id="code-23b-017"></span>
+
+## `src/app/command/verbs/torus.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/23b-017.rs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 23b
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native shape tests. Enter `Box` in the command field and follow its size and output options. Use the native shape tests you typed to compare Mesh and Brep output with the same frame and dimensions.
+
+If a box appears half below the intended base, inspect placement before changing its height. If Mesh and Brep disagree, compare the same frame and dimensions.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+Check that preview and final construction use the same dimensions, frame and option interpretation before blaming the renderer.
+
+</details>
+
+[Next step: 23c](23c-surfacing.md)

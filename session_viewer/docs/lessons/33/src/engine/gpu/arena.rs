@@ -131,11 +131,11 @@ struct ArenaPipelines {
 /// An index buffer lists triangle corners as vertex numbers, so a corner shared by six triangles
 /// is stored once; here three index buffers share one vertex buffer.
 pub struct ArenaLane {
-    // --8<-- [start:18-tiles-field]
+    // --8<-- [start:04a-tiles-field]
     // --8<-- [start:tiles-field]
     pub tiles: super::triangle_tiles::TriangleTiles, // screen tiles for visibility tests; register:tiles
     // --8<-- [end:tiles-field]
-    // --8<-- [end:18-tiles-field]
+    // --8<-- [end:04a-tiles-field]
     verts: GrowBuf,                                  // GpuVertex rows
     vids: GrowBuf,                                   // object row per vertex
     faces: GrowBuf,                                  // indices of solid faces
@@ -169,21 +169,21 @@ impl ArenaLane {
             + self.print.buf.size()
             + self.text.buf.size()
             + self.source_faces.allocated_bytes()
-            // --8<-- [start:18-tiles-bytes]
+            // --8<-- [start:04a-tiles-bytes]
             // --8<-- [start:tiles-bytes]
             + self.tiles.allocated_bytes().0 // register:tiles
             // --8<-- [end:tiles-bytes]
-            // --8<-- [end:18-tiles-bytes]
+            // --8<-- [end:04a-tiles-bytes]
     }
 
     /// Bytes of the lane's textures: the tile target and the slot table.
     pub fn texture_bytes(&self) -> u64 {
         let mut bytes = self.table.allocated_bytes();
-        // --8<-- [start:18-tiles-texture-bytes]
+        // --8<-- [start:04a-tiles-texture-bytes]
         // --8<-- [start:tiles-texture-bytes]
         bytes += self.tiles.allocated_bytes().1; // register:tiles
         // --8<-- [end:tiles-texture-bytes]
-        // --8<-- [end:18-tiles-texture-bytes]
+        // --8<-- [end:04a-tiles-texture-bytes]
         bytes
     }
 
@@ -195,11 +195,11 @@ impl ArenaLane {
         let source_faces = super::faces::Faces::new(ctx, l, &shader, target);
         Self {
             source_faces,
-            // --8<-- [start:18-tiles-new]
+            // --8<-- [start:04a-tiles-new]
             // --8<-- [start:tiles-new]
             tiles: super::triangle_tiles::TriangleTiles::new(ctx, l), // register:tiles
             // --8<-- [end:tiles-new]
-            // --8<-- [end:18-tiles-new]
+            // --8<-- [end:04a-tiles-new]
             // STORAGE too: faces.rs and later passes read the same bytes by index
             verts: GrowBuf::new(
                 ctx,
@@ -230,11 +230,11 @@ impl ArenaLane {
 // --8<-- [start:arena-write]
     /// Loading a second file appends; nothing already on the GPU moves.
     pub fn append(&mut self, ctx: &GpuCtx, up: &ArenaRows) {
-        // --8<-- [start:18-tiles-append]
+        // --8<-- [start:04a-tiles-append]
         // --8<-- [start:tiles-append]
         self.tiles.invalidate(); // register:tiles
         // --8<-- [end:tiles-append]
-        // --8<-- [end:18-tiles-append]
+        // --8<-- [end:04a-tiles-append]
         self.verts.append(ctx, &gpu_vertices(&up.verts));
         self.vids.append(ctx, &up.vids);
         self.faces.append(ctx, &up.idx);
@@ -246,21 +246,21 @@ impl ArenaLane {
 
     /// pub(crate) = visible anywhere in this crate, but not to other crates.
     pub(crate) fn patch_vertices(&mut self, ctx: &GpuCtx, first: u32, vertices: &[RenderVertex]) {
-        // --8<-- [start:18-tiles-patch-vertices]
+        // --8<-- [start:04a-tiles-patch-vertices]
         // --8<-- [start:tiles-patch-vertices]
         self.tiles.invalidate(); // register:tiles
         // --8<-- [end:tiles-patch-vertices]
-        // --8<-- [end:18-tiles-patch-vertices]
+        // --8<-- [end:04a-tiles-patch-vertices]
         self.verts.write_at(ctx, first, &gpu_vertices(vertices));
     }
 
     /// Overwrite one object's rows in place.
     pub(crate) fn patch(&mut self, ctx: &GpuCtx, at: super::patch::Counts, up: &ArenaRows) {
-        // --8<-- [start:18-tiles-patch]
+        // --8<-- [start:04a-tiles-patch]
         // --8<-- [start:tiles-patch]
         self.tiles.invalidate(); // register:tiles
         // --8<-- [end:tiles-patch]
-        // --8<-- [end:18-tiles-patch]
+        // --8<-- [end:04a-tiles-patch]
         self.verts.write_at(ctx, at.verts, &gpu_vertices(&up.verts));
         self.vids.write_at(ctx, at.verts, &up.vids);
         self.faces.write_at(ctx, at.faces, &up.idx);
@@ -285,11 +285,11 @@ impl ArenaLane {
             return;
         }
 
-        // --8<-- [start:18-tiles-kill]
+        // --8<-- [start:04a-tiles-kill]
         // --8<-- [start:tiles-kill]
         self.tiles.invalidate(); // register:tiles
         // --8<-- [end:tiles-kill]
-        // --8<-- [end:18-tiles-kill]
+        // --8<-- [end:04a-tiles-kill]
         match lane {
             LaneId::Verts => self.vids.fill(ctx, first, count, &sink),
             LaneId::Faces => self.source_faces.kill_ids(ctx, first / 3, count / 3),
@@ -313,11 +313,11 @@ impl ArenaLane {
             return;
         }
 
-        // --8<-- [start:18-tiles-degenerate]
+        // --8<-- [start:04a-tiles-degenerate]
         // --8<-- [start:tiles-degenerate]
         self.tiles.invalidate(); // register:tiles
         // --8<-- [end:tiles-degenerate]
-        // --8<-- [end:18-tiles-degenerate]
+        // --8<-- [end:04a-tiles-degenerate]
         match lane {
             LaneId::Faces => {
                 self.faces.fill(ctx, first, count, &vertex);
@@ -513,11 +513,11 @@ impl ArenaLane {
 // --8<-- [start:arena-reset]
     /// A new scene: forget every row but keep the GPU memory for it.
     pub fn reset(&mut self, ctx: &GpuCtx) {
-        // --8<-- [start:18-tiles-reset]
+        // --8<-- [start:04a-tiles-reset]
         // --8<-- [start:tiles-reset]
         self.tiles.invalidate(); // register:tiles
         // --8<-- [end:tiles-reset]
-        // --8<-- [end:18-tiles-reset]
+        // --8<-- [end:04a-tiles-reset]
         self.source_faces.reset(ctx);
         self.space = SlotSpace::default();
         self.table.write(ctx, &[]);
@@ -530,11 +530,11 @@ impl ArenaLane {
 
     /// Give the GPU memory back.
     pub fn release(&mut self, ctx: &GpuCtx) {
-        // --8<-- [start:18-tiles-release]
+        // --8<-- [start:04a-tiles-release]
         // --8<-- [start:tiles-release]
         self.tiles.release(ctx); // register:tiles
         // --8<-- [end:tiles-release]
-        // --8<-- [end:18-tiles-release]
+        // --8<-- [end:04a-tiles-release]
         self.source_faces.release(ctx);
         self.space = SlotSpace::default();
         self.table.write(ctx, &[]);

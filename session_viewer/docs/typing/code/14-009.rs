@@ -1,0 +1,631 @@
+// The loader is the async task that fetches the manifest and every file, decodes them and posts each result to the event loop.
+use super::decode::{Body, session_from_body};
+use super::fetch::{Reply, fetch_buffer, fetch_bytes, gunzip, sleep_ms};
+use super::live::LiveSource;
+use super::manifest::Manifest;
+use super::route::AUTO_GRID;
+use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
+use super::scene::{FileDoc, Scene};
+use crate::engine::performance::now_ms;
+use crate::{Msg, State};
+use session_rust::Xform;
+use std::cell::{Cell, RefCell};
+use std::rc::Rc;
+use std::sync::Arc;
+use wasm_bindgen::prelude::*;
+use winit::event_loop::EventLoopProxy;
+use winit::window::Window;
+
+/// Points a streamed cloud reads before its first frame.
+const STREAM_PREFIX_POINTS: u32 = 2_000_000;
+
+/// Points per follow-up slice.
+const STREAM_CHUNK_POINTS: u32 = 2_000_000;
+
+/// Most streamed points on the page, `?points=` overrides.
+const STREAM_MAX_POINTS: u32 = 6_000_000;
+
+/// Files this large are always streamed.
+const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
+
+/// Fewest points a streamed cloud gets, even over budget.
+const STREAM_MIN_PREFIX: u32 = 250_000;
+
+/// Segments a sheet reads before its first frame, ~1.5 MB.
+const SHEET_PREFIX_SEGMENTS: u32 = 25_000;
+
+/// Segments per follow-up slice.
+const SHEET_CHUNK_SEGMENTS: u32 = 500_000;
+
+/// Most sheet segments on the page, `?segments=` overrides.
+const SHEET_MAX_SEGMENTS: u32 = 3_000_000;
+
+thread_local! {
+    /// Sends messages into the event loop.
+    static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
+
+    /// Streamed points loaded so far.
+    static RESIDENT: Cell<u32> = const { Cell::new(0) };
+
+    /// Sheet segments loaded so far.
+    static SHEET_RESIDENT: Cell<u32> = const { Cell::new(0) };
+
+    // A generation counter: each clear or reload adds one, and a task that sees the number change knows its scene is gone.
+    /// Bumped when the scene is cleared; old stream tasks stop.
+    static GENERATION: Cell<u32> = const { Cell::new(0) };
+
+    /// Bumped on every reload request; older loads give up.
+    static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
+
+    /// Manifest loads in progress; background sheet slices wait for them.
+    static LOADING: Cell<u32> = const { Cell::new(0) };
+}
+
+// A unit struct used as a guard: `start()` counts up and Drop counts down, whichever `return` the load leaves by.
+/// Counts one manifest load while alive.
+struct Loading;
+
+impl Loading {
+    /// Count a load.
+    fn start() -> Self {
+        LOADING.set(LOADING.get() + 1);
+        Loading
+    }
+}
+
+impl Drop for Loading {
+    /// The load ended, however it returned.
+    fn drop(&mut self) {
+        LOADING.set(LOADING.get().saturating_sub(1));
+    }
+}
+
+/// Let every file of the scene reach the screen before the remaining sheet slices take the network.
+async fn after_loads() {
+    while LOADING.get() > 0 {
+        sleep_ms(100).await;
+    }
+}
+
+/// Clear the scene and stop every stream.
+fn clear_scene() {
+    GENERATION.set(GENERATION.get().wrapping_add(1));
+    RESIDENT.set(0);
+    SHEET_RESIDENT.set(0);
+    post(Msg::Clear);
+}
+
+/// Send one message to the event loop; false when it is gone.
+pub(super) fn post(msg: Msg) -> bool {
+    PROXY.with_borrow(|proxy| {
+        proxy
+            .as_ref()
+            .is_some_and(|proxy| proxy.send_event(msg).is_ok())
+    })
+}
+
+/// The point ceiling, from `?points=` or the default.
+fn max_points() -> u32 {
+    knob_u32("points").unwrap_or(STREAM_MAX_POINTS)
+}
+
+/// Points still allowed.
+fn budget_left() -> u32 {
+    max_points().saturating_sub(RESIDENT.get())
+}
+
+/// Count `n` points as loaded.
+fn budget_spend(n: u32) {
+    RESIDENT.set(RESIDENT.get().saturating_add(n));
+}
+
+/// The segment ceiling, from `?segments=` or the default.
+fn max_segments() -> u32 {
+    knob_u32("segments").unwrap_or(SHEET_MAX_SEGMENTS)
+}
+
+/// Segments still allowed.
+fn sheet_budget_left() -> u32 {
+    max_segments().saturating_sub(SHEET_RESIDENT.get())
+}
+
+/// Count `n` segments as loaded.
+fn sheet_budget_spend(n: u32) {
+    SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_add(n));
+}
+
+/// Start the viewer, load the first scene, then keep polling.
+pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
+    PROXY.with_borrow_mut(|slot| *slot = Some(proxy.clone()));
+    let mut live = LiveSource::from_query();
+    // without a live source the manifest downloads while the GPU starts
+    let route = scene_route().filter(|_| live.is_none());
+    let early = route.as_ref().map(prefetch);
+    let state = match State::new(window, Scene::new()).await {
+        Ok(state) => state,
+        Err(error) => {
+            super::feedback::error(&format!(
+                "Unable to start WebGPU: {error}. Use a browser with an available WebGPU adapter, then reload."
+            ));
+            return;
+        }
+    };
+    crate::engine::performance::mark("state ready");
+    let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+
+    let mut loaded = false;
+
+    if let Some(src) = live.as_mut() {
+        log::info!("live: watching {} every {:.0} ms", src.url, src.poll_ms);
+        loaded = post_live(src).await;
+    }
+
+    if !loaded && let Some(route) = route.or_else(scene_route) {
+        load_route(&route, None, early).await;
+    }
+
+    let Some(mut src) = live else { return };
+
+    loop {
+        sleep_ms(src.tick_ms).await;
+        post_live(&mut src).await;
+    }
+}
+
+/// One live poll; true when the scene was replaced.
+async fn post_live(src: &mut LiveSource) -> bool {
+    let generation = LOAD_GENERATION.get();
+    let Some(docs) = src.check().await else {
+        return false;
+    };
+
+    if stale_load(generation) {
+        return false;
+    }
+
+    let texts = src.texts();
+
+    if docs.is_empty() && texts.is_empty() {
+        return false;
+    }
+
+    clear_scene();
+
+    for doc in docs {
+        post(Msg::File(doc, None));
+    }
+
+    post(Msg::Fit);
+    super::feedback::status("");
+    true
+}
+
+// `#[wasm_bindgen]` exports the function to JavaScript: the page or a browser test calls `reload_scene()` directly.
+/// Load a named scene, or reload the page's own, keeping the camera.
+#[wasm_bindgen]
+pub fn reload_scene(url: Option<String>) {
+    let route = match url {
+        Some(path) => Some(named_scene(&path)),
+        None => scene_route(),
+    };
+    let Some(route) = route else {
+        log::warn!("reload_scene: this page has no scene route - nothing to reload");
+        return;
+    };
+    let generation = LOAD_GENERATION.get().wrapping_add(1);
+    LOAD_GENERATION.set(generation);
+    wasm_bindgen_futures::spawn_local(load_replacement(route, generation));
+}
+
+/// Load a route as a replacement.
+async fn load_replacement(route: SceneRoute, generation: u64) {
+    load_route(&route, Some(generation), None).await;
+}
+
+/// True when a newer load has started since.
+fn stale_load(generation: u64) -> bool {
+    LOAD_GENERATION.get() != generation
+}
+
+/// Start fetching the manifest now; the promise resolves to its bytes.
+fn prefetch(route: &SceneRoute) -> js_sys::Promise {
+    let route = route.clone();
+    wasm_bindgen_futures::future_to_promise(async move {
+        match fetch_manifest(&route).await {
+            Ok(bytes) => Ok(js_sys::Uint8Array::from(bytes.as_slice()).into()),
+            Err(error) => Err(JsValue::from_str(&error)),
+        }
+    })
+}
+
+/// Fetch the manifest; a missing `.toml` falls back to `.yaml`.
+async fn fetch_manifest(route: &SceneRoute) -> Result<Vec<u8>, String> {
+    match fetch_bytes(&route.manifest).await {
+        Err(error) if error.starts_with("HTTP 404") && route.manifest.ends_with(".toml") => {
+            let yaml = format!("{}.yaml", route.manifest.trim_end_matches(".toml"));
+            super::feedback::status("Opening the current YAML scene for this TOML bookmark");
+            fetch_bytes(&yaml).await
+        }
+        result => result,
+    }
+}
+
+/// Load every item of a manifest, from `early` when it was prefetched; a reload swaps the scene
+/// only once complete.
+async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<js_sys::Promise>) {
+    let generation = match replacement {
+        Some(generation) => generation,
+        None => LOAD_GENERATION.get(),
+    };
+    let _loading = Loading::start();
+    let mut pending = Vec::new(); // staged items of a reload
+    let mut failed = false;
+    let budget = scene_budget_bytes(); // whole-file bytes allowed
+    let mut spent = 0u64;
+    let mut skipped: Vec<String> = Vec::new();
+    let mut staged_points = 0u32;
+    let mut staged_segments = 0u32;
+    let t0 = now_ms();
+    let fetched = match early {
+        Some(promise) => wasm_bindgen_futures::JsFuture::from(promise)
+            .await
+            .map(|bytes| js_sys::Uint8Array::new(&bytes).to_vec())
+            .map_err(|error| error.as_string().unwrap_or_default()),
+        None => fetch_manifest(route).await,
+    };
+    let bytes = match fetched {
+        Ok(b) => b,
+        Err(e) => {
+            super::feedback::status(&format!("Cannot fetch the scene manifest: {e}"));
+            return;
+        }
+    };
+    crate::engine::performance::mark("manifest received");
+
+    if stale_load(generation) {
+        return;
+    }
+
+    let manifest = match Manifest::parse(&bytes) {
+        Ok(m) => m,
+        Err(e) => {
+            super::feedback::status(&format!("Cannot read the scene manifest: {e}"));
+            return;
+        }
+    };
+    log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
+
+    let mut files = 0u32;
+
+    for item in &manifest.items {
+        if item.file.ends_with(".pb") {
+            files += 1;
+        }
+    }
+
+    let files = files.max(1);
+    let share = (max_points() / files).max(STREAM_MIN_PREFIX);
+    let mut ahead: Option<Ahead> = None; // the next file, probed while this one loads
+
+    for (i, item) in manifest.items.iter().enumerate() {
+        let url = join(&route.base, &item.file);
+        let place = manifest.place(i, AUTO_GRID);
+        let point_px = item.point_size as f32;
+        let encoded = item.encoded_size();
+        // the first 8 KB, read once: the cloud and sheet checks and the size come from it;
+        // an encoded file is never range-read
+        let (head, body) = match ahead.take() {
+            Some(read) => read.wait().await,
+            None => (None, None),
+        };
+
+        if let Some(next) = manifest.items.get(i + 1)
+            && next.file.ends_with(".pb")
+        {
+            ahead = Some(Ahead::start(
+                join(&route.base, &next.file),
+                next.encoded_size(),
+            ));
+        }
+
+        if let Some(head) = &head {
+            let slot = Placement {
+                name: manifest.name_of(i, &item.file),
+                place: place.clone(),
+                point_px,
+            };
+            let mut cx = ItemCx {
+                url: &url,
+                generation,
+                replacement,
+                share,
+                failed: &mut failed,
+                pending: &mut pending,
+                staged_points: &mut staged_points,
+                staged_segments: &mut staged_segments,
+            };
+
+            match stream_item(&mut cx, head, &slot).await {
+                Ok(()) => {}
+                Err(Step::Next) => continue,
+                Err(Step::Stop) => return,
+            }
+        }
+
+        // skip a file the device cannot hold, by its decoded size
+        let length = match (encoded, head.as_ref().and_then(|head| head.total)) {
+            (Some(size), _) => size,
+            (None, Some(total)) => total,
+            (None, None) => super::fetch::content_length(&url).await.unwrap_or(0),
+        };
+
+        if spent + length > budget {
+            log::warn!(
+                "skipped '{}': {} MB over the {} MB scene budget",
+                item.file,
+                length >> 20,
+                budget >> 20
+            );
+            skipped.push(format!("{} ({} MB)", item.file, length >> 20));
+            continue;
+        }
+
+        let f0 = now_ms();
+        // read ahead, or no larger than the probe, or read now; a failed read-ahead is not retried
+        let fetched = match (body, head.and_then(Reply::whole)) {
+            (Some(body), _) => body.map(Body::Js),
+            (None, Some(bytes)) => Ok(Body::Bytes(bytes)),
+            (None, None) => fetch_buffer(&url).await.map(Body::Js),
+        };
+        let fetched = match fetched {
+            // a host that did not mark the file encoded hands over the packed bytes
+            Ok(body) if encoded.is_some() && packed(&body) => unpack(body).await,
+            fetched => fetched,
+        };
+        let body = match fetched {
+            Ok(b) => b,
+            Err(e) => {
+                super::feedback::status(&format!("Unable to load {}: {e}", item.file));
+                failed = true;
+                continue;
+            }
+        };
+        spent += length.max(body.size());
+
+        // the next body downloads while this one decodes, not while this one downloads
+        if let Some(next) = ahead.as_mut() {
+            next.read_body(budget.saturating_sub(spent));
+        }
+
+        let n = body.size();
+        let f1 = now_ms();
+        let session = match session_from_body(&url, body, !item.display_only).await {
+            Ok(session) => session,
+            Err(error) => {
+                super::feedback::status(&format!("Cannot decode {}: {error}", item.file));
+                failed = true;
+                continue;
+            }
+        };
+
+        if stale_load(generation) {
+            return;
+        }
+
+        if session.lookup.is_empty() && session.instance_lookup.is_empty() {
+            log::warn!("'{}' holds no geometry ({n} bytes); skipped", item.file);
+            failed = true;
+            continue;
+        }
+
+        let name = manifest.name_of(i, &session.name);
+        log::info!(
+            "loaded '{name}': {} objects, {n} bytes | fetch {:.0} ms, parse {:.0} ms",
+            session.lookup.len(),
+            f1 - f0,
+            now_ms() - f1
+        );
+        let doc = FileDoc {
+            name,
+            session: Rc::new(session),
+            place,
+            point_px,
+            display_only: item.display_only,
+        };
+        // a display-only document drops its objects after the walk and fetches them for an edit
+        let source = item.display_only.then(|| url.clone());
+
+        if replacement.is_some() {
+            pending.push(PendingDocument::Whole(doc, source));
+        } else {
+            post(Msg::File(doc, source));
+        }
+    }
+
+    if stale_load(generation) {
+        return;
+    }
+
+    if replacement.is_some() {
+        if failed {
+            super::feedback::status(
+                "Scene replacement failed; the last valid scene is still visible",
+            );
+            return;
+        }
+
+        clear_scene();
+        budget_spend(staged_points);
+        sheet_budget_spend(staged_segments);
+
+        for document in pending {
+            match document {
+                PendingDocument::Whole(doc, source) => _ = post(Msg::File(doc, source)),
+            }
+        }
+    }
+
+    post(Msg::Fit);
+
+    if !failed {
+        super::feedback::status(&skipped_notice(&skipped, budget));
+    }
+
+    log::info!(
+        "scene posted {:.0} ms after the manifest fetch",
+        now_ms() - t0
+    );
+    crate::engine::performance::mark("scene posted");
+}
+
+/// A file's probe and, when read ahead, its whole body in a JS buffer or why it failed.
+type Read = (Option<Reply>, Option<Result<js_sys::Uint8Array, String>>);
+
+/// The next file of a manifest: probed while the one before it loads, its body read while that
+/// one decodes, so the two downloads never share the connection.
+struct Ahead {
+    url: String,                   // the next file
+    encoded: Option<u64>,          // decoded size of an encoded file, which is not probed
+    probed: js_sys::Promise,       // settles when the probe finished
+    body: Option<js_sys::Promise>, // settles when the body read finished
+    read: Rc<RefCell<Read>>,       // what they read
+}
+
+impl Ahead {
+    /// Start probing `url`, unless it is stored encoded.
+    fn start(url: String, encoded: Option<u64>) -> Self {
+        let read = Rc::new(RefCell::new((None, None)));
+        let (slot, target) = (read.clone(), url.clone());
+        let probed = wasm_bindgen_futures::future_to_promise(async move {
+            if encoded.is_none() {
+            }
+
+            Ok(JsValue::UNDEFINED)
+        });
+        Self {
+            url,
+            encoded,
+            probed,
+            body: None,
+            read,
+        }
+    }
+
+    /// Once probed, read the body of a plain file of at most `room` bytes.
+    fn read_body(&mut self, room: u64) {
+        let (probed, slot, url) = (self.probed.clone(), self.read.clone(), self.url.clone());
+        let encoded = self.encoded;
+        self.body = Some(wasm_bindgen_futures::future_to_promise(async move {
+            let _ = wasm_bindgen_futures::JsFuture::from(probed).await;
+            let whole = match encoded {
+                Some(size) => size <= room,
+                None => slot.borrow().0.as_ref().is_some_and(|head| {
+                    head.status == 206
+                        && head
+                            .total
+                            .is_some_and(|total| total > head.bytes.len() as u64 && total <= room)
+                }),
+            };
+
+            if whole {
+                let body = fetch_buffer(&url).await;
+                slot.borrow_mut().1 = Some(body);
+            }
+
+            Ok(JsValue::UNDEFINED)
+        }));
+    }
+
+    /// Wait for the reads.
+    async fn wait(self) -> Read {
+        for promise in std::iter::once(self.probed).chain(self.body) {
+            let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
+        }
+
+        self.read.take()
+    }
+}
+
+/// One staged item of a reload.
+enum PendingDocument {
+    Whole(FileDoc, Option<String>), // a decoded file and, when display-only, its file
+}
+
+/// True when a body starts with the gzip magic.
+fn packed(body: &Body) -> bool {
+    match body {
+        Body::Bytes(bytes) => bytes.starts_with(&[0x1f, 0x8b]), // every gzip stream starts with the bytes 1f 8b
+        Body::Js(array) => {
+            array.length() >= 2 && array.get_index(0) == 0x1f && array.get_index(1) == 0x8b
+        }
+    }
+}
+
+/// A packed body unpacked; the bytes stay in JS.
+async fn unpack(body: Body) -> Result<Body, String> {
+    let array = match body {
+        Body::Bytes(bytes) => js_sys::Uint8Array::from(bytes.as_slice()),
+        Body::Js(array) => array,
+    };
+    gunzip(&array).await.map(Body::Js)
+}
+
+/// What the manifest loop does after a file was streamed.
+enum Step {
+    Next, // go on with the next file
+    Stop, // the load went stale: stop
+}
+
+/// What streaming one probed file reads and changes.
+struct ItemCx<'a> {
+    url: &'a str,                          // the file
+    generation: u64,                       // the load this is part of
+    replacement: Option<u64>,              // a reload stages its files
+    share: u32,                            // points one cloud may read first
+    failed: &'a mut bool,                  // some file failed
+    pending: &'a mut Vec<PendingDocument>, // staged items of a reload
+    staged_points: &'a mut u32,            // points staged by a reload
+    staged_segments: &'a mut u32,          // segments staged by a reload
+}
+
+/// A probed file that streams: its first slice is posted, or staged for a reload; `Err` tells the
+/// manifest loop what comes next, `Ok` loads the file whole.
+async fn stream_item(cx: &mut ItemCx<'_>, head: &Reply, slot: &Placement) -> Result<(), Step> {
+    Ok(())
+}
+
+/// Name and placement of a streamed document.
+struct Placement {
+    name: String,  // display name
+    place: Xform,  // world placement
+    point_px: f32, // point size, clouds only
+}
+
+/// Bytes a scene may load: `?budget=` or 16 MB per GB.
+fn scene_budget_bytes() -> u64 {
+    if let Some(mb) = crate::engine::gpu::view::knob("VIEWER_BUDGET", "budget")
+        && let Ok(mb) = mb.parse::<u64>()
+    {
+        return mb << 20;
+    }
+
+    let gigabytes = web_sys::window()
+        .map(|window| window.navigator())
+        .and_then(|navigator| js_sys::Reflect::get(&navigator, &"deviceMemory".into()).ok()) // a JS property web-sys has no method for; the RAM in GB
+        .and_then(|value| value.as_f64())
+        .unwrap_or(4.0);
+    ((gigabytes * 16.0) as u64) << 20 // `<< 20` = × 1 MiB: 4 GB of RAM allows 64 MB
+}
+
+/// The message naming skipped files, if any.
+fn skipped_notice(skipped: &[String], budget: u64) -> String {
+    if skipped.is_empty() {
+        return String::new();
+    }
+
+    format!(
+        "Skipped over the {} MB scene budget: {}. Add ?budget=<MB> to raise it.",
+        budget >> 20,
+        skipped.join(", ")
+    )
+}

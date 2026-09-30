@@ -12,16 +12,11 @@ use session_rust::{Geometry, Line, Plane, Point, Vector, Xform, intersection};
 
 mod parts;
 
-pub const SPEC: Spec = Spec {
-    names: &["Trim"],
-    aliases: &[],
-    hint: "Trim · pick objects, Enter, pick cutters, Enter, click the parts to remove · Esc cancels · Trim 0.2 0.8 keeps that part of a curve",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
+pub const SPEC: Spec = Spec::new(
+    &["Trim"],
+    "Trim · pick objects, Enter, pick cutters, Enter, click the parts to remove · Esc cancels · Trim 0.2 0.8 keeps that part of a curve",
     parse,
-};
+);
 
 const APERTURE_CSS: f64 = 12.0; // how near a click must be to a curve part
 const BLUE: [u8; 3] = [30, 110, 170];

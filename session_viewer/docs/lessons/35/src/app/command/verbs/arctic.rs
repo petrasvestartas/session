@@ -3,14 +3,13 @@ use crate::State;
 use crate::app::command::{Action, Spec, on_off};
 
 pub const SPEC: Spec = Spec {
-    names: &["Arctic"],
-    aliases: &[],
-    hint: "Arctic (On Off): soft contact shading, studio lighting and outlines · G toggles in the viewport",
     options: &["Arctic On", "Arctic Off"],
-    arity: None,
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Arctic"],
+        "Arctic (On Off): soft contact shading, studio lighting and outlines · G toggles in the viewport",
+        parse,
+    )
 };
 
 /// Turn contact shading on or off.

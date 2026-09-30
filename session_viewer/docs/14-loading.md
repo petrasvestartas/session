@@ -1,553 +1,414 @@
 # 14 · Loading scenes
 
-The loader fetches a scene manifest and each geometry file, checks and decodes them, and posts the documents to the event loop: from here the canvas shows a scene. A reload stages the new scene whole while the old one stays on screen.
+**Estimated study time: about 45–90 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Load a scene description and publish its geometry to the viewer.
+
+**In the whole viewer:** This completes the route from external files to the browser renderer. You can now inspect the course scene interactively.
+
+**Follow the data:** Manifest → fetch and validation → source document → display upload → browser frame.
+
+**Start with these files:** [`src/app/loader.rs`](14-loading.md#code-14-009), [`src/app/scene.rs`](12-picking.md#code-12-013).
+
+**Aim to explain:** If a replacement scene is malformed, what should happen to the scene already on screen?
+
+[Whole-viewer map and course milestones](map.md)
+
+A manifest is a small description of a scene. It tells the viewer which files to request and how to place them. Keeping that description separate from the heavy geometry lets the page decide what to load before it downloads every object.
 
 ![Two request generations in flight: the older one is dropped, the newer one is staged in manifest order and swapped in whole while the previous scene stays on screen.](illustrations/loading.svg)
 
-## Step 1 · src/app/manifest.rs
+Start from the working result of [step 13](13-controls.md).
 
-The manifest types: one entry per geometry file with its placement, and the texts placed in the world.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 4,105 lines across 13 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/14/src/app/manifest.rs` · type this, new file
+<span id="code-14-001"></span>
 
-```rust
---8<-- "lessons/14/src/app/manifest.rs:manifest-types"
-```
+## `src/lib.rs`
 
-## Step 2 · src/app/manifest.rs
+Insert **after line 48** of your current file.
 
-An item's placement, and the decoded size of a file stored gzip-compressed.
-
-`lessons/14/src/app/manifest.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/14/src/app/manifest.rs:manifest-item"
+    File(FileDoc, Option<String>), // one loaded file; a display-only one names its file
+    Clear,                         // empty the scene
+    Fit,                           // frame the camera on everything
+    CancelPointer,                 // the browser lost the pointer
 ```
 
-## Step 3 · src/app/manifest.rs
-
-Parse YAML, JSON or TOML, refuse broken values item by item, then place or name item `i`.
-
-`lessons/14/src/app/manifest.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/14/src/app/manifest.rs:manifest-parse"
+}
+
+#[cfg(target_arch = "wasm32")]
+use {
 ```
 
-## Step 4 · src/app/manifest.rs
-
-Check one world text: some text, a positive height, and two unit axes at right angles.
-
-`lessons/14/src/app/manifest.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/14/src/app/manifest.rs:manifest-text"
+--8<-- "typing/code/14-001.rs"
 ```
 
-## Step 5 · src/app/manifest.rs
+<span id="code-14-002"></span>
 
-Small helpers: default axes, finite checks, the TOML switch, content-addressed names and the auto grid.
+## `src/lib.rs`
 
-`lessons/14/src/app/manifest.rs` · type this, append at the end of the file
+Insert **after line 143** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/14/src/app/manifest.rs:manifest-helpers"
+                Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
+            }
+
+            // async: GPU setup, then Msg::Ready
 ```
 
-## Step 6 · src/app/manifest.rs
-
-Tests: the three formats read alike, an encoded item needs its size, and bad records are refused.
-
-`lessons/14/src/app/manifest.rs` · copy, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/14/src/app/manifest.rs:manifest-tests"
+        }
+    }
+
+    /// Apply one loader message to the scene.
 ```
 
-## Step 7 · src/app/validate.rs
-
-The scene caps: two million objects and 64 tree levels, each with the message that refuses a file.
-
-`lessons/14/src/app/validate.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/14/src/app/validate.rs:validate-limits"
+--8<-- "typing/code/14-002.rs"
 ```
 
-## Step 8 · src/app/validate.rs
+<span id="code-14-003"></span>
 
-Check the NURBS records of session JSON before the kernel parses it.
+## `src/lib.rs`
 
-`lessons/14/src/app/validate.rs` · type this, append at the end of the file
+Insert **after line 161** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/14/src/app/validate.rs:validate-json"
+            Msg::Ready(_) => {}
+            Msg::Clear => state.clear(),
+            Msg::Fit => state.fit_loaded(),
+            Msg::File(doc, source) => state.append(doc, source),
 ```
 
-## Step 9 · src/app/validate.rs
-
-Walk a whole protobuf session, a loaded one, or a definitions list, checking every record against the caps.
-
-`lessons/14/src/app/validate.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/14/src/app/validate.rs:validate-session"
+            Msg::CancelPointer => {
+                self.input.cancel();
+                state.touch();
+            }
 ```
 
-## Step 10 · src/app/validate.rs
-
-Points, lines, polylines, elements and placements: finite numbers, whole triples and affine matrices.
-
-`lessons/14/src/app/validate.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/14/src/app/validate.rs:validate-records"
+--8<-- "typing/code/14-003.rs"
 ```
 
-## Step 11 · src/app/validate.rs
+<span id="code-14-004"></span>
 
-NURBS curves and surfaces: order, control count, knots in order, and enough control storage.
+## `src/lib.rs`
 
-`lessons/14/src/app/validate.rs` · type this, append at the end of the file
+Append **after line 290** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/14/src/app/validate.rs:validate-nurbs"
+--8<-- "typing/code/14-004.rs"
 ```
 
-## Step 12 · src/app/validate.rs
+<span id="code-14-005"></span>
 
-Meshes name only existing vertices, cloud and octree arrays agree in length, and BRep vertices are finite.
+## `src/app/decode.rs`
 
-`lessons/14/src/app/validate.rs` · type this, append at the end of the file
+Bytes arriving from disk or the network are not yet usable objects. Decoding checks their format and constructs records. Keep malformed input separate from an empty but valid scene so errors remain understandable.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/14/src/app/validate.rs:validate-mesh"
+--8<-- "typing/code/14-005.rs"
 ```
 
-## Step 13 · src/app/validate.rs
+<span id="code-14-006"></span>
 
-Tests: huge counts, missing indices and mismatched JSON controls are refused.
+## `src/app/fetch.rs`
 
-`lessons/14/src/app/validate.rs` · copy, append at the end of the file
+A network request may finish later or fail. The browser must remain responsive while it waits. The caller needs a way to distinguish a valid response, an error and a result that became irrelevant after the user changed scenes.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/14/src/app/validate.rs:validate-tests"
+--8<-- "typing/code/14-006.rs"
 ```
 
-## Step 14 · src/app/validate.rs
+<span id="code-14-007"></span>
 
-Read one protobuf varint, refusing one longer than ten bytes.
+## `src/app/fonts.rs`
 
-`lessons/14/src/app/validate.rs` · type this, append at the end of the file
+Font bytes are assets. The program chooses and loads them, while the shaping library interprets them. A fallback font extends character coverage but must be available before missing characters can be shaped correctly.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/14/src/app/validate.rs:validate-varint"
+--8<-- "typing/code/14-007.rs"
 ```
 
-## Step 15 · src/app/range_gate.rs
+<span id="code-14-008"></span>
 
-A waiting read's turn in the queue, with the waker that resumes it.
+## `src/app/live.rs`
 
-`lessons/14/src/app/range_gate.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/14/src/app/range_gate.rs:gate-turn"
+--8<-- "typing/code/14-008.rs"
 ```
 
-## Step 16 · src/app/range_gate.rs
+<span id="code-14-009"></span>
 
-The gate: three slots, a first-come queue, and `close` to turn waiting reads away when their scene goes.
+## `src/app/loader.rs`
 
-`lessons/14/src/app/range_gate.rs` · type this, append at the end of the file
+Loading combines requests, decoding and publication into the scene. These steps can complete at different times. Keep the active load identity with the work so an older completion cannot overwrite the current document.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/14/src/app/range_gate.rs:gate"
+--8<-- "typing/code/14-009.rs"
 ```
 
-## Step 17 · src/app/range_gate.rs
+<span id="code-14-010"></span>
 
-Entering is a hand-written future; dropping it leaves the queue or passes its slot on.
+## `src/app/manifest.rs`
 
-`lessons/14/src/app/range_gate.rs` · type this, append at the end of the file
+A manifest is a small description of scene inputs and their properties. It separates the choice of files from the code that loads them. Relative file paths are resolved from a known location, not from whichever page happened to request them.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/14/src/app/range_gate.rs:gate-enter"
+--8<-- "typing/code/14-010.rs"
 ```
 
-## Step 18 · src/app/range_gate.rs
+<span id="code-14-011"></span>
 
-The permit a read holds, which frees its slot when dropped.
+## `src/app/mod.rs`
 
-`lessons/14/src/app/range_gate.rs` · type this, append at the end of the file
+Insert **after line 2** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/14/src/app/range_gate.rs:gate-permit"
+// `pub mod x;` makes src/app/x.rs part of the crate; each lesson adds the one line of the module it teaches.
+// `#[cfg(target_arch = "wasm32")]` above a line compiles that module for the browser only.
 ```
 
-## Step 19 · src/app/range_gate.rs
-
-Tests: a few reads run, the rest queue in order, and dropped or closed reads free their place.
-
-`lessons/14/src/app/range_gate.rs` · copy, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/14/src/app/range_gate.rs:gate-tests"
+pub mod feedback; // register:feedback
+pub mod gesture; // register:gesture
+pub mod input; // register:input
+#[cfg(any(target_arch = "wasm32", test))] // register:inspection
 ```
 
-## Step 20 · src/app/fetch.rs
-
-Fetch limits, and how a failed read is described and whether it is worth one more try.
-
-`lessons/14/src/app/fetch.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-errors"
+--8<-- "typing/code/14-011.rs"
 ```
 
-## Step 21 · src/app/fetch.rs
+<span id="code-14-012"></span>
 
-What a GET returns, and its options: skip the cache, revalidate, a conditional ETag and a byte range.
+## `src/app/mod.rs`
 
-`lessons/14/src/app/fetch.rs` · type this, append at the end of the file
+Insert **after line 5** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-reply"
+// `#[cfg(target_arch = "wasm32")]` above a line compiles that module for the browser only.
+#[cfg(any(target_arch = "wasm32", test))] // register:decode
+pub mod decode; // register:decode
+pub mod feedback; // register:feedback
 ```
 
-## Step 22 · src/app/fetch.rs
-
-GET a URL, leaving a large body in a JavaScript buffer outside wasm memory.
-
-`lessons/14/src/app/fetch.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-get"
+pub mod gesture; // register:gesture
+pub mod input; // register:input
+#[cfg(any(target_arch = "wasm32", test))] // register:inspection
+pub mod inspection; // register:inspection
 ```
 
-## Step 23 · src/app/fetch.rs
-
-Send the request with an abort controller, or adopt the one `index.html` started while the wasm downloaded.
-
-`lessons/14/src/app/fetch.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-start"
+--8<-- "typing/code/14-012.rs"
 ```
 
-## Step 24 · src/app/fetch.rs
+<span id="code-14-013"></span>
 
-Read the body as it arrives into a growing buffer, so only a stall trips the deadline.
+## `src/app/mod.rs`
 
-`lessons/14/src/app/fetch.rs` · type this, append at the end of the file
+Insert **after line 14** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-body"
+#[cfg(any(target_arch = "wasm32", test))] // register:inspection
+pub mod inspection; // register:inspection
+pub mod keys; // register:keys
+pub mod knobs; // register:knobs
 ```
 
-## Step 25 · src/app/fetch.rs
-
-Unpack a gzip body that arrived still packed, with the browser's `DecompressionStream`.
-
-`lessons/14/src/app/fetch.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-gunzip"
+#[cfg(target_arch = "wasm32")] // register:route
+pub mod route; // register:route
+pub mod scene; // register:scene
+pub mod selection; // register:selection
 ```
 
-## Step 26 · src/app/fetch.rs
-
-Whole-file GETs, a HEAD request for the size, and a range read that checks its length and ETag.
-
-`lessons/14/src/app/fetch.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-helpers"
+--8<-- "typing/code/14-013.rs"
 ```
 
-## Step 27 · src/app/fetch.rs
+<span id="code-14-014"></span>
 
-Sleep, yield to the browser, and a `Task` that starts work now and is awaited later.
+## `src/app/mod.rs`
 
-`lessons/14/src/app/fetch.rs` · type this, append at the end of the file
+Insert **after line 26** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-timers"
+pub mod route; // register:route
+pub mod scene; // register:scene
+pub mod selection; // register:selection
+pub mod touch; // register:touch
 ```
 
-## Step 28 · src/app/fetch.rs
-
-A timer that aborts a fetch after 30 seconds without a byte.
-
-`lessons/14/src/app/fetch.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-deadline"
+pub mod walk; // register:walk
 ```
 
-## Step 29 · src/app/fetch.rs
-
-A status-bar line for downloads of 4 MB and more.
-
-`lessons/14/src/app/fetch.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/14/src/app/fetch.rs:fetch-progress"
+--8<-- "typing/code/14-014.rs"
 ```
 
-## Step 30 · src/app/decode.rs
+<span id="code-14-015"></span>
 
-Decode limits: 25,000 objects per browser tick, a 1 MiB window, the 512 MiB cap and two refusal messages.
+## `src/app/range_gate.rs`
 
-`lessons/14/src/app/decode.rs` · type this, new file
+A streamed reader may request only a byte range. The response must actually represent that range before it can be used. A server returning a whole file or a mismatched range needs different handling.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/14/src/app/decode.rs:decode-limits"
+--8<-- "typing/code/14-015.rs"
 ```
 
-## Step 31 · src/app/decode.rs
+<span id="code-14-016"></span>
 
-A file body: bytes already in wasm memory, or a fetched buffer left in JavaScript.
+## `src/app/validate.rs`
 
-`lessons/14/src/app/decode.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/14/src/app/decode.rs:decode-body"
+--8<-- "typing/code/14-016.rs"
 ```
 
-## Step 32 · src/app/decode.rs
+<span id="code-14-017"></span>
 
-Read one protobuf field header at a time through the window, then its value as text or a message.
+## `src/state.rs`
 
-`lessons/14/src/app/decode.rs` · type this, append at the end of the file
+Insert **after line 101** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/14/src/app/decode.rs:decode-reader"
+    pub fn append(&mut self, doc: FileDoc, source: Option<String>) {
+        let t0 = now_ms();
+        let first_row = self.scene.row_count(); // rows before this document
+        let index = self.scene.docs.len();
 ```
 
-## Step 33 · src/app/decode.rs
-
-A pacer that yields every 25,000 objects, and a macro that decodes, checks and adds one object.
-
-`lessons/14/src/app/decode.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/14/src/app/decode.rs:decode-object"
+        self.scene.add_file(doc);
+        let t1 = now_ms();
+        // only the new rows go to the GPU
+        self.scene.upload_to(&mut self.gpu);
 ```
 
-## Step 34 · src/app/decode.rs
-
-Decode a file one object at a time; `s.reindex()` then rebuilds the guid indexes the hand-filled tables lack, so undo finds every object.
-
-`lessons/14/src/app/decode.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/14/src/app/decode.rs:decode-session"
+--8<-- "typing/code/14-017.rs"
 ```
 
-## Step 35 · src/app/decode.rs
+<span id="code-14-018"></span>
 
-Count the records against the two-million cap first, and reserve room so no table doubles mid-decode.
+## `tests/lifecycle.cjs`
 
-`lessons/14/src/app/decode.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
-```rust
---8<-- "lessons/14/src/app/decode.rs:decode-count"
+```javascript
+--8<-- "typing/code/14-018.cjs"
 ```
 
-## Step 36 · src/app/decode.rs
+<span id="code-14-019"></span>
 
-The graph, the tree and its nodes, read with explicit stacks and the 64-level cap.
+## `tests/loading.cjs`
 
-`lessons/14/src/app/decode.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
-```rust
---8<-- "lessons/14/src/app/decode.rs:decode-graph"
+```javascript
+--8<-- "typing/code/14-019.cjs"
 ```
 
-## Step 37 · src/app/decode.rs
+## Check the completed chapter
 
-Instances and their shared definitions, with each stored placement folded into the session's xforms.
+From `session_viewer`, compare everything you have typed:
 
-`lessons/14/src/app/decode.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/decode.rs:decode-instances"
+```sh
+npm --prefix ../session_tests run course -- reference-check 14
 ```
 
-## Step 38 · src/app/decode.rs
+From `workspace/handwritten`:
 
-Session JSON, read only when the `json-sessions` feature is on.
-
-`lessons/14/src/app/decode.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/decode.rs:decode-json"
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
 ```
 
-## Step 39 · src/app/decode.rs
+Run the native manifest tests. Open `assets/view_local.yaml` and trace `course-boxes.pb` to its geometry asset. Run `trunk serve --port 8780`, then open http://localhost:8780/?data=off. You should see the supplied boxes, a polyline and a point. Click a box to select it; press F10 to inspect its controls, then Escape.
 
-Tests: a decoded file matches its source, broken files are refused, and instances keep their placements.
+If loading stops, read the first manifest or network error. Check the resolved file URL before changing the decoder.
 
-`lessons/14/src/app/decode.rs` · copy, append at the end of the file
+![Visual reference from the finished viewer using this same supplied box scene. Its command dock is added in a later lesson.](screenshots/practice/viewer-loaded.png)
 
-```rust
---8<-- "lessons/14/src/app/decode.rs:decode-tests"
-```
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
 
-## Step 40 · src/app/fonts.rs
+<details>
+<summary>Check your explanation of the opening question</summary>
 
-Fetch the whole fonts once, when a name needs a character the subsets of [lesson 10](10-text-layout.md) lack.
+Keep the previous valid scene. Validate and stage a replacement before publishing it, and discard results belonging to an obsolete load request.
 
-`lessons/14/src/app/fonts.rs` · type this, new file
+</details>
 
-```rust
---8<-- "lessons/14/src/app/fonts.rs:fonts"
-```
-
-## Step 41 · src/lib.rs
-
-Keep the arrived fonts for the page's life and hand them to the labels.
-
-`lessons/14/src/lib.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/lib.rs:use-fonts"
-```
-
-## Step 42 · src/app/live.rs
-
-Live mode's defaults and its relay, an EventSource that raises a flag when the publisher announces an upload.
-
-`lessons/14/src/app/live.rs` · type this, new file
-
-```rust
---8<-- "lessons/14/src/app/live.rs:live-notify"
-```
-
-## Step 43 · src/app/live.rs
-
-Open `impl LiveSource`: the watched scene and what was last seen of it, set from `?live=`, `?poll=` and `?notify=`.
-
-`lessons/14/src/app/live.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/live.rs:live-source"
-```
-
-## Step 44 · src/app/live.rs
-
-Read a URL with its last ETag, or compare a hash of the bytes, and adopt a valid manifest.
-
-`lessons/14/src/app/live.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/live.rs:live-read"
-```
-
-## Step 45 · src/app/live.rs
-
-One tick: when announced or due, read the manifest and its files again and return only a complete scene.
-
-`lessons/14/src/app/live.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/live.rs:live-check"
-```
-
-## Step 46 · src/app/live.rs
-
-Decode and keep each file, and build one document per manifest item; the brace closes the impl.
-
-`lessons/14/src/app/live.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/live.rs:live-load"
-```
-
-## Step 47 · src/app/live.rs
-
-The folder of a URL, and which relay messages announce a new upload.
-
-`lessons/14/src/app/live.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/live.rs:live-relay"
-```
-
-## Step 48 · src/app/loader.rs
-
-The loader's globals: the event-loop proxy, point and segment budgets, and generation counters that stop stale work.
-
-`lessons/14/src/app/loader.rs` · type this, new file
-
-```rust
---8<-- "lessons/14/src/app/loader.rs:loader-state"
-```
-
-## Step 49 · src/app/loader.rs
-
-Post a message to the event loop, and the point and segment budgets the URL may raise.
-
-`lessons/14/src/app/loader.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/loader.rs:loader-budget"
-```
-
-## Step 50 · src/app/loader.rs
-
-Boot: download the manifest while the GPU opens, load the scene, then keep polling a live source.
-
-`lessons/14/src/app/loader.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/loader.rs:loader-boot"
-```
-
-## Step 51 · src/app/loader.rs
-
-Load every item: skip what exceeds the budget, fetch, unpack, decode, then post it or stage it for a whole swap.
-
-`lessons/14/src/app/loader.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/loader.rs:loader-route"
-```
-
-## Step 52 · src/app/loader.rs
-
-Read the next file ahead: probe it while this one loads, fetch its body while this one decodes.
-
-`lessons/14/src/app/loader.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/loader.rs:loader-ahead"
-```
-
-## Step 53 · src/app/loader.rs
-
-The per-item context, the streaming hook lessons 15 and 19 fill, and the scene budget sized to the device.
-
-`lessons/14/src/app/loader.rs` · type this, append at the end of the file
-
-```rust
---8<-- "lessons/14/src/app/loader.rs:loader-item"
-```
-
-## Step 54 · tests
-
-Copy the browser tests `tests/lifecycle.cjs` and `tests/loading.cjs` from `lessons/14/`; they are checked, not explained.
-
-## Step 55 · registration lines
-
-Copy the lines tagged `register:loading` and the module tags below from these files of `lessons/14/`:
-
-- `src/app/mod.rs`: the modules `decode`, `fetch`, `fonts`, `live`, `loader`, `manifest`, `range_gate` and `validate`, with the `#[cfg]` line above those that have one.
-- `src/lib.rs`: the `Fonts` message, spawning `loader::boot` once the window exists, and handling `Fonts`.
-- `src/state.rs`: asking for the whole fonts when a document is appended.
-
-Run `cargo check` in `lessons/14/`.
-
-## Check
-
-`cargo check` compiles, and `cargo xtest --lib manifest`, `cargo xtest --lib validate`, `cargo xtest --lib range_gate` and `cargo xtest --lib decode` pass. Served with `trunk serve`, the canvas now shows its scene, for example `?scene=scenes/view_mixed.yaml` from the public bucket, and the status line clears when loading finishes.
+[Next step: 15](15-publication.md)

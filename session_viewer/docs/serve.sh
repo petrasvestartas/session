@@ -1,19 +1,48 @@
 #!/usr/bin/env bash
-# Render the maintained Markdown course with explicit Rust syntax highlighting.
 set -euo pipefail
-viewer_docs_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-viewer_docs_mode=${1:-serve}
+site=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../session_tests" && pwd)
+mode=${1:-serve}
 if (($#)); then shift; fi
-case "$viewer_docs_mode" in serve|build) ;; *) echo 'Usage: docs/serve.sh [serve|build] [MkDocs options]' >&2; exit 2 ;; esac
-mkdir -p "$viewer_docs_root/target/docs/source"
-cat > "$viewer_docs_root/target/docs/source/index.html" <<'HTML'
-<!doctype html><html lang="en"><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=docs/"><title>Session Viewer course</title><a href="docs/">Open the Session Viewer course</a></html>
-HTML
-ln -sfn "$viewer_docs_root/docs" "$viewer_docs_root/target/docs/source/docs"
-ln -sfn "$viewer_docs_root/ARCHITECTURE.md" "$viewer_docs_root/target/docs/source/ARCHITECTURE.md"
-# Trunk and the documentation watcher may request the same build together.
-if [ "$viewer_docs_mode" = build ]; then
-    exec 9>"$viewer_docs_root/target/docs/site-build.lock"
-    flock 9
+
+case "$mode" in
+    serve) port=8769 ;;
+    build) exec env DOCS_STRICT_LINKS=1 npm --prefix "$site" run build -- "$@" ;;
+    preview) port=8788 ;;
+    *) echo 'Usage: docs/serve.sh [serve|build|preview] [Vite options]' >&2; exit 2 ;;
+esac
+
+# Respect a custom port before stopping its listener; leave client connections alone.
+args=("$@")
+for ((i=0; i<${#args[@]}; i++)); do
+    case "${args[i]}" in
+        --port) port=${args[i+1]:-} ;;
+        --port=*) port=${args[i]#--port=} ;;
+    esac
+done
+if [[ ! "$port" =~ ^[0-9]{1,5}$ ]] || ((10#$port < 1 || 10#$port > 65535)); then
+    echo 'Port must be a number between 1 and 65535.' >&2
+    exit 2
 fi
-exec uvx --with mkdocs-material==9.7.4 --with pygments==2.19.2 --with pillow==12.1.1 mkdocs==1.6.1 "$viewer_docs_mode" --config-file "$viewer_docs_root/mkdocs.yml" "$@"
+port=$((10#$port))
+command -v lsof >/dev/null || { echo 'Install lsof to stop an existing server.' >&2; exit 1; }
+mapfile -t listeners < <(lsof -t -iTCP:"$port" -sTCP:LISTEN)
+if ((${#listeners[@]})); then
+    echo "Stopping server on port $port (PID ${listeners[*]})."
+    kill -TERM -- "${listeners[@]}"
+    for attempt in {1..50}; do
+        if ! lsof -t -iTCP:"$port" -sTCP:LISTEN >/dev/null; then break; fi
+        sleep 0.1
+    done
+    if lsof -t -iTCP:"$port" -sTCP:LISTEN >/dev/null; then
+        echo "Port $port is still occupied after stopping the server." >&2
+        exit 1
+    fi
+fi
+
+case "$mode" in
+    serve) exec npm --prefix "$site" run dev -- --host 127.0.0.1 --port "$port" --strictPort "$@" ;;
+    preview)
+        exec npm --prefix "$site" run preview -- --host 127.0.0.1 --port "$port" --strictPort \
+            --base /docs/ --outDir ../session_viewer/target/docs/vue "$@"
+        ;;
+esac

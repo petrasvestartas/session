@@ -1,3 +1,4 @@
+// --8<-- [start:nurbs-surface-network]
 use crate::app::command::tool::gather::{self, Input, Made, Recipe, Step};
 use crate::app::command::tool::surfacing::{checked, count, curves, diagonal};
 use crate::app::command::{Action, Spec};
@@ -5,18 +6,16 @@ use session_rust::nurbsknot::{CurveInterpStyle, CurveNurbsKnotStyle};
 use session_rust::{NurbsCurve, NurbsSurface, Point, Primitives};
 
 pub const SPEC: Spec = Spec {
-    names: &["Nurbs Surface Network"],
     aliases: &[
         "nurbssurface_network",
         "nurbsnurbs_network",
         "Nurbs Nurbs Network",
     ],
-    hint: "Nurbs Surface Network: click curves of both directions in any order, Enter builds the surface through them",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Nurbs Surface Network"],
+        "Nurbs Surface Network: click curves of both directions in any order, Enter builds the surface through them",
+        parse,
+    )
 };
 
 pub static RECIPE: Recipe = Recipe {
@@ -425,3 +424,4 @@ mod tests {
         assert!(network(&tangled).is_err());
     }
 }
+// --8<-- [end:nurbs-surface-network]

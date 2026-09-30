@@ -1,7 +1,9 @@
 use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::view::View;
 use crate::engine::pipelines::Layouts;
+use crate::engine::pipelines::bindings::buffer_entry;
 use session_rust::Xform;
+use wgpu::{BufferBindingType, ShaderStages};
 
 /// What the caller gives each frame.
 pub struct FrameInput {
@@ -127,16 +129,11 @@ pub fn pick_transform_layout(ctx: &GpuCtx) -> wgpu::BindGroupLayout {
     ctx.device
         .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("pick.transform.layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
+            entries: &[buffer_entry(
+                0,
+                ShaderStages::VERTEX,
+                BufferBindingType::Uniform,
+            )],
         })
 }
 

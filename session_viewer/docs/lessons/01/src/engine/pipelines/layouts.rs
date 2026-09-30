@@ -1,29 +1,15 @@
 // --8<-- [start:entries]
 // A bind group layout is the type of a bind group: which binding holds a uniform, a storage buffer or a texture, and which shader stages see it.
 /// One buffer binding, visible to `stages`.
-fn buffer_entry(
-    binding: u32,
-    stages: wgpu::ShaderStages,
-    ty: wgpu::BufferBindingType,
-) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: stages,
-        ty: wgpu::BindingType::Buffer {
-            ty,
-            has_dynamic_offset: false,
-            min_binding_size: None,
-        },
-        count: None,
-    }
-}
+use crate::engine::pipelines::bindings::{buffer_entry, texture_entry};
+use wgpu::{BufferBindingType, ShaderStages, TextureSampleType};
 
 /// A read-only storage buffer at `binding`, for the vertex stage.
 fn storage_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
     buffer_entry(
         binding,
-        wgpu::ShaderStages::VERTEX,
-        wgpu::BufferBindingType::Storage { read_only: true },
+        ShaderStages::VERTEX,
+        BufferBindingType::Storage { read_only: true },
     )
 }
 
@@ -35,7 +21,7 @@ fn uniform_layout(
 ) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some(label),
-        entries: &[buffer_entry(0, stages, wgpu::BufferBindingType::Uniform)],
+        entries: &[buffer_entry(0, stages, BufferBindingType::Uniform)],
     })
 }
 // --8<-- [end:entries]
@@ -43,12 +29,12 @@ fn uniform_layout(
 // --8<-- [start:groups]
 /// Group 1: pen and view settings at binding 0, clipping planes at 1.
 fn line_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
-    let stages = wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE;
+    let stages = ShaderStages::VERTEX_FRAGMENT | ShaderStages::COMPUTE;
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("line.layout"),
         entries: &[
-            buffer_entry(0, stages, wgpu::BufferBindingType::Uniform),
-            buffer_entry(1, stages, wgpu::BufferBindingType::Uniform),
+            buffer_entry(0, stages, BufferBindingType::Uniform),
+            buffer_entry(1, stages, BufferBindingType::Uniform),
         ],
     })
 }
@@ -60,13 +46,13 @@ fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         entries: &[
             buffer_entry(
                 0,
-                wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::COMPUTE,
-                wgpu::BufferBindingType::Storage { read_only: true },
+                ShaderStages::VERTEX | ShaderStages::COMPUTE,
+                BufferBindingType::Storage { read_only: true },
             ),
             buffer_entry(
                 1,
-                wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::COMPUTE,
-                wgpu::BufferBindingType::Storage { read_only: true },
+                ShaderStages::VERTEX | ShaderStages::COMPUTE,
+                BufferBindingType::Storage { read_only: true },
             ),
         ],
     })
@@ -74,30 +60,22 @@ fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
 
 /// A depth texture binding for the fragment stage.
 fn scene_depth(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
+    texture_entry(
         binding,
-        visibility: wgpu::ShaderStages::FRAGMENT,
-        ty: wgpu::BindingType::Texture {
-            sample_type: wgpu::TextureSampleType::Depth,
-            view_dimension: wgpu::TextureViewDimension::D2,
-            multisampled,
-        },
-        count: None,
-    }
+        ShaderStages::FRAGMENT,
+        TextureSampleType::Depth,
+        multisampled,
+    )
 }
 
 /// A triangle id texture binding for the fragment stage.
 fn scene_gradient(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
-    wgpu::BindGroupLayoutEntry {
+    texture_entry(
         binding,
-        visibility: wgpu::ShaderStages::FRAGMENT,
-        ty: wgpu::BindingType::Texture {
-            sample_type: wgpu::TextureSampleType::Uint,
-            view_dimension: wgpu::TextureViewDimension::D2,
-            multisampled,
-        },
-        count: None,
-    }
+        ShaderStages::FRAGMENT,
+        TextureSampleType::Uint,
+        multisampled,
+    )
 }
 
 /// Bind group 2 for ink: rows, depths, triangle ids, triangles, tiles.
@@ -107,13 +85,13 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         entries: &[
             buffer_entry(
                 0,
-                wgpu::ShaderStages::VERTEX_FRAGMENT,
-                wgpu::BufferBindingType::Storage { read_only: true },
+                ShaderStages::VERTEX_FRAGMENT,
+                BufferBindingType::Storage { read_only: true },
             ),
             buffer_entry(
                 1,
-                wgpu::ShaderStages::VERTEX_FRAGMENT,
-                wgpu::BufferBindingType::Storage { read_only: true },
+                ShaderStages::VERTEX_FRAGMENT,
+                BufferBindingType::Storage { read_only: true },
             ),
             scene_depth(2, false),
             scene_depth(3, true),
@@ -121,13 +99,13 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
             scene_gradient(5, true),
             buffer_entry(
                 6,
-                wgpu::ShaderStages::FRAGMENT,
-                wgpu::BufferBindingType::Storage { read_only: true },
+                ShaderStages::FRAGMENT,
+                BufferBindingType::Storage { read_only: true },
             ),
             buffer_entry(
                 7,
-                wgpu::ShaderStages::FRAGMENT,
-                wgpu::BufferBindingType::Storage { read_only: true },
+                ShaderStages::FRAGMENT,
+                BufferBindingType::Storage { read_only: true },
             ),
         ],
     })
@@ -139,8 +117,8 @@ fn ink_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         label: Some("ink.rows.layout"),
         entries: &[buffer_entry(
             0,
-            wgpu::ShaderStages::VERTEX_FRAGMENT,
-            wgpu::BufferBindingType::Storage { read_only: true },
+            ShaderStages::VERTEX_FRAGMENT,
+            BufferBindingType::Storage { read_only: true },
         )],
     })
 }
@@ -152,11 +130,7 @@ fn segment_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
         entries: &[
             storage_entry(0),
             storage_entry(1),
-            buffer_entry(
-                2,
-                wgpu::ShaderStages::VERTEX,
-                wgpu::BufferBindingType::Uniform,
-            ),
+            buffer_entry(2, ShaderStages::VERTEX, BufferBindingType::Uniform),
         ],
     })
 }
@@ -179,26 +153,13 @@ fn resolve_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("splat.resolve.layout"),
         entries: &[
-            wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Texture {
-                    sample_type: wgpu::TextureSampleType::Depth,
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    multisampled: false,
-                },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 1,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Texture {
-                    sample_type: wgpu::TextureSampleType::Float { filterable: false },
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    multisampled: false,
-                },
-                count: None,
-            },
+            texture_entry(0, ShaderStages::FRAGMENT, TextureSampleType::Depth, false),
+            texture_entry(
+                1,
+                ShaderStages::FRAGMENT,
+                TextureSampleType::Float { filterable: false },
+                false,
+            ),
         ],
     })
 }
@@ -224,7 +185,7 @@ impl Layouts {
             mvp: uniform_layout(
                 device,
                 "mvp.layout",
-                wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE,
+                ShaderStages::VERTEX_FRAGMENT | ShaderStages::COMPUTE,
             ),
             line: line_layout(device),
             instance: instance_layout(device),

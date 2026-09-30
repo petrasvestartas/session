@@ -1,3 +1,5 @@
+pub use crate::command_dock::Control;
+use crate::command_dock::record;
 use crate::State;
 use std::cell::Cell;
 use theme::{BUNDLED, fonts, visuals};
@@ -49,6 +51,7 @@ trait Panel {
     }
 
     /// Its open text field for the phone keyboard: the egui id, after `edit` ran on the text.
+    #[cfg(target_arch = "wasm32")]
     fn field(&self, _edit: &mut dyn FnMut(&mut String)) -> Option<&'static str> {
         None
     }
@@ -93,14 +96,6 @@ pub(crate) fn hit(point: egui::Pos2) -> (bool, bool) {
         let (on_field, on_popup) = panel.hit(point);
         (field || on_field, popup || on_popup)
     })
-}
-
-/// One clickable control and where it was drawn, for browser tests.
-#[derive(serde::Serialize)]
-pub struct Control {
-    key: String,    // what it does
-    label: String,  // text shown
-    rect: [f32; 4], // left, top, right, bottom
 }
 
 /// What the panels hand back from one frame, applied once egui is done.
@@ -302,19 +297,6 @@ impl Ui {
             let _ = status.set_attribute("hidden", "");
         }
     }
-}
-
-/// Remember one control's rectangle, when inspecting.
-fn record(controls: &mut Option<Vec<Control>>, key: &str, label: &str, response: &egui::Response) {
-    let Some(controls) = controls.as_mut() else {
-        return;
-    };
-    let r = response.rect;
-    controls.push(Control {
-        key: key.to_string(),
-        label: label.to_string(),
-        rect: [r.min.x, r.min.y, r.max.x, r.max.y],
-    });
 }
 
 /// A rectangle as `[left, top, right, bottom]` for browser tests, null when there is none.

@@ -1,17 +1,16 @@
+// --8<-- [start:icosahedron]
 use crate::app::command::tool::shape::{self, BREP_MESH, Part, Shape};
 use crate::app::command::{Action, Spec};
 use session_rust::{Geometry, Mesh, Point};
 use std::sync::OnceLock;
 
 pub const SPEC: Spec = Spec {
-    names: &["Icosahedron"],
-    aliases: &[],
-    hint: "Icosahedron (Brep Mesh): center, radius to the corners · Example: Icosahedron 0,0,0 10",
     options: &["Icosahedron Brep", "Icosahedron Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Icosahedron"],
+        "Icosahedron (Brep Mesh): center, radius to the corners · Example: Icosahedron 0,0,0 10",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -72,3 +71,4 @@ mod tests {
         assert!(brep.is_solid());
     }
 }
+// --8<-- [end:icosahedron]

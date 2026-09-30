@@ -6,14 +6,12 @@ use session_rust::{Plane, Point, Vector};
 use std::cell::Cell;
 
 pub const SPEC: Spec = Spec {
-    names: &["Text"],
-    aliases: &[],
-    hint: "Text Hello world · then click or type the lower-left point · Height N sets the letter height",
-    options: &[],
-    arity: None,
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Text"],
+        "Text Hello world · then click or type the lower-left point · Height N sets the letter height",
+        parse,
+    )
 };
 
 const MAX_CHARS: usize = 80; // longest text, in characters

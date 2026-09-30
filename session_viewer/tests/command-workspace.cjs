@@ -151,13 +151,13 @@ function project(s,p) { const v=p.map((n,i)=>n-s.origin[i]); const c=[0,1,2,3].m
  await page.keyboard.press('Enter'); await settle(page); assert.equal((await ui(page)).layers_open,false);
  await enter('Lin'); assert.equal((await state(page)).drawing.command,'line','partial command enters drawing without completing the word');
  await page.keyboard.press('Escape'); await control(page,'command/input'); await page.keyboard.press('ArrowDown'); await settle(page);
- assert.equal((await ui(page)).command,'Arctic','empty input browses every command');
+ assert.equal((await ui(page)).command,'Add Edge','empty input browses every command');
  assert((await ui(page)).controls.some(c=>c.key==='command/completion/Undo'),'last command is available');
  await page.keyboard.press('Escape'); await control(page,'command/input'); await page.keyboard.type('La'); await settle(page);
  assert((await ui(page)).controls.some(c=>c.key==='command/completion/Undo'),'prefix matches do not hide other commands');
  const wheelRect=(await ui(page)).controls.find(c=>c.key==='command/input').rect;
  await page.mouse.move((wheelRect[0]+wheelRect[2])/2,(wheelRect[1]+wheelRect[3])/2);
- await page.mouse.wheel(0,100); await settle(page); assert.equal((await ui(page)).command,'Arctic','wheel moves from the matching Layers to the remaining commands');
+ await page.mouse.wheel(0,100); await settle(page); assert.equal((await ui(page)).command,'Add Edge','wheel moves from the matching Layers to the remaining commands');
  await page.keyboard.press('Escape');
  for (const width of [480,320]) {
    await page.setViewportSize({width,height:640}); await settle(page);

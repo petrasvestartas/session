@@ -1,0 +1,22 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box: { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+}
+direction: down
+layout: "CSS rectangle\n768 × 384" {class: box}
+density: "Display density\n2 drawing pixels per CSS pixel" {class: box}
+size: "Drawing size\n1536 × 768 (within GPU limit)" {class: focus}
+colour: "Canvas + surface\n1536 × 768" {class: box}
+depth: "Depth image\n1536 × 768" {class: box}
+camera: "Camera aspect\n1536 / 768 = 2" {class: box}
+frame: "One correctly proportioned frame" {class: focus}
+layout -> size
+density -> size
+size -> colour
+size -> depth
+size -> camera
+colour -> frame
+depth -> frame
+camera -> frame

@@ -1,6 +1,6 @@
 # Session Viewer architecture
 
-Reference for the finished viewer: one browser application, Rust compiled to WebAssembly, winit for input, wgpu over browser WebGPU. The [course](docs/README.md) builds it from an empty crate; this page describes the result.
+Reference for the finished viewer: one browser application, Rust compiled to WebAssembly, winit for input, wgpu over browser WebGPU. The [implementation reference](docs/reference-course.md) covers the complete implementation. The [shorter courses](docs/journey.md) are being developed toward the same destination; this page describes the finished viewer.
 
 ## Module graph
 
@@ -43,6 +43,11 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | `app/scene_text.rs` | Stable rows for authored text and document titles |
 | `app/selection.rs` | `SelectionMode`, `ControlId`, `Controls` |
 | `app/modeling.rs`, `app/edit.rs` | Validated source transactions and placed control edits |
+| `app/scene_sync.rs` | Reconcile changed identities; queue the resulting GPU work |
+| `app/scene_sync/notes.rs` | Translate commit, undo and redo into the same invalidation notes |
+| `app/scene_sync/nodes.rs` | Resolve tree nodes and world placements; maintain the node cache |
+| `app/scene_sync/allocation.rs`, `tombs.rs`, `compaction.rs` | Allocate display rows, retain deleted rows for undo, reclaim unused storage |
+| `app/scene_sync/preview.rs` | Capture and update one dragged object's display data |
 | `app/hierarchy.rs`, `state/panel.rs` | Bounded tree/graph index and shared select/hide actions |
 | `app/ui/`, `gpu/ui.rs` | egui input/widget state, then GPU buffers and font textures |
 | `app/gizmo.rs`, `gpu/widget.rs` | Handle hit tests and one reusable unlit mesh with a temporary antialiasing tile |
@@ -54,6 +59,9 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | `gpu/surface_outline.rs` | Ordinary and selected coverage masks rasterized in one pass, block maxima of each, one black compositor that skips every pixel no covered texel can reach; the masks are reused while camera, geometry and selection stand still |
 | `gpu/text.rs`, `text_plate.rs`, `text_plane.rs`, `text_outline.rs` | Shaped glyph runs, plates, fixed-plane text, imported outlines |
 | `gpu/pick.rs::Picker` | ID targets, bounded readback windows, generations and cancellation |
+| `gpu/buffers.rs` | Buffer allocation and numbered resource groups, including sparse bindings |
+| `gpu/clip/pipelines.rs`, `gpu/ssao/pipelines.rs` | Pipeline construction separated from pass state and execution |
+| `pipelines/bindings.rs` | Shared buffer and texture binding descriptions; passes choose their actual binding contracts |
 | `app/loader.rs`, `fetch.rs`, `live.rs`, `stream.rs` | Fetching, validation, staged replacement, bounded ranged reads |
 
 ![Source documents become display data; input and picking share the same scene identity.](docs/illustrations/ownership.svg)
@@ -67,6 +75,10 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | GPU | Packed vertices, `Instance` rows, draw ranges | Object-relative f32 plus rebased translations |
 
 Selecting a source face (Ctrl+Shift) selects the face, not a tessellation triangle. Every segment of one BRep edge carries the original edge ID. F10 shows original vertices or control points, not display subdivisions.
+
+Source transactions become notes before synchronization starts. Node resolution, retained undo rows and compaction live below that coordinator, in private modules. Their tests remain separate from runtime code and retain their original test paths. Preview padding belongs to `gpu/upload_padding.rs`: it knows the layout of each display table, while synchronization only reserves and accounts for the returned rows.
+
+Shape and curve-gathering commands share option matching in `app/command/tool/options.rs`. It excludes Finish and Cancel actions, matches multi-word choices without changing their order, and returns how many input words the command consumed.
 
 ## A frame
 
@@ -87,7 +99,7 @@ flowchart TD
 
 Order matters twice in the ink pass: selected solid strokes go below the silhouette so their yellow fringe cannot narrow its black border, and selected standalone curves go above it so a coincident mesh edge cannot erase them. Both obey physical occlusion.
 
-Section caps, ambient occlusion and the outline masks are passes: each owns its GPU state in one file, impls `Pass` (`gpu/pass.rs`: hooks before, in and after the face pass, the masks, the ink and the id pass) and is named once in `pass::PASSES`, which `render.rs` walks in order. Shared WGSL is included once: `pipelines::PRELUDE` ends every scene shader, and `build.rs` expands `#include "file.wgsl"` lines in the compute and point shaders.
+Section caps, ambient occlusion and the outline masks are passes: each owns its GPU state in one module, impls `Pass` (`gpu/pass.rs`: hooks before, in and after the face pass, the masks, the ink and the id pass) and is named once in `pass::PASSES`, which `render.rs` walks in order. Shared WGSL is included once: `pipelines::PRELUDE` ends every scene shader, and `build.rs` expands `#include "file.wgsl"` lines in the compute and point shaders.
 
 The gumball tile is rendered and composited after scene ink; egui draws the final interface. Both overlays use their own layouts and avoid writing scene depth. Their sample counts do not depend on scene MSAA.
 
@@ -188,7 +200,11 @@ The gumball owns one fixed mesh and 96-byte uniform, plus a selected-only antial
 
 ## Adding a feature
 
-For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs, one file plus one `// register:` line in `lane::REGISTRY`; then exercise select, hide, replace and release. For a new left-button tool: one file in `app/gesture/`, its `mod` line and one `// register:` line in `GESTURES`. For new per-feature state: one field line in `state/features.rs` (`Features`, reached as `state.features`), its per-frame work one line in `BEFORE_PICKS` or `AFTER_PICKS`. For a new panel: one file in `app/ui/` and one line in `panels!`. For a new command: one file in `app/command/verbs/` and one line in `verbs!`, which declares the module and adds its `SPEC` to `REGISTRY`. For a new optional pass: one `Pass` impl in `gpu/` and one `// register:` line in `pass::PASSES`; shared WGSL goes in one file, named in `PRELUDE` or `#include`d. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and undo.
+For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs, one file plus one `// register:` line in `lane::REGISTRY`; then exercise select, hide, replace and release. For a new left-button tool: one file in `app/gesture/`, its `mod` line and one `// register:` line in `GESTURES`. For new per-feature state: one field line in `state/features.rs` (`Features`, reached as `state.features`), its per-frame work one line in `BEFORE_PICKS` or `AFTER_PICKS`. For a new panel: one file in `app/ui/` and one line in `panels!`. Command and panel tests live beside their owners in `command/tests.rs` and `ui/command_line/tests.rs`, preserving their module names.
+
+Command metadata uses `Spec::new` for common defaults; a verb declares only its exceptions. Shared tool options live in `app/command/tool/options.rs`.
+
+For a new command: one file in `app/command/verbs/` and one line in `verbs!`, which declares the module and adds its `SPEC` to `REGISTRY`. For a new optional pass: one `Pass` impl in `gpu/` and one `// register:` line in `pass::PASSES`; shared WGSL goes in one file, named in `PRELUDE` or `#include`d. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and undo.
 
 Each of these is a later lesson's whole contribution to an earlier lesson's file, so the course stays write-once; [Maintaining the course](docs/maintaining.md) says how the lesson crates are cut.
 

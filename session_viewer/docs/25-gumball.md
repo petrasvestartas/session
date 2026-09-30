@@ -1,221 +1,581 @@
 # 25 · Draw a solid, readable gumball
 
-Lesson 21 made the gumball's handles answer the pointer; this lesson draws them. Solid arrows, rings and balls go into a small tile of their own, which is blended over the frame.
+**Estimated study time: about 6–15 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Render identifiable gumball handles with a clear on-screen shape.
+
+**In the whole viewer:** The gumball is a visual input device for the editing system, layered over the scene without changing scene geometry itself.
+
+**Follow the data:** Handle geometry and IDs → overlay draw → handle hit → editing action.
+
+**Start with these files:** [`src/engine/gpu/widget.rs`](25-gumball.md#code-25-011), [`src/shaders/widget.wgsl`](25-gumball.md#code-25-013).
+
+**Aim to explain:** Why do the gumball and a scene mesh need separate depth behavior?
+
+[Whole-viewer map and course milestones](map.md)
+
+A gumball is small geometry drawn for interaction: arrows, handles and a centre. Its vertices carry both a position and the information needed to colour and identify each part. Rust and the shader must agree about this record’s byte layout.
 
 ![The gumball mesh is uploaded once, drawn into its own tile at 4x, resolved and sampled over the frame.](illustrations/extend-gumball.svg)
 
-## Step 1 · registration lines
+Start from the working result of [step 24](24-placed-controls.md).
 
-The widget is one more lane, so resize, reset and the byte count reach it.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 760 lines across 11 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/25/src/engine/gpu/mod.rs` · type the line tagged `register:gumball`
+<span id="code-25-001"></span>
 
-```rust
---8<-- "lessons/25/src/engine/gpu/mod.rs:lane-list"
-```
+## `src/app/input.rs`
 
-Copy the other lines tagged `register:gumball`, `register:widget` and `register:widget_mesh` from these files of `lessons/25/`:
+Insert **after line 152** of your current file.
 
-- `src/engine/gpu/mod.rs`: the `widget` and `widget_mesh` modules, the `widget` field of `Gpu`, and building it.
-- `src/engine/gpu/render.rs`: the widget drawn after everything else, with its own depth.
-- `src/engine/gpu/present.rs`: `prepare_widget` with the frame uniforms.
-- `src/state.rs`: `upload_gizmo` before each frame.
-- `src/app/input.rs`: `hover_gizmo` when the pointer moves.
-- `src/state/edit.rs` and `src/state/number_box.rs`: `upload_gizmo` wherever the gizmo moves or changes handle.
-- `src/app/inspection.rs`: the widget's placement, highlight and bytes in the snapshot.
-
-## Step 2 · src/engine/gpu/widget_mesh.rs
-
-One gumball vertex, in CSS pixels from the centre with a colour and a handle index, and the shape sizes.
-
-`lessons/25/src/engine/gpu/widget_mesh.rs` · type this, new file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget_mesh.rs:widget-vertex"
+
+                self.last_cursor = at;
+                let mut redraw = dragging;
+                redraw = redraw || state.hover_drawing(at.0, at.1); // register:commands
 ```
 
-## Step 3 · src/engine/gpu/widget_mesh.rs
-
-The mesh: per axis a lathed arrow, a scale ball and a quarter ring, then the grey hub.
-
-`lessons/25/src/engine/gpu/widget_mesh.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget_mesh.rs:widget-mesh"
+                redraw
+            }
+            WindowEvent::MouseWheel { delta, .. } => {
+                // a mouse wheel reports lines, a touchpad pixels: 100 px count as one line
 ```
 
-## Step 4 · src/engine/gpu/widget_mesh.rs
-
-Shape helpers: turn onto an axis, spin a profile, a sphere, and any parametric surface as triangles.
-
-`lessons/25/src/engine/gpu/widget_mesh.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget_mesh.rs:widget-shapes"
+--8<-- "typing/code/25-001.rs"
 ```
 
-## Step 5 · src/engine/gpu/widget_mesh.rs
+<span id="code-25-002"></span>
 
-Test: every vertex is finite and within the arm, and all ten handles are present.
+## `src/app/inspection.rs`
 
-`lessons/25/src/engine/gpu/widget_mesh.rs` · copy, append at the end of the file
+Insert **after line 34** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget_mesh.rs:widget-mesh-tests"
+    let mut snapshot = serde_json::json!({
+        "submitted_at_ms": crate::engine::performance::now_ms(),
+        "frames": state.gpu.performance.frames,
+        "draw_calls": state.gpu.performance.draws,
 ```
 
-## Step 6 · src/shaders/widget.wgsl
+Keep these following lines:
 
-The 96-byte uniform, and the tile texture the composite samples.
+```rust
+        "selected": parent,
+        "hidden_count": state.scene.hidden.len(),
+        "identity": identity,
+        "selection": state.selection,
+```
 
-`lessons/25/src/shaders/widget.wgsl` · type this, new file
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-002.rs"
+```
+
+<span id="code-25-003"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 35** of your current file.
+
+Keep these preceding lines:
+
+```rust
+pub mod ui; // register:ui
+pub mod upload; // register:upload
+pub mod vectors; // register:vectors
+pub mod view; // register:view
+```
+
+Keep these following lines:
+
+```rust
+
+use crate::engine::performance::Performance;
+use crate::engine::pipelines::{Layouts, Target};
+use session_rust::{AABB, Point};
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-003.rs"
+```
+
+<span id="code-25-004"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 84** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    pub segments: SegmentLane,                   // lines; register:strokes
+    pub glyphs: GlyphLane,                       // markers and dots; register:markers
+    pub controls: GlyphLane,                     // control point dots; register:shell
+    pub control_net: SegmentLane,                // control polygon lines; register:shell
+```
+
+Keep these following lines:
+
+```rust
+    pub ui: Option<ui::Ui>,                      // egui overlay; register:egui
+    pub text: text::TextLane,                    // labels; register:text
+    pub selection_revision: u64,                 // bumps on every selection change
+    pub logical_size: [f64; 2],                  // canvas size in CSS pixels
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-004.rs"
+```
+
+<span id="code-25-005"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 115** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            segments,          // register:strokes
+            glyphs,            // register:markers
+            controls,          // register:shell
+            control_net,       // register:shell
+```
+
+Keep these following lines:
+
+```rust
+            text,              // register:text
+            cloud,             // register:clouds
+            splat,             // register:clouds
+            pick,              // register:shell
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-005.rs"
+```
+
+<span id="code-25-006"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 206** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        let segments = SegmentLane::new(&ctx, &layouts, target); // register:strokes
+        let glyphs = GlyphLane::new(&ctx, &layouts, target); // register:markers
+        let controls = GlyphLane::new(&ctx, &layouts, target); // register:shell
+        let control_net = SegmentLane::new(&ctx, &layouts, target); // register:shell
+```
+
+Keep these following lines:
+
+```rust
+        let text = text::TextLane::new(&ctx, target); // register:text
+        let cloud = CloudLane::new(&ctx); // register:clouds
+        let splat = Splat::new(&ctx, &layouts, target, cloud.buffers()); // register:clouds
+        // each registered lane builds itself through its `make` function
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-006.rs"
+```
+
+<span id="code-25-007"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 239** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            segments,    // register:strokes
+            glyphs,      // register:markers
+            controls,    // register:shell
+            control_net, // register:shell
+```
+
+Keep these following lines:
+
+```rust
+            ui: None,    // register:egui
+            text,        // register:text
+            selection_revision: 0,
+            logical_size: [size.0 as f64, size.1 as f64],
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-007.rs"
+```
+
+<span id="code-25-008"></span>
+
+## `src/engine/gpu/present.rs`
+
+Insert **after line 18** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
+        };
+        self.frame.write(&self.ctx, input, &cx);
+        self.each_pass(|pass, g| pass.write_frame(g, input));
+```
+
+Keep these following lines:
+
+```rust
+        self.objects
+            .update_inside(&self.ctx, self.frame.eye, &self.bounds);
+        self.prepare_text(size); // register:text
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-008.rs"
+```
+
+<span id="code-25-009"></span>
+
+## `src/engine/gpu/present.rs`
+
+Append **after line 230** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/25-009.rs"
+```
+
+<span id="code-25-010"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 35** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        // pass 2: ambient occlusion and the outline masks, each pass in turn
+        self.each_pass(|pass, g| draws += pass.after_faces(g, encoder, &frame));
+        draws += self.ink_pass(encoder, view); // pass 3: lines, markers, outlines and text; register:ink
+        self.pending_pick(encoder); // a click waiting: draw the id pass now; register:shell
+```
+
+Keep these following lines:
+
+```rust
+        self.draw_panels(encoder, view); // register:egui
+        (draws, self.objects.len())
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-010.rs"
+```
+
+<span id="code-25-011"></span>
+
+## `src/engine/gpu/widget.rs`
+
+The gumball is a small piece of geometry with interaction meaning. Its axes show allowed movement or rotation. Handle identity matters separately from scene-object identity so a click can begin the right gesture.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/25-011.rs"
+```
+
+<span id="code-25-012"></span>
+
+## `src/engine/gpu/widget_mesh.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/25-012.rs"
+```
+
+<span id="code-25-013"></span>
+
+## `src/shaders/widget.wgsl`
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```wgsl
---8<-- "lessons/25/src/shaders/widget.wgsl:widget-uniform"
+--8<-- "typing/code/25-013.wgsl"
 ```
 
-## Step 7 · src/shaders/widget.wgsl
+<span id="code-25-014"></span>
 
-Draw the mesh into the tile, the active handle in orange.
+## `src/state.rs`
 
-`lessons/25/src/shaders/widget.wgsl` · type this, append at the end of the file
+Insert **after line 483** of your current file.
 
-```wgsl
---8<-- "lessons/25/src/shaders/widget.wgsl:widget-mesh-shader"
-```
-
-## Step 8 · src/shaders/widget.wgsl
-
-Stretch the tile over its rectangle on the canvas and blend it in.
-
-`lessons/25/src/shaders/widget.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/25/src/shaders/widget.wgsl:widget-composite"
-```
-
-## Step 9 · src/engine/gpu/widget.rs
-
-The `Widget`: the mesh, its uniform, both pipelines, and a tile made on demand.
-
-`lessons/25/src/engine/gpu/widget.rs` · type this, new file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs:widget-struct"
+        for hook in features::BEFORE_PICKS {
+            hook(self);
+        }
 ```
 
-## Step 10 · src/engine/gpu/widget.rs
-
-Open `impl Widget`: upload the mesh and build both pipelines, then clear, retarget and count bytes.
-
-`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs:widget-new"
+        let logical = self.logical_size();
+
+        // the CSS size changed: control dots keep their pixel size
+        if logical != self.gpu.logical_size {
 ```
 
-## Step 11 · src/engine/gpu/widget.rs
-
-Each frame, find the gumball's screen box, size the tile, and write the matrix that fills it.
-
-`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs:widget-prepare"
+--8<-- "typing/code/25-014.rs"
 ```
 
-## Step 12 · src/engine/gpu/widget.rs
+<span id="code-25-015"></span>
 
-Two passes, the mesh into the tile then the tile over the frame; `Drop` frees the buffers.
+## `src/state/edit.rs`
 
-`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+Insert **after line 27** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs:widget-draw"
+        let row = row.filter(|_| !self.tool_running()); // hidden while a tool asks for points; register:tools
+        // no box, no gizmo
+        let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else { // `box` is a reserved word, hence `box_`
+            self.features.gizmo = None;
 ```
 
-## Step 13 · src/engine/gpu/widget.rs
-
-The mesh pipeline, depth-tested, and the tile's format at 4x.
-
-`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs:widget-pipeline"
+            return;
+        };
+        // the box around every selected row
+        let mut bounds = box_;
 ```
 
-## Step 14 · src/engine/gpu/widget.rs
-
-The tile's colour, depth and resolved textures, and the layout of the texture the composite reads.
-
-`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs:widget-tile"
+--8<-- "typing/code/25-015.rs"
 ```
 
-## Step 15 · src/engine/gpu/widget.rs
+<span id="code-25-016"></span>
 
-The composite pipeline: no depth, the tile blended over the frame.
+## `src/state/edit.rs`
 
-`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+Insert **after line 63** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs:widget-composite"
+            Some(gizmo) => gizmo.set_origin(origin),
+            None => self.features.gizmo = Some(Gizmo::new(origin)),
+        }
 ```
 
-## Step 16 · src/engine/gpu/widget.rs
-
-The gumball's screen box, from the eight corners of its bounding cube.
-
-`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs:widget-bounds"
+    }
+
+    /// Grab a gizmo handle within `radius` CSS pixels; false when the press missed it.
+    pub(crate) fn begin_gizmo_with_radius(&mut self, x: f64, y: f64, radius: f64) -> bool {
 ```
 
-## Step 17 · src/engine/gpu/widget.rs
-
-The widget as a lane: retarget, reset and the byte count.
-
-`lessons/25/src/engine/gpu/widget.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/widget.rs:widget-lane"
+--8<-- "typing/code/25-016.rs"
 ```
 
-## Step 18 · src/engine/gpu/present.rs
+<span id="code-25-017"></span>
 
-A `Gpu` method that places the widget for this frame.
+## `src/state/edit.rs`
 
-`lessons/25/src/engine/gpu/present.rs` · type this, append at the end of the file
+Insert **after line 154** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/25/src/engine/gpu/present.rs:prepare-widget"
+                if let Some(gizmo) = self.features.gizmo.as_mut() {
+                    gizmo.origin = origin;
+                }
 ```
 
-## Step 19 · src/state/edit.rs
-
-Tell the GPU where the gizmo is and which handle lights up, and light the handle under the pointer.
-
-`lessons/25/src/state/edit.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/25/src/state/edit.rs:upload-gizmo"
+                self.touch();
+                return true;
+            }
 ```
 
-## Step 20 · src/state/edit.rs
-
-GPU test: the widget changes the picture, with red, green and blue arms.
-
-`lessons/25/src/state/edit.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/25/src/state/edit.rs:widget-test"
+--8<-- "typing/code/25-017.rs"
 ```
 
-Run `cargo check` in `lessons/25/`.
+<span id="code-25-018"></span>
 
-## Check
+## `src/state/edit.rs`
 
-`cargo check` compiles, and `cargo xtest --lib widget_mesh` passes. Select an object: red, green and blue arrows, quarter rings and balls sit at its centre, the same size at any zoom, and the handle under the pointer turns orange.
+Insert **after line 179** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            if let Some(gizmo) = self.features.gizmo.as_mut() {
+                gizmo.origin = origin;
+            }
+```
+
+Keep these following lines:
+
+```rust
+            self.touch();
+            return true;
+        }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-018.rs"
+```
+
+<span id="code-25-019"></span>
+
+## `src/state/edit.rs`
+
+Insert **after line 276** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        let Some(gizmo) = self.features.gizmo.as_mut() else {
+            return false;
+        };
+        gizmo.typing = Some(handle);
+```
+
+Keep these following lines:
+
+```rust
+        let (_, _, unit) = handle.labels();
+        self.status(&format!(
+            "{}: type a value in {unit}, Enter applies, Esc closes",
+            handle.title()
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-019.rs"
+```
+
+<span id="code-25-020"></span>
+
+## `src/state/edit.rs`
+
+Append **after line 890** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/25-020.rs"
+```
+
+<span id="code-25-021"></span>
+
+## `src/state/number_box.rs`
+
+Insert **after line 50** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        else {
+            return false;
+        };
+        gizmo.typing = None;
+```
+
+Keep these following lines:
+
+```rust
+        self.touch();
+        true
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/25-021.rs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 25
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native gumball tests. Select an object and verify that its handles are visible and can be picked independently.
+
+If the gumball is distorted or its handles have mixed colours, compare offsets, formats and stride before changing geometry dimensions.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+The gumball is an interaction overlay. Its rendering must not overwrite the physical scene depth used for surface visibility and picking.
+
+</details>
+
+[Next step: 26](26-nested-panel.md)

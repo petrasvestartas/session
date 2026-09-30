@@ -1,0 +1,21 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box: { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+}
+direction: down
+surface: "Positions across one face" {class: box}
+x: "dpdx\nAlong the face" {class: box}
+y: "dpdy\nAlong the face" {class: box}
+normal: "Cross product → unit normal\nPerpendicular to the face" {class: focus}
+light: "Unit light direction\nIn the same world coordinates" {class: box}
+alignment: "abs(dot(normal, light))\n0 sideways · 1 aligned" {class: focus}
+colour: "Material colour × (0.3 + 0.7 × alignment)" {class: box}
+surface -> x
+surface -> y
+x -> normal
+y -> normal
+normal -> alignment
+light -> alignment
+alignment -> colour

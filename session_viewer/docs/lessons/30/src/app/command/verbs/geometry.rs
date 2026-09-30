@@ -19,27 +19,22 @@ impl Verb for Draw {
     fn spec(&self) -> &Spec {
         &self.spec
     }
-
     /// Every entry is asked for a Draw; only this impl answers Some, which is how the drawing code finds its verbs.
     fn draw(&self) -> Option<&Draw> {
         Some(self)
     }
 }
-
 impl Draw {
     /// True when Enter finishes it, e.g. Polyline.
     pub fn open(&self) -> bool {
         self.points.start() != self.points.end()
     }
-
     /// The typed points as a creation. `&'static self`: the Draw lives in a const, so the Create below may keep a pointer to it.
     pub fn parse(&'static self, words: &[&str]) -> Result<Box<dyn Action>, String> {
         if words.len() > MAX_POINTS {
             return Err("too many points".into());
         }
-
         let mut points = Vec::new();
-
         for word in words {
             let Some(coords::Typed::Absolute { x, y, z }) = coords::parse(word) else {
                 return Err("use world coordinates x,y,z separated by spaces".into());
@@ -186,16 +181,11 @@ pub mod tests {
 
     /// A drawing verb that exists only here and in one `#[cfg(test)]` registry line.
     pub const SPEC: Draw = Draw {
-        spec: Spec {
-            names: &["Wedge"],
-            aliases: &[],
-            hint: "Wedge · three corners",
-            options: &[],
-            arity: None,
-            wait_for_option: false,
-            wait_after_option: false,
-            parse: |_, rest| Draw::parse(&SPEC, rest),
-        },
+        spec: Spec::new(
+            &["Wedge"],
+            "Wedge · three corners",
+            |_, rest| Draw::parse(&SPEC, rest),
+        ),
         points: 3..=3,
         what: "wedge",
         buttons: &[("Cancel", "Escape")],

@@ -197,7 +197,7 @@ src/app/ui/mod.rs panel 30
 src/app/ui/number_box.rs commands 23
 src/app/ui/overlay.rs annotate 23d
 src/app/walk/mod.rs sheets 19
-src/engine/gpu/arena.rs tiles 18
+src/engine/gpu/arena.rs tiles 04a
 src/engine/gpu/backdrop.rs camera 02
 src/engine/gpu/clip.rs gtao 32
 src/engine/gpu/lane.rs vectors 04b
@@ -234,8 +234,8 @@ src/engine/gpu/mod.rs text 11
 src/engine/gpu/mod.rs pick 12
 src/engine/gpu/mod.rs shell 12
 src/engine/gpu/mod.rs surface_outline 17
-src/engine/gpu/mod.rs tiles 18
-src/engine/gpu/mod.rs triangle_tiles 18
+src/engine/gpu/mod.rs tiles 04b
+src/engine/gpu/mod.rs triangle_tiles 04a
 src/engine/gpu/mod.rs instanced 18a
 src/engine/gpu/mod.rs clip 18b
 src/engine/gpu/mod.rs egui 22
@@ -247,7 +247,7 @@ src/engine/gpu/mod.rs gtao 32
 src/engine/gpu/mod.rs ssao 32
 src/engine/gpu/mod.rs timing 32
 src/engine/gpu/objects.rs ink 04b
-src/engine/gpu/objects.rs tiles 18
+src/engine/gpu/objects.rs tiles 04b
 src/engine/gpu/pass.rs outline 17
 src/engine/gpu/pass.rs tiles 18
 src/engine/gpu/pass.rs instanced 18a
@@ -273,6 +273,7 @@ src/engine/gpu/render.rs clouds 04d
 src/engine/gpu/render.rs text 11
 src/engine/gpu/render.rs shell 12
 src/engine/gpu/render.rs scene_text 17
+src/engine/gpu/render.rs tile-binding 12
 src/engine/gpu/render.rs tiles 18
 src/engine/gpu/render.rs egui 22
 src/engine/gpu/render.rs gumball 25
@@ -285,8 +286,8 @@ src/engine/gpu/upload.rs markers 04c
 src/engine/gpu/upload.rs clouds 04d
 src/engine/mod.rs text 10
 src/engine/pipelines/mod.rs scene 01
-src/engine/pipelines/mod.rs clip 04a
-src/engine/pipelines/mod.rs meshes 04a
+src/engine/pipelines/mod.rs clip 01
+src/engine/pipelines/mod.rs meshes 01
 src/lib.rs frame 01
 src/lib.rs shell 12
 src/lib.rs loading 14
@@ -355,3 +356,12 @@ src/state/number_box.rs phone 23
 src/state/number_box.rs gumball 25
 src/state/panel.rs split 31
 src/state/tool.rs split 31
+src/app/scene_sync.rs split 31
+src/app/scene_sync.rs panel 26
+src/app/scene_sync.rs commands 23
+src/engine/gpu/upload.rs padding 20
+src/app/scene_sync/compaction.rs instancing 21
+src/app/scene_sync/compaction.rs editing 21
+src/app/scene_sync/tombs.rs editing 21
+src/app/scene_sync/preview.rs editing 21
+src/app/scene_sync/testing.rs instancing 21

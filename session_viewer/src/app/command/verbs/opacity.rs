@@ -2,14 +2,13 @@ use crate::State;
 use crate::app::command::{Action, Spec, number};
 
 pub const SPEC: Spec = Spec {
-    names: &["Opacity"],
-    aliases: &[],
-    hint: "Opacity 0..1: how solid the faces are · 0 is x-ray, 1 solid · Example: Opacity 0.5",
     options: &["Opacity 1", "Opacity 0.7", "Opacity 0.4", "Opacity 0"],
-    arity: None,
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Opacity"],
+        "Opacity 0..1: how solid the faces are · 0 is x-ray, 1 solid · Example: Opacity 0.5",
+        parse,
+    )
 };
 
 /// How solid the faces are, from 0 to 1.

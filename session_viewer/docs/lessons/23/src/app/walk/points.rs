@@ -1,3 +1,4 @@
+// --8<-- [start:lesson-code]
 use super::Row;
 use super::encode::{FACING_UNKNOWN, encode_width};
 use crate::engine::gpu::GlyphPoint;
@@ -21,3 +22,4 @@ pub fn walk_point(glyph: &mut GlyphRows, p: &Point, row: u32) -> Row {
     bounds.union_with_point(center[0] as f64, center[1] as f64, center[2] as f64);
     Row::thin(bounds)
 }
+// --8<-- [end:lesson-code]

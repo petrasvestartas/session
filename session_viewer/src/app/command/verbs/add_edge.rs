@@ -7,14 +7,12 @@ use session_rust::Xform;
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
-    names: &["Add Edge"],
-    aliases: &[],
-    hint: "Add Edge · connect the two selected objects in the session graph; the Graph table of the layers panel lists it",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Add Edge"],
+        "Add Edge · connect the two selected objects in the session graph; the Graph table of the layers panel lists it",
+        parse,
+    )
 };
 
 /// Connect the two selected objects.

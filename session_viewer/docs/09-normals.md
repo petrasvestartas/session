@@ -1,71 +1,53 @@
 # 09 · Normals and shading
 
-Every face of a solid must point outward, and every edge pipe must know the normals on both sides, or back edges show and shading flips. This lesson reads the code lesson 06 copied for that.
+**Estimated study time: about 1–3 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Check face winding and the normals used for shading.
+
+**In the whole viewer:** This connects source topology and display orientation to the lighting decisions made in shaders.
+
+**Follow the data:** Shared-edge traversal → consistent face orientation → normals → light response.
+
+**Start with these files:** [`src/app/walk/brep_orient.rs`](06-cad-contract.md#code-06-007).
+
+**Aim to explain:** How can inconsistent face orientation become a visible shading problem?
+
+[Whole-viewer map and course milestones](map.md)
+
+A normal points away from a face and controls how it responds to light. Two neighbouring faces with consistent orientation traverse their shared edge in opposite directions. We compare that traversal to decide whether their winding agrees, even when they use different local vertex numbers.
 
 ![Analytic normal or finite fallback at a pole; two shading normals at a C0 crease; the cofactor transform keeps a normal perpendicular under nonuniform scale.](illustrations/normals.svg)
 
-## Step 1 · src/app/walk/brep_orient.rs
+Start from the working result of [step 08](08-trimming.md).
 
-Which way a face walks from one vertex to the next, read from its halfedges.
+This is a review step. Keep your existing code and use the experiment below to check your understanding.
 
-`lessons/09/src/app/walk/brep_orient.rs` · read, copied in 06
+## Check the completed chapter
 
-```rust
---8<-- "lessons/09/src/app/walk/brep_orient.rs:halfedges"
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 09
 ```
 
-## Step 2 · src/app/walk/brep_orient.rs
+From `workspace/handwritten`:
 
-Find the same vertex, and the same next vertex, on the neighbouring face's mesh.
-
-`lessons/09/src/app/walk/brep_orient.rs` · read, copied in 06
-
-```rust
---8<-- "lessons/09/src/app/walk/brep_orient.rs:vertex-search"
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
 ```
 
-## Step 3 · src/app/walk/brep_orient.rs
+Run the native orientation tests. Explain why matching the two faces’ raw vertex indices would be unreliable.
 
-Two faces agree when they walk their shared edge in opposite directions; each face's signed volume.
+If shading flips between neighbouring faces, compare the common positions and edge directions. Negating every normal may merely move the error to another face.
 
-`lessons/09/src/app/walk/brep_orient.rs` · read, copied in 06
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
 
-```rust
---8<-- "lessons/09/src/app/walk/brep_orient.rs:face-agreement"
-```
+<details>
+<summary>Check your explanation of the opening question</summary>
 
-## Step 4 · src/app/walk/brep_orient.rs
+A reversed face can produce a normal pointing the wrong way. Its light response or back-face treatment can then disagree with its neighbours.
 
-Give every face +1 or -1 so neighbours agree and the whole solid encloses a positive volume.
+</details>
 
-`lessons/09/src/app/walk/brep_orient.rs` · read, copied in 06
-
-```rust
---8<-- "lessons/09/src/app/walk/brep_orient.rs:face-signs"
-```
-
-## Step 5 · src/app/walk/brep_edges.rs
-
-Index every triangle of a face mesh by its edge's end positions, keeping its normal.
-
-`lessons/09/src/app/walk/brep_edges.rs` · read, copied in 06
-
-```rust
---8<-- "lessons/09/src/app/walk/brep_edges.rs:facets"
-```
-
-## Step 6 · src/app/walk/brep_edges.rs
-
-A pipe's facing word: the triangle normal on each side, turned outward by its face's sign.
-
-`lessons/09/src/app/walk/brep_edges.rs` · read, copied in 06
-
-```rust
---8<-- "lessons/09/src/app/walk/brep_edges.rs:edge-pen"
-```
-
-Run `cargo check` in `lessons/09/`.
-
-## Check
-
-Run `cargo xtest --lib brep_orient` in `lessons/09/`: kernel solids keep their normals, and a cylinder with two flipped faces draws the same pipes.
+[Next step: 10](10-text-layout.md)

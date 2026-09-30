@@ -1,203 +1,379 @@
 # 02 · Camera
 
-Every shader multiplies each point by one matrix, group 0, which maps the world onto the screen. You never think in matrices, though: you drag to orbit, drag to pan, and roll the wheel to zoom. So the camera stores three things you can picture, a target point, a distance and an orientation, and rebuilds the matrix from them every frame.
+**Estimated study time: about 15–25 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
 
-Each gesture changes one of the three. Orbit turns the orientation, pan slides the target, the wheel scales the distance. For example, at distance 3 m with the 60° view from lesson 01, the picture is 2 × 3 × tan 30° = 3.46 m tall at the target.
+**This section:** Implement orbit, pan and zoom, and turn a camera into a projection.
+
+**In the whole viewer:** The camera changes the view of the scene. It supplies frame data to the renderer without editing source geometry.
+
+**Follow the data:** Pointer movement → camera values → view-projection matrix → screen position.
+
+**Start with these files:** [`src/camera.rs`](02-camera.md#code-02-002), [`src/engine/gpu/frame.rs`](01-first-frame.md#code-01-008).
+
+**Aim to explain:** Which data should change when you orbit, and which should remain unchanged?
+
+[Whole-viewer map and course milestones](map.md)
+
+Hold a small model on the table. Walking around it changes your view, but not its shape. Our camera works the same way. Orbit changes its orientation, pan shifts its target, and zoom changes its distance. The geometry stays in its own coordinates.
 
 ![Orbit turns the orientation about the target, pan slides the target across the camera's own plane, and the wheel scales the distance; the view-projection is rebuilt from those three every frame.](illustrations/camera-basis.svg)
 
-This lesson writes the whole camera, standard views and zoom-to-cursor included, and a floor grid drawn through it.
+Start from the working result of [step 01](01-first-frame.md).
 
-## The camera
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 819 lines across 5 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-### Add the module
+<span id="code-02-001"></span>
 
-`lessons/02/src/lib.rs` · append at the end of the file
+## `src/lib.rs`
 
-The camera is its own file; this line brings it into the crate.
+Append **after line 27** of your current file.
 
-```rust
---8<-- "lessons/02/src/lib.rs:camera-mod"
-```
-
-### Units and the named views
-
-`lessons/02/src/camera.rs` · new file
-
-The camera works in meters; a scene file may be written in millimetres, so `Unit` converts. The near plane is the closest distance the camera sees, one ten-thousandth of the distance to the target: 0.3 mm at 3 m. `View` names the seven standard views a key will jump to.
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/02/src/camera.rs:units"
+--8<-- "typing/code/02-001.rs"
 ```
 
-### Store target, distance and orientation
+<span id="code-02-002"></span>
 
-`lessons/02/src/camera.rs` · append at the end of the file
+## `src/camera.rs`
 
-A quaternion stores a rotation in four numbers. Unlike three angles, it never locks up when you look straight down. The eye position and the up direction are computed from the three stored values, never set by hand.
+The camera converts world positions into a view and then a projection. Orbit changes the eye around a target; pan moves the eye and target together. Perspective makes distant objects appear smaller. An inverse transform lets a screen position become a world-space ray.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/02/src/camera.rs:camera"
+--8<-- "typing/code/02-002.rs"
 ```
 
-### Start at the isometric view
+<span id="code-02-003"></span>
 
-`lessons/02/src/camera.rs` · append at the end of the file
+## `src/engine/gpu/backdrop.rs`
 
-Turn 30° about the vertical axis, then tilt 30° down: the familiar three-quarter view.
+Insert **after line 10** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:camera-new"
+
+/// Shader sources the tests compare against the files.
+#[cfg(test)]
+pub const SHADERS: &[(&str, &str)] = &[
 ```
 
-### Orbit, pan and zoom
-
-`lessons/02/src/camera.rs` · append at the end of the file
-
-Orbit turns 0.005 radians per mouse pixel, so a 100-pixel drag turns about 29°. Pan moves the target by 0.15 % of the distance per pixel, so a pixel covers more when you are far away. Zoom multiplies the distance.
+Keep these following lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:navigate"
+    ("background.wgsl", shader!("background.wgsl")),
+];
+
+/// Grid vertex count: 44 floor lines plus 6 axis lines.
 ```
 
-### Shoot a ray through a pixel
-
-`lessons/02/src/camera.rs` · append at the end of the file
-
-A ray is a start point and a direction. The cursor pixel becomes a point on the plane through the target. In perspective, where far things look smaller, every ray starts at the eye; in orthographic, where size does not shrink with distance, all rays are parallel. Zoom-to-cursor needs it now, picking in lesson 12.
+Type these new lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:ray"
+--8<-- "typing/code/02-003.rs"
 ```
 
-### Zoom toward the cursor
+<span id="code-02-004"></span>
 
-`lessons/02/src/camera.rs` · append at the end of the file
+## `src/engine/gpu/backdrop.rs`
 
-Zooming in by 10 % also moves the target 10 % of the way toward the point under the cursor, so that point stays under the cursor. Switching from orthographic to perspective refits the view to what was on screen.
+Insert **after line 20** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:zoom-at"
+
+/// Draws the background color and the floor grid.
+pub struct BackdropLane {
+    background_shader: Shader, // fullscreen background shader
 ```
 
-### Build the matrix
-
-`lessons/02/src/camera.rs` · append at the end of the file
-
-Read `projection * view * scale` from right to left: scale scene units to meters, turn the world so the eye sits at the origin looking ahead, then project onto the screen. Near and far are swapped for reverse-Z, and everything is measured from the anchor, as the object rows are.
+Keep these following lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:view-proj"
+    background: Pipeline,      // background pipeline
+}
+
+impl BackdropLane {
 ```
 
-### Jump to a standard view
-
-`lessons/02/src/camera.rs` · append at the end of the file
-
-Front, top, iso and the rest set the orientation directly and switch to orthographic, so a drawing measures the same anywhere on screen.
+Type these new lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:standard-views"
+--8<-- "typing/code/02-004.rs"
 ```
 
-### Fit a box in view
+<span id="code-02-005"></span>
 
-`lessons/02/src/camera.rs` · append at the end of the file
+## `src/engine/gpu/backdrop.rs`
 
-Look at the box centre, then back off until all eight corners are inside the picture, plus 5 %. A box that arrives later only widens the far plane, so the view does not jump.
+Insert **after line 22** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:fit"
+pub struct BackdropLane {
+    background_shader: Shader, // fullscreen background shader
+    grid_shader: Shader,       // floor grid shader; register:camera
+    background: Pipeline,      // background pipeline
 ```
 
-### Prove poses and depth
-
-`lessons/02/src/camera.rs` · copy this part, append at the end of the file
-
-The near plane cuts just ahead of the eye at any distance, and orthographic depth still tells apart two faces 4 mm apart.
+Keep these following lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:tests"
+}
+
+impl BackdropLane {
+    /// Compile both shaders and build the pipelines.
 ```
 
-### Turn wheel steps into a distance
-
-`lessons/02/src/camera.rs` · append at the end of the file
-
-Each wheel step multiplies the distance by 0.9: 3 m becomes 2.7 m. A fast wheel sends many steps in one event, so we count at most ten, and the distance never reaches zero.
+Type these new lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:zoom-distance"
+--8<-- "typing/code/02-005.rs"
 ```
 
-### Prove rays and the wheel
+<span id="code-02-006"></span>
 
-`lessons/02/src/camera.rs` · copy this part, append at the end of the file
+## `src/engine/gpu/backdrop.rs`
+
+Insert **after line 30** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/02/src/camera.rs:wheel-tests"
+    /// Compile both shaders and build the pipelines.
+    pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
+        // `scene_module` appends the shared scene code; nothing compiles until a pass first sets the pipeline
+        let background_shader = scene_module(ctx, "background.shader", shader!("background.wgsl"));
 ```
 
-## A floor grid
+Keep these following lines:
 
-The grid is 22 floor lines, 1 m apart over 10 m, and three short axes: x red, y green, z blue. Like the background, it needs no vertex buffer.
+```rust
+        let background = build_background(ctx, l, &background_shader, target);
 
-### Place 50 vertices from their index
+        Self {
+            background_shader,
+```
 
-`lessons/02/src/shaders/grid.wgsl` · new file
+Type these new lines:
 
-Vertex 0 and 1 are the two ends of the first line, vertex 2 and 3 the next, and so on. From its index alone each vertex works out which line it belongs to and which end it is, then goes through the camera matrix.
+```rust
+--8<-- "typing/code/02-006.rs"
+```
+
+<span id="code-02-007"></span>
+
+## `src/engine/gpu/backdrop.rs`
+
+Insert **after line 32** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        // `scene_module` appends the shared scene code; nothing compiles until a pass first sets the pipeline
+        let background_shader = scene_module(ctx, "background.shader", shader!("background.wgsl"));
+        let grid_shader = scene_module(ctx, "grid.shader", shader!("grid.wgsl")); // register:camera
+        let background = build_background(ctx, l, &background_shader, target);
+```
+
+Keep these following lines:
+
+```rust
+
+        Self {
+            background_shader,
+            background,
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/02-007.rs"
+```
+
+<span id="code-02-008"></span>
+
+## `src/engine/gpu/backdrop.rs`
+
+Insert **after line 36** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        let grid = build_grid(ctx, l, &grid_shader, target); // register:camera
+
+        Self {
+            background_shader,
+```
+
+Keep these following lines:
+
+```rust
+            background,
+        }
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/02-008.rs"
+```
+
+<span id="code-02-009"></span>
+
+## `src/engine/gpu/backdrop.rs`
+
+Insert **after line 38** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        Self {
+            background_shader,
+            grid_shader, // register:camera
+            background,
+```
+
+Keep these following lines:
+
+```rust
+        }
+    }
+
+    /// Rebuild both pipelines for a new sample count.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/02-009.rs"
+```
+
+<span id="code-02-010"></span>
+
+## `src/engine/gpu/backdrop.rs`
+
+Insert **after line 45** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+    /// Rebuild both pipelines for a new sample count.
+    pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
+        self.background = build_background(ctx, l, &self.background_shader, target);
+```
+
+Keep these following lines:
+
+```rust
+    }
+
+    /// Draw the background as one fullscreen triangle.
+    pub fn draw_background(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/02-010.rs"
+```
+
+<span id="code-02-011"></span>
+
+## `src/engine/gpu/backdrop.rs`
+
+Append **after line 79** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/02-011.rs"
+```
+
+<span id="code-02-012"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 59** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    /// Draws of the backdrop: background and grid.
+    pub(super) fn backdrop_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        let mut draws = self.backdrop.draw_background(pass, b);
+```
+
+Keep these following lines:
+
+```rust
+        draws
+    }
+
+    /// Draws of the first pass after the backdrop and caps: faces, clouds.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/02-012.rs"
+```
+
+<span id="code-02-013"></span>
+
+## `src/engine/gpu/render.rs`
+
+Append **after line 71** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/02-013.rs"
+```
+
+<span id="code-02-014"></span>
+
+## `src/shaders/grid.wgsl`
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```wgsl
---8<-- "lessons/02/src/shaders/grid.wgsl"
+--8<-- "typing/code/02-014.wgsl"
 ```
 
-### Give the backdrop a grid
+## Check the completed chapter
 
-`lessons/02/src/engine/gpu/backdrop.rs` · add the lines tagged `register:camera`
+From `session_viewer`, compare everything you have typed:
 
-Eight lines, each tagged: the grid shader in the test list, two fields, making them, storing them, and rebuilding the grid pipeline on a new sample count.
-
-```rust
---8<-- "lessons/02/src/engine/gpu/backdrop.rs:backdrop"
+```sh
+npm --prefix ../session_tests run course -- reference-check 02
 ```
 
-### Draw lines that hide behind geometry
+From `workspace/handwritten`:
 
-`lessons/02/src/engine/gpu/backdrop.rs` · append at the end of the file
-
-The grid tests depth but never writes it, so a solid hides the grid and the grid never hides a solid.
-
-```rust
---8<-- "lessons/02/src/engine/gpu/backdrop.rs:grid"
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
 ```
 
-### Draw it after the background
+Run the native camera tests. They check projection and navigation numerically. Trace one call to each of orbit, pan and zoom; a model vertex should not be changed by any of them.
 
-`lessons/02/src/engine/gpu/render.rs` · add the line tagged `register:camera`
+If a method is missing, use the cumulative source checker to find the first difference in `src/camera.rs`. Check that methods are inside the intended `impl Camera` block and that every brace you typed is still present.
 
-The grid draws in the face pass, right after the background, so the depth test can hide it behind solids.
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
 
-```rust
---8<-- "lessons/02/src/engine/gpu/render.rs:face-passes"
-```
+<details>
+<summary>Check your explanation of the opening question</summary>
 
-### Only while it is switched on
+Camera orientation and the view-projection matrix change. The document’s vertices and the stored geometry remain unchanged.
 
-`lessons/02/src/engine/gpu/render.rs` · append at the end of the file
+</details>
 
-`?nogrid` in the page address turns it off.
-
-```rust
---8<-- "lessons/02/src/engine/gpu/render.rs:grid-list"
-```
-
-## Checkpoint
-
-Run `cargo xtest camera`. You should see `10 passed`: poses, near and far planes, rays and the wheel. The whole suite, `cargo xtest`, now shows `36 passed; 0 failed; 2 ignored`. From lesson 12 on, the grid turns under your mouse.
-
-## Recap
-
-The camera stores a target, a distance and an orientation; each gesture changes one, and the matrix is rebuilt from them every frame. A ray through a pixel keeps the point under the cursor fixed while zooming. The grid shows that group 0 now holds a real camera. Next, every object's row gets the edits a click will need.
-
-Next: [03 · Object rows and identity](03-identity.md)
+[Next step: 03](03-identity.md)

@@ -1,4 +1,5 @@
 // --8<-- [start:head]
+pub(crate) mod bindings;
 pub mod layouts;
 
 pub use layouts::Layouts; // `pub use` re-exports: other files write `pipelines::Layouts`
@@ -323,10 +324,12 @@ impl<'a> PipelineDesc<'a> {
 // `shader!` (lib.rs) pastes the minified file in at compile time.
 /// Shared WGSL: groups 0-2, Instance, LineUniform, flags, `place`.
 pub const SCENE: &str = shader!("scene.wgsl");
+pub const CLIP: &str = shader!("clip.wgsl"); // clipping planes, the includer binds `clipping`; register:meshes
 
 /// WGSL every scene shader ends with. A shared snippet is one file and one line here.
 pub const PRELUDE: &[&str] = &[
     SCENE, // register:scene
+    CLIP,  // register:clip
 ];
 
 /// A scene shader's full text: its own code, then the prelude.

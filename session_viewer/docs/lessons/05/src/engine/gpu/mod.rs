@@ -24,6 +24,7 @@ pub mod segments; // register:segments
 pub mod splat; // register:splat
 pub mod targets; // register:targets
 pub mod text_outline; // register:text_outline
+mod triangle_tiles; // register:triangle_tiles
 pub mod upload; // register:upload
 pub mod vectors; // register:vectors
 pub mod view; // register:view
@@ -585,6 +586,7 @@ impl Gpu {
             &self.layouts,
             &InkScene {
                 targets: &self.targets,
+                tiles: &self.arena.tiles, // register:tiles
             },
         );
     }

@@ -2,7 +2,7 @@
 
 A browser CAD viewer written in Rust, compiled to WebAssembly and rendered with WebGPU. It displays meshes, BReps, NURBS, lines, points, streamed point clouds and text while retaining original source identities.
 
-Start with the [course](docs/README.md), which rebuilds the viewer from an empty crate, or read the [architecture reference](ARCHITECTURE.md).
+Start with the [course](docs/README.md), where you type the complete viewer in one cumulative project, beginning with Rust foundations, or read the [architecture reference](ARCHITECTURE.md).
 
 ## Run
 
@@ -19,6 +19,8 @@ trunk serve
 Open <http://localhost:8770/> in a browser exposing WebGPU. The local route loads `assets/view_local.yaml` and its local PB files. A named route such as `/view_mixed` resolves the corresponding public scene manifest. The current working session also exposes the viewer through <http://localhost:8771/view_mixed>.
 
 Chrome on Linux with Vulkan is the tested browser. Other browsers and hardware are not implied to have passed.
+
+If Chrome reports that WebGPU is unavailable, use `./docs/open-chrome.sh` after starting the server. See [browser setup and diagnostic reports](docs/debugging.md) for the checks, Firefox crash reports and interaction geometry ownership.
 
 ## Interaction
 

@@ -2,6 +2,7 @@ use crate::State;
 use session_rust::{Plane, Point, Xform};
 pub mod cut; // register:cut
 pub mod gather; // register:gather
+mod options; // register:gather
 pub mod shape; // register:shape
 pub mod surfacing; // register:surfacing
 

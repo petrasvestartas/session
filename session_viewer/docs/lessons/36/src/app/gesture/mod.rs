@@ -43,6 +43,7 @@ pub fn start(state: &mut State, down: (f64, f64), at: (f64, f64)) -> Option<&'st
 }
 // --8<-- [end:gesture-find]
 
+// --8<-- [start:21-gesture-tests]
 // --8<-- [start:gesture-tests]
 #[cfg(test)]
 mod tests {
@@ -64,3 +65,4 @@ mod tests {
     }
 }
 // --8<-- [end:gesture-tests]
+// --8<-- [end:21-gesture-tests]

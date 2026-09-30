@@ -4,9 +4,6 @@ use crate::app::command::{Action, Spec};
 use crate::app::coords;
 
 pub const SPEC: Spec = Spec {
-    names: &["Clipping Plane"],
-    aliases: &[],
-    hint: "Clipping Plane: an origin, then a point on the side to cut away · 3Point · XY / YZ / ZX through a point · On / Off every cut · Flip the selected plane · Fill Hatch / Solid (default) · Example: Clipping Plane XY 0,0,1200",
     options: &[
         "Clipping Plane Normal",
         "Clipping Plane 3Point",
@@ -20,10 +17,11 @@ pub const SPEC: Spec = Spec {
         "Clipping Plane Fill Hatch",
         "Clipping Plane Fill Solid",
     ],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Clipping Plane"],
+        "Clipping Plane: an origin, then a point on the side to cut away · 3Point · XY / YZ / ZX through a point · On / Off every cut · Flip the selected plane · Fill Hatch / Solid (default) · Example: Clipping Plane XY 0,0,1200",
+        parse,
+    )
 };
 
 /// A mode to pick points in, typed points, a switch, a flip or a fill.

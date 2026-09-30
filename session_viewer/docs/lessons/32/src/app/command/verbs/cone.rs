@@ -1,17 +1,16 @@
+// --8<-- [start:cone]
 use crate::app::command::tool::shape::{self, BREP_MESH, Part, Shape};
 use crate::app::command::verbs::cylinder;
 use crate::app::command::{Action, Spec};
 use session_rust::{BRep, Geometry, Point};
 
 pub const SPEC: Spec = Spec {
-    names: &["Cone"],
-    aliases: &[],
-    hint: "Cone (Brep Mesh): base center, radius, height to the apex · Example: Cone 0,0,0 5 20",
     options: &["Cone Brep", "Cone Mesh"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Cone"],
+        "Cone (Brep Mesh): base center, radius, height to the apex · Example: Cone 0,0,0 5 20",
+        parse,
+    )
 };
 
 pub static SHAPE: Shape = Shape {
@@ -90,3 +89,4 @@ mod tests {
         );
     }
 }
+// --8<-- [end:cone]

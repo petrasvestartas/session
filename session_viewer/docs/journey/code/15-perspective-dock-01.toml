@@ -1,0 +1,8 @@
+console_error_panic_hook = "=0.1.7"
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
+session_rust = { path = "../../../session_rust", default-features = false }
+getrandom = { version = "=0.2.17", features = ["js"] }
+
+egui = { version = "=0.34.3", default-features = false }
+egui-wgpu = { version = "=0.34.3", default-features = false }

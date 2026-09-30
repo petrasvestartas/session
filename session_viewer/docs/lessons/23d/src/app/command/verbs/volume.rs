@@ -1,3 +1,4 @@
+// --8<-- [start:volume]
 use crate::State;
 use crate::app::command::verbs::measure::{
     self, compute_swept, plural, skipped_text, to_text, unit_suffix,
@@ -8,14 +9,12 @@ use session_rust::element::ElementGeometry;
 use session_rust::{BRep, Geometry, Mesh, Point, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Volume"],
-    aliases: &[],
-    hint: "Volume · volume of the selected closed meshes, solid BReps and elements; open ones are refused",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Volume"],
+        "Volume · volume of the selected closed meshes, solid BReps and elements; open ones are refused",
+        parse,
+    )
 };
 
 const OPEN: &str = "open"; // a volume kind that encloses nothing
@@ -222,3 +221,4 @@ mod tests {
         assert_eq!(measured(line, &identity), None);
     }
 }
+// --8<-- [end:volume]

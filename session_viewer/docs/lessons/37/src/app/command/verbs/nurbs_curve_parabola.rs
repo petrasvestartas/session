@@ -1,18 +1,14 @@
+// --8<-- [start:nurbs-curve-parabola]
 use crate::app::command::tool::shape::{self, Answer, Ask, CURVE, Frame, Part, Shape, positive};
 use crate::app::command::{Action, Spec};
 use session_rust::{Geometry, Point, Primitives};
 use std::rc::Rc;
 
-pub const SPEC: Spec = Spec {
-    names: &["Nurbs Curve Parabola"],
-    aliases: &[],
-    hint: "Nurbs Curve Parabola: start, end or length, apex or height · Example: Nurbs Curve Parabola 0,0,0 100 40",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
+pub const SPEC: Spec = Spec::new(
+    &["Nurbs Curve Parabola"],
+    "Nurbs Curve Parabola: start, end or length, apex or height · Example: Nurbs Curve Parabola 0,0,0 100 40",
     parse,
-};
+);
 
 pub static SHAPE: Shape = Shape {
     name: "Nurbs Curve Parabola",
@@ -155,3 +151,4 @@ mod tests {
         assert!(build(&SHAPE, &top, &flat, "").is_err());
     }
 }
+// --8<-- [end:nurbs-curve-parabola]

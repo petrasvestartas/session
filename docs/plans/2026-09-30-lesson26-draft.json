@@ -1,0 +1,126 @@
+{
+  "note": "Unpublished draft; finish after full-window correction. No build or browser verification yet.",
+  "step": {
+    "id": "26-selection-fit",
+    "page": "journey/26-selection-fit.md",
+    "title": "Frame a selection, keep its coordinates",
+    "hours": [
+      3,
+      5
+    ],
+    "tests": true,
+    "goal": "Make Fit frame the selected object, without changing its geometry or hiding distant objects through the far plane.",
+    "trace": "Fit → Editor chooses selected or all bounds → Camera targets those bounds → scene extent keeps depth coverage",
+    "question": "Why do the fitted radius and the scene extent need separate values?",
+    "answer": "The selected object’s radius decides how closely to frame it and how far zoom may travel. The extent of the whole scene decides how far depth and pick rays must reach. Using the small selected radius for both could clip an unrelated distant object.",
+    "story": "Imagine selecting one beam in a building. You want to look closely at that beam, not shrink every coordinate in the building. Fit changes the camera. It must leave the stored model untouched.\n\nThe production viewer already follows this rule: Fit frames the selection, or everything when nothing is selected. Our course has one selected object so far. Later, multiple selection will combine the bounds of all selected objects.\n\n![The selected bounds choose the camera target and distance; the whole scene supplies depth coverage.](../illustrations/journey-26.svg)\n\n**Keep the owners clear.** Scene measures vertices. Editor chooses which objects matter for this request. Camera decides where to look. Renderer needs no new branch: it receives the next matrix as before.\n\nThere is one trap. Fitting a small beam makes the camera radius small. If the far plane also shrinks to that radius, another visible object farther behind it can disappear. We separate radius, which controls framing and zoom, from extent, which covers the whole scene.\n\nThe coordinates remain model values. A triangle whose sides are 1, 1000 or 0.001 units can occupy the same screen space after Fit. That does not tell us whether its file means metres or millimetres; the following units lesson makes that convention explicit.",
+    "result": "Type `Example Box`, `View Isometric`, `View Orthographic`, then `Fit`. Now type `Select Next` three times to select the box. Submit `Fit` again: the yellow box becomes the focus. Repeat Fit; the picture should stay still.\n\nType `Undo`: adding the box is undone, while the camera stays where Fit placed it. `Redo` restores the box. Click empty space to clear selection, then run `Fit` to see the whole scene again. Try the same sequence in perspective.",
+    "experiment": "Before running the scale test, predict whether multiplying every vertex by 1000 should make its fitted picture 1000 times wider. It should not: Fit also moves the camera farther away. Then temporarily replace extent with radius in the far-plane calculation. Run the distant-picking test, explain the failure, and restore extent.",
+    "production": "Fit now follows the production selection-or-all rule. The production viewer combines multiple selected rows and has tighter corner-based fitting, model-unit conversion and reversed depth. Those remain visible tasks in the course plan; this lesson introduces the shared responsibility boundary without claiming those parts are complete.",
+    "browser_status": "Fit frames the selection, or the whole scene when nothing is selected.",
+    "browser_actions": [
+      {
+        "command": "Example Box"
+      },
+      {
+        "command": "View Isometric"
+      },
+      {
+        "command": "View Orthographic"
+      },
+      {
+        "command": "Select Next"
+      },
+      {
+        "command": "Select Next"
+      },
+      {
+        "command": "Select Next"
+      }
+    ],
+    "browser_caption": "Actual Chrome checkpoint after typed commands frame the selected box. Its yellow highlight, closer camera and unchanged companion geometry distinguish this lesson from fitting the whole scene.",
+    "frame": "journey/checks/26-selection-fit.rs",
+    "frame_constructor": "make_renderer(device, queue, format)",
+    "edits": [
+      {
+        "path": "src/scene.rs",
+        "snippet": "journey/code/26-selection-fit-01.rs",
+        "before": "    }\n\n    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {\n        let mut bounds: Option<crate::bounds::Bounds> = None;\n        for object in &self.objects {\n            for vertex in object.mesh.vertices() {\n                let point = [vertex[0] as f64, vertex[1] as f64, vertex[2] as f64];\n                match &mut bounds {\n",
+        "why": "Use one bounds loop for all objects or one stable ID. None means no selection filter; is_some_and skips a row only when an ID was supplied and differs."
+      },
+      {
+        "path": "src/camera.rs",
+        "snippet": "journey/code/26-selection-fit-02.rs",
+        "before": "    pub target: [f64; 3],\n    pub distance: f64,\n    pub radius: f64,\n    pub orientation: Quaternion,\n    pub aspect: f64,\n    pub projection: Projection,\n",
+        "why": "Keep framing radius separate from whole-scene extent. grow_extent finds the farthest corner distance from the current target; it does not move that target or alter the mesh."
+      },
+      {
+        "path": "src/camera.rs",
+        "snippet": "journey/code/26-selection-fit-03.rs",
+        "before": "            target: [0.0; 3],\n            distance: 3.0,\n            radius: 1.0,\n            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),\n            aspect: 640.0 / 480.0,\n            projection: Projection::Perspective,\n",
+        "why": "Keep framing radius separate from whole-scene extent. grow_extent finds the farthest corner distance from the current target; it does not move that target or alter the mesh."
+      },
+      {
+        "path": "src/camera.rs",
+        "snippet": "journey/code/26-selection-fit-04.rs",
+        "before": "        let radius = bounds.radius();\n        self.radius = if radius > 0.0 { radius } else { 1.0 };\n        self.target = bounds.centre();\n        let opening = match self.projection {\n            Projection::Perspective => half_x.min(half_y).sin(),\n            Projection::Orthographic => half_y.tan() * self.aspect.min(1.0),\n",
+        "why": "Keep framing radius separate from whole-scene extent. grow_extent finds the farthest corner distance from the current target; it does not move that target or alter the mesh."
+      },
+      {
+        "path": "src/camera.rs",
+        "snippet": "journey/code/26-selection-fit-05.rs",
+        "before": "        self.distance = self.radius * 1.1 / opening;\n    }\n\n    pub fn pan(&mut self, dx: f32, dy: f32) {\n        let right = self.orientation.rotate_vector(Vector::x_axis());\n        let up = self.orientation.rotate_vector(Vector::z_axis());\n",
+        "why": "Keep framing radius separate from whole-scene extent. grow_extent finds the farthest corner distance from the current target; it does not move that target or alter the mesh."
+      },
+      {
+        "path": "src/camera.rs",
+        "snippet": "journey/code/26-selection-fit-06.rs",
+        "before": "        );\n        let view = Xform::look_at_right_handed(&eye, &target, &up);\n        let near = (self.distance * 0.001).max(self.radius * 0.0001);\n        let far = self.distance + self.radius * 2.0;\n        let projection = match self.projection {\n            Projection::Perspective => Xform::perspective(2.0 * HALF_FOV, self.aspect, near, far),\n            Projection::Orthographic => {\n",
+        "why": "Keep framing radius separate from whole-scene extent. grow_extent finds the farthest corner distance from the current target; it does not move that target or alter the mesh."
+      },
+      {
+        "path": "src/editor.rs",
+        "snippet": "journey/code/26-selection-fit-07.rs",
+        "before": "                    Action::Isometric => self.camera.isometric(),\n                    Action::Projection(mode) => self.camera.projection = mode,\n                    Action::Fit => {\n                        if let Some(bounds) = self.scene.bounds() {\n                            self.camera.fit(&bounds);\n                        }\n                    }\n                    Action::ResetView => {\n",
+        "why": "Fit the selected bounds, falling back to all bounds if the selection is absent or stale. Then widen depth coverage for the whole scene. Scene edits can also bring distant geometry into that coverage."
+      },
+      {
+        "path": "src/editor.rs",
+        "snippet": "journey/code/26-selection-fit-08.rs",
+        "before": "        }\n        // Deletion and history travel can invalidate selection; repair it in one place.\n        self.selected = self.selected.filter(|id| self.scene.contains(*id));\n        Ok(Change::Scene)\n    }\n}\n",
+        "why": "Fit the selected bounds, falling back to all bounds if the selection is absent or stale. Then widen depth coverage for the whole scene. Scene edits can also bring distant geometry into that coverage."
+      },
+      {
+        "path": "src/selection_fit_tests.rs",
+        "snippet": "journey/code/26-selection-fit-11.rs",
+        "before": null,
+        "why": "Check selection, unchanged mesh sharing, history, far-depth picking and model-scale independence. These are outcomes across owners, not copies of the bounds loop."
+      },
+      {
+        "path": "src/lib.rs",
+        "snippet": "journey/code/26-selection-fit-fullscreen-1.rs",
+        "before": "#[cfg(test)]\nmod projection_tests;\n#[cfg(test)]\nmod shortcut_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
+        "why": "Register the new behaviour tests; this does not add a runtime owner."
+      },
+      {
+        "path": "src/browser.rs",
+        "snippet": "journey/code/26-selection-fit-fullscreen-2.rs",
+        "before": "    window.add_event_listener_with_callback(\"viewer-file\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.\");\n    Ok(())\n}\n\n",
+        "why": "Update the status sentence so the running checkpoint explains the new meaning of Fit. The existing typed command already reaches Editor."
+      }
+    ]
+  },
+  "snippets": {
+    "journey/code/26-selection-fit-01.rs": "    }\n\n    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {\n        self.bounds_for(None)\n    }\n\n    pub fn bounds_for(&self, selected: Option<ObjectId>) -> Option<crate::bounds::Bounds> {\n        let mut bounds: Option<crate::bounds::Bounds> = None;\n        for object in &self.objects {\n            if selected.is_some_and(|id| id != object.id) {\n                continue;\n            }\n            for vertex in object.mesh.vertices() {\n                let point = [vertex[0] as f64, vertex[1] as f64, vertex[2] as f64];\n                match &mut bounds {\n",
+    "journey/code/26-selection-fit-02.rs": "    pub target: [f64; 3],\n    pub distance: f64,\n    pub radius: f64,\n    pub extent: f64,\n    pub orientation: Quaternion,\n    pub aspect: f64,\n    pub projection: Projection,\n",
+    "journey/code/26-selection-fit-03.rs": "            target: [0.0; 3],\n            distance: 3.0,\n            radius: 1.0,\n            extent: 1.0,\n            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),\n            aspect: 640.0 / 480.0,\n            projection: Projection::Perspective,\n",
+    "journey/code/26-selection-fit-04.rs": "        let radius = bounds.radius();\n        self.radius = if radius > 0.0 { radius } else { 1.0 };\n        self.target = bounds.centre();\n        self.extent = self.radius;\n        let opening = match self.projection {\n            Projection::Perspective => half_x.min(half_y).sin(),\n            Projection::Orthographic => half_y.tan() * self.aspect.min(1.0),\n",
+    "journey/code/26-selection-fit-05.rs": "        self.distance = self.radius * 1.1 / opening;\n    }\n\n    pub fn grow_extent(&mut self, bounds: &crate::bounds::Bounds) {\n        let mut squared = 0.0;\n        for i in 0..3 {\n            let delta = (bounds.min[i] - self.target[i]).abs()\n                .max((bounds.max[i] - self.target[i]).abs());\n            squared += delta * delta;\n        }\n        self.extent = self.extent.max(squared.sqrt());\n    }\n\n    pub fn pan(&mut self, dx: f32, dy: f32) {\n        let right = self.orientation.rotate_vector(Vector::x_axis());\n        let up = self.orientation.rotate_vector(Vector::z_axis());\n",
+    "journey/code/26-selection-fit-06.rs": "        );\n        let view = Xform::look_at_right_handed(&eye, &target, &up);\n        let near = (self.distance * 0.001).max(self.radius * 0.0001);\n        let far = self.distance + self.extent * 2.0;\n        let projection = match self.projection {\n            Projection::Perspective => Xform::perspective(2.0 * HALF_FOV, self.aspect, near, far),\n            Projection::Orthographic => {\n",
+    "journey/code/26-selection-fit-07.rs": "                    Action::Isometric => self.camera.isometric(),\n                    Action::Projection(mode) => self.camera.projection = mode,\n                    Action::Fit => {\n                        if let Some(bounds) = self.scene.bounds_for(self.selected).or_else(|| self.scene.bounds()) {\n                            self.camera.fit(&bounds);\n                            if let Some(all) = self.scene.bounds() { self.camera.grow_extent(&all); }\n                        }\n                    }\n                    Action::ResetView => {\n",
+    "journey/code/26-selection-fit-08.rs": "        }\n        // Deletion and history travel can invalidate selection; repair it in one place.\n        self.selected = self.selected.filter(|id| self.scene.contains(*id));\n        if let Some(bounds) = self.scene.bounds() { self.camera.grow_extent(&bounds); }\n        Ok(Change::Scene)\n    }\n}\n",
+    "journey/code/26-selection-fit-11.rs": "use crate::{camera::Projection, editor::{Action, Change, Editor}, mesh::Mesh};\nuse session_rust::{Point, Vector};\nuse std::rc::Rc;\n\n#[test]\nfn fit_frames_the_selection_without_editing_its_mesh_or_history() {\n    for mode in [Projection::Perspective, Projection::Orthographic] {\n        let mut editor = Editor::default();\n        editor.apply(Action::AddBox).unwrap();\n        editor.apply(Action::Isometric).unwrap();\n        editor.apply(Action::Projection(mode)).unwrap();\n        editor.apply(Action::Fit).unwrap();\n        let all_distance = editor.camera.distance;\n        for _ in 0..3 { editor.apply(Action::SelectNext).unwrap(); }\n        let id = editor.selected.unwrap();\n        let mesh = Rc::clone(&editor.scene.objects()[2].mesh);\n        let vertices = mesh.vertices().to_vec();\n        let direction = editor.camera.orientation.rotate_vector(Vector::y_axis());\n        assert_eq!(editor.apply(Action::Fit).unwrap(), Change::View);\n        let selected = editor.scene.bounds_for(Some(id)).unwrap();\n        assert_eq!(editor.camera.target, selected.centre());\n        assert!(editor.camera.distance < all_distance);\n        assert_eq!(editor.selected, Some(id));\n        assert_eq!(editor.camera.projection, mode);\n        let after = editor.camera.orientation.rotate_vector(Vector::y_axis());\n        for i in 0..3 { assert!((direction[i] - after[i]).abs() < 1.0e-12); }\n        for v in &vertices {\n            let screen = editor.camera.view_projection().transform_point(&Point::new(v[0] as f64, v[1] as f64, v[2] as f64));\n            assert!(screen[0].abs() < 0.95 && screen[1].abs() < 0.95);\n            assert!((0.0..1.0).contains(&screen[2]));\n        }\n        assert!(Rc::ptr_eq(&mesh, &editor.scene.objects()[2].mesh));\n        assert_eq!(mesh.vertices(), vertices);\n        let fitted = editor.camera.uniform();\n        editor.apply(Action::Fit).unwrap();\n        assert_eq!(editor.camera.uniform(), fitted);\n        editor.apply(Action::Undo).unwrap();\n        assert!(!editor.scene.contains(id));\n        assert!(editor.selected.is_none());\n        assert_eq!(editor.camera.uniform(), fitted);\n        editor.apply(Action::Redo).unwrap();\n        assert!(editor.scene.contains(id));\n        assert!(Rc::ptr_eq(&mesh, &editor.scene.objects()[2].mesh));\n    }\n}\n\n#[test]\nfn an_empty_or_stale_selection_falls_back_to_the_whole_scene() {\n    let mut editor = Editor::default();\n    let id = editor.scene.objects()[0].id;\n    editor.scene.remove(id);\n    editor.selected = Some(id);\n    assert!(editor.scene.bounds_for(Some(id)).is_none());\n    editor.apply(Action::Fit).unwrap();\n    assert_eq!(editor.camera.target, editor.scene.bounds().unwrap().centre());\n    let expected = editor.camera.uniform();\n    editor.selected = None;\n    editor.apply(Action::Fit).unwrap();\n    assert_eq!(editor.camera.uniform(), expected);\n}\n\n#[test]\nfn fitting_a_near_selection_keeps_distant_visible_geometry_pickable() {\n    for mode in [Projection::Perspective, Projection::Orthographic] {\n        let mut editor = Editor::default();\n        editor.camera.projection = mode;\n        editor.selected = Some(editor.scene.objects()[0].id);\n        let distant = Mesh::new(vec![\n            [-10.0, -10.0, -20.0, 0.2, 0.8, 0.3],\n            [ 10.0, -10.0, -20.0, 0.2, 0.8, 0.3],\n            [  0.0,  10.0, -20.0, 0.2, 0.8, 0.3],\n        ], vec![0, 1, 2]).unwrap();\n        let id = editor.scene.insert(distant).unwrap();\n        editor.apply(Action::Fit).unwrap();\n        assert!(editor.camera.extent > 20.0);\n        let point = Point::new(-0.1, -0.6, -20.0);\n        let screen = editor.camera.view_projection().transform_point(&point);\n        assert!((0.0..1.0).contains(&screen[2]));\n        // Remove the nearer surfaces without changing the camera: the distant one remains reachable.\n        let near: Vec<_> = editor.scene.objects().iter().filter(|object| object.id != id).map(|object| object.id).collect();\n        for id in near { editor.scene.remove(id); }\n        editor.apply(Action::Pick([screen[0] as f32, screen[1] as f32])).unwrap();\n        assert_eq!(editor.selected, Some(id));\n    }\n}\n\n#[test]\nfn fitting_scaled_model_coordinates_preserves_screen_scale() {\n    for mode in [Projection::Perspective, Projection::Orthographic] {\n        let mut projected = Vec::new();\n        for scale in [0.001_f32, 1.0, 10_000.0] {\n            let mut editor = Editor::default();\n            editor.camera.projection = mode;\n            let id = editor.scene.insert(Mesh::new(vec![\n                [0.0, 0.0, 0.0, 0.9, 0.25, 0.45],\n                [scale, 0.0, 0.0, 0.9, 0.25, 0.45],\n                [0.0, scale, 0.0, 0.9, 0.25, 0.45],\n            ], vec![0, 1, 2]).unwrap()).unwrap();\n            editor.selected = Some(id);\n            editor.apply(Action::Fit).unwrap();\n            let point = editor.camera.view_projection().transform_point(&Point::new(scale as f64, 0.0, 0.0));\n            projected.push([point[0], point[1]]);\n            assert_eq!(editor.scene.objects().last().unwrap().mesh.vertices()[1][0], scale);\n        }\n        for point in &projected[1..] {\n            for i in 0..2 { assert!((point[i] - projected[0][i]).abs() < 1.0e-6); }\n        }\n    }\n}\n",
+    "journey/code/26-selection-fit-fullscreen-1.rs": "#[cfg(test)]\nmod projection_tests;\n#[cfg(test)]\nmod selection_fit_tests;\n#[cfg(test)]\nmod shortcut_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
+    "journey/code/26-selection-fit-fullscreen-2.rs": "    window.add_event_listener_with_callback(\"viewer-file\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Fit frames the selection, or the whole scene when nothing is selected.\");\n    Ok(())\n}\n\n"
+  }
+}

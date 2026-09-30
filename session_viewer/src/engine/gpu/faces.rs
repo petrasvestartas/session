@@ -1,9 +1,11 @@
-use super::buffers::{GpuCtx, GrowBuf, ROWS};
+use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
 use super::frame::Binds;
 use super::slots::{Slots, clamp, slot_layout};
+use crate::engine::pipelines::bindings::buffer_entry;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build,
 };
+use wgpu::{BufferBindingType, ShaderStages};
 
 pub use super::arena::{FACE_TAG, FaceSource};
 
@@ -38,19 +40,16 @@ impl Faces {
     pub fn new(ctx: &GpuCtx, layouts: &Layouts, shader: &Shader, target: Target) -> Self {
         // bindings 0-3 are storage buffers, 4 is the selection
         let entries: Vec<_> = (0..5)
-            .map(|binding| wgpu::BindGroupLayoutEntry {
-                binding,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: if binding == 4 {
-                        wgpu::BufferBindingType::Uniform
+            .map(|binding| {
+                buffer_entry(
+                    binding,
+                    ShaderStages::VERTEX,
+                    if binding == 4 {
+                        BufferBindingType::Uniform
                     } else {
-                        wgpu::BufferBindingType::Storage { read_only: true }
+                        BufferBindingType::Storage { read_only: true }
                     },
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
+                )
             })
             .collect();
         let layout = ctx
@@ -110,19 +109,7 @@ impl Faces {
             &self.ids.buf,
             &self.selected,
         ];
-        let entries: Vec<_> = buffers
-            .iter()
-            .enumerate()
-            .map(|(binding, buffer)| wgpu::BindGroupEntry {
-                binding: binding as u32,
-                resource: buffer.as_entire_binding(),
-            })
-            .collect();
-        self.group = Some(ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("source faces"),
-            layout: &self.layout,
-            entries: &entries,
-        }));
+        self.group = Some(bind_group(ctx, &self.layout, "source faces", &buffers));
     }
 
     /// Overwrite one object's faces in place.

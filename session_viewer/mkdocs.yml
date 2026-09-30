@@ -1,79 +1,19 @@
-site_name: Build the Session Viewer
-site_description: A code-first course that reconstructs the Rust, WebAssembly, WebGPU and WGSL viewer step by step.
-docs_dir: target/docs/source
-# The lesson crates are read by the snippets extension, not copied into the site; the other
-# entries are build tools and sources that no page links to.
-exclude_docs: |
-  docs/lessons/
-  docs/hooks/
-  docs/overrides/
-  docs/diagrams/
-  docs/**/__pycache__/
-  docs/*.py
-  docs/*.sh
-  docs/*.cjs
-  docs/illustrations/*.py
-  docs/stylesheets/*.py
-  docs/stylesheets/*.json
-site_dir: target/docs/site
-dev_addr: 127.0.0.1:8772
-theme:
-  name: material
-  custom_dir: docs/overrides
-  font: false
-  palette:
-    scheme: default
-    primary: custom
-    accent: custom
-  features:
-    - navigation.footer
-    - navigation.top
-    - search.highlight
-    - content.code.copy
-    - content.code.annotate
-    - content.lazy
-plugins:
-  - search
-# lean_html trims the rendered pages, service_worker writes sw.js; docs/performance-patterns.md, "Course site weight".
-hooks:
-  - docs/hooks/lean_html.py
-  - docs/hooks/service_worker.py
-validation:
-  nav:
-    omitted_files: ignore
-markdown_extensions:
-  - tables
-  - attr_list
-  - md_in_html
-  - toc:
-      permalink: true
-  - pymdownx.details
-  - pymdownx.snippets:
-      base_path:
-        - !relative $config_dir/docs
-        - !relative $config_dir/..
-      check_paths: true # a missing file or section fails the build by name
-  - pymdownx.highlight:
-      pygments_lang_class: true
-      guess_lang: false
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-extra_css:
-  - docs/stylesheets/theme.css
-  - docs/stylesheets/course.css
-extra_javascript:
-  - docs/js/viewer.js
-watch:
-  - docs
-  - ARCHITECTURE.md
+# Navigation data read by the Vue course plugin. No MkDocs runtime is used.
 nav:
   - Before you start:
     - Start here: docs/README.md
-    - How to use this course: docs/how-to-learn.md
-    - The map: docs/map.md
+    - Course route: docs/journey.md
+    - Save and recover: docs/journey/recovery.md
+    - Corrections: docs/journey/corrections.md
+    - Destination contract: docs/journey/destination.md
+    - Command-line revision: docs/journey/command-line.md
+    - Complete lesson checklist: docs/journey/roadmap.md
+    - Release evidence: docs/journey/release.md
+  - Reference guides:
+    - Complete implementation: docs/reference-course.md
+    - Viewer map and time plan: docs/map.md
+    - Reference workflow: docs/how-to-learn.md
+    - Rust foundations: docs/foundations.md
     - Words before code: docs/words.md
   - Course:
     - "00 · Empty project to a WASM message": docs/00-environment.md

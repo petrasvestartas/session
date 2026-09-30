@@ -1,0 +1,15 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+controls: "Pan / zoom / reset" {class: box}
+camera: "Camera owns centre and scale" {class: focus}
+values: "offset = −centre × scale" {class: box}
+renderer: "Renderer uploads four values" {class: box}
+mesh: "The same four world positions" {class: box}
+image: "A different view of the same mesh" {class: focus}
+controls -> camera -> values -> renderer -> image
+mesh -> image

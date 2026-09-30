@@ -1,0 +1,17 @@
+{
+  "source": "a4ddcd657ace8bfd31dff285a0617d987e4e6c55730fd05ab15a1845d790d672",
+  "chrome": "153.0.8010.36",
+  "headed": true,
+  "checks": [
+    "inline completion",
+    "Enter execution",
+    "exact scene-pixel round trip",
+    "Escape",
+    "history expansion"
+  ],
+  "pictures": {
+    "command-dock-preview-completion.png": "2b05d6bae91d1b0bb2771f7dfdf235ea7d743fc95b7c69bfe0f6e60f2c2b38ac",
+    "command-dock-preview-history.png": "9b65141e695ce3c8aa9727681a6402cb5fdc50ee09c39bbad74f75e8b71c8b16"
+  },
+  "status": "integration preview; not a completed typing lesson"
+}

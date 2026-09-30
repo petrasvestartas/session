@@ -3,14 +3,13 @@ use crate::State;
 use crate::app::command::{Action, Spec, on_off};
 
 pub const SPEC: Spec = Spec {
-    names: &["Layers"],
-    aliases: &[],
-    hint: "Layers (On Off): show or hide the layer panel",
     options: &["Layers On", "Layers Off"],
-    arity: None,
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Layers"],
+        "Layers (On Off): show or hide the layer panel",
+        parse,
+    )
 };
 
 /// Show or hide the layer panel.

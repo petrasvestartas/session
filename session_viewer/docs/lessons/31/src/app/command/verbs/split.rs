@@ -3,14 +3,12 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Split"],
-    aliases: &[],
-    hint: "Select a curve or face · Split · choose cutter curves · Enter confirms · Esc cancels",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Split"],
+        "Select a curve or face · Split · choose cutter curves · Enter confirms · Esc cancels",
+        parse,
+    )
 };
 
 /// Cut a curve or face with other curves.

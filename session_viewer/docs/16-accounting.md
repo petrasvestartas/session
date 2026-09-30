@@ -1,157 +1,709 @@
 # 16 · Resource accounting and release
 
-Accounting counts the bytes the loaded documents keep alive, once per shared value, for the inspection snapshot. Release then drops a display-only document's kernel objects once the walk has copied it to the GPU, keeping only each row's name and type.
+**Estimated study time: about 75–150 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Track shared CPU/GPU allocations and release resources at the right time.
+
+**In the whole viewer:** This controls the lifetime and cost of the viewer’s representations as scenes change, grow and disappear.
+
+**Follow the data:** Scene ownership → shared allocations → accounting → reset or release.
+
+**Start with these files:** [`src/app/inspection/source_memory.rs`](16-accounting.md#code-16-020), [`src/app/scene_release.rs`](16-accounting.md#code-16-027).
+
+**Aim to explain:** Why can dropping a CPU reference fail to return the corresponding GPU allocation immediately?
+
+[Whole-viewer map and course milestones](map.md)
+
+Two objects can refer to the same allocation. Adding its size for every reference would exaggerate memory use. Resource accounting therefore tracks which shared allocations it has already seen. Releasing an unused GPU resource is a separate operation from merely forgetting a CPU reference.
 
 ![Scene owns documents through Rc; the cache keeps Weak identities and a payload figure, reuses it while the pointers match, walks once when a document is replaced, and never keeps a dropped document alive.](illustrations/source-cache.svg)
 
-## Step 1 · src/app/inspection/source_memory.rs
+Start from the working result of [step 15](15-publication.md).
 
-The payload figures by category, and how a Vec, a Collection, a slice, a map or a String adds to them.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 7,153 lines across 39 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/16/src/app/inspection/source_memory.rs` · type this, new file
+<span id="code-16-001"></span>
 
-```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:payload"
-```
+## `assets/pb/.gitkeep`
 
-## Step 2 · src/app/inspection/source_memory.rs
+Git records files rather than empty directories. This empty placeholder preserves a directory expected by the build. There is deliberately no code to type into it.
 
-Reuse the last count while the documents are the same Rc pointers; count again once when one is replaced.
+Create this file. Type the complete listing, including comments and blank lines.
 
-`lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
+Leave this file empty.
 
-```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:source-cache"
-```
+<span id="code-16-002"></span>
 
-## Step 3 · src/app/inspection/source_memory.rs
+## `examples/add_lod.rs`
 
-Count each shared Rc value once, whichever list or lookup reaches it.
-
-`lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:shared-values"
+--8<-- "typing/code/16-002.rs"
 ```
 
-## Step 4 · src/app/inspection/source_memory.rs
+<span id="code-16-003"></span>
 
-One session's bytes: every object list with its dead slots, the undo history, lookups, placements, instances and definitions.
+## `examples/cad_boundary_audit.rs`
 
-`lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:session-payload"
+--8<-- "typing/code/16-003.rs"
 ```
 
-## Step 5 · src/app/inspection/source_memory.rs
+<span id="code-16-004"></span>
 
-Counters for points, lines, planes, boxes, polylines, clouds and curves.
+## `examples/cad_fixture.rs`
 
-`lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:simple-payload"
+--8<-- "typing/code/16-004.rs"
 ```
 
-## Step 6 · src/app/inspection/source_memory.rs
+<span id="code-16-005"></span>
 
-Counters for surfaces, trimmed surfaces, BReps, meshes and elements.
+## `examples/census_plates.rs`
 
-`lessons/16/src/app/inspection/source_memory.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:solid-payload"
+--8<-- "typing/code/16-005.rs"
 ```
 
-## Step 7 · src/app/inspection/source_memory.rs
+<span id="code-16-006"></span>
 
-Tests: a shared geometry counts once, a replaced session is counted again and freed, and cloud slices count apart.
+## `examples/check_determinism.rs`
 
-`lessons/16/src/app/inspection/source_memory.rs` · copy, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/inspection/source_memory.rs:memory-tests"
+--8<-- "typing/code/16-006.rs"
 ```
 
-## Step 8 · src/app/inspection.rs
+<span id="code-16-007"></span>
 
-One source cache for the page, kept between inspection snapshots.
+## `examples/interaction_fixture.rs`
 
-`lessons/16/src/app/inspection.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/inspection.rs:source-memory"
+--8<-- "typing/code/16-007.rs"
 ```
 
-## Step 9 · src/app/scene.rs
+<span id="code-16-008"></span>
 
-A released row keeps its geometry type; a released document keeps its file, a token and each row's name.
+## `examples/mk_brep_probe.rs`
 
-`lessons/16/src/app/scene.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/scene.rs:released"
+--8<-- "typing/code/16-008.rs"
 ```
 
-## Step 10 · src/app/scene_release.rs
+<span id="code-16-009"></span>
 
-Open `impl Scene` in its own file: drop a display-only document's objects, keeping its rows, names, types and tree.
+## `examples/mk_cylinder_hidden_probe.rs`
 
-`lessons/16/src/app/scene_release.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/scene_release.rs:release"
+--8<-- "typing/code/16-009.rs"
 ```
 
-## Step 11 · src/app/scene_release.rs
+<span id="code-16-010"></span>
 
-Answer a released row's document, type and name without its objects; the brace closes the impl.
+## `examples/mk_hidden_line_probe.rs`
 
-`lessons/16/src/app/scene_release.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/scene_release.rs:release-rows"
+--8<-- "typing/code/16-010.rs"
 ```
 
-## Step 12 · src/app/scene_release.rs
+<span id="code-16-011"></span>
 
-Test fixtures that lesson 21 reuses: a small sheet, and a scene holding it as its one document.
+## `examples/mk_joint_probe.rs`
 
-`lessons/16/src/app/scene_release.rs` · copy, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/app/scene_release.rs:release-fixtures"
+--8<-- "typing/code/16-011.rs"
 ```
 
-## Step 13 · src/state.rs
+<span id="code-16-012"></span>
 
-After the walk, State releases a display-only document that came with its file URL.
+## `examples/mk_mixed_solids.rs`
 
-`lessons/16/src/state.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/16/src/state.rs:release-state"
+--8<-- "typing/code/16-012.rs"
 ```
 
-## Step 14 · examples, tests and assets
+<span id="code-16-013"></span>
 
-Copy these files from `lessons/16/`; they are checked, not explained.
+## `examples/mk_plate_outline.rs`
 
-- `assets/pb/.gitkeep` and `assets/pb/view_mixed_teapot.pb`
-- `examples/`: `add_lod.rs`, `cad_boundary_audit.rs`, `cad_fixture.rs`, `census_plates.rs`, `check_determinism.rs`, `interaction_fixture.rs`, `mk_brep_probe.rs`, `mk_cylinder_hidden_probe.rs`, `mk_hidden_line_probe.rs`, `mk_joint_probe.rs`, `mk_mixed_solids.rs`, `mk_plate_outline.rs`, `mk_shade_probe.rs` and `mk_teapot.rs`
-- `tests/`: `README.md`, `cad-boundary-plot.py`, `cad-quality.py`, `format.py`, `interaction.cjs`, `nameplate-scene.cjs`, `nameplate.cjs`, `teapot.cjs`, `text-quality.cjs`, `world-text.cjs` and the whole `tests/depth/` folder
+Create this file. Type the complete listing, including comments and blank lines.
 
-## Step 15 · registration lines
+```rust
+--8<-- "typing/code/16-013.rs"
+```
 
-Copy the lines tagged `register:release` from these files of `lessons/16/`:
+<span id="code-16-014"></span>
 
-- `src/app/scene.rs`: the `release` module with its `#[path]` line, the released-name hook, the `released` and `asked` fields, their start values and clear.
-- `src/app/inspection.rs`: the `source_memory` module, the snapshot count and its four `source_cpu_*` fields.
-- `src/state.rs`: releasing the document after it is appended.
+## `examples/mk_shade_probe.rs`
 
-Run `cargo check` in `lessons/16/`.
+Create this file. Type the complete listing, including comments and blank lines.
 
-## Check
+```rust
+--8<-- "typing/code/16-014.rs"
+```
 
-`cargo check` compiles with the tests and examples, and `cargo xtest --lib source_memory` passes. The scene looks the same; with `?inspect=1` the snapshot adds `source_cpu_known_payload_bytes`, and a display-only document keeps its rows drawn after its objects are freed.
+<span id="code-16-015"></span>
+
+## `examples/mk_teapot.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/16-015.rs"
+```
+
+<span id="code-16-016"></span>
+
+## `src/app/inspection.rs`
+
+Insert **after line 3** of your current file.
+
+Keep these preceding lines:
+
+```rust
+// Inspection = a JSON snapshot of the viewer written onto the canvas, so browser tests read counters without a debugger.
+#[cfg(target_arch = "wasm32")]
+use crate::State;
+```
+
+Keep these following lines:
+
+```rust
+
+/// Write the viewer state onto the canvas for browser tests.
+#[cfg(target_arch = "wasm32")]
+pub fn publish(state: &State) {
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/16-016.rs"
+```
+
+<span id="code-16-017"></span>
+
+## `src/app/inspection.rs`
+
+Insert **after line 22** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    let Some(canvas) = document.get_element_by_id("canvas") else {
+        return;
+    };
+    let (buffers, textures) = state.gpu.allocated_bytes();
+```
+
+Keep these following lines:
+
+```rust
+    let parent = state.scene.selected;
+    let model = match parent {
+        Some(row) => state.gpu.objects.anchored_model(row),
+        None => None,
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/16-017.rs"
+```
+
+<span id="code-16-018"></span>
+
+## `src/app/inspection.rs`
+
+Insert **after line 54** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        "canvas": [state.gpu.config.width, state.gpu.config.height],
+        "logical_canvas": state.gpu.logical_size,
+        "samples": state.gpu.targets.samples,
+        "outlines": state.gpu.view.show_outlines,
+```
+
+Keep these following lines:
+
+```rust
+        "text_cpu_raster_image_capacity_bytes": state.gpu.text.stats.raster_image_capacity_bytes,
+        "text_cpu_scope": "Swash image byte-vector capacity only; font/shaper/layout/hash metadata excluded",
+        "gpu_buffer_capacity_bytes": buffers,
+        "gpu_texture_estimate_bytes": textures,
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/16-018.rs"
+```
+
+<span id="code-16-019"></span>
+
+## `src/app/inspection.rs`
+
+Append **after line 187** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/16-019.rs"
+```
+
+<span id="code-16-020"></span>
+
+## `src/app/inspection/source_memory.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/16-020.rs"
+```
+
+<span id="code-16-021"></span>
+
+## `src/app/scene.rs`
+
+Insert **before the first line** of your current file.
+
+Keep these following lines:
+
+```rust
+#[path = "scene_rows.rs"]
+pub(crate) mod rows;
+
+use crate::app::walk::bounds::{Baselines, file_extent, mark_sheet, planar_band};
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/16-021.rs"
+```
+
+<span id="code-16-022"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 50** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+/// Names a row has before its geometry's own: a text's, a sheet entity's, an instance's, a released row's.
+// `for<'a>`: each function takes any borrow of the scene and returns a name that lives as long as that borrow.
+const NAMERS: &[for<'a> fn(&'a Scene, u32) -> Option<&'a str>] = &[
+```
+
+Keep these following lines:
+
+```rust
+];
+
+/// The open documents and their object rows; a row id stays with its object for the object's life.
+pub struct Scene {
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/16-022.rs"
+```
+
+<span id="code-16-023"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 95** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    pub(crate) current_layer: Option<(usize, String)>, // (document, tree node) new objects go to
+    pub(crate) layer_steps: u64,                      // layer steps made, for unique labels
+    pub(crate) groups: HashSet<(usize, Rc<str>)>, // (document, tree node guid) of each group
+    pub(crate) text_rows: Vec<u32>, // text rows an undo, redo or delete showed or hid, for the GPU
+```
+
+Keep these following lines:
+
+```rust
+    stream_ceiling: u32,        // most streamed points on the page; register:stream
+    #[cfg(test)]
+    pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
+    #[cfg(test)]
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/16-023.rs"
+```
+
+<span id="code-16-024"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 161** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            current_layer: None,
+            layer_steps: 0,
+            groups: HashSet::new(),
+            text_rows: Vec::new(),
+```
+
+Keep these following lines:
+
+```rust
+            stream_ceiling: 0,               // register:stream
+            #[cfg(test)]
+            ledger: HashMap::new(),
+            #[cfg(test)]
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/16-024.rs"
+```
+
+<span id="code-16-025"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 178** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        self.undo_steps.clear();
+        self.redo_steps.clear();
+        self.current_layer = None;
+        self.groups.clear();
+```
+
+Keep these following lines:
+
+```rust
+        self.docs.clear();
+        self.doc_state.clear();
+        self.text_rows.clear();
+        self.hidden.clear();
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/16-025.rs"
+```
+
+<span id="code-16-026"></span>
+
+## `src/app/scene.rs`
+
+Append **after line 1042** of your current file.
+
+Blank lines before: **1**; after: **1**. End with a newline.
+
+```rust
+--8<-- "typing/code/16-026.rs"
+```
+
+<span id="code-16-027"></span>
+
+## `src/app/scene_release.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/16-027.rs"
+```
+
+<span id="code-16-028"></span>
+
+## `src/state.rs`
+
+Insert **after line 108** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        let t1 = now_ms();
+        // only the new rows go to the GPU
+        self.scene.upload_to(&mut self.gpu);
+        self.camera.grow_extent(&self.gpu.bounds);
+```
+
+Keep these following lines:
+
+```rust
+
+        // the layer panel lists the new rows
+        log::info!(
+            "appended: walk {:.0} ms, upload {:.0} ms | {} docs | memory observation {:.0} MiB",
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/16-028.rs"
+```
+
+<span id="code-16-029"></span>
+
+## `src/state.rs`
+
+Append **after line 899** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/16-029.rs"
+```
+
+<span id="code-16-030"></span>
+
+## `tests/README.md`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+````markdown
+--8<-- "typing/code/16-030.md"
+````
+
+<span id="code-16-031"></span>
+
+## `tests/cad-boundary-plot.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-031.py"
+```
+
+<span id="code-16-032"></span>
+
+## `tests/cad-quality.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-032.py"
+```
+
+<span id="code-16-033"></span>
+
+## `tests/depth/_closeup_box.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-033.py"
+```
+
+<span id="code-16-034"></span>
+
+## `tests/depth/_count_colors.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-034.py"
+```
+
+<span id="code-16-035"></span>
+
+## `tests/depth/_gate.sh`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```sh
+--8<-- "typing/code/16-035.sh"
+```
+
+<span id="code-16-036"></span>
+
+## `tests/depth/_hidden_line_matrix.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-036.py"
+```
+
+<span id="code-16-037"></span>
+
+## `tests/depth/_ink_suite.sh`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```sh
+--8<-- "typing/code/16-037.sh"
+```
+
+<span id="code-16-038"></span>
+
+## `tests/depth/_orbit_check.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-038.py"
+```
+
+<span id="code-16-039"></span>
+
+## `tests/depth/_probe_matrix.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-039.py"
+```
+
+<span id="code-16-040"></span>
+
+## `tests/depth/_shade_scanline.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-040.py"
+```
+
+<span id="code-16-041"></span>
+
+## `tests/depth/_stroke_weight.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-041.py"
+```
+
+<span id="code-16-042"></span>
+
+## `tests/format.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/16-042.py"
+```
+
+<span id="code-16-043"></span>
+
+## `tests/interaction.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/16-043.cjs"
+```
+
+<span id="code-16-044"></span>
+
+## `tests/nameplate-scene.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/16-044.cjs"
+```
+
+<span id="code-16-045"></span>
+
+## `tests/nameplate.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/16-045.cjs"
+```
+
+<span id="code-16-046"></span>
+
+## `tests/teapot.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/16-046.cjs"
+```
+
+<span id="code-16-047"></span>
+
+## `tests/text-quality.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/16-047.cjs"
+```
+
+<span id="code-16-048"></span>
+
+## `tests/world-text.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/16-048.cjs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 16
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native accounting and lifecycle tests. Identify one shared allocation and one resource that must be destroyed when the scene releases it.
+
+If reported memory is too high, inspect shared ownership before shrinking buffers. If browser memory stays high after release, check the explicit GPU destruction path.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+CPU ownership and GPU resource lifetime are distinct. The renderer must follow its explicit destruction and release rules rather than assume a dropped wrapper has freed storage.
+
+</details>
+
+[Next step: 17](17-source-presentation.md)

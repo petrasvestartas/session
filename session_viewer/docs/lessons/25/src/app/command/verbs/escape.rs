@@ -2,14 +2,13 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Escape"],
     aliases: &["esc"],
-    hint: "",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Escape"],
+        "",
+        parse,
+    )
 };
 
 /// Cancel the running command, else clear the selection.

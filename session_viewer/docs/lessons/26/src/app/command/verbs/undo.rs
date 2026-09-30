@@ -3,14 +3,12 @@ use crate::app::command::{Action, Spec};
 
 // A verb that needs no points is a plain Spec: names, a parser, and an Action type.
 pub const SPEC: Spec = Spec {
-    names: &["Undo"],
-    aliases: &[],
-    hint: "",
-    options: &[],
     arity: Some(0), // `Undo 3` is refused before parse runs
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Undo"],
+        "",
+        parse,
+    )
 };
 
 /// Step one edit back.

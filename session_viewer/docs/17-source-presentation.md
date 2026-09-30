@@ -1,346 +1,895 @@
 # 17 · Source faces, text objects and one silhouette
 
-Ctrl + Shift + click selects one face of a solid, scene text becomes objects you can pick and undo, and O draws one black border around every visible solid. The border comes from a mask of what is visible, searched pixel by pixel for its edge.
+**Estimated study time: about 30–60 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
 
-## Step 1 · src/engine/gpu/faces.rs
+**This section:** Present selected source faces, labels and a consistent silhouette.
 
-A second `impl Faces` block: the face behind a pick id, a face's address, and the highlighted draw.
+**In the whole viewer:** Presentation uses the same source identity as selection while combining several display pieces into one understandable object.
 
-`lessons/17/src/engine/gpu/faces.rs` · type this, append at the end of the file
+**Follow the data:** Selected source → mapped display rows and bounds → coverage and labels → highlighted object.
 
-```rust
---8<-- "lessons/17/src/engine/gpu/faces.rs:face-source"
-```
+**Start with these files:** [`src/state/text.rs`](17-source-presentation.md#code-17-034), [`src/engine/gpu/surface_outline.rs`](17-source-presentation.md#code-17-018).
 
-## Step 2 · src/state.rs
+**Aim to explain:** How can one source object drawn in many pieces still receive one meaningful nameplate?
 
-A face pick selects that face, moves the selection outline to its object and names it in the status line.
+[Whole-viewer map and course milestones](map.md)
 
-`lessons/17/src/state.rs` · type this, append at the end of the file
+A useful nameplate must follow the original object, even when that object is drawn as many pieces. We find the selected source, obtain its bounds, and place the label relative to those bounds. The text renderer then handles shaping and drawing.
 
-```rust
---8<-- "lessons/17/src/state.rs:pick-face"
-```
+![Source bounds → World anchor → Nameplate.](illustrations/17-practice.svg)
 
-## Step 3 · src/app/scene_text.rs
+Start from the working result of [step 16](16-accounting.md).
 
-A text object is a label plus the scene row that makes it pickable, hideable and undoable.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 2,769 lines across 18 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/17/src/app/scene_text.rs` · type this, new file
+<span id="code-17-001"></span>
 
-```rust
---8<-- "lessons/17/src/app/scene_text.rs:scene-text"
-```
+## `src/lib.rs`
 
-## Step 4 · src/app/scene_text.rs
+Insert **after line 45** of your current file.
 
-Open `impl Scene`: the manifest's texts and a document title replace the old ones and keep their rows.
-
-`lessons/17/src/app/scene_text.rs` · type this, append at the end of the file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/17/src/app/scene_text.rs:manifest-texts"
+/// Messages the async loader sends to the event loop.
+pub enum Msg {
+    Ready(Box<State>),                              // GPU is up, here is the state
+    File(FileDoc, Option<String>), // one loaded file; a display-only one names its file
 ```
 
-## Step 5 · src/app/scene_text.rs
-
-A known key reuses its row, a new one pushes a TEXT row, so a reloaded manifest keeps its selection.
-
-`lessons/17/src/app/scene_text.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/17/src/app/scene_text.rs:register-text"
+    Clear,                         // empty the scene
+    Fit,                           // frame the camera on everything
+    StreamedCloud(Box<StreamedInit>), // a point cloud starts streaming; register:stream
+    CloudChunk(CloudChunk),        // more points arrived; register:stream
 ```
 
-## Step 6 · src/app/scene_text.rs
-
-Add, delete and step texts by undo label, then flag each changed row hidden or shown on the GPU.
-
-`lessons/17/src/app/scene_text.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/17/src/app/scene_text.rs:text-undo"
+--8<-- "typing/code/17-001.rs"
 ```
 
-## Step 7 · src/app/scene_text.rs
+<span id="code-17-002"></span>
 
-Find a text by row and list the visible ones with their selection flag; the brace closes the impl.
+## `src/lib.rs`
 
-`lessons/17/src/app/scene_text.rs` · type this, append at the end of the file
+Insert **after line 167** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/17/src/app/scene_text.rs:text-lookup"
+            Msg::Clear => state.clear(),
+            Msg::Fit => state.fit_loaded(),
+            Msg::File(doc, source) => state.append(doc, source),
+            Msg::Fonts(faces) => self.use_fonts(faces),   // register:loading
 ```
 
-## Step 8 · src/state/text.rs
-
-Open `impl State`: a loaded document's name floats above its solids, and a new text is one undo step.
-
-`lessons/17/src/state/text.rs` · type this, new file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/17/src/state/text.rs:annotate-document"
+            Msg::StreamedCloud(init) => start_stream(state, init), // register:stream
+            Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to), // register:stream
+            Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch), // register:cloud_query
+            Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved), // register:cloud_query
 ```
 
-## Step 9 · src/state/text.rs
-
-Load the full fonts, then send the scene's texts and the selected object's name to the text lane.
-
-`lessons/17/src/state/text.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/17/src/state/text.rs:update-label"
+--8<-- "typing/code/17-002.rs"
 ```
 
-## Step 10 · src/state/text.rs
+<span id="code-17-003"></span>
 
-Grow each text row's box around the shaped words, so fit, pick and select see the text; the brace closes the impl.
+## `src/lib.rs`
 
-`lessons/17/src/state/text.rs` · type this, append at the end of the file
+Insert **after line 313** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/17/src/state/text.rs:text-bounds"
+            .map(|face| &*Box::leak(face.into_boxed_slice()))
+            .collect();
+
+        if let Ok(faces) = <[&'static [u8]; 3]>::try_from(faces) {
 ```
 
-## Step 11 · src/state/text.rs
-
-Two helpers: the centre of a box and a rounded white-on-black nameplate.
-
-`lessons/17/src/state/text.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/17/src/state/text.rs:nameplate"
+        }
+    }
+}
 ```
 
-## Step 12 · src/state/text.rs
-
-A second `impl State` block with the one call the loader makes when texts arrive.
-
-`lessons/17/src/state/text.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/17/src/state/text.rs:set-texts"
+--8<-- "typing/code/17-003.rs"
 ```
 
-## Step 13 · src/shaders/surface_outline.wgsl
+<span id="code-17-004"></span>
 
-The two masks, their radius and coarse copies, and the table of neighbour offsets the search walks.
+## `examples/mk_selection_overlap.rs`
 
-`lessons/17/src/shaders/surface_outline.wgsl` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/17-004.rs"
+```
+
+<span id="code-17-005"></span>
+
+## `examples/mk_stroke_joins.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/17-005.rs"
+```
+
+<span id="code-17-006"></span>
+
+## `src/app/loader.rs`
+
+Insert **after line 198** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    for doc in docs {
+        post(Msg::File(doc, None));
+    }
+```
+
+Keep these following lines:
+
+```rust
+    post(Msg::Fit);
+    super::feedback::status("");
+    true
+}
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-006.rs"
+```
+
+<span id="code-17-007"></span>
+
+## `src/app/loader.rs`
+
+Insert **after line 471** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            }
+        }
+    }
+```
+
+Keep these following lines:
+
+```rust
+    post(Msg::Fit);
+
+    if !failed {
+        super::feedback::status(&skipped_notice(&skipped, budget));
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-007.rs"
+```
+
+<span id="code-17-008"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 4** of your current file.
+
+Keep these preceding lines:
+
+```rust
+#[path = "scene_release.rs"] // register:release
+mod release; // register:release
+#[path = "scene_rows.rs"]
+pub(crate) mod rows;
+```
+
+Keep these following lines:
+
+```rust
+
+use crate::app::walk::bounds::{Baselines, file_extent, mark_sheet, planar_band};
+use crate::app::walk::mesh::Lap;
+use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-008.rs"
+```
+
+<span id="code-17-009"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 53** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+/// Names a row has before its geometry's own: a text's, a sheet entity's, an instance's, a released row's.
+// `for<'a>`: each function takes any borrow of the scene and returns a name that lives as long as that borrow.
+const NAMERS: &[for<'a> fn(&'a Scene, u32) -> Option<&'a str>] = &[
+```
+
+Keep these following lines:
+
+```rust
+    Scene::released_object_name, // register:release
+];
+
+/// The open documents and their object rows; a row id stays with its object for the object's life.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-009.rs"
+```
+
+<span id="code-17-010"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 60** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+/// The open documents and their object rows; a row id stays with its object for the object's life.
+pub struct Scene {
+    pub docs: Vec<FileDoc>,                              // loaded files
+```
+
+Keep these following lines:
+
+```rust
+    pub tables: Upload,                                  // rows walked but not yet uploaded
+    pub streamed: Vec<StreamedCloud>,                    // streamed clouds; register:stream
+    pub hidden: HashSet<(usize, Rc<str>)>,               // (document, guid) hidden
+    pub locked: HashSet<(usize, Rc<str>)>,               // (document, guid) not selectable
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-010.rs"
+```
+
+<span id="code-17-011"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 127** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    /// Empty: no documents, no rows.
+    pub fn new() -> Self {
+        Self {
+            docs: Vec::new(),
+```
+
+Keep these following lines:
+
+```rust
+            tables: Upload::default(),
+            streamed: Vec::new(), // register:stream
+            hidden: HashSet::new(),
+            locked: HashSet::new(),
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-011.rs"
+```
+
+<span id="code-17-012"></span>
+
+## `src/app/scene.rs`
+
+Insert **after line 188** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        self.released.clear(); // register:release
+        self.asked.borrow_mut().clear(); // register:release
+        self.docs.clear();
+        self.doc_state.clear();
+```
+
+Keep these following lines:
+
+```rust
+        self.text_rows.clear();
+        self.hidden.clear();
+        self.locked.clear();
+        self.colors.clear();
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-012.rs"
+```
+
+<span id="code-17-013"></span>
+
+## `src/app/scene_text.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/17-013.rs"
+```
+
+<span id="code-17-014"></span>
+
+## `src/engine/gpu/faces.rs`
+
+Append **after line 354** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/17-014.rs"
+```
+
+<span id="code-17-015"></span>
+
+## `src/engine/gpu/mod.rs`
+
+Insert **after line 24** of your current file.
+
+Keep these preceding lines:
+
+```rust
+pub mod present; // register:present
+pub mod render; // register:render
+pub mod segments; // register:segments
+pub mod splat; // register:splat
+```
+
+Keep these following lines:
+
+```rust
+pub mod targets; // register:targets
+pub mod text; // register:text
+pub mod text_outline; // register:text_outline
+mod triangle_tiles; // register:triangle_tiles
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-015.rs"
+```
+
+<span id="code-17-016"></span>
+
+## `src/engine/gpu/pass.rs`
+
+Insert **after line 103** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+// Empty in the first lessons: each pass a later lesson writes adds one line here.
+/// The passes in frame order. Adding one means its `Pass` impl in one file and one line here.
+pub const PASSES: &[fn(&GpuCtx, Target) -> Box<dyn Pass>] = &[
+```
+
+Keep these following lines:
+
+```rust
+];
+
+// `pub(super)` = visible to the parent module, `gpu`, and no further.
+/// Stands in the list for a pass while its own hook runs.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-016.rs"
+```
+
+<span id="code-17-017"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 101** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        let v = &self.view;
+        let basic = self.frame.binds(&self.objects.group);
+        let b = self.frame.binds(self.objects.ink_group());
+        let mut draws = 0;
+```
+
+Keep these following lines:
+
+```rust
+        draws += self.arena.draw_print(pass, &basic);
+        draws += self
+            .segments
+            .draw_unselected(pass, &b, v.show_mesh_edges, v.show_lines);
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-017.rs"
+```
+
+<span id="code-17-018"></span>
+
+## `src/engine/gpu/surface_outline.rs`
+
+A surface silhouette depends on the current view. It is different from drawing every triangle edge. Coverage, depth and identity information help find meaningful boundaries without exposing the tessellation.
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/17-018.rs"
+```
+
+<span id="code-17-019"></span>
+
+## `src/engine/gpu/surface_outline/tests.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/17-019.rs"
+```
+
+<span id="code-17-020"></span>
+
+## `src/shaders/face_coverage.wgsl`
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```wgsl
---8<-- "lessons/17/src/shaders/surface_outline.wgsl:outline-inputs"
+--8<-- "typing/code/17-020.wgsl"
 ```
 
-## Step 14 · src/shaders/surface_outline.wgsl
+<span id="code-17-021"></span>
 
-Search both masks within the radius, nearest offsets first, and store the outline strength as one byte per pixel.
+## `src/shaders/surface_outline.wgsl`
 
-`lessons/17/src/shaders/surface_outline.wgsl` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```wgsl
---8<-- "lessons/17/src/shaders/surface_outline.wgsl:outline-search"
+--8<-- "typing/code/17-021.wgsl"
 ```
 
-## Step 15 · src/shaders/surface_outline.wgsl
+<span id="code-17-022"></span>
 
-Blend black over the scene with that strength.
+## `src/state.rs`
 
-`lessons/17/src/shaders/surface_outline.wgsl` · type this, append at the end of the file
+Insert **after line 13** of your current file.
 
-```wgsl
---8<-- "lessons/17/src/shaders/surface_outline.wgsl:outline-blend"
-```
-
-## Step 16 · src/shaders/surface_outline.wgsl
-
-Shrink a mask to block maxima, then grow those by one block, so the search can skip empty regions.
-
-`lessons/17/src/shaders/surface_outline.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/17/src/shaders/surface_outline.wgsl:outline-pool"
-```
-
-## Step 17 · src/shaders/face_coverage.wgsl
-
-A mask pixel's coverage is the share of its samples where the face pass left a triangle.
-
-`lessons/17/src/shaders/face_coverage.wgsl` · type this, new file
-
-```wgsl
---8<-- "lessons/17/src/shaders/face_coverage.wgsl:face-fraction"
-```
-
-## Step 18 · src/shaders/face_coverage.wgsl
-
-Inside an MSAA mask pass: full coverage on exactly the samples that show a face.
-
-`lessons/17/src/shaders/face_coverage.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/17/src/shaders/face_coverage.wgsl:face-samples"
-```
-
-## Step 19 · src/engine/gpu/surface_outline.rs
-
-One coverage mask with its MSAA target and its two coarse copies.
-
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, new file
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-mask"
+use crate::engine::performance::{heap_mb, now_ms};
+// Each `mod` line below carries a `register` tag naming its feature; the course adds the line in that feature's lesson.
+mod cloud_query; // register:cloud_query
+mod features; // register:features
 ```
 
-## Step 20 · src/engine/gpu/surface_outline.rs
-
-The tap table, the alpha texture and the face coverage pipelines.
-
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-tables"
+use features::Features;
+use std::sync::Arc;
+use winit::window::Window;
 ```
 
-## Step 21 · src/engine/gpu/surface_outline.rs
-
-The key a mask was drawn for, the two outline kinds, and the SurfaceOutline that owns everything above.
-
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-struct"
+--8<-- "typing/code/17-022.rs"
 ```
 
-## Step 22 · src/engine/gpu/surface_outline.rs
+<span id="code-17-023"></span>
 
-Open `impl SurfaceOutline`: layouts, the radius uniform and the pipelines; textures wait for the first frame.
+## `src/state.rs`
 
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Insert **after line 109** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-new"
+        let t1 = now_ms();
+        // only the new rows go to the GPU
+        self.scene.upload_to(&mut self.gpu);
+        self.camera.grow_extent(&self.gpu.bounds);
 ```
 
-## Step 23 · src/engine/gpu/surface_outline.rs
-
-The cache check, one pass that writes both masks against the scene depth, and selection bookkeeping that frees an unused mask.
-
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-masks"
+        self.release_display_only(index, first_row, source); // register:release
+
+        // the layer panel lists the new rows
+        log::info!(
 ```
 
-## Step 24 · src/engine/gpu/surface_outline.rs
-
-Make the mask textures for this canvas size, sample count and block size, and write the radius.
-
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-prepare"
+--8<-- "typing/code/17-023.rs"
 ```
 
-## Step 25 · src/engine/gpu/surface_outline.rs
+<span id="code-17-024"></span>
 
-Build the tap table and the one-byte alpha texture, or free both when no outline is due.
+## `src/state.rs`
 
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Insert **after line 113** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-alpha"
+        self.annotate_document(first_row); // register:scene_text
+        self.release_display_only(index, first_row, source); // register:release
+
+        // the layer panel lists the new rows
 ```
 
-## Step 26 · src/engine/gpu/surface_outline.rs
-
-Open a mask pass, fill it from the face pass's triangle ids, then pool and dilate it.
-
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-passes"
+        log::info!(
+            "appended: walk {:.0} ms, upload {:.0} ms | {} docs | memory observation {:.0} MiB",
+            t1 - t0,
+            now_ms() - t1,
 ```
 
-## Step 27 · src/engine/gpu/surface_outline.rs
-
-Search the masks into the alpha only when one changed, blend it, and count the bytes; the brace closes the impl.
-
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-composite"
+--8<-- "typing/code/17-024.rs"
 ```
 
-## Step 28 · src/engine/gpu/surface_outline.rs
+<span id="code-17-025"></span>
 
-The outline width in pixels, the block size and the sorted tap offsets.
+## `src/state.rs`
 
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Insert **after line 150** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-radius"
+        }
+
+        self.scene.bounds_stale = false;
+        self.gpu.bounds = self.gpu.objects.live_world_bounds();
 ```
 
-## Step 29 · src/engine/gpu/surface_outline.rs
-
-The composite, alpha, pool and face coverage pipelines.
-
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-pipelines"
+    }
+
+    /// Fit the camera to everything loaded.
+    pub fn fit_all(&mut self) {
 ```
 
-## Step 30 · src/engine/gpu/surface_outline.rs
-
-Tests: one border around touching solids, none for a hidden selection, freed masks, and no pipeline compiled twice.
-
-`lessons/17/src/engine/gpu/surface_outline.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-tests"
+--8<-- "typing/code/17-025.rs"
 ```
 
-## Step 31 · src/engine/gpu/surface_outline.rs
+<span id="code-17-026"></span>
 
-The Outline pass: both outlines as lanes, masks redrawn after the faces only when their key changed, and the blend over the ink.
+## `src/state.rs`
 
-`lessons/17/src/engine/gpu/surface_outline.rs` · type this, append at the end of the file
+Insert **after line 273** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/surface_outline.rs:outline-pass"
+        }
+
+        self.scene.selected = row;
+        self.selection_order = row.into_iter().collect();
 ```
 
-## Step 32 · examples and tests
-
-Copy these files from `lessons/17/`; they are checked, not explained.
-
-- `examples/mk_selection_overlap.rs` and `tests/selection-overlap.py`: selected strokes over solids against identical controls.
-- `examples/mk_stroke_joins.rs` and `tests/stroke-joins.py`: joined strokes with no dark dots at the joints.
-
-## Step 33 · registration lines
-
-One line in `PASSES` adds the outline to every frame, after the faces and over the ink.
-
-`lessons/17/src/engine/gpu/pass.rs` · type the line tagged `register:outline`
+Keep these following lines:
 
 ```rust
---8<-- "lessons/17/src/engine/gpu/pass.rs:passes"
+        self.touch();
+    }
+
+    /// Every selected row.
 ```
 
-Copy the other lines tagged `register:surface_outline`, `register:scene_text` and `register:text` from these files of `lessons/17/`:
+Type these new lines:
 
-- `src/engine/gpu/mod.rs`: the `surface_outline` module.
-- `src/app/scene.rs`: the `text` module read from `scene_text.rs`, the `texts` list, its reset and the text name lookup.
-- `src/state.rs`: the `text` module, the document title after a load, the label refresh after each selection change, and the face pick.
-- `src/engine/gpu/render.rs`: the selected face highlight.
-- `src/app/loader.rs` and `src/lib.rs`: the `Texts` message, its handler, the full fonts and the texts restored after a load.
+```rust
+--8<-- "typing/code/17-026.rs"
+```
 
-Run `cargo check` in `lessons/17/`.
+<span id="code-17-027"></span>
 
-## Check
+## `src/state.rs`
 
-`cargo check` compiles, and `cargo xtest --lib surface_outline` passes the tap table and shader tests. With `trunk serve` in `lessons/17/`, O puts one black border around the visible solids, and Ctrl + Shift + click on a solid selects one face with the status **Face N selected**.
+Insert **after line 319** of your current file.
 
-![Checkpoint 17. Left: Ctrl + Shift + click inside the mesh selects one source face, the rest of the object stays grey. Middle: the selected BRep with its silhouette after pressing O, one black border of uniform width around the yellow fill. Right: without the silhouette only the yellow strokes remain.](screenshots/17-face-silhouette.png)
+Keep these preceding lines:
+
+```rust
+        }
+        if selected.len() > 1 {
+            self.highlighted = selected;
+        }
+```
+
+Keep these following lines:
+
+```rust
+        self.touch();
+    }
+
+    /// Select what a viewport click on `row` reaches: its whole group, when it is in one.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-027.rs"
+```
+
+<span id="code-17-028"></span>
+
+## `src/state.rs`
+
+Insert **after line 336** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+    /// T: show or hide the name label on the selection.
+    pub fn toggle_selected_names(&mut self) {
+        self.show_selected_names = !self.show_selected_names;
+```
+
+Keep these following lines:
+
+```rust
+        self.touch();
+    }
+
+    /// H: hide the selection.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-028.rs"
+```
+
+<span id="code-17-029"></span>
+
+## `src/state.rs`
+
+Insert **after line 362** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        };
+        self.select(None);
+        self.scene.hidden.insert(guid); // by id, so a new row of it stays hidden
+        self.gpu.set_hidden(row, true);
+```
+
+Keep these following lines:
+
+```rust
+        self.touch();
+    }
+
+    /// S: show everything hidden.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-029.rs"
+```
+
+<span id="code-17-030"></span>
+
+## `src/state.rs`
+
+Insert **after line 373** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            self.gpu.set_hidden(row, false);
+        }
+
+        self.scene.hidden.clear();
+```
+
+Keep these following lines:
+
+```rust
+        self.touch();
+    }
+
+    /// A pick answer arrived: select what it hit.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-030.rs"
+```
+
+<span id="code-17-031"></span>
+
+## `src/state.rs`
+
+Insert **after line 404** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                    self.status(&format!("Edge {edge} selected"));
+                    return;
+                }
+```
+
+Keep these following lines:
+
+```rust
+                return;
+            }
+            PickMode::Controls { parent, cloud } => {
+                if let Some(pick) = pick
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-031.rs"
+```
+
+<span id="code-17-032"></span>
+
+## `src/state.rs`
+
+Insert **after line 780** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            .splat
+            .set_controls(controls.cloud.then_some(parent));
+        self.controls = controls;
+        self.upload_controls(); // register:controls
+```
+
+Keep these following lines:
+
+```rust
+        self.status("Control points: click to select; Esc to leave");
+        self.touch();
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/17-032.rs"
+```
+
+<span id="code-17-033"></span>
+
+## `src/state.rs`
+
+Append **after line 924** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/17-033.rs"
+```
+
+<span id="code-17-034"></span>
+
+## `src/state/text.rs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```rust
+--8<-- "typing/code/17-034.rs"
+```
+
+<span id="code-17-035"></span>
+
+## `tests/selection-overlap.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/17-035.py"
+```
+
+<span id="code-17-036"></span>
+
+## `tests/stroke-joins.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/17-036.py"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 17
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native nameplate tests. Select and deselect an object in the browser and verify that the label follows the selection.
+
+If a label follows only one triangle, check whether its bounds came from the source object or a tessellated face.
+
+![Visual reference from the finished viewer: a source object is selected and labelled. The layers panel and gumball are later lessons.](screenshots/practice/viewer-selected.png)
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+Resolve the selected source identity and its bounds first. Place the label for that source object rather than independently labelling each display piece.
+
+</details>
+
+[Next step: 18](18-finite-visibility.md)

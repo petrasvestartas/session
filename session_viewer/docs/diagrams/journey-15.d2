@@ -1,0 +1,12 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+eye: "Eye" {shape: circle; class: focus}
+near_plane: "Near plane\ndepth 0" {width: 160; class: box}
+scene: "Visible scene\nray chooses nearest hit" {width: 280; class: focus}
+far_plane: "Far plane\ndepth 1" {width: 380; class: box}
+eye -> near_plane -> scene -> far_plane

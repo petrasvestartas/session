@@ -1,426 +1,892 @@
 # 23a · Tools that ask for points
 
-Some commands ask before they act: Move wants two points, Trim wants targets, cutters and the parts to remove. Each is a Tool from lesson 23; this lesson writes the transforms, trim and extend with cutters, the selection modes, and the gathering tool that lesson 23c builds its surfaces with.
+**Estimated study time: about 85–165 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Build interactive tools that ask for a sequence of points or choices.
+
+**In the whole viewer:** Tools turn several input events into one intentional edit, reusing previews, snapping and document transactions.
+
+**Follow the data:** Tool state → requested input → preview → next state or commit/cancel.
+
+**Start with these files:** [`src/app/command/tool.rs`](23a-tools.md#code-23a-002), [`src/app/command/verbs/move.rs`](23a-tools.md#code-23a-016).
+
+**Aim to explain:** Why should the first and second points of Move be different tool states?
+
+[Whole-viewer map and course milestones](map.md)
+
+An interactive tool remembers how far the conversation has progressed. Move first asks for a base point and then a target. Between those answers it previews a translation. Once the second point arrives, it commits the movement as one operation.
 
 ![A tool prompts for a point, takes a click, a snap or typed coordinates, and answers More, Repeat or Done; between answers it only draws a preview.](illustrations/tool-loop.svg)
 
-## Step 1 · src/app/command/tool/cut.rs
+Start from the working result of [step 23](23-geometry-commands.md).
 
-New file: a cutter is a curve or a plane; helpers turn objects into cutters and find the part under a click.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 7,927 lines across 33 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/23a/src/app/command/tool/cut.rs` · type this, new file
+<span id="code-23a-001"></span>
 
-```rust
---8<-- "lessons/23a/src/app/command/tool/cut.rs:cutter"
-```
+## `src/app/command/tests.rs`
 
-## Step 2 · src/app/command/tool/cut.rs
+Append **after line 61** of your current file.
 
-Tests: flat objects give planes, a fence stands on its line, and a scaled mesh is still hit.
-
-`lessons/23a/src/app/command/tool/cut.rs` · copy, append at the end of the file
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23a/src/app/command/tool/cut.rs:cutter-tests"
+--8<-- "typing/code/23a-001.rs"
 ```
 
-## Step 3 · src/app/command/verbs/selecting.rs
+<span id="code-23a-002"></span>
 
-New file: the rows a select verb may take, and how a result replaces, adds to or removes from the selection.
+## `src/app/command/tool.rs`
 
-`lessons/23a/src/app/command/verbs/selecting.rs` · type this, new file
+Insert **after line 2** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/selecting.rs"
+use crate::State;
+use session_rust::{Plane, Point, Xform};
 ```
 
-## Step 4 · src/app/command/verbs/move.rs
-
-Move: a typed offset acts at once; a bare Move starts the Moving tool.
-
-`lessons/23a/src/app/command/verbs/move.rs` · type this, new file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/move.rs:move-spec"
+
+/// What a tool answers after each point or word: ask again, act and start over from the first point, or finish.
+#[derive(Debug, PartialEq)]
+pub enum Next {
 ```
 
-## Step 5 · src/app/command/verbs/move.rs
-
-Moving implements Tool: its prompts, the preview that follows the cursor, the distance readout and the move itself.
-
-`lessons/23a/src/app/command/verbs/move.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/move.rs:move-tool"
+--8<-- "typing/code/23a-002.rs"
 ```
 
-## Step 6 · src/app/command/verbs/move.rs
+<span id="code-23a-003"></span>
 
-Tests: the selection follows the cursor from the base point.
+## `src/app/command/tool/cut.rs`
 
-`lessons/23a/src/app/command/verbs/move.rs` · copy, append at the end of the file
+An interactive tool may ask for a point, then another point or an option. Its state records what is already known and what the next input means. Preview geometry illustrates the current proposal without committing it.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/move.rs:move-tests"
+--8<-- "typing/code/23a-003.rs"
 ```
 
-## Step 7 · src/app/command/verbs/rotate.rs
+<span id="code-23a-004"></span>
 
-Rotate: an axis and an angle at once, or a centre, then a typed angle or two reference points.
+## `src/app/command/tool/gather.rs`
 
-`lessons/23a/src/app/command/verbs/rotate.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/rotate.rs"
+--8<-- "typing/code/23a-004.rs"
 ```
 
-## Step 8 · src/app/command/verbs/scale.rs
+<span id="code-23a-005"></span>
 
-Scale: a factor at once, or an origin, then a typed factor or two reference points, in 1D, 2D or 3D.
+## `src/app/command/tool/options.rs`
 
-`lessons/23a/src/app/command/verbs/scale.rs` · copy the file
+Several tools offer named choices. Shared matching and normalization keep spelling and selection rules consistent. The caller still owns what the chosen option means for its particular geometry.
+
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/scale.rs"
+--8<-- "typing/code/23a-005.rs"
 ```
 
-## Step 9 · src/app/command/verbs/copy.rs
+<span id="code-23a-006"></span>
 
-Copy: a base point, then a copy at every target point until Enter, each one undo step.
+## `src/app/command/verbs/controls.rs`
 
-`lessons/23a/src/app/command/verbs/copy.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/copy.rs"
+--8<-- "typing/code/23a-006.rs"
 ```
 
-## Step 10 · src/app/command/verbs/orient_3_points.rs
+<span id="code-23a-007"></span>
 
-Orient 3 Points: three reference points onto three target points, moving the selection rigidly.
+## `src/app/command/verbs/copy.rs`
 
-`lessons/23a/src/app/command/verbs/orient_3_points.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/orient_3_points.rs"
+--8<-- "typing/code/23a-007.rs"
 ```
 
-## Step 11 · src/app/command/verbs/trim.rs
+<span id="code-23a-008"></span>
 
-Trim: a bare Trim runs the tool; two numbers keep that part of a curve.
+## `src/app/command/verbs/edge.rs`
 
-`lessons/23a/src/app/command/verbs/trim.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/trim.rs:trim-spec"
+--8<-- "typing/code/23a-008.rs"
 ```
 
-## Step 12 · src/app/command/verbs/trim.rs
+<span id="code-23a-009"></span>
 
-The three phases, one target cut into parts, the running trim, and what Trim can cut.
+## `src/app/command/verbs/extend.rs`
 
-`lessons/23a/src/app/command/verbs/trim.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/trim.rs:trim-state"
+--8<-- "typing/code/23a-009.rs"
 ```
 
-## Step 13 · src/app/command/verbs/trim.rs
+<span id="code-23a-010"></span>
 
-Open `impl Trimming`: toggle targets and cutters, and collect every cutter in the world.
+## `src/app/command/verbs/extend/reach.rs`
 
-`lessons/23a/src/app/command/verbs/trim.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/trim.rs:trim-pick"
+--8<-- "typing/code/23a-010.rs"
 ```
 
-## Step 14 · src/app/command/verbs/trim.rs
+<span id="code-23a-011"></span>
 
-Cut every target into parts in its own frame, and find the part under a click or the cursor.
+## `src/app/command/verbs/face.rs`
 
-`lessons/23a/src/app/command/verbs/trim.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/trim.rs:trim-preview"
+--8<-- "typing/code/23a-011.rs"
 ```
 
-## Step 15 · src/app/command/verbs/trim.rs
+<span id="code-23a-012"></span>
 
-Show what is left, restore on cancel, write every trimmed target as one undo step, and close the impl.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/23a/src/app/command/verbs/trim.rs` · type this, append at the end of the file
+Insert **after line 1** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/trim.rs:trim-commit"
+pub mod geometry; // shared code of the drawing verbs, not a verb itself; register:geometry
 ```
 
-## Step 16 · src/app/command/verbs/trim.rs
-
-Trimming implements Tool: prompts and buttons per phase, picks, Enter, clicks that remove parts, and the overlay.
-
-`lessons/23a/src/app/command/verbs/trim.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/trim.rs:trim-tool"
+
+// One list of names becomes both the `pub mod` lines and the REGISTRY array.
+/// Declare each verb's module and list its SPEC in REGISTRY, so a verb is one file plus one line.
+macro_rules! verbs {
 ```
 
-## Step 17 · src/app/command/verbs/trim.rs
-
-Tests: bare Trim runs the tool, two numbers keep the parametric trim.
-
-`lessons/23a/src/app/command/verbs/trim.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/trim.rs:trim-tests"
+--8<-- "typing/code/23a-012.rs"
 ```
 
-## Step 18 · src/app/command/verbs/trim/parts.rs
+<span id="code-23a-013"></span>
 
-The cutting itself: curves at their crossings, surfaces and BReps into faces, meshes into two sides, and the commit.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/23a/src/app/command/verbs/trim/parts.rs` · copy the file
+Insert **after line 26** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/trim/parts.rs"
+    arrow,                   // register:arrow
+    polyline,                // register:polyline
+    curve,                   // register:curve
+    close,                   // register:close
 ```
 
-## Step 19 · src/app/command/verbs/extend.rs
-
-Extend: pick boundaries, then click near curve ends; or grow ends by a typed length.
-
-`lessons/23a/src/app/command/verbs/extend.rs` · copy the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/extend.rs"
+    explode,                 // register:explode
+    save,                    // register:save
+    open,                    // register:open
+    delete,                  // register:delete
 ```
 
-## Step 20 · src/app/command/verbs/extend/reach.rs
-
-Where an end goes: straight along its tangent, or along the curve's shape to a boundary.
-
-`lessons/23a/src/app/command/verbs/extend/reach.rs` · copy the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/extend/reach.rs"
+--8<-- "typing/code/23a-013.rs"
 ```
 
-## Step 21 · src/app/command/verbs/select_lasso.rs
+<span id="code-23a-014"></span>
 
-Select Lasso: arm a tool that takes the next left drag.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/23a/src/app/command/verbs/select_lasso.rs` · type this, new file
+Insert **after line 29** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/select_lasso.rs:lasso-spec"
+    close,                   // register:close
+    trim,                    // register:trim
+    extend,                  // register:extend
+    explode,                 // register:explode
 ```
 
-## Step 22 · src/app/command/verbs/select_lasso.rs
-
-The loop follows the drag, thins itself when long, and selects what lies inside on release.
-
-`lessons/23a/src/app/command/verbs/select_lasso.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/select_lasso.rs:lasso-tool"
+    save,                    // register:save
+    open,                    // register:open
+    delete,                  // register:delete
+    undo,                    // register:undo
 ```
 
-## Step 23 · src/app/command/verbs/select_lasso.rs
-
-The loop indexed by pixel row for the even-odd test, and a point projected to the screen.
-
-`lessons/23a/src/app/command/verbs/select_lasso.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/select_lasso.rs:lasso-region"
+--8<-- "typing/code/23a-014.rs"
 ```
 
-## Step 24 · src/app/command/verbs/select_lasso.rs
+<span id="code-23a-015"></span>
 
-The rows whose every sample lies inside: curves, surfaces, meshes, BReps and clouds, else their box corners.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/23a/src/app/command/verbs/select_lasso.rs` · type this, append at the end of the file
+Insert **after line 43** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/select_lasso.rs:lasso-inside"
+    hide,                    // register:hide
+    show,                    // register:show
+    fit,                     // register:fit
+    escape,                  // register:escape
 ```
 
-## Step 25 · src/app/command/verbs/select_lasso.rs
-
-Tests: the loop, the row index against ray casting, samples of each geometry, and the recorded points.
-
-`lessons/23a/src/app/command/verbs/select_lasso.rs` · copy, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/select_lasso.rs:lasso-tests"
+    clipping_plane,          // register:clipping_plane
+}
 ```
 
-## Step 26 · src/app/command/verbs/select_by_name.rs
-
-Select By Name: visible objects whose name contains the text, in any case.
-
-`lessons/23a/src/app/command/verbs/select_by_name.rs` · copy the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/select_by_name.rs"
+--8<-- "typing/code/23a-015.rs"
 ```
 
-## Step 27 · src/app/command/verbs/select_small.rs
+<span id="code-23a-016"></span>
 
-Select Small: visible objects whose box diagonal is shorter than a length.
+## `src/app/command/verbs/move.rs`
 
-`lessons/23a/src/app/command/verbs/select_small.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/select_small.rs"
+--8<-- "typing/code/23a-016.rs"
 ```
 
-## Step 28 · src/app/command/verbs/object.rs
+<span id="code-23a-017"></span>
 
-Object: from now on a click picks whole objects; the first selection-mode verb.
+## `src/app/command/verbs/object.rs`
 
-`lessons/23a/src/app/command/verbs/object.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/object.rs"
+--8<-- "typing/code/23a-017.rs"
 ```
 
-## Step 29 · src/app/command/verbs/edge.rs
+<span id="code-23a-018"></span>
 
-Edge: a click picks edges.
+## `src/app/command/verbs/orient_3_points.rs`
 
-`lessons/23a/src/app/command/verbs/edge.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/edge.rs"
+--8<-- "typing/code/23a-018.rs"
 ```
 
-## Step 30 · src/app/command/verbs/face.rs
+<span id="code-23a-019"></span>
 
-Face: a click picks faces.
+## `src/app/command/verbs/rotate.rs`
 
-`lessons/23a/src/app/command/verbs/face.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/face.rs"
+--8<-- "typing/code/23a-019.rs"
 ```
 
-## Step 31 · src/app/command/verbs/controls.rs
+<span id="code-23a-020"></span>
 
-Controls: a click picks control points.
+## `src/app/command/verbs/scale.rs`
 
-`lessons/23a/src/app/command/verbs/controls.rs` · copy the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/verbs/controls.rs"
+--8<-- "typing/code/23a-020.rs"
 ```
 
-## Step 32 · src/app/command/tool/gather.rs
+<span id="code-23a-021"></span>
 
-New file: the questions a gathering command asks, the answers, and what it gathered.
+## `src/app/command/verbs/select_by_name.rs`
 
-`lessons/23a/src/app/command/tool/gather.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/tool/gather.rs:gather-steps"
+--8<-- "typing/code/23a-021.rs"
 ```
 
-## Step 33 · src/app/command/tool/gather.rs
+<span id="code-23a-022"></span>
 
-A Recipe describes a command as data; typed words pick its options and answer its steps.
+## `src/app/command/verbs/select_lasso.rs`
 
-`lessons/23a/src/app/command/tool/gather.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/tool/gather.rs:gather-recipe"
+--8<-- "typing/code/23a-022.rs"
 ```
 
-## Step 34 · src/app/command/tool/gather.rs
+<span id="code-23a-023"></span>
 
-Progress: the step waiting, the curves picked per step, and what Enter does.
+## `src/app/command/verbs/select_small.rs`
 
-`lessons/23a/src/app/command/tool/gather.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/tool/gather.rs:gather-progress"
+--8<-- "typing/code/23a-023.rs"
 ```
 
-## Step 35 · src/app/command/tool/gather.rs
+<span id="code-23a-024"></span>
 
-Gather: the action that starts the tool with the typed answers.
+## `src/app/command/verbs/selecting.rs`
 
-`lessons/23a/src/app/command/tool/gather.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/tool/gather.rs:gather-start"
+--8<-- "typing/code/23a-024.rs"
 ```
 
-## Step 36 · src/app/command/tool/gather.rs
+<span id="code-23a-025"></span>
 
-Gathering: the running tool's state, building once every step is answered, and the axis a Distance slides on.
+## `src/app/command/verbs/trim.rs`
 
-`lessons/23a/src/app/command/tool/gather.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/tool/gather.rs:gathering"
+--8<-- "typing/code/23a-025.rs"
 ```
 
-## Step 37 · src/app/command/tool/gather.rs
+<span id="code-23a-026"></span>
 
-Gathering implements Tool: prompts, option words, number boxes, curve picks, points and the sliding Distance.
+## `src/app/command/verbs/trim/parts.rs`
 
-`lessons/23a/src/app/command/tool/gather.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23a/src/app/command/tool/gather.rs:gathering-tool"
+--8<-- "typing/code/23a-026.rs"
 ```
 
-## Step 38 · src/app/command/tool/gather.rs
+<span id="code-23a-027"></span>
 
-Tests: pick order, Enter below the minimum, preselection, answers in step order and defaults.
+## `src/app/input.rs`
 
-`lessons/23a/src/app/command/tool/gather.rs` · copy, append at the end of the file
+Insert **after line 117** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/tool/gather.rs:gather-tests"
+
+                // a running command draws with the button held
+                if self.tool_held {
+                    self.last_cursor = at;
 ```
 
-## Step 39 · src/app/command/tool/gather.rs
-
-A picked line, polyline or curve moved into the world, and a count in words.
-
-`lessons/23a/src/app/command/tool/gather.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23a/src/app/command/tool/gather.rs:gather-picked"
+                }
+
+                // a plain press dragged past the slop may start a tool, once
+                if self.gesture.is_none()
 ```
 
-## Step 40 · src/app/ui/overlay.rs
-
-Draw the running tool's strokes, squares and label over the scene.
-
-`lessons/23a/src/app/ui/overlay.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23a/src/app/ui/overlay.rs:tool-marks"
+--8<-- "typing/code/23a-027.rs"
 ```
 
-## Step 41 · registration lines
+<span id="code-23a-028"></span>
 
-Copy the lines tagged with a lesson 23a tag from these files of `lessons/23a/`:
+## `src/app/input.rs`
 
-- `src/app/command/verbs/mod.rs`: the `selecting` module, and `trim`, `extend`, `move`, `rotate`, `scale`, `copy`, `orient_3_points`, `object`, `edge`, `face`, `controls`, `select_lasso`, `select_by_name` and `select_small` in the `verbs!` list.
-- `src/app/command/tool.rs`: the `cut` and `gather` modules.
-- `src/app/input.rs`: a left press, drag and release go to the running tool first (`register:tools`).
-- `src/app/keys.rs`: Enter runs the command being drawn.
-- `src/state.rs`, `src/state/edit.rs`, `src/state/features.rs`: a tool's pick, cancel and hidden gumball (`register:tools`).
-- `src/app/ui/mod.rs`, `src/app/inspection.rs`: the tool's marks drawn each frame, and its `tool` snapshot.
+Insert **after line 229** of your current file.
 
-## Step 42 · tests
+Keep these preceding lines:
 
-Copy `tests/transforms.cjs` and `tests/trim-extend.cjs` from `lessons/23a/`: browser checks of the transform tools and of trim and extend with cutters.
+```rust
 
-Run `cargo check` in `lessons/23a/`.
+                    if !drawing {
+                        self.gesture = gesture::press(state, at, TOUCH_REACH);
+                    }
+```
 
-## Check
+Keep these following lines:
 
-`cargo check` compiles. In `trunk serve`, select an object and type `Move`: pick a base point and the object follows the cursor until the second click. Draw two crossing lines, type `Trim`, pick one, Enter, pick the other, Enter: the part under the cursor turns red, and a click removes it as one undo step. `Select Lasso` selects what a dragged loop surrounds.
+```rust
+
+                    if self.gesture.is_some() || self.tool_held {
+                        self.touch_edit = Some(t.id);
+                    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-028.rs"
+```
+
+<span id="code-23a-029"></span>
+
+## `src/app/input.rs`
+
+Insert **after line 244** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                    self.dragged |= moved / device_pixel_ratio() > TAP_SLOP; // once away, a drag even if it comes back
+
+                    match (t.phase, self.gesture) {
+                        (TouchPhase::Moved, None) if self.tool_held => {
+```
+
+Keep these following lines:
+
+```rust
+                        }
+                        (TouchPhase::Ended, None) if self.tool_held => {
+                        }
+                        (TouchPhase::Moved, Some(active)) => {
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-029.rs"
+```
+
+<span id="code-23a-030"></span>
+
+## `src/app/input.rs`
+
+Insert **after line 247** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                        (TouchPhase::Moved, None) if self.tool_held => {
+                            state.tool_drag(at.0, at.1); // register:tools
+                        }
+                        (TouchPhase::Ended, None) if self.tool_held => {
+```
+
+Keep these following lines:
+
+```rust
+                        }
+                        (TouchPhase::Moved, Some(active)) => {
+                            (active.drag)(state, at);
+                        }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-030.rs"
+```
+
+<span id="code-23a-031"></span>
+
+## `src/app/input.rs`
+
+Insert **after line 343** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                closed |= state.close_number_box(); // a press in the scene closes the number box; register:editing
+                self.left_down = Some(self.last_cursor);
+                self.dragged = false;
+                // a running command that draws with the button, e.g. a lasso
+```
+
+Keep these following lines:
+
+```rust
+
+                if self.tool_held {
+                    self.plain = false;
+                    return true;
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-031.rs"
+```
+
+<span id="code-23a-032"></span>
+
+## `src/app/input.rs`
+
+Insert **after line 367** of your current file.
+
+Keep these preceding lines:
+
+```rust
+                self.plain = false;
+
+                if self.tool_held {
+                    self.tool_held = false;
+```
+
+Keep these following lines:
+
+```rust
+                }
+
+                // the tool in charge takes the release; a press that never left the slop is a click
+                if let Some(active) = self.gesture.take() {
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-032.rs"
+```
+
+<span id="code-23a-033"></span>
+
+## `src/app/inspection.rs`
+
+Insert **after line 78** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            .map(|r| state.gpu.objects.anchored_model(*r))
+            .collect::<Vec<_>>()
+    );
+    snapshot["drawing"] = state.drawing_status(); // register:commands
+```
+
+Keep these following lines:
+
+```rust
+    snapshot["clipping"] = state.clipping_status(); // register:clipping
+    snapshot["object_drag"] = state.object_drag_status(); // register:editing
+    snapshot["number_box"] = number_box(state); // register:editing
+    snapshot["undo_depth"] = undo_depth(state); // register:document
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-033.rs"
+```
+
+<span id="code-23a-034"></span>
+
+## `src/app/keys.rs`
+
+Insert **after line 69** of your current file.
+
+Keep these preceding lines:
+
+```rust
+        s.camera.toggle_projection_framed(&s.gpu.bounds, s.aspect())
+    }),
+    // the first Esc cancels the command and keeps the selection, the next one clears it
+    named(NamedKey::Escape, |s| s.escape()),
+```
+
+Keep these following lines:
+
+```rust
+    named(NamedKey::F10, |s| s.enable_controls()), // register:controls
+    named(NamedKey::Delete, |s| s.delete_selected()), // register:delete
+    plain(&[":"], |_| crate::app::feedback::command_line(true)), // register:command-line
+    ctrl(&["z", "Z"], Some(true), |s| s.redo()), // register:redo-shift
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-034.rs"
+```
+
+<span id="code-23a-035"></span>
+
+## `src/app/ui/mod.rs`
+
+Insert **after line 244** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            if let Some(drawing) = &drawing {
+                overlay::drawing(&painter, drawing, scale);
+            }
+```
+
+Keep these following lines:
+
+```rust
+        };
+        let mut batches = batches.into_iter();
+        // `unwrap` cannot fail: the last push above leaves at least one batch
+        let mut output = self.context.run_ui(batches.next().unwrap(), &mut draw);
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-035.rs"
+```
+
+<span id="code-23a-036"></span>
+
+## `src/app/ui/overlay.rs`
+
+Append **after line 34** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/23a-036.rs"
+```
+
+<span id="code-23a-037"></span>
+
+## `src/state.rs`
+
+Insert **after line 625** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    /// Ask what is under a pixel: an object, an edge (Ctrl) or a face (Ctrl+Shift).
+    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
+        // a split or a tool wants a plain object
+        let mut splitting = false;
+```
+
+Keep these following lines:
+
+```rust
+        let face = !splitting
+            && (face || self.selection_tool == crate::app::selection::SelectionTool::Face);
+        let edge = !splitting
+            && (edge || self.selection_tool == crate::app::selection::SelectionTool::Edge);
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-037.rs"
+```
+
+<span id="code-23a-038"></span>
+
+## `src/state.rs`
+
+Insert **after line 669** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+    /// Esc: the first cancels a command and keeps the selection, the next one clears it.
+    pub fn escape(&mut self) {
+        let mut cancelled = false;
+```
+
+Keep these following lines:
+
+```rust
+
+        if !cancelled {
+            self.escape_selection();
+        }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-038.rs"
+```
+
+<span id="code-23a-039"></span>
+
+## `src/state/edit.rs`
+
+Insert **after line 23** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+impl State {
+    /// Put the gizmo at the center of the selection, or remove it.
+    pub fn place_gizmo(&mut self, row: Option<u32>) {
+```
+
+Keep these following lines:
+
+```rust
+        // no box, no gizmo
+        let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else { // `box` is a reserved word, hence `box_`
+            self.features.gizmo = None;
+            return;
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-039.rs"
+```
+
+<span id="code-23a-040"></span>
+
+## `src/state/edit.rs`
+
+Insert **after line 284** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+    /// Drop a drag that will never be released; everything goes back.
+    pub fn cancel_gesture(&mut self) {
+        self.cancel_object_drag();
+```
+
+Keep these following lines:
+
+```rust
+
+        if let Some(active) = self.features.dragging.take() {
+            if let Some(preview) = active.mesh_preview.as_ref() {
+                preview.apply(&mut self.gpu, &Xform::identity(), true);
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-040.rs"
+```
+
+<span id="code-23a-041"></span>
+
+## `src/state/edit.rs`
+
+Insert **after line 390** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    }
+
+    /// After an undo, redo or delete: sync the rows, drop the selection.
+    pub(crate) fn after_history(&mut self) {
+```
+
+Keep these following lines:
+
+```rust
+
+        self.selection = SelectionMode::Object;
+        self.select(None);
+        self.scene.flag_texts(&mut self.gpu);
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-041.rs"
+```
+
+<span id="code-23a-042"></span>
+
+## `src/state/features.rs`
+
+Insert **after line 44** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+/// Features that take a pick answer before the selection does, in this order.
+pub(super) const TAKE_PICK: &[fn(&mut State, Option<crate::engine::gpu::Pick>) -> bool] = &[
+    State::take_drag_pick,  // register:editing
+```
+
+Keep these following lines:
+
+```rust
+    #[cfg(target_arch = "wasm32")] // register:cloud_query
+    State::take_cloud_pick, // register:cloud_query
+];
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23a-042.rs"
+```
+
+<span id="code-23a-043"></span>
+
+## `tests/transforms.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/23a-043.cjs"
+```
+
+<span id="code-23a-044"></span>
+
+## `tests/trim-extend.cjs`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```javascript
+--8<-- "typing/code/23a-044.cjs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 23a
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native Move tests. Select an object, start Move, choose the base and target, then undo once.
+
+If a half-finished tool reports an error, check whether it should return More. If the preview becomes permanent after Escape, inspect the runner’s cancellation path.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+The same click has a different meaning in each phase. Explicit state records what is known, what is still requested and when a complete transaction can be committed.
+
+</details>
+
+[Next step: 23b](23b-shapes.md)

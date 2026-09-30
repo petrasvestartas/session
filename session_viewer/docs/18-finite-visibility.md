@@ -1,331 +1,391 @@
 # 18 · Finite-triangle visibility
 
-Ink hides behind a face only where a triangle really covers it, not behind that triangle's plane extended past its edges. Every triangle is projected once per camera and binned into small screen tiles, so an ink pixel tests only the few triangles of its own tile.
+**Estimated study time: about 15–25 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Build screen-tile lists for precise triangle visibility tests.
+
+**In the whole viewer:** This refines the surface-to-ink relationship when an infinite face plane would hide an edge outside the actual triangle.
+
+**Follow the data:** Projected triangles → tile counts → prefix offsets → packed lists → finite visibility test.
+
+**Start with these files:** [`src/engine/gpu/triangle_tiles.rs`](18-finite-visibility.md#code-18-014).
+
+**Aim to explain:** What goes wrong if a triangle’s infinite plane is treated as the triangle itself?
+
+[Whole-viewer map and course milestones](map.md)
+
+We divide the screen into tiles so an edge tests only nearby triangles. Each tile has a count of triangles. A prefix sum turns those counts into starting offsets in one packed list. This is a small arithmetic operation with a large effect on the amount of visibility work.
 
 ![The depth plane continues beyond the finite triangle; only a finite nearer hit can hide the axis.](illustrations/finite-triangle.svg)
 
-## Step 1 · src/shaders/slot_table.wgsl
+Start from the working result of [step 17](17-source-presentation.md).
 
-Turn a triangle id into the triangle and the row it draws with; with no instances every id is an arena triangle.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 833 lines across 9 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/18/src/shaders/slot_table.wgsl` · type this, new file
+<span id="code-18-001"></span>
 
-```wgsl
---8<-- "lessons/18/src/shaders/slot_table.wgsl:slot-table"
-```
+## `examples/mk_triangle_visibility.rs`
 
-## Step 2 · src/shaders/project_triangles.wgsl
-
-The camera, view size, object rows and mesh buffers the projection reads, and the table it writes.
-
-`lessons/18/src/shaders/project_triangles.wgsl` · type this, new file
-
-```wgsl
---8<-- "lessons/18/src/shaders/project_triangles.wgsl:project-inputs"
-```
-
-## Step 3 · src/shaders/project_triangles.wgsl
-
-One invocation per triangle id stores its edge equations, depth slope, nearest depth and screen box.
-
-`lessons/18/src/shaders/project_triangles.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18/src/shaders/project_triangles.wgsl:project-main"
-```
-
-## Step 4 · src/shaders/project_triangles.wgsl
-
-Clip a triangle to the near plane into at most four screen corners; hidden and cut-away triangles give none.
-
-`lessons/18/src/shaders/project_triangles.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18/src/shaders/project_triangles.wgsl:project-polygon"
-```
-
-## Step 5 · src/shaders/project_triangles.wgsl
-
-Paste in the slot table, the clipping test and the projected triangle record.
-
-`lessons/18/src/shaders/project_triangles.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18/src/shaders/project_triangles.wgsl:project-includes"
-```
-
-## Step 6 · src/shaders/triangle_tiles.wgsl
-
-The projected triangles, the tile records with their atomic counters, and what the vertex stage hands on.
-
-`lessons/18/src/shaders/triangle_tiles.wgsl` · type this, new file
-
-```wgsl
---8<-- "lessons/18/src/shaders/triangle_tiles.wgsl:tiles-inputs"
-```
-
-## Step 7 · src/shaders/triangle_tiles.wgsl
-
-One quad per triangle over the tiles its screen box touches, in a target with one pixel per tile.
-
-`lessons/18/src/shaders/triangle_tiles.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18/src/shaders/triangle_tiles.wgsl:tiles-vertex"
-```
-
-## Step 8 · src/shaders/triangle_tiles.wgsl
-
-Discard a tile the triangle misses entirely, otherwise return that tile's record.
-
-`lessons/18/src/shaders/triangle_tiles.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18/src/shaders/triangle_tiles.wgsl:tiles-cover"
-```
-
-## Step 9 · src/shaders/triangle_tiles.wgsl
-
-The first binning pass counts one triangle for every tile it covers.
-
-`lessons/18/src/shaders/triangle_tiles.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18/src/shaders/triangle_tiles.wgsl:tiles-count"
-```
-
-## Step 10 · src/shaders/triangle_tiles.wgsl
-
-The second pass writes the triangle and its nearest depth in this tile, or marks the tile overflowed.
-
-`lessons/18/src/shaders/triangle_tiles.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18/src/shaders/triangle_tiles.wgsl:tiles-fill"
-```
-
-## Step 11 · src/shaders/scan_triangle_tiles.wgsl
-
-The tile records and the workgroup's scratch array for the prefix sum.
-
-`lessons/18/src/shaders/scan_triangle_tiles.wgsl` · type this, new file
-
-```wgsl
---8<-- "lessons/18/src/shaders/scan_triangle_tiles.wgsl:scan-inputs"
-```
-
-## Step 12 · src/shaders/scan_triangle_tiles.wgsl
-
-A prefix sum over 256 values inside one workgroup, capped at the buffer size instead of wrapping.
-
-`lessons/18/src/shaders/scan_triangle_tiles.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18/src/shaders/scan_triangle_tiles.wgsl:scan-prefix"
-```
-
-## Step 13 · src/shaders/scan_triangle_tiles.wgsl
-
-Three passes turn the tile counts into list starts in the pool and report the words needed.
-
-`lessons/18/src/shaders/scan_triangle_tiles.wgsl` · type this, append at the end of the file
-
-```wgsl
---8<-- "lessons/18/src/shaders/scan_triangle_tiles.wgsl:scan-passes"
-```
-
-## Step 14 · src/engine/gpu/triangle_tiles.rs
-
-The tile grid for a canvas: tiles start at 4 px and double until at most 262,144 fit.
-
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:tile-layout"
+--8<-- "typing/code/18-001.rs"
 ```
 
-## Step 15 · src/engine/gpu/triangle_tiles.rs
+<span id="code-18-002"></span>
 
-Read back, a few frames later, how many pool words the last scan needed.
+## `src/engine/gpu/arena.rs`
 
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · type this, append at the end of the file
+Append **after line 656** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:pool-report"
+--8<-- "typing/code/18-002.rs"
 ```
 
-## Step 16 · src/engine/gpu/triangle_tiles.rs
+<span id="code-18-003"></span>
 
-Size the dispatch, the projected table and the pool, which doubles on overflow and stops at a ceiling.
+## `src/engine/gpu/instance.rs`
 
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · type this, append at the end of the file
+Append **after line 172** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:pool-sizing"
+--8<-- "typing/code/18-003.rs"
 ```
 
-## Step 17 · src/engine/gpu/triangle_tiles.rs
+<span id="code-18-004"></span>
 
-The projection key, the tile pipelines, and TriangleTiles, which owns the tables.
+## `src/engine/gpu/pass.rs`
 
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · type this, append at the end of the file
+Insert **after line 12** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:tile-struct"
+pub struct Frame<'a> {
+    pub view: &'a wgpu::TextureView, // the canvas
+    pub clear: wgpu::Color,          // background color
+    pub tier: u8,                    // drag tier; 0 is full quality
 ```
 
-## Step 18 · src/engine/gpu/triangle_tiles.rs
-
-Open `impl TriangleTiles`: size the buffers for the canvas and triangle count, true when one moved.
-
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:tiles-prepare"
+}
+
+// A pass is one optional stage of the frame, such as clipping or ambient occlusion, that owns its GPU state.
+// `Lane + Any`: every pass is also a lane, and `Any` lets `pass::<T>()` find it by its type.
 ```
 
-## Step 19 · src/engine/gpu/triangle_tiles.rs
-
-Project when camera or objects changed, then clear, count, scan and fill the tile lists.
-
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:tiles-encode"
+--8<-- "typing/code/18-004.rs"
 ```
 
-## Step 20 · src/engine/gpu/triangle_tiles.rs
+<span id="code-18-005"></span>
 
-Free the tables when nothing reads them and count their bytes; the brace closes the impl.
+## `src/engine/gpu/present.rs`
 
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · type this, append at the end of the file
+Insert **after line 58** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:tiles-release"
+        // submit: the GPU starts on the recorded commands while the CPU moves on
+        self.ctx.queue.submit([encoder.finish()]);
+        // start reading back any pick copied this frame
+        self.pick.map(); // register:shell
 ```
 
-## Step 21 · src/engine/gpu/triangle_tiles.rs
-
-What the arena hands the encoder, and a helper for one buffer binding.
-
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:tile-input"
+        output.present();
+
+        // startup marks; the GPU-side one also times the pipelines the first frames compiled
+        let mut geometry = false;
 ```
 
-## Step 22 · src/engine/gpu/triangle_tiles.rs
-
-The projection and scan compute pipelines, compiled on first use, and the count and fill raster pipelines.
-
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:tile-pipelines"
+--8<-- "typing/code/18-005.rs"
 ```
 
-## Step 23 · src/engine/gpu/triangle_tiles.rs
+<span id="code-18-006"></span>
 
-Tests: the shaders validate, dispatches stay in limits, the pool grows and stops, and lists rebuild only when needed.
+## `src/engine/gpu/present.rs`
 
-`lessons/18/src/engine/gpu/triangle_tiles.rs` · copy, append at the end of the file
+Insert **after line 137** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/triangle_tiles.rs:tile-tests"
+        );
+
+        self.ctx.queue.submit([encoder.finish()]);
+        self.pick.map(); // register:shell
 ```
 
-## Step 24 · src/engine/gpu/arena.rs
-
-The arena owns the tile tables and creates them with its buffers.
-
-`lessons/18/src/engine/gpu/arena.rs` · type the line tagged `register:tiles` at the top of `struct ArenaLane`
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/arena.rs:tiles-field"
+        log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
+
+        let slice = readback.slice(..);
+        // wait for the copy to land on the CPU
 ```
 
-`lessons/18/src/engine/gpu/arena.rs` · type the line tagged `register:tiles` in `ArenaLane::new`
+Type these new lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/arena.rs:tiles-new"
+--8<-- "typing/code/18-006.rs"
 ```
 
-## Step 25 · src/engine/gpu/arena.rs
+<span id="code-18-007"></span>
 
-A second `impl ArenaLane` block hands its vertex, row and index buffers and the slot table to the tiles.
+## `src/engine/gpu/present.rs`
 
-`lessons/18/src/engine/gpu/arena.rs` · type this, append at the end of the file
+Insert **after line 195** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/arena.rs:arena-visibility"
+        self.point_pass(&mut encoder);
+        self.id_pass(&mut encoder, Some(at));
+        self.ctx.queue.submit([encoder.finish()]);
+        self.pick.map();
 ```
 
-## Step 26 · src/engine/gpu/render.rs
-
-Before the faces, build the tables only when strokes read them, drop the lists during a slow drag, and free unread ones.
-
-`lessons/18/src/engine/gpu/render.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/render.rs:tile-passes"
+    }
+
+    /// Draw one frame and return (object, sub) per pixel; native only.
+    #[cfg(not(target_arch = "wasm32"))]
 ```
 
-## Step 27 · src/engine/gpu/render.rs
-
-Tests: a pick of faces alone reads no tables, and every stroke a pick draws does.
-
-`lessons/18/src/engine/gpu/render.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/render.rs:tile-tests"
+--8<-- "typing/code/18-007.rs"
 ```
 
-## Step 28 · src/engine/gpu/instance.rs
+<span id="code-18-008"></span>
 
-Tests: every lane shader validates and its structs, the projected triangle included, match the Rust layout.
+## `src/engine/gpu/render.rs`
 
-`lessons/18/src/engine/gpu/instance.rs` · copy, append at the end of the file
+Insert **after line 20** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/instance.rs:shader-tests"
+            0
+        } else {
+            self.performance.drag_tier()
+        };
 ```
 
-## Step 29 · src/engine/gpu/surface_outline.rs
-
-A slow drag tests edges against the fitted planes alone, so the outline mask remembers which way it was drawn.
-
-`lessons/18/src/engine/gpu/surface_outline.rs` · type the line tagged `register:tiles` in `struct MaskKey`
+Keep these following lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/surface_outline.rs:rough-key"
+        self.point_pass(encoder); // register:clouds
+
+        let frame = Frame {
+            view,
 ```
 
-`lessons/18/src/engine/gpu/surface_outline.rs` · type the line tagged `register:tiles` where `after_faces` builds the key
+Type these new lines:
 
 ```rust
---8<-- "lessons/18/src/engine/gpu/surface_outline.rs:rough-frame"
+--8<-- "typing/code/18-008.rs"
 ```
 
-## Step 30 · examples and tests
+<span id="code-18-009"></span>
 
-Copy these files from `lessons/18/`; they are checked, not explained.
+## `src/engine/gpu/render.rs`
 
-- `examples/mk_triangle_visibility.rs`: a seam that a nearby strip must not hide and a wide strip must.
-- `tests/triangle-visibility.py`: every exposed seam pixel shows and no hidden ink does.
+Insert **after line 27** of your current file.
 
-## Step 31 · registration lines
+Keep these preceding lines:
 
-Copy the lines tagged `register:triangle_tiles` and `register:tiles` from these files of `lessons/18/`:
+```rust
+        let frame = Frame {
+            view,
+            clear,
+            tier,
+```
 
-- `src/engine/gpu/mod.rs`: the `triangle_tiles` module and the tiles in the ink bind group.
-- `src/engine/gpu/pass.rs`: the `rough` flag in `Frame`.
-- `src/engine/gpu/render.rs`: the tile passes before the faces, `rough` in the frame, the tables before a stroke pick, and the tiles in the ink binds.
-- `src/engine/gpu/objects.rs`: the projected triangles and the tile lists in the ink bind group.
-- `src/engine/gpu/present.rs`: the pool report mapped after each submit.
-- `src/engine/gpu/arena.rs`: the lists invalidated on every append, patch, kill and reset, freed on release, and counted in the bytes.
+Keep these following lines:
 
-Run `cargo check` in `lessons/18/`.
+```rust
+        };
+        // pass 1: background, section caps, faces and clouds write depth
+        let mut draws = self.face_passes(encoder, &frame);
+        // pass 2: ambient occlusion and the outline masks, each pass in turn
+```
 
-## Check
+Type these new lines:
 
-`cargo check` compiles, and `cargo xtest --lib triangle_tiles` passes the pool and grid tests. With `trunk serve` in `lessons/18/`, a mesh edge right beside a nearer face stays visible, and a strip that really covers it hides it.
+```rust
+--8<-- "typing/code/18-009.rs"
+```
+
+<span id="code-18-010"></span>
+
+## `src/engine/gpu/render.rs`
+
+Insert **after line 194** of your current file.
+
+Keep these preceding lines:
+
+```rust
+
+    /// Draw object ids around the cursor for a pick, then copy them out.
+    pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
+        // stroke ids test against current lists; faces, discs and text need no tables
+```
+
+Keep these following lines:
+
+```rust
+        let size = (self.config.width, self.config.height);
+        let mode = self.pick.mode;
+        // draw only the window around the cursor, plus its halo
+        let window = at.map(|position| self.pick.window(position, size));
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/18-010.rs"
+```
+
+<span id="code-18-011"></span>
+
+## `src/engine/gpu/render.rs`
+
+Append **after line 330** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/18-011.rs"
+```
+
+<span id="code-18-012"></span>
+
+## `src/engine/gpu/surface_outline.rs`
+
+Insert **after line 80** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    pub faces: u64,       // face selection change count
+    pub size: (u32, u32), // canvas size, px
+    pub samples: u32,     // MSAA samples
+    pub edges: bool,      // edges shown
+```
+
+Keep these following lines:
+
+```rust
+    pub pen: u32,         // pen width bits
+}
+
+/// Which surfaces the outline goes around.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/18-012.rs"
+```
+
+<span id="code-18-013"></span>
+
+## `src/engine/gpu/surface_outline.rs`
+
+Insert **after line 954** of your current file.
+
+Keep these preceding lines:
+
+```rust
+            faces: g.arena.source_faces.revision(),
+            size,
+            samples: g.targets.samples,
+            edges: g.view.show_mesh_edges && f.tier < 2,
+```
+
+Keep these following lines:
+
+```rust
+            pen: g.view.thickness_px.to_bits(),
+        };
+        let stale =
+            (solid && !self.solid.is_valid(&key)) || (selected && !self.selection.is_valid(&key));
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/18-013.rs"
+```
+
+<span id="code-18-014"></span>
+
+## `src/engine/gpu/triangle_tiles.rs`
+
+Append **after line 709** of your current file.
+
+Blank lines before: **1**; after: **0**. End with a newline.
+
+```rust
+--8<-- "typing/code/18-014.rs"
+```
+
+<span id="code-18-015"></span>
+
+## `tests/triangle-visibility.py`
+
+Create this file. Type the complete listing, including comments and blank lines.
+
+```python
+--8<-- "typing/code/18-015.py"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 18
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native finite-visibility tests. Follow the offsets from counting through list filling to the visibility lookup.
+
+If one tile reads another’s triangles, check the prefix offsets and total list capacity. A zero-count tile still needs a valid offset.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+The plane extends beyond the triangle’s footprint and can incorrectly occlude ink there. The finite test checks the actual nearby triangles.
+
+</details>
+
+[Next step: 18a](18a-instancing.md)

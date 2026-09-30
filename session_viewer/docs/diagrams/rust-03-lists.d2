@@ -1,0 +1,13 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+owner: "Vec owns [2, 3, 5]" { class: box }
+view: "&growing[1..]\nborrow [3, 5]" { class: focus }
+sum: "total(slice) = 8\noriginal Vec unchanged" { class: box }
+
+owner -> view: "no element copy" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+view -> sum: "read each element" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

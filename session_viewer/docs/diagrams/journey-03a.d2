@@ -1,0 +1,16 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box: { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+}
+direction: down
+owner: "Browser owns Renderer and Panel" {class: box}
+scene: "Scene pass\nClear blue, draw the pink triangle" {class: box}
+layout: "egui lays out the command strip\nShapes become triangles; letters use a font texture" {class: focus}
+interface: "Interface pass\nLoad the existing pixels, draw the strip" {class: box}
+present: "Present one image" {class: box}
+owner -> scene
+scene -> layout
+layout -> interface
+interface -> present

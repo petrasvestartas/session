@@ -6,16 +6,11 @@ use crate::app::scene::{Scene, sync};
 use session_rust::{Plane, Point, Xform};
 use std::rc::Rc;
 
-pub const SPEC: Spec = Spec {
-    names: &["Copy"],
-    aliases: &[],
-    hint: "Copy · pick a base point, then as many target points as copies · Enter finishes · Copy 10,0,0 copies once",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
+pub const SPEC: Spec = Spec::new(
+    &["Copy"],
+    "Copy · pick a base point, then as many target points as copies · Enter finishes · Copy 10,0,0 copies once",
     parse,
-};
+);
 
 /// Pick a base point and targets, or copy once by a typed offset.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {

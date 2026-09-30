@@ -9,16 +9,11 @@ use std::rc::Rc;
 
 type Node = Rc<RefCell<TreeNode>>;
 
-pub const SPEC: Spec = Spec {
-    names: &["Add Group"],
-    aliases: &[],
-    hint: "Add Group [name] · put the selection under a new group node; a click on one member then selects them all",
-    options: &[],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
+pub const SPEC: Spec = Spec::new(
+    &["Add Group"],
+    "Add Group [name] · put the selection under a new group node; a click on one member then selects them all",
     parse,
-};
+);
 
 /// Group the selection under a typed name, or the next free `Group N`.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {

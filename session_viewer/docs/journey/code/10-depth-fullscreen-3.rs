@@ -1,0 +1,15 @@
+use wgpu::util::DeviceExt;
+
+// Each vertex stores x, y, z, then red, green and blue.
+const VERTICES: [[f32; 6]; 6] = [
+    [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],
+    [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],
+    [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],
+    [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],
+    [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],
+    [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],
+];
+const INDICES: [u16; 6] = [0, 1, 2, 3, 4, 5];
+
+pub struct Renderer {
+    pub device: wgpu::Device,

@@ -2,14 +2,12 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Close"],
-    aliases: &[],
-    hint: "Close · joins the polyline or curve being drawn back to its first point",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Close"],
+        "Close · joins the polyline or curve being drawn back to its first point",
+        parse,
+    )
 };
 
 /// Close the shape being drawn.

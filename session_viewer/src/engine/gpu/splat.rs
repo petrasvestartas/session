@@ -1,3 +1,4 @@
+use super::buffers::resource_group;
 use super::buffers::{GpuCtx, bind_group, zeroed_buffer};
 use super::cloud::{Cloud, LodNode, NO_NORMALS, PointBufs};
 use super::instance::Instance;
@@ -96,20 +97,15 @@ impl SplatTargets {
                 usage,
             },
         );
-        let resolve_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("splat.resolve.group"),
-            layout: &l.resolve,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&depth),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::TextureView(&color),
-                },
+        let resolve_group = resource_group(
+            ctx,
+            &l.resolve,
+            "splat.resolve.group",
+            [
+                (0, wgpu::BindingResource::TextureView(&depth)),
+                (1, wgpu::BindingResource::TextureView(&color)),
             ],
-        });
+        );
         Self {
             depth,
             color,

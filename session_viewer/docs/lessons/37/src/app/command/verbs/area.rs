@@ -1,3 +1,4 @@
+// --8<-- [start:area]
 use crate::State;
 use crate::app::command::verbs::measure::{
     self, compute_mesh_area, plural, skipped_text, to_text, unit_suffix,
@@ -7,14 +8,12 @@ use session_rust::element::ElementGeometry;
 use session_rust::{BRep, Geometry, NurbsSurface, Xform};
 
 pub const SPEC: Spec = Spec {
-    names: &["Area"],
-    aliases: &[],
-    hint: "Area · surface area of the selected meshes, BReps, NURBS surfaces and elements, or of one selected face",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Area"],
+        "Area · surface area of the selected meshes, BReps, NURBS surfaces and elements, or of one selected face",
+        parse,
+    )
 };
 
 fn parse(_verb: &str, _rest: &[&str]) -> Result<Box<dyn Action>, String> {
@@ -243,3 +242,4 @@ mod tests {
         ));
     }
 }
+// --8<-- [end:area]

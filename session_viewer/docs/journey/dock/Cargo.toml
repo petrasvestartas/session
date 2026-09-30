@@ -1,0 +1,25 @@
+[package]
+name = "viewer_journey"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]
+
+[dependencies]
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "Event", "PointerEvent", "MouseEvent", "KeyboardEvent", "WheelEvent", "FocusOptions", "DomRect", "HtmlElement"] }
+console_error_panic_hook = "=0.1.7"
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
+
+egui = { version = "=0.34.3", default-features = false }
+egui-wgpu = { version = "=0.34.3", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+pollster = "=0.4.0"
+log = "=0.4.34"

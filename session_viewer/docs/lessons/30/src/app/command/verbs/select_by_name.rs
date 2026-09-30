@@ -3,14 +3,12 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Select By Name"],
-    aliases: &[],
-    hint: "Select By Name text · selects visible objects whose name contains the text, any case · Example: Select By Name beam",
-    options: &[],
-    arity: None,
     wait_for_option: true,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Select By Name"],
+        "Select By Name text · selects visible objects whose name contains the text, any case · Example: Select By Name beam",
+        parse,
+    )
 };
 
 /// The text after the verb, spaces kept between words, surrounding quotes dropped.

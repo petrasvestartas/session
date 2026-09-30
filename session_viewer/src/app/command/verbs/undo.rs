@@ -2,14 +2,12 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Undo"],
-    aliases: &[],
-    hint: "",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Undo"],
+        "",
+        parse,
+    )
 };
 
 /// Step one edit back.

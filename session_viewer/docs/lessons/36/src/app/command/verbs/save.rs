@@ -2,14 +2,12 @@ use crate::State;
 use crate::app::command::{Action, Spec};
 
 pub const SPEC: Spec = Spec {
-    names: &["Save"],
-    aliases: &[],
-    hint: "Save downloads the complete editable scene as a .session file",
-    options: &[],
     arity: Some(0),
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Save"],
+        "Save downloads the complete editable scene as a .session file",
+        parse,
+    )
 };
 
 /// Download the scene as a .session file.

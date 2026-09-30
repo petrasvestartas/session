@@ -1,5 +1,7 @@
 // --8<-- [start:01-upload]
 // --8<-- [start:upload]
+#[path = "upload_padding.rs"] // register:padding
+mod padding; // register:padding
 use super::lane::LaneRows;
 use super::objects::ObjectRows;
 use session_rust::AABB;

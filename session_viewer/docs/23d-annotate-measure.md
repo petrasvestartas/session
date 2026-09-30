@@ -1,248 +1,409 @@
 # 23d · Annotate and measure
 
-Text writes a label into the model, Arrowhead puts heads on curves, and Project To Plane flattens a selection. Measure Distance, Length, Area and Volume answer with a number and leave a mark in the scene until the next command.
+**Estimated study time: about 15–30 hours.** Includes reading, typing, tracing, testing and experiments. [How to use this estimate](map.md#time-estimates).
+
+**This section:** Measure geometry and display the resulting annotations.
+
+**In the whole viewer:** Measurement reads scene positions and presents information through the existing command and text paths.
+
+**Follow the data:** Chosen points → geometric calculation → numeric report and annotation.
+
+**Start with these files:** [`src/app/command/verbs/measure_distance.rs`](23d-annotate-measure.md#code-23d-006).
+
+**Aim to explain:** Why do distance and displacement answer different questions?
+
+[Whole-viewer map and course milestones](map.md)
+
+Two points give both a distance and a displacement. Distance is one non-negative length. Displacement records how far we travelled along each axis. The command reports both and places a temporary annotation between the measured points.
 
 ![Length reads the selected curves in world units, prints the total and keeps a mark that the scene draws until the next command.](illustrations/measure-mark.svg)
 
-## Step 1 · registration lines
+Start from the working result of [step 23c](23c-surfacing.md).
 
-One line per command in `verbs!`, the `measure` helper module, and the mark kept in `Features`.
+**One buildable step:** type the additions below in `workspace/handwritten`, then build and test. This step adds 2,105 lines across 15 files and may take several sittings. Individual listings are parts of this step, not separate build checkpoints.
 
-`lessons/23d/src/app/command/verbs/mod.rs` · type the line tagged `register:measure`
+<span id="code-23d-001"></span>
 
-```rust
---8<-- "lessons/23d/src/app/command/verbs/mod.rs:verbs-modules"
-```
+## `src/app/command/tests.rs`
 
-`lessons/23d/src/app/command/verbs/mod.rs` · type the lines tagged `register:arrowhead`, `register:text`, `register:project_to_plane`, `register:measure_distance`, `register:length`, `register:area` and `register:volume`
+Append **after line 251** of your current file.
 
-```rust
---8<-- "lessons/23d/src/app/command/verbs/mod.rs:verbs-list"
-```
-
-`lessons/23d/src/state/features.rs` · type the two lines tagged `register:measure`
+Blank lines before: **1**; after: **0**. End with a newline.
 
 ```rust
---8<-- "lessons/23d/src/state/features.rs:features-struct"
+--8<-- "typing/code/23d-001.rs"
 ```
 
-Copy the other lines tagged `register:annotate` from these files of `lessons/23d/`:
+<span id="code-23d-002"></span>
 
-- `src/state/edit.rs`: a new command clears the mark.
-- `src/state.rs`: Esc clears the mark.
-- `src/app/ui/overlay.rs`: the mark is drawn when no tool draws its own marks.
-- `src/app/inspection.rs`: the mark in the inspection snapshot.
+## `src/app/command/verbs/area.rs`
 
-## Step 2 · src/app/command/verbs/measure.rs
-
-The mark a measurement leaves, the selected objects with their placement, and fetching released documents back first.
-
-`lessons/23d/src/app/command/verbs/measure.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure.rs:mark-target"
+--8<-- "typing/code/23d-002.rs"
 ```
 
-## Step 3 · src/app/command/verbs/measure.rs
+<span id="code-23d-003"></span>
 
-The area of a mesh face exactly as drawn, and the signed volume its triangles sweep.
+## `src/app/command/verbs/arrowhead.rs`
 
-`lessons/23d/src/app/command/verbs/measure.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure.rs:face-area"
+--8<-- "typing/code/23d-003.rs"
 ```
 
-## Step 4 · src/app/command/verbs/measure.rs
+<span id="code-23d-004"></span>
 
-Short numbers such as `141.421`, the unit with its power, and plural words for the answers.
+## `src/app/command/verbs/length.rs`
 
-`lessons/23d/src/app/command/verbs/measure.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure.rs:value-text"
+--8<-- "typing/code/23d-004.rs"
 ```
 
-## Step 5 · src/app/command/verbs/measure.rs
+<span id="code-23d-005"></span>
 
-Set the mark, draw it as a black line with a value chip, and report it to the tests.
+## `src/app/command/verbs/measure.rs`
 
-`lessons/23d/src/app/command/verbs/measure.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure.rs:mark-state"
+--8<-- "typing/code/23d-005.rs"
 ```
 
-## Step 6 · src/app/command/verbs/measure.rs
+<span id="code-23d-006"></span>
 
-Tests: short values, an exact concave face, a warped face as drawn, and a box's swept volume.
+## `src/app/command/verbs/measure_distance.rs`
 
-`lessons/23d/src/app/command/verbs/measure.rs` · copy, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure.rs:measure-tests"
+--8<-- "typing/code/23d-006.rs"
 ```
 
-## Step 7 · src/app/command/verbs/measure_distance.rs
+<span id="code-23d-007"></span>
 
-Measure Distance answers at once for two typed world points, and otherwise asks for them.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/23d/src/app/command/verbs/measure_distance.rs` · type this, new file
+Insert **after line 1** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure_distance.rs:distance-parse"
+pub mod geometry; // shared code of the drawing verbs, not a verb itself; register:geometry
 ```
 
-## Step 8 · src/app/command/verbs/measure_distance.rs
-
-Two actions: measure typed points now, or open the picking tool and feed it any typed ones.
-
-`lessons/23d/src/app/command/verbs/measure_distance.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure_distance.rs:distance-actions"
+pub mod selecting; // register:selecting
+
+// One list of names becomes both the `pub mod` lines and the REGISTRY array.
+/// Declare each verb's module and list its SPEC in REGISTRY, so a verb is one file plus one line.
 ```
 
-## Step 9 · src/app/command/verbs/measure_distance.rs
-
-The picking tool: two prompts, a live distance beside the cursor, and the answer after the second point.
-
-`lessons/23d/src/app/command/verbs/measure_distance.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure_distance.rs:measuring-tool"
+--8<-- "typing/code/23d-007.rs"
 ```
 
-## Step 10 · src/app/command/verbs/measure_distance.rs
+<span id="code-23d-008"></span>
 
-The answer with its x, y and z steps, marked between the two points.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/23d/src/app/command/verbs/measure_distance.rs` · type this, append at the end of the file
+Insert **after line 44** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure_distance.rs:distance-answer"
+    hide,                    // register:hide
+    show,                    // register:show
+    fit,                     // register:fit
+    escape,                  // register:escape
 ```
 
-## Step 11 · src/app/command/verbs/measure_distance.rs
-
-Tests: typed points answer, fewer are picked, and the four analysis commands complete in one Enter.
-
-`lessons/23d/src/app/command/verbs/measure_distance.rs` · copy, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/measure_distance.rs:distance-tests"
+    object,                  // register:object
+    edge,                    // register:edge
+    face,                    // register:face
+    controls,                // register:controls
 ```
 
-## Step 12 · src/app/command/verbs/length.rs
-
-Length sums the world length of the selected lines, polylines and NURBS curves.
-
-`lessons/23d/src/app/command/verbs/length.rs` · type this, new file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/length.rs:length"
+--8<-- "typing/code/23d-008.rs"
 ```
 
-## Step 13 · src/app/command/verbs/length.rs
+<span id="code-23d-009"></span>
 
-Test: each curve kind measures in world units, and a mesh has no length.
+## `src/app/command/verbs/mod.rs`
 
-`lessons/23d/src/app/command/verbs/length.rs` · copy, append at the end of the file
+Insert **after line 78** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/length.rs:length-tests"
+    nurbs_surface_revolve,   // register:nurbs_surface_revolve
+    nurbs_surface_4_points,  // register:nurbs_surface_4_points
+    nurbs_surface_sweep1,    // register:nurbs_surface_sweep1
+    nurbs_surface_sweep2,    // register:nurbs_surface_sweep2
 ```
 
-## Step 14 · src/app/command/verbs/text.rs
-
-Text takes up to 80 characters and starts at a tidy height a 25th of the view distance.
-
-`lessons/23d/src/app/command/verbs/text.rs` · type this, new file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/text.rs:text-parse"
+}
 ```
 
-## Step 15 · src/app/command/verbs/text.rs
-
-The placing tool: `Height N` changes the letter height, and a click puts the lower-left corner.
-
-`lessons/23d/src/app/command/verbs/text.rs` · type this, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/text.rs:placing"
+--8<-- "typing/code/23d-009.rs"
 ```
 
-## Step 16 · src/app/command/verbs/text.rs
+<span id="code-23d-010"></span>
 
-The label standing on the point, the plane axes that read from the camera, and the tidy height.
+## `src/app/command/verbs/project_to_plane.rs`
 
-`lessons/23d/src/app/command/verbs/text.rs` · type this, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/text.rs:text-label"
+--8<-- "typing/code/23d-010.rs"
 ```
 
-## Step 17 · src/app/command/verbs/text.rs
+<span id="code-23d-011"></span>
 
-Tests: the words become the text, every standard view reads upright, the line box stands on the point.
+## `src/app/command/verbs/text.rs`
 
-`lessons/23d/src/app/command/verbs/text.rs` · copy, append at the end of the file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/text.rs:text-tests"
+--8<-- "typing/code/23d-011.rs"
 ```
 
-## Step 18 · src/app/command/verbs/arrowhead.rs
+<span id="code-23d-012"></span>
 
-Arrowhead takes one word, None, Start, End or Both, in any case.
+## `src/app/command/verbs/volume.rs`
 
-`lessons/23d/src/app/command/verbs/arrowhead.rs` · type this, new file
+Create this file. Type the complete listing, including comments and blank lines.
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/arrowhead.rs:arrowhead-parse"
+--8<-- "typing/code/23d-012.rs"
 ```
 
-## Step 19 · src/app/command/verbs/arrowhead.rs
+<span id="code-23d-013"></span>
 
-Set the heads on every selected curve that differs, as one undo step.
+## `src/app/inspection.rs`
 
-`lessons/23d/src/app/command/verbs/arrowhead.rs` · type this, append at the end of the file
+Insert **after line 79** of your current file.
+
+Keep these preceding lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/arrowhead.rs:heads"
+            .collect::<Vec<_>>()
+    );
+    snapshot["drawing"] = state.drawing_status(); // register:commands
+    snapshot["tool"] = state.tool_status(); // register:tools
 ```
 
-## Step 20 · src/app/command/verbs/arrowhead.rs
-
-A copy of the line, polyline or curve with new heads, and whether they changed.
-
-`lessons/23d/src/app/command/verbs/arrowhead.rs` · type this, append at the end of the file
+Keep these following lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/arrowhead.rs:headed"
+    snapshot["clipping"] = state.clipping_status(); // register:clipping
+    snapshot["object_drag"] = state.object_drag_status(); // register:editing
+    snapshot["number_box"] = number_box(state); // register:editing
+    snapshot["undo_depth"] = undo_depth(state); // register:document
 ```
 
-## Step 21 · src/app/command/verbs/arrowhead.rs
-
-Tests: the options parse, only curves take heads, and Undo and Redo take them off and on.
-
-`lessons/23d/src/app/command/verbs/arrowhead.rs` · copy, append at the end of the file
+Type these new lines:
 
 ```rust
---8<-- "lessons/23d/src/app/command/verbs/arrowhead.rs:arrowhead-tests"
+--8<-- "typing/code/23d-013.rs"
 ```
 
-## Step 22 · the other commands
+<span id="code-23d-014"></span>
 
-They use the helpers of `measure.rs` and the same undo step; copy these files from `lessons/23d/src/app/command/verbs/`:
+## `src/app/ui/overlay.rs`
 
-- `project_to_plane.rs`: flatten the selection onto the view's plane, XY, YZ, ZX or three picked points.
-- `area.rs`: the area of meshes, BReps, NURBS surfaces and elements, or of one selected face.
-- `volume.rs`: the volume of closed meshes and solid BReps; open ones are named and refused.
+Insert **after line 38** of your current file.
 
-Run `cargo check` in `lessons/23d/`.
+Keep these preceding lines:
 
-## Check
+```rust
 
-`cargo check` compiles, and `cargo xtest --lib verbs::measure::` passes. `Measure Distance 0,0,0 100,100,0` answers Distance 141.421 in the scene unit, with dx 100, dy 100 and dz 0, and draws a black line with the value until the next command or Esc.
+/// A tool's parts, else a measured answer.
+pub(super) fn marks(painter: &egui::Painter, state: &crate::State, scale: f32) {
+    let mut marks = state.tool_marks();
+```
+
+Keep these following lines:
+
+```rust
+
+    if let Some(marks) = &marks {
+        tool_marks(painter, marks, scale);
+    }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23d-014.rs"
+```
+
+<span id="code-23d-015"></span>
+
+## `src/state.rs`
+
+Insert **after line 680** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    /// Esc: leave control points, keep the object selected.
+    pub fn escape_selection(&mut self) {
+        let parent = self.selection.escape();
+        self.select(parent);
+```
+
+Keep these following lines:
+
+```rust
+        self.status("");
+    }
+
+    /// Show a message in the status line.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23d-015.rs"
+```
+
+<span id="code-23d-016"></span>
+
+## `src/state/edit.rs`
+
+Insert **after line 863** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    /// Run one command line; the answer is what to show the person.
+    pub fn run_command(&mut self, line: &str) -> Result<String, String> {
+        let line = &crate::app::command::canonical(line); // `poly line` runs Polyline
+        self.cancel_gesture();
+```
+
+Keep these following lines:
+
+```rust
+        // while drawing, points and Enter go to the draft
+        if let Some(result) = self.drawing_command(line) {
+            return result;
+        }
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23d-016.rs"
+```
+
+<span id="code-23d-017"></span>
+
+## `src/state/features.rs`
+
+Insert **after line 5** of your current file.
+
+Keep these preceding lines:
+
+```rust
+use super::drag; // register:object_drag
+use super::drawing; // register:drawing
+use super::edit; // register:gizmo_drag
+use super::hydrate; // register:hydrate
+```
+
+Keep these following lines:
+
+```rust
+use crate::app::gizmo::Gizmo; // register:gizmo
+use crate::app::snap::Snapping; // register:snap
+
+/// What each feature keeps between frames; a feature adds its own file and one line here.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23d-017.rs"
+```
+
+<span id="code-23d-018"></span>
+
+## `src/state/features.rs`
+
+Insert **after line 26** of your current file.
+
+Keep these preceding lines:
+
+```rust
+    pub(super) dragging: Option<edit::GizmoDrag>, // register:gizmo_drag
+    pub(super) object_drag: Option<drag::ObjectDrag>, // register:object_drag
+    pub(crate) draft: Option<drawing::Draft>, // register:drawing
+    pub(crate) snap: Snapping,        // register:snap
+```
+
+Keep these following lines:
+
+```rust
+}
+
+// Each list starts empty; a later lesson adds one line per hook.
+// `fn(&mut State)` is a function pointer; a method such as `State::purge_idle` is one, with `self` as its first argument.
+```
+
+Type these new lines:
+
+```rust
+--8<-- "typing/code/23d-018.rs"
+```
+
+## Check the completed chapter
+
+From `session_viewer`, compare everything you have typed:
+
+```sh
+npm --prefix ../session_tests run course -- reference-check 23d
+```
+
+From `workspace/handwritten`:
+
+```sh
+cargo build --lib --locked -j4
+cargo xtest --lib --locked -j4
+```
+
+Run the native measurement tests. Measure a simple pair of points and compare the numerical result with your prediction.
+
+If the distance is correct but its unit is wrong, inspect the displayed unit conversion. If the displacement signs are wrong, check the order of subtraction.
+
+**Before moving on:** explain what changed, check the expected result above, and fix any build or test failure.
+
+<details>
+<summary>Check your explanation of the opening question</summary>
+
+Distance is a non-negative scalar length. Displacement retains the signed changes along the coordinate axes.
+
+</details>
+
+[Next step: 24](24-placed-controls.md)

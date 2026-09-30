@@ -1,3 +1,5 @@
+> Historical handoff: for the current paused work, read [the 2026-09-28 resume memory](2026-09-28-viewer-cumulative-course.md). Its workflow and current user requirements supersede the instructions below.
+
 # Viewer course handoff (for a cloud session)
 
 Written 2026-09-26 by the local session. Work only from git: the local machine, its caches and its GPU are not available.

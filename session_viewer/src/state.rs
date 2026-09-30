@@ -45,6 +45,7 @@ pub struct State {
     load_camera: crate::camera::CameraPose, // the view before loading started
     pub scene: Scene,                       // the loaded documents
     pub needs_frame: bool,                  // draw again on the next redraw
+    gpu_stopped: bool,                      // failure handled; never submit again
     pub interacting: bool,                  // a drag or pinch is in progress
     dirty: bool,                            // the picture changed
     last_frame_ms: f64,                     // when the last frame was drawn
@@ -68,6 +69,7 @@ impl State {
         let mut gpu = Gpu::new(window.clone()).await?;
         // the scene rows go to the GPU once
         scene.upload_to(&mut gpu);
+        crate::app::feedback::diagnostic("ready", "GPU initialized; initial scene uploaded");
         log::info!("gpu init {:.0} ms", now_ms() - t0);
         let camera = Camera::new();
         Ok(Self {
@@ -77,6 +79,7 @@ impl State {
             camera,
             scene,
             needs_frame: true,
+            gpu_stopped: false,
             interacting: false,
             dirty: true,
             last_frame_ms: 0.0,
@@ -114,6 +117,10 @@ impl State {
         let t1 = now_ms();
         // only the new rows go to the GPU
         self.scene.upload_to(&mut self.gpu);
+        crate::app::feedback::diagnostic(
+            "scene",
+            &format!("{} documents; {} display rows", self.scene.docs.len(), self.scene.row_count()),
+        );
         self.camera.grow_extent(&self.gpu.bounds);
         self.annotate_document(first_row); // register:scene_text
         self.dim_elements(first_row); // register:opacity
@@ -482,8 +489,42 @@ impl State {
         }
     }
 
+    /// Stop before event handlers, uploads or UI code can use a failed device.
+    pub fn gpu_failed(&mut self) -> bool {
+        if self.gpu_stopped {
+            return true;
+        }
+
+        let failure = match self.gpu.failure.lock() {
+            Ok(failure) => failure.clone(),
+            Err(_) => None,
+        };
+        if let Some(message) = failure {
+            self.gpu_stopped = true;
+            self.needs_frame = false;
+            // Normal query cancellation uploads controls; a failed device cannot do that.
+            self.features.cloud_query = None; // register:cloud_query
+            self.gpu.pick.cancel();
+
+            // a lost device reloads the page
+            #[cfg(target_arch = "wasm32")]
+            if crate::app::route::recover_from_device_loss(&message) {
+                return true;
+            }
+
+            crate::app::feedback::error(&message);
+            return true;
+        }
+
+        false
+    }
+
     /// Draw one frame; a still scene asks for no more.
     pub fn render(&mut self) {
+        if self.gpu_failed() {
+            return;
+        }
+
         for hook in features::BEFORE_PICKS {
             hook(self);
         }
@@ -496,27 +537,6 @@ impl State {
             self.gpu.logical_size = logical;
             self.upload_controls(); // register:controls
             self.touch();
-        }
-
-        // a GPU error from the last frame
-        let failure = match self.gpu.failure.lock() {
-            Ok(failure) => failure.clone(),
-            Err(_) => None,
-        };
-
-        if let Some(message) = failure {
-            // a lost device reloads the page
-            #[cfg(target_arch = "wasm32")]
-            if crate::app::route::recover_from_device_loss(&message) {
-                self.needs_frame = false;
-                return;
-            }
-
-            crate::app::feedback::error(&message);
-            self.cancel_cloud_query(); // register:cloud_query
-            self.gpu.pick.cancel();
-            self.needs_frame = false;
-            return;
         }
 
         // apply a pick answer first, so this frame shows it

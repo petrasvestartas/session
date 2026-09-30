@@ -4,14 +4,12 @@ use crate::app::command::{Action, Spec};
 use session_rust::{Point, Vector};
 
 pub const SPEC: Spec = Spec {
-    names: &["Loft"],
-    aliases: &[],
-    hint: "Loft (Open Closed): click curves in section order, Enter lofts · Example: select curves, then Loft Closed",
     options: &["Loft Open", "Loft Closed"],
-    arity: None,
-    wait_for_option: false,
-    wait_after_option: false,
-    parse,
+    ..Spec::new(
+        &["Loft"],
+        "Loft (Open Closed): click curves in section order, Enter lofts · Example: select curves, then Loft Closed",
+        parse,
+    )
 };
 
 pub static RECIPE: Recipe = Recipe {

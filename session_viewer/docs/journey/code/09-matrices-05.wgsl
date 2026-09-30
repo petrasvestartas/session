@@ -1,0 +1,1 @@
+var<uniform> transform: mat4x4<f32>;
