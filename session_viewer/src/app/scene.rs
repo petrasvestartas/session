@@ -477,7 +477,7 @@ impl Scene {
                 continue;
             }
 
-            self.seed_hidden(index, guid, geom);
+            self.seed_flags(index, guid, geom);
             let flags = if self.hidden.contains(&(index, Rc::from(guid.as_str()))) {
                 Instance::FLAG_HIDDEN
             } else {
@@ -693,10 +693,14 @@ impl Scene {
         Some((owner, Rc::clone(self.order.get(row as usize)?)))
     }
 
-    /// An object written with is_visible off starts hidden; the tree and graph still list it.
-    pub(crate) fn seed_hidden(&mut self, doc: usize, guid: &str, geometry: &Geometry) {
+    /// An object written hidden or locked starts with its lamp off or its lock on; the tree and graph still list it.
+    pub(crate) fn seed_flags(&mut self, doc: usize, guid: &str, geometry: &Geometry) {
         if !geometry.is_visible() {
             self.hidden.insert((doc, Rc::from(guid)));
+        }
+
+        if geometry.is_locked() {
+            self.locked.insert((doc, Rc::from(guid)));
         }
     }
 

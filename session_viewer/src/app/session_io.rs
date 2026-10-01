@@ -47,11 +47,11 @@ struct Document {
     point_px: f32,    // point size override
 }
 
-/// Guids the viewer has hidden in one document.
-fn hidden_in(scene: &Scene, doc: usize) -> HashSet<&str> {
+/// Guids of one document in a set of (document, guid) pairs.
+fn in_doc(set: &HashSet<(usize, Rc<str>)>, doc: usize) -> HashSet<&str> {
     let mut ids = HashSet::new();
 
-    for (owner, id) in &scene.hidden {
+    for (owner, id) in set {
         if *owner == doc {
             ids.insert(id.as_ref());
         }
@@ -60,55 +60,79 @@ fn hidden_in(scene: &Scene, doc: usize) -> HashSet<&str> {
     ids
 }
 
-/// The is_visible every kernel writes: false when hidden, absent when shown.
-fn visibility(guid: &str, hidden: &HashSet<&str>) -> Option<bool> {
-    hidden.contains(guid).then_some(false)
+/// The lamp and lock of one document, as every kernel writes them.
+struct Flags<'a> {
+    hidden: HashSet<&'a str>, // Lamp off.
+    locked: HashSet<&'a str>, // Lock on.
 }
 
-/// Each object's is_visible from the lamps, so the saved file opens the way it was left.
-fn stamp_visibility(objects: &mut session_rust::proto::Objects, hidden: &HashSet<&str>) {
+impl Flags<'_> {
+    /// is_visible: false when hidden, absent when shown.
+    fn visible(&self, guid: &str) -> Option<bool> {
+        self.hidden.contains(guid).then_some(false)
+    }
+
+    /// is_locked: true when locked, absent when free.
+    fn locked(&self, guid: &str) -> Option<bool> {
+        self.locked.contains(guid).then_some(true)
+    }
+}
+
+/// Each object's is_visible and is_locked from the lamps and locks, so the saved file opens the way it was left.
+fn stamp_flags(objects: &mut session_rust::proto::Objects, flags: &Flags) {
     for o in &mut objects.points {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.lines {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.planes {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.bboxes {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.polylines {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.pointclouds {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.meshes {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.nurbscurves {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.nurbssurfaces {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.breps {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 
     for o in &mut objects.elements {
-        o.is_visible = visibility(&o.guid, hidden);
+        o.is_visible = flags.visible(&o.guid);
+        o.is_locked = flags.locked(&o.guid);
     }
 }
 
@@ -131,7 +155,11 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
         let mut proto = file.session.to_proto(); // live entries, history kept, nothing copied
 
         if let Some(objects) = proto.objects.as_mut() {
-            stamp_visibility(objects, &hidden_in(scene, doc));
+            let flags = Flags {
+                hidden: in_doc(&scene.hidden, doc),
+                locked: in_doc(&scene.locked, doc),
+            };
+            stamp_flags(objects, &flags);
         }
 
         let bytes = proto.encode_to_vec();
@@ -385,6 +413,35 @@ mod tests {
         let session = &restored.docs[0].session;
         assert!(!session.lookup[&point].is_visible());
         assert!(session.lookup[&mesh].is_visible());
+    }
+
+    /// is_locked on opens locked, and the locks are what the saved file carries.
+    #[test]
+    fn locks_load_from_and_save_to_is_locked() {
+        let mut source = Session::new("locks");
+        let free = Point::new(0., 0., 0.);
+        let mut locked = Mesh::create_box(1., 1., 1.);
+        locked.is_locked = true;
+        let point = free.guid().to_string();
+        let mesh = locked.guid().to_string();
+        source.add_point(free, None);
+        source.add_mesh(locked, None);
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "locks".into(),
+            place: Xform::identity(),
+            session: Rc::new(source),
+            point_px: 3.,
+            display_only: false,
+        });
+        assert!(scene.locked.contains(&(0, Rc::from(mesh.as_str()))));
+
+        scene.locked.clear();
+        scene.locked.insert((0, Rc::from(point.as_str())));
+        let restored = open(&save(&scene).unwrap()).unwrap();
+        let session = &restored.docs[0].session;
+        assert!(session.lookup[&point].is_locked());
+        assert!(!session.lookup[&mesh].is_locked());
     }
 
     /// A created text keeps its key, placement and shown flag; an undone one reopens hidden.
