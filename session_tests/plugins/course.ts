@@ -371,8 +371,12 @@ export default function coursePlugin(): Plugin {
     assets = new Map();
     const next = new Map<string, Page>();
     for (const [slug, file] of bySlug) next.set(slug, renderPage(file, slug, bySlug, links, errors));
-    if (errors.length) {
-      throw new Error(`course: ${errors.length} unresolved --8<-- include(s):\n  ${errors.join('\n  ')}`);
+    // journey/ is the course still being written: its unwritten snippets warn, every other page fails the build
+    const drafts = errors.filter((e) => e.includes('/docs/journey/'));
+    const hard = errors.filter((e) => !e.includes('/docs/journey/'));
+    if (drafts.length) console.warn(`course: ${drafts.length} unwritten journey snippet(s)`);
+    if (hard.length) {
+      throw new Error(`course: ${hard.length} unresolved --8<-- include(s):\n  ${hard.join('\n  ')}`);
     }
     const broken: string[] = [];
     for (const l of links) {
