@@ -1,7 +1,0 @@
-[build]
-target = "floor.html"
-dist = "dist_floor"
-no_sri = true
-
-[serve]
-port = 8770

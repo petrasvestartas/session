@@ -50,6 +50,13 @@ Dev order: Python → Rust → C++. `/build` has the full reference.
 - Method order: constructors → accessors → mutators (*_self) → operators → utilities → serialization → str/repr
 - `/test-rules` has the full import patterns and conventions
 
+## Adding or renaming a class
+Each list below is explicit; a class missing from one silently runs no tests or fails CI.
+- C++: production `src/*.cpp` is globbed, but every `*_test.cpp` goes in `MINITEST_SOURCES` (CMakeLists.txt).
+- Python: export the class from `src/session_py/__init__.py`.
+- Rust: `pub mod <name>;` and `pub mod <name>_test;` in `src/lib.rs`; each test in BOTH its `REGISTER_MINI_TEST!` and `get_all_tests()` in `mini_test.rs`.
+- `bash/lib/common.sh` `CLASS_NAMES`; delete a renamed class's stale `session_tests/session_*/<old>_test.json`.
+
 ## Code Style
 - Python: 3.12 is the floor, matching wood_nano (nanobind 3, abi3). Style stays modern — `X | None`, builtin generics (`list[str]`), never `typing.Union/Optional/List`. `from __future__ import annotations` still heads EVERY module (it neutralizes the house `str` property shadowing builtins in class-body annotations). protobuf 7.x (`protobuf>=7.35.1,<8`, 7.36.2 current) + grpcio-tools 1.84.0, whose protoc 35.1 stamps 7.35.1 into the `*_pb2.py` (the runtime must be at least the gencode version). One import per line. TOLERANCE/PI from `.tolerance` at top of file. Geometry imports inside test functions. Use flat imports: `from session_py import Line, Plane` not `from session_py.line import Line`. Exception: `from session_py.intersection import line_line`.
 - C++: never `#include "tolerance.h"` in production code. Use `std::cout << point` not manual coords.
@@ -64,4 +71,4 @@ Dev order: Python → Rust → C++. `/build` has the full reference.
 - Cross-repo skills (session-viewer-wgpu, session-comments, session-format,
   session-polyline-rectangle) live in github.com/petrasvestartas/skills — clone it into
   `~/.claude/skills`, or into the `.claude/skills` of the superproject you work from
-- Each kernel has `AGENTS.md` (imported by its `CLAUDE.md`); plans and design notes are in `docs/plans/`
+- Plans and design notes are in `docs/plans/`
