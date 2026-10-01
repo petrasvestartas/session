@@ -175,3 +175,6 @@ session_viewer/docs/_stages/*/assets/
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 CLAUDE.local.md
+
+# Removed 2026-09-26 (Rhino integration); a local checkout must not come back as a gitlink
+session_rhino/
