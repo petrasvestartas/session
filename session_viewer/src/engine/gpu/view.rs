@@ -53,7 +53,13 @@ impl View {
     }
 }
 
-/// Framebuffer pixels per CSS pixel, capped by `?dpr=`.
+/// Device pixels per CSS pixel the canvas is rendered at unless `?dpr=` says otherwise: two
+/// already hide the stair-steps, and a phone's third costs 2.25x the pixels of every pass and
+/// attachment for no visible gain.
+#[cfg(target_arch = "wasm32")]
+pub const DEFAULT_MAX_DPR: f64 = 2.0;
+
+/// Framebuffer pixels per CSS pixel, capped by `?dpr=` or else at `DEFAULT_MAX_DPR`.
 pub fn device_pixel_ratio() -> f64 {
     #[cfg(target_arch = "wasm32")]
     {
@@ -62,7 +68,7 @@ pub fn device_pixel_ratio() -> f64 {
             .filter(|ratio| *ratio > 0.0)
             .unwrap_or(1.0);
         let cap = f64::from(knob_f32("VIEWER_DPR", "dpr", 0.0));
-        let ratio = if cap >= 0.5 { ratio.min(cap) } else { ratio };
+        let ratio = ratio.min(if cap >= 0.5 { cap } else { DEFAULT_MAX_DPR });
 
         if reduced() { ratio.min(1.0) } else { ratio }
     }

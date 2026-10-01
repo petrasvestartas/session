@@ -173,6 +173,12 @@ fn load_files(scene: &mut Scene, gpu: &mut Gpu, files: &[SceneFile]) {
         let session =
             Session::pb_loads(&bytes).unwrap_or_else(|e| panic!("cannot parse {}: {e:?}", f.path));
         let t1 = t0.elapsed();
+
+        // VIEWER_PROFILE=1 times every object's walk by kind before the scene takes the file
+        if std::env::var_os("VIEWER_PROFILE").is_some() {
+            profile::document(&session);
+        }
+
         let name = f.path.rsplit('/').next().unwrap_or(&f.path).to_string();
         scene.add_file(FileDoc {
             name: name.clone(),
@@ -384,6 +390,14 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
         let mut tiers = Vec::new();
         gpu.performance.interacting = drag;
 
+        // VIEWER_TIER=n draws every timed frame at drag tier n, as a slow drag would
+        if let Some(tier) = std::env::var("VIEWER_TIER")
+            .ok()
+            .and_then(|v| v.parse::<u8>().ok())
+        {
+            gpu.performance.force_tier(tier);
+        }
+
         for _ in 0..n.max(1) {
             camera.orbit(step, 0.0);
             let input = frame_input(&mut gpu, &camera, aspect);
@@ -534,6 +548,7 @@ fn report_pick(gpu: &mut Gpu, scene: &Scene, input: &FrameInput, at: (u32, u32))
 
 /// Upload and picking checks on one device.
 pub mod lifecycle;
+pub mod profile;
 
 /// Check that every BRep edge keeps its id after upload.
 pub fn check_cad_edges(paths: &[String]) {

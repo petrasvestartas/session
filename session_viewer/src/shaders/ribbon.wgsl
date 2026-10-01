@@ -237,6 +237,34 @@ fn neighbor_visible(seg: StrokeSegment) -> bool {
     return edge_faces_camera(seg.facing, n0, n1, toward_eye((p0+p1)*0.5));
 }
 
+// True when one triangle hides the whole segment: it covers both ends, screen points `s0` and
+// `s1` (y up) at depths `d0` and `d1`, nearer than each by more than the depth tolerance. Depth
+// is affine along a projected segment and across a triangle, and a triangle is convex, so the
+// ends decide the middle; the fragments would each search their tile's triangles for the same
+// answer. Only for the boundary strokes of sampled surfaces, whose fragments test the exact
+// triangles with this tolerance (a mesh edge on a coincident face is drawn by the plane fit's
+// wider one), at full opacity, where hidden ink draws nothing, and without clipping planes,
+// which could cut the triangle away between the ends.
+fn segment_covered(flags: u32, s0: vec2<f32>, s1: vec2<f32>, d0: f32, d1: f32) -> bool {
+    if ((flags & FLAG_SMOOTH) == 0u || line.opacity < 1.0 || clip_active()) {
+        return false;
+    }
+
+    let a = vec2<f32>(s0.x, line.vp_h - s0.y);
+    let primitive = ink_primitive(a, 0u);
+
+    if (primitive == 0u || primitive > arrayLength(&projected)) {
+        return false;
+    }
+
+    let triangle = projected[primitive - 1u];
+    let b = vec2<f32>(s1.x, line.vp_h - s1.y);
+    let hit0 = projected_triangle_at(triangle, a + line.origin);
+    let hit1 = projected_triangle_at(triangle, b + line.origin);
+    let tolerance = max(abs(d0), abs(d1)) * DEPTH_REL_TOL;
+    return hit0.y > 0.5 && hit1.y > 0.5 && hit0.x > d0 + tolerance && hit1.x > d1 + tolerance;
+}
+
 // Object row of an instanced draw, or none; set by the vertex entry points.
 var<private> slot_row: u32 = 0xffffffffu;
 
@@ -343,6 +371,11 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let vp = vec2<f32>(line.vp_w, line.vp_h);
     let s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
     let s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
+    // one triangle in front of both ends hides it all: no fragment need ask
+    if (segment_covered(inst.flags, s0, s1, e0.z / e0.w, e1.z / e1.w)) {
+        return dead_vertex();
+    }
+
     let d = s1 - s0;
     let len = length(d);
     let dir = select(vec2<f32>(1.0, 0.0), d / len, len > 1e-6);

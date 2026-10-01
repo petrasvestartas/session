@@ -93,6 +93,12 @@ impl Performance {
         if self.interacting { self.tier } else { 0 }
     }
 
+    /// Hold the drag tier at `tier` for a bench; the next drag learns its own again.
+    pub fn force_tier(&mut self, tier: u8) {
+        self.tier = tier.min(TOP_TIER);
+        self.interacting = true;
+    }
+
     /// True when the last frame gave up quality, so the one after the drag must redraw.
     pub fn rough(&self) -> bool {
         self.rough

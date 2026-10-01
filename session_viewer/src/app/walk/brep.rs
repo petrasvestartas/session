@@ -2,7 +2,7 @@ use super::brep_edges::{EdgeChain, EdgePen, edge_chains, push_edge_pipes};
 use super::brep_orient::face_signs;
 use super::curves::{push_polyline, sample_nurbscurve};
 use super::encode::{Pen, encode_width, pack_rgba};
-use super::mesh::mesh_spacing;
+use super::mesh::{Lap, mesh_spacing};
 use super::mesh_ink::Ink;
 use super::{Row, WalkCx};
 use crate::app::knobs;
@@ -60,9 +60,13 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
 
 /// A BRep: every face meshed and uploaded, then its edges.
 pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) -> Row {
+    let mut lap = Lap::start("walk_brep");
     let mut fms = b.face_meshes_q(Some(QUALITY)); // one mesh per face
+    lap.mark("face meshes");
     let chains = edge_chains(b, &fms); // edge polylines on the meshes
+    lap.mark("edge chains");
     let signs = face_signs(b, &fms, &chains); // +1 or -1 per face
+    lap.mark("face signs");
     let mut solid = Solid {
         pos: Vec::new(),
         tris: Vec::new(),
@@ -102,6 +106,8 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
         push_face(arena, &rm, cx, &mut solid, fi);
     }
 
+    lap.mark("faces");
+
     let mut flags = Instance::FLAG_SMOOTH; // vertices are samples
 
     if !b.is_solid() {
@@ -139,6 +145,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
             arena,
             &boundary_vertices,
         );
+        lap.mark("edges");
     }
 
     row

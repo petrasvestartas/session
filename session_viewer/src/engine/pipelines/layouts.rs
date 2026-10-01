@@ -62,11 +62,12 @@ fn scene_depth(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
     )
 }
 
-/// A triangle id texture binding for the fragment stage.
+/// A triangle id texture binding: fragments test visibility with it, stroke vertices drop a
+/// segment one triangle hides whole.
 fn scene_gradient(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
     texture_entry(
         binding,
-        ShaderStages::FRAGMENT,
+        ShaderStages::VERTEX_FRAGMENT,
         TextureSampleType::Uint,
         multisampled,
     )
@@ -93,7 +94,7 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
             scene_gradient(5, true),
             buffer_entry(
                 6,
-                ShaderStages::FRAGMENT,
+                ShaderStages::VERTEX_FRAGMENT,
                 BufferBindingType::Storage { read_only: true },
             ),
             buffer_entry(
