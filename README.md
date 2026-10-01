@@ -18,11 +18,11 @@ Documentation: <https://petrasvestartas.github.io/session/>
 | Points and vectors | `point` `vector` `plane` `line` `pointcloud` |
 | Curves | `polyline` `nurbsknot` `nurbscurve` |
 | Surfaces | `nurbssurface` `nurbssurface_trimmed` `remesh_nurbssurface_grid` `remesh_nurbssurface_adaptive` |
-| Meshes and solids | `mesh` `mesh_offset` `remesh_cdt` `convex_hull` `brep` `primitives` `simple_split` |
+| Meshes and solids | `mesh` `remesh_cdt` `convex_hull` `brep` `primitives` `split` |
 | Algorithms | `intersection` `closest` `boolean_polyline` |
 | Bounding volumes and indices | `aabb` `obb` `spatial_aabbtree` `spatial_bvh` `spatial_kdtree` `spatial_octree` `spatial_rtree` |
 | Scene | `session` `objects` `element` `instance_ref` `graph` `tree` `history` |
-| Files | `file_encoders` `file_obj` `file_step` `io_xyz` |
+| Files | `file_encoders` `file_obj` `file_step` `file_xyz` |
 
 Each class is `session_cpp/src/<class>.h|.cpp`, `session_py/src/session_py/<class>.py` and
 `session_rust/src/<class>.rs`, each with a `<class>_test` file holding the same tests.

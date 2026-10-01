@@ -407,6 +407,7 @@ impl Scene {
         self.nodes[i] = item.node.as_ref().map(Rc::downgrade).unwrap_or_default();
         self.guid_to_row.insert((doc, Rc::clone(&item.guid)), row);
         let (up, walked) = self.walk_one(doc, row, geometry, &place);
+        self.seed_hidden(doc, &item.guid, geometry);
         let hidden = if self.hidden.contains(&(doc, Rc::clone(&item.guid))) {
             Instance::FLAG_HIDDEN
         } else {

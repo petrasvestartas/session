@@ -29,7 +29,7 @@ in-process for the boolean campaign.
 
 ## Still open — the API shape
 
-Today the kernels expose free functions in module-shaped files (`file_obj`, `io`/`io_xyz`), and
+Today the kernels expose free functions in module-shaped files (`file_obj`, `io`/`file_xyz`), and
 those show up as their own minitest classes. The user's rule: **`io` must never be a test class.**
 Loading a file should be a constructor on the type it produces, and a format carrying several
 geometry kinds also gets a `Session.from_*` helper:
@@ -45,9 +45,9 @@ Since the parsers are in the kernels, these are ordinary methods — no orphan-r
 problem.
 
 Work when picked up, one commit so parity never breaks:
-- Fold `file_obj`/`io`/`io_xyz` into `mesh`, `pointcloud`, `polyline`, `session` in all three
+- Fold `file_obj`/`io`/`file_xyz` into `mesh`, `pointcloud`, `polyline`, `session` in all three
   languages; delete the modules, the `__init__.py`/`lib.rs` exports, and the CMakeLists entries
-  (`src/io_xyz.cpp`, the two `*_test.cpp`; impls are GLOBbed at CMakeLists:221).
+  (`src/file_xyz.cpp`, the two `*_test.cpp`; impls are GLOBbed at CMakeLists:221).
 - Tests move to the owning class keeping their names as cases (`Read Bunny` → `From Obj`).
   Class count **47 → 44**; update the README Key API files table and re-derive parity.
 - **PLY is new to all three kernels** — nothing exists today; write it per language (ascii +

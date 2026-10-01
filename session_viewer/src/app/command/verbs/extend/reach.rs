@@ -1,6 +1,6 @@
 use crate::app::command::tool::cut::{Cutter, unit_ray};
 use session_rust::{
-    Geometry, Line, Mesh, NurbsCurve, Point, Polyline, Vector, Xform, intersection, simple_split,
+    Geometry, Line, Mesh, NurbsCurve, Point, Polyline, Vector, Xform, intersection, split,
 };
 use std::rc::Rc;
 
@@ -155,7 +155,7 @@ fn straight(from: &Point, direction: &Vector, reach: &Reach) -> Result<Point, St
                     NurbsCurve::create(false, 1, &[from.clone(), from + &(direction * reach)]);
 
                 if let Ok(pieces) =
-                    simple_split::split_curve_by_curves(&probe, std::slice::from_ref(curve), NEAR)
+                    split::split_curve_by_curves(&probe, std::slice::from_ref(curve), NEAR)
                 {
                     for piece in pieces.iter().take(pieces.len().saturating_sub(1)) {
                         take((&piece.point_at_end() - from).dot(direction));
@@ -289,7 +289,7 @@ fn to_boundary(curve: &NurbsCurve, end: End, cutters: &[Cutter]) -> Result<Nurbs
                     crossings.extend(intersection::curve_plane(&piece, plane, Some(NEAR)))
                 }
                 Cutter::Curve(boundary) => {
-                    let pieces = simple_split::split_curve_by_curves(
+                    let pieces = split::split_curve_by_curves(
                         &piece,
                         std::slice::from_ref(boundary),
                         NEAR,

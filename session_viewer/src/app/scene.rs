@@ -477,6 +477,7 @@ impl Scene {
                 continue;
             }
 
+            self.seed_hidden(index, guid, geom);
             let flags = if self.hidden.contains(&(index, Rc::from(guid.as_str()))) {
                 Instance::FLAG_HIDDEN
             } else {
@@ -692,6 +693,15 @@ impl Scene {
         Some((owner, Rc::clone(self.order.get(row as usize)?)))
     }
 
+    /// An element written with is_visible off starts hidden; the tree and graph still list it.
+    pub(crate) fn seed_hidden(&mut self, doc: usize, guid: &str, geometry: &Geometry) {
+        if let Geometry::Element(element) = geometry
+            && !element.is_visible
+        {
+            self.hidden.insert((doc, Rc::from(guid)));
+        }
+    }
+
     /// The rows currently hidden.
     pub fn hidden_rows(&self) -> Vec<u32> {
         let mut rows = Vec::new();
@@ -775,7 +785,7 @@ fn runs(mut kills: Vec<(LaneId, u32, u32)>) -> Vec<(LaneId, u32, u32)> {
 mod tests {
     use super::*;
     use crate::app::selection::Controls;
-    use session_rust::{BRep, Point};
+    use session_rust::{BRep, Element, Mesh, Point};
 
     /// A document at the origin.
     pub(super) fn file(name: &str, session: Rc<Session>, display_only: bool) -> FileDoc {
@@ -813,6 +823,23 @@ mod tests {
         scene.hidden.insert(scene.identity_of(1).unwrap());
         assert_eq!(scene.hidden_rows(), vec![1]);
         assert!(scene.document(2).is_none());
+    }
+
+    /// An element written with is_visible off loads hidden but keeps its row.
+    #[test]
+    fn invisible_element_loads_hidden() {
+        let mut shown = Element::new("plate");
+        shown.set_geometry(Mesh::create_box(1.0, 1.0, 1.0));
+        let mut joint = Element::new("joint");
+        joint.set_geometry(Mesh::create_box(1.0, 1.0, 1.0));
+        joint.is_visible = false;
+        let mut source = Session::new("joints");
+        source.add_element(shown, None);
+        source.add_element(joint, None);
+        let mut scene = Scene::new();
+        scene.add_file(file("joints", Rc::new(source), false));
+        assert_eq!(scene.object_count(), 2);
+        assert_eq!(scene.hidden_rows(), vec![1]);
     }
 
     /// Two placements share one session until one is edited.
