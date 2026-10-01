@@ -693,11 +693,9 @@ impl Scene {
         Some((owner, Rc::clone(self.order.get(row as usize)?)))
     }
 
-    /// An element written with is_visible off starts hidden; the tree and graph still list it.
+    /// An object written with is_visible off starts hidden; the tree and graph still list it.
     pub(crate) fn seed_hidden(&mut self, doc: usize, guid: &str, geometry: &Geometry) {
-        if let Geometry::Element(element) = geometry
-            && !element.is_visible
-        {
+        if !geometry.is_visible() {
             self.hidden.insert((doc, Rc::from(guid)));
         }
     }

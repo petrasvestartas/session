@@ -3,6 +3,7 @@ use crate::engine::text::TextLabel;
 use prost::Message;
 use serde::{Deserialize, Serialize};
 use session_rust::{Session, Xform};
+use std::collections::HashSet;
 use std::rc::Rc;
 
 const MAGIC: &[u8] = b"SESSION-VIEWER\x01\n"; // file header
@@ -46,6 +47,71 @@ struct Document {
     point_px: f32,    // point size override
 }
 
+/// Guids the viewer has hidden in one document.
+fn hidden_in(scene: &Scene, doc: usize) -> HashSet<&str> {
+    let mut ids = HashSet::new();
+
+    for (owner, id) in &scene.hidden {
+        if *owner == doc {
+            ids.insert(id.as_ref());
+        }
+    }
+
+    ids
+}
+
+/// The is_visible every kernel writes: false when hidden, absent when shown.
+fn visibility(guid: &str, hidden: &HashSet<&str>) -> Option<bool> {
+    hidden.contains(guid).then_some(false)
+}
+
+/// Each object's is_visible from the lamps, so the saved file opens the way it was left.
+fn stamp_visibility(objects: &mut session_rust::proto::Objects, hidden: &HashSet<&str>) {
+    for o in &mut objects.points {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.lines {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.planes {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.bboxes {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.polylines {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.pointclouds {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.meshes {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.nurbscurves {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.nurbssurfaces {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.breps {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+
+    for o in &mut objects.elements {
+        o.is_visible = visibility(&o.guid, hidden);
+    }
+}
+
 /// The scene as `.session` file bytes.
 pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
     if !scene.streamed.is_empty() || !scene.sheets.is_empty() {
@@ -55,14 +121,20 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
     let mut documents = Vec::new();
     let mut size = 0usize;
 
-    for file in &scene.docs {
+    for (doc, file) in scene.docs.iter().enumerate() {
         if file.display_only {
             return Err(
                 "A source document is not retained; the complete session cannot be saved.".into(),
             );
         }
 
-        let bytes = file.session.to_proto().encode_to_vec(); // live entries, history kept, nothing copied
+        let mut proto = file.session.to_proto(); // live entries, history kept, nothing copied
+
+        if let Some(objects) = proto.objects.as_mut() {
+            stamp_visibility(objects, &hidden_in(scene, doc));
+        }
+
+        let bytes = proto.encode_to_vec();
         size = size.saturating_add(bytes.len());
 
         if size > LIMIT {
@@ -285,6 +357,35 @@ mod tests {
     use super::*;
     use crate::app::deform::Target;
     use session_rust::{Geometry, Mesh, Point};
+
+    /// is_visible off opens hidden, and the lamps are what the saved file carries.
+    #[test]
+    fn lamps_load_from_and_save_to_is_visible() {
+        let mut source = Session::new("lamps");
+        let shown = Point::new(0., 0., 0.);
+        let mut hidden = Mesh::create_box(1., 1., 1.);
+        hidden.is_visible = false;
+        let point = shown.guid().to_string();
+        let mesh = hidden.guid().to_string();
+        source.add_point(shown, None);
+        source.add_mesh(hidden, None);
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "lamps".into(),
+            place: Xform::identity(),
+            session: Rc::new(source),
+            point_px: 3.,
+            display_only: false,
+        });
+        assert!(scene.hidden.contains(&(0, Rc::from(mesh.as_str()))));
+
+        scene.hidden.clear();
+        scene.hidden.insert((0, Rc::from(point.as_str())));
+        let restored = open(&save(&scene).unwrap()).unwrap();
+        let session = &restored.docs[0].session;
+        assert!(!session.lookup[&point].is_visible());
+        assert!(session.lookup[&mesh].is_visible());
+    }
 
     /// A created text keeps its key, placement and shown flag; an undone one reopens hidden.
     #[test]
