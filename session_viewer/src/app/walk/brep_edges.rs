@@ -1,10 +1,24 @@
 use session_rust::Mesh;
 use session_rust::brep::{BRep, BRepOrientation};
 
+use super::curves::turning_degrees;
 use super::encode::{Pen, pack_facing};
+use crate::app::knobs;
 use crate::engine::gpu::CylinderSegment;
 use crate::engine::gpu::segments::SegRows;
 use session_rust::AABB;
+
+/// Degrees of turning one display chord of a curved edge may span: how round a circle looks
+/// depends only on its radius on screen, and 90 chords keep the sag of one under 0.3 px while
+/// it fills a 1000 px screen.
+const EDGE_DEGREES: f64 = 4.0;
+
+/// Most display chords one edge gets.
+const EDGE_CHORDS_MAX: usize = 256;
+
+/// The sag of a display segment is reported this many times its measured rise off the chord,
+/// so the neighbouring facet's plane, which tilts away from the chord, is covered too.
+const SAG_MARGIN: f64 = 2.0;
 
 /// Order two floats, NaN counts as equal.
 fn sample_order(a: &f64, b: &f64) -> std::cmp::Ordering {
@@ -306,6 +320,169 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
     out
 }
 
+/// A BRep edge as it is drawn: points along its exact curve, every display segment mapped to the
+/// chain segment of the face mesh it lies on, with how far it rises off that mesh.
+pub struct DisplayChain {
+    pub points: Vec<[f64; 3]>, // display points; the first and last are the chain's end vertices
+    pub spans: Vec<usize>,     // per display segment: the chain segment (keys[k], keys[k+1]) it lies on
+    pub sags: Vec<f32>,        // per display segment: its rise off the face mesh, mm; 0 on a straight edge
+}
+
+/// Position of one mesh vertex.
+fn vertex_position(fm: &Mesh, key: usize) -> [f64; 3] {
+    let v = &fm.vertex[&key];
+    [v.x, v.y, v.z]
+}
+
+/// Distance from `p` to the segment `a`-`b`.
+fn segment_distance(p: [f64; 3], a: [f64; 3], b: [f64; 3]) -> f64 {
+    let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    let q = [p[0] - a[0], p[1] - a[1], p[2] - a[2]];
+    let length = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    let t = if length > 0.0 {
+        ((q[0] * d[0] + q[1] * d[1] + q[2] * d[2]) / length).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    let r = [q[0] - d[0] * t, q[1] - d[1] * t, q[2] - d[2] * t];
+    (r[0] * r[0] + r[1] * r[1] + r[2] * r[2]).sqrt()
+}
+
+/// Squared distance between two points.
+fn distance2(a: [f64; 3], b: [f64; 3]) -> f64 {
+    (0..3).map(|i| (a[i] - b[i]) * (a[i] - b[i])).sum()
+}
+
+/// Index of the sample nearest `p`.
+fn nearest_index(samples: &[[f64; 3]], p: [f64; 3]) -> usize {
+    let mut best = 0;
+    let mut best_d = f64::INFINITY;
+
+    for (i, s) in samples.iter().enumerate() {
+        let d = distance2(*s, p);
+
+        if d < best_d {
+            best_d = d;
+            best = i;
+        }
+    }
+
+    best
+}
+
+/// The chain as drawn straight from its mesh vertices: one display segment per chain segment.
+fn coarse_display(coarse: Vec<[f64; 3]>) -> DisplayChain {
+    let segments = coarse.len().saturating_sub(1);
+    DisplayChain {
+        points: coarse,
+        spans: (0..segments).collect(),
+        sags: vec![0.0; segments],
+    }
+}
+
+/// The 3D curve of the chain's edge when its control polygon turns by more than one display
+/// chord; None keeps the mesh chain, which a straight edge draws with its two vertices.
+fn curved_edge<'a>(b: &'a BRep, chain: &EdgeChain) -> Option<&'a session_rust::NurbsCurve> {
+    let edge = b.m_edges.get(chain.edge)?;
+
+    if edge.degenerated || edge.curve_3d_index < 0 || chain.keys.len() < 2 {
+        return None;
+    }
+
+    let curve = b.m_curves_3d.get(edge.curve_3d_index as usize)?;
+
+    if curve.cv_count() < 2 || !(turning_degrees(curve) > EDGE_DEGREES) || knobs::coarse_edges() {
+        return None;
+    }
+
+    Some(curve)
+}
+
+/// Display chord count of a curved edge: one per `EDGE_DEGREES` of turning, never fewer than
+/// the mesh chain has, at most `EDGE_CHORDS_MAX`.
+fn display_chords(curve: &session_rust::NurbsCurve, chain_segments: usize) -> usize {
+    let by_angle = (turning_degrees(curve) / EDGE_DEGREES).ceil() as usize;
+    by_angle
+        .max(curve.span_count())
+        .max(chain_segments)
+        .min(EDGE_CHORDS_MAX.max(chain_segments))
+}
+
+/// The chain's edge drawn from its own curve: dense samples that pass exactly through every
+/// mesh vertex of the chain, so the face mesh and its edge meet at the mesh vertices and the
+/// curve shows between them. A straight edge keeps its mesh vertices.
+pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
+    let coarse: Vec<[f64; 3]> = chain
+        .keys
+        .iter()
+        .map(|&key| vertex_position(fm, key))
+        .collect();
+    let Some(curve) = curved_edge(b, chain) else {
+        return coarse_display(coarse);
+    };
+    let n = display_chords(curve, coarse.len() - 1);
+    let (t0, t1) = curve.domain();
+    let mut samples: Vec<[f64; 3]> = (0..=n)
+        .map(|i| {
+            let p = curve.point_at(t0 + (t1 - t0) * i as f64 / n as f64);
+            [p[0], p[1], p[2]]
+        })
+        .collect();
+
+    if !samples.iter().flatten().all(|v| v.is_finite()) {
+        return coarse_display(coarse);
+    }
+
+    // the chain may run the curve backwards: the mesh vertices then meet the samples in reverse
+    let mut at: Vec<usize> = coarse.iter().map(|&p| nearest_index(&samples, p)).collect();
+    let forward = at.windows(2).filter(|w| w[1] > w[0]).count();
+    let backward = at.windows(2).filter(|w| w[1] < w[0]).count();
+
+    if backward > forward {
+        samples.reverse();
+
+        for index in &mut at {
+            *index = n - *index;
+        }
+    }
+
+    // every mesh vertex replaces its nearest sample, in order; the ends are the ends
+    at[0] = 0;
+    *at.last_mut().unwrap() = n;
+
+    for k in 1..at.len() {
+        at[k] = at[k].max(at[k - 1] + 1).min(n - (at.len() - 1 - k));
+    }
+
+    if at.windows(2).any(|w| w[1] <= w[0]) {
+        return coarse_display(coarse); // more mesh vertices than samples
+    }
+
+    for (k, &index) in at.iter().enumerate() {
+        samples[index] = coarse[k];
+    }
+
+
+    let mut spans = Vec::with_capacity(n);
+    let mut sags = Vec::with_capacity(n);
+
+    for k in 0..at.len() - 1 {
+        let (a, z) = (coarse[k], coarse[k + 1]);
+
+        for j in at[k]..at[k + 1] {
+            let rise = segment_distance(samples[j], a, z).max(segment_distance(samples[j + 1], a, z));
+            spans.push(k);
+            sags.push((rise * SAG_MARGIN) as f32);
+        }
+    }
+
+    DisplayChain {
+        points: samples,
+        spans,
+        sags,
+    }
+}
+
 /// A triangle edge keyed by its two end positions.
 type FacetEdge = [[u64; 3]; 2];
 
@@ -460,31 +637,34 @@ fn scaled_normal(normal: Option<[f64; 3]>, sign: f64) -> Option<[f64; 3]> {
     Some([n[0] * sign, n[1] * sign, n[2] * sign])
 }
 
-/// One pipe per chain segment; returns how many were pushed.
+/// One pipe per display segment, each facing the facets of the chain segment it lies on;
+/// returns that chain segment for every pipe pushed, in pipe order.
 pub fn push_edge_pipes(
     seg: &mut SegRows,
     chain: &EdgeChain,
+    display: &DisplayChain,
     ep: &EdgePen,
     bounds: &mut AABB,
-) -> usize {
+) -> Vec<usize> {
     let fm = &ep.fms[chain.face];
-
     let first = seg.pipes.len() as u32;
-    seg.pipes.reserve(chain.keys.len().saturating_sub(1));
-    let mut count = 0;
+    seg.pipes.reserve(display.spans.len());
+    seg.pipe_ids.resize(seg.pipes.len(), u32::MAX);
+    seg.pipe_sags.resize(seg.pipes.len(), 0.0);
+    let mut spans = Vec::with_capacity(display.spans.len());
 
-    for w in chain.keys.windows(2) {
-        let (a, b) = (&fm.vertex[&w[0]], &fm.vertex[&w[1]]);
-        let p0 = [a.x, a.y, a.z];
-        let p1 = [b.x, b.y, b.z];
-        let p0f = super::curves::render_position(p0);
-        let p1f = super::curves::render_position(p1);
+    for (j, w) in display.points.windows(2).enumerate() {
+        let p0f = super::curves::render_position(w[0]);
+        let p1f = super::curves::render_position(w[1]);
 
         // skip a segment that collapses in f32
         if p0f == p1f || !p0f.into_iter().chain(p1f).all(f32::is_finite) {
             continue;
         }
 
+        let span = display.spans[j];
+        let a = vertex_position(fm, chain.keys[span]);
+        let b = vertex_position(fm, chain.keys[span + 1]);
         bounds.union_with_point(p0f[0] as f64, p0f[1] as f64, p0f[2] as f64);
         bounds.union_with_point(p1f[0] as f64, p1f[1] as f64, p1f[2] as f64);
         seg.pipes.push(CylinderSegment {
@@ -493,15 +673,16 @@ pub fn push_edge_pipes(
             p1: p1f,
             instance_id: ep.pen.row,
             color: ep.pen.color,
-            facing: ep.facing(chain, p0, p1),
+            facing: ep.facing(chain, a, b),
         });
         seg.pipe_ids
             .push(u32::try_from(chain.edge).unwrap_or(u32::MAX)); // edge id for picking
-        count += 1;
+        seg.pipe_sags.push(display.sags[j]);
+        spans.push(span);
     }
 
     seg.pipe_chains.push(first..seg.pipes.len() as u32); // one joined stroke
-    count
+    spans
 }
 
 #[cfg(test)]
@@ -765,8 +946,12 @@ mod tests {
         );
         let mut seg = SegRows::default();
         let mut bounds = AABB::empty();
-        let circle = push_edge_pipes(&mut seg, chains[0].as_ref().unwrap(), &ep, &mut bounds);
-        assert_eq!(circle, chains[0].as_ref().unwrap().keys.len() - 1);
+        let chain = chains[0].as_ref().unwrap();
+        let circle = push_edge_pipes(&mut seg, chain, &display_chain(&b, chain, &fms[chain.face]), &ep, &mut bounds);
+        assert!(circle.len() >= chain.keys.len() - 1);
+        assert_eq!(circle.first(), Some(&0));
+        assert_eq!(circle.last(), Some(&(chain.keys.len() - 2)));
+        assert!(circle.windows(2).all(|w| w[1] == w[0] || w[1] == w[0] + 1), "pipes follow the chain in order");
 
         for p in &seg.pipes {
             assert_ne!(
@@ -779,14 +964,18 @@ mod tests {
         }
 
         let before = seg.pipes.len();
-        let seam = push_edge_pipes(&mut seg, chains[2].as_ref().unwrap(), &ep, &mut bounds);
-        assert_eq!(seam, 1);
+        let chain = chains[2].as_ref().unwrap();
+        let seam = push_edge_pipes(&mut seg, chain, &display_chain(&b, chain, &fms[chain.face]), &ep, &mut bounds);
+        assert_eq!(seam, vec![0]);
         let p = &seg.pipes[before];
         assert_ne!(p.facing & 0xffff, p.facing >> 16);
         assert!(seg.ribbons.is_empty());
         assert_eq!(seg.pipe_ids.len(), seg.pipes.len());
+        assert_eq!(seg.pipe_sags.len(), seg.pipes.len());
         assert!(seg.pipe_ids[..before].iter().all(|&id| id == 0));
         assert_eq!(seg.pipe_ids[before], 2);
+        assert_eq!(seg.pipe_sags[before], 0.0, "a straight seam lies on its faces");
+        assert!(seg.pipe_sags[..before].iter().all(|&sag| sag >= 0.0));
     }
 
     /// The cone seam faces by its triangles, not the apex fan.
@@ -806,9 +995,11 @@ mod tests {
             },
         );
         let mut segments = SegRows::default();
+        let chain = chains[1].as_ref().unwrap();
         push_edge_pipes(
             &mut segments,
-            chains[1].as_ref().unwrap(),
+            chain,
+            &display_chain(&cone, chain, &meshes[chain.face]),
             &pen,
             &mut AABB::empty(),
         );
@@ -856,9 +1047,124 @@ mod tests {
             },
         );
         let mut seg = SegRows::default();
-        assert_eq!(push_edge_pipes(&mut seg, chain, &ep, &mut AABB::empty()), 0);
+        let display = display_chain(&b, chain, &fms[chain.face]);
+        assert!(push_edge_pipes(&mut seg, chain, &display, &ep, &mut AABB::empty()).is_empty());
         assert!(seg.pipes.is_empty());
         assert!(seg.pipe_ids.is_empty());
+    }
+
+    /// A circle edge is drawn from its curve, at least 64 chords through every mesh vertex of
+    /// its 16-step chain, each chord facing the facets of the chain segment it lies on and
+    /// rising off them by less than the chain's sag; a straight edge keeps its two vertices.
+    #[test]
+    fn curved_edges_draw_denser_than_their_face_mesh() {
+        use crate::app::walk::encode::{FACING_UNKNOWN, Pen};
+        use crate::engine::gpu::segments::SegRows;
+        // a 10 mm hole through a thin block: the kernel's share rule leaves its wall 16 steps
+        let b = BRep::create_block_with_hole(500.0, 300.0, 60.0, 10.0);
+        let fms = b.face_meshes_q(Some(QUALITY));
+        let chains = edge_chains(&b, &fms);
+        let signs = vec![1.0; fms.len()];
+        let ep = EdgePen::new(
+            &fms,
+            &signs,
+            Pen {
+                row: 0,
+                radius: 0.0,
+                color: 0,
+            },
+        );
+        let mut circles = 0;
+        let mut straight = 0;
+
+        for chain in chains.iter().flatten() {
+            let edge = &b.m_edges[chain.edge];
+            let curve = &b.m_curves_3d[edge.curve_3d_index as usize];
+            let display = display_chain(&b, chain, &fms[chain.face]);
+            let mut seg = SegRows::default();
+            let spans = push_edge_pipes(&mut seg, chain, &display, &ep, &mut AABB::empty());
+            assert_eq!(seg.pipes.len(), display.points.len() - 1);
+            assert_eq!(seg.pipe_sags.len(), seg.pipes.len());
+            assert_eq!(spans.len(), seg.pipes.len());
+
+            if curve.degree() == 1 {
+                assert_eq!(display.points.len(), chain.keys.len());
+                assert!(display.sags.iter().all(|&sag| sag == 0.0));
+                straight += 1;
+                continue;
+            }
+
+            circles += 1;
+            // the mesh keeps its 16 steps; the edge gets its chords
+            assert_eq!(chain.keys.len(), 17, "edge {}", chain.edge);
+            assert!(
+                display.points.len() - 1 >= 64,
+                "edge {} has {} chords",
+                chain.edge,
+                display.points.len() - 1
+            );
+            let radius = 10.0;
+
+            for (j, w) in display.points.windows(2).enumerate() {
+                let span = display.spans[j];
+                let a = vertex_position(&fms[chain.face], chain.keys[span]);
+                let z = vertex_position(&fms[chain.face], chain.keys[span + 1]);
+                // this chord's own sag: the mesh steps are uniform in parameter, not in angle
+                let middle = [(a[0] + z[0]) * 0.5, (a[1] + z[1]) * 0.5];
+                let sag = radius - (middle[0] * middle[0] + middle[1] * middle[1]).sqrt();
+
+                for p in w {
+                    // on the circle, within the chain segment's reach
+                    let r = (p[0] * p[0] + p[1] * p[1]).sqrt();
+                    assert!((r - radius).abs() < 1e-6, "edge {} point {p:?}", chain.edge);
+                    assert!(
+                        segment_distance(*p, a, z) <= sag * 1.001,
+                        "edge {} segment {j} span {span}: {p:?} is {} off its chord",
+                        chain.edge,
+                        segment_distance(*p, a, z)
+                    );
+                }
+
+                assert!(display.sags[j] >= 0.0);
+                assert!(f64::from(display.sags[j]) <= sag * SAG_MARGIN * 1.001);
+            }
+
+            // every mesh vertex of the chain is a display point, in order
+            let mut next = 0;
+
+            for &key in &chain.keys {
+                let v = vertex_position(&fms[chain.face], key);
+                let found = display.points[next..].iter().position(|p| *p == v).expect("mesh vertex on the edge");
+                next += found;
+            }
+
+            assert!(display.sags.iter().any(|&sag| sag > 0.0));
+            assert!(seg.pipes.iter().all(|p| p.facing != FACING_UNKNOWN), "edge {} facets", chain.edge);
+            assert_eq!(spans.first(), Some(&0));
+            assert_eq!(spans.last(), Some(&15));
+        }
+
+        assert_eq!(circles, 2);
+        assert_eq!(straight, 13, "twelve box edges and the hole wall's seam");
+    }
+
+    /// A chain that runs its curve backwards still gets the samples in chain order.
+    #[test]
+    fn display_chain_follows_the_chain_direction() {
+        let b = BRep::create_cylinder(150.0, 400.0);
+        let fms = b.face_meshes_q(Some(QUALITY));
+        let chains = edge_chains(&b, &fms);
+
+        for chain in chains.iter().flatten().take(2) {
+            let display = display_chain(&b, chain, &fms[chain.face]);
+            let fm = &fms[chain.face];
+            assert_eq!(display.points[0], vertex_position(fm, chain.keys[0]));
+            assert_eq!(*display.points.last().unwrap(), vertex_position(fm, *chain.keys.last().unwrap()));
+            let second = vertex_position(fm, chain.keys[1]);
+            let at = display.points.iter().position(|p| *p == second).unwrap();
+            assert!(at > 0 && at < display.points.len() / 2, "the second mesh vertex comes early, not at the wrap");
+            assert!(display.spans.windows(2).all(|w| w[1] >= w[0]));
+        }
     }
 
     /// Pipe ids stay the BRep edge index after remeshing.

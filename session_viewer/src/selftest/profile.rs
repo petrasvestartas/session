@@ -101,7 +101,7 @@ pub fn document(session: &Session) {
             attributes: true,
         };
         let t = Instant::now();
-        let _ = walk_geometry(&mut Walk::of(&mut up), &cx, geom);
+        let row = walk_geometry(&mut Walk::of(&mut up), &cx, geom);
         let ms = t.elapsed().as_secs_f64() * 1000.0;
         let after = counts(&up);
         kind.objects += 1;
@@ -119,6 +119,11 @@ pub fn document(session: &Session) {
 
         if let Some(b) = brep_of(geom) {
             brep_stages(b, kind);
+
+            // VIEWER_PROFILE=circles lists every curved edge's centre and span
+            if std::env::var("VIEWER_PROFILE").is_ok_and(|v| v == "circles") {
+                print_curved_edges(b);
+            }
         }
 
         let name = match geom {
@@ -128,6 +133,21 @@ pub fn document(session: &Session) {
             _ => guid.clone(),
         };
         slowest.push((ms, format!("{} {name}", kind_of(geom))));
+
+        // VIEWER_PROFILE=names also lists every object with its box center and size
+        if std::env::var("VIEWER_PROFILE").is_ok_and(|v| v == "names") {
+            let b = &row.bounds;
+            println!(
+                "  object {name}: {} center ({:.0}, {:.0}, {:.0}) half ({:.0}, {:.0}, {:.0})",
+                kind_of(geom),
+                b.cx,
+                b.cy,
+                b.cz,
+                b.hx,
+                b.hy,
+                b.hz
+            );
+        }
     }
 
     println!("profile: {} objects in the file, {} instances", session.lookup.len(), session.instance_lookup.len());
@@ -171,4 +191,44 @@ fn counts(up: &Upload) -> [u64; 6] {
         up.glyph.spheres.len() as u64,
         up.glyph.dots.len() as u64,
     ]
+}
+
+/// Print the centre and extent of every curved edge of `b`: where its circles and arcs are.
+fn print_curved_edges(b: &BRep) {
+    for (ei, edge) in b.m_edges.iter().enumerate() {
+        if edge.degenerated || edge.curve_3d_index < 0 {
+            continue;
+        }
+
+        let curve = &b.m_curves_3d[edge.curve_3d_index as usize];
+
+        if curve.cv_count() < 3 {
+            continue;
+        }
+
+        let (t0, t1) = curve.domain();
+        let mut lo = [f64::INFINITY; 3];
+        let mut hi = [f64::NEG_INFINITY; 3];
+
+        for i in 0..=16 {
+            let p = curve.point_at(t0 + (t1 - t0) * i as f64 / 16.0);
+
+            for axis in 0..3 {
+                lo[axis] = lo[axis].min(p[axis]);
+                hi[axis] = hi[axis].max(p[axis]);
+            }
+        }
+
+        println!(
+            "  curved {} edge {ei}: centre ({:.0}, {:.0}, {:.0}) extent ({:.0}, {:.0}, {:.0}) faces {}",
+            b.name,
+            (lo[0] + hi[0]) * 0.5,
+            (lo[1] + hi[1]) * 0.5,
+            (lo[2] + hi[2]) * 0.5,
+            hi[0] - lo[0],
+            hi[1] - lo[1],
+            hi[2] - lo[2],
+            b.edge_faces(ei).len()
+        );
+    }
 }

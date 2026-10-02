@@ -43,6 +43,7 @@ pub struct SegDraw {
 pub struct SegRows {
     pub pipes: Vec<CylinderSegment>,              // mesh and solid edges
     pub pipe_ids: Vec<u32>,                       // source edge per pipe, or u32::MAX
+    pub pipe_sags: Vec<f32>,                      // per pipe: how far it rises off the faces beside it, mm; 0 = on them
     pub pipe_chains: Vec<std::ops::Range<u32>>,   // runs of pipes that form one curve
     pub ribbon_chains: Vec<std::ops::Range<u32>>, // runs of ribbons that form one curve
     pub ribbons: Vec<CylinderSegment>,            // standalone lines and curves
@@ -58,6 +59,7 @@ impl SegRows {
     pub fn drop_rows(&mut self) {
         drop_rows(&mut self.pipes);
         drop_rows(&mut self.pipe_ids);
+        drop_rows(&mut self.pipe_sags);
         drop_rows(&mut self.pipe_chains);
         drop_rows(&mut self.ribbon_chains);
         drop_rows(&mut self.ribbons);
@@ -145,22 +147,26 @@ pub(super) struct StrokeSegment {
     pub(super) segment: CylinderSegment, // the segment
     pub(super) previous: u32,            // row of the segment before it, u32::MAX, or HEAD_MARK
     pub(super) next: u32,                // row of the segment after it, u32::MAX, or HEAD_MARK
+    pub(super) sag: f32, // how far the stroke rises off the faces beside it, mm: the hidden-line test's slack
 }
 
-/// Link neighbouring segments inside each chain; a headed end joins nothing.
+/// Link neighbouring segments inside each chain; a headed end joins nothing. `sags` is per
+/// row, zero past its end.
 fn joined_rows(
     rows: &[CylinderSegment],
     chains: &[std::ops::Range<u32>],
     heads: &[(u32, u32)],
     base: u32,
+    sags: &[f32],
 ) -> Vec<StrokeSegment> {
     let mut result = Vec::with_capacity(rows.len());
 
-    for segment in rows {
+    for (index, segment) in rows.iter().enumerate() {
         result.push(StrokeSegment {
             segment: *segment,
             previous: u32::MAX,
             next: u32::MAX,
+            sag: sags.get(index).copied().unwrap_or(0.0),
         });
     }
 
@@ -330,7 +336,13 @@ impl SegmentLane {
         // pad missing ids with u32::MAX
         let mut ids = up.pipe_ids.clone();
         ids.resize(up.pipes.len(), u32::MAX);
-        let pipes = joined_rows(&up.pipes, &up.pipe_chains, &[], self.pipes.buf.len());
+        let pipes = joined_rows(
+            &up.pipes,
+            &up.pipe_chains,
+            &[],
+            self.pipes.buf.len(),
+            &up.pipe_sags,
+        );
         let pipes_changed = self.pipes.buf.append(ctx, &pipes);
 
         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
@@ -345,6 +357,7 @@ impl SegmentLane {
             &up.ribbon_chains,
             &up.ribbon_heads,
             ribbon_base,
+            &[],
         );
         let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
 
@@ -355,7 +368,7 @@ impl SegmentLane {
         let sheet_base = self.sheet_table.buf.len();
         let mut sheet_ids = up.sheet_ids.clone();
         sheet_ids.resize(up.sheet_rows.len(), u32::MAX);
-        let sheet_rows = joined_rows(&up.sheet_rows, &[], &[], sheet_base);
+        let sheet_rows = joined_rows(&up.sheet_rows, &[], &[], sheet_base, &[]);
         let sheets_changed = self.sheet_table.buf.append(ctx, &sheet_rows);
 
         if self.sheet_table.ids.append(ctx, &sheet_ids) || sheets_changed {
@@ -401,6 +414,7 @@ impl SegmentLane {
             },
             previous: u32::MAX,
             next: u32::MAX,
+            sag: 0.0,
         };
         table.buf.fill(ctx, first, count, &dead);
     }
@@ -418,18 +432,24 @@ impl SegmentLane {
 
     /// Overwrite pipe rows starting at `first`.
     pub(crate) fn patch_pipes(&mut self, ctx: &GpuCtx, first: u32, up: &SegRows) {
-        let pipes = joined_rows(&up.pipes, &up.pipe_chains, &[], first);
+        let pipes = joined_rows(&up.pipes, &up.pipe_chains, &[], first, &up.pipe_sags);
         self.pipes.buf.write_at(ctx, first, &pipes);
     }
 
     /// Overwrite one object's rows in place.
     pub(crate) fn patch(&mut self, ctx: &GpuCtx, at: super::patch::Counts, up: &SegRows) {
-        let pipes = joined_rows(&up.pipes, &up.pipe_chains, &[], at.pipes);
+        let pipes = joined_rows(&up.pipes, &up.pipe_chains, &[], at.pipes, &up.pipe_sags);
         self.pipes.buf.write_at(ctx, at.pipes, &pipes);
         let mut ids = up.pipe_ids.clone();
         ids.resize(up.pipes.len(), u32::MAX);
         self.pipes.ids.write_at(ctx, at.pipes, &ids);
-        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, &up.ribbon_heads, at.ribbons);
+        let ribbons = joined_rows(
+            &up.ribbons,
+            &up.ribbon_chains,
+            &up.ribbon_heads,
+            at.ribbons,
+            &[],
+        );
         self.ribbons.buf.write_at(ctx, at.ribbons, &ribbons);
         let mut ids = up.ribbon_ids.clone();
         ids.resize(up.ribbons.len(), u32::MAX);
@@ -762,6 +782,7 @@ mod tests {
             "facing",
             "previous",
             "next",
+            "sag",
         ];
 
         for (name, src) in SHADERS {
@@ -773,7 +794,7 @@ mod tests {
         }
 
         assert_eq!(std::mem::size_of::<CylinderSegment>(), 40);
-        assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
+        assert_eq!(std::mem::size_of::<StrokeSegment>(), 52);
         assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
     }
 
@@ -817,10 +838,15 @@ mod tests {
                 .map(|r| (r.previous, r.next))
                 .collect::<Vec<_>>()
         };
-        let closed = joined_rows(&rows, &[0..3], &[], 10);
+        let closed = joined_rows(&rows, &[0..3], &[], 10, &[0.5]);
         assert_eq!(ends(&closed), [(12, 11), (10, 12), (11, 10)]);
+        assert_eq!(
+            closed.iter().map(|r| r.sag).collect::<Vec<_>>(),
+            [0.5, 0.0, 0.0],
+            "a sag per row, zero past the given ones"
+        );
 
-        let end = joined_rows(&rows, &[0..3], &[(2, VectorRow::HEAD_END)], 10);
+        let end = joined_rows(&rows, &[0..3], &[(2, VectorRow::HEAD_END)], 10, &[]);
         assert_eq!(ends(&end), [(u32::MAX, 11), (10, 12), (11, HEAD_MARK)]);
 
         let both = joined_rows(
@@ -828,6 +854,7 @@ mod tests {
             &[0..3],
             &[(0, VectorRow::HEAD_START), (2, VectorRow::HEAD_END)],
             10,
+            &[],
         );
         assert_eq!(ends(&both), [(HEAD_MARK, 11), (10, 12), (11, HEAD_MARK)]);
 
@@ -836,6 +863,7 @@ mod tests {
             &[],
             &[(0, VectorRow::HEAD_START), (0, VectorRow::HEAD_END)],
             0,
+            &[],
         );
         assert_eq!(ends(&line), [(HEAD_MARK, HEAD_MARK)]);
     }
@@ -900,9 +928,11 @@ impl SegRows {
         let ribbons = seg.ribbons.len() as u32;
         let sheet_rows = seg.sheet_rows.len() as u32;
         seg.pipe_ids.resize(seg.pipes.len(), u32::MAX);
+        seg.pipe_sags.resize(seg.pipes.len(), 0.0);
         seg.ribbon_ids.resize(seg.ribbons.len(), u32::MAX);
         seg.sheet_ids.resize(seg.sheet_rows.len(), u32::MAX);
         other.pipe_ids.resize(other.pipes.len(), u32::MAX);
+        other.pipe_sags.resize(other.pipes.len(), 0.0);
         other.ribbon_ids.resize(other.ribbons.len(), u32::MAX);
         other.sheet_ids.resize(other.sheet_rows.len(), u32::MAX);
         seg.pipe_chains.extend(
@@ -932,6 +962,7 @@ impl SegRows {
 
         seg.pipes.append(&mut other.pipes);
         seg.pipe_ids.append(&mut other.pipe_ids);
+        seg.pipe_sags.append(&mut other.pipe_sags);
         seg.ribbons.append(&mut other.ribbons);
         seg.ribbon_ids.append(&mut other.ribbon_ids);
         seg.sheet_rows.append(&mut other.sheet_rows);

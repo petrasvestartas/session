@@ -277,7 +277,7 @@ fn ink_axis(in: VsOut) -> InkAxis {
     let len = sqrt(len2);
     let along = select(vec2<f32>(1.0, 0.0), vec2<f32>(ba.x, -ba.y) / len, len > 1e-3);
     let slope = (in.widths.w - in.widths.z) / max(len, 1e-3);
-    return InkAxis(vec2<f32>(at.x, line.vp_h - at.y), mix(in.widths.z, in.widths.w, h), along, slope);
+    return InkAxis(vec2<f32>(at.x, line.vp_h - at.y), mix(in.widths.z, in.widths.w, h), along, slope, vec2<f32>(0.0));
 }
 
 // True when a clipping plane cuts the center line away beside this fragment.

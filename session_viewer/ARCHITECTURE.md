@@ -71,10 +71,12 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | Representation | Example | Lifetime and precision |
 |---|---|---|
 | Source | One BRep face, its trim uses, original edge IDs | Retained `Session` data, f64 |
-| Display | Triangles, ordered boundary node chains, markers | Rebuilt on geometry change; source maps kept |
+| Display | Triangles, ordered boundary node chains, curved edges sampled from their own curves, markers | Rebuilt on geometry change; source maps kept |
 | GPU | Packed vertices, `Instance` rows, draw ranges | Object-relative f32 plus rebased translations |
 
 Selecting a source face (Ctrl+Shift) selects the face, not a tessellation triangle. Every segment of one BRep edge carries the original edge ID. F10 shows original vertices or control points, not display subdivisions.
+
+A curved BRep edge is drawn from its own 3D curve, one chord per 4° of turning (`display_chain` in `walk/brep_edges.rs`), not from the face mesh's coarse boundary: the face mesh keeps its 16 steps around a small bore while the edge gets 90, so a circle reads as round at any zoom within reason. The dense samples pass exactly through every mesh vertex of the chain, each display segment is mapped to the chain segment it lies on for its incident-facet normals and its `surface_boundaries` entry, and it carries a sag: how far it rises off the facets, which the hidden-line test takes as slack (below). A straight edge keeps its two vertices. `VIEWER_COARSE_EDGES` draws every edge from the mesh vertices again, for comparison.
 
 Source transactions become notes before synchronization starts. Node resolution, retained undo rows and compaction live below that coordinator, in private modules. Their tests remain separate from runtime code and retain their original test paths. Preview padding belongs to `gpu/upload_padding.rs`: it knows the layout of each display table, while synchronization only reserves and accounts for the returned rows.
 
@@ -113,7 +115,8 @@ Per-pixel attachments dominate: at 4x MSAA the colour, depth and `Rgba16Float` m
 
 - Depth is reversed: near is larger, the clear value is zero, opaque faces compare `Greater`.
 - A stroke covers samples beside its axis. The ink shader transfers the winning primitive's depth to the axis through the stored gradient before comparing, so a line on a surface is not hidden by the surface beside it.
-- A stroke of a sampled surface that one triangle covers at both ends, nearer than each, is dropped in the vertex stage (`segment_covered` in `ribbon.wgsl`): depth is affine along a projected segment and across a triangle, so the ends decide the middle, and the hidden ink's fragments never run the tests below. The dowel bores of a timber floor are mostly such strokes.
+- A stroke drawn off its faces by `sag` mm (a curved edge's exact samples between the facets' vertices) carries that sag to the fragment stage as a depth and a pixel term (`sag_terms` in `ribbon.wgsl`), and every visibility test adds `ink_sag_slack`: the rise itself plus the rise in pixels times the surface's screen depth gradient, so a facet seen at a grazing angle, whose depth changes by its whole length within the rise, cannot hide the exact rim of the bore it approximates. It is the polygon offset of the fixed pipeline; a nearer face of another object still hides the stroke unless it is as thin on screen as the sag.
+- A stroke of a sampled surface that one triangle covers at both ends, nearer than each by more than the tolerance and that slack, is dropped in the vertex stage (`segment_covered` in `ribbon.wgsl`): depth is affine along a projected segment and across a triangle, so the ends decide the middle, and the hidden ink's fragments never run the tests below. The dowel bores of a timber floor are mostly such strokes.
 - A neighbouring triangle's plane can cross the axis outside the triangle. The finite fallback in `triangle_tiles.rs` then tests the actual triangles that intersect the axis's screen tile: projected records (six `vec4<f32>` each), per-tile counts, a prefix scan, and filled `(primitive, max depth)` lists. Overflowing or incomplete lists keep the conservative rejection. The list pool is sized for the scene, two references per tile plus eight per triangle, and the scan writes the words it needed into the first record; the CPU reads that back a frame later and grows the pool before the next projection, so a small scene never pays the 64 MB ceiling of a 262 144-tile grid.
 
 ![A triangle's plane extends beyond its footprint; the line is visible outside the actual triangle.](docs/illustrations/finite-triangle.svg)

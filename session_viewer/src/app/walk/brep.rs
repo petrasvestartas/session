@@ -1,4 +1,4 @@
-use super::brep_edges::{EdgeChain, EdgePen, edge_chains, push_edge_pipes};
+use super::brep_edges::{EdgeChain, EdgePen, display_chain, edge_chains, push_edge_pipes};
 use super::brep_orient::face_signs;
 use super::curves::{push_polyline, sample_nurbscurve};
 use super::encode::{Pen, encode_width, pack_rgba};
@@ -165,21 +165,17 @@ fn walk_brep_edges(
     for (ei, chain) in chains.iter().enumerate() {
         match chain {
             Some(c) => {
-                let mut pipe = ink.seg.pipes.len() as u32;
-                push_edge_pipes(ink.seg, c, ep, bounds);
-                // remember which vertices each pipe joins
-                for pair in c.keys.windows(2) {
+                let first = ink.seg.pipes.len() as u32;
+                let display = display_chain(b, c, &ep.fms[c.face]);
+                let spans = push_edge_pipes(ink.seg, c, &display, ep, bounds);
+
+                // remember which mesh vertices each pipe lies between
+                for (offset, span) in spans.into_iter().enumerate() {
                     let ends = [
-                        boundary_vertices[c.face][&pair[0]],
-                        boundary_vertices[c.face][&pair[1]],
+                        boundary_vertices[c.face][&c.keys[span]],
+                        boundary_vertices[c.face][&c.keys[span + 1]],
                     ];
-                    let a = arena.verts[ends[0] as usize].position;
-                    let b = arena.verts[ends[1] as usize].position;
-                    if a == b || !a.into_iter().chain(b).all(f32::is_finite) {
-                        continue;
-                    }
-                    arena.surface_boundaries.push((pipe, ends));
-                    pipe += 1;
+                    arena.surface_boundaries.push((first + offset as u32, ends));
                 }
             }
             None => {
@@ -386,14 +382,23 @@ mod tests {
                     "edge {edge} endpoint {p:?} is {distance} from its authored curve"
                 );
             }
-            assert_eq!(
-                seg.pipes[pipe as usize].p0,
-                arena.verts[ends[0] as usize].position
-            );
-            assert_eq!(
-                seg.pipes[pipe as usize].p1,
-                arena.verts[ends[1] as usize].position
-            );
+            // the pipe lies along the mesh segment its boundary names, within that segment's sag
+            let a = arena.verts[ends[0] as usize].position.map(f64::from);
+            let z = arena.verts[ends[1] as usize].position.map(f64::from);
+            let sag = f64::from(seg.pipe_sags[pipe as usize]);
+
+            for p in [seg.pipes[pipe as usize].p0, seg.pipes[pipe as usize].p1] {
+                let d = [p[0] as f64 - a[0], p[1] as f64 - a[1], p[2] as f64 - a[2]];
+                let c = [z[0] - a[0], z[1] - a[1], z[2] - a[2]];
+                let length = c.iter().map(|v| v * v).sum::<f64>().max(1e-20);
+                let t = (d[0] * c[0] + d[1] * c[1] + d[2] * c[2]) / length;
+                let off = (0..3)
+                    .map(|i| (d[i] - c[i] * t.clamp(0.0, 1.0)).powi(2))
+                    .sum::<f64>()
+                    .sqrt();
+                assert!(off <= sag + 1e-3, "pipe {pipe} end {p:?} is {off} off its mesh segment, sag {sag}");
+            }
+
             assert!((seg.pipe_ids[pipe as usize] as usize) < brep.m_edges.len());
         }
     }
@@ -405,10 +410,11 @@ mod tests {
         let fms = b.face_meshes_q(Some(QUALITY));
         let verts: usize = fms.iter().map(|m| m.vertex.len()).sum();
         let tris: usize = fms.iter().map(|m| m.to_render().indices.len()).sum();
-        let segments: usize = edge_chains(&b, &fms)
+        let chains = edge_chains(&b, &fms);
+        let segments: usize = chains
             .iter()
             .flatten()
-            .map(|c| c.keys.len() - 1)
+            .map(|c| display_chain(&b, c, &fms[c.face]).points.len() - 1)
             .sum();
         let (arena, seg, glyph, row) = walked(&b);
         assert_eq!(arena.verts.len(), verts);

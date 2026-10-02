@@ -1,4 +1,4 @@
-// One line segment with its neighbours, 48 bytes; matches StrokeSegment in Rust.
+// One line segment with its neighbours, 52 bytes; matches StrokeSegment in Rust.
 struct StrokeSegment {
     p0x: f32, // start point x
     p0y: f32, // start point y
@@ -12,6 +12,7 @@ struct StrokeSegment {
     facing: u32, // packed normals of the two faces beside it
     previous: u32, // row of the segment before it, none, or HEAD_MARK
     next: u32, // row of the segment after it, none, or HEAD_MARK
+    sag: f32, // how far the stroke rises off the faces beside it, mm; the hidden-line test's slack
 }
 
 // Neighbour code of an end under an arrowhead, drawn by the vector lane; matches HEAD_MARK in Rust.
@@ -182,6 +183,7 @@ struct VsOut {
     @location(11) @interpolate(flat) start_join: vec4<f32>, // cut plane at the start joint: normal, point
     @location(12) @interpolate(flat) end_join: vec4<f32>, // cut plane at the end joint
     @location(13) @interpolate(flat) head_cuts: vec4<f32>, // cuts under the end and start heads: angle, offset each
+    @location(14) @interpolate(flat) sag: vec2<f32>, // the stroke's rise off its faces: x in depth, y in px
 };
 
 // (half width, alpha) at fraction `h` along the segment.
@@ -237,15 +239,31 @@ fn neighbor_visible(seg: StrokeSegment) -> bool {
     return edge_faces_camera(seg.facing, n0, n1, toward_eye((p0+p1)*0.5));
 }
 
+// The stroke's rise off its faces at world point `w` (clip `c`): in depth, moving `sag` mm
+// toward the eye, and in px at that depth.
+fn sag_terms(w: vec3<f32>, c: vec4<f32>, sag: f32) -> vec2<f32> {
+    if (sag <= 0.0 || c.w <= 0.0) {
+        return vec2<f32>(0.0);
+    }
+
+    let lifted = mvp * vec4<f32>(w + normalize(toward_eye(w)) * sag, 1.0);
+
+    if (lifted.w <= 0.0) {
+        return vec2<f32>(0.0);
+    }
+
+    return vec2<f32>(abs(lifted.z / lifted.w - c.z / c.w), half_width_px(sag, c.w));
+}
+
 // True when one triangle hides the whole segment: it covers both ends, screen points `s0` and
-// `s1` (y up) at depths `d0` and `d1`, nearer than each by more than the depth tolerance. Depth
-// is affine along a projected segment and across a triangle, and a triangle is convex, so the
-// ends decide the middle; the fragments would each search their tile's triangles for the same
-// answer. Only for the boundary strokes of sampled surfaces, whose fragments test the exact
-// triangles with this tolerance (a mesh edge on a coincident face is drawn by the plane fit's
-// wider one), at full opacity, where hidden ink draws nothing, and without clipping planes,
-// which could cut the triangle away between the ends.
-fn segment_covered(flags: u32, s0: vec2<f32>, s1: vec2<f32>, d0: f32, d1: f32) -> bool {
+// `s1` (y up) at depths `d0` and `d1`, nearer than each by more than the depth tolerance and the
+// stroke's sag. Depth is affine along a projected segment and across a triangle, and a triangle
+// is convex, so the ends decide the middle; the fragments would each search their tile's
+// triangles for the same answer. Only for the boundary strokes of sampled surfaces, whose
+// fragments test the exact triangles with this tolerance (a mesh edge on a coincident face is
+// drawn by the plane fit's wider one), at full opacity, where hidden ink draws nothing, and
+// without clipping planes, which could cut the triangle away between the ends.
+fn segment_covered(flags: u32, s0: vec2<f32>, s1: vec2<f32>, d0: f32, d1: f32, sag: vec2<f32>) -> bool {
     if ((flags & FLAG_SMOOTH) == 0u || line.opacity < 1.0 || clip_active()) {
         return false;
     }
@@ -261,7 +279,7 @@ fn segment_covered(flags: u32, s0: vec2<f32>, s1: vec2<f32>, d0: f32, d1: f32) -
     let b = vec2<f32>(s1.x, line.vp_h - s1.y);
     let hit0 = projected_triangle_at(triangle, a + line.origin);
     let hit1 = projected_triangle_at(triangle, b + line.origin);
-    let tolerance = max(abs(d0), abs(d1)) * DEPTH_REL_TOL;
+    let tolerance = max(abs(d0), abs(d1)) * DEPTH_REL_TOL + ink_sag_slack(sag, triangle.gradient.xy);
     return hit0.y > 0.5 && hit1.y > 0.5 && hit0.x > d0 + tolerance && hit1.x > d1 + tolerance;
 }
 
@@ -371,8 +389,11 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let vp = vec2<f32>(line.vp_w, line.vp_h);
     let s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
     let s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
+    // the stroke's rise off its faces, as the farther end sees it
+    let sag = max(sag_terms(w0, c0, seg.sag), sag_terms(w1, c1, seg.sag));
+
     // one triangle in front of both ends hides it all: no fragment need ask
-    if (segment_covered(inst.flags, s0, s1, e0.z / e0.w, e1.z / e1.w)) {
+    if (segment_covered(inst.flags, s0, s1, e0.z / e0.w, e1.z / e1.w, sag)) {
         return dead_vertex();
     }
 
@@ -427,6 +448,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     }
 
     o.head_cuts = cuts;
+    o.sag = sag;
     // a headed curve's bare open ends are flat at their points, as the vector lane's
     o.style = vec3<f32>(
         select(0.0, 1.0, seg.facing != FACING_UNKNOWN),
@@ -539,7 +561,7 @@ fn ink_axis(in: VsOut) -> InkAxis {
     let len = sqrt(len2);
     let along = select(vec2<f32>(1.0, 0.0), vec2<f32>(ba.x, -ba.y) / len, len > 1e-3);
     let slope = (in.end_depth.y - in.end_depth.x) / max(len, 1e-3);
-    return InkAxis(vec2<f32>(at.x, line.vp_h - at.y), mix(in.end_depth.x, in.end_depth.y, h), along, slope);
+    return InkAxis(vec2<f32>(at.x, line.vp_h - at.y), mix(in.end_depth.x, in.end_depth.y, h), along, slope, in.sag);
 }
 
 // True when a clipping plane cuts the center line away beside this fragment.

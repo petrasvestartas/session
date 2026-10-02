@@ -22,6 +22,8 @@ static ALL_EDGES: OnceLock<bool> = OnceLock::new();
 
 static SEAMS: OnceLock<bool> = OnceLock::new();
 
+static COARSE_EDGES: OnceLock<bool> = OnceLock::new();
+
 /// VIEWER_PROFILE: print timings.
 pub fn profile() -> bool {
     env_flag("VIEWER_PROFILE", &PROFILE)
@@ -50,4 +52,9 @@ pub fn all_edges() -> bool {
 /// VIEWER_SEAMS: draw every seam of a smooth surface.
 pub fn seams() -> bool {
     env_flag("VIEWER_SEAMS", &SEAMS)
+}
+
+/// VIEWER_COARSE_EDGES: draw curved BRep edges from their face mesh vertices, not their curves.
+pub fn coarse_edges() -> bool {
+    env_flag("VIEWER_COARSE_EDGES", &COARSE_EDGES)
 }

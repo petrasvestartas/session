@@ -151,7 +151,7 @@ pub(super) fn render_position(point: [f64; 3]) -> [f32; 3] {
 }
 
 /// Total turning of the control polygon in degrees.
-fn turning_degrees(c: &NurbsCurve) -> f64 {
+pub(super) fn turning_degrees(c: &NurbsCurve) -> f64 {
     let mut total = 0.0;
     let mut prev: Option<[f64; 3]> = None;
 

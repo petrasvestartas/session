@@ -55,6 +55,8 @@ impl Upload {
             ids.resize(segments.len(), u32::MAX);
         }
 
+        self.seg.pipe_sags.resize(self.seg.pipes.len(), 0.0);
+
         let glyph = GlyphPoint {
             instance_id: sink,
             ..bytemuck::Zeroable::zeroed()

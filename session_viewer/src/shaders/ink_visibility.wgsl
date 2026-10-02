@@ -28,7 +28,16 @@ struct InkAxis {
     depth: f32, // its depth
     along: vec2<f32>, // stroke direction on screen, unit
     slope: f32, // depth change per pixel along it
+    sag: vec2<f32>, // the stroke's rise off the faces it bounds: x in depth, y in px; zero when it lies on them
 };
+
+// Slack a surface with screen depth gradient `gradient` gets against a stroke that rises `sag`
+// off its faces: the rise itself, plus what the surface falls over that rise sideways, so a face
+// seen at a grazing angle, whose depth changes by its whole length within the rise, cannot hide
+// the exact edge of the facets that approximate it. The polygon offset of the fixed pipeline.
+fn ink_sag_slack(sag: vec2<f32>, gradient: vec2<f32>) -> f32 {
+    return sag.x + sag.y * (abs(gradient.x) + abs(gradient.y));
+}
 
 // Scene depth at a pixel; 0 outside the screen or where nothing was drawn.
 fn ink_depth(pixel: vec2<f32>, sample: u32) -> f32 {
@@ -124,7 +133,8 @@ fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let g = z_side - z;
     // surface depth carried to the center line
     let predicted = z + a * axis.slope + b * g;
-    return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b)));
+    let tolerance = ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b)) + ink_sag_slack(axis.sag, vec2<f32>(g, axis.slope));
+    return ink_carry_visible(predicted, z, axis.depth, tolerance);
 }
 
 // disc visibility: fit the surface, carry to the centre
@@ -259,7 +269,8 @@ fn ink_visible_plane(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
 
     let delta = axis.at - pixel;
     let predicted = z + dot(gradient, delta);
-    return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(gradient.x)+abs(gradient.y), abs(delta.x)+abs(delta.y)));
+    let tolerance = ink_tolerance(axis.depth, abs(gradient.x)+abs(gradient.y), abs(delta.x)+abs(delta.y)) + ink_sag_slack(axis.sag, gradient);
+    return ink_carry_visible(predicted, z, axis.depth, tolerance);
 }
 
 @group(2) @binding(6) var<storage, read> projected: array<ProjectedTriangle>; // every triangle in screen space
@@ -293,6 +304,12 @@ fn ink_cap_visible(plane: u32, axis: InkAxis) -> bool {
     let slope = clip_plane_slope(plane, line.frame);
     let depth = clip_plane_depth(plane, clip_ndc(axis.at + line.origin, line.frame, 0.0).xy);
     return depth <= axis.depth + ink_tolerance(axis.depth, abs(slope.x) + abs(slope.y), 1.0);
+}
+
+// The depth a triangle must be nearer than to hide the ink exactly: the axis depth plus its
+// relative tolerance and the stroke's sag slack against that triangle's slope.
+fn ink_exact_floor(axis: InkAxis, triangle: ProjectedTriangle) -> f32 {
+    return axis.depth + abs(axis.depth) * DEPTH_REL_TOL + ink_sag_slack(axis.sag, triangle.gradient.xy);
 }
 
 // plane fit first, then the exact triangles
@@ -331,7 +348,7 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
 
     if (fringe!=0u && !(clip_active() && clip_is_cap(fringe))) {
         let fringe_hit = projected_triangle_at(projected[fringe-1u], at);
-        if (fringe_hit.y>0.5 && fringe_hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL && !ink_hit_cut(at, fringe_hit.x)) {
+        if (fringe_hit.y>0.5 && fringe_hit.x>ink_exact_floor(axis, projected[fringe-1u]) && !ink_hit_cut(at, fringe_hit.x)) {
             return false;
         }
     }
@@ -348,7 +365,7 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
 
         let hit = projected_triangle_at(projected[primitive-1u], at);
 
-        if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL && !ink_hit_cut(at, hit.x)) {
+        if (hit.y>0.5 && hit.x>ink_exact_floor(axis, projected[primitive-1u]) && !ink_hit_cut(at, hit.x)) {
             return false;
         }
     }
@@ -388,7 +405,7 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
 
         let hit = projected_triangle_at(projected[primitive-1u], at);
 
-        if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL && !ink_hit_cut(at, hit.x)) {
+        if (hit.y>0.5 && hit.x>ink_exact_floor(axis, projected[primitive-1u]) && !ink_hit_cut(at, hit.x)) {
             return false;
         }
     }

@@ -109,6 +109,22 @@ fn camera_from_env(gpu: &Gpu, aspect: f64) -> Camera {
             camera.zoom(if n > 0 { 1.0 } else { -1.0 });
         }
     }
+    // VIEWER_TARGET=x,y,z aims the camera at a scene point, mm
+    if let Ok(value) = std::env::var("VIEWER_TARGET") {
+        let mut it = value.split(',').filter_map(|v| v.trim().parse::<f64>().ok());
+        let units = camera.unit.to_meters();
+        let target = [
+            it.next().unwrap_or(0.0) * units,
+            it.next().unwrap_or(0.0) * units,
+            it.next().unwrap_or(0.0) * units,
+        ];
+
+        for axis in 0..3 {
+            camera.position[axis] += target[axis] - camera.target[axis];
+            camera.target[axis] = target[axis];
+        }
+    }
+
     // VIEWER_DISTANCE_SCALE=k multiplies the distance
     if let Ok(value) = std::env::var("VIEWER_DISTANCE_SCALE") {
         let scale: f64 = value

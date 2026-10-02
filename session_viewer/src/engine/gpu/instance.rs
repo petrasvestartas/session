@@ -223,6 +223,7 @@ mod tiles_tests {
                             offset_of!(CylinderSegment, facing),
                             offset_of!(StrokeSegment, previous),
                             offset_of!(StrokeSegment, next),
+                            offset_of!(StrokeSegment, sag),
                         ],
                         size_of::<StrokeSegment>(),
                     ),
