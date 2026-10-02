@@ -45,7 +45,7 @@ impl View {
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
             lit: knob("VIEWER_LIT", "lit").is_some(),
             backface: knob("VIEWER_BACKFACE", "backface").is_some(),
-            opacity: knob_f32("VIEWER_OPACITY", "opacity", 1.0).clamp(0.0, 1.0),
+            opacity: knob_f32("VIEWER_OPACITY", "opacity", DEFAULT_OPACITY).clamp(0.0, 1.0),
             msaa_forced: knob_u32("VIEWER_MSAA", "msaa"),
             perf: knob("VIEWER_PERF", "perf").is_some(),
             spin: knob("VIEWER_SPIN", "spin").is_some(),
@@ -58,6 +58,9 @@ impl View {
 /// attachment for no visible gain.
 #[cfg(target_arch = "wasm32")]
 pub const DEFAULT_MAX_DPR: f64 = 2.0;
+
+/// Face opacity unless `?opacity=` says otherwise: nearly solid, hidden edges still show faintly.
+pub const DEFAULT_OPACITY: f32 = 0.9;
 
 /// Framebuffer pixels per CSS pixel, capped by `?dpr=` or else at `DEFAULT_MAX_DPR`.
 pub fn device_pixel_ratio() -> f64 {
