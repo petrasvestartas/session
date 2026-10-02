@@ -1,10 +1,10 @@
 // One triangle in screen space, 96 bytes.
 struct ProjectedTriangle {
-    edge0: vec4<f32>, // xyz: edge line in canvas px, unit normal inward; w: depth per px of distance from it
-    edge1: vec4<f32>, // xyz: edge line; w: its depth weight
-    edge2: vec4<f32>, // xyz: edge line; w: its depth weight
-    edge3: vec4<f32>, // x: the plane's depth at the canvas origin; w: 3 for a drawn triangle, 0 for none
-    gradient: vec4<f32>, // xy: depth slope per px; z: nearest depth; w: contact radius
+    edge0: vec4<f32>, // xyz: edge line equation; w: reference x
+    edge1: vec4<f32>, // xyz: edge line equation; w: reference y
+    edge2: vec4<f32>, // xyz: edge line equation; w: reference depth
+    edge3: vec4<f32>, // xyz: fourth edge after clipping; w: corner count
+    gradient: vec4<f32>, // xy: depth slope; z: nearest depth; w: contact radius
     bounds: vec4<f32>, // screen box: left, top, right, bottom
 };
 
@@ -21,17 +21,17 @@ fn projected_triangle_at(triangle: ProjectedTriangle, at: vec2<f32>) -> vec2<f32
     }
 
     // signed distance to each edge; negative = outside
-    let distances = vec3<f32>(dot(triangle.edge0.xy, at)+triangle.edge0.z,
+    let distances = vec4<f32>(dot(triangle.edge0.xy, at)+triangle.edge0.z,
     dot(triangle.edge1.xy, at)+triangle.edge1.z,
-    dot(triangle.edge2.xy, at)+triangle.edge2.z);
+    dot(triangle.edge2.xy, at)+triangle.edge2.z,
+    dot(triangle.edge3.xy, at)+triangle.edge3.z);
 
-    if (any(distances<vec3<f32>(-0.00390625))) {
+    if (any(distances<vec4<f32>(-0.00390625))) {
         return vec2<f32>(0.0);
     }
 
-    // depth at `at`: each edge's distance times its weight; inside the triangle every term is
-    // positive, so the sum rounds within a few ulps of the depth itself
-    let depth = dot(vec3<f32>(triangle.edge0.w, triangle.edge1.w, triangle.edge2.w), distances);
+    // depth at `at` from the reference point and slope
+    let depth = triangle.edge2.w+dot(triangle.gradient.xy, at-vec2<f32>(triangle.edge0.w, triangle.edge1.w));
     return vec2<f32>(depth, 1.0);
 }
 // Pixels per tile side for a canvas; must match TileLayout in Rust.

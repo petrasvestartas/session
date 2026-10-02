@@ -171,14 +171,14 @@ struct VsOut {
     @builtin(position) pos: vec4<f32>, // clip position
     @location(0) color: vec4<f32>, // rgba
     @location(1) @interpolate(linear) p: vec2<f32>, // this corner, screen px
-    @location(2) @interpolate(flat) a: vec2<f32>, // the point of the line nearest the screen centre, px
-    @location(3) @interpolate(flat) b: vec2<f32>, // unit direction of the line on screen, start to end
+    @location(2) @interpolate(flat) a: vec2<f32>, // start point, screen px
+    @location(3) @interpolate(flat) b: vec2<f32>, // end point, screen px
     @location(4) @interpolate(flat) hw0: f32, // half width at the start, px
     @location(5) @interpolate(flat) hw1: f32, // half width at the end, px
     @location(6) @interpolate(flat) style: vec3<f32>, // x: 1 = a mesh edge, never fades; y, z: 1 = flat start, flat end
     @location(7) @interpolate(flat) inst_id: u32, // object row
     @location(8) @interpolate(flat) segment_index: u32, // segment row
-    @location(9) @interpolate(flat) end_depth: vec4<f32>, // xy: depth at start and end; zw: start and end along `b` from `a`, px
+    @location(9) @interpolate(flat) end_depth: vec2<f32>, // depth at start and end
     @location(10) @interpolate(flat) source_edge: u32, // source edge, or none
     @location(11) @interpolate(flat) start_join: vec4<f32>, // cut plane at the start joint: normal, point
     @location(12) @interpolate(flat) end_join: vec4<f32>, // cut plane at the end joint
@@ -239,26 +239,20 @@ fn neighbor_visible(seg: StrokeSegment) -> bool {
     return edge_faces_camera(seg.facing, n0, n1, toward_eye((p0+p1)*0.5));
 }
 
-// How much nearer than a stroke a face must be to hide it, mm: faces in contact come out of
-// the f32 placement a micrometre apart either way, and a contact edge stays drawn.
-const CONTACT_MM: f32 = 0.02;
-
-// The stroke's rise off its faces at world point `w` (clip `c`), at least the contact
-// distance: in depth, moving that far toward the eye, and in px at that depth.
+// The stroke's rise off its faces at world point `w` (clip `c`): in depth, moving `sag` mm
+// toward the eye, and in px at that depth.
 fn sag_terms(w: vec3<f32>, c: vec4<f32>, sag: f32) -> vec2<f32> {
-    let rise = max(sag, CONTACT_MM);
-
-    if (c.w <= 0.0) {
+    if (sag <= 0.0 || c.w <= 0.0) {
         return vec2<f32>(0.0);
     }
 
-    let lifted = mvp * vec4<f32>(w + normalize(toward_eye(w)) * rise, 1.0);
+    let lifted = mvp * vec4<f32>(w + normalize(toward_eye(w)) * sag, 1.0);
 
     if (lifted.w <= 0.0) {
         return vec2<f32>(0.0);
     }
 
-    return vec2<f32>(abs(lifted.z / lifted.w - c.z / c.w), half_width_px(rise, c.w));
+    return vec2<f32>(abs(lifted.z / lifted.w - c.z / c.w), half_width_px(sag, c.w));
 }
 
 // True when one triangle hides the whole segment: it covers both ends, screen points `s0` and
@@ -339,32 +333,6 @@ fn join_plane(before: u32, after: u32) -> vec4<f32> {
     }
 
     return vec4<f32>(normalize(normal), p1);
-}
-
-// The screen line through clip ends `e0` and `e1` (screen `s0`, `s1`, direction `dir`), as the
-// point of it nearest the screen centre and its unit direction from start to end: the ends in
-// homogeneous form are small however far off screen they project, so the anchor is exact.
-fn screen_line(e0: vec4<f32>, e1: vec4<f32>, s0: vec2<f32>, s1: vec2<f32>, dir: vec2<f32>, vp: vec2<f32>) -> vec4<f32> {
-    let centre = vp * 0.5;
-    let ndc = cross(vec3<f32>(e0.x, e0.y, e0.w), vec3<f32>(e1.x, e1.y, e1.w));
-    // x_ndc = 2 x / w - 1, y_ndc = 2 y / h - 1 (screen y up here)
-    let px = vec3<f32>(2.0 * ndc.x / vp.x, 2.0 * ndc.y / vp.y, ndc.z - ndc.x - ndc.y);
-    let scale = length(px.xy);
-
-    // seen end on: the ends coincide, any anchor serves
-    if (scale < 1e-20) {
-        return vec4<f32>(s0, dir);
-    }
-
-    let normal = px.xy / scale;
-    let foot = centre - normal * (dot(normal, centre) + px.z / scale);
-    var along = vec2<f32>(-normal.y, normal.x);
-
-    if (dot(along, s1 - s0) < 0.0) {
-        along = -along;
-    }
-
-    return vec4<f32>(foot, along);
 }
 
 // One quad corner of segment `vid / 6`; layer 0 all, 1 unselected, 2 selected.
@@ -453,19 +421,14 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
 
     o.color = color;
     o.p = p;
-    // the line anchored where it passes the screen centre: an end cut by the near plane lies a
-    // million pixels out, and a fragment's offset from it would lose the width to rounding;
-    // the line comes from the clip ends in homogeneous form, which stay small
-    let anchored = screen_line(e0, e1, s0, s1, dir, vp);
-    let near_centre = anchored.xy;
-    o.a = near_centre;
-    o.b = anchored.zw;
+    o.a = s0;
+    o.b = s1;
     o.hw0 = raw0;
     o.hw1 = raw1;
     o.inst_id = seg.instance_id;
     o.segment_index = iid;
     o.source_edge = source_edges[iid];
-    o.end_depth = vec4<f32>(e0.z / e0.w, e1.z / e1.w, dot(s0 - near_centre, anchored.zw), dot(s1 - near_centre, anchored.zw));
+    o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
     o.start_join = join_plane(seg.previous, iid);
     o.end_join = join_plane(iid, seg.next);
 
@@ -554,19 +517,19 @@ fn coverage(in: VsOut) -> f32 {
         return 0.0;
     }
 
-    // distance from the pixel to the segment, measured from the anchor near the screen centre
+    // distance from the pixel to the segment
     let pa = in.p - in.a;
-    let dir = in.b;
-    let len = in.end_depth.w - in.end_depth.z;
-    let along = dot(pa, dir);
-    let h = clamp((along - in.end_depth.z) / max(len, 1e-6), 0.0, 1.0);
-    let v = pa - dir * clamp(along, in.end_depth.z, in.end_depth.w);
+    let ba = in.b - in.a;
+    let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
+    let v = pa - ba * h;
     let d = length(v);
     let hf = resolve_width(in, h);
+    let len = length(ba);
 
     // near a flat end: a band across times the pixel's share on the inner side of the end
     if (len > 1e-6 && any(in.style.yz > vec2<f32>(0.5))) {
-        let t = along - in.end_depth.z;
+        let dir = ba / len;
+        let t = dot(pa, dir);
         let reach = 0.5 * (abs(dir.x) + abs(dir.y));
         let flat0 = in.style.y > 0.5 && t < reach;
         let flat1 = in.style.z > 0.5 && t > len - reach;
@@ -591,16 +554,14 @@ fn coverage(in: VsOut) -> f32 {
 
 // The stroke's center line as this fragment sees it.
 fn ink_axis(in: VsOut) -> InkAxis {
-    let dir = in.b;
-    let len = max(in.end_depth.w - in.end_depth.z, 1e-6);
-    let along = clamp(dot(in.p - in.a, dir), in.end_depth.z, in.end_depth.w);
-    let at = in.a + dir * along;
-    // depth is affine along the screen segment; weighted by the distances to the ends, not
-    // mixed, because an end cut by the near plane sits at depth 1 a million pixels out and
-    // a mix from it would round away the depth of the part on screen
-    let depth = (in.end_depth.x * (in.end_depth.w - along) + in.end_depth.y * (along - in.end_depth.z)) / len;
+    let ba = in.b - in.a;
+    let len2 = max(dot(ba, ba), 1e-6);
+    let h = clamp(dot(in.p - in.a, ba) / len2, 0.0, 1.0);
+    let at = in.a + ba * h;
+    let len = sqrt(len2);
+    let along = select(vec2<f32>(1.0, 0.0), vec2<f32>(ba.x, -ba.y) / len, len > 1e-3);
     let slope = (in.end_depth.y - in.end_depth.x) / max(len, 1e-3);
-    return InkAxis(vec2<f32>(at.x, line.vp_h - at.y), depth, vec2<f32>(dir.x, -dir.y), slope, in.sag);
+    return InkAxis(vec2<f32>(at.x, line.vp_h - at.y), mix(in.end_depth.x, in.end_depth.y, h), along, slope, in.sag);
 }
 
 // True when a clipping plane cuts the center line away beside this fragment.

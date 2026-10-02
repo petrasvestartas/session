@@ -25,6 +25,7 @@ struct TileVertex {
     @location(0) @interpolate(flat) edge0: vec3<f32>, // edge line equation
     @location(1) @interpolate(flat) edge1: vec3<f32>, // edge line equation
     @location(2) @interpolate(flat) edge2: vec3<f32>, // edge line equation
+    @location(3) @interpolate(flat) edge3: vec3<f32>, // fourth edge, if clipped
     @location(4) @interpolate(flat) bounds: vec4<f32>, // screen box
     @location(5) @interpolate(flat) primitive: u32, // triangle index + 1
     @location(6) @interpolate(flat) gradient: vec3<f32>, // depth slope and nearest depth
@@ -54,10 +55,11 @@ fn vs_main(@builtin(vertex_index) vertex: u32, @builtin(instance_index) instance
     out.edge0 = triangle.edge0.xyz;
     out.edge1 = triangle.edge1.xyz;
     out.edge2 = triangle.edge2.xyz;
+    out.edge3 = triangle.edge3.xyz;
     out.bounds = triangle.bounds;
     out.primitive = instance+1u;
     out.gradient = triangle.gradient.xyz;
-    out.reference = vec3<f32>(0.0, 0.0, triangle.edge3.x);
+    out.reference = vec3<f32>(triangle.edge0.w, triangle.edge1.w, triangle.edge2.w);
     return out;
 }
 
@@ -70,7 +72,7 @@ fn tile_outside(edge: vec3<f32>, centre: vec2<f32>) -> bool {
 fn covered_tile(v: TileVertex) -> u32 {
     let centre = (floor(v.clip.xy)+0.5)*f32(visibility_tile_span());
 
-    if (tile_outside(v.edge0, centre) || tile_outside(v.edge1, centre) || tile_outside(v.edge2, centre)) {
+    if (tile_outside(v.edge0, centre) || tile_outside(v.edge1, centre) || tile_outside(v.edge2, centre) || tile_outside(v.edge3, centre)) {
         discard;
     }
 

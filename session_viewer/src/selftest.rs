@@ -10,9 +10,6 @@ use crate::engine::text::{TextLabel, TextPlacement};
 use session_rust::{Session, Xform};
 use std::rc::Rc;
 
-#[cfg(test)]
-mod oracle;
-
 /// Background color.
 const CLEAR: wgpu::Color = wgpu::Color {
     r: 0.9,
@@ -86,13 +83,6 @@ fn assets_root(manifest: &str, man: &Manifest) -> std::path::PathBuf {
 fn camera_from_env(gpu: &Gpu, aspect: f64) -> Camera {
     let mut camera = Camera::new();
     camera.fit(&gpu.bounds, aspect);
-    aim_from_env(&mut camera);
-    report_camera(&camera);
-    camera
-}
-
-/// Move a fitted camera as the VIEWER_* environment variables say.
-fn aim_from_env(camera: &mut Camera) {
     // VIEWER_ORBIT=dx,dy in mouse pixels
     if let Ok(o) = std::env::var("VIEWER_ORBIT") {
         let mut it = o.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
@@ -147,6 +137,8 @@ fn aim_from_env(camera: &mut Camera) {
         camera.distance *= scale;
         camera.update_position();
     }
+    report_camera(&camera);
+    camera
 }
 
 /// Log the camera in scene units.
