@@ -1060,7 +1060,7 @@ mod tests {
     fn curved_edges_draw_denser_than_their_face_mesh() {
         use crate::app::walk::encode::{FACING_UNKNOWN, Pen};
         use crate::engine::gpu::segments::SegRows;
-        // a 10 mm hole through a thin block: the kernel's share rule leaves its wall 16 steps
+        // a 10 mm hole through a thin block: the kernel's share rule leaves its wall 32 steps
         let b = BRep::create_block_with_hole(500.0, 300.0, 60.0, 10.0);
         let fms = b.face_meshes_q(Some(QUALITY));
         let chains = edge_chains(&b, &fms);
@@ -1095,8 +1095,8 @@ mod tests {
             }
 
             circles += 1;
-            // the mesh keeps its 16 steps; the edge gets its chords
-            assert_eq!(chain.keys.len(), 17, "edge {}", chain.edge);
+            // the mesh keeps its 32 steps; the edge gets its chords
+            assert_eq!(chain.keys.len(), 33, "edge {}", chain.edge);
             assert!(
                 display.points.len() - 1 >= 64,
                 "edge {} has {} chords",
@@ -1141,7 +1141,7 @@ mod tests {
             assert!(display.sags.iter().any(|&sag| sag > 0.0));
             assert!(seg.pipes.iter().all(|p| p.facing != FACING_UNKNOWN), "edge {} facets", chain.edge);
             assert_eq!(spans.first(), Some(&0));
-            assert_eq!(spans.last(), Some(&15));
+            assert_eq!(spans.last(), Some(&31));
         }
 
         assert_eq!(circles, 2);
