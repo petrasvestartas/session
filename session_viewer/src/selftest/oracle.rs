@@ -394,6 +394,11 @@ pub(super) fn write_marked(path: &str, rgba: &[u8], size: (u32, u32), verdict: &
 /// of its own crease to rounding and drew the top edges dashed.
 #[test]
 fn close_up_edges_of_a_near_plate_are_continuous() {
+    if pollster::block_on(Gpu::new_headless(8, 8)).is_err() {
+        eprintln!("no GPU adapter; skipped");
+        return;
+    }
+
     let mut session = Session::new("plate");
     session.add_brep(BRep::create_box(3000.0, 400.0, 120.0), None);
     let size = (1200, 700);
