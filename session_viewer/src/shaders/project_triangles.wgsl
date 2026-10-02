@@ -42,66 +42,60 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
     }
 
     let placed = placed_triangle(index+1u, arrayLength(&physical_indices)/3u);
-    let polygon = project_physical_triangle(placed.x+1u, placed.y);
+    let triangle = physical_clip_triangle(placed.x+1u, placed.y);
     var out: ProjectedTriangle;
 
     // otherwise the record stays all zero
-    if (polygon.count>=3u) {
-        // screen box
-        var lo = polygon.points[0].xy;
-        var hi = lo;
+    if (triangle.drawn) {
+        let polygon = near_clipped_polygon(triangle.corners);
+        let plane = screen_plane(triangle.corners);
 
-        for (var i = 1u;i<polygon.count;i++) {
-            lo = min(lo, polygon.points[i].xy);
-            hi = max(hi, polygon.points[i].xy);
+        // behind the near plane, or edge-on: empty record
+        if (polygon.count>=3u && plane.drawn) {
+            // screen box of the part in front of the near plane
+            var lo = polygon.points[0].xy;
+            var hi = lo;
+            // nearest corner depth
+            var nearest = polygon.points[0].z;
+
+            for (var i = 1u;i<polygon.count;i++) {
+                lo = min(lo, polygon.points[i].xy);
+                hi = max(hi, polygon.points[i].xy);
+                nearest = max(nearest, polygon.points[i].z);
+            }
+
+            out.edge0 = vec4<f32>(plane.edges[0], plane.weights.x);
+            out.edge1 = vec4<f32>(plane.edges[1], plane.weights.y);
+            out.edge2 = vec4<f32>(plane.edges[2], plane.weights.z);
+            out.edge3 = vec4<f32>(plane.depth.z, 0.0, 0.0, 3.0);
+            let row = physical_row(placed.x*3u, placed.y);
+            out.gradient = vec4<f32>(plane.depth.xy, nearest, instances[row].ao_radius);
+            out.bounds = vec4<f32>(lo, hi);
         }
-
-        let area = physical_polygon_area(polygon);
-
-        // degenerate: empty record
-        if (abs(area)<1e-12) {
-            projected[index] = out;
-            return;
-        }
-
-        // one inward line equation per edge
-        var equations: array<vec4<f32>, 4>;
-
-        for (var i = 0u;i<polygon.count;i++) {
-            let a = polygon.points[i].xy;
-            let edge = polygon.points[(i+1u)%polygon.count].xy-a;
-            let normal = sign(area)*vec2<f32>(-edge.y, edge.x)/length(edge);
-            equations[i] = vec4<f32>(normal, -dot(normal, a), 0.0);
-        }
-
-        let ab = polygon.points[1]-polygon.points[0];
-        let ac = polygon.points[2]-polygon.points[0];
-        // depth change per screen pixel
-        let gradient = vec2<f32>(ab.z*ac.y-ac.z*ab.y, ab.x*ac.z-ac.x*ab.z)/area;
-        out.edge0 = vec4<f32>(equations[0].xyz, polygon.points[0].x);
-        out.edge1 = vec4<f32>(equations[1].xyz, polygon.points[0].y);
-        out.edge2 = vec4<f32>(equations[2].xyz, polygon.points[0].z);
-        out.edge3 = vec4<f32>(equations[3].xyz, f32(polygon.count));
-        // nearest corner depth
-        var nearest = polygon.points[0].z;
-
-        for (var i = 1u;i<polygon.count;i++) {
-            nearest = max(nearest, polygon.points[i].z);
-        }
-
-        let row = physical_row(placed.x*3u, placed.y);
-        out.gradient = vec4<f32>(gradient, nearest, instances[row].ao_radius);
-        out.bounds = vec4<f32>(lo, hi);
     }
 
     projected[index] = out;
 }
-// A triangle clipped to the near plane: up to four screen-space corners.
+// The three corners of a triangle in clip space.
 
+struct ClipTriangle {
+    corners: array<vec4<f32>, 3>,
+    drawn: bool, // false for a hidden object or a triangle a clipping plane removed
+};
+
+// A triangle clipped to the near plane: up to four screen-space corners.
 struct ProjectedPolygon {
     points: array<vec3<f32>,
     4>,
     count: u32, // corners; 0 = not drawn
+};
+
+// The triangle's depth as a plane over the canvas, with its edges.
+struct ScreenPlane {
+    edges: array<vec3<f32>, 3>, // edge lines in canvas px, unit normal inward
+    weights: vec3<f32>, // depth per px of distance inward from each edge
+    depth: vec3<f32>, // depth = x * depth.x + y * depth.y + depth.z, canvas px
+    drawn: bool, // false for a triangle seen edge-on
 };
 
 // Row drawing index `index`: `row`, or the vertex's own for SLOT_OWN_ROW.
@@ -142,13 +136,12 @@ fn physical_cut(base: u32, row: u32) -> bool {
     return false;
 }
 
-// Triangle `primitive` (one-based) placed by `row` (SLOT_OWN_ROW: its own), projected and
-// clipped to the near plane.
-fn project_physical_triangle(primitive: u32, row: u32) -> ProjectedPolygon {
-    var polygon: ProjectedPolygon;
+// Triangle `primitive` (one-based) placed by `row` (SLOT_OWN_ROW: its own) in clip space.
+fn physical_clip_triangle(primitive: u32, row: u32) -> ClipTriangle {
+    var triangle: ClipTriangle;
 
     if (primitive == 0u || primitive > arrayLength(&physical_indices)/3u) {
-        return polygon;
+        return triangle;
     }
 
     let base = (primitive-1u)*3u;
@@ -156,10 +149,19 @@ fn project_physical_triangle(primitive: u32, row: u32) -> ProjectedPolygon {
 
     // 2 = FLAG_HIDDEN; hidden objects do not occlude, nor do triangles a clipping plane removed
     if ((instances[owner].flags & 2u) != 0u || physical_cut(base, owner)) {
-        return polygon;
+        return triangle;
     }
 
-    let input = array<vec4<f32>, 3>(physical_clip_corner(base, owner), physical_clip_corner(base+1u, owner), physical_clip_corner(base+2u, owner));
+    triangle.corners = array<vec4<f32>, 3>(physical_clip_corner(base, owner), physical_clip_corner(base+1u, owner), physical_clip_corner(base+2u, owner));
+    triangle.drawn = true;
+    return triangle;
+}
+
+// The triangle clipped to the near plane and projected: the part that is drawn, as screen
+// corners with their depths. Its box and nearest depth are read from it, never its plane:
+// a corner at the near plane can lie millions of pixels off screen at depth 1.
+fn near_clipped_polygon(input: array<vec4<f32>, 3>) -> ProjectedPolygon {
+    var polygon: ProjectedPolygon;
     var clipped: array<vec4<f32>, 4>;
     var previous = input[2];
     var previous_distance = previous.w - previous.z;
@@ -200,15 +202,47 @@ fn project_physical_triangle(primitive: u32, row: u32) -> ProjectedPolygon {
     return polygon;
 }
 
-// 2D cross product.
-fn physical_cross(a: vec2<f32>, b: vec2<f32>) -> f32 {
-    return a.x*b.y-a.y*b.x;
+// A line through two homogeneous screen points, as a line over the canvas in px: the clip
+// (x, y, w) of each corner stays small however near the eye the corner is.
+fn canvas_line(a: vec3<f32>, b: vec3<f32>) -> vec3<f32> {
+    let ndc = cross(a, b);
+    // x_ndc = 2 x / w - 1 and y_ndc = 1 - 2 y / h
+    return vec3<f32>(2.0*ndc.x/line.vp_w, -2.0*ndc.y/line.vp_h, ndc.z-ndc.x+ndc.y);
 }
 
-// Twice the signed area of the first three corners.
-fn physical_polygon_area(polygon: ProjectedPolygon) -> f32 {
-    // zero only for a degenerate polygon
-    return physical_cross(polygon.points[1].xy-polygon.points[0].xy, polygon.points[2].xy-polygon.points[0].xy);
+// The depth plane and the edges of a triangle from its clip corners, in 2D homogeneous
+// coordinates: a canvas point lies inside where its three barycentric weights, each an edge
+// line evaluated there over the determinant, are positive, and its depth is the weighted sum
+// of the corners' clip z. Nothing is divided by w, so a corner beside or behind the eye costs
+// no precision, and inside the triangle the depth is a sum of positive terms.
+fn screen_plane(corners: array<vec4<f32>, 3>) -> ScreenPlane {
+    var plane: ScreenPlane;
+    let v0 = corners[0].xyw;
+    let v1 = corners[1].xyw;
+    let v2 = corners[2].xyw;
+    let l0 = cross(v1, v2);
+    let determinant = dot(l0, v0);
+
+    // edge-on or degenerate: it covers no pixel
+    if (abs(determinant) <= 1e-7*length(v0)*length(v1)*length(v2)) {
+        return plane;
+    }
+
+    let lines = array<vec3<f32>, 3>(canvas_line(v1, v2), canvas_line(v2, v0), canvas_line(v0, v1));
+    let z = vec3<f32>(corners[0].z, corners[1].z, corners[2].z);
+    plane.depth = (z.x*lines[0]+z.y*lines[1]+z.z*lines[2])/determinant;
+    let inward = sign(determinant);
+
+    for (var i = 0u; i < 3u; i++) {
+        let edge = lines[i]*inward;
+        let scale = max(length(edge.xy), 1e-30);
+        plane.edges[i] = edge/scale;
+        // corner i's clip z per px of distance inward from the edge facing it
+        plane.weights[i] = z[i]*scale/abs(determinant);
+    }
+
+    plane.drawn = true;
+    return plane;
 }
 
 #include "slot_table.wgsl"
