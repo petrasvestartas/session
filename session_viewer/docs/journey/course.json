@@ -5839,6 +5839,264 @@
           "why": "Check modified history, independent imports and exhausted/reopened release issuance."
         }
       ]
+    },
+    {
+      "id": "32g-keys",
+      "title": "Identify the source release a reload belongs to",
+      "page": "journey/32g-keys.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Borrow the current imported release identity and epoch before asking for source data.",
+      "trace": "Active cold rows → ReloadKey::of → unique imported Origin + release epoch",
+      "question": "Why is a file GUID insufficient to accept a reload result?",
+      "answer": "Duplicate imports can share the same original GUID and byte version. A result must belong to this imported Origin allocation and its current release epoch. Loaded rows, closed rows and another release cycle must not match it.",
+      "story": "Define `ReloadKey` as an Origin owner and one release epoch. matches compares the actual imported Origin Rc and the row’s current epoch. That is the residency identity; local/saved object identity and source GUID remain separate.\n\nCollect distinct keys from active cold rows. A later explicit reload can use them, while source adoption will also visit matching history roots. Do not fetch a history-only source without a current active request. If history later restores that source, a new request can obtain its current key.\n\nThe native test unloads, records a key, closes and imports the same bytes again. The old key cannot match the new import. A key with a changed epoch cannot match the current cold row either. No fetch or Reload Sources command exists yet; the browser retains the preceding unload behavior.\n\n`Rc::clone` creates another owner of the same value; it does not copy the Origin. `Rc::ptr_eq` asks whether two owners refer to that same allocation. `Option<Self>` means a row might have no reload key: the question marks return None immediately for a loaded or unlocated row. `is_some_and` runs the comparison only when an origin exists.\n\n![Borrow the current imported release identity and epoch before asking for source data.](../illustrations/journey-32g.svg)",
+      "result": "Run the release-identity checks, then Unload Sources in the unchanged browser. Compare the current origin/epoch with the saved row GUID.",
+      "experiment": "Compare two imports of the same file. Explain why sharing the byte version must not make a result for one import eligible for the other.",
+      "production": "Production source fetches carry a release token. This explicit key prepares the same rejection of old completions across replacement, Close and another release cycle.",
+      "tests": true,
+      "frame": "journey/checks/32g-keys.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-core.cjs",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod reload_url;\n",
+          "snippet": "journey/code/32g-keys-01.rs",
+          "why": "Give reload identity and preparation their own Rust boundary."
+        },
+        {
+          "path": "src/rehydrate.rs",
+          "before": null,
+          "snippet": "journey/code/32g-keys-02.rs",
+          "why": "Match an imported allocation and checked release epoch instead of only a file GUID."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {\n",
+          "snippet": "journey/code/32g-keys-03.rs",
+          "why": "Request each active imported release once without duplicating its geometry."
+        }
+      ],
+      "browser_caption": "The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending."
+    },
+    {
+      "id": "32ga-prepare",
+      "title": "Prepare original kernel data without rebuilding its display",
+      "page": "journey/32ga-prepare.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Validate an immutable source version and restore its Session into a private reload candidate.",
+      "trace": "Original bytes → bounded decode/version check → candidate Session → original source-GUID lookup",
+      "question": "Why should reloading editable sources avoid preparing another display mesh?",
+      "answer": "The displayed rows and GPU buffers are already retained. Reload needs original kernel ownership for editing, not a second float approximation or a new upload. Decode and validate the exact source version, then keep a candidate Session until every affected row is checked.",
+      "story": "Introduce `document::decode` as the common bounded protobuf/schema boundary. Ordinary `load_at` still creates an Origin and prepares display meshes. `document::restore` instead validates the expected immutable byte version, constructs the kernel `Session` and returns its Rc directly.\n\n`PreparedReload` owns one key and one candidate `Session`. It checks each matching row’s original source GUID, name and visibility/locking against the decoded kernel mesh. Missing source identity or metadata drift refuses adoption; retained displays are never treated as editable geometry.\n\nA candidate does not change a row. This separation makes it possible to validate every candidate and history root before mutation. SHA-256 here identifies the immutable selected File; mutable published HTTP source policies remain later work.\n\nThe ampersand borrows bytes and the Origin for this call. `Result<Rc<Session>, &'static str>` returns either an owned `Session` handle or an error message; the messages are string literals that exist for the whole program. map wraps only a successful `Session` in Rc. A failed candidate cannot change the `Scene` because preparation never receives a mutable `Scene`.\n\n![Validate an immutable source version and restore its `Session` into a private reload candidate.](../illustrations/journey-32ga.svg)",
+      "result": "Run the existing bounded-loader and source tests with the refactored decode boundary. The picture, file behavior and source-unload command remain unchanged.",
+      "experiment": "Follow the difference between load_at and restore. Identify where display conversion occurs, and why the restored candidate should not invoke it.",
+      "production": "Production hydration brings back kernel Sessions before editing. This preparation stage restores original source ownership while preserving the current display and placement policy.",
+      "tests": true,
+      "frame": "journey/checks/32ga-prepare.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-core.cjs",
+      "edits": [
+        {
+          "path": "src/document.rs",
+          "before": "    if bytes.len() > MAX_BYTES { return Err(\"This checkpoint accepts files up to 4 MiB\"); }\n    let message = proto::Session::decode(bytes).map_err(|_| \"Invalid session protobuf\")?;\n    validate(&message)?;\n",
+          "snippet": "journey/code/32ga-prepare-01.rs",
+          "why": "Share bounded decoding without sharing display preparation."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {\n",
+          "snippet": "journey/code/32ga-prepare-02.rs",
+          "why": "Restore only original kernel data after validating the immutable source version."
+        },
+        {
+          "path": "src/rehydrate.rs",
+          "before": "#[cfg(test)]\nmod tests {\n",
+          "snippet": "journey/code/32ga-prepare-03.rs",
+          "why": "Keep candidate kernel ownership private until every matched row has a valid original source."
+        }
+      ],
+      "browser_caption": "The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending."
+    },
+    {
+      "id": "32gb-adopt",
+      "title": "Adopt restored source owners as one residency change",
+      "page": "journey/32gb-adopt.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Validate current releases and all matching history rows before adopting any kernel candidate.",
+      "trace": "Current keys → prepare all candidates → validate all matching roots → adopt editable owners",
+      "question": "What prevents a valid first candidate from committing when a later source fails?",
+      "answer": "Prepare every candidate and validate every affected row before the adoption loop. If any version, source GUID or metadata check fails, the function returns with all rows still cold and no new history entry.",
+      "story": "hydrate accepts key/byte pairs from a completed request. First check that each distinct key still matches an active cold row; a stale or duplicate key cannot start preparation. Next build every candidate and validate all matching active, Undo and Redo rows. Only after every check succeeds does `Scene` adopt the prepared source owners.\n\nAdoption changes only `EditSource`: each matching row receives the restored mesh and Source sharing one candidate `Session` and the original Origin. Keep local ID, saved GUID, metadata Rc, display Rc and model matrix exactly as they were.\n\nThis is a residency pass, not a document edit. It must not clear history, append an Undo entry or alter camera/selection. The next endpoint adds explicit ownership, precision and rejection checks. Browser fetching and command replay are not wired yet.\n\n`collect::<Result<_, _>>()` turns many candidate results into one result: an error stops collection and drops candidates already prepared. The question mark returns that error before adoption starts. `flat_map` visits rows from each active/history `Scene` without copying them. The final mutable pass replaces only editable ownership; it is not a History edit.\n\n![Validate current releases and all matching history rows before adopting any kernel candidate.](../illustrations/journey-32gb.svg)",
+      "result": "Build the atomic hydration API. The browser still ends with the source unloaded; use the next native checkpoint to exercise restored editing and saving.",
+      "experiment": "Move the adoption loop ahead of candidate validation in a scratch copy. Explain what a failure in the second origin would leave behind.",
+      "production": "The production operation validates released identity before hydration. This API additionally groups the requested immutable-source candidates so one command cannot partially adopt its source batch.",
+      "tests": true,
+      "frame": "journey/checks/32gb-adopt.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-core.cjs",
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {\n",
+          "snippet": "journey/code/32gb-adopt-01.rs",
+          "why": "Restore editable owners without replacing display, metadata, identity or placement."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    fn unload_sources(&mut self) -> Result<(), &'static str> {\n",
+          "snippet": "journey/code/32gb-adopt-02.rs",
+          "why": "Check current release ownership and all source rows before any candidate is adopted."
+        }
+      ],
+      "browser_caption": "The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending."
+    },
+    {
+      "id": "32gc-roundtrip",
+      "title": "Prove source restoration preserves display and history",
+      "page": "journey/32gc-roundtrip.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Restore exact source coordinates and editing without reallocating retained display owners.",
+      "trace": "Move → Unload Sources → checked hydrate → exact Save → retained Undo/Redo and GPU owners",
+      "question": "How can the test distinguish rehydration from rebuilding the whole scene?",
+      "answer": "Record row IDs, saved GUIDs, metadata/display Rc identities, model matrices, camera and history-root count. After hydration these must be unchanged, while kernel geometry becomes available again from the restored original bytes.",
+      "story": "Add a fixture with a deliberately precise double coordinate and original flags. Import through a located source, Move, unload, then hydrate the captured key with the original bytes. The old kernel value stays expired; restored source geometry has the exact original coordinate.\n\nThe row’s display and metadata Rcs are retained, as are its IDs, placement, camera and history roots. Snapshot can again serialize the exact editable source. Undo/Redo still return the earlier and moved placements with available restored kernel owners.\n\nThe native GPU fixture adds the same boundary: source hydration must preserve the existing geometry/settings allocations and drawing. The browser still demonstrates unloading at this endpoint; actual fetch and replay come after the native rejection checks.\n\nThe protobuf field uses `Some(true)` because its representation distinguishes an explicitly stored flag from an omitted one. This test checks flag preservation, not the later selection/locking policy. `Rc::downgrade` observes a value without keeping it alive; upgrade returning None proves the old kernel allocation is gone. `Rc::ptr_eq` then distinguishes a retained display from a newly copied display with equal coordinates.\n\n![Restore exact source coordinates and editing without reallocating retained display owners.](../illustrations/journey-32gc.svg)",
+      "result": "Run the exact source round trip and GPU retention checks. Compare the saved double with its f32 display approximation; only the original kernel coordinate is saveable.",
+      "experiment": "Replace the restored kernel coordinate with a value reconstructed from the retained display and predict which assertion fails.",
+      "production": "Rehydration is separate from scene rebuild and document history. The forthcoming browser callback can adopt this checked result without silently changing drawing or targeting another selection.",
+      "tests": true,
+      "frame": "journey/checks/32gc-roundtrip.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-core.cjs",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "mod unload_tests;\n",
+          "snippet": "journey/code/32gc-roundtrip-01.rs",
+          "why": "Keep source restoration proofs in typed native state checks."
+        },
+        {
+          "path": "src/rehydrate_tests.rs",
+          "before": null,
+          "snippet": "journey/code/32gc-roundtrip-02.rs",
+          "why": "Check exact restored coordinates and retained display/metadata/placement history."
+        }
+      ],
+      "browser_caption": "The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending."
+    },
+    {
+      "id": "32gd-rejections",
+      "title": "Reject stale or inconsistent source batches atomically",
+      "page": "journey/32gd-rejections.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Keep rows cold on changed versions, missing source identity and obsolete release keys.",
+      "trace": "Prepare two origins → reject changed second source → no adoption → successful retry",
+      "question": "Should a late result after Close be decoded before deciding that it is obsolete?",
+      "answer": "No. First confirm the captured key still matches an active cold row. An obsolete result returns false before source construction or mutation, whether its payload is valid or malformed.",
+      "story": "A successful round trip is not enough. Use duplicate imports with independent origins and validate all candidates before adoption. Change the second source version and confirm neither origin becomes loaded. A wrong original source GUID in a retained row must also reject the candidate.\n\nClose and reimport the same bytes, then deliver an old key with malformed bytes: the stale result must be ignored without even trying to decode it. Restore one origin, release again and verify the old epoch no longer matches; a duplicate completion of an already adopted key is also ignored.\n\nThese are native acceptance checks for the atomic API. Fetch errors, aborts and queued edits belong to the next browser request boundary.\n\n`Rc::make_mut` gives this row its own metadata value when another history row shares the original. That lets the check simulate an inconsistent retained row without changing the imported file. The changed byte version and the changed row metadata exercise separate rejection boundaries.\n\n![Keep rows cold on changed versions, missing source identity and obsolete release keys.](../illustrations/journey-32gd.svg)",
+      "result": "Run the rejection cases and verify unchanged row IDs, model data, display identities and source availability after each failed or stale batch.",
+      "experiment": "Change the second candidate in a two-origin batch to malformed bytes. Predict why validating all candidates first keeps the first origin cold.",
+      "production": "Late source delivery must never revive a closed or replaced import. Immutable file-version checks and origin/epoch checks address different causes of stale data.",
+      "tests": true,
+      "frame": "journey/checks/32gd-rejections.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-core.cjs",
+      "edits": [
+        {
+          "path": "src/rehydrate_tests.rs",
+          "before": "use crate::editor::{Action, Editor};\n",
+          "snippet": "journey/code/32gd-rejections-01.rs",
+          "why": "Reject the entire candidate batch before adopting any source and preserve displayed owners."
+        }
+      ],
+      "browser_caption": "The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending."
+    },
+    {
+      "id": "32ge-stale",
+      "title": "Ignore old reload results before decoding them",
+      "page": "journey/32ge-stale.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.",
+      "trace": "Old import/release key → active-key check → false before payload decoding",
+      "question": "Why deliver deliberately invalid bytes with an obsolete reload key?",
+      "answer": "A false result instead of a decode error proves the identity check happens first. Invalid stale payloads cannot revive a closed import or disturb the current source release.",
+      "story": "Close and reimport the same file with the same original GUIDs. The import Origin is a new allocation, so the previous key must be ignored. Then hydrate the current release, deliver it twice, release again and deliver the previous epoch. Every obsolete completion returns false.\n\nA request must contain at most one candidate per origin. Duplicate keys are rejected before preparing either candidate. An empty batch also has no effect. Keep the current rows and their display identities throughout.\n\nThese checks establish the native adoption contract. Browser request cancellation and automatic Move/Delete/Save replay are still pending; the browser at this endpoint continues to demonstrate Unload Sources.\n\n`Ok(false)` means this result no longer belongs to a current request; it is not a document error. `Err(message)` means a current candidate failed validation. Keeping those outcomes separate lets a later browser callback silently discard obsolete completions while reporting failures for the current reload. A captured key owns its Origin, so the next request-lifetime lesson must also drop that owner when cancelling work.\n\n![Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.](../illustrations/journey-32ge.svg)",
+      "result": "Run the stale-result checks with invalid bytes and verify that no stale key triggers decoding or changes current row residency.",
+      "experiment": "Use the current key with invalid bytes instead. Predict why the error now concerns the source version rather than an obsolete request.",
+      "production": "Request ownership, import identity and release epochs must all survive asynchronous timing. The next lessons add that browser boundary to this checked state API.",
+      "tests": true,
+      "frame": "journey/checks/32ge-stale.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-core.cjs",
+      "edits": [
+        {
+          "path": "src/rehydrate_tests.rs",
+          "before": "use crate::editor::{Action, Editor};\n",
+          "snippet": "journey/code/32ge-stale-01.rs",
+          "why": "Show that obsolete identities are rejected before version checks, decoding or mutation."
+        }
+      ],
+      "browser_caption": "The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending."
     }
   ]
 }

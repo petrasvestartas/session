@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 73 cumulative lessons, about 121–219 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 79 cumulative lessons, about 127–231 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **128 proposed slots: 73 current checkpoints and 55 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **150 proposed slots: 79 current checkpoints and 71 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -89,6 +89,12 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [32fj · Prove unloading preserves placed history](journey/32fj-proof.md) | 1–2 hours | Observe imported kernel expiration while retained displays and placements survive Undo/Redo. |
 | [32fk · Unload editable sources through the command line](journey/32fk-command.md) | 1–2 hours | Keep the drawing and GPU allocations while the dock unloads eligible imported sources. |
 | [32fl · Protect history and future reload tickets](journey/32fl-guards.md) | 1–2 hours | Verify whole-origin protection, independent duplicate imports and checked release epochs. |
+| [32g · Identify the source release a reload belongs to](journey/32g-keys.md) | 1–2 hours | Borrow the current imported release identity and epoch before asking for source data. |
+| [32ga · Prepare original kernel data without rebuilding its display](journey/32ga-prepare.md) | 1–2 hours | Validate an immutable source version and restore its Session into a private reload candidate. |
+| [32gb · Adopt restored source owners as one residency change](journey/32gb-adopt.md) | 1–2 hours | Validate current releases and all matching history rows before adopting any kernel candidate. |
+| [32gc · Prove source restoration preserves display and history](journey/32gc-roundtrip.md) | 1–2 hours | Restore exact source coordinates and editing without reallocating retained display owners. |
+| [32gd · Reject stale or inconsistent source batches atomically](journey/32gd-rejections.md) | 1–2 hours | Keep rows cold on changed versions, missing source identity and obsolete release keys. |
+| [32ge · Ignore old reload results before decoding them](journey/32ge-stale.md) | 1–2 hours | Reject results for closed imports, loaded rows, duplicate keys and previous release epochs. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

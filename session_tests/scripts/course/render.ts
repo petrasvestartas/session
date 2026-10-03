@@ -69,7 +69,7 @@ export function generate() {
     const hours = steps.reduce((sum, step) => sum.map((n, i) => n + step.hours[i]), [0, 0]);
     const overview = path.join(docs, 'journey.md');
     const planned = [...read(path.join(docs, 'journey/roadmap.md'))
-        .matchAll(/^- \[(?:x| )\] \d+[a-z]? · /gm)].length;
+        .matchAll(/^- \[(?:x| )\] \d+[a-z]* · /gm)].length;
     if (planned < steps.length) throw Error('Roadmap must include every available lesson');
     const table = ['| Lesson | Time | Working result |', '| --- | --- | --- |',
         ...steps.map((step, i) => `| [${step.id.split('-')[0]} · ${step.title}](${step.page}) | ${step.hours.join('–')} hours | ${step.goal} |`)];
