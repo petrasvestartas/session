@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 89 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 90 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -41,6 +41,8 @@ The full-window white canvas starts in lesson 01; GPU sizing starts in lesson 02
 The early dock stages have different purposes: 03a draws the styling, 03b adds the model, 03c draws production history/layout, and 03d connects keyboard input. Their captions state when input becomes usable. Native GPU images are separate evidence and are never labelled browser screenshots.
 
 ## Fixed inputs and remaining scope
+
+The captured Delete checkpoint passes 100 native tests. It deletes the original identity in one history transaction, preserves later selection and camera, clears selection only for the removed target, and preserves Redo when the target is cold/missing or no row is selected. Chrome checks ordinary Delete/Undo/Redo through that same helper; native tests exercise the delayed identity. Automatic asynchronous replay remains pending.
 
 The course pins wgpu 29.0.4 and egui/egui-wgpu 0.34.3. Locks are introduced for the initial project, egui drawing, dock inspection dependencies, the Rust geometry kernel, protobuf import and explicit UUID generation. The dependency command preserves the previous lock and installs binary fonts; all implementation code is displayed for typing.
 

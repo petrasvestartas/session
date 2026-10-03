@@ -542,3 +542,13 @@ Same-tab refresh is now automated by local target/course-checks/watch-docs.cjs, 
 - [ ] Obtain a current phone Diagnostic Report to distinguish download, decode, walk and first-GPU-frame delay. CPU restructuring remains conditional on that evidence.
 - [ ] Resume course building: explicit-target Delete (32giba), captured Move/Delete/Save replay (32gibb), owned pending tickets (32gic), automatic cold-source edits (32gid), headed failure/timing acceptance (32gj), then listeners/device recovery and remaining geometry/rendering/attributes/command parity.
 - [ ] Split the 17 oversized early lessons and complete all 71 future checkpoints; keep the 89 verified checkpoints and learner work intact. Retire old references only after complete replacement acceptance.
+
+### 2026-10-03 · Captured-target Delete checkpoint
+
+- [x] 32giba-delete extracts explicit-target Delete: require current editable geometry, remove once, preserve a different later selection and camera, clear selection only for the removed target.
+- [x] Native 100 tests; missing/cold targets and empty selection preserve Redo. One Undo restores the captured target and Redo removes it again.
+- [x] WebAssembly, optimized runnable Trunk checkpoint, native GPU frame and headed Chrome Delete/Undo/Redo pass. Chrome checks normal Delete through the same helper; automatic asynchronous replay remains pending.
+- [x] White full-window screenshot, handwritten snippets, D2 diagram and 26–52 minute typing estimate; all 90 stored checkpoints and nine course-tool tests pass. No learner files changed.
+- [x] Strict Vue build passed in 14.96 seconds; the same selected Chrome page refreshed, retaining the 32gia route.
+- [ ] Publish the lesson after viewer optimization deployment acceptance.
+- [ ] Next 32gibb reply routing, 32gic ticket ownership, 32gid automatic cold-source editing and 32gj failure/timing/precision tests; 70 proposed future checkpoints and 17 early splits remain.
