@@ -72,10 +72,13 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [32c-close](32c-close.md) | 41 | 1996 | 20–40 min | 1–2 h | Within planning limit |
 | [32d-command](32d-command.md) | 10 | 449 | 5–9 min | 1–2 h | Within planning limit |
 | [32e-release](32e-release.md) | 23 | 1390 | 14–28 min | 1–2 h | Within planning limit |
+| [32f-metadata](32f-metadata.md) | 62 | 2785 | 28–56 min | 1–2 h | Within planning limit |
+| [32fa-access](32fa-access.md) | 22 | 1326 | 14–27 min | 1–2 h | Within planning limit |
+| [32fb-boundary](32fb-boundary.md) | 19 | 1547 | 16–31 min | 1–2 h | Within planning limit |
 
 ## Work still required
 
-- [x] Count the exact source edits for all 60 current checkpoints.
+- [x] Count the exact source edits for all 63 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.

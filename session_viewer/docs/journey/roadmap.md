@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 127 lesson slots; 60 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 130 lesson slots; 63 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 60 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 63 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -153,9 +153,19 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 32e · [Prove release does not retain the old document](32e-release.md) — weak imported/history owner checks, late success/failure, empty Save and fresh reopened IDs.
 
-- [ ] 32f · Keep the display after unloading edit sources — retain rows, names, flags, placements and document metadata while dropping eligible imported kernel sources.
+- [x] 32f · [Keep row metadata separate from editable geometry](32f-metadata.md) — independent names, original source GUIDs, visibility/locking values and shared history metadata; no kernel owner retained by metadata.
+
+- [x] 32fa · [Ask whether an editable source is available](32fa-access.md) — borrowed geometry/provenance access, explicit Save requirements and resident-source accounting.
+
+- [x] 32fb · [Make editable ownership a private row boundary](32fb-boundary.md) — all external owner checks use accessors; preparation and GPU geometry keep their separate contracts.
+
+- [ ] 32fc · Keep the display after unloading edit sources — retain rows, names, flags, placements and document metadata while dropping eligible imported kernel sources.
+
+  Required follow-ups: record distinct reload origins and file versions; keep reload metadata free of kernel owners; preserve generated/modified sources; inspect active and both history branches; release eligible owners across all retained roots without clearing history; retain display/GPU identities, selection, camera and per-snapshot placements; prove weak source expiration and unchanged visible pixels/allocation counters.
 
 - [ ] 32g · Reload an unloaded source for editing — restore ownership before edits; reject stale/cancelled loads and handle failures without losing the display.
+
+  Required follow-ups: fetch from the recorded origin with a new request owner; check file version and every requested source GUID before adopting anything; restore source ownership atomically across active/history rows; preserve saved/local identities and placements; replay the requested edit once; reject older release epochs, replacement/close completions, cancellation and failed retries; release browser reload URLs at their actual owner lifetime.
 
 - [ ] 33 · Give browser listeners a lifetime — detach callbacks and cancel work when the viewer closes.
 

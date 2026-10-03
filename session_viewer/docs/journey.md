@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 60 cumulative lessons, about 108–193 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 63 cumulative lessons, about 111–199 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **127 proposed slots: 60 current checkpoints and 67 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **127 proposed slots: 63 current checkpoints and 64 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -76,6 +76,9 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [32c · Close the document without resetting the view](journey/32c-close.md) | 1–2 hours | Drop active rows and both history branches while preserving the local ID counter and camera. |
 | [32d · Close through the command line and revoke reads](journey/32d-command.md) | 1–2 hours | Wire Close into the dock and cancel pending delivery before closing the editor. |
 | [32e · Prove release does not retain the old document](journey/32e-release.md) | 1–2 hours | Check imported history owners, the CPU/GPU release boundary, late read failures and reopening. |
+| [32f · Keep row metadata separate from editable geometry](journey/32f-metadata.md) | 1–2 hours | Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive. |
+| [32fa · Ask whether an editable source is available](journey/32fa-access.md) | 1–2 hours | Route saving, source accounting and owner checks through borrowed source accessors. |
+| [32fb · Make editable ownership a private row boundary](journey/32fb-boundary.md) | 1–2 hours | Finish migrating owner checks and prevent other modules from bypassing source availability. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

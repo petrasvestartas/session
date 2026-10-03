@@ -4968,6 +4968,246 @@
           "why": "Verify imported source/document release across history and fresh identities after reopening."
         }
       ]
+    },
+    {
+      "id": "32f-metadata",
+      "title": "Keep row metadata separate from editable geometry",
+      "page": "journey/32f-metadata.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive.",
+      "trace": "Prepared source → independent row metadata → shared scene snapshots → source ownership proof",
+      "question": "Why is a row’s original source GUID separate from its saved object GUID?",
+      "answer": "The original source GUID locates the mesh in the imported document. The saved object GUID distinguishes duplicate imports in this viewer. Forking the saved identity must not change the original identity used to restore a released source.",
+      "story": "Source unloading keeps the picture while dropping eligible editable kernel data. Before dropping any owner, give each row the small descriptive values it will still need. The display mesh, placement and local ObjectId already live on the row. Names and flags currently live inside the kernel mesh.\n\n![A scene row keeps metadata and its derived display independently of editable kernel owners.](../illustrations/journey-32f.svg)\n\nRowMetadata copies the original source GUID, name, is_visible and is_locked when Scene inserts a prepared mesh. These are owned strings and booleans, with no Rc to the kernel mesh or imported Session. The row shares an Rc<RowMetadata> across history snapshots: Move changes placement, so it does not need to copy or alter metadata. Later attribute edits will replace or copy this metadata deliberately.\n\nKeep source_guid distinct from Object.guid. Repeated imports can have the same source GUID but need different saved identities. This is the distinction introduced in lesson29; it now remains available without borrowing a kernel mesh.\n\nThe native check retains only metadata and Weak observers, closes the editor, and proves the old kernel value is gone while the name and flags remain readable. Another check follows duplicate imports, Move and Undo. Chrome inspects a hidden diagnostic attribute to compare the same metadata through import and history; no interface button or teaching panel is added.\n\nThis endpoint does not unload a source yet. Both source and display still exist. Visibility and locking are preserved as values; their full drawing/editing policy is taught later in the course.",
+      "result": "Import the same file twice. Compare original source GUIDs with saved row GUIDs, then Move and Undo. The metadata must stay unchanged. Run the native ownership check to prove that retained metadata alone cannot pin a closed source.",
+      "experiment": "Replace one row’s metadata Rc in a test with newly owned values. Predict why an older scene snapshot must keep the original values. Do not mutate a shared metadata allocation behind history.",
+      "production": "Production source release retains shape/name/tree information while its editable Session is unloaded. This row boundary prepares that same lifetime distinction; release across active/history roots and guarded rehydration remain required next steps.",
+      "tests": true,
+      "frame": "journey/checks/32f-metadata.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/source-foundation.cjs",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod prepared;\n",
+          "snippet": "journey/code/32f-metadata-01.rs",
+          "why": "Give independently retained row metadata its own small module."
+        },
+        {
+          "path": "src/row_metadata.rs",
+          "before": null,
+          "snippet": "journey/code/32f-metadata-02.rs",
+          "why": "Copy source identity and flags without copying or retaining kernel payload; test independent lifetime and history."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub guid: String,\n",
+          "snippet": "journey/code/32f-metadata-03.rs",
+          "why": "Retain descriptive values independently of the editable source."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        self.objects.push(Object { id, guid, mesh: Rc::new(prepared.display), geometry: prepared.geometry,\n",
+          "snippet": "journey/code/32f-metadata-04.rs",
+          "why": "Capture metadata before transferring prepared source owners into the row."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-object-count\", &editor.scene.objects().len().to_string())?;\n",
+          "snippet": "journey/code/32f-metadata-05.rs",
+          "why": "Expose row values through hidden inspection for actual Chrome import/history checks."
+        }
+      ]
+    },
+    {
+      "id": "32fa-access",
+      "title": "Ask whether an editable source is available",
+      "page": "journey/32fa-access.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Route saving, source accounting and owner checks through borrowed source accessors.",
+      "trace": "Scene row → Option of borrowed editable geometry/provenance → checked source consumers",
+      "question": "Does Option<&Rc<Mesh>> add another mesh owner?",
+      "answer": "No. It borrows the Rc stored by the row. Merely asking for a source neither clones the owner nor copies the geometry. Some indicates an available editable source; the later unloaded state returns None. Saving must handle that absence rather than serializing drawing floats.",
+      "story": "A public mandatory kernel field cannot express a display-only row. Introduce geometry() and source() as the boundary used by consumers before changing storage. geometry returns an Option of a borrowed Rc; source returns optional imported provenance. At this checkpoint every row still has geometry, and generated rows still have no imported provenance.\n\n![Save and source accounting borrow available owners; drawing continues to use its display mesh.](../illustrations/journey-32fa.svg)\n\nSnapshot converts geometry().ok_or(...) into a Result. The question mark returns a clear error if source geometry is unavailable; it never substitutes derived float vertices for the editable original. The missing-source branch becomes reachable in the release lesson.\n\nThe CPU ledger inserts only available kernel owners and visits an imported Session only when provenance exists. Row records and derived displays remain counted independently. This will make a display-only document measurable without claiming its kernel is still resident.\n\nUpdate existing source ownership checks to borrow through the same boundary. Their unwrap calls assert fixtures with loaded sources; application Save uses a Result instead. Existing precision and history checks continue to prove original doubles and shared allocations.\n\nThe fields remain temporarily public so the remaining tests can be migrated in a separate runnable endpoint. The next lesson completes that migration and makes bypassing this access boundary a compile error.",
+      "result": "Run the native checks and Save after moving an imported post. Reopen the saved document and verify its original double coordinates and placement. The browser drawing and metadata must match the previous endpoint’s behavior.",
+      "experiment": "Compare Rc::clone(row.geometry().unwrap()) with merely calling row.geometry(). Predict which expression adds a strong owner and how that affects a later Weak release check.",
+      "production": "Source release needs an explicit absence state and reload ownership. These borrowed accessors prepare that state without changing renderer geometry or weakening the save format.",
+      "tests": true,
+      "frame": "journey/checks/32fa-access.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/source-foundation.cjs",
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "impl Object {\n    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {\n",
+          "snippet": "journey/code/32fa-access-01.rs",
+          "why": "Borrow source owners through an API that can express later source absence."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "        let mut mesh = object.geometry.to_proto();\n",
+          "snippet": "journey/code/32fa-access-02.rs",
+          "why": "Require original editable geometry instead of silently exporting display floats."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": "            sources.insert(Rc::as_ptr(&object.geometry));\n",
+          "snippet": "journey/code/32fa-access-03.rs",
+          "why": "Count kernel owners only when they are available."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": "            if let Some(source) = &object.source {\n",
+          "snippet": "journey/code/32fa-access-04.rs",
+          "why": "Keep provenance absence independent of row/display accounting."
+        },
+        {
+          "path": "src/source_tests.rs",
+          "before": "fn generated_source_and_display_survive_move_and_history() {\n    let mut editor = Editor::default();\n    editor.apply(Action::AddBox).unwrap();\n    for _ in 0..3 { editor.apply(Action::SelectNext).unwrap(); }\n    let object = &editor.scene.objects()[2];\n    let geometry = Rc::clone(&object.geometry);\n    let display = Rc::clone(&object.mesh);\n    let point = geometry.vertex_point(0).unwrap();\n    let guid = geometry.guid().to_owned();\n    let before = object.model.m;\n    editor.apply(Action::Translate([2.0, -1.0, 0.5])).unwrap();\n    let moved = editor.scene.objects()[2].model.m;\n    editor.apply(Action::Undo).unwrap();\n    assert_eq!(editor.scene.objects()[2].model.m, before);\n    editor.apply(Action::Redo).unwrap();\n    let restored = &editor.scene.objects()[2];\n    assert_eq!(restored.model.m, moved);\n    assert!(Rc::ptr_eq(&geometry, &restored.geometry));\n    assert!(Rc::ptr_eq(&display, &restored.mesh));\n    assert_eq!(restored.geometry.vertex_point(0).unwrap(), point);\n    assert_eq!(restored.geometry.guid(), guid);\n    assert!(restored.source.is_none());\n}\n",
+          "why": "Update generated_source_and_display_survive_move_and_history through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fa-access-05.rs"
+        },
+        {
+          "path": "src/source_tests.rs",
+          "before": "fn imported_source_survives_a_change_of_display_row() {\n    let mut editor = Editor::default();\n    editor.apply(Action::Import(specimen::bytes())).unwrap();\n    let imported = editor.scene.objects()[2].clone();\n    let first = editor.scene.objects()[0].id;\n    let second = editor.scene.objects()[1].id;\n    editor.scene.remove(first); editor.scene.remove(second);\n    let current = &editor.scene.objects()[0];\n    assert_eq!(current.id, imported.id);\n    assert!(Rc::ptr_eq(&current.geometry, &imported.geometry));\n    let source = current.source.as_ref().unwrap();\n    assert_eq!(current.geometry.guid(), source.guid);\n    assert!(source.document.objects.meshes.iter().any(|m| m.guid() == source.guid));\n    assert!(Rc::ptr_eq(&source.document, &imported.source.as_ref().unwrap().document));\n}\n",
+          "why": "Update imported_source_survives_a_change_of_display_row through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fa-access-06.rs"
+        },
+        {
+          "path": "src/imported_source_tests.rs",
+          "before": "fn import_shares_the_retained_sessions_source_allocation() {\n    let mut editor = Editor::default();\n    editor.apply(Action::Import(specimen::bytes())).unwrap();\n    let imported = editor.scene.objects()[2].clone();\n    let geometry = Rc::clone(&imported.geometry);\n    let source = imported.source.as_ref().unwrap();\n    assert!(source.document.objects.meshes.iter().any(|m| Rc::ptr_eq(m, &geometry)));\n    let first = editor.scene.objects()[0].id;\n    let second = editor.scene.objects()[1].id;\n    editor.scene.remove(first); editor.scene.remove(second);\n    let moved_row = &editor.scene.objects()[0];\n    assert_eq!(moved_row.id, imported.id);\n    assert!(Rc::ptr_eq(&moved_row.geometry, &geometry));\n}\n",
+          "why": "Update import_shares_the_retained_sessions_source_allocation through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fa-access-07.rs"
+        },
+        {
+          "path": "src/snapshot_tests.rs",
+          "before": "fn snapshot_uses_live_local_sources_and_separate_placements() {\n    let mut editor = Editor::default();\n    editor.apply(Action::SelectNext).unwrap();\n    editor.apply(Action::Delete).unwrap();\n    editor.apply(Action::AddBox).unwrap();\n    let object = editor.scene.objects().last().unwrap().clone();\n    let source = object.geometry.to_proto();\n    let message = proto::Session::decode(document::snapshot(&editor.scene).unwrap().as_slice()).unwrap();\n    let meshes = &message.objects.as_ref().unwrap().meshes;\n    assert_eq!(meshes.len(), 2);\n    let saved = meshes.iter().find(|mesh| mesh.guid == object.guid).unwrap();\n    assert_eq!(saved.vertices, source.vertices);\n    assert_eq!(saved.faces, source.faces);\n    assert_eq!(saved.objectcolor, source.objectcolor);\n    assert_eq!((saved.is_visible, saved.is_locked), (source.is_visible, source.is_locked));\n    let placement = message.xforms.iter().find(|entry| entry.guid == object.guid).unwrap();\n    assert_eq!(placement.xform.as_ref().unwrap().matrix, object.model.m.to_vec());\n    assert_eq!(message.tree.unwrap().root.unwrap().children.len(), meshes.len());\n    assert_eq!(object.geometry.guid(), source.guid);\n    editor.apply(Action::Undo).unwrap();\n    assert_eq!(editor.scene.objects().len(), 1, \"Saving must not create a history entry\");\n}\n",
+          "why": "Update snapshot_uses_live_local_sources_and_separate_placements through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fa-access-08.rs"
+        }
+      ]
+    },
+    {
+      "id": "32fb-boundary",
+      "title": "Make editable ownership a private row boundary",
+      "page": "journey/32fb-boundary.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Finish migrating owner checks and prevent other modules from bypassing source availability.",
+      "trace": "Remaining native ownership proofs → borrowed accessors → private source fields",
+      "question": "Why keep PreparedMesh geometry mandatory when Object geometry is accessed optionally?",
+      "answer": "PreparedMesh is a validated candidate ready to insert, so its original geometry must exist. A committed Object has a longer lifetime: its display can remain after editable geometry is unloaded. The preparation boundary and residency boundary have different contracts.",
+      "story": "Complete the access migration before introducing source unloading. Move the remaining document, duplicate-import, replacement and close checks to geometry() and source(), then make Object’s two editable-owner fields private. Rust now rejects external direct field access.\n\n![Preparation requires geometry; a committed row exposes source residency through private ownership and borrowed access.](../illustrations/journey-32fb.svg)\n\nKeep PreparedMesh.geometry mandatory. It describes a validated candidate about to enter the scene. Keep GpuMesh.geometry unchanged too: that is immutable GPU display geometry, not the editable kernel source. Similar field names do not imply the same lifetime.\n\nOwner tests still compare Rc allocations, inspect exact original vertices, observe Weak expiration after Close, and verify both history branches. This is a change in access, not a reason to reduce their assertions. The native GPU fixture is also moved to the borrowed interface.\n\nPublic id, saved guid, metadata, model and derived mesh remain the retained row data. In the next endpoint, private source storage can become Loaded or Released without requiring callers to know its representation. Those changes must retain the existing display/GPU owners and history placements; source unloading is still not implemented here.",
+      "result": "Run every state and GPU check. Duplicate imports must stay distinct, Move/Undo must share the correct source, and Close must release old source/document values. In Chrome, repeat import and history checks through the dock.",
+      "experiment": "Try reading object.geometry directly from document.rs and predict the compiler error. Explain why a renderer’s row.geometry or a prepared candidate’s geometry can remain valid even after this row source field becomes private.",
+      "production": "Next add reload origin/version information, release eligible imported owners across active and history roots, and restore them atomically. A source-only unload must not masquerade as Close.",
+      "tests": true,
+      "frame": "journey/checks/32fb-boundary.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/source-foundation.cjs",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    fn repeated_close_is_empty_and_drops_sources_without_gpu_owners() {\n        let mut editor = Editor::default();\n        let display = std::rc::Rc::downgrade(&editor.scene.objects()[0].mesh);\n        let source = std::rc::Rc::downgrade(&editor.scene.objects()[0].geometry);\n        editor.apply(Action::Close).unwrap(); editor.apply(Action::Close).unwrap();\n        assert!(display.upgrade().is_none() && source.upgrade().is_none());\n        assert_eq!(crate::memory::cpu(editor.scenes(), std::iter::empty()), [0, 0, 0, 0, 0, 1]);\n    }\n",
+          "why": "Update repeated_close_is_empty_and_drops_sources_without_gpu_owners through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-01.rs"
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {\n        use std::rc::Rc;\n        let mut editor = Editor::default();\n        let bytes = crate::specimen::bytes();\n        editor.apply(Action::Import(bytes.clone())).unwrap();\n        editor.apply(Action::Replace(bytes.clone())).unwrap();\n        let displays: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()\n            .map(|row| Rc::downgrade(&row.mesh))).collect();\n        let sources: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()\n            .map(|row| Rc::downgrade(&row.geometry))).collect();\n        let documents: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()\n            .filter_map(|row| row.source.as_ref().map(|source| Rc::downgrade(&source.document)))).collect();\n        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();\n        assert!(!documents.is_empty());\n        editor.apply(Action::Close).unwrap();\n        assert!(displays.iter().all(|owner| owner.upgrade().is_none()));\n        assert!(sources.iter().all(|owner| owner.upgrade().is_none()));\n        assert!(documents.iter().all(|owner| owner.upgrade().is_none()));\n        editor.apply(Action::Import(bytes)).unwrap();\n        assert!(editor.scene.objects().iter().all(|row| !old.contains(&row.id)));\n    }\n",
+          "why": "Update close_releases_imported_history_documents_and_reopening_uses_fresh_ids through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-02.rs"
+        },
+        {
+          "path": "src/history.rs",
+          "before": "    fn cleared_history_releases_a_deleted_source_and_display() {\n        let mut scene = Scene::demo();\n        let mut history = History::default();\n        let id = scene.objects()[0].id;\n        let display = Rc::downgrade(&scene.objects()[0].mesh);\n        let source = Rc::downgrade(&scene.objects()[0].geometry);\n        history.edit(&mut scene, |scene| { scene.remove(id); });\n        assert!(display.upgrade().is_some() && source.upgrade().is_some());\n        assert_eq!(history.scenes().count(), 1);\n        history.clear();\n        assert!(display.upgrade().is_none() && source.upgrade().is_none());\n        assert!(!history.undo(&mut scene) && !history.redo(&mut scene));\n        assert_eq!(scene.objects().len(), 1);\n    }\n",
+          "why": "Update cleared_history_releases_a_deleted_source_and_display through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-03.rs"
+        },
+        {
+          "path": "src/file_identity_tests.rs",
+          "before": "fn duplicate_imports_keep_distinct_stored_identity_through_history() {\n    let mut editor = Editor::default();\n    let bytes = specimen::bytes();\n    editor.apply(Action::Import(bytes.clone())).unwrap();\n    editor.apply(Action::Import(bytes)).unwrap();\n    let objects = editor.scene.objects();\n    assert_eq!(objects.len(), 8);\n    let distinct: HashSet<_> = objects.iter().map(|object| object.guid.as_str()).collect();\n    assert_eq!(distinct.len(), objects.len());\n    assert_eq!(objects[2].guid, objects[2].geometry.guid());\n    assert_eq!(objects[2].geometry.guid(), objects[5].geometry.guid());\n    assert_eq!(objects[2].source.as_ref().unwrap().guid, objects[5].source.as_ref().unwrap().guid);\n    assert_ne!(objects[2].guid, objects[5].guid);\n    assert!(uuid::Uuid::parse_str(&objects[5].guid).is_ok());\n    let copy = objects[5].clone();\n    editor.apply(Action::SelectNext).unwrap();\n    editor.apply(Action::Delete).unwrap();\n    let current = editor.scene.objects().iter().find(|object| object.id == copy.id).unwrap();\n    assert_eq!(current.guid, copy.guid);\n    editor.apply(Action::Undo).unwrap();\n    editor.apply(Action::Redo).unwrap();\n    let current = editor.scene.objects().iter().find(|object| object.id == copy.id).unwrap();\n    assert_eq!(current.guid, copy.guid);\n    assert_eq!(current.geometry.guid(), copy.geometry.guid());\n}\n",
+          "why": "Update duplicate_imports_keep_distinct_stored_identity_through_history through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-04.rs"
+        },
+        {
+          "path": "src/document_tests.rs",
+          "before": "fn import_retains_source_and_undo_removes_the_whole_file() {\n    let mut editor = Editor::default();\n    editor.apply(Action::Import(specimen::bytes())).unwrap();\n    assert_eq!(editor.scene.objects().len(), 5);\n    let source = editor.scene.objects()[2].source.as_ref().unwrap();\n    let document = Rc::clone(&source.document);\n    let guid = source.guid.clone();\n    let id = editor.scene.objects()[2].id;\n    assert_eq!(document.name, \"Three-piece frame\");\n    assert!(document.objects.meshes.iter().any(|mesh| mesh.guid() == guid));\n    editor.apply(Action::Undo).unwrap();\n    assert_eq!(editor.scene.objects().len(), 2);\n    editor.apply(Action::Redo).unwrap();\n    let restored = &editor.scene.objects()[2];\n    assert_eq!(restored.id, id);\n    assert!(Rc::ptr_eq(&restored.source.as_ref().unwrap().document, &document));\n}\n",
+          "why": "Update import_retains_source_and_undo_removes_the_whole_file through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-05.rs"
+        },
+        {
+          "path": "src/document_tests.rs",
+          "before": "fn repeated_imports_keep_distinct_viewer_ids_and_original_source_guids() {\n    let bytes = specimen::bytes();\n    let mut editor = Editor::default();\n    editor.apply(Action::Import(bytes.clone())).unwrap();\n    editor.apply(Action::Import(bytes)).unwrap();\n    let objects = editor.scene.objects();\n    assert_ne!(objects[2].id, objects[5].id);\n    assert_eq!(objects[2].source.as_ref().unwrap().guid, objects[5].source.as_ref().unwrap().guid);\n    assert!(!Rc::ptr_eq(&objects[2].source.as_ref().unwrap().document, &objects[5].source.as_ref().unwrap().document));\n}\n",
+          "why": "Update repeated_imports_keep_distinct_viewer_ids_and_original_source_guids through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-06.rs"
+        },
+        {
+          "path": "src/replace_tests.rs",
+          "before": "fn replacement_history_retains_camera_and_distinct_local_identity() {\n    let mut editor = Editor::default();\n    editor.apply(Action::SelectNext).unwrap();\n    let old = editor.scene.objects()[0].clone();\n    editor.camera.distance = 7.0; editor.camera.aspect = 2.0;\n    editor.apply(Action::Replace(specimen::bytes())).unwrap();\n    let ids: Vec<_> = editor.scene.objects().iter().map(|object| object.id).collect();\n    assert_eq!(ids.len(), 3);\n    assert!(!editor.scene.contains(old.id));\n    assert!(editor.selected.is_none());\n    editor.apply(Action::Undo).unwrap();\n    assert_eq!(editor.scene.objects().len(), 2);\n    assert_eq!(editor.scene.objects()[0].id, old.id);\n    assert!(Rc::ptr_eq(&editor.scene.objects()[0].geometry, &old.geometry));\n    assert!(Rc::ptr_eq(&editor.scene.objects()[0].mesh, &old.mesh));\n    editor.apply(Action::Redo).unwrap();\n    assert_eq!(editor.scene.objects().iter().map(|object| object.id).collect::<Vec<_>>(), ids);\n    assert_eq!((editor.camera.distance, editor.camera.aspect), (7.0, 2.0));\n}\n",
+          "why": "Update replacement_history_retains_camera_and_distinct_local_identity through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-07.rs"
+        },
+        {
+          "path": "src/replace_tests.rs",
+          "before": "fn refused_replacement_preserves_selection_source_owners_and_redo() {\n    let mut editor = Editor::default();\n    editor.apply(Action::AddBox).unwrap(); editor.apply(Action::Undo).unwrap();\n    editor.apply(Action::SelectNext).unwrap();\n    let selected = editor.selected;\n    let old = editor.scene.objects()[0].clone();\n    assert!(editor.apply(Action::Replace(vec![255])).is_err());\n    assert_eq!(editor.selected, selected);\n    assert_eq!(editor.scene.objects().len(), 2);\n    assert!(Rc::ptr_eq(&editor.scene.objects()[0].geometry, &old.geometry));\n    editor.apply(Action::Redo).unwrap();\n    assert_eq!(editor.scene.objects().len(), 3);\n}\n",
+          "why": "Update refused_replacement_preserves_selection_source_owners_and_redo through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-08.rs"
+        },
+        {
+          "path": "src/save_roundtrip_tests.rs",
+          "before": "fn both_imported_copies_reopen_with_their_stored_identity() {\n    let mut editor = Editor::default();\n    let bytes = specimen::bytes();\n    editor.apply(Action::Import(bytes.clone())).unwrap();\n    editor.apply(Action::Import(bytes)).unwrap();\n    let saved = document::snapshot(&editor.scene).unwrap();\n    let reopened = document::load(&saved).unwrap();\n    assert_eq!(reopened.meshes.len(), editor.scene.objects().len());\n    for object in editor.scene.objects() {\n        let prepared = reopened.meshes.iter().find(|mesh| mesh.geometry.guid() == object.guid).unwrap();\n        assert_eq!(prepared.model.m, object.model.m);\n        assert_eq!(prepared.geometry.name, object.geometry.name);\n    }\n    assert_eq!(editor.scene.objects()[2].geometry.guid(), editor.scene.objects()[5].geometry.guid());\n    assert_ne!(editor.scene.objects()[2].guid, editor.scene.objects()[5].guid);\n}\n",
+          "why": "Update both_imported_copies_reopen_with_their_stored_identity through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-09.rs"
+        },
+        {
+          "path": "src/row_metadata.rs",
+          "before": "    fn metadata_does_not_keep_a_closed_kernel_source_alive() {\n        let mut editor = Editor::default();\n        let mut mesh = session_rust::Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"Released beam\".into(); mesh.is_visible = false; mesh.is_locked = true;\n        let id = editor.scene.insert(crate::prepared::PreparedMesh::new(mesh).unwrap()).unwrap();\n        let row = editor.scene.objects().iter().find(|row| row.id == id).unwrap();\n        let weak = Rc::downgrade(&row.geometry);\n        let metadata = Rc::clone(&row.metadata);\n        editor.apply(Action::Close).unwrap();\n        assert!(weak.upgrade().is_none());\n        assert_eq!(metadata.name, \"Released beam\");\n        assert!(!metadata.is_visible && metadata.is_locked);\n        assert!(!metadata.source_guid.is_empty());\n    }\n",
+          "why": "Update metadata_does_not_keep_a_closed_kernel_source_alive through borrowed source access while preserving every existing assertion.",
+          "snippet": "journey/code/32fb-boundary-10.rs"
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub geometry: Rc<session_rust::Mesh>,\n",
+          "snippet": "journey/code/32fb-boundary-11.rs",
+          "why": "Confine editable kernel storage to the scene row implementation."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub source: Option<crate::document::Source>,\n",
+          "snippet": "journey/code/32fb-boundary-12.rs",
+          "why": "Prevent other modules from bypassing imported-source availability."
+        }
+      ]
     }
   ]
 }
