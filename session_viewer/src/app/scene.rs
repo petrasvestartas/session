@@ -465,6 +465,7 @@ impl Scene {
         self.guid_to_row.reserve(count);
 
         let baked = baked_attributes(&session);
+        let tree_colors = node_colors(&session); // a colour panel or saved override stays on top
         let order = session.order();
         let mut placed: HashMap<&str, u32> = HashMap::with_capacity(count); // guid to row, for the node cache
 
@@ -478,6 +479,13 @@ impl Scene {
             }
 
             self.seed_flags(index, guid, geom);
+
+            if let Some(&color) = tree_colors.get(guid) {
+                self.colors
+                    .entry((index, Rc::from(guid.as_str())))
+                    .or_insert(color);
+            }
+
             let flags = if self.hidden.contains(&(index, Rc::from(guid.as_str()))) {
                 Instance::FLAG_HIDDEN
             } else {
@@ -765,6 +773,36 @@ fn baked_attributes(session: &Session) -> HashSet<String> {
     out
 }
 
+/// The display colour of every object whose tree node, or the nearest group above it, carries one.
+fn node_colors(session: &Session) -> HashMap<String, [u8; 3]> {
+    let mut out = HashMap::new();
+    let mut stack: Vec<_> = session
+        .tree
+        .root()
+        .into_iter()
+        .map(|root| (root, None))
+        .collect();
+
+    while let Some((node, inherited)) = stack.pop() {
+        let node = node.borrow();
+        let color = node
+            .color
+            .as_ref()
+            .map(|c| [c.r, c.g, c.b].map(|v| (v.clamp(0.0, 1.0) * 255.0).round() as u8))
+            .or(inherited);
+
+        if let Some(color) = color
+            && session.lookup.contains_key(&node.name)
+        {
+            out.insert(node.name.clone(), color);
+        }
+
+        stack.extend(node.children().into_iter().map(|c| (c, color)));
+    }
+
+    out
+}
+
 /// Kills sorted and joined into contiguous runs per lane.
 fn runs(mut kills: Vec<(LaneId, u32, u32)>) -> Vec<(LaneId, u32, u32)> {
     kills.retain(|kill| kill.2 > 0);
@@ -876,6 +914,35 @@ mod tests {
         let controls = Controls::from_geometry(scene.geometry(0).unwrap());
         assert!(controls.points.len() >= 8);
         assert!(!scene.tables.arena.idx.is_empty());
+    }
+
+    /// An object takes its tree node's colour, or the nearest coloured group's above it.
+    #[test]
+    fn tree_node_colors_reach_their_objects() {
+        let mut source = Session::new("coloured connectors");
+        let group = source.add_group("connectors");
+        group.borrow_mut().color = Some(session_rust::Color::red());
+        let inherited = source
+            .add_brep(BRep::create_box(1.0, 1.0, 1.0), Some(&group))
+            .unwrap();
+        let own = source
+            .add_brep(BRep::create_box(2.0, 2.0, 2.0), Some(&group))
+            .unwrap();
+        own.borrow_mut().color = Some(session_rust::Color::blue());
+        let plain = source
+            .add_brep(BRep::create_box(3.0, 3.0, 3.0), None)
+            .unwrap();
+        let mut scene = Scene::new();
+        scene.add_file(file("colours", Rc::new(source), false));
+        let color = |node: &Rc<RefCell<TreeNode>>| {
+            scene
+                .colors
+                .get(&(0, Rc::from(node.borrow().name.as_str())))
+                .copied()
+        };
+        assert_eq!(color(&inherited), Some([255, 0, 0]));
+        assert_eq!(color(&own), Some([0, 0, 255]));
+        assert_eq!(color(&plain), None);
     }
 
     /// Kills join into one run per contiguous stretch of a lane.
