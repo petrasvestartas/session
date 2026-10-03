@@ -3058,6 +3058,62 @@
       "bundle": "109953b662f910443dd75f7da667456fba05a3e1ed58a84717e423621756371a",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "33b-cache": {
+      "source": "75ad2d47b608ec0f7e416f97170f9ba2b5a6f8479d2b7ae2872fed6c20779c98",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "0690a52a033f5792606bd490e386164230e4c460bf13afb387b4f0d63be36cd9",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T17:50:06.912Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "a0dd51cf5de3318f875ab911f282a7e447dfea2d154d6699e7eadf2efda5e015",
+      "file": "33b-cache-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "8c704965c75034f1e0722840f8e1dab2fb2611e9bc8de78ef6fd745b8f3b8b1c",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "34-fault": {
+      "source": "2116ff34d81e8b8f9cfd8d1c171791c66cf9ef624a568a233f5e4d3e461f5633",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "b40b4213285df95c3eefb7a0c3b261983faad605b59a954e85007b068a836077",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T17:55:40.314Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "9b46f64196c41f8b6a724430dcf1ed0962e38270000273201050f6ad2b2a5fec",
+      "file": "34-fault-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "950a291e663b7fe7cf56691ddf55ad62d7349708ced57f75b1013191a7a49fe4",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }

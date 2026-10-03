@@ -639,3 +639,23 @@ Phone fix edce6df7 and parent3e23ade are published. Viewer-check37137124994 pass
 - [x] Typing remains manageable: listener owner21–41 minutes; runtime binding19–38 minutes. Split planned33 into two:166 planned slots,101 locally verified,65 future and17 early splits remain. Full feature target retained.
 - [ ] Diagram byte checks, current stored evidence, course-tool tests, strict Vue, same-owned-Chrome refresh and publication of100–101 remain. Monitor every workflow after pushes.
 - [ ] Next34 GPU device-loss recovery: stop submissions, preserve/download diagnostics and recover safely. Then remaining geometry/rendering/attributes/commands,17 early splits and full inventory/parity. Global structure audit still flags newer production modules against its frozen inventory; do not update hashes merely to silence it.
+
+
+### 2026-10-03 · Cached page lifetime verified locally
+
+- [x] Listener/runtime batch101 published as Session8ce3b3e0/parent2b64204. Viewer-check37141303986 and primary Pages37141304099 passed; Sessionmini37141303974 still running. Earlier99 check/primary Pages/mini and both additional Pages runs37139990067/37140678961 passed.
+- [x] 33b-cache distinguishes PageTransitionEvent.persisted from final page exit. It cancels an unfinished camera drag and retains the runtime for a reusable cached page; final exits retain deferred cancellation/disposal. No listener, feature button or keyboard shortcut added.
+- [x] Native111 checks, WebAssembly, Trunk, native GPU frame and headed Chrome pass. Chrome tests persisted hide/show, retained placement/selection/camera/pixels and usable commands, and real same-tab away/Back navigation. This run loaded a fresh document, explicitly logged; synthetic persisted events prove the retention branch without asserting actual cache eligibility. All inherited final-exit and delayed source/file cancellation checks pass.
+- [x] Typing estimate3–5 minutes. Added one lifecycle follow-up:167 planned slots,102 locally verified,65 future plus17 early splits remain. Final screenshot inspected, full-window white and clean.
+- [ ] Finish generated diagram checks, all stored evidence, course-tool checks, strict Vue, same-tab refresh and publication. Continue exact workflow monitoring.
+- [ ] Next GPU loss: first-error ownership, stopped GPU work, diagnostics and bounded recovery; then all remaining production features, early splits and full provenance/parity audit.
+
+
+### 2026-10-03 · First GPU failure ownership verified locally
+
+- [x] 34-fault adds a shared Arc/Mutex first-error value and allocation identity for each device lifetime. Its114 native checks include real competing threads, first-reason retention and independent replacement-device state. WebAssembly, Trunk, native GPU frame and headed Chrome all pass. Browser coverage remains inherited viewer behavior; actual loss callbacks are not wired yet.
+- [x] New browser screenshot inspected, white and clean. Typing19–38 minutes,50 changed lines. Split34’s introductory value from integration/recovery:168 proposed slots,103 verified,65 future and17 early splits remain.
+- [ ] Finish final generated diagram/evidence/tool/strict Vue checks, refresh the SAME existing Chrome tutorial tab and publish102–103. All101 primary check/Pages/mini passed; post-mini Pages37142249258 remains running.
+- [ ] Next34a: connect actual uncaptured/device-lost callbacks, set failure before further UI/GPU work, defer cleanup safely and reject an old device’s cleanup against a replacement. Verify real device.destroy in Chrome. Diagnostics and bounded recovery must retain their own explicit acceptance; continue remaining feature scope afterward.
+
+- [x] Final102–103 acceptance: both new D2 diagrams reproduce exactly; all103 stored source/build/render records are current; nine course-tool tests pass; strict Vue with link/snippet validation builds in15.57s. Same owned Chrome tutorial route remains32gia-scope with white background; the rebuild watcher refreshes that page rather than opening another tab. Publication and its triggered workflows remain the final batch steps.

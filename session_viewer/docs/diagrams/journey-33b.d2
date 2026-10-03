@@ -1,0 +1,11 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "pagehide: cancel unfinished camera drag"
+n1: "PageTransitionEvent.persisted?"
+n2: "True: keep runtime for cached return"
+n3: "False: defer disposal to next microtask"
+n4: "Back: cached live document or a fresh new load"
+n0 -> n1
+n1 -> n2 -> n4
+n1 -> n3 -> n4

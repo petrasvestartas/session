@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 166 lesson slots; 101 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 168 lesson slots; 103 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 101 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 103 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -235,7 +235,11 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 33a · [Dispose the viewer without leaving pending work alive](33a-runtime.md) — Bind eighteen live listeners to a runtime owner; pagehide defers safe disposal, cancels read/fetch authority and releases captures. Chrome checks late source/file replies, URL release, no further GPU submissions and ordinary document Close/reopen.
 
-- [ ] 34 · Recover from GPU loss — stop submissions, download diagnostics and recover the previous run.
+- [x] 33b · [Keep a cached viewer ready for Back navigation](33b-cache.md) — Cancel unfinished gestures but retain the runtime for persisted pagehide; final exits still dispose. Chrome checks retained state and command input, then real same-tab Back navigation and reports cached versus fresh loading.
+
+- [x] 34 · [Keep the first GPU failure with its device](34-fault.md) — Arc/Mutex first-reason ownership, independent replacement devices and native concurrent callback checks. Browser callback integration follows next.
+
+- [ ] 34a · Recover from GPU loss — wire callbacks, stop submissions, download diagnostics and recover the previous run.
 
 ## Geometry beyond solid triangles
 

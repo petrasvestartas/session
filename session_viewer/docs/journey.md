@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 101 cumulative lessons, about 149–275 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 103 cumulative lessons, about 151–279 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **165 proposed slots: 101 current checkpoints and 64 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **168 proposed slots: 103 current checkpoints and 65 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -117,6 +117,8 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [32gja · Prove failed restoration cannot partly commit](journey/32gja-failures.md) | 1–2 hours | Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save. |
 | [33 · Own browser listeners instead of forgetting callbacks](journey/33-owner.md) | 1–2 hours | Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data. |
 | [33a · Dispose the viewer without leaving pending work alive](journey/33a-runtime.md) | 1–2 hours | Bind real viewer input to owned callbacks and cancel pending file/source authority when the page hides. |
+| [33b · Keep a cached viewer ready for Back navigation](journey/33b-cache.md) | 1–2 hours | Distinguish a reusable cached page from a final exit so Back navigation cannot restore an already-disposed viewer. |
+| [34 · Keep the first GPU failure with its device](journey/34-fault.md) | 1–2 hours | Give asynchronous GPU callbacks one shared first-failure value without confusing an older device with its replacement. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 
