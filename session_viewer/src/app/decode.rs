@@ -541,6 +541,15 @@ fn read_node(r: &mut Reader, f: Field) -> Result<Rc<RefCell<TreeNode>>, String> 
 
         match field.number {
             2 => node.borrow_mut().name = r.string(field)?,
+            5 => {
+                let color: proto::Color = r.message(field)?;
+
+                // as the kernel reads it: a transparent colour is no colour
+                if color.a > 0.0 {
+                    node.borrow_mut().color =
+                        Some(session_rust::Color::new(color.r, color.g, color.b, color.a));
+                }
+            }
             4 => {
                 expect(field)?;
 
@@ -751,6 +760,29 @@ mod tests {
         }
 
         out
+    }
+
+    /// A tree node's display colour comes back as written; a transparent one stays unset.
+    #[test]
+    fn window_decode_keeps_node_colors() {
+        let mut s = Session::new("coloured");
+        let group = s.add_group("connectors");
+        group.borrow_mut().color = Some(session_rust::Color::red());
+        let plain = s.add_group("plain");
+        plain.borrow_mut().color = Some(session_rust::Color::new(0.0, 1.0, 0.0, 0.0));
+        s.add_mesh(Mesh::create_box(2.0, 2.0, 2.0), Some(&group));
+        let d = decoded(s.pb_dumps(), true).unwrap();
+        let color = |name: &str| {
+            d.tree
+                .get_node_by_name(name)
+                .unwrap()
+                .borrow()
+                .color
+                .clone()
+        };
+        let red = color("connectors").expect("the group keeps its colour");
+        assert_eq!([red.r, red.g, red.b, red.a], [1.0, 0.0, 0.0, 1.0]);
+        assert!(color("plain").is_none());
     }
 
     /// Objects, tree, placements and graph come back as written.
