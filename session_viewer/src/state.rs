@@ -580,6 +580,7 @@ impl State {
             || self.gpu.view.perf
             || self.gpu.view.spin
             || self.gpu.ambient_pending()
+            || self.gpu.visibility_pending()
             || (self.gpu.performance.rough() && !self.interacting); // redraw reasons
 
         let mut dropped = false;
@@ -627,6 +628,7 @@ impl State {
             || self.gpu.view.perf
             || self.gpu.view.spin
             || self.gpu.ambient_pending()
+            || self.gpu.visibility_pending()
             || self.gpu.performance.rough();
         #[cfg(target_arch = "wasm32")]
         crate::app::inspection::publish(self);

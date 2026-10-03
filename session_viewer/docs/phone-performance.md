@@ -26,7 +26,8 @@ Local checks: 500 native tests passed, 53 ignored; wasm check and optimized Trun
 - Polling now compares actual response bytes while retaining ETags for conditional downloads. A headed regression changes strong/weak/missing validators across four successful polls: the old viewer replaced the same scene four times; the fix replaces it once. Native tests cover changed bytes under an unchanged validator and cache reset.
 - Completed locally: first-frame pipelines are prepared during the early download, using the capped canvas size and correct sample count. A delayed-download phone test proves preparation precedes decode, the opaque face pipeline compiles once, inactive Arctic stays cold, and explicit Arctic remains usable. Reduced-quality fallback waits for GPU completion of the first geometry frame.
 - Published edge, opacity, diagnostics and compression fixes passed viewer-check, viewer-pages and the broader Session mini tests. Duplicate-reload and startup fixes are awaiting their next deployment.
-- Pending robustness: adjacent face ownership in stroke visibility, idle tap/selection preparation, ribbon variant reduction and overflow redraw.
+- Completed locally: a stationary view continues until its asynchronous visibility-capacity report is consumed, so overflow grows/rebuilds the lists without needing another mouse gesture. It then stops drawing.
+- Pending robustness: adjacent face ownership in stroke visibility, idle tap/selection preparation and ribbon variant reduction.
 - CPU restructuring is conditional on actual phone diagnostics. The phone itself has not yet been measured here.
 
 ## Solid-opacity GPU measurement
@@ -43,3 +44,7 @@ Profiled native geometry walking is about 248 ms. The selftest's outer walk timi
 ## First-frame preparation
 
 The headed phone startup test reports 1.1 ms of pipeline-constructor preparation before scene decode; this is CPU constructor time, not a claim that all GPU compilation takes 1.1 ms. First geometry submission and GPU completion are recorded separately. Native checks pass 504 tests with 54 ignored; the GPU-only prewarm/cache test passes when run explicitly. WebAssembly and optimized Trunk builds pass. `tests/startup.cjs` exercises the delayed download and subsequent typed `Arctic On` command.
+
+## Visibility capacity recovery
+
+A 48-triangle overlapping fixture overflows the initial tile-reference pool. The GPU regression proves that pending reports request another frame, the pool grows until the full list fits, and the view returns to demand-driven drawing. Disabling all stroke readers releases the tables and cannot keep the view awake. A headed phone test verifies stationary frame counters after initial load, zoom, hide-lines/edges and restore/Fit; all four stop, with no GPU errors. The test dismisses the editable command-field caret before measuring an idle scene. Native checks pass 504 tests with 55 ignored, with this GPU case run explicitly; WebAssembly and optimized Trunk checks pass.

@@ -274,6 +274,11 @@ impl TriangleTiles {
         self.report.map();
     }
 
+    /// Keep a resting view alive until its list-capacity report has been consumed.
+    pub(super) fn report_pending(&self) -> bool {
+        self.layout.is_some() && self.report.inflight
+    }
+
     /// Words in the buffer: headers plus pool.
     fn pool_capacity(&self, layout: TileLayout) -> u64 {
         layout.header_records() * 4 + self.pool_words
@@ -1056,6 +1061,55 @@ mod tests {
         assert_eq!(gpu.performance.drag_tier(), 1);
         gpu.render_offscreen(&input);
         assert_eq!(first_record(&gpu)[0], 0, "a slow drag has no lists");
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    #[ignore = "requires a native GPU adapter"]
+    fn a_resting_view_consumes_overflow_and_stops_redrawing_after_growth() {
+        use crate::engine::gpu::{CylinderSegment, FrameInput, Gpu, ObjectRow, Upload};
+        use session_rust::{RenderVertex, Xform};
+        let mut gpu = pollster::block_on(Gpu::new_headless(128, 128)).unwrap();
+        gpu.view.show_grid = false;
+        let mut upload = Upload::default();
+        upload.obj.rows.push(ObjectRow::new(Xform::identity(), 0));
+        for _ in 0..48 {
+            let first = upload.arena.verts.len() as u32;
+            for position in [[-0.99, -0.99, 0.5], [0.99, -0.99, 0.5], [0.0, 0.99, 0.5]] {
+                upload.arena.verts.push(RenderVertex { position, normal: [0.0, 0.0, 1.0], color: [0.5; 4] });
+                upload.arena.vids.push(0);
+            }
+            upload.arena.idx.extend([first, first + 1, first + 2]);
+        }
+        upload.seg.ribbons.push(CylinderSegment {
+            p0: [-0.5, 0.0, 0.6], radius: 0.0, p1: [0.5, 0.0, 0.6],
+            instance_id: 0, color: 0xff00_0000, facing: 0,
+        });
+        gpu.set_scene(&upload);
+        let input = FrameInput { view_proj: Xform::identity(), clear: wgpu::Color::WHITE, now_ms: 0.0 };
+        gpu.render_offscreen(&input);
+        let initial = gpu.arena.tiles.pool_words;
+        let first = first_record(&gpu);
+        assert!(u64::from(first[1]) > gpu.arena.tiles.pool_capacity(gpu.arena.tiles.layout.unwrap()),
+            "fixture must overflow the initial reference pool");
+        assert!(gpu.visibility_pending(), "a resting view must schedule report consumption");
+        let mut extra = 0;
+        while gpu.visibility_pending() {
+            assert!(extra < 4, "capacity recovery must return to demand-driven rendering");
+            gpu.render_offscreen(&input);
+            extra += 1;
+        }
+        assert!(gpu.arena.tiles.pool_words > initial);
+        let complete = first_record(&gpu);
+        assert!(u64::from(complete[1]) <= gpu.arena.tiles.pool_capacity(gpu.arena.tiles.layout.unwrap()));
+        assert!(!gpu.visibility_pending());
+        gpu.arena.tiles.invalidate();
+        gpu.render_offscreen(&input);
+        assert!(gpu.visibility_pending());
+        gpu.view.show_lines = false;
+        gpu.view.show_mesh_edges = false;
+        gpu.render_offscreen(&input);
+        assert!(!gpu.visibility_pending(), "released tables cannot keep an idle view awake");
     }
 
     /// The first tile record, read back.

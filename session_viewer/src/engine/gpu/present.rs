@@ -27,6 +27,11 @@ impl Gpu {
         self.passes.iter().any(|pass| pass.pending(self))
     }
 
+    /// An asynchronous tile-capacity answer still needs a frame to grow/rebuild its lists.
+    pub fn visibility_pending(&self) -> bool {
+        self.arena.tiles.report_pending()
+    }
+
     /// Draw one frame to the canvas; returns encode time in ms.
     pub fn present(&mut self, input: &FrameInput) -> Option<f64> {
         self.write_frame_uniforms(input);
