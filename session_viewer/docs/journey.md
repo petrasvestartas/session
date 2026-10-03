@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 104 cumulative lessons, about 152–281 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 108 cumulative lessons, about 156–289 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **169 proposed slots: 104 current checkpoints and 65 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **173 proposed slots: 108 current checkpoints and 65 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -120,6 +120,10 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [33b · Keep a cached viewer ready for Back navigation](journey/33b-cache.md) | 1–2 hours | Distinguish a reusable cached page from a final exit so Back navigation cannot restore an already-disposed viewer. |
 | [34 · Keep the first GPU failure with its device](journey/34-fault.md) | 1–2 hours | Give asynchronous GPU callbacks one shared first-failure value without confusing an older device with its replacement. |
 | [34a · Stop the viewer when its GPU device fails](journey/34a-stop.md) | 1–2 hours | Connect actual GPU failure callbacks, stop new UI and GPU work, and dispose only the runtime that belongs to the failed device. |
+| [34b · Describe a viewer run without keeping its document](journey/34b-report.md) | 1–2 hours | Define owned diagnostic context and a serializable run outcome, without retaining scene or GPU owners. |
+| [34ba · Keep recent events without losing the first failure](journey/34ba-events.md) | 1–2 hours | Bound diagnostic observations while keeping the original failure independently of recent event rotation. |
+| [34c · Read live diagnostic context outside the GPU runtime](journey/34c-browser.md) | 1–2 hours | Start a bounded page report and read real browser context independently of the renderer’s lifetime. |
+| [34d · Download diagnostics through the real command line](journey/34d-download.md) | 1–2 hours | Download a current ready-run report with Diagnostic Report and attempt one independent first-failure download after GPU disposal. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

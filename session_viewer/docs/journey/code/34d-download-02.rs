@@ -1,0 +1,1 @@
+    anchor.set_download(name);

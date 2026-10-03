@@ -1,0 +1,10 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Read actual sanitized browser context"
+n1: "One bounded Report slot for the page"
+n2: "GPU Runtime has its separate lifetime"
+n3: "Refresh context and serialize metadata only"
+n4: "Report remains available after GPU disposal"
+n0 -> n1 -> n3 -> n4
+n2 -> n4: "disposal does not own report"
