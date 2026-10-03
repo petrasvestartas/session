@@ -1,0 +1,11 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Current ticket: keys + optional Intent"
+n1: "Complete body count?"
+n2: "Yes: pair every key with its body"
+n3: "No: one error, no partial pairs"
+n4: "Reply keeps Intent beside success or failure"
+n0 -> n1
+n1 -> n2 -> n4
+n1 -> n3 -> n4
