@@ -1,28 +1,16 @@
 # 20 · Keep a changing window in proportion
 
-**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 53–105 minutes.** 149 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 53–105 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Resize the drawing buffer, depth attachment and camera together, including on dense displays.
-
-**Follow:** CSS rectangle × display density → bounded pixel size → canvas and surface + depth image + camera aspect → draw.
 
 Keep the GPU image and camera proportional when the window changes. CSS pixels describe layout; drawing pixels equal layout size multiplied by display density.
 
 The viewport helper caps both dimensions together at the device texture limit. `Some(size)` permits drawing; `None` means hidden or invalid measurements. Do not configure zero-sized textures.
 
-Before redraw, update canvas and surface dimensions, depth texture, and camera aspect together. Recreate textures only when size changes. The existing browser callback owns the editor and renderer and also handles resize events.
+## Type
 
-Camera reset must preserve the current aspect. Its test catches a reset that would stretch the scene after resizing. Dense displays use more drawing pixels while retaining the same visible geometry size.
-
-![One measured pixel size feeds the surface, depth attachment and camera; all three must agree before the next draw.](../illustrations/journey-20.svg)
-
-## Type the change
-
-Continue from [Give every action the same route](19-actions.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-20-resize` (from `session_viewer`).
+Continue from [Give every action the same route](19-actions.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/viewport.rs`
 
@@ -342,9 +330,9 @@ Replace that block with:
 --8<-- "journey/code/20-resize-window-6.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -352,7 +340,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Resize the browser from wide to tall. The canvas, depth image and camera must use the new dimensions; the scene must not stretch.
 
@@ -360,7 +348,7 @@ Resize the browser from wide to tall. The canvas, depth image and camera must us
 
 ![Actual browser result: Keep a changing window in proportion.](../screenshots/journey/20-resize-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -369,43 +357,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Before redraw, update canvas and surface dimensions, depth texture, and camera aspect together. Recreate textures only when size changes. The existing browser callback owns the editor and renderer and also handles resize events.
+
+Camera reset must preserve the current aspect. Its test catches a reset that would stretch the scene after resizing. Dense displays use more drawing pixels while retaining the same visible geometry size.
+
+CSS rectangle × display density → bounded pixel size → canvas and surface + depth image + camera aspect → draw.
+
+![One measured pixel size feeds the surface, depth attachment and camera; all three must agree before the next draw.](../illustrations/journey-20.svg)
+
+Why is changing only the canvas width insufficient?
+
+The canvas drawing buffer, surface configuration and depth attachment must agree on their pixel dimensions. The camera also needs width divided by height so geometry keeps its proportions. Changing only one can cause a GPU validation error, a stretched view or an old blurry image scaled by CSS.
+
+Study estimate, including typing and experiments: 3–5 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 At density 2, predict the drawing size for a 768 × 384 CSS canvas: 1536 × 768. Now set the GPU limit in the viewport test to 1024. Both dimensions must shrink together to 1024 × 512. Run the test and explain why clamping each dimension independently would stretch the scene.
 
 </details>
 
-## Explain the change
-
-Why is changing only the canvas width insufficient?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The canvas drawing buffer, surface configuration and depth attachment must agree on their pixel dimensions. The camera also needs width divided by height so geometry keeps its proportions. Changing only one can cause a GPU validation error, a stretched view or an old blurry image scaled by CSS.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 20-resize
 npm --prefix ../session_tests run course -- save 20-resize
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The final viewer uses the same size agreement for every attachment, including multisampling, picking and post-processing. Later panels need element resize observation as well as window events; this lesson handles window resizing and rechecks layout on each action.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The final viewer uses the same size agreement for every attachment, including multisampling, picking and post-processing. Later panels need element resize observation as well as window events; this lesson handles window resizing and rechecks layout on each action.
 
 The browser window has been resized. The drawing buffer, depth texture and camera aspect now follow the canvas dimensions.
 

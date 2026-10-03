@@ -1,26 +1,14 @@
 # 30b · Cancel reads without accepting their late result
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 16–31 minutes.** 31 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
-
-**Follow:** Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership.
+**Typing: 16–31 minutes.** [Estimate](typing-load.md).
 
 Use `Rc<RefCell<ReadGate>>` to share a ticket gate between the command callback and read tasks. Keep mutable borrows short and release them before dispatching events.
 
 A chosen file begins a ticket. Check it before reading; consume it once with `finish` after completion. Stale or cancelled tasks deliver neither bytes nor errors.
 
-Typed `Cancel Open` revokes ownership without editing the document. It does not physically abort `File.arrayBuffer`; its eventual result is ignored.
+## Type
 
-Append asynchronous feedback as an Open history entry so it cannot overwrite a newer command's result. A hidden object-count attribute lets Chrome detect duplicate insertion even when its pixels overlap perfectly.
-
-![The task keeps its ticket; Cancel Open revokes it; only a matching one-shot completion can deliver a result.](../illustrations/journey-30b.svg)
-
-## Type the change
-
-Continue from [Give a pending read an explicit ticket](30a-tickets.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30b-cancel` (from `session_viewer`).
+Continue from [Give a pending read an explicit ticket](30a-tickets.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/file_input.rs`
 
@@ -330,9 +318,9 @@ Replace that block with:
 --8<-- "journey/code/30b-cancel-16.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -340,7 +328,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Start `Open`, then type `Cancel Open` before its read completes. A late result must not enter the document or replace a newer command’s history entry.
 
@@ -348,7 +336,7 @@ Start `Open`, then type `Cancel Open` before its read completes. A late result m
 
 ![Actual browser result: Cancel reads without accepting their late result.](../screenshots/journey/30b-cancel-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -357,43 +345,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Typed `Cancel Open` revokes ownership without editing the document. It does not physically abort `File.arrayBuffer`; its eventual result is ignored.
+
+Append asynchronous feedback as an Open history entry so it cannot overwrite a newer command's result. A hidden object-count attribute lets Chrome detect duplicate insertion even when its pixels overlap perfectly.
+
+Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership.
+
+![The task keeps its ticket; Cancel Open revokes it; only a matching one-shot completion can deliver a result.](../illustrations/journey-30b.svg)
+
+Does cancelling a read mean its promise stops running?
+
+No. File.arrayBuffer has no abort operation here. Cancellation revokes permission to deliver its result. The task may finish later, but finish rejects its ticket and neither scene nor command feedback changes. A separate result entry also prevents a read outcome from rewriting a later typed command.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Hold a read in a debugger, type View Isometric and Cancel Open, then let the read finish. Predict why neither the object count nor command history should change when that cancelled task returns.
 
 </details>
 
-## Explain the change
-
-Does cancelling a read mean its promise stops running?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. File.arrayBuffer has no abort operation here. Cancellation revokes permission to deliver its result. The task may finish later, but finish rejects its ticket and neither scene nor command feedback changes. A separate result entry also prevents a read outcome from rewriting a later typed command.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 30b-cancel
 npm --prefix ../session_tests run course -- save 30b-cancel
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production loader generations prevent stale work from mutating the active scene. This checkpoint expresses cancellation as delivery ownership; listener and resource lifetime cleanup remains a later lesson.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production loader generations prevent stale work from mutating the active scene. This checkpoint expresses cancellation as delivery ownership; listener and resource lifetime cleanup remains a later lesson.
 
 Chrome holds real File.arrayBuffer promises, types other commands, cancels reads and releases old completions. It checks both scene pixels and object count, and confirms an old failure cannot overwrite a newer request or command.
 

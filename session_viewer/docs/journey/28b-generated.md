@@ -1,26 +1,12 @@
 # 28b · Give generated objects the same source owner
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 16–31 minutes.** 25 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
-
-**Follow:** Kernel triangle or box → PreparedMesh → source-owning Object → derived display.
+**Typing: 16–31 minutes.** [Estimate](typing-load.md).
 
 Close the migration. Demo triangles and the optional extra triangle are small kernel meshes; Example Box retains the kernel mesh it already creates. All enter through PreparedMesh. Every Object can now keep its source geometry, placement and optional file provenance independently of the drawing cache.
 
-![Imported and generated source geometry converge on the same preparation and insertion boundary.](../illustrations/journey-28b.svg)
+## Type
 
-PreparedMesh::triangle creates three kernel Points and one triangular face. Color is an object attribute. The kernel stores its colour channels in bytes, so these demo colours are quantized before the display adapter reads them; a slight shade change is expected. This does not change the source/drawing ownership rule.
-
-Change Scene::insert to consume a prepared value. The geometry goes to Object::geometry, display goes into the Rc drawing cache, and provenance goes to Object::source. Remove Option from geometry because every call now supplies it. Identity still initializes placement.
-
-Example Box stops discarding its kernel mesh after conversion. Imported objects use the same insertion function, so import no longer patches source fields on the last inserted row. Bounds, picking, GPU matrices and Move keep the ownership conventions already established.
-
-## Type the change
-
-Continue from [Retain the imported mesh behind each row](28a-imported.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-28b-generated` (from `session_viewer`).
+Continue from [Retain the imported mesh behind each row](28a-imported.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/prepared.rs`
 
@@ -236,9 +222,9 @@ Replace that block with:
 --8<-- "journey/code/28b-generated-10.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -246,7 +232,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Example Box`, then `Undo`. The generated box now uses the same source/display ownership as imported geometry and remains one reversible object.
 
@@ -254,7 +240,7 @@ Type `Example Box`, then `Undo`. The generated box now uses the same source/disp
 
 ![Actual browser result: Give generated objects the same source owner.](../screenshots/journey/28b-generated-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -263,43 +249,51 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+PreparedMesh::triangle creates three kernel Points and one triangular face. Color is an object attribute. The kernel stores its colour channels in bytes, so these demo colours are quantized before the display adapter reads them; a slight shade change is expected. This does not change the source/drawing ownership rule.
+
+Change Scene::insert to consume a prepared value. The geometry goes to Object::geometry, display goes into the Rc drawing cache, and provenance goes to Object::source. Remove Option from geometry because every call now supplies it. Identity still initializes placement.
+
+Example Box stops discarding its kernel mesh after conversion. Imported objects use the same insertion function, so import no longer patches source fields on the last inserted row. Bounds, picking, GPU matrices and Move keep the ownership conventions already established.
+
+Kernel triangle or box → PreparedMesh → source-owning Object → derived display.
+
+![Imported and generated source geometry converge on the same preparation and insertion boundary.](../illustrations/journey-28b.svg)
+
+What does None provenance mean after every object owns kernel geometry?
+
+It means the object was made here instead of imported from a file. It no longer means geometry is missing: Object::geometry is now a required shared source mesh. The display is derived from that source on the same insertion path.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change PreparedMesh::triangle’s object colour, then compare its kernel colour with the uploaded display colour. Explain why the conversion may quantize channels and why changing the camera does not rewrite either geometry representation. Restore the original code.
 
 </details>
 
-## Explain the change
-
-What does None provenance mean after every object owns kernel geometry?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-It means the object was made here instead of imported from a file. It no longer means geometry is missing: Object::geometry is now a required shared source mesh. The display is derived from that source on the same insertion path.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 28b-generated
 npm --prefix ../session_tests run course -- save 28b-generated
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The maintained viewer creates and edits source geometry first, then synchronizes display tables. This checkpoint establishes that direction for every current mesh object. Later geometry families extend it without making GPU data the editable document.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The maintained viewer creates and edits source geometry first, then synchronizes display tables. This checkpoint establishes that direction for every current mesh object. Later geometry families extend it without making GPU data the editable document.
 
 Give generated objects the same source owner. These commands run in the actual dock; kernel ownership is checked separately in Rust.
 

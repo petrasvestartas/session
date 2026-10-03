@@ -1,28 +1,16 @@
 # 12 · Name objects without depending on their row
 
-**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 42–83 minutes.** 115 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 42–83 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Select and delete objects using stable identities, then highlight the selected object.
-
-**Follow:** ObjectId → scene lookup → selected display colour → uploaded mesh → yellow highlight.
 
 Give each object an ID that survives changes in vector order. Remember the extra triangle's ID, so removing an earlier object cannot make its row point at the wrong mesh.
 
 `ObjectId` wraps a number in a distinct type. Its private value and `Scene`'s private vector protect identity. `checked_add` rejects counter exhaustion; IDs never wrap or get reused.
 
-Selection is `Option<ObjectId>` in interaction state. When deletion removes that ID, clear selection. Camera changes preserve it.
+## Type
 
-For now, uploading a selected object uses yellow display vertices while retaining its original mesh colours. A later object-data buffer will avoid that whole-mesh upload.
-
-![Deleting row zero shifts the second object into its seat while that object keeps ID 2; selection follows the ID.](../illustrations/journey-12.svg)
-
-## Type the change
-
-Continue from [Give the scene an owner](11-scene.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-12-identity` (from `session_viewer`).
+Continue from [Give the scene an owner](11-scene.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/scene.rs`
 
@@ -285,9 +273,9 @@ Replace that block with:
 --8<-- "journey/code/12-identity-window-4.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -295,7 +283,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Select Next`, then `Delete`. The yellow object disappears. Run the identity checks below: the remaining object must keep its ID even when its row changes.
 
@@ -303,7 +291,7 @@ Type `Select Next`, then `Delete`. The yellow object disappears. Run the identit
 
 ![Actual browser result: Name objects without depending on their row.](../screenshots/journey/12-identity-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -312,37 +300,52 @@ cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Selection is `Option<ObjectId>` in interaction state. When deletion removes that ID, clear selection. Camera changes preserve it.
+
+For now, uploading a selected object uses yellow display vertices while retaining its original mesh colours. A later object-data buffer will avoid that whole-mesh upload.
+
+ObjectId → scene lookup → selected display colour → uploaded mesh → yellow highlight.
+
+![Deleting row zero shifts the second object into its seat while that object keeps ID 2; selection follows the ID.](../illustrations/journey-12.svg)
+
+After deleting the first object, is the object now at row zero a new object?
+
+No. Its storage row moved, but its ObjectId stayed the same. A row is a current location in a vector; an ID is the name we assigned when the object entered the scene. Selection retains that name, and a deleted name is never silently reused.
+
+Study estimate, including typing and experiments: 3–5 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Add the third triangle, select the first object and delete it. Toggle the third triangle off. Only the original far triangle should remain. Read the identity test before running it: which ID moves to row zero, and why must it keep its old value?
 
 </details>
 
-## Explain the change
-
-After deleting the first object, is the object now at row zero a new object?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. Its storage row moved, but its ObjectId stayed the same. A row is a current location in a vector; an ID is the name we assigned when the object entered the scene. Selection retains that name, and a deleted name is never silently reused.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 12-identity
 npm --prefix ../session_tests run course -- save 12-identity
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 The complete viewer distinguishes document identity, displayed object rows and source sub-elements. Picking and undo must cross those mappings explicitly. This lesson establishes the first rule: a storage index cannot serve as a permanent object name.
+
+
+
+[Full validation scope](release.md).
 
 </details>

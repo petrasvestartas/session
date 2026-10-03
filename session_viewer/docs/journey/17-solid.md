@@ -1,26 +1,14 @@
 # 17 · Bring a solid into the scene
 
-**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 27–54 minutes.** 67 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Create a kernel box, convert it to display data, and add it as one undoable scene object.
-
-**Follow:** Kernel box → triangle extraction → validated display Mesh → document transaction → GPU upload → visible solid.
+**Typing: 27–54 minutes.** [Estimate](typing-load.md).
 
 Create a grey box with the geometry kernel and adapt it to our validated display mesh. `to_render` supplies float vertices and triangle indices; the adapter selects position and colour for our six-float vertex layout.
 
 The box has eight geometric corners, six quad faces and twelve triangles. This example handles its convex faces; imported concave faces need later topology work.
 
-Convert kernel `u32` indices with `u16::try_from`. Return an error for an index that cannot fit rather than connecting the wrong corners.
+## Type
 
-Add `History::try_edit`: commit and clear redo only on success; restore the previous scene on error. A test deliberately mutates then fails. The box is unlit here; the next shader change reveals its face directions.
-
-![A kernel box becomes a validated display mesh; a successful document transaction inserts it before the renderer uploads its triangles.](../illustrations/journey-17.svg)
-
-## Type the change
-
-Continue from [Walk around the model](16-orbit.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-17-solid` (from `session_viewer`).
+Continue from [Walk around the model](16-orbit.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/mesh.rs`
 
@@ -199,9 +187,9 @@ Replace that block with:
 --8<-- "journey/code/17-solid-window-3.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -209,7 +197,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Example Box`, then `View Isometric`. A solid box appears. `Undo` removes that one object; `Redo` restores it.
 
@@ -217,7 +205,7 @@ Type `Example Box`, then `View Isometric`. A solid box appears. `Undo` removes t
 
 ![Actual browser result: Bring a solid into the scene.](../screenshots/journey/17-solid-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -226,43 +214,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Convert kernel `u32` indices with `u16::try_from`. Return an error for an index that cannot fit rather than connecting the wrong corners.
+
+Add `History::try_edit`: commit and clear redo only on success; restore the previous scene on error. A test deliberately mutates then fails. The box is unlit here; the next shader change reveals its face directions.
+
+Kernel box → triangle extraction → validated display Mesh → document transaction → GPU upload → visible solid.
+
+![A kernel box becomes a validated display mesh; a successful document transaction inserts it before the renderer uploads its triangles.](../illustrations/journey-17.svg)
+
+Why does a failed mesh conversion belong outside the GPU draw loop?
+
+Conversion establishes the display data contract before an object enters the scene. A failure should leave the document and history unchanged. The draw loop should read already valid GPU resources; it cannot repair an invalid index or decide whether a failed document edit should be kept.
+
+Study estimate, including typing and experiments: 3–5 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Add a box and undo. In the rollback test, predict whether a failed new edit should erase the available redo. Run the test: it should not. Then redo the successful box addition. Separate three questions in your notes: did creation succeed, did the document change, and was the change uploaded?
 
 </details>
 
-## Explain the change
-
-Why does a failed mesh conversion belong outside the GPU draw loop?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Conversion establishes the display data contract before an object enters the scene. A failure should leave the document and history unchanged. The draw loop should read already valid GPU resources; it cannot repair an invalid index or decide whether a failed document edit should be kept.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 17-solid
 npm --prefix ../session_tests run course -- save 17-solid
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The final viewer converts kernel geometry into renderable lanes while preserving document identity and transactional edits. This adapter is the first real kernel-to-display connection; later lessons retain face and edge provenance and share allocations across many objects.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The final viewer converts kernel geometry into renderable lanes while preserving document identity and transactional edits. This adapter is the first real kernel-to-display connection; later lessons retain face and edge provenance and share allocations across many objects.
 
 Example Box inserts the grey solid behind the triangles. Its faces have one flat colour at this checkpoint.
 

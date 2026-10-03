@@ -1,26 +1,14 @@
 # 29a · Write a snapshot from the editable sources
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 30–60 minutes.** 66 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Serialize live source meshes and their placements without changing the editor.
-
-**Follow:** Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes.
+**Typing: 30–60 minutes.** [Estimate](typing-load.md).
 
 Build Save bytes from live scene objects, including generated and edited objects and excluding deleted rows.
 
 Copy each source mesh's protobuf message, preserving doubles, topology, colours, names and flags. Replace only the copy's GUID with the stored object identity. Keep geometry local and write placement separately, keyed by that same GUID; baking both would move it twice.
 
-This snapshot writes a flat tree. Camera, selection, display arrays and history are application state and stay outside the file.
+## Type
 
-Match the current loader's bounds: 1–64 meshes and at most 4 MiB encoded. Reject unsupported source data. Today Rust checks inspect the snapshot; placement loading and browser downloading follow.
-
-![Current objects supply copied mesh messages; stored object GUIDs connect those messages to a flat tree and placement records.](../illustrations/journey-29a.svg)
-
-## Type the change
-
-Continue from [Give each saved object a stable identity](29-identity.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-29a-snapshot` (from `session_viewer`).
+Continue from [Give each saved object a stable identity](29-identity.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/document.rs`
 
@@ -71,9 +59,9 @@ Replace that block with:
 --8<-- "journey/code/29a-snapshot-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -81,7 +69,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the snapshot checks below. Serialization must read original source coordinates and separate placements without changing the live editor. Browser Save is connected in lesson 29d.
 
@@ -89,7 +77,7 @@ Run the snapshot checks below. Serialization must read original source coordinat
 
 ![Actual browser result: Write a snapshot from the editable sources.](../screenshots/journey/29a-snapshot-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -98,43 +86,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+This snapshot writes a flat tree. Camera, selection, display arrays and history are application state and stay outside the file.
+
+Match the current loader's bounds: 1–64 meshes and at most 4 MiB encoded. Reject unsupported source data. Today Rust checks inspect the snapshot; placement loading and browser downloading follow.
+
+Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes.
+
+![Current objects supply copied mesh messages; stored object GUIDs connect those messages to a flat tree and placement records.](../illustrations/journey-29a.svg)
+
+Why must saving copy source messages instead of modifying the retained session?
+
+The retained file can contain objects that have since been deleted, and imported source allocations are shared through history. Saving traverses current objects and copies their source messages. It applies the inserted object GUID to each copy and writes placement separately, leaving the original geometry, history and file provenance unchanged.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change the box placement in the check, then predict whether mesh vertices or the XformEntry changes. Confirm the retained source GUID stays unchanged and restore the check.
 
 </details>
 
-## Explain the change
-
-Why must saving copy source messages instead of modifying the retained session?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The retained file can contain objects that have since been deleted, and imported source allocations are shared through history. Saving traverses current objects and copies their source messages. It applies the inserted object GUID to each copy and writes placement separately, leaving the original geometry, history and file provenance unchanged.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 29a-snapshot
 npm --prefix ../session_tests run course -- save 29a-snapshot
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The production serializer combines editable source objects and placements rather than reading GPU buffers. This checkpoint covers a deliberately bounded flat-mesh document; complete trees, geometry families and metadata arrive later.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The production serializer combines editable source objects and placements rather than reading GPU buffers. This checkpoint covers a deliberately bounded flat-mesh document; complete trees, geometry families and metadata arrive later.
 
 
 

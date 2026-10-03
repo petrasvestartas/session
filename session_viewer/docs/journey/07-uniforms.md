@@ -1,26 +1,14 @@
 # 07 · Send one view setting to every corner
 
-**Combined study estimate: 2–3 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 16–32 minutes.** 35 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Scale and shift the diamond without changing its stored positions.
-
-**Follow:** View values → uniform buffer → bind group 0 → shader binding 0 → transformed position.
+**Typing: 16–32 minutes.** [Estimate](typing-load.md).
 
 Move the diamond by uploading one setting shared by all its vertices. Four floats describe horizontal and vertical scale and offset. The shader applies `position * scale + offset`.
 
 A uniform buffer stores the values. Its bind group connects that buffer to shader group 0, binding 0. Derive this small pipeline's layout from the shader, then use its group layout when creating the bind group.
 
-A WGSL `vec4<f32>` requires 16 bytes with 16-byte alignment. Four Rust floats starting at byte zero match it. Larger structures will need explicit padding checks.
+## Type
 
-`UNIFORM` permits shader reads; `COPY_DST` permits uploads. `write_buffer` schedules new values before the next submission. Changing the view therefore keeps both the geometry buffer and pipeline.
-
-![View values travel through a uniform buffer and bind group; positions still arrive through the vertex buffer.](../illustrations/journey-07.svg)
-
-## Type the change
-
-Continue from [Share a corner between triangles](06-indices.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-07-uniforms` (from `session_viewer`).
+Continue from [Share a corner between triangles](06-indices.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/triangle.wgsl`
 
@@ -259,9 +247,9 @@ Replace that block with:
 --8<-- "journey/code/07-uniforms-window-5.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -269,7 +257,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Change the uniform’s scale or offset, save, and compare the diamond. Its stored vertex positions stay unchanged. Restore the original uniform.
 
@@ -277,7 +265,26 @@ Change the uniform’s scale or offset, save, and compare the diamond. Its store
 
 ![Actual browser result: Send one view setting to every corner.](../screenshots/journey/07-uniforms-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+A WGSL `vec4<f32>` requires 16 bytes with 16-byte alignment. Four Rust floats starting at byte zero match it. Larger structures will need explicit padding checks.
+
+`UNIFORM` permits shader reads; `COPY_DST` permits uploads. `write_buffer` schedules new values before the next submission. Changing the view therefore keeps both the geometry buffer and pipeline.
+
+View values → uniform buffer → bind group 0 → shader binding 0 → transformed position.
+
+![View values travel through a uniform buffer and bind group; positions still arrive through the vertex buffer.](../illustrations/journey-07.svg)
+
+If the diamond moves, must its position buffer have changed?
+
+No. The position buffer still contains the same four corners. A separate uniform supplies scale and offset. Every vertex invocation reads those shared values and transforms its corner before the GPU decides which pixels are covered.
+
+Study estimate, including typing and experiments: 2–3 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -286,31 +293,27 @@ Predict the result of changing only the first scale from 0.75 to 0.25. The diamo
 
 </details>
 
-## Explain the change
-
-If the diamond moves, must its position buffer have changed?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. The position buffer still contains the same four corners. A separate uniform supplies scale and offset. Every vertex invocation reads those shared values and transforms its corner before the GPU decides which pixels are covered.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 07-uniforms
 npm --prefix ../session_tests run course -- save 07-uniforms
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 The full viewer sends camera and viewport information through frame uniforms. This is the same boundary: application state calculates values; the renderer uploads them; shaders use them while drawing unchanged geometry.
+
+
+
+[Full validation scope](release.md).
 
 </details>

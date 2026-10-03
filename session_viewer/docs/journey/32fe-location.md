@@ -1,24 +1,12 @@
 # 32fe · Give a reload URL an explicit owner
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 24–48 minutes.** 49 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Retain an owned Blob URL through imports and history, then release it with its last owner.
-
-**Follow:** Retain an owned Blob URL through imports and history, then release it with its last owner..
+**Typing: 24–48 minutes.** [Estimate](typing-load.md).
 
 A version says which bytes a row expects; it does not provide a way to read them again. Add ReloadUrl, an owner of one URL created by this viewer. Its Drop implementation revokes the browser Blob URL. Native checks observe its Rc lifetime through Weak; actual browser revocation is tested after the next adapter endpoint.
 
-Origin can retain an optional Rc<ReloadUrl>. Generated data and ordinary native load calls have no reload location and will be protected from unload. load_at accepts an already owned URL; it validates the file and adopts the location into the same Origin shared by all rows.
+## Type
 
-Add ImportAt and ReplaceAt to the editor while keeping the existing Import/Replace fixtures. The new actions hold the URL before loading, so failure drops their owner normally. History shares the Origin, keeping the reload location alive until the last relevant snapshot is gone. The browser still uses its old file adapter at this checkpoint.
-
-![Retain an owned Blob URL through imports and history, then release it with its last owner.](../illustrations/journey-32fe.svg)
-
-## Type the change
-
-Continue from [Attach one origin to an imported document](32fd-origin.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fe-location` (from `session_viewer`).
+Continue from [Attach one origin to an imported document](32fd-origin.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/lib.rs`
 
@@ -208,9 +196,9 @@ Replace that block with:
 --8<-- "journey/code/32fe-location-09.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -218,7 +206,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the location checks below. The reload location stays alive while owned and is released once after its final owner drops. File adoption is connected next.
 
@@ -226,7 +214,7 @@ Run the location checks below. The reload location stays alive while owned and i
 
 ![Actual browser result: Give a reload URL an explicit owner.](../screenshots/journey/32fe-location-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -235,43 +223,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Origin can retain an optional Rc<ReloadUrl>. Generated data and ordinary native load calls have no reload location and will be protected from unload. load_at accepts an already owned URL; it validates the file and adopts the location into the same Origin shared by all rows.
+
+Add ImportAt and ReplaceAt to the editor while keeping the existing Import/Replace fixtures. The new actions hold the URL before loading, so failure drops their owner normally. History shares the Origin, keeping the reload location alive until the last relevant snapshot is gone. The browser still uses its old file adapter at this checkpoint.
+
+Retain an owned Blob URL through imports and history, then release it with its last owner..
+
+![Retain an owned Blob URL through imports and history, then release it with its last owner.](../illustrations/journey-32fe.svg)
+
+Why must URL ownership exist before validation can fail?
+
+Creating a Blob URL allocates a browser resource. If decoding or insertion fails, an action-local owner must still revoke it. A successful import shares that owner through its Origin; Close releases it only after active and history roots are gone.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Retain a separate Rc<ReloadUrl> in a caller scope and explain why closing the editor cannot revoke that caller’s resource yet.
 
 </details>
 
-## Explain the change
-
-Why must URL ownership exist before validation can fail?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Creating a Blob URL allocates a browser resource. If decoding or insertion fails, an action-local owner must still revoke it. A successful import shares that owner through its Origin; Close releases it only after active and history roots are gone.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32fe-location
 npm --prefix ../session_tests run course -- save 32fe-location
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This owner is for viewer-created Blob URLs. The later published HTTP locations have different ownership and caching rules; they must not be treated as owned Blob resources.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This owner is for viewer-created Blob URLs. The later published HTTP locations have different ownership and caching rules; they must not be treated as owned Blob resources.
 
 
 

@@ -1,24 +1,14 @@
 # 32gd · Reject stale or inconsistent source batches atomically
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 25–49 minutes.** 38 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Keep rows cold on changed versions, missing source identity and obsolete release keys.
-
-**Follow:** Prepare two origins → reject changed second source → no adoption → successful retry.
+**Typing: 25–49 minutes.** [Estimate](typing-load.md).
 
 Test atomic source restoration across independent imported origins. Change the second source version and require both origins to remain cold. Then give a retained row the wrong original source GUID and require refusal.
 
 `Rc::make_mut` gives the test row its own metadata when history shares the original. This simulates row inconsistency without modifying the imported file.
 
-Version mismatch and row-metadata mismatch are separate rejection boundaries. Validate all candidates and rows before adopting any source. The next lesson tests stale and duplicate delivery.
+## Type
 
-![Keep rows cold on changed versions, missing source identity and obsolete release keys.](../illustrations/journey-32gd.svg)
-
-## Type the change
-
-Continue from [Prove source restoration preserves display and history](32gc-roundtrip.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gd-rejections` (from `session_viewer`).
+Continue from [Prove source restoration preserves display and history](32gc-roundtrip.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/rehydrate_tests.rs`
 
@@ -39,9 +29,9 @@ Replace that block with:
 --8<-- "journey/code/32gd-rejections-01.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -49,7 +39,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the rejection checks below. A wrong file version, source identity or release key must leave all editable owners unchanged.
 
@@ -57,7 +47,7 @@ Run the rejection checks below. A wrong file version, source identity or release
 
 ![Actual browser result: Reject stale or inconsistent source batches atomically.](../screenshots/journey/32gd-rejections-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -66,43 +56,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Version mismatch and row-metadata mismatch are separate rejection boundaries. Validate all candidates and rows before adopting any source. The next lesson tests stale and duplicate delivery.
+
+Prepare two origins → reject changed second source → no adoption → successful retry.
+
+![Keep rows cold on changed versions, missing source identity and obsolete release keys.](../illustrations/journey-32gd.svg)
+
+Should a late result after Close be decoded before deciding that it is obsolete?
+
+No. First confirm the captured key still matches an active cold row. An obsolete result returns false before source construction or mutation, whether its payload is valid or malformed.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change the second candidate in a two-origin batch to malformed bytes. Predict why validating all candidates first keeps the first origin cold.
 
 </details>
 
-## Explain the change
-
-Should a late result after Close be decoded before deciding that it is obsolete?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. First confirm the captured key still matches an active cold row. An obsolete result returns false before source construction or mutation, whether its payload is valid or malformed.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32gd-rejections
 npm --prefix ../session_tests run course -- save 32gd-rejections
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Late source delivery must never revive a closed or replaced import. Immutable file-version checks and origin/epoch checks address different causes of stale data.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Late source delivery must never revive a closed or replaced import. Immutable file-version checks and origin/epoch checks address different causes of stale data.
 
 These are native acceptance checks for the atomic API. Fetch errors, aborts and queued edits belong to the next browser request boundary.
 

@@ -1,28 +1,16 @@
 # 23 · Keep the document behind the picture
 
-**Combined study estimate: 5–8 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 126–252 minutes.** 280 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 126–252 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
-
-**Follow:** File picker → bytes → validated session → prepared display meshes → one history transaction → GPU upload.
 
 Import a real protobuf file while retaining its source document behind the display mesh. Type and run the small specimen builder to create the file.
 
 Read bytes, prepare the whole import, then commit it as one history edit. A malformed later mesh must leave no earlier mesh inserted. This stage supports flat triangle/quad meshes with object colours; unsupported geometry and placements return errors.
 
-`Rc<Session>` shares one decoded source among rows. `Source` pairs it with a source GUID. Local `ObjectId` identifies the viewer object; GUID identifies its source mesh.
+## Type
 
-Reading pauses at `await`. A completion event returns the result to the callback that owns Editor. Shared `Cell<u64>` request numbers reject stale reads without retaining a mutable editor borrow while waiting.
-
-![A source session stays alongside its display meshes; validation happens before the history transaction.](../illustrations/journey-23.svg)
-
-## Type the change
-
-Continue from [Keep navigation on the mouse and commands in the dock](22-shortcuts.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-23-import` (from `session_viewer`).
+Continue from [Keep navigation on the mouse and commands in the dock](22-shortcuts.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/document.rs`
 
@@ -405,7 +393,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-window-5.rs"
 ```
 
-## Run and look
+## Run and check
 
 After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:
 
@@ -413,7 +401,7 @@ After typing the manifest, run this from `session_viewer` to select the fixed de
 npm --prefix ../session_tests run course -- dependencies 23-import
 ```
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -421,7 +409,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In another terminal in `workspace/journey`, run `REGEN_PROTO=0 cargo run --example sample --locked --target x86_64-unknown-linux-gnu -j4`. Type `Open` and choose `sample.pb`. `Undo` must remove the whole import; `Redo` restores it.
 
@@ -429,7 +417,7 @@ In another terminal in `workspace/journey`, run `REGEN_PROTO=0 cargo run --examp
 
 ![Actual browser result: Keep the document behind the picture.](../screenshots/journey/23-import-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -438,43 +426,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+`Rc<Session>` shares one decoded source among rows. `Source` pairs it with a source GUID. Local `ObjectId` identifies the viewer object; GUID identifies its source mesh.
+
+Reading pauses at `await`. A completion event returns the result to the callback that owns Editor. Shared `Cell<u64>` request numbers reject stale reads without retaining a mutable editor borrow while waiting.
+
+File picker → bytes → validated session → prepared display meshes → one history transaction → GPU upload.
+
+![A source session stays alongside its display meshes; validation happens before the history transaction.](../illustrations/journey-23.svg)
+
+Why do we retain the session after creating the arrays that the renderer needs?
+
+The GPU arrays contain positions, colours and indices. They do not retain the session name, source mesh identities, tree or graph. Each imported object keeps a source reference: the complete session plus its original mesh GUID. Its local ObjectId remains separate, so opening the same file twice does not confuse selection or undo.
+
+Study estimate, including typing and experiments: 5–8 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change the specimen’s top beam width from 1.8 to 2.2, regenerate sample.pb, and import it. You have changed the source, not the renderer. Undo the import, restore 1.8, and regenerate. Then explain why the same source GUID may occur in two imports while their local ObjectIds must differ.
 
 </details>
 
-## Explain the change
-
-Why do we retain the session after creating the arrays that the renderer needs?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The GPU arrays contain positions, colours and indices. They do not retain the session name, source mesh identities, tree or graph. Each imported object keeps a source reference: the complete session plus its original mesh GUID. Its local ObjectId remains separate, so opening the same file twice does not confuse selection or undo.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 23-import
 npm --prefix ../session_tests run course -- save 23-import
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The maintained viewer keeps source sessions in FileDoc and builds display data from them. Its reader also handles hierarchy, placement, CAD, points, curves and large files. This first reader intentionally refuses those cases. Future lessons extend the retained document boundary instead of trying to recover lost information from GPU buffers.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The maintained viewer keeps source sessions in FileDoc and builds display data from them. Its reader also handles hierarchy, placement, CAD, points, curves and large files. This first reader intentionally refuses those cases. Future lessons extend the retained document boundary instead of trying to recover lost information from GPU buffers.
 
 The file picker imports all three orange pieces. The browser check removes the entire import with one Undo, restores it with Redo, and then chooses Isometric.
 

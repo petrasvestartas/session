@@ -1,22 +1,14 @@
 # 32fd · Attach one origin to an imported document
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 22–44 minutes.** 36 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Share one geometry-free origin across imported rows and history.
-
-**Follow:** Share one geometry-free origin across imported rows and history..
+**Typing: 22–44 minutes.** [Estimate](typing-load.md).
 
 Construct an Origin after decoding and validation, before moving the protobuf into the kernel Session. Every prepared row shares the same Rc<Origin> through its Source. A second import gets a different Origin even when its file bytes are identical.
 
 The native check records Weak observers, retains only the Origin, and closes the editor. The Session and kernel value must disappear while the original header remains readable. Another check follows one shared origin through Move and Undo.
 
-![Share one geometry-free origin across imported rows and history.](../illustrations/journey-32fd.svg)
+## Type
 
-## Type the change
-
-Continue from [Record a reload version without retaining geometry](32fc-version.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fd-origin` (from `session_viewer`).
+Continue from [Record a reload version without retaining geometry](32fc-version.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/document.rs`
 
@@ -123,9 +115,9 @@ Replace that block with:
 --8<-- "journey/code/32fd-origin-06.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -133,7 +125,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the origin checks below. Rows from one import share its small origin header through history without retaining the original document.
 
@@ -141,7 +133,7 @@ Run the origin checks below. Rows from one import share its small origin header 
 
 ![Actual browser result: Attach one origin to an imported document.](../screenshots/journey/32fd-origin-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -150,43 +142,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+
+
+Share one geometry-free origin across imported rows and history..
+
+![Share one geometry-free origin across imported rows and history.](../illustrations/journey-32fd.svg)
+
+Does retaining an Origin after Close keep the imported Session alive?
+
+No. It owns copied header values and a version, not the Session Rc or any kernel mesh Rc. Weak checks can prove the Session and its meshes are dropped while the retained origin remains readable.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Clone Source instead of only Origin in the ownership check and predict which Weak observations remain alive.
 
 </details>
 
-## Explain the change
-
-Does retaining an Origin after Close keep the imported Session alive?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. It owns copied header values and a version, not the Session Rc or any kernel mesh Rc. Weak checks can prove the Session and its meshes are dropped while the retained origin remains readable.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32fd-origin
 npm --prefix ../session_tests run course -- save 32fd-origin
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Origin identity is separate from saved row GUID and original source GUID. This prevents a later completion for one duplicate import from being adopted by another.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Origin identity is separate from saved row GUID and original source GUID. This prevents a later completion for one duplicate import from being adopted by another.
 
 Chrome exposes origin identity and the byte fingerprint in a hidden attribute. It checks that three rows of one import share an origin, duplicate imports have different origins but the same version, and history preserves them. No reload location or unload command exists yet.
 

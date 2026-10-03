@@ -1,26 +1,14 @@
 # 30d · Choose append or replace before opening the picker
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 27–53 minutes.** 43 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
-
-**Follow:** Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action.
+**Typing: 27–53 minutes.** [Estimate](typing-load.md).
 
 Add typed `Open Replace`, retaining `Open` for append. Opening either picker begins a ticket and stores its operation as a `Mode` enum.
 
 The selected-file task captures that ticket and mode. `choose` reuses the pending ticket; a newer picker revokes earlier delivery before a file is chosen.
 
-The completion event carries a replace flag and `Uint8Array`. Validate shape and size, then translate to `Action::Import` or `Action::Replace`. Editor never receives browser values.
+## Type
 
-Picker cancellation revokes its ticket and appends an Open notice. Report append or replacement only after successful commit. A failed replacement retains the document; successful replacement is one Undo change.
-
-![The command starts a ticket and operation mode; the queued task captures both; its accepted bytes choose Import or Replace.](../illustrations/journey-30d.svg)
-
-## Type the change
-
-Continue from [Replace a document as one reversible change](30c-replace.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30d-bridge` (from `session_viewer`).
+Continue from [Replace a document as one reversible change](30c-replace.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/file_input.rs`
 
@@ -320,9 +308,9 @@ Replace that block with:
 --8<-- "journey/code/30d-bridge-15.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -330,7 +318,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Open Replace` and choose `sample.pb`, then type `Undo`. The preceding document returns as one transaction. `Open Append` instead keeps existing objects.
 
@@ -338,7 +326,7 @@ Type `Open Replace` and choose `sample.pb`, then type `Undo`. The preceding docu
 
 ![Actual browser result: Choose append or replace before opening the picker.](../screenshots/journey/30d-bridge-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -347,43 +335,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The completion event carries a replace flag and `Uint8Array`. Validate shape and size, then translate to `Action::Import` or `Action::Replace`. Editor never receives browser values.
+
+Picker cancellation revokes its ticket and appends an Open notice. Report append or replacement only after successful commit. A failed replacement retains the document; successful replacement is one Undo change.
+
+Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action.
+
+![The command starts a ticket and operation mode; the queued task captures both; its accepted bytes choose Import or Replace.](../illustrations/journey-30d.svg)
+
+Why must a newer Open revoke old work before the new file is chosen?
+
+Opening a new picker expresses a new request even if the user cancels it. If the ticket were issued only after choosing a file, an older pending read could still commit behind the newer picker. Begin at the command, capture its mode at selection, and consume that ticket before delivering an outcome.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Hold a previous read, open Open Replace, cancel the new picker and then let the old read finish. Predict why the old file must stay rejected despite the new picker having no chosen file.
 
 </details>
 
-## Explain the change
-
-Why must a newer Open revoke old work before the new file is chosen?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Opening a new picker expresses a new request even if the user cancels it. If the ticket were issued only after choosing a file, an older pending read could still commit behind the newer picker. Begin at the command, capture its mode at selection, and consume that ticket before delivering an outcome.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 30d-bridge
 npm --prefix ../session_tests run course -- save 30d-bridge
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production scene replacement uses a generation started at request time and stages a whole scene before commit. This checkpoint applies that policy to the flat file picker; later command chapters align the full production vocabulary and loading paths.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production scene replacement uses a generation started at request time and stages a whole scene before commit. This checkpoint applies that policy to the flat file picker; later command chapters align the full production vocabulary and loading paths.
 
 Chrome opens a newer replacement picker while an old file promise is held, cancels the picker, then releases the old result. It checks that no rows arrive. It also verifies malformed replacement, successful replacement and pixel-identical Undo/Redo before capturing the replaced document.
 

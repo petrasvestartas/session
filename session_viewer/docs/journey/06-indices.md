@@ -1,24 +1,14 @@
 # 06 · Share a corner between triangles
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 8–15 minutes.** 14 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Draw a diamond from four positions and six small index numbers.
-
-**Follow:** Six indices → four shared positions → vertex shader → two joined triangles.
+**Typing: 8–15 minutes.** [Estimate](typing-load.md).
 
 Store four corner positions and connect them with indices: `0, 1, 2` and `0, 2, 3`. The two triangles now share corners 0 and 2.
 
 The vertex buffer answers where a corner is; the index buffer answers which corners form a triangle. Changing a shared position changes both triangles.
 
-These indices are `u16`, so bind the index buffer as `Uint16`. Each index occupies two bytes; each position still occupies eight. `draw_indexed` chooses index entries, adds its base-vertex value, then draws the requested instances. The shader keeps its previous input layout.
+## Type
 
-![Two triangles refer to four numbered positions, sharing positions zero and two along their common edge.](../illustrations/journey-06.svg)
-
-## Type the change
-
-Continue from [Let Rust supply the corners](05-vertices.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-06-indices` (from `session_viewer`).
+Continue from [Let Rust supply the corners](05-vertices.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/renderer.rs`
 
@@ -151,9 +141,9 @@ Replace that block with:
 --8<-- "journey/code/06-indices-window-1.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -161,7 +151,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 A diamond is drawn from four vertices. Follow the six indices into those vertices: they must describe two triangles that share the middle edge.
 
@@ -169,7 +159,24 @@ A diamond is drawn from four vertices. Follow the six indices into those vertice
 
 ![Actual browser result: Share a corner between triangles.](../screenshots/journey/06-indices-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+These indices are `u16`, so bind the index buffer as `Uint16`. Each index occupies two bytes; each position still occupies eight. `draw_indexed` chooses index entries, adds its base-vertex value, then draws the requested instances. The shader keeps its previous input layout.
+
+Six indices → four shared positions → vertex shader → two joined triangles.
+
+![Two triangles refer to four numbered positions, sharing positions zero and two along their common edge.](../illustrations/journey-06.svg)
+
+Why do we draw six indices when there are only four positions?
+
+Each triangle needs three corner references. The first triangle reads positions 0, 1 and 2; the second reads 0, 2 and 3. Positions 0 and 2 are shared. Six index entries describe two triangles while only four coordinate pairs are stored.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -178,31 +185,27 @@ Move position 0 from [-0.6, 0.0] to [-0.9, 0.0]. Predict which triangles change.
 
 </details>
 
-## Explain the change
-
-Why do we draw six indices when there are only four positions?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Each triangle needs three corner references. The first triangle reads positions 0, 1 and 2; the second reads 0, 2 and 3. Positions 0 and 2 are shared. Six index entries describe two triangles while only four coordinate pairs are stored.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 06-indices
 npm --prefix ../session_tests run course -- save 06-indices
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 Mesh topology uses indices to share vertices. The production mesh lane uses the same distinction between a vertex range and an index range; its shared allocations add offsets without changing what an index means.
+
+
+
+[Full validation scope](release.md).
 
 </details>

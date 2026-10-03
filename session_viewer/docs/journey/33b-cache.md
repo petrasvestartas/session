@@ -1,22 +1,12 @@
 # 33b · Keep a cached viewer ready for Back navigation
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 3–5 minutes.** 3 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Distinguish a reusable cached page from a final exit so Back navigation cannot restore an already-disposed viewer.
-
-**Follow:** pagehide → cancel drag → persisted? → keep owner for cached return; otherwise deferred disposal.
+**Typing: 3–5 minutes.** [Estimate](typing-load.md).
 
 The [HTML lifecycle contract](https://html.spec.whatwg.org/dev/nav-history-apis.html#the-pagetransitionevent-interface) distinguishes final departure from a page that may return from the back/forward cache. A cached page reuses its existing document and scripts. Disposing its callbacks without restarting them would leave that restored viewer unable to accept commands.
 
-The handler cancels an unfinished camera gesture, then checks the actual PageTransitionEvent. A persisted transition keeps the runtime. A final exit still schedules the disposal proved in the previous checkpoint. A plain synthetic Event has no persisted flag and retains the previous final-exit behavior. No new listener or feature control is needed.
+## Type
 
-![Retain a reusable page](../illustrations/journey-33b.svg)
-
-## Type the change
-
-Continue from [Dispose the viewer without leaving pending work alive](33a-runtime.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-33b-cache` (from `session_viewer`).
+Continue from [Dispose the viewer without leaving pending work alive](33a-runtime.md). [Save or recover your work](recovery.md).
 
 ### 1. `Cargo.toml`
 
@@ -57,9 +47,9 @@ Replace that block with:
 --8<-- "journey/code/33b-cache-02.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -67,7 +57,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. `window.wasmBindings.runtime_running()` stays true and typed commands still work.
 
@@ -75,7 +65,7 @@ In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehid
 
 ![Actual browser result: Keep a cached viewer ready for Back navigation.](../screenshots/journey/33b-cache-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -84,43 +74,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The handler cancels an unfinished camera gesture, then checks the actual PageTransitionEvent. A persisted transition keeps the runtime. A final exit still schedules the disposal proved in the previous checkpoint. A plain synthetic Event has no persisted flag and retains the previous final-exit behavior. No new listener or feature control is needed.
+
+pagehide → cancel drag → persisted? → keep owner for cached return; otherwise deferred disposal.
+
+![Retain a reusable page](../illustrations/journey-33b.svg)
+
+Does every pagehide mean the page and its WebAssembly instance are going away forever?
+
+No. PageTransitionEvent.persisted marks a page that may be reused on Back navigation. Retain its runtime in that case; a final exit still disposes the viewer.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Remove the persisted check and run the retained-runtime assertions. Explain why a fresh normal load could conceal the broken cached-return path.
 
 </details>
 
-## Explain the change
-
-Does every pagehide mean the page and its WebAssembly instance are going away forever?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. PageTransitionEvent.persisted marks a page that may be reused on Back navigation. Retain its runtime in that case; a final exit still disposes the viewer.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 33b-cache
 npm --prefix ../session_tests run course -- save 33b-cache
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-A final disposal and a temporarily cached document have different ownership lifetimes. Device-loss recovery remains the next subject.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+A final disposal and a temporarily cached document have different ownership lifetimes. Device-loss recovery remains the next subject.
 
 Chrome dispatches persisted hide/show events, verifies unchanged drawing, placement, selection and camera, and then uses real commands and a drag to prove the retained viewer works. It also navigates the SAME test tab away and Back: if Chrome caches the WebGPU page, its document token and drawing must survive; if the browser performs a fresh load, a newly running viewer is required. The test logs which path actually occurred, rather than claiming cache eligibility from a synthetic event. Final-exit and delayed source/file disposal checks remain inherited.
 

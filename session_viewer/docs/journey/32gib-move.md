@@ -1,22 +1,14 @@
 # 32gib · Move the original target from its current placement
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 27–53 minutes.** 45 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Apply a captured Move to its original target, composing with the placement that exists at replay time.
-
-**Follow:** Captured ObjectId + offset → current row.model → world shift × model → one history edit.
+**Typing: 27–53 minutes.** [Estimate](typing-load.md).
 
 Extract Editor::move_object with an explicit ObjectId. It validates arguments, finds that current row, composes the world shift with its current model and makes one History::try_edit transaction. It leaves selection and camera untouched. Normal Action::Translate calls the same method after resolving current selection.
 
 This is the native Move replay operation. One-shot asynchronous authority is added in the ticket/intent lesson, and automatic browser interception follows it. Delete and Save are taught separately to keep each change small.
 
-![Replay the original Move target](../illustrations/journey-32gib.svg)
+## Type
 
-## Type the change
-
-Continue from [Load only the sources the requested edit needs](32gia-scope.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gib-move` (from `session_viewer`).
+Continue from [Load only the sources the requested edit needs](32gia-scope.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/editor.rs`
 
@@ -92,9 +84,9 @@ Create the file and type:
 --8<-- "journey/code/32gib-move-04.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -102,7 +94,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the captured-Move checks below. Change selection while waiting: replay must still move the original target and compose with its current placement.
 
@@ -110,7 +102,7 @@ Run the captured-Move checks below. Change selection while waiting: replay must 
 
 ![Actual browser result: Move the original target from its current placement.](../screenshots/journey/32gib-move-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -119,43 +111,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+
+
+Captured ObjectId + offset → current row.model → world shift × model → one history edit.
+
+![Replay the original Move target](../illustrations/journey-32gib.svg)
+
+Why must a delayed Move compose with the current placement rather than a matrix saved when the request began?
+
+The request describes an offset, not a replacement matrix. Reading the current model preserves any placement that now exists. The captured ObjectId chooses the target while current selection remains available for other interaction.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 In the native test, replace the newer model with the model that existed at capture time. Explain which placement that stale replacement would lose.
 
 </details>
 
-## Explain the change
-
-Why must a delayed Move compose with the current placement rather than a matrix saved when the request began?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The request describes an offset, not a replacement matrix. Reading the current model preserves any placement that now exists. The captured ObjectId chooses the target while current selection remains available for other interaction.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32gib-move
 npm --prefix ../session_tests run course -- save 32gib-move
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Captured intent names the target and requested delta. Replay reads current state; a separate ticket owner limits which completion may execute it.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Captured intent names the target and requested delta. Replay reads current state; a separate ticket owner limits which completion may execute it.
 
 The native test captures a Move, changes the target’s placement and selects another object before executing the captured values. The result is based on the newer placement; selection and camera stay unchanged. One Undo restores the immediate prior model, another Undo does nothing, and Redo restores the result. No-op or refused moves preserve an existing Redo. Existing source tests still reject moving a cold row until hydration.
 

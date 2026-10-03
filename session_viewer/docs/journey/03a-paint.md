@@ -1,24 +1,14 @@
 # 03a · Paint command text over the scene
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 25–49 minutes.** 44 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Draw a Command label over the triangle using the same GPU.
-
-**Follow:** RawInput → egui shapes and font atlas → GPU upload → Load pass → present.
+**Typing: 25–49 minutes.** [Estimate](typing-load.md).
 
 Draw the Command label after the triangle and before presenting the image. `RawInput` gives egui the available canvas size. `run_ui` calls our layout closure and returns shapes plus changed font-atlas pixels.
 
 Upload those pixels, turn the shapes into triangle jobs and update their GPU buffers. The second render pass uses `Load`, so it keeps the scene pixels already drawn. The panel uses a white frame and the production margins.
 
-`forget_lifetime` removes the pass’s compile-time link to the encoder. The pass still must end before we finish the encoder. Submit its buffers, then release textures egui no longer needs.
+## Type
 
-![The current command drawing step.](../illustrations/journey-03a-paint.svg)
-
-## Type the change
-
-Continue from [Prepare the command fonts and painter](03a-fonts.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03a-paint` (from `session_viewer`).
+Continue from [Prepare the command fonts and painter](03a-fonts.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/panel.rs`
 
@@ -97,9 +87,9 @@ Replace that block with:
 --8<-- "journey/code/03a-paint-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -107,7 +97,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Command: appears at the bottom of the full-window canvas. The triangle remains unchanged above it. Keyboard input is not connected yet.
 
@@ -115,7 +105,24 @@ Command: appears at the bottom of the full-window canvas. The triangle remains u
 
 ![Actual browser result: Paint command text over the scene.](../screenshots/journey/03a-paint-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+`forget_lifetime` removes the pass’s compile-time link to the encoder. The pass still must end before we finish the encoder. Submit its buffers, then release textures egui no longer needs.
+
+RawInput → egui shapes and font atlas → GPU upload → Load pass → present.
+
+![The current command drawing step.](../illustrations/journey-03a-paint.svg)
+
+Why does the interface pass use Load?
+
+The triangle is already in the target image. Load keeps those pixels while the interface draws over them; another Clear would erase the scene.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -124,37 +131,24 @@ Change only Load to a white Clear, rebuild and see which earlier drawing disappe
 
 </details>
 
-## Explain the change
-
-Why does the interface pass use Load?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The triangle is already in the target image. Load keeps those pixels while the interface draws over them; another Clear would erase the scene.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 03a-paint
 npm --prefix ../session_tests run course -- save 03a-paint
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This introduces the interface upload and second GPU pass that the full command dock keeps.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This introduces the interface upload and second GPU pass that the full command dock keeps.
 
 Chrome verifies visible Noto label ink, white panel pixels and exact preservation of the scene above the dock. Keyboard input is not connected.
 

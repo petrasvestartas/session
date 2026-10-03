@@ -1,28 +1,16 @@
 # 13 · Ask which object is under the pointer
 
-**Combined study estimate: 2–4 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 47–93 minutes.** 116 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 47–93 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Click a visible triangle to select its stable object ID, including after camera movement.
-
-**Follow:** Browser click → canvas-relative coordinates → inverse camera → triangle coverage and depth → ObjectId → highlight.
 
 Resolve a click to the nearest covered object's ID. Convert viewport CSS pixels to canvas coordinates, map them to −1 through +1, and reverse y because browser y points downward.
 
 Undo the camera transform: divide by scale, rotate back, then add the centre. A round-trip test checks the two coordinate conversions agree.
 
-For this flat view, test triangles on the CPU. Write a point as `a + u×(b−a) + v×(c−a)`. Coverage requires nonnegative u and v with sum at most 1. Use those weights to interpolate depth and retain the nearest hit.
+## Type
 
-Return `ObjectId`, preserving selection through row changes. Empty space returns `None`. Later GPU picking replaces this small-scene query while keeping the same input-to-identity boundary.
-
-![A browser click becomes a canvas coordinate, then a world point; triangle coverage and nearest depth produce a stable object ID.](../illustrations/journey-13.svg)
-
-## Type the change
-
-Continue from [Name objects without depending on their row](12-identity.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-13-picking` (from `session_viewer`).
+Continue from [Name objects without depending on their row](12-identity.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/camera.rs`
 
@@ -176,9 +164,9 @@ Replace that block with:
 --8<-- "journey/code/13-picking-window-3.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -186,7 +174,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Click the visible triangle, then type `Delete`. The clicked object disappears. Pan the view and try again: picking must follow the picture.
 
@@ -194,7 +182,7 @@ Click the visible triangle, then type `Delete`. The clicked object disappears. P
 
 ![Actual browser result: Ask which object is under the pointer.](../screenshots/journey/13-picking-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -203,37 +191,52 @@ cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+For this flat view, test triangles on the CPU. Write a point as `a + u×(b−a) + v×(c−a)`. Coverage requires nonnegative u and v with sum at most 1. Use those weights to interpolate depth and retain the nearest hit.
+
+Return `ObjectId`, preserving selection through row changes. Empty space returns `None`. Later GPU picking replaces this small-scene query while keeping the same input-to-identity boundary.
+
+Browser click → canvas-relative coordinates → inverse camera → triangle coverage and depth → ObjectId → highlight.
+
+![A browser click becomes a canvas coordinate, then a world point; triangle coverage and nearest depth produce a stable object ID.](../illustrations/journey-13.svg)
+
+Why must picking undo the camera transform before testing the stored triangles?
+
+The click describes a place on the displayed image, while the mesh vertices describe positions in the scene. Undoing camera rotation, scale and translation brings the click into the same coordinate system as those vertices. Comparing them without that conversion would select the wrong place after moving the view.
+
+Study estimate, including typing and experiments: 2–4 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Select the front triangle at the overlap and delete it. Click that same place again. The far triangle should now be selected with its original ID. Then move the camera and repeat: explain the coordinate conversions rather than memorising a pixel position.
 
 </details>
 
-## Explain the change
-
-Why must picking undo the camera transform before testing the stored triangles?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The click describes a place on the displayed image, while the mesh vertices describe positions in the scene. Undoing camera rotation, scale and translation brings the click into the same coordinate system as those vertices. Comparing them without that conversion would select the wrong place after moving the view.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 13-picking
 npm --prefix ../session_tests run course -- save 13-picking
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 Production picking renders integer identifiers, reads a small result asynchronously, rejects stale results and resolves the displayed row back to source identity. The conversion and ownership questions introduced here remain the same when the implementation becomes more capable.
+
+
+
+[Full validation scope](release.md).
 
 </details>

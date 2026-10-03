@@ -1,24 +1,14 @@
 # 32gj · Prove restored Save keeps the source doubles
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 19–38 minutes.** 33 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Verify the automatic browser Save download retains exact source coordinates after display-only unloading.
-
-**Follow:** Original f64 sentinel → derived f32 display → unload kernel → reload original bytes → Save → exact source doubles.
+**Typing: 19–38 minutes.** [Estimate](typing-load.md).
 
 Add `precise_bytes` to the specimen builder with one coordinate that cannot survive an `f32` round trip. Keep the ordinary specimen function for existing checks.
 
 Save while sources are warm, then unload and trigger restoration through Save. Decode both actual downloads and compare the source coordinate exactly. The derived display is unsuitable evidence because it intentionally rounds to floats.
 
-The native and browser checks use the same uploaded specimen. They compare original coordinates and preserve the moved placement; the native test also checks Undo/Redo.
+## Type
 
-![Prove original-coordinate Save](../illustrations/journey-32gj.svg)
-
-## Type the change
-
-Continue from [Automatically restore sources for Move, Delete and Save](32gif-auto.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gj-precision` (from `session_viewer`).
+Continue from [Automatically restore sources for Move, Delete and Save](32gif-auto.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/specimen.rs`
 
@@ -102,9 +92,9 @@ Create the file and type:
 --8<-- "journey/code/32gj-precision-04.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -112,7 +102,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Open `sample.pb`, type `Unload Sources`, then `Save`. Run the precision checks below: the restored Save must retain the exact source double rather than its rounded display value.
 
@@ -120,7 +110,7 @@ Open `sample.pb`, type `Unload Sources`, then `Save`. Run the precision checks b
 
 ![Actual browser result: Prove restored Save keeps the source doubles.](../screenshots/journey/32gj-precision-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -129,43 +119,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The native and browser checks use the same uploaded specimen. They compare original coordinates and preserve the moved placement; the native test also checks Undo/Redo.
+
+Original f64 sentinel → derived f32 display → unload kernel → reload original bytes → Save → exact source doubles.
+
+![Prove original-coordinate Save](../illustrations/journey-32gj.svg)
+
+Why is equal drawing insufficient proof that Save preserved source coordinates?
+
+The GPU display already rounds coordinates to f32. Two different f64 values may draw identically. Compare the actual downloaded source coordinates and include a value whose f32 round trip differs.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Replace snapshot geometry with the display floats. Predict why screenshots could still pass, then run the native and downloaded-coordinate checks.
 
 </details>
 
-## Explain the change
-
-Why is equal drawing insufficient proof that Save preserved source coordinates?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The GPU display already rounds coordinates to f32. Two different f64 values may draw identically. Compare the actual downloaded source coordinates and include a value whose f32 round trip differs.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32gj-precision
 npm --prefix ../session_tests run course -- save 32gj-precision
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Original source geometry determines editable Save; equal rendered pixels cannot establish coordinate precision.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Original source geometry determines editable Save; equal rendered pixels cannot establish coordinate precision.
 
 The native acceptance test moves the object, unloads its editable source, completes a captured Save with the original bytes, and compares every original vertex. It also proves the sentinel would change through f32 and Save leaves the previous Move available to Undo and Redo.
 

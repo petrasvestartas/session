@@ -1,12 +1,6 @@
 # 01 · A page that Rust can reach
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 16–32 minutes.** 49 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Fill the browser window with a canvas and let Rust signal that it has started.
-
-**Follow:** HTML canvas → WebAssembly entry point → hidden startup status.
+**Typing: 16–32 minutes.** [Estimate](typing-load.md).
 
 Create a white canvas that fills the window and let Rust write a startup message to the hidden status element. This checks browser startup before we use the GPU.
 
@@ -16,9 +10,7 @@ From `session_viewer`, run `npm --prefix ../session_tests run course -- init`. I
 
 The canvas has no margin or scrolling. The hidden status keeps startup feedback out of the drawing. For unfamiliar syntax, see [values](../foundations/01-values.md) and [errors](../foundations/05-errors.md).
 
-![HTML fills the window with a white canvas; Rust records its startup result.](../illustrations/journey-01.svg)
-
-## Type the change
+## Type
 
 ### 1. `Cargo.toml`
 
@@ -50,9 +42,9 @@ Create the file and type:
 --8<-- "journey/code/01-canvas-fullscreen-2.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -60,7 +52,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The window is white. In the browser console, evaluate `document.getElementById("status").textContent`. It should say “Rust is running. The canvas is ready.” Rust has started; GPU drawing comes next.
 
@@ -68,7 +60,24 @@ The window is white. In the browser console, evaluate `document.getElementById("
 
 ![Actual browser result: A page that Rust can reach.](../screenshots/journey/01-canvas-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+
+
+HTML canvas → WebAssembly entry point → hidden startup status.
+
+![HTML fills the window with a white canvas; Rust records its startup result.](../illustrations/journey-01.svg)
+
+Does seeing the canvas prove that the GPU has drawn anything?
+
+No. HTML creates the canvas and CSS gives it a background. The status proves Rust ran; GPU commands begin in the next lesson.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -77,37 +86,24 @@ Change the sentence passed to `set_text_content`, save, and read the hidden stat
 
 </details>
 
-## Explain the change
-
-Does seeing the canvas prove that the GPU has drawn anything?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. HTML creates the canvas and CSS gives it a background. The status proves Rust ran; GPU commands begin in the next lesson.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 01-canvas
 npm --prefix ../session_tests run course -- save 01-canvas
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Our entry point will grow into the maintained viewer’s `lib.rs`. Browser setup is deliberately small here; the later application needs winit event routing, resizing and device recovery.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Our entry point will grow into the maintained viewer’s `lib.rs`. Browser setup is deliberately small here; the later application needs winit event routing, resizing and device recovery.
 
 A white canvas fills the window. Rust startup is checked through the hidden status; there is deliberately no visible heading or message.
 

@@ -1,26 +1,14 @@
 # 32giba · Delete the original target while keeping later selection
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 26–52 minutes.** 49 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Delete a captured target by identity without redirecting the command to a later selection.
-
-**Follow:** Captured ObjectId → current editable row → one history removal → preserve other selection.
+**Typing: 26–52 minutes.** [Estimate](typing-load.md).
 
 Extract Editor::delete_object with an explicit ObjectId. Look up the current row and require editable geometry before creating history. A missing or cold target returns an error and preserves Redo. Normal Delete with no selection changes only the view.
 
 History::edit records one removal. Clear selection only if it still names the deleted target; otherwise keep the newer selection. The camera is untouched.
 
-The immutable borrow of row is last used in the geometry guard. Rust ends that borrow before History mutably borrows scene. Do not take selection to choose the replay target: taking it would clear a later selection before the command succeeds.
+## Type
 
-This lesson adds the native Delete operation. Automatic asynchronous replay remains a later lesson.
-
-![Delete the captured target](../illustrations/journey-32giba.svg)
-
-## Type the change
-
-Continue from [Move the original target from its current placement](32gib-move.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32giba-delete` (from `session_viewer`).
+Continue from [Move the original target from its current placement](32gib-move.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/editor.rs`
 
@@ -97,9 +85,9 @@ Create the file and type:
 --8<-- "journey/code/32giba-delete-04.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -107,7 +95,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the captured-Delete checks below. Later selection must not change the deleted target. One Undo restores the captured object.
 
@@ -115,7 +103,7 @@ Run the captured-Delete checks below. Later selection must not change the delete
 
 ![Actual browser result: Delete the original target while keeping later selection.](../screenshots/journey/32giba-delete-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -124,43 +112,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The immutable borrow of row is last used in the geometry guard. Rust ends that borrow before History mutably borrows scene. Do not take selection to choose the replay target: taking it would clear a later selection before the command succeeds.
+
+This lesson adds the native Delete operation. Automatic asynchronous replay remains a later lesson.
+
+Captured ObjectId → current editable row → one history removal → preserve other selection.
+
+![Delete the captured target](../illustrations/journey-32giba.svg)
+
+Why does a delayed Delete compare selection with its captured target before clearing it?
+
+The user may have selected another row while loading the target. The captured identity decides what to delete; current selection is cleared only when that exact row disappears.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Select the other row before calling delete_object in the native test. Replace the identity comparison with unconditional selection clearing and explain the lost user interaction.
 
 </details>
 
-## Explain the change
-
-Why does a delayed Delete compare selection with its captured target before clearing it?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The user may have selected another row while loading the target. The captured identity decides what to delete; current selection is cleared only when that exact row disappears.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32giba-delete
 npm --prefix ../session_tests run course -- save 32giba-delete
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Delayed edits resolve their captured target from current state, then mutate history once. Current selection is independent of the requested target.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Delayed edits resolve their captured target from current state, then mutate history once. Current selection is independent of the requested target.
 
 The native test captures Delete, selects another row and orbits before replaying the captured identity. One Undo restores the row; another Undo does nothing, and Redo removes the same target. A second test covers cold/missing targets, empty selection and clearing the deleted selection.
 

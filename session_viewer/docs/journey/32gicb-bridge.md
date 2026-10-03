@@ -1,24 +1,14 @@
 # 32gicb · Carry captured intent through browser completion
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 12–23 minutes.** 16 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
-
-**Follow:** Flight → ReloadJob<Option<Intent>> → current finish_with → Reply → synchronous browser mailbox.
+**Typing: 12–23 minutes.** [Estimate](typing-load.md).
 
 The browser flight now uses ReloadJob<Option<Intent>>. None means explicit Reload Sources; Some carries the captured operation that an automatic command will request next. start keeps its existing interface and calls start_with using None.
 
 The async future owns URL strings, an abort signal and a ticket. Current completion takes keys and optional intent together, constructs the previously taught Reply and delivers it through the synchronous browser mailbox. A stale reply returns before touching a newer flight or its controller; cancellation retains the existing abort path.
 
-The existing receiver reads reply.result and restores sources. Automatic commands will call start_with and replay reply.intent only after document-context validation in the next lesson. This checkpoint wires the completion boundary, not automatic replay.
+## Type
 
-![Carry intent through browser completion](../illustrations/journey-32gicb.svg)
-
-## Type the change
-
-Continue from [Pair captured intent with complete source bodies](32gica-reply.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gicb-bridge` (from `session_viewer`).
+Continue from [Pair captured intent with complete source bodies](32gica-reply.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/browser_reload.rs`
 
@@ -177,9 +167,9 @@ Replace that block with:
 --8<-- "journey/code/32gicb-bridge-08.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -187,7 +177,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Build the browser bundle and run the checks below. Accepted delivery now carries the intent; an aborted older flight cannot deliver it. Automatic commands are not routed yet.
 
@@ -195,7 +185,7 @@ Build the browser bundle and run the checks below. Accepted delivery now carries
 
 ![Actual browser result: Carry captured intent through browser completion.](../screenshots/journey/32gicb-bridge-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -204,43 +194,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The existing receiver reads reply.result and restores sources. Automatic commands will call start_with and replay reply.intent only after document-context validation in the next lesson. This checkpoint wires the completion boundary, not automatic replay.
+
+Flight → ReloadJob<Option<Intent>> → current finish_with → Reply → synchronous browser mailbox.
+
+![Carry intent through browser completion](../illustrations/journey-32gicb.svg)
+
+Why does the asynchronous future retain a ticket instead of owning the pending intent and keys?
+
+The flight can cancel and release pending ownership while a delayed future remains alive. Only a matching current ticket can take the intent and keys; a stale completion cannot disturb newer work.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Return the intent from the future rather than finish_with. Explain why cancelling the pending owner would no longer release that future’s captured request.
 
 </details>
 
-## Explain the change
-
-Why does the asynchronous future retain a ticket instead of owning the pending intent and keys?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The flight can cancel and release pending ownership while a delayed future remains alive. Only a matching current ticket can take the intent and keys; a stale completion cannot disturb newer work.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32gicb-bridge
 npm --prefix ../session_tests run course -- save 32gicb-bridge
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Request ownership, complete source bodies and captured intent reach one completion boundary. Document-context validation still precedes replay; automatic commands follow next.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Request ownership, complete source bodies and captured intent reach one completion boundary. Document-context validation still precedes replay; automatic commands follow next.
 
 Chrome checks explicit fetch, cancellation and editing through the changed delivery type. The native Reply and ticket tests still check all captured operations, exact bytes and failed completions.
 

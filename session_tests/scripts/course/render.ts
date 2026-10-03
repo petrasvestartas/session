@@ -16,15 +16,21 @@ export function generate() {
         const [low, high] = step.hours;
         const typing = typingLoad(step);
         const buildEnv = expected(step.id)['Cargo.toml'].includes('session_rust') ? 'REGEN_PROTO=0 ' : '';
+        const paragraphs = step.story.split('\n\n');
+        const diagrams = paragraphs.filter(text => text.startsWith('!['));
+        const explanation = paragraphs.filter(text => !text.startsWith('!['));
+        const introduction = index === 0 ? explanation : [explanation[0]];
+        if (index && explanation[1] && [...introduction, explanation[1]].join(' ').split(/\s+/).length <= 90) {
+            introduction.push(explanation[1]);
+        }
+        const supportingExplanation = explanation.slice(introduction.length);
         const page = [`# ${step.id.split('-')[0]} · ${step.title}`,
-            `**Combined study estimate: ${low}–${high} hours.** Includes reading, typing, reasoning and experiments.`,
-            `**Typing estimate: ${typing.minutes.join('–')} minutes.** ${typing.lines} added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).`,
+            `**Typing: ${typing.minutes.join('–')} minutes.** [Estimate](typing-load.md).`,
             ...(typing.minutes[1] > 60 ? ['**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.'] : []),
-            `**Today:** ${step.goal}`,
-            `**Follow:** ${step.trace}.`, step.story, '## Type the change'];
+            ...introduction, '## Type'];
         if (index) {
             const previous = steps[index - 1];
-            page.push(`Continue from [${previous.title}](${previous.id}.md). Save your own work first: \`${command} save before-${step.id}\` (from \`session_viewer\`).`);
+            page.push(`Continue from [${previous.title}](${previous.id}.md). [Save or recover your work](recovery.md).`);
         }
         for (const [number, edit] of step.edits.entries()) {
             const code = read(path.join(docs, edit.snippet));
@@ -36,19 +42,19 @@ export function generate() {
             else page.push('Find this exact block:', `${fence}${lang}\n${edit.before.trimEnd()}\n${fence}`, 'Delete this block.');
             if (code) page.push(`${fence}${lang}\n--8<-- "${edit.snippet}"\n${fence}`);
         }
-        page.push('## Run and look');
+        page.push('## Run and check');
         if (step.lock) page.push('After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:',
             `\`\`\`sh\n${command} dependencies ${step.id}\n\`\`\``);
-        page.push('From `session_viewer`, enter your project folder:',
+        page.push('In your project:',
             `\`\`\`sh\ncd workspace/journey\n${buildEnv}cargo build --lib --locked --target wasm32-unknown-unknown -j4\n${buildEnv}CARGO_BUILD_JOBS=4 trunk serve --port 8780\n\`\`\``,
-            'Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.', step.result);
+            'Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.', step.result);
         const evidence = browser[step.id];
         if (evidence && evidence.source === signature(step.id)
             && evidence.checker === hash(read(path.join(docs, 'capture_journey.cjs')))
             && (!step.browser_check || evidence.extraChecker === browserFingerprint(step.browser_check))) {
             page.push('**Verified checkpoint in Chrome.**',
                 `![Actual browser result: ${step.title}.](../screenshots/journey/${evidence.file})`,
-                '[What this screenshot checks](release.md).');
+                '[Verification scope](release.md).');
         } else if (index) {
             const picture = step.id === '04-input' ? '04-input-light' : step.id;
             page.push('**Native render check — not a browser screenshot.**',
@@ -57,16 +63,14 @@ export function generate() {
                 '*Read directly from this checkpoint’s GPU texture. Browser controls and event delivery remain unverified until the browser check passes.*');
         }
         if (step.tests) page.push('Run the state checks from your project folder:', `\`\`\`sh\n${buildEnv}cargo test --lib --locked -j4\n\`\`\``);
-        page.push(`<details>\n<summary>Optional experiment</summary>\n\n${step.experiment}\n\n</details>`,
-            '## Explain the change', step.question,
-            `<details>\n<summary>Compare your explanation</summary>\n\n${step.answer}\n\n</details>`,
-            '## Keep your working result', 'Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:',
-            `\`\`\`sh\n${command} check ${step.id}\n${command} save ${step.id}\n\`\`\``,
-            'Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).',
-            `<details>\n<summary>Where this fits in the finished viewer</summary>\n\n${step.production}\n\n</details>`);
+        page.push(`<details>\n<summary>Code explanation and diagram</summary>\n\n${supportingExplanation.join('\n\n')}\n\n${step.trace}.\n\n${diagrams.join('\n\n')}\n\n${step.question}\n\n${step.answer}\n\nStudy estimate, including typing and experiments: ${low}–${high} hours.\n\n</details>`,
+            `<details>\n<summary>Optional experiment</summary>\n\n${step.experiment}\n\n</details>`,
+            `<details>\n<summary>Check and save your work</summary>\n\nRestore experimental edits, then run from \`session_viewer\`:\n\n` +
+            `\`\`\`sh\n${command} check ${step.id}\n${command} save ${step.id}\n\`\`\`\n\n` +
+            'Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).\n\n</details>');
         const supporting = [step.checks, step.browser_caption].filter(Boolean);
-        if (supporting.length || step.browser_check) {
-            page.push(`<details>\n<summary>Verification notes and browser acceptance</summary>\n\n${supporting.join('\n\n')}\n\n[Full validation scope](release.md).\n\n` +
+        if (step.production || supporting.length || step.browser_check) {
+            page.push(`<details>\n<summary>Viewer coverage and verification</summary>\n\n${step.production}\n\n${supporting.join('\n\n')}\n\n[Full validation scope](release.md).\n\n` +
                 (step.browser_check ? `To reproduce the scripted acceptance of the reference checkpoint, run from \`session_viewer\` with the [course bundle server](release.md#reproduce) running on port 8781:\n\n\`\`\`sh\n${command} capture ${step.id}\n\`\`\`\n\nThis uses the verified reference bundle; it does not check or change your typed project.\n\n` : '') +
                 '</details>');
         }

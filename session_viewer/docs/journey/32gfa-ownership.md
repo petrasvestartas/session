@@ -1,24 +1,12 @@
 # 32gfa · Prove cancelled work releases its source owners
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 26–51 minutes.** 54 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Prove cancelled work releases its source owners.
-
-**Follow:** Pending job holds keys → Close drops rows → cancel drops keys → abandoned request is inert.
+**Typing: 26–51 minutes.** [Estimate](typing-load.md).
 
 Add three native checks. The first starts requests out of order and proves that an older ticket cannot consume current keys; a matching ticket consumes them once. Cancellation, empty requests and duplicate origins leave no pending work.
 
-The ownership check closes the editor while a pending job still owns the source. Then it cancels the job and keeps a simulated abandoned asynchronous owner alive. `Weak::upgrade` must return `None` for the Origin and URL while the request strings remain readable. This directly tests the reason for separating URL strings from source owners.
+## Type
 
-Finally force ticket exhaustion. A checked increment must fail, never wrap, and leave older keys cancelled. These tests do not claim the browser has aborted a network read yet; that controller belongs to the later browser flight.
-
-![Prove cancelled work releases its source owners](../illustrations/journey-32gfa.svg)
-
-## Type the change
-
-Continue from [Give each source request its own owner](32gf-request.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gfa-ownership` (from `session_viewer`).
+Continue from [Give each source request its own owner](32gf-request.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/reload_job.rs`
 
@@ -40,9 +28,9 @@ Replace that block with:
 --8<-- "journey/code/32gfa-ownership-01.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -50,7 +38,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the request-owner checks below. Cancelling a batch releases its request metadata; a late completion must not revive that owner.
 
@@ -58,7 +46,7 @@ Run the request-owner checks below. Cancelling a batch releases its request meta
 
 ![Actual browser result: Prove cancelled work releases its source owners.](../screenshots/journey/32gfa-ownership-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -67,43 +55,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The ownership check closes the editor while a pending job still owns the source. Then it cancels the job and keeps a simulated abandoned asynchronous owner alive. `Weak::upgrade` must return `None` for the Origin and URL while the request strings remain readable. This directly tests the reason for separating URL strings from source owners.
+
+Finally force ticket exhaustion. A checked increment must fail, never wrap, and leave older keys cancelled. These tests do not claim the browser has aborted a network read yet; that controller belongs to the later browser flight.
+
+Pending job holds keys → Close drops rows → cancel drops keys → abandoned request is inert.
+
+![Prove cancelled work releases its source owners](../illustrations/journey-32gfa.svg)
+
+Can a held reference to the job keep the source alive after cancellation?
+
+It can keep the empty job alive, but not its removed keys. Weak observers of the Origin and URL must expire even while an abandoned caller still holds the job and its request strings.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change Request to store an `Rc<Origin>` in a scratch copy and predict which Weak assertion would fail after cancellation.
 
 </details>
 
-## Explain the change
-
-Can a held reference to the job keep the source alive after cancellation?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-It can keep the empty job alive, but not its removed keys. Weak observers of the Origin and URL must expire even while an abandoned caller still holds the job and its request strings.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32gfa-ownership
 npm --prefix ../session_tests run course -- save 32gfa-ownership
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Ownership proofs matter even when the browser ignores an abort temporarily. Cancelled asynchronous work must have neither authority to commit nor a retained kernel/URL owner.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Ownership proofs matter even when the browser ignores an abort temporarily. Cancelled asynchronous work must have neither authority to commit nor a retained kernel/URL owner.
 
 The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson.
 

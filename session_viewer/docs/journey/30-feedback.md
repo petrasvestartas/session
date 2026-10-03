@@ -1,26 +1,14 @@
 # 30 · Report the result that actually committed
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 15–30 minutes.** 29 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Keep failed reads and imports visible in command history without claiming success.
-
-**Follow:** File read result → browser event → validated editor action → success or error in the command dock.
+**Typing: 15–30 minutes.** [Estimate](typing-load.md).
 
 Report import success only after `Editor::apply` commits successfully. A failed decode retains the scene and records an error instead of saying “File imported.”
 
 An asynchronous file adapter cannot borrow the callback's Panel. Dispatch `viewer-file-error` with text, then let the owning callback update history.
 
-Queue oversized-file errors before reading. Immediate nested dispatch would re-enter the borrowed `FnMut` callback. After an awaited read, retain the latest-request check so stale work cannot publish an error.
+## Type
 
-Command history carries file feedback; the hidden status stays out of the drawing. Startup failure can still expose status when the GPU dock never became available.
-
-![A read delivers bytes or an error; only a successful editor transaction reports that the file entered the scene.](../illustrations/journey-30.svg)
-
-## Type the change
-
-Continue from [Download the editable document from the command line](29d-save.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30-feedback` (from `session_viewer`).
+Continue from [Download the editable document from the command line](29d-save.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/browser.rs`
 
@@ -203,9 +191,9 @@ Replace that block with:
 --8<-- "journey/code/30-feedback-10.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -213,7 +201,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Try opening a text file renamed `.pb`. The command history must show the read/import failure and leave the current document unchanged.
 
@@ -221,7 +209,7 @@ Try opening a text file renamed `.pb`. The command history must show the read/im
 
 ![Actual browser result: Report the result that actually committed.](../screenshots/journey/30-feedback-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -230,43 +218,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Queue oversized-file errors before reading. Immediate nested dispatch would re-enter the borrowed `FnMut` callback. After an awaited read, retain the latest-request check so stale work cannot publish an error.
+
+Command history carries file feedback; the hidden status stays out of the drawing. Startup failure can still expose status when the GPU dock never became available.
+
+File read result → browser event → validated editor action → success or error in the command dock.
+
+![A read delivers bytes or an error; only a successful editor transaction reports that the file entered the scene.](../illustrations/journey-30.svg)
+
+Why must import success be reported inside the successful action branch?
+
+Receiving bytes does not mean they decoded or entered the scene. Editor::apply can reject a file while preserving scene, selection and history. Only a successful Scene change proves the import committed; an unconditional message after the match would erase the error.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Temporarily move the success report back outside the action match. Predict the final status after malformed bytes, reproduce the contradiction, then restore the successful-branch report.
 
 </details>
 
-## Explain the change
-
-Why must import success be reported inside the successful action branch?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Receiving bytes does not mean they decoded or entered the scene. Editor::apply can reject a file while preserving scene, selection and history. Only a successful Scene change proves the import committed; an unconditional message after the match would erase the error.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 30-feedback
 npm --prefix ../session_tests run course -- save 30-feedback
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The production loader stages work and reports failure while keeping the last valid scene visible. This lesson separates read delivery from a committed document change; replacement and cancellation follow.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The production loader stages work and reports failure while keeping the last valid scene visible. This lesson separates read delivery from a committed document change; replacement and cancellation follow.
 
 Chrome checks the actual history text, unchanged scene pixels, preserved Redo, an oversize file and a rejected read promise.
 

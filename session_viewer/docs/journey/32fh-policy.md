@@ -1,26 +1,12 @@
 # 32fh · Protect sources that cannot be unloaded faithfully
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 21–41 minutes.** 35 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Require a reload location, original kernel allocation and unchanged row metadata.
-
-**Follow:** Require a reload location, original kernel allocation and unchanged row metadata..
+**Typing: 21–41 minutes.** [Estimate](typing-load.md).
 
 A release policy must preserve data that cannot be restored. Generated rows have no imported source. Imports without a location cannot be read again. A new kernel allocation or edited source metadata must not silently revert to the original file.
 
-can_unload checks a located Loaded source, its original GUID, name/visibility/locking metadata, and the exact kernel allocation retained by its imported Session. The allocation check distinguishes original data from a modified replacement even when its values happen to compare equal. Model placement is separate row state, so Move does not make an otherwise original source ineligible.
+## Type
 
-Add borrowed mutable row access for the forthcoming residency pass, and Scene::unload as the operation on a previously validated set of origins. It changes only editable ownership to Released. The editor-wide origin validation comes next; no dock command exists yet.
-
-Native policy tests protect generated/unlocated sources, changed flags and replacement kernel owners. The whole-origin check in the next lesson will inspect active, Undo and Redo roots before any mutation.
-
-![Require a reload location, original kernel allocation and unchanged row metadata.](../illustrations/journey-32fh.svg)
-
-## Type the change
-
-Continue from [Separate loaded and released editable ownership](32fg-state.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fh-policy` (from `session_viewer`).
+Continue from [Separate loaded and released editable ownership](32fg-state.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/scene.rs`
 
@@ -80,9 +66,9 @@ Replace that block with:
 --8<-- "journey/code/32fh-policy-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -90,7 +76,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the unload-policy checks below. Only unmodified rows with a usable source location are eligible; protected rows remain loaded.
 
@@ -98,7 +84,7 @@ Run the unload-policy checks below. Only unmodified rows with a usable source lo
 
 ![Actual browser result: Protect sources that cannot be unloaded faithfully.](../screenshots/journey/32fh-policy-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -107,43 +93,51 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+can_unload checks a located Loaded source, its original GUID, name/visibility/locking metadata, and the exact kernel allocation retained by its imported Session. The allocation check distinguishes original data from a modified replacement even when its values happen to compare equal. Model placement is separate row state, so Move does not make an otherwise original source ineligible.
+
+Add borrowed mutable row access for the forthcoming residency pass, and Scene::unload as the operation on a previously validated set of origins. It changes only editable ownership to Released. The editor-wide origin validation comes next; no dock command exists yet.
+
+Native policy tests protect generated/unlocated sources, changed flags and replacement kernel owners. The whole-origin check in the next lesson will inspect active, Undo and Redo roots before any mutation.
+
+Require a reload location, original kernel allocation and unchanged row metadata..
+
+![Require a reload location, original kernel allocation and unchanged row metadata.](../illustrations/journey-32fh.svg)
+
+Why does one modified history row protect every row of that origin?
+
+They share one reload source. Reloading its original bytes cannot reproduce modified kernel data in that snapshot. Protect the whole origin whenever any retained row no longer matches the original source contract.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change only placement in a fixture, then change a source flag. Explain why the first remains reloadable while the second must be protected at this endpoint.
 
 </details>
 
-## Explain the change
-
-Why does one modified history row protect every row of that origin?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-They share one reload source. Reloading its original bytes cannot reproduce modified kernel data in that snapshot. Protect the whole origin whenever any retained row no longer matches the original source contract.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32fh-policy
 npm --prefix ../session_tests run course -- save 32fh-policy
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production avoids unloading edited source documents. Our scene-snapshot history requires checking every retained origin row before releasing their shared sources.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production avoids unloading edited source documents. Our scene-snapshot history requires checking every retained origin row before releasing their shared sources.
 
 
 

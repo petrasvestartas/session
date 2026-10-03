@@ -1,24 +1,14 @@
 # 03a · Lay out the command field
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 30–60 minutes.** 76 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Draw the production command field beside its label.
-
-**Follow:** Panel rectangle → spacing and text style → local String → field response.
+**Typing: 30–60 minutes.** [Estimate](typing-load.md).
 
 Add the command field beside its label. Keep panel sizing, shared spacing and field styling in the view module so later command behaviour can reuse them.
 
 The field receives `&mut String`: egui borrows the text for this draw instead of owning a separate copy. It returns a `Response` describing the widget. The current page still supplies no keyboard events, so drawing the field does not connect typing yet.
 
-The panel keeps its white fill, thin top rule, Noto text and unframed field. The history expansion control arrives with its behaviour in later steps.
+## Type
 
-![The current command drawing step.](../illustrations/journey-03a-panel.svg)
-
-## Type the change
-
-Continue from [Paint command text over the scene](03a-paint.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03a-panel` (from `session_viewer`).
+Continue from [Paint command text over the scene](03a-paint.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/panel.rs`
 
@@ -153,9 +143,9 @@ Create the file and type:
 --8<-- "journey/code/03a-panel-06.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -163,7 +153,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The production command field appears beside Command: over the triangle. Input handling comes in the next command-line steps.
 
@@ -171,7 +161,24 @@ The production command field appears beside Command: over the triangle. Input ha
 
 ![Actual browser result: Lay out the command field.](../screenshots/journey/03a-panel-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+The panel keeps its white fill, thin top rule, Noto text and unframed field. The history expansion control arrives with its behaviour in later steps.
+
+Panel rectangle → spacing and text style → local String → field response.
+
+![The current command drawing step.](../illustrations/journey-03a-panel.svg)
+
+Why does the field receive &mut String?
+
+The Panel owns the text. A mutable borrow lets the widget edit that same value during a draw without moving it or keeping a second copy.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -180,37 +187,24 @@ Change the hint text, rebuild and check only the empty field hint changes. Resto
 
 </details>
 
-## Explain the change
-
-Why does the field receive &mut String?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The Panel owns the text. A mutable borrow lets the widget edit that same value during a draw without moving it or keeping a second copy.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 03a-panel
 npm --prefix ../session_tests run course -- save 03a-panel
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The same panel, spacing and field functions are reused by the full viewer.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The same panel, spacing and field functions are reused by the full viewer.
 
 Chrome verifies the actual production field drawing over the preserved triangle. Keyboard event handling comes later.
 

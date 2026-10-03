@@ -1,28 +1,16 @@
 # 15 · Look through a perspective camera
 
-**Combined study estimate: 4–7 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 55–109 minutes.** 106 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 55–109 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** View the scene in perspective and select surfaces with a ray that agrees with the camera.
-
-**Follow:** World point → view matrix → projection → divide by w → canvas; click → inverse projection → clipped ray → object ID.
 
 Use a perspective camera looking from z = 3 towards z = 0, with a 60-degree vertical field of view. Farther objects appear smaller.
 
 The view matrix puts positions relative to the eye; projection produces clip coordinates. The GPU divides by w. The existing shader matrix multiplication and `Less` depth test still work. Turquoise is now nearer from this viewpoint and wins the overlap.
 
-Use the kernel's `Point`, `Vector` and `Xform` for double-precision calculations, then `to_f32` for the existing GPU uniform. Keep camera aspect equal to window width divided by height, including after reset.
+## Type
 
-Picking needs a ray: inverse-transform screen depth 0 and 1 to near and far points. Intersect that bounded segment with triangles and choose the nearest valid hit. Reject a near-zero determinant and hits outside the segment.
-
-![The eye sees a widening region between near and far planes; reversing the projection turns a clicked pixel into a segment through that region.](../illustrations/journey-15.svg)
-
-## Type the change
-
-Continue from [Make document changes reversible](14-history.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-15-perspective` (from `session_viewer`).
+Continue from [Make document changes reversible](14-history.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/camera.rs`
 
@@ -436,7 +424,7 @@ Replace that block with:
 --8<-- "journey/code/15-perspective-window-4.rs"
 ```
 
-## Run and look
+## Run and check
 
 After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:
 
@@ -444,7 +432,7 @@ After typing the manifest, run this from `session_viewer` to select the fixed de
 npm --prefix ../session_tests run course -- dependencies 15-perspective
 ```
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -452,7 +440,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Click the turquoise triangle at the overlap, type `Delete`, then `Undo`. Repeat after `Zoom In`. Picking must agree with the perspective drawing.
 
@@ -460,7 +448,7 @@ Click the turquoise triangle at the overlap, type `Delete`, then `Undo`. Repeat 
 
 ![Actual browser result: Look through a perspective camera.](../screenshots/journey/15-perspective-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -469,37 +457,52 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Use the kernel's `Point`, `Vector` and `Xform` for double-precision calculations, then `to_f32` for the existing GPU uniform. Keep camera aspect equal to window width divided by height, including after reset.
+
+Picking needs a ray: inverse-transform screen depth 0 and 1 to near and far points. Intersect that bounded segment with triangles and choose the nearest valid hit. Reject a near-zero determinant and hits outside the segment.
+
+World point → view matrix → projection → divide by w → canvas; click → inverse projection → clipped ray → object ID.
+
+![The eye sees a widening region between near and far planes; reversing the projection turns a clicked pixel into a segment through that region.](../illustrations/journey-15.svg)
+
+Why can a larger world z value now belong to the nearer triangle?
+
+World z is a scene coordinate, not distance from the camera. This camera is at positive z and looks toward z = 0, so the triangle at z = 0.75 is nearer than the one at z = 0.25. The view and projection matrices convert those world positions into depth values for the existing Less comparison.
+
+Study estimate, including typing and experiments: 4–7 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Before running, predict which triangle is closer to an eye at z = 3. Check the overlap. Then select and delete turquoise: the pink surface beneath should become selectable. Undo, zoom in, and explain why the CPU ray and GPU depth test still agree despite the changed apparent sizes.
 
 </details>
 
-## Explain the change
-
-Why can a larger world z value now belong to the nearer triangle?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-World z is a scene coordinate, not distance from the camera. This camera is at positive z and looks toward z = 0, so the triangle at z = 0.75 is nearer than the one at z = 0.25. The view and projection matrices convert those world positions into depth values for the existing Less comparison.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 15-perspective
 npm --prefix ../session_tests run course -- save 15-perspective
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 The full viewer uses this same geometry kernel, view-projection boundary and identity resolution. Its later camera adds world-up orbit, units, fit, floating origins and reversed depth for large scenes; those are extensions of the responsibilities introduced here.
+
+
+
+[Full validation scope](release.md).
 
 </details>

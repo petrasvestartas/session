@@ -1,26 +1,14 @@
 # 28a · Retain the imported mesh behind each row
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 16–32 minutes.** 34 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Insert imported source geometry and its prepared display together.
-
-**Follow:** Decoded session → prepared source/display pair → Object source geometry → history snapshot.
+**Typing: 16–32 minutes.** [Estimate](typing-load.md).
 
 Make `Loaded` carry `PreparedMesh` values and retain the source geometry behind each imported row. Preparation still finishes before the scene changes.
 
 The kernel session already owns meshes through `Rc`; clone those handles rather than copying geometry. Keep the session too, because it owns file context such as tree and document name.
 
-During insertion, moving `prepared.display` transfers that field while leaving the other fields available for transfer. History wraps the whole import in one transaction.
+## Type
 
-Imported rows now have `Some` source geometry. Older demos and generated boxes temporarily have `None`; the next lesson closes that migration gap.
-
-![A retained source session supplies prepared meshes; each imported row keeps its source geometry and GUID.](../illustrations/journey-28a.svg)
-
-## Type the change
-
-Continue from [Prepare a display from an owned source mesh](28-record.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-28a-imported` (from `session_viewer`).
+Continue from [Prepare a display from an owned source mesh](28-record.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/document.rs`
 
@@ -171,9 +159,9 @@ Replace that block with:
 --8<-- "journey/code/28a-imported-08.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -181,7 +169,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Open `sample.pb`. Run the import checks below: every imported row must retain both its original source mesh and its prepared display. Failed preparation must add no rows.
 
@@ -189,7 +177,7 @@ Open `sample.pb`. Run the import checks below: every imported row must retain bo
 
 ![Actual browser result: Retain the imported mesh behind each row.](../screenshots/journey/28a-imported-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -198,43 +186,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+During insertion, moving `prepared.display` transfers that field while leaving the other fields available for transfer. History wraps the whole import in one transaction.
+
+Imported rows now have `Some` source geometry. Older demos and generated boxes temporarily have `None`; the next lesson closes that migration gap.
+
+Decoded session → prepared source/display pair → Object source geometry → history snapshot.
+
+![A retained source session supplies prepared meshes; each imported row keeps its source geometry and GUID.](../illustrations/journey-28a.svg)
+
+If rows move after deletion, how can the object still find its source?
+
+Source identity uses a retained session and GUID, not the row index. The object also directly owns the original kernel mesh through Rc. Its display can move to another row without changing either source owner.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 In the import test, remove both original demo IDs before inspecting the imported object. Its row number changes while its ObjectId, source GUID and geometry allocation remain stable. Restore the test before checking your files.
 
 </details>
 
-## Explain the change
-
-If rows move after deletion, how can the object still find its source?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Source identity uses a retained session and GUID, not the row index. The object also directly owns the original kernel mesh through Rc. Its display can move to another row without changing either source owner.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 28a-imported
 npm --prefix ../session_tests run course -- save 28a-imported
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The production scene keeps source identity through row replacement and compaction. This lesson connects source ownership to our smaller row table; generated objects adopt the same path next.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The production scene keeps source identity through row replacement and compaction. This lesson connects source ownership to our smaller row table; generated objects adopt the same path next.
 
 Retain the imported mesh behind each row. These commands run in the actual dock; kernel ownership is checked separately in Rust.
 

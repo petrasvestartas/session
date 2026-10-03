@@ -1,26 +1,14 @@
 # 27c · Move a placed object with a typed offset
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 21–42 minutes.** 44 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Translate selected geometry through the existing command and history route.
-
-**Follow:** Move x,y,z → finite offset → Editor → history transaction → new placement → GPU upload.
+**Typing: 21–42 minutes.** [Estimate](typing-load.md).
 
 The complete path is ready for a real command: local vertices, world queries and a GPU model matrix. Add Move x,y,z without adding a second editing owner.
 
 The offset parser accepts exactly three comma-separated finite numbers. Spaces around those numbers are harmless. A missing coordinate, extra coordinate, NaN or infinity is an error. Result separates a valid offset from a useful explanation.
 
-![One typed Move becomes one document transaction and one new object placement.](../illustrations/journey-27c.svg)
+## Type
 
-Editor asks for the selected stable ID, composes a world translation with its existing model, and submits Scene::place through History::try_edit. The local mesh is still shared. A zero offset changes nothing and does not create an undo entry.
-
-The dock recognizes Move with arguments. It records the submitted line once; result replaces that line’s preliminary answer when parsing or editing fails. The browser still redraws the dock on an error, so an explanation is visible immediately. Later tool lessons will add Move with picked base/target points and command repetition. Today Move needs its complete offset on the line.
-
-## Type the change
-
-Continue from [Apply object placement on the GPU](27b-model.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-27c-move` (from `session_viewer`).
+Continue from [Apply object placement on the GPU](27b-model.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/lib.rs`
 
@@ -188,9 +176,9 @@ Replace that block with:
 --8<-- "journey/code/27c-move-09.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -198,7 +186,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Select Next`, `Move 0.5,0,0`, then `Undo`. The selected object moves along world X and returns in one Undo step.
 
@@ -206,7 +194,7 @@ Type `Select Next`, `Move 0.5,0,0`, then `Undo`. The selected object moves along
 
 ![Actual browser result: Move a placed object with a typed offset.](../screenshots/journey/27c-move-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -215,43 +203,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Editor asks for the selected stable ID, composes a world translation with its existing model, and submits Scene::place through History::try_edit. The local mesh is still shared. A zero offset changes nothing and does not create an undo entry.
+
+The dock recognizes Move with arguments. It records the submitted line once; result replaces that line’s preliminary answer when parsing or editing fails. The browser still redraws the dock on an error, so an explanation is visible immediately. Later tool lessons will add Move with picked base/target points and command repetition. Today Move needs its complete offset on the line.
+
+Move x,y,z → finite offset → Editor → history transaction → new placement → GPU upload.
+
+![One typed Move becomes one document transaction and one new object placement.](../illustrations/journey-27c.svg)
+
+Why is a world translation multiplied on the left of the existing placement?
+
+The existing placement first takes a local point into world coordinates. The new translation then shifts that world point. Translation times existing placement moves along world axes; reversing their order can move along scaled or rotated local axes instead.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Run Move 0,0,0 followed by Undo. Explain why the zero offset creates no history entry. Try Move 1,2 and Move NaN,0,0: both must report an error without moving geometry. Restore the checkpoint before saving.
 
 </details>
 
-## Explain the change
-
-Why is a world translation multiplied on the left of the existing placement?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The existing placement first takes a local point into world coordinates. The new translation then shifts that world point. Translation times existing placement moves along world axes; reversing their order can move along scaled or rotated local axes instead.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 27c-move
 npm --prefix ../session_tests run course -- save 27c-move
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The maintained viewer’s Move accepts a typed offset or starts a tool that collects points. This lesson completes the direct typed-offset route using the shared placement/history boundary. Interactive Move and repeating tools will extend it in the tool chapters.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The maintained viewer’s Move accepts a typed offset or starts a tool that collects points. This lesson completes the direct typed-offset route using the shared placement/history boundary. Interactive Move and repeating tools will extend it in the tool chapters.
 
 Move a placed object with a typed offset. The actual command dock drives this checkpoint; the selected object is highlighted.
 

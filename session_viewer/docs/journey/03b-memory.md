@@ -1,26 +1,14 @@
 # 03b · Give the command field its memory
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 25–49 minutes.** 46 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Store the field text and history in one owned model.
-
-**Follow:** Panel owns CommandLine → field borrows text → placeholder borrows status.
+**Typing: 25–49 minutes.** [Estimate](typing-load.md).
 
 Replace the panel’s local `String` with `CommandLine`. The field now reads and edits `model.command`; its empty hint comes from `model.status`.
 
 `String` owns editable text. `VecDeque<String>` retains ordered history and can remove the oldest entry from the front. `Option` represents values that do not exist yet, such as an undrawn widget’s rectangle. `Default` starts strings and queues empty, flags false and optional values absent.
 
-`placeholder` returns borrowed text. Its lifetime keeps that slice tied to the supplied prompt or status. Rust allows the field to borrow command mutably and status immutably because they are separate fields.
+## Type
 
-The model also reserves completion and input state used by the next lessons. Keyboard events are connected later.
-
-![The panel owns the model and the field borrows its text.](../illustrations/journey-03b-memory.svg)
-
-## Type the change
-
-Continue from [Lay out the command field](03a-panel.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03b-memory` (from `session_viewer`).
+Continue from [Lay out the command field](03a-panel.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/panel.rs`
 
@@ -144,9 +132,9 @@ Replace that block with:
 --8<-- "journey/code/03b-memory-05.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -154,7 +142,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The empty field now shows “The field now belongs to CommandLine.” Change that initial status, save, and check the hint changes. Restore it. Keyboard input comes later.
 
@@ -162,7 +150,26 @@ The empty field now shows “The field now belongs to CommandLine.” Change tha
 
 ![Actual browser result: Give the command field its memory.](../screenshots/journey/03b-memory-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+`placeholder` returns borrowed text. Its lifetime keeps that slice tied to the supplied prompt or status. Rust allows the field to borrow command mutably and status immutably because they are separate fields.
+
+The model also reserves completion and input state used by the next lessons. Keyboard events are connected later.
+
+Panel owns CommandLine → field borrows text → placeholder borrows status.
+
+![The panel owns the model and the field borrows its text.](../illustrations/journey-03b-memory.svg)
+
+Which value keeps the command text between draws?
+
+CommandLine inside Panel owns it. The field borrows model.command during layout; finishing the draw does not discard that String.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -171,37 +178,24 @@ Change only the initial status. Predict which part of the dock changes, then reb
 
 </details>
 
-## Explain the change
-
-Which value keeps the command text between draws?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-CommandLine inside Panel owns it. The field borrows model.command during layout; finishing the draw does not discard that String.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 03b-memory
 npm --prefix ../session_tests run course -- save 03b-memory
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
 
 Native checks exercise retained text/history and every placeholder priority branch. Chrome checks the changed dock hint and preserves every scene pixel above it.
 

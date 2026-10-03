@@ -1,26 +1,14 @@
 # 27b · Apply object placement on the GPU
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 17–33 minutes.** 30 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Send a separate model matrix for each draw while retaining local vertex buffers.
-
-**Follow:** Local vertex → model uniform → world point → camera uniform → clip position.
+**Typing: 17–33 minutes.** [Estimate](typing-load.md).
 
 Bounds and picking now understand placement. Drawing must apply that same matrix, or the visible object and the selectable object would disagree.
 
 Add a second uniform binding to the shader. Group 0 remains the shared camera transform. Group 1 contains one object’s model matrix. The vertex shader first produces a world position, then applies the camera. The fragment shader receives that world position so its derivative-based lighting follows the placed surface too.
 
-![The camera binding is shared; the model binding changes for each object draw.](../illustrations/journey-27b.svg)
+## Type
 
-GpuMesh uploads the original local vertices, encodes the sixteen model values as floats, and creates the object bind group from the pipeline’s group-1 layout. The bind group retains its referenced buffer. Bind it immediately before drawing that object’s indices.
-
-Finally change Example Box: create its shape around the local origin, then give the Object the translation that used to be baked into its vertices. Its world appearance stays consistent. Its local box coordinates are now reusable. The current renderer still rebuilds uploads on scene changes; later shared-storage lessons will update changed ranges.
-
-## Type the change
-
-Continue from [Ask geometry questions in world coordinates](27a-world.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-27b-model` (from `session_viewer`).
+Continue from [Ask geometry questions in world coordinates](27a-world.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/triangle.wgsl`
 
@@ -240,9 +228,9 @@ Replace that block with:
 --8<-- "journey/code/27b-model-12.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -250,7 +238,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Example Box`, then `View Isometric`. The box now draws at its placed position. Click a visible face: picking must agree with the GPU placement, while local vertices stay unchanged.
 
@@ -258,7 +246,7 @@ Type `Example Box`, then `View Isometric`. The box now draws at its placed posit
 
 ![Actual browser result: Apply object placement on the GPU.](../screenshots/journey/27b-model-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -267,43 +255,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+GpuMesh uploads the original local vertices, encodes the sixteen model values as floats, and creates the object bind group from the pipeline’s group-1 layout. The bind group retains its referenced buffer. Bind it immediately before drawing that object’s indices.
+
+Finally change Example Box: create its shape around the local origin, then give the Object the translation that used to be baked into its vertices. Its world appearance stays consistent. Its local box coordinates are now reusable. The current renderer still rebuilds uploads on scene changes; later shared-storage lessons will update changed ranges.
+
+Local vertex → model uniform → world point → camera uniform → clip position.
+
+![The camera binding is shared; the model binding changes for each object draw.](../illustrations/journey-27b.svg)
+
+Why do model and camera matrices need separate owners?
+
+The object owns where its shape belongs; the camera owns how the scene is viewed. Binding the object model before each draw lets local mesh data stay unchanged while the same camera draws many placements.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change Example Box’s placement translation from (0.9, 0, 0.4) to (1.4, 0, 0.4). Predict where Fit Selected will aim and verify the visible box and its pick agree. Restore the original value. Do not move the box by rewriting its mesh.
 
 </details>
 
-## Explain the change
-
-Why do model and camera matrices need separate owners?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The object owns where its shape belongs; the camera owns how the scene is viewed. Binding the object model before each draw lets local mesh data stay unchanged while the same camera draws many placements.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 27b-model
 npm --prefix ../session_tests run course -- save 27b-model
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The maintained viewer shares local geometry across instances and supplies placement data to GPU draws. This checkpoint introduces the same ownership boundary with one bind group per object; batching and resource accounting follow later.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The maintained viewer shares local geometry across instances and supplies placement data to GPU draws. This checkpoint introduces the same ownership boundary with one bind group per object; batching and resource accounting follow later.
 
 Apply object placement on the GPU. The actual command dock drives this checkpoint; the selected object is highlighted.
 

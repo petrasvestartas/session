@@ -1,24 +1,14 @@
 # 34a · Stop the viewer when its GPU device fails
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 15–30 minutes.** 28 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Connect actual GPU failure callbacks, stop new UI and GPU work, and dispose only the runtime that belongs to the failed device.
-
-**Follow:** GPU callback → first fault recorded → input guard → deferred matching-owner disposal → visible failure.
+**Typing: 15–30 minutes.** [Estimate](typing-load.md).
 
 Connect both GPU error callbacks to the same `Fault`. When the first error arrives, mark the device failed immediately so the input handler cannot submit another frame.
 
 Schedule disposal on the next microtask: the active callback must return before its Rust closure is released. Compare the captured Fault allocation with the installed runtime before taking that runtime out of its slot. An old device’s callback must leave a replacement alone.
 
-Drop then cancels pending requests and removes input listeners. The page shows “Cannot draw”. Reloading starts a new viewer; automatic recovery comes later.
+## Type
 
-![Stop a failed device’s runtime](../illustrations/journey-34a.svg)
-
-## Type the change
-
-Continue from [Keep the first GPU failure with its device](34-fault.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34a-stop` (from `session_viewer`).
+Continue from [Keep the first GPU failure with its device](34-fault.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/browser_runtime.rs`
 
@@ -138,9 +128,9 @@ Replace that block with:
 --8<-- "journey/code/34a-stop-06.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -148,7 +138,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the GPU-stop browser acceptance described below. Destroying the real test device must show “Cannot draw” and stop further rendering. Reloading the same page starts a fresh viewer.
 
@@ -156,7 +146,7 @@ Run the GPU-stop browser acceptance described below. Destroying the real test de
 
 ![Actual browser result: Stop the viewer when its GPU device fails.](../screenshots/journey/34a-stop-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -165,43 +155,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Drop then cancels pending requests and removes input listeners. The page shows “Cannot draw”. Reloading starts a new viewer; automatic recovery comes later.
+
+GPU callback → first fault recorded → input guard → deferred matching-owner disposal → visible failure.
+
+![Stop a failed device’s runtime](../illustrations/journey-34a.svg)
+
+Why record a failure before deferring cleanup, and why check the device identity again during cleanup?
+
+The immediate signal blocks any intervening input or GPU updates. Deferred cleanup waits for the active callback to return; its identity check prevents an old device’s callback from stopping a replacement.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Move the failure guard below panel.update and explain which GPU writes could happen before it. Then remove the identity check in stop_if and explain how an older callback could stop a new runtime.
 
 </details>
 
-## Explain the change
-
-Why record a failure before deferring cleanup, and why check the device identity again during cleanup?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The immediate signal blocks any intervening input or GPU updates. Deferred cleanup waits for the active callback to return; its identity check prevents an old device’s callback from stopping a replacement.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 34a-stop
 npm --prefix ../session_tests run course -- save 34a-stop
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production records the first GPU failure and gates UI/uploads/rendering before further GPU work. This checkpoint establishes the stopped lifetime. Structured diagnostics, persisted reports and bounded recovery remain next.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production records the first GPU failure and gates UI/uploads/rendering before further GPU work. This checkpoint establishes the stopped lifetime. Structured diagnostics, persisted reports and bounded recovery remain next.
 
 Chrome intercepts requestDevice in the test only and calls the real GPUDevice.destroy(). It observes the real lost promise and then verifies visible device-loss feedback, disposed runtime and zero further queue writes, submissions, allocations or surface configuration for attempted keyboard, camera, resize and late event input. A normal same-tab reload creates a working viewer again. The test’s observer is not part of the tutorial application.
 

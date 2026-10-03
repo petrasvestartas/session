@@ -1,24 +1,14 @@
 # 05 · Let Rust supply the corners
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 12–23 minutes.** 26 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Draw a rectangle from six positions stored in a GPU buffer.
-
-**Follow:** Rust positions → bytes → vertex buffer → vertex layout → shader location 0 → two triangles.
+**Typing: 12–23 minutes.** [Estimate](typing-load.md).
 
 Move the corner positions out of WGSL and into a Rust vertex buffer. Six coordinate pairs draw two triangles forming a rectangle. Shared corners are duplicated here; the next lesson removes that duplication.
 
 Describe the buffer layout explicitly: two `f32` values, eight bytes per vertex, matching shader `@location(0)`. Buffer slot and shader location are separate settings even though both are zero here.
 
-`iter().flatten()` visits each coordinate, `flat_map` converts it to bytes, and `collect` owns the resulting byte vector. Importing the `DeviceExt` trait enables `create_buffer_init`. It creates and fills GPU storage; the temporary CPU byte vector can then be dropped.
+## Type
 
-![Rust supplies six coordinate pairs; a vertex buffer and its layout deliver them to the shader.](../illustrations/journey-05.svg)
-
-## Type the change
-
-Continue from [Make a choice change the picture](04-input.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-05-vertices` (from `session_viewer`).
+Continue from [Make a choice change the picture](04-input.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/triangle.wgsl`
 
@@ -180,9 +170,9 @@ Replace that block with:
 --8<-- "journey/code/05-vertices-window-1.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -190,7 +180,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The GPU draws a rectangle from six buffered positions. Change one corner in the Rust vertex array, save, and check the changed outline. Restore it.
 
@@ -198,7 +188,24 @@ The GPU draws a rectangle from six buffered positions. Change one corner in the 
 
 ![Actual browser result: Let Rust supply the corners.](../screenshots/journey/05-vertices-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+`iter().flatten()` visits each coordinate, `flat_map` converts it to bytes, and `collect` owns the resulting byte vector. Importing the `DeviceExt` trait enables `create_buffer_init`. It creates and fills GPU storage; the temporary CPU byte vector can then be dropped.
+
+Rust positions → bytes → vertex buffer → vertex layout → shader location 0 → two triangles.
+
+![Rust supplies six coordinate pairs; a vertex buffer and its layout deliver them to the shader.](../illustrations/journey-05.svg)
+
+Who owns the positions, and how does the shader know where each pair of numbers begins?
+
+Rust supplies the positions and uploads their bytes. The renderer retains the GPU buffer. Its vertex layout says that a vertex occupies eight bytes and location 0 contains two f32 values starting at byte zero. The shader reads that location; it no longer chooses corners from its own array.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -207,31 +214,27 @@ Predict which triangle changes if you move only the first position to [-0.9, -0.
 
 </details>
 
-## Explain the change
-
-Who owns the positions, and how does the shader know where each pair of numbers begins?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Rust supplies the positions and uploads their bytes. The renderer retains the GPU buffer. Its vertex layout says that a vertex occupies eight bytes and location 0 contains two f32 values starting at byte zero. The shader reads that location; it no longer chooses corners from its own array.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 05-vertices
 npm --prefix ../session_tests run course -- save 05-vertices
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 The maintained viewer uploads mesh vertices into shared GPU storage. This lesson establishes the CPU-to-GPU byte contract used by those uploads. Document identity and shared allocation are separate jobs introduced later.
+
+
+
+[Full validation scope](release.md).
 
 </details>

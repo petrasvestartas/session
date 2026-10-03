@@ -1,26 +1,14 @@
 # 03b · Prepare the dock completion helpers
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 28–55 minutes.** 83 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Give the upcoming layout a vocabulary contract and caret helpers.
-
-**Follow:** Commands contract → optional inspection → character-based caret positions.
+**Typing: 28–55 minutes.** [Estimate](typing-load.md).
 
 The upcoming dock layout needs command names without knowing our scene types. `Commands` defines the methods the application will supply. Static string slices can refer to its fixed vocabulary; `option_label` borrows from the supplied line.
 
 `Control` stores an inspection key, label and rectangle. `record` appends actual egui response bounds through a mutable borrow. If inspection is absent, let-else returns immediately. `serde::Serialize` lets the inspector describe the record as JSON.
 
-Caret positions count characters rather than UTF-8 bytes: `é🙂x` has three scalar values. The helpers load a field’s stored egui state, change its range and store it back. An absent field state is left alone. `spelled` counts the displayed completion prefix while ignoring typed spaces.
+## Type
 
-These helpers are preparation for the following layout and input lessons. They add no controls or keyboard handling; the picture stays the same.
-
-![The layout receives application rules and text helpers.](../illustrations/journey-03b-state.svg)
-
-## Type the change
-
-Continue from [Give the command field its memory](03b-memory.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03b-state` (from `session_viewer`).
+Continue from [Give the command field its memory](03b-memory.md). [Save or recover your work](recovery.md).
 
 ### 1. `Cargo.toml`
 
@@ -139,7 +127,7 @@ Replace that block with:
 --8<-- "journey/code/03b-state-05.rs"
 ```
 
-## Run and look
+## Run and check
 
 After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:
 
@@ -147,7 +135,7 @@ After typing the manifest, run this from `session_viewer` to select the fixed de
 npm --prefix ../session_tests run course -- dependencies 03b-state
 ```
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -155,7 +143,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The connected field looks exactly as before. The vocabulary, inspection and caret helpers are ready for the following layout and input lessons.
 
@@ -163,7 +151,26 @@ The connected field looks exactly as before. The vocabulary, inspection and care
 
 ![Actual browser result: Prepare the dock completion helpers.](../screenshots/journey/03b-state-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+Caret positions count characters rather than UTF-8 bytes: `é🙂x` has three scalar values. The helpers load a field’s stored egui state, change its range and store it back. An absent field state is left alone. `spelled` counts the displayed completion prefix while ignoring typed spaces.
+
+These helpers are preparation for the following layout and input lessons. They add no controls or keyboard handling; the picture stays the same.
+
+Commands contract → optional inspection → character-based caret positions.
+
+![The layout receives application rules and text helpers.](../illustrations/journey-03b-state.svg)
+
+Why does the caret helper use chars().count()?
+
+String::len counts UTF-8 bytes. egui caret ranges use character indices, so é🙂x needs position 3 rather than its byte length.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -172,37 +179,24 @@ For é🙂x, predict the byte length and character count. Compare len() with cha
 
 </details>
 
-## Explain the change
-
-Why does the caret helper use chars().count()?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-String::len counts UTF-8 bytes. egui caret ranges use character indices, so é🙂x needs position 3 rather than its byte length.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 03b-state
 npm --prefix ../session_tests run course -- save 03b-state
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
 
 Native checks use actual egui layout bounds and serialized inspection data, spaced/Unicode prefixes, absent field state and stored caret/selection ranges. The trait is compile-checked; application command behavior arrives later.
 

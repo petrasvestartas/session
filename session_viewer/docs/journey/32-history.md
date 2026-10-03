@@ -1,28 +1,14 @@
 # 32 · Find the owners retained by history
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 15–30 minutes.** 38 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Inspect undo/redo roots and release both branches explicitly.
-
-**Follow:** Scene snapshots → shared source/display owners → history reset → ownership tests.
+**Typing: 15–30 minutes.** [Estimate](typing-load.md).
 
 Deleting a row removes it from drawing, but Undo can bring it back. That requires an owner somewhere. Our History keeps scene snapshots whose rows clone Rc owners rather than copying mesh payloads.
 
-![Active rows and undo/redo snapshots can retain the same source allocation.](../illustrations/journey-32.svg)
-
 Add a borrowed iterator over both history branches. It lets accounting inspect the roots without cloning their owners. clear replaces History with its empty default, dropping the snapshots and their vector storage. Ordinary edits still keep history; this explicit reset will be used by document close.
 
-The first test removes a row, confirms history retains its source/display values, then clears history and confirms those values are gone. The second leaves an extra object only in Redo and proves clearing both branches prevents it from returning.
+## Type
 
-[Weak::upgrade](https://doc.rust-lang.org/std/rc/struct.Weak.html#method.upgrade) lets a check observe whether a value still has an owner. A failed upgrade proves the managed value is gone; the Weak control allocation itself remains until its weak references are dropped. It is not a measurement of process memory.
-
-The browser still behaves as before at this endpoint. We are making the ownership roots inspectable before wiring a destructive document operation into commands.
-
-## Type the change
-
-Continue from [Update only changed object settings](31c-incremental.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32-history` (from `session_viewer`).
+Continue from [Update only changed object settings](31c-incremental.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/history.rs`
 
@@ -63,9 +49,9 @@ Replace that block with:
 --8<-- "journey/code/32-history-02.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -73,7 +59,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the history checks below. After edits and Undo, inspect both branches; releasing history must empty both retained roots without changing active rows.
 
@@ -81,7 +67,7 @@ Run the history checks below. After edits and Undo, inspect both branches; relea
 
 ![Actual browser result: Find the owners retained by history.](../screenshots/journey/32-history-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -90,43 +76,51 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The first test removes a row, confirms history retains its source/display values, then clears history and confirms those values are gone. The second leaves an extra object only in Redo and proves clearing both branches prevents it from returning.
+
+[Weak::upgrade](https://doc.rust-lang.org/std/rc/struct.Weak.html#method.upgrade) lets a check observe whether a value still has an owner. A failed upgrade proves the managed value is gone; the Weak control allocation itself remains until its weak references are dropped. It is not a measurement of process memory.
+
+The browser still behaves as before at this endpoint. We are making the ownership roots inspectable before wiring a destructive document operation into commands.
+
+Scene snapshots → shared source/display owners → history reset → ownership tests.
+
+![Active rows and undo/redo snapshots can retain the same source allocation.](../illustrations/journey-32.svg)
+
+Why can deleting every visible row leave its source alive?
+
+Undo and Redo hold scene snapshots. Their rows share the original source and display owners so history can restore them. Removing visible rows does not remove those snapshot owners. Closing a document must drop both history branches as well as the active rows.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Keep a cloned Rc of a removed display in a test scope. Predict why clearing history will no longer make its Weak upgrade fail until that extra owner is dropped.
 
 </details>
 
-## Explain the change
-
-Why can deleting every visible row leave its source alive?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Undo and Redo hold scene snapshots. Their rows share the original source and display owners so history can restore them. Removing visible rows does not remove those snapshot owners. Closing a document must drop both history branches as well as the active rows.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32-history
 npm --prefix ../session_tests run course -- save 32-history
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-History ownership matters for source release, document replacement and large scenes. Production source unloading also retains display and tree metadata; its later lessons are distinct from closing the document.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+History ownership matters for source release, document replacement and large scenes. Production source unloading also retains display and tree metadata; its later lessons are distinct from closing the document.
 
 
 

@@ -1,24 +1,14 @@
 # 34 · Keep the first GPU failure with its device
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 19–38 minutes.** 50 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Give asynchronous GPU callbacks one shared first-failure value without confusing an older device with its replacement.
-
-**Follow:** callback clone → lock shared failure → first reason wins → later errors cannot overwrite it.
+**Typing: 19–38 minutes.** [Estimate](typing-load.md).
 
 Keep the first GPU error: later errors caused by the same loss must not overwrite its reason. This lesson adds the shared value; the next connects it to GPU callbacks.
 
 `Fault` owns an `Arc<Mutex<Option<String>>>`. `Arc::clone` shares one allocation. Locking the mutex makes checking and storing the first message one operation. `remember` returns true only to the first writer; `message` returns a copy so no lock stays held while reporting the error.
 
-Give a replacement device a new `Fault::default()`. `Arc::ptr_eq` compares allocations, so a late callback from the old device cannot identify the replacement as its owner. No mutex guard crosses an `.await`.
+## Type
 
-![One first failure per device](../illustrations/journey-34.svg)
-
-## Type the change
-
-Continue from [Keep a cached viewer ready for Back navigation](33b-cache.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34-fault` (from `session_viewer`).
+Continue from [Keep a cached viewer ready for Back navigation](33b-cache.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/gpu_fault.rs`
 
@@ -59,9 +49,9 @@ Replace that block with:
 --8<-- "journey/code/34-fault-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -69,7 +59,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the first-failure checks below. Two callback writers must share one original reason; a replacement device gets a separate Fault. Browser GPU callbacks are connected next.
 
@@ -77,7 +67,7 @@ Run the first-failure checks below. Two callback writers must share one original
 
 ![Actual browser result: Keep the first GPU failure with its device.](../screenshots/journey/34-fault-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -86,43 +76,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Give a replacement device a new `Fault::default()`. `Arc::ptr_eq` compares allocations, so a late callback from the old device cannot identify the replacement as its owner. No mutex guard crosses an `.await`.
+
+callback clone → lock shared failure → first reason wins → later errors cannot overwrite it.
+
+![One first failure per device](../illustrations/journey-34.svg)
+
+Why must a late error from an old GPU device remain separate from a new device’s failure state?
+
+Each new device gets a fresh Arc allocation. Clones share that allocation; same_device compares allocation identity so an old callback cannot be mistaken for the replacement.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change the first.is_some guard so every callback overwrites the stored reason. Run the tests and explain which useful evidence is lost. Then make a replacement by cloning the old Fault and explain why its identity test fails.
 
 </details>
 
-## Explain the change
-
-Why must a late error from an old GPU device remain separate from a new device’s failure state?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Each new device gets a fresh Arc allocation. Clones share that allocation; same_device compares allocation identity so an old callback cannot be mistaken for the replacement.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 34-fault
 npm --prefix ../session_tests run course -- save 34-fault
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The production device module records the first GPU failure in shared state. This value prepares callback integration, stopped submissions, diagnostics and bounded recovery; those are still upcoming.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The production device module records the first GPU failure in shared state. This value prepares callback integration, stopped submissions, diagnostics and bounded recovery; those are still upcoming.
 
 Chrome verifies the inherited command, source-restoration and page-lifetime behavior and captures Orbit Up. The new first-failure ownership is checked by native Rust tests; GPU callback integration comes next.
 

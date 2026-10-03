@@ -1,24 +1,14 @@
 # 32fg · Separate loaded and released editable ownership
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 18–35 minutes.** 32 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Represent source residency without changing retained display, identity or placement.
-
-**Follow:** Represent source residency without changing retained display, identity or placement..
+**Typing: 18–35 minutes.** [Estimate](typing-load.md).
 
 Replace Object’s private geometry/source fields with EditSource. Loaded owns the required kernel geometry and optional imported Source. Released owns an Origin and epoch. Generated Loaded rows have geometry but no imported Origin.
 
 Keep geometry() and source() total: they return None for Released rather than panicking or substituting a display mesh. origin() remains available in either imported state. release_epoch() distinguishes a current release from a later release cycle.
 
-Scene insertion still requires PreparedMesh geometry. It captures metadata, creates the display Rc, and adopts Loaded ownership. The renderer still sees exactly the same mesh/model/id fields. At this endpoint no code unloads a row yet; existing precision, history and close tests must pass unchanged through the new representation.
+## Type
 
-![Represent source residency without changing retained display, identity or placement.](../illustrations/journey-32fg.svg)
-
-## Type the change
-
-Continue from [Adopt the selected file as a reloadable source](32ff-bridge.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fg-state` (from `session_viewer`).
+Continue from [Adopt the selected file as a reloadable source](32ff-bridge.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/lib.rs`
 
@@ -151,9 +141,9 @@ Replace that block with:
 --8<-- "journey/code/32fg-state-07.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -161,7 +151,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the residency checks below. A cold row has no editable source but retains display, metadata, identity and placement. Browser unloading comes later.
 
@@ -169,7 +159,7 @@ Run the residency checks below. A cold row has no editable source but retains di
 
 ![Actual browser result: Separate loaded and released editable ownership.](../screenshots/journey/32fg-state-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -178,43 +168,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Scene insertion still requires PreparedMesh geometry. It captures metadata, creates the display Rc, and adopts Loaded ownership. The renderer still sees exactly the same mesh/model/id fields. At this endpoint no code unloads a row yet; existing precision, history and close tests must pass unchanged through the new representation.
+
+Represent source residency without changing retained display, identity or placement..
+
+![Represent source residency without changing retained display, identity or placement.](../illustrations/journey-32fg.svg)
+
+Which owners remain in a Released row?
+
+Its retained row data still owns the display mesh, metadata and placement. Editable storage owns only a geometry-free Origin and release epoch. It cannot retain the old kernel Mesh or Session.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Follow the Rc edges in Loaded and Released. Explain why adding a kernel Rc to Released would defeat unloading even if source() returned None.
 
 </details>
 
-## Explain the change
-
-Which owners remain in a Released row?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Its retained row data still owns the display mesh, metadata and placement. Editable storage owns only a geometry-free Origin and release epoch. It cannot retain the old kernel Mesh or Session.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32fg-state
 npm --prefix ../session_tests run course -- save 32fg-state
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The private representation now expresses the production distinction between retained display rows and resident editable source. The next policy prevents releasing generated or modified sources.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The private representation now expresses the production distinction between retained display rows and resident editable source. The next policy prevents releasing generated or modified sources.
 
 
 

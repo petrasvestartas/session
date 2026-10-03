@@ -1,24 +1,14 @@
 # 32fb · Make editable ownership a private row boundary
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 16–31 minutes.** 19 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Finish migrating owner checks and prevent other modules from bypassing source availability.
-
-**Follow:** Remaining native ownership proofs → borrowed accessors → private source fields.
+**Typing: 16–31 minutes.** [Estimate](typing-load.md).
 
 Finish migrating consumers to `geometry()` and `source()`, then make Object's editable-owner fields private. Direct field access outside the row now fails to compile.
 
 Keep `PreparedMesh.geometry` mandatory: a prepared insertion requires valid geometry. Keep `GpuMesh.geometry` unchanged: it owns display buffers, not editable kernel data.
 
-Rows retain public identity, saved GUID, metadata, model and derived mesh. Source storage can next become Loaded or Released behind its borrowed accessors without changing drawing or history placements. No source unload happens in this step.
+## Type
 
-![Preparation requires geometry; a committed row exposes source residency through private ownership and borrowed access.](../illustrations/journey-32fb.svg)
-
-## Type the change
-
-Continue from [Ask whether an editable source is available](32fa-access.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fb-boundary` (from `session_viewer`).
+Continue from [Ask whether an editable source is available](32fa-access.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/editor.rs`
 
@@ -395,9 +385,9 @@ Replace that block with:
 --8<-- "journey/code/32fb-boundary-12.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -405,7 +395,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Build and run the checks below. Other modules must use the source accessor; the private row field prevents bypassing source availability.
 
@@ -413,7 +403,7 @@ Build and run the checks below. Other modules must use the source accessor; the 
 
 ![Actual browser result: Make editable ownership a private row boundary.](../screenshots/journey/32fb-boundary-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -422,43 +412,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Rows retain public identity, saved GUID, metadata, model and derived mesh. Source storage can next become Loaded or Released behind its borrowed accessors without changing drawing or history placements. No source unload happens in this step.
+
+Remaining native ownership proofs → borrowed accessors → private source fields.
+
+![Preparation requires geometry; a committed row exposes source residency through private ownership and borrowed access.](../illustrations/journey-32fb.svg)
+
+Why keep PreparedMesh geometry mandatory when Object geometry is accessed optionally?
+
+PreparedMesh is a validated candidate ready to insert, so its original geometry must exist. A committed Object has a longer lifetime: its display can remain after editable geometry is unloaded. The preparation boundary and residency boundary have different contracts.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Try reading object.geometry directly from document.rs and predict the compiler error. Explain why a renderer’s row.geometry or a prepared candidate’s geometry can remain valid even after this row source field becomes private.
 
 </details>
 
-## Explain the change
-
-Why keep PreparedMesh geometry mandatory when Object geometry is accessed optionally?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-PreparedMesh is a validated candidate ready to insert, so its original geometry must exist. A committed Object has a longer lifetime: its display can remain after editable geometry is unloaded. The preparation boundary and residency boundary have different contracts.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32fb-boundary
 npm --prefix ../session_tests run course -- save 32fb-boundary
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Next add reload origin/version information, release eligible imported owners across active and history roots, and restore them atomically. A source-only unload must not masquerade as Close.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Next add reload origin/version information, release eligible imported owners across active and history roots, and restore them atomically. A source-only unload must not masquerade as Close.
 
 Existing allocation identity, exact source coordinates, history and Weak-expiration checks retain their assertions while adopting the borrowed interface.
 

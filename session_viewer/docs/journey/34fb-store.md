@@ -1,24 +1,14 @@
 # 34fb · Retrieve saved failure evidence through the command line
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 25–49 minutes.** 45 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command.
-
-**Follow:** startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Diagnostic Report Previous.
+**Typing: 25–49 minutes.** [Estimate](typing-load.md).
 
 Persist live diagnostics and add `Diagnostic Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.
 
 After an observation, clone the report and end its `RefCell` borrow before storage or download work. Ready/fatal updates use the same bounded writer; storage errors leave current drawing and downloads available.
 
-Show eligible failure/interruption feedback in the existing dock. The previous-report command downloads the cached JSON; missing evidence gives a command error. GPU disposal leaves this metadata alive. Diagnostics do not restore unsaved document edits.
+## Type
 
-![Persist independently and retrieve through the dock](../illustrations/journey-34fb.svg)
-
-## Type the change
-
-Continue from [Retain only three diagnostic runs](34fa-retain.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34fb-store` (from `session_viewer`).
+Continue from [Retain only three diagnostic runs](34fa-retain.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/browser_report.rs`
 
@@ -199,9 +189,9 @@ Replace that block with:
 --8<-- "journey/code/34fb-store-09.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -209,7 +199,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 After the browser acceptance saves a real GPU failure, reload its test page and type `Diagnostic Report Previous`. The download must retain that failure while the new viewer draws normally.
 
@@ -217,7 +207,7 @@ After the browser acceptance saves a real GPU failure, reload its test page and 
 
 ![Actual browser result: Retrieve saved failure evidence through the command line.](../screenshots/journey/34fb-store-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -226,43 +216,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Show eligible failure/interruption feedback in the existing dock. The previous-report command downloads the cached JSON; missing evidence gives a command error. GPU disposal leaves this metadata alive. Diagnostics do not restore unsaved document edits.
+
+startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Diagnostic Report Previous.
+
+![Persist independently and retrieve through the dock](../illustrations/journey-34fb.svg)
+
+Why select previous evidence before saving the new running report?
+
+Selection must examine earlier runs. The new run would otherwise look like a same-tab interrupted candidate before startup finishes. Keep its metadata separate and preserve the selected previous report even after the current run becomes ready.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Move previous selection after the initial current write and inspect the false same-tab interruption candidate. Then deny storage and explain why successful current downloads must remain separate from persistence.
 
 </details>
 
-## Explain the change
-
-Why select previous evidence before saving the new running report?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Selection must examine earlier runs. The new run would otherwise look like a same-tab interrupted candidate before startup finishes. Keep its metadata separate and preserve the selected previous report even after the current run becomes ready.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 34fb-store
 npm --prefix ../session_tests run course -- save 34fb-store
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production keeps saved diagnostics independently of GPU lifetime. The cumulative course now connects bounded persistence and typed previous-report retrieval. Heartbeat/lifecycle/error observations, complete load/adapter/resource telemetry and bounded GPU recovery still follow; unsaved scene restoration is not claimed.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production keeps saved diagnostics independently of GPU lifetime. The cumulative course now connects bounded persistence and typed previous-report retrieval. Heartbeat/lifecycle/error observations, complete load/adapter/resource telemetry and bounded GPU recovery still follow; unsaved scene restoration is not claimed.
 
 Headed Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits.
 

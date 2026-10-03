@@ -1,24 +1,14 @@
 # 31b · Reuse uploads while their geometry is alive
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 20–40 minutes.** 51 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Cache GPU geometry by its retained CPU allocation and release dead cache entries.
-
-**Follow:** Scene row → source allocation identity → weak cache lookup → shared GPU geometry → object settings.
+**Typing: 20–40 minutes.** [Estimate](typing-load.md).
 
 Now the renderer can ask for an existing upload before creating buffers. GeometryCache maps a CPU display address to Weak<GpuGeometry>. The pointer is an identity key only: we never dereference it.
 
-![A weak lookup reuses live geometry; a missing or expired owner causes one upload.](../illustrations/journey-31b.svg)
-
 A live GpuGeometry owns its source Rc. Therefore a successful Weak::upgrade cannot accidentally refer to another allocation that reused that address. An expired entry has no reusable buffers; get uploads the current source and replaces it. prune removes expired entries after old GPU rows are dropped. Equal vertex values in different CPU allocations deliberately remain separate keys.
 
-Renderer constructs itself with an empty row list and then synchronizes the initial scene through the same path used for later changes. This avoids a separate startup cache policy. Each scene synchronization still creates new object uniforms, but retained geometry no longer needs another vertex/index upload.
+## Type
 
-## Type the change
-
-Continue from [Give immutable GPU geometry one owner](31a-geometry.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-31b-cache` (from `session_viewer`).
+Continue from [Give immutable GPU geometry one owner](31a-geometry.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/geometry_cache.rs`
 
@@ -229,9 +219,9 @@ Replace that block with:
 --8<-- "journey/code/31b-cache-12.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -239,7 +229,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the cache checks below. A second live owner must reuse the same upload; after the final owner drops, the weak cache must not retain it.
 
@@ -247,7 +237,7 @@ Run the cache checks below. A second live owner must reuse the same upload; afte
 
 ![Actual browser result: Reuse uploads while their geometry is alive.](../screenshots/journey/31b-cache-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -256,43 +246,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Renderer constructs itself with an empty row list and then synchronizes the initial scene through the same path used for later changes. This avoids a separate startup cache policy. Each scene synchronization still creates new object uniforms, but retained geometry no longer needs another vertex/index upload.
+
+Scene row → source allocation identity → weak cache lookup → shared GPU geometry → object settings.
+
+![A weak lookup reuses live geometry; a missing or expired owner causes one upload.](../illustrations/journey-31b.svg)
+
+Why must the cache store Weak owners and retain the CPU source inside GpuGeometry?
+
+Weak entries do not keep unused GPU geometry alive. A successful upgrade yields a geometry owner that still retains the exact CPU allocation used as the key, so that address cannot have been reused for another live source. If upgrade fails, upload the current source and replace the dead entry.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Explain why cloning Rc<Mesh> finds the same upload while constructing a new Mesh with equal vertices does not. Then drop every GPU row and prune; the weak cache must not keep a geometry owner alive.
 
 </details>
 
-## Explain the change
-
-Why must the cache store Weak owners and retain the CPU source inside GpuGeometry?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Weak entries do not keep unused GPU geometry alive. A successful upgrade yields a geometry owner that still retains the exact CPU allocation used as the key, so that address cannot have been reused for another live source. If upgrade fails, upload the current source and replace the dead entry.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 31b-cache
 npm --prefix ../session_tests run course -- save 31b-cache
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This cache teaches retained geometry identity and release. The production viewer’s arenas, byte accounting and instancing still need their own later lessons and benchmarks.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This cache teaches retained geometry identity and release. The production viewer’s arenas, byte accounting and instancing still need their own later lessons and benchmarks.
 
 Hidden canvas diagnostics record cumulative geometry uploads and object-uniform allocations. They are validation data, not visible controls or a performance claim. The native check requests the same source twice, then an equal but independent source, and verifies reuse, ownership and expiration. Chrome confirms selection and Move create no new geometry uploads. The next lesson also retains unchanged object uniforms.
 

@@ -1,26 +1,14 @@
 # 34b · Describe a viewer run without keeping its document
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 25–49 minutes.** 65 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Define owned diagnostic context and a serializable run outcome, without retaining scene or GPU owners.
-
-**Follow:** browser metadata → owned Context → Report header → explicit JSON → independent snapshot.
+**Typing: 25–49 minutes.** [Estimate](typing-load.md).
 
 Create a report that survives losing the GPU. `Context` stores page/browser details and dimensions. `Report` stores that context, run identity, timestamps and outcome; it owns no document or device.
 
 Owned strings and copied dimensions make a clone an independent snapshot. `Outcome` distinguishes Running, Ready, Closed and Failed. A Running value alone is not proof of a crash.
 
-Serde’s derives serialize and parse the value. `rename_all` writes camelCase JSON names; `flatten` puts Context fields in the report’s top level. `version` identifies the format. `started` stays fixed while `lastSeen` can advance.
+## Type
 
-This lesson builds the Rust value. Reading live browser metadata and downloading it are separate steps below.
-
-![Independent diagnostic context](../illustrations/journey-34b.svg)
-
-## Type the change
-
-Continue from [Stop the viewer when its GPU device fails](34a-stop.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34b-report` (from `session_viewer`).
+Continue from [Stop the viewer when its GPU device fails](34a-stop.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/diagnostic.rs`
 
@@ -61,9 +49,9 @@ Replace that block with:
 --8<-- "journey/code/34b-report-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -71,7 +59,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the report checks below. Serialize a report and inspect its flat JSON header; changing a cloned snapshot must not change the live value. Browser metadata is connected later.
 
@@ -79,7 +67,7 @@ Run the report checks below. Serialize a report and inspect its flat JSON header
 
 ![Actual browser result: Describe a viewer run without keeping its document.](../screenshots/journey/34b-report-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -88,43 +76,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Serde’s derives serialize and parse the value. `rename_all` writes camelCase JSON names; `flatten` puts Context fields in the report’s top level. `version` identifies the format. `started` stays fixed while `lastSeen` can advance.
+
+This lesson builds the Rust value. Reading live browser metadata and downloading it are separate steps below.
+
+browser metadata → owned Context → Report header → explicit JSON → independent snapshot.
+
+![Independent diagnostic context](../illustrations/journey-34b.svg)
+
+Why does a diagnostic snapshot own small strings and dimensions instead of keeping the editor or renderer?
+
+The report must survive the viewer’s disposal without extending scene or GPU lifetimes. Owned metadata records the relevant context independently; document values and rendering handles are absent.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Remove serde(flatten), run the JSON assertion, and explain how the public format changed. Then compare the live and cloned report after changing its drawing-buffer size.
 
 </details>
 
-## Explain the change
-
-Why does a diagnostic snapshot own small strings and dimensions instead of keeping the editor or renderer?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The report must survive the viewer’s disposal without extending scene or GPU lifetimes. Owned metadata records the relevant context independently; document values and rendering handles are absent.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 34b-report
 npm --prefix ../session_tests run course -- save 34b-report
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production diagnostics retain browser/page/viewport/drawing-buffer context outside the renderer and version their reports. This checkpoint establishes that value; bounded observations, downloads, storage policy and recovery follow.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production diagnostics retain browser/page/viewport/drawing-buffer context outside the renderer and version their reports. This checkpoint establishes that value; bounded observations, downloads, storage policy and recovery follow.
 
 Native tests check actual JSON names, header values, round-trip decoding and independent context after resize. Chrome verifies the already-wired loss/input/lifetime behavior and a new proof view. This header is not yet populated from the live browser, downloadable or stored. Events, first-failure retention and browser connection follow.
 

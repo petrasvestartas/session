@@ -1,28 +1,14 @@
 # 31 · Keep selection out of the vertex data
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 8–15 minutes.** 19 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Put placement and selection in an explicitly packed object uniform.
-
-**Follow:** Object placement and selection → eighty uniform bytes → vertex shader; source colours stay unchanged.
+**Typing: 8–15 minutes.** [Estimate](typing-load.md).
 
 Our renderer currently copies gold into every selected vertex during upload. That makes selection part of geometry storage. Before sharing any buffers, separate those two responsibilities.
 
 The first sixty-four bytes still contain the placement matrix. The next sixteen bytes form a vec4 selection field: its first float is one or zero and its remaining floats are zero. We pack all eighty bytes explicitly rather than depending on the layout of a Rust struct.
 
-![Immutable vertex colours and one object uniform meet in the vertex shader.](../illustrations/journey-31.svg)
+## Type
 
-The [WGSL layout rules](https://www.w3.org/TR/WGSL/#alignment-and-size) align both a matrix and a vec4 to sixteen bytes. A four-column matrix occupies sixty-four bytes, so the following field begins at byte sixty-four and the complete uniform occupies eighty.
-
-The shader multiplies by object.model and uses object.selection.x to choose the original colour or our existing gold. Lighting still runs after that choice. Source geometry and its colour values do not change when selection changes.
-
-This endpoint still rebuilds GPU rows after every scene change. It establishes the data boundary; the following lessons change ownership and reuse.
-
-## Type the change
-
-Continue from [Prove recovery at the transaction and display boundaries](30e-recovery.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-31-settings` (from `session_viewer`).
+Continue from [Prove recovery at the transaction and display boundaries](30e-recovery.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/gpu_mesh.rs`
 
@@ -145,9 +131,9 @@ Replace that block with:
 --8<-- "journey/code/31-settings-06.wgsl"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -155,7 +141,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Select an object and move it. Its colour and placement now come from an object uniform; the original vertex colours and positions stay unchanged.
 
@@ -163,7 +149,7 @@ Select an object and move it. Its colour and placement now come from an object u
 
 ![Actual browser result: Keep selection out of the vertex data.](../screenshots/journey/31-settings-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -172,43 +158,51 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The [WGSL layout rules](https://www.w3.org/TR/WGSL/#alignment-and-size) align both a matrix and a vec4 to sixteen bytes. A four-column matrix occupies sixty-four bytes, so the following field begins at byte sixty-four and the complete uniform occupies eighty.
+
+The shader multiplies by object.model and uses object.selection.x to choose the original colour or our existing gold. Lighting still runs after that choice. Source geometry and its colour values do not change when selection changes.
+
+This endpoint still rebuilds GPU rows after every scene change. It establishes the data boundary; the following lessons change ownership and reuse.
+
+Object placement and selection → eighty uniform bytes → vertex shader; source colours stay unchanged.
+
+![Immutable vertex colours and one object uniform meet in the vertex shader.](../illustrations/journey-31.svg)
+
+Why must selection move before we can share one vertex buffer?
+
+Two objects can use the same geometry while only one is selected. A gold colour written into their shared vertices would affect both. Keep immutable source colours in the vertex buffer and choose the displayed colour from each object’s uniform.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Temporarily put the selection flag at byte sixty-eight while leaving the shader field unchanged. Predict why the first selection component remains zero. Restore byte sixty-four before continuing.
 
 </details>
 
-## Explain the change
-
-Why must selection move before we can share one vertex buffer?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Two objects can use the same geometry while only one is selected. A gold colour written into their shared vertices would affect both. Keep immutable source colours in the vertex buffer and choose the displayed colour from each object’s uniform.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 31-settings
 npm --prefix ../session_tests run course -- save 31-settings
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Object presentation must stay separate from shared geometry in the production renderer, including selection, opacity and other display flags. This uniform introduces that boundary without claiming the later rendering modes are complete.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Object presentation must stay separate from shared geometry in the production renderer, including selection, opacity and other display flags. This uniform introduces that boundary without claiming the later rendering modes are complete.
 
 
 

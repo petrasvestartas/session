@@ -1,26 +1,14 @@
 # 16 · Walk around the model
 
-**Combined study estimate: 2–4 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 28–56 minutes.** 61 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Orbit and tilt a perspective camera while keeping its target in place.
-
-**Follow:** View action → orientation quaternion → eye and up vectors → view-projection matrix → drawing and pick ray.
+**Typing: 28–56 minutes.** [Estimate](typing-load.md).
 
 Orbit around a fixed target. Camera orientation determines its right, up and forward directions; viewing distance places the eye behind the target.
 
 Use the kernel's quaternion to represent orientation. Rotate sideways around world z and tilt around the camera's current right axis. In `yaw × (pitch × orientation)`, the existing orientation is followed by tilt, then yaw. Order matters.
 
-Normalise after updates to keep a pure rotation. The repeated-turn test checks that the resulting axes remain unit length and perpendicular.
+## Type
 
-Isometric changes orientation while retaining target and distance. Drawing and picking consume the same updated camera matrix. The scene, history and selection keep their existing owners.
-
-![A fixed target and viewing distance define the orbit; orientation determines the camera’s right, forward and up directions.](../illustrations/journey-16.svg)
-
-## Type the change
-
-Continue from [Look through a perspective camera](15-perspective.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-16-orbit` (from `session_viewer`).
+Continue from [Look through a perspective camera](15-perspective.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/camera.rs`
 
@@ -259,9 +247,9 @@ Replace that block with:
 --8<-- "journey/code/16-orbit-window-3.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -269,7 +257,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `View Isometric`, then `Orbit Right`. The eye moves around the same target. Click a visible face to confirm picking still agrees with the new view.
 
@@ -277,7 +265,7 @@ Type `View Isometric`, then `Orbit Right`. The eye moves around the same target.
 
 ![Actual browser result: Walk around the model.](../screenshots/journey/16-orbit-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -286,43 +274,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Normalise after updates to keep a pure rotation. The repeated-turn test checks that the resulting axes remain unit length and perpendicular.
+
+Isometric changes orientation while retaining target and distance. Drawing and picking consume the same updated camera matrix. The scene, history and selection keep their existing owners.
+
+View action → orientation quaternion → eye and up vectors → view-projection matrix → drawing and pick ray.
+
+![A fixed target and viewing distance define the orbit; orientation determines the camera’s right, forward and up directions.](../illustrations/journey-16.svg)
+
+Which camera value should stay fixed while you orbit around the model?
+
+The target stays fixed. Orientation changes the direction from the eye toward that target, and distance controls how far the eye is from it. Recomputing eye = target − forward × distance moves the eye around the target without editing any mesh positions.
+
+Study estimate, including typing and experiments: 2–4 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Type `View Isometric` and press Enter, pan, then tilt. Predict whether the point at the screen centre will stay centred during the tilt. It should: pan chose a new target, and orbit keeps that target fixed. Delete a selected surface and undo; the camera should keep its current orientation.
 
 </details>
 
-## Explain the change
-
-Which camera value should stay fixed while you orbit around the model?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The target stays fixed. Orientation changes the direction from the eye toward that target, and distance controls how far the eye is from it. Recomputing eye = target − forward × distance moves the eye around the target without editing any mesh positions.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 16-orbit
 npm --prefix ../session_tests run course -- save 16-orbit
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The maintained camera uses target, distance, orientation and world-up in the same way. Later gesture lessons turn pointer deltas into these operations; unit conversion, fit-to-scene and large-coordinate precision extend the camera without moving source geometry.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The maintained camera uses target, distance, orientation and world-up in the same way. Later gesture lessons turn pointer deltas into these operations; unit conversion, fit-to-scene and large-coordinate precision extend the camera without moving source geometry.
 
 Look at the two triangles from Isometric: the changed overlap comes from the camera, not edited vertex positions.
 

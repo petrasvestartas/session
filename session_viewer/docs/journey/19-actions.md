@@ -1,28 +1,16 @@
 # 19 · Give every action the same route
 
-**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 60–120 minutes.** 165 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 60–120 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Move document actions into a browser-independent editor while keeping picking, undo and drawing working.
-
-**Follow:** HTML event → Action → Editor → Change → GPU upload when needed → draw.
 
 Move editing decisions from the browser callback into `Editor`. It owns scene, selection, camera, background and history, with no browser handles or GPU buffers.
 
 An `Action` enum describes requests. `Delete` carries no value; `Pan(dx, dy)` carries two numbers. Typed commands and mouse navigation translate to actions; `Editor::apply` matches and executes them.
 
-Return a `Change` enum: a view change needs a redraw; a scene change also needs an upload. After a scene action, clear selection if its ID no longer exists.
+## Type
 
-Keep this path: browser translates → editor decides → history remembers → renderer draws. Moving these rules keeps the behavior while making it testable without a browser.
-
-![Typed commands and canvas picking become Action; Editor chooses a redraw or scene upload.](../illustrations/journey-19.svg)
-
-## Type the change
-
-Continue from [Read the shape through light](18-light.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-19-actions` (from `session_viewer`).
+Continue from [Read the shape through light](18-light.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/editor.rs`
 
@@ -296,9 +284,9 @@ Replace that block with:
 --8<-- "journey/code/19-actions-window-7.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -306,7 +294,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Select a face, type `Delete`, then `Undo`. The editor handles both actions and restores the object without resetting the camera.
 
@@ -314,7 +302,7 @@ Select a face, type `Delete`, then `Undo`. The editor handles both actions and r
 
 ![Actual browser result: Give every action the same route.](../screenshots/journey/19-actions-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -323,43 +311,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Return a `Change` enum: a view change needs a redraw; a scene change also needs an upload. After a scene action, clear selection if its ID no longer exists.
+
+Keep this path: browser translates → editor decides → history remembers → renderer draws. Moving these rules keeps the behavior while making it testable without a browser.
+
+HTML event → Action → Editor → Change → GPU upload when needed → draw.
+
+![Typed commands and canvas picking become Action; Editor chooses a redraw or scene upload.](../illustrations/journey-19.svg)
+
+Where should a future Delete keyboard shortcut go so it behaves exactly like the Delete command?
+
+The keyboard handler should produce Action::Delete and pass it to Editor::apply. The editor already owns selection, the document and history. Reusing that action gives the shortcut the same transaction and selection repair as the command; the keyboard handler should not remove scene objects itself.
+
+Study estimate, including typing and experiments: 3–5 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Add a box, then change the background and zoom. Undo once. Predict which of those three changes disappears. Only the box addition is a document edit; the other two belong to the view. Find the early return in apply that keeps those actions out of history.
 
 </details>
 
-## Explain the change
-
-Where should a future Delete keyboard shortcut go so it behaves exactly like the Delete command?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The keyboard handler should produce Action::Delete and pass it to Editor::apply. The editor already owns selection, the document and history. Reusing that action gives the shortcut the same transaction and selection repair as the command; the keyboard handler should not remove scene objects itself.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 19-actions
 npm --prefix ../session_tests run course -- save 19-actions
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The full command system will build on this boundary. commands, keyboard input and tools request document operations through the same owner, while rendering consumes the result. More commands should add behavior here or in focused command modules, not duplicate transactions in UI handlers.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The full command system will build on this boundary. commands, keyboard input and tools request document operations through the same owner, while rendering consumes the result. More commands should add behavior here or in focused command modules, not duplicate transactions in UI handlers.
 
 The box is yellow after Select Next reaches it. commands feed the shared Editor action path.
 

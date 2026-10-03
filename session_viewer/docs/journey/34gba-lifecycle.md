@@ -1,26 +1,14 @@
 # 34gba · Own diagnostic page transitions
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 26–52 minutes.** 53 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Connect real pagehide/pageshow to independent diagnostics, cached suspension and safe final callback cleanup.
-
-**Follow:** owned metadata listeners → cached pause or final close → deferred matching-owner disposal → cached pageshow resumes one timer.
+**Typing: 26–52 minutes.** [Estimate](typing-load.md).
 
 Own diagnostic page events independently of the GPU. Two Window listeners and an `Rc` token keep metadata active after drawing/input cleanup. They retain no renderer or document.
 
 On cached `pagehide`, record the transition and stop the heartbeat, retaining the outcome and listeners. On `pageshow`, record the return and resume one timer.
 
-On final `pagehide`, close metadata immediately, then detach listeners on the next microtask. The active Rust callback must return before its Closure drops. Compare the captured token with the current owner so old cleanup cannot stop a replacement. Take the owner out of its `RefCell` before dropping it.
+## Type
 
-A partial registration failure drops its registered bindings and records unavailable lifecycle support; current drawing/downloads remain usable. Visibility/freeze events and cancellation of pending GPU startup are still subsequent work.
-
-![Diagnostic lifetime outlasts the GPU](../illustrations/journey-34gba.svg)
-
-## Type the change
-
-Continue from [Mark a final healthy run closed](34gb-close.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34gba-lifecycle` (from `session_viewer`).
+Continue from [Mark a final healthy run closed](34gb-close.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/report_lifecycle.rs`
 
@@ -70,9 +58,9 @@ Replace that block with:
 --8<-- "journey/code/34gba-lifecycle-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -80,7 +68,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. Download `Diagnostic Report`: the transitions are recorded and the healthy outcome stays Ready.
 
@@ -88,7 +76,7 @@ In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehid
 
 ![Actual browser result: Own diagnostic page transitions.](../screenshots/journey/34gba-lifecycle-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -97,43 +85,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+On final `pagehide`, close metadata immediately, then detach listeners on the next microtask. The active Rust callback must return before its Closure drops. Compare the captured token with the current owner so old cleanup cannot stop a replacement. Take the owner out of its `RefCell` before dropping it.
+
+A partial registration failure drops its registered bindings and records unavailable lifecycle support; current drawing/downloads remain usable. Visibility/freeze events and cancellation of pending GPU startup are still subsequent work.
+
+owned metadata listeners → cached pause or final close → deferred matching-owner disposal → cached pageshow resumes one timer.
+
+![Diagnostic lifetime outlasts the GPU](../illustrations/journey-34gba.svg)
+
+Why does deferred final cleanup compare allocation identity before stopping metadata?
+
+An earlier pagehide may have queued cleanup before a replacement installs its listeners and timer. The old allocation token must not match the replacement; otherwise the old task could stop the new diagnostic lifetime.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Dispatch persisted pagehide/pageshow and compare them with a final pagehide. Replace metadata ownership before queued cleanup and explain why the earlier token cannot stop it.
 
 </details>
 
-## Explain the change
-
-Why does deferred final cleanup compare allocation identity before stopping metadata?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-An earlier pagehide may have queued cleanup before a replacement installs its listeners and timer. The old allocation token must not match the replacement; otherwise the old task could stop the new diagnostic lifetime.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 34gba-lifecycle
 npm --prefix ../session_tests run course -- save 34gba-lifecycle
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The course now records actual page transitions independently of GPU loss and owns final cleanup. Visibility/freeze/error observations, full phase telemetry and bounded recovery remain next. Pending GPU startup must still be revoked before late renderer installation; this checkpoint verifies already-started and failed runtime transitions.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The course now records actual page transitions independently of GPU loss and owns final cleanup. Visibility/freeze/error observations, full phase telemetry and bounded recovery remain next. Pending GPU startup must still be revoked before late renderer installation; this checkpoint verifies already-started and failed runtime transitions.
 
 Chrome has focused lifecycle acceptance plus the common real command/camera/input checks. It separately observes two metadata bindings and eighteen drawing/input bindings; it does not modify the older checkpoints’ ownership assertions. Synthetic persisted transitions prove retention and resumed scheduling, not that Chrome actually caches this GPU page. Real device.destroy proves metadata continues after GPU disposal. Healthy and failed final exits stop scheduling, remove metadata bindings once and ignore late events. Replacement before deferred cleanup retains the new owner and timer. Denied registration leaves ready drawing and a usable current download. All earlier checkpoint evidence remains independently verified.
 

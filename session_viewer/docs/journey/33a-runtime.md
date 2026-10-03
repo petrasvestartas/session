@@ -1,24 +1,12 @@
 # 33a · Dispose the viewer without leaving pending work alive
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 19–38 minutes.** 50 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Bind real viewer input to owned callbacks and cancel pending file/source authority when the page hides.
-
-**Follow:** Live runtime → pagehide → next microtask → cancel read/fetch → detach eighteen listeners → release captures.
+**Typing: 19–38 minutes.** [Estimate](typing-load.md).
 
 The main viewer now transfers update into Listeners and records all canvas, document and window bindings. A thread-local Option<Runtime> keeps that owner alive after run returns. install replaces any earlier owner; stop takes the current owner out of the slot and consumes it. The slot’s mutable borrow has ended before Runtime is dropped.
 
-Runtime’s Drop first cancels the read gate and abortable source flight. It then allows the listener owner to detach handlers and release the callback, editor, renderer and other captured values. Cancelling releases pending source keys even when an asynchronous task remains alive. This is ownership cleanup; it does not claim browser or driver memory is reclaimed at the same instant.
+## Type
 
-pagehide schedules stop through spawn_local and returns immediately. Its task runs on the next microtask so the event callback is no longer active when it is freed. Document Close retains its existing meaning and can still be followed by Open. Page exit disposes the viewer itself.
-
-![Dispose runtime ownership](../illustrations/journey-33a.svg)
-
-## Type the change
-
-Continue from [Own browser listeners instead of forgetting callbacks](33-owner.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-33a-runtime` (from `session_viewer`).
+Continue from [Own browser listeners instead of forgetting callbacks](33-owner.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/browser_runtime.rs`
 
@@ -125,9 +113,9 @@ Replace that block with:
 --8<-- "journey/code/33a-runtime-05.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -135,7 +123,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In the debug console, dispatch `window.dispatchEvent(new Event("pagehide"))`. On the next task, `window.wasmBindings.runtime_running()` must be false. Reload the same page to restart.
 
@@ -143,7 +131,7 @@ In the debug console, dispatch `window.dispatchEvent(new Event("pagehide"))`. On
 
 ![Actual browser result: Dispose the viewer without leaving pending work alive.](../screenshots/journey/33a-runtime-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -152,43 +140,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Runtime’s Drop first cancels the read gate and abortable source flight. It then allows the listener owner to detach handlers and release the callback, editor, renderer and other captured values. Cancelling releases pending source keys even when an asynchronous task remains alive. This is ownership cleanup; it does not claim browser or driver memory is reclaimed at the same instant.
+
+pagehide schedules stop through spawn_local and returns immediately. Its task runs on the next microtask so the event callback is no longer active when it is freed. Document Close retains its existing meaning and can still be followed by Open. Page exit disposes the viewer itself.
+
+Live runtime → pagehide → next microtask → cancel read/fetch → detach eighteen listeners → release captures.
+
+![Dispose runtime ownership](../illustrations/journey-33a.svg)
+
+Why is disposal deferred until the next microtask instead of dropping the runtime inside its own event callback?
+
+The pagehide callback is still executing from the owned closure. Disposal waits for that invocation to return, then cancels work and drops the closure safely. spawn_local schedules the task for the next microtask even when its future is immediately ready.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Skip read/fetch cancellation in Runtime::drop, hold a source response and dispose the viewer. Explain which source URL or late-read acceptance checks reveal retained or revived authority.
 
 </details>
 
-## Explain the change
-
-Why is disposal deferred until the next microtask instead of dropping the runtime inside its own event callback?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The pagehide callback is still executing from the owned closure. Disposal waits for that invocation to return, then cancels work and drops the closure safely. spawn_local schedules the task for the next microtask even when its future is immediately ready.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 33a-runtime
 npm --prefix ../session_tests run course -- save 33a-runtime
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Browser listener, document and asynchronous request ownership end together. GPU-loss recovery can now dispose this runtime before starting another one.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Browser listener, document and asynchronous request ownership end together. GPU-loss recovery can now dispose this runtime before starting another one.
 
 Chrome checks the actual main callback’s eighteen removals, an aborted held source request, source URL release, no new GPU submissions after disposal, ignored input and late replies, and cancellation of a held file read before URL adoption. Each restart reloads the same test page; no feature buttons are added. The inherited command/navigation/precision/failure checks remain active.
 

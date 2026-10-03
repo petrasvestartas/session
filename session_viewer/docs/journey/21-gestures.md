@@ -1,26 +1,16 @@
 # 21 · Remember a press until it ends
 
-**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 77–153 minutes.** 216 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 77–153 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus.
-
-**Follow:** Pointer event → Gesture memory → Motion → Editor action → camera or selection → frame.
 
 Put your finger on the table. Move it, then lift it. Those are three events, but you understand them as one gesture because you remember the press. Our viewer needs that little piece of memory too.
 
 A click waits until release. If a left press travels more than four CSS pixels, it is no longer a click—even if it comes back. A right press turns each movement into an orbit delta. We already know how to orbit; this lesson only supplies the changing angles.
 
-Rust’s `Option<Drag>` means “either one active drag, or none.” `as_mut()` lets us update the remembered position without taking the drag out. `take()` removes it on release. Keeping this small state machine outside the browser lets us test interrupted gestures as ordinary Rust calls.
+## Type
 
-![A press remembers one pointer; moves update the view; release may pick; cancellation clears the memory.](../illustrations/journey-21.svg)
-
-## Type the change
-
-Continue from [Keep a changing window in proportion](20-resize.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-21-gestures` (from `session_viewer`).
+Continue from [Keep a changing window in proportion](20-resize.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/gesture.rs`
 
@@ -312,9 +302,9 @@ Replace that block with:
 --8<-- "journey/code/21-gestures-window-7.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -322,7 +312,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Right-drag the drawing and release outside the canvas. Further pointer movement must stop orbiting. A left click still selects a face.
 
@@ -330,7 +320,7 @@ Right-drag the drawing and release outside the canvas. Further pointer movement 
 
 ![Actual browser result: Remember a press until it ends.](../screenshots/journey/21-gestures-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -339,43 +329,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Rust’s `Option<Drag>` means “either one active drag, or none.” `as_mut()` lets us update the remembered position without taking the drag out. `take()` removes it on release. Keeping this small state machine outside the browser lets us test interrupted gestures as ordinary Rust calls.
+
+Pointer event → Gesture memory → Motion → Editor action → camera or selection → frame.
+
+![A press remembers one pointer; moves update the view; release may pick; cancellation clears the memory.](../illustrations/journey-21.svg)
+
+Why do we need both browser pointer capture and our own active pointer ID?
+
+Capture keeps delivering events outside the canvas. The ID tells our application which pointer owns the gesture. Neither replaces the other: a second pointer must not finish the first gesture, and lost capture must clear our state.
+
+Study estimate, including typing and experiments: 3–5 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change the four-pixel click threshold to twenty. Try a short left drag, then restore four. Explain why this distance is measured in CSS pixels: doubling display density should not make the same hand movement harder to classify. Finally undo adding the box after orbiting. The box should disappear while the camera stays where you put it.
 
 </details>
 
-## Explain the change
-
-Why do we need both browser pointer capture and our own active pointer ID?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Capture keeps delivering events outside the canvas. The ID tells our application which pointer owns the gesture. Neither replaces the other: a second pointer must not finish the first gesture, and lost capture must clear our state.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 21-gestures
 npm --prefix ../session_tests run course -- save 21-gestures
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The maintained viewer keeps richer gesture state and cancellation listeners in `src/app/input.rs`. This checkpoint establishes one active pointer and cancellation; touch orbit, wheel zoom and drawing tools will extend the same route rather than editing geometry inside DOM callbacks.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The maintained viewer keeps richer gesture state and cancellation listeners in `src/app/input.rs`. This checkpoint establishes one active pointer and cancellation; touch orbit, wheel zoom and drawing tools will extend the same route rather than editing geometry inside DOM callbacks.
 
 A right drag turns the scene. The browser check then releases the command and confirms that further pointer movement leaves the camera still.
 

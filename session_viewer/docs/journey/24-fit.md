@@ -1,28 +1,16 @@
 # 24 · Find the whole scene
 
-**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 53–105 minutes.** 133 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 53–105 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Frame all current objects without rotating them or changing the document.
-
-**Follow:** Fit command → Editor → Scene bounds → Camera target, distance and clipping → existing Renderer.
 
 Make `Fit` show a scene even when its geometry is far from the origin. Scene measures vertex bounds; Camera fits them; Editor connects the two. Renderer uses the resulting matrix unchanged.
 
 Enclose the bounds box in a sphere. Fit that sphere through the smaller horizontal or vertical half-angle, so portrait windows work too. The radius and half-angle determine viewing distance.
 
-This first sphere fit is predictable and testable. It leaves extra space around thin geometry. Later a tighter fit can project box corners without changing the command boundary.
+## Type
 
-![Scene bounds and a camera fitting the enclosing sphere.](../illustrations/journey-24.svg)
-
-![The radius is opposite the half-angle in a right triangle from the eye to the sphere.](../illustrations/journey-24-fit.svg)
-
-## Type the change
-
-Continue from [Keep the document behind the picture](23-import.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-24-fit` (from `session_viewer`).
+Continue from [Keep the document behind the picture](23-import.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/bounds.rs`
 
@@ -291,9 +279,9 @@ Replace that block with:
 --8<-- "journey/code/24-fit-window-2.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -301,7 +289,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Open `sample.pb` from lesson 23. Type `View Isometric`, `Pan Right`, then `Fit`. The whole scene returns with a margin and keeps its viewing direction.
 
@@ -309,7 +297,7 @@ Open `sample.pb` from lesson 23. Type `View Isometric`, `Pan Right`, then `Fit`.
 
 ![Actual browser result: Find the whole scene.](../screenshots/journey/24-fit-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -318,43 +306,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+This first sphere fit is predictable and testable. It leaves extra space around thin geometry. Later a tighter fit can project box corners without changing the command boundary.
+
+Fit command → Editor → Scene bounds → Camera target, distance and clipping → existing Renderer.
+
+![Scene bounds and a camera fitting the enclosing sphere.](../illustrations/journey-24.svg)
+
+![The radius is opposite the half-angle in a right triangle from the eye to the sphere.](../illustrations/journey-24-fit.svg)
+
+Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?
+
+Scene walks the displayed vertices to find a box. Camera aims at its centre and backs away until the enclosing sphere fits the smaller view angle. The window aspect decides which angle is smaller. Radius also scales zoom limits and clipping. Only the camera uniform changes; object IDs, mesh buffers and history stay as they were.
+
+Study estimate, including typing and experiments: 3–5 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Before running Fit, predict whether a tall window needs the eye farther away. Resize, fit and compare. Then temporarily change the 1.1 margin to 1.4: the scene should become smaller, not larger. Restore 1.1 when you finish.
 
 </details>
 
-## Explain the change
-
-Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Scene walks the displayed vertices to find a box. Camera aims at its centre and backs away until the enclosing sphere fits the smaller view angle. The window aspect decides which angle is smaller. Radius also scales zoom limits and clipping. Only the camera uniform changes; object IDs, mesh buffers and history stay as they were.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 24-fit
 npm --prefix ../session_tests run course -- save 24-fit
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production also measures scene bounds and keeps fitting out of document history. Its corner-based fit is tighter and adds units, selection-only bounds and orthographic views. This checkpoint fits all displayed meshes and assumes ordinary coordinates that f32 can represent accurately. Very large offsets with tiny details need a later coordinate-origin strategy; fitting alone cannot restore precision lost in mesh storage. Pan commands still move by a fixed world-unit amount.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production also measures scene bounds and keeps fitting out of document history. Its corner-based fit is tighter and adds units, selection-only bounds and orthographic views. This checkpoint fits all displayed meshes and assumes ordinary coordinates that f32 can represent accurately. Very large offsets with tiny details need a later coordinate-origin strategy; fitting alone cannot restore precision lost in mesh storage. Pan commands still move by a fixed world-unit amount.
 
 The orange frame and both triangles are centred together after three pans and Fit scene. Chrome also checks that a second Fit leaves the drawing unchanged, that Fit recovers after another pan, and that the imported file remains one undoable action.
 

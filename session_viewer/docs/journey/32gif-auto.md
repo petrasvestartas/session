@@ -1,26 +1,14 @@
 # 32gif · Automatically restore sources for Move, Delete and Save
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 25–49 minutes.** 36 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.
-
-**Follow:** Typed command → capture original intent → required cold keys → fetch → validated completion → one edit or download.
+**Typing: 25–49 minutes.** [Estimate](typing-load.md).
 
 Restore only the sources required by a captured command: Move/Delete need the target; Save needs all active cold sources. Cancel older pending work, return immediately for warm work, or start the abortable flight with its intent.
 
 `Result<Option<Change>, String>` distinguishes an immediate change, waiting, and failure. `map(Some)` wraps an immediate result; `and_then` preserves earlier errors. Waiting leaves placement, drawing and history untouched.
 
-On completion, replay against the captured target and current placement, preserving later camera and selection changes. Save downloads only after required sources return. Zero Move or Delete without selection fetches nothing.
+## Type
 
-Close, Undo, Redo, unloading and replacement cancel work. A newer real edit or Save supersedes an earlier intent, even when the newer operation is warm.
-
-![Automatic cold-source commands](../illustrations/journey-32gif.svg)
-
-## Type the change
-
-Continue from [Deliver restored edit and Save results to the dock](32gie-response.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gif-auto` (from `session_viewer`).
+Continue from [Deliver restored edit and Save results to the dock](32gie-response.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/browser_reload.rs`
 
@@ -129,9 +117,9 @@ Replace that block with:
 --8<-- "journey/code/32gif-auto-05.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -139,7 +127,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Open `sample.pb`, select an object and type `Unload Sources`, then `Move 0.25,0,0.15`. Move restores its source automatically and runs once. `Undo` returns the object to its previous placement.
 
@@ -147,7 +135,7 @@ Open `sample.pb`, select an object and type `Unload Sources`, then `Move 0.25,0,
 
 ![Actual browser result: Automatically restore sources for Move, Delete and Save.](../screenshots/journey/32gif-auto-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -156,43 +144,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+On completion, replay against the captured target and current placement, preserving later camera and selection changes. Save downloads only after required sources return. Zero Move or Delete without selection fetches nothing.
+
+Close, Undo, Redo, unloading and replacement cancel work. A newer real edit or Save supersedes an earlier intent, even when the newer operation is warm.
+
+Typed command → capture original intent → required cold keys → fetch → validated completion → one edit or download.
+
+![Automatic cold-source commands](../illustrations/journey-32gif.svg)
+
+Which commands should keep working while source restoration is pending?
+
+Camera and selection commands execute immediately. The pending operation retains its original target and arguments. A new real edit or Save supersedes earlier pending work; Close, Undo, Redo, Unload Sources and replacement already cancel its authority.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Hold a source response, submit Move, select another object and orbit, then release it. Explain why replay must use the captured object identity but preserve the later selection and camera.
 
 </details>
 
-## Explain the change
-
-Which commands should keep working while source restoration is pending?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Camera and selection commands execute immediately. The pending operation retains its original target and arguments. A new real edit or Save supersedes earlier pending work; Close, Undo, Redo, Unload Sources and replacement already cancel its authority.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32gif-auto
 npm --prefix ../session_tests run course -- save 32gif-auto
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Automatic editable-source restoration obeys command ownership, document-context revocation, original targets, current placement, original precision and ordinary history boundaries.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Automatic editable-source restoration obeys command ownership, document-context revocation, original targets, current placement, original precision and ordinary history boundaries.
 
 Chrome uses held real source responses to check original-target Move and Delete, later selection and camera, one-step Undo, automatic Save download and cancellation. These controlled waits test ordering, not phone performance. Exact source-coordinate preservation remains covered by native Save/replay checks; the following acceptance lesson broadens browser failures and precision.
 

@@ -1,26 +1,14 @@
 # 29c · Prove the saved document reopens faithfully
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 23–46 minutes.** 47 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Check exact local source data, attributes, identities and placement through saving and loading.
-
-**Follow:** Live source and placement → snapshot bytes → load → identical source values and object matrices.
+**Typing: 23–46 minutes.** [Estimate](typing-load.md).
 
 Prove snapshot and load preserve the editable document before adding browser downloading.
 
 Save and reopen a triangle with a double coordinate that rounds in its display, a name, hide/lock flags and translation. Compare original source values exactly; derive display again and keep placement separate.
 
-Then save duplicate imports. Reopened GUIDs must match their stored object GUIDs, including the duplicate's new identity; matrices must match too. Imported sources stay untouched.
+## Type
 
-Compare decoded structure rather than protobuf byte order. Pixels cannot establish source precision or identity. Flags are retained here; drawing and editing policies for hidden/locked objects come later.
-
-![Native round-trip checks compare source values and identity; browser drawing is a separate check.](../illustrations/journey-29c.svg)
-
-## Type the change
-
-Continue from [Reopen source geometry with its placement](29b-placements.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-29c-roundtrip` (from `session_viewer`).
+Continue from [Reopen source geometry with its placement](29b-placements.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/save_roundtrip_tests.rs`
 
@@ -52,9 +40,9 @@ Replace that block with:
 --8<-- "journey/code/29c-roundtrip-02.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -62,7 +50,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the round-trip checks below. Reopened geometry must retain exact doubles, attributes, saved identities and placements. Compare the source values, not the float display.
 
@@ -70,7 +58,7 @@ Run the round-trip checks below. Reopened geometry must retain exact doubles, at
 
 ![Actual browser result: Prove the saved document reopens faithfully.](../screenshots/journey/29c-roundtrip-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -79,43 +67,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Then save duplicate imports. Reopened GUIDs must match their stored object GUIDs, including the duplicate's new identity; matrices must match too. Imported sources stay untouched.
+
+Compare decoded structure rather than protobuf byte order. Pixels cannot establish source precision or identity. Flags are retained here; drawing and editing policies for hidden/locked objects come later.
+
+Live source and placement → snapshot bytes → load → identical source values and object matrices.
+
+![Native round-trip checks compare source values and identity; browser drawing is a separate check.](../illustrations/journey-29c.svg)
+
+What can a screenshot prove about saved precision and identity?
+
+A screenshot proves the drawing, not exact saved doubles or identifiers. Native round-trip checks compare original vertices, names, attributes, GUIDs and matrices. Duplicate-import checks also ensure separate objects survive one saved file even when they came from the same source GUID.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change the exact coordinate to 123456789.125. Predict why the reopened kernel coordinate matches exactly even though the display uses floats. Then inspect corresponding imported copies’ saved GUIDs. Restore the checks.
 
 </details>
 
-## Explain the change
-
-What can a screenshot prove about saved precision and identity?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-A screenshot proves the drawing, not exact saved doubles or identifiers. Native round-trip checks compare original vertices, names, attributes, GUIDs and matrices. Duplicate-import checks also ensure separate objects survive one saved file even when they came from the same source GUID.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 29c-roundtrip
 npm --prefix ../session_tests run course -- save 29c-roundtrip
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The production viewer preserves editable source data through save/reopen and assigns distinct identities to inserted copies. These bounded flat-mesh tests establish that contract before browser downloading or full geometry families.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The production viewer preserves editable source data through save/reopen and assigns distinct identities to inserted copies. These bounded flat-mesh tests establish that contract before browser downloading or full geometry families.
 
 
 

@@ -1,26 +1,14 @@
 # 32ga · Prepare original kernel data without rebuilding its display
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 16–31 minutes.** 36 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Validate an immutable source version and restore its Session into a private reload candidate.
-
-**Follow:** Original bytes → bounded decode/version check → candidate Session → original source-GUID lookup.
+**Typing: 16–31 minutes.** [Estimate](typing-load.md).
 
 Introduce `document::decode` as the common bounded protobuf/schema boundary. Ordinary `load_at` still creates an Origin and prepares display meshes. `document::restore` instead validates the expected immutable byte version, constructs the kernel `Session` and returns its Rc directly.
 
 `PreparedReload` owns one key and one candidate `Session`. It checks each matching row’s original source GUID, name and visibility/locking against the decoded kernel mesh. Missing source identity or metadata drift refuses adoption; retained displays are never treated as editable geometry.
 
-A candidate does not change a row. This separation makes it possible to validate every candidate and history root before mutation. SHA-256 here identifies the immutable selected File; mutable published HTTP source policies remain later work.
+## Type
 
-The ampersand borrows bytes and the Origin for this call. `Result<Rc<Session>, &'static str>` returns either an owned `Session` handle or an error message; the messages are string literals that exist for the whole program. map wraps only a successful `Session` in Rc. A failed candidate cannot change the `Scene` because preparation never receives a mutable `Scene`.
-
-![Validate an immutable source version and restore its `Session` into a private reload candidate.](../illustrations/journey-32ga.svg)
-
-## Type the change
-
-Continue from [Identify the source release a reload belongs to](32g-keys.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32ga-prepare` (from `session_viewer`).
+Continue from [Identify the source release a reload belongs to](32g-keys.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/document.rs`
 
@@ -82,9 +70,9 @@ Replace that block with:
 --8<-- "journey/code/32ga-prepare-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -92,7 +80,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the preparation checks below. Matching immutable bytes produce private source candidates; a wrong version is rejected without restoring any live row.
 
@@ -100,7 +88,7 @@ Run the preparation checks below. Matching immutable bytes produce private sourc
 
 ![Actual browser result: Prepare original kernel data without rebuilding its display.](../screenshots/journey/32ga-prepare-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -109,43 +97,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+A candidate does not change a row. This separation makes it possible to validate every candidate and history root before mutation. SHA-256 here identifies the immutable selected File; mutable published HTTP source policies remain later work.
+
+The ampersand borrows bytes and the Origin for this call. `Result<Rc<Session>, &'static str>` returns either an owned `Session` handle or an error message; the messages are string literals that exist for the whole program. map wraps only a successful `Session` in Rc. A failed candidate cannot change the `Scene` because preparation never receives a mutable `Scene`.
+
+Original bytes → bounded decode/version check → candidate Session → original source-GUID lookup.
+
+![Validate an immutable source version and restore its `Session` into a private reload candidate.](../illustrations/journey-32ga.svg)
+
+Why should reloading editable sources avoid preparing another display mesh?
+
+The displayed rows and GPU buffers are already retained. Reload needs original kernel ownership for editing, not a second float approximation or a new upload. Decode and validate the exact source version, then keep a candidate Session until every affected row is checked.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Follow the difference between load_at and restore. Identify where display conversion occurs, and why the restored candidate should not invoke it.
 
 </details>
 
-## Explain the change
-
-Why should reloading editable sources avoid preparing another display mesh?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The displayed rows and GPU buffers are already retained. Reload needs original kernel ownership for editing, not a second float approximation or a new upload. Decode and validate the exact source version, then keep a candidate Session until every affected row is checked.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32ga-prepare
 npm --prefix ../session_tests run course -- save 32ga-prepare
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production hydration brings back kernel Sessions before editing. This preparation stage restores original source ownership while preserving the current display and placement policy.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production hydration brings back kernel Sessions before editing. This preparation stage restores original source ownership while preserving the current display and placement policy.
 
 The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending.
 

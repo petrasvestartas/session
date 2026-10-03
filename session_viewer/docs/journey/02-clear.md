@@ -1,26 +1,14 @@
 # 02 · Give browser presentation its own function
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 28–56 minutes.** 55 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Separate browser presentation from setup and add bounded sizing and error feedback.
-
-**Follow:** configure within device limits → present(surface, renderer) → independent draw → page feedback.
+**Typing: 28–56 minutes.** [Estimate](typing-load.md).
 
 Keep the white GPU frame and separate its browser presentation into `present`. Setup requests the device and configures the surface; presentation obtains an image, calls `Renderer::draw`, then presents it.
 
 Clamp canvas dimensions to the device’s texture limit, with at least one pixel per axis. This prevents a zero-sized or oversized surface. CSS still determines the visible window area; lesson 20 handles later resizes and display density.
 
-Allow an sRGB texture view and use it for drawing. It converts linear colour values into display encoding. The triangle pipeline added next must use that same view format.
+## Type
 
-`Arc::new` gives wgpu’s error callback a shared owner. The short `|error| ...` closures convert errors into page feedback. `report` exposes startup failures through the existing status element; it adds no feature control.
-
-![The browser owns setup and presentation; the renderer owns the submitted clear.](../illustrations/journey-02.svg)
-
-## Type the change
-
-Continue from [Paint the first GPU frame](01a-gpu.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-02-clear` (from `session_viewer`).
+Continue from [Paint the first GPU frame](01a-gpu.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/lib.rs`
 
@@ -150,9 +138,9 @@ Replace that block with:
 --8<-- "journey/code/02-clear-window-1.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -160,7 +148,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The canvas remains white. Change its clear colour to `r: 0.9, g: 0.9, b: 0.9`: it becomes light grey through the sRGB view. Restore all three values to `1.0`.
 
@@ -168,7 +156,26 @@ The canvas remains white. Change its clear colour to `r: 0.9, g: 0.9, b: 0.9`: i
 
 ![Actual browser result: Give browser presentation its own function.](../screenshots/journey/02-clear-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+Allow an sRGB texture view and use it for drawing. It converts linear colour values into display encoding. The triangle pipeline added next must use that same view format.
+
+`Arc::new` gives wgpu’s error callback a shared owner. The short `|error| ...` closures convert errors into page feedback. `report` exposes startup failures through the existing status element; it adds no feature control.
+
+configure within device limits → present(surface, renderer) → independent draw → page feedback.
+
+![The browser owns setup and presentation; the renderer owns the submitted clear.](../illustrations/journey-02.svg)
+
+What starts the GPU work, and what makes its image appear in the canvas?
+
+queue.submit sends the recorded commands to the GPU. The browser presents its canvas image automatically. We still call frame.present to mark the end of our surface frame through wgpu’s shared API; native surface backends use that call to request presentation.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -177,37 +184,24 @@ Compare width and height with the device limit in run. Explain why a drawing buf
 
 </details>
 
-## Explain the change
-
-What starts the GPU work, and what makes its image appear in the canvas?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-queue.submit sends the recorded commands to the GPU. The browser presents its canvas image automatically. We still call frame.present to mark the end of our surface frame through wgpu’s shared API; native surface backends use that call to request presentation.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 02-clear
 npm --prefix ../session_tests run course -- save 02-clear
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-These owners become the production GPU device setup and presentation modules. The drawing operation stays independent of page lookup. Surface resizing, retry and recovery are later lessons, not hidden in this one.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+These owners become the production GPU device setup and presentation modules. The drawing operation stays independent of page lookup. Surface resizing, retry and recovery are later lessons, not hidden in this one.
 
 The actual opaque white GPU frame is deliberately identical to lesson 01a. This step changes presentation ownership, bounded configuration and error feedback.
 

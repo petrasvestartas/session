@@ -1,26 +1,14 @@
 # 10 · Keep the nearest surface
 
-**Combined study estimate: 2–4 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 28–56 minutes.** 63 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
-
-**Follow:** Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment.
+**Typing: 28–56 minutes.** [Estimate](typing-load.md).
 
 Keep the nearer triangle even when the farther triangle is drawn last. Give pink depth 0.25 and turquoise depth 0.75; draw pink first.
 
 Attach a depth texture alongside colour. Clear depth to 1 and use `Less` with depth writes: a fragment passes only when it is nearer than the stored depth. Its dimensions and sample count must match the colour image.
 
-A vertex now contains position and colour: six `f32` values, 24 bytes. Shader locations 0 and 1 read those two groups. The vertex shader passes colour to the fragment shader.
+## Type
 
-The browser supplies the startup dimensions to `renderer.resize`. Later resize handling updates both attachments. This depth rule handles opaque visibility; transparency comes later.
-
-![Two fragments compete at one pixel; the depth test keeps 0.25 and rejects the later fragment at 0.75.](../illustrations/journey-10.svg)
-
-## Type the change
-
-Continue from [Let one matrix describe the view](09-matrices.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-10-depth` (from `session_viewer`).
+Continue from [Let one matrix describe the view](09-matrices.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/triangle.wgsl`
 
@@ -257,9 +245,9 @@ Replace that block with:
 --8<-- "journey/code/10-depth-window-2.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -267,7 +255,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Look at the overlapping triangles. The nearer triangle must cover the farther one even though it is drawn first. Reverse their draw order: the overlap should stay the same. Restore the order.
 
@@ -275,7 +263,7 @@ Look at the overlapping triangles. The nearer triangle must cover the farther on
 
 ![Actual browser result: Keep the nearest surface.](../screenshots/journey/10-depth-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -284,37 +272,52 @@ cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+A vertex now contains position and colour: six `f32` values, 24 bytes. Shader locations 0 and 1 read those two groups. The vertex shader passes colour to the fragment shader.
+
+The browser supplies the startup dimensions to `renderer.resize`. Later resize handling updates both attachments. This depth rule handles opaque visibility; transparency comes later.
+
+Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment.
+
+![Two fragments compete at one pixel; the depth test keeps 0.25 and rejects the later fragment at 0.75.](../illustrations/journey-10.svg)
+
+Why is it not enough to draw the far triangle first?
+
+A particular draw order might work for these two flat triangles, but a real scene can overlap differently from each viewpoint. A depth attachment remembers the nearest depth at each pixel. The comparison chooses visibility there, so drawing an opaque farther surface later does not cover a nearer one.
+
+Study estimate, including typing and experiments: 2–4 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Temporarily change the near triangle’s three z values from 0.25 to 0.9. Predict which colour will appear at the shared centre. Turquoise should now win. Restore the values, then reverse the two groups of indices: the picture should stay the same. Restore the original order before comparing.
 
 </details>
 
-## Explain the change
-
-Why is it not enough to draw the far triangle first?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-A particular draw order might work for these two flat triangles, but a real scene can overlap differently from each viewpoint. A depth attachment remembers the nearest depth at each pixel. The comparison chooses visibility there, so drawing an opaque farther surface later does not cover a nearer one.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 10-depth
 npm --prefix ../session_tests run course -- save 10-depth
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 The finished viewer uses depth attachments for opaque visibility, then adds the rules needed for strokes, CAD boundaries and transparency. This lesson establishes why those rules must refer to visible surfaces rather than draw order.
+
+
+
+[Full validation scope](release.md).
 
 </details>

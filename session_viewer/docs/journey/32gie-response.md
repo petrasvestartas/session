@@ -1,22 +1,14 @@
 # 32gie · Deliver restored edit and Save results to the dock
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 14–27 minutes.** 23 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Route validated scene edits and original-precision downloads back to the captured command history.
-
-**Follow:** Current completion → captured command name → complete → Changed or Saved → dock answer.
+**Typing: 14–27 minutes.** [Estimate](typing-load.md).
 
 The browser receiver now calls complete instead of hydrating only the body. It records the command name from the captured intent before consuming the reply. Changed synchronizes the renderer; Saved downloads the bytes produced by the original-precision snapshot. A stale None does nothing. Errors use the same original command name.
 
 Explicit Reload Sources still uses None intent and keeps its existing success message. save_result converts either the browser download failure or its success into one dock message. Actual automatic commands are connected next; this checkpoint prepares their result handling.
 
-![Deliver the captured command result](../illustrations/journey-32gie.svg)
+## Type
 
-## Type the change
-
-Continue from [Validate restoration before replaying the command](32gid-complete.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gie-response` (from `session_viewer`).
+Continue from [Validate restoration before replaying the command](32gid-complete.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/edit_intent.rs`
 
@@ -85,9 +77,9 @@ Replace that block with:
 --8<-- "journey/code/32gie-response-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -95,7 +87,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Build and run the viewer. Explicit `Reload Sources` still restores without an Undo step; the browser can now consume scene or Save replies. Automatic command routing follows next.
 
@@ -103,7 +95,7 @@ Build and run the viewer. Explicit `Reload Sources` still restores without an Un
 
 ![Actual browser result: Deliver restored edit and Save results to the dock.](../screenshots/journey/32gie-response-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -112,43 +104,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+
+
+Current completion → captured command name → complete → Changed or Saved → dock answer.
+
+![Deliver the captured command result](../illustrations/journey-32gie.svg)
+
+Why is the command name read from the reply before completion consumes it?
+
+The reply owns the operation submitted before fetching. Later selection and typing do not identify that operation. Completion consumes its source bodies and intent, so capture the name first.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Use the current command field as the completion label. Type a camera command while a fetch is held and explain why that label would attach the result to the wrong operation.
 
 </details>
 
-## Explain the change
-
-Why is the command name read from the reply before completion consumes it?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The reply owns the operation submitted before fetching. Later selection and typing do not identify that operation. Completion consumes its source bodies and intent, so capture the name first.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32gie-response
 npm --prefix ../session_tests run course -- save 32gie-response
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Asynchronous result ownership follows the submitted operation; neither the latest input nor later selection renames the completed command.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Asynchronous result ownership follows the submitted operation; neither the latest input nor later selection renames the completed command.
 
 Native completion checks still exercise captured Move/Delete/Save and stale or failed restoration. Chrome exercises explicit restoration through this new receiver, including the inherited fetch and cancellation checks. It does not yet claim an automatic browser edit.
 

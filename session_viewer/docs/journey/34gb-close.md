@@ -1,24 +1,14 @@
 # 34gb · Mark a final healthy run closed
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 22–44 minutes.** 47 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Persist a healthy final exit as closed while preserving first-failure evidence and every observation.
-
-**Follow:** real UTC/context → close healthy outcome or retain failure → release borrow → metadata-only persistence.
+**Typing: 22–44 minutes.** [Estimate](typing-load.md).
 
 Mark a healthy run Closed when it finally ends. Keep Failed and its original fatal reason. A cached page has not ended and must not call this operation.
 
 `close` first validates its timestamp through heartbeat, then changes the healthy outcome. Invalid text leaves the whole value untouched. Guard the ready milestone too: a delayed success must not reopen a Closed report.
 
-The browser wrapper refreshes UTC/context and persists after ending its short metadata borrow. It does no GPU work. Automatic page-exit hooks come next; closing metadata does not cancel an outstanding GPU request.
+## Type
 
-![Final close preserves failure evidence](../illustrations/journey-34gb.svg)
-
-## Type the change
-
-Continue from [Own the periodic diagnostic heartbeat](34ga-timer.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34gb-close` (from `session_viewer`).
+Continue from [Own the periodic diagnostic heartbeat](34ga-timer.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/diagnostic.rs`
 
@@ -125,9 +115,9 @@ Replace that block with:
 --8<-- "journey/code/34gb-close-06.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -135,7 +125,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the close checks below. Closing a healthy report marks it Closed; closing a Failed report preserves its first fatal reason. A late ready milestone must not reopen Closed.
 
@@ -143,7 +133,7 @@ Run the close checks below. Closing a healthy report marks it Closed; closing a 
 
 ![Actual browser result: Mark a final healthy run closed.](../screenshots/journey/34gb-close-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -152,43 +142,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The browser wrapper refreshes UTC/context and persists after ending its short metadata borrow. It does no GPU work. Automatic page-exit hooks come next; closing metadata does not cancel an outstanding GPU request.
+
+real UTC/context → close healthy outcome or retain failure → release borrow → metadata-only persistence.
+
+![Final close preserves failure evidence](../illustrations/journey-34gb.svg)
+
+Why must a failed run remain failed when its page later closes?
+
+Closing the page says the lifetime ended. It does not repair the error. Keeping Failed and its original fatal timestamp preserves useful evidence and prevents a later close from making the run look healthy.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Compare closing a Ready report and a Failed report. Explain why a persisted pagehide must not call this operation.
 
 </details>
 
-## Explain the change
-
-Why must a failed run remain failed when its page later closes?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Closing the page says the lifetime ended. It does not repair the error. Keeping Failed and its original fatal timestamp preserves useful evidence and prevents a later close from making the run look healthy.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 34gb-close
 npm --prefix ../session_tests run course -- save 34gb-close
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production distinguishes healthy final exits from interrupted or failed runs. The course now has the native policy and real metadata persistence; automatic lifecycle observations and owned cancellation follow. Pending GPU-startup cancellation is a separate remaining acceptance: preserving Closed does not cancel an adapter/device promise or stop a late renderer from installing.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production distinguishes healthy final exits from interrupted or failed runs. The course now has the native policy and real metadata persistence; automatic lifecycle observations and owned cancellation follow. Pending GPU-startup cancellation is a separate remaining acceptance: preserving Closed does not cancel an adapter/device promise or stop a late renderer from installing.
 
 Chrome checks Closed and the actual saved JSON on a ready viewer, a real late milestone that leaves Closed intact, unchanged drawing/placement/selection/camera/history/geometry counters, and unchanged first failure/events after real device destruction. It reloads the same test page to restore a healthy final proof view. Automatic suspension/resumption, interval cancellation and listener disposal follow.
 

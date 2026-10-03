@@ -19,6 +19,8 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Check the revised page layout and visible progress links in the same Chrome tab.
 - [x] Review every current main explanation against the same direct teaching style.
 - [x] Replace 100 long or generic code instructions with the exact action, in at most 25 words.
+- [x] Apply a direct page layout to all 124 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
 - [ ] Split the 14 checkpoints that exceed one hour of typing into runnable steps.
 - [ ] Write and verify the 69 currently planned feature lessons below.
@@ -29,7 +31,7 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 14 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
 - [x] Audit the added/changed code in all 124 current checkpoints, excluding unchanged context.
-- [x] Display separate typing and combined study estimates at each checkpoint’s top.
+- [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
 - [ ] Publish each completed lesson and refresh the same existing Chrome tutorial tab, preserving the reader’s current lesson.

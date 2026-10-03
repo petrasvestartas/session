@@ -1,24 +1,14 @@
 # 04 · Make a choice change the picture
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 12–24 minutes.** 38 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Use a command to switch backgrounds without changing the triangle.
-
-**Follow:** Typed Background → Panel returns a line → Background toggles → Renderer redraws.
+**Typing: 12–24 minutes.** [Estimate](typing-load.md).
 
 We can already type in the viewer’s own command line. Today one submitted word changes the picture. Type Background and press Enter: one boolean flips, and the existing renderer draws again.
 
 The browser owns Background beside Panel and Renderer. Panel reads the line; Background owns the choice; Renderer turns that choice into pixels. No new device or pipeline is created when you run the command.
 
-![The command changes one background value, then redraws with the existing renderer.](../illustrations/journey-04.svg)
+## Type
 
-`Option<String>` means a submitted line may or may not be present. Most events only move a caret or update completion. Only the recognised Background line changes the background. The match reads that result without inventing a second input path.
-
-## Type the change
-
-Continue from [Type into the real command dock](03d-input.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-04-input` (from `session_viewer`).
+Continue from [Type into the real command dock](03d-input.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/background.rs`
 
@@ -218,9 +208,9 @@ Replace that block with:
 --8<-- "journey/code/04-input-window-4.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -228,7 +218,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Background` twice. The first command changes the background; the second restores white. The triangle keeps the same shape and position.
 
@@ -236,7 +226,24 @@ Type `Background` twice. The first command changes the background; the second re
 
 ![Actual browser result: Make a choice change the picture.](../screenshots/journey/04-input-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+`Option<String>` means a submitted line may or may not be present. Most events only move a caret or update completion. Only the recognised Background line changes the background. The match reads that result without inventing a second input path.
+
+Typed Background → Panel returns a line → Background toggles → Renderer redraws.
+
+![The command changes one background value, then redraws with the existing renderer.](../illustrations/journey-04.svg)
+
+Does submitting Background create a new GPU pipeline?
+
+No. The browser keeps the existing Renderer and changes one boolean in Background. The next draw reuses the device, queue and pipeline.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -245,33 +252,29 @@ Before submitting Background twice, predict the final picture. Then trace the on
 
 </details>
 
-## Explain the change
-
-Does submitting Background create a new GPU pipeline?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. The browser keeps the existing Renderer and changes one boolean in Background. The next draw reuses the device, queue and pipeline.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 04-input
 npm --prefix ../session_tests run course -- save 04-input
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 In the full viewer, input similarly requests a change before a new frame reads the result. This background is view state, not geometry. Moving an object will instead change the document and refresh its display data.
 
 This uses the production dock and styling. Background is a course practice command; later chapters build the production vocabulary. The command names below each checkpoint tell you exactly what it currently accepts.
+
+
+
+[Full validation scope](release.md).
 
 </details>

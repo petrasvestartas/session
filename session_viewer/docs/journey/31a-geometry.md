@@ -1,26 +1,14 @@
 # 31a · Give immutable GPU geometry one owner
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 19–38 minutes.** 48 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Separate vertex/index storage from each object’s uniform and retain its CPU source.
-
-**Follow:** CPU display Rc → GPU geometry Rc → object row with its own uniform → draw.
+**Typing: 19–38 minutes.** [Estimate](typing-load.md).
 
 A GPU row currently owns vertices, indices and placement together. Extract the immutable part into GpuGeometry. It retains the exact CPU-display Rc<Mesh> that produced its buffers; that owner will also make identity safe when we introduce the cache.
 
-![Several object rows can own one geometry allocation while retaining separate uniforms.](../illustrations/journey-31a.svg)
-
 GpuMesh becomes one object’s draw state: a shared geometry owner and its own bind group. with_geometry accepts an existing geometry owner, while upload remains a convenient wrapper that creates one. The renderer still calls upload independently at this endpoint. Automatic reuse arrives next.
 
-Follow the two draws. GpuMesh binds its object settings at group one, then GpuGeometry binds its vertex and index buffers. The render pass borrows both; it does not consume either.
+## Type
 
-The native GPU check constructs two rows from one geometry owner with different placement and selection. It checks shared allocation identity and release before drawing the ordinary lesson scene, whose independently selected rows verify the uniform boundary. This proves the ownership boundary, not automatic scene instancing; the later definition/instance lessons supply that document model.
-
-## Type the change
-
-Continue from [Keep selection out of the vertex data](31-settings.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-31a-geometry` (from `session_viewer`).
+Continue from [Keep selection out of the vertex data](31-settings.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/gpu_geometry.rs`
 
@@ -167,9 +155,9 @@ Replace that block with:
 --8<-- "journey/code/31a-geometry-07.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -177,7 +165,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the GPU ownership checks below. Two object rows sharing a display must share vertex/index storage while keeping separate uniforms.
 
@@ -185,7 +173,7 @@ Run the GPU ownership checks below. Two object rows sharing a display must share
 
 ![Actual browser result: Give immutable GPU geometry one owner.](../screenshots/journey/31a-geometry-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -194,43 +182,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Follow the two draws. GpuMesh binds its object settings at group one, then GpuGeometry binds its vertex and index buffers. The render pass borrows both; it does not consume either.
+
+The native GPU check constructs two rows from one geometry owner with different placement and selection. It checks shared allocation identity and release before drawing the ordinary lesson scene, whose independently selected rows verify the uniform boundary. This proves the ownership boundary, not automatic scene instancing; the later definition/instance lessons supply that document model.
+
+CPU display Rc → GPU geometry Rc → object row with its own uniform → draw.
+
+![Several object rows can own one geometry allocation while retaining separate uniforms.](../illustrations/journey-31a.svg)
+
+What does cloning Rc<GpuGeometry> copy?
+
+It adds an owner of the same geometry allocation. It does not upload another vertex or index buffer. Each GPU row still owns an independent placement/selection uniform, so objects can share geometry without sharing their settings.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Follow Rc::clone from a geometry owner into two GPU rows. Predict the strong owner count after the local owner is dropped and after each row is dropped. Do not confuse that count with a byte count.
 
 </details>
 
-## Explain the change
-
-What does cloning Rc<GpuGeometry> copy?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-It adds an owner of the same geometry allocation. It does not upload another vertex or index buffer. Each GPU row still owns an independent placement/selection uniform, so objects can share geometry without sharing their settings.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 31a-geometry
 npm --prefix ../session_tests run course -- save 31a-geometry
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This is the ownership boundary needed for cached uploads and later definition instances. Production packed arenas and large-scene performance remain later work.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This is the ownership boundary needed for cached uploads and later definition instances. Production packed arenas and large-scene performance remain later work.
 
 
 

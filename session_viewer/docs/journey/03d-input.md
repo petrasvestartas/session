@@ -1,28 +1,16 @@
 # 03d · Type into the real command dock
 
-**Combined study estimate: 5–8 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 68–136 minutes.** 149 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 68–136 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Send browser events to the dock and submit Help.
-
-**Follow:** Browser → Panel → CommandLine → layout → existing GPU.
 
 Translate browser keys into egui events so the real dock accepts `Help` and Enter. A printable key first requests text focus, then supplies its text. Clicking the drawing releases focus. This preserves the first letter and creates no keyboard feature shortcuts.
 
 Follow `KeyboardEvent → egui Text → CommandLine → layout`. Enter returns a submitted line; the vocabulary handles it and appends its answer. A consumed event belongs to the dock, so navigation must ignore it.
 
-The second layout receives no event: it draws the cleared field and new answer. `FullOutput.append` retains earlier texture uploads with the latest shapes.
+## Type
 
-`Result<Option<String>, JsValue>` means an error, no submission, or one submitted line. `dyn_ref` borrows a matching event type. The `move` callback keeps its owners alive; canvas `tabindex` enables browser focus.
-
-![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03d.svg)
-
-## Type the change
-
-Continue from [Draw completion and history](03c-layout.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03d-input` (from `session_viewer`).
+Continue from [Draw completion and history](03c-layout.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/panel.rs`
 
@@ -146,9 +134,9 @@ Replace that block with:
 --8<-- "journey/code/03d-input-window-2.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -156,7 +144,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Help` and press Enter. The field clears and one reply appears in history. Click the canvas and type again: the first character must reach the command field.
 
@@ -164,7 +152,26 @@ Type `Help` and press Enter. The field clears and one reply appears in history. 
 
 ![Actual browser result: Type into the real command dock.](../screenshots/journey/03d-input-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+The second layout receives no event: it draws the cleared field and new answer. `FullOutput.append` retains earlier texture uploads with the latest shapes.
+
+`Result<Option<String>, JsValue>` means an error, no submission, or one submitted line. `dyn_ref` borrows a matching event type. The `move` callback keeps its owners alive; canvas `tabindex` enables browser focus.
+
+Browser → Panel → CommandLine → layout → existing GPU.
+
+![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03d.svg)
+
+Why do we lay out again without replaying the event?
+
+Submitting a line changes the field and history after the first layout. An empty-input update draws that new state while processing the key exactly once.
+
+Study estimate, including typing and experiments: 5–8 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -173,37 +180,24 @@ Type an unknown word and press Enter. The dock should explain that it is unknown
 
 </details>
 
-## Explain the change
-
-Why do we lay out again without replaying the event?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Submitting a line changes the field and history after the first layout. An empty-input update draws that new state while processing the key exactly once.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 03d-input
 npm --prefix ../session_tests run course -- save 03d-input
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
 
 Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.
 

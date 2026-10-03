@@ -1,24 +1,14 @@
 # 34d · Download diagnostics through the real command line
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 13–26 minutes.** 26 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Download a current ready-run report with Diagnostic Report and attempt one independent first-failure download after GPU disposal.
-
-**Follow:** first scene presented → ready report → typed Diagnostic Report → JSON Blob → actual download → delayed URL cleanup.
+**Typing: 13–26 minutes.** [Estimate](typing-load.md).
 
 Add `Diagnostic Report` to the command dock. It downloads the current metadata as `viewer-diagnostic.json`. The first presented scene records a geometry-on-screen milestone and marks a healthy run Ready.
 
 Finish serializing before clicking the temporary download anchor. This releases the report’s `RefCell` borrow before browser behavior can call back into Rust. The existing download owner revokes its Blob URL after ten seconds.
 
-A GPU failure first stops its matching runtime, then records the fatal reason and attempts one report download. Startup failures are recorded too when metadata initialization succeeded. Browsers may block automatic downloads; storing a report for later retrieval comes next. `Save` still writes the editable document and neither download consumes Undo.
+## Type
 
-![Command and fatal report downloads](../illustrations/journey-34d.svg)
-
-## Type the change
-
-Continue from [Read live diagnostic context outside the GPU runtime](34c-browser.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34d-download` (from `session_viewer`).
+Continue from [Read live diagnostic context outside the GPU runtime](34c-browser.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/file_output.rs`
 
@@ -176,9 +166,9 @@ Replace that block with:
 --8<-- "journey/code/34d-download-08.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -186,7 +176,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Diagnostic Report` and open `viewer-diagnostic.json`. A drawn scene should have outcome `ready` and a geometry-on-screen event. The document and Undo history stay unchanged.
 
@@ -194,7 +184,7 @@ Type `Diagnostic Report` and open `viewer-diagnostic.json`. A drawn scene should
 
 ![Actual browser result: Download diagnostics through the real command line.](../screenshots/journey/34d-download-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -203,43 +193,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+A GPU failure first stops its matching runtime, then records the fatal reason and attempts one report download. Startup failures are recorded too when metadata initialization succeeded. Browsers may block automatic downloads; storing a report for later retrieval comes next. `Save` still writes the editable document and neither download consumes Undo.
+
+first scene presented → ready report → typed Diagnostic Report → JSON Blob → actual download → delayed URL cleanup.
+
+![Command and fatal report downloads](../illustrations/journey-34d.svg)
+
+Why can the failed viewer download a report after GPU input and drawing have stopped?
+
+The independent report owns metadata only. JSON serialization and the existing Blob/anchor download need no GPU resources, so disposal can stop the renderer without destroying its evidence.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Keep the report inside the GPU Runtime and explain why the fatal download would lose it. Then compare the actual document Save and diagnostic downloads and explain why they cannot be used interchangeably.
 
 </details>
 
-## Explain the change
-
-Why can the failed viewer download a report after GPU input and drawing have stopped?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The independent report owns metadata only. JSON serialization and the existing Blob/anchor download need no GPU resources, so disposal can stop the renderer without destroying its evidence.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 34d-download
 npm --prefix ../session_tests run course -- save 34d-download
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production exposes Diagnostic Report through the command dock and attempts an automatic first-failure report download. This endpoint establishes current/fatal downloads. Persisted reports, detailed adapter/load/resource telemetry and bounded automatic recovery remain future work.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production exposes Diagnostic Report through the command dock and attempts an automatic first-failure report download. This endpoint establishes current/fatal downloads. Persisted reports, detailed adapter/load/resource telemetry and bounded automatic recovery remain future work.
 
 Chrome types Diagnostic Report and reads the actual JSON download. It verifies ready context and milestone timing, unchanged placement/camera/history/GPU counters, then confirms Move Undo still works. It destroys the real GPUDevice, captures the actual failed download, checks the first reason, unchanged message after repeated input and no further GPU work. A startup adapter rejection produces a failed report without a runtime. Normal same-tab reload restarts the working viewer.
 

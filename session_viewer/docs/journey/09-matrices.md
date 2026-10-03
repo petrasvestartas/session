@@ -1,26 +1,14 @@
 # 09 · Let one matrix describe the view
 
-**Combined study estimate: 2–4 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 12–23 minutes.** 30 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Rotate the flat view using a matrix, ready for the third dimension.
-
-**Follow:** Camera centre, angle and scale → four matrix columns → uniform buffer → matrix × world position.
+**Typing: 12–23 minutes.** [Estimate](typing-load.md).
 
 Replace separate scale and offset uniforms with one matrix so the view can also rotate. The geometry and draw pipeline remain the same.
 
 Read the four columns as transformed x, y and z steps, followed by the transformed origin. A position combines them using x, y, z and a final 1.
 
-For camera angle θ, use `a = scale × cos(θ)` and `b = scale × sin(θ)`. Screen coordinates become `(a×x + b×y, −b×x + a×y)` plus translation. Subtract the rotated, scaled camera centre so that centre still lands at zero.
+## Type
 
-WGSL reads four consecutive `vec4<f32>` columns: 64 bytes. Rust supplies floats in that column order. The rotation test catches an incorrect translation column.
-
-![The matrix columns describe transformed x, y and z steps and the translated origin; their weighted sum gives a screen position.](../illustrations/journey-09.svg)
-
-## Type the change
-
-Continue from [Move the view, keep the geometry](08-camera.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-09-matrices` (from `session_viewer`).
+Continue from [Move the view, keep the geometry](08-camera.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/camera.rs`
 
@@ -288,9 +276,9 @@ Replace that block with:
 --8<-- "journey/code/09-matrices-window-4.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -298,7 +286,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Orbit Right`. The diamond rotates by 45 degrees. Type `View Reset` to restore its angle. The vertex buffer stays unchanged.
 
@@ -306,7 +294,7 @@ Type `Orbit Right`. The diamond rotates by 45 degrees. Type `View Reset` to rest
 
 ![Actual browser result: Let one matrix describe the view.](../screenshots/journey/09-matrices-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -315,37 +303,52 @@ cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+For camera angle θ, use `a = scale × cos(θ)` and `b = scale × sin(θ)`. Screen coordinates become `(a×x + b×y, −b×x + a×y)` plus translation. Subtract the rotated, scaled camera centre so that centre still lands at zero.
+
+WGSL reads four consecutive `vec4<f32>` columns: 64 bytes. Rust supplies floats in that column order. The rotation test catches an incorrect translation column.
+
+Camera centre, angle and scale → four matrix columns → uniform buffer → matrix × world position.
+
+![The matrix columns describe transformed x, y and z steps and the translated origin; their weighted sum gives a screen position.](../illustrations/journey-09.svg)
+
+Which matrix column moves a point, and why does its input position end with a 1?
+
+The fourth column contains translation. Multiplication adds that column multiplied by the input’s last component. A position ends with 1, so translation affects it. A direction would end with 0, so translation would not move it. The first three columns describe how the coordinate axes are transformed.
+
+Study estimate, including typing and experiments: 2–4 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Pan Right, then turn the view. Predict where the origin will appear before you run it. Reset, turn twice, and locate the original right-hand corner: a 90-degree camera turn places it below the centre. The position buffer must remain unchanged throughout.
 
 </details>
 
-## Explain the change
-
-Which matrix column moves a point, and why does its input position end with a 1?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The fourth column contains translation. Multiplication adds that column multiplied by the input’s last component. A position ends with 1, so translation affects it. A direction would end with 0, so translation would not move it. The first three columns describe how the coordinate axes are transformed.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 09-matrices
 npm --prefix ../session_tests run course -- save 09-matrices
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 Frame uniforms in the complete renderer carry view and projection matrices. Reading a matrix as transformed axes plus an origin helps diagnose a transposed upload, a wrong multiplication order or geometry that drifts while orbiting.
+
+
+
+[Full validation scope](release.md).
 
 </details>

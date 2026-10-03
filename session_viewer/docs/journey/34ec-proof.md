@@ -1,24 +1,14 @@
 # 34ec · Prove saved-run exclusions before adopting storage
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 13–26 minutes.** 19 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download.
-
-**Follow:** candidate → invalid clock/healthy state/incorrect chronology → excluded without mutation.
+**Typing: 13–26 minutes.** [Estimate](typing-load.md).
 
 Complete the previous-run policy with rejected examples. Use a fixed clock to test invalid timestamps, reversed start/heartbeat order, and a failure dated before its run.
 
 Ready and Closed must never produce interruption evidence. Compare the report before and after selection: eligibility reads its metadata without changing it.
 
-This step adds the boundary checks. The browser storage reader is connected next.
+## Type
 
-![Exclude false interruption evidence](../illustrations/journey-34ec.svg)
-
-## Type the change
-
-Continue from [Choose a recent failure without blaming active tabs](34eb-recency.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34ec-proof` (from `session_viewer`).
+Continue from [Choose a recent failure without blaming active tabs](34eb-recency.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/report_recency_tests.rs`
 
@@ -65,9 +55,9 @@ Replace that block with:
 --8<-- "journey/code/34ec-proof-01.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -75,7 +65,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the exclusion checks below. Ready/Closed reports and invalid clocks must remain ineligible, with the input report unchanged.
 
@@ -83,7 +73,7 @@ Run the exclusion checks below. Ready/Closed reports and invalid clocks must rem
 
 ![Actual browser result: Prove saved-run exclusions before adopting storage.](../screenshots/journey/34ec-proof-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -92,43 +82,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+This step adds the boundary checks. The browser storage reader is connected next.
+
+candidate → invalid clock/healthy state/incorrect chronology → excluded without mutation.
+
+![Exclude false interruption evidence](../illustrations/journey-34ec.svg)
+
+Why test healthy and invalid-clock cases before wiring the policy to localStorage?
+
+The browser will see values from other tabs and old or edited storage. A false interruption notice is visible user behavior, so exclusions need explicit acceptance before adoption.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Make the default outcome branch return a score for Ready, then run the tests and describe the false notice. Make the parser return NaN for the failure and explain why comparison/ranking must reject it.
 
 </details>
 
-## Explain the change
-
-Why test healthy and invalid-clock cases before wiring the policy to localStorage?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The browser will see values from other tabs and old or edited storage. A false interruption notice is visible user behavior, so exclusions need explicit acceptance before adoption.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 34ec-proof
 npm --prefix ../session_tests run course -- save 34ec-proof
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Previous-report notices must avoid blaming a live or healthy tab and must reject invalid chronology. These native exclusions complete the policy acceptance before browser storage is connected.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Previous-report notices must avoid blaming a live or healthy tab and must reject invalid chronology. These native exclusions complete the policy acceptance before browser storage is connected.
 
 Native tests reject invalid current clocks, failed timestamp parsing, start after heartbeat and a first failure before start. Ready and closed runs remain quiet. The same report compares equal before and after policy evaluation: selection reads metadata without altering its evidence. Browser Date.parse and storage are still connected next.
 

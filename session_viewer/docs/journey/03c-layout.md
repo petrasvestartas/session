@@ -1,26 +1,16 @@
 # 03c · Draw completion and history
 
-**Combined study estimate: 8–12 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 270–540 minutes.** 630 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 270–540 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Lay out the production command dock from its model.
-
-**Follow:** Browser → Panel → CommandLine → layout → existing GPU.
 
 Draw the dock's history, command field and completion list from `CommandLine`. A preloaded history sentence makes the expanded layout visible. Browser keyboard events arrive in the next lesson.
 
 Follow one path first: Enter takes the line from the model and returns it to the caller. Then read completion: `browse` moves through suggestions, and `inline_suffix` selects the suggested ending so the next letter can replace it.
 
-`Commands` is a trait listing the vocabulary operations the dock needs. The application implements it; layout can request suggestions without owning a document or camera. `&mut` lends the existing model to layout for updates. The return value requests canvas focus when editing ends.
+## Type
 
-![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03c.svg)
-
-## Type the change
-
-Continue from [Prepare the dock completion helpers](03b-state.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03c-layout` (from `session_viewer`).
+Continue from [Prepare the dock completion helpers](03b-state.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/command_dock/mod.rs`
 
@@ -214,9 +204,9 @@ Replace that block with:
 --8<-- "journey/code/03c-layout-direct-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -224,7 +214,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The dock now draws its field, completion and history from the model. Resize the window: the dock should remain attached to the bottom of the drawing.
 
@@ -232,7 +222,24 @@ The dock now draws its field, completion and history from the model. Resize the 
 
 ![Actual browser result: Draw completion and history.](../screenshots/journey/03c-layout-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+`Commands` is a trait listing the vocabulary operations the dock needs. The application implements it; layout can request suggestions without owning a document or camera. `&mut` lends the existing model to layout for updates. The return value requests canvas focus when editing ends.
+
+Browser → Panel → CommandLine → layout → existing GPU.
+
+![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03c.svg)
+
+Who decides which commands exist?
+
+The application’s Commands implementation supplies names and completion choices. The dock edits and displays text, then returns a submitted line. It does not create geometry.
+
+Study estimate, including typing and experiments: 8–12 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -241,37 +248,24 @@ Set command_expanded to false, run, and compare the folded panel. Restore true. 
 
 </details>
 
-## Explain the change
-
-Who decides which commands exist?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The application’s Commands implementation supplies names and completion choices. The dock edits and displays text, then returns a submitted line. It does not create geometry.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 03c-layout
 npm --prefix ../session_tests run course -- save 03c-layout
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
 
 Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.
 

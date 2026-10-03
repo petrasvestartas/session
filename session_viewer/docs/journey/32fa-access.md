@@ -1,26 +1,14 @@
 # 32fa · Ask whether an editable source is available
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 14–27 minutes.** 22 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Route saving, source accounting and owner checks through borrowed source accessors.
-
-**Follow:** Scene row → Option of borrowed editable geometry/provenance → checked source consumers.
+**Typing: 14–27 minutes.** [Estimate](typing-load.md).
 
 Introduce `geometry()` and `source()` before making source storage optional. Both return borrowed optional owners. At this stage every row still has geometry; generated rows have no imported-session provenance.
 
 Save uses `geometry().ok_or(...)` and `?` to return a clear error if geometry is missing. It never substitutes derived float display vertices for the editable source.
 
-Accounting visits only available kernel and session owners while counting rows and displays independently. Migrate ownership checks to the same accessors; fixture `unwrap` asserts a known loaded source, while application Save returns `Result`.
+## Type
 
-Fields remain public during this migration. The next lesson completes it and prevents bypassing the access boundary.
-
-![Save and source accounting borrow available owners; drawing continues to use its display mesh.](../illustrations/journey-32fa.svg)
-
-## Type the change
-
-Continue from [Keep row metadata separate from editable geometry](32f-metadata.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fa-access` (from `session_viewer`).
+Continue from [Keep row metadata separate from editable geometry](32f-metadata.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/scene.rs`
 
@@ -245,9 +233,9 @@ Replace that block with:
 --8<-- "journey/code/32fa-access-08.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -255,7 +243,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the source-access checks below. Saving and accounting borrow the available source through its accessor rather than owning another copy.
 
@@ -263,7 +251,7 @@ Run the source-access checks below. Saving and accounting borrow the available s
 
 ![Actual browser result: Ask whether an editable source is available.](../screenshots/journey/32fa-access-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -272,43 +260,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Accounting visits only available kernel and session owners while counting rows and displays independently. Migrate ownership checks to the same accessors; fixture `unwrap` asserts a known loaded source, while application Save returns `Result`.
+
+Fields remain public during this migration. The next lesson completes it and prevents bypassing the access boundary.
+
+Scene row → Option of borrowed editable geometry/provenance → checked source consumers.
+
+![Save and source accounting borrow available owners; drawing continues to use its display mesh.](../illustrations/journey-32fa.svg)
+
+Does Option<&Rc<Mesh>> add another mesh owner?
+
+No. It borrows the Rc stored by the row. Merely asking for a source neither clones the owner nor copies the geometry. Some indicates an available editable source; the later unloaded state returns None. Saving must handle that absence rather than serializing drawing floats.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Compare Rc::clone(row.geometry().unwrap()) with merely calling row.geometry(). Predict which expression adds a strong owner and how that affects a later Weak release check.
 
 </details>
 
-## Explain the change
-
-Does Option<&Rc<Mesh>> add another mesh owner?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. It borrows the Rc stored by the row. Merely asking for a source neither clones the owner nor copies the geometry. Some indicates an available editable source; the later unloaded state returns None. Saving must handle that absence rather than serializing drawing floats.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32fa-access
 npm --prefix ../session_tests run course -- save 32fa-access
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Source release needs an explicit absence state and reload ownership. These borrowed accessors prepare that state without changing renderer geometry or weakening the save format.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Source release needs an explicit absence state and reload ownership. These borrowed accessors prepare that state without changing renderer geometry or weakening the save format.
 
 
 

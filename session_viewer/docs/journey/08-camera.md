@@ -1,24 +1,14 @@
 # 08 · Move the view, keep the geometry
 
-**Combined study estimate: 2–3 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 25–50 minutes.** 93 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Pan, zoom and reset a flat view through camera state.
-
-**Follow:** command → camera centre or scale → four uniform values → existing renderer → unchanged mesh in a different view.
+**Typing: 25–50 minutes.** [Estimate](typing-load.md).
 
 Give view state its own `Camera`: a centre and scale. Typed pan and zoom commands update it, then redraw with the existing geometry.
 
 The camera formula is `(position - center) * scale`. Our shader already accepts scale and offset, so supply `offset = -center * scale`. With centre 0.25 and scale 2, offset −0.5 puts world x = 0.25 at screen x = 0.
 
-The browser translates a submitted command into camera changes. The renderer receives four numbers and does not know how the user chose them. Camera tests verify the centre stays fixed during zoom and reject invalid or out-of-range scale.
+## Type
 
-![commands change camera state; the camera calculates uniforms while the vertex and index buffers remain unchanged.](../illustrations/journey-08.svg)
-
-## Type the change
-
-Continue from [Send one view setting to every corner](07-uniforms.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-08-camera` (from `session_viewer`).
+Continue from [Send one view setting to every corner](07-uniforms.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/camera.rs`
 
@@ -159,9 +149,9 @@ Replace that block with:
 --8<-- "journey/code/08-camera-window-4.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -169,7 +159,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Zoom Out`, then `View Reset`. The diamond shrinks, then returns to its initial size. The camera changed; the geometry did not.
 
@@ -177,7 +167,7 @@ Type `Zoom Out`, then `View Reset`. The diamond shrinks, then returns to its ini
 
 ![Actual browser result: Move the view, keep the geometry.](../screenshots/journey/08-camera-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -186,37 +176,50 @@ cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+The browser translates a submitted command into camera changes. The renderer receives four numbers and does not know how the user chose them. Camera tests verify the centre stays fixed during zoom and reject invalid or out-of-range scale.
+
+command → camera centre or scale → four uniform values → existing renderer → unchanged mesh in a different view.
+
+![commands change camera state; the camera calculates uniforms while the vertex and index buffers remain unchanged.](../illustrations/journey-08.svg)
+
+When the camera centre moves right, why does the diamond move left on the screen?
+
+The shader receives an offset equal to minus the camera centre times the scale. It therefore draws each world position relative to the camera centre. Looking farther right places the stationary diamond farther left in our view; its stored positions have not moved.
+
+Study estimate, including typing and experiments: 2–3 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Zoom Out once, Pan Right once, then Pan Left once. Predict what View Reset will change. Now change the background and reset again: the background should stay as you chose it. This checks that camera state and background state have separate responsibilities.
 
 </details>
 
-## Explain the change
-
-When the camera centre moves right, why does the diamond move left on the screen?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The shader receives an offset equal to minus the camera centre times the scale. It therefore draws each world position relative to the camera centre. Looking farther right places the stationary diamond farther left in our view; its stored positions have not moved.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 08-camera
 npm --prefix ../session_tests run course -- save 08-camera
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 A full 3D camera also owns a target and a viewing scale or distance. Its orientation and projection add the third dimension. We will extend this view model before connecting orbit gestures, while preserving the separation between camera state, document geometry and GPU resources.
+
+
+
+[Full validation scope](release.md).
 
 </details>

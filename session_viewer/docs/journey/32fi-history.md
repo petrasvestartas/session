@@ -1,26 +1,14 @@
 # 32fi · Unload sources across active and history roots
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 16–32 minutes.** 32 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Release a validated whole-origin set without clearing Undo/Redo or changing placements.
-
-**Follow:** Release a validated whole-origin set without clearing Undo/Redo or changing placements..
+**Typing: 16–32 minutes.** [Estimate](typing-load.md).
 
 Plan source unloading before mutating. Collect eligible origins across active, Undo and Redo roots; exclude any origin with a protected row. An empty plan returns an error.
 
 Issue a checked release epoch, then unload matching rows in every retained root. This changes residency, not document history, and preserves placements. Close keeps the epoch counter so reopened documents cannot reuse completion tokens.
 
-Cold Move and Delete currently return reload-required errors; Save refuses missing geometry. Drawing, picking and camera use retained display state. Automatic restoration comes later.
+## Type
 
-The native frame checks unloaded source/document expiration and retained display/GPU owners. The next endpoint adds the dock command and moved-object history checks.
-
-![Release a validated whole-origin set without clearing Undo/Redo or changing placements.](../illustrations/journey-32fi.svg)
-
-## Type the change
-
-Continue from [Protect sources that cannot be unloaded faithfully](32fh-policy.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fi-history` (from `session_viewer`).
+Continue from [Protect sources that cannot be unloaded faithfully](32fh-policy.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/history.rs`
 
@@ -175,9 +163,9 @@ Replace that block with:
 --8<-- "journey/code/32fi-history-08.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -185,7 +173,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the history-release checks below. Releasing an origin must visit matching active, Undo and Redo rows while retaining their display and placement.
 
@@ -193,7 +181,7 @@ Run the history-release checks below. Releasing an origin must visit matching ac
 
 ![Actual browser result: Unload sources across active and history roots.](../screenshots/journey/32fi-history-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -202,43 +190,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Cold Move and Delete currently return reload-required errors; Save refuses missing geometry. Drawing, picking and camera use retained display state. Automatic restoration comes later.
+
+The native frame checks unloaded source/document expiration and retained display/GPU owners. The next endpoint adds the dock command and moved-object history checks.
+
+Release a validated whole-origin set without clearing Undo/Redo or changing placements..
+
+![Release a validated whole-origin set without clearing Undo/Redo or changing placements.](../illustrations/journey-32fi.svg)
+
+Why is unloading only the current Scene insufficient?
+
+Its Undo and Redo rows retain the same kernel owners. They would keep the source alive and later restore a different residency. Convert every retained row of a validated origin together while keeping its separate placement and display owner.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Keep an external clone of Source in a fixture and explain why the editor can release its own roots while that external owner still keeps the kernel alive.
 
 </details>
 
-## Explain the change
-
-Why is unloading only the current Scene insufficient?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Its Undo and Redo rows retain the same kernel owners. They would keep the source alive and later restore a different residency. Convert every retained row of a validated origin together while keeping its separate placement and display owner.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32fi-history
 npm --prefix ../session_tests run course -- save 32fi-history
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This models source residency across our shared Scene snapshots without clearing history. Guarded hydration and automatic edit replay remain required before claiming complete source-release parity.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This models source residency across our shared Scene snapshots without clearing history. Guarded hydration and automatic edit replay remain required before claiming complete source-release parity.
 
 
 

@@ -1,22 +1,14 @@
 # 32gh · Restore editable sources through the command line
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 18–35 minutes.** 30 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Restore editable sources through the command line.
-
-**Follow:** Reload Sources → active keys → owned fetch → atomic hydrate → same GPU display.
+**Typing: 18–35 minutes.** [Estimate](typing-load.md).
 
 Add `Reload Sources` and `Cancel Reload` to the same production-styled dock. Reload collects active release keys and starts the browser flight. Immediate setup errors belong to the typed command; later success or failure gets its own `Reload Sources` history reply.
 
 A `viewer-reload` event takes only the accepted Rust delivery slot. Atomic hydrate validates keys, immutable bytes and every affected history row before restoring source owners. Synchronize the renderer afterward: retained display Rcs and object settings must produce zero new GPU allocations or writes.
 
-![Restore editable sources through the command line](../illustrations/journey-32gh.svg)
+## Type
 
-## Type the change
-
-Continue from [Deliver only the current completed reload batch](32ggb-delivery.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gh-command` (from `session_viewer`).
+Continue from [Deliver only the current completed reload batch](32ggb-delivery.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/browser.rs`
 
@@ -114,9 +106,9 @@ Replace that block with:
 --8<-- "journey/code/32gh-command-05.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -124,7 +116,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Open `sample.pb`, then type `Unload Sources` and `Reload Sources`. Wait for “Editable sources restored; display retained.” The picture stays the same and Move works again.
 
@@ -132,7 +124,7 @@ Open `sample.pb`, then type `Unload Sources` and `Reload Sources`. Wait for “E
 
 ![Actual browser result: Restore editable sources through the command line.](../screenshots/journey/32gh-command-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -141,43 +133,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+
+
+Reload Sources → active keys → owned fetch → atomic hydrate → same GPU display.
+
+![Restore editable sources through the command line](../illustrations/journey-32gh.svg)
+
+Does source restoration need a new Undo entry?
+
+No. Restoring editable ownership changes residency, not the document. Keep the existing drawing, placement and history; only the later requested edit should create a document transaction.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Keep a command such as View Isometric between the reload request and its reply. Explain why panel.answer must append its own result instead of replacing that newer command.
 
 </details>
 
-## Explain the change
-
-Does source restoration need a new Undo entry?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-No. Restoring editable ownership changes residency, not the document. Keep the existing drawing, placement and history; only the later requested edit should create a document transaction.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32gh-command
 npm --prefix ../session_tests run course -- save 32gh-command
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The full viewer hydrates released sources before editing. This endpoint makes the browser restore operation real; captured-target automatic command replay follows separately.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The full viewer hydrates released sources before editing. This endpoint makes the browser restore operation real; captured-target automatic command replay follows separately.
 
 Chrome runs a real Blob fetch, checks unchanged pixels/IDs/metadata/GPU counters, saves the restored document and uses Undo/Redo. It also sends an external reload event with no slot and checks a second reload when nothing is cold. Automatic Move/Delete/Save-triggered reload remains the next feature; users explicitly reload first here.
 

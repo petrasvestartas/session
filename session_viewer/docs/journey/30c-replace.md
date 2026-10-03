@@ -1,26 +1,14 @@
 # 30c · Replace a document as one reversible change
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 16–32 minutes.** 36 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Prepare a whole replacement before changing live rows, then commit it through existing history.
-
-**Follow:** Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs.
+**Typing: 16–32 minutes.** [Estimate](typing-load.md).
 
 Add `Action::Replace` for one reversible document replacement. First prepare the entire file with `document::load`; only then enter `History::try_edit` and replace the rows.
 
 `Scene::replace` clears objects and the demo marker, then inserts prepared objects. Keep the ID counter advancing. The transaction restores the old scene if insertion fails partway through.
 
-Repair selection after success. Camera, projection and background remain outside document history. Undo restores the old shared owners; Redo restores the replacement objects.
+## Type
 
-This step tests the editor operation; browser Open is still append-only until the next lesson. Old objects retained by Undo remain alive and are accounted for later.
-
-![Prepare the full replacement before the transaction; replace rows with fresh IDs; Undo restores the old shared owners.](../illustrations/journey-30c.svg)
-
-## Type the change
-
-Continue from [Cancel reads without accepting their late result](30b-cancel.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30c-replace` (from `session_viewer`).
+Continue from [Cancel reads without accepting their late result](30b-cancel.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/scene.rs`
 
@@ -109,9 +97,9 @@ Replace that block with:
 --8<-- "journey/code/30c-replace-05.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -119,7 +107,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the replacement checks below. A valid replacement is one Undo step; an invalid candidate must leave the existing scene unchanged. The browser command is connected next.
 
@@ -127,7 +115,7 @@ Run the replacement checks below. A valid replacement is one Undo step; an inval
 
 ![Actual browser result: Replace a document as one reversible change.](../screenshots/journey/30c-replace-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -136,43 +124,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Repair selection after success. Camera, projection and background remain outside document history. Undo restores the old shared owners; Redo restores the replacement objects.
+
+This step tests the editor operation; browser Open is still append-only until the next lesson. Old objects retained by Undo remain alive and are accounted for later.
+
+Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs.
+
+![Prepare the full replacement before the transaction; replace rows with fresh IDs; Undo restores the old shared owners.](../illustrations/journey-30c.svg)
+
+Why must the scene counter survive replacing all its rows?
+
+A replacement must not reuse local IDs held by old selection or delayed work. Clearing rows leaves the increasing counter intact. History restoration also retains the highest issued value, while Undo restores the old objects and shared source allocations.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 In the replacement check, change camera distance and aspect before replacing. Predict why Undo and Redo preserve both values. Explain why setting next_id back to one would make an old selection unsafe.
 
 </details>
 
-## Explain the change
-
-Why must the scene counter survive replacing all its rows?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-A replacement must not reuse local IDs held by old selection or delayed work. Clearing rows leaves the increasing counter intact. History restoration also retains the highest issued value, while Undo restores the old objects and shared source allocations.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 30c-replace
 npm --prefix ../session_tests run course -- save 30c-replace
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production replacement stages a new scene before committing and preserves the last valid scene on failure. This flat editor teaches the same atomic boundary; browser cancellation, larger sources and resource release are separate concerns.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production replacement stages a new scene before committing and preserves the last valid scene on failure. This flat editor teaches the same atomic boundary; browser cancellation, larger sources and resource release are separate concerns.
 
 
 

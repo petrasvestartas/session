@@ -1,24 +1,14 @@
 # 03 · Give the GPU three corners
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 19–38 minutes.** 47 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Draw a pink triangle on the white background.
-
-**Follow:** Three shader positions → triangle coverage → fragment colour → canvas.
+**Typing: 19–38 minutes.** [Estimate](typing-load.md).
 
 Draw one pink triangle inside the white GPU frame. The shader supplies three corners; the renderer keeps one pipeline and records its draw.
 
 The vertex shader places corners in clip space, where x and y near −1 and +1 reach the image edges. The fragment shader supplies colour. `0..3` draws three vertices; `0..1` draws one instance.
 
-A pipeline is the reusable recipe connecting these shaders to the colour target. Keep it between frames. `include_str!` embeds the WGSL text at compile time. An empty vertex-buffer list means the shader still supplies its own positions; Rust will supply geometry in lesson 05. Use the same sRGB view format as browser presentation.
+## Type
 
-![Three corner positions form a triangle; a fragment shader colours its covered pixels.](../illustrations/journey-03.svg)
-
-## Type the change
-
-Continue from [Give browser presentation its own function](02-clear.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03-triangle` (from `session_viewer`).
+Continue from [Give browser presentation its own function](02-clear.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/triangle.wgsl`
 
@@ -116,9 +106,9 @@ Replace that block with:
 --8<-- "journey/code/03-triangle-window-1.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -126,7 +116,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 A pink triangle appears on white. Change its top vertex in the shader, save, and check that only the triangle’s shape changes. Restore the vertex.
 
@@ -134,7 +124,24 @@ A pink triangle appears on white. Change its top vertex in the shader, save, and
 
 ![Actual browser result: Give the GPU three corners.](../screenshots/journey/03-triangle-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+A pipeline is the reusable recipe connecting these shaders to the colour target. Keep it between frames. `include_str!` embeds the WGSL text at compile time. An empty vertex-buffer list means the shader still supplies its own positions; Rust will supply geometry in lesson 05. Use the same sRGB view format as browser presentation.
+
+Three shader positions → triangle coverage → fragment colour → canvas.
+
+![Three corner positions form a triangle; a fragment shader colours its covered pixels.](../illustrations/journey-03.svg)
+
+If you change the top vertex, which part of the picture changes, and which stays the same?
+
+The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
 
 <details>
 <summary>Optional experiment</summary>
@@ -143,31 +150,27 @@ Predict the result of changing the last corner from `(0.0, 0.6)` to `(0.4, 0.6)`
 
 </details>
 
-## Explain the change
-
-If you change the top vertex, which part of the picture changes, and which stays the same?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 03-triangle
 npm --prefix ../session_tests run course -- save 03-triangle
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 The production viewer also separates shader programs, pipeline setup and frame recording. Later mesh buffers replace the shader’s three hard-coded positions. We will make that replacement explicitly, after understanding what the positions do.
+
+
+
+[Full validation scope](release.md).
 
 </details>

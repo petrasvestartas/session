@@ -1,24 +1,14 @@
 # 32g · Identify the source release a reload belongs to
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 19–37 minutes.** 47 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Borrow the current imported release identity and epoch before asking for source data.
-
-**Follow:** Active cold rows → ReloadKey::of → unique imported Origin + release epoch.
+**Typing: 19–37 minutes.** [Estimate](typing-load.md).
 
 Define `ReloadKey` as an Origin owner and one release epoch. matches compares the actual imported Origin Rc and the row’s current epoch. That is the residency identity; local/saved object identity and source GUID remain separate.
 
 Collect distinct keys from active cold rows. A later explicit reload can use them, while source adoption will also visit matching history roots. Do not fetch a history-only source without a current active request. If history later restores that source, a new request can obtain its current key.
 
-`Rc::clone` creates another owner of the same value; it does not copy the Origin. `Rc::ptr_eq` asks whether two owners refer to that same allocation. `Option<Self>` means a row might have no reload key: the question marks return None immediately for a loaded or unlocated row. `is_some_and` runs the comparison only when an origin exists.
+## Type
 
-![Borrow the current imported release identity and epoch before asking for source data.](../illustrations/journey-32g.svg)
-
-## Type the change
-
-Continue from [Protect history and future reload tickets](32fl-guards.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32g-keys` (from `session_viewer`).
+Continue from [Protect history and future reload tickets](32fl-guards.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/lib.rs`
 
@@ -68,9 +58,9 @@ Replace that block with:
 --8<-- "journey/code/32g-keys-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -78,7 +68,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the reload-key checks below. A key from a closed import must not match a new import of identical bytes; changing the release epoch must also reject it. No fetch is connected yet.
 
@@ -86,7 +76,7 @@ Run the reload-key checks below. A key from a closed import must not match a new
 
 ![Actual browser result: Identify the source release a reload belongs to.](../screenshots/journey/32g-keys-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -95,43 +85,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+`Rc::clone` creates another owner of the same value; it does not copy the Origin. `Rc::ptr_eq` asks whether two owners refer to that same allocation. `Option<Self>` means a row might have no reload key: the question marks return None immediately for a loaded or unlocated row. `is_some_and` runs the comparison only when an origin exists.
+
+Active cold rows → ReloadKey::of → unique imported Origin + release epoch.
+
+![Borrow the current imported release identity and epoch before asking for source data.](../illustrations/journey-32g.svg)
+
+Why is a file GUID insufficient to accept a reload result?
+
+Duplicate imports can share the same original GUID and byte version. A result must belong to this imported Origin allocation and its current release epoch. Loaded rows, closed rows and another release cycle must not match it.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Compare two imports of the same file. Explain why sharing the byte version must not make a result for one import eligible for the other.
 
 </details>
 
-## Explain the change
-
-Why is a file GUID insufficient to accept a reload result?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Duplicate imports can share the same original GUID and byte version. A result must belong to this imported Origin allocation and its current release epoch. Loaded rows, closed rows and another release cycle must not match it.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 32g-keys
 npm --prefix ../session_tests run course -- save 32g-keys
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production source fetches carry a release token. This explicit key prepares the same rejection of old completions across replacement, Close and another release cycle.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production source fetches carry a release token. This explicit key prepares the same rejection of old completions across replacement, Close and another release cycle.
 
 The native test unloads, records a key, closes and imports the same bytes again. The old key cannot match the new import. A key with a changed epoch cannot match the current cold row either. No fetch or Reload Sources command exists yet; the browser retains the preceding unload behavior.
 

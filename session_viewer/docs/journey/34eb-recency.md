@@ -1,24 +1,14 @@
 # 34eb · Choose a recent failure without blaming active tabs
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 25–49 minutes.** 45 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity.
-
-**Follow:** validated report → timestamp parser → ordered finite times → failure/heartbeat freshness → ranking timestamp.
+**Typing: 25–49 minutes.** [Estimate](typing-load.md).
 
 Choose previous failure evidence by fatal time. An old failed tab may keep updating lastSeen; its heartbeat must not make the original failure recent again.
 
 Supply timestamp parsing as a function so native tests can use a fixed clock. Reject non-finite or out-of-order times. A fatal event qualifies for two hours and ranks by its own timestamp.
 
-A Running report qualifies when its heartbeat is under two hours old and belongs to this tab, or another tab inactive for more than two minutes. An active other tab, Ready run or Closed run stays quiet. Interrupted means unfinished, not proven crashed.
+## Type
 
-![Failure time and heartbeat have different meanings](../illustrations/journey-34eb.svg)
-
-## Type the change
-
-Continue from [Admit only supported bounded saved JSON](34ea-decode.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34eb-recency` (from `session_viewer`).
+Continue from [Admit only supported bounded saved JSON](34ea-decode.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/report_recency.rs`
 
@@ -59,9 +49,9 @@ Replace that block with:
 --8<-- "journey/code/34eb-recency-03.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -69,7 +59,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the recency checks below. A fresh heartbeat must not make an old fatal event eligible. An actively running other tab must not produce an interruption notice.
 
@@ -77,7 +67,7 @@ Run the recency checks below. A fresh heartbeat must not make an old fatal event
 
 ![Actual browser result: Choose a recent failure without blaming active tabs.](../screenshots/journey/34eb-recency-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -86,43 +76,47 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+A Running report qualifies when its heartbeat is under two hours old and belongs to this tab, or another tab inactive for more than two minutes. An active other tab, Ready run or Closed run stays quiet. Interrupted means unfinished, not proven crashed.
+
+validated report → timestamp parser → ordered finite times → failure/heartbeat freshness → ranking timestamp.
+
+![Failure time and heartbeat have different meanings](../illustrations/journey-34eb.svg)
+
+Why does a failed report’s fresh heartbeat not prove the failure itself was recent?
+
+A still-open failed tab can keep updating lastSeen for days. Failure freshness must use the first fatal timestamp; heartbeat age is used separately for interrupted running tabs.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Rank failures by lastSeen instead of the first fatal timestamp. Explain why an old tab with a running heartbeat could displace a newer real failure. Then treat all running tabs as interrupted and identify the false notice.
 
 </details>
 
-## Explain the change
-
-Why does a failed report’s fresh heartbeat not prove the failure itself was recent?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-A still-open failed tab can keep updating lastSeen for days. Failure freshness must use the first fatal timestamp; heartbeat age is used separately for interrupted running tabs.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 34eb-recency
 npm --prefix ../session_tests run course -- save 34eb-recency
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-Production previous-report notices now date failure independently of heartbeat and reject invalid/future chronology. The course policy establishes candidate eligibility; browser storage, lifecycle telemetry and bounded recovery follow.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+Production previous-report notices now date failure independently of heartbeat and reject invalid/future chronology. The course policy establishes candidate eligibility; browser storage, lifecycle telemetry and bounded recovery follow.
 
 Native tests use a deterministic clock port for heartbeat/failure boundaries, future and ordering cases. The next checkpoint proves invalid clocks and healthy-run exclusions. Browser Date.parse and saved-value selection follow that proof; there is no previous-report notice or storage adoption here yet. Chrome retains all existing real diagnostics/loss/download checks.
 

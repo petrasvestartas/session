@@ -1,28 +1,16 @@
 # 11 · Give the scene an owner
 
-**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 47–93 minutes.** 136 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing: 47–93 minutes.** [Estimate](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-**Today:** Add and remove a mesh through scene data while reusing the renderer and camera.
-
-**Follow:** command → Scene adds or removes Mesh → GpuMesh uploads → Renderer draws the current list.
 
 Move geometry out of the renderer. `Mesh` owns validated CPU vertices and indices; `Scene` owns meshes. `GpuMesh` owns an uploaded representation; `Renderer` draws those representations.
 
 An add command changes `Scene`, uploads it, then redraws. Camera commands only upload a view uniform. Neither path creates a new renderer or resets the camera.
 
-`Mesh::new` returns `Result` because invalid indices must be rejected before drawing. Private fields and read-only slice accessors preserve that contract. Fixed example coordinates use `expect`; file data will need recoverable errors.
+## Type
 
-For this small scene, a document change replaces all mesh buffers. Later lessons update only changed objects. The extra green triangle makes add → upload → draw visible.
-
-![The browser owns Scene; each Mesh supplies CPU data to a derived GpuMesh, and the renderer draws those uploaded resources.](../illustrations/journey-11.svg)
-
-## Type the change
-
-Continue from [Keep the nearest surface](10-depth.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-11-scene` (from `session_viewer`).
+Continue from [Keep the nearest surface](10-depth.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/mesh.rs`
 
@@ -292,9 +280,9 @@ Replace that block with:
 --8<-- "journey/code/11-scene-window-4.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -302,7 +290,7 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j4
 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Example Triangle` twice. A green triangle appears, then disappears. Your camera stays where it was.
 
@@ -310,7 +298,7 @@ Type `Example Triangle` twice. A green triangle appears, then disappears. Your c
 
 ![Actual browser result: Give the scene an owner.](../screenshots/journey/11-scene-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -319,37 +307,52 @@ cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+`Mesh::new` returns `Result` because invalid indices must be rejected before drawing. Private fields and read-only slice accessors preserve that contract. Fixed example coordinates use `expect`; file data will need recoverable errors.
+
+For this small scene, a document change replaces all mesh buffers. Later lessons update only changed objects. The extra green triangle makes add → upload → draw visible.
+
+command → Scene adds or removes Mesh → GpuMesh uploads → Renderer draws the current list.
+
+![The browser owns Scene; each Mesh supplies CPU data to a derived GpuMesh, and the renderer draws those uploaded resources.](../illustrations/journey-11.svg)
+
+Which values should survive if we recreate all GPU mesh buffers?
+
+The Scene and its Mesh data should survive, along with camera and background state. GPU buffers are a display representation derived from those values. Rebuilding that representation must not lose the document or move the camera.
+
+Study estimate, including typing and experiments: 3–5 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Zoom Out and change the background, then toggle the third triangle twice. Predict the final image. It should be exactly the same as before those two toggles. In the command handler, locate the one branch that uploads scene data and explain why the camera branches do not need it.
 
 </details>
 
-## Explain the change
-
-Which values should survive if we recreate all GPU mesh buffers?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-The Scene and its Mesh data should survive, along with camera and background state. GPU buffers are a display representation derived from those values. Rebuilding that representation must not lose the document or move the camera.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 11-scene
 npm --prefix ../session_tests run course -- save 11-scene
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
 
 <details>
-<summary>Where this fits in the finished viewer</summary>
+<summary>Viewer coverage and verification</summary>
 
 The production viewer keeps source geometry and document state separate from packed GPU data. Later lessons add stable identity, incremental synchronization, shared buffers and undo. This ownership boundary allows a GPU rebuild without rebuilding the document.
+
+
+
+[Full validation scope](release.md).
 
 </details>

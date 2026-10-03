@@ -1,26 +1,14 @@
 # 18 · Read the shape through light
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 6–11 minutes.** 9 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Shade the box faces according to their direction, using the same mesh and renderer.
-
-**Follow:** World position → neighbouring surface directions → normal → light alignment → fragment colour.
+**Typing: 6–11 minutes.** [Estimate](typing-load.md).
 
 Shade the grey box according to surface direction. Pass world positions from the vertex shader to the fragment shader.
 
 `dpdx` and `dpdy` estimate horizontal and vertical position changes. Their cross product gives the triangle normal; normalisation makes it unit length. Dot it with the unit world-space light direction to measure alignment.
 
-Use `abs` for this display's two-sided lighting and retain a minimum brightness of 0.3. Multiply RGB before the existing sRGB output conversion.
+## Type
 
-Only shader logic changes. Mesh still supplies positions and colours, Camera positions the view, and Renderer submits the triangles. Adjoining box faces now have visibly different brightness.
-
-![Two directions along a face give its normal; comparing that normal with the light controls brightness.](../illustrations/journey-18.svg)
-
-## Type the change
-
-Continue from [Bring a solid into the scene](17-solid.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-18-light` (from `session_viewer`).
+Continue from [Bring a solid into the scene](17-solid.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/triangle.wgsl`
 
@@ -83,9 +71,9 @@ Replace that block with:
 --8<-- "journey/code/18-light-window-1.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -93,7 +81,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Example Box` and `View Isometric`. Faces pointing in different directions should have different brightness, making the box’s shape easier to read.
 
@@ -101,7 +89,7 @@ Type `Example Box` and `View Isometric`. Faces pointing in different directions 
 
 ![Actual browser result: Read the shape through light.](../screenshots/journey/18-light-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -110,43 +98,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+Use `abs` for this display's two-sided lighting and retain a minimum brightness of 0.3. Multiply RGB before the existing sRGB output conversion.
+
+Only shader logic changes. Mesh still supplies positions and colours, Camera positions the view, and Renderer submits the triangles. Adjoining box faces now have visibly different brightness.
+
+World position → neighbouring surface directions → normal → light alignment → fragment colour.
+
+![Two directions along a face give its normal; comparing that normal with the light controls brightness.](../illustrations/journey-18.svg)
+
+Why should orbiting the camera leave the brightness of a particular box face unchanged?
+
+Both the normal and the light direction are expressed in world coordinates. Orbit changes where we look from, not the face direction or the light. A different face may become visible, but the same face keeps the same brightness. Mixing a camera-space normal with a world-space light would break that relationship.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change the light to vec3<f32>(0.0, 0.0, 1.0). Predict the box first: the top should be bright and both vertical sides equally dark. Try it, then restore the original light. Explain why this changes colour without moving a single vertex.
 
 </details>
 
-## Explain the change
-
-Why should orbiting the camera leave the brightness of a particular box face unchanged?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-Both the normal and the light direction are expressed in world coordinates. Orbit changes where we look from, not the face direction or the light. A different face may become visible, but the same face keeps the same brightness. Mixing a camera-space normal with a world-space light would break that relationship.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 18-light
 npm --prefix ../session_tests run course -- save 18-light
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-This is flat lighting: each triangle has one surface direction. The final viewer also needs smooth normals, materials, two-sided surface rules and contact shadows. Those features will extend the same distinction between geometry, view and shading.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+This is flat lighting: each triangle has one surface direction. The final viewer also needs smooth normals, materials, two-sided surface rules and contact shadows. Those features will extend the same distinction between geometry, view and shading.
 
 Compare the box with lesson 17: the same geometry now has three face brightnesses.
 

@@ -1,26 +1,14 @@
 # 29b · Reopen source geometry with its placement
 
-**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
-
-**Typing estimate: 24–48 minutes.** 48 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
-
-**Today:** Validate stored placements before reconstructing source-backed objects.
-
-**Follow:** Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects.
+**Typing: 24–48 minutes.** [Estimate](typing-load.md).
 
 Accept the saved file's separate placement records. Each must identify an existing mesh, occur once, and contain sixteen finite values with an affine final row.
 
 Share this rule through `placement::valid` for loading and scene placement. Validate before constructing `Xform`: its defaults must not silently fill a short file matrix.
 
-`PreparedMesh` now carries a model matrix. Generated geometry starts at identity; loading copies the validated source placement; insertion retains it.
+## Type
 
-Snapshot and load now use the same complete validator. Tests reject short, non-finite or projective matrices and orphan or duplicate placement entries before scene mutation. Exact round-trip checks come next; the browser download follows those.
-
-![The loader validates mesh identities and affine placements, then prepares local source/display pairs with one object matrix.](../illustrations/journey-29b.svg)
-
-## Type the change
-
-Continue from [Write a snapshot from the editable sources](29a-snapshot.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-29b-placements` (from `session_viewer`).
+Continue from [Write a snapshot from the editable sources](29a-snapshot.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/placement.rs`
 
@@ -248,9 +236,9 @@ Replace that block with:
 --8<-- "journey/code/29b-placements-13.rs"
 ```
 
-## Run and look
+## Run and check
 
-From `session_viewer`, enter your project folder:
+In your project:
 
 ```sh
 cd workspace/journey
@@ -258,7 +246,7 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
 REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the reopen checks below. Valid stored placements restore the objects; an invalid matrix must reject the document before changing live rows.
 
@@ -266,7 +254,7 @@ Run the reopen checks below. Valid stored placements restore the objects; an inv
 
 ![Actual browser result: Reopen source geometry with its placement.](../screenshots/journey/29b-placements-browser.png)
 
-[What this screenshot checks](release.md).
+[Verification scope](release.md).
 
 Run the state checks from your project folder:
 
@@ -275,43 +263,49 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 <details>
+<summary>Code explanation and diagram</summary>
+
+`PreparedMesh` now carries a model matrix. Generated geometry starts at identity; loading copies the validated source placement; insertion retains it.
+
+Snapshot and load now use the same complete validator. Tests reject short, non-finite or projective matrices and orphan or duplicate placement entries before scene mutation. Exact round-trip checks come next; the browser download follows those.
+
+Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects.
+
+![The loader validates mesh identities and affine placements, then prepares local source/display pairs with one object matrix.](../illustrations/journey-29b.svg)
+
+Where must a saved transform be applied when reopening?
+
+A saved transform belongs to the object placement. Load prepares the original local kernel mesh and attaches its validated matrix. Scene insertion uses that matrix once. It must not transform source vertices and also retain the placement, or the object moves twice.
+
+Study estimate, including typing and experiments: 1–2 hours.
+
+</details>
+
+<details>
 <summary>Optional experiment</summary>
 
 Change the malformed-placement check’s projective matrix into a finite translation. Predict why validation accepts it, then restore the rejection case. Explain why a fifteen-value matrix remains invalid even if every supplied value is finite.
 
 </details>
 
-## Explain the change
-
-Where must a saved transform be applied when reopening?
-
 <details>
-<summary>Compare your explanation</summary>
+<summary>Check and save your work</summary>
 
-A saved transform belongs to the object placement. Load prepares the original local kernel mesh and attaches its validated matrix. Scene insertion uses that matrix once. It must not transform source vertices and also retain the placement, or the object moves twice.
-
-</details>
-
-## Keep your working result
-
-Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:
+Restore experimental edits, then run from `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- check 29b-placements
 npm --prefix ../session_tests run course -- save 29b-placements
 ```
 
-Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
-
-<details>
-<summary>Where this fits in the finished viewer</summary>
-
-The production session stores local placements keyed by object GUID and composes nested tree transforms later. This checkpoint handles one flat level and rejects unsupported definitions and interactions.
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
 
 </details>
 
 <details>
-<summary>Verification notes and browser acceptance</summary>
+<summary>Viewer coverage and verification</summary>
+
+The production session stores local placements keyed by object GUID and composes nested tree transforms later. This checkpoint handles one flat level and rejects unsupported definitions and interactions.
 
 
 
