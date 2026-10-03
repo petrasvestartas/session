@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 120 lesson slots; 54 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 127 lesson slots; 60 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 54 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 60 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -141,7 +141,21 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 31c · [Update only changed object settings](31c-incremental.md) — retain rows, queue sixteen-byte selection or sixty-four-byte matrix writes, and verify deletion/reupload.
 
-- [ ] 32 · Release a closed document — account for CPU objects, GPU allocations and shared references.
+- [x] 32 · [Find the owners retained by history](32-history.md) — borrowed Undo/Redo roots and explicit release of both branches.
+
+- [x] 32a · [Count shared CPU displays once](32a-cpu.md) — source/document identities, history copies, GPU-held CPU displays and vector-capacity payload.
+
+- [x] 32b · [Count each shared GPU buffer once](32b-gpu.md) — allocated vertex/index sizes and independent object settings.
+
+- [x] 32c · [Close the document without resetting the view](32c-close.md) — release row/history storage, preserve camera and issued IDs.
+
+- [x] 32d · [Close through the command line and revoke reads](32d-command.md) — actual dock command, cancelled delivery, zero live document ledgers and reopening.
+
+- [x] 32e · [Prove release does not retain the old document](32e-release.md) — weak imported/history owner checks, late success/failure, empty Save and fresh reopened IDs.
+
+- [ ] 32f · Keep the display after unloading edit sources — retain rows, names, flags, placements and document metadata while dropping eligible imported kernel sources.
+
+- [ ] 32g · Reload an unloaded source for editing — restore ownership before edits; reject stale/cancelled loads and handle failures without losing the display.
 
 - [ ] 33 · Give browser listeners a lifetime — detach callbacks and cancel work when the viewer closes.
 

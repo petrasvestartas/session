@@ -4656,6 +4656,318 @@
           "why": "Report actual update calls and bytes rather than reserved zeros."
         }
       ]
+    },
+    {
+      "id": "32-history",
+      "title": "Find the owners retained by history",
+      "page": "journey/32-history.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Inspect undo/redo roots and release both branches explicitly.",
+      "trace": "Scene snapshots → shared source/display owners → history reset → ownership tests",
+      "question": "Why can deleting every visible row leave its source alive?",
+      "answer": "Undo and Redo hold scene snapshots. Their rows share the original source and display owners so history can restore them. Removing visible rows does not remove those snapshot owners. Closing a document must drop both history branches as well as the active rows.",
+      "story": "Deleting a row removes it from drawing, but Undo can bring it back. That requires an owner somewhere. Our History keeps scene snapshots whose rows clone Rc owners rather than copying mesh payloads.\n\n![Active rows and undo/redo snapshots can retain the same source allocation.](../illustrations/journey-32.svg)\n\nAdd a borrowed iterator over both history branches. It lets accounting inspect the roots without cloning their owners. clear replaces History with its empty default, dropping the snapshots and their vector storage. Ordinary edits still keep history; this explicit reset will be used by document close.\n\nThe first test removes a row, confirms history retains its source/display values, then clears history and confirms those values are gone. The second leaves an extra object only in Redo and proves clearing both branches prevents it from returning.\n\n[Weak::upgrade](https://doc.rust-lang.org/std/rc/struct.Weak.html#method.upgrade) lets a check observe whether a value still has an owner. A failed upgrade proves the managed value is gone; the Weak control allocation itself remains until its weak references are dropped. It is not a measurement of process memory.\n\nThe browser still behaves as before at this endpoint. We are making the ownership roots inspectable before wiring a destructive document operation into commands.",
+      "result": "Run the state checks. Open Replace the specimen, Move a post and Undo it; ordinary history must still work. No Close command exists yet.",
+      "experiment": "Keep a cloned Rc of a removed display in a test scope. Predict why clearing history will no longer make its Weak upgrade fail until that extra owner is dropped.",
+      "production": "History ownership matters for source release, document replacement and large scenes. Production source unloading also retains display and tree metadata; its later lessons are distinct from closing the document.",
+      "tests": true,
+      "frame": "journey/checks/32-history.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/resources.cjs",
+      "edits": [
+        {
+          "path": "src/history.rs",
+          "before": "    pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {\n",
+          "snippet": "journey/code/32-history-01.rs",
+          "why": "Expose borrowed snapshot roots and an explicit reset of both branches."
+        },
+        {
+          "path": "src/history.rs",
+          "before": "    #[test]\n    fn undo_restores_identity_and_shares_the_original_mesh() {\n",
+          "snippet": "journey/code/32-history-02.rs",
+          "why": "Prove deletion differs from dropping the owners retained by Undo and Redo."
+        }
+      ]
+    },
+    {
+      "id": "32a-cpu",
+      "title": "Count shared CPU displays once",
+      "page": "journey/32a-cpu.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Account for active/history rows, retained sources/documents and unique display payloads.",
+      "trace": "Borrowed scene roots and GPU display owners → identity sets → scoped CPU ledger",
+      "question": "Why does the CPU ledger include display owners held by GPU geometry?",
+      "answer": "GpuGeometry retains the CPU display that produced its buffers. That owner can outlive the editor rows, especially between closing the editor and synchronizing the renderer. Count that retained display once alongside active/history displays; do not mistake zero visible rows for zero live display payload.",
+      "story": "Counting a mesh once for every snapshot would exaggerate its memory. Count row records separately, then use allocation identities to count each shared source, document and derived display once.\n\n![Scene and history roots plus GPU-held displays feed identity sets before totals are added.](../illustrations/journey-32a.svg)\n\nThe six CPU fields are: owned row records across all scene roots, unique kernel meshes, unique imported documents, unique derived displays, display vector-capacity bytes, and scene roots. These are a scoped ledger, not total heap memory. Display bytes include vertex/index Vec capacities; kernel payload, row strings, hash tables, allocator overhead and other application state are not estimated here. Later source accounting extends the geometry families.\n\nAn imported document can retain a kernel mesh after its last display row is removed. Visit every mesh owned by each distinct retained Session, as well as each row’s required geometry. GPU geometry retains only its CPU display, so add those display owners through a second borrowed iterator.\n\nHashSet uses pointer identity without dereferencing a raw pointer. All identities come from borrowed live Rc owners during this count. No stored count keeps a document alive.\n\nThe tests compare a scene with its shared snapshot and remove an imported row while other rows keep its source document alive. Another display with deliberately reserved spare capacity checks that the ledger counts capacity rather than length.",
+      "result": "Inspect data-cpu-usage on the canvas. Move or Undo adds row snapshots but does not duplicate the shared display payload. Imported document meshes remain counted while any retained row owns their Session.",
+      "experiment": "Compare a Vec with length three and capacity sixteen. Explain why its payload allocation is larger than its currently occupied elements. Then explain which memory categories this ledger deliberately does not claim to measure.",
+      "production": "Production source accounting covers every kernel geometry family and cached scans. This mesh-stage ledger teaches unique ownership and known display payload; full source categories remain a required later extension.",
+      "tests": true,
+      "frame": "journey/checks/32a-cpu.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/resources.cjs",
+      "edits": [
+        {
+          "path": "src/mesh.rs",
+          "before": "    pub fn vertices(&self) -> &[[f32; 6]] {\n",
+          "snippet": "journey/code/32a-cpu-01.rs",
+          "why": "Count allocated display-vector capacity rather than just occupied elements."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {\n",
+          "snippet": "journey/code/32a-cpu-02.rs",
+          "why": "Inspect active and retained snapshot roots without creating new owners."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn stats(&self) -> [usize; 4] {\n",
+          "snippet": "journey/code/32a-cpu-03.rs",
+          "why": "Expose borrowed live geometry owners for accounting and weak lifetime checks."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": null,
+          "snippet": "journey/code/32a-cpu-04.rs",
+          "why": "Count unique live owners and known display capacities across editor and GPU roots."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod mesh;\n",
+          "snippet": "journey/code/32a-cpu-05.rs",
+          "why": "Expose the scoped ownership ledger."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-gpu-stats\", &format!(\"{:?}\", renderer.stats()))?;\n",
+          "snippet": "journey/code/32a-cpu-06.rs",
+          "why": "Publish accounting only through private canvas diagnostics."
+        }
+      ]
+    },
+    {
+      "id": "32b-gpu",
+      "title": "Count each shared GPU buffer once",
+      "page": "journey/32b-gpu.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Measure live document buffer sizes separately from cumulative allocation counters.",
+      "trace": "Live GPU rows → unique geometry owners and independent settings → buffer-size ledger",
+      "question": "Why can index buffer bytes exceed the six index bytes we supplied?",
+      "answer": "Buffer initialization rounds its allocation to the copy-alignment requirement. Three u16 indices carry six payload bytes but this upload has an eight-byte GPU buffer. Read Buffer::size for allocated buffer size rather than equating it with the source slice length.",
+      "story": "The upload counters tell us how much work happened over time. They cannot tell us how much document storage is alive now. Add a live GPU ledger that visits each geometry allocation once and every object-settings buffer separately.\n\n![Shared geometry contributes buffer bytes once; every row contributes its own settings buffer.](../illustrations/journey-32b.svg)\n\nIts four fields are unique geometry owners, their vertex/index buffer bytes, object-settings buffers, and settings-buffer bytes. [Buffer::size](https://docs.rs/wgpu/29.0.4/wgpu/struct.Buffer.html#method.size) reports the buffer size selected at creation. The ledger excludes camera/depth/dock resources, pending staging work, driver overhead and memory pooling; it is document buffer ownership, not a driver-memory measurement.\n\nThe native GPU proof creates two rows sharing one three-vertex geometry. It expects one seventy-two-byte vertex buffer, one eight-byte index buffer, and two eighty-byte settings buffers. That exercises sharing and alignment with an independent known input.\n\nThe browser exposes data-gpu-usage alongside data-cpu-usage. After document close these live document figures must become zero, while cumulative uploads remain a useful record of work already performed.",
+      "result": "Read data-gpu-usage after selecting and moving the specimen. Live geometry and settings counts stay at three. Compare these live values with data-gpu-stats, whose cumulative counters continue increasing when new documents are uploaded.",
+      "experiment": "For three u16 indices, calculate six payload bytes and eight allocated upload bytes. Then calculate two object uniforms sharing that geometry. Explain why adding geometry bytes for both rows would be wrong.",
+      "production": "Production accounting also includes packed arenas, textures, staging and renderer infrastructure. This chapter establishes exact document-buffer sharing before those later resource families are introduced.",
+      "tests": true,
+      "frame": "journey/checks/32b-gpu.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/resources.cjs",
+      "edits": [
+        {
+          "path": "src/gpu_geometry.rs",
+          "before": "    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {\n",
+          "snippet": "journey/code/32b-gpu-01.rs",
+          "why": "Read actual buffer sizes, including initialization alignment."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "    pub fn update(&mut self, queue: &wgpu::Queue, object: &Object, selected: bool) -> [usize; 2] {\n",
+          "snippet": "journey/code/32b-gpu-02.rs",
+          "why": "Report the independent settings buffer owned by one GPU row."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": "#[cfg(test)]\nmod tests {\n",
+          "snippet": "journey/code/32b-gpu-03.rs",
+          "why": "Count shared geometry once while retaining each row’s separate settings cost."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn stats(&self) -> [usize; 4] {\n",
+          "snippet": "journey/code/32b-gpu-04.rs",
+          "why": "Distinguish live document resources from cumulative upload/write counters."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-cpu-usage\", &format!(\"{cpu:?}\"))?;\n",
+          "snippet": "journey/code/32b-gpu-05.rs",
+          "why": "Expose live document buffer sizes without adding runtime controls."
+        }
+      ]
+    },
+    {
+      "id": "32c-close",
+      "title": "Close the document without resetting the view",
+      "page": "journey/32c-close.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Drop active rows and both history branches while preserving the local ID counter and camera.",
+      "trace": "Close action → scene storage release and history reset → empty renderer synchronization",
+      "question": "Why does Close keep next_id even though it drops every row?",
+      "answer": "Old asynchronous work may still refer to an issued local identity. Reusing those identities would make it ambiguous which document row was meant. Empty the row storage and history, clear selection, but keep the monotonically issued counter. Camera and background are application settings and remain outside document close.",
+      "story": "Close is different from Delete and Open Replace. Delete is an undoable edit. Replacement is one transaction that lets Undo recover the previous document. Close ends that document history entirely.\n\n![Close drops active and history owners, then empty synchronization releases GPU rows.](../illustrations/journey-32c.svg)\n\nScene::clear drops its row-vector storage and extra-row marker without resetting next_id. Replace reuses that clearing operation inside its existing transaction. Action::Close calls it directly, clears both history branches and clears selection. It returns a scene change so the normal renderer synchronization can release old GPU rows.\n\nThe tests create both old document and Redo roots, close, and require empty rows, no surviving history and a later object ID that was never used by the old document. They also check that camera and background settings remain unchanged and repeated close is harmless.\n\nThe native GPU proof closes the editor first, then synchronizes an empty scene. Kernel sources/documents are released when the editor roots disappear; CPU displays held by GPU geometry remain until those draw rows are dropped. The browser command is connected in the next lesson.",
+      "result": "Run the close tests. This endpoint adds the editor operation and native GPU release proof; the browser still has no Close vocabulary entry until the next step. Its ordinary selection and Move workflow remains intact.",
+      "experiment": "Compare calling Delete three times with calling Close once. Predict which sources history retains in each case, and whether Undo can restore the old document.",
+      "production": "Closing, replacing, unloading source-only data and recovering a released source have different contracts. The following source-unload/reload lessons preserve visible display rows instead of emptying them.",
+      "tests": true,
+      "frame": "journey/checks/32c-close.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/resources.cjs",
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn replace(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {\n        self.objects.clear();\n        self.extra = None;\n        self.import(loaded)\n    }\n",
+          "snippet": "journey/code/32c-close-01.rs",
+          "why": "Release row storage while preserving issued identities; reuse this inside atomic replacement."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    Replace(Vec<u8>),\n",
+          "snippet": "journey/code/32c-close-02.rs",
+          "why": "Give closing a typed editor action."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::Replace(bytes) => {\n",
+          "snippet": "journey/code/32c-close-03.rs",
+          "why": "Close outside undoable document edits and preserve application view settings."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    #[test]\n    fn resetting_the_view_preserves_its_current_aspect() {\n",
+          "snippet": "journey/code/32c-close-04.rs",
+          "why": "Check source release, both history branches, identity reuse and view preservation."
+        }
+      ]
+    },
+    {
+      "id": "32d-command",
+      "title": "Close through the command line and revoke reads",
+      "page": "journey/32d-command.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Wire Close into the dock and cancel pending delivery before closing the editor.",
+      "trace": "Typed Close → read-ticket cancellation → editor close → empty GPU rows → dock result",
+      "question": "Why must Close revoke a pending read before it drops the document?",
+      "answer": "A read can finish after the old document was closed. Without ticket cancellation, its result would import old data into the now-empty scene. Revoke the request at command execution; the file task checks ownership before delivery, so both late success and late failure remain silent.",
+      "story": "Now expose the ordinary editor operation as Close in the real command dock. There is no feature button or keyboard shortcut. The command cancels ReadGate before returning Action::Close.\n\n![Close cancels delivery ownership before clearing editor and GPU document roots.](../illustrations/journey-32d.svg)\n\nRemember which action was submitted before apply consumes it. After a successful scene change, report Document closed. through the dock. This describes an operation whose rows and renderer synchronization actually completed; it does not invent a success on failure.\n\nChrome holds a real File.arrayBuffer result, types Close, and releases the old promise afterwards. The scene must stay empty and command history must not acquire a late result. It also tries Undo and Redo after close, checks live CPU/GPU document ledgers, and imports a new specimen without reloading the page.\n\nThe final screenshot shows the reopened specimen rather than pretending that a blank page alone proves resource release. The check verifies the empty drawing before reopening, and the native proof observes old source and GPU geometry values through Weak references.\n\nClose preserves camera/background state and the viewer’s GPU device. The next listener-lifetime chapter addresses ending the whole viewer, which is a different lifetime.",
+      "result": "Open a specimen, Move a post, then type Close. The drawing becomes empty and Undo/Redo cannot restore the closed document. Open the specimen again in the same page; selection and Move must work normally.",
+      "experiment": "Start a file read, then close before it resolves. Predict why cancelling the ticket must happen before a late result can import into the empty scene. Compare this with merely clearing visible rows.",
+      "production": "The browser owns asynchronous delivery while the editor owns document close. Keeping those responsibilities explicit will also protect later released-source reloads and viewer shutdown.",
+      "tests": true,
+      "frame": "journey/checks/32d-command.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/resources.cjs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Cancel Open\",\n",
+          "snippet": "journey/code/32d-command-01.rs",
+          "why": "Offer closing only through the actual dock vocabulary."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            if line == \"cancel open\" {\n",
+          "snippet": "journey/code/32d-command-02.rs",
+          "why": "Revoke pending file ownership before the editor closes."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            let replacement = matches!(&action, Action::Replace(_));\n",
+          "snippet": "journey/code/32d-command-03.rs",
+          "why": "Retain the submitted operation kind across action consumption."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    if event.type_() == \"viewer-file\" {\n",
+          "snippet": "journey/code/32d-command-04.rs",
+          "why": "Report close only after its scene operation and renderer synchronization succeed."
+        }
+      ]
+    },
+    {
+      "id": "32e-release",
+      "title": "Prove release does not retain the old document",
+      "page": "journey/32e-release.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Check imported history owners, the CPU/GPU release boundary, late read failures and reopening.",
+      "trace": "Weak old owners → Close → editor roots gone → empty GPU synchronization → fresh document IDs",
+      "question": "What does a zero live document ledger prove, and what does it not prove?",
+      "answer": "It proves the scoped roots and document buffer owners counted by this viewer are gone. Weak checks separately prove the old managed source/display values are dropped. It does not establish process RSS or immediate driver-memory reclamation: other renderer resources, queued GPU work, allocator caches and weak control allocations have separate lifetimes.",
+      "story": "Finish the ownership argument with imported documents and retained history, not just generated demo triangles. The source-only state check records Weak observers across active and undo/redo roots, closes, and verifies that none can recover an old value. Reopening must issue fresh local IDs.\n\n![Old source and document values disappear at editor close; GPU-held displays disappear at empty synchronization.](../illustrations/journey-32e.svg)\n\nThe native GPU proof makes the two release moments explicit. Before synchronization, old GPU geometry still owns the CPU displays used by its buffers. After synchronizing the empty scene, its Weak observers cannot upgrade, live document buffer usage is zero, and the cumulative upload counters have not been reset.\n\nChrome checks both a late successful read and a late rejected read after Close. Neither may change scene rows, history or result text. A new file request must still succeed afterwards. It also refuses Save while empty without downloading a file.\n\nThe CPU ledger remains scoped to mesh ownership and derived display-vector capacity. The GPU ledger counts document vertex/index/settings buffers. Production source categories, arena/texture accounting and source-only unload with rehydration remain explicitly planned; these checks do not replace those later acceptance requirements.",
+      "result": "Close after editing an imported specimen, inspect both live ledgers, and confirm Undo/Redo stay empty. Try Save: it must refuse the empty document. Reopen and edit in the same viewer; the final picture and command flow must work.",
+      "experiment": "Keep only Weak observers of an old imported document, then close it. Explain why they can prove the value was dropped while still retaining small control allocations themselves. Do not use process memory graphs as a substitute for ownership checks.",
+      "production": "Next we retain display rows while unloading editable source data, then rehydrate that source for editing. Browser listener shutdown, device recovery and all production source/resource families remain separate required lessons.",
+      "tests": true,
+      "frame": "journey/checks/32e-release.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/resources.cjs",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    #[test]\n    fn resetting_the_view_preserves_its_current_aspect() {\n",
+          "snippet": "journey/code/32e-release-01.rs",
+          "why": "Verify imported source/document release across history and fresh identities after reopening."
+        }
+      ]
     }
   ]
 }

@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 54 cumulative lessons, about 102–181 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 60 cumulative lessons, about 108–193 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **120 proposed slots: 54 current checkpoints and 66 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **127 proposed slots: 60 current checkpoints and 67 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -70,6 +70,12 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [31a · Give immutable GPU geometry one owner](journey/31a-geometry.md) | 1–2 hours | Separate vertex/index storage from each object’s uniform and retain its CPU source. |
 | [31b · Reuse uploads while their geometry is alive](journey/31b-cache.md) | 1–2 hours | Cache GPU geometry by its retained CPU allocation and release dead cache entries. |
 | [31c · Update only changed object settings](journey/31c-incremental.md) | 1–2 hours | Retain GPU rows by object and geometry identity, then write only changed uniform ranges. |
+| [32 · Find the owners retained by history](journey/32-history.md) | 1–2 hours | Inspect undo/redo roots and release both branches explicitly. |
+| [32a · Count shared CPU displays once](journey/32a-cpu.md) | 1–2 hours | Account for active/history rows, retained sources/documents and unique display payloads. |
+| [32b · Count each shared GPU buffer once](journey/32b-gpu.md) | 1–2 hours | Measure live document buffer sizes separately from cumulative allocation counters. |
+| [32c · Close the document without resetting the view](journey/32c-close.md) | 1–2 hours | Drop active rows and both history branches while preserving the local ID counter and camera. |
+| [32d · Close through the command line and revoke reads](journey/32d-command.md) | 1–2 hours | Wire Close into the dock and cancel pending delivery before closing the editor. |
+| [32e · Prove release does not retain the old document](journey/32e-release.md) | 1–2 hours | Check imported history owners, the CPU/GPU release boundary, late read failures and reopening. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 
