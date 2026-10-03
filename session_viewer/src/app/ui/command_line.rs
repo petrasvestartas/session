@@ -11,7 +11,7 @@ use std::cell::RefCell;
 thread_local! { pub(crate) static STATE: RefCell<CommandLine> = RefCell::default(); } // kept between frames
 
 /// Add a line to the history, keeping the last 200.
-pub(super) fn remember(line: String) {
+pub(crate) fn remember(line: String) {
     STATE.with_borrow_mut(|model| {
         if model.history.len() == 200 {
             model.history.pop_front();
@@ -52,9 +52,9 @@ impl super::Panel for Hooks {
     fn fill(&self, state: &mut State) {
         STATE.with_borrow_mut(|model| {
             model.drawing_prompt = state.drawing_prompt();
-            model.drawing_options = state.drawing_options();
+            model.drawing_options = &[];
             model.drawing_chosen = state.drawing_chosen();
-            model.snap_bar = state.features.snap.bar;
+            model.snap_bar = false;
             model.snap_modes = state.features.snap.modes;
         });
     }
@@ -109,8 +109,8 @@ impl crate::command_dock::Commands for Commands {
         crate::app::command::draws(line)
     }
 
-    fn options(&self, line: &str) -> &'static [&'static str] {
-        crate::app::command::options(line)
+    fn options(&self, _: &str) -> &'static [&'static str] {
+        &[]
     }
 
     fn option_label<'a>(&self, line: &'a str) -> &'a str {

@@ -898,9 +898,11 @@ mod tests {
     fn a_definition_is_walked_once_for_every_instance() {
         let (source, _) = placed(3);
         let mut one = Scene::new();
+        one.attributes = true;
         let (single, _) = placed(1);
         one.add_file(file(single));
         let mut scene = Scene::new();
+        scene.attributes = true;
         scene.add_file(file(source.clone()));
         scene.settle();
         scene.verify();
@@ -1060,13 +1062,19 @@ mod tests {
     fn attributes_switch_reaches_every_instance() {
         let (source, _) = placed(2);
         let mut scene = Scene::new();
+        assert!(!scene.attributes);
         scene.add_file(file(source));
         scene.settle();
+        let plain = scene.uploaded.ribbons;
+        scene.attributes = true;
+        scene.rewalk_cpu();
         let ribbons = scene.uploaded.ribbons;
+        assert!(ribbons > plain, "enabled features reach the shared definition");
         scene.attributes = false;
         scene.rewalk_cpu();
         scene.verify();
         assert!(scene.uploaded.ribbons < ribbons, "no feature ribbons");
+        assert_eq!(scene.uploaded.ribbons, plain);
         assert_eq!(
             scene
                 .spans

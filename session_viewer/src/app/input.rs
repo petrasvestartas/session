@@ -16,6 +16,8 @@ const TOUCH_REACH: f64 = 18.0;
 /// Mouse, keyboard and finger state between events.
 pub struct Input {
     orbiting: bool,                          // right button held
+    right_down: Option<(f64, f64)>,          // where the right button went down
+    right_dragged: bool,                     // a right drag cannot repeat a command
     panning: bool,                           // middle button held
     ctrl: bool,                              // Ctrl held
     shift: bool,                             // Shift held
@@ -44,6 +46,8 @@ impl Input {
     pub fn new() -> Self {
         Self {
             orbiting: false,
+            right_down: None,
+            right_dragged: false,
             panning: false,
             ctrl: false,
             shift: false,
@@ -63,11 +67,7 @@ impl Input {
 
     /// One key press; true when the frame must be redrawn.
     pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
-        let Some(binding) = super::keys::binding(&key, self.ctrl, self.shift) else {
-            return false;
-        };
-        (binding.run)(state);
-        true
+        super::keys::run(state, &key)
     }
 
     /// One mouse or touch event; true when the frame must be redrawn.
@@ -82,7 +82,22 @@ impl Input {
             } => {
                 self.orbiting = *btn == ElementState::Pressed;
                 state.interacting = self.orbiting || self.panning;
-                false
+                if self.orbiting {
+                    self.right_down = Some(self.last_cursor);
+                    self.right_dragged = false;
+                    return false;
+                }
+                let click = self.right_down.take().is_some() && !self.right_dragged && !self.panning;
+                if !click {
+                    return false;
+                }
+                if state.drafting() {
+                    state.enter();
+                    state.touch();
+                    true
+                } else {
+                    state.repeat_command()
+                }
             }
             WindowEvent::MouseInput {
                 state: btn,
@@ -101,6 +116,12 @@ impl Input {
             WindowEvent::CursorMoved { position, .. } => {
                 let scale = crate::engine::gpu::view::surface_per_physical(); // window to canvas pixels
                 let at = (position.x * scale, position.y * scale);
+                let started = self.right_down.filter(|down| {
+                    !self.right_dragged
+                        && (at.0 - down.0).abs().max((at.1 - down.1).abs())
+                            > CLICK_SLOP * device_pixel_ratio()
+                });
+                self.right_dragged |= started.is_some();
 
                 // leaving the click slop turns the press into a drag
                 if let Some(down) = self.left_down
@@ -131,12 +152,13 @@ impl Input {
                     return (active.drag)(state, at);
                 }
 
-                let dragging = self.orbiting || self.panning;
+                let dragging = (self.orbiting && self.right_dragged) || self.panning;
 
                 // camera moves in CSS pixels
                 if dragging {
-                    let dx = ((at.0 - self.last_cursor.0) / device_pixel_ratio()) as f32;
-                    let dy = ((at.1 - self.last_cursor.1) / device_pixel_ratio()) as f32;
+                    let from = started.unwrap_or(self.last_cursor);
+                    let dx = ((at.0 - from.0) / device_pixel_ratio()) as f32;
+                    let dy = ((at.1 - from.1) / device_pixel_ratio()) as f32;
 
                     if self.panning || self.ctrl {
                         state.camera.pan(dx, dy);
@@ -316,6 +338,8 @@ impl Input {
     /// Forget every gesture in progress.
     pub fn cancel(&mut self) {
         self.orbiting = false;
+        self.right_down = None;
+        self.right_dragged = false;
         self.panning = false;
         self.ctrl = false;
         self.shift = false;

@@ -1,6 +1,13 @@
 # Maintained browser checks
 
 Serve the production build with `REGEN_PROTO=0 NO_COLOR=true trunk serve` on port 8770.
+
+`node tests/command-input.cjs` checks immediate typing after a canvas click, named
+View commands, fresh right-click Move repeat, orbit-versus-click handling, and
+phone orbit/pan/pinch/cancellation. It also checks opacity 0.95, element features
+off, and typed drawing/snap options without feature buttons. Use `NODE_PATH` for
+the Playwright installation and `VIEWER_URL` to choose another viewer origin.
+
 Open `/text-quality.html` for the same-font white-on-black comparison. The displayed
 sizes and metrics come from the Rust fixture; the browser reference loads the same
 bundled font bytes and explicitly enables kerning/common ligatures.

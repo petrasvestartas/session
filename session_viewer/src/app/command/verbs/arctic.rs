@@ -6,7 +6,7 @@ pub const SPEC: Spec = Spec {
     wait_for_option: true,
     ..Spec::new(
         &["Arctic"],
-        "Arctic (On Off): soft contact shading, studio lighting and outlines · G toggles in the viewport",
+        "Arctic (On Off): soft contact shading, studio lighting and outlines",
         parse,
     )
 };

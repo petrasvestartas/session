@@ -192,6 +192,26 @@ pub fn name_of(line: &str) -> &'static str {
         .map_or("", |(spec, _)| spec.names[0])
 }
 
+/// Restart an interactive command without replaying its old coordinates.
+pub fn repeat(line: &str) -> Option<String> {
+    let text = canonical(line);
+    let name = name_of(&text);
+    if name.is_empty() || matches!(name, "Escape" | "Close") {
+        return None;
+    }
+
+    if !draws(name) && parse(name).is_err() {
+        return Some(text);
+    }
+
+    Some(options(name).iter()
+        .filter(|option| text == **option || text.strip_prefix(**option).is_some_and(|tail| tail.starts_with(' ')))
+        .max_by_key(|option| option.len())
+        .copied()
+        .unwrap_or(name)
+        .to_owned())
+}
+
 /// Help text for the verb being typed.
 pub fn hint(line: &str) -> &'static str {
     match command_words(&line.split_whitespace().collect::<Vec<_>>()) {

@@ -12,6 +12,7 @@ use crate::app::snap::Snapping; // register:snap
 /// What each feature keeps between frames; a feature adds its own file and one line here.
 #[derive(Default)]
 pub(crate) struct Features {
+    pub(super) last_command: Option<String>, // command restarted by a right click
     pub(super) cloud_query: Option<crate::app::cloud_query::Query>, // a point-cloud pick in flight; register:cloud_query
     #[cfg(target_arch = "wasm32")] // register:cloud_query
     pub(super) query_generation: u64, // counts cloud queries, old answers dropped; register:cloud_query

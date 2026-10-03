@@ -15,7 +15,7 @@ pub const SPEC: Spec = Spec {
     wait_for_option: true,
     ..Spec::new(
         &["Snap"],
-        "Snap (On Off): snapping and its toolbar · Snap End / Near / Mid / Center / Perp toggles one kind",
+        "Snap (On Off): snapping · Snap End / Near / Mid / Center / Perp toggles one kind",
         parse,
     )
 };

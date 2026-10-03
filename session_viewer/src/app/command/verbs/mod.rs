@@ -17,6 +17,7 @@ macro_rules! verbs {
 }
 
 verbs! {
+    view,
     point,                   // register:point
     line,                    // register:line
     arrow,                   // register:arrow

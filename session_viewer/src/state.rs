@@ -35,7 +35,6 @@ const CLEAR: wgpu::Color = wgpu::Color {
 
 /// Orbit step per frame in `?spin=1` mode.
 const SPIN_STEP: f32 = 0.004;
-const ELEMENT_OPACITY: f32 = 0.9; // default element opacity: nearly solid, hidden edges still show faintly
 
 /// Everything the viewer holds: window, GPU, camera, scene, selection.
 pub struct State {
@@ -1061,7 +1060,7 @@ impl State {
         });
 
         if elements {
-            self.gpu.view.opacity = ELEMENT_OPACITY;
+            self.gpu.view.opacity = crate::engine::gpu::view::DEFAULT_OPACITY;
             self.features.opacity_chosen = true;
         }
     }

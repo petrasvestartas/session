@@ -23,7 +23,7 @@ impl Unit {
 pub const NEAR_FRACTION: f64 = 1.0e-4;
 
 /// A named standard view.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum View {
     Front,
     Back,

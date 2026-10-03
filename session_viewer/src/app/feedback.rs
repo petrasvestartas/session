@@ -137,6 +137,16 @@ pub fn command_line(open: bool) {
 #[cfg(not(target_arch = "wasm32"))]
 pub fn command_line(_open: bool) {}
 
+/// Record a command and its answer in the command dock.
+#[cfg(target_arch = "wasm32")]
+pub fn command_history(line: &str, message: &str) {
+    super::ui::command_line::remember(format!("> {}\n{message}", super::command::canonical(line)));
+}
+
+/// No command history on native.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn command_history(_line: &str, _message: &str) {}
+
 /// Raise the phone keyboard over an empty field; works while a tap is handled.
 #[cfg(target_arch = "wasm32")]
 pub fn raise_keyboard() {

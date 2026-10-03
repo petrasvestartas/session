@@ -211,6 +211,19 @@ impl Ui {
         input.events = events;
         batches.push(input);
         let mut draw = |root: &mut egui::Ui| {
+            // Focus before the field handles this batch, so the first typed character survives.
+            if !keys_taken()
+                && !state.number_box_open()
+                && root.input(|input| input.events.iter().any(|event| {
+                    matches!(event, egui::Event::Text(text) | egui::Event::Paste(text) if !text.is_empty())
+                }))
+            {
+                command_line::STATE.with_borrow_mut(|model| {
+                    model.command_open = true;
+                    model.focus_command = true;
+                });
+                root.memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
+            }
             if let Some(controls) = self.controls.as_mut() {
                 controls.clear();
             }
@@ -309,10 +322,7 @@ impl Ui {
     fn run_line(&mut self, state: &mut State, text: &str) {
         let message = state.run_command(text).unwrap_or_else(|error| error);
         crate::app::feedback::status(&message);
-        command_line::remember(format!(
-            "> {}\n{message}",
-            crate::app::command::canonical(text)
-        ));
+        crate::app::feedback::command_history(text, &message);
         command_line::STATE.with_borrow(|model| {
             if !model.command_open && !model.focus_command {
                 self.context

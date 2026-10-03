@@ -6,7 +6,7 @@ pub const SPEC: Spec = Spec {
     wait_for_option: true,
     ..Spec::new(
         &["Outline"],
-        "Outline (On Off): black surface outlines · O toggles in the viewport",
+        "Outline (On Off): black surface outlines",
         parse,
     )
 };

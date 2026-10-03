@@ -479,3 +479,31 @@ fn discovery_and_layer_options_are_case_insensitive() {
     assert!(parsed("Opacity").is_err());
     assert!(parsed("Layers maybe").is_err());
 }
+
+#[test]
+fn view_commands_replace_viewport_shortcuts() {
+    for name in ["Top", "Side", "Front", "Back", "Left", "Right", "Bottom", "Isometric", "Reset", "Perspective", "Orthographic", "Show Edges", "Hide Edges", "Show Lines", "Hide Lines", "Show Points", "Hide Points", "Outline", "Lighting", "Backfaces", "Xray", "Names", "Hide Selected", "Show All"] {
+        assert!(parse(&format!("View {name}")).is_ok(), "{name}");
+    }
+    assert_eq!(parsed("view top"), Ok("Camera(Top)".into()));
+    assert_eq!(parsed("View Side"), parsed("View Right"));
+    assert_eq!(parsed("View Outline Off"), Ok("Show(Outline, Some(false))".into()));
+    assert!(completions("View ").contains(&"View Show Edges"));
+    for line in ["View", "View Top extra", "View Outline maybe", "View Point Size 0", "View Point Size NaN"] {
+        assert!(parse(line).is_err(), "{line}");
+    }
+    assert!(parse("View Point Size 1.5").is_ok());
+}
+
+#[test]
+fn repeat_restarts_tools_without_reusing_coordinates() {
+    assert_eq!(repeat("m 10,0,0"), Some("Move".into()));
+    assert_eq!(repeat("Rotate 0,0,0 90"), Some("Rotate".into()));
+    assert_eq!(repeat("Line 0,0,0 10,0,0"), Some("Line".into()));
+    assert_eq!(repeat("Polyline Rectangle 0,0,0 10,10,0"), Some("Polyline Rectangle".into()));
+    assert_eq!(repeat("View Top"), Some("View Top".into()));
+    assert_eq!(repeat("Opacity 0.95"), Some("Opacity 0.95".into()));
+    for line in ["", "0,0,0", "@0,10,0", "5", "Close", "Escape", "unknown"] {
+        assert_eq!(repeat(line), None, "{line}");
+    }
+}

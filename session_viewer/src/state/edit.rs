@@ -866,7 +866,30 @@ mod egui_tests {}
 impl State {
     /// Run one command line; the answer is what to show the person.
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
-        let line = &crate::app::command::canonical(line); // `poly line` runs Polyline
+        let line = crate::app::command::canonical(line);
+        let result = self.command_action(&line);
+        if result.is_ok()
+            && let Some(command) = crate::app::command::repeat(&line)
+        {
+            self.features.last_command = Some(command);
+        }
+        result
+    }
+
+    /// Restart the last accepted command against the current selection.
+    pub(crate) fn repeat_command(&mut self) -> bool {
+        let Some(line) = self.features.last_command.clone() else {
+            return false;
+        };
+        let message = self.run_command(&line).unwrap_or_else(|error| error);
+        crate::app::feedback::status(&message);
+        crate::app::feedback::command_history(&line, &message);
+        self.touch();
+        true
+    }
+
+    /// Apply a command or pass its answer to the current tool.
+    fn command_action(&mut self, line: &str) -> Result<String, String> {
         self.cancel_gesture();
         self.features.mark = None; // register:annotate
         // while drawing, points and Enter go to the draft

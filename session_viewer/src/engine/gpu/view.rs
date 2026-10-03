@@ -14,7 +14,7 @@ pub struct View {
     pub feather_px: f32,          // edge softness of dots, px
     pub lit: bool,                // headlight on mesh faces, `D`
     pub backface: bool,           // back faces painted red, `B`
-    pub opacity: f32,             // face alpha; 0 = x-ray, `P` toggles
+    pub opacity: f32,             // face alpha; 0 = x-ray
     pub msaa_forced: Option<u32>, // 4 forces 4x, other values 1x
     pub perf: bool,               // draw every frame and show timing
     pub spin: bool,               // orbit a little every frame
@@ -60,7 +60,7 @@ impl View {
 pub const DEFAULT_MAX_DPR: f64 = 2.0;
 
 /// Face opacity unless `?opacity=` says otherwise: nearly solid, hidden edges still show faintly.
-pub const DEFAULT_OPACITY: f32 = 0.9;
+pub const DEFAULT_OPACITY: f32 = 0.95;
 
 /// Framebuffer pixels per CSS pixel, capped by `?dpr=` or else at `DEFAULT_MAX_DPR`.
 pub fn device_pixel_ratio() -> f64 {
