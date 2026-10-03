@@ -22,5 +22,6 @@ Local checks: 500 native tests passed, 53 ignored; wasm check and optimized Trun
 
 - Completed: hybrid depth anchors draw 100% in all six far-floor cases; 501 native tests pass, including existing close-up hidden-ink checks. Chrome passes 24 close-up views.
 - Phone opacity defaults to 1; desktop stays 0.95. Remove automatic element dimming so explicit URL opacity is retained; browser acceptance pending.
-- Compressed publishing, polling identity consistency and first-frame pipeline preparation.
+- Completed: publish scenes up to 32 MiB with deterministic gzip, immutable compressed-byte revisions and decoded manifest size. The live floor now transfers 811,523 bytes (83.69% smaller); decoded SHA-256 stays unchanged. Chrome checks HTTP gzip and headerless fallback without any range probe. Cloudflare serves decoded bytes to clients without Accept-Encoding, so publisher verification explicitly requests gzip.
+- Pending: polling identity consistency and first-frame pipeline preparation.
 - Retain close-up creases, round bores and tree colours; verify deployment workflows.

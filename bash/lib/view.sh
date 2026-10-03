@@ -46,7 +46,9 @@ CREDS
 # command line (`ps` shows arguments to every user). Made once per shell, removed on exit.
 r2_curl_config() {
     if [ -z "${R2_CURL_CONFIG:-}" ]; then
-        R2_CURL_CONFIG=$(umask 077 && mktemp) || return 1
+        local work="${VIEWER_REVIEW_WORK:-${HOME}/viewer_review_work}"
+        mkdir -p "$work" || return 1
+        R2_CURL_CONFIG=$(umask 077 && mktemp "$work/r2-credentials-XXXXXX") || return 1
         trap 'rm -f "$R2_CURL_CONFIG"' EXIT
         printf 'user = "%s:%s"\n' "$(r2_credential aws_access_key_id)" "$(r2_credential aws_secret_access_key)" > "$R2_CURL_CONFIG"
     fi
@@ -55,13 +57,15 @@ r2_curl_config() {
 # PUT one file to one key with curl's built-in SigV4 signing: one HTTPS request and no
 # Python start-up (the aws CLI cost ~0.5 s per call). Prints the HTTP status.
 r2_put() {
-    local src="$1" key="$2" type="application/octet-stream" cache="no-cache"
+    local src="$1" key="$2" encoding="${3:-}" type="application/octet-stream" cache="no-cache"
+    local headers=()
+    [ -z "$encoding" ] || headers=(-H "Content-Encoding: $encoding")
     r2_curl_config || return 1
     case "$key" in *.toml) type="application/toml" ;; *.yaml|*.yml) type="application/yaml" ;; *.json) type="application/json" ;; esac
     case "$key" in pb/revisions/*) cache="public, max-age=31536000, immutable" ;; esac
     curl --connect-timeout 10 --max-time 180 --retry 2 --retry-delay 1 --retry-max-time 200 -sS -o /dev/null -w "%{http_code}" -X PUT -T "$src" \
         --aws-sigv4 "aws:amz:auto:s3" -K "$R2_CURL_CONFIG" \
-        -H "Content-Type: $type" -H "Cache-Control: $cache" \
+        -H "Content-Type: $type" -H "Cache-Control: $cache" "${headers[@]}" \
         "${R2_ENDPOINT}/${R2_BUCKET}/${key}"
 }
 
@@ -75,34 +79,30 @@ r2_head_status() {
 # same byte count. An upload that reports success and serves nothing is the failure worth
 # catching, because the page keeps drawing the previous scene and looks fine.
 r2_upload() {
-    local src="$1" key="$2"
+    local src="$1" key="$2" encoding="${3:-}"
     local size code served
     size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
 
     echo "  ${src}  ->  s3://${R2_BUCKET}/${key}  (${size} bytes)"
-    code=$(r2_put "$src" "$key") || return 1
+    code=$(r2_put "$src" "$key" "${encoding:-}") || return 1
     if [ "$code" != "200" ]; then
         echo "ERROR: PUT ${key} answered HTTP ${code}" >&2
         return 1
     fi
 
-    served=$(curl --connect-timeout 10 --max-time 30 --retry 2 --retry-delay 1 --retry-max-time 60 -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
-    if [ "$served" != "$size" ]; then
-        echo "ERROR: uploaded ${size} bytes but ${R2_PUBLIC}/${key} serves '${served:-nothing}'" >&2
-        return 1
-    fi
-    echo "  verified: ${R2_PUBLIC}/${key}"
+    r2_verify "$key" "$size" "$encoding"
+
 }
 
 # A content-addressed key is immutable: reuse verified bytes instead of uploading them again.
 r2_revision() {
-    local src="$1" key="$2" code size
+    local src="$1" key="$2" encoding="${3:-}" code size
     case "$key" in pb/revisions/*.pb) ;; *) echo 'ERROR: expected a content-addressed revision key' >&2; return 1 ;; esac
     size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
     code=$(r2_head_status "$key") || return 1
     case "$code" in
-        200) r2_verify "$key" "$size" ;;
-        404) r2_upload "$src" "$key" ;;
+        200) r2_verify "$key" "$size" "$encoding" ;;
+        404) r2_upload "$src" "$key" "$encoding" ;;
         *) echo "ERROR: revision lookup ${key} answered HTTP ${code}" >&2; return 1 ;;
     esac
 }
@@ -110,25 +110,27 @@ r2_revision() {
 # `r2_upload`, but the verify runs in the background: the caller `wait`s on `$!` and gets the
 # verify's exit status, so two uploads and their checks overlap instead of queueing.
 r2_upload_start() {
-    local src="$1" key="$2"
+    local src="$1" key="$2" encoding="${3:-}"
     local size code
     size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
 
     echo "  ${src}  ->  s3://${R2_BUCKET}/${key}  (${size} bytes)"
-    code=$(r2_put "$src" "$key") || return 1
+    code=$(r2_put "$src" "$key" "${encoding:-}") || return 1
     if [ "$code" != "200" ]; then
         echo "ERROR: PUT ${key} answered HTTP ${code}" >&2
         return 1
     fi
-    r2_verify "$key" "$size" &
+    r2_verify "$key" "$size" "$encoding" &
 }
 
 # The public URL must serve `size` bytes for `key`.
 r2_verify() {
-    local key="$1" size="$2" served
-    served=$(curl --connect-timeout 10 --max-time 30 --retry 2 --retry-delay 1 --retry-max-time 60 -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
-    if [ "$served" != "$size" ]; then
-        echo "ERROR: uploaded ${size} bytes but ${R2_PUBLIC}/${key} serves '${served:-nothing}'" >&2
+    local key="$1" size="$2" encoding="${3:-}" served headers actual_encoding
+    headers=$(curl --connect-timeout 10 --max-time 30 --retry 2 --retry-delay 1 --retry-max-time 60 -sSI -H "Accept-Encoding: gzip" "${R2_PUBLIC}/${key}" | tr -d '\r')
+    served=$(awk 'tolower($1)=="content-length:" {print $2}' <<< "$headers")
+    actual_encoding=$(awk 'tolower($1)=="content-encoding:" {print $2}' <<< "$headers")
+    if [ "$served" != "$size" ] || { [ -n "$encoding" ] && [ "$actual_encoding" != "$encoding" ]; }; then
+        echo "ERROR: ${key} expected ${size} bytes/${encoding:-identity}, served ${served:-nothing}/${actual_encoding:-identity}" >&2
         return 1
     fi
     echo "  verified: ${R2_PUBLIC}/${key}"
@@ -148,14 +150,18 @@ r2_notify() {
 # Copy a verified immutable object to the stable alias without uploading the payload twice.
 # R2 supports S3 CopyObject. Read the XML body too: HTTP 200 may contain an embedded error.
 r2_alias() {
-    local source="$1" key="$2" size="$3" response code
+    local source="$1" key="$2" size="$3" encoding="${4:-}" response code
+    local headers=()
+    [ -z "$encoding" ] || headers=(-H "Content-Encoding: $encoding")
     r2_curl_config || return 1
-    response=$(mktemp) || return 1
+    local work="${VIEWER_REVIEW_WORK:-${HOME}/viewer_review_work}"
+    mkdir -p "$work" || return 1
+    response=$(mktemp "$work/r2-copy-XXXXXX") || return 1
     code=$(curl --connect-timeout 10 --max-time 180 --retry 2 --retry-delay 1 --retry-max-time 200 \
         -sS -o "$response" -w '%{http_code}' -X PUT --data '' \
         --aws-sigv4 'aws:amz:auto:s3' -K "$R2_CURL_CONFIG" \
         -H "x-amz-copy-source: /${R2_BUCKET}/${source}" \
-        -H 'x-amz-metadata-directive: REPLACE' -H 'Content-Type: application/octet-stream' -H 'Cache-Control: no-cache' \
+        -H 'x-amz-metadata-directive: REPLACE' -H 'Content-Type: application/octet-stream' -H 'Cache-Control: no-cache' "${headers[@]}" \
         "${R2_ENDPOINT}/${R2_BUCKET}/${key}") || { rm -f "$response"; return 1; }
     if [ "$code" != 200 ] || ! python3 -c 'import sys, xml.etree.ElementTree as E; root=E.parse(sys.argv[1]).getroot(); sys.exit(root.tag.split("}")[-1] != "CopyObjectResult")' "$response"; then
         rm -f "$response"
@@ -163,7 +169,7 @@ r2_alias() {
         return 1
     fi
     rm -f "$response"
-    r2_verify "$key" "$size"
+    r2_verify "$key" "$size" "$encoding"
 }
 
 # Monotonic elapsed timing is independent of wall-clock adjustments and date formatting.

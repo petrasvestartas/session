@@ -63,12 +63,21 @@ def main():
         for item in data["items"]:
             print(item["file"])
         return
-    geometry, revision, output = sys.argv[2:]
+    geometry, revision, output = sys.argv[2:5]
+    encoding = sys.argv[5] if len(sys.argv) > 5 else ""
+    if encoding not in ("", "gzip"):
+        raise ValueError("unsupported payload encoding")
     names = {Path(geometry).name, "view_live.pb"}
     matched = False
     for item in data["items"]:
         if item["file"] == revision or (Path(item["file"]).name in names and not item["file"].startswith(("http://", "https://"))):
             item["file"] = revision
+            if encoding:
+                item["encoding"] = encoding
+                item["size"] = Path(geometry).stat().st_size
+            else:
+                item.pop("encoding", None)
+                item.pop("size", None)
             matched = True
     if not matched:
         raise ValueError("manifest does not reference the supplied geometry or view_live.pb")
@@ -81,5 +90,5 @@ if __name__ == "__main__":
     except (ValueError, OSError, ImportError) as error:
         sys.exit("manifest: " + str(error))
 
-# Workspace root: python3 bash/lib/view_manifest.py scene.toml scan.pb pb/revisions/<sha>.pb /tmp/view_live.toml
+# Workspace root: python3 bash/lib/view_manifest.py scene.toml scan.pb pb/revisions/<sha>.pb ~/viewer_review_work/view_live.toml
 # Local publisher helper; public scene URL remains ?scene=view_live.toml.
